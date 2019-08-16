@@ -133,6 +133,8 @@ export interface PeerConfig {
 	readonly wsMaxMessageRate: number;
 	readonly wsMaxMessageRatePenalty: number;
 	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize: number;
+	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
 }
 
@@ -513,7 +515,11 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_RPC_GET_PEERS_LIST,
 			});
 
-			return validatePeersInfoList(response.data);
+			return validatePeersInfoList(
+				response.data,
+				this._peerConfig.maxPeerDiscoveryResponseLength,
+				this._peerConfig.maxPeerInfoSize,
+			);
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
@@ -569,6 +575,7 @@ export class Peer extends EventEmitter {
 		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
 		const newPeerInfo = validatePeerInfo(
 			protocolPeerInfo,
+			this._peerConfig.maxPeerInfoSize,
 		) as P2PDiscoveredPeerInfo;
 		this.updatePeerInfo(newPeerInfo);
 	}

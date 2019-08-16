@@ -91,6 +91,7 @@ export interface P2PConfig {
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
 	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize?: number;
 	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;
@@ -107,7 +108,8 @@ export interface P2PConfig {
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
 	readonly minimumPeerDiscoveryThreshold?: number;
-	readonly maximumPeerDiscoveryResponseSize?: number;
+	readonly peerDiscoveryResponseLength?: number;
+	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly secret?: number;
 }
 

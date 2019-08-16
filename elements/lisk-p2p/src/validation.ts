@@ -45,6 +45,9 @@ interface RPCPeerListResponse {
 	readonly success?: boolean; // Could be used in future
 }
 
+export const getByteSize = (object: any): number =>
+	Buffer.byteLength(JSON.stringify(object));
+
 export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	if (
 		(!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) ||
@@ -78,7 +81,10 @@ export const outgoingPeerInfoSanitization = (
 	};
 };
 
-export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
+export const validatePeerInfo = (
+	rawPeerInfo: unknown,
+	maxByteSize: number,
+): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -117,11 +123,20 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 
 	const { ip, ...peerInfoUpdated } = peerInfo;
 
+	const byteSize = getByteSize(peerInfoUpdated);
+	if (byteSize > maxByteSize) {
+		throw new InvalidRPCResponseError(
+			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+		);
+	}
+
 	return peerInfoUpdated;
 };
 
 export const validatePeersInfoList = (
 	rawBasicPeerInfoList: unknown,
+	maxPeerInfoListLength: number,
+	maxPeerInfoByteSize: number,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
@@ -129,7 +144,12 @@ export const validatePeersInfoList = (
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
+		if (peers.length > maxPeerInfoListLength) {
+			throw new InvalidRPCResponseError('PeerInfo list was too long');
+		}
+		const peerList = peers.map<P2PPeerInfo>(peerInfo =>
+			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
+		);
 
 		return peerList;
 	} else {

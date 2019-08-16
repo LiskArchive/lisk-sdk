@@ -2251,7 +2251,7 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Peer selection response to fetch peers RPC', () => {
 		const MINIMUM_PEER_DISCOVERY_THRESHOLD = 1;
-		const MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE = 3;
+		const MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 3;
 
 		describe(`When minimum peer discovery threshold is set to ${MINIMUM_PEER_DISCOVERY_THRESHOLD}`, () => {
 			beforeEach(async () => {
@@ -2316,7 +2316,7 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe(`When maximum peer discovery response size is set to ${MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE}`, () => {
+		describe(`When maximum peer discovery response size is set to ${MAX_PEER_DISCOVERY_RESPONSE_LENGTH}`, () => {
 			beforeEach(async () => {
 				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 					// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -2340,7 +2340,7 @@ describe('Integration tests for P2P library', () => {
 						populatorInterval: 10000,
 						maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 						maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
-						maximumPeerDiscoveryResponseSize: MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE,
+						maxPeerDiscoveryResponseLength: MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						nodeInfo: {
 							wsPort: nodePort,
 							nethash:
@@ -2376,7 +2376,7 @@ describe('Integration tests for P2P library', () => {
 				const firstP2PNode = p2pNodeList[0];
 				const { newPeers } = firstP2PNode.getNetworkStatus();
 				expect(newPeers.length).to.be.lessThan(
-					MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE,
+					MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 				);
 			});
 		});
