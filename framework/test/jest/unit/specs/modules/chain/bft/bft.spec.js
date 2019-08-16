@@ -111,7 +111,9 @@ describe('bft', () => {
 					.spyOn(bft, '_getLastBlockHeight')
 					.mockImplementation(() => jest.fn());
 
-				jest.spyOn(bft, 'loadBlocks').mockImplementation(() => jest.fn());
+				jest
+					.spyOn(bft, 'loadBlocksFromStorage')
+					.mockImplementation(() => jest.fn());
 			});
 
 			it('should invoke _initFinalityManager()', async () => {
@@ -126,7 +128,7 @@ describe('bft', () => {
 				expect(bft._getLastBlockHeight).toHaveBeenCalledTimes(1);
 			});
 
-			it('should invoke loadBlocks() for finalizedHeight if its highest', async () => {
+			it('should invoke loadBlocksFromStorage() for finalizedHeight if its highest', async () => {
 				bft.constants.startingHeight = 0;
 				const finalizedHeight = 500;
 				const lastBlockHeight = 600;
@@ -139,14 +141,14 @@ describe('bft', () => {
 
 				await bft.init();
 
-				expect(bft.loadBlocks).toHaveBeenCalledTimes(1);
-				expect(bft.loadBlocks).toHaveBeenCalledWith({
+				expect(bft.loadBlocksFromStorage).toHaveBeenCalledTimes(1);
+				expect(bft.loadBlocksFromStorage).toHaveBeenCalledWith({
 					fromHeight: finalizedHeight,
 					tillHeight: lastBlockHeight,
 				});
 			});
 
-			it('should invoke loadBlocks() for lastBlockHeight - TWO_ROUNDS if its highest', async () => {
+			it('should invoke loadBlocksFromStorage() for lastBlockHeight - TWO_ROUNDS if its highest', async () => {
 				bft.constants.startingHeight = 0;
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
@@ -159,14 +161,14 @@ describe('bft', () => {
 
 				await bft.init();
 
-				expect(bft.loadBlocks).toHaveBeenCalledTimes(1);
-				expect(bft.loadBlocks).toHaveBeenCalledWith({
+				expect(bft.loadBlocksFromStorage).toHaveBeenCalledTimes(1);
+				expect(bft.loadBlocksFromStorage).toHaveBeenCalledWith({
 					fromHeight: lastBlockHeight - activeDelegates * 2,
 					tillHeight: lastBlockHeight,
 				});
 			});
 
-			it('should invoke loadBlocks() for staringHeight if its highest', async () => {
+			it('should invoke loadBlocksFromStorage() for staringHeight if its highest', async () => {
 				bft.constants.startingHeight = 550;
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
@@ -179,8 +181,8 @@ describe('bft', () => {
 
 				await bft.init();
 
-				expect(bft.loadBlocks).toHaveBeenCalledTimes(1);
-				expect(bft.loadBlocks).toHaveBeenCalledWith({
+				expect(bft.loadBlocksFromStorage).toHaveBeenCalledTimes(1);
+				expect(bft.loadBlocksFromStorage).toHaveBeenCalledWith({
 					fromHeight: bft.constants.startingHeight,
 					tillHeight: lastBlockHeight,
 				});
@@ -281,7 +283,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('loadBlocks()', () => {
+		describe('loadBlocksFromStorage()', () => {
 			const fromHeight = 0;
 			const tillHeight = 10;
 			let bft;
@@ -297,7 +299,7 @@ describe('bft', () => {
 				storageMock.entities.Block.get.mockReset();
 				storageMock.entities.Block.get.mockReturnValue([]);
 
-				await bft.loadBlocks({ fromHeight, tillHeight });
+				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
 
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledWith(
@@ -315,7 +317,7 @@ describe('bft', () => {
 					{ version: '2' },
 				]);
 
-				await bft.loadBlocks({ fromHeight, tillHeight });
+				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
 				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledTimes(
 					1,
 				);
@@ -331,7 +333,7 @@ describe('bft', () => {
 				];
 				storageMock.entities.Block.get.mockReturnValue(blocks);
 
-				await bft.loadBlocks({ fromHeight, tillHeight });
+				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
 
 				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledTimes(
 					blocks.length,
@@ -351,7 +353,7 @@ describe('bft', () => {
 				storageMock.entities.Block.get.mockReturnValue(blocks);
 				bftModule.extractBFTBlockHeaderFromBlock.mockReturnValue(blockHeader);
 
-				await bft.loadBlocks({ fromHeight, tillHeight });
+				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
 
 				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledTimes(1);
 				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledWith(
