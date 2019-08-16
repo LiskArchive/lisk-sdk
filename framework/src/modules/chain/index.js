@@ -43,7 +43,6 @@ class ChainModule extends BaseModule {
 			author: 'LiskHQ',
 			version: '0.1.0',
 			name: 'lisk-framework-chain',
-			module: 'chain',
 		};
 	}
 

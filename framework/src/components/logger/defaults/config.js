@@ -41,7 +41,6 @@ const defaultConfig = {
 		fileLogLevel: 'info',
 		consoleLogLevel: 'none',
 		logFileName: 'logs/lisk.log',
-		module: 'chain',
 	},
 };
 

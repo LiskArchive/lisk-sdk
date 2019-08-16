@@ -30,7 +30,7 @@ const createDirIfNotExist = filePath => {
  * Creates a logger object with bunyan
  *
  * @param {Object} config
- * @param {string} config.name Name of the module/component logs are written for
+ * @param {string} config.module Name of the module logs are written for
  * @param {string} config.logFileName
  * @param {string} config.fileLogLevel
  * @param {string} config.consoleLogLevel

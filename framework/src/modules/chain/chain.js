@@ -69,6 +69,7 @@ module.exports = class Chain {
 			'app:getComponentConfig',
 			'logger',
 		);
+
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
 			'storage',
@@ -83,8 +84,7 @@ module.exports = class Chain {
 			'app:getApplicationState',
 		);
 
-		loggerConfig.module = 'chain';
-		this.logger = createLoggerComponent(loggerConfig);
+		this.logger = createLoggerComponent({ ...loggerConfig, module: 'chain' });
 		const dbLogger =
 			storageConfig.logFileName &&
 			storageConfig.logFileName === loggerConfig.logFileName
@@ -92,7 +92,7 @@ module.exports = class Chain {
 				: createLoggerComponent({
 						...loggerConfig,
 						logFileName: storageConfig.logFileName,
-						module: `${loggerConfig.module}:database`,
+						module: 'chain:database',
 				  });
 
 		global.constants = this.options.constants;

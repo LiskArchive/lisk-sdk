@@ -41,7 +41,6 @@ class HttpAPIModule extends BaseModule {
 			author: 'LiskHQ',
 			version: '0.1.0',
 			name: 'lisk-framework-http-api',
-			module: 'http_api',
 		};
 	}
 
