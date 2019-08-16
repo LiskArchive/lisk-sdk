@@ -64,6 +64,8 @@ import {
 import { getUniquePeersbyIp } from './peer_selection';
 import { constructPeerIdFromPeerInfo } from './utils';
 
+import { EVICTED_PEER_CODE } from './disconnect_status_codes';
+
 export {
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
@@ -109,6 +111,7 @@ interface PeerPoolConfig {
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
 export const EVENT_REMOVE_PEER = 'removePeer';
+export const INTENTIONAL_DISCONNECT_STATUS_CODE = 1000;
 
 export enum PROTECTION_CATEGORY {
 	NET_GROUP = 'netgroup',
@@ -230,13 +233,23 @@ export class PeerPool extends EventEmitter {
 		};
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
 			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
-			this.removePeer(peerId);
+			this.removePeer(
+				peerId,
+				closePacket.code,
+				`Outbound peer ${peerId} disconnected with reason: ${closePacket.reason ||
+					'Unknown reason'}`,
+			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
 			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
-			this.removePeer(peerId);
+			this.removePeer(
+				peerId,
+				closePacket.code,
+				`Inbound peer ${peerId} disconnected with reason: ${closePacket.reason ||
+					'Unknown reason'}`,
+			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
@@ -489,7 +502,11 @@ export class PeerPool extends EventEmitter {
 		}
 
 		this._peerMap.forEach((peer: Peer) => {
-			this.removePeer(peer.id);
+			this.removePeer(
+				peer.id,
+				INTENTIONAL_DISCONNECT_STATUS_CODE,
+				`Intentionally removed peer ${peer.id}`,
+			);
 		});
 	}
 
@@ -535,10 +552,10 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.has(peerId);
 	}
 
-	public removePeer(peerId: string): boolean {
+	public removePeer(peerId: string, code: number, reason: string): boolean {
 		const peer = this._peerMap.get(peerId);
 		if (peer) {
-			peer.disconnect();
+			peer.disconnect(code, reason);
 			this._unbindHandlersFromPeer(peer);
 		}
 
@@ -630,7 +647,11 @@ export class PeerPool extends EventEmitter {
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(peers)[0];
 			if (selectedPeer) {
-				this.removePeer(selectedPeer.id);
+				this.removePeer(
+					selectedPeer.id,
+					EVICTED_PEER_CODE,
+					`Evicted outbound peer ${selectedPeer.id}`,
+				);
 			}
 		}
 
@@ -638,7 +659,11 @@ export class PeerPool extends EventEmitter {
 			const evictionCandidates = this._selectPeersForEviction();
 			const peerToEvict = shuffle(evictionCandidates)[0];
 			if (peerToEvict) {
-				this.removePeer(peerToEvict.id);
+				this.removePeer(
+					peerToEvict.id,
+					EVICTED_PEER_CODE,
+					`Evicted inbound peer ${peerToEvict.id}`,
+				);
 			}
 		}
 	}
