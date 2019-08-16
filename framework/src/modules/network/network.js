@@ -179,7 +179,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_CLOSE_INBOUND, closePacket => {
 			this.logger.debug(
-				`INbound connection of peer ${closePacket.peerInfo.ipAddress}:${
+				`Inbound connection of peer ${closePacket.peerInfo.ipAddress}:${
 					closePacket.peerInfo.wsPort
 				} was closed with code ${closePacket.code} and reason: ${
 					closePacket.reason
