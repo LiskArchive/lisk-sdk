@@ -29,7 +29,7 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 
 | Dependencies     | Version |
 | ---------------- | ------- |
-| NodeJS           | 10.15.3 |
+| NodeJS           | 10.4+   |
 | PostgreSQL       | 10+     |
 | Redis (optional) | 5+      |
 
