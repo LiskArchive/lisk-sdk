@@ -139,7 +139,7 @@ const defaultConfig = {
 		peerDiscoveryResponseLength: 1000,
 		maxPeerDiscoveryResponseLength: 1000,
 		maxPeerInfoSize: 20480,
-		wsMaxPayload: 2097152,
+		wsMaxPayload: 3048576,
 		outboundShuffleInterval: 300000,
 	},
 };
