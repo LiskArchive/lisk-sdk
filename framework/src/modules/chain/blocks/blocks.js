@@ -302,7 +302,12 @@ class Blocks extends EventEmitter {
 	}
 
 	async recoverChain() {
+		const originalLastBlock = cloneDeep(this._lastBlock);
 		this._lastBlock = await this.blocksChain.deleteLastBlock(this._lastBlock);
+		this.emit(EVENT_DELETE_BLOCK, {
+			block: originalLastBlock,
+			newLastBlock: cloneDeep(this._lastBlock),
+		});
 		return this._lastBlock;
 	}
 

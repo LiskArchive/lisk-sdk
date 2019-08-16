@@ -100,7 +100,7 @@ describe('Loader', () => {
 				await loader._getTransactionsFromNetwork();
 				expect(
 					transactionPoolModuleStub.processUnconfirmedTransaction,
-				).toBeCalledTimes(1);
+				).toHaveBeenCalledTimes(1);
 			});
 		});
 
@@ -121,6 +121,65 @@ describe('Loader', () => {
 				expect(error[0].message).toBe(
 					"should have required property 'transactions'",
 				);
+			});
+		});
+	});
+
+	describe('#_loadBlocksFromNetwork', () => {
+		let loader;
+		let channelStub;
+		let blocksModuleStub;
+
+		beforeEach(async () => {
+			const loggerStub = {
+				warn: jest.fn(),
+				debug: jest.fn(),
+			};
+			const interfaceAdapters = {
+				transactions: new TransactionInterfaceAdapter(registeredTransactions),
+			};
+			channelStub = {
+				invoke: jest.fn(),
+			};
+			blocksModuleStub = {
+				recoverChain: jest.fn(),
+				lastBlock: {
+					id: 'blockID',
+				},
+			};
+			const peersModuleStub = {
+				isPoorConsensus: jest.fn().mockReturnValue(true),
+			};
+			loader = new Loader({
+				logger: loggerStub,
+				channel: channelStub,
+				blocksModule: blocksModuleStub,
+				peersModule: peersModuleStub,
+				interfaceAdapters,
+			});
+		});
+
+		describe('when blocks endpoint returns success false', () => {
+			beforeEach(async () => {
+				channelStub.invoke.mockReturnValue({ data: { success: false } });
+			});
+
+			it('should call recoverChain of blocks module', async () => {
+				await loader._loadBlocksFromNetwork();
+				expect(blocksModuleStub.recoverChain).toHaveBeenCalledTimes(5);
+			});
+		});
+
+		describe('when blocks endpoint returns success true and empty array', () => {
+			beforeEach(async () => {
+				channelStub.invoke.mockReturnValue({
+					data: { success: [], blocks: [] },
+				});
+			});
+
+			it('should not call recoverChain of blocks module', async () => {
+				await loader._loadBlocksFromNetwork();
+				expect(blocksModuleStub.recoverChain).not.toHaveBeenCalled();
 			});
 		});
 	});
