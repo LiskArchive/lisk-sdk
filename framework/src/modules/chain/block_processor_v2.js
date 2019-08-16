@@ -169,7 +169,7 @@ class BlockProcessorV2 extends BlockProcessor {
 		]);
 
 		this.fork.pipe([
-			this.blocksModule.forkChoice.bind(this), // validate common block header
+			data => this.blocksModule.forkChoice(data), // validate common block header
 		]);
 
 		this.validateNew.pipe([data => this.blocksModule.validateNew(data)]);
