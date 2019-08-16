@@ -334,41 +334,11 @@ class Loader {
 	 */
 	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
-		try {
-			const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
-				blocks,
-			);
-			this.blocksToSync = lastValidBlock.height;
-
-			return lastValidBlock.id === lastBlock.id;
-		} catch (loadBlocksFromNetworkErr) {
-			this.logger.debug(
-				loadBlocksFromNetworkErr instanceof Error
-					? loadBlocksFromNetworkErr
-					: new Error(loadBlocksFromNetworkErr),
-				'Chain recovery failed after failing to load blocks from the network',
-			);
-			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
-				this.logger.debug('Perform chain recovery due to poor consensus');
-				try {
-					await this.blocksModule.recoverChain();
-				} catch (recoveryError) {
-					throw new Error(
-						`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`,
-					);
-				}
-				throw new Error(
-					`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`,
-				);
-			}
-			this.logger.error(
-				'Failed to process block from network',
-				loadBlocksFromNetworkErr,
-			);
-			throw new Error(
-				`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`,
-			);
-		}
+		const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
+			blocks,
+		);
+		this.blocksToSync = lastValidBlock.height;
+		return lastValidBlock.id === lastBlock.id;
 	}
 
 	/**
@@ -385,23 +355,48 @@ class Loader {
 		let loaded = false;
 		while (!loaded && failedAttemptsToLoad < 5) {
 			try {
-				// eslint-disable-next-line no-await-in-loop
-				const blocksFromNetwork = await this._getBlocksFromNetwork();
-				// eslint-disable-next-line no-await-in-loop
-				const blocksAfterValidate = await this._validateBlocks(
-					blocksFromNetwork,
-				);
+				let blocksAfterValidate;
+				try {
+					// eslint-disable-next-line no-await-in-loop
+					const blocksFromNetwork = await this._getBlocksFromNetwork();
+					// eslint-disable-next-line no-await-in-loop
+					blocksAfterValidate = await this._validateBlocks(blocksFromNetwork);
+				} catch (loadBlocksFromNetworkErr) {
+					// eslint-disable-next-line no-await-in-loop
+					await this._handleBlocksFromNetworkError(loadBlocksFromNetworkErr);
+				}
 				// eslint-disable-next-line no-await-in-loop
 				loaded = await this._getValidatedBlocksFromNetwork(blocksAfterValidate);
 				// Reset counter after a batch of blocks was successfully loaded from the network
 				failedAttemptsToLoad = 0;
 			} catch (err) {
-				if (err) {
-					failedAttemptsToLoad += 1;
-					this.logger.error(convertErrorsToString(err));
-				}
+				failedAttemptsToLoad += 1;
+				this.logger.error(convertErrorsToString(err));
 			}
 		}
+	}
+
+	async _handleBlocksFromNetworkError(error) {
+		this.logger.debug(
+			error instanceof Error ? error : new Error(error),
+			'Chain recovery failed after failing to load blocks from the network',
+		);
+		if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
+			this.logger.debug('Perform chain recovery due to poor consensus');
+			try {
+				// eslint-disable-next-line no-await-in-loop
+				await this.blocksModule.recoverChain();
+			} catch (recoveryError) {
+				throw new Error(
+					`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`,
+				);
+			}
+			throw new Error(
+				`Chain recovery failed chain recovery after failing to load blocks ${error}`,
+			);
+		}
+		this.logger.error('Failed to process block from network', error);
+		throw new Error(`Failed to load blocks from the network. ${error}`);
 	}
 }
 
