@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { describeApplication, listApplication } from '../../utils/core/pm2';
 
@@ -21,6 +22,15 @@ interface Args {
 }
 
 export default class StatusCommand extends BaseCommand {
+	static flags = {
+		json: flagParser.boolean({
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			hidden: true,
+		}),
+	};
+
 	static args = [
 		{
 			name: 'name',
@@ -41,9 +51,9 @@ export default class StatusCommand extends BaseCommand {
 			const instance = await describeApplication(name);
 
 			if (!instance) {
-				this.log(
-					`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
-				);
+				this.print({
+					message: `Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install --help`,
+				});
 
 				return;
 			}
@@ -52,9 +62,10 @@ export default class StatusCommand extends BaseCommand {
 			const instances = await listApplication();
 
 			if (!instances.length) {
-				this.log(
-					'Lisk Core instances not available, use lisk core:install --help',
-				);
+				this.print({
+					message:
+						'Lisk Core instances not available, Please install using lisk core:install --help',
+				});
 			} else {
 				const toDisplay = [
 					'name',
