@@ -788,18 +788,17 @@ export class P2P extends EventEmitter {
 			.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const maximumPeerDiscoveryResponseLength = this._config
-			.peerDiscoveryResponseLength
+		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
 			? this._config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 
 		const knownPeers = this._peerBook.getAllPeers();
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
-			Math.min(maximumPeerDiscoveryResponseLength, knownPeers.length * 0.25),
+			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.25),
 		);
 		const max = Math.floor(
-			Math.min(maximumPeerDiscoveryResponseLength, knownPeers.length * 0.5),
+			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.5),
 		);
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
 		const randomPeerCount = Math.max(
