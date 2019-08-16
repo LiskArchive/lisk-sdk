@@ -173,7 +173,7 @@ module.exports = class Chain {
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
 			await this.blocks.loadBlockChain(this.options.loading.rebuildUpToRound);
-			await this.bft.init();
+			await this.bft.bootstrap();
 
 			if (this.options.loading.rebuildUpToRound) {
 				process.emit('cleanup');

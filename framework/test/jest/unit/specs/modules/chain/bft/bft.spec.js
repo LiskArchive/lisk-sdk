@@ -97,7 +97,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('init()', () => {
+		describe('bootstrap()', () => {
 			let bft;
 
 			beforeEach(async () => {
@@ -117,13 +117,13 @@ describe('bft', () => {
 			});
 
 			it('should invoke _initFinalityManager()', async () => {
-				await bft.init();
+				await bft.bootstrap();
 
 				expect(bft._initFinalityManager).toHaveBeenCalledTimes(1);
 			});
 
 			it('should invoke _getLastBlockHeight()', async () => {
-				await bft.init();
+				await bft.bootstrap();
 
 				expect(bft._getLastBlockHeight).toHaveBeenCalledTimes(1);
 			});
@@ -139,7 +139,7 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init();
+				await bft.bootstrap();
 
 				expect(bft.loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft.loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -159,7 +159,7 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init();
+				await bft.bootstrap();
 
 				expect(bft.loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft.loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -179,7 +179,7 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init();
+				await bft.bootstrap();
 
 				expect(bft.loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft.loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -292,7 +292,7 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
 				jest.spyOn(bftModule, 'extractBFTBlockHeaderFromBlock');
-				await bft.init();
+				await bft.bootstrap();
 			});
 
 			it('should call BlockEntity.get with particular parameters', async () => {
