@@ -18,6 +18,8 @@ const {
 	FORK_STATUS_DISCARD,
 	FORK_STATUS_REVERT,
 	FORK_STATUS_SYNC,
+	BLOCKCHAIN_STATUS_REBUILD,
+	BLOCKCHAIN_STATUS_RECOVERY,
 } = require('../blocks');
 
 class Processor {
@@ -37,8 +39,75 @@ class Processor {
 	}
 
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
-	async init(genesisBlock) {
-		// do init check for block state
+	async init(genesisBlock, { rebuildUptoRound }) {
+		// do init check for block state. We need to load the blockchain
+		const blockProcessor = this._getBlockProcessor(genesisBlock);
+		await blockProcessor.saveGenesisBlock();
+		const status = await this.blocksModule.checkBlockchainStatus();
+		if (status === BLOCKCHAIN_STATUS_REBUILD) {
+			// Need to fix this.
+			await this.storage.entities.Account.resetMemTables();
+			await this.rebuild();
+		}
+
+		if (status === BLOCKCHAIN_STATUS_RECOVERY) {
+			// start recover
+			await this.recovery();
+		}
+
+		// status === BLOCKCHAIN_STATUS_READY
+		this.logger.info('Blockchain ready');
+	}
+
+	async rebuild(
+		{ targetHeight, isCleaning, onProgress, loadPerIteration } = {
+			loadPerIteration: 1000,
+		},
+	) {
+		const limit = loadPerIteration;
+		let { lastBlock } = this.blocksModule;
+		for (
+			let currentHeight = 0;
+			currentHeight < targetHeight;
+			currentHeight += loadPerIteration
+		) {
+			if (isCleaning()) {
+				break;
+			}
+			// if rebuildUptoRound is undefined, use the highest height
+			// eslint-disable-next-line no-await-in-loop
+			const blocks = await this.blocksModule.blocksUtils.loadBlocksWithOffset(
+				this.storage,
+				this.interfaceAdapters,
+				this.genesisBlock,
+				limit,
+				currentHeight,
+			);
+			// eslint-disable-next-line no-restricted-syntax
+			for (const block of blocks) {
+				if (isCleaning() || block.height > targetHeight) {
+					break;
+				}
+				if (block.id === this.genesisBlock.id) {
+					// eslint-disable-next-line no-await-in-loop
+					lastBlock = await this.applyGenesisBlock(block);
+					onProgress(lastBlock);
+				}
+
+				if (block.id !== this.genesisBlock.id) {
+					// eslint-disable-next-line no-await-in-loop
+					lastBlock = await this.applyBlock(block, lastBlock);
+				}
+				onProgress(lastBlock);
+			}
+		}
+
+		return lastBlock;
+	}
+
+	async applyGenesisBlock(block) {
+		const blockProcessor = this._getBlockProcessor(block);
+		return blockProcessor.applyGenesisBlock(block);
 	}
 
 	// process is for standard processing of block, especially when received from network
@@ -56,6 +125,7 @@ class Processor {
 			lastBlock,
 			channel: this.channel,
 		});
+		this.logger.info(`Received block with id: ${block.id}`);
 		if (forkStatus === FORK_STATUS_DISCARD) {
 			return;
 		}
