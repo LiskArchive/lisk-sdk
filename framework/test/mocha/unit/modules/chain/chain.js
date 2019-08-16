@@ -140,7 +140,10 @@ describe('Chain', () => {
 
 		it('should create logger component with loggerConfig coming from app:getComponentConfig', () => {
 			// Assert
-			expect(stubs.createLoggerComponent).to.have.been.calledWith(loggerConfig);
+			expect(stubs.createLoggerComponent).to.have.been.calledWith({
+				...loggerConfig,
+				module: 'chain',
+			});
 
 			return expect(chain.logger).to.be.equal(stubs.logger);
 		});
@@ -149,6 +152,7 @@ describe('Chain', () => {
 			it('should set to logger if main log file is same as storage log file', () => {
 				return expect(chain.logger).to.be.equal(stubs.logger);
 			});
+
 			it('should create new logger component if main log file is not same as storage log file', async () => {
 				// Arrange
 				const differentStorageConfig = {
@@ -165,10 +169,15 @@ describe('Chain', () => {
 				await chain.bootstrap();
 
 				// Assert
-				return expect(stubs.createLoggerComponent).to.have.been.calledWith({
-					...loggerConfig,
-					...differentStorageConfig,
-				});
+				expect(stubs.createLoggerComponent.getCall(0).args).to.eql([
+					{ ...loggerConfig, module: 'chain' },
+				]);
+				expect(stubs.createLoggerComponent.getCall(1).args).to.eql([
+					{ ...loggerConfig, module: 'chain' },
+				]);
+				return expect(
+					stubs.createLoggerComponent.getCall(2).args[0].logFileName,
+				).to.eql(differentStorageConfig.logFileName);
 			});
 		});
 

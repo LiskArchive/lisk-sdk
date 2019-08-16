@@ -32,6 +32,9 @@ const defaultConfig = {
 			enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
 			env: 'LISK_CONSOLE_LOG_LEVEL',
 		},
+		module: {
+			type: 'string',
+		},
 	},
 	required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],
 	default: {

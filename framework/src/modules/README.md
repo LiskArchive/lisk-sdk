@@ -59,14 +59,14 @@ export default class MyModule extends BaseModule {
     *
     * Package meta information.
     *
-    * @return {Object} info - JSON object referring the version, module name and module author.
+    * @return {Object} info - JSON object referring the version, module name, and module author.
     */
     static get info(){
         return {
             author: '',
             version: '',
             name: '',
-            };
+        };
     },
 
     /**
