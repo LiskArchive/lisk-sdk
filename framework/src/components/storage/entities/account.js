@@ -243,11 +243,25 @@ class Account extends BaseEntity {
 				// eslint-disable-next-line no-template-curly-in-string
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
 		});
+
 		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${membersPublicKeys_in:csv}))',
 		});
+
+		this.addFilter('asset_contains', ft.CUSTOM, {
+			condition:
+				// eslint-disable-next-line no-template-curly-in-string
+				"asset @> '${asset_contains:value}'::jsonb",
+		});
+
+		this.addFilter('asset_exists', ft.CUSTOM, {
+			condition:
+				// eslint-disable-next-line no-template-curly-in-string
+				"asset ? '${asset_exists:value}'",
+		});
+
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);
 		this.sortingFields.push('productivity');
