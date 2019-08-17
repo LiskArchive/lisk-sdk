@@ -159,9 +159,12 @@ module.exports = class Chain {
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
-				this._startLoader();
 				this._calculateConsensus();
 				await this._startForging();
+			});
+
+			this.channel.subscribe('network:ready', async () => {
+				this._startLoader();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -487,6 +490,10 @@ module.exports = class Chain {
 					block.transactions,
 				);
 			}
+			this.logger.info(
+				{ id: block.id, height: block.height },
+				'Deleted a block from the chain',
+			);
 			this.channel.publish('chain:blocks:change', block);
 		});
 
@@ -498,6 +505,14 @@ module.exports = class Chain {
 					block.transactions,
 				);
 			}
+			this.logger.info(
+				{
+					id: block.id,
+					height: block.height,
+					numberOfTransactions: block.transactions.length,
+				},
+				'New block added to the chain',
+			);
 			this.channel.publish('chain:blocks:change', block);
 		});
 
@@ -511,6 +526,10 @@ module.exports = class Chain {
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+			this.logger.debug(
+				{ broadhash, height },
+				'Updating the application state',
+			);
 		});
 
 		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {

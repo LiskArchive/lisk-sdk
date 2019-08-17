@@ -57,7 +57,7 @@ describe('response handlers', () => {
 			};
 
 			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(peer))
+				expect(validatePeerInfo(peer, 10000))
 					.to.be.an('object')
 					.eql({
 						ipAddress: '12.23.54.3',
@@ -73,7 +73,7 @@ describe('response handlers', () => {
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', async () => {
-				expect(validatePeerInfo(peerWithInvalidHeightValue))
+				expect(validatePeerInfo(peerWithInvalidHeightValue, 10000))
 					.to.be.an('object')
 					.eql({
 						ipAddress: '12.23.54.3',
@@ -93,8 +93,26 @@ describe('response handlers', () => {
 			it('should throw an InvalidPeer error for invalid peer', async () => {
 				const peerInvalid: unknown = null;
 
-				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
 					'Invalid peer object',
+				);
+			});
+
+			it('should throw if PeerInfo is too big', async () => {
+				const peer: ProtocolPeerInfo = {
+					ip: '12.23.54.3',
+					wsPort: 5393,
+					os: 'darwin',
+					height: 23232,
+					version: '1.1.2',
+					protocolVersion: '1.1',
+					broadhash: '92hdbcwsdjcosi',
+					nonce: '89wsufhucsdociuds',
+					httpPort: 2000,
+				};
+
+				expect(validatePeerInfo.bind(null, peer, 10)).to.throw(
+					'PeerInfo was larger than the maximum allowed 10 bytes',
 				);
 			});
 
@@ -108,7 +126,7 @@ describe('response handlers', () => {
 					},
 				};
 
-				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
 					'Invalid peer ip or port',
 				);
 			});
@@ -123,7 +141,7 @@ describe('response handlers', () => {
 					protocolVersion: '1.1',
 				};
 
-				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
+				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
 					'Invalid peer version',
 				);
 			});

@@ -117,6 +117,7 @@ export {
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
+export const EVENT_NETWORK_READY = 'networkReady';
 
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
@@ -127,7 +128,7 @@ export const DEFAULT_SEND_PEER_LIMIT = 25;
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
 export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
-export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
+export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
 
 const BASE_10_RADIX = 10;
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
@@ -138,7 +139,9 @@ export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
-export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE = 1000;
+export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
+export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
+
 const SECRET_BYTE_LENGTH = 4;
 export const DEFAULT_RANDOM_SECRET = getRandomBytes(
 	SECRET_BYTE_LENGTH,
@@ -154,6 +157,7 @@ export class P2P extends EventEmitter {
 	private readonly _sanitizedPeerLists: PeerLists;
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
+	private _hasConnected: boolean;
 	private readonly _peerBook: PeerBook;
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
@@ -212,6 +216,7 @@ export class P2P extends EventEmitter {
 		);
 		this._config = config;
 		this._isActive = false;
+		this._hasConnected = false;
 		this._peerBook = new PeerBook({
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 		});
@@ -258,6 +263,9 @@ export class P2P extends EventEmitter {
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
+			if (this._isNetworkReady()) {
+				this.emit(EVENT_NETWORK_READY);
+			}
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
@@ -428,6 +436,13 @@ export class P2P extends EventEmitter {
 				config.maxInboundConnections === undefined
 					? DEFAULT_MAX_INBOUND_CONNECTIONS
 					: config.maxInboundConnections,
+			maxPeerDiscoveryResponseLength:
+				config.maxPeerDiscoveryResponseLength === undefined
+					? DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH
+					: config.maxPeerDiscoveryResponseLength,
+			maxPeerInfoSize: config.maxPeerInfoSize
+				? config.maxPeerInfoSize
+				: DEFAULT_MAX_PEER_INFO_SIZE,
 			outboundShuffleInterval: config.outboundShuffleInterval
 				? config.outboundShuffleInterval
 				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
@@ -768,6 +783,16 @@ export class P2P extends EventEmitter {
 		}
 	}
 
+	private _isNetworkReady(): boolean {
+		if (!this._hasConnected && this._peerPool.getConnectedPeers().length > 0) {
+			this._hasConnected = true;
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private _pickRandomPeers(count: number): ReadonlyArray<P2PPeerInfo> {
 		const peerList: ReadonlyArray<P2PPeerInfo> = this._peerBook.getAllPeers(); // Peers whose values has been updated at least once.
 
@@ -779,18 +804,17 @@ export class P2P extends EventEmitter {
 			.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const maximumPeerDiscoveryResponseSize = this._config
-			.maximumPeerDiscoveryResponseSize
-			? this._config.maximumPeerDiscoveryResponseSize
-			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE;
+		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
+			? this._config.peerDiscoveryResponseLength
+			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 
 		const knownPeers = this._peerBook.getAllPeers();
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
-			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.25),
+			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.25),
 		);
 		const max = Math.floor(
-			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.5),
+			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.5),
 		);
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
 		const randomPeerCount = Math.max(
@@ -857,6 +881,7 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot stop the node because it is not active');
 		}
 		this._isActive = false;
+		this._hasConnected = false;
 		this._stopPopulator();
 		this._peerPool.removeAllPeers();
 		await this._stopPeerServer();

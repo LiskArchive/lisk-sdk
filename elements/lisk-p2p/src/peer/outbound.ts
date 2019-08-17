@@ -47,6 +47,11 @@ export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
 export const RESPONSE_PONG = 'pong';
 
+const socketErrorStatusCodes = {
+	...(socketClusterClient.SCClientSocket as any).errorStatuses,
+	1000: 'Intentionally disconnected',
+};
+
 export interface PeerInfoAndOutboundConnection {
 	readonly peerInfo: P2PDiscoveredPeerInfo;
 	readonly socket: SCClientSocket;
@@ -151,13 +156,19 @@ export class OutboundPeer extends Peer {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
 		});
 
-		outboundSocket.on('close', (code: number, reason: string) => {
-			this.emit(EVENT_CLOSE_OUTBOUND, {
-				peerInfo: this._peerInfo,
-				code,
-				reason,
-			});
-		});
+		outboundSocket.on(
+			'close',
+			(code: number, reasonMessage: string | undefined) => {
+				const reason = reasonMessage
+					? reasonMessage
+					: socketErrorStatusCodes[code] || 'Unknown reason';
+				this.emit(EVENT_CLOSE_OUTBOUND, {
+					peerInfo: this._peerInfo,
+					code,
+					reason,
+				});
+			},
+		);
 
 		outboundSocket.on('message', this._handleWSMessage);
 

@@ -107,7 +107,9 @@ export interface P2PConfig {
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
 	readonly minimumPeerDiscoveryThreshold?: number;
-	readonly maximumPeerDiscoveryResponseSize?: number;
+	readonly peerDiscoveryResponseLength?: number;
+	readonly maxPeerDiscoveryResponseLength?: number;
+	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
 }
 

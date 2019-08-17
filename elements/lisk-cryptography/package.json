@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-cryptography",
-	"version": "2.3.0-alpha.0",
+	"version": "2.3.0-alpha.1",
 	"description": "General cryptographic functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -66,7 +66,7 @@
 		"varuint-bitcoin": "1.1.0"
 	},
 	"optionalDependencies": {
-		"sodium-native": "2.4.5"
+		"sodium-native": "2.4.6"
 	},
 	"devDependencies": {
 		"@types/jquery": "3.3.29",
