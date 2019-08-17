@@ -316,9 +316,6 @@ export class PeerPool extends EventEmitter {
 		);
 		const selectedPeers = this._peerSelectForRequest({
 			peers: getUniquePeersbyIp(listOfPeerInfo),
-			nodeInfo: this._nodeInfo,
-			peerLimit: 1,
-			requestPacket: packet,
 		});
 
 		if (selectedPeers.length <= 0) {
@@ -326,6 +323,7 @@ export class PeerPool extends EventEmitter {
 				'Request failed due to no peers found in peer selection',
 			);
 		}
+
 		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeers[0]);
 
 		return this.requestFromPeer(packet, selectedPeerId);

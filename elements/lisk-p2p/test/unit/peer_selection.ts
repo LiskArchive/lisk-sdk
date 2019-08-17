@@ -54,7 +54,7 @@ describe('peer selector', () => {
 			it('returned array should contain good peers according to algorithm', () => {
 				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
 					.and.be.an('array')
-					.and.of.length(3);
+					.and.of.length(5);
 			});
 
 			it('return empty peer list for no peers as an argument', () => {
@@ -82,7 +82,7 @@ describe('peer selector', () => {
 			it('should return an array having all good peers', () => {
 				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
 					.and.be.an('array')
-					.and.of.length(3);
+					.and.of.length(5);
 			});
 
 			it('should return an array of equal length equal to requested number of peers', () => {
@@ -102,7 +102,7 @@ describe('peer selector', () => {
 				peer => peer.height < nodeInfo.height,
 			);
 
-			it('should return an array with 0 good peers', () => {
+			it('should return an array with 1 good peer', () => {
 				return expect(
 					selectPeersForRequest({
 						peers: lowHeightPeers,
@@ -111,7 +111,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(0);
+					.and.of.length(1);
 			});
 		});
 	});

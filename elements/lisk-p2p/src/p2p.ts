@@ -117,6 +117,7 @@ export {
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
+export const EVENT_NETWORK_READY = 'networkReady';
 
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
@@ -156,6 +157,7 @@ export class P2P extends EventEmitter {
 	private readonly _sanitizedPeerLists: PeerLists;
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
+	private _hasConnected: boolean;
 	private readonly _peerBook: PeerBook;
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
@@ -214,6 +216,7 @@ export class P2P extends EventEmitter {
 		);
 		this._config = config;
 		this._isActive = false;
+		this._hasConnected = false;
 		this._peerBook = new PeerBook({
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 		});
@@ -260,6 +263,9 @@ export class P2P extends EventEmitter {
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
+			if (this._isNetworkReady()) {
+				this.emit(EVENT_NETWORK_READY);
+			}
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
@@ -777,6 +783,16 @@ export class P2P extends EventEmitter {
 		}
 	}
 
+	private _isNetworkReady(): boolean {
+		if (!this._hasConnected && this._peerPool.getConnectedPeers().length > 0) {
+			this._hasConnected = true;
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private _pickRandomPeers(count: number): ReadonlyArray<P2PPeerInfo> {
 		const peerList: ReadonlyArray<P2PPeerInfo> = this._peerBook.getAllPeers(); // Peers whose values has been updated at least once.
 
@@ -865,6 +881,7 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot stop the node because it is not active');
 		}
 		this._isActive = false;
+		this._hasConnected = false;
 		this._stopPopulator();
 		this._peerPool.removeAllPeers();
 		await this._stopPeerServer();
