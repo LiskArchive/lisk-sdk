@@ -1,6 +1,6 @@
 {
 	"name": "lisk-commander",
-	"version": "2.2.2",
+	"version": "2.2.3-alpha.0",
 	"description": "A command line interface for Lisk",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -101,7 +101,7 @@
 	"dependencies": {
 		"@liskhq/lisk-api-client": "2.0.2",
 		"@liskhq/lisk-constants": "1.2.2",
-		"@liskhq/lisk-cryptography": "2.3.0-alpha.0",
+		"@liskhq/lisk-cryptography": "2.3.0-alpha.1",
 		"@liskhq/lisk-passphrase": "2.0.2",
 		"@liskhq/lisk-transactions": "2.3.0",
 		"@oclif/command": "1.5.6",
