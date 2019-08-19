@@ -125,7 +125,7 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
-		it('should NOT update "missedBlocks", "rewards", "fees", "votes"', async () => {
+		it('should NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
 			// Arrange
 			const block = {
 				height: 2,
