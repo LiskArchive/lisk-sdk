@@ -25,11 +25,12 @@ const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify, verifyBlockNotExists } = require('./verify');
 const {
-	BlocksChain,
 	applyConfirmedStep,
+	applyConfirmedGenesisStep,
 	deleteLastBlock,
 	undoConfirmedStep,
 	saveBlockStep,
+	saveGenesisBlockStep,
 	parseBlockToJson,
 } = require('./chain');
 const {
@@ -129,14 +130,6 @@ class Blocks extends EventEmitter {
 			blockSlotWindow,
 		};
 
-		this.blocksChain = new BlocksChain({
-			storage: this.storage,
-			interfaceAdapters: this.interfaceAdapters,
-			roundsModule: this.roundsModule,
-			slots: this.slots,
-			exceptions: this.exceptions,
-			genesisBlock: this.genesisBlock,
-		});
 		this.blocksVerify = new BlocksVerify({
 			storage: this.storage,
 			exceptions: this.exceptions,
@@ -320,6 +313,16 @@ class Blocks extends EventEmitter {
 		);
 	}
 
+	async applyGenesis({ block, tx }) {
+		await applyConfirmedGenesisStep(
+			this.storage,
+			this.slots,
+			block,
+			this.exceptions,
+			tx,
+		);
+	}
+
 	async undo({ block, tx }) {
 		await undoConfirmedStep(
 			this.storage,
@@ -332,6 +335,17 @@ class Blocks extends EventEmitter {
 
 	async save({ block, tx }) {
 		await saveBlockStep(this.storage, this.roundsModule, block, true, tx);
+		this._lastBlock = block;
+	}
+
+	async saveGenesis({ block, tx, skipSave }) {
+		await saveGenesisBlockStep(
+			this.storage,
+			this.roundsModule,
+			block,
+			skipSave,
+			tx,
+		);
 		this._lastBlock = block;
 	}
 
@@ -406,12 +420,10 @@ class Blocks extends EventEmitter {
 	 *
 	 * @todo Add @returns tag
 	 */
-	async checkBlockChainStatus(rebuildUpToRound) {
+	async checkBlockchainStatus(rebuildUpToRound) {
 		this._shouldNotBeActive();
 		this._isActive = true;
 
-		// TODO: remove from here
-		await this.blocksChain.saveGenesisBlock();
 		// check mem tables
 		const {
 			blocksCount,

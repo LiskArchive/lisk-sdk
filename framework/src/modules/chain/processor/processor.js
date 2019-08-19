@@ -14,22 +14,25 @@
 
 'use strict';
 
+const { cloneDeep } = require('lodash');
 const {
 	FORK_STATUS_DISCARD,
 	FORK_STATUS_REVERT,
 	FORK_STATUS_SYNC,
 	BLOCKCHAIN_STATUS_REBUILD,
 	BLOCKCHAIN_STATUS_RECOVERY,
+	EVENT_DELETE_BLOCK,
 } = require('../blocks');
 
 class Processor {
-	constructor({ channel, storage, logger, blocksModule }) {
+	constructor({ channel, storage, logger, blocksModule, interfaceAdapters }) {
 		this.channel = channel;
 		this.storage = storage;
 		this.logger = logger;
 		this.blocksModule = blocksModule;
 		this.processors = {};
 		this.matchers = {};
+		this.interfaceAdapters = interfaceAdapters;
 	}
 
 	// register a block processor with particular version
@@ -39,10 +42,9 @@ class Processor {
 	}
 
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
-	async init(genesisBlock, { rebuildUptoRound }) {
+	async init(genesisBlock) {
 		// do init check for block state. We need to load the blockchain
-		const blockProcessor = this._getBlockProcessor(genesisBlock);
-		await blockProcessor.saveGenesisBlock();
+		await this._applyGenesisBlock(genesisBlock);
 		const status = await this.blocksModule.checkBlockchainStatus();
 		if (status === BLOCKCHAIN_STATUS_REBUILD) {
 			// Need to fix this.
@@ -52,11 +54,38 @@ class Processor {
 
 		if (status === BLOCKCHAIN_STATUS_RECOVERY) {
 			// start recover
-			await this.recovery();
+			await this._recover();
 		}
 
 		// status === BLOCKCHAIN_STATUS_READY
 		this.logger.info('Blockchain ready');
+	}
+
+	async _recover() {
+		let verified = false;
+		while (!verified) {
+			const { lastBlock } = this.blocksModule;
+			// eslint-disable-next-line no-await-in-loop
+			const secondLastBlock = await this.blocksModule.blocksUtils.loadBlockByHeight(
+				this.storage,
+				lastBlock.height - 1,
+				this.interfaceAdapters,
+				this.genesisBlock,
+			);
+			({ verified } = this.blocksVerify.verifyBlock(
+				lastBlock,
+				secondLastBlock,
+			));
+			if (!verified) {
+				// eslint-disable-next-line no-await-in-loop
+				await this.blocksChain.deleteLastBlock(lastBlock);
+				this.logger.info({ lastBlock, secondLastBlock }, 'Deleted block');
+				this.emit(EVENT_DELETE_BLOCK, {
+					block: cloneDeep(lastBlock),
+					newLastBlock: cloneDeep(secondLastBlock),
+				});
+			}
+		}
 	}
 
 	async rebuild(
@@ -90,7 +119,7 @@ class Processor {
 				}
 				if (block.id === this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
-					lastBlock = await this.applyGenesisBlock(block);
+					lastBlock = await this._applyGenesisBlock(block, true);
 					onProgress(lastBlock);
 				}
 
@@ -105,9 +134,9 @@ class Processor {
 		return lastBlock;
 	}
 
-	async applyGenesisBlock(block) {
+	async _applyGenesisBlock(block, skipSave) {
 		const blockProcessor = this._getBlockProcessor(block);
-		return blockProcessor.applyGenesisBlock(block);
+		return this._processGenesis(block, blockProcessor, { skipSave });
 	}
 
 	// process is for standard processing of block, especially when received from network
@@ -207,6 +236,46 @@ class Processor {
 				await this.blocksModule.save({ block, tx });
 			}
 			return block;
+		});
+	}
+
+	async _processGenesis(block, processor, { skipSave } = { skipSave: false }) {
+		return this.storage.entities.Block.begin('Chain:processBlock', async tx => {
+			const transactionInstances = block.transactions.map(transaction =>
+				this.interfaceAdapters.transactions.fromJson(transaction),
+			);
+
+			const blockWithTransactionInstances = {
+				...block,
+				transactions: transactionInstances,
+			};
+
+			// Check if genesis block ID already exists in the database
+			const isPersisted = await this.storage.entities.Block.isPersisted(
+				{
+					id: blockWithTransactionInstances.id,
+				},
+				tx,
+			);
+
+			// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
+			if (isPersisted && !skipSave) {
+				return blockWithTransactionInstances;
+			}
+
+			await processor.applyGenesis.exec({
+				block: blockWithTransactionInstances,
+				tx,
+				channel: this.channel,
+			});
+
+			await this.blocksModule.saveGenesis({
+				block: blockWithTransactionInstances,
+				tx,
+				skipSave,
+			});
+
+			return blockWithTransactionInstances;
 		});
 	}
 
