@@ -269,7 +269,7 @@ const saveGenesisBlockStep = async (
 	skipSave,
 	tx,
 ) => {
-	await saveBlockStep(storage, roundsModule, genesisBlock, tx);
+	await saveBlockStep(storage, roundsModule, genesisBlock, !skipSave, tx);
 };
 
 /**

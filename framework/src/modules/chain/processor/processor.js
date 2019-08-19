@@ -134,7 +134,7 @@ class Processor {
 		return lastBlock;
 	}
 
-	async _applyGenesisBlock(block, skipSave) {
+	async _applyGenesisBlock(block, skipSave = false) {
 		const blockProcessor = this._getBlockProcessor(block);
 		return this._processGenesis(block, blockProcessor, { skipSave });
 	}

@@ -435,7 +435,7 @@ class Blocks extends EventEmitter {
 			async tx => blocksUtils.loadMemTables(this.storage, tx),
 		);
 		if (blocksCount === 1) {
-			return BLOCKCHAIN_STATUS_REBUILD;
+			return BLOCKCHAIN_STATUS_READY;
 		}
 
 		// check genesisBlock -- What is this function doing since it's not using the returned value
