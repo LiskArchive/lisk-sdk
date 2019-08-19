@@ -21,11 +21,11 @@ const {
 const {
 	FinalityManager,
 } = require('../../../../../../../src/modules/chain/bft/finality_manager');
-const bftModule = require('../../../../../../../src/modules/chain/bft/bft');
 
-jest.mock('../../../../../../../src/modules/chain/bft/finality_manager');
-
-const { BFT, extractBFTBlockHeaderFromBlock } = bftModule;
+const {
+	BFT,
+	extractBFTBlockHeaderFromBlock,
+} = require('../../../../../../../src/modules/chain/bft/bft');
 
 describe('bft', () => {
 	beforeEach(async () => {
@@ -189,6 +189,69 @@ describe('bft', () => {
 			});
 		});
 
+		describe('loadBlocksFromStorage()', () => {
+			const fromHeight = 0;
+			const tillHeight = 10;
+			let bft;
+
+			beforeEach(async () => {
+				bft = new BFT(bftParams);
+				storageMock.entities.Block.get.mockReturnValue([]);
+				await bft.bootstrap();
+			});
+
+			it('should call fetch blocks from storage particular parameters', async () => {
+				storageMock.entities.Block.get.mockReset();
+				storageMock.entities.Block.get.mockReturnValue([]);
+
+				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
+
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
+				expect(storageMock.entities.Block.get).toHaveBeenCalledWith(
+					{ height_gte: fromHeight, height_lte: tillHeight },
+					{
+						limit: null,
+						sort: 'height:asc',
+					},
+				);
+			});
+
+			// As BFT applies only to block version 2
+			it('should skip loading blocks with version !== 2', async () => {
+				// Arrange
+				const blockWithVersion1 = blockFixture({ version: '1' });
+				const blockWithVersion2 = blockFixture({ version: '2' });
+				storageMock.entities.Block.get.mockReturnValue([
+					blockWithVersion1,
+					blockWithVersion2,
+				]);
+
+				// Act
+				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
+
+				// Assert
+				expect(bft.finalityManager.headers.length).toEqual(1);
+				expect(bft.finalityManager.headers.items).toEqual([
+					extractBFTBlockHeaderFromBlock(blockWithVersion2),
+				]);
+			});
+
+			it('should load block headers to finalityManager', async () => {
+				// Arrange
+				const block = blockFixture({ version: '2', height: 8 });
+				const blockHeader = extractBFTBlockHeaderFromBlock(block);
+				storageMock.entities.Block.get.mockReturnValue([block]);
+
+				// Act
+				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
+
+				// Assert
+				expect(bft.finalityManager.headers.items.length).toEqual(1);
+				expect(bft.finalityManager.headers.items).toEqual([blockHeader]);
+			});
+		});
+
+		// TODO: Remove tests for private methods
 		describe('_initFinalityManager()', () => {
 			it('should call ChainMetaEntity.getKey to get stored finalized height', async () => {
 				const bft = new BFT(bftParams);
@@ -202,43 +265,43 @@ describe('bft', () => {
 			});
 
 			it('should initialize finalityManager with stored FINALIZED_HEIGHT if its highest', async () => {
+				// Arrange
 				const finalizedHeight = 500;
 				const startingHeightLower = 300;
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(finalizedHeight);
-
 				const bft = new BFT({
 					...bftParams,
 					...{ startingHeight: startingHeightLower },
 				});
 
-				const result = await bft._initFinalityManager();
+				// Act
+				const finalityManager = await bft._initFinalityManager();
 
-				expect(FinalityManager).toHaveBeenCalledTimes(1);
-				expect(FinalityManager).toHaveBeenCalledWith({
-					activeDelegates,
-					finalizedHeight,
-				});
-				expect(result).toBeInstanceOf(FinalityManager);
+				// Assert
+				expect(finalityManager).toBeInstanceOf(FinalityManager);
+				expect(finalityManager.activeDelegates).toEqual(activeDelegates);
+				expect(finalityManager.finalizedHeight).toEqual(finalizedHeight);
 			});
 
 			it('should initialize finalityManager with stored startingHeight - TWO_ROUNDS if its highest', async () => {
+				// Arrange
 				const finalizedHeight = 500;
 				const startingHeightHigher = 800;
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(finalizedHeight);
-
 				const bft = new BFT({
 					...bftParams,
 					...{ startingHeight: startingHeightHigher },
 				});
 
-				const result = await bft._initFinalityManager();
+				// Act
+				const finalityManager = await bft._initFinalityManager();
 
-				expect(FinalityManager).toHaveBeenCalledTimes(1);
-				expect(FinalityManager).toHaveBeenCalledWith({
-					activeDelegates,
-					finalizedHeight: startingHeightHigher - activeDelegates * 2,
-				});
-				expect(result).toBeInstanceOf(FinalityManager);
+				// Assert
+				expect(finalityManager).toBeInstanceOf(FinalityManager);
+				expect(finalityManager.activeDelegates).toEqual(activeDelegates);
+				expect(finalityManager.finalizedHeight).toEqual(
+					startingHeightHigher - activeDelegates * 2,
+				);
 			});
 		});
 
@@ -280,85 +343,6 @@ describe('bft', () => {
 				const result = await bft._getLastBlockHeight();
 
 				expect(result).toEqual(0);
-			});
-		});
-
-		describe('loadBlocksFromStorage()', () => {
-			const fromHeight = 0;
-			const tillHeight = 10;
-			let bft;
-
-			beforeEach(async () => {
-				bft = new BFT(bftParams);
-				storageMock.entities.Block.get.mockReturnValue([]);
-				jest.spyOn(bftModule, 'extractBFTBlockHeaderFromBlock');
-				await bft.bootstrap();
-			});
-
-			it('should call BlockEntity.get with particular parameters', async () => {
-				storageMock.entities.Block.get.mockReset();
-				storageMock.entities.Block.get.mockReturnValue([]);
-
-				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
-
-				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
-				expect(storageMock.entities.Block.get).toHaveBeenCalledWith(
-					{ height_gte: fromHeight, height_lte: tillHeight },
-					{
-						limit: null,
-						sort: 'height:asc',
-					},
-				);
-			});
-
-			it('should skip blocks with version !== 2', async () => {
-				storageMock.entities.Block.get.mockReturnValue([
-					{ version: '1' },
-					{ version: '2' },
-				]);
-
-				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
-				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledTimes(
-					1,
-				);
-				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledWith({
-					version: '2',
-				});
-			});
-
-			it('should call extractBFTBlockHeaderFromBlock for every block', async () => {
-				const blocks = [
-					blockFixture({ version: '2', height: 8 }),
-					blockFixture({ version: '2', height: 9 }),
-				];
-				storageMock.entities.Block.get.mockReturnValue(blocks);
-
-				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
-
-				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledTimes(
-					blocks.length,
-				);
-				blocks.forEach((block, index) => {
-					expect(
-						bftModule.extractBFTBlockHeaderFromBlock,
-					).toHaveBeenNthCalledWith(index + 1, block);
-				});
-			});
-
-			it('should call finalityManager.addBlockHeader for every header', async () => {
-				const blocks = [
-					blockFixture({ version: '2', height: 8, id: '12345acf' }),
-				];
-				const blockHeader = { height: 8, id: '12345acf' };
-				storageMock.entities.Block.get.mockReturnValue(blocks);
-				bftModule.extractBFTBlockHeaderFromBlock.mockReturnValue(blockHeader);
-
-				await bft.loadBlocksFromStorage({ fromHeight, tillHeight });
-
-				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledTimes(1);
-				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledWith(
-					blockHeader,
-				);
 			});
 		});
 	});
