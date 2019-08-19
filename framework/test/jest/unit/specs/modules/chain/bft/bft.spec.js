@@ -27,6 +27,14 @@ const {
 	extractBFTBlockHeaderFromBlock,
 } = require('../../../../../../../src/modules/chain/bft/bft');
 
+const generateBlocks = ({ startHeight, numberOfBlocks }) => {
+	return Array(numberOfBlocks)
+		.fill('')
+		.map((_v, index) => {
+			return blockFixture({ height: startHeight + index, version: '2' });
+		});
+};
+
 describe('bft', () => {
 	beforeEach(async () => {
 		jest.resetAllMocks();
@@ -248,6 +256,196 @@ describe('bft', () => {
 				// Assert
 				expect(bft.finalityManager.headers.items.length).toEqual(1);
 				expect(bft.finalityManager.headers.items).toEqual([blockHeader]);
+			});
+		});
+
+		describe('onDeleteBlocks()', () => {
+			let bft;
+
+			beforeEach(async () => {
+				bft = new BFT(bftParams);
+				storageMock.entities.Block.get.mockReturnValue([]);
+				await bft.bootstrap();
+				storageMock.entities.Block.get.mockClear();
+			});
+
+			it('should reject with error if no blocks are provided', async () => {
+				// Act & Assert
+				await expect(bft.onDeleteBlocks()).rejects.toThrow(
+					'Must provide blocks which are deleted',
+				);
+			});
+
+			it('should reject with error if blocks are not provided as array', async () => {
+				// Act & Assert
+				await expect(bft.onDeleteBlocks({})).rejects.toThrow(
+					'Must provide list of blocks',
+				);
+			});
+
+			it('should reject with error if blocks deleted contains block with lower than finalized height', async () => {
+				// Arrange
+				bft = new BFT(bftParams);
+				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
+				await bft.bootstrap();
+				const blocks = [
+					blockFixture({ height: 4, version: '2' }),
+					blockFixture({ height: 5, version: '2' }),
+					blockFixture({ height: 6, version: '2' }),
+				];
+
+				// Act & Assert
+				await expect(bft.onDeleteBlocks(blocks)).rejects.toThrow(
+					'Can not delete block below or same as finalized height',
+				);
+			});
+
+			it('should reject with error if blocks deleted contains block with same as finalized height', async () => {
+				// Arrange
+				bft = new BFT(bftParams);
+				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
+				await bft.bootstrap();
+				const blocks = [
+					blockFixture({ height: 5, version: '2' }),
+					blockFixture({ height: 6, version: '2' }),
+				];
+
+				// Act & Assert
+				await expect(bft.onDeleteBlocks(blocks)).rejects.toThrow(
+					'Can not delete block below or same as finalized height',
+				);
+			});
+
+			it('should delete the block headers form list for all given blocks', async () => {
+				// Arrange
+				const block1 = blockFixture({ height: 1, version: '2' });
+				const block2 = blockFixture({ height: 2, version: '2' });
+				const block3 = blockFixture({ height: 3, version: '2' });
+				const block4 = blockFixture({ height: 4, version: '2' });
+				await bft.onNewBlock(block1);
+				await bft.onNewBlock(block2);
+				await bft.onNewBlock(block3);
+				await bft.onNewBlock(block4);
+
+				// Act
+				await bft.onDeleteBlocks([block3, block4]);
+
+				// Assert
+				expect(bft.finalityManager.minHeight).toEqual(1);
+				expect(bft.finalityManager.maxHeight).toEqual(2);
+				expect(bft.finalityManager.headers.items).toEqual([
+					extractBFTBlockHeaderFromBlock(block1),
+					extractBFTBlockHeaderFromBlock(block2),
+				]);
+			});
+
+			it('should load more blocks from storage if remaining in headers list is less than 2 rounds', async () => {
+				// Arrange
+				// Generate 500 blocks
+				const numberOfBlocks = 500;
+				const blocksToDelete = 50;
+				const blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+				// Last 100 blocks from height 401 to 500
+				const blocksInBft = blocks.slice(400);
+
+				// Last 50 blocks from height 451 to 500
+				const blockToDelete = blocks.slice(-blocksToDelete);
+
+				// Will fetch 202 - (450 - 401) = 153 more blocks
+				const blocksFetchedFromStorage = blocks.slice(400 - 153, 400).reverse();
+
+				// eslint-disable-next-line no-restricted-syntax
+				for (const block of blocksInBft) {
+					// eslint-disable-next-line no-await-in-loop
+					await bft.onNewBlock(block);
+				}
+
+				// When asked by BFT, return last [blocksToDelete] blocks ()
+				storageMock.entities.Block.get.mockReturnValue(
+					blocksFetchedFromStorage,
+				);
+
+				// Act - Delete top 50 blocks (500-450 height)
+				await bft.onDeleteBlocks(blockToDelete);
+
+				// Assert
+				expect(bft.finalityManager.maxHeight).toEqual(450);
+				expect(bft.finalityManager.minHeight).toEqual(
+					450 - activeDelegates * 2,
+				);
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
+				expect(storageMock.entities.Block.get).toHaveBeenLastCalledWith(
+					{ height_lte: 400, height_gte: 450 - activeDelegates * 2 },
+					{ limit: null, sort: 'height:desc' },
+				);
+			});
+
+			it('should not load more blocks from storage if remaining in headers list is more than 2 rounds', async () => {
+				// Arrange
+				// Generate 500 blocks
+				const numberOfBlocks = 500;
+				const blocksToDelete = 50;
+				const blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+				// Last 300 blocks from height 201 to 500
+				const blocksInBft = blocks.slice(200);
+
+				// Last 50 blocks from height 451 to 500
+				const blockToDelete = blocks.slice(-blocksToDelete);
+
+				// Load last 300 blocks to bft (201 to 500)
+				// eslint-disable-next-line no-restricted-syntax
+				for (const block of blocksInBft) {
+					// eslint-disable-next-line no-await-in-loop
+					await bft.onNewBlock(block);
+				}
+
+				// Act
+				await bft.onDeleteBlocks(blockToDelete);
+
+				// Assert
+				expect(bft.finalityManager.maxHeight).toEqual(450);
+				expect(bft.finalityManager.minHeight).toEqual(201);
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
+			});
+
+			it('should not load more blocks from storage if remaining in headers list is exactly 2 rounds', async () => {
+				// Arrange
+				// Generate 500 blocks
+				const numberOfBlocks = 500;
+				const blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+				// Last 300 blocks from height 201 to 500
+				const blocksInBft = blocks.slice(200);
+
+				// Delete blocks keeping exactly two rounds in the list from (201 to 298)
+				const blockToDelete = blocks.slice(
+					-1 * (300 - activeDelegates * 2 - 1),
+				);
+
+				// Load last 300 blocks to bft (201 to 500)
+				// eslint-disable-next-line no-restricted-syntax
+				for (const block of blocksInBft) {
+					// eslint-disable-next-line no-await-in-loop
+					await bft.onNewBlock(block);
+				}
+
+				// Act
+				await bft.onDeleteBlocks(blockToDelete);
+
+				// Assert
+				expect(bft.finalityManager.maxHeight).toEqual(403);
+				expect(bft.finalityManager.minHeight).toEqual(
+					403 - activeDelegates * 2,
+				);
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
 			});
 		});
 
