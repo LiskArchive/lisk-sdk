@@ -29,7 +29,7 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 
 | Dependencies     | Version |
 | ---------------- | ------- |
-| NodeJS           | 10.15.3 |
+| NodeJS           | 10.4+   |
 | PostgreSQL       | 10+     |
 | Redis (optional) | 5+      |
 
@@ -56,9 +56,9 @@ To create a blockchain application, you need to provide an entry point of your a
 It is quite simple to have a working blockchain application, mirroring the configuration of the existing Lisk network. This can be done by copying the following three lines of code to your `index.js`:
 
 ```js
-const { Application, genesisBlockDevnet } = require('lisk-sdk');
+const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
-const app = new Application(genesisBlockDevnet);
+const app = new Application(genesisBlockDevnet, configDevnet);
 
 app
 	.run()
@@ -101,11 +101,11 @@ You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/
 Add your custom transaction type to your blockchain application by registering it to the application instance:
 
 ```js
-const { Application, genesisBlockDevnet } = require('lisk-sdk');
+const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
 const MyTransaction = require('./my_transaction');
 
-const app = new Application(genesisBlockDevnet);
+const app = new Application(genesisBlockDevnet, configDevnet);
 
 app.registerTransaction(MyTransaction); // register the custom transaction
 

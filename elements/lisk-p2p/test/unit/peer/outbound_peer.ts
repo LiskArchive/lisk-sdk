@@ -34,6 +34,8 @@ describe('outbound_peer', () => {
 		wsMaxMessageRate: 1000,
 		wsMaxMessageRatePenalty: 10,
 		secret: DEFAULT_RANDOM_SECRET,
+		maxPeerInfoSize: 10000,
+		maxPeerDiscoveryResponseLength: 1000,
 	});
 
 	describe('#constructor', () => {

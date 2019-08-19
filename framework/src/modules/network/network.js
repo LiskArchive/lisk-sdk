@@ -17,6 +17,7 @@
 const { getRandomBytes } = require('@liskhq/lisk-cryptography');
 const {
 	P2P,
+	EVENT_NETWORK_READY,
 	EVENT_NEW_INBOUND_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
@@ -69,7 +70,7 @@ module.exports = class Network {
 			'logger',
 		);
 
-		this.logger = createLoggerComponent(loggerConfig);
+		this.logger = createLoggerComponent({ ...loggerConfig, module: 'network' });
 
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
@@ -82,6 +83,7 @@ module.exports = class Network {
 				: createLoggerComponent({
 						...loggerConfig,
 						logFileName: storageConfig.logFileName,
+						module: 'network:database',
 				  });
 
 		this.storage = createStorageComponent(storageConfig, dbLogger);
@@ -155,6 +157,11 @@ module.exports = class Network {
 			peerBanTime: this.options.peerBanTime,
 			populatorInterval: this.options.populatorInterval,
 			sendPeerLimit: this.options.emitPeerLimit,
+			peerDiscoveryResponseLength: this.options.peerDiscoveryResponseLength,
+			maxPeerDiscoveryResponseLength: this.options
+				.maxPeerDiscoveryResponseLength,
+			maxPeerInfoSize: this.options.maxPeerInfoSize,
+			wsMaxPayload: this.options.wsMaxPayload,
 			secret: this.secret,
 		};
 
@@ -166,6 +173,10 @@ module.exports = class Network {
 		});
 
 		// ---- START: Bind event handlers ----
+		this.p2p.on(EVENT_NETWORK_READY, () => {
+			this.logger.debug('Node connected to the network');
+			this.channel.publish('network:ready');
+		});
 
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
 			this.logger.debug(
@@ -179,7 +190,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_CLOSE_INBOUND, closePacket => {
 			this.logger.debug(
-				`INbound connection of peer ${closePacket.peerInfo.ipAddress}:${
+				`Inbound connection of peer ${closePacket.peerInfo.ipAddress}:${
 					closePacket.peerInfo.wsPort
 				} was closed with code ${closePacket.code} and reason: ${
 					closePacket.reason
