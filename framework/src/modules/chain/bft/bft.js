@@ -15,6 +15,7 @@
 'use strict';
 
 const EventEmitter = require('events');
+const assert = require('assert');
 const {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
@@ -91,6 +92,56 @@ class BFT extends EventEmitter {
 	}
 
 	/**
+	 * When blocks deleted send those to BFT to update BFT state
+	 *
+	 * @param {Array.<Object>} blocks - List of all blocks
+	 * @return {Promise<void>}
+	 */
+	async onDeleteBlocks(blocks) {
+		assert(blocks, 'Must provide blocks which are deleted');
+		assert(Array.isArray(blocks), 'Must provide list of blocks');
+
+		// We need only height to delete the blocks
+		// But for future extension we accept full blocks in BFT
+		// We may need to utilize some other attributes for internal processing
+		const blockHeights = blocks.map(({ height }) => height);
+
+		assert(
+			!blockHeights.some(h => h <= this.finalityManager.finalizedHeight),
+			'Can not delete block below or same as finalized height',
+		);
+
+		const removeFromHeight = Math.min(...blockHeights);
+
+		this.finalityManager.removeBlockHeaders({
+			aboveHeight: removeFromHeight - 1,
+		});
+
+		// Make sure there are 2 rounds of block headers available
+		if (
+			this.finalityManager.maxHeight - this.finalityManager.minHeight <
+			this.constants.activeDelegates * 2
+		) {
+			const tillHeight = this.finalityManager.minHeight - 1;
+			const fromHeight =
+				this.finalityManager.maxHeight - this.constants.activeDelegates * 2;
+			await this.loadBlocksFromStorage({ fromHeight, tillHeight });
+		}
+	}
+
+	/**
+	 * Load new block to BFT
+	 *
+	 * @param {Object} block - The block which is forged
+	 * @return {Promise<void>}
+	 */
+	async onNewBlock(block) {
+		// We don't need async operations here as of now but can require in future
+		// and for consistency with other interfaces keeping it async
+		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
+	}
+
+	/**
 	 * Initialize the consensus manager and return the finalize height
 	 *
 	 * @return {Promise<number>} - Return the finalize height
@@ -136,23 +187,30 @@ class BFT extends EventEmitter {
 	/**
 	 * Load blocks into consensus manager fetching from storage
 	 *
-	 * @param {integer} fromHeight - The start height to fetch and load
-	 * @param {integer} tillHeight - The end height to fetch and load
+	 * @param {int} fromHeight - The start height to fetch and load
+	 * @param {int} tillHeight - The end height to fetch and load
 	 * @return {Promise<void>}
 	 */
 	async loadBlocksFromStorage({ fromHeight, tillHeight }) {
+		let sortOrder = 'height:asc';
+
+		// If blocks to be loaded on tail
+		if (
+			this.finalityManager.minHeight ===
+			Math.max(fromHeight, tillHeight) + 1
+		) {
+			sortOrder = 'height:desc';
+		}
+
 		const rows = await this.BlockEntity.get(
 			{ height_gte: fromHeight, height_lte: tillHeight },
-			{ limit: null, sort: 'height:asc' },
+			{ limit: null, sort: sortOrder },
 		);
 
 		rows.forEach(row => {
 			if (row.version !== '2') return;
 
-			this.finalityManager.addBlockHeader(
-				// eslint-disable-next-line no-use-before-define
-				exportedInterface.extractBFTBlockHeaderFromBlock(row),
-			);
+			this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(row));
 		});
 	}
 
@@ -161,11 +219,9 @@ class BFT extends EventEmitter {
 	}
 }
 
-const exportedInterface = {
+module.exports = {
 	extractBFTBlockHeaderFromBlock,
 	BFT,
 	EVENT_BFT_BLOCK_FINALIZED,
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 };
-
-module.exports = exportedInterface;

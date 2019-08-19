@@ -406,11 +406,11 @@ class FinalityManager extends EventEmitter {
 	}
 
 	get minHeight() {
-		return this.headers.first.height;
+		return this.headers.first ? this.headers.first.height : 0;
 	}
 
 	get maxHeight() {
-		return this.headers.last.height;
+		return this.headers.last ? this.headers.last.height : 0;
 	}
 }
 
