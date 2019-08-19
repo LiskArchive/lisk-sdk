@@ -85,7 +85,7 @@ class BFT extends EventEmitter {
 			this.constants.startingHeight,
 		);
 
-		await this.loadBlocksFromStorage({
+		await this._loadBlocksFromStorage({
 			fromHeight: loadFromHeight,
 			tillHeight: lastBlockHeight,
 		});
@@ -125,7 +125,7 @@ class BFT extends EventEmitter {
 			const tillHeight = this.finalityManager.minHeight - 1;
 			const fromHeight =
 				this.finalityManager.maxHeight - this.constants.activeDelegates * 2;
-			await this.loadBlocksFromStorage({ fromHeight, tillHeight });
+			await this._loadBlocksFromStorage({ fromHeight, tillHeight });
 		}
 	}
 
@@ -191,7 +191,7 @@ class BFT extends EventEmitter {
 	 * @param {int} tillHeight - The end height to fetch and load
 	 * @return {Promise<void>}
 	 */
-	async loadBlocksFromStorage({ fromHeight, tillHeight }) {
+	async _loadBlocksFromStorage({ fromHeight, tillHeight }) {
 		let sortOrder = 'height:asc';
 
 		// If blocks to be loaded on tail
