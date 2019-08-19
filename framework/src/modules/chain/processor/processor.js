@@ -61,33 +61,6 @@ class Processor {
 		this.logger.info('Blockchain ready');
 	}
 
-	async _recover() {
-		let verified = false;
-		while (!verified) {
-			const { lastBlock } = this.blocksModule;
-			// eslint-disable-next-line no-await-in-loop
-			const secondLastBlock = await this.blocksModule.blocksUtils.loadBlockByHeight(
-				this.storage,
-				lastBlock.height - 1,
-				this.interfaceAdapters,
-				this.genesisBlock,
-			);
-			({ verified } = this.blocksVerify.verifyBlock(
-				lastBlock,
-				secondLastBlock,
-			));
-			if (!verified) {
-				// eslint-disable-next-line no-await-in-loop
-				await this.blocksChain.deleteLastBlock(lastBlock);
-				this.logger.info({ lastBlock, secondLastBlock }, 'Deleted block');
-				this.emit(EVENT_DELETE_BLOCK, {
-					block: cloneDeep(lastBlock),
-					newLastBlock: cloneDeep(secondLastBlock),
-				});
-			}
-		}
-	}
-
 	async rebuild(
 		{ targetHeight, isCleaning, onProgress, loadPerIteration } = {
 			loadPerIteration: 1000,
@@ -132,11 +105,6 @@ class Processor {
 		}
 
 		return lastBlock;
-	}
-
-	async _applyGenesisBlock(block, skipSave = false) {
-		const blockProcessor = this._getBlockProcessor(block);
-		return this._processGenesis(block, blockProcessor, { skipSave });
 	}
 
 	// process is for standard processing of block, especially when received from network
@@ -200,6 +168,17 @@ class Processor {
 		});
 	}
 
+	async deleteLastBlock() {
+		const { lastBlock } = this.blocksModule;
+		const blockProcessor = this._getBlockProcessor(lastBlock);
+		await this._revert(lastBlock, blockProcessor);
+	}
+
+	async _applyGenesisBlock(block, skipSave = false) {
+		const blockProcessor = this._getBlockProcessor(block);
+		return this._processGenesis(block, blockProcessor, { skipSave });
+	}
+
 	async _validate(block, processor) {
 		const { lastBlock } = this.blocksModule;
 		const blockBytes = processor.getBytes.execSync({ block });
@@ -209,6 +188,33 @@ class Processor {
 			blockBytes,
 			channel: this.channel,
 		});
+	}
+
+	async _recover() {
+		let verified = false;
+		while (!verified) {
+			const { lastBlock } = this.blocksModule;
+			// eslint-disable-next-line no-await-in-loop
+			const secondLastBlock = await this.blocksModule.blocksUtils.loadBlockByHeight(
+				this.storage,
+				lastBlock.height - 1,
+				this.interfaceAdapters,
+				this.genesisBlock,
+			);
+			({ verified } = this.blocksVerify.verifyBlock(
+				lastBlock,
+				secondLastBlock,
+			));
+			if (!verified) {
+				// eslint-disable-next-line no-await-in-loop
+				await this.blocksChain.deleteLastBlock(lastBlock);
+				this.logger.info({ lastBlock, secondLastBlock }, 'Deleted block');
+				this.emit(EVENT_DELETE_BLOCK, {
+					block: cloneDeep(lastBlock),
+					newLastBlock: cloneDeep(secondLastBlock),
+				});
+			}
+		}
 	}
 
 	async _processValidated(block, processor, { skipSave, skipBroadcast } = {}) {
@@ -290,12 +296,6 @@ class Processor {
 			});
 			await this.blocksModule.remove({ block, tx });
 		});
-	}
-
-	async deleteLastBlock() {
-		const { lastBlock } = this.blocksModule;
-		const blockProcessor = this._getBlockProcessor(lastBlock);
-		await this._revert(lastBlock, blockProcessor);
 	}
 
 	_getBlockProcessor(block) {
