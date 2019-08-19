@@ -16,7 +16,7 @@
 
 const async = require('async');
 const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
-const blocksUtils = require('../../../../../src/modules/chain/blocks/utils');
+const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
@@ -132,7 +132,7 @@ describe('integration test (blocks) - process', () => {
 
 	describe('loadBlocksWithOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', async () => {
-			const loadedBlocks = await blocksUtils.loadBlocksWithOffset(
+			const loadedBlocks = await blocksLogic.loadBlocksWithOffset(
 				storage,
 				interfaceAdapters,
 				__testContext.config.genesisBlock,
@@ -145,7 +145,7 @@ describe('integration test (blocks) - process', () => {
 		});
 
 		it('should load block 3 from db: block with transactions', async () => {
-			const loadedBlocks = await blocksUtils.loadBlocksWithOffset(
+			const loadedBlocks = await blocksLogic.loadBlocksWithOffset(
 				storage,
 				interfaceAdapters,
 				__testContext.config.genesisBlock,

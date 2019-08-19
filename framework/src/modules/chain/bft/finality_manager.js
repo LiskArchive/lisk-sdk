@@ -16,6 +16,7 @@
 
 const assert = require('assert');
 const debug = require('debug')('lisk:bft:consensus_manager');
+const EventEmitter = require('events');
 const { HeadersList } = require('./headers_list');
 const { validateBlockHeader } = require('./utils');
 const {
@@ -25,6 +26,7 @@ const {
 	BFTInvalidAttributeError,
 } = require('./errors');
 
+const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
 /**
  * @typedef {Object} BlockHeader
  * @property {string} blockId
@@ -35,8 +37,9 @@ const {
  * @property {string} delegatePublicKey
  */
 
-class FinalityManager {
+class FinalityManager extends EventEmitter {
 	constructor({ finalizedHeight, activeDelegates } = {}) {
+		super();
 		assert(finalizedHeight !== undefined, 'Must provide finalizedHeight');
 		assert(activeDelegates !== undefined, 'Must provide activeDelegates');
 		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
@@ -96,7 +99,6 @@ class FinalityManager {
 
 		// Add the header to the list
 		this.headers.add(blockHeader);
-
 		// Update the pre-votes and pre-commits
 		this.updatePreVotesPreCommits(blockHeader);
 
@@ -221,9 +223,16 @@ class FinalityManager {
 			.reverse()
 			.find(key => this.preCommits[key] >= this.preCommitThreshold);
 
-		this.finalizedHeight = highestHeightPreCommitted
-			? parseInt(highestHeightPreCommitted, 10)
-			: this.finalizedHeight;
+		// Store current finalizedHeight
+		const previouslyFinalizedHeight = this.finalizedHeight;
+
+		if (highestHeightPreCommitted) {
+			this.finalizedHeight = parseInt(highestHeightPreCommitted, 10);
+		}
+
+		if (previouslyFinalizedHeight !== this.finalizedHeight) {
+			this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, this.finalizedHeight);
+		}
 
 		return true;
 	}
@@ -387,5 +396,6 @@ class FinalityManager {
 }
 
 module.exports = {
+	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
 };

@@ -22,6 +22,7 @@ const {
 	checkPersistedTransactions,
 } = require('../transactions');
 const blocksUtils = require('./utils');
+const blocksLogic = require('./block');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify, verifyBlockNotExists } = require('./verify');
 const {
@@ -453,7 +454,7 @@ class Blocks extends EventEmitter {
 			return BLOCKCHAIN_STATUS_REBUILD;
 		}
 		try {
-			this._lastBlock = await blocksUtils.loadLastBlock(
+			this._lastBlock = await blocksLogic.loadLastBlock(
 				this.storage,
 				this.interfaceAdapters,
 				this.genesisBlock,
@@ -476,7 +477,12 @@ class Blocks extends EventEmitter {
 	}
 
 	async deleteLastBlockAndGet(tx) {
+		const originalLastBlock = cloneDeep(this._lastBlock);
 		this._lastBlock = await this.remove({ block: this._lastBlock, tx });
+		this.emit(EVENT_DELETE_BLOCK, {
+			block: originalLastBlock,
+			newLastBlock: cloneDeep(this._lastBlock),
+		});
 		return this._lastBlock;
 	}
 
@@ -588,7 +594,7 @@ class Blocks extends EventEmitter {
 		this._isActive = true;
 
 		try {
-			const normalizedBlocks = blocksUtils.readDbRows(
+			const normalizedBlocks = blocksLogic.readDbRows(
 				blocks,
 				this.interfaceAdapters,
 				this.genesisBlock,

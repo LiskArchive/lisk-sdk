@@ -14,6 +14,13 @@
 
 'use strict';
 
+class CommonBlockError extends Error {
+	constructor(message, lastBlockId) {
+		super(message);
+		this.lastBlockId = lastBlockId;
+	}
+}
+
 /**
  * Converts array of errors into string
  *
@@ -44,5 +51,6 @@ function convertErrorsToString(errors) {
 }
 
 module.exports = {
+	CommonBlockError,
 	convertErrorsToString,
 };

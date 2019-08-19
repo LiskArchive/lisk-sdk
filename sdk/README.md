@@ -5,9 +5,9 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Join the chat at https://gitter.im/LiskHQ/lisk-sdk](https://badges.gitter.im/LiskHQ/lisk-sdk.svg)](https://gitter.im/LiskHQ/lisk-sdk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-## Disclaimer - Mostly Harmless
+## Alpha phase
 
-Please read our disclaimer carefully. With this repository we have opened access to the alpha release of the Lisk SDK. We have released the Lisk SDK in its current form in order for us to improve the development experience through community feedback and contributions.
+Please read this carefully. With this repository we have opened access to the alpha release of the Lisk SDK. We have released the Lisk SDK in its current form in order for us to improve the development experience through community feedback and contributions.
 
 We strictly discourage anyone from using the alpha release of the Lisk SDK for any production-based blockchain applications, i.e. a blockchain operating on a real mainnet. Over the course of the alpha phase there will be significant changes in the Lisk protocol and implementation, which will eventually bring the accessibility and reliability to a level which is feasible for production-based blockchain applications. At this time we only recommend the Lisk SDK for proof-of-concept blockchain applications, i.e. a blockchain operating on a fake testnet.
 
@@ -29,7 +29,7 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 
 | Dependencies     | Version |
 | ---------------- | ------- |
-| NodeJS           | 10.15.3 |
+| NodeJS           | 10.4+   |
 | PostgreSQL       | 10+     |
 | Redis (optional) | 5+      |
 
@@ -56,9 +56,9 @@ To create a blockchain application, you need to provide an entry point of your a
 It is quite simple to have a working blockchain application, mirroring the configuration of the existing Lisk network. This can be done by copying the following three lines of code to your `index.js`:
 
 ```js
-const { Application, genesisBlockDevnet } = require('lisk-sdk');
+const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
-const app = new Application(genesisBlockDevnet);
+const app = new Application(genesisBlockDevnet, configDevnet);
 
 app
 	.run()
@@ -96,16 +96,16 @@ For a complete list of configuration options see the [lisk-docs repo](https://gi
 
 ### Register a custom transaction
 
-You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
+You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
 
 Add your custom transaction type to your blockchain application by registering it to the application instance:
 
 ```js
-const { Application, genesisBlockDevnet } = require('lisk-sdk');
+const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
 const MyTransaction = require('./my_transaction');
 
-const app = new Application(genesisBlockDevnet);
+const app = new Application(genesisBlockDevnet, configDevnet);
 
 app.registerTransaction(MyTransaction); // register the custom transaction
 
@@ -118,7 +118,7 @@ app
 	});
 ```
 
-For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
+For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
 
 ## Architecture Overview
 
@@ -188,6 +188,10 @@ In order to link your local lisk-sdk repository and test your application which 
 ## Contributors
 
 https://github.com/LiskHQ/lisk-sdk/graphs/contributors
+
+## Disclaimer
+
+By using the Alpha release of the Lisk SDK, you acknowledge and agree that you have an adequate understanding of the risks associated with the use of the Alpha release of the Lisk SDK and that it is provided on an “as is” and “as available” basis, without any representations or warranties of any kind. To the fullest extent permitted by law, in no event shall the Lisk Foundation or other parties involved in the development of the Alpha release of the Lisk SDK have any liability whatsoever to any person for any direct or indirect loss, liability, cost, claim, expense or damage of any kind, whether in contract or in tort, including negligence, or otherwise, arising out of or related to the use of all or part of the Alpha release of the Lisk SDK.
 
 ## License
 

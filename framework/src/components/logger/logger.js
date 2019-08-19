@@ -27,13 +27,20 @@ const createDirIfNotExist = filePath => {
 };
 
 /**
+ * Creates a logger object with bunyan
  *
  * @param {Object} config
+ * @param {string} config.module Name of the module logs are written for
  * @param {string} config.logFileName
  * @param {string} config.fileLogLevel
  * @param {string} config.consoleLogLevel
  */
-const createLogger = ({ fileLogLevel, consoleLogLevel, logFileName }) => {
+const createLogger = ({
+	fileLogLevel,
+	consoleLogLevel,
+	logFileName,
+	module,
+}) => {
 	const consoleSrc = consoleLogLevel === 'debug' || consoleLogLevel === 'trace';
 	const consoleStream =
 		consoleLogLevel !== 'none'
@@ -62,6 +69,7 @@ const createLogger = ({ fileLogLevel, consoleLogLevel, logFileName }) => {
 		streams,
 		src: consoleSrc || fileSrc,
 		serializers: { err: bunyan.stdSerializers.err },
+		module,
 	});
 };
 

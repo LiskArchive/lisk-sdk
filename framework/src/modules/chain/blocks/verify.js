@@ -520,7 +520,7 @@ class BlocksVerify {
 		const secondLastRound = currentRound - 2;
 		const validateTillHeight =
 			secondLastRound < 1 ? 2 : this.slots.calcRoundEndHeight(secondLastRound);
-		const secondLastBlock = await blocksUtils.loadBlockByHeight(
+		const secondLastBlock = await blocksLogic.loadBlockByHeight(
 			this.storage,
 			currentHeight - 1,
 			this.interfaceAdapters,
@@ -530,13 +530,13 @@ class BlocksVerify {
 		if (currentBlockResult.verified) {
 			return false;
 		}
-		const startBlock = await blocksUtils.loadBlockByHeight(
+		const startBlock = await blocksLogic.loadBlockByHeight(
 			this.storage,
 			validateTillHeight,
 			this.interfaceAdapters,
 			this.genesisBlock,
 		);
-		const startBlockLastBlock = await blocksUtils.loadBlockByHeight(
+		const startBlockLastBlock = await blocksLogic.loadBlockByHeight(
 			this.storage,
 			startBlock.height - 1,
 			this.interfaceAdapters,

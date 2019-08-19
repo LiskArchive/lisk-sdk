@@ -18,7 +18,7 @@ const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('./transactions');
-const { convertErrorsToString } = require('./utils/error_handlers');
+const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
 
 /**
@@ -227,7 +227,7 @@ class Loader {
 		});
 
 		const validatorErrors = validator.validate(
-			definitions.WSSignaturesResponse,
+			definitions.WSTransactionsResponse,
 			result,
 		);
 		if (validatorErrors.length) {
@@ -302,8 +302,9 @@ class Loader {
 		// The misspelled data.sucess is required to support v1 nodes.
 		// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
 		if (data.success === false || data.sucess === false) {
-			throw new Error(
-				`Peer did not have a matching lastBlockId. ${data.message}`,
+			throw new CommonBlockError(
+				'Peer did not have a matching lastBlockId.',
+				lastBlock.id,
 			);
 		}
 		return data.blocks;
@@ -337,47 +338,18 @@ class Loader {
 	async _getValidatedBlocksFromNetwork(blockRows) {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
-		try {
-			// TODO: this should be removed and the block should be received from the network using *normal* block property names
-			const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
-			// eslint-disable-next-line no-restricted-syntax
-			for (const block of blocks) {
-				// eslint-disable-next-line no-await-in-loop
-				await this.processorModule.validate(block);
-				// eslint-disable-next-line no-await-in-loop
-				lastValidBlock = await this.processorModule.processValidated(block);
-			}
-			this.blocksToSync = lastValidBlock.height;
-
-			return lastValidBlock.id === lastBlock.id;
-		} catch (loadBlocksFromNetworkErr) {
-			this.logger.debug(
-				loadBlocksFromNetworkErr instanceof Error
-					? loadBlocksFromNetworkErr
-					: new Error(loadBlocksFromNetworkErr),
-				'Chain recovery failed after failing to load blocks from the network',
-			);
-			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
-				this.logger.debug('Perform chain recovery due to poor consensus');
-				try {
-					await this.processorModule.deleteLastBlock();
-				} catch (recoveryError) {
-					throw new Error(
-						`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`,
-					);
-				}
-				throw new Error(
-					`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`,
-				);
-			}
-			this.logger.error(
-				'Failed to process block from network',
-				loadBlocksFromNetworkErr,
-			);
-			throw new Error(
-				`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`,
-			);
+		// TODO: this should be removed and the block should be received from the network using *normal* block property names
+		const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
+		// eslint-disable-next-line no-restricted-syntax
+		for (const block of blocks) {
+			// eslint-disable-next-line no-await-in-loop
+			await this.processorModule.validate(block);
+			// eslint-disable-next-line no-await-in-loop
+			lastValidBlock = await this.processorModule.processValidated(block);
 		}
+		this.blocksToSync = lastValidBlock.height;
+
+		return lastValidBlock.id === lastBlock.id;
 	}
 
 	/**
@@ -405,10 +377,31 @@ class Loader {
 				// Reset counter after a batch of blocks was successfully loaded from the network
 				failedAttemptsToLoad = 0;
 			} catch (err) {
-				if (err) {
-					failedAttemptsToLoad += 1;
-					this.logger.error(convertErrorsToString(err));
-				}
+				failedAttemptsToLoad += 1;
+				// eslint-disable-next-line no-await-in-loop
+				await this._handleCommonBlockError(err);
+				this.logger.warn(
+					{ error: err },
+					'Failed to load blocks from the network.',
+				);
+			}
+		}
+	}
+
+	async _handleCommonBlockError(error) {
+		if (!(error instanceof CommonBlockError)) {
+			return;
+		}
+		if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
+			this.logger.debug('Perform chain recovery due to poor consensus');
+			try {
+				// eslint-disable-next-line no-await-in-loop
+				await this.blocksModule.recoverChain();
+			} catch (recoveryError) {
+				this.logger.error(
+					{ error: recoveryError },
+					'Chain recovery failed after failing to load blocks while network consensus was low.',
+				);
 			}
 		}
 	}

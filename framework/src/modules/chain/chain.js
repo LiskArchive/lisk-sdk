@@ -82,6 +82,7 @@ module.exports = class Chain {
 			'app:getComponentConfig',
 			'logger',
 		);
+
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
 			'storage',
@@ -96,17 +97,16 @@ module.exports = class Chain {
 			'app:getApplicationState',
 		);
 
-		this.logger = createLoggerComponent(loggerConfig);
+		this.logger = createLoggerComponent({ ...loggerConfig, module: 'chain' });
 		const dbLogger =
 			storageConfig.logFileName &&
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
-				: createLoggerComponent(
-						Object.assign({
-							...loggerConfig,
-							logFileName: storageConfig.logFileName,
-						}),
-				  );
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+						module: 'chain:database',
+				  });
 
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
@@ -222,9 +222,12 @@ module.exports = class Chain {
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
-				this._startLoader();
 				this._calculateConsensus();
 				await this._startForging();
+			});
+
+			this.channel.subscribe('network:ready', async () => {
+				this._startLoader();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -630,6 +633,10 @@ module.exports = class Chain {
 					block.transactions,
 				);
 			}
+			this.logger.info(
+				{ id: block.id, height: block.height },
+				'Deleted a block from the chain',
+			);
 			this.channel.publish('chain:blocks:change', block);
 		});
 
@@ -641,6 +648,14 @@ module.exports = class Chain {
 					block.transactions,
 				);
 			}
+			this.logger.info(
+				{
+					id: block.id,
+					height: block.height,
+					numberOfTransactions: block.transactions.length,
+				},
+				'New block added to the chain',
+			);
 			this.channel.publish('chain:blocks:change', block);
 
 			if (!this.loader.syncing()) {
@@ -676,6 +691,10 @@ module.exports = class Chain {
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+			this.logger.debug(
+				{ broadhash, height },
+				'Updating the application state',
+			);
 		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {

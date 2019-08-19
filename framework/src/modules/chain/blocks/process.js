@@ -14,7 +14,7 @@
 
 'use strict';
 
-const blocksUtils = require('./utils');
+const blocksLogic = require('./block');
 
 class BlocksProcess {
 	constructor({
@@ -40,7 +40,7 @@ class BlocksProcess {
 	}
 
 	async recoverInvalidOwnChain(currentBlock, onDelete) {
-		const lastBlock = await blocksUtils.loadBlockByHeight(
+		const lastBlock = await blocksLogic.loadBlockByHeight(
 			this.storage,
 			currentBlock.height - 1,
 			this.interfaceAdapters,

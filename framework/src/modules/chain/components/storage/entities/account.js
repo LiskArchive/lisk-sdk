@@ -34,6 +34,7 @@ const defaultCreateValues = {
 	fees: '0',
 	rewards: '0',
 	vote: '0',
+	voteWeight: '0',
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,

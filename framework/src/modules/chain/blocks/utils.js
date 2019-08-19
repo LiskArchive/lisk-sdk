@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const { hash } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
-const blocksLogic = require('./block');
 
 /**
  * Generates a list of full blocks structured as full_blocks_list DB view
@@ -176,127 +175,6 @@ const loadBlocksDataWS = async (storage, filter, tx) => {
 };
 
 /**
- * Load full block with a particular height
- *
- * @param {number} height - Block height
- * @param {function} cb - Callback function
- * @param {object} tx - Database transaction object
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.block - Block with requested height
- */
-/**
- * Normalize blocks and their transactions.
- *
- * @param {Array} rows - Data from extended block entity
- * @returns {Array} blocks - List of normalized blocks with transactions
- */
-const readStorageRows = (rows, interfaceAdapters, genesisBlock) => {
-	const blocks = rows.map(block => {
-		// Normalize block
-		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-		block = blocksLogic.storageRead(block);
-
-		if (block) {
-			if (block.id === genesisBlock.id) {
-				// Generate fake signature for genesis block
-				block.generationSignature = new Array(65).join('0');
-			}
-
-			// Normalize transaction
-			if (block.transactions) {
-				block.transactions = interfaceAdapters.transactions.fromBlock(block);
-			}
-		}
-		return block;
-	});
-
-	return blocks;
-};
-
-/**
- * Normalize blocks and their transactions.
- *
- * @param {Array} rows - Data from full_blocks_list view
- * @returns {Array} blocks - List of normalized blocks with transactions
- */
-
-const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
-	let blocks = {};
-	const order = [];
-
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0, { length } = rows; i < length; i++) {
-		// Normalize block
-		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-		const block = blocksLogic.dbRead(rows[i]);
-
-		if (block) {
-			// If block is not already in the list...
-			if (!blocks[block.id]) {
-				if (block.id === genesisBlock.id) {
-					// Generate fake signature for genesis block
-					block.generationSignature = new Array(65).join('0');
-				}
-
-				// Add block ID to order list
-				order.push(block.id);
-				// Add block to list
-				blocks[block.id] = block;
-			}
-
-			// Normalize transaction
-			const transaction = interfaceAdapters.transactions.dbRead(rows[i]);
-			// Set empty object if there are no transactions in block
-			blocks[block.id].transactions = blocks[block.id].transactions || {};
-
-			if (transaction) {
-				// Add transaction to block if not there already
-				if (!blocks[block.id].transactions[transaction.id]) {
-					blocks[block.id].transactions[transaction.id] = transaction;
-				}
-			}
-		}
-	}
-
-	// Reorganize list
-	blocks = order.map(v => {
-		blocks[v].transactions = Object.keys(blocks[v].transactions).map(
-			t => blocks[v].transactions[t],
-		);
-		return blocks[v];
-	});
-
-	return blocks;
-};
-
-/**
- * Loads full normalized last block from database, see: loader.loadBlockChain (private).
- *
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error message if error occurred
- * @returns {Object} cb.block - Full normalized last block
- */
-const loadLastBlock = async (storage, interfaceAdapters, genesisBlock) => {
-	// Get full last block from database
-	// FIXME: Review SQL order by clause
-	const rows = await storage.entities.Block.get(
-		{},
-		{ sort: 'height:desc', limit: 1, extended: true },
-	);
-	if (!rows) {
-		throw new Error('Failed to load last block');
-	}
-	// Normalize block
-	return readStorageRows(rows, interfaceAdapters, genesisBlock)[0];
-
-	// Update last block
-	// TODO: Update from callee
-	// modules.blocks.lastBlock.set(block);
-};
-
-/**
  * Get blocks IDs sequence - last block ID, IDs of first blocks of last 5 rounds, genesis block ID.
  *
  * @param {number} height - Block height
@@ -359,66 +237,6 @@ const getIdSequence = async (
 		firstHeight: rows[0].height,
 		ids: ids.join(),
 	};
-};
-
-/**
- * Load full block with a particular height
- *
- * @param {number} height - Block height
- * @param {object} tx - Database transaction object
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.block - Block with requested height
- */
-const loadBlockByHeight = async (
-	storage,
-	height,
-	interfaceAdapters,
-	genesisBlock,
-	tx,
-) => {
-	const row = await storage.entities.Block.getOne(
-		{ height },
-		{ extended: true },
-		tx,
-	);
-	return readStorageRows([row], interfaceAdapters, genesisBlock)[0];
-};
-
-/**
- * Load blocks with offset
- *
- *
- * @param {number} height - Block height
- * @param {object} tx - Database transaction object
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.block - Block with requested height
- */
-const loadBlocksWithOffset = async (
-	storage,
-	interfaceAdapters,
-	genesisBlock,
-	blocksAmount,
-	fromHeight = 0,
-) => {
-	// Calculate toHeight
-	const toHeight = fromHeight + blocksAmount;
-
-	const filters = {
-		height_gte: fromHeight,
-		height_lt: toHeight,
-	};
-
-	const options = {
-		limit: null,
-		sort: ['height:asc', 'rowId:asc'],
-		extended: true,
-	};
-
-	// Loads extended blocks from storage
-	const rows = await storage.entities.Block.get(filters, options);
-	return readStorageRows(rows, interfaceAdapters, genesisBlock);
 };
 
 /**
@@ -584,12 +402,7 @@ module.exports = {
 	getId,
 	parseStorageObjToLegacyObj,
 	getIdSequence,
-	readStorageRows,
-	readDbRows,
 	loadBlocksDataWS,
-	loadLastBlock,
-	loadBlockByHeight,
-	loadBlocksWithOffset,
 	loadMemTables,
 	calculateNewBroadhash,
 	setHeight,

@@ -29,10 +29,13 @@ import {
 	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,
 	P2PNodeInfo,
+	P2PPeerInfo,
+	PeerLists,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from './p2p_types';
+import { constructPeerIdFromPeerInfo } from './utils';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
@@ -41,6 +44,9 @@ interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
 	readonly success?: boolean; // Could be used in future
 }
+
+export const getByteSize = (object: any): number =>
+	Buffer.byteLength(JSON.stringify(object));
 
 export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	if (
@@ -53,9 +59,29 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	return true;
 };
 
-export const validatePeerInfo = (
-	rawPeerInfo: unknown,
-): P2PDiscoveredPeerInfo => {
+export const incomingPeerInfoSanitization = (
+	peerInfo: ProtocolPeerInfo,
+): P2PPeerInfo => {
+	const { ip, ...restOfPeerInfo } = peerInfo;
+
+	return {
+		ipAddress: ip,
+		...restOfPeerInfo,
+	};
+};
+
+export const outgoingPeerInfoSanitization = (
+	peerInfo: P2PPeerInfo,
+): ProtocolPeerInfo => {
+	const { ipAddress, ...restOfPeerInfo } = peerInfo;
+
+	return {
+		ip: ipAddress,
+		...restOfPeerInfo,
+	};
+};
+
+export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -82,7 +108,7 @@ export const validatePeerInfo = (
 			? +protocolPeer.height
 			: 0;
 	const { options, ...protocolPeerWithoutOptions } = protocolPeer;
-	const peerInfo: P2PDiscoveredPeerInfo = {
+	const peerInfo: P2PPeerInfo = {
 		...protocolPeerWithoutOptions,
 		ipAddress: protocolPeerWithoutOptions.ip,
 		wsPort,
@@ -97,17 +123,42 @@ export const validatePeerInfo = (
 	return peerInfoUpdated;
 };
 
-export const validatePeerInfoList = (
-	rawPeerInfoList: unknown,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	if (!rawPeerInfoList) {
+export const validatePeerInfo = (
+	rawPeerInfo: unknown,
+	maxByteSize: number,
+): P2PPeerInfo => {
+	const byteSize = getByteSize(rawPeerInfo);
+	if (byteSize > maxByteSize) {
+		throw new InvalidRPCResponseError(
+			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+		);
+	}
+
+	return validatePeerInfoSchema(rawPeerInfo);
+};
+
+export const validatePeersInfoList = (
+	rawBasicPeerInfoList: unknown,
+	maxPeerInfoListLength: number,
+	maxPeerInfoByteSize: number,
+): ReadonlyArray<P2PPeerInfo> => {
+	if (!rawBasicPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
-	const { peers } = rawPeerInfoList as RPCPeerListResponse;
-	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PDiscoveredPeerInfo>(validatePeerInfo);
+	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
-		return peerList;
+	if (Array.isArray(peers)) {
+		if (peers.length > maxPeerInfoListLength) {
+			throw new InvalidRPCResponseError('PeerInfo list was too long');
+		}
+		const cleanPeerList = peers.filter(
+			peerInfo => getByteSize(peerInfo) < maxPeerInfoByteSize,
+		);
+		const sanitizedPeerList = cleanPeerList.map<P2PPeerInfo>(
+			validatePeerInfoSchema,
+		);
+
+		return sanitizedPeerList;
 	} else {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
@@ -196,5 +247,92 @@ export const checkPeerCompatibility = (
 
 	return {
 		success: true,
+	};
+};
+
+export const sanitizePeerLists = (
+	lists: PeerLists,
+	nodeInfo: P2PPeerInfo,
+): PeerLists => {
+	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
+
+	const seedPeers = lists.seedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const whitelisted = lists.whitelisted.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		if (
+			fixedPeers
+				.map(constructPeerIdFromPeerInfo)
+				.includes(constructPeerIdFromPeerInfo(peerInfo))
+		) {
+			return false;
+		}
+
+		if (
+			seedPeers
+				.map(constructPeerIdFromPeerInfo)
+				.includes(constructPeerIdFromPeerInfo(peerInfo))
+		) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const previousPeers = lists.previousPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	return {
+		blacklistedPeers,
+		seedPeers,
+		fixedPeers,
+		whitelisted,
+		previousPeers,
 	};
 };
