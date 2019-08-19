@@ -248,7 +248,31 @@ describe('dpos.undo()', () => {
 			});
 		});
 
-		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {});
+		it('should undo distribution of rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {
+			// Act
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+
+			// Assert
+			expect.assertions(uniqueDelegatesWhoForged.length);
+			uniqueDelegatesWhoForged.forEach(account => {
+				const { fee, reward } = getTotalEarningsOfDelegate(account);
+				const amount = fee.plus(reward);
+				const data = {
+					...account,
+					balance: account.balance.minus(amount),
+					fees: account.fees.minus(fee),
+					rewards: account.rewards.minus(reward),
+				};
+
+				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
+					{
+						publicKey_eq: account.publicKey,
+					},
+					data,
+					stubs.tx,
+				);
+			});
+		});
 
 		it('should remove the remainingFee ONLY from the last delegate of the round who forged', async () => {
 			// Arrange
@@ -303,7 +327,28 @@ describe('dpos.undo()', () => {
 				});
 		});
 
-		it('should update vote weight of accounts that delegates who forged voted for', async () => {});
+		it('should update vote weight of accounts that delegates who forged voted for', async () => {
+			// Act
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+
+			// Assert
+			expect.assertions(uniqueDelegatesWhoForged.length);
+			uniqueDelegatesWhoForged.forEach(account => {
+				const { fee, reward } = getTotalEarningsOfDelegate(account);
+				const amount = fee.plus(reward);
+
+				expect(
+					stubs.storage.entities.Account.decreaseFieldBy,
+				).toHaveBeenCalledWith(
+					{
+						publicKey_in: account.votedDelegatesPublicKeys,
+					},
+					'voteWeight',
+					amount.toString(),
+					stubs.tx,
+				);
+			});
+		});
 
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
