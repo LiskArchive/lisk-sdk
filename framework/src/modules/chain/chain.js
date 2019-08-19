@@ -178,6 +178,11 @@ module.exports = class Chain {
 				exceptions: this.options.exceptions,
 			};
 
+			// TODO: remove this once we have version 2 genesis block
+			this.processor.register(new BlockProcessorV0(processorDependency), {
+				matcher: ({ height }) => height >= 0 && height <= 0,
+			});
+
 			// TODO: Move this to core
 			if (this.options.exceptions.blockVersion) {
 				if (this.options.exceptions.blockVersion[0]) {
@@ -197,16 +202,18 @@ module.exports = class Chain {
 				}
 			}
 
-			this.processor.register(new BlockProcessorV2(processorDependency));
+			this.processor.register(new BlockProcessorV2(processorDependency), {
+				matcher: ({ height }) => height >= 1,
+			});
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
 			});
 
 			this.logger.info('Modules ready and launched');
-			// After binding, it should immediately load blockchain
-			await this.blocks.loadBlockChain(this.options.loading.rebuildUpToRound);
 			await this.bft.init();
+			// After binding, it should immediately load blockchain
+			await this.processor.init(this.options.genesisBlock);
 
 			if (this.options.loading.rebuildUpToRound) {
 				process.emit('cleanup');
@@ -478,6 +485,7 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			blocksModule: this.blocks,
+			interfaceAdapters: this.interfaceAdapters,
 		});
 		this.loader = new Loader({
 			channel: this.channel,
