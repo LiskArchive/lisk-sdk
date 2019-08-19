@@ -38,7 +38,6 @@ describe('dpos.undo()', () => {
 			entities: {
 				Account: {
 					get: jest.fn(),
-					increaseFieldBy: jest.fn(),
 					decreaseFieldBy: jest.fn(),
 					update: jest.fn(),
 				},
@@ -96,7 +95,7 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
-		it('should update "missedBlocks", "rewards", "fees", "votes"', async () => {
+		it('should NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
 			// Arrange
 			const block = {
 				height: 2,
@@ -251,7 +250,7 @@ describe('dpos.undo()', () => {
 
 		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {});
 
-		it('should remove remainingFee ONLY from the last delegate of the round who forged', async () => {
+		it('should remove the remainingFee ONLY from the last delegate of the round who forged', async () => {
 			// Arrange
 			const remainingFee = randomInt(5, 10);
 			stubs.storage.entities.Round.summedRound.mockResolvedValue([
@@ -331,7 +330,7 @@ describe('dpos.undo()', () => {
 				await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any, 'missedBlocks');
 			});
 		});
@@ -349,13 +348,13 @@ describe('dpos.undo()', () => {
 
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any, 'producedBlocks');
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any(Object), 'missedBlocks');
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeight');
 			});
 		});
