@@ -27,7 +27,7 @@ const BaseModule = require('../base_module');
  * @namespace Framework.Modules
  * @type {module.ChainModule}
  */
-module.exports = class ChainModule extends BaseModule {
+class ChainModule extends BaseModule {
 	constructor(options) {
 		super(options);
 
@@ -143,4 +143,6 @@ module.exports = class ChainModule extends BaseModule {
 	async unload() {
 		return this.chain.cleanup();
 	}
-};
+}
+
+module.exports = ChainModule;

@@ -239,7 +239,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('should be object: undefined');
+					expect(err.message).to.equal('should be object: undefined');
 					expect(res).to.be.undefined;
 				}
 			});
@@ -257,7 +257,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal(
+					expect(err.message).to.equal(
 						'should NOT have duplicate items (items ## 2 and 1 are identical): undefined',
 					);
 				}
@@ -276,7 +276,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal(
+					expect(err.message).to.equal(
 						'should NOT have fewer than 1 items: undefined',
 					);
 				}
@@ -295,9 +295,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal(
-						'should match format "id": undefined',
-					);
+					expect(err.message).to.equal('should match format "id": undefined');
 				}
 			});
 
@@ -314,7 +312,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('should be array: undefined');
+					expect(err.message).to.equal('should be array: undefined');
 				}
 			});
 

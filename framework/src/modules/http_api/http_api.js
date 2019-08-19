@@ -55,7 +55,10 @@ module.exports = class HttpApi {
 			'app:getComponentConfig',
 			'logger',
 		);
-		this.logger = createLoggerComponent(loggerConfig);
+		this.logger = createLoggerComponent({
+			...loggerConfig,
+			module: 'http_api',
+		});
 
 		// Cache
 		this.logger.debug('Initiating cache...');
@@ -75,11 +78,11 @@ module.exports = class HttpApi {
 			storageConfig.logFileName &&
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
-				: createLoggerComponent(
-						Object.assign({}, loggerConfig, {
-							logFileName: storageConfig.logFileName,
-						}),
-				  );
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+						module: 'http_api:database',
+				  });
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
 		const applicationState = await this.channel.invoke(

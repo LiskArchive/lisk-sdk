@@ -32,7 +32,7 @@ describe('TempBlock', () => {
 		config.components.storage,
 		'lisk_test_chain_module_storage_temp_block',
 	);
-	const validSQLs = ['create', 'delete', 'get'];
+	const validSQLs = ['create', 'delete', 'get', 'truncate', 'isEmpty'];
 	const validFields = ['id', 'height', 'fullBlock'];
 	const validFilters = [
 		'id',
@@ -232,6 +232,29 @@ describe('TempBlock', () => {
 			const height = 5;
 
 			await expect(TempBlockEntity.delete({ height })).resolves.toBeNull();
+		});
+	});
+
+	describe('truncate', () => {
+		it('should truncate all rows from table', async () => {
+			await TempBlockEntity.truncate();
+
+			expect(await TempBlockEntity.get()).toEqual([]);
+		});
+	});
+
+	describe('isEmpty', () => {
+		it('should return false if table is not empty', async () => {
+			const isEmpty = await TempBlockEntity.isEmpty();
+
+			expect(isEmpty).toEqual(false); // Row 1 and Row 2
+		});
+
+		it('should return true if table is empty', async () => {
+			await TempBlockEntity.truncate();
+			const isEmpty = await TempBlockEntity.isEmpty();
+
+			expect(isEmpty).toEqual(true);
 		});
 	});
 });

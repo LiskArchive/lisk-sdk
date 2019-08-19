@@ -1,17 +1,51 @@
-const { Delegates, EVENT_ROUND_FINISHED } = require('./delegates');
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+const { DelegatesList, EVENT_ROUND_FINISHED } = require('./delegates_list');
+const { DelegatesInfo } = require('./delegates_info');
 
 module.exports = class Dpos {
-	constructor({ storage, logger, slots }) {
+	constructor({
+		storage,
+		slots,
+		activeDelegates,
+		logger,
+		schema,
+		exceptions = {},
+	}) {
 		this.finalizedBlockRound = 0;
-		this.delegate = new Delegates({ storage, logger });
 		this.slots = slots;
-		this.delegate.on(EVENT_ROUND_FINISHED, () => {
+		this.delegatesList = new DelegatesList({ storage, logger, exceptions });
+		this.delegatesInfo = new DelegatesInfo({
+			storage,
+			slots,
+			activeDelegates,
+			schema,
+			logger,
+			delegatesList: this.delegatesList,
+			exceptions,
+		});
+
+		this.delegatesList.on(EVENT_ROUND_FINISHED, () => {
 			this.onRoundFinish();
 		});
 	}
 
 	async getRoundDelegates(round) {
-		return this.delegates.getRoundDelegates(round);
+		return this.delegatesList.getRoundDelegates(round);
 	}
 
 	async onBlockFinalized({ height }) {
@@ -23,6 +57,16 @@ module.exports = class Dpos {
 		const delegateListOffsetForRound = 2;
 		const disposableDelegateList =
 			this.finalizedBlockRound - delegateListOffsetForRound;
-		await this.delegate.deleteDelegateListUntilRound(disposableDelegateList);
+		await this.delegatesList.deleteDelegateListUntilRound(
+			disposableDelegateList,
+		);
+	}
+
+	async apply(block, tx) {
+		return this.delegatesInfo.apply(block, tx);
+	}
+
+	async undo(block, tx) {
+		return this.delegatesInfo.undo(block, tx);
 	}
 };

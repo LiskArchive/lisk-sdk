@@ -20,5 +20,6 @@ export * from './encrypt';
 export * from './hash';
 export * from './keys';
 export * from './sign';
+export { getRandomBytes } from './nacl';
 
 export { constants };

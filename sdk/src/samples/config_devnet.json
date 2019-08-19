@@ -504,8 +504,7 @@
 			"broadcasts": {
 				"active": true,
 				"broadcastInterval": 5000,
-				"releaseLimit": 25,
-				"relayLimit": 3
+				"releaseLimit": 25
 			},
 			"transactions": {
 				"maxTransactionsPerQueue": 1000
