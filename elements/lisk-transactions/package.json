@@ -71,7 +71,7 @@
 		"@types/node": "10.10.1",
 		"browserify": "16.2.3",
 		"chai": "4.2.0",
-		"cypress": "3.1.5",
+		"cypress": "3.4.1",
 		"http-server": "0.11.1",
 		"mocha": "5.2.0",
 		"nyc": "14.1.1",
