@@ -178,6 +178,8 @@ class BlockProcessorV2 extends BlockProcessor {
 
 		this.apply.pipe([data => this.blocksModule.apply(data)]);
 
+		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
+
 		this.undo.pipe([data => this.blocksModule.undo(data)]);
 
 		this.create.pipe([data => this._create(data)]);

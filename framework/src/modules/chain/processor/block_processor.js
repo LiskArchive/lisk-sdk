@@ -25,6 +25,7 @@ class BlockProcessor {
 		this.validateNew = new Pipeline();
 		this.verify = new Pipeline();
 		this.apply = new Pipeline();
+		this.applyGenesis = new Pipeline();
 		this.undo = new Pipeline();
 	}
 
