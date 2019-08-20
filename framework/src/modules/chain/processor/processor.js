@@ -44,7 +44,7 @@ class Processor {
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
 	async init(genesisBlock) {
 		// do init check for block state. We need to load the blockchain
-		await this._applyGenesisBlock(genesisBlock);
+		await this.applyGenesisBlock(genesisBlock);
 		const status = await this.blocksModule.checkBlockchainStatus();
 		if (status === BLOCKCHAIN_STATUS_REBUILD) {
 			// Need to fix this.
@@ -92,7 +92,7 @@ class Processor {
 				}
 				if (block.id === this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
-					lastBlock = await this._applyGenesisBlock(block, true);
+					lastBlock = await this.applyGenesisBlock(block, true);
 					onProgress(lastBlock);
 				}
 
@@ -174,7 +174,7 @@ class Processor {
 		await this._revert(lastBlock, blockProcessor);
 	}
 
-	async _applyGenesisBlock(block, skipSave = false) {
+	async applyGenesisBlock(block, skipSave = false) {
 		const blockProcessor = this._getBlockProcessor(block);
 		return this._processGenesis(block, blockProcessor, { skipSave });
 	}
