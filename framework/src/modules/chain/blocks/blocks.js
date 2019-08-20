@@ -279,19 +279,19 @@ class Blocks extends EventEmitter {
 
 		if (forkChoiceRule.isValidBlock(lastBlock, block)) {
 			// Case 2: correct block received
-			return forkChoiceRule.FORK_STATUS_PROCESS;
+			return forkChoiceRule.FORK_STATUS_VALID_BLOCK;
 		}
 
 		if (forkChoiceRule.isIdenticalBlock(lastBlock, block)) {
 			// Case 1: same block received twice
-			return forkChoiceRule.FORK_STATUS_DISCARD;
+			return forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK;
 		}
 
 		if (forkChoiceRule.isDoubleForging(lastBlock, block)) {
 			// Delegates are the same
 			// Case 3: double forging different blocks in the same slot.
 			// Last Block stands.
-			return forkChoiceRule.FORK_STATUS_DISCARD;
+			return forkChoiceRule.FORK_STATUS_DOUBLE_FORGING;
 		}
 
 		if (
@@ -303,12 +303,12 @@ class Blocks extends EventEmitter {
 		) {
 			// Two competing blocks by different delegates at the same height.
 			// Case 4: Tie break
-			return forkChoiceRule.FORK_STATUS_REVERT;
+			return forkChoiceRule.FORK_STATUS_TIE_BREAK;
 		}
 
 		if (forkChoiceRule.isDifferentChain(lastBlock, block)) {
 			// Case 5: received block has priority. Move to a different chain.
-			return forkChoiceRule.FORK_STATUS_SYNC;
+			return forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN;
 		}
 
 		// Discard newly received block
