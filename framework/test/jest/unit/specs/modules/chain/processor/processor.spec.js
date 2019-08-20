@@ -14,13 +14,24 @@
 
 'use strict';
 
-const { FakeBlockProcessorV0 } = require('./block_processor');
+const {
+	FakeBlockProcessorV0,
+	FakeBlockProcessorV1,
+} = require('./block_processor');
 const {
 	Processor,
 } = require('../../../../../../../src/modules/chain/processor');
 const {
 	Sequence,
 } = require('../../../../../../../src/modules/chain/utils/sequence');
+const {
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_DISCARD,
+	FORK_STATUS_VALID_BLOCK,
+} = require('../../../../../../../src/modules/chain/blocks');
 
 describe('processor', () => {
 	let processor;
@@ -42,16 +53,17 @@ describe('processor', () => {
 			},
 		};
 		loggerStub = {
+			debug: jest.fn(),
 			info: jest.fn(),
 			error: jest.fn(),
 		};
 		blocksModuleStub = {
-			lastBlock: jest.fn(),
 			save: jest.fn(),
 			saveGenesis: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
 		};
+		Object.defineProperty(blocksModuleStub, 'lastBlock', { get: jest.fn() });
 		processor = new Processor({
 			channel: channelStub,
 			storage: storageStub,
@@ -213,9 +225,102 @@ describe('processor', () => {
 	});
 
 	describe('process', () => {
-		describe('when only 1 processor is registered', () => {});
+		const blockV0 = { id: 'fakelock1', version: 0, height: 99 };
+		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
 
-		describe('when more than 2 processor is registered', () => {});
+		let forkSteps;
+		let validateNewSteps;
+		let validateSteps;
+		let verifySteps;
+		let applySteps;
+		// let txStub;
+
+		beforeEach(async () => {
+			forkSteps = [jest.fn()];
+			validateSteps = [jest.fn(), jest.fn()];
+			validateNewSteps = [jest.fn(), jest.fn()];
+			verifySteps = [jest.fn(), jest.fn()];
+			applySteps = [jest.fn(), jest.fn()];
+			// txStub = jest.fn();
+			blockProcessorV0.fork.pipe(forkSteps);
+			blockProcessorV0.validateNew.pipe(validateNewSteps);
+			blockProcessorV0.validate.pipe(validateSteps);
+			blockProcessorV0.verify.pipe(verifySteps);
+			blockProcessorV0.apply.pipe(applySteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
+
+		describe('when only 1 processor is registered', () => {
+			it('should throw an error if the matching block version does not exist', async () => {
+				await expect(processor.process(blockV1)).rejects.toThrow(
+					'Block processing version is not registered',
+				);
+			});
+
+			it('should call fork pipelines with matching processor', async () => {
+				await processor.process(blockV0);
+				forkSteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
+
+		describe('when more than 2 processor is registered', () => {
+			let blockProcessorV1;
+			let forkSteps2;
+
+			beforeEach(async () => {
+				blockProcessorV1 = new FakeBlockProcessorV1();
+				forkSteps2 = [jest.fn(), jest.fn()];
+				blockProcessorV1.fork.pipe(forkSteps2);
+				processor.register(blockProcessorV1);
+			});
+
+			it('should call fork pipelines with matching processor', async () => {
+				await processor.process(blockV1);
+				forkSteps2.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
+
+		describe('when the fork step returns FORK_STATUS_IDENTICAL_BLOCK', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(FORK_STATUS_IDENTICAL_BLOCK);
+			});
+		});
+
+		describe('when the fork step returns FORK_STATUS_DOUBLE_FORGING', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(FORK_STATUS_DOUBLE_FORGING);
+			});
+		});
+
+		describe('when the fork step returns FORK_STATUS_TIE_BREAK', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(FORK_STATUS_TIE_BREAK);
+			});
+		});
+
+		describe('when the fork step returns FORK_STATUS_DIFFERENT_CHAIN', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(FORK_STATUS_DIFFERENT_CHAIN);
+			});
+		});
+
+		describe('when the fork step returns FORK_STATUS_DISCARD', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(FORK_STATUS_DISCARD);
+			});
+		});
+
+		describe('when the fork step returns FORK_STATUS_VALID_BLOCK', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(FORK_STATUS_VALID_BLOCK);
+			});
+		});
 
 		describe('when the block is not valid as a new block', () => {});
 
