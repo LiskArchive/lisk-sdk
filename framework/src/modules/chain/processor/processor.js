@@ -22,6 +22,7 @@ const {
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
 } = require('../blocks');
+const { Sequence } = require('../utils/sequence');
 
 class Processor {
 	constructor({ channel, storage, logger, blocksModule }) {
@@ -29,6 +30,7 @@ class Processor {
 		this.storage = storage;
 		this.logger = logger;
 		this.blocksModule = blocksModule;
+		this.sequence = new Sequence();
 		this.processors = {};
 		this.matchers = {};
 	}
@@ -50,64 +52,66 @@ class Processor {
 
 	// process is for standard processing of block, especially when received from network
 	async process(block) {
-		const blockProcessor = this._getBlockProcessor(block);
-		const { lastBlock } = this.blocksModule;
+		return this.sequence.add(async () => {
+			const blockProcessor = this._getBlockProcessor(block);
+			const { lastBlock } = this.blocksModule;
 
-		const forkStatus = await blockProcessor.fork.exec({
-			block,
-			lastBlock,
-		});
-		this.logger.debug({ id: block.id }, 'Received block');
-		// Discarding block
-		if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
-			this.logger.debug({ id: block.id }, 'Block already processed');
-			return;
-		}
-		if (forkStatus === FORK_STATUS_DISCARD) {
-			this.logger.info({ id: block.id }, 'Discarding block');
-			return;
-		}
-		if (forkStatus === FORK_STATUS_DOUBLE_FORGING) {
-			this.logger.info(
-				{ id: block.id, generatorPublicKey: block.generatorPublicKey },
-				'Discarding block due to double forging',
-			);
-			return;
-		}
-		// Discard block and move to different chain
-		if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
-			this.channel.publish('chain:process:sync');
-			return;
-		}
-		// Replacing a block
-		if (forkStatus === FORK_STATUS_TIE_BREAK) {
-			this.logger.info({ id: lastBlock.id }, 'Reverting block');
+			const forkStatus = await blockProcessor.fork.exec({
+				block,
+				lastBlock,
+			});
+			this.logger.debug({ id: block.id }, 'Received block');
+			// Discarding block
+			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
+				this.logger.debug({ id: block.id }, 'Block already processed');
+				return;
+			}
+			if (forkStatus === FORK_STATUS_DISCARD) {
+				this.logger.info({ id: block.id }, 'Discarding block');
+				return;
+			}
+			if (forkStatus === FORK_STATUS_DOUBLE_FORGING) {
+				this.logger.info(
+					{ id: block.id, generatorPublicKey: block.generatorPublicKey },
+					'Discarding block due to double forging',
+				);
+				return;
+			}
+			// Discard block and move to different chain
+			if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
+				this.channel.publish('chain:process:sync');
+				return;
+			}
+			// Replacing a block
+			if (forkStatus === FORK_STATUS_TIE_BREAK) {
+				this.logger.info({ id: lastBlock.id }, 'Reverting block');
+				await blockProcessor.validateNew.exec({
+					block,
+					lastBlock,
+				});
+				await this._validate(block, blockProcessor);
+				const previousLastBlock = cloneDeep(this._lastBlock);
+				await this._revert(lastBlock, blockProcessor);
+				try {
+					await this._processValidated(block, blockProcessor);
+				} catch (error) {
+					this.logger.error(
+						{ id: block.id, previousBlockId: previousLastBlock.id, error },
+						'Failed to apply newly received block. restoring previous block.',
+					);
+					await this._processValidated(previousLastBlock);
+				}
+				return;
+			}
+
+			// Process block as it's valid: FORK_STATUS_VALID_BLOCK
 			await blockProcessor.validateNew.exec({
 				block,
 				lastBlock,
 			});
 			await this._validate(block, blockProcessor);
-			const previousLastBlock = cloneDeep(this._lastBlock);
-			await this._revert(lastBlock, blockProcessor);
-			try {
-				await this._processValidated(block, blockProcessor);
-			} catch (error) {
-				this.logger.error(
-					{ id: block.id, previousBlockId: previousLastBlock.id, error },
-					'Failed to apply newly received block. restoring previous block.',
-				);
-				await this._processValidated(previousLastBlock);
-			}
-			return;
-		}
-
-		// Process block as it's valid: FORK_STATUS_VALID_BLOCK
-		await blockProcessor.validateNew.exec({
-			block,
-			lastBlock,
+			await this._processValidated(block, blockProcessor);
 		});
-		await this._validate(block, blockProcessor);
-		await this._processValidated(block, blockProcessor);
 	}
 
 	async create(values) {
@@ -124,25 +128,31 @@ class Processor {
 
 	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
-		const blockProcessor = this._getBlockProcessor(block);
-		return this._processValidated(block, blockProcessor, {
-			skipBroadcast: true,
+		return this.sequence.add(async () => {
+			const blockProcessor = this._getBlockProcessor(block);
+			return this._processValidated(block, blockProcessor, {
+				skipBroadcast: true,
+			});
 		});
 	}
 
 	// apply processes a block assuming that statically it's valid without saving a block
 	async apply(block) {
-		const blockProcessor = this._getBlockProcessor(block);
-		return this._processValidated(block, blockProcessor, {
-			skipSave: true,
-			skipBroadcast: true,
+		return this.sequence.add(async () => {
+			const blockProcessor = this._getBlockProcessor(block);
+			return this._processValidated(block, blockProcessor, {
+				skipSave: true,
+				skipBroadcast: true,
+			});
 		});
 	}
 
 	async deleteLastBlock() {
-		const { lastBlock } = this.blocksModule;
-		const blockProcessor = this._getBlockProcessor(lastBlock);
-		await this._revert(lastBlock, blockProcessor);
+		return this.sequence.add(async () => {
+			const { lastBlock } = this.blocksModule;
+			const blockProcessor = this._getBlockProcessor(lastBlock);
+			await this._revert(lastBlock, blockProcessor);
+		});
 	}
 
 	async applyGenesisBlock(block, skipSave = false) {
