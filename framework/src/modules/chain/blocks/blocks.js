@@ -320,6 +320,8 @@ class Blocks extends EventEmitter {
 
 	async verify({ block }) {
 		await verifyBlockNotExists(this.storage, block);
+		// TODO: move to DPOS verify step
+		await this.blocksVerify.verifyBlockSlot(block);
 		const {
 			transactionsResponses: persistedResponse,
 		} = await checkPersistedTransactions(this.storage)(block.transactions);
