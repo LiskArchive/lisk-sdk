@@ -27,13 +27,12 @@ const {
 	extractBFTBlockHeaderFromBlock,
 } = require('../../../../../../../src/modules/chain/bft/bft');
 
-const generateBlocks = ({ startHeight, numberOfBlocks }) => {
-	return Array(numberOfBlocks)
-		.fill('')
-		.map((_v, index) => {
-			return blockFixture({ height: startHeight + index, version: '2' });
-		});
-};
+const generateBlocks = ({ startHeight, numberOfBlocks }) =>
+	new Array(numberOfBlocks)
+		.fill(0)
+		.map((_v, index) =>
+			blockFixture({ height: startHeight + index, version: '2' }),
+		);
 
 describe('bft', () => {
 	beforeEach(async () => {
@@ -197,7 +196,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('onDeleteBlocks()', () => {
+		describe('deleteBlocks()', () => {
 			let bft;
 
 			beforeEach(async () => {
@@ -209,14 +208,14 @@ describe('bft', () => {
 
 			it('should reject with error if no blocks are provided', async () => {
 				// Act & Assert
-				await expect(bft.onDeleteBlocks()).rejects.toThrow(
+				await expect(bft.deleteBlocks()).rejects.toThrow(
 					'Must provide blocks which are deleted',
 				);
 			});
 
 			it('should reject with error if blocks are not provided as array', async () => {
 				// Act & Assert
-				await expect(bft.onDeleteBlocks({})).rejects.toThrow(
+				await expect(bft.deleteBlocks({})).rejects.toThrow(
 					'Must provide list of blocks',
 				);
 			});
@@ -233,7 +232,7 @@ describe('bft', () => {
 				];
 
 				// Act & Assert
-				await expect(bft.onDeleteBlocks(blocks)).rejects.toThrow(
+				await expect(bft.deleteBlocks(blocks)).rejects.toThrow(
 					'Can not delete block below or same as finalized height',
 				);
 			});
@@ -249,7 +248,7 @@ describe('bft', () => {
 				];
 
 				// Act & Assert
-				await expect(bft.onDeleteBlocks(blocks)).rejects.toThrow(
+				await expect(bft.deleteBlocks(blocks)).rejects.toThrow(
 					'Can not delete block below or same as finalized height',
 				);
 			});
@@ -260,13 +259,13 @@ describe('bft', () => {
 				const block2 = blockFixture({ height: 2, version: '2' });
 				const block3 = blockFixture({ height: 3, version: '2' });
 				const block4 = blockFixture({ height: 4, version: '2' });
-				await bft.onNewBlock(block1);
-				await bft.onNewBlock(block2);
-				await bft.onNewBlock(block3);
-				await bft.onNewBlock(block4);
+				await bft.addNewBlock(block1);
+				await bft.addNewBlock(block2);
+				await bft.addNewBlock(block3);
+				await bft.addNewBlock(block4);
 
 				// Act
-				await bft.onDeleteBlocks([block3, block4]);
+				await bft.deleteBlocks([block3, block4]);
 
 				// Assert
 				expect(bft.finalityManager.minHeight).toEqual(1);
@@ -298,7 +297,7 @@ describe('bft', () => {
 				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
 					// eslint-disable-next-line no-await-in-loop
-					await bft.onNewBlock(block);
+					await bft.addNewBlock(block);
 				}
 
 				// When asked by BFT, return last [blocksToDelete] blocks ()
@@ -307,7 +306,7 @@ describe('bft', () => {
 				);
 
 				// Act - Delete top 50 blocks (500-450 height)
-				await bft.onDeleteBlocks(blockToDelete);
+				await bft.deleteBlocks(blockToDelete);
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(450);
@@ -340,11 +339,11 @@ describe('bft', () => {
 				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
 					// eslint-disable-next-line no-await-in-loop
-					await bft.onNewBlock(block);
+					await bft.addNewBlock(block);
 				}
 
 				// Act
-				await bft.onDeleteBlocks(blockToDelete);
+				await bft.deleteBlocks(blockToDelete);
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(450);
@@ -372,11 +371,11 @@ describe('bft', () => {
 				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
 					// eslint-disable-next-line no-await-in-loop
-					await bft.onNewBlock(block);
+					await bft.addNewBlock(block);
 				}
 
 				// Act
-				await bft.onDeleteBlocks(blockToDelete);
+				await bft.deleteBlocks(blockToDelete);
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(403);

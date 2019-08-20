@@ -97,7 +97,7 @@ class BFT extends EventEmitter {
 	 * @param {Array.<Object>} blocks - List of all blocks
 	 * @return {Promise<void>}
 	 */
-	async onDeleteBlocks(blocks) {
+	async deleteBlocks(blocks) {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
 
@@ -135,7 +135,7 @@ class BFT extends EventEmitter {
 	 * @param {Object} block - The block which is forged
 	 * @return {Promise<void>}
 	 */
-	async onNewBlock(block) {
+	async addNewBlock(block) {
 		// We don't need async operations here as of now but can require in future
 		// and for consistency with other interfaces keeping it async
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
