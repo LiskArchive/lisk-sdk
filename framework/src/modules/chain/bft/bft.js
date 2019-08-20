@@ -67,7 +67,7 @@ class BFT extends EventEmitter {
 	 *
 	 * @return {Promise<void>}
 	 */
-	async bootstrap() {
+	async init() {
 		this.finalityManager = await this._initFinalityManager();
 
 		this.finalityManager.on(

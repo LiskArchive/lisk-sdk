@@ -124,13 +124,13 @@ describe('bft', () => {
 			});
 
 			it('should invoke _initFinalityManager()', async () => {
-				await bft.bootstrap();
+				await bft.init();
 
 				expect(bft._initFinalityManager).toHaveBeenCalledTimes(1);
 			});
 
 			it('should invoke _getLastBlockHeight()', async () => {
-				await bft.bootstrap();
+				await bft.init();
 
 				expect(bft._getLastBlockHeight).toHaveBeenCalledTimes(1);
 			});
@@ -146,7 +146,7 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.bootstrap();
+				await bft.init();
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -166,7 +166,7 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.bootstrap();
+				await bft.init();
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -186,7 +186,7 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.bootstrap();
+				await bft.init();
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -202,7 +202,7 @@ describe('bft', () => {
 			beforeEach(async () => {
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
-				await bft.bootstrap();
+				await bft.init();
 				storageMock.entities.Block.get.mockClear();
 			});
 
@@ -224,7 +224,7 @@ describe('bft', () => {
 				// Arrange
 				bft = new BFT(bftParams);
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
-				await bft.bootstrap();
+				await bft.init();
 				const blocks = [
 					blockFixture({ height: 4, version: '2' }),
 					blockFixture({ height: 5, version: '2' }),
@@ -241,7 +241,7 @@ describe('bft', () => {
 				// Arrange
 				bft = new BFT(bftParams);
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
-				await bft.bootstrap();
+				await bft.init();
 				const blocks = [
 					blockFixture({ height: 5, version: '2' }),
 					blockFixture({ height: 6, version: '2' }),
@@ -489,7 +489,7 @@ describe('bft', () => {
 			beforeEach(async () => {
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
-				await bft.bootstrap();
+				await bft.init();
 			});
 
 			it('should call fetch blocks from storage particular parameters', async () => {
