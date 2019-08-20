@@ -14,62 +14,202 @@
 
 'use strict';
 
+const { FakeBlockProcessorV0 } = require('./block_processor');
+const {
+	Processor,
+} = require('../../../../../../../src/modules/chain/processor');
+const {
+	Sequence,
+} = require('../../../../../../../src/modules/chain/utils/sequence');
+
 describe('processor', () => {
-	describe('constructor', () => {
-		describe('when the instance is created', () => {
-			it.todo('should initialize the processors');
-			it.todo('should initialize the matchers');
-			it.todo('should assign channel to its context');
-			it.todo('should assign storage to its context');
-			it.todo('should assign blocks module to its context');
-			it.todo('should assign logger to its context');
-			it.todo('should assign interfaceAdapters to its context');
+	let processor;
+	let channelStub;
+	let storageStub;
+	let loggerStub;
+	let blocksModuleStub;
+	let blockProcessorV0;
+
+	beforeEach(async () => {
+		channelStub = {
+			publish: jest.fn(),
+		};
+		storageStub = {
+			entities: {
+				Block: {
+					begin: jest.fn(),
+				},
+			},
+		};
+		loggerStub = {
+			info: jest.fn(),
+			error: jest.fn(),
+		};
+		blocksModuleStub = {
+			lastBlock: jest.fn(),
+			save: jest.fn(),
+			saveGenesis: jest.fn(),
+			remove: jest.fn(),
+			exists: jest.fn(),
+		};
+		processor = new Processor({
+			channel: channelStub,
+			storage: storageStub,
+			logger: loggerStub,
+			blocksModule: blocksModuleStub,
 		});
+
+		blockProcessorV0 = new FakeBlockProcessorV0();
 	});
 
-	describe('init', () => {
-		describe('when genesis block does not exist on the storage', () => {
-			it.todo('');
-		});
+	describe('constructor', () => {
+		describe('when the instance is created', () => {
+			it('should initialize the processors', async () => {
+				expect(processor.processors).toEqual({});
+			});
 
-		describe('when genesis block stored does not match the genesis block input', () => {
-			it.todo('');
-		});
+			it('should initialize the matchers', async () => {
+				expect(processor.matchers).toEqual({});
+			});
 
-		describe('when processor fails to initialize', () => {
-			it.todo('');
-		});
+			it('should initialize the sequence', async () => {
+				expect(processor.sequence).toBeInstanceOf(Sequence);
+			});
 
-		describe('when blockchain data contains a invalid block on tip', () => {
-			it.todo('');
-		});
+			it('should assign channel to its context', async () => {
+				expect(processor.channel).toBe(channelStub);
+			});
 
-		describe('when blockchain is sane and genesis block already exists', () => {
-			it.todo('');
+			it('should assign storage to its context', async () => {
+				expect(processor.storage).toBe(storageStub);
+			});
+
+			it('should assign blocks module to its context', async () => {
+				expect(processor.blocksModule).toBe(blocksModuleStub);
+			});
+
+			it('should assign logger to its context', async () => {
+				expect(processor.logger).toBe(loggerStub);
+			});
 		});
 	});
 
 	describe('register', () => {
 		describe('when processor is register without version property', () => {
-			it.todo('');
+			it('should throw an error', async () => {
+				expect(() => processor.register({})).toThrow(
+					'version property must exist for processor',
+				);
+			});
 		});
 
 		describe('when processor is register without matcher', () => {
-			it.todo('');
+			it('should set the processors with the version key', async () => {
+				processor.register(blockProcessorV0);
+				expect(processor.processors[0]).toBe(blockProcessorV0);
+			});
+
+			it('should set a functions always return true to the matchers with the version key', async () => {
+				processor.register(blockProcessorV0);
+				expect(processor.matchers[0]()).toBe(true);
+			});
 		});
 
 		describe('when processor is register with matcher', () => {
-			it.todo('');
+			it('should set the processor with the version key', async () => {
+				processor.register(blockProcessorV0, {
+					matcher: ({ height }) => height === 0,
+				});
+				expect(processor.processors[0]).toBe(blockProcessorV0);
+			});
+
+			it('should set the functions to the matchers with the version key', async () => {
+				processor.register(blockProcessorV0, {
+					matcher: ({ height }) => height === 0,
+				});
+				expect(processor.matchers[0]({ height: 0 })).toBe(true);
+				expect(processor.matchers[0]({ height: 10 })).toBe(false);
+			});
 		});
 	});
 
-	describe('rebuild', () => {
-		it.todo('should reset all the mem tables');
-		describe('when target height is not specified', () => {});
+	describe('init', () => {
+		const genesisBlock = { id: 'fakeGenesisBlock', version: 0 };
 
-		describe('when loadPerIteration is specified', () => {});
+		let initSteps;
+		let applyGenesisSteps;
+		let txStub;
 
-		describe('when loadPerIteration is not specified', () => {});
+		beforeEach(async () => {
+			initSteps = [jest.fn(), jest.fn()];
+			applyGenesisSteps = [jest.fn(), jest.fn()];
+			txStub = jest.fn();
+			blockProcessorV0.init.pipe(initSteps);
+			blockProcessorV0.applyGenesis.pipe(applyGenesisSteps);
+			processor.register(blockProcessorV0);
+		});
+
+		describe('when genesis block does not exist on the storage', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(false);
+
+				await processor.init(genesisBlock);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should check if genesis block exists', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should call all of the apply genesis steps', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: genesisBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should save the genesis block', async () => {
+				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+					block: genesisBlock,
+					tx: txStub,
+					skipSave: false,
+				});
+			});
+		});
+
+		describe('when the genesis block already exists', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(true);
+
+				await processor.init(genesisBlock);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should check if genesis block exists', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should not call any of the apply genesis steps', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save the genesis block', async () => {
+				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('when processor fails to initialize', () => {
+			it('should throw an error', async () => {
+				initSteps[0].mockRejectedValue(new Error('failed to proceess init'));
+				await expect(processor.init(genesisBlock)).rejects.toThrow(
+					'failed to proceess init',
+				);
+			});
+		});
 	});
 
 	describe('process', () => {

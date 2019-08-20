@@ -37,6 +37,9 @@ class Processor {
 
 	// register a block processor with particular version
 	register(processor, { matcher } = {}) {
+		if (typeof processor.version !== 'number') {
+			throw new Error('version property must exist for processor');
+		}
 		this.processors[processor.version] = processor;
 		this.matchers[processor.version] = matcher || (() => true);
 	}
@@ -44,8 +47,10 @@ class Processor {
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
 	async init(genesisBlock) {
 		// do init check for block state. We need to load the blockchain
-		await this.applyGenesisBlock(genesisBlock);
 		const blockProcessor = this._getBlockProcessor(genesisBlock);
+		await this._processGenesis(genesisBlock, blockProcessor, {
+			skipSave: false,
+		});
 		await blockProcessor.init.exec();
 		this.logger.info('Blockchain ready');
 	}
@@ -202,28 +207,31 @@ class Processor {
 	}
 
 	async _processGenesis(block, processor, { skipSave } = { skipSave: false }) {
-		return this.storage.entities.Block.begin('Chain:processBlock', async tx => {
-			// Check if genesis block ID already exists in the database
-			const isPersisted = await this.blocksModule.exists(block);
+		return this.storage.entities.Block.begin(
+			'Chain:processGenesisBlock',
+			async tx => {
+				// Check if genesis block ID already exists in the database
+				const isPersisted = await this.blocksModule.exists(block);
 
-			// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
-			if (isPersisted && !skipSave) {
+				// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
+				if (isPersisted && !skipSave) {
+					return block;
+				}
+
+				await processor.applyGenesis.exec({
+					block,
+					tx,
+				});
+
+				await this.blocksModule.saveGenesis({
+					block,
+					tx,
+					skipSave,
+				});
+
 				return block;
-			}
-
-			await processor.applyGenesis.exec({
-				block,
-				tx,
-			});
-
-			await this.blocksModule.saveGenesis({
-				block,
-				tx,
-				skipSave,
-			});
-
-			return block;
-		});
+			},
+		);
 	}
 
 	async _revert(block, processor) {
