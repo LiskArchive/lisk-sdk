@@ -383,12 +383,12 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
-		const forgedBlock = this.processorModule.create({
+		const forgedBlock = await this.processorModule.create({
 			keypair: delegateKeypair,
 			timestamp: this.slots.getSlotTime(currentSlot),
 			transactions,
 			previousBlock: this.blocksModule.lastBlock,
-			// FIXME: Add correct value from BFT
+			// FIXME: Add correct value from BFT in pipeline
 			maxHeightPreviouslyForged: 0,
 			prevotedConfirmedUptoHeight: 0,
 		});
