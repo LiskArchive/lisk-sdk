@@ -47,9 +47,8 @@ class Processor {
 		await this.applyGenesisBlock(genesisBlock);
 		const status = await this.blocksModule.checkBlockchainStatus();
 		if (status === BLOCKCHAIN_STATUS_REBUILD) {
-			// Need to fix this.
-			await this.storage.entities.Account.resetMemTables();
-			await this.rebuild();
+			this.channel.publish('chain:process:rebuild');
+			return;
 		}
 
 		if (status === BLOCKCHAIN_STATUS_RECOVERY) {
@@ -59,52 +58,6 @@ class Processor {
 
 		// status === BLOCKCHAIN_STATUS_READY
 		this.logger.info('Blockchain ready');
-	}
-
-	async rebuild(
-		{ targetHeight, isCleaning, onProgress, loadPerIteration } = {
-			loadPerIteration: 1000,
-		},
-	) {
-		const limit = loadPerIteration;
-		let { lastBlock } = this.blocksModule;
-		for (
-			let currentHeight = 0;
-			currentHeight < targetHeight;
-			currentHeight += loadPerIteration
-		) {
-			if (isCleaning()) {
-				break;
-			}
-			// if rebuildUptoRound is undefined, use the highest height
-			// eslint-disable-next-line no-await-in-loop
-			const blocks = await this.blocksModule.blocksUtils.loadBlocksWithOffset(
-				this.storage,
-				this.interfaceAdapters,
-				this.genesisBlock,
-				limit,
-				currentHeight,
-			);
-			// eslint-disable-next-line no-restricted-syntax
-			for (const block of blocks) {
-				if (isCleaning() || block.height > targetHeight) {
-					break;
-				}
-				if (block.id === this.genesisBlock.id) {
-					// eslint-disable-next-line no-await-in-loop
-					lastBlock = await this.applyGenesisBlock(block, true);
-					onProgress(lastBlock);
-				}
-
-				if (block.id !== this.genesisBlock.id) {
-					// eslint-disable-next-line no-await-in-loop
-					lastBlock = await this.applyBlock(block, lastBlock);
-				}
-				onProgress(lastBlock);
-			}
-		}
-
-		return lastBlock;
 	}
 
 	// process is for standard processing of block, especially when received from network

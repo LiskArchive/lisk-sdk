@@ -54,6 +54,7 @@ class Rebuilder {
 
 	async rebuild(targetHeight, loadPerIteration = 1000) {
 		const limit = loadPerIteration;
+		await this.storage.entities.Account.resetMemTables();
 		let { lastBlock } = this.blocksModule;
 		for (
 			let currentHeight = 0;
