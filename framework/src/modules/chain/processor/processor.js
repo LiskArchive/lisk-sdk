@@ -78,10 +78,10 @@ class Processor {
 		await this._processValidated(block, blockProcessor);
 	}
 
-	create(values) {
+	async create(values) {
 		const heghestVersion = Math.max.apply(null, Object.keys(this.processors));
 		const processor = this.processors[heghestVersion];
-		return processor.create.execSync(values);
+		return processor.create.exec(values);
 	}
 
 	// validate checks the block statically
@@ -120,7 +120,7 @@ class Processor {
 
 	async _validate(block, processor) {
 		const { lastBlock } = this.blocksModule;
-		const blockBytes = processor.getBytes.execSync({ block });
+		const blockBytes = await processor.getBytes.exec({ block });
 		await processor.validate.exec({
 			block,
 			lastBlock,

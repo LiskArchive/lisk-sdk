@@ -148,8 +148,16 @@ class BlockProcessorV0 extends BlockProcessor {
 		return 0;
 	}
 
-	_create({ transactions, previousBlock, keypair, timestamp }) {
-		const sortedTransactions = sortTransactions(transactions);
+	async _create({ transactions, previousBlock, keypair, timestamp }) {
+		const context = {
+			blockTimestamp: timestamp,
+		};
+		const readyTransactions = await this.blocksModule.filterReadyTransactions(
+			transactions,
+			context,
+		);
+
+		const sortedTransactions = sortTransactions(readyTransactions);
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
 		let totalFee = new BigNum(0);

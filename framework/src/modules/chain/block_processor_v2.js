@@ -191,7 +191,7 @@ class BlockProcessorV2 extends BlockProcessor {
 		return 2;
 	}
 
-	_create({
+	async _create({
 		transactions,
 		previousBlock,
 		keypair,
@@ -199,8 +199,16 @@ class BlockProcessorV2 extends BlockProcessor {
 		maxHeightPreviouslyForged,
 		prevotedConfirmedUptoHeight,
 	}) {
+		const context = {
+			blockTimestamp: timestamp,
+		};
+
+		const readyTransactions = await this.blocksModule.filterReadyTransactions(
+			transactions,
+			context,
+		);
 		// TODO: move to transactions module logic
-		const sortedTransactions = sortTransactions(transactions);
+		const sortedTransactions = sortTransactions(readyTransactions);
 
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 

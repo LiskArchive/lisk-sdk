@@ -18,8 +18,10 @@ const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
-	validateTransactions,
+	applyTransactions,
 	checkPersistedTransactions,
+	checkAllowedTransactions,
+	validateTransactions,
 } = require('../transactions');
 const blocksUtils = require('./utils');
 const blocksLogic = require('./block');
@@ -402,6 +404,32 @@ class Blocks extends EventEmitter {
 		} catch (err) {
 			return true;
 		}
+	}
+
+	async filterReadyTransactions(transactions, context) {
+		const allowedTransactionsIds = checkAllowedTransactions(context)(
+			transactions,
+		)
+			.transactionsResponses.filter(
+				transactionResponse =>
+					transactionResponse.status === TransactionStatus.OK,
+			)
+			.map(transactionReponse => transactionReponse.id);
+
+		const allowedTransactions = transactions.filter(transaction =>
+			allowedTransactionsIds.includes(transaction.id),
+		);
+		const { transactionsResponses: responses } = await applyTransactions(
+			this.storage,
+			this.slots,
+		)(allowedTransactions);
+		const readyTransactions = allowedTransactions.filter(transaction =>
+			responses
+				.filter(response => response.status === TransactionStatus.OK)
+				.map(response => response.id)
+				.includes(transaction.id),
+		);
+		return readyTransactions;
 	}
 
 	broadcast(block) {
