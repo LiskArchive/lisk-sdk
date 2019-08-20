@@ -25,8 +25,11 @@ const {
 } = require('../transactions');
 const blocksUtils = require('./utils');
 const blocksLogic = require('./block');
-const { BlocksProcess } = require('./process');
-const { BlocksVerify, verifyBlockNotExists } = require('./verify');
+const {
+	BlocksVerify,
+	verifyBlockNotExists,
+	verifyAgainstLastNBlockIds,
+} = require('./verify');
 const {
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
@@ -45,7 +48,6 @@ const forkChoiceRule = require('./fork_choice_rule');
 const {
 	validateSignature,
 	validatePreviousBlock,
-	validateAgainstLastNBlockIds,
 	validateReward,
 	validatePayload,
 	validateBlockSlot,
@@ -57,9 +59,6 @@ const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
 const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
 const EVENT_PRIORITY_CHAIN_DETECTED = 'EVENT_PRIORITY_CHAIN_DETECTED';
-const BLOCKCHAIN_STATUS_REBUILD = 'BLOCKCHAIN_STATUS_REBUILD';
-const BLOCKCHAIN_STATUS_RECOVERY = 'BLOCKCHAIN_STATUS_RECOVERY';
-const BLOCKCHAIN_STATUS_READY = 'BLOCKCHAIN_STATUS_READY';
 
 class Blocks extends EventEmitter {
 	constructor({
@@ -145,17 +144,6 @@ class Blocks extends EventEmitter {
 			blockReward: this.blockReward,
 			constants: this.constants,
 			interfaceAdapters: this.interfaceAdapters,
-		});
-		this.blocksProcess = new BlocksProcess({
-			blocksChain: this.blocksChain,
-			blocksVerify: this.blocksVerify,
-			storage: this.storage,
-			exceptions: this.exceptions,
-			slots: this.slots,
-			interfaceAdapters: this.interfaceAdapters,
-			genesisBlock: this.genesisBlock,
-			blockReward: this.blockReward,
-			constants: this.constants,
 		});
 
 		this.blocksUtils = blocksUtils;
@@ -245,7 +233,6 @@ class Blocks extends EventEmitter {
 	validate({ block, lastBlock, blockBytes }) {
 		validateSignature(block, blockBytes);
 		validatePreviousBlock(block);
-		validateAgainstLastNBlockIds(block, this._lastNBlockIds);
 		validateReward(block, this.blockReward, this.exceptions);
 		validatePayload(
 			block,
@@ -319,6 +306,8 @@ class Blocks extends EventEmitter {
 	}
 
 	async verify({ block }) {
+		// TODO: Remove once BFT is complete, not needed anymore
+		verifyAgainstLastNBlockIds(block, this._lastNBlockIds);
 		await verifyBlockNotExists(this.storage, block);
 		// TODO: move to DPOS verify step
 		await this.blocksVerify.verifyBlockSlot(block);
@@ -480,46 +469,6 @@ class Blocks extends EventEmitter {
 		return blocksUtils.loadBlocksDataWS(this.storage, filter, tx);
 	}
 
-	// PRE: Block has been validated and verified before
-	async _processReceivedBlock(block) {
-		this._updateLastReceipt(); // TODO: Remove after fork
-		try {
-			delete block.receivedAt;
-			const newBlock = await this.blocksProcess.processBlock(
-				block,
-				this._lastBlock,
-				validBlock => this.broadcast(validBlock),
-			);
-
-			this.logger.debug(
-				`Successfully applied new received block id: ${block.id} height: ${
-					block.height
-				} round: ${this.slots.calcRound(
-					block.height,
-				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
-					block.reward
-				} version: ${block.version}`,
-			);
-			await this._updateBroadhash(); // TODO: Remove after fork
-			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
-			this._lastBlock = newBlock;
-		} catch (error) {
-			this.logger.error(
-				error,
-				`Failed to apply new received block id: ${block.id} height: ${
-					block.height
-				} round: ${this.slots.calcRound(
-					block.height,
-				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
-					block.reward
-				} version: ${block.version}`,
-			);
-			throw error;
-		} finally {
-			this._isActive = false;
-		}
-	}
-
 	/**
 	 * Wrap of fork choice rule logic so it can be added to Sequence and properly tested
 	 * @param block
@@ -578,40 +527,6 @@ class Blocks extends EventEmitter {
 		return normalizedBlocks;
 	}
 
-	// Process a block from syncing
-	async loadBlocksFromNetwork(blocks) {
-		this._shouldNotBeActive();
-		this._isActive = true;
-
-		try {
-			const normalizedBlocks = blocksLogic.readDbRows(
-				blocks,
-				this.interfaceAdapters,
-				this.genesisBlock,
-			);
-			// eslint-disable-next-line no-restricted-syntax
-			for (const block of normalizedBlocks) {
-				// check if it's cleaning
-				if (this._cleaning) {
-					break;
-				}
-				// eslint-disable-next-line no-await-in-loop
-				this._lastBlock = await this.blocksProcess.processBlock(
-					block,
-					this._lastBlock,
-				);
-				// emit event
-				this._updateLastNBlocks(block);
-				this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
-			}
-			this._isActive = false;
-			return this._lastBlock;
-		} catch (error) {
-			this._isActive = false;
-			throw error;
-		}
-	}
-
 	/**
 	 * Returns the highest common block between ids and the database blocks table
 	 * @param {Array<String>} ids - An array of block ids
@@ -631,66 +546,6 @@ class Blocks extends EventEmitter {
 			this.logger.error(e, errMessage);
 			throw new Error(errMessage);
 		}
-	}
-
-	// Generate a block for forging
-	async generateBlock(keypair, timestamp, transactions = []) {
-		this._shouldNotBeActive();
-		this._isActive = true;
-		try {
-			const block = await this.blocksProcess.generateBlock(
-				this._lastBlock,
-				keypair,
-				timestamp,
-				transactions,
-			);
-			this._lastBlock = await this.blocksProcess.processBlock(
-				block,
-				this._lastBlock,
-				validBlock => this.broadcast(validBlock),
-			);
-		} catch (error) {
-			this._isActive = false;
-			throw error;
-		}
-		await this._updateBroadhash();
-		this._updateLastReceipt();
-		this._updateLastNBlocks(this._lastBlock);
-		this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
-		this._isActive = false;
-		return this._lastBlock;
-	}
-
-	async _rebuildMode(rebuildUpToRound, blocksCount) {
-		this.logger.info(
-			{ rebuildUpToRound, blocksCount },
-			'Rebuild process started',
-		);
-		if (blocksCount < this.constants.activeDelegates) {
-			throw new Error(
-				'Unable to rebuild, blockchain should contain at least one round of blocks',
-			);
-		}
-		if (
-			Number.isNaN(parseInt(rebuildUpToRound, 10)) ||
-			parseInt(rebuildUpToRound, 10) < 0
-		) {
-			throw new Error(
-				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
-			);
-		}
-		const totalRounds = Math.floor(
-			blocksCount / this.constants.activeDelegates,
-		);
-		const targetRound =
-			parseInt(rebuildUpToRound, 10) === 0
-				? totalRounds
-				: Math.min(totalRounds, parseInt(rebuildUpToRound, 10));
-		const targetHeight = targetRound * this.constants.activeDelegates;
-		this._lastBlock = await this._reload(targetHeight);
-		// Remove remaining
-		await this.storage.entities.Block.delete({ height_gt: targetHeight });
-		this.logger.info({ targetHeight, totalRounds }, 'Rebuilding finished');
 	}
 
 	_updateLastNBlocks(block) {
@@ -719,20 +574,6 @@ class Blocks extends EventEmitter {
 		if (this._isActive) {
 			throw new Error('Block process cannot be executed in parallel');
 		}
-	}
-
-	async _reload(blocksCount) {
-		return this.blocksProcess.reload(
-			blocksCount,
-			() => this._cleaning,
-			block => {
-				this._lastBlock = block;
-				this.logger.info(
-					{ blockId: block.id, height: block.height },
-					'Rebuilding block',
-				);
-			},
-		);
 	}
 
 	/**
@@ -862,7 +703,4 @@ module.exports = {
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
 	EVENT_PRIORITY_CHAIN_DETECTED,
-	BLOCKCHAIN_STATUS_REBUILD,
-	BLOCKCHAIN_STATUS_RECOVERY,
-	BLOCKCHAIN_STATUS_READY,
 };

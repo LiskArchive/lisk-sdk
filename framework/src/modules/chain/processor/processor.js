@@ -52,11 +52,8 @@ class Processor {
 	async process(block) {
 		const blockProcessor = this._getBlockProcessor(block);
 		const { lastBlock } = this.blocksModule;
-		blockProcessor.validateNew.exec({
-			block,
-			lastBlock,
-		});
-		const forkStatus = blockProcessor.fork.exec({
+
+		const forkStatus = await blockProcessor.fork.exec({
 			block,
 			lastBlock,
 		});
@@ -85,6 +82,10 @@ class Processor {
 		// Replacing a block
 		if (forkStatus === FORK_STATUS_TIE_BREAK) {
 			this.logger.info({ id: lastBlock.id }, 'Reverting block');
+			await blockProcessor.validateNew.exec({
+				block,
+				lastBlock,
+			});
 			await this._validate(block, blockProcessor);
 			const previousLastBlock = cloneDeep(this._lastBlock);
 			await this._revert(lastBlock, blockProcessor);
@@ -101,6 +102,10 @@ class Processor {
 		}
 
 		// Process block as it's valid: FORK_STATUS_VALID_BLOCK
+		await blockProcessor.validateNew.exec({
+			block,
+			lastBlock,
+		});
 		await this._validate(block, blockProcessor);
 		await this._processValidated(block, blockProcessor);
 	}
@@ -156,7 +161,7 @@ class Processor {
 	}
 
 	async _processValidated(block, processor, { skipSave, skipBroadcast } = {}) {
-		const blockBytes = processor.getBytes.exec({ block });
+		const blockBytes = await processor.getBytes.exec({ block });
 		const { lastBlock } = this.blocksModule;
 		return this.storage.entities.Block.begin('Chain:processBlock', async tx => {
 			await processor.verify.exec({
