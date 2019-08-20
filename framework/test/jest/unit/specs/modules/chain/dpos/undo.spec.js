@@ -429,7 +429,7 @@ describe('dpos.undo()', () => {
 				});
 			});
 
-			it('should multiply delegate reward with "undo_rewards_factor"', async () => {
+			it('should multiply delegate reward with "rewards_factor"', async () => {
 				// Act
 				await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
