@@ -67,6 +67,10 @@ class ChainModule extends BaseModule {
 			'delegates:fork',
 			'loader:sync',
 			'dapps:change',
+			'process:newBlock',
+			'process:deleteBlock',
+			'process:sync',
+			'process:broadcast',
 		];
 	}
 

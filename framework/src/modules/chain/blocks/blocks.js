@@ -198,6 +198,30 @@ class Blocks extends EventEmitter {
 	}
 
 	async init() {
+		// check mem tables
+		const {
+			blocksCount,
+			genesisBlock,
+			memRounds,
+		} = await this.storage.entities.Block.begin(
+			'loader:checkMemTables',
+			async tx => blocksUtils.loadMemTables(this.storage, tx),
+		);
+
+		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
+		if (!genesisBlockMatch) {
+			throw new Error('Genesis block does not match');
+		}
+
+		// check if the round related information is in valid state
+		await this.blocksVerify.reloadRequired(blocksCount, memRounds);
+
+		this._lastBlock = await blocksLogic.loadLastBlock(
+			this.storage,
+			this.interfaceAdapters,
+			this.genesisBlock,
+		);
+
 		try {
 			const rows = await this.storage.entities.Block.get(
 				{},
@@ -371,6 +395,15 @@ class Blocks extends EventEmitter {
 		);
 	}
 
+	async exists(block) {
+		try {
+			await verifyBlockNotExists(this.storage, block);
+			return false;
+		} catch (err) {
+			return true;
+		}
+	}
+
 	broadcast(block) {
 		// emit event
 		const cloned = cloneDeep(block);
@@ -406,77 +439,6 @@ class Blocks extends EventEmitter {
 			return null;
 		};
 		await nextWatch();
-	}
-
-	/**
-	 * Loads blockchain upon application start:
-	 * 1. Checks mem tables:
-	 * - count blocks from `blocks` table
-	 * - get genesis block from `blocks` table
-	 * - count accounts from `mem_accounts` table by block id
-	 * - get rounds from `mem_round`
-	 * 2. Matches genesis block with database.
-	 * 3. Verifies rebuild mode.
-	 * 4. Recreates memory tables when neccesary:
-	 *  - Calls block to load block. When blockchain ready emits a bus message.
-	 * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
-	 * 6. Loads last block and emits a bus message blockchain is ready.
-	 *
-	 * @todo Add @returns tag
-	 */
-	async checkBlockchainStatus(rebuildUpToRound) {
-		this._shouldNotBeActive();
-		this._isActive = true;
-
-		// check mem tables
-		const {
-			blocksCount,
-			genesisBlock,
-			memRounds,
-		} = await this.storage.entities.Block.begin(
-			'loader:checkMemTables',
-			async tx => blocksUtils.loadMemTables(this.storage, tx),
-		);
-		if (blocksCount === 1) {
-			return BLOCKCHAIN_STATUS_READY;
-		}
-
-		// check genesisBlock -- What is this function doing since it's not using the returned value
-		// TODO: check what needs to be done here
-		this.blocksVerify.matchGenesisBlock(genesisBlock);
-		// TODO: Only for rebuild should be moved to a separate function
-		// rebuild accounts if it's rebuild
-		if (rebuildUpToRound !== null && rebuildUpToRound !== undefined) {
-			return BLOCKCHAIN_STATUS_REBUILD;
-		}
-		// check reload condition, true then reload
-		try {
-			await this.blocksVerify.reloadRequired(blocksCount, memRounds);
-		} catch (error) {
-			this.logger.error(error, 'Reload of blockchain is required');
-			return BLOCKCHAIN_STATUS_REBUILD;
-		}
-		try {
-			this._lastBlock = await blocksLogic.loadLastBlock(
-				this.storage,
-				this.interfaceAdapters,
-				this.genesisBlock,
-			);
-		} catch (error) {
-			this.logger.error(error, 'Failed to fetch last block');
-			// RELOAD REQUIIRED
-			return BLOCKCHAIN_STATUS_REBUILD;
-		}
-		const recoverRequired = await this.blocksVerify.requireBlockRewind(
-			this._lastBlock,
-		);
-
-		if (recoverRequired) {
-			this.logger.error('Invalid own blockchain');
-			return BLOCKCHAIN_STATUS_RECOVERY;
-		}
-
-		return BLOCKCHAIN_STATUS_READY;
 	}
 
 	async deleteLastBlockAndGet(tx) {
