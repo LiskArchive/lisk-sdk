@@ -16,27 +16,6 @@
 
 const blockV1 = require('./block_v1');
 const blockV2 = require('./block_v2');
-const { getBlockVersion } = require('./block_version');
-
-const createFunc = {
-	0: blockV1.create,
-	1: blockV1.create,
-	2: blockV2.create,
-};
-
-const create = data => {
-	const version =
-		data.version ||
-		getBlockVersion(data.previousBlock.height + 1, data.exceptions);
-	return createFunc[version](data);
-};
-
-const getBytesFunc = {
-	0: blockV1.getBytes,
-	1: blockV1.getBytes,
-	2: blockV2.getBytes,
-};
-const getBytes = block => getBytesFunc[block.version](block);
 
 const dbReadFunc = {
 	0: blockV1.dbRead,
@@ -51,42 +30,6 @@ const storageReadFunc = {
 	2: blockV2.storageRead,
 };
 const storageRead = raw => storageReadFunc[raw.version](raw);
-
-const signFunc = {
-	0: blockV1.sign,
-	1: blockV1.sign,
-	2: blockV2.sign,
-};
-const sign = (block, keypair) => signFunc[block.version](block, keypair);
-
-const getHashFunc = {
-	0: blockV1.getHash,
-	1: blockV1.getHash,
-	2: blockV2.getHash,
-};
-const getHash = block => getHashFunc[block.version](block);
-
-const getIdFunc = {
-	0: blockV1.getId,
-	1: blockV1.getId,
-	2: blockV2.getId,
-};
-const getId = block => getIdFunc[block.version](block);
-
-const verifySignatureFunc = {
-	0: blockV1.verifySignature,
-	1: blockV1.verifySignature,
-	2: blockV2.verifySignature,
-};
-const verifySignature = block => verifySignatureFunc[block.version](block);
-
-const objectNormalizeFunc = {
-	0: blockV1.objectNormalize,
-	1: blockV1.objectNormalize,
-	2: blockV2.objectNormalize,
-};
-const objectNormalize = (block, exceptions) =>
-	objectNormalizeFunc[block.version](block, exceptions);
 
 /**
  * Normalize blocks and their transactions.
@@ -259,15 +202,8 @@ const loadBlockByHeight = async (
 };
 
 module.exports = {
-	sign,
-	getHash,
-	getId,
-	create,
 	dbRead,
 	storageRead,
-	getBytes,
-	verifySignature,
-	objectNormalize,
 	readDbRows,
 	readStorageRows,
 	loadBlocksWithOffset,

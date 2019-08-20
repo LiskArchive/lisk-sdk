@@ -58,19 +58,6 @@ const validatePreviousBlock = block => {
 };
 
 /**
- * Validate block is not one of the last N saved blocks.
- *
- * @func validateAgainstLastNBlockIds
- * @param {Object} block - Target block
- * @param {Array<number>} last block ids
- */
-const validateAgainstLastNBlockIds = (block, lastNBlockIds) => {
-	if (lastNBlockIds.indexOf(block.id) !== -1) {
-		throw new Error('Block already exists in chain');
-	}
-};
-
-/**
  * Validate block reward.
  *
  * @func validateReward
@@ -196,7 +183,6 @@ const validateBlockSlotWindow = (block, slots, blockSlotWindow) => {
 module.exports = {
 	validateSignature,
 	validatePreviousBlock,
-	validateAgainstLastNBlockIds,
 	validateReward,
 	validatePayload,
 	validateBlockSlot,
