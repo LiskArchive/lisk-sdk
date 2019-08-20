@@ -32,7 +32,11 @@ describe('processor', () => {
 			it.todo('');
 		});
 
-		describe('when blockchain data requires rebuild', () => {
+		describe('when genesis block stored does not match the genesis block input', () => {
+			it.todo('');
+		});
+
+		describe('when processor fails to initialize', () => {
 			it.todo('');
 		});
 
