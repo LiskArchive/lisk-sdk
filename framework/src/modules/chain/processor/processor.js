@@ -19,20 +19,16 @@ const {
 	FORK_STATUS_DISCARD,
 	FORK_STATUS_REVERT,
 	FORK_STATUS_SYNC,
-	BLOCKCHAIN_STATUS_REBUILD,
-	BLOCKCHAIN_STATUS_RECOVERY,
-	EVENT_DELETE_BLOCK,
 } = require('../blocks');
 
 class Processor {
-	constructor({ channel, storage, logger, blocksModule, interfaceAdapters }) {
+	constructor({ channel, storage, logger, blocksModule }) {
 		this.channel = channel;
 		this.storage = storage;
 		this.logger = logger;
 		this.blocksModule = blocksModule;
 		this.processors = {};
 		this.matchers = {};
-		this.interfaceAdapters = interfaceAdapters;
 	}
 
 	// register a block processor with particular version
@@ -45,18 +41,8 @@ class Processor {
 	async init(genesisBlock) {
 		// do init check for block state. We need to load the blockchain
 		await this.applyGenesisBlock(genesisBlock);
-		const status = await this.blocksModule.checkBlockchainStatus();
-		if (status === BLOCKCHAIN_STATUS_REBUILD) {
-			this.channel.publish('chain:process:rebuild');
-			return;
-		}
-
-		if (status === BLOCKCHAIN_STATUS_RECOVERY) {
-			// start recover
-			await this._recover();
-		}
-
-		// status === BLOCKCHAIN_STATUS_READY
+		const blockProcessor = this._getBlockProcessor(genesisBlock);
+		await blockProcessor.init.exec();
 		this.logger.info('Blockchain ready');
 	}
 
@@ -67,16 +53,15 @@ class Processor {
 		blockProcessor.validateNew.exec({
 			block,
 			lastBlock,
-			channel: this.channel,
 		});
 		await this._validate(block, blockProcessor);
 		const forkStatus = blockProcessor.fork.exec({
 			block,
 			lastBlock,
-			channel: this.channel,
 		});
-		this.logger.info(`Received block with id: ${block.id}`);
+		this.logger.info({ id: block.id }, 'Received block');
 		if (forkStatus === FORK_STATUS_DISCARD) {
+			this.logger.info({ id: block.id }, 'Discarding block');
 			return;
 		}
 
@@ -86,6 +71,7 @@ class Processor {
 		}
 
 		if (forkStatus === FORK_STATUS_REVERT) {
+			this.logger.info({ id: lastBlock.id }, 'Reverting block');
 			await this._revert(lastBlock, blockProcessor);
 		}
 
@@ -139,35 +125,7 @@ class Processor {
 			block,
 			lastBlock,
 			blockBytes,
-			channel: this.channel,
 		});
-	}
-
-	async _recover() {
-		let verified = false;
-		while (!verified) {
-			const { lastBlock } = this.blocksModule;
-			// eslint-disable-next-line no-await-in-loop
-			const secondLastBlock = await this.blocksModule.blocksUtils.loadBlockByHeight(
-				this.storage,
-				lastBlock.height - 1,
-				this.interfaceAdapters,
-				this.genesisBlock,
-			);
-			({ verified } = this.blocksVerify.verifyBlock(
-				lastBlock,
-				secondLastBlock,
-			));
-			if (!verified) {
-				// eslint-disable-next-line no-await-in-loop
-				await this.blocksChain.deleteLastBlock(lastBlock);
-				this.logger.info({ lastBlock, secondLastBlock }, 'Deleted block');
-				this.emit(EVENT_DELETE_BLOCK, {
-					block: cloneDeep(lastBlock),
-					newLastBlock: cloneDeep(secondLastBlock),
-				});
-			}
-		}
 	}
 
 	async _processValidated(block, processor, { skipSave, skipBroadcast } = {}) {
@@ -179,20 +137,23 @@ class Processor {
 				blockBytes,
 				lastBlock,
 				tx,
-				channel: this.channel,
 			});
 			if (!skipBroadcast) {
-				this.blocksModule.broadcast(block);
+				this.channel.publish('chain:process:broadcast', {
+					block: cloneDeep(block),
+				});
 			}
 			await processor.apply.exec({
 				block,
 				blockBytes,
 				lastBlock,
 				tx,
-				channel: this.channel,
 			});
 			if (!skipSave) {
 				await this.blocksModule.save({ block, tx });
+				this.channel.publish('chain:process:newBlock', {
+					block: cloneDeep(block),
+				});
 			}
 			return block;
 		});
@@ -200,41 +161,26 @@ class Processor {
 
 	async _processGenesis(block, processor, { skipSave } = { skipSave: false }) {
 		return this.storage.entities.Block.begin('Chain:processBlock', async tx => {
-			const transactionInstances = block.transactions.map(transaction =>
-				this.interfaceAdapters.transactions.fromJson(transaction),
-			);
-
-			const blockWithTransactionInstances = {
-				...block,
-				transactions: transactionInstances,
-			};
-
 			// Check if genesis block ID already exists in the database
-			const isPersisted = await this.storage.entities.Block.isPersisted(
-				{
-					id: blockWithTransactionInstances.id,
-				},
-				tx,
-			);
+			const isPersisted = await this.blocksModule.exists(block);
 
 			// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
 			if (isPersisted && !skipSave) {
-				return blockWithTransactionInstances;
+				return block;
 			}
 
 			await processor.applyGenesis.exec({
-				block: blockWithTransactionInstances,
+				block,
 				tx,
-				channel: this.channel,
 			});
 
 			await this.blocksModule.saveGenesis({
-				block: blockWithTransactionInstances,
+				block,
 				tx,
 				skipSave,
 			});
 
-			return blockWithTransactionInstances;
+			return block;
 		});
 	}
 
@@ -245,9 +191,11 @@ class Processor {
 				block,
 				lastBlock,
 				tx,
-				channel: this.channel,
 			});
 			await this.blocksModule.remove({ block, tx });
+			this.channel.publish('chain:process:deleteBlock', {
+				block: cloneDeep(block),
+			});
 		});
 	}
 

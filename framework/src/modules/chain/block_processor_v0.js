@@ -116,6 +116,8 @@ class BlockProcessorV0 extends BlockProcessor {
 		this.constants = constants;
 		this.exceptions = exceptions;
 
+		this.init.pipe([() => this.blocksModule.init()]);
+
 		this.getBytes.pipe([({ block }) => getBytes(block)]);
 
 		this.validate.pipe([

@@ -372,6 +372,17 @@ module.exports = class Chain {
 				this.options.registeredTransactions,
 			),
 		};
+
+		// Deserialize genesis block
+		const transactionInstances = this.options.genesisBlock.transactions.map(
+			transaction => this.interfaceAdapters.transactions.fromJson(transaction),
+		);
+		const blockWithTransactionInstances = {
+			...this.options.genesisBlock,
+			transactions: transactionInstances,
+		};
+		this.options.genesisBlock = blockWithTransactionInstances;
+
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		this.slots = new Slots({
 			epochTime: this.options.constants.EPOCH_TIME,
@@ -620,11 +631,11 @@ module.exports = class Chain {
 	}
 
 	_subscribeToEvents() {
-		this.blocks.on(EVENT_BROADCAST_BLOCK, ({ block }) => {
+		this.channel.subscribe('chain:process:broadcast', ({ data: { block } }) => {
 			this.transport.onBroadcastBlock(block, true);
 		});
 
-		this.blocks.on(EVENT_DELETE_BLOCK, ({ block }) => {
+		this.channel.subscribe('chain:process:deleteBlock', ({ block }) => {
 			if (block.transactions.length) {
 				const transactions = block.transactions.reverse();
 				this.transactionPool.onDeletedTransactions(transactions);
@@ -640,7 +651,7 @@ module.exports = class Chain {
 			this.channel.publish('chain:blocks:change', block);
 		});
 
-		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
+		this.channel.subscribe('chain:process:newBlock', ({ data: { block } }) => {
 			if (block.transactions.length) {
 				this.transactionPool.onConfirmedTransactions(block.transactions);
 				this.channel.publish(
@@ -667,7 +678,7 @@ module.exports = class Chain {
 			}
 		});
 
-		this.blocks.on(EVENT_PRIORITY_CHAIN_DETECTED, ({ block }) => {
+		this.channel.subscribe('chain:process:sync', ({ data: { block } }) => {
 			this.logger.info(
 				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.',
 			);
@@ -689,6 +700,7 @@ module.exports = class Chain {
 			this.transport.onUnconfirmedTransaction(transaction, true);
 		});
 
+		// TODO: Remove this event
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 			this.logger.debug(

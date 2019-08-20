@@ -498,6 +498,7 @@ class BlocksVerify {
 		);
 	}
 
+	// TODO: remove
 	async reloadRequired(blocksCount, memRounds) {
 		const round = this.slots.calcRound(blocksCount);
 		const unapplied = memRounds.filter(row => row.round !== round);
@@ -514,6 +515,7 @@ class BlocksVerify {
 		}
 	}
 
+	// TODO: remove
 	async requireBlockRewind(currentBlock) {
 		const currentHeight = currentBlock.height;
 		const currentRound = this.slots.calcRound(currentHeight);
