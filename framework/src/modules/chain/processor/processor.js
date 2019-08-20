@@ -16,9 +16,11 @@
 
 const { cloneDeep } = require('lodash');
 const {
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
-	FORK_STATUS_REVERT,
-	FORK_STATUS_SYNC,
 } = require('../blocks');
 
 class Processor {
@@ -54,27 +56,52 @@ class Processor {
 			block,
 			lastBlock,
 		});
-		await this._validate(block, blockProcessor);
 		const forkStatus = blockProcessor.fork.exec({
 			block,
 			lastBlock,
 		});
-		this.logger.info({ id: block.id }, 'Received block');
+		this.logger.debug({ id: block.id }, 'Received block');
+		// Discarding block
+		if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
+			this.logger.debug({ id: block.id }, 'Block already processed');
+			return;
+		}
 		if (forkStatus === FORK_STATUS_DISCARD) {
 			this.logger.info({ id: block.id }, 'Discarding block');
 			return;
 		}
-
-		if (forkStatus === FORK_STATUS_SYNC) {
+		if (forkStatus === FORK_STATUS_DOUBLE_FORGING) {
+			this.logger.info(
+				{ id: block.id, generatorPublicKey: block.generatorPublicKey },
+				'Discarding block due to double forging',
+			);
+			return;
+		}
+		// Discard block and move to different chain
+		if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
 			this.channel.publish('chain:process:sync');
 			return;
 		}
-
-		if (forkStatus === FORK_STATUS_REVERT) {
+		// Replacing a block
+		if (forkStatus === FORK_STATUS_TIE_BREAK) {
 			this.logger.info({ id: lastBlock.id }, 'Reverting block');
+			await this._validate(block, blockProcessor);
+			const previousLastBlock = cloneDeep(this._lastBlock);
 			await this._revert(lastBlock, blockProcessor);
+			try {
+				await this._processValidated(block, blockProcessor);
+			} catch (error) {
+				this.logger.error(
+					{ id: block.id, previousBlockId: previousLastBlock.id, error },
+					'Failed to apply newly received block. restoring previous block.',
+				);
+				await this._processValidated(previousLastBlock);
+			}
+			return;
 		}
 
+		// Process block as it's valid: FORK_STATUS_VALID_BLOCK
+		await this._validate(block, blockProcessor);
 		await this._processValidated(block, blockProcessor);
 	}
 
