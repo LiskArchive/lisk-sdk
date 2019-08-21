@@ -34,6 +34,12 @@ const {
 } = require('../../../../../../../src/modules/chain/blocks');
 
 describe('processor', () => {
+	const defaultLastBlock = {
+		id: 'lastId',
+	};
+
+	const defaultBlockBytes = Buffer.from('block-bytes', 'utf8');
+
 	let processor;
 	let channelStub;
 	let storageStub;
@@ -63,7 +69,9 @@ describe('processor', () => {
 			remove: jest.fn(),
 			exists: jest.fn(),
 		};
-		Object.defineProperty(blocksModuleStub, 'lastBlock', { get: jest.fn() });
+		Object.defineProperty(blocksModuleStub, 'lastBlock', {
+			get: jest.fn().mockReturnValue(defaultLastBlock),
+		});
 		processor = new Processor({
 			channel: channelStub,
 			storage: storageStub,
@@ -233,20 +241,26 @@ describe('processor', () => {
 		let validateSteps;
 		let verifySteps;
 		let applySteps;
-		// let txStub;
+		let undoSteps;
+		let getBytesSteps;
+		let txStub;
 
 		beforeEach(async () => {
-			forkSteps = [jest.fn()];
+			forkSteps = [jest.fn().mockResolvedValue(1)];
 			validateSteps = [jest.fn(), jest.fn()];
 			validateNewSteps = [jest.fn(), jest.fn()];
 			verifySteps = [jest.fn(), jest.fn()];
 			applySteps = [jest.fn(), jest.fn()];
-			// txStub = jest.fn();
+			undoSteps = [jest.fn(), jest.fn()];
+			getBytesSteps = [jest.fn().mockResolvedValue(defaultBlockBytes)];
+			txStub = jest.fn();
 			blockProcessorV0.fork.pipe(forkSteps);
 			blockProcessorV0.validateNew.pipe(validateNewSteps);
 			blockProcessorV0.validate.pipe(validateSteps);
 			blockProcessorV0.verify.pipe(verifySteps);
 			blockProcessorV0.apply.pipe(applySteps);
+			blockProcessorV0.undo.pipe(undoSteps);
+			blockProcessorV0.getBytes.pipe(getBytesSteps);
 			processor.register(blockProcessorV0, {
 				matcher: ({ height }) => height < 100,
 			});
@@ -274,6 +288,7 @@ describe('processor', () => {
 			beforeEach(async () => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				forkSteps2 = [jest.fn(), jest.fn()];
+				forkSteps2[1].mockResolvedValue(2);
 				blockProcessorV1.fork.pipe(forkSteps2);
 				processor.register(blockProcessorV1);
 			});
@@ -286,59 +301,437 @@ describe('processor', () => {
 			});
 		});
 
+		describe('when the fork step returns unknown fork status', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(undefined);
+			});
+
+			it('should throw an error', async () => {
+				await expect(processor.process(blockV0)).rejects.toThrow(
+					'Unknown fork status',
+				);
+			});
+		});
+
 		describe('when the fork step returns FORK_STATUS_IDENTICAL_BLOCK', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_IDENTICAL_BLOCK);
+				await processor.process(blockV0);
+			});
+
+			it('should not validate for new block ', async () => {
+				validateNewSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not validate block', async () => {
+				validateSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not verify block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not apply block', async () => {
+				applySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save block', async () => {
+				expect(storageStub.entities.Block.begin).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+
+			it('should not publish any event', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('when the fork step returns FORK_STATUS_DOUBLE_FORGING', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_DOUBLE_FORGING);
+				await processor.process(blockV0);
+			});
+
+			it('should not validate for new block ', async () => {
+				validateNewSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not validate block', async () => {
+				validateSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not verify block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not apply block', async () => {
+				applySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save block', async () => {
+				expect(storageStub.entities.Block.begin).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+
+			it('should not publish any event', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalled();
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_TIE_BREAK', () => {
+		describe('when the fork step returns FORK_STATUS_TIE_BREAK and success to process', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_TIE_BREAK);
+				await processor.process(blockV0);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				await storageStub.entities.Block.begin.mock.calls[1][1](txStub);
+			});
+
+			it('should validate for new block ', async () => {
+				validateNewSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: blockV0, lastBlock: defaultLastBlock },
+						undefined,
+					);
+				});
+			});
+
+			it('should validate block', async () => {
+				validateSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							lastBlock: defaultLastBlock,
+							blockBytes: defaultBlockBytes,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should revert the last block', async () => {
+				undoSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: defaultLastBlock, tx: txStub },
+						undefined,
+					);
+				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
+					block: defaultLastBlock,
+					tx: txStub,
+				});
+			});
+
+			it('should emit deleteBlock event for the last block', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					{ block: defaultLastBlock },
+				);
+			});
+
+			it('should verify the block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							lastBlock: defaultLastBlock,
+							blockBytes: defaultBlockBytes,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should apply the block', async () => {
+				applySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							lastBlock: defaultLastBlock,
+							blockBytes: defaultBlockBytes,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should save the block', async () => {
+				expect(blocksModuleStub.save).toHaveBeenCalledWith({
+					block: blockV0,
+					tx: txStub,
+				});
+			});
+
+			it('should emit newBlock event for the block', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:newBlock',
+					{ block: blockV0 },
+				);
+			});
+
+			it('should emit broadcast event for the block', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:broadcast',
+					{ block: blockV0 },
+				);
+			});
+		});
+
+		describe('when the fork step returns FORK_STATUS_TIE_BREAK and fail to process', () => {
+			beforeEach(async () => {
+				forkSteps[0].mockResolvedValue(FORK_STATUS_TIE_BREAK);
+				// Storage begin does not work well with stubbing with callback
+				getBytesSteps[0]
+					.mockResolvedValueOnce(defaultBlockBytes)
+					.mockRejectedValueOnce(new Error('Fails to apply block'))
+					.mockResolvedValueOnce(defaultBlockBytes);
+				try {
+					await processor.process(blockV0);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+					await storageStub.entities.Block.begin.mock.calls[1][1](txStub);
+				} catch (err) {
+					// Expected error
+				}
+			});
+
+			it('should validate for new block ', async () => {
+				validateNewSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: blockV0, lastBlock: defaultLastBlock },
+						undefined,
+					);
+				});
+			});
+
+			it('should validate block', async () => {
+				validateSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							lastBlock: defaultLastBlock,
+							blockBytes: defaultBlockBytes,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should revert the last block', async () => {
+				undoSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: defaultLastBlock, tx: txStub },
+						undefined,
+					);
+				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
+					block: defaultLastBlock,
+					tx: txStub,
+				});
+			});
+
+			it('should emit deleteBlock event for the last block', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					{ block: defaultLastBlock },
+				);
+			});
+
+			it('should not emit broadcast event for the block', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:broadcast',
+					expect.anything(),
+				);
+			});
+
+			it('should verify the last block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: defaultLastBlock,
+							lastBlock: defaultLastBlock,
+							blockBytes: defaultBlockBytes,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should apply the last block', async () => {
+				applySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: defaultLastBlock,
+							lastBlock: defaultLastBlock,
+							blockBytes: defaultBlockBytes,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should save the last block', async () => {
+				expect(blocksModuleStub.save).toHaveBeenCalledWith({
+					block: defaultLastBlock,
+					tx: txStub,
+				});
+			});
+
+			it('should emit newBlock event for the last block', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:newBlock',
+					{ block: defaultLastBlock },
+				);
 			});
 		});
 
 		describe('when the fork step returns FORK_STATUS_DIFFERENT_CHAIN', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_DIFFERENT_CHAIN);
+				await processor.process(blockV0);
+			});
+
+			it('should not validate for new block ', async () => {
+				validateNewSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not validate block', async () => {
+				validateSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not verify block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not apply block', async () => {
+				applySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save block', async () => {
+				expect(storageStub.entities.Block.begin).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+
+			it('should not publish sync', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('chain:process:sync');
 			});
 		});
 
 		describe('when the fork step returns FORK_STATUS_DISCARD', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_DISCARD);
+				await processor.process(blockV0);
+			});
+
+			it('should not validate for new block ', async () => {
+				validateNewSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not validate block', async () => {
+				validateSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not verify block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not apply block', async () => {
+				applySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save block', async () => {
+				expect(storageStub.entities.Block.begin).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+
+			it('should not publish any event', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('when the fork step returns FORK_STATUS_VALID_BLOCK', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_VALID_BLOCK);
+				await processor.process(blockV0);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should validate for new block ', async () => {
+				validateNewSteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			it('should validate block', async () => {
+				validateSteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			it('should verify block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			it('should apply block', async () => {
+				applySteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			it('should save block', async () => {
+				expect(storageStub.entities.Block.begin).toHaveBeenCalledTimes(1);
+				expect(blocksModuleStub.save).toHaveBeenCalledTimes(1);
+			});
+
+			it('should broadcast with the block', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:broadcast',
+					{ block: blockV0 },
+				);
+			});
+
+			it('should emit newBlock event with the block', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:newBlock',
+					{ block: blockV0 },
+				);
 			});
 		});
-
-		describe('when the block is not valid as a new block', () => {});
-
-		describe('when the block is not valid', () => {});
-
-		describe('when the block is fork status discarded', () => {});
-
-		describe('when the block is fork status sync', () => {});
-
-		describe('when the block is fork status revert', () => {});
-
-		describe('when block is not verifiable', () => {});
-
-		describe('when block is not applicable', () => {});
-
-		describe('when block cannot be saved', () => {});
-
-		describe('when block successfully processed', () => {});
 	});
 
 	describe('create', () => {
