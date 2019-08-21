@@ -63,7 +63,6 @@ Object {
       "broadcasts": Object {
         "active": true,
         "broadcastInterval": 5000,
-        "relayLimit": 3,
         "releaseLimit": 25,
       },
       "exceptions": Object {
@@ -569,13 +568,24 @@ Object {
       "connectTimeout": 5000,
       "discoveryInterval": 30000,
       "emitPeerLimit": 25,
+      "fixedPeers": Array [],
+      "maxInboundConnections": 100,
+      "maxOutboundConnections": 20,
+      "maxPeerDiscoveryResponseLength": 1000,
+      "maxPeerInfoSize": 20480,
+      "outboundShuffleInterval": 300000,
+      "peerBanTime": 86400,
+      "peerDiscoveryResponseLength": 1000,
+      "populatorInterval": 10000,
       "seedPeers": Array [
         Object {
           "ip": "127.0.0.1",
           "wsPort": 5000,
         },
       ],
+      "whitelistedPeers": Array [],
       "wsEngine": "ws",
+      "wsMaxPayload": 3048576,
       "wsPort": 5000,
     },
   },

@@ -21,7 +21,7 @@ const validator = require('../../controller/validator');
 function createLoggerComponent(options = {}) {
 	const optionsWithDefaults = validator.parseEnvArgAndValidate(
 		defaultConfig,
-		options
+		options,
 	);
 
 	return createLogger(optionsWithDefaults);

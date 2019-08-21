@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-cryptography",
-	"version": "2.2.0",
+	"version": "2.3.0-alpha.1",
 	"description": "General cryptographic functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -66,7 +66,7 @@
 		"varuint-bitcoin": "1.1.0"
 	},
 	"optionalDependencies": {
-		"sodium-native": "2.2.1"
+		"sodium-native": "2.4.6"
 	},
 	"devDependencies": {
 		"@types/jquery": "3.3.29",
@@ -74,13 +74,12 @@
 		"benchmark": "2.1.4",
 		"browserify": "16.2.3",
 		"chai": "4.2.0",
-		"cypress": "3.1.5",
+		"cypress": "3.4.1",
 		"http-server": "0.11.1",
 		"mocha": "5.2.0",
 		"nyc": "14.1.1",
 		"prettier": "1.16.4",
 		"sinon": "7.2.3",
-		"sodium-native": "2.2.1",
 		"source-map-support": "0.5.10",
 		"ts-node": "8.0.2",
 		"tsconfig-paths": "3.8.0",

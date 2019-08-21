@@ -60,11 +60,11 @@ describe('integration test - multi signature edge cases', () => {
 					});
 					const sign1 = transactionUtils.multiSignTransaction(
 						multisigTransaction,
-						signer1.passphrase
+						signer1.passphrase,
 					);
 					const sign2 = transactionUtils.multiSignTransaction(
 						multisigTransaction,
-						signer2.passphrase
+						signer2.passphrase,
 					);
 
 					multisigTransaction.signatures = [sign1, sign2];
@@ -72,11 +72,11 @@ describe('integration test - multi signature edge cases', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[multisigTransaction],
-						done
+						done,
 					);
-				}
+				},
 			);
-		}
+		},
 	);
 
 	// eslint-disable-next-line mocha/no-skipped-tests
@@ -87,7 +87,7 @@ describe('integration test - multi signature edge cases', () => {
 			for (let i = 0; i < 3; i++) {
 				const dappTransaction = randomUtil.multisigDappRegistrationMaxiumData(
 					multisigAccount,
-					[signer1, signer2]
+					[signer1, signer2],
 				);
 
 				transactions.push(dappTransaction);
@@ -105,14 +105,14 @@ describe('integration test - multi signature edge cases', () => {
 				err => {
 					expect(err).to.not.exist;
 					done();
-				}
+				},
 			);
 		});
 
 		it('all transactions should have been added to the pool', async () => {
 			const allTransactionsInPool =
 				transactionIds.filter(
-					trs => localCommon.transactionInPool(library, trs) === true
+					trs => localCommon.transactionInPool(library, trs) === true,
 				).length === transactions.length;
 			return expect(allTransactionsInPool).to.be.true;
 		});
@@ -125,7 +125,7 @@ describe('integration test - multi signature edge cases', () => {
 						{},
 						(err, queueStatusRes) => {
 							return expect(queueStatusRes.count).to.eql(0);
-						}
+						},
 					);
 				});
 			});
@@ -141,7 +141,7 @@ describe('integration test - multi signature edge cases', () => {
 				(err, res) => {
 					expect(res.transactions).to.be.empty;
 					done();
-				}
+				},
 			);
 		});
 
@@ -159,13 +159,13 @@ describe('integration test - multi signature edge cases', () => {
 								(err, res) => {
 									found.push(res.transactions[0].id);
 									eachCb();
-								}
+								},
 							);
 						},
 						async () => {
 							expect(found).to.have.members(validTransactions);
 							done();
-						}
+						},
 					);
 				});
 			});

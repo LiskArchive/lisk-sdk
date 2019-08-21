@@ -54,7 +54,7 @@ class InMemoryChannel extends BaseChannel {
 			this.moduleAlias,
 			this.eventsList.map(event => event.name),
 			this.actions,
-			{ type: 'inMemory', channel: this }
+			{ type: 'inMemory', channel: this },
 		);
 	}
 
@@ -66,7 +66,7 @@ class InMemoryChannel extends BaseChannel {
 	 */
 	subscribe(eventName, cb) {
 		this.bus.subscribe(new Event(eventName).key(), data =>
-			setImmediate(cb, Event.deserialize(data))
+			setImmediate(cb, Event.deserialize(data)),
 		);
 	}
 
@@ -78,7 +78,7 @@ class InMemoryChannel extends BaseChannel {
 	 */
 	once(eventName, cb) {
 		this.bus.once(new Event(eventName).key(), data =>
-			setImmediate(cb, Event.deserialize(data))
+			setImmediate(cb, Event.deserialize(data)),
 		);
 	}
 
@@ -93,7 +93,7 @@ class InMemoryChannel extends BaseChannel {
 
 		if (event.module !== this.moduleAlias) {
 			throw new Error(
-				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`
+				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`,
 			);
 		}
 
@@ -115,6 +115,13 @@ class InMemoryChannel extends BaseChannel {
 				: actionName;
 
 		if (action.module === this.moduleAlias) {
+			if (!this.actions[action.name]) {
+				throw new Error(
+					`The action '${action.name}' on module '${
+						this.moduleAlias
+					}' does not exist.`,
+				);
+			}
 			return this.actions[action.name].handler(action);
 		}
 
@@ -138,7 +145,7 @@ class InMemoryChannel extends BaseChannel {
 		if (action.module === this.moduleAlias) {
 			if (!this.actions[action.name].isPublic) {
 				throw new Error(
-					`Action ${action.name} is not allowed because it's not public.`
+					`Action '${action.name}' is not allowed because it's not public.`,
 				);
 			}
 

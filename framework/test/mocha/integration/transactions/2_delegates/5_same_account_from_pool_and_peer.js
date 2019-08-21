@@ -72,7 +72,7 @@ describe('delegate', () => {
 					delegateTransaction,
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -85,7 +85,7 @@ describe('delegate', () => {
 							expect(err).to.not.exist;
 							library.modules.blocks.receiveBlockFromNetwork(block);
 							done();
-						}
+						},
 					);
 				});
 
@@ -94,7 +94,7 @@ describe('delegate', () => {
 						const account = await library.sequence.add(async () => {
 							return localCommon.getAccountFromDb(
 								library,
-								delegateAccount.address
+								delegateAccount.address,
 							);
 						});
 						expect(account).to.exist;
@@ -121,7 +121,7 @@ describe('delegate', () => {
 							expect(err).to.not.exist;
 							library.modules.blocks.receiveBlockFromNetwork(block);
 							done();
-						}
+						},
 					);
 				});
 
@@ -130,7 +130,7 @@ describe('delegate', () => {
 						const account = await library.sequence.add(async () => {
 							return localCommon.getAccountFromDb(
 								library,
-								delegateAccount.address
+								delegateAccount.address,
 							);
 						});
 						expect(account).to.exist;

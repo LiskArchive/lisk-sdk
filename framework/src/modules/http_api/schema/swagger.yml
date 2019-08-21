@@ -2562,9 +2562,9 @@ definitions:
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
-      asset: 
+      asset:
         type: object
-        example: { "custom": true, "field": true}
+        example: { 'custom': true, 'field': true }
         description: Any JSON stored in the account's asset field.
       delegate:
         $ref: '#/definitions/Delegate'

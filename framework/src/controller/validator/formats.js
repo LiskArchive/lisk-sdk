@@ -191,10 +191,10 @@ const validationFormats = {
 		const keyRegExp = /[a-zA-Z0-9]{2,15}/;
 		const valueRegExp = /[a-f0-9]{1,256}/;
 		const keyValueRegExp = new RegExp(
-			`${keyRegExp.source}=${valueRegExp.source}`
+			`${keyRegExp.source}=${valueRegExp.source}`,
 		);
 		const encryptedPassphraseRegExp = new RegExp(
-			`^(${keyValueRegExp.source})(?:&(${keyValueRegExp.source})){0,10}$`
+			`^(${keyValueRegExp.source})(?:&(${keyValueRegExp.source})){0,10}$`,
 		);
 		return encryptedPassphraseRegExp.test(str);
 	},
@@ -239,12 +239,12 @@ const validationFormats = {
 	parsedInt(value) {
 		if (
 			Number.isNaN(value) ||
-			parseInt(value).toString() !== String(value) ||
+			parseInt(value, 10).toString() !== String(value) ||
 			Number.isNaN(parseInt(value, 10))
 		) {
 			return false;
 		}
-		value = parseInt(value);
+		value = parseInt(value, 10);
 		return true;
 	},
 
@@ -294,7 +294,7 @@ const validationFormats = {
 		return (
 			str === '' ||
 			/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3}(\.[0-9]{1,3})?)?$/.test(
-				str
+				str,
 			)
 		);
 	},

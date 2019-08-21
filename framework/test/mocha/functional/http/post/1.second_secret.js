@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 			transactionsToWaitFor.push(
 				transaction1.id,
 				transaction2.id,
-				transaction3.id
+				transaction3.id,
 			);
 			return waitFor.confirmations(transactionsToWaitFor);
 		});
@@ -96,7 +96,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 				.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 				.then(res => {
 					expect(res.body.errors[0].message).to.be.equal(
-						'Sender does not have a secondPublicKey'
+						'Sender does not have a secondPublicKey',
 					);
 					badTransactions.push(transaction);
 				});
@@ -114,7 +114,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 					expect(res.body.errors[0].message).to.be.equal(
 						`Account does not have enough LSK: ${
 							accountNoFunds.address
-						}, balance: 0`
+						}, balance: 0`,
 					);
 					badTransactions.push(transaction);
 				});

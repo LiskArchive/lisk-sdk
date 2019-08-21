@@ -32,11 +32,21 @@ export interface P2PMessagePacket extends P2PPacket {
 	readonly event: string;
 }
 
-export interface P2PPenalty {}
+export interface P2PPenalty {
+	readonly peerId: string;
+	readonly penalty: number;
+}
 
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
+	// tslint:disable-next-line: no-mixed-interface
+	readonly [key: string]: unknown;
+}
+
+export interface P2PPeersCount {
+	readonly outboundCount: number;
+	readonly inboundCount: number;
 }
 
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
@@ -45,8 +55,6 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly os?: string;
 	readonly version: string;
 	readonly protocolVersion: string;
-	// tslint:disable-next-line: no-mixed-interface
-	readonly [key: string]: unknown;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.
@@ -70,25 +78,44 @@ export interface P2PClosePacket {
 
 export interface P2PConfig {
 	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
-	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly triedPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
+	readonly populatorInterval?: number;
+	readonly maxOutboundConnections: number;
+	readonly maxInboundConnections: number;
 	readonly wsMaxPayload?: number;
-	readonly discoveryInterval?: number;
 	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
+	readonly peerBanTime?: number;
 	readonly sendPeerLimit?: number;
+	readonly outboundShuffleInterval?: number;
+	readonly latencyProtectionRatio?: number;
+	readonly productivityProtectionRatio?: number;
+	readonly longevityProtectionRatio?: number;
+	readonly netgroupProtectionRatio?: number;
+	readonly hostIp?: string;
+	readonly wsMaxMessageRate?: number;
+	readonly wsMaxMessageRatePenalty?: number;
+	readonly rateCalculationInterval?: number;
+	readonly minimumPeerDiscoveryThreshold?: number;
+	readonly peerDiscoveryResponseLength?: number;
+	readonly maxPeerDiscoveryResponseLength?: number;
+	readonly maxPeerInfoSize?: number;
+	readonly secret?: number;
 }
 
 // Network info exposed by the P2P library.
 export interface P2PNetworkStatus {
-	readonly newPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedUniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
@@ -132,13 +159,15 @@ export type P2PPeerSelectionForRequestFunction = (
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PPeerSelectionForConnectionInput {
-	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly triedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly nodeInfo?: P2PNodeInfo;
+	readonly peerLimit?: number;
 }
 
 export type P2PPeerSelectionForConnectionFunction = (
 	input: P2PPeerSelectionForConnectionInput,
-) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+) => ReadonlyArray<P2PPeerInfo>;
 
 export interface P2PCompatibilityCheckReturnType {
 	readonly success: boolean;
@@ -154,13 +183,13 @@ export type P2PCheckPeerCompatibility = (
 // TODO later: Switch to LIP protocol format.
 export interface ProtocolPeerInfo {
 	readonly ip: string;
-	readonly broadhash: string;
-	readonly height: number;
-	readonly nonce: string;
-	readonly os?: string;
-	readonly version: string;
-	readonly protocolVersion: string;
 	readonly wsPort: number;
+	readonly broadhash?: string;
+	readonly height?: number;
+	readonly nonce?: string;
+	readonly os?: string;
+	readonly version?: string;
+	readonly protocolVersion?: string;
 	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
@@ -170,6 +199,11 @@ export interface ProtocolPeerInfo {
 // TODO later: Switch to LIP protocol format.
 export interface ProtocolPeerInfoList {
 	readonly peers: ReadonlyArray<ProtocolPeerInfo>;
+	readonly success: boolean;
+}
+
+export interface P2PBasicPeerInfoList {
+	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly success: boolean;
 }
 
@@ -184,4 +218,12 @@ export interface ProtocolRPCRequestPacket {
 export interface ProtocolMessagePacket {
 	readonly data: unknown;
 	readonly event: string;
+}
+
+export interface PeerLists {
+	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }

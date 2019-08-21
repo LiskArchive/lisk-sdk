@@ -69,6 +69,54 @@ export const config = {
 				access: {
 					whiteList: ['127.0.0.1'],
 				},
+				enabled: true,
+				httpPort: 4000,
+				address: '0.0.0.0',
+				trustProxy: false,
+				ssl: {
+					enabled: false,
+					options: {
+						port: 443,
+						address: '0.0.0.0',
+						key: './ssl/lisk.key',
+						cert: './ssl/lisk.crt',
+					},
+				},
+				options: {
+					limits: {
+						max: 0,
+						delayMs: 0,
+						delayAfter: 0,
+						windowMs: 60000,
+						headersTimeout: 5000,
+						serverSetTimeout: 20000,
+					},
+					cors: {
+						origin: '*',
+						methods: ['GET', 'POST', 'PUT'],
+					},
+				},
+				forging: {
+					access: {
+						whiteList: ['127.0.0.1'],
+					},
+				},
+			},
+			network: {
+				seedPeers: [
+					{
+						ip: '127.0.0.1',
+						wsPort: 5000,
+					},
+				],
+				wsPort: 5000,
+				address: '0.0.0.0',
+				discoveryInterval: 30000,
+				populatorInterval: 10000,
+				blacklistedPeers: [],
+				ackTimeout: 20000,
+				connectTimeout: 5000,
+				wsEngine: 'ws',
 			},
 		},
 		network: {
@@ -81,6 +129,7 @@ export const config = {
 			wsPort: 5000,
 			address: '0.0.0.0',
 			discoveryInterval: 30000,
+			populatorInterval: 10000,
 			blacklistedPeers: [],
 			ackTimeout: 20000,
 			connectTimeout: 5000,

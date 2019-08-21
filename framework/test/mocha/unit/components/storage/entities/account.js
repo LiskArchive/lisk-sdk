@@ -44,7 +44,7 @@ describe('Account', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_storage_accounts'
+			'lisk_test_storage_accounts',
 		);
 		await storage.bootstrap();
 
@@ -329,7 +329,7 @@ describe('Account', () => {
 			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
 			await AccountEntity.getOne(
 				{ address: anAccount.address },
-				{ extended: false }
+				{ extended: false },
 			);
 			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: false });
 		});
@@ -340,7 +340,7 @@ describe('Account', () => {
 			const _getResultsSpy = sinonSandbox.spy(AccountEntity, '_getResults');
 			await AccountEntity.getOne(
 				{ address: anAccount.address },
-				{ extended: true }
+				{ extended: true },
 			);
 			expect(_getResultsSpy.firstCall.args[1]).to.be.eql({ extended: true });
 		});
@@ -352,7 +352,7 @@ describe('Account', () => {
 			await AccountEntity.begin('testTX', async tx => {
 				await AccountEntity.getOne({ address: anAccount.address }, {}, tx);
 				expect(
-					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])
+					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2]),
 				).to.be.eql(Object.getPrototypeOf(tx));
 			});
 		});
@@ -362,7 +362,7 @@ describe('Account', () => {
 			await AccountEntity.create(anAccount);
 			const results = await AccountEntity.getOne(
 				{ address: anAccount.address },
-				{ extended: false }
+				{ extended: false },
 			);
 			expect(results).to.have.all.keys(validSimpleObjectFields);
 		});
@@ -372,14 +372,14 @@ describe('Account', () => {
 			await AccountEntity.create(anAccount);
 			const results = await AccountEntity.getOne(
 				{ address: anAccount.address },
-				{ extended: true }
+				{ extended: true },
 			);
 			expect(results).to.have.all.keys(validExtendedObjectFields);
 		});
 
 		it('should reject with error if matched with multiple records for provided filters', async () => {
 			return expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
-				'Multiple rows were not expected.'
+				'Multiple rows were not expected.',
 			);
 		});
 
@@ -427,7 +427,7 @@ describe('Account', () => {
 			await AccountEntity.begin('testTX', async tx => {
 				await AccountEntity.get({}, {}, tx);
 				expect(
-					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])
+					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2]),
 				).to.be.eql(Object.getPrototypeOf(tx));
 			});
 		});
@@ -437,7 +437,7 @@ describe('Account', () => {
 			await AccountEntity.create(anAccount);
 			const results = await AccountEntity.get(
 				{ address: anAccount.address },
-				{ extended: false }
+				{ extended: false },
 			);
 			expect(results[0]).to.have.all.keys(validSimpleObjectFields);
 		});
@@ -447,7 +447,7 @@ describe('Account', () => {
 			await AccountEntity.create(anAccount);
 			const results = await AccountEntity.get(
 				{ address: anAccount.address },
-				{ extended: true }
+				{ extended: true },
 			);
 			expect(results[0]).to.have.all.keys(validExtendedObjectFields);
 		});
@@ -463,10 +463,10 @@ describe('Account', () => {
 						const keys = await adapter.execute(
 							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2delegates WHERE "accountId" = '${
 								account.address
-							}'`
+							}'`,
 						);
 						expect(account.votedDelegatesPublicKeys).to.be.eql(keys[0].keys);
-					})
+					}),
 				);
 			});
 
@@ -478,10 +478,10 @@ describe('Account', () => {
 						const keys = await adapter.execute(
 							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2multisignatures WHERE "accountId" = '${
 								account.address
-							}'`
+							}'`,
 						);
 						expect(account.membersPublicKeys).to.be.eql(keys[0].keys);
-					})
+					}),
 				);
 			});
 
@@ -497,7 +497,7 @@ describe('Account', () => {
 
 				const account = await AccountEntity.getOne(
 					{ address: validAccount.address },
-					{ extended: true }
+					{ extended: true },
 				);
 
 				expect(account.productivity).to.be.eql(productivity);
@@ -515,7 +515,7 @@ describe('Account', () => {
 
 				const account = await AccountEntity.getOne(
 					{ address: validAccount.address },
-					{ extended: true }
+					{ extended: true },
 				);
 
 				expect(account.productivity).to.be.eql(productivity);
@@ -533,7 +533,7 @@ describe('Account', () => {
 
 				const account = await AccountEntity.getOne(
 					{ address: validAccount.address },
-					{ extended: true }
+					{ extended: true },
 				);
 
 				expect(account.productivity).to.be.eql(productivity);
@@ -605,11 +605,11 @@ describe('Account', () => {
 				const rawKey = await adapter.execute(
 					`SELECT "publicKey" FROM mem_accounts WHERE "address" = '${
 						validAccount.address
-					}'`
+					}'`,
 				);
 
 				expect(accounts[0].publicKey).to.be.eql(
-					rawKey[0].publicKey.toString('hex')
+					rawKey[0].publicKey.toString('hex'),
 				);
 			});
 
@@ -618,11 +618,11 @@ describe('Account', () => {
 				const rawKey = await adapter.execute(
 					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${
 						validAccount.address
-					}'`
+					}'`,
 				);
 
 				expect(accounts[0].secondPublicKey).to.be.eql(
-					rawKey[0].secondPublicKey.toString('hex')
+					rawKey[0].secondPublicKey.toString('hex'),
 				);
 			});
 		});
@@ -641,7 +641,7 @@ describe('Account', () => {
 				it('should sort by address in ascending if sort="address"', async () => {
 					const data = await AccountEntity.get(
 						{},
-						{ sort: 'address', limit: 10 }
+						{ sort: 'address', limit: 10 },
 					);
 					const actualData = _.map(data, 'address');
 					expect(actualData).to.be.eql(_(actualData).dbSort('asc'));
@@ -650,7 +650,7 @@ describe('Account', () => {
 				it('should sort by address in ascending if sort="address:asc"', async () => {
 					const data = await AccountEntity.get(
 						{},
-						{ sort: 'address:asc', limit: 10 }
+						{ sort: 'address:asc', limit: 10 },
 					);
 					const actualData = _.map(data, 'address');
 					expect(actualData).to.be.eql(_(actualData).dbSort('asc'));
@@ -659,7 +659,7 @@ describe('Account', () => {
 				it('should sort by address in descending if sort="address:desc"', async () => {
 					const data = await AccountEntity.get(
 						{},
-						{ sort: 'address:desc', limit: 10 }
+						{ sort: 'address:desc', limit: 10 },
 					);
 					const actualData = _.map(data, 'address');
 					expect(actualData).to.be.eql(_(actualData).dbSort('desc'));
@@ -671,13 +671,13 @@ describe('Account', () => {
 						{
 							sort: ['username:desc', 'address:asc'],
 							limit: 10,
-						}
+						},
 					);
 
 					const sortedAccounts = _.orderBy(
 						Object.assign({}, accounts),
 						['username', 'address'],
-						['desc', 'asc']
+						['desc', 'asc'],
 					);
 
 					expect(accounts).to.lengthOf.above(0);
@@ -699,7 +699,7 @@ describe('Account', () => {
 				it('should return all results if limit is set to null is specified', async () => {
 					const accounts = await AccountEntity.get({}, { limit: null });
 					const result = await adapter.execute(
-						'SELECT COUNT(*)::int as count from mem_accounts'
+						'SELECT COUNT(*)::int as count from mem_accounts',
 					);
 
 					expect(accounts).to.have.lengthOf(result[0].count);
@@ -722,7 +722,7 @@ describe('Account', () => {
 				it('should return all records if limit=null', async () => {
 					const accounts = await AccountEntity.get({}, { limit: null });
 					const result = await adapter.execute(
-						'SELECT COUNT(*) FROM mem_accounts;'
+						'SELECT COUNT(*) FROM mem_accounts;',
 					);
 
 					expect(accounts).to.have.lengthOf(result[0].count);
@@ -783,7 +783,7 @@ describe('Account', () => {
 			await AccountEntity.begin('testTX', async tx => {
 				await AccountEntity.get({}, {}, tx);
 				expect(Object.getPrototypeOf(executeSpy.firstCall.args[3])).to.be.eql(
-					Object.getPrototypeOf(tx)
+					Object.getPrototypeOf(tx),
 				);
 			});
 		});

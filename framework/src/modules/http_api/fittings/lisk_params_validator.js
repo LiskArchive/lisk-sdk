@@ -50,7 +50,7 @@ module.exports = function create() {
 
 		if (context.request.swagger.operation) {
 			const validateResult = context.request.swagger.operation.validateRequest(
-				context.request
+				context.request,
 			);
 
 			if (validateResult.errors.length) {
@@ -67,14 +67,14 @@ module.exports = function create() {
 					]);
 					debug('param error: %j', validateResultErr);
 					errors.errors = _.map(validateResultErr.errors, err2 =>
-						_.pick(err2, ['code', 'message', 'path'])
+						_.pick(err2, ['code', 'message', 'path']),
 					);
 					return errors;
 				});
 			}
 		} else {
 			error = new Error(
-				'Invalid swagger operation, unable to validate response'
+				'Invalid swagger operation, unable to validate response',
 			);
 		}
 

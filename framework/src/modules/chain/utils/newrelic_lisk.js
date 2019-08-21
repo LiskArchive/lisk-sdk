@@ -73,6 +73,6 @@ Object.keys(modulesToInstrument).forEach(modulePath => {
 	newrelicLisk.instrumentCallbackMethods(
 		modulePath,
 		modulesToInstrument[modulePath].identifier,
-		modulesToInstrument[modulePath].callbackMethods
+		modulesToInstrument[modulePath].callbackMethods,
 	);
 });

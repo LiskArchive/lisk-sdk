@@ -91,7 +91,7 @@ class ChainAccount extends AccountEntity {
 		assert(data, 'Must provide data to create account');
 		assert(
 			typeof data === 'object' || Array.isArray(data),
-			'Data must be an object or array of objects'
+			'Data must be an object or array of objects',
 		);
 
 		const accounts = ChainAccount._sanitizeCreateData(data);
@@ -108,7 +108,7 @@ class ChainAccount extends AccountEntity {
 			this.SQLs.create,
 			{ createSet, fields },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 
 		const dependentRecordsPromsies = [];
@@ -119,8 +119,8 @@ class ChainAccount extends AccountEntity {
 					'membersPublicKeys',
 					data.address,
 					data.membersPublicKeys,
-					tx
-				)
+					tx,
+				),
 			);
 		}
 
@@ -133,13 +133,13 @@ class ChainAccount extends AccountEntity {
 					'votedDelegatesPublicKeys',
 					data.address,
 					data.votedDelegatesPublicKeys,
-					tx
-				)
+					tx,
+				),
 			);
 		}
 
 		return accountCreatePromise.then(() =>
-			Promise.all(dependentRecordsPromsies)
+			Promise.all(dependentRecordsPromsies),
 		);
 	}
 
@@ -205,7 +205,7 @@ class ChainAccount extends AccountEntity {
 				'membersPublicKeys',
 				filters.address,
 				data.membersPublicKeys,
-				tx
+				tx,
 			);
 		}
 
@@ -217,7 +217,7 @@ class ChainAccount extends AccountEntity {
 				'votedDelegatesPublicKeys',
 				filters.address,
 				data.votedDelegatesPublicKeys,
-				tx
+				tx,
 			);
 		}
 
@@ -233,7 +233,7 @@ class ChainAccount extends AccountEntity {
 					tableName: dependentFieldsTableMap.votedDelegatesPublicKeys,
 				},
 				{},
-				tx
+				tx,
 			);
 		}
 
@@ -246,7 +246,7 @@ class ChainAccount extends AccountEntity {
 					tableName: dependentFieldsTableMap.membersPublicKeys,
 				},
 				{},
-				tx
+				tx,
 			);
 		}
 
@@ -302,7 +302,7 @@ class ChainAccount extends AccountEntity {
 				{
 					expectedResultCount: 0,
 				},
-				tx
+				tx,
 			)
 			.then(result => !result);
 	}
@@ -348,7 +348,7 @@ class ChainAccount extends AccountEntity {
 	delegateBlocksRewards(filters, tx) {
 		assert(
 			filters && filters.generatorPublicKey,
-			'filters must be an object and contain generatorPublicKey'
+			'filters must be an object and contain generatorPublicKey',
 		);
 
 		const parseFilters = {
@@ -361,7 +361,7 @@ class ChainAccount extends AccountEntity {
 			this.SQLs.delegateBlocksRewards,
 			parseFilters,
 			{},
-			tx
+			tx,
 		);
 	}
 
@@ -421,7 +421,7 @@ class ChainAccount extends AccountEntity {
 			address,
 			dependentPublicKey,
 			'insert',
-			tx
+			tx,
 		);
 	}
 
@@ -440,7 +440,7 @@ class ChainAccount extends AccountEntity {
 			address,
 			dependentPublicKey,
 			'delete',
-			tx
+			tx,
 		);
 	}
 
@@ -475,7 +475,7 @@ class ChainAccount extends AccountEntity {
 			{
 				expectedResultCount: 0,
 			},
-			tx
+			tx,
 		);
 	}
 
@@ -494,11 +494,11 @@ class ChainAccount extends AccountEntity {
 		address,
 		dependentPublicKey,
 		mode,
-		tx
+		tx,
 	) {
 		assert(
 			Object.keys(dependentFieldsTableMap).includes(dependencyName),
-			`Invalid dependency name "${dependencyName}" provided.`
+			`Invalid dependency name "${dependencyName}" provided.`,
 		);
 		const params = {
 			tableName: dependentFieldsTableMap[dependencyName],
@@ -517,7 +517,7 @@ class ChainAccount extends AccountEntity {
 			{
 				expectedResultCount: 0,
 			},
-			tx
+			tx,
 		);
 	}
 
@@ -559,7 +559,7 @@ class ChainAccount extends AccountEntity {
 			{
 				expectedResultCount: 0,
 			},
-			tx
+			tx,
 		);
 	}
 
@@ -577,11 +577,11 @@ class ChainAccount extends AccountEntity {
 		dependencyName,
 		address,
 		dependentPublicKeys,
-		tx
+		tx,
 	) {
 		assert(
 			Object.keys(dependentFieldsTableMap).includes(dependencyName),
-			`Invalid dependency name "${dependencyName}" provided.`
+			`Invalid dependency name "${dependencyName}" provided.`,
 		);
 
 		const sqlForDelete = this.SQLs.deleteDependentRecords;
@@ -590,17 +590,17 @@ class ChainAccount extends AccountEntity {
 
 		const dependentRecordsForAddress = await this.adapter.execute(
 			`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
-			[address]
+			[address],
 		);
 
 		const oldDependentPublicKeys = dependentRecordsForAddress.map(
-			dependentRecord => dependentRecord.dependentId
+			dependentRecord => dependentRecord.dependentId,
 		);
 		const publicKeysToBeRemoved = oldDependentPublicKeys.filter(
-			aPK => !dependentPublicKeys.includes(aPK)
+			aPK => !dependentPublicKeys.includes(aPK),
 		);
 		const publicKeysToBeInserted = dependentPublicKeys.filter(
-			aPK => !oldDependentPublicKeys.includes(aPK)
+			aPK => !oldDependentPublicKeys.includes(aPK),
 		);
 		const paramsForDelete = {
 			tableName,
@@ -613,7 +613,7 @@ class ChainAccount extends AccountEntity {
 				sqlForDelete,
 				paramsForDelete,
 				{ expectedResultCount: 0 },
-				tx
+				tx,
 			);
 		}
 
@@ -626,14 +626,14 @@ class ChainAccount extends AccountEntity {
 			const createSet = this.getValuesSet(
 				valuesForInsert,
 				['accountId', 'dependentId'],
-				{ useRawObject: true }
+				{ useRawObject: true },
 			);
 
 			await this.adapter.executeFile(
 				sqlForInsert,
 				{ tableName, createSet },
 				{ expectedResultCount: 0 },
-				tx
+				tx,
 			);
 		}
 	}

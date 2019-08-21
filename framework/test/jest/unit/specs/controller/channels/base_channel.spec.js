@@ -44,7 +44,7 @@ describe('Base Channel', () => {
 			params.moduleAlias,
 			params.events,
 			params.actions,
-			params.options
+			params.options,
 		);
 	});
 
@@ -78,12 +78,12 @@ describe('Base Channel', () => {
 			baseChannel = new BaseChannel(
 				params.moduleAlias,
 				params.events,
-				params.actions
+				params.actions,
 			);
 
 			// Assert
 			expect(baseChannel.eventsList).toHaveLength(
-				params.events.length + INTERNAL_EVENTS.length
+				params.events.length + INTERNAL_EVENTS.length,
 			);
 			baseChannel.eventsList.forEach(event => {
 				expect(event).toBeInstanceOf(Event);
@@ -98,12 +98,12 @@ describe('Base Channel', () => {
 				params.actions,
 				{
 					skipInternalEvents: false,
-				}
+				},
 			);
 
 			// Assert
 			expect(baseChannel.eventsList).toHaveLength(
-				params.events.length + INTERNAL_EVENTS.length
+				params.events.length + INTERNAL_EVENTS.length,
 			);
 		});
 
@@ -115,7 +115,7 @@ describe('Base Channel', () => {
 				params.actions,
 				{
 					skipInternalEvents: true,
-				}
+				},
 			);
 
 			// Assert
@@ -132,7 +132,7 @@ describe('Base Channel', () => {
 		it('should throw TypeError', () => {
 			// Assert
 			return expect(baseChannel.registerToBus()).rejects.toBeInstanceOf(
-				TypeError
+				TypeError,
 			);
 		});
 	});
@@ -162,7 +162,7 @@ describe('Base Channel', () => {
 		it('should throw TypeError', () => {
 			// Assert
 			return expect(baseChannel.invokePublic()).rejects.toBeInstanceOf(
-				TypeError
+				TypeError,
 			);
 		});
 	});
@@ -184,7 +184,7 @@ describe('Base Channel', () => {
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
 			expect(
-				baseChannel.isValidEventName(`${params.moduleAlias}:${eventName}`)
+				baseChannel.isValidEventName(`${params.moduleAlias}:${eventName}`),
 			).toBe(true);
 		});
 	});
@@ -206,7 +206,7 @@ describe('Base Channel', () => {
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
 			expect(
-				baseChannel.isValidActionName(`${params.moduleAlias}:${actionName}`)
+				baseChannel.isValidActionName(`${params.moduleAlias}:${actionName}`),
 			).toBe(true);
 		});
 	});

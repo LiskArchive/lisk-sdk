@@ -175,7 +175,7 @@ describe('blocks/process', () => {
 			expect(blocksProcess.blockReward).to.eql(blockReward);
 			expect(blocksProcess.constants).to.eql(constants);
 			expect(blocksProcess.genesisBlock).to.eql(
-				__testContext.config.genesisBlock
+				__testContext.config.genesisBlock,
 			);
 		});
 	});
@@ -331,7 +331,7 @@ describe('blocks/process', () => {
 				describe('transactions.applyTransactions', () => {
 					describe('when transaction initializations fail', () => {
 						beforeEach(async () =>
-							applyTransactionsStub.rejects(new Error('Invalid field types'))
+							applyTransactionsStub.rejects(new Error('Invalid field types')),
 						);
 
 						it('should call a callback with error', async () => {
@@ -340,7 +340,7 @@ describe('blocks/process', () => {
 									lastBlock,
 									keypair,
 									timestamp,
-									transactions
+									transactions,
 								);
 							} catch (err) {
 								expect(err.message).to.eql('Invalid field types');
@@ -355,7 +355,7 @@ describe('blocks/process', () => {
 									{ id: 1, status: 0, errors: [] },
 									{ id: 2, status: 0, errors: [] },
 								],
-							})
+							}),
 						);
 
 						it('should generate block without transactions', async () => {
@@ -363,7 +363,7 @@ describe('blocks/process', () => {
 								lastBlock,
 								keypair,
 								timestamp,
-								transactions
+								transactions,
 							);
 							expect(blocksLogic.create).to.be.calledWith({
 								blockReward,
@@ -392,7 +392,7 @@ describe('blocks/process', () => {
 								lastBlock,
 								keypair,
 								timestamp,
-								transactions
+								transactions,
 							);
 							expect(blocksLogic.create).to.be.calledWith({
 								blockReward,
@@ -410,7 +410,7 @@ describe('blocks/process', () => {
 						beforeEach(async () =>
 							applyTransactionsStub.resolves({
 								transactionsResponses: [{ id: 1, status: 2, errors: [] }],
-							})
+							}),
 						);
 
 						it('should generate block without pending transactions', async () => {
@@ -418,7 +418,7 @@ describe('blocks/process', () => {
 								lastBlock,
 								keypair,
 								timestamp,
-								transactions
+								transactions,
 							);
 							expect(blocksLogic.create).to.be.calledWith({
 								blockReward,
@@ -468,10 +468,10 @@ describe('blocks/process', () => {
 					lastBlock,
 					keypair,
 					timestamp,
-					sampleTransactons
+					sampleTransactons,
 				);
 				expect(
-					transactionsModule.checkAllowedTransactions
+					transactionsModule.checkAllowedTransactions,
 				).to.have.been.calledWith(state);
 			});
 		});
@@ -518,7 +518,7 @@ describe('blocks/process', () => {
 			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
 			expect(blocksVerifyStub.verifyBlock).to.be.calledWith(
 				lastDummyBlock,
-				beforeLastDummyBlock
+				beforeLastDummyBlock,
 			);
 		});
 	});
@@ -576,14 +576,14 @@ describe('blocks/process', () => {
 				5,
 				isCleaning,
 				onProgress,
-				10
+				10,
 			);
 			expect(blocksUtils.loadBlocksWithOffset).to.be.calledWith(
 				storageStub,
 				interfaceAdapters,
 				blocksProcess.genesisBlock,
 				10,
-				0
+				0,
 			);
 		});
 
@@ -597,7 +597,7 @@ describe('blocks/process', () => {
 				5,
 				isCleaning,
 				onProgress,
-				10
+				10,
 			);
 			expect(blocksProcess.applyBlock).to.be.calledOnce;
 		});
@@ -609,7 +609,7 @@ describe('blocks/process', () => {
 				5,
 				isCleaning,
 				onProgress,
-				10
+				10,
 			);
 			expect(onProgress).to.be.callCount(5);
 		});
@@ -621,7 +621,7 @@ describe('blocks/process', () => {
 				5,
 				isCleaning,
 				onProgress,
-				10
+				10,
 			);
 			expect(blocksChainStub.applyGenesisBlock).to.be.calledOnce;
 		});
@@ -639,7 +639,7 @@ describe('blocks/process', () => {
 				5,
 				isCleaning,
 				onProgress,
-				10
+				10,
 			);
 			expect(blocksUtils.loadBlocksWithOffset).to.be.calledTwice;
 		});

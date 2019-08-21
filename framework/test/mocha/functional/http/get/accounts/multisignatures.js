@@ -52,7 +52,7 @@ describe('GET /api/accounts', () => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
-							member
+							member,
 						),
 					};
 				});
@@ -68,7 +68,7 @@ describe('GET /api/accounts', () => {
 
 	describe('/{address}/multisignature_groups', () => {
 		const multisigGroupsEndpoint = new SwaggerEndpoint(
-			'GET /accounts/{address}/multisignature_groups'
+			'GET /accounts/{address}/multisignature_groups',
 		);
 
 		describe('address', () => {
@@ -82,7 +82,7 @@ describe('GET /api/accounts', () => {
 						expect(group.publicKey).to.be.equal(account.publicKey);
 						expect(group.members).to.have.length(scenario.members.length);
 						expect(_.map(group.members, 'address').sort()).to.be.eql(
-							_.map(scenario.members, 'address').sort()
+							_.map(scenario.members, 'address').sort(),
 						);
 					});
 			});
@@ -99,11 +99,11 @@ describe('GET /api/accounts', () => {
 				return multisigGroupsEndpoint
 					.makeRequest(
 						{ address: accountFixtures.existingDelegate.address },
-						404
+						404,
 					)
 					.then(res => {
 						expect(res.body.message).to.be.equal(
-							'Multisignature account not found'
+							'Multisignature account not found',
 						);
 					});
 			});
@@ -128,7 +128,7 @@ describe('GET /api/accounts', () => {
 
 	describe('/{address}/multisignature_memberships', () => {
 		const multisigMembersEndpoint = new SwaggerEndpoint(
-			'GET /accounts/{address}/multisignature_memberships'
+			'GET /accounts/{address}/multisignature_memberships',
 		);
 
 		describe('address', () => {
@@ -149,7 +149,7 @@ describe('GET /api/accounts', () => {
 						expect(group.publicKey).to.be.equal(account.publicKey);
 						expect(group.members).to.have.length(scenario.members.length);
 						expect(_.map(group.members, 'address')).to.include(
-							scenario.members[0].address
+							scenario.members[0].address,
 						);
 					});
 			});
@@ -163,7 +163,7 @@ describe('GET /api/accounts', () => {
 						expect(group.publicKey).to.be.equal(account.publicKey);
 						expect(group.members).to.have.length(scenario.members.length);
 						expect(_.map(group.members, 'address')).to.include(
-							scenario.members[1].address
+							scenario.members[1].address,
 						);
 					});
 			});
@@ -172,7 +172,7 @@ describe('GET /api/accounts', () => {
 				return multisigMembersEndpoint
 					.makeRequest(
 						{ address: scenario.members[0].address.toLowerCase() },
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'address');
@@ -183,7 +183,7 @@ describe('GET /api/accounts', () => {
 				return multisigMembersEndpoint
 					.makeRequest(
 						{ address: accountFixtures.existingDelegate.address },
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length(0);

@@ -10,8 +10,20 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-afterEach(() => {
-	return sandbox.restore();
+
+'use strict';
+
+describe('integration test - multi signature edge cases', () => {
+	describe('try to register more dapps than balance will allow from a multisignature account', () => {
+		it.todo('should include all the transactions in the pool');
+
+		it.todo(
+			'should remove the transactions from the queue  if the account balance is not enough',
+		);
+
+		it.todo('should not confirm an invalid transaction');
+
+		it.todo('should confirm a valid transaction');
+	});
 });

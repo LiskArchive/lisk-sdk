@@ -32,7 +32,7 @@ module.exports = function(configurations, network) {
 								blockId: genesisBlockId,
 								port: configuration.modules.http_api.httpPort,
 							});
-						})
+						}),
 					);
 				})
 				.then(transactionsResults => {
@@ -60,7 +60,7 @@ module.exports = function(configurations, network) {
 
 			return transactionsFromOtherNodes.map(transactionsFromOtherNode => {
 				return expect(transactionsFromOtherNode).to.include.deep.members(
-					transactionsFromNode0
+					transactionsFromNode0,
 				);
 			});
 		});

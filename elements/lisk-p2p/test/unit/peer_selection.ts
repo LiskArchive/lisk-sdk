@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../utils/peers';
 import {
@@ -53,7 +54,7 @@ describe('peer selector', () => {
 			it('returned array should contain good peers according to algorithm', () => {
 				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
 					.and.be.an('array')
-					.and.of.length(3);
+					.and.of.length(5);
 			});
 
 			it('return empty peer list for no peers as an argument', () => {
@@ -81,7 +82,7 @@ describe('peer selector', () => {
 			it('should return an array having all good peers', () => {
 				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
 					.and.be.an('array')
-					.and.of.length(3);
+					.and.of.length(5);
 			});
 
 			it('should return an array of equal length equal to requested number of peers', () => {
@@ -101,7 +102,7 @@ describe('peer selector', () => {
 				peer => peer.height < nodeInfo.height,
 			);
 
-			it('should return an array with 0 good peers', () => {
+			it('should return an array with 1 good peer', () => {
 				return expect(
 					selectPeersForRequest({
 						peers: lowHeightPeers,
@@ -110,7 +111,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(0);
+					.and.of.length(1);
 			});
 		});
 	});
@@ -119,12 +120,155 @@ describe('peer selector', () => {
 		const peerList = initializePeerInfoList();
 		const numberOfPeers = peerList.length;
 
-		describe('get all the peers for selection', () => {
-			it('should return all the peers given as argument for connection', () => {
-				return expect(selectPeersForConnection({ peers: peerList }))
-					.be.an('array')
-					.and.is.eql(peerList)
+		describe('when there are no peers', () => {
+			it('should return empty array', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [],
+					newPeers: [],
+				});
+				expect(selectedPeers).to.be.an('array').empty;
+			});
+		});
+
+		describe('when peerLimit is undefined', () => {
+			it('should return all peers given as argument for connection', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
 					.of.length(numberOfPeers);
+				return expect(peerList).to.deep.eq(selectedPeers);
+			});
+		});
+
+		describe('when peerLimit is zero', () => {
+			it('should not return any peer', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 0,
+				});
+				expect(selectedPeers).to.be.an('array').empty;
+			});
+		});
+
+		describe('when peerLimit is one', () => {
+			it('should return a single peer', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 1,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(1);
+			});
+		});
+
+		describe('when peerLimit is more than one', () => {
+			it('should return more than one', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+			});
+		});
+
+		describe('when peerLimit is larger than the number of existing peers', () => {
+			it('should return all peers given as argument for connection', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: peerList.length + 1,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(peerList.length);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are only newPeers', () => {
+			it('should not return undefined peers', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [],
+					newPeers: peerList,
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are only triedPeers', () => {
+			it('should return no duplicates', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 4,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(4);
+				expect(peerList).to.contain.members(selectedPeers);
+				for (const peer of selectedPeers) {
+					const foundPeers = selectedPeers.filter(x => x === peer);
+					expect(foundPeers).to.have.length(1);
+				}
+			});
+		});
+
+		describe('when there are same number of peers as the limit', () => {
+			it('should return all peers', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [peerList[0]],
+					newPeers: [peerList[1], peerList[2], peerList[3], peerList[4]],
+					peerLimit: peerList.length,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(peerList.length);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are more new peers than tried', () => {
+			it('should return both kind of peers', () => {
+				const triedPeers = [peerList[0], peerList[1]];
+				const newPeers = [peerList[2], peerList[3], peerList[4]];
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 4,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(4);
+				expect(peerList).to.contain.members(selectedPeers);
+			});
+		});
+
+		describe('when there are same number of new and tried peers', () => {
+			it('should not return undefined peers', () => {
+				const triedPeers = [peerList[0], peerList[1]];
+				const newPeers = [peerList[2], peerList[3]];
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+				expect(peerList).to.include.members(selectedPeers);
 			});
 		});
 	});

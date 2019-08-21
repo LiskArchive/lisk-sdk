@@ -177,7 +177,7 @@ class Peer extends BaseEntity {
 		const parsedOptions = defaults(
 			{},
 			pick(options, ['limit', 'offset']),
-			pick(this.defaultOptions, ['limit', 'offset'])
+			pick(this.defaultOptions, ['limit', 'offset']),
 		);
 
 		const params = {
@@ -190,7 +190,7 @@ class Peer extends BaseEntity {
 			this.SQLs.select,
 			params,
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 	}
 
@@ -207,7 +207,7 @@ class Peer extends BaseEntity {
 		assert(data, 'Must provide data to create account');
 		assert(
 			typeof data === 'object' || Array.isArray(data),
-			'Data must be an object or array of objects'
+			'Data must be an object or array of objects',
 		);
 
 		let values;
@@ -220,7 +220,7 @@ class Peer extends BaseEntity {
 
 		values = values.map(v => _.defaults(v, defaultCreateValues));
 		const attributes = Object.keys(this.fields).filter(
-			fieldname => fieldname !== 'id'
+			fieldname => fieldname !== 'id',
 		);
 		const createSet = this.getValuesSet(values, attributes);
 		const fields = attributes
@@ -231,7 +231,7 @@ class Peer extends BaseEntity {
 			this.SQLs.create,
 			{ createSet, fields },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -261,7 +261,7 @@ class Peer extends BaseEntity {
 			this.SQLs.update,
 			params,
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -291,7 +291,7 @@ class Peer extends BaseEntity {
 			this.SQLs.updateOne,
 			params,
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -314,7 +314,7 @@ class Peer extends BaseEntity {
 				this.SQLs.isPersisted,
 				{ parsedFilters },
 				{ expectedResultCount: 1 },
-				tx
+				tx,
 			)
 			.then(result => result.exists);
 	}
@@ -337,7 +337,7 @@ class Peer extends BaseEntity {
 				this.SQLs.delete,
 				{ parsedFilters },
 				{ expectedResultCount: 0 },
-				tx
+				tx,
 			)
 			.then(result => result);
 	}

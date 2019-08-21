@@ -55,7 +55,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				library = scope;
 				storage = scope.components.storage;
 				setTimeout(done, 5000);
-			}
+			},
 		);
 	});
 
@@ -73,7 +73,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			})
 			.catch(err => {
 				__testContext.debug(err.stack);
-			})
+			}),
 	);
 
 	function createBlock(
@@ -82,7 +82,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		keypair,
 		previousBlock,
 		blockReward,
-		maxPayloadLength
+		maxPayloadLength,
 	) {
 		const block = blocksUtils.create({
 			keypair,
@@ -96,6 +96,18 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		block.id = blocksUtils.getId(block);
 		block.height = previousBlock.height + 1;
 		return block;
+	}
+
+	function getKeypair(passphrase) {
+		const {
+			publicKeyBytes: publicKey,
+			privateKeyBytes: privateKey,
+		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+
+		return {
+			publicKey,
+			privateKey,
+		};
 	}
 
 	function forge(forgingSlot, cb) {
@@ -136,12 +148,12 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						Last block timestamp: ${last_block.timestamp}
 						Next slot: ${slot}
 						Next delegate public key: ${delegatePublicKey}
-						Next block timestamp: ${slots.getSlotTime(slot)}`
+						Next block timestamp: ${slots.getSlotTime(slot)}`,
 					);
 					const transactions =
 						library.modules.transactionPool.getUnconfirmedTransactionList(
 							false,
-							25
+							25,
 						) || [];
 
 					library.modules.blocks
@@ -151,7 +163,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							__testContext.debug(
 								`New last block height: ${
 									last_block.height
-								} New last block ID: ${last_block.id}`
+								} New last block ID: ${last_block.id}`,
 							);
 							return waterFallCb();
 						})
@@ -160,7 +172,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			],
 			err => {
 				cb(err, last_block);
-			}
+			},
 		);
 	}
 
@@ -182,20 +194,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			},
 			err => {
 				cb(err, forgedBlocks);
-			}
+			},
 		);
-	}
-
-	function getKeypair(passphrase) {
-		const {
-			publicKeyBytes: publicKey,
-			privateKeyBytes: privateKey,
-		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-
-		return {
-			publicKey,
-			privateKey,
-		};
 	}
 
 	function getValidKeypairForSlot(slot) {
@@ -209,7 +209,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				return getKeypair(
 					_.find(genesisDelegates, delegate => {
 						return delegate.publicKey === delegatePublicKey;
-					}).passphrase
+					}).passphrase,
 				);
 			})
 			.catch(err => {
@@ -221,7 +221,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		library.sequence
 			.add(async () => {
 				const rows = storage.adapter.db.query(
-					new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+					new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;'),
 				);
 				return rows.map(r => r.id);
 			})
@@ -236,7 +236,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		return storage.adapter.db
 			.one(
 				'SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}',
-				{ blockId, cause }
+				{ blockId, cause },
 			)
 			.then(res => {
 				expect(res.blockId).to.equal(blockId);
@@ -261,7 +261,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						keypair,
 						lastBlock,
 						library.modules.blocks.blockReward,
-						library.modules.blocks.constants.maxPayloadLength
+						library.modules.blocks.constants.maxPayloadLength,
 					);
 				});
 			});
@@ -287,7 +287,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						lastBlock = library.modules.blocks.lastBlock;
 						const slot = slots.getSlotNumber();
 						const nonDelegateKeypair = getKeypair(
-							accountFixtures.genesis.passphrase
+							accountFixtures.genesis.passphrase,
 						);
 						block = createBlock(
 							[],
@@ -295,7 +295,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							nonDelegateKeypair,
 							lastBlock,
 							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength
+							library.modules.blocks.constants.maxPayloadLength,
 						);
 						done();
 					});
@@ -326,7 +326,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								keypair,
 								lastBlock,
 								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength
+								library.modules.blocks.constants.maxPayloadLength,
 							);
 						});
 					});
@@ -381,10 +381,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							keypair,
 							dummyBlock,
 							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength
+							library.modules.blocks.constants.maxPayloadLength,
 						);
 						return library.modules.blocks.receiveBlockFromNetwork(
-							blockWithGreaterTimestamp
+							blockWithGreaterTimestamp,
 						);
 					});
 				});
@@ -422,10 +422,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							keypair,
 							dummyBlock,
 							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength
+							library.modules.blocks.constants.maxPayloadLength,
 						);
 						library.modules.blocks.receiveBlockFromNetwork(
-							blockWithLowerTimestamp
+							blockWithLowerTimestamp,
 						);
 					});
 				});
@@ -459,7 +459,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
 						return library.modules.blocks.receiveBlockFromNetwork(
-							blockFromPreviousRound
+							blockFromPreviousRound,
 						);
 					});
 
@@ -485,7 +485,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
 						return library.modules.blocks.receiveBlockFromNetwork(
-							inSlotsWindowBlock
+							inSlotsWindowBlock,
 						);
 					});
 
@@ -510,7 +510,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
 						return library.modules.blocks.receiveBlockFromNetwork(
-							outOfSlotWindowBlock
+							outOfSlotWindowBlock,
 						);
 					});
 
@@ -543,10 +543,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								keypair,
 								dummyBlock,
 								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength
+								library.modules.blocks.constants.maxPayloadLength,
 							);
 							library.modules.blocks.receiveBlockFromNetwork(
-								blockFromFutureSlot
+								blockFromFutureSlot,
 							);
 						});
 					});
@@ -603,10 +603,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							keypair,
 							secondLastBlock,
 							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength
+							library.modules.blocks.constants.maxPayloadLength,
 						);
 						library.modules.blocks.receiveBlockFromNetwork(
-							blockWithGreaterTimestamp
+							blockWithGreaterTimestamp,
 						);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
@@ -625,7 +625,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							keypair = getKeypair(
 								_.find(genesisDelegates, value => {
 									return value.publicKey !== lastBlock.generatorPublicKey;
-								}).publicKey
+								}).publicKey,
 							);
 							done();
 						});
@@ -637,10 +637,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								keypair,
 								secondLastBlock,
 								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength
+								library.modules.blocks.constants.maxPayloadLength,
 							);
 							library.modules.blocks.receiveBlockFromNetwork(
-								blockWithGreaterTimestamp
+								blockWithGreaterTimestamp,
 							);
 							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
@@ -650,7 +650,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									secondLastBlock.id,
 								]);
 								return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(
-									done
+									done,
 								);
 							});
 						});
@@ -680,10 +680,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								keypair,
 								secondLastBlock,
 								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength
+								library.modules.blocks.constants.maxPayloadLength,
 							);
 							library.modules.blocks.receiveBlockFromNetwork(
-								blockWithInvalidSlot
+								blockWithInvalidSlot,
 							);
 							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
@@ -706,10 +706,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								keypair,
 								secondLastBlock,
 								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength
+								library.modules.blocks.constants.maxPayloadLength,
 							);
 							library.modules.blocks.receiveBlockFromNetwork(
-								blockWithLowerTimestamp
+								blockWithLowerTimestamp,
 							);
 							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
@@ -735,7 +735,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 										return (
 											delegate.publicKey === secondLastBlock.generatorPublicKey
 										);
-									}).passphrase
+									}).passphrase,
 								);
 								done();
 							});
@@ -747,10 +747,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									keypair,
 									secondLastBlock,
 									library.modules.blocks.blockReward,
-									library.modules.blocks.constants.maxPayloadLength
+									library.modules.blocks.constants.maxPayloadLength,
 								);
 								library.modules.blocks.receiveBlockFromNetwork(
-									blockWithDifferentKeyAndTimestamp
+									blockWithDifferentKeyAndTimestamp,
 								);
 								getBlocks((err, blockIds) => {
 									expect(err).to.not.exist;
@@ -762,7 +762,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									]);
 									return verifyForkStat(
 										blockWithDifferentKeyAndTimestamp.id,
-										5
+										5,
 									).then(done);
 								});
 							});
@@ -787,10 +787,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									keypair,
 									secondLastBlock,
 									library.modules.blocks.blockReward,
-									library.modules.blocks.constants.maxPayloadLength
+									library.modules.blocks.constants.maxPayloadLength,
 								);
 								await library.modules.blocks.receiveBlockFromNetwork(
-									blockWithDifferentKeyAndTimestamp
+									blockWithDifferentKeyAndTimestamp,
 								);
 								const blockIds = await new Promise((resolve, reject) => {
 									getBlocks((err, res) => {
@@ -802,7 +802,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								});
 								expect(blockIds).to.have.length(6);
 								expect(blockIds).to.not.include(
-									blockWithDifferentKeyAndTimestamp.id
+									blockWithDifferentKeyAndTimestamp.id,
 								);
 								expect(blockIds).to.include.members([
 									secondLastBlock.id,
@@ -831,7 +831,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								nextSlotKeypair,
 								lastBlock,
 								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength
+								library.modules.blocks.constants.maxPayloadLength,
 							);
 
 							function sendSkippedSlotBlock() {
@@ -839,11 +839,12 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								done();
 							}
 
+							// eslint-disable-next-line wrap-iife
 							(function waitUntilSkippedSlotBlockIsValid() {
 								if (slots.getSlotNumber() < slot + 2) {
 									__testContext.debug(
 										`Waiting for slot: ${slot +
-											2}, current slot: ${slots.getSlotNumber()}`
+											2}, current slot: ${slots.getSlotNumber()}`,
 									);
 									setTimeout(waitUntilSkippedSlotBlockIsValid, 1000);
 								} else {
@@ -860,10 +861,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							keypair,
 							lastBlock,
 							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength
+							library.modules.blocks.constants.maxPayloadLength,
 						);
 						library.modules.blocks.receiveBlockFromNetwork(
-							blockWithUnskippedSlot
+							blockWithUnskippedSlot,
 						);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
@@ -894,7 +895,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						keypair = getKeypair(
 							_.find(genesisDelegates, delegate => {
 								return lastBlock.generatorPublicKey === delegate.publicKey;
-							}).passphrase
+							}).passphrase,
 						);
 						done();
 					});
@@ -910,14 +911,14 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							keypair,
 							secondLastBlock,
 							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength
+							library.modules.blocks.constants.maxPayloadLength,
 						);
 						done();
 					});
 
 					it('should delete last block and save received block (from previous round)', done => {
 						library.modules.blocks.receiveBlockFromNetwork(
-							blockFromPreviousRound
+							blockFromPreviousRound,
 						);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
@@ -974,7 +975,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						keypair,
 						dummyLastBlock,
 						library.modules.blocks.blockReward,
-						library.modules.blocks.constants.maxPayloadLength
+						library.modules.blocks.constants.maxPayloadLength,
 					);
 					done();
 				});

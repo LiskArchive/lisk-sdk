@@ -25,7 +25,7 @@ describe('BaseAdapter', () => {
 	it('should be a constructable function', async () => {
 		expect(BaseAdapter.prototype).to.be.not.null;
 		return expect(BaseAdapter.prototype.constructor.name).to.be.eql(
-			'BaseAdapter'
+			'BaseAdapter',
 		);
 	});
 

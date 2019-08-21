@@ -37,7 +37,7 @@ const isValid = (version, height, exceptions = {}) => {
 			const heightsRange = blockVersionExceptions[exception];
 			// Check if provided height is between the range boundaries
 			return height >= heightsRange.start && height <= heightsRange.end;
-		}
+		},
 	);
 
 	if (exceptionVersion === undefined) {

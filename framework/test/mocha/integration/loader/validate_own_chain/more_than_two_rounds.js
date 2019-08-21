@@ -29,7 +29,7 @@ describe('validateOwnChain', () => {
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
+			localCommon.addTransactionsAndForge,
 		);
 	});
 
@@ -90,11 +90,11 @@ describe('validateOwnChain', () => {
 
 				try {
 					await library.modules.blocks.blocksVerify.requireBlockRewind(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = await library.modules.blocks.blocksProcess.recoverInvalidOwnChain(
 						library.modules.blocks.lastBlock,
-						() => {}
+						() => {},
 					);
 				} catch (error) {
 					validateOwnChainError = error;
@@ -103,7 +103,7 @@ describe('validateOwnChain', () => {
 
 			it('should fail with error', async () => {
 				return expect(validateOwnChainError.message).to.be.eql(
-					"There are more than 202 invalid blocks. Can't delete those to recover the chain."
+					"There are more than 202 invalid blocks. Can't delete those to recover the chain.",
 				);
 			});
 		});

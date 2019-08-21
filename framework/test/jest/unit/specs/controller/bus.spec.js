@@ -88,7 +88,7 @@ describe('Bus', () => {
 
 			// Act && Assert
 			await expect(
-				bus.registerChannel(moduleAlias, events, [], channelOptions)
+				bus.registerChannel(moduleAlias, events, [], channelOptions),
 			).rejects.toBeInstanceOf(Error);
 		});
 
@@ -113,7 +113,7 @@ describe('Bus', () => {
 			expect(Object.keys(bus.actions)).toHaveLength(2);
 			Object.keys(actions).forEach(actionName => {
 				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(
-					actions[actionName]
+					actions[actionName],
 				);
 			});
 		});
@@ -131,7 +131,7 @@ describe('Bus', () => {
 			// Act && Assert
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 			await expect(
-				bus.registerChannel(moduleAlias, [], actions, channelOptions)
+				bus.registerChannel(moduleAlias, [], actions, channelOptions),
 			).rejects.toBeInstanceOf(Error);
 		});
 	});
@@ -139,7 +139,132 @@ describe('Bus', () => {
 	describe('#invoke', () => {
 		it.todo('should invoke controller channel action.');
 		it.todo('should invoke module channel action.');
-		it.todo('should throw error if action was not registered.');
+
+		it('should throw error if action was not registered', async () => {
+			// Arrange
+			const actionData = {
+				name: 'nonexistentaction',
+				module: 'app',
+				source: 'chain',
+				params: 'logger',
+			};
+
+			// Act && Assert
+			await expect(bus.invoke(actionData)).rejects.toBeInstanceOf(Error);
+
+			try {
+				await bus.invoke(actionData);
+			} catch (err) {
+				expect(err.message).toEqual(
+					`Action '${actionData.module}:${
+						actionData.name
+					}' is not registered to bus.`,
+				);
+			}
+		});
+
+		it('should throw error if module does not exist', async () => {
+			// Arrange
+			const actionData = {
+				name: 'getComponentConfig',
+				module: 'invalidmodule',
+				source: 'chain',
+				params: 'logger',
+			};
+
+			// Act && Assert
+			await expect(bus.invoke(actionData)).rejects.toBeInstanceOf(Error);
+
+			try {
+				await bus.invoke(actionData);
+			} catch (err) {
+				expect(err.message).toEqual(
+					`Action '${actionData.module}:${
+						actionData.name
+					}' is not registered to bus.`,
+				);
+			}
+		});
+	});
+
+	describe('#invokePublic', () => {
+		it('should throw error if action was not registered', async () => {
+			// Arrange
+			const actionData = {
+				name: 'nonexistentaction',
+				module: 'app',
+				source: 'chain',
+				params: 'logger',
+			};
+
+			// Act && Assert
+			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
+
+			try {
+				await bus.invokePublic(actionData);
+			} catch (err) {
+				expect(err.message).toEqual(
+					`Action '${actionData.module}:${
+						actionData.name
+					}' is not registered to bus.`,
+				);
+			}
+		});
+
+		it('should throw error if module does not exist', async () => {
+			// Arrange
+			const actionData = {
+				name: 'getComponentConfig',
+				module: 'invalidmodule',
+				source: 'chain',
+				params: 'logger',
+			};
+
+			// Act && Assert
+			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
+
+			try {
+				await bus.invokePublic(actionData);
+			} catch (err) {
+				expect(err.message).toEqual(
+					`Action '${actionData.module}:${
+						actionData.name
+					}' is not registered to bus.`,
+				);
+			}
+		});
+
+		it('should throw error if action is not public', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const actions = {
+				action1: {
+					handler: jest.fn(),
+				},
+			};
+			const actionData = {
+				name: 'action1',
+				module: moduleAlias,
+				source: 'chain',
+				params: 'logger',
+			};
+
+			// Act
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+
+			// Assert
+			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
+
+			try {
+				await bus.invokePublic(actionData);
+			} catch (err) {
+				expect(err.message).toEqual(
+					`Action '${actionData.module}:${
+						actionData.name
+					}' is not allowed because it's not public.`,
+				);
+			}
+		});
 	});
 
 	describe('#publish', () => {
@@ -158,7 +283,7 @@ describe('Bus', () => {
 			// Assert
 			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(
 				eventName,
-				eventData
+				eventData,
 			);
 		});
 	});
@@ -178,7 +303,7 @@ describe('Bus', () => {
 				},
 			};
 			const expectedActions = Object.keys(actions).map(
-				actionName => `${moduleAlias}:${actionName}`
+				actionName => `${moduleAlias}:${actionName}`,
 			);
 
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
