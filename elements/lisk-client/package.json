@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "2.3.1-alpha.0",
+	"version": "2.3.1",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -59,11 +59,11 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "2.0.2",
-		"@liskhq/lisk-constants": "1.2.2",
-		"@liskhq/lisk-cryptography": "2.3.0-alpha.1",
-		"@liskhq/lisk-passphrase": "2.0.2",
-		"@liskhq/lisk-transactions": "2.3.0",
+		"@liskhq/lisk-api-client": "2.0.3",
+		"@liskhq/lisk-constants": "1.2.3",
+		"@liskhq/lisk-cryptography": "2.3.0",
+		"@liskhq/lisk-passphrase": "2.0.3",
+		"@liskhq/lisk-transactions": "2.3.1",
 		"@types/node": "10.12.21"
 	},
 	"devDependencies": {
@@ -73,7 +73,7 @@
 		"@types/mocha": "5.2.5",
 		"browserify": "16.2.3",
 		"chai": "4.2.0",
-		"cypress": "3.1.5",
+		"cypress": "3.4.1",
 		"http-server": "0.11.1",
 		"mocha": "5.2.0",
 		"nyc": "14.1.1",
