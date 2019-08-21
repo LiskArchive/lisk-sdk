@@ -59,11 +59,13 @@ class DelegatesInfo {
 	}
 
 	async apply(block, tx) {
-		return this._update(block, false, tx);
+		const undo = false;
+		return this._update(block, undo, tx);
 	}
 
 	async undo(block, tx) {
-		return this._update(block, true, tx);
+		const undo = true;
+		return this._update(block, undo, tx);
 	}
 
 	/**

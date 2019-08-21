@@ -28,7 +28,7 @@ const {
 	delegateWhoForgedLast,
 } = require('./round_delegates');
 
-describe('dpos.apply()', () => {
+describe('dpos.undo()', () => {
 	const stubs = {};
 	let dpos;
 	let slots;
@@ -38,7 +38,7 @@ describe('dpos.apply()', () => {
 			entities: {
 				Account: {
 					get: jest.fn(),
-					increaseFieldBy: jest.fn(),
+					decreaseFieldBy: jest.fn(),
 					update: jest.fn(),
 				},
 				RoundDelegates: {
@@ -71,38 +71,8 @@ describe('dpos.apply()', () => {
 		});
 	});
 
-	describe('Given block height is "1" (the genesis block)', () => {
-		let genesisBlock;
-		beforeEach(() => {
-			// Arrange
-			genesisBlock = {
-				height: 1,
-			};
-		});
-
-		it('should resolve with "false"', async () => {
-			// Act
-			const result = await dpos.apply(genesisBlock);
-
-			// Assert
-			expect(result).toBeFalse();
-		});
-
-		it('should NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
-			// Act
-			await dpos.apply(genesisBlock);
-
-			// Assert
-			expect(
-				stubs.storage.entities.Account.increaseFieldBy,
-			).not.toHaveBeenCalled();
-
-			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
-		});
-	});
-
 	describe('Given block height is greater than "1" (NOT the genesis block)', () => {
-		it('should increase "producedBlocks" field by "1" for the generator delegate', async () => {
+		it('should decrease "producedBlocks" field by "1" for the generator delegate', async () => {
 			// Arrange
 			const block = {
 				height: 2,
@@ -110,11 +80,11 @@ describe('dpos.apply()', () => {
 			};
 
 			// Act
-			await dpos.apply(block, stubs.tx);
+			await dpos.undo(block, stubs.tx);
 
 			// Assert
 			expect(
-				stubs.storage.entities.Account.increaseFieldBy,
+				stubs.storage.entities.Account.decreaseFieldBy,
 			).toHaveBeenCalledWith(
 				{ publicKey_eq: block.generatorPublicKey },
 				'producedBlocks',
@@ -133,14 +103,14 @@ describe('dpos.apply()', () => {
 			};
 
 			// Act
-			await dpos.apply(block, stubs.tx);
+			await dpos.undo(block, stubs.tx);
 
 			// Assert
 			expect(
-				stubs.storage.entities.Account.increaseFieldBy,
+				stubs.storage.entities.Account.decreaseFieldBy,
 			).toHaveBeenCalledTimes(1);
 			expect(
-				stubs.storage.entities.Account.increaseFieldBy,
+				stubs.storage.entities.Account.decreaseFieldBy,
 			).toHaveBeenCalledWith(
 				expect.any(Object),
 				'producedBlocks',
@@ -149,10 +119,10 @@ describe('dpos.apply()', () => {
 			);
 
 			expect(
-				stubs.storage.entities.Account.increaseFieldBy,
+				stubs.storage.entities.Account.decreaseFieldBy,
 			).not.toHaveBeenCalledWith(expect.any(Object), 'missedBlocks');
 			expect(
-				stubs.storage.entities.Account.increaseFieldBy,
+				stubs.storage.entities.Account.decreaseFieldBy,
 			).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeight');
 			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 		});
@@ -216,13 +186,13 @@ describe('dpos.apply()', () => {
 			]);
 		});
 
-		it('should increase "missedBlocks" field by "1" for the delegates who didnt forge in the round', async () => {
+		it('should decrease "missedBlocks" field by "1" for the delegates who didnt forge in the round', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 			// Assert
 			expect(
-				stubs.storage.entities.Account.increaseFieldBy,
+				stubs.storage.entities.Account.decreaseFieldBy,
 			).toHaveBeenCalledWith(
 				{
 					publicKey_in: delegatesWhoForgedNone.map(a => a.publicKey),
@@ -233,9 +203,9 @@ describe('dpos.apply()', () => {
 			);
 		});
 
-		it('should distribute rewards and fees ONLY to the delegates who forged', async () => {
+		it('should undo distribution of reward and fee ONLY to the delegates who forged', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 			// Assert
 			expect.assertions(constants.ACTIVE_DELEGATES);
@@ -259,9 +229,9 @@ describe('dpos.apply()', () => {
 			});
 		});
 
-		it('should distrubute reward and fee for delegate who forged once but missed once', async () => {
+		it('should undo distribution of reward and fee for delegate who forged once but missed once', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 			// Assert
 			expect.assertions(delegatesWhoForgedOnceMissedOnce.length);
@@ -278,9 +248,9 @@ describe('dpos.apply()', () => {
 			});
 		});
 
-		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {
+		it('should undo distribution of rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length);
@@ -289,9 +259,9 @@ describe('dpos.apply()', () => {
 				const amount = fee.plus(reward);
 				const data = {
 					...account,
-					balance: account.balance.plus(amount),
-					fees: account.fees.plus(fee),
-					rewards: account.rewards.plus(reward),
+					balance: account.balance.minus(amount),
+					fees: account.fees.minus(fee),
+					rewards: account.rewards.minus(reward),
 				};
 
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
@@ -304,7 +274,7 @@ describe('dpos.apply()', () => {
 			});
 		});
 
-		it('should give the remainingFee ONLY to the last delegate of the round who forged', async () => {
+		it('should remove the remainingFee ONLY from the last delegate of the round who forged', async () => {
 			// Arrange
 			const remainingFee = randomInt(5, 10);
 			stubs.storage.entities.Round.summedRound.mockResolvedValue([
@@ -316,7 +286,7 @@ describe('dpos.apply()', () => {
 			]);
 
 			// Act
-			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged);
@@ -329,7 +299,7 @@ describe('dpos.apply()', () => {
 					 * Delegate who forged last also forged 3 times,
 					 * Thus will get fee 3 times too.
 					 */
-					fees: delegateWhoForgedLast.fees.add(
+					fees: delegateWhoForgedLast.fees.minus(
 						feePerDelegate * 3 + remainingFee,
 					),
 				}),
@@ -350,7 +320,7 @@ describe('dpos.apply()', () => {
 							/**
 							 * Rest of the delegates don't get the remaining fee
 							 */
-							fees: account.fees.add(feePerDelegate * blockCount),
+							fees: account.fees.minus(feePerDelegate * blockCount),
 						}),
 						stubs.tx,
 					);
@@ -359,7 +329,7 @@ describe('dpos.apply()', () => {
 
 		it('should update vote weight of accounts that delegates who forged voted for', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length);
@@ -368,7 +338,7 @@ describe('dpos.apply()', () => {
 				const amount = fee.plus(reward);
 
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).toHaveBeenCalledWith(
 					{
 						publicKey_in: account.votedDelegatesPublicKeys,
@@ -402,10 +372,10 @@ describe('dpos.apply()', () => {
 					.mockResolvedValue(delegateAccounts);
 
 				// Act
-				await dpos.apply(lastBlockOfTheRound, stubs.tx);
+				await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any, 'missedBlocks');
 			});
 		});
@@ -417,19 +387,19 @@ describe('dpos.apply()', () => {
 				stubs.storage.entities.Round.summedRound.mockRejectedValue(err);
 
 				// Act && Assert
-				await expect(dpos.apply(lastBlockOfTheRound, stubs.tx)).rejects.toBe(
+				await expect(dpos.undo(lastBlockOfTheRound, stubs.tx)).rejects.toBe(
 					err,
 				);
 
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any, 'producedBlocks');
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any(Object), 'missedBlocks');
 				expect(
-					stubs.storage.entities.Account.increaseFieldBy,
+					stubs.storage.entities.Account.decreaseFieldBy,
 				).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeight');
 			});
 		});
@@ -461,13 +431,15 @@ describe('dpos.apply()', () => {
 
 			it('should multiply delegate reward with "rewards_factor"', async () => {
 				// Act
-				await dpos.apply(lastBlockOfTheRound, stubs.tx);
+				await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 				// Assert
 				expect.assertions(uniqueDelegatesWhoForged.length);
 				uniqueDelegatesWhoForged.forEach(account => {
 					const { reward } = getTotalEarningsOfDelegate(account);
-					const exceptionReward = reward * exceptionFactors.rewards_factor;
+					// Undo will use -1 as we're undoing
+					const exceptionReward =
+						reward * (-1 * exceptionFactors.rewards_factor);
 					const partialData = {
 						rewards: account.rewards.add(exceptionReward),
 					};
@@ -483,9 +455,9 @@ describe('dpos.apply()', () => {
 				});
 			});
 
-			it('should should multiple "totalFee" with "fee_factor" and add "fee_bonus"', async () => {
+			it('should multiple "totalFee" with "fee_factor" and add "fee_bonus" and substract it from the account', async () => {
 				// Act
-				await dpos.apply(lastBlockOfTheRound, stubs.tx);
+				await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
 				uniqueDelegatesWhoForged.forEach(account => {
 					const blockCount = delegatesWhoForged.filter(
@@ -500,7 +472,7 @@ describe('dpos.apply()', () => {
 						(exceptionTotalFee / constants.ACTIVE_DELEGATES) * blockCount;
 
 					const partialData = {
-						fees: account.fees.add(earnedFee),
+						fees: account.fees.minus(earnedFee),
 					};
 
 					// Assert
