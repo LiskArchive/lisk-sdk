@@ -17,12 +17,22 @@
 const { cloneDeep } = require('lodash');
 const {
 	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_VALID_BLOCK,
 	FORK_STATUS_DOUBLE_FORGING,
 	FORK_STATUS_TIE_BREAK,
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
 } = require('../blocks');
 const { Sequence } = require('../utils/sequence');
+
+const forkStatusList = [
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_VALID_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_DISCARD,
+];
 
 class Processor {
 	constructor({ channel, storage, logger, blocksModule }) {
@@ -65,6 +75,11 @@ class Processor {
 				block,
 				lastBlock,
 			});
+
+			if (!forkStatusList.includes(forkStatus)) {
+				throw new Error('Unknown fork status');
+			}
+
 			this.logger.debug({ id: block.id }, 'Received block');
 			// Discarding block
 			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
@@ -94,17 +109,23 @@ class Processor {
 					block,
 					lastBlock,
 				});
-				await this._validate(block, blockProcessor);
-				const previousLastBlock = cloneDeep(this._lastBlock);
+				await this._validate(block, lastBlock, blockProcessor);
+				const previousLastBlock = cloneDeep(lastBlock);
 				await this._revert(lastBlock, blockProcessor);
+				const newLastBlock = this.blocksModule.lastBlock;
 				try {
-					await this._processValidated(block, blockProcessor);
+					await this._processValidated(block, newLastBlock, blockProcessor);
 				} catch (error) {
 					this.logger.error(
 						{ id: block.id, previousBlockId: previousLastBlock.id, error },
 						'Failed to apply newly received block. restoring previous block.',
 					);
-					await this._processValidated(previousLastBlock);
+					await this._processValidated(
+						previousLastBlock,
+						newLastBlock,
+						blockProcessor,
+						{ skipBroadcast: true },
+					);
 				}
 				return;
 			}
@@ -114,8 +135,8 @@ class Processor {
 				block,
 				lastBlock,
 			});
-			await this._validate(block, blockProcessor);
-			await this._processValidated(block, blockProcessor);
+			await this._validate(block, lastBlock, blockProcessor);
+			await this._processValidated(block, lastBlock, blockProcessor);
 		});
 	}
 
@@ -128,14 +149,16 @@ class Processor {
 	// validate checks the block statically
 	async validate(block) {
 		const blockProcessor = this._getBlockProcessor(block);
-		await this._validate(block, blockProcessor);
+		const { lastBlock } = this.blocksModule;
+		await this._validate(block, lastBlock, blockProcessor);
 	}
 
 	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
 		return this.sequence.add(async () => {
+			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
-			return this._processValidated(block, blockProcessor, {
+			return this._processValidated(block, lastBlock, blockProcessor, {
 				skipBroadcast: true,
 			});
 		});
@@ -144,8 +167,9 @@ class Processor {
 	// apply processes a block assuming that statically it's valid without saving a block
 	async apply(block) {
 		return this.sequence.add(async () => {
+			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
-			return this._processValidated(block, blockProcessor, {
+			return this._processValidated(block, lastBlock, blockProcessor, {
 				skipSave: true,
 				skipBroadcast: true,
 			});
@@ -165,8 +189,8 @@ class Processor {
 		return this._processGenesis(block, blockProcessor, { skipSave });
 	}
 
-	async _validate(block, processor) {
-		const { lastBlock } = this.blocksModule;
+	// eslint-disable-next-line class-methods-use-this
+	async _validate(block, lastBlock, processor) {
 		const blockBytes = await processor.getBytes.exec({ block });
 		await processor.validate.exec({
 			block,
@@ -175,10 +199,14 @@ class Processor {
 		});
 	}
 
-	async _processValidated(block, processor, { skipSave, skipBroadcast } = {}) {
+	async _processValidated(
+		block,
+		lastBlock,
+		processor,
+		{ skipSave, skipBroadcast } = {},
+	) {
 		const blockBytes = await processor.getBytes.exec({ block });
-		const { lastBlock } = this.blocksModule;
-		return this.storage.entities.Block.begin('Chain:processBlock', async tx => {
+		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
 			await processor.verify.exec({
 				block,
 				blockBytes,
@@ -236,10 +264,8 @@ class Processor {
 
 	async _revert(block, processor) {
 		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
-			const { lastBlock } = this.blocksModule;
 			await processor.undo.exec({
 				block,
-				lastBlock,
 				tx,
 			});
 			await this.blocksModule.remove({ block, tx });
