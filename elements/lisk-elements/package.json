@@ -1,6 +1,6 @@
 {
 	"name": "lisk-elements",
-	"version": "2.4.0-alpha.1",
+	"version": "2.4.0",
 	"description": "Elements for building blockchain applications in the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -59,11 +59,11 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "2.0.2",
-		"@liskhq/lisk-constants": "1.2.2",
-		"@liskhq/lisk-cryptography": "2.3.0-alpha.1",
-		"@liskhq/lisk-passphrase": "2.0.2",
-		"@liskhq/lisk-transactions": "2.3.0",
+		"@liskhq/lisk-api-client": "2.0.3",
+		"@liskhq/lisk-constants": "1.2.3",
+		"@liskhq/lisk-cryptography": "2.3.0",
+		"@liskhq/lisk-passphrase": "2.0.3",
+		"@liskhq/lisk-transactions": "2.3.1",
 		"@types/node": "10.12.21"
 	},
 	"devDependencies": {

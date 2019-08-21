@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-constants",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"description": "General constants for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
