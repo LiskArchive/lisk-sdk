@@ -104,7 +104,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('bootstrap()', () => {
+		describe('init()', () => {
 			let bft;
 
 			beforeEach(async () => {
