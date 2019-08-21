@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-passphrase",
-	"version": "2.0.2",
+	"version": "2.0.3",
 	"description": "Mnemonic passphrase helpers for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -70,7 +70,7 @@
 		"@types/mocha": "5.2.5",
 		"browserify": "16.2.3",
 		"chai": "4.2.0",
-		"cypress": "3.1.5",
+		"cypress": "3.4.1",
 		"http-server": "0.11.1",
 		"mocha": "5.2.0",
 		"nyc": "14.1.1",
