@@ -1,0 +1,668 @@
+{
+	"title": "BFT processing generation",
+	"summary": "Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification",
+	"config": {
+		"activeDelegates": 4,
+		"finalizedHeight": 0
+	},
+	"runner": "bft_processing",
+	"handler": "4_delegates_missed_slots",
+	"testCases": [
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 2,
+					"2": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"height": 4,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"height": 5,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"height": 6,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"height": 7,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 2,
+					"7": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"height": 8,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 6,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 2,
+					"8": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"height": 9,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 6,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 2,
+					"8": 2,
+					"9": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"height": 10,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 6,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 2,
+					"8": 2,
+					"9": 2,
+					"10": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 2
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 9,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"height": 12,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 3,
+					"prevotedConfirmedUptoHeight": 9
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 10,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"height": 13,
+					"maxHeightPreviouslyForged": 12,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 10,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"height": 14,
+					"maxHeightPreviouslyForged": 13,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 10,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1,
+					"14": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"height": 15,
+					"maxHeightPreviouslyForged": 14,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 10,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1,
+					"14": 1,
+					"15": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"height": 16,
+					"maxHeightPreviouslyForged": 13,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 10,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1,
+					"14": 2,
+					"15": 2,
+					"16": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"height": 17,
+					"maxHeightPreviouslyForged": 14,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 15,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1,
+					"14": 2,
+					"15": 3,
+					"16": 2,
+					"17": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"height": 18,
+					"maxHeightPreviouslyForged": 16,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 15
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 15,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1,
+					"14": 2,
+					"15": 3,
+					"16": 2,
+					"17": 2,
+					"18": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1,
+					"15": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"height": 19,
+					"maxHeightPreviouslyForged": 18,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 15
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 15,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1,
+					"14": 2,
+					"15": 3,
+					"16": 2,
+					"17": 2,
+					"18": 1,
+					"19": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1,
+					"15": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"height": 20,
+					"maxHeightPreviouslyForged": 18,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 15
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 15,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1,
+					"4": 2,
+					"5": 2,
+					"6": 3,
+					"7": 3,
+					"8": 3,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1,
+					"13": 1,
+					"14": 2,
+					"15": 3,
+					"16": 2,
+					"17": 2,
+					"18": 1,
+					"19": 2,
+					"20": 1
+				},
+				"preCommits": {
+					"1": 1,
+					"6": 3,
+					"9": 1,
+					"10": 1,
+					"15": 1
+				}
+			}
+		}
+	]
+}
