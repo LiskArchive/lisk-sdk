@@ -64,7 +64,6 @@ class Blocks extends EventEmitter {
 		// components
 		logger,
 		storage,
-		sequence,
 		// Unique requirements
 		genesisBlock,
 		slots,
@@ -111,18 +110,16 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
-		this.sequence = sequence;
-		this.blockRewardArgs = {
+		const blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
 			milestones: rewardMileStones,
 			totalAmount,
 		};
 		this.blockReward = {
-			calculateMilestone: height =>
-				calculateMilestone(height, this.blockRewardArgs),
-			calculateReward: height => calculateReward(height, this.blockRewardArgs),
-			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
+			calculateMilestone: height => calculateMilestone(height, blockRewardArgs),
+			calculateReward: height => calculateReward(height, blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, blockRewardArgs),
 		};
 		this.constants = {
 			blockReceiptTimeout,

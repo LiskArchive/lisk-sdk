@@ -1,18 +1,184 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+const { Slots } = require('../../../../../../../src/modules/chain/dpos');
+const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
+const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
+
 describe('blocks', () => {
+	const stubs = {};
+	const constants = {
+		blockReceiptTimeout: 20,
+		loadPerIteration: 1000,
+		maxPayloadLength: 1024 * 1024,
+		maxTransactionsPerBlock: 25,
+		activeDelegates: 101,
+		rewardDistance: 3000000,
+		rewardOffset: 2160,
+		rewardMileStones: [
+			'500000000', // Initial Reward
+			'400000000', // Milestone 1
+			'300000000', // Milestone 2
+			'200000000', // Milestone 3
+			'100000000', // Milestone 4
+		],
+		totalAmount: '10000000000000000',
+		blockSlotWindow: 5,
+	};
+	let exceptions = {};
+	let blocksInstance;
+	let slots;
+
+	beforeEach(() => {
+		// Arrange
+		stubs.dependencies = {
+			storage: {
+				entities: {
+					Account: {
+						get: jest.fn(),
+						update: jest.fn(),
+					},
+					Block: {
+						begin: jest.fn(),
+						count: jest.fn(),
+						getOne: jest.fn(),
+					},
+					Round: {
+						getUniqueRounds: jest.fn(),
+					},
+				},
+			},
+			logger: {
+				debug: jest.fn(),
+				log: jest.fn(),
+				error: jest.fn(),
+			},
+			roundsModule: {},
+			interfaceAdapters: {},
+		};
+
+		slots = new Slots({
+			epochTime: constants.EPOCH_TIME,
+			interval: constants.BLOCK_TIME,
+			blocksPerRound: constants.ACTIVE_DELEGATES,
+		});
+
+		exceptions = {
+			transactions: [],
+		};
+
+		stubs.tx = {
+			batch: jest.fn(),
+		};
+
+		blocksInstance = new Blocks({
+			...stubs.dependencies,
+			genesisBlock,
+			slots,
+			exceptions,
+			...constants,
+		});
+	});
+
 	describe('constructor', () => {
-		it.todo('should initialize private variables correctly');
+		it('should initialize private variables correctly', async () => {
+			// Assert stubbed values are assigned
+			Object.entries(stubs.dependencies).forEach(([stubName, stubValue]) => {
+				expect(blocksInstance[stubName]).toEqual(stubValue);
+			});
+			// Assert constants
+			Object.entries(blocksInstance.constants).forEach(
+				([constantName, constantValue]) =>
+					expect(constants[constantName]).toEqual(constantValue),
+			);
+			// Assert miscellanious
+			expect(slots).toEqual(blocksInstance.slots);
+			expect(blocksInstance.blockReward).toBeDefined();
+			expect(blocksInstance.blocksVerify).toBeDefined();
+			return expect(blocksInstance.blocksUtils).toBeDefined();
+		});
 	});
 
 	describe('lastBlock', () => {
-		it.todo('return the _lastBlock without the receivedAt property');
+		beforeEach(() => {
+			blocksInstance._lastBlock = {
+				...genesisBlock,
+				receivedAt: new Date(),
+			};
+		});
+		it('return the _lastBlock without the receivedAt property', async () => {
+			// Arrange
+			const { receivedAt, ...block } = genesisBlock;
+			// Assert
+			expect(blocksInstance.lastBlock).toEqual(block);
+		});
 	});
 
+	// TODO: Confirm it is required after new implementation
 	describe('isActive', () => {
 		it.todo('return the _isActive property');
 	});
 
 	describe('init', () => {
-		describe('loadMemTables', () => {});
+		beforeEach(async () => {
+			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
+				(_, callback) => callback.call(blocksInstance, stubs.tx),
+			);
+			stubs.dependencies.storage.entities.Block.count.mockResolvedValue(5);
+			stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
+				genesisBlock,
+			);
+			stubs.dependencies.storage.entities.Round.getUniqueRounds.mockResolvedValue(
+				10,
+			);
+			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
+		});
+
+		describe('loadMemTables', () => {
+			it('should throw when entities.Block.count fails', async () => {
+				expect.assertions(1);
+				// Arrange
+				const error = new Error('Count Error');
+				stubs.dependencies.storage.entities.Block.count.mockRejectedValue(
+					error,
+				);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
+			it('should throw when entities.Block.getOne fails', async () => {
+				// Arrange
+				const error = new Error('getOne Error');
+				stubs.dependencies.storage.entities.Block.count.mockRejectedValue(
+					error,
+				);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
+			it('should throw when entities.Block.getUniqueRounds fails', async () => {
+				// Arrange
+				const error = new Error('getUniqueRounds Error');
+				stubs.dependencies.storage.entities.Block.count.mockRejectedValue(
+					error,
+				);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+		});
 
 		describe('matchGenesisBlock', () => {
 			it.todo('should throw an error if the genesis block is diffenrent');
@@ -204,9 +370,13 @@ describe('blocks', () => {
 		it.todo('should return new last block');
 	});
 
-	describe.todo('loadBlocksDataWs', () => {});
+	describe('loadBlocksDataWs', () => {
+		it.todo('a');
+	});
 
-	describe.todo('readBlocksFromNetwork', () => {});
+	describe('readBlocksFromNetwork', () => {
+		it.todo('b');
+	});
 
 	describe('getHighestCommonBlock', () => {
 		it.todo(
