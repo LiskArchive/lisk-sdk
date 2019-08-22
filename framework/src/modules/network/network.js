@@ -37,12 +37,7 @@ const {
 const randomstring = require('randomstring');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const {
-	getByFilter,
-	getCountByFilter,
-	consolidatedPeers,
-	lookupPeersIPs,
-} = require('./utils');
+const { getByFilter, consolidatedPeers, lookupPeersIPs } = require('./utils');
 const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
@@ -357,7 +352,9 @@ module.exports = class Network {
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});
 
-				return getCountByFilter(peers, action.params);
+				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
+
+				return getByFilter(peers, filterWithoutLimitOffset).length;
 			},
 			applyPenalty: action =>
 				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),

@@ -200,20 +200,6 @@ const getByFilter = (peers, filter) => {
  * @returns {int} count
  * @todo Add description for the params
  */
-const getCountByFilter = (peers, filter) => {
-	const { limit, offset, ...filterWithoutLimitOffset } = filter;
-	const peersWithoutLimitOffset = getByFilter(peers, filterWithoutLimitOffset);
-
-	return peersWithoutLimitOffset.length;
-};
-
-/**
- * Returns peers length by filter but without offset and limit.
- * @param {Array} peers
- * @param {Object} filter
- * @returns {int} count
- * @todo Add description for the params
- */
 const consolidatedPeers = ({
 	connectedPeers = [],
 	disconnectedPeers = [],
@@ -239,7 +225,6 @@ const consolidatedPeers = ({
 
 module.exports = {
 	getByFilter,
-	getCountByFilter,
 	consolidatedPeers,
 	lookupPeersIPs,
 };
