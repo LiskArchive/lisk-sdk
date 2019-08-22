@@ -49,7 +49,28 @@ const generateBlockHeader = ({
 	};
 };
 
+const generateBlockHeadersSeries = ({ activeDelegates, count }) => {
+	const threshold = Math.ceil((activeDelegates * 2) / 3);
+
+	return new Array(count).fill(0).map((_v, index) => {
+		const height = index + 1;
+		const prevotedConfirmedUptoHeight = height - threshold;
+		const maxHeightPreviouslyForged = height - activeDelegates;
+
+		return generateBlockHeader({
+			delegateName: `D${height % activeDelegates}`,
+			height,
+			maxHeightPreviouslyForged:
+				maxHeightPreviouslyForged < 0 ? 0 : maxHeightPreviouslyForged,
+			activeSinceRound: 1,
+			prevotedConfirmedUptoHeight:
+				prevotedConfirmedUptoHeight < 0 ? 0 : prevotedConfirmedUptoHeight,
+		});
+	});
+};
+
 module.exports = {
 	loadCSVFile,
 	generateBlockHeader,
+	generateBlockHeadersSeries,
 };

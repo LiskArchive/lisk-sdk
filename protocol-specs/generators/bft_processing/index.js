@@ -16,7 +16,11 @@
 
 const path = require('path');
 const BaseGenerator = require('../base_generator');
-const { loadCSVFile, generateBlockHeader } = require('../../utils/bft');
+const {
+	loadCSVFile,
+	generateBlockHeader,
+	generateBlockHeadersSeries,
+} = require('../../utils/bft');
 
 const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 	const rows = loadCSVFile(path.join(__dirname, filePath));
@@ -128,6 +132,191 @@ const bftFinalityTestSuiteGenerator = ({
 	testCases: bftFinalityStepsGenerator({ activeDelegates, filePath }),
 });
 
+/**
+ *	This will generate a test step where we have invalid header attribute passed
+ *
+ * @param {int} activeDelegates
+ * @return {{output: *, input: *, initialState: *}}
+ */
+const invalidPreVotedConfirmedUptoHeight = activeDelegates => {
+	// We need minimum three rounds to perform verification of block headers
+	const blockHeaders = generateBlockHeadersSeries({
+		activeDelegates,
+		count: activeDelegates * 3 + 1,
+	});
+
+	const blockHeader = blockHeaders.pop();
+
+	// It's an invalid block header as the value for "prevotedConfirmedUptoHeight"
+	// didn't match with one BFT compute for this particular height
+	// which is normally incremented in sequence if same delegates keep forging
+	const invalidBlockHeader = {
+		...blockHeader,
+		prevotedConfirmedUptoHeight: blockHeader.prevotedConfirmedUptoHeight + 10,
+	};
+
+	return {
+		initialState: blockHeaders,
+		input: invalidBlockHeader,
+		// input will not be added to list, hence output will be same as initial state
+		output: blockHeaders,
+	};
+};
+
+/**
+ * This will generate a test step when delegated moved on different chain
+ *
+ * @param {int} activeDelegates
+ * @return {{output: *, input: *, initialState: *}}
+ */
+const invalidSameHeightBlock = activeDelegates => {
+	// We need minimum three rounds to perform verification of block headers
+	const blockHeaders = generateBlockHeadersSeries({
+		activeDelegates,
+		count: activeDelegates * 3 + 1,
+	});
+
+	const blockHeader = blockHeaders.pop();
+	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+
+	// If a block header have same height as previously forged block
+	const invalidBlockHeader = {
+		...blockHeader,
+		// This delegate has forged block at first block of second round
+		maxHeightPreviouslyForged:
+			delegateLastBlockHeader.maxHeightPreviouslyForged,
+		height: delegateLastBlockHeader.height,
+	};
+
+	return {
+		initialState: blockHeaders,
+		input: invalidBlockHeader,
+		// input will not be added to list, hence output will be same as initial state
+		output: blockHeaders,
+	};
+};
+
+/**
+ * This will generate a test step when delegated moved on different chain
+ *
+ * @param {int} activeDelegates
+ * @return {{output: *, input: *, initialState: *}}
+ */
+const invalidLowerHeightBlock = activeDelegates => {
+	// We need minimum three rounds to perform verification of block headers
+	const blockHeaders = generateBlockHeadersSeries({
+		activeDelegates,
+		count: activeDelegates * 3 + 1,
+	});
+
+	const blockHeader = blockHeaders.pop();
+	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+
+	// If a block header have height lower then previously forged height
+	const invalidBlockHeader = {
+		...blockHeader,
+		// This delegate has forged block at first block of second round
+		// so we make it 1 less as last block of second round
+		maxHeightPreviouslyForged:
+			delegateLastBlockHeader.maxHeightPreviouslyForged,
+		height: delegateLastBlockHeader.height - 1,
+	};
+
+	return {
+		initialState: blockHeaders,
+		input: invalidBlockHeader,
+		// input will not be added to list, hence output will be same as initial state
+		output: blockHeaders,
+	};
+};
+
+/**
+ * This will generate a test step we found a missing block in the chain
+ *
+ * @param {int} activeDelegates
+ * @return {{output: *, input: *, initialState: *}}
+ */
+// eslint-disable-next-line no-unused-vars
+const invalidPreviouslyForgedHeight = activeDelegates => {
+	// We need minimum three rounds to perform verification of block headers
+	const blockHeaders = generateBlockHeadersSeries({
+		activeDelegates,
+		count: activeDelegates * 3 + 1,
+	});
+
+	const blockHeader = blockHeaders.pop();
+	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+
+	// If a block header have height lower then previously forged height
+	const invalidBlockHeader = {
+		...blockHeader,
+		// This delegate has forged block at first block of second round
+		// so we make it 1 less as last block of second round
+		maxHeightPreviouslyForged: delegateLastBlockHeader.height - 1,
+	};
+
+	return {
+		initialState: blockHeaders,
+		input: invalidBlockHeader,
+		// input will not be added to list, hence output will be same as initial state
+		output: blockHeaders,
+	};
+};
+
+/**
+ * This will generate a test step when block is forged on a lower chain
+ *
+ * @param {int} activeDelegates
+ * @return {{output: *, input: *, initialState: *}}
+ */
+const invalidLowerPreVotedConfirmedUptoHeight = activeDelegates => {
+	// We need minimum three rounds to perform verification of block headers
+	const blockHeaders = generateBlockHeadersSeries({
+		activeDelegates,
+		count: activeDelegates * 3 + 1,
+	});
+
+	const blockHeader = blockHeaders.pop();
+	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+
+	// If delegate last forged block have higher prevotedConfirmedUptoHeight
+	// value that means it moved to different chain
+	delegateLastBlockHeader.prevotedConfirmedUptoHeight =
+		blockHeader.prevotedConfirmedUptoHeight + 1;
+	const invalidBlockHeader = {
+		...blockHeader,
+	};
+
+	return {
+		initialState: blockHeaders,
+		input: invalidBlockHeader,
+		// input will not be added to list, hence output will be same as initial state
+		output: blockHeaders,
+	};
+};
+
+const bftInvalidBlockHeaderTestSuiteGenerator = ({
+	activeDelegates,
+}) => () => ({
+	title: 'BFT processing generation',
+	summary: 'Generate set of invalid blocks headers for BFT',
+	config: { activeDelegates, finalizedHeight: 0 },
+	runner: 'bft_processing',
+	handler: 'bft_invalid_block_headers',
+	testCases: [
+		invalidPreVotedConfirmedUptoHeight(activeDelegates),
+		invalidSameHeightBlock(activeDelegates),
+		invalidLowerHeightBlock(activeDelegates),
+
+		// TODO: Once we remove this line we can uncomment this generator
+		// https://github.com/LiskHQ/lisk-sdk/blob/037f9e8160372908aea52fffa5a3b1a9f3dd3ebd/framework/src/modules/chain/bft/finality_manager.js#L93
+
+		// invalidPreviouslyForgedHeight(activeDelegates),
+
+		invalidLowerPreVotedConfirmedUptoHeight(activeDelegates),
+	],
+});
+
 BaseGenerator.runGenerator('bft_finality_processing', [
 	bftFinalityTestSuiteGenerator({
 		activeDelegates: 4,
@@ -154,4 +343,5 @@ BaseGenerator.runGenerator('bft_finality_processing', [
 		title: '11_delegates_partial_switch',
 		filePath: '11_delegates_partial_switch.csv',
 	}),
+	bftInvalidBlockHeaderTestSuiteGenerator({ activeDelegates: 5 }),
 ]);

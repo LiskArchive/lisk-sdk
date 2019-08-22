@@ -1,0 +1,1028 @@
+{
+	"title": "BFT processing generation",
+	"summary": "Generate set of invalid blocks headers for BFT",
+	"config": {
+		"activeDelegates": 5,
+		"finalizedHeight": 0
+	},
+	"runner": "bft_processing",
+	"handler": "bft_invalid_block_headers",
+	"testCases": [
+		{
+			"initialState": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 7
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			],
+			"input": {
+				"blockId": "12789931371912649502",
+				"height": 16,
+				"maxHeightPreviouslyForged": 11,
+				"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+				"activeSinceRound": 1,
+				"prevotedConfirmedUptoHeight": 22
+			},
+			"output": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 7
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			]
+		},
+		{
+			"initialState": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 7
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			],
+			"input": {
+				"blockId": "12789931371912649502",
+				"height": 11,
+				"maxHeightPreviouslyForged": 6,
+				"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+				"activeSinceRound": 1,
+				"prevotedConfirmedUptoHeight": 12
+			},
+			"output": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 7
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			]
+		},
+		{
+			"initialState": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 7
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			],
+			"input": {
+				"blockId": "12789931371912649502",
+				"height": 10,
+				"maxHeightPreviouslyForged": 6,
+				"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+				"activeSinceRound": 1,
+				"prevotedConfirmedUptoHeight": 12
+			},
+			"output": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 7
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			]
+		},
+		{
+			"initialState": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 13
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			],
+			"input": {
+				"blockId": "12789931371912649502",
+				"height": 16,
+				"maxHeightPreviouslyForged": 11,
+				"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+				"activeSinceRound": 1,
+				"prevotedConfirmedUptoHeight": 12
+			},
+			"output": [
+				{
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				},
+				{
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				},
+				{
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				},
+				{
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				},
+				{
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				},
+				{
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				},
+				{
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				},
+				{
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 13
+				},
+				{
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				},
+				{
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				},
+				{
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				},
+				{
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "377be71f1a125ededfc70ac406f4a04b62551bf37e7636ca2b86e124aaedbe5a",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			]
+		}
+	]
+}
