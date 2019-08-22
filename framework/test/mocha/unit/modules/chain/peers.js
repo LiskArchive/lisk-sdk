@@ -130,12 +130,11 @@ describe('peers', () => {
 					.withArgs('app:getApplicationState')
 					.returns({ broadhash: prefixedPeer.broadhash });
 
+				channelMock.invoke.withArgs('network:getPeersCount').returns(2);
 				channelMock.invoke
-					.withArgs('network:getConnectedPeersCount')
-					.returns(2);
-				channelMock.invoke
-					.withArgs('network:getConnectedPeersCount', {
+					.withArgs('network:getPeersCount', {
 						broadhash: prefixedPeer.broadhash,
+						state: 2,
 					})
 					.returns(2);
 			});
@@ -143,20 +142,19 @@ describe('peers', () => {
 			it('should call channel invoke thrice', async () =>
 				expect(channelMock.invoke.calledThrice).to.be.true);
 
-			it('should call channel invoke with action network:getConnectedPeersCount', async () =>
+			it('should call channel invoke with action network:getPeersCount', async () =>
 				expect(
-					channelMock.invoke.calledWithExactly(
-						'network:getConnectedPeersCount',
-						{},
-					),
+					channelMock.invoke.calledWithExactly('network:getPeersCount', {
+						state: 2,
+					}),
 				).to.be.true);
 
-			it('should call channel invoke with action network:getConnectedPeersCount and filter broadhash', async () =>
+			it('should call channel invoke with action network:getPeersCount and filter broadhash', async () =>
 				expect(
-					channelMock.invoke.calledWithExactly(
-						'network:getConnectedPeersCount',
-						{ broadhash: prefixedPeer.broadhash },
-					),
+					channelMock.invoke.calledWithExactly('network:getPeersCount', {
+						broadhash: prefixedPeer.broadhash,
+						state: 2,
+					}),
 				).to.be.true);
 
 			it('should return consensus as a number', async () =>
@@ -168,12 +166,11 @@ describe('peers', () => {
 
 		describe('when half of connected peers match our broadhash', () => {
 			before(async () => {
+				channelMock.invoke.withArgs('network:getPeersCount').returns(2);
 				channelMock.invoke
-					.withArgs('network:getConnectedPeersCount')
-					.returns(2);
-				channelMock.invoke
-					.withArgs('network:getConnectedPeersCount', {
+					.withArgs('network:getPeersCount', {
 						broadhash: prefixedPeer.broadhash,
+						state: 2,
 					})
 					.returns(1);
 			});

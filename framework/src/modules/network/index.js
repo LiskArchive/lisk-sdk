@@ -63,14 +63,8 @@ module.exports = class NetworkModule extends BaseModule {
 			getPeers: {
 				handler: action => this.network.actions.getPeers(action),
 			},
-			getConnectedPeers: {
-				handler: action => this.network.actions.getConnectedPeers(action),
-			},
 			getPeersCount: {
 				handler: action => this.network.actions.getPeersCount(action),
-			},
-			getConnectedPeersCount: {
-				handler: action => this.network.actions.getConnectedPeersCount(action),
 			},
 		};
 	}
