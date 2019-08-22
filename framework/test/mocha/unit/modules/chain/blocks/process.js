@@ -16,7 +16,6 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const blockVersion = require('../../../../../../src/modules/chain/blocks/block_version');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
@@ -24,9 +23,6 @@ const {
 	TransactionInterfaceAdapter,
 } = require('../../../../../../src/modules/chain/interface_adapters');
 const transactionsModule = require('../../../../../../src/modules/chain/transactions');
-const {
-	BlocksProcess,
-} = require('../../../../../../src/modules/chain/blocks/process');
 const { Slots } = require('../../../../../../src/modules/chain/dpos');
 const {
 	calculateMilestone,
@@ -142,20 +138,6 @@ describe('blocks/process', () => {
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		};
-
-		// Modules
-
-		blocksProcess = new BlocksProcess({
-			blocksVerify: blocksVerifyStub,
-			blocksChain: blocksChainStub,
-			storage: storageStub,
-			exceptions,
-			slots,
-			interfaceAdapters,
-			genesisBlock: __testContext.config.genesisBlock,
-			blockReward,
-			constants,
-		});
 	});
 
 	afterEach(async () => {
@@ -299,7 +281,7 @@ describe('blocks/process', () => {
 						maxPayloadLength: constants.maxPayloadLength,
 						keypair,
 						timestamp,
-						version: blockVersion.getBlockVersion(lastBlock.height + 1),
+						version: 1,
 						maxHeightPreviouslyForged: 1,
 						prevotedConfirmedUptoHeight: 1,
 						height: lastBlock.height + 1,
@@ -374,7 +356,7 @@ describe('blocks/process', () => {
 								maxPayloadLength: constants.maxPayloadLength,
 								keypair,
 								timestamp,
-								version: blockVersion.getBlockVersion(lastBlock.height + 1),
+								version: 1,
 								maxHeightPreviouslyForged: 1,
 								prevotedConfirmedUptoHeight: 1,
 								height: lastBlock.height + 1,
@@ -407,7 +389,7 @@ describe('blocks/process', () => {
 								maxPayloadLength: constants.maxPayloadLength,
 								keypair,
 								timestamp,
-								version: blockVersion.getBlockVersion(lastBlock.height + 1),
+								version: 1,
 								maxHeightPreviouslyForged: 1,
 								prevotedConfirmedUptoHeight: 1,
 								height: lastBlock.height + 1,
@@ -437,7 +419,7 @@ describe('blocks/process', () => {
 								maxPayloadLength: constants.maxPayloadLength,
 								keypair,
 								timestamp,
-								version: blockVersion.getBlockVersion(lastBlock.height + 1),
+								version: 1,
 								maxHeightPreviouslyForged: 1,
 								prevotedConfirmedUptoHeight: 1,
 								height: lastBlock.height + 1,

@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
@@ -36,9 +35,6 @@ describe('integration test (blocks) - process', () => {
 		// Force rewards start at 150-th block
 		originalBlockRewardsOffset = REWARDS.OFFSET;
 		REWARDS.OFFSET = 150;
-
-		// Set current block version to 0
-		blockVersion.currentBlockVersion = 0;
 
 		application.init(
 			{ sandbox: { name: 'blocks_process' } },

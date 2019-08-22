@@ -36,7 +36,6 @@ const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const { Slots } = require('../../../../../src/modules/chain/dpos');
 const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
-const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/utils');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
@@ -125,7 +124,6 @@ describe('blocks/verify', () => {
 				storage = scope.components.storage;
 
 				// Set current block version to 0
-				blockVersion.currentBlockVersion = 0;
 				scope.modules.blocks.blocksVerify.exceptions = {
 					...scope.modules.blocks.exceptions,
 					blockVersions: {

@@ -25,7 +25,6 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const { Slots } = require('../../../../../src/modules/chain/dpos');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/block');
-const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../common/application');
@@ -43,7 +42,6 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	let storage;
 
 	before(done => {
-		blockVersion.currentBlockVersion = 1; // TODO: Add tests for v2 when _receiveBlockFromNetworkV2 is completed
 		application.init(
 			{
 				sandbox: {
@@ -60,7 +58,6 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	});
 
 	after(done => {
-		blockVersion.currentBlockVersion = 1;
 		application.cleanup(done);
 	});
 
