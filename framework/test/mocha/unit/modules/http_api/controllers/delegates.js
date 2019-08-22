@@ -181,10 +181,8 @@ describe('delegates/api', () => {
 		});
 
 		it('should assign 0 to supply if lastBlock.height is 0', async () => {
-			channelStub.invoke.withArgs('chain:getNodeStatus').resolves({
-				lastBlock: {
-					height: 0,
-				},
+			channelStub.invoke.withArgs('chain:getLastBlock').resolves({
+				height: 0,
 			});
 			await __private.getDelegates();
 			expect(delegateFormatterStub).to.be.calledWith(0);
@@ -353,9 +351,7 @@ describe('delegates/api', () => {
 
 		beforeEach(() => {
 			channelStub.invoke.resolves(dummyDelegates);
-			channelStub.invoke.withArgs('chain:getNodeStatus').resolves({
-				lastBlock,
-			});
+			channelStub.invoke.withArgs('chain:getLastBlock').resolves(lastBlock);
 			return __private.getForgers(filters);
 		});
 
