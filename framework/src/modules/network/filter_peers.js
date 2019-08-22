@@ -168,11 +168,7 @@ const getCountByFilter = (peers, filter) => {
  * @returns {int} count
  * @todo Add description for the params
  */
-const getConsolidatedPeersList = ({
-	connectedPeers,
-	newPeers = [],
-	triedPeers = [],
-}) => {
+const getConsolidatedPeersList = ({ connectedPeers, disconnectedPeers }) => {
 	// Assign state 2 to the connected peers
 	const connectedList = connectedPeers.map(peer => {
 		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;
@@ -180,7 +176,7 @@ const getConsolidatedPeersList = ({
 		return { ip: ipAddress, ...peerWithoutIp, state: PEER_STATE_CONNECTED };
 	});
 	// For the peers that are not present in connectedList should be assigned state 1 which is a DISCONNECTED state.
-	const disconnectedList = [...newPeers, ...triedPeers]
+	const disconnectedList = disconnectedPeers
 		.filter(peer => {
 			const found = connectedList.find(
 				findPeer =>

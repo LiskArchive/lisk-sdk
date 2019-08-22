@@ -533,8 +533,7 @@ export class P2P extends EventEmitter {
 
 	public getNetworkStatus(): P2PNetworkStatus {
 		return {
-			newPeers: [...this._peerBook.newPeers],
-			triedPeers: [...this._peerBook.triedPeers],
+			disconnectedPeers: this._peerPool.getDisconnectedPeerInfos(),
 			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
 			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
 		};

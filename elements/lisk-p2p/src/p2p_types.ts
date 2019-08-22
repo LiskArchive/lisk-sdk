@@ -115,8 +115,7 @@ export interface P2PConfig {
 
 // Network info exposed by the P2P library.
 export interface P2PNetworkStatus {
-	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly disconnectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedUniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }

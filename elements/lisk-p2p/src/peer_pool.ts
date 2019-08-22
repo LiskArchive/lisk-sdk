@@ -537,6 +537,12 @@ export class PeerPool extends EventEmitter {
 		);
 	}
 
+	public getDisconnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this.getDisconnectedPeers().map(
+			peer => peer.peerInfo as P2PDiscoveredPeerInfo,
+		);
+	}
+
 	public getConnectedPeers(
 		kind?: typeof OutboundPeer | typeof InboundPeer,
 	): ReadonlyArray<Peer> {
@@ -548,6 +554,12 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return peers.filter(peer => peer.state === ConnectionState.OPEN);
+	}
+
+	public getDisconnectedPeers(): ReadonlyArray<Peer> {
+		const peers = [...this._peerMap.values()];
+
+		return peers.filter(peer => peer.state !== ConnectionState.OPEN);
 	}
 
 	public getPeer(peerId: string): Peer | undefined {
