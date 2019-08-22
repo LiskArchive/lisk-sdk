@@ -1452,4 +1452,152 @@ describe('processor', () => {
 			});
 		});
 	});
+
+	describe('applyGenesisBlock', () => {
+		const genesisBlock = {
+			version: 0,
+			height: 1,
+			id: 'genesis',
+		};
+
+		let applyGenesisSteps;
+		let txStub;
+
+		beforeEach(async () => {
+			applyGenesisSteps = [jest.fn(), jest.fn()];
+			txStub = jest.fn();
+			blockProcessorV0.applyGenesis.pipe(applyGenesisSteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
+
+		describe('when skip is false and genesis block is not stored yet (scratch)', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(false);
+				await processor.applyGenesisBlock(genesisBlock, false);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should apply genesis block', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: genesisBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should save genesis block without skipSave', async () => {
+				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+					block: genesisBlock,
+					tx: txStub,
+					skipSave: false,
+				});
+			});
+		});
+
+		describe('when skip is false and genesis block is stored already (already started)', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(true);
+				await processor.applyGenesisBlock(genesisBlock, false);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should not apply genesis block', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save genesis block', async () => {
+				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('when skip is true and genesis block is not stored yet', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(false);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				try {
+					await processor.applyGenesisBlock(genesisBlock, true);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should throw an error', async () => {
+				try {
+					await processor.applyGenesisBlock(genesisBlock, true);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					expect(error.message).toBe(
+						'Genesis block is not persisted but skipping to save',
+					);
+				}
+			});
+		});
+
+		describe('when skip is true and genesis block is stored already (rebuilding)', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(true);
+				await processor.applyGenesisBlock(genesisBlock, true);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should apply genesis block', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: genesisBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should save genesis block with skipSave', async () => {
+				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+					block: genesisBlock,
+					tx: txStub,
+					skipSave: true,
+				});
+			});
+		});
+
+		describe('when apply fails when skip is false and genesis block is not stored', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(false);
+				applyGenesisSteps[0].mockRejectedValue(new Error('apply error'));
+				try {
+					await processor.applyGenesisBlock(genesisBlock, false);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (err) {
+					// expected error
+				}
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should not save genesis block with skipSave', async () => {
+				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+			});
+		});
+	});
 });
