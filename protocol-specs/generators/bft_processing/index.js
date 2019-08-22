@@ -14,48 +14,12 @@
 
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
-const { getKeys, hash } = require('@liskhq/lisk-cryptography');
-const BigNum = require('@liskhq/bignum');
 const BaseGenerator = require('../base_generator');
+const { loadCSVFile, generateBlockHeader } = require('../../utils/bft');
 
-const loadCSVFile = filePath =>
-	fs
-		.readFileSync(path.join(__dirname, filePath))
-		.toString()
-		.split('\n')
-		.map(line => line.toString().split(','));
-
-const delegatesMap = {};
-const generateBlockHeader = ({
-	delegateName,
-	height,
-	maxHeightPreviouslyForged,
-	activeSinceRound,
-	prevotedConfirmedUptoHeight,
-}) => {
-	const delegatePublicKey =
-		delegatesMap[delegateName] || getKeys(delegateName).publicKey;
-	delegatesMap[delegateName] = delegatePublicKey;
-
-	// Generate a deterministic block id from a block height
-	const blockId = BigNum.fromBuffer(
-		hash(height.toString(), 'utf8').slice(0, 8),
-	).toString();
-
-	return {
-		blockId,
-		height,
-		maxHeightPreviouslyForged,
-		delegatePublicKey,
-		activeSinceRound,
-		prevotedConfirmedUptoHeight,
-	};
-};
-
-const bftTestStepsCreator = ({ activeDelegates, filePath }) => {
-	const rows = loadCSVFile(filePath);
+const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
+	const rows = loadCSVFile(path.join(__dirname, filePath));
 
 	const threshold = Math.ceil((activeDelegates * 2) / 3);
 
@@ -150,38 +114,42 @@ const bftTestStepsCreator = ({ activeDelegates, filePath }) => {
 	return steps;
 };
 
-const bftTestSuiteCreator = ({ activeDelegates, title, filePath }) => () => ({
+const bftFinalityTestSuiteGenerator = ({
+	activeDelegates,
+	title,
+	filePath,
+}) => () => ({
 	title: 'BFT processing generation',
 	summary:
 		'Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification',
 	config: { activeDelegates, finalizedHeight: 0 },
 	runner: 'bft_processing',
 	handler: title,
-	testCases: bftTestStepsCreator({ activeDelegates, filePath }),
+	testCases: bftFinalityStepsGenerator({ activeDelegates, filePath }),
 });
 
 BaseGenerator.runGenerator('bft_finality_processing', [
-	bftTestSuiteCreator({
+	bftFinalityTestSuiteGenerator({
 		activeDelegates: 4,
 		title: '4_delegates_missed_slots',
 		filePath: '4_delegates_missed_slots.csv',
 	}),
-	bftTestSuiteCreator({
+	bftFinalityTestSuiteGenerator({
 		activeDelegates: 4,
 		title: '4_delegates_simple',
 		filePath: '4_delegates_simple.csv',
 	}),
-	bftTestSuiteCreator({
+	bftFinalityTestSuiteGenerator({
 		activeDelegates: 5,
 		title: '5_delegates_switched_completely',
 		filePath: '5_delegates_switched_completely.csv',
 	}),
-	bftTestSuiteCreator({
+	bftFinalityTestSuiteGenerator({
 		activeDelegates: 7,
 		title: '7_delegates_partial_switch',
 		filePath: '7_delegates_partial_switch.csv',
 	}),
-	bftTestSuiteCreator({
+	bftFinalityTestSuiteGenerator({
 		activeDelegates: 11,
 		title: '11_delegates_partial_switch',
 		filePath: '11_delegates_partial_switch.csv',
