@@ -66,12 +66,11 @@ module.exports = class NetworkModule extends BaseModule {
 			getConnectedPeers: {
 				handler: action => this.network.actions.getConnectedPeers(action),
 			},
-			getPeersCountByFilter: {
-				handler: action => this.network.actions.getPeersCountByFilter(action),
+			getPeersCount: {
+				handler: action => this.network.actions.getPeersCount(action),
 			},
-			getConnectedPeersCountByFilter: {
-				handler: action =>
-					this.network.actions.getConnectedPeersCountByFilter(action),
+			getConnectedPeersCount: {
+				handler: action => this.network.actions.getConnectedPeersCount(action),
 			},
 		};
 	}

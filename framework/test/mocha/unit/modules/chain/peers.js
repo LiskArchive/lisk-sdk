@@ -131,10 +131,10 @@ describe('peers', () => {
 					.returns({ broadhash: prefixedPeer.broadhash });
 
 				channelMock.invoke
-					.withArgs('network:getConnectedPeersCountByFilter')
+					.withArgs('network:getConnectedPeersCount')
 					.returns(2);
 				channelMock.invoke
-					.withArgs('network:getConnectedPeersCountByFilter', {
+					.withArgs('network:getConnectedPeersCount', {
 						broadhash: prefixedPeer.broadhash,
 					})
 					.returns(2);
@@ -143,18 +143,18 @@ describe('peers', () => {
 			it('should call channel invoke thrice', async () =>
 				expect(channelMock.invoke.calledThrice).to.be.true);
 
-			it('should call channel invoke with action network:getConnectedPeersCountByFilter', async () =>
+			it('should call channel invoke with action network:getConnectedPeersCount', async () =>
 				expect(
 					channelMock.invoke.calledWithExactly(
-						'network:getConnectedPeersCountByFilter',
+						'network:getConnectedPeersCount',
 						{},
 					),
 				).to.be.true);
 
-			it('should call channel invoke with action network:getConnectedPeersCountByFilter and filter broadhash', async () =>
+			it('should call channel invoke with action network:getConnectedPeersCount and filter broadhash', async () =>
 				expect(
 					channelMock.invoke.calledWithExactly(
-						'network:getConnectedPeersCountByFilter',
+						'network:getConnectedPeersCount',
 						{ broadhash: prefixedPeer.broadhash },
 					),
 				).to.be.true);
@@ -169,10 +169,10 @@ describe('peers', () => {
 		describe('when half of connected peers match our broadhash', () => {
 			before(async () => {
 				channelMock.invoke
-					.withArgs('network:getConnectedPeersCountByFilter')
+					.withArgs('network:getConnectedPeersCount')
 					.returns(2);
 				channelMock.invoke
-					.withArgs('network:getConnectedPeersCountByFilter', {
+					.withArgs('network:getConnectedPeersCount', {
 						broadhash: prefixedPeer.broadhash,
 					})
 					.returns(1);

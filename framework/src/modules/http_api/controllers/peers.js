@@ -68,10 +68,7 @@ PeersController.getPeers = async function getPeers(context, next) {
 
 	try {
 		const peersByFilters = await channel.invoke('network:getPeers', filters);
-		const peersCount = await channel.invoke(
-			'network:getPeersCountByFilter',
-			filters,
-		);
+		const peersCount = await channel.invoke('network:getPeersCount', filters);
 
 		return next(null, {
 			data: peersByFilters,
