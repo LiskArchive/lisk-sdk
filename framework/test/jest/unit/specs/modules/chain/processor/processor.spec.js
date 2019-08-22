@@ -36,6 +36,8 @@ const {
 describe('processor', () => {
 	const defaultLastBlock = {
 		id: 'lastId',
+		version: 0,
+		height: 98,
 	};
 
 	const defaultBlockBytes = Buffer.from('block-bytes', 'utf8');
@@ -1357,12 +1359,245 @@ describe('processor', () => {
 	});
 
 	describe('deleteLastBlock', () => {
-		describe('when only 1 processor is registered', () => {});
+		let undoSteps;
+		let txStub;
 
-		describe('when more than 2 processor is registered', () => {});
+		beforeEach(async () => {
+			undoSteps = [jest.fn(), jest.fn()];
+			txStub = jest.fn();
+			blockProcessorV0.undo.pipe(undoSteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
 
-		describe('when undo step fails', () => {});
+		describe('when undo step fails', () => {
+			beforeEach(async () => {
+				undoSteps[0].mockRejectedValue(new Error('Invalid block'));
+				try {
+					await processor.deleteLastBlock();
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+			});
 
-		describe('when removing block fails', () => {});
+			it('should not call remove of blocksModule', async () => {
+				expect(blocksModuleStub.remove).not.toHaveBeenCalled();
+			});
+
+			it('should not publish event deleteBlock', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					expect.anything(),
+				);
+			});
+		});
+
+		describe('when removing block fails', () => {
+			beforeEach(async () => {
+				blocksModuleStub.remove.mockRejectedValue(new Error('Invalid block'));
+				try {
+					await processor.deleteLastBlock();
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+			});
+
+			it('should call undo steps', async () => {
+				undoSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: defaultLastBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should not publish event deleteBlock', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					expect.anything(),
+				);
+			});
+		});
+
+		describe('when everything is successful', () => {
+			beforeEach(async () => {
+				await processor.deleteLastBlock();
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call undo steps', async () => {
+				undoSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: defaultLastBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should call remove from blocksModule', async () => {
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
+					block: defaultLastBlock,
+					tx: txStub,
+				});
+			});
+
+			it('should publish event deleteBlock', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					expect.anything(),
+				);
+			});
+		});
+	});
+
+	describe('applyGenesisBlock', () => {
+		const genesisBlock = {
+			version: 0,
+			height: 1,
+			id: 'genesis',
+		};
+
+		let applyGenesisSteps;
+		let txStub;
+
+		beforeEach(async () => {
+			applyGenesisSteps = [jest.fn(), jest.fn()];
+			txStub = jest.fn();
+			blockProcessorV0.applyGenesis.pipe(applyGenesisSteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
+
+		describe('when skip is false and genesis block is not stored yet (scratch)', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(false);
+				await processor.applyGenesisBlock(genesisBlock, false);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should apply genesis block', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: genesisBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should save genesis block without skipSave', async () => {
+				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+					block: genesisBlock,
+					tx: txStub,
+					skipSave: false,
+				});
+			});
+		});
+
+		describe('when skip is false and genesis block is stored already (already started)', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(true);
+				await processor.applyGenesisBlock(genesisBlock, false);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should not apply genesis block', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save genesis block', async () => {
+				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('when skip is true and genesis block is not stored yet', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(false);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				try {
+					await processor.applyGenesisBlock(genesisBlock, true);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should throw an error', async () => {
+				try {
+					await processor.applyGenesisBlock(genesisBlock, true);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					expect(error.message).toBe(
+						'Genesis block is not persisted but skipping to save',
+					);
+				}
+			});
+		});
+
+		describe('when skip is true and genesis block is stored already (rebuilding)', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(true);
+				await processor.applyGenesisBlock(genesisBlock, true);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should apply genesis block', async () => {
+				applyGenesisSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: genesisBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should save genesis block with skipSave', async () => {
+				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+					block: genesisBlock,
+					tx: txStub,
+					skipSave: true,
+				});
+			});
+		});
+
+		describe('when apply fails when skip is false and genesis block is not stored', () => {
+			beforeEach(async () => {
+				blocksModuleStub.exists.mockResolvedValue(false);
+				applyGenesisSteps[0].mockRejectedValue(new Error('apply error'));
+				try {
+					await processor.applyGenesisBlock(genesisBlock, false);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (err) {
+					// expected error
+				}
+			});
+
+			it('should call exists on blocksModule', async () => {
+				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			});
+
+			it('should not save genesis block with skipSave', async () => {
+				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+			});
+		});
 	});
 });

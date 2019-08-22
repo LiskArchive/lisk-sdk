@@ -247,6 +247,12 @@ class Processor {
 				// Check if genesis block ID already exists in the database
 				const isPersisted = await this.blocksModule.exists(block);
 
+				if (skipSave && !isPersisted) {
+					throw new Error(
+						'Genesis block is not persisted but skipping to save',
+					);
+				}
+
 				// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
 				if (isPersisted && !skipSave) {
 					return block;
