@@ -27,9 +27,6 @@ const {
 	BlocksVerify,
 } = require('../../../../../../src/modules/chain/blocks/verify');
 const {
-	BlocksProcess,
-} = require('../../../../../../src/modules/chain/blocks/process');
-const {
 	BlocksChain,
 } = require('../../../../../../src/modules/chain/blocks/chain');
 const { Slots } = require('../../../../../../src/modules/chain/dpos');
@@ -145,7 +142,6 @@ describe('blocks', () => {
 		it('should assign related modules to this', async () => {
 			expect(blocksInstance.blocksChain).to.be.instanceOf(BlocksChain);
 			expect(blocksInstance.blocksVerify).to.be.instanceOf(BlocksVerify);
-			expect(blocksInstance.blocksProcess).to.be.instanceOf(BlocksProcess);
 		});
 	});
 
