@@ -38,11 +38,7 @@ const randomstring = require('randomstring');
 const lookupPeersIPs = require('./lookup_peers_ips');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const {
-	getByFilter,
-	getCountByFilter,
-	consolidatedPeers,
-} = require('./filter_peers');
+const { getByFilter, getCountByFilter, consolidatedPeers } = require('./utils');
 const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
