@@ -735,15 +735,106 @@ describe('processor', () => {
 	});
 
 	describe('create', () => {
-		describe('when only 1 processor is registered', () => {});
+		const createInput = {
+			timestamp: 777,
+			keyPair: {
+				publicKey: Buffer.from('publicKey', 'utf8'),
+				privateKey: Buffer.from('privateKey', 'utf8'),
+			},
+			lastBlock: defaultLastBlock,
+		};
 
-		describe('when more than 2 processor is registered', () => {});
+		const createResult = {
+			id: 'fakeNewBlock',
+		};
+
+		let createSteps;
+
+		beforeEach(async () => {
+			createSteps = [jest.fn(), jest.fn().mockResolvedValue(createResult)];
+			blockProcessorV0.create.pipe(createSteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
+
+		describe('when only 1 processor is registered', () => {
+			it('should call fork pipelines with matching processor', async () => {
+				await processor.create(createInput);
+				createSteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
+
+		describe('when more than 2 processor is registered', () => {
+			let blockProcessorV1;
+			let createSteps2;
+
+			beforeEach(async () => {
+				blockProcessorV1 = new FakeBlockProcessorV1();
+				createSteps2 = [jest.fn(), jest.fn().mockResolvedValue(2)];
+				blockProcessorV1.create.pipe(createSteps2);
+				processor.register(blockProcessorV1);
+			});
+
+			it('should call create pipelines with matching processor', async () => {
+				await processor.create(createInput);
+				createSteps2.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
+
+		describe('when create is called', () => {
+			it('should return the result of create pipeline', async () => {
+				const result = await processor.create(createInput);
+				expect(result).toEqual(createResult);
+			});
+		});
 	});
 
 	describe('validate', () => {
-		describe('when only 1 processor is registered', () => {});
+		const blockV0 = { id: 'fakelock1', version: 0, height: 99 };
+		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
 
-		describe('when more than 2 processor is registered', () => {});
+		let validateSteps;
+
+		beforeEach(async () => {
+			validateSteps = [jest.fn(), jest.fn()];
+			blockProcessorV0.validate.pipe(validateSteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
+
+		describe('when only 1 processor is registered', () => {
+			it('should call fork pipelines with matching processor', async () => {
+				await processor.validate(blockV0);
+				validateSteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
+
+		describe('when more than 2 processor is registered', () => {
+			let blockProcessorV1;
+			let validateSteps2;
+
+			beforeEach(async () => {
+				blockProcessorV1 = new FakeBlockProcessorV1();
+				validateSteps2 = [jest.fn(), jest.fn()];
+				blockProcessorV1.validate.pipe(validateSteps2);
+				processor.register(blockProcessorV1);
+			});
+
+			it('should call validate pipelines with matching processor', async () => {
+				await processor.validate(blockV1);
+				validateSteps2.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
 	});
 
 	describe('processValidated', () => {
