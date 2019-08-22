@@ -290,6 +290,7 @@ describe('processor', () => {
 				forkSteps2 = [jest.fn(), jest.fn()];
 				forkSteps2[1].mockResolvedValue(2);
 				blockProcessorV1.fork.pipe(forkSteps2);
+				blockProcessorV1.getBytes.pipe(getBytesSteps);
 				processor.register(blockProcessorV1);
 			});
 
@@ -799,9 +800,15 @@ describe('processor', () => {
 		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
 
 		let validateSteps;
+		let getBytesSteps;
 
 		beforeEach(async () => {
 			validateSteps = [jest.fn(), jest.fn()];
+			getBytesSteps = [
+				jest.fn(),
+				jest.fn().mockResolvedValue(Buffer.from('blockBytes', 'utf8')),
+			];
+			blockProcessorV0.getBytes.pipe(getBytesSteps);
 			blockProcessorV0.validate.pipe(validateSteps);
 			processor.register(blockProcessorV0, {
 				matcher: ({ height }) => height < 100,
@@ -824,6 +831,7 @@ describe('processor', () => {
 			beforeEach(async () => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				validateSteps2 = [jest.fn(), jest.fn()];
+				blockProcessorV1.getBytes.pipe(getBytesSteps);
 				blockProcessorV1.validate.pipe(validateSteps2);
 				processor.register(blockProcessorV1);
 			});
@@ -835,20 +843,270 @@ describe('processor', () => {
 				});
 			});
 		});
+
+		describe('when getBytes does not return value', () => {
+			let blockProcessorV1;
+
+			it('should throw an error', async () => {
+				blockProcessorV1 = new FakeBlockProcessorV1();
+				blockProcessorV1.getBytes.pipe([]);
+				blockProcessorV1.validate.pipe([jest.fn(), jest.fn()]);
+				processor.register(blockProcessorV1);
+				expect(processor.validate(blockV1)).rejects.toThrow(
+					'getBytes needs to be returned',
+				);
+			});
+		});
 	});
 
 	describe('processValidated', () => {
-		describe('when only 1 processor is registered', () => {});
+		const blockV0 = { id: 'fakelock1', version: 0, height: 99 };
+		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
 
-		describe('when more than 2 processor is registered', () => {});
+		let verifySteps;
+		let applySteps;
+		let getBytesSteps;
+		let txStub;
 
-		describe('when block is not verifiable', () => {});
+		beforeEach(async () => {
+			verifySteps = [jest.fn(), jest.fn()];
+			applySteps = [jest.fn(), jest.fn()];
+			getBytesSteps = [jest.fn().mockResolvedValue(defaultBlockBytes)];
+			txStub = jest.fn();
+			blockProcessorV0.verify.pipe(verifySteps);
+			blockProcessorV0.apply.pipe(applySteps);
+			blockProcessorV0.getBytes.pipe(getBytesSteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
 
-		describe('when block is not applicable', () => {});
+		describe('when only 1 processor is registered', () => {
+			it('should throw an error if the matching block version does not exist', async () => {
+				await expect(processor.processValidated(blockV1)).rejects.toThrow(
+					'Block processing version is not registered',
+				);
+			});
 
-		describe('when block cannot be saved', () => {});
+			it('should call fork pipelines with matching processor', async () => {
+				await processor.processValidated(blockV0);
+				getBytesSteps.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
 
-		describe('when block successfully processed', () => {});
+		describe('when more than 2 processor is registered', () => {
+			let blockProcessorV1;
+			let getBytesSteps2;
+
+			beforeEach(async () => {
+				blockProcessorV1 = new FakeBlockProcessorV1();
+				getBytesSteps2 = [
+					jest.fn(),
+					jest.fn().mockResolvedValue(defaultBlockBytes),
+				];
+				blockProcessorV1.getBytes.pipe(getBytesSteps2);
+				processor.register(blockProcessorV1);
+			});
+
+			it('should call fork pipelines with matching processor', async () => {
+				await processor.processValidated(blockV1);
+				getBytesSteps2.forEach(step => {
+					expect(step).toHaveBeenCalledTimes(1);
+				});
+			});
+		});
+
+		describe('when block is not verifiable', () => {
+			beforeEach(async () => {
+				verifySteps[0].mockRejectedValue(new Error('Invalid block'));
+				try {
+					await processor.processValidated(blockV0);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+			});
+
+			it('should not apply the block', async () => {
+				applySteps.forEach(step => {
+					expect(step).not.toHaveBeenCalled();
+				});
+			});
+
+			it('should not save the block', async () => {
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+
+			it('should not broadcast the block', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:broadcast',
+					expect.anything(),
+				);
+			});
+
+			it('should not emit newBlock event', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:newBlock',
+					expect.anything(),
+				);
+			});
+		});
+
+		describe('when block is not applicable', () => {
+			beforeEach(async () => {
+				applySteps[0].mockRejectedValue(new Error('Invalid block'));
+				try {
+					await processor.processValidated(blockV0);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (err) {
+					// expected error
+				}
+			});
+
+			it('should verify the block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							blockBytes: defaultBlockBytes,
+							lastBlock: defaultLastBlock,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should not save the block', async () => {
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+
+			it('should not broadcast the block', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:broadcast',
+					expect.anything(),
+				);
+			});
+
+			it('should not emit newBlock event', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:newBlock',
+					expect.anything(),
+				);
+			});
+		});
+
+		describe('when block cannot be saved', () => {
+			beforeEach(async () => {
+				blocksModuleStub.save.mockRejectedValue(new Error('Invalid block'));
+				try {
+					await processor.processValidated(blockV0);
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+			});
+
+			it('should verify the block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							blockBytes: defaultBlockBytes,
+							lastBlock: defaultLastBlock,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should apply the block', async () => {
+				applySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							blockBytes: defaultBlockBytes,
+							lastBlock: defaultLastBlock,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should not broadcast the block', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:broadcast',
+					expect.anything(),
+				);
+			});
+
+			it('should not emit newBlock event', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:newBlock',
+					expect.anything(),
+				);
+			});
+		});
+
+		describe('when block successfully processed', () => {
+			beforeEach(async () => {
+				await processor.processValidated(blockV0);
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should verify the block', async () => {
+				verifySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							blockBytes: defaultBlockBytes,
+							lastBlock: defaultLastBlock,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should apply the block', async () => {
+				applySteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{
+							block: blockV0,
+							blockBytes: defaultBlockBytes,
+							lastBlock: defaultLastBlock,
+							tx: txStub,
+						},
+						undefined,
+					);
+				});
+			});
+
+			it('should not save the block', async () => {
+				expect(blocksModuleStub.save).toHaveBeenCalledWith({
+					block: blockV0,
+					tx: txStub,
+				});
+			});
+
+			it('should not broadcast the block', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:broadcast',
+					expect.anything(),
+				);
+			});
+
+			it('should emit newBlock event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:newBlock',
+					expect.anything(),
+				);
+			});
+		});
 	});
 
 	describe('apply', () => {
