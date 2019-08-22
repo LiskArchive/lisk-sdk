@@ -16,7 +16,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { getKeys } = require('@liskhq/lisk-cryptography');
+const { getKeys, hash } = require('@liskhq/lisk-cryptography');
+const BigNum = require('@liskhq/bignum');
 const BaseGenerator = require('../base_generator');
 
 const loadCSVFile = filePath =>
@@ -38,7 +39,13 @@ const generateBlockHeader = ({
 		delegatesMap[delegateName] || getKeys(delegateName).publicKey;
 	delegatesMap[delegateName] = delegatePublicKey;
 
+	// Generate a deterministic block id from a block height
+	const blockId = BigNum.fromBuffer(
+		hash(height.toString(), 'utf8').slice(0, 8),
+	).toString();
+
 	return {
+		blockId,
 		height,
 		maxHeightPreviouslyForged,
 		delegatePublicKey,
