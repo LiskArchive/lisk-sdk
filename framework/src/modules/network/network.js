@@ -41,7 +41,7 @@ const { createStorageComponent } = require('../../components/storage');
 const {
 	getByFilter,
 	getCountByFilter,
-	getConsolidatedPeersList,
+	getConsolidatedPeers,
 } = require('./filter_peers');
 const { Peer } = require('./components/storage/entities');
 
@@ -344,34 +344,34 @@ module.exports = class Network {
 					action.params.peerId,
 				),
 			getPeers: action => {
-				const peerList = getConsolidatedPeersList({
+				const peers = getConsolidatedPeers({
 					connectedPeers: this.p2p.getConnectedPeers(),
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});
 
-				return getByFilter(peerList, action.params);
+				return getByFilter(peers, action.params);
 			},
 			getConnectedPeers: action => {
-				const peerList = getConsolidatedPeersList({
+				const peers = getConsolidatedPeers({
 					connectedPeers: this.p2p.getConnectedPeers(),
 				});
 
-				return getByFilter(peerList, action.params);
+				return getByFilter(peers, action.params);
 			},
 			getPeersCount: action => {
-				const peerList = getConsolidatedPeersList({
+				const peers = getConsolidatedPeers({
 					connectedPeers: this.p2p.getConnectedPeers(),
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});
 
-				return getCountByFilter(peerList, action.params);
+				return getCountByFilter(peers, action.params);
 			},
 			getConnectedPeersCount: action => {
-				const peerList = getConsolidatedPeersList({
+				const peers = getConsolidatedPeers({
 					connectedPeers: this.p2p.getUniqueConnectedPeers(),
 				});
 
-				return getCountByFilter(peerList, action.params);
+				return getCountByFilter(peers, action.params);
 			},
 			applyPenalty: action =>
 				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
