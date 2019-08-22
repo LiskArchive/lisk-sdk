@@ -248,6 +248,7 @@ module.exports = class Chain {
 				secondsSinceEpoch: this.slots.getTime(),
 				lastBlock: this.scope.modules.blocks.lastBlock.get(),
 			}),
+			getLastBlock: async () => this.scope.modules.blocks.lastBlock.get(),
 			blocks: async action =>
 				promisify(this.scope.modules.transport.shared.blocks)(
 					action.params || {}

@@ -157,9 +157,7 @@ describe('delegates/api', () => {
 
 		beforeEach(async () => {
 			channelStub.invoke.withArgs('chain:calculateSupply').resolves('supply');
-			channelStub.invoke.withArgs('chain:getNodeStatus').resolves({
-				lastBlock,
-			});
+			channelStub.invoke.withArgs('chain:getLastBlock').resolves(lastBlock);
 			await __private.getDelegates(filters, options);
 		});
 
@@ -361,9 +359,9 @@ describe('delegates/api', () => {
 			return __private.getForgers(filters);
 		});
 
-		it('should call channel.invoke with chain:getNodeStatus action', async () => {
+		it('should call channel.invoke with chain:getLastBlock action', async () => {
 			expect(channelStub.invoke.getCall(0)).to.be.calledWith(
-				'chain:getNodeStatus'
+				'chain:getLastBlock'
 			);
 		});
 
