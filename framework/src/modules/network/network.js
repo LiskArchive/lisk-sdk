@@ -37,11 +37,7 @@ const {
 const randomstring = require('randomstring');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const {
-	filterByParams,
-	consolidatedPeers,
-	lookupPeersIPs,
-} = require('./utils');
+const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
 const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
@@ -343,7 +339,7 @@ module.exports = class Network {
 					action.params.peerId,
 				),
 			getPeers: action => {
-				const peers = consolidatedPeers({
+				const peers = consolidatePeers({
 					connectedPeers: this.p2p.getConnectedPeers(),
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});
@@ -351,7 +347,7 @@ module.exports = class Network {
 				return filterByParams(peers, action.params);
 			},
 			getPeersCount: action => {
-				const peers = consolidatedPeers({
+				const peers = consolidatePeers({
 					connectedPeers: this.p2p.getUniqueConnectedPeers(),
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});

@@ -195,10 +195,10 @@ const filterByParams = (peers, filters) => {
 
 /**
  * Returns list of consolidated peers
- * @param {Object} {connectedPeers , disconnectedPeers}
+ * @param {Object}
  * @todo Add description for the params
  */
-const consolidatedPeers = ({
+const consolidatePeers = ({
 	connectedPeers = [],
 	disconnectedPeers = [],
 }) => {
@@ -223,6 +223,6 @@ const consolidatedPeers = ({
 
 module.exports = {
 	filterByParams,
-	consolidatedPeers,
+	consolidatePeers,
 	lookupPeersIPs,
 };
