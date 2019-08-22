@@ -258,21 +258,6 @@ const saveBlockStep = async (storage, roundsModule, block, shouldSave, tx) => {
 };
 
 /**
- * Save genesis block to database.
- *
- * @returns {Object} Block genesis block
- */
-const saveGenesisBlockStep = async (
-	storage,
-	roundsModule,
-	genesisBlock,
-	skipSave,
-	tx,
-) => {
-	await saveBlockStep(storage, roundsModule, genesisBlock, !skipSave, tx);
-};
-
-/**
  * Reverts confirmed transactions due to block deletion
  * @param {Object} block - secondLastBlock
  * @param {Object} tx - database transaction
@@ -346,7 +331,6 @@ module.exports = {
 	deleteLastBlock,
 	deleteFromBlockId,
 	saveBlockStep,
-	saveGenesisBlockStep,
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
 	undoConfirmedStep,

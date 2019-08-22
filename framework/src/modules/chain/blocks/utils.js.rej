@@ -1,0 +1,8 @@
+diff a/framework/src/modules/chain/blocks/utils.js b/framework/src/modules/chain/blocks/utils.js	(rejected hunks)
+@@ -46,2 +46,4 @@ const parseStorageObjToLegacyObj = block => {
+-			b_maxHeightPreviouslyForged: parseInt(block.maxHeightPreviouslyForged, 10) || 0,
+-			b_prevotedConfirmedUptoHeight: parseInt(block.prevotedConfirmedUptoHeight, 10) || 0,
++			b_maxHeightPreviouslyForged:
++				parseInt(block.maxHeightPreviouslyForged, 10) || 0,
++			b_prevotedConfirmedUptoHeight:
++				parseInt(block.prevotedConfirmedUptoHeight, 10) || 0,
