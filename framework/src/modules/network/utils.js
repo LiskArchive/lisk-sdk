@@ -119,13 +119,13 @@ const sortPeers = (field, asc) => (a, b) => {
 };
 
 /**
- * Returns peers length by filter but without offset and limit.
+ * Returns peers by filter.
  * @param {Array} peers
  * @param {Object} filter
  * @returns {int} count
  * @todo Add description for the params
  */
-const getByFilter = (peers, filter) => {
+const filterByParams = (peers, filters) => {
 	const allowedFields = [
 		'ip',
 		'wsPort',
@@ -143,7 +143,7 @@ const getByFilter = (peers, filter) => {
 		offset: filterOffset,
 		sort,
 		...otherFilters
-	} = filter;
+	} = filters;
 	const limit = filterLimit ? Math.abs(filterLimit) : null;
 	const offset = filterOffset ? Math.abs(filterOffset) : 0;
 
@@ -166,8 +166,8 @@ const getByFilter = (peers, filter) => {
 	}, []);
 
 	// Sorting
-	if (filter.sort) {
-		const sortArray = String(filter.sort).split(':');
+	if (filters.sort) {
+		const sortArray = String(filters.sort).split(':');
 		const auxSortField = allowedFields.includes(sortArray[0])
 			? sortArray[0]
 			: null;
@@ -194,10 +194,8 @@ const getByFilter = (peers, filter) => {
 };
 
 /**
- * Returns peers length by filter but without offset and limit.
- * @param {Array} peers
- * @param {Object} filter
- * @returns {int} count
+ * Returns list of consolidated peers
+ * @param {Object} {connectedPeers , disconnectedPeers}
  * @todo Add description for the params
  */
 const consolidatedPeers = ({
@@ -224,7 +222,7 @@ const consolidatedPeers = ({
 };
 
 module.exports = {
-	getByFilter,
+	filterByParams,
 	consolidatedPeers,
 	lookupPeersIPs,
 };
