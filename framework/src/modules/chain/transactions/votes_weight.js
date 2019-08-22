@@ -206,35 +206,28 @@ const undo = (stateStore, transaction, exceptions = {}) => {
 
 const prepare = async (stateStore, transaction) => {
 	// Get delegate public keys whom sender voted for
-	const senderDelegatePublicKeys =
+	const senderVotedPublicKeys =
 		stateStore.account.getOrDefault(transaction.senderId)
 			.votedDelegatesPublicKeys || [];
 
 	const recipientId = getRecipientAddress(stateStore, transaction);
 
 	// Get delegate public keys whom recipient voted for
-	const recipientDelegatePublicKeys =
+	const recipientVotedPublicKeys =
 		(recipientId &&
 			stateStore.account.getOrDefault(recipientId).votedDelegatesPublicKeys) ||
 		[];
 
-	// Get unique public keys from merged list
-	const uniqPublicKeysToBeCached = [
-		...new Set([...senderDelegatePublicKeys, ...recipientDelegatePublicKeys]),
+	// Get unique public key list from merged arrays
+	const senderRecipientVotedPublicKeys = [
+		...new Set([...senderVotedPublicKeys, ...recipientVotedPublicKeys]),
 	];
 
-	/**
-	 * We are running `stateStore.account.cache` multiple times per public key instead of once with array of public keys
-	 * because StateStore uses `storage.entities.Account.get` which default limit result is 101 entries
-	 * meaning it will only cache maximum 101 accounts.
-	 */
-	return Promise.all(
-		uniqPublicKeysToBeCached
-			.map(delegatePublicKey => ({
-				address: getAddressFromPublicKey(delegatePublicKey),
-			}))
-			.map(filter => stateStore.account.cache(filter)),
-	);
+	const cacheFilter = senderRecipientVotedPublicKeys.map(publicKey => ({
+		address: getAddressFromPublicKey(publicKey),
+	}));
+
+	return stateStore.account.cache(cacheFilter);
 };
 
 module.exports = {
