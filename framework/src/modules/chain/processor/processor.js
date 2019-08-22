@@ -192,6 +192,9 @@ class Processor {
 	// eslint-disable-next-line class-methods-use-this
 	async _validate(block, lastBlock, processor) {
 		const blockBytes = await processor.getBytes.exec({ block });
+		if (!blockBytes) {
+			throw new Error('getBytes needs to be returned');
+		}
 		await processor.validate.exec({
 			block,
 			lastBlock,
@@ -206,6 +209,9 @@ class Processor {
 		{ skipSave, skipBroadcast } = {},
 	) {
 		const blockBytes = await processor.getBytes.exec({ block });
+		if (!blockBytes) {
+			throw new Error('getBytes needs to be returned');
+		}
 		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
 			await processor.verify.exec({
 				block,
