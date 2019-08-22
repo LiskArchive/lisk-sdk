@@ -334,7 +334,7 @@ class Blocks extends EventEmitter {
 	}
 
 	async saveGenesis({ block, tx, skipSave }) {
-		await saveBlockStep(this.storage, this.roundsModule, block, skipSave, tx);
+		await saveBlockStep(this.storage, this.roundsModule, block, !skipSave, tx);
 		this._lastBlock = block;
 	}
 
