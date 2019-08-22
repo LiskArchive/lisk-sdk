@@ -35,10 +35,14 @@ const {
 	EVENT_UNBAN_PEER,
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
-const lookupPeersIPs = require('./lookup_peers_ips');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const { getByFilter, getCountByFilter, consolidatedPeers } = require('./utils');
+const {
+	getByFilter,
+	getCountByFilter,
+	consolidatedPeers,
+	lookupPeersIPs,
+} = require('./utils');
 const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;

@@ -14,7 +14,7 @@
 
 'use strict';
 
-const lookupPeersIps = require('../../../../../src/modules/network/lookup_peers_ips');
+const { lookupPeersIps } = require('../../../../../src/modules/network/utils');
 const {
 	peers: { list },
 } = require('../../../data/app_config.json');
