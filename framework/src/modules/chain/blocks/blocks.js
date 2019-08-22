@@ -36,7 +36,6 @@ const {
 	deleteLastBlock,
 	undoConfirmedStep,
 	saveBlockStep,
-	saveGenesisBlockStep,
 	parseBlockToJson,
 } = require('./chain');
 const {
@@ -164,29 +163,6 @@ class Blocks extends EventEmitter {
 		return this._isActive;
 	}
 
-	// TODO: Remove after fork
-	get lastReceipt() {
-		return this._lastReceipt;
-	}
-
-	get broadhash() {
-		return this._broadhash;
-	}
-
-	/**
-	 * Returns status of last receipt - if it stale or not.
-	 *
-	 * @returns {boolean} Stale status of last receipt
-	 */
-	isStale() {
-		if (!this._lastReceipt) {
-			return true;
-		}
-		// Current time in seconds - lastReceipt (seconds)
-		const secondsAgo = Math.floor(Date.now() / 1000) - this._lastReceipt;
-		return secondsAgo > this.constants.blockReceiptTimeout;
-	}
-
 	async init() {
 		// check mem tables
 		const {
@@ -213,6 +189,7 @@ class Blocks extends EventEmitter {
 		);
 
 		try {
+			// Do we need this anymore?
 			const rows = await this.storage.entities.Block.get(
 				{},
 				{ limit: this.constants.blockSlotWindow, sort: 'height:desc' },
@@ -360,13 +337,7 @@ class Blocks extends EventEmitter {
 	}
 
 	async saveGenesis({ block, tx, skipSave }) {
-		await saveGenesisBlockStep(
-			this.storage,
-			this.roundsModule,
-			block,
-			skipSave,
-			tx,
-		);
+		await saveBlockStep(this.storage, this.roundsModule, block, skipSave, tx);
 		this._lastBlock = block;
 	}
 
@@ -469,55 +440,6 @@ class Blocks extends EventEmitter {
 		return blocksUtils.loadBlocksDataWS(this.storage, filter, tx);
 	}
 
-	/**
-	 * Wrap of fork choice rule logic so it can be added to Sequence and properly tested
-	 * @param block
-	 * @return {Promise}
-	 * @private
-	 */
-	async _forkChoiceTask(block) {
-		// Cases are numbered following LIP-0014 Fork choice rule.
-		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
-		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
-
-		if (forkChoiceRule.isValidBlock(this._lastBlock, block)) {
-			// Case 2: correct block received
-			return this._handleValidBlock(block);
-		}
-
-		if (forkChoiceRule.isIdenticalBlock(this._lastBlock, block)) {
-			// Case 1: same block received twice
-			return this._handleSameBlockReceived(block);
-		}
-
-		if (forkChoiceRule.isDoubleForging(this._lastBlock, block)) {
-			// Delegates are the same
-			// Case 3: double forging different blocks in the same slot.
-			// Last Block stands.
-			return this._handleDoubleForging(block, this._lastBlock);
-		}
-
-		if (
-			forkChoiceRule.isTieBreak({
-				slots: this.slots,
-				lastAppliedBlock: this._lastBlock,
-				receivedBlock: block,
-			})
-		) {
-			// Two competing blocks by different delegates at the same height.
-			// Case 4: Tie break
-			return this._handleDoubleForgingTieBreak(block, this._lastBlock);
-		}
-
-		if (forkChoiceRule.isDifferentChain(this._lastBlock, block)) {
-			// Case 5: received block has priority. Move to a different chain.
-			return this._handleMovingToDifferentChain(this._lastBlock, block);
-		}
-
-		// Discard newly received block
-		return this._handleDiscardedBlock(block);
-	}
-
 	readBlocksFromNetwork(blocks) {
 		const normalizedBlocks = blocksUtils.readDbRows(
 			blocks,
@@ -574,125 +496,6 @@ class Blocks extends EventEmitter {
 		if (this._isActive) {
 			throw new Error('Block process cannot be executed in parallel');
 		}
-	}
-
-	/**
-	 * Block IDs are the same ~ Blocks are equal
-	 * @param block
-	 * @returns {*}
-	 * @private
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	_handleSameBlockReceived(block) {
-		this.logger.debug('Block already processed', block.id);
-	}
-
-	/**
-	 * Block received is correct
-	 * @param block
-	 * @returns {Promise}
-	 * @private
-	 */
-	async _handleValidBlock(block) {
-		return this._processReceivedBlock(block);
-	}
-
-	/**
-	 * Double forging. Last block stands
-	 * @param block
-	 * @param lastBlock
-	 * @returns {*}
-	 * @private
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	_handleDoubleForging(block, lastBlock) {
-		this.logger.debug(
-			'Delegate forging on multiple nodes',
-			block.generatorPublicKey,
-		);
-		this.logger.debug(
-			`Last block ${lastBlock.id} stands, new block ${block.id} is discarded`,
-		);
-		// TODO: Implement Proof of Misbehavior
-	}
-
-	/**
-	 * Tie break: two competing blocks by different delegates at the same height.
-	 * @param lastBlock
-	 * @param newBlock
-	 * @returns {Promise}
-	 * @private
-	 */
-	async _handleDoubleForgingTieBreak(newBlock, lastBlock) {
-		const block = cloneDeep(newBlock);
-		// It mutates the argument
-		const check = await this.blocksVerify.normalizeAndVerify(
-			block,
-			lastBlock,
-			this._lastNBlockIds,
-		);
-
-		if (!check.verified) {
-			const errorMessage = `Fork Choice Case 4 recovery failed because block ${
-				block.id
-			} verification and normalization failed`;
-			this.logger.error(check.errors, errorMessage);
-			// Return first error from checks
-			throw new Error(errorMessage);
-		}
-
-		// If the new block is correctly validated and verified,
-		// last block is deleted and new block is added to the tip of the chain
-		this.logger.debug(
-			`Deleting last block with id: ${
-				lastBlock.id
-			} due to Fork Choice Rule Case 4`,
-		);
-		const previousLastBlock = cloneDeep(this._lastBlock);
-
-		// Deletes last block and updates this._lastBlock to the previous one
-		await this.remove({ block: previousLastBlock }, true);
-
-		try {
-			await this._processReceivedBlock(block);
-		} catch (error) {
-			this.logger.error(
-				`Failed to apply newly received block with id: ${
-					block.id
-				}, restoring previous block ${previousLastBlock.id}`,
-			);
-
-			await this._processReceivedBlock(previousLastBlock);
-		}
-	}
-
-	/**
-	 * Move to a different chain
-	 * @private
-	 */
-	_handleMovingToDifferentChain(lastBlock, block) {
-		const cloned = cloneDeep(block);
-		this.emit(EVENT_PRIORITY_CHAIN_DETECTED, { block: cloned });
-	}
-
-	/**
-	 * Handle discarded block determined by the fork choice rule
-	 * @param block
-	 * @return {*}
-	 * @private
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	_handleDiscardedBlock(block) {
-		// Discard newly received block
-		this.logger.debug(
-			`Discarded block that does not match with current chain: ${
-				block.id
-			} height: ${block.height} round: ${this.slots.calcRound(
-				block.height,
-			)} slot: ${this.slots.getSlotNumber(block.timestamp)} generator: ${
-				block.generatorPublicKey
-			}`,
-		);
 	}
 }
 
