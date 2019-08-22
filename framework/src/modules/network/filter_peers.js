@@ -168,7 +168,7 @@ const getCountByFilter = (peers, filter) => {
  * @returns {int} count
  * @todo Add description for the params
  */
-const getConsolidatedPeers = ({
+const consolidatedPeers = ({
 	connectedPeers = [],
 	disconnectedPeers = [],
 }) => {
@@ -194,5 +194,5 @@ const getConsolidatedPeers = ({
 module.exports = {
 	getByFilter,
 	getCountByFilter,
-	getConsolidatedPeers,
+	consolidatedPeers,
 };

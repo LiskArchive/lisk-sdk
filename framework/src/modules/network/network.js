@@ -41,7 +41,7 @@ const { createStorageComponent } = require('../../components/storage');
 const {
 	getByFilter,
 	getCountByFilter,
-	getConsolidatedPeers,
+	consolidatedPeers,
 } = require('./filter_peers');
 const { Peer } = require('./components/storage/entities');
 
@@ -344,7 +344,7 @@ module.exports = class Network {
 					action.params.peerId,
 				),
 			getPeers: action => {
-				const peers = getConsolidatedPeers({
+				const peers = consolidatedPeers({
 					connectedPeers: this.p2p.getConnectedPeers(),
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});
@@ -352,7 +352,7 @@ module.exports = class Network {
 				return getByFilter(peers, action.params);
 			},
 			getPeersCount: action => {
-				const peers = getConsolidatedPeers({
+				const peers = consolidatedPeers({
 					connectedPeers: this.p2p.getUniqueConnectedPeers(),
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});
