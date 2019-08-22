@@ -36,6 +36,8 @@ const {
 describe('processor', () => {
 	const defaultLastBlock = {
 		id: 'lastId',
+		version: 0,
+		height: 98,
 	};
 
 	const defaultBlockBytes = Buffer.from('block-bytes', 'utf8');
@@ -1357,12 +1359,97 @@ describe('processor', () => {
 	});
 
 	describe('deleteLastBlock', () => {
-		describe('when only 1 processor is registered', () => {});
+		let undoSteps;
+		let txStub;
 
-		describe('when more than 2 processor is registered', () => {});
+		beforeEach(async () => {
+			undoSteps = [jest.fn(), jest.fn()];
+			txStub = jest.fn();
+			blockProcessorV0.undo.pipe(undoSteps);
+			processor.register(blockProcessorV0, {
+				matcher: ({ height }) => height < 100,
+			});
+		});
 
-		describe('when undo step fails', () => {});
+		describe('when undo step fails', () => {
+			beforeEach(async () => {
+				undoSteps[0].mockRejectedValue(new Error('Invalid block'));
+				try {
+					await processor.deleteLastBlock();
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+			});
 
-		describe('when removing block fails', () => {});
+			it('should not call remove of blocksModule', async () => {
+				expect(blocksModuleStub.remove).not.toHaveBeenCalled();
+			});
+
+			it('should not publish event deleteBlock', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					expect.anything(),
+				);
+			});
+		});
+
+		describe('when removing block fails', () => {
+			beforeEach(async () => {
+				blocksModuleStub.remove.mockRejectedValue(new Error('Invalid block'));
+				try {
+					await processor.deleteLastBlock();
+					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+				} catch (error) {
+					// expected error
+				}
+			});
+
+			it('should call undo steps', async () => {
+				undoSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: defaultLastBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should not publish event deleteBlock', async () => {
+				expect(channelStub.publish).not.toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					expect.anything(),
+				);
+			});
+		});
+
+		describe('when everything is successful', () => {
+			beforeEach(async () => {
+				await processor.deleteLastBlock();
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call undo steps', async () => {
+				undoSteps.forEach(step => {
+					expect(step).toHaveBeenCalledWith(
+						{ block: defaultLastBlock, tx: txStub },
+						undefined,
+					);
+				});
+			});
+
+			it('should call remove from blocksModule', async () => {
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
+					block: defaultLastBlock,
+					tx: txStub,
+				});
+			});
+
+			it('should publish event deleteBlock', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'chain:process:deleteBlock',
+					expect.anything(),
+				);
+			});
+		});
 	});
 });
