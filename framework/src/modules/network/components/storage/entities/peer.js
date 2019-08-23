@@ -26,7 +26,13 @@ const {
 	},
 } = require('../../../../../components/storage');
 
-const defaultCreateValues = {};
+const defaultCreateValues = {
+	os: null,
+	version: null,
+	broadhash: null,
+	height: 1,
+	protocolVersion: null,
+};
 
 const readOnlyFields = [];
 
