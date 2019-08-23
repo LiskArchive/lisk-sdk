@@ -356,9 +356,9 @@ module.exports = class Network {
 
 				return filterByParams(peers, filterWithoutLimitOffset).length;
 			},
-			getUniqueConnectedPeersCount: action => {
+			getUniqueOutboundConnectedPeersCount: action => {
 				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getUniqueConnectedPeers(),
+					connectedPeers: this.p2p.getUniqueOutboundConnectedPeers(),
 				});
 
 				const { limit, offset, ...filterWithoutLimitOffset } = action.params;

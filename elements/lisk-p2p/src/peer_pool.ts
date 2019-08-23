@@ -527,12 +527,16 @@ export class PeerPool extends EventEmitter {
 		return peers;
 	}
 
-	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return getUniquePeersbyIp(this.getAllConnectedPeerInfos());
+	public getUniqueOutboundConnectedPeers(): ReadonlyArray<
+		P2PDiscoveredPeerInfo
+	> {
+		return getUniquePeersbyIp(this.getAllConnectedPeerInfos(OutboundPeer));
 	}
 
-	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getConnectedPeers().map(
+	public getAllConnectedPeerInfos(
+		kind?: typeof OutboundPeer | typeof InboundPeer,
+	): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this.getConnectedPeers(kind).map(
 			peer => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
 	}
