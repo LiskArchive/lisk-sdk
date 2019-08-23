@@ -1537,7 +1537,7 @@ describe('Integration tests for P2P library', () => {
 				}
 			});
 
-			it('should exist connected and disconnected peers', () => {
+			it('should have connected and disconnected peers', () => {
 				for (let p2p of p2pNodeList) {
 					const connectedPeers = p2p.getConnectedPeers();
 					const disconnectedPeers = p2p.getDisconnectedPeers();
@@ -1547,7 +1547,7 @@ describe('Integration tests for P2P library', () => {
 				}
 			});
 
-			it('connected and disconnected peers should not matched', () => {
+			it('should have disjoint connected and disconnected peers', () => {
 				for (let p2p of p2pNodeList) {
 					const connectedPeers = p2p.getConnectedPeers();
 					const disconnectedPeers = p2p.getDisconnectedPeers();
