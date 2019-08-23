@@ -37,6 +37,7 @@ describe('Peer', () => {
 	let invalidOptions;
 	let validOptions;
 	let validPeer;
+	let incompletePeer;
 	let invalidPeer;
 	let storage;
 
@@ -140,6 +141,12 @@ describe('Peer', () => {
 			broadhash:
 				'71b168bca5a6ec7736ed7d25b818890620133b5a9934cd4733f3be955a1ab45a',
 			height: 6857664,
+		};
+
+		incompletePeer = {
+			ip: '100.187.70.20',
+			wsPort: 7001,
+			state: 1,
 		};
 
 		invalidPeer = {
@@ -314,6 +321,20 @@ describe('Peer', () => {
 			const result = await storage.entities.Peer.getOne({ ip: validPeer.ip });
 			delete result.id;
 			expect(result).to.be.eql(validPeer);
+		});
+
+		it('should create a peer object successfully with incomplete peer', async () => {
+			await storage.entities.Peer.create(incompletePeer);
+			const result = await storage.entities.Peer.getOne({ ip: validPeer.ip });
+			delete result.id;
+			expect(result).to.be.eql({
+				...incompletePeer,
+				os: null,
+				version: null,
+				broadhash: null,
+				height: 1,
+				protocolVersion: null,
+			});
 		});
 
 		it('should skip if any invalid attribute is provided');
