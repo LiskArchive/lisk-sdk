@@ -470,21 +470,18 @@ describe('Integration tests for P2P library', () => {
 
 			it('should not contain itself in any of its peer list', async () => {
 				for (let p2p of p2pNodeList) {
-					const newPeers = p2p['_peerBook'].newPeers;
-					const triedPeers = p2p['_peerBook'].triedPeers;
+					const allPeers = p2p['_peerBook'].getAllPeers();
 
-					const triedPeerPorts = triedPeers
+					const allPeersPorts = allPeers
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
-					const newPeerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 					const connectedPeerPorts = p2p
 						.getConnectedPeers()
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
 
 					expect([
-						...triedPeerPorts,
-						...newPeerPorts,
+						...allPeersPorts,
 						...connectedPeerPorts,
 					]).to.not.contain.members([p2p.nodeInfo.wsPort]);
 				}
@@ -767,35 +764,18 @@ describe('Integration tests for P2P library', () => {
 						.getConnectedPeers()
 						.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
 
-					const newPeers = p2pNode['_peerBook'].newPeers;
-					const triedPeers = p2pNode['_peerBook'].triedPeers;
+					const allPeersList = p2pNode['_peerBook'].getAllPeers();
 
-					const firstNodeInNewPeer = newPeers.find(
-						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
-					);
-
-					const firstNodeInTriedPeer = triedPeers.find(
+					const firstNodeInAllPeersList = allPeersList.find(
 						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
 					);
 
 					// Check if the peerinfo is updated in new peer list
-					if (firstNodeInNewPeer) {
-						expect(firstNodeInNewPeer)
+					if (firstNodeInAllPeersList) {
+						expect(firstNodeInAllPeersList)
 							.to.have.property('height')
 							.which.equals(10);
-						expect(firstNodeInNewPeer)
-							.to.have.property('nethash')
-							.which.equals(
-								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-							);
-					}
-
-					// Check if the peerinfo is updated in tried peer list
-					if (firstNodeInTriedPeer) {
-						expect(firstNodeInTriedPeer)
-							.to.have.property('height')
-							.which.equals(10);
-						expect(firstNodeInTriedPeer)
+						expect(firstNodeInAllPeersList)
 							.to.have.property('nethash')
 							.which.equals(
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -1550,11 +1530,8 @@ describe('Integration tests for P2P library', () => {
 
 			it('should discover peers and add them to the peer lists within each node', () => {
 				for (let p2p of p2pNodeList) {
-					const triedPeers = p2p['_peerBook'].triedPeers;
-					const newPeers = p2p['_peerBook'].newPeers;
-					const peerPorts = [...newPeers, ...triedPeers].map(
-						peerInfo => peerInfo.wsPort,
-					);
+					const allPeers = p2p['_peerBook'].getAllPeers();
+					const peerPorts = allPeers.map(peerInfo => peerInfo.wsPort);
 
 					expect(ALL_NODE_PORTS_WITH_LIMIT).to.include.members(peerPorts);
 				}
