@@ -348,8 +348,17 @@ module.exports = class Network {
 			},
 			getPeersCount: action => {
 				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getUniqueConnectedPeers(),
+					connectedPeers: this.p2p.getConnectedPeers(),
 					disconnectedPeers: this.p2p.getDisconnectedPeers(),
+				});
+
+				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
+
+				return filterByParams(peers, filterWithoutLimitOffset).length;
+			},
+			getUniqueConnectedPeersCount: action => {
+				const peers = consolidatePeers({
+					connectedPeers: this.p2p.getUniqueConnectedPeers(),
 				});
 
 				const { limit, offset, ...filterWithoutLimitOffset } = action.params;

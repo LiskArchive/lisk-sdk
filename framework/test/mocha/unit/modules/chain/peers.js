@@ -130,11 +130,12 @@ describe('peers', () => {
 					.withArgs('app:getApplicationState')
 					.returns({ broadhash: prefixedPeer.broadhash });
 
-				channelMock.invoke.withArgs('network:getPeersCount').returns(2);
 				channelMock.invoke
-					.withArgs('network:getPeersCount', {
+					.withArgs('network:getUniqueConnectedPeersCount')
+					.returns(2);
+				channelMock.invoke
+					.withArgs('network:getUniqueConnectedPeersCount', {
 						broadhash: prefixedPeer.broadhash,
-						state: 2,
 					})
 					.returns(2);
 			});
@@ -142,19 +143,21 @@ describe('peers', () => {
 			it('should call channel invoke thrice', async () =>
 				expect(channelMock.invoke.calledThrice).to.be.true);
 
-			it('should call channel invoke with action network:getPeersCount', async () =>
+			it('should call channel invoke with action network:getUniqueConnectedPeersCount', async () =>
 				expect(
-					channelMock.invoke.calledWithExactly('network:getPeersCount', {
-						state: 2,
-					}),
+					channelMock.invoke.calledWithExactly(
+						'network:getUniqueConnectedPeersCount',
+					),
 				).to.be.true);
 
-			it('should call channel invoke with action network:getPeersCount and filter broadhash', async () =>
+			it('should call channel invoke with action network:getUniqueConnectedPeersCount and filter broadhash', async () =>
 				expect(
-					channelMock.invoke.calledWithExactly('network:getPeersCount', {
-						broadhash: prefixedPeer.broadhash,
-						state: 2,
-					}),
+					channelMock.invoke.calledWithExactly(
+						'network:getUniqueConnectedPeersCount',
+						{
+							broadhash: prefixedPeer.broadhash,
+						},
+					),
 				).to.be.true);
 
 			it('should return consensus as a number', async () =>
@@ -166,11 +169,12 @@ describe('peers', () => {
 
 		describe('when half of connected peers match our broadhash', () => {
 			before(async () => {
-				channelMock.invoke.withArgs('network:getPeersCount').returns(2);
 				channelMock.invoke
-					.withArgs('network:getPeersCount', {
+					.withArgs('network:getUniqueConnectedPeersCount')
+					.returns(2);
+				channelMock.invoke
+					.withArgs('network:getUniqueConnectedPeersCount', {
 						broadhash: prefixedPeer.broadhash,
-						state: 2,
 					})
 					.returns(1);
 			});
