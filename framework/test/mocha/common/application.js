@@ -31,9 +31,6 @@ const {
 const {
 	BlockProcessorV1,
 } = require('../../../src/modules/chain/block_processor_v1');
-const {
-	BlockProcessorV2,
-} = require('../../../src/modules/chain/block_processor_v2');
 
 let currentAppScope;
 
@@ -127,9 +124,10 @@ const initStepsForTest = {
 			constants: __testContext.config.constants,
 			exceptions: __testContext.config.modules.chain.exceptions,
 		};
-		modules.processor.register(new BlockProcessorV0(processorDependency));
+		modules.processor.register(new BlockProcessorV0(processorDependency), {
+			matcher: ({ height }) => height === 1,
+		});
 		modules.processor.register(new BlockProcessorV1(processorDependency));
-		modules.processor.register(new BlockProcessorV2(processorDependency));
 		scope.modules = modules;
 		const { Peers } = rewire('../../../src/modules/chain/peers');
 		scope.peers = new Peers({

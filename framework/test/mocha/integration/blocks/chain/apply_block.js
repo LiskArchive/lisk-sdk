@@ -143,26 +143,22 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 						},
 					);
 					try {
-						await library.modules.blocks.blocksChain.applyBlock(block, true);
+						await library.modules.processor.process(block);
 					} catch (error) {
 						// this error is expected to happen
 					}
 				});
 
-				it('should have pooled transactions in queued state', done => {
-					async.forEach(
-						[poolAccount3, poolAccount4],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.secondSignature);
-									eachCb();
-								})
-								.catch(err => eachCb(err));
-						},
-						done,
-					);
+				it('should have pooled transactions in queued state', async () => {
+					// eslint-disable-next-line no-restricted-syntax
+					for (const account of [poolAccount3, poolAccount4]) {
+						// eslint-disable-next-line no-await-in-loop
+						const accountRow = await localCommon.getAccountFromDb(
+							library,
+							account.address,
+						);
+						expect(0).to.equal(accountRow.mem_accounts.secondSignature);
+					}
 				});
 
 				it('should revert applyconfirmedStep on block transactions', done => {
@@ -194,7 +190,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying a new block', () => {
 				beforeEach(async () => {
-					await library.modules.blocks.blocksChain.applyBlock(block, true);
+					await library.modules.processor.process(block);
 				});
 
 				it('should applyConfirmedStep', done => {
@@ -321,7 +317,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					// Make block invalid
 					block.id = null;
 					try {
-						await library.modules.blocks.blocksChain.applyBlock(block, true);
+						await library.modules.processor.process(block);
 					} catch (error) {
 						// this error is expected
 					}
@@ -377,7 +373,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying a new block', () => {
 				beforeEach(async () => {
-					await library.modules.blocks.blocksChain.applyBlock(block, true);
+					await library.modules.processor.process(block);
 				});
 
 				it('should save block in the blocks table', done => {
