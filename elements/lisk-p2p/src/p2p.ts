@@ -539,7 +539,23 @@ export class P2P extends EventEmitter {
 	}
 
 	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._peerPool.getDisconnectedPeerInfos();
+		const allPeers = this._peerBook.getAllPeers();
+		const connectedPeers = this.getConnectedPeers();
+		const disconnectedPeers = allPeers.filter(peer => {
+			if (
+				connectedPeers.find(
+					connectedPeer =>
+						peer.ipAddress === connectedPeer.ipAddress &&
+						peer.wsPort === connectedPeer.wsPort,
+				)
+			) {
+				return false;
+			}
+
+			return true;
+		});
+
+		return disconnectedPeers as P2PDiscoveredPeerInfo[];
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
