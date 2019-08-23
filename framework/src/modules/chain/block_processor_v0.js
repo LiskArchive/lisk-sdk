@@ -26,7 +26,6 @@ const {
 const { validator } = require('@liskhq/lisk-validator');
 const { BlockProcessor } = require('./processor');
 const { baseBlockSchema } = require('./blocks');
-const { sortTransactions } = require('./transactions');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -149,15 +148,6 @@ class BlockProcessorV0 extends BlockProcessor {
 	}
 
 	async _create({ transactions, previousBlock, keypair, timestamp }) {
-		const context = {
-			blockTimestamp: timestamp,
-		};
-		const readyTransactions = await this.blocksModule.filterReadyTransactions(
-			transactions,
-			context,
-		);
-
-		const sortedTransactions = sortTransactions(readyTransactions);
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
 		let totalFee = new BigNum(0);
@@ -168,7 +158,7 @@ class BlockProcessorV0 extends BlockProcessor {
 		const transactionsBytesArray = [];
 
 		// eslint-disable-next-line no-restricted-syntax
-		for (const transaction of sortedTransactions) {
+		for (const transaction of transactions) {
 			const transactionBytes = transaction.getBytes(transaction);
 
 			if (size + transactionBytes.length > this.constants.maxPayloadLength) {
