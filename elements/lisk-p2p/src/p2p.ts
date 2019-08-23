@@ -49,7 +49,6 @@ import {
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
-	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
@@ -531,12 +530,16 @@ export class P2P extends EventEmitter {
 		}
 	}
 
-	public getNetworkStatus(): P2PNetworkStatus {
-		return {
-			disconnectedPeers: this._peerPool.getDisconnectedPeerInfos(),
-			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
-			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
-		};
+	public getConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._peerPool.getAllConnectedPeerInfos();
+	}
+
+	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._peerPool.getUniqueConnectedPeers();
+	}
+
+	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._peerPool.getDisconnectedPeerInfos();
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {

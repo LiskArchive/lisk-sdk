@@ -113,13 +113,6 @@ export interface P2PConfig {
 	readonly secret?: number;
 }
 
-// Network info exposed by the P2P library.
-export interface P2PNetworkStatus {
-	readonly disconnectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
-	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
-	readonly connectedUniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
-}
-
 // TODO later: Switch to LIP protocol format.
 // This is a representation of the outbound peer object according to the current protocol.
 export interface ProtocolNodeInfo {

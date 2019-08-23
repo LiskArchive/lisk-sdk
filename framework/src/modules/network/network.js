@@ -343,27 +343,32 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
-			getNetworkStatus: () => this.p2p.getNetworkStatus(),
 			getPeers: action => {
-				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
+				const peerList = getConsolidatedPeersList({
+					connectedPeers: this.p2p.getConnectedPeers(),
+					disconnectedPeers: this.p2p.getDisconnectedPeers(),
+				});
 
 				return getByFilter(peerList, action.params);
 			},
 			getConnectedPeers: action => {
-				const { connectedPeers } = this.p2p.getNetworkStatus();
-				const peerList = getConsolidatedPeersList({ connectedPeers });
+				const peerList = getConsolidatedPeersList({
+					connectedPeers: this.p2p.getConnectedPeers(),
+				});
 
 				return getByFilter(peerList, action.params);
 			},
 			getPeersCountByFilter: action => {
-				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
+				const peerList = getConsolidatedPeersList({
+					connectedPeers: this.p2p.getConnectedPeers(),
+					disconnectedPeers: this.p2p.getDisconnectedPeers(),
+				});
 
 				return getCountByFilter(peerList, action.params);
 			},
 			getConnectedPeersCountByFilter: action => {
-				const { connectedUniquePeers } = this.p2p.getNetworkStatus();
 				const peerList = getConsolidatedPeersList({
-					connectedPeers: connectedUniquePeers,
+					connectedPeers: this.p2p.getUniqueConnectedPeers(),
 				});
 
 				return getCountByFilter(peerList, action.params);
