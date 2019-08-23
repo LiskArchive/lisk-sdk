@@ -226,14 +226,18 @@ __private.getSignaturesFromNetwork = async function() {
 						modules.multisignatures
 					)
 				);
-				// eslint-disable-next-line no-await-in-loop
-				await processSignature({
-					signature,
-					transactionId: signature.transactionId,
-				});
+				try {
+					// eslint-disable-next-line no-await-in-loop
+					await processSignature({
+						signature,
+						transactionId: signature.transactionId,
+					});
+				} catch (error) {
+					return setImmediate(addSequenceCb, error);
+				}
 			}
 		}
-		addSequenceCb();
+		return addSequenceCb();
 	});
 };
 
