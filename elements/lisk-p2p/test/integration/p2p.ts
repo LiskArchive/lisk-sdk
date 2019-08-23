@@ -1559,6 +1559,27 @@ describe('Integration tests for P2P library', () => {
 					expect(ALL_NODE_PORTS_WITH_LIMIT).to.include.members(peerPorts);
 				}
 			});
+
+			it('should exist connected and disconnected peers', () => {
+				for (let p2p of p2pNodeList) {
+					const connectedPeers = p2p.getConnectedPeers();
+					const disconnectedPeers = p2p.getDisconnectedPeers();
+
+					expect(connectedPeers).is.not.empty;
+					expect(disconnectedPeers).is.not.empty;
+				}
+			});
+
+			it('connected and disconnected peers should not matched', () => {
+				for (let p2p of p2pNodeList) {
+					const connectedPeers = p2p.getConnectedPeers();
+					const disconnectedPeers = p2p.getDisconnectedPeers();
+
+					for (const connectedPeer of connectedPeers) {
+						expect(disconnectedPeers).to.not.deep.include(connectedPeer);
+					}
+				}
+			});
 		});
 
 		describe('P2P.request', () => {
