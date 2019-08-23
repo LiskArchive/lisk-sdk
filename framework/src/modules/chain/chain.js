@@ -437,7 +437,13 @@ module.exports = class Chain {
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 		});
-
+		this.processor = new Processor({
+			channel: this.channel,
+			logger: this.logger,
+			storage: this.storage,
+			blocksModule: this.blocks,
+			interfaceAdapters: this.interfaceAdapters,
+		});
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
 			logger: this.logger,
@@ -460,12 +466,7 @@ module.exports = class Chain {
 		this.synchronizer = new Synchronizer({
 			storage: this.storage,
 			logger: this.logger,
-			blocks: this.blocks,
-			blockReward: this.blocks.blockReward,
-			exceptions: this.options.exceptions,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
-			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
+			processorModule: this.processor,
 		});
 		this.synchronizer.register(blockSyncMechanism);
 		this.synchronizer.register(fastChainSwitchMechanism);
@@ -494,13 +495,6 @@ module.exports = class Chain {
 			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
 		});
 		this.scope.modules.peers = this.peers;
-		this.processor = new Processor({
-			channel: this.channel,
-			logger: this.logger,
-			storage: this.storage,
-			blocksModule: this.blocks,
-			interfaceAdapters: this.interfaceAdapters,
-		});
 		this.loader = new Loader({
 			channel: this.channel,
 			logger: this.logger,

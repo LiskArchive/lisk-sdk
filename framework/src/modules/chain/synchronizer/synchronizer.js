@@ -17,34 +17,10 @@
 const util = require('util');
 const assert = require('assert');
 
-const {
-	verifySignature,
-	verifyVersion,
-	verifyReward,
-	verifyId,
-	verifyPayload,
-} = require('../blocks/verify');
-
 class Synchronizer {
-	constructor({
-		storage,
-		logger,
-		blocks,
-		blockReward,
-		exceptions,
-		maxTransactionsPerBlock,
-		maxPayloadLength,
-	}) {
-		this.storage = storage;
+	constructor({ logger, processorModule }) {
 		this.logger = logger;
-		this.blocks = blocks;
-		this.blockReward = blockReward;
-		this.exceptions = exceptions;
-
-		this.constants = {
-			maxPayloadLength,
-			maxTransactionsPerBlock,
-		};
+		this.processorModule = processorModule;
 
 		this.mechanisms = [];
 	}
@@ -94,16 +70,9 @@ class Synchronizer {
 			);
 		}
 
-		const { lastBlock } = this.blocks;
-
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
-		const result = this._validateBlockBeforeSync(lastBlock, receivedBlock);
-		if (!result.verified) {
-			throw Error(
-				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`,
-			);
-		}
+		await this.processorModule.validate(receivedBlock);
 
 		// Choose the right mechanism to sync
 		const validMechanism = await this._determineSyncMechanism(receivedBlock);
@@ -150,40 +119,6 @@ class Synchronizer {
 		}
 
 		return undefined;
-	}
-
-	/**
-	 * Perform all checks outlined in Step 1 of the section "Processing Blocks" except for checking height, parentBlockID and delegate slot (block B may be in the future and assume different delegates that are not active in the round of block A). If any check fails, the peer that sent block B is banned and the node aborts the process of moving to a different chain.
-	 *
-	 * https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#moving-to-a-different-chain
-	 *
-	 * @param lastBlock
-	 * @param receivedBlock
-	 * @private
-	 */
-	_validateBlockBeforeSync(lastBlock, receivedBlock) {
-		let result = { verified: true, errors: [] };
-
-		result = verifySignature(receivedBlock, result);
-		result = verifyVersion(receivedBlock, this.exceptions, result);
-		result = verifyReward(
-			this.blockReward,
-			receivedBlock,
-			this.exceptions,
-			result,
-		);
-		result = verifyId(receivedBlock, result);
-		result = verifyPayload(
-			receivedBlock,
-			this.constants.maxTransactionsPerBlock,
-			this.constants.maxPayloadLength,
-			result,
-		);
-
-		result.verified = result.errors.length === 0;
-		result.errors.reverse();
-
-		return result;
 	}
 }
 
