@@ -61,8 +61,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				return resolve(b);
 			});
 		});
-		await library.modules.blocks.blocksChain.applyBlock(block, true);
-		library.modules.blocks._lastBlock = block;
+		await library.modules.processor.process(block);
 	});
 
 	describe('popLastBlock', () => {
@@ -75,10 +74,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should fail with proper error', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('PreviousBlock is null');
 					}
@@ -89,9 +85,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				beforeEach(async () => {
 					sinonSandbox
 						.stub(library.modules.blocks.roundsModule, 'backwardTick')
-						.callThrough()
-						.withArgs(block, sinonSandbox.match.any)
-						.callsArgWith(2, 'err');
+						.throws(new Error('err'));
 				});
 
 				afterEach(async () => {
@@ -100,21 +94,15 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should fail with proper error message', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
-						expect(error).to.eql('err');
+						expect(error.message).to.eql('err');
 					}
 				});
 
 				it('modules.rounds.backwardTick stub should be called once', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error).to.exist;
 						expect(library.modules.blocks.roundsModule.backwardTick).to.be
@@ -124,10 +112,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should not change balance in mem_accounts table', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error).to.exist;
 					}
@@ -144,10 +129,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when deleteBlockStep fails', () => {
 				beforeEach(async () => {
 					sinonSandbox
-						.stub(
-							library.modules.blocks.blocksChain.storage.entities.Block,
-							'delete',
-						)
+						.stub(library.modules.blocks.storage.entities.Block, 'delete')
 						.rejects(new Error('err'));
 				});
 
@@ -157,10 +139,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should fail with proper error message', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
@@ -168,24 +147,17 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('modules.blocks.chain.deleteBlock should be called once', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
-					expect(
-						library.modules.blocks.blocksChain.storage.entities.Block.delete,
-					).to.be.calledOnce;
+					expect(library.modules.blocks.storage.entities.Block.delete).to.be
+						.calledOnce;
 				});
 
 				it('should not change balance in mem_accounts table', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
@@ -200,10 +172,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should not perform backwardTick', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
@@ -218,17 +187,11 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 		describe('when deleteLastBlock succeeds', () => {
 			it('should not return an error', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			it('should delete block', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 				const ids = await new Promise((resolve, reject) => {
 					localCommon.getBlocks(library, (getBlocksErr, blockIds) => {
 						if (getBlocksErr) {
@@ -241,10 +204,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			});
 
 			it('should delete all transactions of block', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 				const transactions = await new Promise((resolve, reject) => {
 					localCommon.getTransactionFromModule(
 						library,
@@ -261,10 +221,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			});
 
 			it('should revert balance for accounts in block', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 				const account = await localCommon.getAccountFromDb(
 					library,
 					fundTrsForAccount1.recipientId,
@@ -273,10 +230,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			});
 
 			it('should perform backwardTick', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 				const account = await localCommon.getAccountFromDb(
 					library,
 					getAddressFromPublicKey(block.generatorPublicKey),
