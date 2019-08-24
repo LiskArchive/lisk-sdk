@@ -20,7 +20,6 @@ class BlockProcessor {
 	constructor() {
 		this.init = new Pipeline();
 		this.create = new Pipeline();
-		this.getBytes = new Pipeline();
 		this.fork = new Pipeline();
 		this.validate = new Pipeline();
 		this.validateNew = new Pipeline();
