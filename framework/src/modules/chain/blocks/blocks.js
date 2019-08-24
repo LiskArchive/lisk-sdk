@@ -37,6 +37,7 @@ const {
 	undoConfirmedStep,
 	saveBlockStep,
 	parseBlockToJson,
+	backwardTickStep,
 } = require('./chain');
 const {
 	calculateSupply,
@@ -340,6 +341,13 @@ class Blocks extends EventEmitter {
 
 	async remove({ block, tx }, saveToTemp) {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
+		const [secondLastBlock] = blocksLogic.readStorageRows(
+			[storageRowOfBlock],
+			this.interfaceAdapters,
+			this.genesisBlock,
+		);
+		await backwardTickStep(this.roundsModule, block, secondLastBlock, tx);
+
 		if (saveToTemp) {
 			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
@@ -349,11 +357,6 @@ class Blocks extends EventEmitter {
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
-		const [secondLastBlock] = blocksLogic.readStorageRows(
-			[storageRowOfBlock],
-			this.interfaceAdapters,
-			this.genesisBlock,
-		);
 		this._lastBlock = secondLastBlock;
 	}
 
