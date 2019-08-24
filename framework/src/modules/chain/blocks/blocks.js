@@ -346,11 +346,12 @@ class Blocks extends EventEmitter {
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
-		this._lastBlock = blocksUtils.readStorageRows(
+		const [secondLastBlock] = blocksLogic.readStorageRows(
 			[storageRowOfBlock],
 			this.interfaceAdapters,
 			this.genesisBlock,
 		);
+		this._lastBlock = secondLastBlock;
 	}
 
 	async exists(block) {
