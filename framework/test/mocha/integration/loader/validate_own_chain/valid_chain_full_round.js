@@ -18,7 +18,8 @@ const Promise = require('bluebird');
 const QueriesHelper = require('../../../common/integration/sql/queries_helper');
 const localCommon = require('../../common');
 
-describe('validateOwnChain', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('validateOwnChain', () => {
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
