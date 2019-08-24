@@ -165,7 +165,13 @@ class BlockProcessorV2 extends BlockProcessor {
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			validateSchema,
-			data => this.blocksModule.validate(data), // validate common block header
+			({ block }) => getBytes(block),
+			(data, blockBytes) => {
+				this.blocksModule.validate({
+					...data,
+					blockBytes,
+				}); // validate common block header
+			},
 		]);
 
 		this.fork.pipe([
