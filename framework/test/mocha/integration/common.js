@@ -222,12 +222,9 @@ function forge(library, cb) {
 }
 
 function deleteLastBlock(library, cb) {
-	library.modules.blocks.blocksChain
-		.deleteLastBlock(library.modules.blocks.lastBlock)
-		.then(newLastBlock => {
-			library.modules.blocks._lastBlock = newLastBlock;
-			cb();
-		})
+	library.modules.processor
+		.deleteLastBlock()
+		.then(() => cb())
 		.catch(err => cb(err));
 }
 
