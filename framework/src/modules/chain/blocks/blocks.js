@@ -111,16 +111,17 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
-		const blockRewardArgs = {
+		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
 			milestones: rewardMileStones,
 			totalAmount,
 		};
 		this.blockReward = {
-			calculateMilestone: height => calculateMilestone(height, blockRewardArgs),
-			calculateReward: height => calculateReward(height, blockRewardArgs),
-			calculateSupply: height => calculateSupply(height, blockRewardArgs),
+			calculateMilestone: height =>
+				calculateMilestone(height, this.blockRewardArgs),
+			calculateReward: height => calculateReward(height, this.blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
 			blockReceiptTimeout,
@@ -327,6 +328,21 @@ class Blocks extends EventEmitter {
 			this.exceptions,
 			tx,
 		);
+		const [storageRowOfBlock] = await this.storage.entities.Block.get(
+			{ id: block.previousBlock },
+			{ extended: true },
+			tx,
+		);
+
+		if (!storageRowOfBlock) {
+			throw new Error('PreviousBlock is null');
+		}
+		const [secondLastBlock] = blocksLogic.readStorageRows(
+			[storageRowOfBlock],
+			this.interfaceAdapters,
+			this.genesisBlock,
+		);
+		await backwardTickStep(this.roundsModule, block, secondLastBlock, tx);
 	}
 
 	async save({ block, tx }) {
@@ -346,7 +362,6 @@ class Blocks extends EventEmitter {
 			this.interfaceAdapters,
 			this.genesisBlock,
 		);
-		await backwardTickStep(this.roundsModule, block, secondLastBlock, tx);
 
 		if (saveToTemp) {
 			const parsedDeletedBlock = parseBlockToJson(block);
