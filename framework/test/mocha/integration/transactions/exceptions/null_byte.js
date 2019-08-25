@@ -50,7 +50,7 @@ describe('exceptions for null byte transaction', () => {
 
 	localCommon.beforeBlock('system_exceptions_null_byte', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			transactionWithNullByte: ['10589655532517440995'],
 		};
@@ -76,7 +76,7 @@ describe('exceptions for null byte transaction', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -109,7 +109,7 @@ describe('exceptions for null byte transaction', () => {
 							},
 						);
 					});
-					await library.modules.blocks.blocksProcess.processBlock(
+					await library.modules.processor.process(
 						newBlock,
 						library.modules.blocks.lastBlock,
 					);
