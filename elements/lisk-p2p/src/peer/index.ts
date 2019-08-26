@@ -12,23 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export {
-	ConnectionState,
-	EVENT_BAN_PEER,
-	EVENT_DISCOVERED_PEER,
-	EVENT_UNBAN_PEER,
-	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_UPDATED_PEER_INFO,
-	Peer,
-	PeerConfig,
-	REMOTE_RPC_GET_PEERS_LIST,
-} from './base';
+export { ConnectionState, Peer, PeerConfig } from './base';
 
 export * from './inbound';
 export * from './outbound';

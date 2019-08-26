@@ -18,14 +18,21 @@ import {
 	convertNodeInfoToLegacyFormat,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
-	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	Peer,
 	PeerConfig,
-	REMOTE_EVENT_MESSAGE,
-	REMOTE_EVENT_RPC_REQUEST,
 } from './base';
 
-import { EVENT_PING } from './inbound';
+import {
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_PING,
+	REMOTE_EVENT_MESSAGE,
+	REMOTE_EVENT_RPC_REQUEST,
+	RESPONSE_PONG,
+} from '../events';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -39,13 +46,6 @@ import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
-
-export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
-export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
-export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
-export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
-export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
-export const RESPONSE_PONG = 'pong';
 
 const socketErrorStatusCodes = {
 	...(socketClusterClient.SCClientSocket as any).errorStatuses,

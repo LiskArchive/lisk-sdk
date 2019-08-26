@@ -41,6 +41,24 @@ import {
 	validateRPCRequest,
 } from '../validation';
 
+import {
+	EVENT_BAN_PEER,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_INVALID_MESSAGE_RECEIVED,
+	EVENT_INVALID_REQUEST_RECEIVED,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_MESSAGE,
+	REMOTE_EVENT_RPC_REQUEST,
+	REMOTE_RPC_GET_NODE_INFO,
+	REMOTE_RPC_GET_PEERS_LIST,
+	REMOTE_RPC_UPDATE_PEER_INFO,
+} from '../events';
+
 export interface ClientOptionsUpdated {
 	readonly hostname: string;
 	readonly port: number;
@@ -67,30 +85,6 @@ export type SCServerSocketUpdated = {
 } & SCServerSocket;
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
-
-// Local emitted events.
-export const EVENT_REQUEST_RECEIVED = 'requestReceived';
-export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
-export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
-export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
-export const EVENT_BAN_PEER = 'banPeer';
-export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
-export const EVENT_UNBAN_PEER = 'unbanPeer';
-export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
-export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
-export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
-	'failedToCollectPeerDetailsOnConnect';
-export const EVENT_FAILED_TO_FETCH_PEERS = 'failedToFetchPeers';
-export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
-export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
-
-// Remote event or RPC names sent to or received from peers.
-export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
-export const REMOTE_EVENT_MESSAGE = 'remote-message';
-
-export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
-export const REMOTE_RPC_GET_NODE_INFO = 'status';
-export const REMOTE_RPC_GET_PEERS_LIST = 'list';
 
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
