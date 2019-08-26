@@ -537,8 +537,8 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			it('should make request to the network; it should reach a single peer', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const response = await firstP2PNode.request({
+				const secondP2PNode = p2pNodeList[1];
+				const response = await secondP2PNode.request({
 					procedure: 'foo',
 					data: 'bar',
 				});
@@ -554,7 +554,7 @@ describe('Integration tests for P2P library', () => {
 					.which.is.equal('bar');
 				expect(response.data)
 					.to.have.property('requestPeerId')
-					.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+					.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
 			});
 
 			// Check for even distribution of requests across the network. Account for an error margin.
@@ -1218,7 +1218,7 @@ describe('Integration tests for P2P library', () => {
 								{
 									ipAddress: '127.0.0.1',
 									wsPort:
-										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
+										NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
 								},
 						  ];
 
@@ -1286,8 +1286,8 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const response = await firstP2PNode.request({
+				const secondP2PNode = p2pNodeList[1];
+				const response = await secondP2PNode.request({
 					procedure: 'foo',
 					data: 'bar',
 				});
@@ -1577,8 +1577,8 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			it('should make request to the network; it should reach a single peer', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const response = await firstP2PNode.request({
+				const secondP2PNode = p2pNodeList[1];
+				const response = await secondP2PNode.request({
 					procedure: 'foo',
 					data: 'bar',
 				});
@@ -1594,7 +1594,7 @@ describe('Integration tests for P2P library', () => {
 					.which.is.equal('bar');
 				expect(response.data)
 					.to.have.property('requestPeerId')
-					.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+					.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
 			});
 
 			// Check for even distribution of requests across the network. Account for an error margin.

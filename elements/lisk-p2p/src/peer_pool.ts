@@ -311,12 +311,9 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
-		);
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: getUniquePeersbyIp(listOfPeerInfo),
+			peers: this.getUniqueOutboundConnectedPeers(),
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
