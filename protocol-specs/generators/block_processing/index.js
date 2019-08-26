@@ -14,7 +14,12 @@
 
 'use strict';
 
-const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
+const {
+	transfer,
+	TransferTransaction,
+	registerSecondPassphrase,
+	SecondSignatureTransaction,
+} = require('@liskhq/lisk-transactions');
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 const BaseGenerator = require('../base_generator');
@@ -2223,6 +2228,102 @@ const generateTestCasesValidBlockTransferTx = () => {
 	};
 };
 
+const generateTestCasesValidBlockSecondSignatureTx = () => {
+	const amount = '5500000000';
+	const transferTx = new TransferTransaction(
+		transfer({
+			amount,
+			passphrase: accounts.genesis.passphrase,
+			recipientId: accounts.existingDelegate.address,
+		}),
+	);
+
+	const block = createBlock(
+		defaultConfig,
+		initialAccountState,
+		genesisBlock,
+		1,
+		0,
+		{
+			version: 1,
+			transactions: [transferTx],
+		},
+	);
+
+	const { balance: senderBalance } = initialAccountState.find(
+		account => account.address === accounts.genesis.address,
+	);
+
+	const { balance: recipientBalance } = initialAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	);
+
+	const resultingAccountState = cloneDeep(initialAccountState);
+
+	resultingAccountState.find(
+		account => account.address === accounts.genesis.address,
+	).balance = parseInt(
+		new BigNum(senderBalance.toString()).sub(amount).toString(),
+		10,
+	);
+
+	resultingAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	).balance = parseInt(
+		new BigNum(recipientBalance.toString()).plus(amount).toString(),
+		10,
+	);
+
+	const secondSignature =
+		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
+	const secondPassphraseTx = new SecondSignatureTransaction(
+		registerSecondPassphrase({
+			passphrase: accounts.existingDelegate.passphrase,
+			secondPassphrase: secondSignature,
+		}),
+	);
+
+	const blockWithSecondSignatureRegistered = createBlock(
+		defaultConfig,
+		resultingAccountState,
+		block,
+		1,
+		0,
+		{
+			version: 1,
+			transactions: [secondPassphraseTx],
+		},
+	);
+
+	const secondSignatureAccountState = cloneDeep(resultingAccountState);
+
+	secondSignatureAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	).secondPublicKey =
+		'62e4d09ce3fa571fb4b073fb229f5ff18b6108ca89357924db887a409f61542c';
+
+	secondSignatureAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	).balance = parseInt(
+		new BigNum(senderBalance.toString()).sub(500000000).toString(),
+		10,
+	);
+
+	return {
+		initialState: {
+			chain: [genesisBlock, block],
+			accounts: resultingAccountState,
+		},
+		input: {
+			blockWithSecondSignatureRegistered,
+		},
+		output: {
+			chain: [genesisBlock, block, blockWithSecondSignatureRegistered],
+			accounts: secondSignatureAccountState,
+		},
+	};
+};
+
 const validEmptyBlockSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'An empty valid block is processed',
@@ -2241,7 +2342,18 @@ const validBlockWithTransferTxSuite = () => ({
 	testCases: generateTestCasesValidBlockTransferTx(),
 });
 
+const validBlockWithSecondSignatureTxSuite = () => ({
+	title: 'Valid block processing',
+	summary:
+		'A valid block with a second signature registration transaction is processed',
+	config: 'mainnet',
+	runner: 'block_processing',
+	handler: 'valid_block_processing_one_second_signature_tx',
+	testCases: generateTestCasesValidBlockSecondSignatureTx(),
+});
+
 module.exports = BaseGenerator.runGenerator('block_processing', [
 	validEmptyBlockSuite,
 	validBlockWithTransferTxSuite,
+	validBlockWithSecondSignatureTxSuite,
 ]);
