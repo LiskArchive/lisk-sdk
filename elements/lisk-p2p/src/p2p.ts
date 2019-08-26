@@ -146,11 +146,6 @@ export const DEFAULT_RANDOM_SECRET = getRandomBytes(
 	SECRET_BYTE_LENGTH,
 ).readUInt32BE(0);
 
-const selectRandomPeerSample = (
-	peerList: ReadonlyArray<P2PPeerInfo>,
-	count: number,
-): ReadonlyArray<P2PPeerInfo> => shuffle(peerList).slice(0, count);
-
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _sanitizedPeerLists: PeerLists;
@@ -813,12 +808,6 @@ export class P2P extends EventEmitter {
 		return false;
 	}
 
-	private _pickRandomPeers(count: number): ReadonlyArray<P2PPeerInfo> {
-		const peerList: ReadonlyArray<P2PPeerInfo> = this._peerBook.getAllPeers(); // Peers whose values has been updated at least once.
-
-		return selectRandomPeerSample(peerList, count);
-	}
-
 	private _handleGetPeersRequest(request: P2PRequest): void {
 		const minimumPeerDiscoveryThreshold = this._config
 			.minimumPeerDiscoveryThreshold
@@ -842,9 +831,11 @@ export class P2P extends EventEmitter {
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
 
-		const selectedPeers = this._pickRandomPeers(randomPeerCount).map(
-			outgoingPeerInfoSanitization, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
-		);
+		const selectedPeers = shuffle(knownPeers)
+			.slice(0, randomPeerCount)
+			.map(
+				outgoingPeerInfoSanitization, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
+			);
 
 		const peerInfoList = {
 			success: true,
