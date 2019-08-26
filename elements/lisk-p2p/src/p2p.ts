@@ -45,7 +45,7 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-} from './peer_selection';
+} from './select';
 
 import { PeerPool } from './peer_pool';
 import { constructPeerIdFromPeerInfo } from './utils';
