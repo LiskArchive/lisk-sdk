@@ -24,6 +24,7 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
+const { sortTransactions } = require('../../../src/modules/chain/transactions');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
@@ -192,11 +193,12 @@ function forge(library, cb) {
 						false,
 						25,
 					) || [];
+				const sortedTransactions = sortTransactions(transactions);
 				library.modules.processor
 					.create({
 						keypair,
 						timestamp: slots.getSlotTime(slot),
-						transactions,
+						transactions: sortedTransactions,
 						previousBlock: last_block,
 					})
 					.then(block => library.modules.processor.process(block))

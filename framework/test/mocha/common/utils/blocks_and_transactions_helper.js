@@ -35,12 +35,7 @@ const {
 const transactionInterfaceAdapter = new TransactionInterfaceAdapter(
 	registeredTransactions,
 );
-const {
-	NORMALIZER,
-	modules: {
-		chain: { exceptions },
-	},
-} = global.__testContext.config;
+const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
 const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
 const forge = util.promisify(localCommon.forge);
@@ -211,12 +206,13 @@ class BlocksTransactionsHelper {
 			transactionInterfaceAdapter.fromJson(t.data),
 		);
 
+		const sortedTransactions = sortTransactions(transactions);
+
 		this._block = await this._library.modules.processor.create({
 			keypair,
 			timestamp,
 			previousBlock: lastBlock,
-			transactions,
-			exceptions,
+			transactions: sortedTransactions,
 			maxHeightPreviouslyForged: 0,
 			prevotedConfirmedUptoHeight: 0,
 		});
