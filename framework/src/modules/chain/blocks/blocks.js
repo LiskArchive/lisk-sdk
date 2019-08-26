@@ -281,21 +281,23 @@ class Blocks extends EventEmitter {
 		return forkChoiceRule.FORK_STATUS_DISCARD;
 	}
 
-	async verify({ block }) {
+	async verify({ block, skipExistingCheck }) {
 		// TODO: Remove once BFT is complete, not needed anymore
 		verifyAgainstLastNBlockIds(block, this._lastNBlockIds);
-		await verifyBlockNotExists(this.storage, block);
-		// TODO: move to DPOS verify step
-		await this.blocksVerify.verifyBlockSlot(block);
-		const {
-			transactionsResponses: persistedResponse,
-		} = await checkPersistedTransactions(this.storage)(block.transactions);
-		const invalidPersistedResponse = persistedResponse.find(
-			transactionResponse =>
-				transactionResponse.status !== TransactionStatus.OK,
-		);
-		if (invalidPersistedResponse) {
-			throw invalidPersistedResponse.errors;
+		if (skipExistingCheck !== true) {
+			await verifyBlockNotExists(this.storage, block);
+			// TODO: move to DPOS verify step
+			await this.blocksVerify.verifyBlockSlot(block);
+			const {
+				transactionsResponses: persistedResponse,
+			} = await checkPersistedTransactions(this.storage)(block.transactions);
+			const invalidPersistedResponse = persistedResponse.find(
+				transactionResponse =>
+					transactionResponse.status !== TransactionStatus.OK,
+			);
+			if (invalidPersistedResponse) {
+				throw invalidPersistedResponse.errors;
+			}
 		}
 		await this.blocksVerify.checkTransactions(block);
 	}
@@ -345,8 +347,8 @@ class Blocks extends EventEmitter {
 		await backwardTickStep(this.roundsModule, block, secondLastBlock, tx);
 	}
 
-	async save({ block, tx }) {
-		await saveBlockStep(this.storage, this.roundsModule, block, true, tx);
+	async save({ block, tx, skipSave }) {
+		await saveBlockStep(this.storage, this.roundsModule, block, !skipSave, tx);
 		this._lastBlock = block;
 	}
 
