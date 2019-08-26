@@ -24,11 +24,11 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
+const { sortTransactions } = require('../../../src/modules/chain/transactions');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const blocksLogic = require('../../../src/modules/chain/blocks/block');
 
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
@@ -65,31 +65,27 @@ function blockToJSON(block) {
 	return block;
 }
 
-function createBlock(
+async function createBlock(
 	library,
 	transactions,
 	timestamp,
 	keypair,
 	previousBlock,
-	exceptions,
 ) {
 	transactions = transactions.map(transaction =>
 		library.modules.interfaceAdapters.transactions.fromJson(transaction),
 	);
 	// TODO Remove hardcoded values and use from BFT class
-	const block = blocksLogic.create({
+	const block = await library.modules.processor.create({
 		blockReward: library.modules.blocks.blockReward,
 		keypair,
 		timestamp,
 		previousBlock,
 		transactions,
-		maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
-		exceptions,
 		maxHeightPreviouslyForged: 1,
 		prevotedConfirmedUptoHeight: 1,
 	});
 
-	block.id = blocksLogic.getId(block);
 	block.height = previousBlock.height + 1;
 	return block;
 }
@@ -106,15 +102,18 @@ function createValidBlockWithSlotOffset(
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		cb = typeof exceptions === 'object' ? cb : exceptions;
-		const block = createBlock(
+		createBlock(
 			library,
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
 			typeof exceptions === 'object' ? exceptions : undefined,
-		);
-		cb(err, block);
+		)
+			.then(block => {
+				cb(null, block);
+			})
+			.catch(error => cb(error));
 	});
 }
 
@@ -123,14 +122,15 @@ function createValidBlock(library, transactions, cb) {
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
-		const block = createBlock(
+		createBlock(
 			library,
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
-		);
-		cb(err, block);
+		)
+			.then(block => cb(null, block))
+			.catch(error => cb(error));
 	});
 }
 
@@ -193,8 +193,15 @@ function forge(library, cb) {
 						false,
 						25,
 					) || [];
-				library.modules.blocks
-					.generateBlock(keypair, slots.getSlotTime(slot), transactions)
+				const sortedTransactions = sortTransactions(transactions);
+				library.modules.processor
+					.create({
+						keypair,
+						timestamp: slots.getSlotTime(slot),
+						transactions: sortedTransactions,
+						previousBlock: last_block,
+					})
+					.then(block => library.modules.processor.process(block))
 					.then(() => {
 						last_block = library.modules.blocks.lastBlock;
 						library.modules.transactionPool.resetPool();
@@ -217,12 +224,9 @@ function forge(library, cb) {
 }
 
 function deleteLastBlock(library, cb) {
-	library.modules.blocks.blocksChain
-		.deleteLastBlock(library.modules.blocks.lastBlock)
-		.then(newLastBlock => {
-			library.modules.blocks._lastBlock = newLastBlock;
-			cb();
-		})
+	library.modules.processor
+		.deleteLastBlock()
+		.then(() => cb())
 		.catch(err => cb(err));
 }
 

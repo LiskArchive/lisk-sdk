@@ -104,7 +104,7 @@ const deleteLastBlock = async (storage, lastBlock, tx) => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
 	}
-	const [storageBlock] = await this.storage.entities.Block.get(
+	const [storageBlock] = await storage.entities.Block.get(
 		{ id: lastBlock.previousBlock },
 		{ extended: true },
 		tx,

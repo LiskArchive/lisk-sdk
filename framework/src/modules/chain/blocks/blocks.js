@@ -37,6 +37,7 @@ const {
 	undoConfirmedStep,
 	saveBlockStep,
 	parseBlockToJson,
+	backwardTickStep,
 } = require('./chain');
 const {
 	calculateSupply,
@@ -108,16 +109,17 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
-		const blockRewardArgs = {
+		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
 			milestones: rewardMileStones,
 			totalAmount,
 		};
 		this.blockReward = {
-			calculateMilestone: height => calculateMilestone(height, blockRewardArgs),
-			calculateReward: height => calculateReward(height, blockRewardArgs),
-			calculateSupply: height => calculateSupply(height, blockRewardArgs),
+			calculateMilestone: height =>
+				calculateMilestone(height, this.blockRewardArgs),
+			calculateReward: height => calculateReward(height, this.blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
 			blockReceiptTimeout,
@@ -260,21 +262,23 @@ class Blocks extends EventEmitter {
 		return forkChoiceRule.FORK_STATUS_DISCARD;
 	}
 
-	async verify({ block }) {
+	async verify({ block, skipExistingCheck }) {
 		// TODO: Remove once BFT is complete, not needed anymore
 		verifyAgainstLastNBlockIds(block, this._lastNBlockIds);
-		await verifyBlockNotExists(this.storage, block);
-		// TODO: move to DPOS verify step
-		await this.blocksVerify.verifyBlockSlot(block);
-		const {
-			transactionsResponses: persistedResponse,
-		} = await checkPersistedTransactions(this.storage)(block.transactions);
-		const invalidPersistedResponse = persistedResponse.find(
-			transactionResponse =>
-				transactionResponse.status !== TransactionStatus.OK,
-		);
-		if (invalidPersistedResponse) {
-			throw invalidPersistedResponse.errors;
+		if (skipExistingCheck !== true) {
+			await verifyBlockNotExists(this.storage, block);
+			// TODO: move to DPOS verify step
+			await this.blocksVerify.verifyBlockSlot(block);
+			const {
+				transactionsResponses: persistedResponse,
+			} = await checkPersistedTransactions(this.storage)(block.transactions);
+			const invalidPersistedResponse = persistedResponse.find(
+				transactionResponse =>
+					transactionResponse.status !== TransactionStatus.OK,
+			);
+			if (invalidPersistedResponse) {
+				throw invalidPersistedResponse.errors;
+			}
 		}
 		await this.blocksVerify.checkTransactions(block);
 	}
@@ -307,10 +311,25 @@ class Blocks extends EventEmitter {
 			this.exceptions,
 			tx,
 		);
+		const [storageRowOfBlock] = await this.storage.entities.Block.get(
+			{ id: block.previousBlock },
+			{ extended: true },
+			tx,
+		);
+
+		if (!storageRowOfBlock) {
+			throw new Error('PreviousBlock is null');
+		}
+		const [secondLastBlock] = blocksLogic.readStorageRows(
+			[storageRowOfBlock],
+			this.interfaceAdapters,
+			this.genesisBlock,
+		);
+		await backwardTickStep(this.roundsModule, block, secondLastBlock, tx);
 	}
 
-	async save({ block, tx }) {
-		await saveBlockStep(this.storage, this.roundsModule, block, true, tx);
+	async save({ block, tx, skipSave }) {
+		await saveBlockStep(this.storage, this.roundsModule, block, !skipSave, tx);
 		this._lastBlock = block;
 	}
 
@@ -321,6 +340,12 @@ class Blocks extends EventEmitter {
 
 	async remove({ block, tx }, saveToTemp) {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
+		const [secondLastBlock] = blocksLogic.readStorageRows(
+			[storageRowOfBlock],
+			this.interfaceAdapters,
+			this.genesisBlock,
+		);
+
 		if (saveToTemp) {
 			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
@@ -330,11 +355,7 @@ class Blocks extends EventEmitter {
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
-		this._lastBlock = blocksUtils.readStorageRows(
-			[storageRowOfBlock],
-			this.interfaceAdapters,
-			this.genesisBlock,
-		);
+		this._lastBlock = secondLastBlock;
 	}
 
 	async exists(block) {

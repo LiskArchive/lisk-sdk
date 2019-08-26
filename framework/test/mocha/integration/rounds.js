@@ -444,8 +444,8 @@ describe('rounds', () => {
 				return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
 			});
 
-			it('block version should be 2', async () => {
-				return expect(tick.after.block.version).to.equal(2);
+			it('block version should be 1', async () => {
+				return expect(tick.after.block.version).to.equal(1);
 			});
 
 			it('height should be greather by 1', async () => {
@@ -763,11 +763,8 @@ describe('rounds', () => {
 			let lastBlock;
 
 			before(async () => {
-				lastBlock = library.modules.blocks.lastBlock;
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			// eslint-disable-next-line mocha/no-skipped-tests
@@ -823,10 +820,7 @@ describe('rounds', () => {
 			});
 
 			it('should be able to delete last block of round again', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
@@ -865,10 +859,7 @@ describe('rounds', () => {
 
 				lastBlock = library.modules.blocks.lastBlock;
 				// Delete one block more
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			it('last block height should be at height 99 after deleting one more block', async () => {
@@ -945,20 +936,19 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(library.modules.blocks.lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							const freshLastBlock = library.modules.blocks.lastBlock;
-							return library.modules.rounds
-								.generateDelegateList(
-									slots.calcRound(freshLastBlock.height),
-									null,
-								)
-								.then(delegatesList => {
-									expect(delegatesList).to.deep.equal(round.delegatesList);
-								});
-						});
+					return library.modules.processor.deleteLastBlock().then(() => {
+						const freshLastBlock = _.cloneDeep(
+							library.modules.blocks.lastBlock,
+						);
+						return library.modules.rounds
+							.generateDelegateList(
+								slots.calcRound(freshLastBlock.height),
+								null,
+							)
+							.then(delegatesList => {
+								expect(delegatesList).to.deep.equal(round.delegatesList);
+							});
+					});
 				});
 
 				it('expected forger of last block of round should have proper votes again', async () => {
@@ -1015,20 +1005,18 @@ describe('rounds', () => {
 
 					const transactionPool = library.modules.transactionPool;
 					// Delete two blocks more
-					lastBlock = library.modules.blocks.lastBlock;
-					library.modules.blocks.blocksChain
-						.deleteLastBlock(lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
+					lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+					library.modules.processor
+						.deleteLastBlock()
+						.then(() => {
 							_.each(lastBlock.transactions, eachTransaction => {
 								// Remove transaction from pool
 								transactionPool.onConfirmedTransactions([eachTransaction]);
 							});
-							lastBlock = library.modules.blocks.lastBlock;
-							library.modules.blocks.blocksChain
-								.deleteLastBlock(lastBlock)
-								.then(secondLastBlock => {
-									library.modules.blocks._lastBlock = secondLastBlock;
+							lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+							library.modules.processor
+								.deleteLastBlock()
+								.then(() => {
 									_.each(lastBlock.transactions, eachTransaction => {
 										// Remove transaction from pool
 										transactionPool.onConfirmedTransactions([eachTransaction]);
@@ -1108,17 +1096,14 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(library.modules.blocks.lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							lastBlock = library.modules.blocks.lastBlock;
-							return library.modules.rounds
-								.generateDelegateList(slots.calcRound(lastBlock.height), null)
-								.then(delegatesList => {
-									expect(delegatesList).to.deep.equal(round.delegatesList);
-								});
-						});
+					return library.modules.processor.deleteLastBlock().then(() => {
+						lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+						return library.modules.rounds
+							.generateDelegateList(slots.calcRound(lastBlock.height), null)
+							.then(delegatesList => {
+								expect(delegatesList).to.deep.equal(round.delegatesList);
+							});
+					});
 				});
 
 				it('last block height should be at height 100', async () => {
@@ -1278,11 +1263,7 @@ describe('rounds', () => {
 
 		before(() => {
 			return Promise.mapSeries([...Array(101)], async () => {
-				return library.modules.blocks.blocksChain
-					.deleteLastBlock(library.modules.blocks.lastBlock)
-					.then(newLastBlock => {
-						library.modules.blocks._lastBlock = newLastBlock;
-					});
+				return library.modules.processor.deleteLastBlock();
 			});
 		});
 
@@ -1293,9 +1274,7 @@ describe('rounds', () => {
 
 		it('should fail when try to delete one more block (last block of round 1)', async () => {
 			return expect(
-				library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				),
+				library.modules.processor.deleteLastBlock(),
 			).to.eventually.be.rejectedWith('Snapshot for round 1 not available');
 		});
 
@@ -1313,18 +1292,12 @@ describe('rounds', () => {
 		});
 
 		it('should be able to delete last block of round', async () => {
-			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-				library.modules.blocks.lastBlock,
-			);
-			library.modules.blocks._lastBlock = newLastBlock;
+			await library.modules.processor.deleteLastBlock();
 		});
 
 		it('should be able to delete last block of round again', async () => {
 			await addTransactionsAndForgePromise(library, [], 0);
-			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-				library.modules.blocks.lastBlock,
-			);
-			library.modules.blocks._lastBlock = newLastBlock;
+			await library.modules.processor.deleteLastBlock();
 		});
 	});
 });

@@ -20,6 +20,7 @@ const {
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
+const { sortTransactions } = require('./transactions');
 
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.
@@ -383,11 +384,24 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
+		const timestamp = this.slots.getSlotTime(currentSlot);
+		const previousBlock = this.blocksModule.lastBlock;
+
+		const context = {
+			blockTimestamp: timestamp,
+		};
+		const readyTransactions = await this.blocksModule.filterReadyTransactions(
+			transactions,
+			context,
+		);
+
+		const sortedTransactions = sortTransactions(readyTransactions);
+
 		const forgedBlock = await this.processorModule.create({
 			keypair: delegateKeypair,
-			timestamp: this.slots.getSlotTime(currentSlot),
-			transactions,
-			previousBlock: this.blocksModule.lastBlock,
+			timestamp,
+			transactions: sortedTransactions,
+			previousBlock,
 			// FIXME: Add correct value from BFT in pipeline
 			maxHeightPreviouslyForged: 0,
 			prevotedConfirmedUptoHeight: 0,

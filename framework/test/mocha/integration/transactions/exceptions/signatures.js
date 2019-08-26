@@ -50,7 +50,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 	localCommon.beforeBlock('system_exceptions_signatures', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			signatures: ['3274071402587084244'],
 		};
@@ -76,7 +76,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -108,7 +108,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 							},
 						);
 					});
-					await library.modules.blocks.blocksProcess.processBlock(
+					await library.modules.processor.process(
 						newBlock,
 						library.modules.blocks.lastBlock,
 					);

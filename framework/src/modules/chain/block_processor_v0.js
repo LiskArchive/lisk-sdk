@@ -26,7 +26,6 @@ const {
 const { validator } = require('@liskhq/lisk-validator');
 const { BlockProcessor } = require('./processor');
 const { baseBlockSchema } = require('./blocks');
-const { sortTransactions } = require('./transactions');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -118,12 +117,16 @@ class BlockProcessorV0 extends BlockProcessor {
 
 		this.init.pipe([() => this.blocksModule.init()]);
 
-		this.getBytes.pipe([({ block }) => getBytes(block)]);
-
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			validateSchema,
-			data => this.blocksModule.validate(data), // validate common block header
+			({ block }) => getBytes(block),
+			(data, blockBytes) => {
+				this.blocksModule.validate({
+					...data,
+					blockBytes,
+				}); // validate common block header
+			},
 		]);
 
 		this.fork.pipe([
@@ -149,26 +152,18 @@ class BlockProcessorV0 extends BlockProcessor {
 	}
 
 	async _create({ transactions, previousBlock, keypair, timestamp }) {
-		const context = {
-			blockTimestamp: timestamp,
-		};
-		const readyTransactions = await this.blocksModule.filterReadyTransactions(
-			transactions,
-			context,
-		);
-
-		const sortedTransactions = sortTransactions(readyTransactions);
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
 		let totalFee = new BigNum(0);
 		let totalAmount = new BigNum(0);
 		let size = 0;
 
+		const trs = transactions || [];
 		const blockTransactions = [];
 		const transactionsBytesArray = [];
 
 		// eslint-disable-next-line no-restricted-syntax
-		for (const transaction of sortedTransactions) {
+		for (const transaction of trs) {
 			const transactionBytes = transaction.getBytes(transaction);
 
 			if (size + transactionBytes.length > this.constants.maxPayloadLength) {

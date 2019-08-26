@@ -26,7 +26,6 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const { baseBlockSchema } = require('./blocks');
 const { BlockProcessor } = require('./processor');
-const { sortTransactions } = require('./transactions');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -161,12 +160,17 @@ class BlockProcessorV2 extends BlockProcessor {
 		this.exceptions = exceptions;
 
 		this.init.pipe([() => this.blocksModule.init()]);
-		this.getBytes.pipe([({ block }) => getBytes(block)]);
 
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			validateSchema,
-			data => this.blocksModule.validate(data), // validate common block header
+			({ block }) => getBytes(block),
+			(data, blockBytes) => {
+				this.blocksModule.validate({
+					...data,
+					blockBytes,
+				}); // validate common block header
+			},
 		]);
 
 		this.fork.pipe([
@@ -199,17 +203,6 @@ class BlockProcessorV2 extends BlockProcessor {
 		maxHeightPreviouslyForged,
 		prevotedConfirmedUptoHeight,
 	}) {
-		const context = {
-			blockTimestamp: timestamp,
-		};
-
-		const readyTransactions = await this.blocksModule.filterReadyTransactions(
-			transactions,
-			context,
-		);
-		// TODO: move to transactions module logic
-		const sortedTransactions = sortTransactions(readyTransactions);
-
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
 		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
@@ -221,8 +214,8 @@ class BlockProcessorV2 extends BlockProcessor {
 		const transactionsBytesArray = [];
 
 		// eslint-disable-next-line no-plusplus
-		for (let i = 0; i < sortedTransactions.length; i++) {
-			const transaction = sortedTransactions[i];
+		for (let i = 0; i < transactions.length; i++) {
+			const transaction = transactions[i];
 			const transactionBytes = transaction.getBytes(transaction);
 
 			if (size + transactionBytes.length > this.constants.maxPayloadLength) {
