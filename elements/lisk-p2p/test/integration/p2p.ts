@@ -2014,7 +2014,7 @@ describe('Integration tests for P2P library', () => {
 	describe('Network with peer inbound eviction protection for connectTime enabled', () => {
 		const NETWORK_PEER_COUNT_WITH_LIMIT = 10;
 		const MAX_INBOUND_CONNECTIONS = 3;
-		const POPULATOR_INTERVAL_WITH_LIMIT = 150;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 100;
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
 				index => {
@@ -2024,14 +2024,15 @@ describe('Integration tests for P2P library', () => {
 							ipAddress: '127.0.0.1',
 							wsPort:
 								NETWORK_START_PORT +
-								((index + 1) % NETWORK_PEER_COUNT_WITH_LIMIT),
+								((index - 1 + NETWORK_PEER_COUNT_WITH_LIMIT) %
+									NETWORK_PEER_COUNT_WITH_LIMIT),
 						},
 					];
 
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
 						connectTimeout: 100,
-						ackTimeout: 5000,
+						ackTimeout: 200,
 						seedPeers,
 						wsEngine: 'ws',
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
@@ -2045,7 +2046,7 @@ describe('Integration tests for P2P library', () => {
 							nethash:
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 							version: '1.0.1',
-							protocolVersion: '1.0.1',
+							protocolVersion: '1.1',
 							minVersion: '1.0.0',
 							os: platform(),
 							height: 0,
@@ -2058,11 +2059,11 @@ describe('Integration tests for P2P library', () => {
 			);
 
 			// Start nodes incrementally to make inbound eviction behavior predictable
-			p2pNodeList.forEach(async p2p => {
-				await wait(500);
-				p2p.start();
-			});
-			await wait(1500);
+			for (const p2p of p2pNodeList) {
+				await wait(100);
+				await p2p.start();
+			}
+			await wait(500);
 		});
 
 		afterEach(async () => {
@@ -2078,13 +2079,12 @@ describe('Integration tests for P2P library', () => {
 			// Due to randomization from shuffling and timing of the nodes
 			// This test may experience some instability and not always evict.
 			it('should not evict earliest connected peers', async () => {
-				// We watch middle node for more predictable connection behavior
-				const middleNode = p2pNodeList[5];
-				const inboundPeers = middleNode['_peerPool']
+				const firstNode = p2pNodeList[0];
+				const inboundPeers = firstNode['_peerPool']
 					.getPeers(InboundPeer)
 					.map(peer => peer.wsPort);
 				expect(inboundPeers).to.satisfy(
-					(n: Number[]) => n.includes(5003) || n.includes(5004),
+					(n: Number[]) => n.includes(5001) || n.includes(5002),
 				);
 			});
 		});
