@@ -17,11 +17,7 @@
 const randomstring = require('randomstring');
 const stampit = require('stampit');
 const faker = require('faker');
-
-// As we are using this file in the Jest as well, so have to hack this check
-const genesisBlock = global.__testContext
-	? __testContext.config.genesisBlock
-	: {};
+const genesisBlock = require('../../fixtures/config/devnet/genesis_block.json');
 
 const Block = stampit({
 	props: {
