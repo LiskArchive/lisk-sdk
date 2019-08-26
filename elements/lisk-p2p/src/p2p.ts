@@ -37,7 +37,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
-} from './types';
+} from './utils/types';
 
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };
@@ -45,15 +45,15 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-} from './select';
+} from './utils/select';
 
 import { PeerPool } from './peer_pool';
-import { constructPeerIdFromPeerInfo } from './utils';
+import { constructPeerIdFromPeerInfo } from './utils/utils';
 import {
 	checkPeerCompatibility,
 	outgoingPeerInfoSanitization,
 	sanitizePeerLists,
-} from './validate';
+} from './utils/validate';
 
 import {
 	BASE_10_RADIX,

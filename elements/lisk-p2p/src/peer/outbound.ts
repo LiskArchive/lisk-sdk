@@ -40,7 +40,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from '../types';
+} from '../utils/types';
 
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';

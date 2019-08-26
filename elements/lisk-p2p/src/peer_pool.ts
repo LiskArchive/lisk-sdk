@@ -61,8 +61,8 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from './types';
-import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
+} from './utils/types';
+import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils/utils';
 
 interface PeerPoolConfig {
 	readonly ackTimeout?: number;

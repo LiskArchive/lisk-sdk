@@ -49,14 +49,14 @@ import {
 	P2PResponsePacket,
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
-} from '../types';
-import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
+} from '../utils/types';
+import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils/utils';
 import {
 	validatePeerInfo,
 	validatePeersInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
-} from '../validate';
+} from '../utils/validate';
 
 export interface ClientOptionsUpdated {
 	readonly hostname: string;

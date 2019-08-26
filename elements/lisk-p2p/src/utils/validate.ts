@@ -23,7 +23,7 @@ import {
 	InvalidRPCResponseError,
 	IPV4_NUMBER,
 	IPV6_NUMBER,
-} from '.';
+} from '..';
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,

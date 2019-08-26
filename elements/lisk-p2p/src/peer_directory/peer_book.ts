@@ -13,7 +13,7 @@
  *
  */
 
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../types';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../utils/types';
 import { NewPeerConfig, NewPeers } from './new_peers';
 import { TriedPeerConfig, TriedPeers } from './tried_peers';
 
