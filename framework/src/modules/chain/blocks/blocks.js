@@ -187,26 +187,10 @@ class Blocks extends EventEmitter {
 			this.genesisBlock,
 		);
 
-		try {
-			// Do we need this anymore?
-			const rows = await this.storage.entities.Block.get(
-				{},
-				{ limit: this.constants.blockSlotWindow, sort: 'height:desc' },
-			);
-			this._lastNBlockIds = rows.map(row => row.id);
-		} catch (error) {
-			const errorMessageToThrow = `Unable to load last ${
-				this.constants.blockSlotWindow
-			} block ids, error: ${error}`;
-			this.logger.error(
-				error,
-				`Unable to load last ${this.constants.blockSlotWindow} block ids`,
-			);
-			throw errorMessageToThrow;
-		}
+		// Remove initializing _lastNBlockIds variable since it's unnecessary
 	}
 
-	validate({ block, lastBlock, blockBytes }) {
+	async validate({ block, lastBlock, blockBytes }) {
 		validateSignature(block, blockBytes);
 		validatePreviousBlock(block);
 		validateReward(block, this.blockReward, this.exceptions);

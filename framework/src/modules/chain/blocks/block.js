@@ -166,7 +166,7 @@ const loadLastBlock = async (storage, interfaceAdapters, genesisBlock) => {
 		{},
 		{ sort: 'height:desc', limit: 1, extended: true },
 	);
-	if (!rows) {
+	if (!rows || rows.length === 0) {
 		throw new Error('Failed to load last block');
 	}
 	// Normalize block
