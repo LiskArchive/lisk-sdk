@@ -17,6 +17,11 @@
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
+const genesisBlockTestnet = require('../../../../../../fixtures/config/testnet/genesis_block.json');
+const { newBlock, getBytes } = require('./utils.js');
+
+// TODO: Share fixture generation b/w mocha and jest
+const randomUtils = require('../../../../../../mocha/common/utils/random.js');
 
 describe('blocks', () => {
 	const stubs = {};
@@ -37,6 +42,8 @@ describe('blocks', () => {
 		],
 		totalAmount: '10000000000000000',
 		blockSlotWindow: 5,
+		blockTime: 10,
+		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	let exceptions = {};
 	let blocksInstance;
@@ -45,6 +52,11 @@ describe('blocks', () => {
 	beforeEach(() => {
 		// Arrange
 		stubs.dependencies = {
+			interfaceAdapters: {
+				transactions: {
+					fromBlock: jest.fn(),
+				},
+			},
 			storage: {
 				entities: {
 					Account: {
@@ -55,6 +67,7 @@ describe('blocks', () => {
 						begin: jest.fn(),
 						count: jest.fn(),
 						getOne: jest.fn(),
+						get: jest.fn(),
 					},
 					Round: {
 						getUniqueRounds: jest.fn(),
@@ -67,13 +80,12 @@ describe('blocks', () => {
 				error: jest.fn(),
 			},
 			roundsModule: {},
-			interfaceAdapters: {},
 		};
 
 		slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
+			epochTime: constants.epochTime,
+			interval: constants.blockTime,
+			blocksPerRound: constants.activeDelegates,
 		});
 
 		exceptions = {
@@ -141,10 +153,23 @@ describe('blocks', () => {
 			stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
 				genesisBlock,
 			);
+			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+				genesisBlock,
+			]);
 			stubs.dependencies.storage.entities.Round.getUniqueRounds.mockResolvedValue(
-				10,
+				[
+					{
+						round: 1,
+					},
+				],
 			);
 			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
+			const random101DelegateAccounts = new Array(101)
+				.fill('')
+				.map(() => randomUtils.account());
+			stubs.dependencies.storage.entities.Account.get.mockResolvedValue(
+				random101DelegateAccounts,
+			);
 		});
 
 		describe('loadMemTables', () => {
@@ -178,24 +203,170 @@ describe('blocks', () => {
 				// Act & Assert
 				await expect(blocksInstance.init()).rejects.toEqual(error);
 			});
+
+			it.todo('should throw when tx.batch fails');
+			it.todo('should not throw when tx.batch succeeds');
 		});
 
 		describe('matchGenesisBlock', () => {
-			it.todo('should throw an error if the genesis block is diffenrent');
+			it('should throw an error if the genesis block id is different', async () => {
+				// Arrange
+				const error = new Error('Genesis block does not match');
+				const mutatedGenesisBlock = {
+					...genesisBlock,
+					id: genesisBlock.id.replace('0', '1'),
+				};
+				stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
+					mutatedGenesisBlock,
+				);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
+			it('should throw an error if the genesis block payloadHash is different', async () => {
+				// Arrange
+				const error = new Error('Genesis block does not match');
+				const mutatedGenesisBlock = {
+					...genesisBlock,
+					payloadHash: genesisBlock.payloadHash.replace('0', '1'),
+				};
+				stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
+					mutatedGenesisBlock,
+				);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
+			it('should throw an error if the genesis block signature is different', async () => {
+				// Arrange
+				const error = new Error('Genesis block does not match');
+				const mutatedGenesisBlock = {
+					...genesisBlock,
+					blockSignature: genesisBlock.blockSignature.replace('0', '1'),
+				};
+				stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
+					mutatedGenesisBlock,
+				);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
+			it('should not throw when genesis block matches', async () => {
+				// Act & Assert
+				await expect(blocksInstance.init()).resolves.toEqual();
+			});
 		});
 
-		describe('reloadRequired', () => {});
+		describe('reloadRequired', () => {
+			// TODO: Add tests or remove the code after the discussion on https://github.com/LiskHQ/lisk-sdk/issues/4130
+			it.todo('confirm if it needs tests here');
+		});
 
-		describe('loadLastBlock', () => {});
+		describe('loadLastBlock', () => {
+			it('should throw an error when Block.get throws error', async () => {
+				// Arrange
+				const error = 'get error';
+				stubs.dependencies.storage.entities.Block.get.mockRejectedValue(error);
+
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
+			it('should throw an error when Block.get returns empty array', async () => {
+				// Arrange
+				const errorMessage = 'Failed to load last block';
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
+				expect.assertions(1);
+				// Act
+				try {
+					await blocksInstance.init();
+				} catch (error) {
+					// Assert
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
+			// TODO: The tests are minimal due to the changes we expect as part of https://github.com/LiskHQ/lisk-sdk/issues/4131
+			describe('when Block.get returns rows', () => {
+				it('should return the storage read of the first row', async () => {
+					// Act
+					stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+						genesisBlock,
+						genesisBlockTestnet,
+					]);
+					await blocksInstance.init();
+				});
+			});
+		});
+
+		it('should initialize the processor', async () => {
+			// Act
+			await blocksInstance.init();
+			// Assert
+			expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
+		});
 	});
 
 	describe('validate', () => {
 		describe('validateSignature', () => {
-			it.todo('should throw when the block bytes are mutated');
-			it.todo('should throw when the block signature is mutated');
-			it.todo('should throw when the block signature is mutated');
-			it.todo('should throw when generator public key is different');
-			// Question: should we have a test for passing block here or having one at the end validate function would suffice?
+			it('should throw when the block bytes are mutated', async () => {
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				const mutatedBlockBytes = Buffer.from(
+					blockBytes.toString('hex').replace('0', '1'),
+					'hex',
+				);
+				const errorMessage = 'Invalid block signature';
+				expect.assertions(1);
+				try {
+					await blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes: mutatedBlockBytes,
+					});
+				} catch (error) {
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
+
+			it('should throw when the block signature is mutated', async () => {
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				const blockWithMutatedSignature = {
+					...block,
+					blockSignature: block.blockSignature.replace('0', '1'),
+				};
+				const errorMessage = 'Invalid block signature';
+				expect.assertions(1);
+				try {
+					await blocksInstance.validate({
+						block: blockWithMutatedSignature,
+						lastBlock: genesisBlock,
+						blockBytes,
+					});
+				} catch (error) {
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
+
+			it('should throw when generator public key is different', async () => {
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				const blockWithDifferentGeneratorPublicKey = {
+					...block,
+					generatorPublicKey: randomUtils.account().publicKey,
+				};
+				const errorMessage = 'Invalid block signature';
+				expect.assertions(1);
+				try {
+					await blocksInstance.validate({
+						block: blockWithDifferentGeneratorPublicKey,
+						lastBlock: genesisBlock,
+						blockBytes,
+					});
+				} catch (error) {
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
 		});
 
 		describe('validatePreviousBlock', () => {
