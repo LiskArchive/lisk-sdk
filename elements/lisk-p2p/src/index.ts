@@ -14,4 +14,5 @@
  */
 export * from './disconnect_status_codes';
 export * from './errors';
+export * from './events';
 export * from './p2p';
