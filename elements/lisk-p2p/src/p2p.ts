@@ -49,7 +49,6 @@ import {
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
-	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
@@ -531,13 +530,32 @@ export class P2P extends EventEmitter {
 		}
 	}
 
-	public getNetworkStatus(): P2PNetworkStatus {
-		return {
-			newPeers: [...this._peerBook.newPeers],
-			triedPeers: [...this._peerBook.triedPeers],
-			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
-			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
-		};
+	public getConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._peerPool.getAllConnectedPeerInfos();
+	}
+
+	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._peerPool.getUniqueConnectedPeers();
+	}
+
+	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		const allPeers = this._peerBook.getAllPeers();
+		const connectedPeers = this.getConnectedPeers();
+		const disconnectedPeers = allPeers.filter(peer => {
+			if (
+				connectedPeers.find(
+					connectedPeer =>
+						peer.ipAddress === connectedPeer.ipAddress &&
+						peer.wsPort === connectedPeer.wsPort,
+				)
+			) {
+				return false;
+			}
+
+			return true;
+		});
+
+		return disconnectedPeers as P2PDiscoveredPeerInfo[];
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
