@@ -14,7 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
-import { P2PPeerInfo } from './p2p_types';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from './p2p_types';
 
 const SECRET_BUFFER_LENGTH = 4;
 const NETWORK_BUFFER_LENGTH = 1;
@@ -199,3 +199,22 @@ export const getBucket = (options: {
 
 export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+
+export const getUniquePeersbyIp = (
+	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
+
+	for (const peer of peerList) {
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			if (peer.height > tempPeer.height) {
+				peerMap.set(peer.ipAddress, peer);
+			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	}
+
+	return [...peerMap.values()];
+};

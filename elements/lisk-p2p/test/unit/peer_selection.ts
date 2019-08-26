@@ -15,10 +15,10 @@
 
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../utils/peers';
+import { getUniquePeersbyIp } from '../../src/utils';
 import {
 	selectPeersForConnection,
 	selectPeersForRequest,
-	getUniquePeersbyIp,
 } from '../../src/peer_selection';
 import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 

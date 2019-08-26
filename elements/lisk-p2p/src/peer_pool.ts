@@ -61,8 +61,7 @@ import {
 	OutboundPeer,
 	Peer,
 } from './peer';
-import { getUniquePeersbyIp } from './peer_selection';
-import { constructPeerIdFromPeerInfo } from './utils';
+import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
 import { EVICTED_PEER_CODE } from './disconnect_status_codes';
 
