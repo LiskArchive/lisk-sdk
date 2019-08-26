@@ -248,7 +248,7 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe('#getUniqueConnectedPeers', () => {
+	describe('#getUniqueOutboundConnectedPeers', () => {
 		const samplePeers = initializePeerInfoList();
 
 		describe('when two peers have same peer infos', () => {
