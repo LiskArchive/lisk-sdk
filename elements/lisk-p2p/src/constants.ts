@@ -67,16 +67,3 @@ export const DEFAULT_EVICTION_THRESHOLD_TIME = 86400000; // Milliseconds in a da
 export const DEFAULT_TRIED_PEER_LIST_SIZE = 64;
 export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
 export const DEFAULT_MAX_RECONNECT_TRIES = 3;
-
-// Peer validation
-export const IPV4_NUMBER = 4;
-export const IPV6_NUMBER = 6;
-
-// Peer utils
-export const SECRET_BUFFER_LENGTH = 4;
-export const NETWORK_BUFFER_LENGTH = 1;
-export const PREFIX_BUFFER_LENGTH = 1;
-export const BYTES_4 = 4;
-export const BYTES_16 = 16;
-export const BYTES_64 = 64;
-export const BYTES_128 = 128;

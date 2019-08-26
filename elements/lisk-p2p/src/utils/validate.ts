@@ -21,8 +21,6 @@ import {
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
 	InvalidRPCResponseError,
-	IPV4_NUMBER,
-	IPV6_NUMBER,
 } from '..';
 import { constructPeerIdFromPeerInfo } from './miscellaneous';
 import {
@@ -40,6 +38,9 @@ interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
 	readonly success?: boolean; // Could be used in future
 }
+
+const IPV4_NUMBER = 4;
+const IPV6_NUMBER = 6;
 
 export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));
