@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DEFAULT_RANDOM_SECRET } from '../../src/constants';
+import { DEFAULT_RANDOM_SECRET } from '../../src';
 import { Peer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 

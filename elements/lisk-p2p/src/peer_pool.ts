@@ -22,28 +22,6 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
-import { RequestFailError, SendFailError } from './exceptions';
-import { P2PRequest } from './p2p_request';
-import {
-	P2PClosePacket,
-	P2PDiscoveredPeerInfo,
-	P2PMessagePacket,
-	P2PNodeInfo,
-	P2PPeerInfo,
-	P2PPeersCount,
-	P2PPeerSelectionForConnectionFunction,
-	P2PPeerSelectionForRequestFunction,
-	P2PPeerSelectionForSendFunction,
-	P2PPenalty,
-	P2PRequestPacket,
-	P2PResponsePacket,
-} from './p2p_types';
-import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
-import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
-
-import { EVICTED_PEER_CODE } from './disconnect_status_codes';
-
-import { INTENTIONAL_DISCONNECT_STATUS_CODE } from './constants';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -63,7 +41,28 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
-} from './events';
+	EVICTED_PEER_CODE,
+	INTENTIONAL_DISCONNECT_STATUS_CODE,
+	RequestFailError,
+	SendFailError,
+} from '.';
+import { P2PRequest } from './p2p_request';
+import {
+	P2PClosePacket,
+	P2PDiscoveredPeerInfo,
+	P2PMessagePacket,
+	P2PNodeInfo,
+	P2PPeerInfo,
+	P2PPeersCount,
+	P2PPeerSelectionForConnectionFunction,
+	P2PPeerSelectionForRequestFunction,
+	P2PPeerSelectionForSendFunction,
+	P2PPenalty,
+	P2PRequestPacket,
+	P2PResponsePacket,
+} from './p2p_types';
+import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
+import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
 interface PeerPoolConfig {
 	readonly ackTimeout?: number;

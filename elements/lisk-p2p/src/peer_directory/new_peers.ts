@@ -16,7 +16,7 @@ import {
 	DEFAULT_EVICTION_THRESHOLD_TIME,
 	DEFAULT_NEW_PEER_BUCKET_COUNT,
 	DEFAULT_NEW_PEER_BUCKET_SIZE,
-} from '../constants';
+} from '..';
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 

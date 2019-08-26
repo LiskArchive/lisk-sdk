@@ -22,7 +22,7 @@ import {
 	NETWORK_BUFFER_LENGTH,
 	PREFIX_BUFFER_LENGTH,
 	SECRET_BUFFER_LENGTH,
-} from './constants';
+} from '.';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from './p2p_types';
 
 export enum NETWORK {

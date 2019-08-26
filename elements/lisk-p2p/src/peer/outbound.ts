@@ -21,6 +21,8 @@ import {
 } from './base';
 
 import {
+	DEFAULT_ACK_TIMEOUT,
+	DEFAULT_CONNECT_TIMEOUT,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
@@ -42,7 +44,6 @@ import {
 
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
-import { DEFAULT_ACK_TIMEOUT, DEFAULT_CONNECT_TIMEOUT } from '../constants';
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
 

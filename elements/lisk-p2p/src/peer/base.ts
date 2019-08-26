@@ -14,11 +14,31 @@
  */
 
 import { EventEmitter } from 'events';
+import * as socketClusterClient from 'socketcluster-client';
+import { SCServerSocket } from 'socketcluster-server';
 import {
+	DEFAULT_PRODUCTIVITY,
+	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_REPUTATION_SCORE,
+	EVENT_BAN_PEER,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_INVALID_MESSAGE_RECEIVED,
+	EVENT_INVALID_REQUEST_RECEIVED,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_UPDATED_PEER_INFO,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
-} from '../disconnect_status_codes';
-import { RPCResponseError } from '../exceptions';
+	REMOTE_EVENT_MESSAGE,
+	REMOTE_EVENT_RPC_REQUEST,
+	REMOTE_RPC_GET_NODE_INFO,
+	REMOTE_RPC_GET_PEERS_LIST,
+	REMOTE_RPC_UPDATE_PEER_INFO,
+	RPCResponseError,
+} from '..';
 import { P2PRequest } from '../p2p_request';
 import {
 	P2PDiscoveredPeerInfo,
@@ -31,38 +51,12 @@ import {
 	ProtocolNodeInfo,
 } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
-
-import * as socketClusterClient from 'socketcluster-client';
-import { SCServerSocket } from 'socketcluster-server';
 import {
 	validatePeerInfo,
 	validatePeersInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../validation';
-
-import {
-	DEFAULT_PRODUCTIVITY,
-	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
-	DEFAULT_REPUTATION_SCORE,
-} from '../constants';
-import {
-	EVENT_BAN_PEER,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_INVALID_MESSAGE_RECEIVED,
-	EVENT_INVALID_REQUEST_RECEIVED,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_UPDATED_PEER_INFO,
-	REMOTE_EVENT_MESSAGE,
-	REMOTE_EVENT_RPC_REQUEST,
-	REMOTE_RPC_GET_NODE_INFO,
-	REMOTE_RPC_GET_PEERS_LIST,
-	REMOTE_RPC_UPDATE_PEER_INFO,
-} from '../events';
 
 export interface ClientOptionsUpdated {
 	readonly hostname: string;

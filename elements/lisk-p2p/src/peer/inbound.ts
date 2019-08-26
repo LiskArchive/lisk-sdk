@@ -15,20 +15,18 @@
 import { Peer, PeerConfig, SCServerSocketUpdated } from './base';
 
 import {
+	DEFAULT_PING_INTERVAL_MAX,
+	DEFAULT_PING_INTERVAL_MIN,
 	EVENT_CLOSE_INBOUND,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_PING,
 	REMOTE_EVENT_MESSAGE,
 	REMOTE_EVENT_RPC_REQUEST,
-} from '../events';
+} from '..';
 
 import { P2PDiscoveredPeerInfo } from '../p2p_types';
 
 import { SCServerSocket } from 'socketcluster-server';
-import {
-	DEFAULT_PING_INTERVAL_MAX,
-	DEFAULT_PING_INTERVAL_MIN,
-} from '../constants';
 
 const socketErrorStatusCodes = {
 	...(SCServerSocket as any).errorStatuses,

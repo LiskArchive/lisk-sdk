@@ -15,17 +15,15 @@
 import { gte as isVersionGTE, valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
 import {
+	INCOMPATIBLE_NETWORK_REASON,
+	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
 	InvalidPeerError,
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
 	InvalidRPCResponseError,
-} from './exceptions';
-
-import { IPV4_NUMBER, IPV6_NUMBER } from './constants';
-import {
-	INCOMPATIBLE_NETWORK_REASON,
-	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-} from './disconnect_status_codes';
+	IPV4_NUMBER,
+	IPV6_NUMBER,
+} from '.';
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,
