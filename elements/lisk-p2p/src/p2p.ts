@@ -88,7 +88,6 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_NETWORK_READY,
 	EVENT_NEW_INBOUND_PEER,
-	EVENT_NEW_PEER,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
@@ -705,7 +704,6 @@ export class P2P extends EventEmitter {
 				if (!existingPeer) {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
 				if (!this._peerBook.getPeer(incomingPeerInfo)) {
