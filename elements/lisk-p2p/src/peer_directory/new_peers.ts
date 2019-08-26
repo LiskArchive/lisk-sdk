@@ -20,9 +20,9 @@ import {
 import {
 	constructPeerIdFromPeerInfo,
 	getBucket,
+	P2PPeerInfo,
 	PEER_TYPE,
-} from '../utils/miscellaneous';
-import { P2PPeerInfo } from '../utils/types';
+} from '../utils';
 
 export interface NewPeerConfig {
 	readonly evictionThresholdTime?: number;

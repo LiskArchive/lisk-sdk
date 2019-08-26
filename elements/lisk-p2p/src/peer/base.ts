@@ -42,24 +42,20 @@ import {
 import {
 	constructPeerIdFromPeerInfo,
 	getNetgroup,
-} from '../utils/miscellaneous';
-import { P2PRequest } from '../utils/request';
-import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PRequest,
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
-} from '../utils/types';
-import {
 	validatePeerInfo,
 	validatePeersInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
-} from '../utils/validate';
+} from '../utils';
 
 export interface ClientOptionsUpdated {
 	readonly hostname: string;

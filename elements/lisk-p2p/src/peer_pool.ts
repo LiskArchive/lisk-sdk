@@ -50,9 +50,6 @@ import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
 import {
 	constructPeerIdFromPeerInfo,
 	getUniquePeersbyIp,
-} from './utils/miscellaneous';
-import { P2PRequest } from './utils/request';
-import {
 	P2PClosePacket,
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
@@ -63,9 +60,10 @@ import {
 	P2PPeerSelectionForRequestFunction,
 	P2PPeerSelectionForSendFunction,
 	P2PPenalty,
+	P2PRequest,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from './utils/types';
+} from './utils';
 
 interface PeerPoolConfig {
 	readonly ackTimeout?: number;

@@ -24,8 +24,12 @@ interface SCServerUpdated extends SCServer {
 }
 
 import { PeerBook } from './peer_directory';
+import { PeerPool } from './peer_pool';
 
 import {
+	checkPeerCompatibility,
+	constructPeerIdFromPeerInfo,
+	outgoingPeerInfoSanitization,
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
@@ -34,26 +38,16 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
+	P2PRequest,
 	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
-} from './utils/types';
-
-import { P2PRequest } from './utils/request';
-export { P2PRequest };
-import {
+	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-} from './utils/select';
-
-import { PeerPool } from './peer_pool';
-import { constructPeerIdFromPeerInfo } from './utils/miscellaneous';
-import {
-	checkPeerCompatibility,
-	outgoingPeerInfoSanitization,
-	sanitizePeerLists,
-} from './utils/validate';
+} from './utils';
+export { P2PRequest };
 
 import {
 	BASE_10_RADIX,

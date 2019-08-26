@@ -18,11 +18,11 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-} from '../../src/utils/select';
+	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
+} from '../../src/utils';
 import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList, initializePeerInfoList } from '../utils/peers';
-import { P2PDiscoveredPeerInfo } from '../../src/utils/types';
-import { P2PPeerInfo } from '../../src/utils/types';
 import {
 	DEFAULT_WS_MAX_PAYLOAD,
 	DEFAULT_BAN_TIME,

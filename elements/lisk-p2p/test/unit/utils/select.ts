@@ -15,12 +15,13 @@
 
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../../utils/peers';
-import { getUniquePeersbyIp } from '../../../src/utils/miscellaneous';
 import {
+	getUniquePeersbyIp,
 	selectPeersForConnection,
 	selectPeersForRequest,
-} from '../../../src/utils/select';
-import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../../src/utils/types';
+	P2PNodeInfo,
+	P2PDiscoveredPeerInfo,
+} from '../../../src/utils';
 
 describe('utils/select', () => {
 	describe('#selectPeersForRequest', () => {

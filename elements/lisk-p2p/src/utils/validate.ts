@@ -15,15 +15,7 @@
 import { gte as isVersionGTE, valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
 import {
-	INCOMPATIBLE_NETWORK_REASON,
-	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-	InvalidPeerError,
-	InvalidProtocolMessageError,
-	InvalidRPCRequestError,
-	InvalidRPCResponseError,
-} from '..';
-import { constructPeerIdFromPeerInfo } from './miscellaneous';
-import {
+	constructPeerIdFromPeerInfo,
 	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,
 	P2PNodeInfo,
@@ -32,7 +24,15 @@ import {
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
-} from './types';
+} from '.';
+import {
+	INCOMPATIBLE_NETWORK_REASON,
+	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+	InvalidPeerError,
+	InvalidProtocolMessageError,
+	InvalidRPCRequestError,
+	InvalidRPCResponseError,
+} from '..';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;

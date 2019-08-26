@@ -20,9 +20,10 @@ import {
 import {
 	constructPeerIdFromPeerInfo,
 	getBucket,
+	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
 	PEER_TYPE,
-} from '../utils/miscellaneous';
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../utils/types';
+} from '../utils';
 
 export interface TriedPeerConfig {
 	readonly triedPeerBucketCount?: number;
