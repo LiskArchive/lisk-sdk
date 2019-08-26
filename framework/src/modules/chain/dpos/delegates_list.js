@@ -16,6 +16,7 @@
 
 const EventEmitter = require('events');
 const { hash } = require('@liskhq/lisk-cryptography');
+const { Slots } = require('./slots');
 // Will be fired once a round is finished
 const EVENT_ROUND_FINISHED = 'EVENT_ROUND_FINISHED';
 
@@ -94,6 +95,31 @@ class DelegatesList extends EventEmitter {
 		await this.storage.entities.RoundDelegates.delete({
 			round_lt: round,
 		});
+	}
+
+	/**
+	 * Validates if block was forged by correct delegate
+	 *
+	 * @param {Object} block
+	 */
+	verifyBlockForger(block) {
+		const currentSlot = Slots.getSlotNumber(block.timestamp);
+
+		// get round
+		const round = Slots.calcRound(block.height);
+
+		// get delegate list for this round
+		const delegateList = this.delegateListCache[round];
+
+		// get delegate for this specific block
+		const delegatePubKey = delegateList[currentSlot % this.activeDelegates];
+
+		// check if this is correct
+		if (delegatePubKey && block.generatorPublicKey === delegatePubKey) {
+			return true;
+		}
+
+		throw new Error(`Failed to verify slot: ${currentSlot}`);
 	}
 }
 
