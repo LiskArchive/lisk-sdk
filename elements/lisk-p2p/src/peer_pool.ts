@@ -314,8 +314,12 @@ export class PeerPool extends EventEmitter {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
 			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
+		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
 			peers: getUniquePeersbyIp(listOfPeerInfo),
+			nodeInfo: this._nodeInfo,
+			peerLimit: 1,
+			requestPacket: packet,
 		});
 
 		if (selectedPeers.length <= 0) {
@@ -333,6 +337,7 @@ export class PeerPool extends EventEmitter {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
 			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
+		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
 			nodeInfo: this._nodeInfo,
@@ -397,6 +402,8 @@ export class PeerPool extends EventEmitter {
 			this._maxOutboundConnections -
 			disconnectedFixedPeers.length -
 			outboundCount;
+
+		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
 			newPeers: disconnectedNewPeers,
 			triedPeers: disconnectedTriedPeers,
