@@ -15,7 +15,7 @@
 
 import { expect } from 'chai';
 import { Peer } from '../../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { P2PDiscoveredPeerInfo } from '../../../src/utils/types';
 
 describe('peer', () => {
 	const DEFAULT_RANDOM_SECRET = 123;

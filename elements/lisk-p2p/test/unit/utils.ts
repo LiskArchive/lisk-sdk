@@ -23,7 +23,7 @@ import {
 	getBucket,
 	NETWORK,
 	PEER_TYPE,
-} from '../../src/utils';
+} from '../../src/utils/miscellaneous';
 
 describe('utils', () => {
 	const IPv4Address = '1.160.10.240';

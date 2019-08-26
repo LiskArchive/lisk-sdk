@@ -21,12 +21,12 @@ import {
 	validateProtocolMessage,
 	incomingPeerInfoSanitization,
 	outgoingPeerInfoSanitization,
-} from '../../src/validation';
-import { ProtocolPeerInfo } from '../../src/p2p_types';
+} from '../../src/utils/validate';
+import { ProtocolPeerInfo } from '../../src/utils/types';
 import {
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
-} from '../../src/p2p_types';
+} from '../../src/utils/types';
 import { initializePeerInfoList } from 'utils/peers';
 
 describe('response handlers', () => {
