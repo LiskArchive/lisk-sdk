@@ -178,9 +178,7 @@ describe('node/api', () => {
 		describe('when chain:getNodeStatus answers with all parameters', () => {
 			beforeEach(async () => {
 				channelStub.invoke.withArgs('chain:getNodeStatus').returns(status);
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 			});
 
 			it('should return an object status with all properties', async () =>
@@ -205,9 +203,7 @@ describe('node/api', () => {
 				channelStub.invoke
 					.withArgs('chain:getNodeStatus')
 					.returns(statusWithoutSomeParameters);
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 			});
 
 			it('should return an object status with some properties to 0', async () =>
@@ -244,9 +240,7 @@ describe('node/api', () => {
 						height: 438,
 					},
 				];
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 				networkHeight = await getNetworkHeight();
 			});
 
@@ -255,9 +249,9 @@ describe('node/api', () => {
 			});
 		});
 
-		describe('When network:getConnectedPeers returns a blank list of peers', () => {
+		describe('When network:getPeers returns a blank list of peers', () => {
 			beforeEach(async () => {
-				channelStub.invoke.withArgs('network:getConnectedPeers').returns([]);
+				channelStub.invoke.withArgs('network:getPeers').returns([]);
 				networkHeight = await getNetworkHeight();
 			});
 
@@ -266,7 +260,7 @@ describe('node/api', () => {
 			});
 		});
 
-		describe('When network:getConnectedPeers returns a list of peers with 2 different equal set of peers height', () => {
+		describe('When network:getPeers returns a list of peers with 2 different equal set of peers height', () => {
 			beforeEach(async () => {
 				const defaultPeers = [
 					{
@@ -288,9 +282,7 @@ describe('node/api', () => {
 						height: MAJORITY_HEIGHT,
 					},
 				];
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 				networkHeight = await getNetworkHeight();
 			});
 
@@ -299,7 +291,7 @@ describe('node/api', () => {
 			});
 		});
 
-		describe('When network:getConnectedPeers returns a list of peers with 3 different equal set of peers height', () => {
+		describe('When network:getPeers returns a list of peers with 3 different equal set of peers height', () => {
 			beforeEach(async () => {
 				const defaultPeers = [
 					{
@@ -330,9 +322,7 @@ describe('node/api', () => {
 						height: MAJORITY_HEIGHT,
 					},
 				];
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 				networkHeight = await getNetworkHeight();
 			});
 
@@ -341,7 +331,7 @@ describe('node/api', () => {
 			});
 		});
 
-		describe('When network:getConnectedPeers returns a list of peers with 2 different unequal set of peers height', () => {
+		describe('When network:getPeers returns a list of peers with 2 different unequal set of peers height', () => {
 			beforeEach(async () => {
 				const defaultPeers = [
 					{
@@ -363,9 +353,7 @@ describe('node/api', () => {
 						height: MAJORITY_HEIGHT + 1,
 					},
 				];
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 				networkHeight = await getNetworkHeight();
 			});
 
@@ -374,16 +362,14 @@ describe('node/api', () => {
 			});
 		});
 
-		describe('When network:getConnectedPeers returns only one peer', () => {
+		describe('When network:getPeers returns only one peer', () => {
 			beforeEach(async () => {
 				const defaultPeers = [
 					{
 						height: MAJORITY_HEIGHT,
 					},
 				];
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 				networkHeight = await getNetworkHeight();
 			});
 
@@ -392,7 +378,7 @@ describe('node/api', () => {
 			});
 		});
 
-		describe('When network:getConnectedPeers returns majority of peers with very low height compared to others', () => {
+		describe('When network:getPeers returns majority of peers with very low height compared to others', () => {
 			beforeEach(async () => {
 				const defaultPeers = [
 					{
@@ -414,9 +400,7 @@ describe('node/api', () => {
 						height: 1,
 					},
 				];
-				channelStub.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(defaultPeers);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 				networkHeight = await getNetworkHeight();
 			});
 
