@@ -42,11 +42,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 		describe('errors', () => {
 			it('should fail when trying to delete genesis block', async () => {
 				try {
-					await library.modules.processor.deleteLastBlock(
-						library.modules.blocks.lastBlock,
-					);
+					await library.modules.processor.deleteLastBlock();
 				} catch (err) {
-					expect(err.message).to.equal('Cannot delete genesis block');
+					expect(err.message).to.equal('PreviousBlock is null');
 				}
 			});
 		});
