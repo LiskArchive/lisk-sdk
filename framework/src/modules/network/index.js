@@ -66,6 +66,10 @@ module.exports = class NetworkModule extends BaseModule {
 			getPeersCount: {
 				handler: action => this.network.actions.getPeersCount(action),
 			},
+			getUniqueOutboundConnectedPeersCount: {
+				handler: action =>
+					this.network.actions.getUniqueOutboundConnectedPeersCount(action),
+			},
 		};
 	}
 

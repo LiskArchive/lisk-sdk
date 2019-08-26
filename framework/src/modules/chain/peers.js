@@ -51,7 +51,10 @@ class Peers {
 		const { broadhash } = await this.channel.invoke('app:getApplicationState');
 
 		const activeCount = Math.min(
-			await this.channel.invoke('network:getUniqueOutboundConnectedPeersCount'),
+			await this.channel.invoke(
+				'network:getUniqueOutboundConnectedPeersCount',
+				{},
+			),
 			MAX_PEERS,
 		);
 
