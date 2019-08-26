@@ -23,9 +23,9 @@ import {
 	getBucket,
 	NETWORK,
 	PEER_TYPE,
-} from '../../src/utils/miscellaneous';
+} from '../../../src/utils/miscellaneous';
 
-describe('utils', () => {
+describe('utils/miscellaneous', () => {
 	const IPv4Address = '1.160.10.240';
 	const privateAddress = '10.0.0.0';
 	const localAddress = '127.0.0.1';

@@ -25,7 +25,7 @@ import {
 	RequestFailError,
 } from '../../src';
 
-describe('errors', () => {
+describe('exceptions', () => {
 	describe('#PeerInboundHandshakeError', () => {
 		const remoteAddress = '127.0.0.1';
 		const statusCode = 4501;

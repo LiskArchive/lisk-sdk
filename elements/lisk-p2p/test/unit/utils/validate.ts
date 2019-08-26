@@ -21,15 +21,15 @@ import {
 	validateProtocolMessage,
 	incomingPeerInfoSanitization,
 	outgoingPeerInfoSanitization,
-} from '../../src/utils/validate';
-import { ProtocolPeerInfo } from '../../src/utils/types';
+} from '../../../src/utils/validate';
+import { ProtocolPeerInfo } from '../../../src/utils/types';
 import {
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
-} from '../../src/utils/types';
+} from '../../../src/utils/types';
 import { initializePeerInfoList } from 'utils/peers';
 
-describe('response handlers', () => {
+describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
 			const peer: ProtocolPeerInfo = {

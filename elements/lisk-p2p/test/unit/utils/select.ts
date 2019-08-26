@@ -14,15 +14,15 @@
  */
 
 import { expect } from 'chai';
-import { initializePeerInfoList } from '../utils/peers';
-import { getUniquePeersbyIp } from '../../src/utils/miscellaneous';
+import { initializePeerInfoList } from '../../utils/peers';
+import { getUniquePeersbyIp } from '../../../src/utils/miscellaneous';
 import {
 	selectPeersForConnection,
 	selectPeersForRequest,
-} from '../../src/utils/select';
-import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../src/utils/types';
+} from '../../../src/utils/select';
+import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../../src/utils/types';
 
-describe('peer selector', () => {
+describe('utils/select', () => {
 	describe('#selectPeersForRequest', () => {
 		let peerList = initializePeerInfoList();
 		const nodeInfo: P2PNodeInfo = {
