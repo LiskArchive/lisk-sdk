@@ -147,6 +147,7 @@ describe('peers', () => {
 				expect(
 					channelMock.invoke.calledWithExactly(
 						'network:getUniqueOutboundConnectedPeersCount',
+						{},
 					),
 				).to.be.true);
 
