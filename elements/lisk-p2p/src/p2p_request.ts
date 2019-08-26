@@ -13,7 +13,7 @@
  *
  */
 
-import { RPCResponseAlreadySentError } from './errors';
+import { RPCResponseAlreadySentError } from './exceptions';
 import { P2PResponsePacket } from './p2p_types';
 
 interface RequestOptions {

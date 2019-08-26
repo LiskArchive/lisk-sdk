@@ -19,7 +19,7 @@ import {
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
 	InvalidRPCResponseError,
-} from './errors';
+} from './exceptions';
 
 import {
 	INCOMPATIBLE_NETWORK_REASON,

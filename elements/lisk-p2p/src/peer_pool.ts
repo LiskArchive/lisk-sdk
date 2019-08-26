@@ -22,7 +22,7 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
-import { RequestFailError, SendFailError } from './errors';
+import { RequestFailError, SendFailError } from './exceptions';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,

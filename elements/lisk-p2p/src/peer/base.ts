@@ -18,7 +18,7 @@ import {
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 } from '../disconnect_status_codes';
-import { RPCResponseError } from '../errors';
+import { RPCResponseError } from '../exceptions';
 import { P2PRequest } from '../p2p_request';
 import {
 	P2PDiscoveredPeerInfo,

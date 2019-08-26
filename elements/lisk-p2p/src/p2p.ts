@@ -39,7 +39,7 @@ import {
 	INVALID_CONNECTION_URL_REASON,
 } from './disconnect_status_codes';
 
-import { PeerInboundHandshakeError } from './errors';
+import { PeerInboundHandshakeError } from './exceptions';
 
 import {
 	P2PCheckPeerCompatibility,
