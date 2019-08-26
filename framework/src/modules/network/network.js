@@ -383,7 +383,7 @@ module.exports = class Network {
 		// TODO: In phase 2, only previousPeers will be saved to database
 		this.logger.info('Cleaning network...');
 
-		const peersToSave = this.p2p.getNetworkStatus().connectedPeers.map(peer => {
+		const peersToSave = this.p2p.getConnectedPeers().map(peer => {
 			const { ipAddress, ...peerWithoutIp } = peer;
 
 			return {

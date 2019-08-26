@@ -60,9 +60,6 @@ module.exports = class NetworkModule extends BaseModule {
 			emit: {
 				handler: action => this.network.actions.emit(action),
 			},
-			getNetworkStatus: {
-				handler: () => this.network.actions.getNetworkStatus(),
-			},
 			getPeers: {
 				handler: action => this.network.actions.getPeers(action),
 			},
