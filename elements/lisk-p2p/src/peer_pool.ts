@@ -51,7 +51,7 @@ import {
 	constructPeerIdFromPeerInfo,
 	getUniquePeersbyIp,
 } from './utils/miscellaneous';
-import { P2PRequest } from './utils/p2p_request';
+import { P2PRequest } from './utils/request';
 import {
 	P2PClosePacket,
 	P2PDiscoveredPeerInfo,

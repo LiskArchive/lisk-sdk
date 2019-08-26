@@ -43,7 +43,7 @@ import {
 	constructPeerIdFromPeerInfo,
 	getNetgroup,
 } from '../utils/miscellaneous';
-import { P2PRequest } from '../utils/p2p_request';
+import { P2PRequest } from '../utils/request';
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,

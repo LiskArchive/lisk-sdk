@@ -39,7 +39,7 @@ import {
 	PeerLists,
 } from './utils/types';
 
-import { P2PRequest } from './utils/p2p_request';
+import { P2PRequest } from './utils/request';
 export { P2PRequest };
 import {
 	selectPeersForConnection,
