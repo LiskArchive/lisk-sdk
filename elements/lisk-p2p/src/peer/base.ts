@@ -49,7 +49,7 @@ import {
 	P2PResponsePacket,
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
-} from '../p2p_types';
+} from '../types';
 import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
 import {
 	validatePeerInfo,

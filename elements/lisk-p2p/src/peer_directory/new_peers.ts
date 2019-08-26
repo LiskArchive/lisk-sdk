@@ -17,7 +17,7 @@ import {
 	DEFAULT_NEW_PEER_BUCKET_COUNT,
 	DEFAULT_NEW_PEER_BUCKET_SIZE,
 } from '..';
-import { P2PPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
 export interface NewPeerConfig {

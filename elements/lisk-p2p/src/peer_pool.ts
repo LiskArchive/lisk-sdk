@@ -47,6 +47,7 @@ import {
 	SendFailError,
 } from '.';
 import { P2PRequest } from './p2p_request';
+import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
 import {
 	P2PClosePacket,
 	P2PDiscoveredPeerInfo,
@@ -60,8 +61,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from './p2p_types';
-import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
+} from './types';
 import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
 interface PeerPoolConfig {

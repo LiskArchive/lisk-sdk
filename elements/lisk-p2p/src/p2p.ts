@@ -37,7 +37,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
-} from './p2p_types';
+} from './types';
 
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };

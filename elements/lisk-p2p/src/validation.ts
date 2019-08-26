@@ -33,7 +33,7 @@ import {
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
-} from './p2p_types';
+} from './types';
 import { constructPeerIdFromPeerInfo } from './utils';
 
 interface RPCPeerListResponse {

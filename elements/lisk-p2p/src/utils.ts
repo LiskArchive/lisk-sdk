@@ -23,7 +23,7 @@ import {
 	PREFIX_BUFFER_LENGTH,
 	SECRET_BUFFER_LENGTH,
 } from '.';
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from './p2p_types';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from './types';
 
 export enum NETWORK {
 	NET_IPV4 = 0,
