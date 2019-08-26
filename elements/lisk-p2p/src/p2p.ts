@@ -113,10 +113,12 @@ export {
 	EVENT_UNBAN_PEER,
 };
 
-export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
-export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
-export const EVENT_NEW_PEER = 'newPeer';
-export const EVENT_NETWORK_READY = 'networkReady';
+import {
+	EVENT_FAILED_TO_ADD_INBOUND_PEER,
+	EVENT_NETWORK_READY,
+	EVENT_NEW_INBOUND_PEER,
+	EVENT_NEW_PEER,
+} from './events';
 
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
