@@ -16,7 +16,6 @@
 
 const EventEmitter = require('events');
 const { hash } = require('@liskhq/lisk-cryptography');
-const { Slots } = require('./slots');
 // Will be fired once a round is finished
 const EVENT_ROUND_FINISHED = 'EVENT_ROUND_FINISHED';
 
@@ -41,10 +40,11 @@ const shuffleDelegateListForRound = (round, list) => {
 };
 
 class DelegatesList extends EventEmitter {
-	constructor({ storage, activeDelegates, exceptions }) {
+	constructor({ storage, activeDelegates, slots, exceptions }) {
 		super();
 		this.delegateListCache = {};
 		this.storage = storage;
+		this.slots = slots;
 		this.activeDelegates = activeDelegates;
 		this.exceptions = exceptions;
 	}
@@ -102,19 +102,21 @@ class DelegatesList extends EventEmitter {
 	 *
 	 * @param {Object} block
 	 */
-	verifyBlockForger(block) {
-		const currentSlot = Slots.getSlotNumber(block.timestamp);
+	async verifyBlockForger(block) {
+		const currentSlot = this.slots.getSlotNumber(block.timestamp);
+		const round = this.slots.calcRound(block.height);
+		const delegateList = await this.getRoundDelegates(round);
 
-		// get round
-		const round = Slots.calcRound(block.height);
+		if (!delegateList.length) {
+			throw new Error(
+				`Failed to verify slot: ${currentSlot} - No delegateList was found`,
+			);
+		}
 
-		// get delegate list for this round
-		const delegateList = this.delegateListCache[round];
-
-		// get delegate for this specific block
+		// Get delegate key that forged this block
 		const delegatePubKey = delegateList[currentSlot % this.activeDelegates];
 
-		// check if this is correct
+		// Verify if forger exists and matches the generatorPublicKey on block
 		if (delegatePubKey && block.generatorPublicKey === delegatePubKey) {
 			return true;
 		}
