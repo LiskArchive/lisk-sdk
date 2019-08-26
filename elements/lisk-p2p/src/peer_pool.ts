@@ -43,6 +43,7 @@ import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
 import { EVICTED_PEER_CODE } from './disconnect_status_codes';
 
+import { INTENTIONAL_DISCONNECT_STATUS_CODE } from './constants';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -87,10 +88,6 @@ interface PeerPoolConfig {
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
 }
-
-export const MAX_PEER_LIST_BATCH_SIZE = 100;
-export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
-export const INTENTIONAL_DISCONNECT_STATUS_CODE = 1000;
 
 export enum PROTECTION_CATEGORY {
 	NET_GROUP = 'netgroup',

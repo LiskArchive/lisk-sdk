@@ -14,15 +14,16 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
+import {
+	BYTES_128,
+	BYTES_16,
+	BYTES_4,
+	BYTES_64,
+	NETWORK_BUFFER_LENGTH,
+	PREFIX_BUFFER_LENGTH,
+	SECRET_BUFFER_LENGTH,
+} from './constants';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from './p2p_types';
-
-const SECRET_BUFFER_LENGTH = 4;
-const NETWORK_BUFFER_LENGTH = 1;
-const PREFIX_BUFFER_LENGTH = 1;
-const BYTES_4 = 4;
-const BYTES_16 = 16;
-const BYTES_64 = 64;
-const BYTES_128 = 128;
 
 export enum NETWORK {
 	NET_IPV4 = 0,

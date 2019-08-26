@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+export * from './constants';
 export * from './disconnect_status_codes';
 export * from './exceptions';
 export * from './events';

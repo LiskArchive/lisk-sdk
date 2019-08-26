@@ -16,8 +16,6 @@
 import {
 	ClientOptionsUpdated,
 	convertNodeInfoToLegacyFormat,
-	DEFAULT_ACK_TIMEOUT,
-	DEFAULT_CONNECT_TIMEOUT,
 	Peer,
 	PeerConfig,
 } from './base';
@@ -32,7 +30,7 @@ import {
 	REMOTE_EVENT_MESSAGE,
 	REMOTE_EVENT_RPC_REQUEST,
 	RESPONSE_PONG,
-} from '../events';
+} from '..';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -44,6 +42,7 @@ import {
 
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
+import { DEFAULT_ACK_TIMEOUT, DEFAULT_CONNECT_TIMEOUT } from '../constants';
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
 

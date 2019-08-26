@@ -34,7 +34,7 @@ import {
 	DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
 	DEFAULT_RANDOM_SECRET,
-} from '../../src/p2p';
+} from '../../src/constants';
 
 describe('peerPool', () => {
 	const peerPool = new PeerPool({

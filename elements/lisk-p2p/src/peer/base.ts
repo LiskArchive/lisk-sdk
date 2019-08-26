@@ -42,6 +42,11 @@ import {
 } from '../validation';
 
 import {
+	DEFAULT_PRODUCTIVITY,
+	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_REPUTATION_SCORE,
+} from '../constants';
+import {
 	EVENT_BAN_PEER,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_PEER_INFO_UPDATE,
@@ -85,17 +90,6 @@ export type SCServerSocketUpdated = {
 } & SCServerSocket;
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
-
-export const DEFAULT_CONNECT_TIMEOUT = 2000;
-export const DEFAULT_ACK_TIMEOUT = 2000;
-export const DEFAULT_REPUTATION_SCORE = 100;
-export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 20000;
-export const DEFAULT_PRODUCTIVITY = {
-	requestCounter: 0,
-	responseCounter: 0,
-	responseRate: 0,
-	lastResponded: 0,
-};
 
 // Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
 const RATE_NORMALIZATION_FACTOR = 1000;

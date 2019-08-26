@@ -12,12 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	DEFAULT_EVICTION_THRESHOLD_TIME,
+	DEFAULT_NEW_PEER_BUCKET_COUNT,
+	DEFAULT_NEW_PEER_BUCKET_SIZE,
+} from '../constants';
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
-
-export const DEFAULT_NEW_PEER_BUCKET_COUNT = 128;
-export const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
-export const DEFAULT_EVICTION_THRESHOLD_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds;
 
 export interface NewPeerConfig {
 	readonly evictionThresholdTime?: number;

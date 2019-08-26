@@ -21,6 +21,7 @@ import {
 	InvalidRPCResponseError,
 } from './exceptions';
 
+import { IPV4_NUMBER, IPV6_NUMBER } from './constants';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -36,9 +37,6 @@ import {
 	ProtocolRPCRequestPacket,
 } from './p2p_types';
 import { constructPeerIdFromPeerInfo } from './utils';
-
-const IPV4_NUMBER = 4;
-const IPV6_NUMBER = 6;
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;

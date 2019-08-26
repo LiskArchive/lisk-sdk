@@ -25,13 +25,15 @@ import {
 import { P2PDiscoveredPeerInfo } from '../p2p_types';
 
 import { SCServerSocket } from 'socketcluster-server';
+import {
+	DEFAULT_PING_INTERVAL_MAX,
+	DEFAULT_PING_INTERVAL_MIN,
+} from '../constants';
+
 const socketErrorStatusCodes = {
 	...(SCServerSocket as any).errorStatuses,
 	1000: 'Intentionally disconnected',
 };
-
-const DEFAULT_PING_INTERVAL_MAX = 60000;
-const DEFAULT_PING_INTERVAL_MIN = 20000;
 
 const getRandomPingDelay = () =>
 	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
