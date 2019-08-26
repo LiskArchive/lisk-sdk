@@ -1178,6 +1178,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,
@@ -1221,6 +1222,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,
@@ -1269,6 +1271,7 @@ describe('processor', () => {
 							block: blockV0,
 							lastBlock: defaultLastBlock,
 							tx: txStub,
+							skipExistingCheck: true,
 						},
 						undefined,
 					);
@@ -1289,7 +1292,11 @@ describe('processor', () => {
 			});
 
 			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).toHaveBeenCalledWith({
+					block: blockV0,
+					tx: txStub,
+					skipSave: true,
+				});
 			});
 
 			it('should not broadcast the block', async () => {
