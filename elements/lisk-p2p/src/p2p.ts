@@ -534,8 +534,10 @@ export class P2P extends EventEmitter {
 		return this._peerPool.getAllConnectedPeerInfos();
 	}
 
-	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._peerPool.getUniqueConnectedPeers();
+	public getUniqueOutboundConnectedPeers(): ReadonlyArray<
+		P2PDiscoveredPeerInfo
+	> {
+		return this._peerPool.getUniqueOutboundConnectedPeers();
 	}
 
 	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {

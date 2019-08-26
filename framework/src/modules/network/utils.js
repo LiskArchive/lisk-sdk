@@ -15,6 +15,52 @@ const { shuffle } = require('lodash');
 
 const PEER_STATE_CONNECTED = 2;
 const PEER_STATE_DISCONNECTED = 1;
+
+const net = require('net');
+const dns = require('dns');
+
+const lookupPromise = (hostname, options) =>
+	new Promise((resolve, reject) => {
+		dns.lookup(hostname, options, (err, address) => {
+			if (err) {
+				return reject(err);
+			}
+
+			return resolve(address);
+		});
+	});
+
+const lookupPeersIPs = async (peersList, enabled) => {
+	// If peers layer is not enabled there is no need to create the peer's list
+	if (!enabled) {
+		return [];
+	}
+
+	// In case domain names are used, resolve those to IP addresses.
+	peersList = await Promise.all(
+		peersList.map(async peer => {
+			if (net.isIPv4(peer.ip)) {
+				return peer;
+			}
+
+			try {
+				const address = await lookupPromise(peer.ip, { family: 4 });
+				return {
+					...peer,
+					ip: address,
+				};
+			} catch (err) {
+				console.error(
+					`Failed to resolve peer domain name ${peer.ip} to an IP address`,
+				);
+				return peer;
+			}
+		}),
+	);
+
+	return peersList;
+};
+
 /**
  * Sorts peers.
  *
@@ -73,13 +119,13 @@ const sortPeers = (field, asc) => (a, b) => {
 };
 
 /**
- * Returns peers length by filter but without offset and limit.
+ * Returns peers by filter.
  * @param {Array} peers
  * @param {Object} filter
  * @returns {int} count
  * @todo Add description for the params
  */
-const getByFilter = (peers, filter) => {
+const filterByParams = (peers, filters) => {
 	const allowedFields = [
 		'ip',
 		'wsPort',
@@ -97,7 +143,7 @@ const getByFilter = (peers, filter) => {
 		offset: filterOffset,
 		sort,
 		...otherFilters
-	} = filter;
+	} = filters;
 	const limit = filterLimit ? Math.abs(filterLimit) : null;
 	const offset = filterOffset ? Math.abs(filterOffset) : 0;
 
@@ -120,8 +166,8 @@ const getByFilter = (peers, filter) => {
 	}, []);
 
 	// Sorting
-	if (filter.sort) {
-		const sortArray = String(filter.sort).split(':');
+	if (filters.sort) {
+		const sortArray = String(filters.sort).split(':');
 		const auxSortField = allowedFields.includes(sortArray[0])
 			? sortArray[0]
 			: null;
@@ -148,27 +194,11 @@ const getByFilter = (peers, filter) => {
 };
 
 /**
- * Returns peers length by filter but without offset and limit.
- * @param {Array} peers
- * @param {Object} filter
- * @returns {int} count
+ * Returns list of consolidated peers
+ * @param {Object}
  * @todo Add description for the params
  */
-const getCountByFilter = (peers, filter) => {
-	const { limit, offset, ...filterWithoutLimitOffset } = filter;
-	const peersWithoutLimitOffset = getByFilter(peers, filterWithoutLimitOffset);
-
-	return peersWithoutLimitOffset.length;
-};
-
-/**
- * Returns peers length by filter but without offset and limit.
- * @param {Array} peers
- * @param {Object} filter
- * @returns {int} count
- * @todo Add description for the params
- */
-const getConsolidatedPeersList = ({
+const consolidatePeers = ({
 	connectedPeers = [],
 	disconnectedPeers = [],
 }) => {
@@ -192,7 +222,7 @@ const getConsolidatedPeersList = ({
 };
 
 module.exports = {
-	getByFilter,
-	getCountByFilter,
-	getConsolidatedPeersList,
+	filterByParams,
+	consolidatePeers,
+	lookupPeersIPs,
 };

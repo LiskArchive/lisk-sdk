@@ -56,8 +56,9 @@ async function _getForgingStatus(publicKey) {
  * @private
  */
 async function _getNetworkHeight() {
-	const peers = await library.channel.invoke('network:getConnectedPeers', {
+	const peers = await library.channel.invoke('network:getPeers', {
 		limit: 100,
+		state: 2,
 	});
 	if (!peers || !peers.length) {
 		return 0;
