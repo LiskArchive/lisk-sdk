@@ -48,7 +48,7 @@ import {
 } from './utils/select';
 
 import { PeerPool } from './peer_pool';
-import { constructPeerIdFromPeerInfo } from './utils/utils';
+import { constructPeerIdFromPeerInfo } from './utils/miscellaneous';
 import {
 	checkPeerCompatibility,
 	outgoingPeerInfoSanitization,

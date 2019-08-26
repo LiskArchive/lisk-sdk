@@ -39,6 +39,10 @@ import {
 	REMOTE_RPC_UPDATE_PEER_INFO,
 	RPCResponseError,
 } from '..';
+import {
+	constructPeerIdFromPeerInfo,
+	getNetgroup,
+} from '../utils/miscellaneous';
 import { P2PRequest } from '../utils/p2p_request';
 import {
 	P2PDiscoveredPeerInfo,
@@ -50,7 +54,6 @@ import {
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
 } from '../utils/types';
-import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils/utils';
 import {
 	validatePeerInfo,
 	validatePeersInfoList,

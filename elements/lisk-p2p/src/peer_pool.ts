@@ -47,6 +47,10 @@ import {
 	SendFailError,
 } from '.';
 import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
+import {
+	constructPeerIdFromPeerInfo,
+	getUniquePeersbyIp,
+} from './utils/miscellaneous';
 import { P2PRequest } from './utils/p2p_request';
 import {
 	P2PClosePacket,
@@ -62,7 +66,6 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './utils/types';
-import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils/utils';
 
 interface PeerPoolConfig {
 	readonly ackTimeout?: number;

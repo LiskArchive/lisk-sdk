@@ -17,12 +17,12 @@ import {
 	DEFAULT_NEW_PEER_BUCKET_COUNT,
 	DEFAULT_NEW_PEER_BUCKET_SIZE,
 } from '..';
-import { P2PPeerInfo } from '../utils/types';
 import {
 	constructPeerIdFromPeerInfo,
 	getBucket,
 	PEER_TYPE,
-} from '../utils/utils';
+} from '../utils/miscellaneous';
+import { P2PPeerInfo } from '../utils/types';
 
 export interface NewPeerConfig {
 	readonly evictionThresholdTime?: number;

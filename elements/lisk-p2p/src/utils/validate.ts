@@ -24,6 +24,7 @@ import {
 	IPV4_NUMBER,
 	IPV6_NUMBER,
 } from '..';
+import { constructPeerIdFromPeerInfo } from './miscellaneous';
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,
@@ -34,7 +35,6 @@ import {
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from './types';
-import { constructPeerIdFromPeerInfo } from './utils';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
