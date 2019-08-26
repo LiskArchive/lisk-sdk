@@ -14,6 +14,8 @@
 
 'use strict';
 
+const { loadBlocksWithOffset } = require('./blocks');
+
 class Rebuilder {
 	constructor({
 		// components
@@ -27,8 +29,7 @@ class Rebuilder {
 		blocksModule,
 		interfaceAdapters,
 		// Constants
-		loadPerIteration,
-		rebuildUpToRound,
+		activeDelegates,
 	}) {
 		this.isActive = false;
 		this.isCleaning = false;
@@ -38,21 +39,46 @@ class Rebuilder {
 		this.storage = storage;
 		this.genesisBlock = genesisBlock;
 
-		this.constants = {
-			loadPerIteration,
-			rebuildUpToRound,
-		};
-
 		this.processorModule = processorModule;
 		this.blocksModule = blocksModule;
 		this.interfaceAdapters = interfaceAdapters;
+		this.constants = {
+			activeDelegates,
+		};
 	}
 
 	cleanup() {
 		this.isCleaning = true;
 	}
 
-	async rebuild(targetHeight, loadPerIteration = 1000) {
+	async rebuild(rebuildUpToRound, loadPerIteration = 1000) {
+		const blocksCount = await this.storage.entities.Block.count({}, {});
+		this.logger.info(
+			{ rebuildUpToRound, blocksCount },
+			'Rebuild process started',
+		);
+		if (blocksCount < this.constants.activeDelegates) {
+			throw new Error(
+				'Unable to rebuild, blockchain should contain at least one round of blocks',
+			);
+		}
+		if (
+			Number.isNaN(parseInt(rebuildUpToRound, 10)) ||
+			parseInt(rebuildUpToRound, 10) < 0
+		) {
+			throw new Error(
+				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
+			);
+		}
+		const totalRounds = Math.floor(
+			blocksCount / this.constants.activeDelegates,
+		);
+		const targetRound =
+			parseInt(rebuildUpToRound, 10) === 0
+				? totalRounds
+				: Math.min(totalRounds, parseInt(rebuildUpToRound, 10));
+		const targetHeight = targetRound * this.constants.activeDelegates;
+
 		const limit = loadPerIteration;
 		await this.storage.entities.Account.resetMemTables();
 		let { lastBlock } = this.blocksModule;
@@ -66,7 +92,7 @@ class Rebuilder {
 			}
 			// if rebuildUptoRound is undefined, use the highest height
 			// eslint-disable-next-line no-await-in-loop
-			const blocks = await this.blocksModule.blocksUtils.loadBlocksWithOffset(
+			const blocks = await loadBlocksWithOffset(
 				this.storage,
 				this.interfaceAdapters,
 				this.genesisBlock,
@@ -80,13 +106,15 @@ class Rebuilder {
 				}
 				if (block.id === this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
-					lastBlock = await this.processorModule.applyGenesisBlock(block, true);
+					await this.processorModule.applyGenesisBlock(block, true);
+					({ lastBlock } = this.blocksModule);
 					this.channel.publish('chain:rebuild', { block: lastBlock });
 				}
 
 				if (block.id !== this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
-					lastBlock = await this.processorModule.applyBlock(block, lastBlock);
+					await this.processorModule.apply(block);
+					({ lastBlock } = this.blocksModule);
 				}
 				this.channel.publish('chain:rebuild', { block: lastBlock });
 			}

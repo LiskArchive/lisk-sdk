@@ -207,6 +207,7 @@ class Processor {
 			await processor.verify.exec({
 				block,
 				lastBlock,
+				skipExistingCheck: skipSave,
 				tx,
 			});
 			if (!skipBroadcast) {
@@ -219,8 +220,8 @@ class Processor {
 				lastBlock,
 				tx,
 			});
+			await this.blocksModule.save({ block, tx, skipSave });
 			if (!skipSave) {
-				await this.blocksModule.save({ block, tx });
 				this.channel.publish('chain:process:newBlock', {
 					block: cloneDeep(block),
 				});
