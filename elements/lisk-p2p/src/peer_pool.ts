@@ -46,8 +46,8 @@ import {
 	RequestFailError,
 	SendFailError,
 } from '.';
-import { P2PRequest } from './p2p_request';
 import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
+import { P2PRequest } from './utils/p2p_request';
 import {
 	P2PClosePacket,
 	P2PDiscoveredPeerInfo,

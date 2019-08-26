@@ -39,7 +39,7 @@ import {
 	REMOTE_RPC_UPDATE_PEER_INFO,
 	RPCResponseError,
 } from '..';
-import { P2PRequest } from '../p2p_request';
+import { P2PRequest } from '../utils/p2p_request';
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,

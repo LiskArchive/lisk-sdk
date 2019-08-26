@@ -13,8 +13,8 @@
  *
  */
 
-import { RPCResponseAlreadySentError } from '.';
-import { P2PResponsePacket } from './utils/types';
+import { RPCResponseAlreadySentError } from '..';
+import { P2PResponsePacket } from './types';
 
 interface RequestOptions {
 	readonly procedure: string;
