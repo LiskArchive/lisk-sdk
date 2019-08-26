@@ -53,7 +53,7 @@ import {
 	checkPeerCompatibility,
 	outgoingPeerInfoSanitization,
 	sanitizePeerLists,
-} from './validation';
+} from './validate';
 
 import {
 	BASE_10_RADIX,

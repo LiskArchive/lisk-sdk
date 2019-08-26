@@ -56,7 +56,7 @@ import {
 	validatePeersInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
-} from '../validation';
+} from '../validate';
 
 export interface ClientOptionsUpdated {
 	readonly hostname: string;
