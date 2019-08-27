@@ -41,7 +41,7 @@ import {
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	EVICTED_PEER_CODE,
-	INTENTIONAL_DISCONNECT_STATUS_CODE,
+	INTENTIONAL_DISCONNECT_CODE,
 	P2PRequest,
 	RequestFailException,
 	SendFailException,
@@ -487,7 +487,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.forEach((peer: Peer) => {
 			this.removePeer(
 				peer.id,
-				INTENTIONAL_DISCONNECT_STATUS_CODE,
+				INTENTIONAL_DISCONNECT_CODE,
 				`Intentionally removed peer ${peer.id}`,
 			);
 		});

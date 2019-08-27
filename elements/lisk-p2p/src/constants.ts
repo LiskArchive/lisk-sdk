@@ -28,7 +28,7 @@ const SECRET_BYTE_LENGTH = 4;
 export const DEFAULT_RANDOM_SECRET = getRandomBytes(
 	SECRET_BYTE_LENGTH,
 ).readUInt32BE(0);
-export const BASE_10_RADIX = 10;
+export const DEFAULT_BASE_10_RADIX = 10;
 
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
@@ -40,9 +40,6 @@ export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
-
-// Peer pool constants
-export const INTENTIONAL_DISCONNECT_STATUS_CODE = 1000;
 
 // Peer base constants
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
@@ -69,6 +66,7 @@ export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
 export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
+export const INTENTIONAL_DISCONNECT_CODE = 1000;
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';

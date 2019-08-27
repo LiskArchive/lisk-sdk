@@ -19,8 +19,8 @@ import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import {
-	BASE_10_RADIX,
 	DEFAULT_BAN_TIME,
+	DEFAULT_BASE_10_RADIX,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -615,7 +615,10 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+				const wsPort: number = parseInt(
+					queryObject.wsPort,
+					DEFAULT_BASE_10_RADIX,
+				);
 				const peerId = constructPeerIdFromPeerInfo({
 					ipAddress: socket.remoteAddress,
 					wsPort,
