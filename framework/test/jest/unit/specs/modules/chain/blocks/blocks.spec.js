@@ -21,11 +21,15 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
+const {
+	verifyBlockNotExists,
+} = require('../../../../../../../src/modules/chain/blocks/verify');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
 
+jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
 
 // TODO: Share fixture generation b/w mocha and jest
@@ -777,8 +781,55 @@ describe('blocks', () => {
 	});
 
 	describe('verify', () => {
-		it.todo('should throw in case the block id exists in the last n blocks');
-		it.todo('should throw in case the block id exists in the last n blocks');
+		let checkPersistedTransactionsFn;
+
+		beforeEach(async () => {
+			checkPersistedTransactionsFn = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 0, errors: [new Error('error')] }],
+			});
+
+			transactionsModule.checkPersistedTransactions.mockReturnValue(
+				checkPersistedTransactionsFn,
+			);
+
+			verifyBlockNotExists.mockReturnValue(jest.fn().mockReturnValue({}));
+		});
+
+		it('should throw in case the block id exists in the last n blocks', async () => {
+			// Arrange
+			const block = newBlock();
+
+			const previousLastNBlockIds = blocksInstance._lastNBlockIds;
+			blocksInstance._lastNBlockIds = [];
+			try {
+				// Act
+				await blocksInstance.verify({
+					block,
+					skipExistingCheck: true,
+				});
+			} catch (e) {
+				blocksInstance._lastNBlockIds = previousLastNBlockIds;
+
+				// Assert
+				expect(e.message).toEqual('Block already exists in chain');
+			}
+		});
+
+		it('should throw in case checkPersistedTransactionsFail', async () => {
+			// Arrange
+			const block = newBlock();
+
+			try {
+				// Act
+				await blocksInstance.verify({
+					block,
+					skipExistingCheck: false,
+				});
+			} catch (e) {
+				// Assert
+				expect(e[0].message).toBe('error');
+			}
+		});
 	});
 
 	describe('apply', () => {
