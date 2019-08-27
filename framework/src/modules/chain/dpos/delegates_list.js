@@ -48,12 +48,6 @@ class DelegatesList extends EventEmitter {
 		this.exceptions = exceptions;
 	}
 
-	deleteDelegateListFromCache(round) {
-		if (this.delegateListCache[round]) {
-			delete this.delegateListCache[round];
-		}
-	}
-
 	async getRoundDelegates(round) {
 		const list = await this.generateActiveDelegateList(round);
 		return shuffleDelegateListForRound(round, list);
