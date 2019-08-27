@@ -434,6 +434,63 @@ describe('dpos.apply()', () => {
 			});
 		});
 
+		// Reference: https://github.com/LiskHQ/lisk-sdk/issues/2423
+		describe('When summarizing round return value which is greater than Number.MAX_SAFE_INTEGER ', () => {
+			beforeEach(async () => {
+				feePerDelegate = new BigNum(Number.MAX_SAFE_INTEGER.toString()).add(
+					randomInt(10, 1000),
+				);
+				totalFee = new BigNum(feePerDelegate).mul(constants.ACTIVE_DELEGATES);
+
+				rewardPerDelegate = new BigNum(Number.MAX_SAFE_INTEGER.toString()).add(
+					randomInt(10, 1000),
+				);
+
+				stubs.storage.entities.Round.summedRound.mockResolvedValue([
+					{
+						fees: totalFee.toString(), // dividable to ACTIVE_DELEGATE count
+						rewards: delegatesWhoForged.map(() => rewardPerDelegate),
+						delegates: delegatesWhoForged.map(account => account.publicKey),
+					},
+				]);
+
+				getTotalEarningsOfDelegate = account => {
+					const blockCount = delegatesWhoForged.filter(
+						d => d.publicKey === account.publicKey,
+					).length;
+					const reward = new BigNum(rewardPerDelegate).mul(blockCount);
+					const fee = new BigNum(feePerDelegate).mul(blockCount);
+					return {
+						reward,
+						fee,
+					};
+				};
+			});
+
+			it('should update vote weight of accounts that delegates with correct balance', async () => {
+				// Act
+				await dpos.apply(lastBlockOfTheRound, stubs.tx);
+
+				// Assert
+				expect.assertions(uniqueDelegatesWhoForged.length);
+				uniqueDelegatesWhoForged.forEach(account => {
+					const { fee, reward } = getTotalEarningsOfDelegate(account);
+					const amount = fee.plus(reward);
+
+					expect(
+						stubs.storage.entities.Account.increaseFieldBy,
+					).toHaveBeenCalledWith(
+						{
+							publicKey_in: account.votedDelegatesPublicKeys,
+						},
+						'voteWeight',
+						amount.toString(),
+						stubs.tx,
+					);
+				});
+			});
+		});
+
 		describe('Given the provided block is in an exception round', () => {
 			let exceptionFactors;
 			beforeEach(() => {
