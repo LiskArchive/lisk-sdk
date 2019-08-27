@@ -242,6 +242,7 @@ module.exports = class Chain {
 				secondsSinceEpoch: this.slots.getTime(),
 				lastBlock: this.blocks.lastBlock,
 			}),
+			getLastBlock: async () => this.blocks.lastBlock,
 			blocks: async action => this.transport.blocks(action.params || {}),
 			blocksCommon: async action =>
 				this.transport.blocksCommon(action.params || {}),

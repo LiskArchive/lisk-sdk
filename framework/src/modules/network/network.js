@@ -35,14 +35,9 @@ const {
 	EVENT_UNBAN_PEER,
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
-const lookupPeersIPs = require('./lookup_peers_ips');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const {
-	getByFilter,
-	getCountByFilter,
-	getConsolidatedPeersList,
-} = require('./filter_peers');
+const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
 const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
@@ -343,30 +338,32 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
-			getNetworkStatus: () => this.p2p.getNetworkStatus(),
 			getPeers: action => {
-				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
-
-				return getByFilter(peerList, action.params);
-			},
-			getConnectedPeers: action => {
-				const { connectedPeers } = this.p2p.getNetworkStatus();
-				const peerList = getConsolidatedPeersList({ connectedPeers });
-
-				return getByFilter(peerList, action.params);
-			},
-			getPeersCountByFilter: action => {
-				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
-
-				return getCountByFilter(peerList, action.params);
-			},
-			getConnectedPeersCountByFilter: action => {
-				const { connectedUniquePeers } = this.p2p.getNetworkStatus();
-				const peerList = getConsolidatedPeersList({
-					connectedPeers: connectedUniquePeers,
+				const peers = consolidatePeers({
+					connectedPeers: this.p2p.getConnectedPeers(),
+					disconnectedPeers: this.p2p.getDisconnectedPeers(),
 				});
 
-				return getCountByFilter(peerList, action.params);
+				return filterByParams(peers, action.params);
+			},
+			getPeersCount: action => {
+				const peers = consolidatePeers({
+					connectedPeers: this.p2p.getConnectedPeers(),
+					disconnectedPeers: this.p2p.getDisconnectedPeers(),
+				});
+
+				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
+
+				return filterByParams(peers, filterWithoutLimitOffset).length;
+			},
+			getUniqueOutboundConnectedPeersCount: action => {
+				const peers = consolidatePeers({
+					connectedPeers: this.p2p.getUniqueOutboundConnectedPeers(),
+				});
+
+				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
+
+				return filterByParams(peers, filterWithoutLimitOffset).length;
 			},
 			applyPenalty: action =>
 				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
@@ -378,7 +375,7 @@ module.exports = class Network {
 		// TODO: In phase 2, only previousPeers will be saved to database
 		this.logger.info('Cleaning network...');
 
-		const peersToSave = this.p2p.getNetworkStatus().connectedPeers.map(peer => {
+		const peersToSave = this.p2p.getConnectedPeers().map(peer => {
 			const { ipAddress, ...peerWithoutIp } = peer;
 
 			return {
