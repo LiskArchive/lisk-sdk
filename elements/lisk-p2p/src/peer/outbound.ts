@@ -189,7 +189,6 @@ export class OutboundPeer extends Peer {
 	}
 
 	// All event handlers for the outbound socket should be unbound in this method.
-	/* tslint:disable-next-line:prefer-function-over-method*/
 	private _unbindHandlersFromOutboundSocket(
 		outboundSocket: SCClientSocket,
 	): void {
