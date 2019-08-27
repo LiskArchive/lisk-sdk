@@ -2198,7 +2198,7 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 		defaultConfig,
 		resultingAccountState,
 		block,
-		1,
+		2,
 		0,
 		{
 			version: 1,
@@ -2222,14 +2222,14 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 
 	return {
 		initialState: {
-			chain: [genesisBlock, block],
+			chain: [block],
 			accounts: resultingAccountState,
 		},
 		input: {
 			blockWithSecondSignatureRegistered,
 		},
 		output: {
-			chain: [genesisBlock, block, blockWithSecondSignatureRegistered],
+			chain: [block, blockWithSecondSignatureRegistered],
 			accounts: secondSignatureAccountState,
 		},
 	};
@@ -2268,14 +2268,14 @@ const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 
 	return {
 		initialState: {
-			chain: [genesisBlock],
+			chain: [],
 			accounts: initialAccountState,
 		},
 		input: {
 			block,
 		},
 		output: {
-			chain: [genesisBlock],
+			chain: [],
 			accounts: initialAccountState,
 		},
 	};
@@ -2340,7 +2340,7 @@ const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 		defaultConfig,
 		resultingAccountState,
 		block,
-		1,
+		2,
 		0,
 		{
 			version: 1,
@@ -2373,7 +2373,7 @@ const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 		defaultConfig,
 		resultingAccountState,
 		block,
-		1,
+		3,
 		0,
 		{
 			version: 1,
@@ -2383,14 +2383,14 @@ const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 
 	return {
 		initialState: {
-			chain: [genesisBlock, block, blockWithSecondSignatureRegistered],
+			chain: [block, blockWithSecondSignatureRegistered],
 			accounts: secondSignatureAccountState,
 		},
 		input: {
 			blockWithNewSecondSignatureNewRegistration,
 		},
 		output: {
-			chain: [genesisBlock, block, blockWithSecondSignatureRegistered],
+			chain: [block, blockWithSecondSignatureRegistered],
 			accounts: secondSignatureAccountState,
 		},
 	};

@@ -2149,14 +2149,14 @@ const generateTestCasesForValidBlockWithNoTxs = () => {
 
 	return {
 		initialState: {
-			chain: [genesisBlock],
+			chain: [],
 			accounts: initialAccountState,
 		},
 		input: {
 			block,
 		},
 		output: {
-			chain: [genesisBlock, block],
+			chain: [block],
 			accounts: initialAccountState,
 		},
 	};
@@ -2210,14 +2210,14 @@ const generateTestCasesValidBlockTransferTx = () => {
 
 	return {
 		initialState: {
-			chain: [genesisBlock],
+			chain: [],
 			accounts: initialAccountState,
 		},
 		input: {
 			block,
 		},
 		output: {
-			chain: [genesisBlock, block],
+			chain: [block],
 			accounts: resultingAccountState,
 		},
 	};
