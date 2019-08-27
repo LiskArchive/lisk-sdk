@@ -446,7 +446,7 @@ describe('blocks', () => {
 				const blockBytes = getBytes(block);
 				expect.assertions(1);
 				// Act
-				return expect(
+				await expect(
 					blocksInstance.validate({
 						block,
 						lastBlock: genesisBlock,
@@ -667,7 +667,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			const blockBytes = getBytes(block);
 			const originalId = block.id;
-			const mutatedId = block.id;
+			const mutatedId = '123';
 			block.id = mutatedId;
 
 			expect.assertions(1);

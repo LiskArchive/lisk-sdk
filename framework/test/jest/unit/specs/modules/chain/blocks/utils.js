@@ -90,7 +90,7 @@ const getBytes = block => {
 		? hexToBuffer(block.blockSignature)
 		: Buffer.alloc(0);
 
-	return Buffer.concat([
+	const bufferArray = Buffer.concat([
 		blockVersionBuffer,
 		timestampBuffer,
 		previousBlockBuffer,
@@ -104,6 +104,7 @@ const getBytes = block => {
 		generatorPublicKeyBuffer,
 		blockSignatureBuffer,
 	]);
+	return bufferArray;
 };
 
 const calculateTransactionsInfo = block => {
@@ -165,22 +166,25 @@ const newBlock = block => {
 		),
 	};
 
-	const hashedBlock = hash(getBytes(blockWithCalculatedProperties));
-	const temp = Buffer.alloc(8);
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < 8; i++) {
-		temp[i] = hashedBlock[7 - i];
-	}
-
 	// eslint-disable-next-line new-cap
-	const id = new BigNum.fromBuffer(temp).toString();
-	return {
+	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
 			hash(getBytes(blockWithCalculatedProperties)),
 			Buffer.from(blockWithCalculatedProperties.keypair.privateKey, 'hex'),
 		),
-		id,
+	};
+	const hashedBlockBytes = hash(getBytes(blockWithSignature));
+
+	const temp = Buffer.alloc(8);
+	// eslint-disable-next-line no-plusplus
+	for (let i = 0; i < 8; i++) {
+		temp[i] = hashedBlockBytes[7 - i];
+	}
+
+	return {
+		...blockWithSignature,
+		id: BigNum.fromBuffer(temp).toString(),
 	};
 };
 
