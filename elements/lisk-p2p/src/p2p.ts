@@ -18,24 +18,6 @@ import * as http from 'http';
 import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-
-interface SCServerUpdated extends SCServer {
-	readonly isReady: boolean;
-}
-
-import { PeerBook } from './peer_directory';
-import { PeerPool } from './peer_pool';
-
-import {
-	checkPeerCompatibility,
-	constructPeerIdFromPeerInfo,
-	outgoingPeerInfoSanitization,
-	sanitizePeerLists,
-	selectPeersForConnection,
-	selectPeersForRequest,
-	selectPeersForSend,
-} from './utils';
-
 import {
 	BASE_10_RADIX,
 	DEFAULT_BAN_TIME,
@@ -92,7 +74,6 @@ import {
 	PeerInboundHandshakeError,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from '.';
-
 import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
@@ -106,6 +87,21 @@ import {
 	P2PResponsePacket,
 	PeerLists,
 } from './p2p_types';
+import { PeerBook } from './peer_directory';
+import { PeerPool } from './peer_pool';
+import {
+	checkPeerCompatibility,
+	constructPeerIdFromPeerInfo,
+	outgoingPeerInfoSanitization,
+	sanitizePeerLists,
+	selectPeersForConnection,
+	selectPeersForRequest,
+	selectPeersForSend,
+} from './utils';
+
+interface SCServerUpdated extends SCServer {
+	readonly isReady: boolean;
+}
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;

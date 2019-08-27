@@ -17,7 +17,6 @@
  * The purpose of the PeerPool is to provide a simple interface for selecting,
  * interacting with and handling aggregated events from a collection of peers.
  */
-
 import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
@@ -47,9 +46,6 @@ import {
 	RequestFailError,
 	SendFailError,
 } from '.';
-import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
-import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
-
 import {
 	P2PClosePacket,
 	P2PDiscoveredPeerInfo,
@@ -64,6 +60,8 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
+import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
+import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
 interface PeerPoolConfig {
 	readonly ackTimeout?: number;
@@ -89,13 +87,6 @@ interface PeerPoolConfig {
 	readonly secret: number;
 }
 
-export enum PROTECTION_CATEGORY {
-	NET_GROUP = 'netgroup',
-	LATENCY = 'latency',
-	RESPONSE_RATE = 'responseRate',
-	CONNECT_TIME = 'connectTime',
-}
-
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
 	readonly percentage: number;
@@ -105,6 +96,7 @@ interface FilterPeersOptions {
 interface IndexablePeer {
 	readonly [key: string]: number;
 }
+
 const filterPeersByCategory = (
 	peers: Peer[],
 	options: FilterPeersOptions,
@@ -122,6 +114,13 @@ const filterPeersByCategory = (
 		)
 		.slice(peerCount, peers.length);
 };
+
+export enum PROTECTION_CATEGORY {
+	NET_GROUP = 'netgroup',
+	LATENCY = 'latency',
+	RESPONSE_RATE = 'responseRate',
+	CONNECT_TIME = 'connectTime',
+}
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;

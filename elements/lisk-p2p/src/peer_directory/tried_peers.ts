@@ -20,18 +20,18 @@ import {
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
-export interface TriedPeerConfig {
-	readonly triedPeerBucketCount?: number;
-	readonly triedPeerBucketSize?: number;
-	readonly maxReconnectTries?: number;
-	readonly secret: number;
-}
-
 interface TriedPeerInfo {
 	readonly peerInfo: P2PDiscoveredPeerInfo;
 	// tslint:disable-next-line:readonly-keyword
 	numOfConnectionFailures: number;
 	readonly dateAdded: Date;
+}
+
+export interface TriedPeerConfig {
+	readonly triedPeerBucketCount?: number;
+	readonly triedPeerBucketSize?: number;
+	readonly maxReconnectTries?: number;
+	readonly secret: number;
 }
 
 export interface AddPeerOutcome {

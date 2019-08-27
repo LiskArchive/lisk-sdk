@@ -13,7 +13,6 @@
  *
  */
 /* tslint:disable: max-classes-per-file */
-
 export class PeerInboundHandshakeError extends Error {
 	public statusCode: number;
 	public remoteAddress: string;

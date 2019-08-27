@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { RPCResponseAlreadySentError } from '.';
 import { P2PResponsePacket } from './p2p_types';
 

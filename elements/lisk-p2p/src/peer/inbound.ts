@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Peer, PeerConfig, SCServerSocketUpdated } from './base';
-
+import { SCServerSocket } from 'socketcluster-server';
 import {
 	DEFAULT_PING_INTERVAL_MAX,
 	DEFAULT_PING_INTERVAL_MIN,
@@ -23,10 +22,8 @@ import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '..';
-
 import { P2PDiscoveredPeerInfo } from '../p2p_types';
-
-import { SCServerSocket } from 'socketcluster-server';
+import { Peer, PeerConfig, SCServerSocketUpdated } from './base';
 
 const socketErrorStatusCodes = {
 	...(SCServerSocket as any).errorStatuses,

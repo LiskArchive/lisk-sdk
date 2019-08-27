@@ -12,14 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import {
-	ClientOptionsUpdated,
-	convertNodeInfoToLegacyFormat,
-	Peer,
-	PeerConfig,
-} from './base';
-
 import {
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
@@ -33,7 +25,6 @@ import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '..';
-
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
@@ -41,6 +32,12 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
+import {
+	ClientOptionsUpdated,
+	convertNodeInfoToLegacyFormat,
+	Peer,
+	PeerConfig,
+} from './base';
 
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';

@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
@@ -41,16 +39,6 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 	RPCResponseError,
 } from '..';
-
-import {
-	constructPeerIdFromPeerInfo,
-	getNetgroup,
-	validatePeerInfo,
-	validatePeersInfoList,
-	validateProtocolMessage,
-	validateRPCRequest,
-} from '../utils';
-
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
@@ -61,6 +49,14 @@ import {
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
 } from '../p2p_types';
+import {
+	constructPeerIdFromPeerInfo,
+	getNetgroup,
+	validatePeerInfo,
+	validatePeersInfoList,
+	validateProtocolMessage,
+	validateRPCRequest,
+} from '../utils';
 
 export interface ClientOptionsUpdated {
 	readonly hostname: string;

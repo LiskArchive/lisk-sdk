@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:no-empty-interface*/
-
 export interface P2PPacket {
 	readonly data?: unknown;
 }

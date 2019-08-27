@@ -14,29 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
-
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
-
-export enum NETWORK {
-	NET_IPV4 = 0,
-	NET_PRIVATE,
-	NET_LOCAL,
-	NET_OTHER,
-}
-
-export enum PEER_TYPE {
-	NEW_PEER = 'newPeer',
-	TRIED_PEER = 'triedPeer',
-}
-
-/* tslint:disable no-magic-numbers */
-export const getIPGroup = (address: string, groupNumber: number): number => {
-	if (groupNumber > 3) {
-		throw new Error('Invalid IP group.');
-	}
-
-	return parseInt(address.split('.')[groupNumber], 10);
-};
 
 const SECRET_BUFFER_LENGTH = 4;
 const NETWORK_BUFFER_LENGTH = 1;
@@ -52,6 +30,15 @@ interface AddressBytes {
 	readonly cBytes: Buffer;
 	readonly dBytes: Buffer;
 }
+
+/* tslint:disable no-magic-numbers */
+export const getIPGroup = (address: string, groupNumber: number): number => {
+	if (groupNumber > 3) {
+		throw new Error('Invalid IP group.');
+	}
+
+	return parseInt(address.split('.')[groupNumber], 10);
+};
 
 // Each byte represents the corresponding subsection of the IP address e.g. AAA.BBB.CCC.DDD
 export const getIPBytes = (address: string): AddressBytes => {
@@ -71,6 +58,18 @@ export const getIPBytes = (address: string): AddressBytes => {
 		dBytes,
 	};
 };
+
+export enum NETWORK {
+	NET_IPV4 = 0,
+	NET_PRIVATE,
+	NET_LOCAL,
+	NET_OTHER,
+}
+
+export enum PEER_TYPE {
+	NEW_PEER = 'newPeer',
+	TRIED_PEER = 'triedPeer',
+}
 
 export const isPrivate = (address: string) =>
 	getIPGroup(address, 0) === 10 ||

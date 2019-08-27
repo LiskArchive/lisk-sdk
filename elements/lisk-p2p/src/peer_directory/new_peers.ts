@@ -20,15 +20,16 @@ import {
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
+interface NewPeerInfo {
+	readonly peerInfo: P2PPeerInfo;
+	readonly dateAdded: Date;
+}
+
 export interface NewPeerConfig {
 	readonly evictionThresholdTime?: number;
 	readonly newPeerBucketCount?: number;
 	readonly newPeerBucketSize?: number;
 	readonly secret: number;
-}
-interface NewPeerInfo {
-	readonly peerInfo: P2PPeerInfo;
-	readonly dateAdded: Date;
 }
 
 export interface AddPeerOutcome {
@@ -36,6 +37,7 @@ export interface AddPeerOutcome {
 	readonly isEvicted: boolean;
 	readonly evictedPeer?: P2PPeerInfo;
 }
+
 export class NewPeers {
 	private readonly _newPeerMap: Map<number, Map<string, NewPeerInfo>>;
 	private readonly _newPeerBucketCount: number;
