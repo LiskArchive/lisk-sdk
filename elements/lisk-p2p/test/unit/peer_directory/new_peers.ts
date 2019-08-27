@@ -13,15 +13,22 @@
  *
  */
 import { expect } from 'chai';
-import { NewPeers } from '../../../src/peer_directory/new_peers';
+import {
+	NewPeers,
+	DEFAULT_NEW_BUCKET_SIZE,
+	DEFAULT_NEW_BUCKET_COUNT,
+} from '../../../src/peer_directory/new_peers';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PPeerInfo } from '../../../src/p2p_types';
+import { PEER_TYPE } from '../../../src/utils';
 
 describe('newPeer', () => {
 	const newPeerConfig = {
-		newPeerBucketCount: 128,
-		newPeerBucketSize: 32,
+		peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+		peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
 		secret: 123456,
+		peerType: PEER_TYPE.NEW_PEER,
+		evictionThresholdTime: 86400000,
 	};
 
 	describe('#constructor', () => {
@@ -33,9 +40,8 @@ describe('newPeer', () => {
 
 		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
 			expect(newPeersList.newPeerConfig).to.be.eql(newPeerConfig);
-			expect(newPeersList.newPeerConfig.newPeerBucketCount).to.be.equal(128);
-
-			expect(newPeersList.newPeerConfig.newPeerBucketSize).to.be.equal(32);
+			expect(newPeersList.newPeerConfig.peerBucketCount).to.be.equal(128);
+			expect(newPeersList.newPeerConfig.peerBucketSize).to.be.equal(32);
 		});
 	});
 
@@ -69,7 +75,7 @@ describe('newPeer', () => {
 			newPeersList.addPeer(samplePeers[0]);
 			newPeersList.addPeer(samplePeers[1]);
 			newPeersList.addPeer(samplePeers[2]);
-			newPeersArray = newPeersList.newPeersList();
+			newPeersArray = newPeersList.peersList();
 		});
 
 		it('should return new peers list', async () => {

@@ -44,16 +44,10 @@ export class TriedPeers extends BasePeerList {
 		peerBucketSize,
 		peerType,
 	}: TriedPeerConfig) {
-		const triedPeerBucketCount = peerBucketCount
-			? peerBucketCount
-			: DEFAULT_TRIED_BUCKET_SIZE;
-		const triedPeerBucketSize = peerBucketSize
-			? peerBucketSize
-			: DEFAULT_TRIED_BUCKET_SIZE;
 		super({
 			secret,
-			peerBucketCount: triedPeerBucketCount,
-			peerBucketSize: triedPeerBucketSize,
+			peerBucketCount,
+			peerBucketSize,
 			peerType,
 		});
 
@@ -115,7 +109,7 @@ export class TriedPeers extends BasePeerList {
 				isEvicted: false,
 			};
 		}
-		const evictedPeer = this._evictPeer(bucketId);
+		const evictedPeer = this.evictionRandom(bucketId);
 		bucket.set(incomingPeerId, newTriedPeerInfo);
 		this.peerMap.set(bucketId, bucket);
 
@@ -162,23 +156,5 @@ export class TriedPeers extends BasePeerList {
 		this.peerMap.set(bucketId, bucket);
 
 		return false;
-	}
-
-	// If the bucket is full when we add a new peer then choose a peer randomly from the bucket and evict.
-	private _evictPeer(bucketId: number): TriedPeerInfo {
-		const peerList = this.peerMap.get(bucketId);
-		if (!peerList) {
-			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
-		}
-
-		const randomPeerIndex = Math.floor(
-			Math.random() * this.peerListConfig.peerBucketSize,
-		);
-		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
-		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
-		peerList.delete(randomPeerId);
-		this.peerMap.set(bucketId, peerList);
-
-		return randomPeer as TriedPeerInfo;
 	}
 }

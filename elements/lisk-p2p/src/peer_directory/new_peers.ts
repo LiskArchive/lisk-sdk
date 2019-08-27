@@ -18,138 +18,60 @@ import {
 	DEFAULT_NEW_PEER_BUCKET_SIZE,
 } from '../constants';
 import { P2PPeerInfo } from '../p2p_types';
-import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
+import { constructPeerIdFromPeerInfo } from '../utils';
+import { AddPeerOutcome, BasePeerList, PeerListConfig } from './basePeerList';
 
 interface NewPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
 	readonly dateAdded: Date;
 }
-
-interface AddPeerOutcome {
-	readonly success: boolean;
-	readonly isEvicted: boolean;
-	readonly evictedPeer?: P2PPeerInfo;
-}
-
-export interface NewPeerConfig {
-	readonly evictionThresholdTime?: number;
-	readonly newPeerBucketCount?: number;
-	readonly newPeerBucketSize?: number;
-	readonly secret: number;
-}
-
-export class NewPeers {
-	private readonly _newPeerMap: Map<number, Map<string, NewPeerInfo>>;
-	private readonly _newPeerBucketCount: number;
-	private readonly _newPeerBucketSize: number;
+type NewPeerMap = Map<number, Map<string, NewPeerInfo>>;
+export class NewPeers extends BasePeerList {
 	private readonly _evictionThresholdTime: number;
-	private readonly _secret: number;
 
 	public constructor({
 		evictionThresholdTime,
-		newPeerBucketSize,
-		newPeerBucketCount,
+		peerBucketCount,
+		peerBucketSize,
 		secret,
+		peerType,
 	}: NewPeerConfig) {
-		this._newPeerBucketSize = newPeerBucketSize
-			? newPeerBucketSize
-			: DEFAULT_NEW_BUCKET_SIZE;
-		this._newPeerBucketCount = newPeerBucketCount
-			? newPeerBucketCount
-			: DEFAULT_NEW_BUCKET_COUNT;
+		super({
+			secret,
+			peerBucketCount,
+			peerBucketSize,
+			peerType,
+		});
+
 		this._evictionThresholdTime = evictionThresholdTime
 			? evictionThresholdTime
 			: DEFAULT_EVICTION_THRESHOLD_TIME;
-		this._secret = secret;
-		this._newPeerMap = new Map();
+
+		this.initializePeerList(this.peerMap as NewPeerMap);
+	}
+
+	public initializePeerList(
+		peerMap: Map<number, Map<string, NewPeerInfo>>,
+	): void {
 		// Initialize the Map with all the buckets
-		for (const bucketId of [...new Array(this._newPeerBucketCount).keys()]) {
-			this._newPeerMap.set(bucketId, new Map<string, NewPeerInfo>());
+		for (const bucketId of [
+			...new Array(this.peerListConfig.peerBucketCount).keys(),
+		]) {
+			peerMap.set(bucketId, new Map<string, NewPeerInfo>());
 		}
 	}
 
 	public get newPeerConfig(): NewPeerConfig {
 		return {
-			newPeerBucketSize: this._newPeerBucketSize,
-			newPeerBucketCount: this._newPeerBucketCount,
-			secret: this._secret,
+			...this.peerListConfig,
+			evictionThresholdTime: this._evictionThresholdTime,
 		};
-	}
-
-	public newPeersList(): ReadonlyArray<P2PPeerInfo> {
-		const peersListMap: P2PPeerInfo[] = [];
-
-		for (const peerMap of [...this._newPeerMap.values()]) {
-			for (const peer of [...peerMap.values()]) {
-				peersListMap.push(peer.peerInfo);
-			}
-		}
-
-		return peersListMap;
-	}
-
-	public getBucketId(ipAddress: string): number {
-		return getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.NEW_PEER,
-			targetAddress: ipAddress,
-		});
-	}
-
-	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._newPeerMap.get(bucketId);
-
-		if (!bucket) {
-			return false;
-		}
-		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		const foundPeer = bucket.get(incomingPeerId);
-		if (!foundPeer) {
-			return false;
-		}
-		const updatedNewPeerInfo: NewPeerInfo = {
-			peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
-			dateAdded: foundPeer.dateAdded,
-		};
-
-		bucket.set(incomingPeerId, updatedNewPeerInfo);
-		this._newPeerMap.set(bucketId, bucket);
-
-		return true;
-	}
-
-	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._newPeerMap.get(bucketId);
-		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		if (bucket && bucket.get(incomingPeerId)) {
-			const success = bucket.delete(incomingPeerId);
-			this._newPeerMap.set(bucketId, bucket);
-
-			return success;
-		}
-
-		return false;
-	}
-
-	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._newPeerMap.get(bucketId);
-		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-
-		if (!bucket) {
-			return undefined;
-		}
-		const newPeer = bucket.get(incomingPeerId);
-
-		return newPeer ? newPeer.peerInfo : undefined;
 	}
 
 	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
 	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._newPeerMap.get(bucketId);
+		const bucket = this.peerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
 		if (!bucket) {
@@ -172,9 +94,9 @@ export class NewPeers {
 			dateAdded: new Date(),
 		};
 
-		if (bucket.size < this._newPeerBucketSize) {
+		if (bucket.size < this.peerListConfig.peerBucketSize) {
 			bucket.set(incomingPeerId, newPeerInfo);
-			this._newPeerMap.set(bucketId, bucket);
+			this.peerMap.set(bucketId, bucket);
 
 			return {
 				success: true,
@@ -184,7 +106,7 @@ export class NewPeers {
 
 		const evictedPeer = this._evictPeer(bucketId);
 		bucket.set(incomingPeerId, newPeerInfo);
-		this._newPeerMap.set(bucketId, bucket);
+		this.peerMap.set(bucketId, bucket);
 
 		return {
 			success: true,
@@ -193,15 +115,8 @@ export class NewPeers {
 		};
 	}
 
-	// This action is called when a peer is disconnected
-	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const success = this.removePeer(incomingPeerInfo);
-
-		return success;
-	}
-
 	private _evictPeer(bucketId: number): NewPeerInfo {
-		const peerList = this._newPeerMap.get(bucketId);
+		const peerList = this.peerMap.get(bucketId);
 
 		if (!peerList) {
 			throw new Error(`No Peer list for bucket Id: ${bucketId}`);
@@ -217,8 +132,8 @@ export class NewPeers {
 			return evictedPeerBasedOnTime;
 		}
 
-		// Second eviction strategy
-		return this._evictionRandom(bucketId);
+		// Second eviction strategy: Default eviction based on base class
+		return this.evictionRandom(bucketId);
 	}
 	// Evict a peer when a bucket is full based on the time of residence in a peerlist
 	private _evictionBasedOnTimeInBucket(
@@ -228,7 +143,7 @@ export class NewPeers {
 		// tslint:disable-next-line:no-let
 		let evictedPeer: NewPeerInfo | undefined;
 
-		[...this._newPeerMap.values()].forEach(peersMap => {
+		[...this.peerMap.values()].forEach(peersMap => {
 			[...peersMap.keys()].forEach(peerId => {
 				const peer = peersMap.get(peerId);
 
@@ -242,27 +157,12 @@ export class NewPeers {
 
 				if (timeDifference >= this._evictionThresholdTime) {
 					peerList.delete(peerId);
-					this._newPeerMap.set(bucketId, peerList);
+					this.peerMap.set(bucketId, peerList);
 					evictedPeer = peer;
 				}
 			});
 		});
 
 		return evictedPeer;
-	}
-	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
-	private _evictionRandom(bucketId: number): NewPeerInfo {
-		const peerList = this._newPeerMap.get(bucketId);
-		if (!peerList) {
-			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
-		}
-
-		const randomPeerIndex = Math.floor(Math.random() * this._newPeerBucketSize);
-		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
-		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
-		peerList.delete(randomPeerId);
-		this._newPeerMap.set(bucketId, peerList);
-
-		return randomPeer;
 	}
 }

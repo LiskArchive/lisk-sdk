@@ -171,7 +171,7 @@ export class BasePeerList {
 			};
 		}
 
-		const evictedPeer = this._evictionRandom(bucketId);
+		const evictedPeer = this.evictionRandom(bucketId);
 		bucket.set(incomingPeerId, newPeer);
 		this.peerMap.set(bucketId, bucket);
 
@@ -189,7 +189,7 @@ export class BasePeerList {
 		return success;
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
-	private _evictionRandom(bucketId: number): CustomPeerInfo {
+	public evictionRandom(bucketId: number): CustomPeerInfo {
 		const peerList = this.peerMap.get(bucketId);
 		if (!peerList) {
 			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
