@@ -22,11 +22,11 @@ import {
 	incomingPeerInfoSanitization,
 	outgoingPeerInfoSanitization,
 } from '../../../src/utils/validate';
-import { ProtocolPeerInfo } from '../../../src/utils/types';
 import {
+	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
-} from '../../../src/utils/types';
+} from '../../../src/p2p_types';
 import { initializePeerInfoList } from 'utils/peers';
 
 describe('utils/validate', () => {

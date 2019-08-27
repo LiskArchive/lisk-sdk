@@ -17,13 +17,8 @@ import {
 	DEFAULT_TRIED_PEER_BUCKET_SIZE,
 	DEFAULT_TRIED_PEER_LIST_SIZE,
 } from '..';
-import {
-	constructPeerIdFromPeerInfo,
-	getBucket,
-	P2PDiscoveredPeerInfo,
-	P2PPeerInfo,
-	PEER_TYPE,
-} from '../utils';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
 export interface TriedPeerConfig {
 	readonly triedPeerBucketCount?: number;

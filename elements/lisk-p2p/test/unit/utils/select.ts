@@ -19,9 +19,8 @@ import {
 	getUniquePeersbyIp,
 	selectPeersForConnection,
 	selectPeersForRequest,
-	P2PNodeInfo,
-	P2PDiscoveredPeerInfo,
 } from '../../../src/utils';
+import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe('utils/select', () => {
 	describe('#selectPeersForRequest', () => {

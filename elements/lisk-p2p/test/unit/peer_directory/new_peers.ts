@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { NewPeers } from '../../../src/peer_directory/new_peers';
 import { initializePeerInfoList } from '../../utils/peers';
-import { P2PPeerInfo } from '../../../src/utils/types';
+import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('newPeer', () => {
 	const newPeerConfig = {

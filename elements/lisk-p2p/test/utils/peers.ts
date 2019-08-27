@@ -14,7 +14,7 @@
  */
 import { DEFAULT_RANDOM_SECRET } from '../../src';
 import { Peer } from '../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../src/utils/types';
+import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
 export const initializePeerInfoList = (): ReadonlyArray<
 	P2PDiscoveredPeerInfo

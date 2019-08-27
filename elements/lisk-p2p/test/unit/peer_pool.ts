@@ -18,9 +18,8 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-	P2PDiscoveredPeerInfo,
-	P2PPeerInfo,
 } from '../../src/utils';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../../src/p2p_types';
 import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList, initializePeerInfoList } from '../utils/peers';
 import {

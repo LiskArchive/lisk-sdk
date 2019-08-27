@@ -20,7 +20,7 @@ import {
 	P2PPeerSelectionForConnectionInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForSendInput,
-} from './types';
+} from '../p2p_types';
 
 export const selectPeersForRequest = (
 	input: P2PPeerSelectionForRequestInput,

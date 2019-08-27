@@ -24,7 +24,7 @@ import {
 	P2PPeerSelectionForSendInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
-} from '../../src/utils/types';
+} from '../../src/p2p_types';
 import { EVENT_REMOVE_PEER } from '../../src';
 import { InboundPeer } from '../../src/peer';
 import { SCServerSocket } from 'socketcluster-server';

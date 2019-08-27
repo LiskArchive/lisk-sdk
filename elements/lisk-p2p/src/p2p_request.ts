@@ -14,7 +14,7 @@
  */
 
 import { RPCResponseAlreadySentError } from '.';
-import { P2PResponsePacket } from './utils/types';
+import { P2PResponsePacket } from './p2p_types';
 
 interface RequestOptions {
 	readonly procedure: string;

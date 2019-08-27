@@ -15,7 +15,7 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
 
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from './types';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 
 export enum NETWORK {
 	NET_IPV4 = 0,

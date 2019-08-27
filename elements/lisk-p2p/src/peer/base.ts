@@ -45,6 +45,13 @@ import {
 import {
 	constructPeerIdFromPeerInfo,
 	getNetgroup,
+	validatePeerInfo,
+	validatePeersInfoList,
+	validateProtocolMessage,
+	validateRPCRequest,
+} from '../utils';
+
+import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
@@ -53,11 +60,7 @@ import {
 	P2PResponsePacket,
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
-	validatePeerInfo,
-	validatePeersInfoList,
-	validateProtocolMessage,
-	validateRPCRequest,
-} from '../utils';
+} from '../p2p_types';
 
 export interface ClientOptionsUpdated {
 	readonly hostname: string;

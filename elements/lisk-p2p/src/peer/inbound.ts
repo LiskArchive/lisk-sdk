@@ -24,7 +24,7 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '..';
 
-import { P2PDiscoveredPeerInfo } from '../utils/types';
+import { P2PDiscoveredPeerInfo } from '../p2p_types';
 
 import { SCServerSocket } from 'socketcluster-server';
 

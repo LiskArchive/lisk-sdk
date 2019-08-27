@@ -15,5 +15,4 @@
 
 export * from './miscellaneous';
 export * from './select';
-export * from './types';
 export * from './validate';

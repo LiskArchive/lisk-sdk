@@ -30,17 +30,6 @@ import {
 	checkPeerCompatibility,
 	constructPeerIdFromPeerInfo,
 	outgoingPeerInfoSanitization,
-	P2PCheckPeerCompatibility,
-	P2PClosePacket,
-	P2PConfig,
-	P2PDiscoveredPeerInfo,
-	P2PMessagePacket,
-	P2PNodeInfo,
-	P2PPeerInfo,
-	P2PPenalty,
-	P2PRequestPacket,
-	P2PResponsePacket,
-	PeerLists,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -103,6 +92,20 @@ import {
 	PeerInboundHandshakeError,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from '.';
+
+import {
+	P2PCheckPeerCompatibility,
+	P2PClosePacket,
+	P2PConfig,
+	P2PDiscoveredPeerInfo,
+	P2PMessagePacket,
+	P2PNodeInfo,
+	P2PPeerInfo,
+	P2PPenalty,
+	P2PRequestPacket,
+	P2PResponsePacket,
+	PeerLists,
+} from './p2p_types';
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
