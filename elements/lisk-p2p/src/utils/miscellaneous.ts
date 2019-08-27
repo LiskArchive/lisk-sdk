@@ -218,3 +218,6 @@ export const getUniquePeersbyIp = (
 
 export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+
+export const getByteSize = (object: any): number =>
+	Buffer.byteLength(JSON.stringify(object));

@@ -14,6 +14,7 @@
  */
 import { gte as isVersionGTE, valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
+import { getByteSize } from '.';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -97,9 +98,6 @@ export const validatePeerCompatibility = (
 		success: true,
 	};
 };
-
-export const getByteSize = (object: any): number =>
-	Buffer.byteLength(JSON.stringify(object));
 
 export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	if (
