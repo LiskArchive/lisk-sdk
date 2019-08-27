@@ -32,34 +32,34 @@ describe('newPeer', () => {
 	};
 
 	describe('#constructor', () => {
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
+			newPeersObj = new NewPeers(newPeerConfig);
 		});
 
 		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
-			expect(newPeersList.newPeerConfig).to.be.eql(newPeerConfig);
-			expect(newPeersList.newPeerConfig.peerBucketCount).to.be.equal(128);
-			expect(newPeersList.newPeerConfig.peerBucketSize).to.be.equal(32);
+			expect(newPeersObj.newPeerConfig).to.be.eql(newPeerConfig);
+			expect(newPeersObj.newPeerConfig.peerBucketCount).to.be.equal(128);
+			expect(newPeersObj.newPeerConfig.peerBucketSize).to.be.equal(32);
 		});
 	});
 
 	describe('#addPeer', () => {
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
-			newPeersList.addPeer(samplePeers[0]);
+			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj.addPeer(samplePeers[0]);
 		});
 
 		it('should add the incoming peer when it does not exist already', async () => {
-			expect(newPeersList.getPeer(samplePeers[0])).eql(samplePeers[0]);
+			expect(newPeersObj.getPeer(samplePeers[0])).eql(samplePeers[0]);
 		});
 
 		it('should not add the incoming peer if it exists', async () => {
-			expect(newPeersList.addPeer(samplePeers[0]))
+			expect(newPeersObj.addPeer(samplePeers[0]))
 				.to.be.an('object')
 				.haveOwnProperty('success').to.be.false;
 		});
@@ -67,15 +67,15 @@ describe('newPeer', () => {
 
 	describe('#getNewPeersList', () => {
 		const samplePeers = initializePeerInfoList();
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 		let newPeersArray: ReadonlyArray<P2PPeerInfo>;
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
-			newPeersList.addPeer(samplePeers[0]);
-			newPeersList.addPeer(samplePeers[1]);
-			newPeersList.addPeer(samplePeers[2]);
-			newPeersArray = newPeersList.peersList();
+			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj.addPeer(samplePeers[0]);
+			newPeersObj.addPeer(samplePeers[1]);
+			newPeersObj.addPeer(samplePeers[2]);
+			newPeersArray = newPeersObj.peersList();
 		});
 
 		it('should return new peers list', async () => {
@@ -89,34 +89,34 @@ describe('newPeer', () => {
 	});
 
 	describe('#removePeer', () => {
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
-			newPeersList.addPeer(samplePeers[0]);
-			newPeersList.addPeer(samplePeers[1]);
+			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj.addPeer(samplePeers[0]);
+			newPeersObj.addPeer(samplePeers[1]);
 		});
 
 		it('should remove the peer from the incoming peerInfo', async () => {
-			newPeersList.removePeer(samplePeers[0]);
-			expect(newPeersList.getPeer(samplePeers[0])).to.be.undefined;
+			newPeersObj.removePeer(samplePeers[0]);
+			expect(newPeersObj.getPeer(samplePeers[0])).to.be.undefined;
 		});
 	});
 
 	describe('#getPeer', () => {
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
-			newPeersList.addPeer(samplePeers[0]);
-			newPeersList.addPeer(samplePeers[1]);
+			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj.addPeer(samplePeers[0]);
+			newPeersObj.addPeer(samplePeers[1]);
 		});
 
 		describe('when peer exists in the triedPeers peerMap', () => {
 			it('should get the peer from the incoming peerId', async () => {
-				expect(newPeersList.getPeer(samplePeers[0]))
+				expect(newPeersObj.getPeer(samplePeers[0]))
 					.to.be.an('object')
 					.and.eql(samplePeers[0]);
 			});
@@ -125,19 +125,19 @@ describe('newPeer', () => {
 		describe('when peer does not exist in the triedPeers peerMap', () => {
 			const randomPeer = initializePeerInfoList()[2];
 			it('should return undefined for the given peer that does not exist in peerMap', async () => {
-				expect(newPeersList.getPeer(randomPeer)).to.be.undefined;
+				expect(newPeersObj.getPeer(randomPeer)).to.be.undefined;
 			});
 		});
 	});
 
 	describe('#updatePeer', () => {
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
-			newPeersList.addPeer(samplePeers[0]);
-			newPeersList.addPeer(samplePeers[1]);
+			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj.addPeer(samplePeers[0]);
+			newPeersObj.addPeer(samplePeers[1]);
 		});
 
 		describe('when trying to update a peer that exist', () => {
@@ -148,9 +148,9 @@ describe('newPeer', () => {
 					version: '1.2.3',
 				};
 
-				const success = newPeersList.updatePeer(updatedPeer);
+				const success = newPeersObj.updatePeer(updatedPeer);
 				expect(success).to.be.true;
-				expect(newPeersList.getPeer(samplePeers[0])).to.be.eql(updatedPeer);
+				expect(newPeersObj.getPeer(samplePeers[0])).to.be.eql(updatedPeer);
 			});
 		});
 
@@ -162,58 +162,58 @@ describe('newPeer', () => {
 					version: '1.2.3',
 				};
 
-				const success = newPeersList.updatePeer(updatedPeer);
+				const success = newPeersObj.updatePeer(updatedPeer);
 				expect(success).to.be.false;
 			});
 		});
 	});
 
 	describe('#findPeer', () => {
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
-			newPeersList.addPeer(samplePeers[0]);
-			newPeersList.addPeer(samplePeers[1]);
+			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj.addPeer(samplePeers[0]);
+			newPeersObj.addPeer(samplePeers[1]);
 		});
 
 		describe('when the peer exist', () => {
 			it('should find the peer from the incoming peerInfo', async () => {
-				const peer = newPeersList.getPeer(samplePeers[0]);
+				const peer = newPeersObj.getPeer(samplePeers[0]);
 				expect(peer).eql(samplePeers[0]);
 			});
 		});
 
 		describe('when the peer does not exist', () => {
 			it('should return false when the peer does not exist', async () => {
-				const success = newPeersList.updatePeer(samplePeers[2]);
+				const success = newPeersObj.updatePeer(samplePeers[2]);
 				expect(success).to.be.false;
 			});
 		});
 	});
 
 	describe('#failedConnectionAction', () => {
-		let newPeersList: NewPeers;
+		let newPeersObj: NewPeers;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersList = new NewPeers(newPeerConfig);
-			newPeersList.addPeer(samplePeers[0]);
-			newPeersList.addPeer(samplePeers[1]);
+			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj.addPeer(samplePeers[0]);
+			newPeersObj.addPeer(samplePeers[1]);
 		});
 
 		describe('when the peer exist and applied failedConnectionAction', () => {
 			it('should delete the peer and for the second call it should return false', async () => {
-				const success1 = newPeersList.failedConnectionAction(samplePeers[0]);
+				const success1 = newPeersObj.failedConnectionAction(samplePeers[0]);
 				expect(success1).to.be.true;
-				const success2 = newPeersList.failedConnectionAction(samplePeers[0]);
+				const success2 = newPeersObj.failedConnectionAction(samplePeers[0]);
 				expect(success2).to.be.false;
 			});
 		});
 	});
 
-	describe('#evictionRandomly', () => {
+	describe('#evictionBasedOnRandomSelection', () => {
 		const newPeerConfig = {
 			peerBucketSize: 2,
 			peerBucketCount: 2,
@@ -223,16 +223,16 @@ describe('newPeer', () => {
 		};
 		const samplePeers = initializePeerInfoList();
 
-		let newPeersList = new NewPeers(newPeerConfig);
+		let newPeersobj = new NewPeers(newPeerConfig);
 		// Modify getBucketId function to only return buckets in range
-		newPeersList['getBucketId'] = () => Math.floor(Math.random() * 2);
-		newPeersList.addPeer(samplePeers[0]);
-		newPeersList.addPeer(samplePeers[1]);
+		newPeersobj['getBucketId'] = () => Math.floor(Math.random() * 2);
+		newPeersobj.addPeer(samplePeers[0]);
+		newPeersobj.addPeer(samplePeers[1]);
 
 		// Now capture the evicted peers from addition of new Peers
-		const evictionResult1 = newPeersList.addPeer(samplePeers[2]);
-		const evictionResult2 = newPeersList.addPeer(samplePeers[3]);
-		const evictionResult3 = newPeersList.addPeer(samplePeers[4]);
+		const evictionResult1 = newPeersobj.addPeer(samplePeers[2]);
+		const evictionResult2 = newPeersobj.addPeer(samplePeers[3]);
+		const evictionResult3 = newPeersobj.addPeer(samplePeers[4]);
 
 		it('should evict atleast one peer from the peerlist based on random eviction', async () => {
 			const evictionResultAfterAddition = [
@@ -251,7 +251,7 @@ describe('newPeer', () => {
 			]
 				.filter(result => result.isEvicted)
 				.map(trueEvictionResult => trueEvictionResult.evictedPeer);
-			expect(evictedPeersAfterAddition).not.members(newPeersList.peersList());
+			expect(evictedPeersAfterAddition).not.members(newPeersobj.peersList());
 		});
 	});
 
