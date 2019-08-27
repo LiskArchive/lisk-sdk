@@ -197,9 +197,6 @@ export const getBucket = (options: {
 	return hash(bucketBytes).readUInt32BE(0) % secondMod;
 };
 
-export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
-
 export const getUniquePeersbyIp = (
 	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
@@ -218,3 +215,6 @@ export const getUniquePeersbyIp = (
 
 	return [...peerMap.values()];
 };
+
+export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;

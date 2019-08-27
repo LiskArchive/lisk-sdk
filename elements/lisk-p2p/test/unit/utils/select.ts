@@ -12,15 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../../utils/peers';
 import {
-	getUniquePeersbyIp,
 	selectPeersForConnection,
 	selectPeersForRequest,
 } from '../../../src/utils';
-import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { P2PNodeInfo } from '../../../src/p2p_types';
 
 describe('utils/select', () => {
 	describe('#selectPeersForRequest', () => {
@@ -152,6 +150,10 @@ describe('utils/select', () => {
 					.and.of.length(1);
 			});
 		});
+	});
+
+	describe('#selectPeersForSend', () => {
+		it('should check all cases');
 	});
 
 	describe('#selectPeersForConnection', () => {
@@ -309,73 +311,6 @@ describe('utils/select', () => {
 					.to.be.an('array')
 					.of.length(3);
 				expect(peerList).to.include.members(selectedPeers);
-			});
-		});
-	});
-
-	describe('#getUniquePeersbyIp', () => {
-		const samplePeers = initializePeerInfoList();
-
-		describe('when two peers have same peer infos', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
-
-			beforeEach(async () => {
-				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
-			});
-
-			it('should remove the duplicate peers with the same ips', async () => {
-				expect(uniquePeerListByIp).eql(samplePeers);
-			});
-		});
-
-		describe('when two peers have same IP and different wsPort and height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
-
-			beforeEach(async () => {
-				const peer1 = {
-					...samplePeers[0],
-					height: 1212,
-					wsPort: samplePeers[0].wsPort + 1,
-				};
-
-				const peer2 = {
-					...samplePeers[1],
-					height: 1200,
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
-			});
-
-			it('should remove the duplicate ip and choose the one with higher height', async () => {
-				expect(uniquePeerListByIp).eql(samplePeers);
-			});
-		});
-
-		describe('when two peers have same IP and different wsPort but same height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
-
-			beforeEach(async () => {
-				const peer1 = {
-					...samplePeers[0],
-					height: samplePeers[0].height,
-					wsPort: samplePeers[0].wsPort + 1,
-				};
-
-				const peer2 = {
-					...samplePeers[1],
-					height: samplePeers[1].height,
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
-			});
-
-			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
-				expect(uniquePeerListByIp).eql(samplePeers);
 			});
 		});
 	});

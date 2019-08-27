@@ -14,10 +14,7 @@
  */
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../../utils/peers';
-import {
-	PeerBook,
-	PeerBookConfig,
-} from '../../../src/peer_directory/peer_book';
+import { PeerBook, PeerBookConfig } from '../../../src/peer_directory';
 
 describe('peerBook', () => {
 	const peerBookConfig: PeerBookConfig = {

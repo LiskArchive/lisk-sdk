@@ -13,6 +13,7 @@
  *
  */
 import { expect } from 'chai';
+import { initializePeerInfoList } from '../../utils/peers';
 import {
 	getIPGroup,
 	isPrivate,
@@ -21,9 +22,11 @@ import {
 	getIPBytes,
 	getNetgroup,
 	getBucket,
+	getUniquePeersbyIp,
 	NETWORK,
 	PEER_TYPE,
 } from '../../../src/utils';
+import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe('utils/miscellaneous', () => {
 	const IPv4Address = '1.160.10.240';
@@ -34,6 +37,7 @@ describe('utils/miscellaneous', () => {
 	const MAX_NEW_BUCKETS = 128;
 	const MAX_TRIED_BUCKETS = 64;
 	const MAX_PEER_ADDRESSES = 65025;
+
 	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
 			const byte = getIPGroup(IPv4Address, 0);
@@ -46,6 +50,24 @@ describe('utils/miscellaneous', () => {
 			} catch (err) {
 				expect(err).to.have.property('message', 'Invalid IP group.');
 			}
+		});
+	});
+
+	describe('#getIPBytes', () => {
+		it('should return an object with property groupABytes', () => {
+			return expect(getIPBytes(IPv4Address)).to.have.property('aBytes');
+		});
+
+		it('should return an object with property groupBBytes', () => {
+			return expect(getIPBytes(IPv4Address)).to.have.property('bBytes');
+		});
+
+		it('should return an object with property groupBBytes', () => {
+			return expect(getIPBytes(IPv4Address)).to.have.property('cBytes');
+		});
+
+		it('should return an object with property groupBBytes', () => {
+			return expect(getIPBytes(IPv4Address)).to.have.property('dBytes');
 		});
 	});
 
@@ -72,24 +94,6 @@ describe('utils/miscellaneous', () => {
 
 		it(`should return ${NETWORK.NET_LOCAL} for local address`, () => {
 			return expect(getNetwork(localAddress)).to.eql(NETWORK.NET_LOCAL);
-		});
-	});
-
-	describe('#getIPBytes', () => {
-		it('should return an object with property groupABytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('aBytes');
-		});
-
-		it('should return an object with property groupBBytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('bBytes');
-		});
-
-		it('should return an object with property groupBBytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('cBytes');
-		});
-
-		it('should return an object with property groupBBytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('dBytes');
 		});
 	});
 
@@ -285,6 +289,73 @@ describe('utils/miscellaneous', () => {
 				expect(bucketCount).to.be.lessThan(
 					expectedPeerCountPerBucketUpperBound,
 				);
+			});
+		});
+	});
+
+	describe('#getUniquePeersbyIp', () => {
+		const samplePeers = initializePeerInfoList();
+
+		describe('when two peers have same peer infos', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate peers with the same ips', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
+			});
+		});
+
+		describe('when two peers have same IP and different wsPort and height', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const peer1 = {
+					...samplePeers[0],
+					height: 1212,
+					wsPort: samplePeers[0].wsPort + 1,
+				};
+
+				const peer2 = {
+					...samplePeers[1],
+					height: 1200,
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const duplicatesList = [...samplePeers, peer1, peer2];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate ip and choose the one with higher height', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
+			});
+		});
+
+		describe('when two peers have same IP and different wsPort but same height', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const peer1 = {
+					...samplePeers[0],
+					height: samplePeers[0].height,
+					wsPort: samplePeers[0].wsPort + 1,
+				};
+
+				const peer2 = {
+					...samplePeers[1],
+					height: samplePeers[1].height,
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const duplicatesList = [...samplePeers, peer1, peer2];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
 			});
 		});
 	});

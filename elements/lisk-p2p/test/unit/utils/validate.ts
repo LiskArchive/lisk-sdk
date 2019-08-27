@@ -12,22 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { expect } from 'chai';
 import {
 	validatePeerAddress,
 	validatePeerInfo,
 	validateRPCRequest,
 	validateProtocolMessage,
-	sanitizeIncomingPeerInfo,
-	sanitizeOutgoingPeerInfo,
 } from '../../../src/utils';
 import {
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
 } from '../../../src/p2p_types';
-import { initializePeerInfoList } from 'utils/peers';
 
 describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
@@ -280,32 +276,6 @@ describe('utils/validate', () => {
 			expect(returnedValidatedMessage)
 				.to.be.an('object')
 				.has.property('data').to.be.string;
-		});
-	});
-
-	describe('#sanitizeIncomingPeerInfo', () => {
-		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
-			const samplePeers = initializePeerInfoList();
-			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
-			const protocolPeerInfo = {
-				ip: ipAddress,
-				...restOfPeerInfo,
-			};
-
-			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).eql(samplePeers[0]);
-		});
-	});
-
-	describe('#sanitizeOutgoingPeerInfo', () => {
-		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
-			const samplePeers = initializePeerInfoList();
-			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
-			const protocolPeerInfo = {
-				ip: ipAddress,
-				...restOfPeerInfo,
-			};
-
-			expect(sanitizeOutgoingPeerInfo(samplePeers[0])).eql(protocolPeerInfo);
 		});
 	});
 });
