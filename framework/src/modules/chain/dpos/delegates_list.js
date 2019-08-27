@@ -119,11 +119,11 @@ class DelegatesList extends EventEmitter {
 		const delegatePubKey = delegateList[currentSlot % this.activeDelegates];
 
 		// Verify if forger exists and matches the generatorPublicKey on block
-		if (delegatePubKey && block.generatorPublicKey === delegatePubKey) {
-			return true;
+		if (!delegatePubKey || block.generatorPublicKey !== delegatePubKey) {
+			throw new Error(`Failed to verify slot: ${currentSlot}`);
 		}
 
-		throw new Error(`Failed to verify slot: ${currentSlot}`);
+		return true;
 	}
 }
 
