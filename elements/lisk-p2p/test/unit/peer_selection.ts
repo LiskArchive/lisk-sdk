@@ -39,59 +39,96 @@ describe('peer selector', () => {
 				peerList = initializePeerInfoList();
 			});
 
-			it('should return an array without optional arguments', () => {
-				return expect(selectPeersForRequest({ peers: peerList })).to.be.an(
-					'array',
-				);
-			});
+			it('should return an array without optional arguments', () =>
+				expect(
+					selectPeersForRequest({
+						peers: peerList,
+						peerLimit: 1,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
+				).to.be.an('array'));
 
-			it('should return an array', () => {
-				return expect(
-					selectPeersForRequest({ peers: peerList, nodeInfo }),
-				).to.be.an('array');
-			});
+			it('should return an array', () =>
+				expect(
+					selectPeersForRequest({
+						peers: peerList,
+						nodeInfo,
+						peerLimit: 1,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
+				).to.be.an('array'));
 
-			it('returned array should contain good peers according to algorithm', () => {
-				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
-					.and.be.an('array')
-					.and.of.length(5);
-			});
-
-			it('return empty peer list for no peers as an argument', () => {
-				return expect(selectPeersForRequest({ peers: [], nodeInfo }))
-					.and.be.an('array')
-					.and.to.be.eql([]);
-			});
-
-			it('should return an array having one good peer', () => {
-				return expect(
-					selectPeersForRequest({ peers: peerList, nodeInfo, peerLimit: 1 }),
+			it('returned array should contain good peers according to algorithm', () =>
+				expect(
+					selectPeersForRequest({
+						peers: peerList,
+						nodeInfo,
+						peerLimit: 5,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
 				)
 					.and.be.an('array')
-					.and.of.length(1);
-			});
+					.and.of.length(5));
 
-			it('should return an array having 2 good peers', () => {
-				return expect(
-					selectPeersForRequest({ peers: peerList, nodeInfo, peerLimit: 2 }),
+			it('return empty peer list for no peers as an argument', () =>
+				expect(
+					selectPeersForRequest({
+						peers: [],
+						nodeInfo,
+						peerLimit: 1,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
 				)
 					.and.be.an('array')
-					.and.of.length(2);
-			});
+					.and.to.be.eql([]));
 
-			it('should return an array having all good peers', () => {
-				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
-					.and.be.an('array')
-					.and.of.length(5);
-			});
-
-			it('should return an array of equal length equal to requested number of peers', () => {
-				return expect(
-					selectPeersForRequest({ peers: peerList, nodeInfo, peerLimit: 3 }),
+			it('should return an array having one good peer', () =>
+				expect(
+					selectPeersForRequest({
+						peers: peerList,
+						nodeInfo,
+						peerLimit: 1,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
 				)
 					.and.be.an('array')
-					.and.of.length(3);
-			});
+					.and.of.length(1));
+
+			it('should return an array having 2 good peers', () =>
+				expect(
+					selectPeersForRequest({
+						peers: peerList,
+						nodeInfo,
+						peerLimit: 2,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
+				)
+					.and.be.an('array')
+					.and.of.length(2));
+
+			it('should return an array having all good peers', () =>
+				expect(
+					selectPeersForRequest({
+						peers: peerList,
+						nodeInfo,
+						peerLimit: 5,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
+				)
+					.and.be.an('array')
+					.and.of.length(5));
+
+			it('should return an array of equal length equal to requested number of peers', () =>
+				expect(
+					selectPeersForRequest({
+						peers: peerList,
+						nodeInfo,
+						peerLimit: 3,
+						requestPacket: { procedure: 'foo', data: {} },
+					}),
+				)
+					.and.be.an('array')
+					.and.of.length(3));
 		});
 
 		describe('peers with lower blockheight', () => {
@@ -108,6 +145,7 @@ describe('peer selector', () => {
 						peers: lowHeightPeers,
 						nodeInfo,
 						peerLimit: 2,
+						requestPacket: { procedure: 'foo', data: {} },
 					}),
 				)
 					.and.be.an('array')
@@ -125,6 +163,7 @@ describe('peer selector', () => {
 				const selectedPeers = selectPeersForConnection({
 					triedPeers: [],
 					newPeers: [],
+					peerLimit: 20,
 				});
 				expect(selectedPeers).to.be.an('array').empty;
 			});
@@ -135,6 +174,7 @@ describe('peer selector', () => {
 				const selectedPeers = selectPeersForConnection({
 					triedPeers: peerList,
 					newPeers: [],
+					peerLimit: 20,
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
