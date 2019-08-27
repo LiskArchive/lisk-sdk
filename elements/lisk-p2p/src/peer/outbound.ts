@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as querystring from 'querystring';
+import * as socketClusterClient from 'socketcluster-client';
+import { DEFAULT_ACK_TIMEOUT, DEFAULT_CONNECT_TIMEOUT } from '../constants';
 import {
-	DEFAULT_ACK_TIMEOUT,
-	DEFAULT_CONNECT_TIMEOUT,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
@@ -24,7 +25,7 @@ import {
 	REMOTE_EVENT_PONG,
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
-} from '..';
+} from '../events';
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
@@ -38,9 +39,6 @@ import {
 	Peer,
 	PeerConfig,
 } from './base';
-
-import * as querystring from 'querystring';
-import * as socketClusterClient from 'socketcluster-client';
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
 

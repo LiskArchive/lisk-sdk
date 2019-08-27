@@ -16,7 +16,7 @@ import {
 	DEFAULT_MAX_RECONNECT_TRIES,
 	DEFAULT_TRIED_PEER_BUCKET_SIZE,
 	DEFAULT_TRIED_PEER_LIST_SIZE,
-} from '..';
+} from '../constants';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 

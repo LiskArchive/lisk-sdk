@@ -22,7 +22,7 @@ import {
 	InvalidRPCRequestException,
 	RPCResponseAlreadySentException,
 	RequestFailException,
-} from '../../src';
+} from '../../src/exceptions';
 
 describe('exceptions', () => {
 	describe('#PeerInboundHandshakeException', () => {

@@ -17,12 +17,13 @@ import { isIP, isNumeric, isPort } from 'validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+} from '../constants';
+import {
 	InvalidPeerException,
 	InvalidProtocolMessageException,
 	InvalidRPCRequestException,
 	InvalidRPCResponseException,
-} from '..';
-
+} from '../exceptions';
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,

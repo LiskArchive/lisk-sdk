@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { RPCResponseAlreadySentException } from '.';
+import { RPCResponseAlreadySentException } from './exceptions';
 import { P2PResponsePacket } from './p2p_types';
 
 interface RequestOptions {
