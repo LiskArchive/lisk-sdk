@@ -804,11 +804,10 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const freshLastBlock = library.modules.blocks.lastBlock;
-				return library.modules.dpos
-					.getRoundDelegates(slots.calcRound(freshLastBlock.height + 1))
-					.then(delegatesList => {
-						expect(delegatesList).to.deep.equal(round.delegatesList);
-					});
+				const delegatesList = await library.modules.dpos.getRoundDelegates(
+					slots.calcRound(freshLastBlock.height + 1),
+				);
+				return expect(delegatesList).to.deep.equal(round.delegatesList);
 			});
 		});
 
@@ -832,11 +831,10 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const lastBlock = library.modules.blocks.lastBlock;
-				return library.modules.dpos
-					.getRoundDelegates(slots.calcRound(lastBlock.height + 1))
-					.then(delegatesList => {
-						expect(delegatesList).to.deep.equal(round.delegatesList);
-					});
+				const delegatesList = await library.modules.dpos.getRoundDelegates(
+					slots.calcRound(lastBlock.height + 1),
+				);
+				return expect(delegatesList).to.deep.equal(round.delegatesList);
 			});
 		});
 
@@ -918,11 +916,10 @@ describe('rounds', () => {
 			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', async () => {
 					const freshLastBlock = library.modules.blocks.lastBlock;
-					return library.modules.dpos
-						.getRoundDelegates(slots.calcRound(freshLastBlock.height + 1))
-						.then(delegatesList => {
-							expect(delegatesList).to.not.deep.equal(round.delegatesList);
-						});
+					const delegatesList = await library.modules.dpos.getRoundDelegates(
+						slots.calcRound(freshLastBlock.height + 1),
+					);
+					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
 
 				it('forger of last block of previous round should have vote = 0', async () => {
@@ -937,17 +934,15 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(library.modules.blocks.lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							const freshLastBlock = library.modules.blocks.lastBlock;
-							return library.modules.dpos
-								.getRoundDelegates(slots.calcRound(freshLastBlock.height))
-								.then(delegatesList => {
-									expect(delegatesList).to.deep.equal(round.delegatesList);
-								});
-						});
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock,
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					const freshLastBlock = library.modules.blocks.lastBlock;
+					const delegatesList = await library.modules.dpos.getRoundDelegates(
+						slots.calcRound(freshLastBlock.height),
+					);
+					return expect(delegatesList).to.deep.equal(round.delegatesList);
 				});
 
 				it('expected forger of last block of round should have proper votes again', async () => {
@@ -1100,17 +1095,15 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(library.modules.blocks.lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							lastBlock = library.modules.blocks.lastBlock;
-							return library.modules.dpos
-								.getRoundDelegates(slots.calcRound(lastBlock.height))
-								.then(delegatesList => {
-									expect(delegatesList).to.deep.equal(round.delegatesList);
-								});
-						});
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock,
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					lastBlock = library.modules.blocks.lastBlock;
+					const delegatesList = await library.modules.dpos.getRoundDelegates(
+						slots.calcRound(lastBlock.height),
+					);
+					return expect(delegatesList).to.deep.equal(round.delegatesList);
 				});
 
 				it('last block height should be at height 100', async () => {
