@@ -93,6 +93,7 @@ describe('dpos.verifyBlockForger()', () => {
 			[],
 		);
 		const block = {
+			id: 'myid',
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey: 'xxx',
@@ -102,7 +103,9 @@ describe('dpos.verifyBlockForger()', () => {
 
 		// Act && Assert
 		const error = new Error(
-			`Failed to verify slot: ${expectedSlot} - No delegateList was found`,
+			`Failed to verify slot: ${expectedSlot} for block ID: ${
+				block.id
+			} - No delegateList was found`,
 		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
 	});
