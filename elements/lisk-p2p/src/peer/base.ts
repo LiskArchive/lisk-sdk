@@ -37,7 +37,7 @@ import {
 	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
-	RPCResponseError,
+	RPCResponseException,
 } from '..';
 import {
 	P2PDiscoveredPeerInfo,
@@ -480,7 +480,7 @@ export class Peer extends EventEmitter {
 						}
 
 						reject(
-							new RPCResponseError(
+							new RPCResponseException(
 								`Failed to handle response for procedure ${packet.procedure}`,
 								`${this.ipAddress}:${this.wsPort}`,
 							),
@@ -505,7 +505,7 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
-			throw new RPCResponseError(
+			throw new RPCResponseException(
 				'Failed to fetch peer list of peer',
 				this.ipAddress,
 			);
@@ -531,7 +531,7 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 
-			throw new RPCResponseError(
+			throw new RPCResponseException(
 				'Failed to fetch peer info of peer',
 				`${this.ipAddress}:${this.wsPort}`,
 			);
@@ -541,7 +541,7 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
-			throw new RPCResponseError(
+			throw new RPCResponseException(
 				'Failed to update peer info of peer as part of fetch operation',
 				`${this.ipAddress}:${this.wsPort}`,
 			);

@@ -71,7 +71,7 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 	P2PRequest,
-	PeerInboundHandshakeError,
+	PeerInboundHandshakeException,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from '.';
 import {
@@ -541,7 +541,7 @@ export class P2P extends EventEmitter {
 		socket.disconnect(statusCode, closeReason);
 		this.emit(
 			EVENT_FAILED_TO_ADD_INBOUND_PEER,
-			new PeerInboundHandshakeError(
+			new PeerInboundHandshakeException(
 				closeReason,
 				statusCode,
 				socket.remoteAddress,
