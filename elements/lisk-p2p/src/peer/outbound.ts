@@ -28,10 +28,10 @@ import {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_OUTBOUND_SOCKET_ERROR,
-	EVENT_PING,
-	REMOTE_EVENT_MESSAGE,
-	REMOTE_EVENT_RPC_REQUEST,
-	RESPONSE_PONG,
+	REMOTE_EVENT_PING,
+	REMOTE_EVENT_PONG,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '..';
 
 import {
@@ -173,15 +173,15 @@ export class OutboundPeer extends Peer {
 		outboundSocket.on('message', this._handleWSMessage);
 
 		outboundSocket.on(
-			EVENT_PING,
+			REMOTE_EVENT_PING,
 			(_: undefined, res: (_: undefined, data: string) => void) => {
-				res(undefined, RESPONSE_PONG);
+				res(undefined, REMOTE_EVENT_PONG);
 			},
 		);
 
 		// Bind RPC and remote event handlers
-		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		outboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		outboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		outboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		outboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
 		outboundSocket.on(
 			'postSignatures',
@@ -206,8 +206,8 @@ export class OutboundPeer extends Peer {
 		outboundSocket.off('message', this._handleWSMessage);
 
 		// Unbind RPC and remote event handlers
-		outboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		outboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		outboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		outboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		outboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
 		outboundSocket.off(
 			'postSignatures',
@@ -217,6 +217,6 @@ export class OutboundPeer extends Peer {
 			'postTransactions',
 			this._handleRawLegacyMessagePostTransactions,
 		);
-		outboundSocket.off(EVENT_PING);
+		outboundSocket.off(REMOTE_EVENT_PING);
 	}
 }

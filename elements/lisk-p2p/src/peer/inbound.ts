@@ -19,9 +19,9 @@ import {
 	DEFAULT_PING_INTERVAL_MIN,
 	EVENT_CLOSE_INBOUND,
 	EVENT_INBOUND_SOCKET_ERROR,
-	EVENT_PING,
-	REMOTE_EVENT_MESSAGE,
-	REMOTE_EVENT_RPC_REQUEST,
+	REMOTE_EVENT_PING,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '..';
 
 import { P2PDiscoveredPeerInfo } from '../utils/types';
@@ -71,10 +71,17 @@ export class InboundPeer extends Peer {
 		};
 		this._sendPing = () => {
 			const pingStart = Date.now();
-			this._socket.emit(EVENT_PING, undefined, (_: Error, __: unknown) => {
-				this._latency = Date.now() - pingStart;
-				this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
-			});
+			this._socket.emit(
+				REMOTE_EVENT_PING,
+				undefined,
+				(_: Error, __: unknown) => {
+					this._latency = Date.now() - pingStart;
+					this._pingTimeoutId = setTimeout(
+						this._sendPing,
+						getRandomPingDelay(),
+					);
+				},
+			);
 		};
 		this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
 		this._socket = peerSocket;
@@ -101,8 +108,8 @@ export class InboundPeer extends Peer {
 		inboundSocket.on('message', this._handleWSMessage);
 
 		// Bind RPC and remote event handlers
-		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		inboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		inboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
 		inboundSocket.on(
 			'postSignatures',
@@ -122,8 +129,8 @@ export class InboundPeer extends Peer {
 		inboundSocket.off('message', this._handleWSMessage);
 
 		// Unbind RPC and remote event handlers
-		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		inboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		inboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
 		inboundSocket.off(
 			'postSignatures',

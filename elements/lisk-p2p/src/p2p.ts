@@ -102,7 +102,7 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 	PeerInboundHandshakeError,
-	REMOTE_RPC_GET_PEERS_LIST,
+	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from '.';
 
 export class P2P extends EventEmitter {
@@ -185,7 +185,7 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_RPC_GET_PEERS_LIST) {
+			if (request.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
 				this._handleGetPeersRequest(request);
 			}
 			// Re-emit the request for external use.

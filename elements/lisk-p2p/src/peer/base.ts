@@ -16,6 +16,7 @@
 import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
@@ -32,13 +33,14 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
-	REMOTE_EVENT_MESSAGE,
-	REMOTE_EVENT_RPC_REQUEST,
-	REMOTE_RPC_GET_NODE_INFO,
-	REMOTE_RPC_GET_PEERS_LIST,
-	REMOTE_RPC_UPDATE_PEER_INFO,
+	REMOTE_EVENT_RPC_GET_NODE_INFO,
+	REMOTE_EVENT_RPC_GET_PEERS_LIST,
+	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
 	RPCResponseError,
 } from '..';
+
 import {
 	constructPeerIdFromPeerInfo,
 	getNetgroup,
@@ -260,9 +262,9 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (rawRequest.procedure === REMOTE_RPC_UPDATE_PEER_INFO) {
+			if (rawRequest.procedure === REMOTE_EVENT_RPC_UPDATE_PEER_INFO) {
 				this._handleUpdatePeerInfo(request);
-			} else if (rawRequest.procedure === REMOTE_RPC_GET_NODE_INFO) {
+			} else if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
 				this._handleGetNodeInfo(request);
 			}
 
@@ -408,7 +410,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = convertNodeInfoToLegacyFormat(this._nodeInfo);
 		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
 		await this.request({
-			procedure: REMOTE_RPC_UPDATE_PEER_INFO,
+			procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 			data: legacyNodeInfo,
 		});
 	}
@@ -442,7 +444,7 @@ export class Peer extends EventEmitter {
 			// Emit legacy remote events.
 			this._socket.emit(packet.event, packet.data);
 		} else {
-			this._socket.emit(REMOTE_EVENT_MESSAGE, {
+			this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
 				event: packet.event,
 				data: packet.data,
 			});
@@ -459,7 +461,7 @@ export class Peer extends EventEmitter {
 					throw new Error('Peer socket does not exist');
 				}
 				this._socket.emit(
-					REMOTE_EVENT_RPC_REQUEST,
+					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
 						type: '/RPCRequest',
 						procedure: packet.procedure,
@@ -493,7 +495,7 @@ export class Peer extends EventEmitter {
 	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
-				procedure: REMOTE_RPC_GET_PEERS_LIST,
+				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
 
 			return validatePeersInfoList(
@@ -525,7 +527,7 @@ export class Peer extends EventEmitter {
 		let response: P2PResponsePacket;
 		try {
 			response = await this.request({
-				procedure: REMOTE_RPC_GET_NODE_INFO,
+				procedure: REMOTE_EVENT_RPC_GET_NODE_INFO,
 			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
