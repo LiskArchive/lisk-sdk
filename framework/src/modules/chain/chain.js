@@ -159,7 +159,7 @@ module.exports = class Chain {
 			await this._initModules();
 
 			// Prepare dependency
-			const processorDependency = {
+			const processorDependencies = {
 				blocksModule: this.blocks,
 				logger: this.logger,
 				constants: this.options.constants,
@@ -167,15 +167,15 @@ module.exports = class Chain {
 			};
 
 			// TODO: remove this once we have version 2 genesis block
-			this.processor.register(new BlockProcessorV0(processorDependency), {
+			this.processor.register(new BlockProcessorV0(processorDependencies), {
 				matcher: ({ height }) => height >= 0 && height <= 0,
 			});
 
-			// TODO: Move this to core
+			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
 			if (this.options.exceptions.blockVersion) {
 				if (this.options.exceptions.blockVersion[0]) {
 					const period = this.options.exceptions.blockVersion[0];
-					this.processor.register(new BlockProcessorV0(processorDependency), {
+					this.processor.register(new BlockProcessorV0(processorDependencies), {
 						matcher: ({ height }) =>
 							height >= period.start && height <= period.end,
 					});
@@ -183,14 +183,14 @@ module.exports = class Chain {
 
 				if (this.options.exceptions.blockVersion[1]) {
 					const period = this.options.exceptions.blockVersion[1];
-					this.processor.register(new BlockProcessorV1(processorDependency), {
+					this.processor.register(new BlockProcessorV1(processorDependencies), {
 						matcher: ({ height }) =>
 							height >= period.start && height <= period.end,
 					});
 				}
 			}
 
-			this.processor.register(new BlockProcessorV2(processorDependency), {
+			this.processor.register(new BlockProcessorV2(processorDependencies), {
 				matcher: ({ height }) => height >= 1,
 			});
 
@@ -641,11 +641,14 @@ module.exports = class Chain {
 	}
 
 	_subscribeToEvents() {
-		this.channel.subscribe('chain:process:broadcast', ({ data: { block } }) => {
-			this.transport.onBroadcastBlock(block, true);
-		});
+		this.channel.subscribe(
+			'chain:processor:broadcast',
+			({ data: { block } }) => {
+				this.transport.onBroadcastBlock(block, true);
+			},
+		);
 
-		this.channel.subscribe('chain:process:deleteBlock', ({ block }) => {
+		this.channel.subscribe('chain:processor:deleteBlock', ({ block }) => {
 			if (block.transactions.length) {
 				const transactions = block.transactions.reverse();
 				this.transactionPool.onDeletedTransactions(transactions);
@@ -661,34 +664,37 @@ module.exports = class Chain {
 			this.channel.publish('chain:blocks:change', block);
 		});
 
-		this.channel.subscribe('chain:process:newBlock', ({ data: { block } }) => {
-			if (block.transactions.length) {
-				this.transactionPool.onConfirmedTransactions(block.transactions);
-				this.channel.publish(
-					'chain:transactions:confirmed:change',
-					block.transactions,
+		this.channel.subscribe(
+			'chain:processor:newBlock',
+			({ data: { block } }) => {
+				if (block.transactions.length) {
+					this.transactionPool.onConfirmedTransactions(block.transactions);
+					this.channel.publish(
+						'chain:transactions:confirmed:change',
+						block.transactions,
+					);
+				}
+				this.logger.info(
+					{
+						id: block.id,
+						height: block.height,
+						numberOfTransactions: block.transactions.length,
+					},
+					'New block added to the chain',
 				);
-			}
-			this.logger.info(
-				{
-					id: block.id,
-					height: block.height,
-					numberOfTransactions: block.transactions.length,
-				},
-				'New block added to the chain',
-			);
-			this.channel.publish('chain:blocks:change', block);
+				this.channel.publish('chain:blocks:change', block);
 
-			if (!this.loader.syncing()) {
-				this.channel.invoke('app:updateApplicationState', {
-					height: block.height,
-					lastBlockId: block.id,
-					prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
-				});
-			}
-		});
+				if (!this.loader.syncing()) {
+					this.channel.invoke('app:updateApplicationState', {
+						height: block.height,
+						lastBlockId: block.id,
+						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+					});
+				}
+			},
+		);
 
-		this.channel.subscribe('chain:process:sync', ({ data: { block } }) => {
+		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
 			this.logger.info(
 				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.',
 			);

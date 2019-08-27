@@ -61,7 +61,7 @@ class Processor {
 		await this._processGenesis(genesisBlock, blockProcessor, {
 			skipSave: false,
 		});
-		await blockProcessor.init.exec();
+		await blockProcessor.init.run();
 		this.logger.info('Blockchain ready');
 	}
 
@@ -71,7 +71,7 @@ class Processor {
 			const blockProcessor = this._getBlockProcessor(block);
 			const { lastBlock } = this.blocksModule;
 
-			const forkStatus = await blockProcessor.fork.exec({
+			const forkStatus = await blockProcessor.fork.run({
 				block,
 				lastBlock,
 			});
@@ -99,13 +99,13 @@ class Processor {
 			}
 			// Discard block and move to different chain
 			if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
-				this.channel.publish('chain:process:sync');
+				this.channel.publish('chain:processor:sync');
 				return;
 			}
 			// Replacing a block
 			if (forkStatus === FORK_STATUS_TIE_BREAK) {
 				this.logger.info({ id: lastBlock.id }, 'Reverting block');
-				await blockProcessor.validateNew.exec({
+				await blockProcessor.validateNew.run({
 					block,
 					lastBlock,
 				});
@@ -131,7 +131,7 @@ class Processor {
 			}
 
 			// Process block as it's valid: FORK_STATUS_VALID_BLOCK
-			await blockProcessor.validateNew.exec({
+			await blockProcessor.validateNew.run({
 				block,
 				lastBlock,
 			});
@@ -143,7 +143,7 @@ class Processor {
 	async create(values) {
 		const heghestVersion = Math.max.apply(null, Object.keys(this.processors));
 		const processor = this.processors[heghestVersion];
-		return processor.create.exec(values);
+		return processor.create.run(values);
 	}
 
 	// validate checks the block statically
@@ -191,7 +191,7 @@ class Processor {
 
 	// eslint-disable-next-line class-methods-use-this
 	async _validate(block, lastBlock, processor) {
-		await processor.validate.exec({
+		await processor.validate.run({
 			block,
 			lastBlock,
 		});
@@ -204,25 +204,25 @@ class Processor {
 		{ skipSave, skipBroadcast } = {},
 	) {
 		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
-			await processor.verify.exec({
+			await processor.verify.run({
 				block,
 				lastBlock,
 				skipExistingCheck: skipSave,
 				tx,
 			});
 			if (!skipBroadcast) {
-				this.channel.publish('chain:process:broadcast', {
+				this.channel.publish('chain:processor:broadcast', {
 					block: cloneDeep(block),
 				});
 			}
-			await processor.apply.exec({
+			await processor.apply.run({
 				block,
 				lastBlock,
 				tx,
 			});
 			await this.blocksModule.save({ block, tx, skipSave });
 			if (!skipSave) {
-				this.channel.publish('chain:process:newBlock', {
+				this.channel.publish('chain:processor:newBlock', {
 					block: cloneDeep(block),
 				});
 			}
@@ -248,7 +248,7 @@ class Processor {
 					return block;
 				}
 
-				await processor.applyGenesis.exec({
+				await processor.applyGenesis.run({
 					block,
 					tx,
 				});
@@ -266,12 +266,12 @@ class Processor {
 
 	async _revert(block, processor) {
 		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
-			await processor.undo.exec({
+			await processor.undo.run({
 				block,
 				tx,
 			});
 			await this.blocksModule.remove({ block, tx });
-			this.channel.publish('chain:process:deleteBlock', {
+			this.channel.publish('chain:processor:deleteBlock', {
 				block: cloneDeep(block),
 			});
 		});
