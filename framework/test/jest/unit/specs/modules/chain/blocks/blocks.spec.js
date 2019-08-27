@@ -712,8 +712,25 @@ describe('blocks', () => {
 	});
 
 	describe('verify', () => {
-		it.todo('should throw in case the block id exists in the last n blocks');
-		it.todo('should throw in case the block id exists in the last n blocks');
+		it('should throw in case the block id exists in the last n blocks', () => {
+			// Arrange
+			const block = newBlock();
+
+			const previousLastNBlockIds = blocksInstance._lastNBlockIds;
+			blocksInstance._lastNBlockIds = [];
+			try {
+				// Act
+				blocksInstance.verify({
+					block,
+					skipExistingCheck: true,
+				});
+			} catch (e) {
+				blocksInstance._lastNBlockIds = previousLastNBlockIds;
+
+				// Assert
+				expect(e.message).toEqual('Block already exists in chain');
+			}
+		});
 	});
 
 	describe('apply', () => {
