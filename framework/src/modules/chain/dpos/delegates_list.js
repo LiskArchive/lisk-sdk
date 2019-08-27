@@ -111,12 +111,12 @@ class DelegatesList extends EventEmitter {
 
 		if (!delegateList.length) {
 			throw new Error(
-				`Failed to verify slot: ${currentSlot} - No delegateList was found`,
+				`Failed to verify slot: ${currentSlot} for block ID: ${block.id} - No delegateList was found`,
 			);
 		}
 
-		// Get delegate key that forged this block
-		const delegatePubKey = delegateList[currentSlot % this.activeDelegates];
+		// Get delegate public key that was supposed to forge the block
+		const expectedForgerPublicKey = delegateList[currentSlot % this.activeDelegates];
 
 		// Verify if forger exists and matches the generatorPublicKey on block
 		if (!delegatePubKey || block.generatorPublicKey !== delegatePubKey) {
