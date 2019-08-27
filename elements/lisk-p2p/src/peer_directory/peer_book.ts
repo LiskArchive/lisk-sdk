@@ -13,8 +13,14 @@
  *
  */
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { PEER_TYPE } from '../utils';
 import { NewPeerConfig, NewPeers } from './new_peers';
-import { TriedPeerConfig, TriedPeers } from './tried_peers';
+import {
+	DEFAULT_TRIED_BUCKET_LENGTH,
+	DEFAULT_TRIED_BUCKET_SIZE,
+	TriedPeerConfig,
+	TriedPeers,
+} from './tried_peers';
 
 export interface PeerBookConfig {
 	readonly newPeerConfig?: NewPeerConfig;
@@ -32,7 +38,14 @@ export class PeerBook {
 	}: PeerBookConfig) {
 		this._newPeers = new NewPeers(newPeerConfig ? newPeerConfig : { secret });
 		this._triedPeers = new TriedPeers(
-			triedPeerConfig ? triedPeerConfig : { secret },
+			triedPeerConfig
+				? triedPeerConfig
+				: {
+						secret,
+						peerBucketCount: DEFAULT_TRIED_BUCKET_LENGTH,
+						peerBucketSize: DEFAULT_TRIED_BUCKET_SIZE,
+						peerType: PEER_TYPE.TRIED_PEER,
+				  },
 		);
 	}
 
@@ -41,7 +54,7 @@ export class PeerBook {
 	}
 
 	public get triedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._triedPeers.triedPeersList();
+		return this._triedPeers.peersList() as ReadonlyArray<P2PDiscoveredPeerInfo>;
 	}
 
 	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {

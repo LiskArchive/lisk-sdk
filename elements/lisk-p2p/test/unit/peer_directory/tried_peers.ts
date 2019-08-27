@@ -16,13 +16,15 @@ import { expect } from 'chai';
 import { TriedPeers } from '../../../src/peer_directory/tried_peers';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { PEER_TYPE } from '../../../src/utils';
 
 describe('triedPeer', () => {
 	const triedPeerConfig = {
 		maxReconnectTries: 3,
-		triedPeerBucketSize: 32,
-		triedPeerBucketCount: 64,
+		peerBucketSize: 32,
+		peerBucketCount: 64,
 		secret: 123456,
+		peerType: PEER_TYPE.TRIED_PEER,
 	};
 
 	describe('#constructor', () => {
@@ -34,12 +36,8 @@ describe('triedPeer', () => {
 
 		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
 			expect(triedPeersList.triedPeerConfig).to.be.eql(triedPeerConfig);
-			expect(triedPeersList.triedPeerConfig.triedPeerBucketCount).to.be.equal(
-				64,
-			);
-			expect(triedPeersList.triedPeerConfig.triedPeerBucketSize).to.be.equal(
-				32,
-			);
+			expect(triedPeersList.triedPeerConfig.peerBucketCount).to.be.equal(64);
+			expect(triedPeersList.triedPeerConfig.peerBucketSize).to.be.equal(32);
 		});
 	});
 
@@ -68,12 +66,14 @@ describe('triedPeer', () => {
 		let triedPeersList: TriedPeers;
 		let triedPeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>;
 
-		beforeEach(async () => {
+		before(async () => {
 			triedPeersList = new TriedPeers(triedPeerConfig);
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
 			triedPeersList.addPeer(samplePeers[2]);
-			triedPeersArray = triedPeersList.triedPeersList();
+			triedPeersArray = triedPeersList.peersList() as ReadonlyArray<
+				P2PDiscoveredPeerInfo
+			>;
 		});
 
 		it('should return tried peers list', async () => {
@@ -198,9 +198,10 @@ describe('triedPeer', () => {
 			beforeEach(async () => {
 				const triedPeerConfig = {
 					maxReconnectTries: 1,
-					triedPeerBucketSize: 32,
-					triedPeerBucketCount: 64,
+					peerBucketSize: 32,
+					peerBucketCount: 64,
 					secret: 123456,
+					peerType: PEER_TYPE.TRIED_PEER,
 				};
 				triedPeersList = new TriedPeers(triedPeerConfig);
 				triedPeersList.addPeer(samplePeers[0]);
@@ -217,9 +218,10 @@ describe('triedPeer', () => {
 			beforeEach(async () => {
 				const triedPeerConfig = {
 					maxReconnectTries: 2,
-					triedPeerBucketSize: 32,
-					triedPeerBucketCount: 64,
+					peerBucketSize: 32,
+					peerBucketCount: 64,
 					secret: 123456,
+					peerType: PEER_TYPE.TRIED_PEER,
 				};
 				triedPeersList = new TriedPeers(triedPeerConfig);
 				triedPeersList.addPeer(samplePeers[0]);

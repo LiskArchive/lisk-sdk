@@ -15,13 +15,11 @@
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
-export const DEFAULT_PEER_BUCKET_COUNT = 128;
-export const DEFAULT_PEER_BUCKET_SIZE = 32;
-
 export interface PeerListConfig {
-	readonly peerBucketCount?: number;
-	readonly peerBucketSize?: number;
+	readonly peerBucketCount: number;
+	readonly peerBucketSize: number;
 	readonly secret: number;
+	readonly peerType: PEER_TYPE;
 }
 interface CustomPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
@@ -35,43 +33,40 @@ export interface AddPeerOutcome {
 }
 // Base peer list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
 export class BasePeerList {
-	private readonly _peerMap: Map<number, Map<string, CustomPeerInfo>>;
-	private readonly _peerBucketCount: number;
-	private readonly _peerBucketSize: number;
-	private readonly _secret: number;
+	protected peerMap: Map<number, Map<string, CustomPeerInfo>>;
+	protected readonly peerListConfig: PeerListConfig;
 
 	public constructor({
 		peerBucketSize,
 		peerBucketCount,
 		secret,
+		peerType,
 	}: PeerListConfig) {
-		this._peerBucketSize = peerBucketSize
-			? peerBucketSize
-			: DEFAULT_PEER_BUCKET_SIZE;
-		this._peerBucketCount = peerBucketCount
-			? peerBucketCount
-			: DEFAULT_PEER_BUCKET_COUNT;
-
-		this._secret = secret;
-		this._peerMap = new Map();
-		// Initialize the Map with all the buckets
-		for (const bucketId of [...new Array(this._peerBucketCount).keys()]) {
-			this._peerMap.set(bucketId, new Map<string, CustomPeerInfo>());
-		}
+		this.peerListConfig = {
+			peerBucketCount,
+			peerBucketSize,
+			peerType,
+			secret,
+		};
+		this.peerMap = new Map();
+		this.initializePeerList(this.peerMap);
 	}
 
-	public get peerConfig(): PeerListConfig {
-		return {
-			peerBucketSize: this._peerBucketSize,
-			peerBucketCount: this._peerBucketCount,
-			secret: this._secret,
-		};
+	public initializePeerList(
+		peerMap: Map<number, Map<string, CustomPeerInfo>>,
+	): void {
+		// Initialize the Map with all the buckets
+		for (const bucketId of [
+			...new Array(this.peerListConfig.peerBucketCount).keys(),
+		]) {
+			peerMap.set(bucketId, new Map<string, CustomPeerInfo>());
+		}
 	}
 
 	public peersList(): ReadonlyArray<P2PPeerInfo> {
 		const peersListMap: P2PPeerInfo[] = [];
 
-		for (const peerMap of [...this._peerMap.values()]) {
+		for (const peerMap of [...this.peerMap.values()]) {
 			for (const peer of [...peerMap.values()]) {
 				peersListMap.push(peer.peerInfo);
 			}
@@ -82,15 +77,15 @@ export class BasePeerList {
 
 	public getBucketId(ipAddress: string): number {
 		return getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.NEW_PEER,
+			secret: this.peerListConfig.secret,
+			peerType: this.peerListConfig.peerType,
 			targetAddress: ipAddress,
 		});
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._peerMap.get(bucketId);
+		const bucket = this.peerMap.get(bucketId);
 
 		if (!bucket) {
 			return false;
@@ -102,24 +97,24 @@ export class BasePeerList {
 			return false;
 		}
 		const updatedPeerInfo: CustomPeerInfo = {
+			...foundPeer,
 			peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
-			dateAdded: foundPeer.dateAdded,
 		};
 
 		bucket.set(incomingPeerId, updatedPeerInfo);
-		this._peerMap.set(bucketId, bucket);
+		this.peerMap.set(bucketId, bucket);
 
 		return true;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._peerMap.get(bucketId);
+		const bucket = this.peerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
 		if (bucket && bucket.get(incomingPeerId)) {
 			const success = bucket.delete(incomingPeerId);
-			this._peerMap.set(bucketId, bucket);
+			this.peerMap.set(bucketId, bucket);
 
 			return success;
 		}
@@ -129,7 +124,7 @@ export class BasePeerList {
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._peerMap.get(bucketId);
+		const bucket = this.peerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
 		if (!bucket) {
@@ -143,7 +138,7 @@ export class BasePeerList {
 	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
 	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._peerMap.get(bucketId);
+		const bucket = this.peerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
 		if (!bucket) {
@@ -166,9 +161,9 @@ export class BasePeerList {
 			dateAdded: new Date(),
 		};
 
-		if (bucket.size < this._peerBucketSize) {
+		if (bucket.size < this.peerListConfig.peerBucketSize) {
 			bucket.set(incomingPeerId, newPeer);
-			this._peerMap.set(bucketId, bucket);
+			this.peerMap.set(bucketId, bucket);
 
 			return {
 				success: true,
@@ -178,7 +173,7 @@ export class BasePeerList {
 
 		const evictedPeer = this._evictionRandom(bucketId);
 		bucket.set(incomingPeerId, newPeer);
-		this._peerMap.set(bucketId, bucket);
+		this.peerMap.set(bucketId, bucket);
 
 		return {
 			success: true,
@@ -195,16 +190,18 @@ export class BasePeerList {
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
 	private _evictionRandom(bucketId: number): CustomPeerInfo {
-		const peerList = this._peerMap.get(bucketId);
+		const peerList = this.peerMap.get(bucketId);
 		if (!peerList) {
 			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
 		}
 
-		const randomPeerIndex = Math.floor(Math.random() * this._peerBucketSize);
+		const randomPeerIndex = Math.floor(
+			Math.random() * this.peerListConfig.peerBucketSize,
+		);
 		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
 		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
 		peerList.delete(randomPeerId);
-		this._peerMap.set(bucketId, peerList);
+		this.peerMap.set(bucketId, peerList);
 
 		return randomPeer;
 	}

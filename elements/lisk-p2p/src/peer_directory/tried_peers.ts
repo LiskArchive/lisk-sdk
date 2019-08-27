@@ -18,12 +18,11 @@ import {
 	DEFAULT_TRIED_PEER_LIST_SIZE,
 } from '../constants';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
-import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
+import { constructPeerIdFromPeerInfo } from '../utils';
+import { AddPeerOutcome, BasePeerList, PeerListConfig } from './basePeerList';
 
-interface AddPeerOutcome {
-	readonly success: boolean;
-	readonly evicted: boolean;
-	readonly evictedPeer?: P2PPeerInfo;
+export interface TriedPeerConfig extends PeerListConfig {
+	readonly maxReconnectTries?: number;
 }
 
 interface TriedPeerInfo {
@@ -33,139 +32,73 @@ interface TriedPeerInfo {
 	readonly dateAdded: Date;
 }
 
-export interface TriedPeerConfig {
-	readonly triedPeerBucketCount?: number;
-	readonly triedPeerBucketSize?: number;
-	readonly maxReconnectTries?: number;
-	readonly secret: number;
-}
+type TriedPeerMap = Map<number, Map<string, TriedPeerInfo>>;
 
-export class TriedPeers {
-	private readonly _triedPeerMap: Map<number, Map<string, TriedPeerInfo>>;
-	private readonly _triedPeerBucketCount: number;
-	private readonly _triedPeerBucketSize: number;
+export class TriedPeers extends BasePeerList {
 	private readonly _maxReconnectTries: number;
-	private readonly _secret: number;
 
 	public constructor({
-		triedPeerBucketCount,
+		peerBucketCount,
 		maxReconnectTries,
 		secret,
-		triedPeerBucketSize,
+		peerBucketSize,
+		peerType,
 	}: TriedPeerConfig) {
-		this._triedPeerBucketCount = triedPeerBucketCount
-			? triedPeerBucketCount
-			: DEFAULT_TRIED_PEER_LIST_SIZE;
-		this._triedPeerBucketSize = triedPeerBucketSize
-			? triedPeerBucketSize
-			: DEFAULT_TRIED_PEER_BUCKET_SIZE;
+		const triedPeerBucketCount = peerBucketCount
+			? peerBucketCount
+			: DEFAULT_TRIED_BUCKET_SIZE;
+		const triedPeerBucketSize = peerBucketSize
+			? peerBucketSize
+			: DEFAULT_TRIED_BUCKET_SIZE;
+		super({
+			secret,
+			peerBucketCount: triedPeerBucketCount,
+			peerBucketSize: triedPeerBucketSize,
+			peerType,
+		});
+
 		this._maxReconnectTries = maxReconnectTries
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
-		this._secret = secret;
-		this._triedPeerMap = new Map();
+
+		this.initializePeerList(this.peerMap as TriedPeerMap);
+	}
+
+	public initializePeerList(
+		peerMap: Map<number, Map<string, TriedPeerInfo>>,
+	): void {
 		// Initialize the Map with all the buckets
-		for (const bucketId of [...new Array(this._triedPeerBucketCount).keys()]) {
-			this._triedPeerMap.set(bucketId, new Map<string, TriedPeerInfo>());
+		for (const bucketId of [
+			...new Array(this.peerListConfig.peerBucketCount).keys(),
+		]) {
+			peerMap.set(bucketId, new Map<string, TriedPeerInfo>());
 		}
 	}
 
 	public get triedPeerConfig(): TriedPeerConfig {
 		return {
+			...this.peerListConfig,
 			maxReconnectTries: this._maxReconnectTries,
-			triedPeerBucketSize: this._triedPeerBucketSize,
-			triedPeerBucketCount: this._triedPeerBucketCount,
-			secret: this._secret,
 		};
-	}
-
-	public triedPeersList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const peersListMap: P2PDiscoveredPeerInfo[] = [];
-
-		for (const peerMap of [...this._triedPeerMap.values()]) {
-			for (const peer of [...peerMap.values()]) {
-				peersListMap.push(peer.peerInfo);
-			}
-		}
-
-		return peersListMap;
-	}
-
-	public getBucketId(ipAddress: string): number {
-		return getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: ipAddress,
-		});
-	}
-
-	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._triedPeerMap.get(bucketId);
-
-		if (!bucket) {
-			return false;
-		}
-		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		const foundPeer = bucket.get(incomingPeerId);
-
-		if (!foundPeer) {
-			return false;
-		}
-		const updatedTriedPeerInfo: TriedPeerInfo = {
-			peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
-			dateAdded: foundPeer.dateAdded,
-			numOfConnectionFailures: foundPeer.numOfConnectionFailures,
-		};
-		bucket.set(incomingPeerId, updatedTriedPeerInfo);
-		this._triedPeerMap.set(bucketId, bucket);
-
-		return true;
-	}
-
-	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._triedPeerMap.get(bucketId);
-		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		if (bucket && bucket.get(incomingPeerId)) {
-			const success = bucket.delete(incomingPeerId);
-			this._triedPeerMap.set(bucketId, bucket);
-
-			return success;
-		}
-
-		return false;
-	}
-
-	public getPeer(peerInfo: P2PPeerInfo): P2PDiscoveredPeerInfo | undefined {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._triedPeerMap.get(bucketId);
-		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-
-		if (!bucket) {
-			return undefined;
-		}
-		const triedPeer = bucket.get(incomingPeerId);
-
-		return triedPeer ? triedPeer.peerInfo : undefined;
 	}
 
 	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
 	public addPeer(peerInfo: P2PDiscoveredPeerInfo): AddPeerOutcome {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._triedPeerMap.get(bucketId);
+		const bucket = this.peerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
 		if (!bucket) {
 			return {
 				success: false,
-				evicted: false,
+				isEvicted: false,
 			};
 		}
+
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
 				success: false,
-				evicted: false,
+				isEvicted: false,
 			};
 		}
 		const newTriedPeerInfo = {
@@ -173,23 +106,22 @@ export class TriedPeers {
 			numOfConnectionFailures: 0,
 			dateAdded: new Date(),
 		};
-
-		if (bucket.size < this._triedPeerBucketSize) {
+		if (bucket.size < this.peerListConfig.peerBucketSize) {
 			bucket.set(incomingPeerId, newTriedPeerInfo);
-			this._triedPeerMap.set(bucketId, bucket);
+			this.peerMap.set(bucketId, bucket);
 
 			return {
 				success: true,
-				evicted: false,
+				isEvicted: false,
 			};
 		}
 		const evictedPeer = this._evictPeer(bucketId);
 		bucket.set(incomingPeerId, newTriedPeerInfo);
-		this._triedPeerMap.set(bucketId, bucket);
+		this.peerMap.set(bucketId, bucket);
 
 		return {
 			success: true,
-			evicted: true,
+			isEvicted: true,
 			evictedPeer: evictedPeer.peerInfo,
 		};
 	}
@@ -197,7 +129,7 @@ export class TriedPeers {
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
 		const bucketId = this.getBucketId(incomingPeerInfo.ipAddress);
-		const bucket = this._triedPeerMap.get(bucketId);
+		const bucket = this.peerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
 
 		if (!bucket) {
@@ -208,11 +140,15 @@ export class TriedPeers {
 		if (!foundPeer) {
 			return false;
 		}
-		const { peerInfo, numOfConnectionFailures, dateAdded } = foundPeer;
+		const {
+			peerInfo,
+			numOfConnectionFailures,
+			dateAdded,
+		} = foundPeer as TriedPeerInfo;
 
 		if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
 			bucket.delete(incomingPeerId);
-			this._triedPeerMap.set(bucketId, bucket);
+			this.peerMap.set(bucketId, bucket);
 
 			return true;
 		}
@@ -223,26 +159,26 @@ export class TriedPeers {
 		};
 
 		bucket.set(incomingPeerId, newTriedPeerInfo);
-		this._triedPeerMap.set(bucketId, bucket);
+		this.peerMap.set(bucketId, bucket);
 
 		return false;
 	}
 
 	// If the bucket is full when we add a new peer then choose a peer randomly from the bucket and evict.
 	private _evictPeer(bucketId: number): TriedPeerInfo {
-		const peerList = this._triedPeerMap.get(bucketId);
+		const peerList = this.peerMap.get(bucketId);
 		if (!peerList) {
 			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
 		}
 
 		const randomPeerIndex = Math.floor(
-			Math.random() * this._triedPeerBucketSize,
+			Math.random() * this.peerListConfig.peerBucketSize,
 		);
 		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
 		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
 		peerList.delete(randomPeerId);
-		this._triedPeerMap.set(bucketId, peerList);
+		this.peerMap.set(bucketId, peerList);
 
-		return randomPeer;
+		return randomPeer as TriedPeerInfo;
 	}
 }
