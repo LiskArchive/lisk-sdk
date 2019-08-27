@@ -212,4 +212,46 @@ describe('newPeer', () => {
 			});
 		});
 	});
+
+	describe.only('#evictionRandomly', () => {
+		const newPeerConfig = {
+			peerBucketSize: 2,
+			peerBucketCount: 2,
+			secret: 123456,
+			peerType: PEER_TYPE.NEW_PEER,
+			evictionThresholdTime: 86400000,
+		};
+		const samplePeers = initializePeerInfoList();
+
+		let newPeersList = new NewPeers(newPeerConfig);
+		// Modify getBucketId function to only return buckets in range
+		newPeersList['getBucketId'] = () => Math.floor(Math.random() * 2);
+		newPeersList.addPeer(samplePeers[0]);
+		newPeersList.addPeer(samplePeers[1]);
+
+		// Now capture the evicted peers from addition of new Peers
+		const evictionResult1 = newPeersList.addPeer(samplePeers[2]);
+		const evictionResult2 = newPeersList.addPeer(samplePeers[3]);
+		const evictionResult3 = newPeersList.addPeer(samplePeers[4]);
+
+		it('should evict atleast one peer from the peerlist based on random eviction', async () => {
+			const evictionResultAfterAddition = [
+				evictionResult1,
+				evictionResult2,
+				evictionResult3,
+			].map(result => result.isEvicted);
+			expect(evictionResultAfterAddition).includes(true);
+		});
+
+		it('should remove the evicted peers from the peer list', async () => {
+			const evictedPeersAfterAddition = [
+				evictionResult1,
+				evictionResult2,
+				evictionResult3,
+			]
+				.filter(result => result.isEvicted)
+				.map(trueEvictionResult => trueEvictionResult.evictedPeer);
+			expect(evictedPeersAfterAddition).not.members(newPeersList.peersList());
+		});
+	});
 });
