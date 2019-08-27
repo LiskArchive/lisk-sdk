@@ -172,7 +172,7 @@ export class BasePeerList {
 			};
 		}
 
-		const evictedPeer = this.evictRandomlyFromBucket(bucketId);
+		const evictedPeer = this.evictPeer(bucketId);
 		bucket.set(incomingPeerId, newPeer);
 		this.peerMap.set(bucketId, bucket);
 
@@ -188,6 +188,10 @@ export class BasePeerList {
 		const success = this.removePeer(incomingPeerInfo);
 
 		return success;
+	}
+
+	public evictPeer(bucketId: number): CustomPeerInfo {
+		return this.evictRandomlyFromBucket(bucketId);
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
 	public evictRandomlyFromBucket(bucketId: number): CustomPeerInfo {
