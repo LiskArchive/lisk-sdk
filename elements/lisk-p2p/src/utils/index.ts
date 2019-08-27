@@ -13,5 +13,6 @@
  *
  */
 export * from './miscellaneous';
+export * from './sanitize';
 export * from './select';
 export * from './validate';

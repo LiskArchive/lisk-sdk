@@ -19,8 +19,8 @@ import {
 	validatePeerInfo,
 	validateRPCRequest,
 	validateProtocolMessage,
-	incomingPeerInfoSanitization,
-	outgoingPeerInfoSanitization,
+	sanitizeIncomingPeerInfo,
+	sanitizeOutgoingPeerInfo,
 } from '../../../src/utils/validate';
 import {
 	ProtocolPeerInfo,
@@ -283,7 +283,7 @@ describe('utils/validate', () => {
 		});
 	});
 
-	describe('#incomingPeerInfoSanitization', () => {
+	describe('#sanitizeIncomingPeerInfo', () => {
 		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
 			const samplePeers = initializePeerInfoList();
 			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
@@ -292,13 +292,11 @@ describe('utils/validate', () => {
 				...restOfPeerInfo,
 			};
 
-			expect(incomingPeerInfoSanitization(protocolPeerInfo)).eql(
-				samplePeers[0],
-			);
+			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).eql(samplePeers[0]);
 		});
 	});
 
-	describe('#outgoingPeerInfoSanitization', () => {
+	describe('#sanitizeOutgoingPeerInfo', () => {
 		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
 			const samplePeers = initializePeerInfoList();
 			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
@@ -307,9 +305,7 @@ describe('utils/validate', () => {
 				...restOfPeerInfo,
 			};
 
-			expect(outgoingPeerInfoSanitization(samplePeers[0])).eql(
-				protocolPeerInfo,
-			);
+			expect(sanitizeOutgoingPeerInfo(samplePeers[0])).eql(protocolPeerInfo);
 		});
 	});
 });

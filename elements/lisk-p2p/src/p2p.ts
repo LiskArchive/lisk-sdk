@@ -92,7 +92,7 @@ import { PeerPool } from './peer_pool';
 import {
 	checkPeerCompatibility,
 	constructPeerIdFromPeerInfo,
-	outgoingPeerInfoSanitization,
+	sanitizeOutgoingPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -793,7 +793,7 @@ export class P2P extends EventEmitter {
 		const selectedPeers = shuffle(knownPeers)
 			.slice(0, randomPeerCount)
 			.map(
-				outgoingPeerInfoSanitization, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
+				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
 			);
 
 		const peerInfoList = {
