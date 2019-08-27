@@ -42,7 +42,7 @@ class Pipeline {
 		return this;
 	}
 
-	async exec(data) {
+	async run(data) {
 		if (this.stages.length === 0) {
 			return undefined;
 		}
