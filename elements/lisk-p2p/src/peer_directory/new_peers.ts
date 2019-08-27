@@ -53,10 +53,10 @@ export class NewPeers {
 	}: NewPeerConfig) {
 		this._newPeerBucketSize = newPeerBucketSize
 			? newPeerBucketSize
-			: DEFAULT_NEW_PEER_BUCKET_SIZE;
+			: DEFAULT_NEW_BUCKET_SIZE;
 		this._newPeerBucketCount = newPeerBucketCount
 			? newPeerBucketCount
-			: DEFAULT_NEW_PEER_BUCKET_COUNT;
+			: DEFAULT_NEW_BUCKET_COUNT;
 		this._evictionThresholdTime = eligibleDaysForEviction
 			? eligibleDaysForEviction
 			: DEFAULT_EVICTION_THRESHOLD_TIME;
