@@ -109,7 +109,7 @@ export class TriedPeers extends BasePeerList {
 				isEvicted: false,
 			};
 		}
-		const evictedPeer = this.evictionRandom(bucketId);
+		const evictedPeer = this.evictRandomlyFromBucket(bucketId);
 		bucket.set(incomingPeerId, newTriedPeerInfo);
 		this.peerMap.set(bucketId, bucket);
 

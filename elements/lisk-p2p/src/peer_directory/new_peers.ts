@@ -133,7 +133,7 @@ export class NewPeers extends BasePeerList {
 		}
 
 		// Second eviction strategy: Default eviction based on base class
-		return this.evictionRandom(bucketId);
+		return this.evictRandomlyFromBucket(bucketId);
 	}
 	// Evict a peer when a bucket is full based on the time of residence in a peerlist
 	private _evictionBasedOnTimeInBucket(
