@@ -77,12 +77,16 @@ describe('blocks', () => {
 					},
 					Block: {
 						begin: jest.fn(),
+						create: jest.fn(),
 						count: jest.fn(),
 						getOne: jest.fn(),
 						get: jest.fn(),
 					},
 					Round: {
 						getUniqueRounds: jest.fn(),
+					},
+					Transaction: {
+						create: jest.fn(),
 					},
 				},
 			},
@@ -857,9 +861,248 @@ describe('blocks', () => {
 	});
 
 	describe('save', () => {
-		it.todo('should save the block in the database');
-		it.todo('should throw error when block cannot be saved in the database');
-		it.todo('should perform tick for rounds module');
+		beforeEach(async () => {
+			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
+			stubs.dependencies.roundsModule.tick = jest.fn((block, cb) => cb(null));
+		});
+
+		describe('when skipSave is set to true', () => {
+			it('should not save the block in the database when skipSave is set to true', async () => {
+				// Arrange
+				const block = newBlock();
+				// Act
+				await blocksInstance.save({
+					block,
+					skipSave: true,
+					tx: stubs.tx,
+				});
+				// Assert
+				expect(
+					stubs.dependencies.storage.entities.Block.create,
+				).not.toHaveBeenCalled();
+				expect(
+					stubs.dependencies.storage.entities.Transaction.create,
+				).not.toHaveBeenCalled();
+			});
+
+			it('should resolve when rounds module successfully performs tick', async () => {
+				// Arrange
+				const block = newBlock();
+				// Act & Assert
+				expect.assertions(2);
+				await expect(
+					blocksInstance.save({
+						block,
+						skipSave: true,
+						tx: stubs.tx,
+					}),
+				).resolves.toEqual();
+				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+					block,
+					expect.any(Function),
+					stubs.tx,
+				);
+			});
+
+			it('should throw error with error from rounds module failed to tick', async () => {
+				// Arrange
+				const block = newBlock();
+				const roundsError = new Error('rounds tick error');
+				stubs.dependencies.roundsModule.tick = jest.fn((_, cb) =>
+					cb(roundsError),
+				);
+				expect.assertions(2);
+
+				// Act & Assert
+				await expect(
+					blocksInstance.save({
+						block,
+						skipSave: true,
+						tx: stubs.tx,
+					}),
+				).rejects.toEqual(roundsError);
+				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+					block,
+					expect.any(Function),
+					stubs.tx,
+				);
+			});
+		});
+
+		describe('when skipSave is set to false', () => {
+			it('should throw error when block create fails', async () => {
+				// Arrange
+				const block = newBlock();
+				const blockCreateError = 'block create error';
+				stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
+					blockCreateError,
+				);
+				expect.assertions(1);
+
+				// Act & Assert
+				await expect(
+					blocksInstance.save({
+						block,
+						skipSave: false,
+						tx: stubs.tx,
+					}),
+				).rejects.toEqual(blockCreateError);
+			});
+
+			it('should throw error when transaction create fails', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
+				const block = newBlock({ transactions: [transaction] });
+				const transactionCreateError = 'transaction create error';
+				stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
+					transactionCreateError,
+				);
+				expect.assertions(1);
+
+				// Act & Assert
+				await expect(
+					blocksInstance.save({
+						block,
+						skipSave: false,
+						tx: stubs.tx,
+					}),
+				).rejects.toEqual(transactionCreateError);
+			});
+
+			it('should not perform round tick when save block fails', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
+				const block = newBlock({ transactions: [transaction] });
+				const transactionCreateError = 'transaction create error';
+				stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
+					transactionCreateError,
+				);
+				expect.assertions(2);
+
+				try {
+					// Act
+					await blocksInstance.save({
+						block,
+						skipSave: false,
+						tx: stubs.tx,
+					});
+				} catch (error) {
+					// Assert
+					expect(error).toEqual(transactionCreateError);
+					expect(stubs.dependencies.roundsModule.tick).not.toHaveBeenCalled();
+				}
+			});
+
+			it('should call Block.create with correct parameters', async () => {
+				// Arrange
+				const block = newBlock({
+					reward: new BigNum('0'),
+					totolAmount: new BigNum('0'),
+					totalFee: new BigNum('0'),
+				});
+				const blockJson = {
+					...block,
+					reward: '0',
+					totalAmount: '0',
+					totalFee: '0',
+					previousBlockId: block.previousBlock,
+				};
+				delete blockJson.previousBlock;
+				expect.assertions(1);
+
+				// Act
+				await blocksInstance.save({
+					block,
+					skipSave: false,
+					tx: stubs.tx,
+				});
+
+				// Assert
+				expect(
+					stubs.dependencies.storage.entities.Block.create,
+				).toHaveBeenCalledWith(blockJson, {}, stubs.tx);
+			});
+
+			it('should not call Transaction.create with if block has no transactions', async () => {
+				// Arrange
+				const block = newBlock();
+
+				// Act
+				await blocksInstance.save({
+					block,
+					skipSave: false,
+					tx: stubs.tx,
+				});
+
+				// Assert
+				expect(
+					stubs.dependencies.storage.entities.Transaction.create,
+				).not.toHaveBeenCalled();
+			});
+
+			it('should call Transaction.create with correct parameters', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
+				const block = newBlock({ transactions: [transaction] });
+				transaction.blockId = block.id;
+				const transactionJSON = transaction.toJSON();
+
+				// Act
+				await blocksInstance.save({
+					block,
+					skipSave: false,
+					tx: stubs.tx,
+				});
+
+				// Assert
+				expect(
+					stubs.dependencies.storage.entities.Transaction.create,
+				).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
+			});
+
+			it('should resolve when rounds module successfully performs tick', async () => {
+				// Arrange
+				const block = newBlock();
+				// Act & Assert
+				expect.assertions(2);
+				await expect(
+					blocksInstance.save({
+						block,
+						skipSave: true,
+						tx: stubs.tx,
+					}),
+				).resolves.toEqual();
+				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+					block,
+					expect.any(Function),
+					stubs.tx,
+				);
+			});
+
+			it('should throw error with error from rounds module failed to tick', async () => {
+				// Arrange
+				const block = newBlock();
+				const roundsError = new Error('rounds tick error');
+				stubs.dependencies.roundsModule.tick = jest.fn((_, cb) =>
+					cb(roundsError),
+				);
+				expect.assertions(2);
+
+				// Act & Assert
+				await expect(
+					blocksInstance.save({
+						block,
+						skipSave: true,
+						tx: stubs.tx,
+					}),
+				).rejects.toEqual(roundsError);
+				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+					block,
+					expect.any(Function),
+					stubs.tx,
+				);
+			});
+		});
 	});
 
 	describe('saveGenesis', () => {
