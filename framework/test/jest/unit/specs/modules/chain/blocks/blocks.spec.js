@@ -21,6 +21,10 @@ const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 
+const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+
+jest.mock('../../../../../../../src/modules/chain/transactions');
+
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
 
@@ -308,6 +312,17 @@ describe('blocks', () => {
 	});
 
 	describe('validate', () => {
+		let validateTransactionsFn;
+
+		beforeEach(async () => {
+			validateTransactionsFn = jest.fn().mockReturnValue({
+				transactionsResponses: [],
+			});
+			transactionsModule.validateTransactions.mockReturnValue(
+				validateTransactionsFn,
+			);
+		});
+
 		describe('validateSignature', () => {
 			it('should throw when the block bytes are mutated', async () => {
 				// Arrange
@@ -681,10 +696,11 @@ describe('blocks', () => {
 		});
 
 		describe('validateTransactions', () => {
-			// Question: What should be exactly done here
-			it.todo('should call validateTransactions with expected parameters');
-			it.todo('should throw errors of the first invalid Transaction');
-			it.todo('should not throw when there are no errors');
+			it('should call validateTransactions with expected parameters', async () => {});
+
+			it('should throw errors of the first invalid Transaction', async () => {});
+
+			it('should not throw when there are no errors', async () => {});
 		});
 	});
 
