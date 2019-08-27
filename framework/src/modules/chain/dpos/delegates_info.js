@@ -85,10 +85,10 @@ class DelegatesInfo {
 				/**
 				 * If we are reverting the block, new transactions
 				 * can change vote weight of delegates, so we need to
-				 * invalidate the cache for the next round.
+				 * invalidate the cache for the next rounds.
 				 */
 				const round = this.slots.calcRound(block.height);
-				this.delegatesList.deleteDelegateListFromCache(round + 1);
+				await this.delegatesList.deleteDelegateListAfterRound(round);
 			}
 
 			const roundSummary = await this._summarizeRound(block, tx);
