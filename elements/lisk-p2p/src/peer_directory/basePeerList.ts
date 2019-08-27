@@ -21,7 +21,7 @@ export interface PeerListConfig {
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 }
-interface CustomPeerInfo {
+export interface CustomPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
 	readonly dateAdded: Date;
 }
@@ -135,6 +135,11 @@ export class BasePeerList {
 		return peer ? peer.peerInfo : undefined;
 	}
 
+	public initPeerInfo = (peerInfo: P2PPeerInfo): CustomPeerInfo => ({
+		peerInfo,
+		dateAdded: new Date(),
+	});
+
 	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
 	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
@@ -155,11 +160,7 @@ export class BasePeerList {
 			};
 		}
 
-		const newPeer = {
-			peerInfo,
-			numOfConnectionFailures: 0,
-			dateAdded: new Date(),
-		};
+		const newPeer = this.initPeerInfo(peerInfo);
 
 		if (bucket.size < this.peerListConfig.peerBucketSize) {
 			bucket.set(incomingPeerId, newPeer);
