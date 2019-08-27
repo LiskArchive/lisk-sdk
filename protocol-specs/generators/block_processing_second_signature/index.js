@@ -2235,6 +2235,52 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 	};
 };
 
+const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
+	const amount = '5500000000';
+	const transferTx = new TransferTransaction(
+		transfer({
+			amount,
+			passphrase: accounts.genesis.passphrase,
+			recipientId: accounts.existingDelegate.address,
+		}),
+	);
+
+	const secondSignature =
+		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
+	const secondPassphraseTx = new SecondSignatureTransaction(
+		registerSecondPassphrase({
+			passphrase: accounts.existingDelegate.passphrase,
+			secondPassphrase: secondSignature,
+		}),
+	);
+
+	const block = createBlock(
+		defaultConfig,
+		initialAccountState,
+		genesisBlock,
+		1,
+		0,
+		{
+			version: 1,
+			transactions: [transferTx, secondPassphraseTx],
+		},
+	);
+
+	return {
+		initialState: {
+			chain: [genesisBlock],
+			accounts: initialAccountState,
+		},
+		input: {
+			block,
+		},
+		output: {
+			chain: [genesisBlock],
+			accounts: initialAccountState,
+		},
+	};
+};
+
 const validBlockWithSecondSignatureTxSuite = () => ({
 	title: 'Valid block processing',
 	summary:
@@ -2245,7 +2291,20 @@ const validBlockWithSecondSignatureTxSuite = () => ({
 	testCases: generateTestCasesValidBlockSecondSignatureTx(),
 });
 
+const invalidBlockWithSecondSignatureAndFundsTxSuite = () => ({
+	title: 'Invalid block processing',
+	summary:
+		'An invalid block with a second signature registration transaction and funds for the account in same block',
+	config: 'mainnet',
+	runner: 'block_processing_second_signature',
+	handler: 'invalid_block_processing_second_signature_and_funds_tx',
+	testCases: generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite(),
+});
+
 module.exports = BaseGenerator.runGenerator(
 	'block_processing_second_signature',
-	[validBlockWithSecondSignatureTxSuite],
+	[
+		validBlockWithSecondSignatureTxSuite,
+		invalidBlockWithSecondSignatureAndFundsTxSuite,
+	],
 );
