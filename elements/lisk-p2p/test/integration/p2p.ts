@@ -30,7 +30,7 @@ import {
 import { EVENT_REMOVE_PEER, EVENT_CLOSE_OUTBOUND } from '../../src/events';
 import { InboundPeer, OutboundPeer, ConnectionState } from '../../src/peer';
 
-describe.skip('Integration tests for P2P library', () => {
+describe('Integration tests for P2P library', () => {
 	before(() => {
 		// Make sure that integration tests use real timers.
 		sandbox.restore();
