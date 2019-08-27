@@ -90,13 +90,13 @@ import {
 import { PeerBook } from './peer_directory';
 import { PeerPool } from './peer_pool';
 import {
-	checkPeerCompatibility,
 	constructPeerIdFromPeerInfo,
 	sanitizeOutgoingPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
+	validatePeerCompatibility,
 } from './utils';
 
 interface SCServerUpdated extends SCServer {
@@ -450,7 +450,7 @@ export class P2P extends EventEmitter {
 
 		this._peerHandshakeCheck = config.peerHandshakeCheck
 			? config.peerHandshakeCheck
-			: checkPeerCompatibility;
+			: validatePeerCompatibility;
 	}
 
 	public get config(): P2PConfig {
