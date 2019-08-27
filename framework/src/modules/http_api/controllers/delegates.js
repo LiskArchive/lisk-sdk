@@ -65,7 +65,7 @@ async function _getDelegates(filters, options) {
 		options,
 	);
 
-	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
+	const lastBlock = await channel.invoke('chain:getLastBlock');
 
 	const supply = lastBlock.height
 		? await channel.invoke('chain:calculateSupply', {
@@ -86,7 +86,7 @@ async function _getDelegates(filters, options) {
  * @private
  */
 async function _getForgers(filters) {
-	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
+	const lastBlock = await channel.invoke('chain:getLastBlock');
 
 	const lastBlockSlot = await channel.invoke('chain:getSlotNumber', {
 		epochTime: lastBlock.timestamp,

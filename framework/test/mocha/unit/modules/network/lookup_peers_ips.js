@@ -14,7 +14,7 @@
 
 'use strict';
 
-const lookupPeersIps = require('../../../../../src/modules/network/lookup_peers_ips');
+const { lookupPeersIPs } = require('../../../../../src/modules/network/utils');
 const {
 	peers: { list },
 } = require('../../../data/app_config.json');
@@ -25,7 +25,7 @@ const ipv4Regex = new RegExp(
 
 describe('init_steps/lookup_peers_ips', () => {
 	it('should return empty array if peers are not enabled', async () => {
-		const result = await lookupPeersIps(list, false);
+		const result = await lookupPeersIPs(list, false);
 
 		return expect(result).to.eql([]);
 	});
@@ -39,7 +39,7 @@ describe('init_steps/lookup_peers_ips', () => {
 		});
 
 		it('should throw error when failed to resolve hostname', async () => {
-			await lookupPeersIps([{ ip: 'https://lisk.io/' }], true);
+			await lookupPeersIPs([{ ip: 'https://lisk.io/' }], true);
 
 			expect(spyConsoleError).to.be.calledOnce;
 			return expect(spyConsoleError).to.be.calledWith(
@@ -48,7 +48,7 @@ describe('init_steps/lookup_peers_ips', () => {
 		});
 
 		it('should resolve hostnames to ip address', async () => {
-			const resolvedIps = await lookupPeersIps(list, true);
+			const resolvedIps = await lookupPeersIPs(list, true);
 
 			expect(resolvedIps.length).to.eql(list.length);
 			return resolvedIps.forEach(peer => {
