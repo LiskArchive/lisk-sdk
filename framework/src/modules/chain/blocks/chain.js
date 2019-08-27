@@ -28,24 +28,19 @@ const TRANSACTION_TYPES_VOTE = 3;
 const parseBlockToJson = block => {
 	// Parse block data to json
 	const parsedBlock = cloneDeep(block);
-	if (parsedBlock.reward) {
-		parsedBlock.reward = parsedBlock.reward.toString();
-	}
-	if (parsedBlock.totalAmount) {
-		parsedBlock.totalAmount = parsedBlock.totalAmount.toString();
-	}
-	if (parsedBlock.totalFee) {
-		parsedBlock.totalFee = parsedBlock.totalFee.toString();
-	}
-	parsedBlock.previousBlockId = parsedBlock.previousBlock;
+
+	parsedBlock.reward = block.reward.toString();
+	parsedBlock.totalAmount = block.totalAmount.toString();
+	parsedBlock.totalFee = block.totalFee.toString();
+	parsedBlock.previousBlockId = block.previousBlock;
 	delete parsedBlock.previousBlock;
 
 	parsedBlock.transactions.forEach(transaction => {
-		transaction.blockId = parsedBlock.id;
+		transaction.blockId = block.id;
 		return transaction;
 	});
 
-	parsedBlock.transactions = parsedBlock.transactions.map(transaction =>
+	parsedBlock.transactions = block.transactions.map(transaction =>
 		transaction.toJSON(),
 	);
 
@@ -81,15 +76,11 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 const saveBlock = async (storage, block, tx) => {
 	const parsedBlock = parseBlockToJson(block);
 
-	// If there is already a running transaction use it
-	if (tx) {
-		return saveBlockBatch(storage, parsedBlock, tx);
+	if (!tx) {
+		throw new Error('Block should only be saved in a database tx');
 	}
-	// Prepare and execute SQL transaction
-	// WARNING: DB_WRITE
-	return storage.entities.Block.begin('Chain:saveBlock', async t => {
-		await saveBlockBatch(storage, parsedBlock, t);
-	});
+	// If there is already a running transaction use it
+	return saveBlockBatch(storage, parsedBlock, tx);
 };
 
 /**
@@ -235,12 +226,12 @@ const applyConfirmedGenesisStep = async (
  *
  * @private
  * @param {Object} block - Block object
- * @param {boolean} saveBlock - Flag to save block into database
+ * @param {boolean} skipSave - Flag to save block into database
  * @param {function} tx - Database transaction
  * @returns {Promise<reject|resolve>}
  */
-const saveBlockStep = async (storage, roundsModule, block, shouldSave, tx) => {
-	if (shouldSave) {
+const saveBlockStep = async (storage, roundsModule, block, skipSave, tx) => {
+	if (!skipSave) {
 		await saveBlock(storage, block, tx);
 	}
 	await new Promise((resolve, reject) => {
