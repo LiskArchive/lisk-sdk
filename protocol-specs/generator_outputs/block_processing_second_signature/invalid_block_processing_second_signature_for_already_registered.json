@@ -1,9 +1,9 @@
 {
-	"title": "Valid block processing",
-	"summary": "A valid block with a second signature registration transaction is processed",
+	"title": "Invalid block processing",
+	"summary": "An invalid block with a second signature registration transaction for an already second signature account",
 	"config": "mainnet",
 	"runner": "block_processing_second_signature",
-	"handler": "valid_block_processing_one_second_signature_tx",
+	"handler": "invalid_block_processing_second_signature_for_already_registered",
 	"testCases": {
 		"initialState": {
 			"chain": [
@@ -1795,6 +1795,38 @@
 					"payloadHash": "dbcfce3f09ccdec43683dd5d0c0c6e21b3d19b5db08752acd988fd7213f3e6ba",
 					"blockSignature": "4469029413bc1c22b95b62936b32420d37e271747efb7ef304fafed245caaa4ea62da6ed44194e6247124a0370a4fd0c4a54589e4f80ba897733d715e0640f08",
 					"height": 2
+				},
+				{
+					"version": 1,
+					"totalAmount": "0",
+					"totalFee": "500000000",
+					"reward": "0",
+					"timestamp": 20,
+					"numberOfTransactions": 1,
+					"payloadLength": 149,
+					"generatorPublicKey": "9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
+					"transactions": [
+						{
+							"id": "16912101794366727134",
+							"amount": "0",
+							"type": 1,
+							"timestamp": 102789114,
+							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"senderId": "10881167371402274308L",
+							"recipientId": "",
+							"fee": "500000000",
+							"signature": "643919d9a823de19de3eb0cd4b20ddc923b1ec4aa74d180b64bec6bf2213c08bf8d5f9a9ce00398d482e328d1fdd9e8a1331568e017657609e232ed28827790c",
+							"signatures": [],
+							"asset": {
+								"signature": {
+									"publicKey": "62e4d09ce3fa571fb4b073fb229f5ff18b6108ca89357924db887a409f61542c"
+								}
+							}
+						}
+					],
+					"payloadHash": "dea37952fadab3ea83cfc2f97cc45df834b052067d4d07b4ccb52c5f7ae4e112",
+					"blockSignature": "de149b9e4d5116f3708d19ac5a28806d9f767349c0440e4957e6e5a5e7df054e851505f07b9facf6c7bb31f63c8f9f51d703010892f401d5c36fce4572704f09",
+					"height": 3
 				}
 			],
 			"accounts": [
@@ -3435,11 +3467,11 @@
 				{
 					"address": "10881167371402274308L",
 					"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"secondPublicKey": null,
+					"secondPublicKey": "62e4d09ce3fa571fb4b073fb229f5ff18b6108ca89357924db887a409f61542c",
 					"username": "genesis_100",
 					"isDelegate": true,
 					"secondSignature": false,
-					"balance": 5500000000,
+					"balance": 9999899490000000,
 					"multiMin": 0,
 					"multiLifetime": 0,
 					"nameExist": false,
@@ -3777,7 +3809,7 @@
 			]
 		},
 		"input": {
-			"blockWithSecondSignatureRegistered": {
+			"blockWithNewSecondSignatureNewRegistration": {
 				"version": 1,
 				"totalAmount": "0",
 				"totalFee": "500000000",

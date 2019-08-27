@@ -2281,6 +2281,121 @@ const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 	};
 };
 
+const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
+	const amount = '5500000000';
+	const transferTx = new TransferTransaction(
+		transfer({
+			amount,
+			passphrase: accounts.genesis.passphrase,
+			recipientId: accounts.existingDelegate.address,
+		}),
+	);
+
+	const block = createBlock(
+		defaultConfig,
+		initialAccountState,
+		genesisBlock,
+		1,
+		0,
+		{
+			version: 1,
+			transactions: [transferTx],
+		},
+	);
+
+	const { balance: senderBalance } = initialAccountState.find(
+		account => account.address === accounts.genesis.address,
+	);
+
+	const { balance: recipientBalance } = initialAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	);
+
+	const resultingAccountState = cloneDeep(initialAccountState);
+
+	resultingAccountState.find(
+		account => account.address === accounts.genesis.address,
+	).balance = parseInt(
+		new BigNum(senderBalance.toString()).sub(amount).toString(),
+		10,
+	);
+
+	resultingAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	).balance = parseInt(
+		new BigNum(recipientBalance.toString()).plus(amount).toString(),
+		10,
+	);
+
+	const secondSignature =
+		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
+	const secondPassphraseTx = new SecondSignatureTransaction(
+		registerSecondPassphrase({
+			passphrase: accounts.existingDelegate.passphrase,
+			secondPassphrase: secondSignature,
+		}),
+	);
+
+	const blockWithSecondSignatureRegistered = createBlock(
+		defaultConfig,
+		resultingAccountState,
+		block,
+		1,
+		0,
+		{
+			version: 1,
+			transactions: [secondPassphraseTx],
+		},
+	);
+
+	const secondSignatureAccountState = cloneDeep(resultingAccountState);
+
+	secondSignatureAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	).secondPublicKey =
+		'62e4d09ce3fa571fb4b073fb229f5ff18b6108ca89357924db887a409f61542c';
+
+	secondSignatureAccountState.find(
+		account => account.address === accounts.existingDelegate.address,
+	).balance = parseInt(
+		new BigNum(senderBalance.toString()).sub(500000000).toString(),
+		10,
+	);
+
+	const newSecondPassphraseTx = new SecondSignatureTransaction(
+		registerSecondPassphrase({
+			passphrase: accounts.existingDelegate.passphrase,
+			secondPassphrase: secondSignature,
+		}),
+	);
+
+	const blockWithNewSecondSignatureNewRegistration = createBlock(
+		defaultConfig,
+		resultingAccountState,
+		block,
+		1,
+		0,
+		{
+			version: 1,
+			transactions: [newSecondPassphraseTx],
+		},
+	);
+
+	return {
+		initialState: {
+			chain: [genesisBlock, block, blockWithSecondSignatureRegistered],
+			accounts: secondSignatureAccountState,
+		},
+		input: {
+			blockWithNewSecondSignatureNewRegistration,
+		},
+		output: {
+			chain: [genesisBlock, block, blockWithSecondSignatureRegistered],
+			accounts: secondSignatureAccountState,
+		},
+	};
+};
+
 const validBlockWithSecondSignatureTxSuite = () => ({
 	title: 'Valid block processing',
 	summary:
@@ -2301,10 +2416,21 @@ const invalidBlockWithSecondSignatureAndFundsTxSuite = () => ({
 	testCases: generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite(),
 });
 
+const invalidBlockWithNewSecondSignatureSuite = () => ({
+	title: 'Invalid block processing',
+	summary:
+		'An invalid block with a second signature registration transaction for an already second signature account',
+	config: 'mainnet',
+	runner: 'block_processing_second_signature',
+	handler: 'invalid_block_processing_second_signature_for_already_registered',
+	testCases: generateTestCasesInvalidBlockSecondSignatureTxSecondTime(),
+});
+
 module.exports = BaseGenerator.runGenerator(
 	'block_processing_second_signature',
 	[
 		validBlockWithSecondSignatureTxSuite,
 		invalidBlockWithSecondSignatureAndFundsTxSuite,
+		invalidBlockWithNewSecondSignatureSuite,
 	],
 );
