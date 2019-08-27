@@ -15,7 +15,10 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
-const { TransferTransaction } = require('@liskhq/lisk-transactions');
+const {
+	TransferTransaction,
+	Status: TransactionStatus,
+} = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
@@ -696,11 +699,73 @@ describe('blocks', () => {
 		});
 
 		describe('validateTransactions', () => {
-			it('should call validateTransactions with expected parameters', async () => {});
+			it('should call validateTransactions with expected parameters', async () => {
+				// Arrange
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				expect.assertions(2);
+				// Act
+				await blocksInstance.validate({
+					block,
+					lastBlock: genesisBlock,
+					blockBytes,
+				});
+				expect(transactionsModule.validateTransactions).toHaveBeenCalledWith(
+					exceptions,
+				);
+				expect(validateTransactionsFn).toHaveBeenCalledWith(block.transactions);
+			});
 
-			it('should throw errors of the first invalid Transaction', async () => {});
+			it('should throw errors of the first invalid Transaction', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
 
-			it('should not throw when there are no errors', async () => {});
+				const transactionErrors = [new Error('Invalid signature')];
+				const transactionResponseForInvalidTransaction = {
+					errors: transactionErrors,
+					status: TransactionStatus.FAIL,
+				};
+				validateTransactionsFn.mockReturnValue({
+					transactionsResponses: [transactionResponseForInvalidTransaction],
+				});
+
+				const block = newBlock({ transactions: [transaction] });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toEqual(transactionErrors);
+			});
+
+			it('should not throw when there are no errors', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
+
+				const transactionResponseForValidTransaction = {
+					errors: [],
+					status: TransactionStatus.OK,
+				};
+				validateTransactionsFn.mockReturnValue({
+					transactionsResponses: [transactionResponseForValidTransaction],
+				});
+
+				const block = newBlock({ transactions: [transaction] });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).resolves.toEqual();
+			});
 		});
 	});
 
@@ -712,25 +777,8 @@ describe('blocks', () => {
 	});
 
 	describe('verify', () => {
-		it('should throw in case the block id exists in the last n blocks', () => {
-			// Arrange
-			const block = newBlock();
-
-			const previousLastNBlockIds = blocksInstance._lastNBlockIds;
-			blocksInstance._lastNBlockIds = [];
-			try {
-				// Act
-				blocksInstance.verify({
-					block,
-					skipExistingCheck: true,
-				});
-			} catch (e) {
-				blocksInstance._lastNBlockIds = previousLastNBlockIds;
-
-				// Assert
-				expect(e.message).toEqual('Block already exists in chain');
-			}
-		});
+		it.todo('should throw in case the block id exists in the last n blocks');
+		it.todo('should throw in case the block id exists in the last n blocks');
 	});
 
 	describe('apply', () => {
