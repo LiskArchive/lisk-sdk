@@ -101,6 +101,8 @@ class DelegatesList extends EventEmitter {
 	 * Validates if block was forged by correct delegate
 	 *
 	 * @param {Object} block
+	 * @return {Boolean} - `true`
+	 * @throw {Error} Failed to verify slot
 	 */
 	async verifyBlockForger(block) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
