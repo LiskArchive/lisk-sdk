@@ -20,7 +20,7 @@ import {
 } from '../../../src/peer_directory/new_peers';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PPeerInfo } from '../../../src/p2p_types';
-import { PEER_TYPE } from '../../../src/utils';
+import { PEER_TYPE, constructPeerIdFromPeerInfo } from '../../../src/utils';
 
 describe('newPeer', () => {
 	const newPeerConfig = {
@@ -213,7 +213,7 @@ describe('newPeer', () => {
 		});
 	});
 
-	describe.only('#evictionRandomly', () => {
+	describe('#evictionRandomly', () => {
 		const newPeerConfig = {
 			peerBucketSize: 2,
 			peerBucketCount: 2,
@@ -252,6 +252,51 @@ describe('newPeer', () => {
 				.filter(result => result.isEvicted)
 				.map(trueEvictionResult => trueEvictionResult.evictedPeer);
 			expect(evictedPeersAfterAddition).not.members(newPeersList.peersList());
+		});
+	});
+
+	describe('#evictionBasedOnTime', () => {
+		const newPeerConfig = {
+			peerBucketSize: 3,
+			peerBucketCount: 1,
+			secret: 123456,
+			peerType: PEER_TYPE.NEW_PEER,
+			evictionThresholdTime: 10000,
+		};
+		const samplePeers = initializePeerInfoList();
+
+		let newPeersList = new NewPeers(newPeerConfig);
+		// Modify getBucketId function to only return buckets in range
+		newPeersList['getBucketId'] = () => Math.floor(Math.random() * 1);
+		// Add a custom map to peerMap
+		const newPeerMapCustom = new Map();
+		// Add a custom Date to a peer that has dateAdded above the evictionThresholdTime
+		const peerDate = new Date();
+		peerDate.setMilliseconds(peerDate.getMilliseconds() + 11000);
+		const oldPeer = { peerInfo: samplePeers[0], dateAdded: peerDate };
+		// Now set 2 peer with one peer staying in a bucket for longer than 10 seconds
+		newPeerMapCustom.set(constructPeerIdFromPeerInfo(samplePeers[0]), oldPeer);
+		newPeerMapCustom.set(constructPeerIdFromPeerInfo(samplePeers[1]), {
+			peerInfo: samplePeers[1],
+			dateAdded: new Date(),
+		});
+		newPeerMapCustom.set(constructPeerIdFromPeerInfo(samplePeers[2]), {
+			peerInfo: samplePeers[2],
+			dateAdded: new Date(),
+		});
+
+		// Set the peerMap for a bucket
+		newPeersList['peerMap'].set(0, newPeerMapCustom);
+
+		// Since the bucket is already full it should evict one peer but it should trigger eviction based on time
+		const evictionResult = newPeersList.addPeer(samplePeers[3]);
+
+		it('should always evict the peer that has stayed in peer bucket for more than 10 seconds', async () => {
+			expect(evictionResult.isEvicted).eql(true);
+			expect(evictionResult.evictedPeer)
+				.is.an('object')
+				.ownProperty('ipAddress')
+				.to.be.eql(oldPeer.peerInfo.ipAddress);
 		});
 	});
 });
