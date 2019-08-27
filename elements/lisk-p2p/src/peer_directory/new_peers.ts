@@ -46,7 +46,7 @@ export class NewPeers {
 	private readonly _secret: number;
 
 	public constructor({
-		evictionThresholdTime: eligibleDaysForEviction,
+		evictionThresholdTime,
 		newPeerBucketSize,
 		newPeerBucketCount,
 		secret,
@@ -57,8 +57,8 @@ export class NewPeers {
 		this._newPeerBucketCount = newPeerBucketCount
 			? newPeerBucketCount
 			: DEFAULT_NEW_BUCKET_COUNT;
-		this._evictionThresholdTime = eligibleDaysForEviction
-			? eligibleDaysForEviction
+		this._evictionThresholdTime = evictionThresholdTime
+			? evictionThresholdTime
 			: DEFAULT_EVICTION_THRESHOLD_TIME;
 		this._secret = secret;
 		this._newPeerMap = new Map();
