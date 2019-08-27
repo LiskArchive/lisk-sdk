@@ -40,10 +40,11 @@ const shuffleDelegateListForRound = (round, list) => {
 };
 
 class DelegatesList extends EventEmitter {
-	constructor({ storage, activeDelegates, exceptions }) {
+	constructor({ storage, activeDelegates, slots, exceptions }) {
 		super();
 		this.delegateListCache = {};
 		this.storage = storage;
+		this.slots = slots;
 		this.activeDelegates = activeDelegates;
 		this.exceptions = exceptions;
 	}
@@ -94,6 +95,41 @@ class DelegatesList extends EventEmitter {
 		await this.storage.entities.RoundDelegates.delete({
 			round_lt: round,
 		});
+	}
+
+	/**
+	 * Validates if block was forged by correct delegate
+	 *
+	 * @param {Object} block
+	 * @return {Boolean} - `true`
+	 * @throw {Error} Failed to verify slot
+	 */
+	async verifyBlockForger(block) {
+		const currentSlot = this.slots.getSlotNumber(block.timestamp);
+		const round = this.slots.calcRound(block.height);
+		const delegateList = await this.getRoundDelegates(round);
+
+		if (!delegateList.length) {
+			throw new Error(
+				`Failed to verify slot: ${currentSlot} for block ID: ${
+					block.id
+				} - No delegateList was found`,
+			);
+		}
+
+		// Get delegate public key that was supposed to forge the block
+		const expectedForgerPublicKey =
+			delegateList[currentSlot % this.activeDelegates];
+
+		// Verify if forger exists and matches the generatorPublicKey on block
+		if (
+			!expectedForgerPublicKey ||
+			block.generatorPublicKey !== expectedForgerPublicKey
+		) {
+			throw new Error(`Failed to verify slot: ${currentSlot}`);
+		}
+
+		return true;
 	}
 }
 
