@@ -38,7 +38,6 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
-	P2PRequest,
 	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
@@ -47,7 +46,6 @@ import {
 	selectPeersForRequest,
 	selectPeersForSend,
 } from './utils';
-export { P2PRequest };
 
 import {
 	BASE_10_RADIX,
@@ -101,6 +99,7 @@ import {
 	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
+	P2PRequest,
 	PeerInboundHandshakeError,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from '.';

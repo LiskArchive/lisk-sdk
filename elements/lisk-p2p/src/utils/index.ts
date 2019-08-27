@@ -14,7 +14,6 @@
  */
 
 export * from './miscellaneous';
-export * from './request';
 export * from './select';
 export * from './types';
 export * from './validate';

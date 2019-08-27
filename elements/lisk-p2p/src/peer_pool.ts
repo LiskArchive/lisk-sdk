@@ -43,6 +43,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_STATUS_CODE,
+	P2PRequest,
 	RequestFailError,
 	SendFailError,
 } from '.';
@@ -60,7 +61,6 @@ import {
 	P2PPeerSelectionForRequestFunction,
 	P2PPeerSelectionForSendFunction,
 	P2PPenalty,
-	P2PRequest,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './utils';
