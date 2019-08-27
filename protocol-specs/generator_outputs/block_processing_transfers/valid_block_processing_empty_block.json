@@ -1,9 +1,9 @@
 {
 	"title": "Valid block processing",
-	"summary": "A valid block with a transfer transaction is processed",
+	"summary": "An empty valid block is processed",
 	"config": "mainnet",
-	"runner": "block_processing",
-	"handler": "valid_block_processing_one_transfer_tx",
+	"runner": "block_processing_transfers",
+	"handler": "valid_block_processing_empty_block",
 	"testCases": {
 		"initialState": {
 			"chain": [
@@ -3750,31 +3750,17 @@
 		"input": {
 			"block": {
 				"version": 1,
-				"totalAmount": "1500000000",
-				"totalFee": "10000000",
+				"totalAmount": "0",
+				"totalFee": "0",
 				"reward": "0",
 				"timestamp": 10,
-				"numberOfTransactions": 1,
-				"payloadLength": 117,
+				"numberOfTransactions": 0,
+				"payloadLength": 0,
 				"previousBlock": "6524861224470851795",
 				"generatorPublicKey": "9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
-				"transactions": [
-					{
-						"id": "787861333669510112",
-						"amount": "1500000000",
-						"type": 0,
-						"timestamp": 101165810,
-						"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-						"senderId": "16313739661670634666L",
-						"recipientId": "10881167371402274308L",
-						"fee": "10000000",
-						"signature": "a01716e8907fcb09c281d3376e2c038a6b5a7abf02950fd50dd5a1ed4d229272a3e92ee66a676cff66e546b43a9d511d9b27d8c4de2466bc4740818364498505",
-						"signatures": [],
-						"asset": {}
-					}
-				],
-				"payloadHash": "e0fba26db50bef0a4f8b6e14b769b6025c4e3bddb3ee9afa5b25b149652ee1c6",
-				"blockSignature": "150b2ce3b98e1face165ecbefa6ee039a8655a566ddaa164da8fe7fe8b944f5b74f2a161d47235bffb3f94560941676bd718ab681e881b4d747a47e95d90240f",
+				"transactions": [],
+				"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+				"blockSignature": "ddd62633b7f071d93bdf2f56fc995618d1e6ca205fd97b487d9c1a6802b3b98c3f9ffd84d659edc84649eb0268da3186d66966f2e8820119ed95398dbf002b0a",
 				"height": 2
 			}
 		},
@@ -5542,31 +5528,17 @@
 				},
 				{
 					"version": 1,
-					"totalAmount": "1500000000",
-					"totalFee": "10000000",
+					"totalAmount": "0",
+					"totalFee": "0",
 					"reward": "0",
 					"timestamp": 10,
-					"numberOfTransactions": 1,
-					"payloadLength": 117,
+					"numberOfTransactions": 0,
+					"payloadLength": 0,
 					"previousBlock": "6524861224470851795",
 					"generatorPublicKey": "9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
-					"transactions": [
-						{
-							"id": "787861333669510112",
-							"amount": "1500000000",
-							"type": 0,
-							"timestamp": 101165810,
-							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-							"senderId": "16313739661670634666L",
-							"recipientId": "10881167371402274308L",
-							"fee": "10000000",
-							"signature": "a01716e8907fcb09c281d3376e2c038a6b5a7abf02950fd50dd5a1ed4d229272a3e92ee66a676cff66e546b43a9d511d9b27d8c4de2466bc4740818364498505",
-							"signatures": [],
-							"asset": {}
-						}
-					],
-					"payloadHash": "e0fba26db50bef0a4f8b6e14b769b6025c4e3bddb3ee9afa5b25b149652ee1c6",
-					"blockSignature": "150b2ce3b98e1face165ecbefa6ee039a8655a566ddaa164da8fe7fe8b944f5b74f2a161d47235bffb3f94560941676bd718ab681e881b4d747a47e95d90240f",
+					"transactions": [],
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"blockSignature": "ddd62633b7f071d93bdf2f56fc995618d1e6ca205fd97b487d9c1a6802b3b98c3f9ffd84d659edc84649eb0268da3186d66966f2e8820119ed95398dbf002b0a",
 					"height": 2
 				}
 			],
@@ -5578,7 +5550,7 @@
 					"username": null,
 					"isDelegate": false,
 					"secondSignature": false,
-					"balance": 9999898490000000,
+					"balance": 9999899990000000,
 					"multiMin": 0,
 					"multiLifetime": 0,
 					"nameExist": false,
@@ -7212,7 +7184,7 @@
 					"username": "genesis_100",
 					"isDelegate": true,
 					"secondSignature": false,
-					"balance": 1500000000,
+					"balance": 0,
 					"multiMin": 0,
 					"multiLifetime": 0,
 					"nameExist": false,

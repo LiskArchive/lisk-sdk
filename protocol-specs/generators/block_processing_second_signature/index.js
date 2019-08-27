@@ -2139,95 +2139,6 @@ const accounts = {
 	},
 };
 
-const generateTestCasesForValidBlockWithNoTxs = () => {
-	const block = createBlock(
-		defaultConfig,
-		initialAccountState,
-		genesisBlock,
-		1,
-		0,
-		{
-			version: 1,
-			transactions: [],
-		},
-	);
-
-	return {
-		initialState: {
-			chain: [genesisBlock],
-			accounts: initialAccountState,
-		},
-		input: {
-			block,
-		},
-		output: {
-			chain: [genesisBlock, block],
-			accounts: initialAccountState,
-		},
-	};
-};
-
-const generateTestCasesValidBlockTransferTx = () => {
-	const amount = '1500000000';
-	const transferTx = new TransferTransaction(
-		transfer({
-			amount,
-			passphrase: accounts.genesis.passphrase,
-			recipientId: accounts.existingDelegate.address,
-		}),
-	);
-
-	const block = createBlock(
-		defaultConfig,
-		initialAccountState,
-		genesisBlock,
-		1,
-		0,
-		{
-			version: 1,
-			transactions: [transferTx],
-		},
-	);
-
-	const { balance: senderBalance } = initialAccountState.find(
-		account => account.address === accounts.genesis.address,
-	);
-
-	const { balance: recipientBalance } = initialAccountState.find(
-		account => account.address === accounts.existingDelegate.address,
-	);
-
-	const resultingAccountState = cloneDeep(initialAccountState);
-
-	resultingAccountState.find(
-		account => account.address === accounts.genesis.address,
-	).balance = parseInt(
-		new BigNum(senderBalance.toString()).sub(amount).toString(),
-		10,
-	);
-
-	resultingAccountState.find(
-		account => account.address === accounts.existingDelegate.address,
-	).balance = parseInt(
-		new BigNum(recipientBalance.toString()).plus(amount).toString(),
-		10,
-	);
-
-	return {
-		initialState: {
-			chain: [genesisBlock],
-			accounts: initialAccountState,
-		},
-		input: {
-			block,
-		},
-		output: {
-			chain: [genesisBlock, block],
-			accounts: resultingAccountState,
-		},
-	};
-};
-
 const generateTestCasesValidBlockSecondSignatureTx = () => {
 	const amount = '5500000000';
 	const transferTx = new TransferTransaction(
@@ -2324,36 +2235,17 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 	};
 };
 
-const validEmptyBlockSuite = () => ({
-	title: 'Valid block processing',
-	summary: 'An empty valid block is processed',
-	config: 'mainnet',
-	runner: 'block_processing',
-	handler: 'valid_block_processing_empty_block',
-	testCases: generateTestCasesForValidBlockWithNoTxs(),
-});
-
-const validBlockWithTransferTxSuite = () => ({
-	title: 'Valid block processing',
-	summary: 'A valid block with a transfer transaction is processed',
-	config: 'mainnet',
-	runner: 'block_processing',
-	handler: 'valid_block_processing_one_transfer_tx',
-	testCases: generateTestCasesValidBlockTransferTx(),
-});
-
 const validBlockWithSecondSignatureTxSuite = () => ({
 	title: 'Valid block processing',
 	summary:
 		'A valid block with a second signature registration transaction is processed',
 	config: 'mainnet',
-	runner: 'block_processing',
+	runner: 'block_processing_second_signature',
 	handler: 'valid_block_processing_one_second_signature_tx',
 	testCases: generateTestCasesValidBlockSecondSignatureTx(),
 });
 
-module.exports = BaseGenerator.runGenerator('block_processing', [
-	validEmptyBlockSuite,
-	validBlockWithTransferTxSuite,
-	validBlockWithSecondSignatureTxSuite,
-]);
+module.exports = BaseGenerator.runGenerator(
+	'block_processing_second_signature',
+	[validBlockWithSecondSignatureTxSuite],
+);

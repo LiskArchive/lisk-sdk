@@ -2,7 +2,7 @@
 	"title": "Valid block processing",
 	"summary": "A valid block with a second signature registration transaction is processed",
 	"config": "mainnet",
-	"runner": "block_processing",
+	"runner": "block_processing_second_signature",
 	"handler": "valid_block_processing_one_second_signature_tx",
 	"testCases": {
 		"initialState": {
@@ -1779,21 +1779,21 @@
 					"generatorPublicKey": "9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
 					"transactions": [
 						{
-							"id": "5095041323420005789",
+							"id": "4462212495499675857",
 							"amount": "5500000000",
 							"type": 0,
-							"timestamp": 102725809,
+							"timestamp": 102786809,
 							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 							"senderId": "16313739661670634666L",
 							"recipientId": "10881167371402274308L",
 							"fee": "10000000",
-							"signature": "f5ca4d4deb1174ef2a885a0b28c5735be830ea1f47824a65a05422b935911d5030df78667a6d84f269ca7406f2a043355fbde0f53e4e66d463f833de9fb8120e",
+							"signature": "7c516129eb0ece4a8bf891a596e332988e7da4ce63cb0f321cdc7bb2c699bb8146544770cdfb138719426ade7a2c61e0a3fd09a3b0331e47f5b06775ae352c08",
 							"signatures": [],
 							"asset": {}
 						}
 					],
-					"payloadHash": "9db562c61639b5464b08bbc20b9c590123a94b4a8668ff42e508fe62a2875221",
-					"blockSignature": "7a13199f1feb2d6db8dc6900dd8d5b60a53f965eabdc952656202235c298f07309f9c7d2a4cc44b76faaa0abf06bb48bb8570130b3b36c548fe5bf06caee8009",
+					"payloadHash": "d14891729ff6ec3d56b3e2f5edf833f62997eb8153a525a8e7ddc8621e56db16",
+					"blockSignature": "77dc054e260d593b3ec7d685f98a216cf3846abbeb1b6c09c13371f8f3d96affb88480d2179d28abd4a4e5f9fca2b30f9eab671f4c11f554d825c1685c87e008",
 					"height": 2
 				}
 			],
@@ -3788,15 +3788,15 @@
 				"generatorPublicKey": "9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
 				"transactions": [
 					{
-						"id": "15803404606569588117",
+						"id": "2639475363788988135",
 						"amount": "0",
 						"type": 1,
-						"timestamp": 102725809,
+						"timestamp": 102786809,
 						"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 						"senderId": "10881167371402274308L",
 						"recipientId": "",
 						"fee": "500000000",
-						"signature": "3b43ea1e4728c6af87ba3b8a725cf3c9cbbed8d2bca61bce143eaa196eeb9b9ed3a0e44be4290da43309ef92d82a8e4f2f6b50106657f9305b5651156b113405",
+						"signature": "da8a2de3705c5fb6d67eaa3c0eb6d23b04b51f33c2e8163182f3c975d8caa3ab8b219c2261b66b033720d9dfe62122a86b4ff69d32f7f297cc79da1e3d73d605",
 						"signatures": [],
 						"asset": {
 							"signature": {
@@ -3805,8 +3805,8 @@
 						}
 					}
 				],
-				"payloadHash": "95255a78c2f850dbd18e72e35db8a521e322e0f573206af7d7a7639b3fbde592",
-				"blockSignature": "aa427ab98b50ebe77161d0f6ee5a39f354bf19e62b74faf4225cd85dbd6174db8200ef6883e9f6387ede240e648515dac41a2200002934717be16786bcb4100b",
+				"payloadHash": "e79e09dcdb4ca1243b8a2db84bb293bc3c22763dba1615f5b3f3c656c522abd7",
+				"blockSignature": "da02c3810709f8575399b9265a4e3468383efa80f6f0ecac79ca6f0ef4c3cbdf26a35f8ab18d3e2468c82a56dc4c54946bae0d0db704a594059cb24d7afc2706",
 				"height": 3
 			}
 		},
@@ -5584,21 +5584,21 @@
 					"generatorPublicKey": "9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
 					"transactions": [
 						{
-							"id": "5095041323420005789",
+							"id": "4462212495499675857",
 							"amount": "5500000000",
 							"type": 0,
-							"timestamp": 102725809,
+							"timestamp": 102786809,
 							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 							"senderId": "16313739661670634666L",
 							"recipientId": "10881167371402274308L",
 							"fee": "10000000",
-							"signature": "f5ca4d4deb1174ef2a885a0b28c5735be830ea1f47824a65a05422b935911d5030df78667a6d84f269ca7406f2a043355fbde0f53e4e66d463f833de9fb8120e",
+							"signature": "7c516129eb0ece4a8bf891a596e332988e7da4ce63cb0f321cdc7bb2c699bb8146544770cdfb138719426ade7a2c61e0a3fd09a3b0331e47f5b06775ae352c08",
 							"signatures": [],
 							"asset": {}
 						}
 					],
-					"payloadHash": "9db562c61639b5464b08bbc20b9c590123a94b4a8668ff42e508fe62a2875221",
-					"blockSignature": "7a13199f1feb2d6db8dc6900dd8d5b60a53f965eabdc952656202235c298f07309f9c7d2a4cc44b76faaa0abf06bb48bb8570130b3b36c548fe5bf06caee8009",
+					"payloadHash": "d14891729ff6ec3d56b3e2f5edf833f62997eb8153a525a8e7ddc8621e56db16",
+					"blockSignature": "77dc054e260d593b3ec7d685f98a216cf3846abbeb1b6c09c13371f8f3d96affb88480d2179d28abd4a4e5f9fca2b30f9eab671f4c11f554d825c1685c87e008",
 					"height": 2
 				},
 				{
@@ -5612,15 +5612,15 @@
 					"generatorPublicKey": "9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
 					"transactions": [
 						{
-							"id": "15803404606569588117",
+							"id": "2639475363788988135",
 							"amount": "0",
 							"type": 1,
-							"timestamp": 102725809,
+							"timestamp": 102786809,
 							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 							"senderId": "10881167371402274308L",
 							"recipientId": "",
 							"fee": "500000000",
-							"signature": "3b43ea1e4728c6af87ba3b8a725cf3c9cbbed8d2bca61bce143eaa196eeb9b9ed3a0e44be4290da43309ef92d82a8e4f2f6b50106657f9305b5651156b113405",
+							"signature": "da8a2de3705c5fb6d67eaa3c0eb6d23b04b51f33c2e8163182f3c975d8caa3ab8b219c2261b66b033720d9dfe62122a86b4ff69d32f7f297cc79da1e3d73d605",
 							"signatures": [],
 							"asset": {
 								"signature": {
@@ -5629,8 +5629,8 @@
 							}
 						}
 					],
-					"payloadHash": "95255a78c2f850dbd18e72e35db8a521e322e0f573206af7d7a7639b3fbde592",
-					"blockSignature": "aa427ab98b50ebe77161d0f6ee5a39f354bf19e62b74faf4225cd85dbd6174db8200ef6883e9f6387ede240e648515dac41a2200002934717be16786bcb4100b",
+					"payloadHash": "e79e09dcdb4ca1243b8a2db84bb293bc3c22763dba1615f5b3f3c656c522abd7",
+					"blockSignature": "da02c3810709f8575399b9265a4e3468383efa80f6f0ecac79ca6f0ef4c3cbdf26a35f8ab18d3e2468c82a56dc4c54946bae0d0db704a594059cb24d7afc2706",
 					"height": 3
 				}
 			],
