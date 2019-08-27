@@ -25,17 +25,17 @@ interface NewPeerInfo {
 	readonly dateAdded: Date;
 }
 
+interface AddPeerOutcome {
+	readonly success: boolean;
+	readonly isEvicted: boolean;
+	readonly evictedPeer?: P2PPeerInfo;
+}
+
 export interface NewPeerConfig {
 	readonly evictionThresholdTime?: number;
 	readonly newPeerBucketCount?: number;
 	readonly newPeerBucketSize?: number;
 	readonly secret: number;
-}
-
-export interface AddPeerOutcome {
-	readonly success: boolean;
-	readonly isEvicted: boolean;
-	readonly evictedPeer?: P2PPeerInfo;
 }
 
 export class NewPeers {

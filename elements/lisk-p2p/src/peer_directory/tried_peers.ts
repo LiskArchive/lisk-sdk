@@ -20,6 +20,12 @@ import {
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
+interface AddPeerOutcome {
+	readonly success: boolean;
+	readonly evicted: boolean;
+	readonly evictedPeer?: P2PPeerInfo;
+}
+
 interface TriedPeerInfo {
 	readonly peerInfo: P2PDiscoveredPeerInfo;
 	// tslint:disable-next-line:readonly-keyword
@@ -32,12 +38,6 @@ export interface TriedPeerConfig {
 	readonly triedPeerBucketSize?: number;
 	readonly maxReconnectTries?: number;
 	readonly secret: number;
-}
-
-export interface AddPeerOutcome {
-	readonly success: boolean;
-	readonly evicted: boolean;
-	readonly evictedPeer?: P2PPeerInfo;
 }
 
 export class TriedPeers {

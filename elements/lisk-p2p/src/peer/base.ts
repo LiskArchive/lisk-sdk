@@ -60,6 +60,18 @@ import {
 	validateRPCRequest,
 } from '../utils';
 
+type SCClientSocket = socketClusterClient.SCClientSocket;
+
+// Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
+const RATE_NORMALIZATION_FACTOR = 1000;
+
+interface Productivity {
+	readonly requestCounter: number;
+	readonly responseCounter: number;
+	readonly responseRate: number;
+	readonly lastResponded: number;
+}
+
 export interface ClientOptionsUpdated {
 	readonly hostname: string;
 	readonly port: number;
@@ -72,23 +84,11 @@ export interface ClientOptionsUpdated {
 	readonly maxPayload?: number;
 }
 
-export interface Productivity {
-	readonly requestCounter: number;
-	readonly responseCounter: number;
-	readonly responseRate: number;
-	readonly lastResponded: number;
-}
-
 export type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 	on(event: string | unknown, listener: (packet?: unknown) => void): void;
 	on(event: string, listener: (packet: any, respond: any) => void): void;
 } & SCServerSocket;
-
-type SCClientSocket = socketClusterClient.SCClientSocket;
-
-// Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
-const RATE_NORMALIZATION_FACTOR = 1000;
 
 export enum ConnectionState {
 	CONNECTING = 'connecting',

@@ -113,7 +113,7 @@ const filterPeersByCategory = (
 		.slice(peerCount, peers.length);
 };
 
-export enum PROTECTION_CATEGORY {
+enum PROTECTION_CATEGORY {
 	NET_GROUP = 'netgroup',
 	LATENCY = 'latency',
 	RESPONSE_RATE = 'responseRate',
