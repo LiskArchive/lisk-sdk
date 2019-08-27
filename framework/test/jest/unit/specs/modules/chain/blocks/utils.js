@@ -137,8 +137,12 @@ const calculateTransactionsInfo = block => {
 	};
 };
 
-const newBlock = (
-	block = {
+/**
+ * Utility function to create a block object with valid computed properties while any property can be overridden
+ * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
+ */
+const newBlock = block => {
+	const defaultBlockValues = {
 		version: 2,
 		height: 2,
 		previousBlock: genesisBlock.id,
@@ -146,21 +150,37 @@ const newBlock = (
 		transactions: [],
 		reward: '0',
 		timestamp: 1000,
-	},
-) => {
-	const transactionsInfo = calculateTransactionsInfo(block);
-	const blockWithCalculatedProperties = {
-		...transactionsInfo,
+	};
+	const blockWithDefaultValues = {
+		...defaultBlockValues,
 		...block,
-		generatorPublicKey: block.keypair.publicKey.toString('hex'),
 	};
 
+	const transactionsInfo = calculateTransactionsInfo(blockWithDefaultValues);
+	const blockWithCalculatedProperties = {
+		...transactionsInfo,
+		...blockWithDefaultValues,
+		generatorPublicKey: blockWithDefaultValues.keypair.publicKey.toString(
+			'hex',
+		),
+	};
+
+	const hashedBlock = hash(getBytes(blockWithCalculatedProperties));
+	const temp = Buffer.alloc(8);
+	// eslint-disable-next-line no-plusplus
+	for (let i = 0; i < 8; i++) {
+		temp[i] = hashedBlock[7 - i];
+	}
+
+	// eslint-disable-next-line new-cap
+	const id = new BigNum.fromBuffer(temp).toString();
 	return {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
 			hash(getBytes(blockWithCalculatedProperties)),
 			Buffer.from(blockWithCalculatedProperties.keypair.privateKey, 'hex'),
 		),
+		id,
 	};
 };
 

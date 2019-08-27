@@ -14,10 +14,11 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
+const { TransferTransaction } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
-const genesisBlockTestnet = require('../../../../../../fixtures/config/testnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 
 // TODO: Share fixture generation b/w mocha and jest
@@ -291,7 +292,7 @@ describe('blocks', () => {
 					// Act
 					stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 						genesisBlock,
-						genesisBlockTestnet,
+						newBlock(),
 					]);
 					await blocksInstance.init();
 				});
@@ -309,6 +310,7 @@ describe('blocks', () => {
 	describe('validate', () => {
 		describe('validateSignature', () => {
 			it('should throw when the block bytes are mutated', async () => {
+				// Arrange
 				const block = newBlock();
 				const blockBytes = getBytes(block);
 				const mutatedBlockBytes = Buffer.from(
@@ -317,6 +319,7 @@ describe('blocks', () => {
 				);
 				const errorMessage = 'Invalid block signature';
 				expect.assertions(1);
+				// Act
 				try {
 					await blocksInstance.validate({
 						block,
@@ -324,11 +327,13 @@ describe('blocks', () => {
 						blockBytes: mutatedBlockBytes,
 					});
 				} catch (error) {
+					// Assert
 					expect(error.message).toEqual(errorMessage);
 				}
 			});
 
 			it('should throw when the block signature is mutated', async () => {
+				// Arrange
 				const block = newBlock();
 				const blockBytes = getBytes(block);
 				const blockWithMutatedSignature = {
@@ -337,6 +342,7 @@ describe('blocks', () => {
 				};
 				const errorMessage = 'Invalid block signature';
 				expect.assertions(1);
+				// Act
 				try {
 					await blocksInstance.validate({
 						block: blockWithMutatedSignature,
@@ -344,11 +350,13 @@ describe('blocks', () => {
 						blockBytes,
 					});
 				} catch (error) {
+					// Assert
 					expect(error.message).toEqual(errorMessage);
 				}
 			});
 
 			it('should throw when generator public key is different', async () => {
+				// Arrange
 				const block = newBlock();
 				const blockBytes = getBytes(block);
 				const blockWithDifferentGeneratorPublicKey = {
@@ -357,6 +365,7 @@ describe('blocks', () => {
 				};
 				const errorMessage = 'Invalid block signature';
 				expect.assertions(1);
+				// Act
 				try {
 					await blocksInstance.validate({
 						block: blockWithDifferentGeneratorPublicKey,
@@ -364,61 +373,312 @@ describe('blocks', () => {
 						blockBytes,
 					});
 				} catch (error) {
+					// Assert
 					expect(error.message).toEqual(errorMessage);
 				}
 			});
 		});
 
 		describe('validatePreviousBlock', () => {
-			it.todo(
-				"should throw when the previous block doesn't exist and the block is not genesis block",
-			);
+			it("should throw when the previous block doesn't exist and the block is not genesis block", async () => {
+				// Arrange
+				const block = newBlock({ previousBlock: null });
+				const blockBytes = getBytes(block);
+				const errorMessage = 'Invalid previous block';
+				expect.assertions(1);
+				// Act
+				try {
+					await blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					});
+				} catch (error) {
+					// Assert
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
+
+			it("should not throw when previous block doesn't exist and block height = 1", async () => {
+				// Arrange
+				const block = newBlock({
+					height: 1,
+					previousBlock: undefined,
+				});
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).resolves.toBeUndefined();
+			});
 		});
 
 		describe('validateReward', () => {
 			// should not throw if block height === 1? (Where should the test go)
-			it.todo(
-				'should throw if the expected reward does not match the reward property in block object',
-			);
-			it.todo(
-				'should not throw if the expected reward does not match the reward property in block object but the block id included in exception',
-			);
-			it.todo('should not throw if block height === 1');
+			it('should throw if the expected reward does not match the reward property in block object', async () => {
+				// Arrange
+				const block = newBlock({ reward: '1' });
+				const blockBytes = getBytes(block);
+				const errorMessage = 'Invalid block reward: 1 expected: 0';
+				expect.assertions(1);
+				// Act
+				try {
+					await blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					});
+				} catch (error) {
+					// Assert
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
+
+			it('should not throw if the expected reward does not match the reward property in block object but the block id included in exception', async () => {
+				// Arrange
+				const block = newBlock({ reward: '1' });
+				exceptions.blockRewards = [block.id];
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act
+				return expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).resolves.toBeUndefined();
+			});
+
+			it('should not throw if block height === 1', async () => {
+				// Arrange
+				const block = newBlock({ height: 1, reward: '1' });
+				exceptions.blockRewards = [block.id.replace('1', '0')];
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).resolves.toBeUndefined();
+			});
 		});
 
 		describe('validatePayload', () => {
-			it.todo(
-				'should throw if the payload size is bigger than maxPayloadLength',
-			);
-			it.todo(
-				'should throw if the transactions array is not equal to numberOfTransactions',
-			);
-			it.todo(
-				'should throw if the transactions array is more than maxTransactionsPerBlock',
-			);
-			it.todo('should throw if there are duplicate transaction ids');
-			it.todo(
-				'should throw if the calculated payload hash is not equal to payloadHash property in block object',
-			);
-			it.todo(
-				'should throw if the calculated totalAmount is not equal to totalAmount property in block object',
-			);
-			it.todo(
-				'should throw if the calculated totalFee is not equal to totalFee property in block object',
-			);
+			it('should throw if the payload size is bigger than maxPayloadLength', async () => {
+				// Arrange
+				const block = newBlock({
+					payloadLength: constants.maxPayloadLength + 1,
+				});
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Payload length is too long');
+			});
+
+			it('should throw if the transactions array is not equal to numberOfTransactions', async () => {
+				// Arrange
+				const transactions = new Array(10)
+					.fill('')
+					.map(() => new TransferTransaction(randomUtils.transaction()));
+				const block = newBlock({ numberOfTransactions: 1, transactions });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow(
+					'Included transactions do not match block transactions count',
+				);
+			});
+
+			it('should throw if the transactions array is more than maxTransactionsPerBlock', async () => {
+				// Arrange
+				const transactions = new Array(constants.maxTransactionsPerBlock + 1)
+					.fill('')
+					.map(() => new TransferTransaction(randomUtils.transaction()));
+				const block = newBlock({ transactions });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Number of transactions exceeds maximum per block');
+			});
+
+			it('should throw if there are duplicate transaction ids', async () => {
+				// Arrange
+				const duplicateTransaction = new TransferTransaction(
+					randomUtils.transaction(),
+				);
+				const block = newBlock({
+					numberOfTransactions: 1,
+					transactions: [duplicateTransaction, duplicateTransaction],
+				});
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow(
+					'Included transactions do not match block transactions count',
+				);
+			});
+
+			it('should throw if the calculated payload hash is not equal to payloadHash property in block object', async () => {
+				// Arrange
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				const blockWithDifferentPayloadhash = {
+					...block,
+					payloadHash: block.payloadHash.replace('0', '1'),
+				};
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block: blockWithDifferentPayloadhash,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid payload hash');
+			});
+
+			it('should throw if the calculated totalAmount is not equal to totalAmount property in block object', async () => {
+				// Arrange
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				const blockWithDifferentTotalAmount = {
+					...block,
+					totalAmount: new BigNum('12'),
+				};
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block: blockWithDifferentTotalAmount,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid total amount');
+			});
+
+			it('should throw if the calculated totalFee is not equal to totalFee property in block object', async () => {
+				// Arrange
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				const blockWithDifferentTotalAmount = {
+					...block,
+					totalFee: new BigNum('1'),
+				};
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block: blockWithDifferentTotalAmount,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid total fee');
+			});
 		});
 
-		describe('valudateBlockSlot', () => {
-			it.todo('should throw when block timestamp is in the future');
-			it.todo(
-				'should throw when block timestamp is earlier than lastBlock timestamp',
-			);
-			it.todo(
-				'should throw when block timestamp is equal to the lastBlock timestamp',
-			);
+		describe('validateBlockSlot', () => {
+			it('should throw when block timestamp is in the future', async () => {
+				// Arrange
+				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
+				const block = newBlock({ timestamp: futureTimestamp });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+
+			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
+				// Arrange
+				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
+				const block = newBlock({ timestamp: futureTimestamp });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+
+			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
+				// Arrange
+				const lastBlock = newBlock({});
+				const block = newBlock({
+					previousBlock: lastBlock.id,
+					height: lastBlock.height + 1,
+				});
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid block timestamp');
+			});
 		});
 
-		it.todo('should reassign the id property for block object');
+		it('should reassign the id property for block object', async () => {
+			// Arrange
+			const block = newBlock();
+			const blockBytes = getBytes(block);
+			const originalId = block.id;
+			const mutatedId = block.id;
+			block.id = mutatedId;
+
+			expect.assertions(1);
+			// Act & Assert
+			await blocksInstance.validate({
+				block,
+				lastBlock: genesisBlock,
+				blockBytes,
+			});
+			expect(block.id).toEqual(originalId);
+		});
 
 		describe('validateTransactions', () => {
 			// Question: What should be exactly done here
@@ -436,8 +696,8 @@ describe('blocks', () => {
 	});
 
 	describe('verify', () => {
-		it.todo('should throw in case if block id exists in the last n blocks');
-		it.todo('should throw in case if block id exists in the last n blocks');
+		it.todo('should throw in case the block id exists in the last n blocks');
+		it.todo('should throw in case the block id exists in the last n blocks');
 	});
 
 	describe('apply', () => {
