@@ -73,21 +73,6 @@ describe('rounds', () => {
 		storageStubs,
 	);
 
-	const bindings = {
-		components: {
-			cache: {
-				isReady: sinon.stub(),
-				removeByPattern: sinon.stub(),
-			},
-		},
-		modules: {
-			rounds: {
-				generateDelegateList: sinon.stub(),
-				clearDelegateListCache: sinon.stub(),
-			},
-		},
-	};
-
 	const validScope = {
 		components: { logger, storage },
 		channel: {
@@ -112,12 +97,6 @@ describe('rounds', () => {
 
 	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
-
-		bindings.modules.rounds.generateDelegateList.resolves([
-			'delegate1',
-			'delegate2',
-			'delegate3',
-		]);
 
 		sinonSandbox.stub(cryptography, 'getAddressFromPublicKey');
 		cryptography.getAddressFromPublicKey

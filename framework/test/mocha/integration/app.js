@@ -300,8 +300,8 @@ describe('app', () => {
 			let delegatesList;
 
 			before(() => {
-				return library.modules.rounds
-					.generateDelegateList(1, null)
+				return library.modules.dpos
+					.getRoundDelegates(1)
 					.then(_delegatesList => {
 						delegatesList = _delegatesList;
 					});

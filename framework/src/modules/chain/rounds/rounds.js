@@ -376,11 +376,6 @@ class Rounds {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	generateDelegateList(round, source, tx) {
-		return library.delegates.generateDelegateList(round, source, tx);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
 	fork(block, cause) {
 		return library.delegates.fork(block, cause);
 	}

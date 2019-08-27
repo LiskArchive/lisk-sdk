@@ -94,12 +94,12 @@ async function _getForgers(filters) {
 	const currentSlot = await channel.invoke('chain:getSlotNumber');
 	const forgerKeys = [];
 
-	const round = await channel.invoke('chain:calcSlotRound', {
+	const currentRound = await channel.invoke('chain:calcSlotRound', {
 		height: lastBlock.height + 1,
 	});
 
-	const activeDelegates = await channel.invoke('chain:generateDelegateList', {
-		round,
+	const activeDelegates = await channel.invoke('chain:getRoundDelegates', {
+		round: currentRound,
 	});
 
 	for (
@@ -277,7 +277,7 @@ function DelegatesController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-DelegatesController.getDelegates = async function(context, next) {
+DelegatesController.getDelegates = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -329,7 +329,7 @@ DelegatesController.getDelegates = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-DelegatesController.getForgers = async function(context, next) {
+DelegatesController.getForgers = async (context, next) => {
 	const { params } = context.request.swagger;
 
 	const filters = {
@@ -345,7 +345,7 @@ DelegatesController.getForgers = async function(context, next) {
 	}
 };
 
-DelegatesController.getForgingStatistics = async function(context, next) {
+DelegatesController.getForgingStatistics = async (context, next) => {
 	const { params } = context.request.swagger;
 
 	const filters = {

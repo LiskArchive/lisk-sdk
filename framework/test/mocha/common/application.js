@@ -165,7 +165,7 @@ const initStepsForTest = {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			slots: scope.slots,
-			roundsModule: modules.rounds,
+			dposModule: modules.dpos,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
 			peersModule: modules.peers,
