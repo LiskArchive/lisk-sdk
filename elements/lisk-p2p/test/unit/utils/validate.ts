@@ -21,7 +21,7 @@ import {
 	validateProtocolMessage,
 	sanitizeIncomingPeerInfo,
 	sanitizeOutgoingPeerInfo,
-} from '../../../src/utils/validate';
+} from '../../../src/utils';
 import {
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,

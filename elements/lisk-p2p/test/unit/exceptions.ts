@@ -123,82 +123,82 @@ describe('exceptions', () => {
 
 	describe('#InvalidProtocolMessageException', () => {
 		const defaultMessage = 'Invalid protocol message';
-		let InvalidProtocolMessageException: InvalidProtocolMessageException;
+		let invalidProtocolMessageException: InvalidProtocolMessageException;
 
 		beforeEach(async () => {
-			InvalidProtocolMessageException = new InvalidProtocolMessageException(
+			invalidProtocolMessageException = new InvalidProtocolMessageException(
 				defaultMessage,
 			);
 		});
 
 		it('should create a new instance of InvalidProtocolMessageException', async () => {
-			expect(InvalidProtocolMessageException).to.be.instanceof(
+			expect(invalidProtocolMessageException).to.be.instanceof(
 				InvalidProtocolMessageException,
 			);
 		});
 
 		it('should set error name to `InvalidProtocolMessageException`', async () => {
-			expect(InvalidProtocolMessageException.name).to.eql(
+			expect(invalidProtocolMessageException.name).to.eql(
 				'InvalidProtocolMessageException',
 			);
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(InvalidProtocolMessageException.message).to.eql(defaultMessage);
+			expect(invalidProtocolMessageException.message).to.eql(defaultMessage);
 		});
 	});
 
 	describe('#InvalidRPCRequestException', () => {
-		let InvalidRPCRequestException: InvalidRPCRequestException;
+		let invalidRPCRequestException: InvalidRPCRequestException;
 		const defaultMessage = 'Invalid RPC request error';
 
 		beforeEach(async () => {
-			InvalidRPCRequestException = new InvalidRPCRequestException(
+			invalidRPCRequestException = new InvalidRPCRequestException(
 				defaultMessage,
 			);
 		});
 
 		it('should create a new instance of InvalidRPCRequestException', async () => {
-			expect(InvalidRPCRequestException).to.be.instanceof(
+			expect(invalidRPCRequestException).to.be.instanceof(
 				InvalidRPCRequestException,
 			);
 		});
 
 		it('should set error name to `InvalidRPCRequestException`', async () => {
-			expect(InvalidRPCRequestException.name).to.eql(
+			expect(invalidRPCRequestException.name).to.eql(
 				'InvalidRPCRequestException',
 			);
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(InvalidRPCRequestException.message).to.eql(defaultMessage);
+			expect(invalidRPCRequestException.message).to.eql(defaultMessage);
 		});
 	});
 
 	describe('#RPCResponseAlreadySentException', () => {
 		const defaultMessage = 'Response was already sent';
-		let RPCResponseAlreadySentException: RPCResponseAlreadySentException;
+		let rPCResponseAlreadySentException: RPCResponseAlreadySentException;
 
 		beforeEach(async () => {
-			RPCResponseAlreadySentException = new RPCResponseAlreadySentException(
+			rPCResponseAlreadySentException = new RPCResponseAlreadySentException(
 				defaultMessage,
 			);
 		});
 
 		it('should create a new instance of RPCResponseAlreadySentException', async () => {
-			expect(RPCResponseAlreadySentException).to.be.instanceof(
+			expect(rPCResponseAlreadySentException).to.be.instanceof(
 				RPCResponseAlreadySentException,
 			);
 		});
 
 		it('should set error name to `RPCResponseAlreadySentException`', async () => {
-			expect(RPCResponseAlreadySentException.name).to.eql(
+			expect(rPCResponseAlreadySentException.name).to.eql(
 				'ResponseAlreadySentError',
 			);
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(RPCResponseAlreadySentException.message).to.eql(defaultMessage);
+			expect(rPCResponseAlreadySentException.message).to.eql(defaultMessage);
 		});
 	});
 
@@ -210,10 +210,10 @@ describe('exceptions', () => {
 		const peerId = '127.0.0.1:4000';
 		const peerVersion = '1.5.0';
 
-		let RequestFailException: RequestFailException;
+		let requestFailException: RequestFailException;
 
 		beforeEach(async () => {
-			RequestFailException = new RequestFailException(
+			requestFailException = new RequestFailException(
 				defaultMessage,
 				response,
 				peerId,
@@ -222,21 +222,21 @@ describe('exceptions', () => {
 		});
 
 		it('should create a new instance of RequestFailException', async () => {
-			expect(RequestFailException).to.be.instanceof(RequestFailException);
+			expect(requestFailException).to.be.instanceof(RequestFailException);
 		});
 
 		it('should set error name to `RequestFailException`', async () => {
-			expect(RequestFailException.name).to.eql('RequestFailException');
+			expect(requestFailException.name).to.eql('RequestFailException');
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(RequestFailException.message).to.eql(
+			expect(requestFailException.message).to.eql(
 				`${defaultMessage}: Peer Id: ${peerId}: Peer Version: ${peerVersion}`,
 			);
 		});
 
 		it('should set response object within this custom error', async () => {
-			expect(RequestFailException.response)
+			expect(requestFailException.response)
 				.to.eql(response)
 				.to.have.property('message')
 				.eql(errorResponseMessage);
