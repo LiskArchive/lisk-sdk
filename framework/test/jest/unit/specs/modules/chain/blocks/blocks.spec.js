@@ -15,7 +15,10 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
-const { TransferTransaction } = require('@liskhq/lisk-transactions');
+const {
+	TransferTransaction,
+	Status: TransactionStatus,
+} = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const {
@@ -700,11 +703,73 @@ describe('blocks', () => {
 		});
 
 		describe('validateTransactions', () => {
-			it('should call validateTransactions with expected parameters', async () => {});
+			it('should call validateTransactions with expected parameters', async () => {
+				// Arrange
+				const block = newBlock();
+				const blockBytes = getBytes(block);
+				expect.assertions(2);
+				// Act
+				await blocksInstance.validate({
+					block,
+					lastBlock: genesisBlock,
+					blockBytes,
+				});
+				expect(transactionsModule.validateTransactions).toHaveBeenCalledWith(
+					exceptions,
+				);
+				expect(validateTransactionsFn).toHaveBeenCalledWith(block.transactions);
+			});
 
-			it('should throw errors of the first invalid Transaction', async () => {});
+			it('should throw errors of the first invalid Transaction', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
 
-			it('should not throw when there are no errors', async () => {});
+				const transactionErrors = [new Error('Invalid signature')];
+				const transactionResponseForInvalidTransaction = {
+					errors: transactionErrors,
+					status: TransactionStatus.FAIL,
+				};
+				validateTransactionsFn.mockReturnValue({
+					transactionsResponses: [transactionResponseForInvalidTransaction],
+				});
+
+				const block = newBlock({ transactions: [transaction] });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toEqual(transactionErrors);
+			});
+
+			it('should not throw when there are no errors', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
+
+				const transactionResponseForValidTransaction = {
+					errors: [],
+					status: TransactionStatus.OK,
+				};
+				validateTransactionsFn.mockReturnValue({
+					transactionsResponses: [transactionResponseForValidTransaction],
+				});
+
+				const block = newBlock({ transactions: [transaction] });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.validate({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).resolves.toEqual();
+			});
 		});
 	});
 
@@ -764,6 +829,72 @@ describe('blocks', () => {
 				// Assert
 				expect(e[0].message).toBe('error');
 			}
+		});
+
+		it('should call verifyBlockNotExists with proper arguments', async () => {
+			// Arrange
+			const block = newBlock();
+			transactionsModule.checkPersistedTransactions.mockReturnValue(
+				jest.fn().mockResolvedValue({
+					transactionsResponses: [{ status: 1, errors: [] }],
+				}),
+			);
+
+			// Act
+			await blocksInstance.verify({
+				block,
+				skipExistingCheck: false,
+			});
+			// Assert
+			expect(verifyBlockNotExists).toHaveBeenCalledWith(
+				blocksInstance.storage,
+				block,
+			);
+		});
+
+		it('should call verifyBlockSlot with proper arguments', async () => {
+			// Arrange
+			const block = newBlock();
+			transactionsModule.checkPersistedTransactions.mockReturnValue(
+				jest.fn().mockResolvedValue({
+					transactionsResponses: [{ status: 1, errors: [] }],
+				}),
+			);
+
+			// Act
+			await blocksInstance.verify({
+				block,
+				skipExistingCheck: false,
+			});
+			// Assert
+			expect(blocksInstance.blocksVerify.verifyBlockSlot).toHaveBeenCalledWith(
+				block,
+			);
+		});
+
+		it('should call checkPersistedTransactions with proper arguments', async () => {
+			// Arrange
+			const block = newBlock();
+			const checkPersistedTransactionsFunction = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 1, errors: [] }],
+			});
+
+			transactionsModule.checkPersistedTransactions.mockReturnValue(
+				checkPersistedTransactionsFunction,
+			);
+
+			// Act
+			await blocksInstance.verify({
+				block,
+				skipExistingCheck: false,
+			});
+			// Assert
+			expect(
+				transactionsModule.checkPersistedTransactions,
+			).toHaveBeenCalledWith(blocksInstance.storage);
+			expect(checkPersistedTransactionsFunction).toHaveBeenCalledWith(
+				block.transactions,
+			);
 		});
 	});
 
