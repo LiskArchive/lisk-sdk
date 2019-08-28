@@ -1010,11 +1010,136 @@ describe('blocks', () => {
 	});
 
 	describe('undo', () => {
-		it.todo('should not perform any action if transactions is an empty array');
-		it.todo('should not call undoTransactions for inert transactions');
-		it.todo('should throw the errors for first unundoable transaction');
-		it.todo('should update account state when transactions are reverted');
-		it.todo('should update round state when transactions are reverted');
+		const stateStore = {
+			account: {
+				finalize: jest.fn(),
+			},
+			round: {
+				finalize: jest.fn(),
+				setRoundForData: jest.fn(),
+			},
+		};
+		let undoTransactionsFn;
+
+		beforeEach(() => {
+			undoTransactionsFn = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 1, errors: [] }],
+				stateStore,
+			});
+			transactionsModule.undoTransactions.mockReturnValue(undoTransactionsFn);
+
+			stubs.dependencies.storage.entities.Block.get.mockReturnValue([]);
+		});
+
+		it('should not perform any action if transactions is an empty array', async () => {
+			// Arrange
+			const block = newBlock();
+			block.transactions = []; // Empty transactions
+
+			try {
+				// Act
+				await blocksInstance.undo({
+					block: newBlock(),
+				});
+			} catch (e) {
+				// Do nothing here
+			}
+
+			// Assert
+			expect(transactionsModule.undoTransactions).not.toHaveBeenCalled();
+		});
+
+		it('should not call undoTransactions for inert transactions', async () => {
+			// Arrange
+			const block = newBlock();
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
+
+			blocksInstance.exceptions = {
+				...blocksInstance.exceptions,
+				inertTransactions: ['1234'],
+			};
+
+			try {
+				// Act
+				await blocksInstance.undo({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			// Assert
+			expect(undoTransactionsFn).toHaveBeenCalledWith([], undefined);
+		});
+		it('should throw the errors for the first transaction which fails on undo function', async () => {
+			// Arrange
+			const block = newBlock();
+
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
+
+			undoTransactionsFn = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 0, errors: [new Error('anError')] }],
+				stateStore,
+			});
+			transactionsModule.undoTransactions.mockReturnValue(undoTransactionsFn);
+
+			try {
+				// Act
+				await blocksInstance.undo({
+					block,
+				});
+			} catch (e) {
+				// Assert
+				expect(e[0].message).toEqual('anError');
+			}
+		});
+
+		it('should throw an error if previous block is null', async () => {
+			try {
+				await blocksInstance.undo({
+					block: newBlock(),
+				});
+			} catch (e) {
+				expect(e.message).toEqual('PreviousBlock is null');
+			}
+		});
+
+		it('should update account state when transactions are reverted', async () => {
+			const block = newBlock();
+
+			try {
+				await blocksInstance.undo({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			expect(stateStore.account.finalize).toHaveBeenCalled();
+		});
+
+		it('should update round state when transactions are reverted', async () => {
+			const block = newBlock();
+
+			try {
+				await blocksInstance.undo({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			expect(stateStore.round.finalize).toHaveBeenCalled();
+			expect(stateStore.round.setRoundForData).toHaveBeenCalled();
+		});
 	});
 
 	describe('save', () => {
