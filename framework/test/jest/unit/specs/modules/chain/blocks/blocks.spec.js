@@ -30,6 +30,7 @@ const {
 	Rounds: RoundsModule,
 } = require('../../../../../../../src/modules/chain/rounds');
 
+// jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('../../../../../../../src/modules/chain/rounds');
 // TODO: Share fixture generation b/w mocha and jest
@@ -80,6 +81,7 @@ describe('blocks', () => {
 						create: jest.fn(),
 						count: jest.fn(),
 						getOne: jest.fn(),
+						delete: jest.fn(),
 						get: jest.fn(),
 						isPersisted: jest.fn(),
 					},
@@ -87,6 +89,9 @@ describe('blocks', () => {
 						getUniqueRounds: jest.fn(),
 					},
 					Transaction: {
+						create: jest.fn(),
+					},
+					TempBlock: {
 						create: jest.fn(),
 					},
 				},
@@ -778,9 +783,6 @@ describe('blocks', () => {
 		});
 	});
 
-	// TODO: decide first if we need this function
-	describe('validateNew', () => {});
-
 	describe('forkChoice', () => {
 		const defaults = {};
 
@@ -917,7 +919,7 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('verify', () => {
+	describe.skip('verify', () => {
 		let checkPersistedTransactionsFn;
 
 		beforeEach(async () => {
@@ -1265,55 +1267,134 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('saveGenesis', () => {
-		it.todo('should not save the block when skipSave is set to true');
-		it.todo(
-			'should save the block in the database when skipSave is set to false',
-		);
-		it.todo('should throw error when block cannot be saved in the database');
-		it.todo('should perform tick for rounds module');
-	});
-
 	describe('remove', () => {
-		it.todo('should throw an error when removing genesis block');
-		it.todo(
-			'should throw an error when previous block does not exist in the database',
-		);
-		it.todo('should throw an error when deleting block fails');
-		it.todo(
-			'should not create entry in temp block table saveToTemp flag is false',
-		);
-		describe('when saveToTemp parameter is set to true', () => {
-			it.todo('should not mutate the last block object');
-			it.todo(
-				'should create entry in temp block with string value of reward if it exists',
-			);
-			it.todo(
-				"should create entry in temp block without reward property if it does't exists",
-			);
-			it.todo(
-				'should create entry in temp block with string value of totalAmount if it exists',
-			);
-			it.todo(
-				"should create entry in temp block without totalAmount property if it does't exists",
-			);
-			it.todo(
-				'should create entry in temp block with string value of totalFee if it exists',
-			);
-			it.todo(
-				"should create entry in temp block without totalFee property if it does't exists",
-			);
-			it.todo(
-				'should create entry in temp block by adding blockId property for transactions',
-			);
-			it.todo('should create entry in temp block with json transactions array');
-			it.todo(
-				'should create entry in temp block with correct id, height and block property and tx',
-			);
+		beforeEach(async () => {
+			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+				genesisBlock,
+			]);
+			stubs.dependencies.storage.entities.Block.delete.mockResolvedValue();
 		});
-		it.todo(
-			'should not create entry in temp block table if saveToTemp parameter is false',
-		);
+
+		it('should throw an error when removing genesis block', async () => {
+			// Act & Assert
+			await expect(
+				blocksInstance.remove({
+					block: genesisBlock,
+					tx: stubs.tx,
+				}),
+			).rejects.toThrow('Cannot delete genesis block');
+		});
+
+		it('should throw an error when previous block does not exist in the database', async () => {
+			// Arrange
+			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
+			const block = newBlock();
+			// Act & Assert
+			await expect(
+				blocksInstance.remove({
+					block,
+					tx: stubs.tx,
+				}),
+			).rejects.toThrow('PreviousBlock is null');
+		});
+
+		it('should throw an error when deleting block fails', async () => {
+			// Arrange
+			const deleteBlockError = new Error('Delete block failed');
+			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+				genesisBlock,
+			]);
+			stubs.dependencies.storage.entities.Block.delete.mockRejectedValue(
+				deleteBlockError,
+			);
+			const block = newBlock();
+			// Act & Assert
+			await expect(
+				blocksInstance.remove({
+					block,
+					tx: stubs.tx,
+				}),
+			).rejects.toEqual(deleteBlockError);
+		});
+
+		it('should not create entry in temp block table when saveToTemp flag is false', async () => {
+			// Arrange
+			const block = newBlock();
+			// Act
+			await blocksInstance.remove({
+				block,
+				tx: stubs.tx,
+			});
+			// Assert
+			expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
+			expect(
+				stubs.dependencies.storage.entities.TempBlock.create,
+			).not.toHaveBeenCalled();
+		});
+
+		describe('when saveToTemp parameter is set to true', () => {
+			beforeEach(async () => {
+				stubs.dependencies.storage.entities.TempBlock.create.mockResolvedValue();
+			});
+
+			it('should throw an error when temp block create function fails', async () => {
+				// Arrange
+				const tempBlockCreateError = new Error(
+					'temp block entry creation failed',
+				);
+				const block = newBlock();
+				stubs.dependencies.storage.entities.TempBlock.create.mockRejectedValue(
+					tempBlockCreateError,
+				);
+				// Act & Assert
+				await expect(
+					blocksInstance.remove(
+						{
+							block,
+							tx: stubs.tx,
+						},
+						true,
+					),
+				).rejects.toEqual(tempBlockCreateError);
+			});
+
+			it('should create entry in temp block with correct id, height and block property and tx', async () => {
+				// Arrange
+				const transaction = new TransferTransaction(randomUtils.transaction());
+				const block = newBlock({ transactions: [transaction] });
+				transaction.blockId = block.id;
+				const transactionJson = transaction.toJSON();
+				const blockJson = {
+					...block,
+					reward: '0',
+					totalAmount: '1',
+					totalFee: '10000000',
+					previousBlockId: block.previousBlock,
+					transactions: [transactionJson],
+				};
+				delete blockJson.previousBlock;
+				// Act
+				await blocksInstance.remove(
+					{
+						block,
+						tx: stubs.tx,
+					},
+					true,
+				);
+				// Assert
+				expect(
+					stubs.dependencies.storage.entities.TempBlock.create,
+				).toHaveBeenCalledWith(
+					{
+						id: blockJson.id,
+						height: blockJson.height,
+						fullBlock: blockJson,
+					},
+					{},
+					stubs.tx,
+				);
+			});
+		});
 	});
 
 	describe('exists', () => {
