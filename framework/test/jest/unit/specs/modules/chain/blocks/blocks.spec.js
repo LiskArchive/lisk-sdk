@@ -160,11 +160,6 @@ describe('blocks', () => {
 		});
 	});
 
-	// TODO: Confirm it is required after new implementation
-	describe('isActive', () => {
-		it.todo('return the _isActive property');
-	});
-
 	describe('init', () => {
 		beforeEach(async () => {
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
@@ -1405,15 +1400,6 @@ describe('blocks', () => {
 
 	describe('broadcast', () => {
 		it.todo('should clone block and emit EVENT_BROADCAST_BLOCK event');
-	});
-
-	describe('cleanup', () => {});
-
-	describe('deleteLastBlockAndGet', () => {
-		it.todo('should remove the last block');
-		it.todo('should clone block and emit EVENT_BROADCAST_BLOCK event');
-		it.todo('should throw in case removing block fails');
-		it.todo('should return new last block');
 	});
 
 	describe('loadBlocksDataWs', () => {
