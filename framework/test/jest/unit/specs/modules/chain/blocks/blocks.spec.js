@@ -21,17 +21,17 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
-const {
-	verifyBlockNotExists,
-} = require('../../../../../../../src/modules/chain/blocks/verify');
+const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+const {
+	Rounds: RoundsModule,
+} = require('../../../../../../../src/modules/chain/rounds');
 
-// jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
-
+jest.mock('../../../../../../../src/modules/chain/rounds');
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
 
@@ -82,6 +82,7 @@ describe('blocks', () => {
 						getOne: jest.fn(),
 						delete: jest.fn(),
 						get: jest.fn(),
+						isPersisted: jest.fn(),
 					},
 					Round: {
 						getUniqueRounds: jest.fn(),
@@ -99,7 +100,7 @@ describe('blocks', () => {
 				log: jest.fn(),
 				error: jest.fn(),
 			},
-			roundsModule: {},
+			roundsModule: new RoundsModule(),
 		};
 
 		slots = new Slots({
@@ -782,10 +783,142 @@ describe('blocks', () => {
 	});
 
 	describe('forkChoice', () => {
-		// We must have these tests somewhere
+		const defaults = {};
+
+		beforeEach(async () => {
+			defaults.lastBlock = {
+				id: '1',
+				height: 1,
+				version: 2,
+				generatorPublicKey: 'abcdef',
+				prevotedConfirmedUptoHeight: 1,
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
+			};
+
+			defaults.newBlock = {
+				id: '2',
+				height: 2,
+				version: 2,
+				generatorPublicKey: 'ghijkl',
+				prevotedConfirmedUptoHeight: 1,
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
+			};
+
+			// forkChoiceRule.isValidBlock.mockReturnValue(false);
+			// forkChoiceRule.isIdenticalBlock.mockReturnValue(false);
+			// forkChoiceRule.isDoubleForging.mockReturnValue(false);
+			// forkChoiceRule.isTieBreak.mockReturnValue(false);
+			// forkChoiceRule.isDifferentChain.mockReturnValue(false);
+
+			blocksInstance._lastBlock = defaults.lastBlock;
+		});
+
+		it('should return FORK_STATUS_IDENTICAL_BLOCK if isIdenticalBlock evaluates to true', async () => {
+			const aNewBlock = {
+				...defaults.newBlock,
+				id: defaults.lastBlock.id,
+			};
+
+			expect(
+				blocksInstance.forkChoice({
+					block: aNewBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK);
+		});
+
+		it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', async () => {
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height + 1,
+				previousBlock: defaults.lastBlock.id,
+			};
+
+			expect(
+				blocksInstance.forkChoice({
+					block: aNewBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_VALID_BLOCK);
+		});
+
+		it('should return FORK_STATUS_DOUBLE_FORGING if isDoubleForging evaluates to true', () => {
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height,
+				prevotedConfirmedUptoHeight:
+					defaults.lastBlock.prevotedConfirmedUptoHeight,
+				previousBlock: defaults.lastBlock.previousBlock,
+				generatorPublicKey: defaults.lastBlock.generatorPublicKey,
+			};
+
+			expect(
+				blocksInstance.forkChoice({
+					block: aNewBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_DOUBLE_FORGING);
+		});
+
+		it('should return FORK_STATUS_TIE_BREAK if isTieBreak evaluates to true', () => {
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height,
+				prevotedConfirmedUptoHeight:
+					defaults.lastBlock.prevotedConfirmedUptoHeight,
+				previousBlock: defaults.lastBlock.previousBlock,
+				timestamp: defaults.lastBlock.timestamp + 1000,
+			};
+
+			blocksInstance.slots.getEpochTime = jest.fn(
+				() => defaults.lastBlock.timestamp + 1000,
+			); // It will get assigned to newBlock.receivedAt
+
+			const lastBlock = {
+				...defaults.lastBlock,
+				receivedAt: defaults.lastBlock.timestamp + 1000, // Received late
+			};
+
+			expect(
+				blocksInstance.forkChoice({
+					block: aNewBlock,
+					lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_TIE_BREAK);
+		});
+
+		it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
+			const aNewBlock = {
+				...defaults.newBlock,
+				prevotedConfirmedUptoHeight:
+					defaults.lastBlock.prevotedConfirmedUptoHeight,
+				height: defaults.lastBlock.height + 1,
+			};
+
+			expect(
+				blocksInstance.forkChoice({
+					block: aNewBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN);
+		});
+
+		it('should return FORK_STATUS_DISCARD if no conditions are met', async () => {
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height, // This way, none of the conditions are met
+			};
+
+			expect(
+				blocksInstance.forkChoice({
+					block: aNewBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
+		});
 	});
 
-	describe.skip('verify', () => {
+	describe('verify', () => {
 		let checkPersistedTransactionsFn;
 
 		beforeEach(async () => {
@@ -797,7 +930,9 @@ describe('blocks', () => {
 				checkPersistedTransactionsFn,
 			);
 
-			verifyBlockNotExists.mockReturnValue(jest.fn().mockReturnValue({}));
+			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
+				false,
+			);
 		});
 
 		it('should throw in case the block id exists in the last n blocks', async () => {
@@ -834,47 +969,6 @@ describe('blocks', () => {
 				// Assert
 				expect(e[0].message).toBe('error');
 			}
-		});
-
-		it('should call verifyBlockNotExists with proper arguments', async () => {
-			// Arrange
-			const block = newBlock();
-			transactionsModule.checkPersistedTransactions.mockReturnValue(
-				jest.fn().mockResolvedValue({
-					transactionsResponses: [{ status: 1, errors: [] }],
-				}),
-			);
-
-			// Act
-			await blocksInstance.verify({
-				block,
-				skipExistingCheck: false,
-			});
-			// Assert
-			expect(verifyBlockNotExists).toHaveBeenCalledWith(
-				blocksInstance.storage,
-				block,
-			);
-		});
-
-		it('should call verifyBlockSlot with proper arguments', async () => {
-			// Arrange
-			const block = newBlock();
-			transactionsModule.checkPersistedTransactions.mockReturnValue(
-				jest.fn().mockResolvedValue({
-					transactionsResponses: [{ status: 1, errors: [] }],
-				}),
-			);
-
-			// Act
-			await blocksInstance.verify({
-				block,
-				skipExistingCheck: false,
-			});
-			// Assert
-			expect(blocksInstance.blocksVerify.verifyBlockSlot).toHaveBeenCalledWith(
-				block,
-			);
 		});
 
 		it('should call checkPersistedTransactions with proper arguments', async () => {
