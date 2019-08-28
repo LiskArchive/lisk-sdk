@@ -47,6 +47,7 @@ class Blocks extends EventEmitter {
 		exceptions,
 		// Modules
 		roundsModule,
+		dposModule,
 		interfaceAdapters,
 		// constants
 		blockReceiptTimeout, // set default
@@ -81,6 +82,7 @@ class Blocks extends EventEmitter {
 		this.logger = logger;
 		this.storage = storage;
 		this.roundsModule = roundsModule;
+		this.dposModule = dposModule;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
@@ -111,6 +113,7 @@ class Blocks extends EventEmitter {
 			storage: this.storage,
 			interfaceAdapters: this.interfaceAdapters,
 			roundsModule: this.roundsModule,
+			dposModule: this.dposModule,
 			slots: this.slots,
 			exceptions: this.exceptions,
 			genesisBlock: this.genesisBlock,
@@ -121,6 +124,7 @@ class Blocks extends EventEmitter {
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
 			roundsModule: this.roundsModule,
+			dposModule: this.roundsModule,
 			blockReward: this.blockReward,
 			constants: this.constants,
 			interfaceAdapters: this.interfaceAdapters,

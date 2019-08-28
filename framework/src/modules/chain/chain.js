@@ -371,6 +371,7 @@ module.exports = class Chain {
 			slots: this.slots,
 			exceptions: this.options.exceptions,
 			roundsModule: this.rounds,
+			dposModule: this.dpos,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,

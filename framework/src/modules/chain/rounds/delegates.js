@@ -57,30 +57,6 @@ const getDelegatesFromPreviousRound = async (
 };
 
 /**
- * Compare delegate list and checks if block generator publicKey matches delegate id.
- *
- * @param {block} block
- * @param {function} source - Source function for get delegates
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add description for the params
- */
-const validateBlockSlot = (
-	block,
-	slots,
-	activeDelegates,
-	numOfActiveDelegates,
-) => {
-	const currentSlot = slots.getSlotNumber(block.timestamp);
-	const delegateId = activeDelegates[currentSlot % numOfActiveDelegates];
-
-	if (delegateId && block.generatorPublicKey === delegateId) {
-		return true;
-	}
-	throw new Error(`Failed to verify slot: ${currentSlot}`);
-};
-
-/**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
  *
  * @class
@@ -143,50 +119,6 @@ class Delegates {
 			this.updateDelegateListCache(round, truncDelegateList);
 		}
 		return truncDelegateList;
-	}
-
-	/**
-	 * Generates delegate list and checks if block generator public key matches delegate id.
-	 *
-	 * @param {block} block
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
-	 */
-	async validateBlockSlot(block) {
-		const round = this.slots.calcRound(block.height);
-		const activeDelegates = await this.generateDelegateList(
-			round,
-			getKeysSortByVote,
-		);
-		validateBlockSlot(
-			block,
-			this.slots,
-			activeDelegates,
-			this.constants.activeDelegates,
-		);
-	}
-
-	/**
-	 * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
-	 *
-	 * @param {block} block
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
-	 */
-	async validateBlockSlotAgainstPreviousRound(block) {
-		const round = this.slots.calcRound(block.height);
-		const activeDelegates = await this.generateDelegateList(
-			round,
-			getDelegatesFromPreviousRound,
-		);
-		validateBlockSlot(
-			block,
-			this.slots,
-			activeDelegates,
-			this.constants.activeDelegates,
-		);
 	}
 
 	/**
@@ -256,7 +188,6 @@ class Delegates {
 // Export
 module.exports = {
 	Delegates,
-	validateBlockSlot,
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
 };
