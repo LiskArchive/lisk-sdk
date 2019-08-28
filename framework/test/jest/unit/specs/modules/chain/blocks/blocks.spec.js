@@ -22,17 +22,16 @@ const {
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
-const {
-	verifyBlockNotExists,
-} = require('../../../../../../../src/modules/chain/blocks/verify');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+const {
+	Rounds: RoundsModule,
+} = require('../../../../../../../src/modules/chain/rounds');
 
-jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
-
+jest.mock('../../../../../../../src/modules/chain/rounds');
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
 
@@ -82,6 +81,7 @@ describe('blocks', () => {
 						count: jest.fn(),
 						getOne: jest.fn(),
 						get: jest.fn(),
+						isPersisted: jest.fn(),
 					},
 					Round: {
 						getUniqueRounds: jest.fn(),
@@ -96,7 +96,7 @@ describe('blocks', () => {
 				log: jest.fn(),
 				error: jest.fn(),
 			},
-			roundsModule: {},
+			roundsModule: new RoundsModule(),
 		};
 
 		slots = new Slots({
@@ -929,7 +929,9 @@ describe('blocks', () => {
 				checkPersistedTransactionsFn,
 			);
 
-			verifyBlockNotExists.mockReturnValue(jest.fn().mockReturnValue({}));
+			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
+				false,
+			);
 		});
 
 		it('should throw in case the block id exists in the last n blocks', async () => {
@@ -966,6 +968,31 @@ describe('blocks', () => {
 				// Assert
 				expect(e[0].message).toBe('error');
 			}
+		});
+
+		it('should call checkPersistedTransactions with proper arguments', async () => {
+			// Arrange
+			const block = newBlock();
+			const checkPersistedTransactionsFunction = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 1, errors: [] }],
+			});
+
+			transactionsModule.checkPersistedTransactions.mockReturnValue(
+				checkPersistedTransactionsFunction,
+			);
+
+			// Act
+			await blocksInstance.verify({
+				block,
+				skipExistingCheck: false,
+			});
+			// Assert
+			expect(
+				transactionsModule.checkPersistedTransactions,
+			).toHaveBeenCalledWith(blocksInstance.storage);
+			expect(checkPersistedTransactionsFunction).toHaveBeenCalledWith(
+				block.transactions,
+			);
 		});
 	});
 
