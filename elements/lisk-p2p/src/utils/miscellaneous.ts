@@ -18,8 +18,8 @@ import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 
 const SECRET_BUFFER_LENGTH = 4;
 const NETWORK_BUFFER_LENGTH = 1;
-const BYTES_4 = 4;
 const PREFIX_BUFFER_LENGTH = 1;
+const BYTES_4 = 4;
 const BYTES_16 = 16;
 const BYTES_64 = 64;
 const BYTES_128 = 128;
