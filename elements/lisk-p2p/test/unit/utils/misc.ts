@@ -28,7 +28,7 @@ import {
 } from '../../../src/utils';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
-describe('utils/miscellaneous', () => {
+describe('utils/misc', () => {
 	const IPv4Address = '1.160.10.240';
 	const privateAddress = '10.0.0.0';
 	const localAddress = '127.0.0.1';
