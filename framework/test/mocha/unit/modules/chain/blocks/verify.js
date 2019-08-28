@@ -177,6 +177,7 @@ describe('blocks/verify', () => {
 			exceptions: exceptionsWithVersion,
 			slots,
 			roundsModule: roundsModuleStub,
+			dposModule: dposModuleStub,
 			interfaceAdapters: interfaceAdaptersMock,
 			genesisBlock: __testContext.config.genesisBlock,
 			blockReward,
@@ -190,6 +191,7 @@ describe('blocks/verify', () => {
 		it('should assign params to itself', async () => {
 			expect(blocksVerify.storage).to.eql(storageStub);
 			expect(blocksVerify.roundsModule).to.eql(roundsModuleStub);
+			expect(blocksVerify.dposModule).to.eql(dposModuleStub);
 			expect(blocksVerify.slots).to.eql(slots);
 			expect(blocksVerify.blockReward).to.eql(blockReward);
 			expect(blocksVerify.exceptions).to.eql(exceptionsWithVersion);

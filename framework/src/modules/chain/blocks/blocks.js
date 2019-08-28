@@ -124,7 +124,7 @@ class Blocks extends EventEmitter {
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
 			roundsModule: this.roundsModule,
-			dposModule: this.roundsModule,
+			dposModule: this.dposModule,
 			blockReward: this.blockReward,
 			constants: this.constants,
 			interfaceAdapters: this.interfaceAdapters,
