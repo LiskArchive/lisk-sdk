@@ -132,9 +132,10 @@ export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
 
 const BASE_10_RADIX = 10;
-export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
-export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
+export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 1;
+export const DEFAULT_MAX_INBOUND_CONNECTIONS = 1;
 export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
+export const DEFAULT_OUTBOUND_UPDATE_STATUS_INTERVAL = 2000;
 export const DEFAULT_PEER_PROTECTION_FOR_NETGROUP = 0.034;
 export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
@@ -477,6 +478,9 @@ export class P2P extends EventEmitter {
 					? config.rateCalculationInterval
 					: DEFAULT_RATE_CALCULATION_INTERVAL,
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
+			outboundUpdateStatusInterval: config.outboundUpdateStatusInterval
+				? config.outboundUpdateStatusInterval
+				: DEFAULT_OUTBOUND_UPDATE_STATUS_INTERVAL,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
