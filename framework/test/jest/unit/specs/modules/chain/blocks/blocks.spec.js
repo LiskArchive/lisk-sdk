@@ -21,6 +21,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
+const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const {
 	verifyBlockNotExists,
 } = require('../../../../../../../src/modules/chain/blocks/verify');
@@ -31,6 +32,7 @@ const transactionsModule = require('../../../../../../../src/modules/chain/trans
 
 jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
+jest.mock('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
@@ -781,7 +783,90 @@ describe('blocks', () => {
 	describe('validateNew', () => {});
 
 	describe('forkChoice', () => {
-		// We must have these tests somewhere
+		const defaults = {};
+
+		beforeEach(async () => {
+			defaults.lastBlock = {
+				id: '1',
+				height: 1,
+				version: 2,
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
+			};
+
+			defaults.newBlock = {
+				id: '2',
+				height: 2,
+				version: 2,
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
+			};
+
+			forkChoiceRule.isValidBlock.mockReturnValue(false);
+			forkChoiceRule.isIdenticalBlock.mockReturnValue(false);
+			forkChoiceRule.isDoubleForging.mockReturnValue(false);
+			forkChoiceRule.isTieBreak.mockReturnValue(false);
+			forkChoiceRule.isDifferentChain.mockReturnValue(false);
+
+			blocksInstance._lastBlock = defaults.lastBlock;
+		});
+
+		it('should return FORK_STATUS_IDENTICAL_BLOCK if isIdenticalBlock evaluates to true', async () => {
+			forkChoiceRule.isIdenticalBlock.mockReturnValue(true);
+			expect(
+				blocksInstance.forkChoice({
+					block: defaults.newBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK);
+		});
+
+		it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', async () => {
+			forkChoiceRule.isValidBlock.mockReturnValue(true);
+			expect(
+				blocksInstance.forkChoice({
+					block: defaults.newBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_VALID_BLOCK);
+		});
+
+		it('should return FORK_STATUS_DOUBLE_FORGING if isDoubleForging evaluates to true', () => {
+			forkChoiceRule.isDoubleForging.mockReturnValue(true);
+			expect(
+				blocksInstance.forkChoice({
+					block: defaults.newBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_DOUBLE_FORGING);
+		});
+
+		it('should return FORK_STATUS_TIE_BREAK if isTieBreak evaluates to true', () => {
+			forkChoiceRule.isTieBreak.mockReturnValue(true);
+			expect(
+				blocksInstance.forkChoice({
+					block: defaults.newBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_TIE_BREAK);
+		});
+
+		it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
+			forkChoiceRule.isDifferentChain.mockReturnValue(true);
+			expect(
+				blocksInstance.forkChoice({
+					block: defaults.newBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN);
+		});
+
+		it('should return FORK_STATUS_DISCARD if no conditions are met', async () => {
+			expect(
+				blocksInstance.forkChoice({
+					block: defaults.newBlock,
+					lastBlock: defaults.lastBlock,
+				}),
+			).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
+		});
 	});
 
 	describe('verify', () => {
