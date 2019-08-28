@@ -32,7 +32,6 @@ const transactionsModule = require('../../../../../../../src/modules/chain/trans
 
 jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
-jest.mock('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
@@ -790,6 +789,8 @@ describe('blocks', () => {
 				id: '1',
 				height: 1,
 				version: 2,
+				generatorPublicKey: 'abcdef',
+				prevotedConfirmedUptoHeight: 1,
 				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
 			};
 
@@ -797,72 +798,119 @@ describe('blocks', () => {
 				id: '2',
 				height: 2,
 				version: 2,
+				generatorPublicKey: 'ghijkl',
+				prevotedConfirmedUptoHeight: 1,
 				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
 			};
 
-			forkChoiceRule.isValidBlock.mockReturnValue(false);
-			forkChoiceRule.isIdenticalBlock.mockReturnValue(false);
-			forkChoiceRule.isDoubleForging.mockReturnValue(false);
-			forkChoiceRule.isTieBreak.mockReturnValue(false);
-			forkChoiceRule.isDifferentChain.mockReturnValue(false);
+			// forkChoiceRule.isValidBlock.mockReturnValue(false);
+			// forkChoiceRule.isIdenticalBlock.mockReturnValue(false);
+			// forkChoiceRule.isDoubleForging.mockReturnValue(false);
+			// forkChoiceRule.isTieBreak.mockReturnValue(false);
+			// forkChoiceRule.isDifferentChain.mockReturnValue(false);
 
 			blocksInstance._lastBlock = defaults.lastBlock;
 		});
 
 		it('should return FORK_STATUS_IDENTICAL_BLOCK if isIdenticalBlock evaluates to true', async () => {
-			forkChoiceRule.isIdenticalBlock.mockReturnValue(true);
+			const aNewBlock = {
+				...defaults.newBlock,
+				id: defaults.lastBlock.id,
+			};
+
 			expect(
 				blocksInstance.forkChoice({
-					block: defaults.newBlock,
+					block: aNewBlock,
 					lastBlock: defaults.lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK);
 		});
 
 		it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', async () => {
-			forkChoiceRule.isValidBlock.mockReturnValue(true);
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height + 1,
+				previousBlock: defaults.lastBlock.id,
+			};
+
 			expect(
 				blocksInstance.forkChoice({
-					block: defaults.newBlock,
+					block: aNewBlock,
 					lastBlock: defaults.lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_VALID_BLOCK);
 		});
 
 		it('should return FORK_STATUS_DOUBLE_FORGING if isDoubleForging evaluates to true', () => {
-			forkChoiceRule.isDoubleForging.mockReturnValue(true);
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height,
+				prevotedConfirmedUptoHeight:
+					defaults.lastBlock.prevotedConfirmedUptoHeight,
+				previousBlock: defaults.lastBlock.previousBlock,
+				generatorPublicKey: defaults.lastBlock.generatorPublicKey,
+			};
+
 			expect(
 				blocksInstance.forkChoice({
-					block: defaults.newBlock,
+					block: aNewBlock,
 					lastBlock: defaults.lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_DOUBLE_FORGING);
 		});
 
 		it('should return FORK_STATUS_TIE_BREAK if isTieBreak evaluates to true', () => {
-			forkChoiceRule.isTieBreak.mockReturnValue(true);
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height,
+				prevotedConfirmedUptoHeight:
+					defaults.lastBlock.prevotedConfirmedUptoHeight,
+				previousBlock: defaults.lastBlock.previousBlock,
+				timestamp: defaults.lastBlock.timestamp + 1000,
+			};
+
+			blocksInstance.slots.getEpochTime = jest.fn(
+				() => defaults.lastBlock.timestamp + 1000,
+			); // It will get assigned to newBlock.receivedAt
+
+			const lastBlock = {
+				...defaults.lastBlock,
+				receivedAt: defaults.lastBlock.timestamp + 1000, // Received late
+			};
+
 			expect(
 				blocksInstance.forkChoice({
-					block: defaults.newBlock,
-					lastBlock: defaults.lastBlock,
+					block: aNewBlock,
+					lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_TIE_BREAK);
 		});
 
 		it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
-			forkChoiceRule.isDifferentChain.mockReturnValue(true);
+			const aNewBlock = {
+				...defaults.newBlock,
+				prevotedConfirmedUptoHeight:
+					defaults.lastBlock.prevotedConfirmedUptoHeight,
+				height: defaults.lastBlock.height + 1,
+			};
+
 			expect(
 				blocksInstance.forkChoice({
-					block: defaults.newBlock,
+					block: aNewBlock,
 					lastBlock: defaults.lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN);
 		});
 
 		it('should return FORK_STATUS_DISCARD if no conditions are met', async () => {
+			const aNewBlock = {
+				...defaults.newBlock,
+				height: defaults.lastBlock.height, // This way, none of the conditions are met
+			};
+
 			expect(
 				blocksInstance.forkChoice({
-					block: defaults.newBlock,
+					block: aNewBlock,
 					lastBlock: defaults.lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
