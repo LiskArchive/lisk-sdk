@@ -87,9 +87,7 @@ class Blocks extends EventEmitter {
 		super();
 
 		this._broadhash = genesisBlock.payloadHash;
-		this._lastNBlockIds = [];
 		this._lastBlock = {};
-		this._isActive = false;
 
 		/**
 		 * Represents the receipt time of the last block that was received
@@ -98,7 +96,6 @@ class Blocks extends EventEmitter {
 		 * @type {number}
 		 * @private
 		 */
-		this._lastReceipt = null;
 
 		this._cleaning = false;
 
@@ -144,21 +141,12 @@ class Blocks extends EventEmitter {
 		});
 
 		this.blocksUtils = blocksUtils;
-		this._receiveBlockImplementations = {
-			0: block => this._receiveBlockFromNetworkV1(block),
-			1: block => this._receiveBlockFromNetworkV1(block),
-			2: block => this._receiveBlockFromNetworkV2(block),
-		};
 	}
 
 	get lastBlock() {
 		// Remove receivedAt property..
 		const { receivedAt, ...block } = this._lastBlock;
 		return block;
-	}
-
-	get isActive() {
-		return this._isActive;
 	}
 
 	async init() {
@@ -361,6 +349,7 @@ class Blocks extends EventEmitter {
 		}
 	}
 
+	// TODO: Unit tests written in mocha, which should be migrated to jest.
 	async filterReadyTransactions(transactions, context) {
 		const allowedTransactionsIds = checkAllowedTransactions(context)(
 			transactions,
@@ -424,15 +413,12 @@ class Blocks extends EventEmitter {
 		await nextWatch();
 	}
 
-	async deleteLastBlockAndGet(tx) {
-		this._lastBlock = await this.remove({ block: this._lastBlock, tx });
-		return this._lastBlock;
-	}
-
+	// TODO: Add tests later
 	async loadBlocksDataWS(filter, tx) {
 		return blocksUtils.loadBlocksDataWS(this.storage, filter, tx);
 	}
 
+	// TODO: Add tests later, better remove!
 	readBlocksFromNetwork(blocks) {
 		const normalizedBlocks = blocksUtils.readDbRows(
 			blocks,
@@ -447,6 +433,7 @@ class Blocks extends EventEmitter {
 	 * @param {Array<String>} ids - An array of block ids
 	 * @return {Promise<BasicBlock|undefined>}
 	 */
+	// TODO: Unit tests written in mocha, which should be migrated to jest.
 	async getHighestCommonBlock(ids) {
 		try {
 			const [block] = await this.storage.entities.Block.get(
@@ -463,18 +450,7 @@ class Blocks extends EventEmitter {
 		}
 	}
 
-	_updateLastNBlocks(block) {
-		this._lastNBlockIds.push(block.id);
-		if (this._lastNBlockIds.length > this.constants.blockSlotWindow) {
-			this._lastNBlockIds.shift();
-		}
-	}
-
-	_updateLastReceipt() {
-		this._lastReceipt = Math.floor(Date.now() / 1000);
-		return this._lastReceipt;
-	}
-
+	// TODO: Remove it later
 	async _updateBroadhash() {
 		const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
 			this.storage,
@@ -483,12 +459,6 @@ class Blocks extends EventEmitter {
 		);
 		this._broadhash = broadhash;
 		this.emit(EVENT_NEW_BROADHASH, { broadhash, height });
-	}
-
-	_shouldNotBeActive() {
-		if (this._isActive) {
-			throw new Error('Block process cannot be executed in parallel');
-		}
 	}
 }
 
