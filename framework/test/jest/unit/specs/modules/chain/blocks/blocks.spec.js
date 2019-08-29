@@ -993,11 +993,110 @@ describe('blocks', () => {
 	});
 
 	describe('apply', () => {
-		it.todo('should not perform any action if transactions is an empty array');
-		it.todo('should not call apply transactions for inert transactions');
-		it.todo('should throw the errors for first unappliable transactions');
-		it.todo('should update account state when transactions are appliable');
-		it.todo('should update round state when transactions are appliable');
+		const stateStore = {
+			account: {
+				finalize: jest.fn(),
+			},
+			round: {
+				finalize: jest.fn(),
+				setRoundForData: jest.fn(),
+			},
+		};
+		let applyTransactionsFn;
+
+		beforeEach(() => {
+			applyTransactionsFn = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 1, errors: [] }],
+				stateStore,
+			});
+			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
+		});
+
+		it('should not perform any action if transactions is an empty array', async () => {
+			const block = newBlock();
+			block.transactions = []; // Block with empty transactions
+			await blocksInstance.apply({ block });
+
+			expect(
+				transactionsModule.checkIfTransactionIsInert,
+			).not.toHaveBeenCalled();
+		});
+		it('should not call apply transactions for inert transactions', async () => {
+			// Arrange
+			const block = newBlock();
+			transactionsModule.checkIfTransactionIsInert.mockReturnValue(true);
+
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
+
+			try {
+				// Act
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			// Assert
+			expect(applyTransactionsFn).toHaveBeenCalledWith([], undefined);
+		});
+		it('should throw the errors for first unappliable transactions', async () => {
+			// Arrange
+			const block = newBlock();
+
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
+
+			applyTransactionsFn = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 0, errors: [new Error('anError')] }],
+				stateStore,
+			});
+			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
+
+			try {
+				// Act
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Assert
+				expect(e[0].message).toEqual('anError');
+			}
+		});
+		it('should update account state when transactions are appliable', async () => {
+			const block = newBlock();
+
+			try {
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			expect(stateStore.account.finalize).toHaveBeenCalled();
+		});
+		it('should update round state when transactions are appliable', async () => {
+			const block = newBlock();
+
+			try {
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			expect(stateStore.round.finalize).toHaveBeenCalled();
+			expect(stateStore.round.setRoundForData).toHaveBeenCalled();
+		});
 	});
 
 	describe('applyGenesis', () => {
