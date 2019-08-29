@@ -99,4 +99,36 @@ describe('FinalityManager', () => {
 			});
 		});
 	});
+
+	describe('removeBlockHeaders', () => {
+		BFTScenarios.forEach(scenario => {
+			const myBft = new FinalityManager({
+				finalizedHeight: scenario.config.finalizedHeight,
+				activeDelegates: scenario.config.activeDelegates,
+			});
+
+			describe(`when ${scenario.title}`, () => {
+				it('should have accurate information after recompute', async () => {
+					// Arrange - Let's first compute in proper way
+					scenario.steps.forEach(step => {
+						myBft.addBlockHeader(step.input.blockHeader);
+					});
+					const someStepInMiddle =
+						scenario.steps[Math.ceil(scenario.steps.length / 2)];
+					const { input: stepInput, output: stepOutput } = someStepInMiddle;
+
+					// Act - Now all headers above that step
+					myBft.removeBlockHeaders({
+						aboveHeight: stepInput.height,
+					});
+
+					// Assert - Values should match with out of that step
+					expect(myBft.finalizedHeight).toEqual(stepOutput.finalizedHeight);
+					expect(myBft.prevotedConfirmedHeight).toEqual(
+						stepOutput.preVotedConfirmedHeight,
+					);
+				});
+			});
+		});
+	});
 });

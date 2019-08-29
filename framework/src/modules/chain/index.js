@@ -87,8 +87,8 @@ class ChainModule extends BaseModule {
 			calculateReward: {
 				handler: action => this.chain.actions.calculateReward(action),
 			},
-			generateDelegateList: {
-				handler: action => this.chain.actions.generateDelegateList(action),
+			getRoundDelegates: {
+				handler: action => this.chain.actions.getRoundDelegates(action),
 			},
 			updateForgingStatus: {
 				handler: async action => this.chain.actions.updateForgingStatus(action),
@@ -127,6 +127,9 @@ class ChainModule extends BaseModule {
 			},
 			getNodeStatus: {
 				handler: async () => this.chain.actions.getNodeStatus(),
+			},
+			getLastBlock: {
+				handler: async () => this.chain.actions.getLastBlock(),
 			},
 			blocks: {
 				handler: async action => this.chain.actions.blocks(action),

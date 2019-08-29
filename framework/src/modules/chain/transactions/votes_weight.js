@@ -206,30 +206,28 @@ const undo = (stateStore, transaction, exceptions = {}) => {
 
 const prepare = async (stateStore, transaction) => {
 	// Get delegate public keys whom sender voted for
-	const senderDelegatePks =
+	const senderVotedPublicKeys =
 		stateStore.account.getOrDefault(transaction.senderId)
 			.votedDelegatesPublicKeys || [];
 
 	const recipientId = getRecipientAddress(stateStore, transaction);
 
 	// Get delegate public keys whom recipient voted for
-	const recipientDelegatePks =
+	const recipientVotedPublicKeys =
 		(recipientId &&
 			stateStore.account.getOrDefault(recipientId).votedDelegatesPublicKeys) ||
 		[];
 
-	// Get unique public keys from merged list
-	const uniqPksToBeCached = [
-		...new Set([...senderDelegatePks, ...recipientDelegatePks]),
+	// Get unique public key list from merged arrays
+	const senderRecipientVotedPublicKeys = [
+		...new Set([...senderVotedPublicKeys, ...recipientVotedPublicKeys]),
 	];
 
-	const addressesToBeCached = uniqPksToBeCached
-		// format items for filtering in cache function
-		.map(delegatePk => ({
-			address: getAddressFromPublicKey(delegatePk),
-		}));
+	const cacheFilter = senderRecipientVotedPublicKeys.map(publicKey => ({
+		address: getAddressFromPublicKey(publicKey),
+	}));
 
-	return stateStore.account.cache(addressesToBeCached);
+	return stateStore.account.cache(cacheFilter);
 };
 
 module.exports = {

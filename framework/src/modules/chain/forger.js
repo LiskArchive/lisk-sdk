@@ -33,13 +33,13 @@ const { sortTransactions } = require('./transactions');
  * @todo Add description for the params
  */
 const getDelegateKeypairForCurrentSlot = async (
-	rounds,
+	dposModule,
 	keypairs,
 	currentSlot,
 	round,
 	numOfActiveDelegates,
 ) => {
-	const activeDelegates = await rounds.generateDelegateList(round);
+	const activeDelegates = await dposModule.getRoundDelegates(round);
 
 	const currentSlotIndex = currentSlot % numOfActiveDelegates;
 	const currentSlotDelegate = activeDelegates[currentSlotIndex];
@@ -73,7 +73,7 @@ class Forger {
 		slots,
 		// Modules
 		processorModule,
-		roundsModule,
+		dposModule,
 		transactionPoolModule,
 		blocksModule,
 		peersModule,
@@ -103,8 +103,8 @@ class Forger {
 			maxTransactionsPerBlock,
 		};
 
-		this.processorModule = processorModule;
-		this.roundsModule = roundsModule;
+    this.processorModule = processorModule;
+		this.dposModule = dposModule;
 		this.peersModule = peersModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
@@ -321,7 +321,7 @@ class Forger {
 		try {
 			// eslint-disable-next-line no-use-before-define
 			delegateKeypair = await exportedInterfaces.getDelegateKeypairForCurrentSlot(
-				this.roundsModule,
+				this.dposModule,
 				this.keypairs,
 				currentSlot,
 				round,

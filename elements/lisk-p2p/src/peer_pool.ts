@@ -311,11 +311,12 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
-		);
+		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: getUniquePeersbyIp(listOfPeerInfo),
+			peers: this.getUniqueOutboundConnectedPeers(),
+			nodeInfo: this._nodeInfo,
+			peerLimit: 1,
+			requestPacket: packet,
 		});
 
 		if (selectedPeers.length <= 0) {
@@ -333,6 +334,7 @@ export class PeerPool extends EventEmitter {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
 			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
+		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
 			nodeInfo: this._nodeInfo,
@@ -397,6 +399,8 @@ export class PeerPool extends EventEmitter {
 			this._maxOutboundConnections -
 			disconnectedFixedPeers.length -
 			outboundCount;
+
+		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
 			newPeers: disconnectedNewPeers,
 			triedPeers: disconnectedTriedPeers,
@@ -527,12 +531,16 @@ export class PeerPool extends EventEmitter {
 		return peers;
 	}
 
-	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return getUniquePeersbyIp(this.getAllConnectedPeerInfos());
+	public getUniqueOutboundConnectedPeers(): ReadonlyArray<
+		P2PDiscoveredPeerInfo
+	> {
+		return getUniquePeersbyIp(this.getAllConnectedPeerInfos(OutboundPeer));
 	}
 
-	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getConnectedPeers().map(
+	public getAllConnectedPeerInfos(
+		kind?: typeof OutboundPeer | typeof InboundPeer,
+	): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this.getConnectedPeers(kind).map(
 			peer => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
 	}

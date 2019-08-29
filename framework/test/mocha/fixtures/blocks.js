@@ -37,7 +37,15 @@ const Block = stampit({
 		totalFee: '0',
 		version: 0,
 	},
-	init({ id, previousBlockId, generatorPublicKey, height, version }) {
+	init({
+		id,
+		previousBlockId,
+		generatorPublicKey,
+		height,
+		version,
+		maxHeightPreviouslyForged,
+		prevotedConfirmedUptoHeight,
+	}) {
 		// Must to provide
 		this.previousBlockId = previousBlockId;
 
@@ -45,7 +53,7 @@ const Block = stampit({
 		this.generatorPublicKey =
 			generatorPublicKey ||
 			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 32 })
+				.generate({ charset: '0123456789ABCDE', length: 64 })
 				.toLowerCase();
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
 
@@ -55,6 +63,11 @@ const Block = stampit({
 			.number({ min: 1000, max: 10000 })
 			.toString();
 		this.version = version || 0;
+
+		if (this.version === '2') {
+			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
+			this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
+		}
 	},
 });
 

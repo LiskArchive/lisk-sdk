@@ -27,9 +27,6 @@ const { Slots } = require('../../../../../src/modules/chain/dpos');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../common/application');
-const {
-	getKeysSortByVote,
-} = require('../../../../../src/modules/chain/rounds/delegates');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
@@ -120,12 +117,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.rounds
-				.generateDelegateList(round, getKeysSortByVote)
-				.then(delegateList => {
-					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
-					return seriesCb(nextForger);
-				});
+			library.modules.dpos.getRoundDelegates(round).then(delegateList => {
+				const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
+				return seriesCb(nextForger);
+			});
 		}
 
 		async.waterfall(
@@ -211,8 +206,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		const lastBlock = library.modules.blocks.lastBlock;
 		const round = slots.calcRound(lastBlock.height);
 
-		return library.modules.rounds
-			.generateDelegateList(round, null)
+		return library.modules.dpos
+			.getRoundDelegates(round)
 			.then(list => {
 				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 				return getKeypair(

@@ -2149,14 +2149,14 @@ const generateTestCasesForValidBlockWithNoTxs = () => {
 
 	return {
 		initialState: {
-			chain: [genesisBlock],
+			chain: [],
 			accounts: initialAccountState,
 		},
 		input: {
 			block,
 		},
 		output: {
-			chain: [genesisBlock, block],
+			chain: [block],
 			accounts: initialAccountState,
 		},
 	};
@@ -2210,14 +2210,14 @@ const generateTestCasesValidBlockTransferTx = () => {
 
 	return {
 		initialState: {
-			chain: [genesisBlock],
+			chain: [],
 			accounts: initialAccountState,
 		},
 		input: {
 			block,
 		},
 		output: {
-			chain: [genesisBlock, block],
+			chain: [block],
 			accounts: resultingAccountState,
 		},
 	};
@@ -2227,7 +2227,7 @@ const validEmptyBlockSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'An empty valid block is processed',
 	config: 'mainnet',
-	runner: 'block_processing',
+	runner: 'block_processing_transfers',
 	handler: 'valid_block_processing_empty_block',
 	testCases: generateTestCasesForValidBlockWithNoTxs(),
 });
@@ -2236,12 +2236,12 @@ const validBlockWithTransferTxSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'A valid block with a transfer transaction is processed',
 	config: 'mainnet',
-	runner: 'block_processing',
+	runner: 'block_processing_transfers',
 	handler: 'valid_block_processing_one_transfer_tx',
 	testCases: generateTestCasesValidBlockTransferTx(),
 });
 
-module.exports = BaseGenerator.runGenerator('block_processing', [
+module.exports = BaseGenerator.runGenerator('block_processing_transfers', [
 	validEmptyBlockSuite,
 	validBlockWithTransferTxSuite,
 ]);

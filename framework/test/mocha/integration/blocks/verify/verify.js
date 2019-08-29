@@ -83,8 +83,8 @@ function getValidKeypairForSlot(library, slot) {
 	const lastBlock = genesisBlock;
 	const round = slots.calcRound(lastBlock.height);
 
-	return library.modules.rounds
-		.generateDelegateList(round, null)
+	return library.modules.dpos
+		.getRoundDelegates(round)
 		.then(list => {
 			const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 			const passphrase = _.find(genesisDelegates, delegate => {
@@ -99,7 +99,8 @@ function getValidKeypairForSlot(library, slot) {
 
 describe('blocks/verify', () => {
 	let library;
-	let rounds;
+	let blocks;
+	let dpos;
 	let storage;
 
 	before(done => {
@@ -110,7 +111,7 @@ describe('blocks/verify', () => {
 				},
 			},
 			(err, scope) => {
-				rounds = scope.modules.rounds;
+				dpos = scope.modules.dpos;
 				storage = scope.components.storage;
 
 				// Set current block version to 0
@@ -288,7 +289,7 @@ describe('blocks/verify', () => {
 					if (err) {
 						return done(err);
 					}
-					return rounds.generateDelegateList(1, null).then(() => done());
+					return dpos.getRoundDelegates(1).then(() => done());
 				},
 			);
 		});
