@@ -107,6 +107,7 @@ describe('Account', () => {
 			'isDelegate',
 			'secondSignature',
 			'balance',
+			'asset',
 			'multiMin',
 			'multiLifetime',
 			'nameExist',

@@ -225,11 +225,8 @@ module.exports = class Chain {
 				this.blocks.blockReward.calculateMilestone(action.params.height),
 			calculateReward: action =>
 				this.blocks.blockReward.calculateReward(action.params.height),
-			generateDelegateList: async action =>
-				this.rounds.generateDelegateList(
-					action.params.round,
-					action.params.source,
-				),
+			getRoundDelegates: async action =>
+				this.dpos.getRoundDelegates(action.params.round),
 			updateForgingStatus: async action =>
 				this.forger.updateForgingStatus(
 					action.params.publicKey,
@@ -264,6 +261,7 @@ module.exports = class Chain {
 				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
 			}),
+			getLastBlock: async () => this.blocks.lastBlock,
 			blocks: async action => this.transport.blocks(action.params || {}),
 			getHighestCommonBlockId: async action => {
 				const valid = validator.validate(
@@ -463,7 +461,7 @@ module.exports = class Chain {
 			storage: this.storage,
 			sequence: this.scope.sequence,
 			slots: this.slots,
-			roundsModule: this.rounds,
+			dposModule: this.dpos,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,

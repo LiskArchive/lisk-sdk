@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "0.3.0-alpha.2",
+	"version": "0.3.1",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -47,7 +47,7 @@
 		"enableLocalIPs": "sudo ./scripts/enableTestLocalIPs.sh 10 19"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "2.3.0-alpha.1",
+		"@liskhq/lisk-cryptography": "2.3.0",
 		"lodash.shuffle": "4.2.0",
 		"semver": "5.6.0",
 		"socketcluster-client": "14.3.0",

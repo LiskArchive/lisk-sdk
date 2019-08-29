@@ -69,8 +69,8 @@ describe('forge', () => {
 					calcRound: sinonSandbox.stub(),
 					getRealTime: sinonSandbox.stub(),
 				},
-				roundsModule: {
-					generateDelegateList: sinonSandbox.stub(),
+				dposModule: {
+					getRoundDelegates: sinonSandbox.stub(),
 				},
 				transactionPoolModule: {
 					getUnconfirmedTransactionList: sinonSandbox.stub(),
@@ -973,7 +973,7 @@ describe('forge', () => {
 		let genesis1Keypair;
 		let genesis2Keypair;
 		let genesis3Keypair;
-		let delegatesModuleStub;
+		let dposModuleStub;
 
 		beforeEach(async () => {
 			const genesis1KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
@@ -1002,8 +1002,8 @@ describe('forge', () => {
 			forgeModule.keypairs[genesis2.publicKey] = genesis2Keypair;
 			forgeModule.keypairs[genesis3.publicKey] = genesis3Keypair;
 
-			delegatesModuleStub = {
-				generateDelegateList: sinonSandbox.stub(),
+			dposModuleStub = {
+				getRoundDelegates: sinonSandbox.stub(),
 			};
 		});
 
@@ -1012,12 +1012,12 @@ describe('forge', () => {
 			const currentSlot = 35;
 			const round = 1;
 
-			delegatesModuleStub.generateDelegateList
+			dposModuleStub.getRoundDelegates
 				.withArgs(round)
 				.resolves(delegatesRoundsList[round]);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
-				delegatesModuleStub,
+				dposModuleStub,
 				forgeModule.keypairs,
 				currentSlot,
 				round,
@@ -1032,12 +1032,10 @@ describe('forge', () => {
 			const currentSlot = 578;
 			const round = 2;
 
-			delegatesModuleStub.generateDelegateList.resolves(
-				delegatesRoundsList[round],
-			);
+			dposModuleStub.getRoundDelegates.resolves(delegatesRoundsList[round]);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
-				delegatesModuleStub,
+				dposModuleStub,
 				forgeModule.keypairs,
 				currentSlot,
 				round,
@@ -1052,12 +1050,10 @@ describe('forge', () => {
 			const currentSlot = 1051;
 			const round = 3;
 
-			delegatesModuleStub.generateDelegateList.resolves(
-				delegatesRoundsList[round],
-			);
+			dposModuleStub.getRoundDelegates.resolves(delegatesRoundsList[round]);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
-				delegatesModuleStub,
+				dposModuleStub,
 				forgeModule.keypairs,
 				currentSlot,
 				round,
@@ -1073,12 +1069,10 @@ describe('forge', () => {
 			const currentSlot = 1;
 			const round = 4;
 
-			delegatesModuleStub.generateDelegateList.resolves(
-				delegatesRoundsList[round],
-			);
+			dposModuleStub.getRoundDelegates.resolves(delegatesRoundsList[round]);
 
 			const keyPair = await getDelegateKeypairForCurrentSlot(
-				delegatesModuleStub,
+				dposModuleStub,
 				forgeModule.keypairs,
 				currentSlot,
 				round,
@@ -1087,17 +1081,17 @@ describe('forge', () => {
 			expect(keyPair).to.be.null;
 		});
 
-		it('should return error when `generateDelegateList` fails', async () => {
+		it('should return error when `getRoundDelegates` fails', async () => {
 			const currentSlot = 1;
 			const round = 4;
 
-			const expectedError = new Error('generateDelegateList error');
+			const expectedError = new Error('getRoundDelegates error');
 
-			delegatesModuleStub.generateDelegateList.rejects(expectedError);
+			dposModuleStub.getRoundDelegates.rejects(expectedError);
 
 			try {
 				await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
+					dposModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
 					round,
