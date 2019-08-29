@@ -1100,11 +1100,49 @@ describe('blocks', () => {
 	});
 
 	describe('applyGenesis', () => {
-		it.todo(
-			'should call transactionsModule.applyGenesisTransactions by sorting transactions',
-		);
-		it.todo('should account state when transactions are appliable');
-		it.todo('should round state when transactions are appliable');
+		const stateStore = {
+			account: {
+				finalize: jest.fn(),
+			},
+			round: {
+				finalize: jest.fn(),
+				setRoundForData: jest.fn(),
+			},
+		};
+		let applyGenesisTransactionsFn;
+
+		beforeEach(() => {
+			applyGenesisTransactionsFn = jest.fn().mockResolvedValue({
+				stateStore,
+			});
+			transactionsModule.applyGenesisTransactions.mockReturnValue(
+				applyGenesisTransactionsFn,
+			);
+		});
+
+		it('should call transactionsModule.applyGenesisTransactions by sorting transactions', async () => {
+			await blocksInstance.applyGenesis({
+				block: newBlock(),
+			});
+
+			expect(transactionsModule.applyGenesisTransactions).toHaveBeenCalled();
+		});
+
+		it('should account state when transactions are appliable', async () => {
+			await blocksInstance.applyGenesis({
+				block: newBlock(),
+			});
+
+			expect(stateStore.account.finalize).toHaveBeenCalled();
+		});
+
+		it('should round state when transactions are appliable', async () => {
+			await blocksInstance.applyGenesis({
+				block: newBlock(),
+			});
+
+			expect(stateStore.round.finalize).toHaveBeenCalled();
+		});
 	});
 
 	describe('undo', () => {
