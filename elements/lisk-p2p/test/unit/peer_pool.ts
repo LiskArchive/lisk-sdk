@@ -57,6 +57,7 @@ describe('peerPool', () => {
 		maxPeerInfoSize: 10000,
 		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
+		outboundUpdateStatusInterval: 2000,
 	});
 
 	describe('#constructor', () => {

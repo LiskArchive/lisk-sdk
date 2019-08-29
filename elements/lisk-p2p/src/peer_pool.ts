@@ -582,14 +582,31 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.has(peerId);
 	}
 
+	public removePeerFromDuplicateMap(
+		peerId: string,
+		code: number,
+		reason: string,
+	): void {
+		const peer = this._peerMapDuplicates.get(peerId);
+		if (peer) {
+			peer.disconnect(code, reason);
+			this._unbindHandlersFromPeer(peer);
+			this._peerMapDuplicates.delete(peerId);
+			this.emit(EVENT_REMOVE_PEER, peerId);
+		}
+	}
+
 	public removePeer(peerId: string, code: number, reason: string): boolean {
 		const peer = this._peerMap.get(peerId);
+
 		if (peer) {
 			peer.disconnect(code, reason);
 			this._unbindHandlersFromPeer(peer);
 		}
 
 		this.emit(EVENT_REMOVE_PEER, peerId);
+		// Remove it from duplicate peer map also if it exists
+		this.removePeerFromDuplicateMap(peerId, code, reason);
 
 		return this._peerMap.delete(peerId);
 	}
