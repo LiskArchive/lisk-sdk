@@ -77,15 +77,15 @@ class DelegatesInfo {
 			return false;
 		}
 
-		await this._updateProducedBlocks(block, undo, tx);
+		// await this._updateProducedBlocks(block, undo, tx);
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {
 			const roundSummary = await this._summarizeRound(block, tx);
 
 			await Promise.all([
-				this._updateMissedBlocks(roundSummary, undo, tx),
-				this._updateBalanceRewardsAndFees(roundSummary, undo, tx),
+				// this._updateMissedBlocks(roundSummary, undo, tx),
+				// this._updateBalanceRewardsAndFees(roundSummary, undo, tx),
 				this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx),
 			]);
 		}

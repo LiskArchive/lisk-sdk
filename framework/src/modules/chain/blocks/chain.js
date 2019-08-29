@@ -192,7 +192,14 @@ const applyConfirmedStep = async (storage, slots, block, exceptions, tx) => {
  * @param {function} tx - Database transaction
  * @returns {Promise<reject|resolve>}
  */
-const saveBlockStep = async (storage, roundsModule, block, shouldSave, tx) => {
+const saveBlockStep = async (
+	storage,
+	roundsModule,
+	dposModule,
+	block,
+	shouldSave,
+	tx,
+) => {
 	if (shouldSave) {
 		await saveBlock(storage, block, tx);
 	}
@@ -208,6 +215,7 @@ const saveBlockStep = async (storage, roundsModule, block, shouldSave, tx) => {
 			tx,
 		);
 	});
+	await dposModule.apply(block, tx);
 };
 
 /**
@@ -321,6 +329,7 @@ class BlocksChain {
 		storage,
 		interfaceAdapters,
 		roundsModule,
+		dposModule,
 		slots,
 		exceptions,
 		genesisBlock,
@@ -328,6 +337,7 @@ class BlocksChain {
 		this.storage = storage;
 		this.interfaceAdapters = interfaceAdapters;
 		this.roundsModule = roundsModule;
+		this.dposModule = dposModule;
 		this.slots = slots;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
@@ -380,6 +390,7 @@ class BlocksChain {
 			await saveBlockStep(
 				this.storage,
 				this.roundsModule,
+				this.dposModule,
 				block,
 				shouldSave,
 				tx,
