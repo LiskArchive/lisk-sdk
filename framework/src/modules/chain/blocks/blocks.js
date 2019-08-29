@@ -25,11 +25,7 @@ const {
 } = require('../transactions');
 const blocksUtils = require('./utils');
 const blocksLogic = require('./block');
-const {
-	BlocksVerify,
-	verifyBlockNotExists,
-	verifyAgainstLastNBlockIds,
-} = require('./verify');
+const { BlocksVerify, verifyBlockNotExists } = require('./verify');
 const {
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
@@ -247,8 +243,6 @@ class Blocks extends EventEmitter {
 	}
 
 	async verify({ block, skipExistingCheck }) {
-		// TODO: Remove once BFT is complete, not needed anymore
-		verifyAgainstLastNBlockIds(block, this._lastNBlockIds);
 		if (skipExistingCheck !== true) {
 			await verifyBlockNotExists(this.storage, block);
 			// TODO: move to DPOS verify step
