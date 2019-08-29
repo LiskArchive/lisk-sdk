@@ -1518,8 +1518,40 @@ describe('blocks', () => {
 	});
 
 	describe('exists', () => {
-		it.todo("should return true if the block doesn't exist");
-		it.todo('should return false if the block does exist');
+		beforeEach(async () => {
+			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
+				true,
+			);
+		});
+
+		it("should return true if the block doesn't exist", async () => {
+			// Arrange
+			const block = newBlock();
+			expect.assertions(2);
+			// Act & Assert
+			expect(await blocksInstance.exists(block)).toEqual(true);
+			expect(
+				stubs.dependencies.storage.entities.Block.isPersisted,
+			).toHaveBeenCalledWith({
+				id: block.id,
+			});
+		});
+
+		it('should return false if the block does exist', async () => {
+			// Arrange
+			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
+				false,
+			);
+			const block = newBlock();
+			expect.assertions(2);
+			// Act & Assert
+			expect(await blocksInstance.exists(block)).toEqual(false);
+			expect(
+				stubs.dependencies.storage.entities.Block.isPersisted,
+			).toHaveBeenCalledWith({
+				id: block.id,
+			});
+		});
 	});
 
 	describe('filterReadyTransactions', () => {});
