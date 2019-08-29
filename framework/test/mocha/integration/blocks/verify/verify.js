@@ -99,7 +99,6 @@ function getValidKeypairForSlot(library, slot) {
 
 describe('blocks/verify', () => {
 	let library;
-	let blocks;
 	let dpos;
 	let storage;
 
