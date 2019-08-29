@@ -24,7 +24,6 @@ const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
-
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
 const {
 	Rounds: RoundsModule,
@@ -32,6 +31,7 @@ const {
 
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('../../../../../../../src/modules/chain/rounds');
+jest.mock('events');
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
 
@@ -993,19 +993,156 @@ describe('blocks', () => {
 	});
 
 	describe('apply', () => {
-		it.todo('should not perform any action if transactions is an empty array');
-		it.todo('should not call apply transactions for inert transactions');
-		it.todo('should throw the errors for first unappliable transactions');
-		it.todo('should update account state when transactions are appliable');
-		it.todo('should update round state when transactions are appliable');
+		const stateStore = {
+			account: {
+				finalize: jest.fn(),
+			},
+			round: {
+				finalize: jest.fn(),
+				setRoundForData: jest.fn(),
+			},
+		};
+		let applyTransactionsFn;
+
+		beforeEach(() => {
+			applyTransactionsFn = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 1, errors: [] }],
+				stateStore,
+			});
+			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
+		});
+
+		it('should not perform any action if transactions is an empty array', async () => {
+			const block = newBlock();
+			block.transactions = []; // Block with empty transactions
+			await blocksInstance.apply({ block });
+
+			expect(
+				transactionsModule.checkIfTransactionIsInert,
+			).not.toHaveBeenCalled();
+		});
+		it('should not call apply transactions for inert transactions', async () => {
+			// Arrange
+			const block = newBlock();
+			transactionsModule.checkIfTransactionIsInert.mockReturnValue(true);
+
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
+
+			try {
+				// Act
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			// Assert
+			expect(applyTransactionsFn).toHaveBeenCalledWith([], undefined);
+		});
+		it('should throw the errors for first unappliable transactions', async () => {
+			// Arrange
+			const block = newBlock();
+
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
+
+			applyTransactionsFn = jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 0, errors: [new Error('anError')] }],
+				stateStore,
+			});
+			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
+
+			try {
+				// Act
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Assert
+				expect(e[0].message).toEqual('anError');
+			}
+		});
+		it('should update account state when transactions are appliable', async () => {
+			const block = newBlock();
+
+			try {
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			expect(stateStore.account.finalize).toHaveBeenCalled();
+		});
+		it('should update round state when transactions are appliable', async () => {
+			const block = newBlock();
+
+			try {
+				await blocksInstance.apply({
+					block,
+				});
+			} catch (e) {
+				// Do nothing
+			}
+
+			expect(stateStore.round.finalize).toHaveBeenCalled();
+			expect(stateStore.round.setRoundForData).toHaveBeenCalled();
+		});
 	});
 
 	describe('applyGenesis', () => {
-		it.todo(
-			'should call transactionsModule.applyGenesisTransactions by sorting transactions',
-		);
-		it.todo('should account state when transactions are appliable');
-		it.todo('should round state when transactions are appliable');
+		const stateStore = {
+			account: {
+				finalize: jest.fn(),
+			},
+			round: {
+				finalize: jest.fn(),
+				setRoundForData: jest.fn(),
+			},
+		};
+		let applyGenesisTransactionsFn;
+
+		beforeEach(() => {
+			applyGenesisTransactionsFn = jest.fn().mockResolvedValue({
+				stateStore,
+			});
+			transactionsModule.applyGenesisTransactions.mockReturnValue(
+				applyGenesisTransactionsFn,
+			);
+		});
+
+		it('should call transactionsModule.applyGenesisTransactions by sorting transactions', async () => {
+			await blocksInstance.applyGenesis({
+				block: newBlock(),
+			});
+
+			expect(transactionsModule.applyGenesisTransactions).toHaveBeenCalled();
+		});
+
+		it('should account state when transactions are appliable', async () => {
+			await blocksInstance.applyGenesis({
+				block: newBlock(),
+			});
+
+			expect(stateStore.account.finalize).toHaveBeenCalled();
+		});
+
+		it('should round state when transactions are appliable', async () => {
+			await blocksInstance.applyGenesis({
+				block: newBlock(),
+			});
+
+			expect(stateStore.round.finalize).toHaveBeenCalled();
+		});
 	});
 
 	describe('undo', () => {
@@ -1556,7 +1693,17 @@ describe('blocks', () => {
 	describe('filterReadyTransactions', () => {});
 
 	describe('broadcast', () => {
-		it.todo('should clone block and emit EVENT_BROADCAST_BLOCK event');
+		it('should emit EVENT_BROADCAST_BLOCK event', () => {
+			const block = newBlock();
+			blocksInstance.broadcast(block);
+
+			expect(blocksInstance.emit).toHaveBeenCalledWith(
+				'EVENT_BROADCAST_BLOCK',
+				{
+					block,
+				},
+			);
+		});
 	});
 
 	describe('loadBlocksDataWs', () => {
@@ -1568,12 +1715,40 @@ describe('blocks', () => {
 	});
 
 	describe('getHighestCommonBlock', () => {
-		it.todo(
-			'should get the block with highest height in the blockchain if provided ids parameter is empty',
-		);
-		it.todo(
-			'should get the block with highest height from provided ids parameter',
-		);
-		it.todo('should throw error if unable to get blocks from the storage');
+		it('should get the block with highest height from provided ids parameter', async () => {
+			// Arrange
+			const ids = ['1', '2'];
+			const block = newBlock();
+			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([block]);
+
+			// Act
+			const result = await blocksInstance.getHighestCommonBlock(ids);
+
+			// Assert
+			expect(result).toEqual(block);
+			expect(
+				stubs.dependencies.storage.entities.Block.get,
+			).toHaveBeenCalledWith(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 },
+			);
+		});
+		it('should throw error if unable to get blocks from the storage', async () => {
+			// Arrange
+			const ids = ['1', '2'];
+			stubs.dependencies.storage.entities.Block.get.mockRejectedValue(
+				new Error('anError'),
+			);
+
+			try {
+				// Act
+				await blocksInstance.getHighestCommonBlock(ids);
+			} catch (e) {
+				// Assert
+				expect(e.message).toEqual('Failed to access storage layer');
+			}
+		});
 	});
 });
