@@ -24,7 +24,6 @@ const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
-
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
 const {
 	Rounds: RoundsModule,
@@ -33,6 +32,7 @@ const {
 // jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('../../../../../../../src/modules/chain/rounds');
+jest.mock('events');
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
 
@@ -1694,7 +1694,17 @@ describe('blocks', () => {
 	describe('filterReadyTransactions', () => {});
 
 	describe('broadcast', () => {
-		it.todo('should clone block and emit EVENT_BROADCAST_BLOCK event');
+		it('should emit EVENT_BROADCAST_BLOCK event', () => {
+			const block = newBlock();
+			blocksInstance.broadcast(block);
+
+			expect(blocksInstance.emit).toHaveBeenCalledWith(
+				'EVENT_BROADCAST_BLOCK',
+				{
+					block,
+				},
+			);
+		});
 	});
 
 	describe('loadBlocksDataWs', () => {
@@ -1706,12 +1716,40 @@ describe('blocks', () => {
 	});
 
 	describe('getHighestCommonBlock', () => {
-		it.todo(
-			'should get the block with highest height in the blockchain if provided ids parameter is empty',
-		);
-		it.todo(
-			'should get the block with highest height from provided ids parameter',
-		);
-		it.todo('should throw error if unable to get blocks from the storage');
+		it('should get the block with highest height from provided ids parameter', async () => {
+			// Arrange
+			const ids = ['1', '2'];
+			const block = newBlock();
+			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([block]);
+
+			// Act
+			const result = await blocksInstance.getHighestCommonBlock(ids);
+
+			// Assert
+			expect(result).toEqual(block);
+			expect(
+				stubs.dependencies.storage.entities.Block.get,
+			).toHaveBeenCalledWith(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 },
+			);
+		});
+		it('should throw error if unable to get blocks from the storage', async () => {
+			// Arrange
+			const ids = ['1', '2'];
+			stubs.dependencies.storage.entities.Block.get.mockRejectedValue(
+				new Error('anError'),
+			);
+
+			try {
+				// Act
+				await blocksInstance.getHighestCommonBlock(ids);
+			} catch (e) {
+				// Assert
+				expect(e.message).toEqual('Failed to access storage layer');
+			}
+		});
 	});
 });
