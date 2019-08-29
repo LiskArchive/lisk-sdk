@@ -253,7 +253,7 @@ class Processor {
 					tx,
 				});
 
-				await this.blocksModule.saveGenesis({
+				await this.blocksModule.save({
 					block,
 					tx,
 					skipSave,

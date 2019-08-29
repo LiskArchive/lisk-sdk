@@ -65,7 +65,6 @@ describe('processor', () => {
 		};
 		blocksModuleStub = {
 			save: jest.fn(),
-			saveGenesis: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
 		};
@@ -191,7 +190,7 @@ describe('processor', () => {
 			});
 
 			it('should save the genesis block', async () => {
-				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+				expect(blocksModuleStub.save).toHaveBeenCalledWith({
 					block: genesisBlock,
 					tx: txStub,
 					skipSave: false,
@@ -218,7 +217,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the genesis block', async () => {
-				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 
@@ -1452,7 +1451,7 @@ describe('processor', () => {
 			});
 
 			it('should save genesis block without skipSave', async () => {
-				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+				expect(blocksModuleStub.save).toHaveBeenCalledWith({
 					block: genesisBlock,
 					tx: txStub,
 					skipSave: false,
@@ -1478,7 +1477,7 @@ describe('processor', () => {
 			});
 
 			it('should not save genesis block', async () => {
-				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 
@@ -1530,7 +1529,7 @@ describe('processor', () => {
 			});
 
 			it('should save genesis block with skipSave', async () => {
-				expect(blocksModuleStub.saveGenesis).toHaveBeenCalledWith({
+				expect(blocksModuleStub.save).toHaveBeenCalledWith({
 					block: genesisBlock,
 					tx: txStub,
 					skipSave: true,
@@ -1555,7 +1554,7 @@ describe('processor', () => {
 			});
 
 			it('should not save genesis block with skipSave', async () => {
-				expect(blocksModuleStub.saveGenesis).not.toHaveBeenCalled();
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 	});
