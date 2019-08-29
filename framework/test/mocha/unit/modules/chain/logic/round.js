@@ -250,7 +250,6 @@ describe('round', () => {
 				scope.backwards = false;
 				round = new Round(scope, task);
 				args = {
-					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
@@ -278,7 +277,6 @@ describe('round', () => {
 				scope.backwards = true;
 				round = new Round(scope, task);
 				args = {
-					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
@@ -1834,10 +1832,6 @@ describe('round', () => {
 		it('query getVotes should be called twice', async () =>
 			// 2x updateVotes which calls 1x getVotes
 			expect(getVotes_stub.callCount).to.be.eql(2));
-
-		it('query increaseFieldBy should be called 3 times', async () =>
-			// 2 for updating vote and 1 for updating missedBlocks
-			expect(increaseFieldBy_stub.callCount).to.equal(3));
 
 		it('query decreaseFieldBy should be called once', async () =>
 			expect(decreaseFieldBy_stub.callCount).to.equal(0));

@@ -77,7 +77,7 @@ class DelegatesInfo {
 			return false;
 		}
 
-		// await this._updateProducedBlocks(block, undo, tx);
+		await this._updateProducedBlocks(block, undo, tx);
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {

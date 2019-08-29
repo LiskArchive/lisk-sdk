@@ -86,7 +86,6 @@ class Round {
 		return new Promise((resolve, reject) => {
 			const data = {
 				publicKey: self.scope.block.generatorPublicKey,
-				producedBlocks: self.scope.backwards ? -1 : 1,
 				round: self.scope.round,
 			};
 
