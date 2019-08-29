@@ -133,7 +133,8 @@ class BlockProcessorV0 extends BlockProcessor {
 			data => this.blocksModule.forkChoice(data), // validate common block header
 		]);
 
-		this.validateNew.pipe([data => this.blocksModule.validateNew(data)]);
+		// TODO: fix this by adding back the validateNew function
+		this.validateNew.pipe([() => Promise.resolve()]);
 
 		this.verify.pipe([data => this.blocksModule.verify(data)]);
 
