@@ -106,37 +106,6 @@ class Round {
 	}
 
 	/**
-	 * If outsiders content, calls sql updateMissedBlocks.
-	 *
-	 * @todo Add @returns tag
-	 */
-	updateMissedBlocks() {
-		if (this.scope.roundOutsiders.length === 0) {
-			return this.t;
-		}
-
-		const filters = { address_in: this.scope.roundOutsiders };
-		const field = 'missedBlocks';
-		const value = '1';
-
-		if (this.scope.backwards) {
-			return this.scope.library.storage.entities.Account.decreaseFieldBy(
-				filters,
-				field,
-				value,
-				this.t,
-			);
-		}
-
-		return this.scope.library.storage.entities.Account.increaseFieldBy(
-			filters,
-			field,
-			value,
-			this.t,
-		);
-	}
-
-	/**
 	 * Calls sql getVotes from `mem_round` table.
 	 *
 	 * @todo Round must be a param option
@@ -492,7 +461,6 @@ class Round {
 	/**
 	 * Calls:
 	 * - updateVotes
-	 * - updateMissedBlocks
 	 * - flushRound
 	 * - applyRound
 	 * - updateVotes
@@ -502,7 +470,6 @@ class Round {
 	 */
 	land() {
 		return this.updateVotes()
-			.then(this.updateMissedBlocks.bind(this))
 			.then(this.flushRound.bind(this))
 			.then(this.applyRound.bind(this))
 			.then(this.updateVotes.bind(this))

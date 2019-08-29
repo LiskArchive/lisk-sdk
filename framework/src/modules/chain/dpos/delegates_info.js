@@ -84,7 +84,7 @@ class DelegatesInfo {
 			const roundSummary = await this._summarizeRound(block, tx);
 
 			await Promise.all([
-				// this._updateMissedBlocks(roundSummary, undo, tx),
+				this._updateMissedBlocks(roundSummary, undo, tx),
 				// this._updateBalanceRewardsAndFees(roundSummary, undo, tx),
 				this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx),
 			]);

@@ -15,7 +15,6 @@
 'use strict';
 
 const rewire = require('rewire');
-const Promise = require('bluebird');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
@@ -290,55 +289,6 @@ describe('round', () => {
 					address,
 					args,
 				));
-		});
-	});
-
-	describe('updateMissedBlocks', () => {
-		let stub;
-		let res;
-
-		describe('when there are no outsiders', () => {
-			beforeEach(done => {
-				res = round.updateMissedBlocks();
-				done();
-			});
-
-			it('should return t object', async () => {
-				expect(res).to.not.be.instanceOf(Promise);
-				return expect(res).to.deep.equal(task);
-			});
-		});
-
-		describe('when there are outsiders', () => {
-			beforeEach(done => {
-				scope.roundOutsiders = ['abc'];
-				round = new Round(scope, task);
-				stub = storageStubs.Account.increaseFieldBy;
-				stub
-					.withArgs(
-						{ address_in: scope.roundOutsiders },
-						'missedBlocks',
-						'1',
-						sinonSandbox.match.any,
-					)
-					.resolves('success');
-				res = round.updateMissedBlocks();
-				done();
-			});
-
-			it('should return promise', async () =>
-				expect(isPromise(res)).to.be.true);
-
-			it('query should be called with proper args', async () =>
-				res.then(response => {
-					expect(response).to.equal('success');
-					expect(stub).to.be.calledWith(
-						{ address_in: scope.roundOutsiders },
-						'missedBlocks',
-						'1',
-						sinonSandbox.match.any,
-					);
-				}));
 		});
 	});
 
