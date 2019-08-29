@@ -1152,7 +1152,7 @@ describe('blocks/verify', () => {
 		describe('when dpos.verifyBlockForger fails', () => {
 			beforeEach(async () => {
 				dposModuleStub.verifyBlockForger.rejects(
-					new Error('validateBlockSlot-ERR'),
+					new Error('verifyBlockForger-ERR'),
 				);
 			});
 
@@ -1162,7 +1162,7 @@ describe('blocks/verify', () => {
 				} catch (error) {
 					expect(roundsModuleStub.fork).calledWith(dummyBlock, 3);
 					expect(dposModuleStub.verifyBlockForger).calledWith(dummyBlock);
-					expect(error.message).to.equal('validateBlockSlot-ERR');
+					expect(error.message).to.equal('verifyBlockForger-ERR');
 				}
 			});
 		});
