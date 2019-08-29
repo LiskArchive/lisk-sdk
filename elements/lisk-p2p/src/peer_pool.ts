@@ -153,6 +153,7 @@ const filterPeersByCategory = (
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
+	private readonly _peerMapDuplicates: Map<string, InboundPeer>;
 	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
@@ -196,6 +197,7 @@ export class PeerPool extends EventEmitter {
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
 		this._peerMap = new Map();
+		this._peerMapDuplicates = new Map();
 		this._peerPoolConfig = peerPoolConfig;
 		this._peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
@@ -460,9 +462,11 @@ export class PeerPool extends EventEmitter {
 
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peer.id)) {
-			throw new Error(`Peer ${peer.id} was already in the peer pool`);
+			this._peerMapDuplicates.set(peer.id, peer);
+		} else {
+			this._peerMap.set(peer.id, peer);
 		}
-		this._peerMap.set(peer.id, peer);
+
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
@@ -517,6 +521,13 @@ export class PeerPool extends EventEmitter {
 		}
 
 		this._peerMap.forEach((peer: Peer) => {
+			this.removePeer(
+				peer.id,
+				INTENTIONAL_DISCONNECT_STATUS_CODE,
+				`Intentionally removed peer ${peer.id}`,
+			);
+		});
+		this._peerMapDuplicates.forEach((peer: Peer) => {
 			this.removePeer(
 				peer.id,
 				INTENTIONAL_DISCONNECT_STATUS_CODE,

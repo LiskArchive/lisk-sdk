@@ -17,6 +17,7 @@ import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
+import { lt as isVersionLessThan } from 'semver';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
@@ -734,14 +735,17 @@ export class P2P extends EventEmitter {
 				}
 
 				const existingPeer = this._peerPool.getPeer(peerId);
+				// Allow connections with lower version to have incoming connection even if it has outbound
+				if (
+					existingPeer &&
+					isVersionLessThan(incomingPeerInfo.version, this._nodeInfo.version)
+				) {
+					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
+				}
 
-				if (existingPeer) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						DUPLICATE_CONNECTION,
-						DUPLICATE_CONNECTION_REASON,
-					);
-				} else {
+				if (!existingPeer) {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
