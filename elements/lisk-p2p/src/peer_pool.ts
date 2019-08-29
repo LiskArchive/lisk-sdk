@@ -718,13 +718,9 @@ export class PeerPool extends EventEmitter {
 	private async _updateOutboundConnections(): Promise<void> {
 		try {
 			await Promise.all(
-				this.getConnectedPeers(OutboundPeer)
-					.filter(
-						peer =>
-							peer instanceof OutboundPeer &&
-							peer.state === ConnectionState.OPEN,
-					)
-					.map(async peer => peer.fetchStatus().catch(err => err)),
+				this.getConnectedPeers(OutboundPeer).map(async peer =>
+					peer.fetchStatus().catch(err => err),
+				),
 			);
 		} catch (err) {
 			return;
