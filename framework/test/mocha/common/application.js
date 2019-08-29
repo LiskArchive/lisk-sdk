@@ -56,6 +56,7 @@ const initStepsForTest = {
 		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
 			__testContext.config.modules.chain.registeredTransactions,
 		);
+
 		const {
 			Rounds: RewiredRounds,
 		} = require('../../../src/modules/chain/rounds');
