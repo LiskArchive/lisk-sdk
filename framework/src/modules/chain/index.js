@@ -71,6 +71,8 @@ class ChainModule extends BaseModule {
 			'process:deleteBlock',
 			'process:sync',
 			'process:broadcast',
+			'processor:broadcast',
+			'processor:newBlock',
 		];
 	}
 
