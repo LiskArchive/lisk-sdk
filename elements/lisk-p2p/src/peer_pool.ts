@@ -452,6 +452,14 @@ export class PeerPool extends EventEmitter {
 		socket: SCServerSocket,
 	): Peer {
 		const inboundPeers = this.getPeers(InboundPeer);
+		const peerId = constructPeerIdFromPeerInfo(peerInfo);
+
+		if (this._peerMapDuplicates.has(peerId) && this._peerMap.has(peerId)) {
+			throw new Error(
+				`Peer ${peerId} already has inbound and outbound connections.`,
+			);
+		}
+
 		if (inboundPeers.length >= this._maxInboundConnections) {
 			this._evictPeer(InboundPeer);
 		}
@@ -462,14 +470,9 @@ export class PeerPool extends EventEmitter {
 
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		// For older versions allow them to make an inbound connection even if they have an outbound
-		if (this._peerMap.has(peer.id)) {
+		if (this._peerMap.has(peer.id) && !this._peerMapDuplicates.has(peer.id)) {
 			this._peerMapDuplicates.set(peer.id, peer);
-		} else {
-			if (this._peerMapDuplicates.has(peer.id)) {
-				throw new Error(
-					`Peer ${peer.id} already has inbound and outbound connections.`,
-				);
-			}
+		} else if (!this._peerMap.has(peer.id)) {
 			this._peerMap.set(peer.id, peer);
 		}
 
