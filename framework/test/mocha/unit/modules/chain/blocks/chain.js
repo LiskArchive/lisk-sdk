@@ -29,7 +29,9 @@ const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
 };
 
-describe('blocks/chain', () => {
+// Move valid tests to jest and remove the rest
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('blocks/chain', () => {
 	let blocksChain;
 	let storageStub;
 	let roundsModuleStub;

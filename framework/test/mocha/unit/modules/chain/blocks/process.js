@@ -32,7 +32,9 @@ const {
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
-describe('blocks/process', () => {
+// Move valid tests to jest and remove the rest
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('blocks/process', () => {
 	const interfaceAdapters = {
 		transactions: new TransactionInterfaceAdapter(registeredTransactions),
 	};
@@ -98,8 +100,6 @@ describe('blocks/process', () => {
 			reward: new BigNum(100),
 			transactions: [],
 		};
-		sinonSandbox.stub(blocksLogic, 'objectNormalize').callsFake(input => input);
-		sinonSandbox.stub(blocksLogic, 'create').returns(dummyBlock);
 
 		applyTransactionsStub = sinonSandbox.stub();
 		sinonSandbox

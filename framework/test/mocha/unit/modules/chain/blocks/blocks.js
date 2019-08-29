@@ -32,7 +32,9 @@ const {
 const { Slots } = require('../../../../../../src/modules/chain/dpos');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 
-describe('blocks', () => {
+// Move valid tests to jest and remove the rest
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('blocks', () => {
 	const interfaceAdapters = {
 		transactions: new TransactionInterfaceAdapter(registeredTransactions),
 	};
