@@ -35,14 +35,14 @@ const parseBlockToJson = block => {
 	parsedBlock.previousBlockId = block.previousBlock;
 	delete parsedBlock.previousBlock;
 
+	parsedBlock.transactions = block.transactions.map(transaction =>
+		transaction.toJSON(),
+	);
+
 	parsedBlock.transactions.forEach(transaction => {
 		transaction.blockId = block.id;
 		return transaction;
 	});
-
-	parsedBlock.transactions = block.transactions.map(transaction =>
-		transaction.toJSON(),
-	);
 
 	return parsedBlock;
 };
