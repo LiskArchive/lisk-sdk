@@ -26,19 +26,6 @@ const verifyBlockNotExists = async (storage, block) => {
 	}
 };
 
-/**
- * Validate block is not one of the last N saved blocks.
- *
- * @func validateAgainstLastNBlockIds
- * @param {Object} block - Target block
- * @param {Array<number>} last block ids
- */
-const verifyAgainstLastNBlockIds = (block, lastNBlockIds) => {
-	if (lastNBlockIds.indexOf(block.id) !== -1) {
-		throw new Error('Block already exists in chain');
-	}
-};
-
 class BlocksVerify {
 	constructor({ storage, exceptions, slots, roundsModule, genesisBlock }) {
 		this.storage = storage;
@@ -157,6 +144,5 @@ class BlocksVerify {
 
 module.exports = {
 	BlocksVerify,
-	verifyAgainstLastNBlockIds,
 	verifyBlockNotExists,
 };
