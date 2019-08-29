@@ -94,7 +94,7 @@ class DelegatesInfo {
 	}
 
 	async _updateProducedBlocks(block, undo, tx) {
-		const filters = { publicKey_eq: block.generatorPublicKey };
+		const filters = { publicKey: block.generatorPublicKey };
 		const field = 'producedBlocks';
 		const value = '1';
 		const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
@@ -145,7 +145,7 @@ class DelegatesInfo {
 				};
 
 				return this.storage.entities.Account.update(
-					{ publicKey_eq: delegatePublicKey },
+					{ publicKey: delegatePublicKey },
 					data,
 					tx,
 				);
@@ -162,24 +162,40 @@ class DelegatesInfo {
 		);
 
 		return Promise.all(
-			delegatesWithEarnings.map(({ delegatePublicKey, earnings }) => {
-				const { delegateAccount } = roundSummary.uniqForgersInfo.find(
-					({ publicKey }) => publicKey === delegatePublicKey,
-				);
+			delegatesWithEarnings
+				.filter(({ delegatePublicKey }) => {
+					const { delegateAccount } = roundSummary.uniqForgersInfo.find(
+						({ publicKey }) => publicKey === delegatePublicKey,
+					);
 
-				const { fee, reward } = earnings;
-				const amount = fee.plus(reward);
+					return (
+						!!delegateAccount.votedDelegatesPublicKeys &&
+						delegateAccount.votedDelegatesPublicKeys.length > 0
+					);
+				})
+				.map(({ delegatePublicKey, earnings }) => {
+					const { delegateAccount } = roundSummary.uniqForgersInfo.find(
+						({ publicKey }) => publicKey === delegatePublicKey,
+					);
 
-				const filters = {
-					publicKey_in: delegateAccount.votedDelegatesPublicKeys,
-				};
-				const field = 'voteWeight';
-				const value = amount.toString();
+					const { fee, reward } = earnings;
+					const amount = fee.plus(reward);
 
-				const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
+					const filters = {
+						publicKey_in: delegateAccount.votedDelegatesPublicKeys,
+					};
+					const field = 'voteWeight';
+					const value = amount.toString();
 
-				return this.storage.entities.Account[method](filters, field, value, tx);
-			}),
+					const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
+
+					return this.storage.entities.Account[method](
+						filters,
+						field,
+						value,
+						tx,
+					);
+				}),
 		);
 	}
 
@@ -212,7 +228,7 @@ class DelegatesInfo {
 
 			const delegateAccounts = await this.storage.entities.Account.get(
 				{ publicKey_in: summedRound.delegates },
-				{},
+				{ extended: true },
 				tx,
 			);
 

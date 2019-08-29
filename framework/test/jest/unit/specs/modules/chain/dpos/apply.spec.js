@@ -116,7 +116,7 @@ describe('dpos.apply()', () => {
 			expect(
 				stubs.storage.entities.Account.increaseFieldBy,
 			).toHaveBeenCalledWith(
-				{ publicKey_eq: block.generatorPublicKey },
+				{ publicKey: block.generatorPublicKey },
 				'producedBlocks',
 				'1',
 				stubs.tx,
@@ -176,7 +176,7 @@ describe('dpos.apply()', () => {
 					{
 						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
 					},
-					{},
+					{ extended: true },
 					stubs.tx,
 				)
 				.mockResolvedValue(delegatesWhoForged);
@@ -184,7 +184,7 @@ describe('dpos.apply()', () => {
 			delegateAccounts.forEach(account => {
 				when(stubs.storage.entities.Account.get)
 					.calledWith({
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					})
 					.mockResolvedValue(account);
 			});
@@ -244,7 +244,7 @@ describe('dpos.apply()', () => {
 			uniqueDelegatesWhoForged.forEach(account => {
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					expect.any(Object),
 					stubs.tx,
@@ -254,7 +254,7 @@ describe('dpos.apply()', () => {
 			// Assert Group 2/2
 			delegatesWhoForgedNone.forEach(account => {
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalledWith({
-					publicKey_eq: account.publicKey,
+					publicKey: account.publicKey,
 				});
 			});
 		});
@@ -270,7 +270,7 @@ describe('dpos.apply()', () => {
 			delegatesWhoForgedOnceMissedOnce.forEach(account => {
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					expect.any(Object),
 					stubs.tx,
@@ -296,7 +296,7 @@ describe('dpos.apply()', () => {
 
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					data,
 					stubs.tx,
@@ -322,7 +322,7 @@ describe('dpos.apply()', () => {
 			expect.assertions(uniqueDelegatesWhoForged);
 			expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 				{
-					publicKey_eq: delegateWhoForgedLast.publicKey,
+					publicKey: delegateWhoForgedLast.publicKey,
 				},
 				expect.objectContaining({
 					/**
@@ -344,7 +344,7 @@ describe('dpos.apply()', () => {
 					).length;
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining({
 							/**
@@ -396,7 +396,7 @@ describe('dpos.apply()', () => {
 						{
 							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
 						},
-						{},
+						{ extended: true },
 						stubs.tx,
 					)
 					.mockResolvedValue(delegateAccounts);
@@ -532,7 +532,7 @@ describe('dpos.apply()', () => {
 					// Assert
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
 						stubs.tx,
@@ -563,7 +563,7 @@ describe('dpos.apply()', () => {
 					// Assert
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
 						stubs.tx,

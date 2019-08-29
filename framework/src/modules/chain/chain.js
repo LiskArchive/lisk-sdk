@@ -362,6 +362,7 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			exceptions: this.options.exceptions,
 		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
