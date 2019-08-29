@@ -263,9 +263,12 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 				it('should call a callback with proper error', async () => {
 					try {
-						await blocksChainModule.saveBlock(
-							library.components.storage,
-							auxBlock,
+						await storage.entities.Block.begin(tx =>
+							blocksChainModule.saveBlock(
+								library.components.storage,
+								auxBlock,
+								tx,
+							),
 						);
 					} catch (error) {
 						expect(error.message).to.equal('integer out of range');
@@ -296,9 +299,12 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 				it('should call a callback with proper error', async () => {
 					try {
-						await blocksChainModule.saveBlock(
-							library.components.storage,
-							auxBlock,
+						await storage.entities.Block.begin(tx =>
+							blocksChainModule.saveBlock(
+								library.components.storage,
+								auxBlock,
+								tx,
+							),
 						);
 					} catch (error) {
 						expect(error.message).to.equal(
