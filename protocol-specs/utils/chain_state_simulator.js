@@ -1,4 +1,9 @@
-const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
+const {
+	transfer,
+	TransferTransaction,
+	registerDelegate,
+	DelegateTransaction,
+} = require('@liskhq/lisk-transactions');
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 
@@ -45,10 +50,35 @@ class ChainStateSimulator {
 					// Push it to pending transaction
 					this.state.pendingTransactions.push(transferTx);
 					// Update accounts
-					this.updateAccountBalances(addressFrom, addressTo, amountBedows);
+					this.updateAccountBalancesAfterTransfer(
+						addressFrom,
+						addressTo,
+						amountBedows,
+					);
 					return this;
 				},
 			}),
+		};
+	}
+
+	registerDelegate(delegateName) {
+		return {
+			for: delegateAddress => {
+				const amountBedows = `${25 * this.fixedPoint}`;
+
+				const registerDelegateTx = new DelegateTransaction(
+					registerDelegate({
+						username: delegateName,
+						passphrase: Object.values(this.state.accounts).find(
+							anAccount => anAccount.address === delegateAddress,
+						).passphrase,
+					}),
+				);
+				// Push it to pending transaction
+				this.state.pendingTransactions.push(registerDelegateTx);
+				this.updateAccountBalances(delegateAddress, amountBedows);
+				return this;
+			},
 		};
 	}
 
@@ -79,7 +109,7 @@ class ChainStateSimulator {
 		};
 	}
 
-	updateAccountBalances(from, to, amount) {
+	updateAccountBalancesAfterTransfer(from, to, amount) {
 		const newAccountStoreState = cloneDeep(this.state.accountStore);
 
 		const sender = this.findAccountByAddress(from, newAccountStoreState);
@@ -122,6 +152,24 @@ class ChainStateSimulator {
 			);
 		}
 
+		this.state.accountStore = newAccountStoreState;
+	}
+
+	updateAccountBalances(from, amount) {
+		const newAccountStoreState = cloneDeep(this.state.accountStore);
+
+		const sender = this.findAccountByAddress(from, newAccountStoreState);
+
+		if (!sender) {
+			throw new Error(
+				'Sender does not exists so it would not be possible to transfer form this account. Check the values passed to the constructor',
+			);
+		}
+		// Update sender balance
+		sender.balance = parseInt(
+			new BigNum(sender.balance.toString()).sub(amount).toString(),
+			10,
+		);
 		this.state.accountStore = newAccountStoreState;
 	}
 
