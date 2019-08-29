@@ -121,12 +121,11 @@ class BlockProcessorV0 extends BlockProcessor {
 			data => this._validateVersion(data),
 			validateSchema,
 			({ block }) => getBytes(block),
-			(data, blockBytes) => {
+			(data, blockBytes) =>
 				this.blocksModule.validate({
 					...data,
 					blockBytes,
-				}); // validate common block header
-			},
+				}), // validate common block header
 		]);
 
 		this.fork.pipe([
