@@ -99,7 +99,7 @@ async function _getForgers(filters) {
 	});
 
 	const activeDelegates = await channel.invoke('chain:getRoundDelegates', {
-		round: currentRound,
+		round: currentRound - 2,
 	});
 
 	for (
