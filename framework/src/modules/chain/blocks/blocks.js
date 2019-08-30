@@ -66,6 +66,7 @@ class Blocks extends EventEmitter {
 		exceptions,
 		// Modules
 		roundsModule,
+		dposModule,
 		interfaceAdapters,
 		// constants
 		blockReceiptTimeout, // set default
@@ -97,6 +98,7 @@ class Blocks extends EventEmitter {
 		this.logger = logger;
 		this.storage = storage;
 		this.roundsModule = roundsModule;
+		this.dposModule = dposModule;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
@@ -128,9 +130,7 @@ class Blocks extends EventEmitter {
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
 			roundsModule: this.roundsModule,
-			blockReward: this.blockReward,
-			constants: this.constants,
-			interfaceAdapters: this.interfaceAdapters,
+			dposModule: this.dposModule,
 		});
 
 		this.blocksUtils = blocksUtils;
@@ -246,7 +246,7 @@ class Blocks extends EventEmitter {
 		if (skipExistingCheck !== true) {
 			await verifyBlockNotExists(this.storage, block);
 			// TODO: move to DPOS verify step
-			await this.blocksVerify.verifyBlockSlot(block);
+			await this.blocksVerify.verifyBlockForger(block);
 			const {
 				transactionsResponses: persistedResponse,
 			} = await checkPersistedTransactions(this.storage)(block.transactions);

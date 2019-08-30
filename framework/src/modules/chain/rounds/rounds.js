@@ -368,21 +368,9 @@ class Rounds {
 		__private.loaded = false;
 	}
 
-	// Delegates Proxy
-
-	// eslint-disable-next-line class-methods-use-this
-	validateBlockSlot(block) {
-		return library.delegates.validateBlockSlot(block);
-	}
-
 	// eslint-disable-next-line class-methods-use-this
 	fork(block, cause) {
 		return library.delegates.fork(block, cause);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	validateBlockSlotAgainstPreviousRound(block) {
-		return library.delegates.validateBlockSlotAgainstPreviousRound(block);
 	}
 }
 

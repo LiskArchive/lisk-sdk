@@ -44,6 +44,7 @@ describe.skip('blocks', () => {
 	let loggerStub;
 	let sequenceStub;
 	let roundsModuleStub;
+	let dposModuleStub;
 	let slots;
 
 	beforeEach(async () => {
@@ -82,6 +83,10 @@ describe.skip('blocks', () => {
 			fork: sinonSandbox.stub(),
 		};
 
+		dposModuleStub = {
+			verifyBlockForger: sinonSandbox.stub(),
+		};
+
 		blocksInstance = new Blocks({
 			// components
 			logger: loggerStub,
@@ -104,6 +109,7 @@ describe.skip('blocks', () => {
 			},
 			// Modules
 			roundsModule: roundsModuleStub,
+			dposModule: dposModuleStub,
 			interfaceAdapters,
 			// constants
 			rewardDistance: __testContext.config.constants.REWARDS.DISTANCE,

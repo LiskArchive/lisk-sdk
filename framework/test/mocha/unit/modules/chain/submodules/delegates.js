@@ -16,7 +16,6 @@
 
 const {
 	Delegates,
-	validateBlockSlot,
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
 } = require('../../../../../../src/modules/chain/rounds/delegates');
@@ -382,45 +381,6 @@ describe('delegates', () => {
 				mockTX,
 			);
 			expect(publicKeys).to.eql(['pk1', 'pk2']);
-		});
-	});
-
-	describe('#validateBlockSlot', () => {
-		const mockDelegateList = new Array(101).fill(0).map((_, i) => `pk_${i}`);
-
-		it('should return true when generator matches delegateId', async () => {
-			// Arrange
-			const mockBlock = {
-				timestamp: 10,
-				generatorPublicKey: 'pk_1',
-			};
-			// Act
-			const result = validateBlockSlot(
-				mockBlock,
-				slots,
-				mockDelegateList,
-				activeDelegates,
-			);
-			// Assert
-			expect(result).to.be.true;
-		});
-
-		it('should throw an error if generator does not match correct delegateId', async () => {
-			// Arrange
-			const mockBlock = {
-				timestamp: 20,
-				generatorPublicKey: 'pk_1',
-			};
-			// Act
-			expect(
-				validateBlockSlot.bind(
-					null,
-					mockBlock,
-					slots,
-					mockDelegateList,
-					activeDelegates,
-				),
-			).to.throw('Failed to verify slot: 2');
 		});
 	});
 });

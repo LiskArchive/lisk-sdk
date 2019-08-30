@@ -418,6 +418,7 @@ module.exports = class Chain {
 			storage: this.storage,
 			logger: this.logger,
 			slots: this.slots,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
@@ -428,6 +429,7 @@ module.exports = class Chain {
 			slots: this.slots,
 			exceptions: this.options.exceptions,
 			roundsModule: this.rounds,
+			dposModule: this.dpos,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,

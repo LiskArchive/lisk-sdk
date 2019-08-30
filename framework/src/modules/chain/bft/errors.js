@@ -42,7 +42,7 @@ class BFTForkChoiceRuleError extends BFTError {
 
 class BFTInvalidAttributeError extends BFTError {
 	constructor() {
-		super('Violation of fork choice rule, delegate moved to a different chain');
+		super('Invalid BFT attribute');
 	}
 }
 
