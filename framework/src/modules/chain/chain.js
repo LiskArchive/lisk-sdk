@@ -576,7 +576,8 @@ module.exports = class Chain {
 			},
 			'Sync time triggered',
 		);
-		if (!this.loader.syncing() && this.blocks.isStale()) {
+		// TODO: Do we need further checks here, removing blocks.isStale()
+		if (!this.loader.syncing()) {
 			await this.scope.sequence.add(async () => {
 				try {
 					await this.loader.sync();

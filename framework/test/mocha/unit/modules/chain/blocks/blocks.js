@@ -153,27 +153,6 @@ describe.skip('blocks', () => {
 		});
 	});
 
-	describe('isStale', () => {
-		it('should return false, when _lastReceipt is null', async () => {
-			expect(blocksInstance.isStale()).to.be.true;
-		});
-
-		describe('when __private.lastReceipt is set', () => {
-			describe('when secondsAgo > BLOCK_RECEIPT_TIMEOUT', () => {
-				it('should return true', async () => {
-					blocksInstance._lastReceipt = 10;
-					expect(blocksInstance.isStale()).to.be.true;
-				});
-			});
-			describe('when secondsAgo <= BLOCK_RECEIPT_TIMEOUT', () => {
-				it('should return false', async () => {
-					blocksInstance._lastReceipt = Math.floor(Date.now() / 1000) + 10000;
-					expect(blocksInstance.isStale()).to.be.false;
-				});
-			});
-		});
-	});
-
 	describe('cleanup', () => {
 		it('should call exit, when _isActive = false', async () => {
 			blocksInstance._isActive = false;
