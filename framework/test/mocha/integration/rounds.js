@@ -929,11 +929,8 @@ describe('rounds', () => {
 						const freshLastBlock = _.cloneDeep(
 							library.modules.blocks.lastBlock,
 						);
-						return library.modules.rounds
-							.generateDelegateList(
-								slots.calcRound(freshLastBlock.height),
-								null,
-							)
+						return library.modules.dpos
+							.getRoundDelegates(slots.calcRound(freshLastBlock.height))
 							.then(delegatesList => {
 								expect(delegatesList).to.deep.equal(round.delegatesList);
 							});
@@ -1090,8 +1087,8 @@ describe('rounds', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 					return library.modules.processor.deleteLastBlock().then(() => {
 						lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
-						return library.modules.rounds
-							.generateDelegateList(slots.calcRound(lastBlock.height), null)
+						return library.modules.dpos
+							.getRoundDelegates(slots.calcRound(lastBlock.height))
 							.then(delegatesList => {
 								expect(delegatesList).to.deep.equal(round.delegatesList);
 							});

@@ -29,7 +29,6 @@ const {
 	Rounds: RoundsModule,
 } = require('../../../../../../../src/modules/chain/rounds');
 
-// jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('../../../../../../../src/modules/chain/rounds');
 jest.mock('events');
@@ -914,7 +913,7 @@ describe('blocks', () => {
 		});
 	});
 
-	describe.skip('verify', () => {
+	describe('verify', () => {
 		let checkPersistedTransactionsFn;
 
 		beforeEach(async () => {

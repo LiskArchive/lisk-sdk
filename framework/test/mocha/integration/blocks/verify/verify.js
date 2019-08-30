@@ -110,7 +110,7 @@ describe('blocks/verify', () => {
 				},
 			},
 			(err, scope) => {
-				rounds = scope.modules.rounds;
+				dpos = scope.modules.dpos;
 				storage = scope.components.storage;
 
 				// Set current block version to 0

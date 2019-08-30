@@ -73,7 +73,7 @@ class Forger {
 		slots,
 		// Modules
 		processorModule,
-		roundsModule,
+		dposModule,
 		transactionPoolModule,
 		blocksModule,
 		peersModule,
@@ -104,7 +104,7 @@ class Forger {
 		};
 
 		this.processorModule = processorModule;
-		this.roundsModule = roundsModule;
+		this.dposModule = dposModule;
 		this.peersModule = peersModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
