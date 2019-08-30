@@ -465,7 +465,7 @@ export class PeerPool extends EventEmitter {
 		// For older versions allow them to make an inbound connection even if they have an outbound
 		if (this._peerMap.has(peer.id) && !this._peerMapDuplicates.has(peer.id)) {
 			this._peerMapDuplicates.set(peer.id, peer);
-		} else if (this._peerMap.has(peer.id)) {
+		} else {
 			this._peerMap.set(peer.id, peer);
 		}
 
