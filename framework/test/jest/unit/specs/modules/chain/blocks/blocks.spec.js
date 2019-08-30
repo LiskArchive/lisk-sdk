@@ -101,6 +101,9 @@ describe('blocks', () => {
 				error: jest.fn(),
 			},
 			roundsModule: new RoundsModule(),
+			dposModule: {
+				verifyBlockForger: jest.fn(),
+			},
 		};
 
 		slots = new Slots({
