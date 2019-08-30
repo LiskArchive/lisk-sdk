@@ -92,11 +92,19 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		!protocolPeer.wsPort ||
 		!validatePeerAddress(protocolPeer.ip, protocolPeer.wsPort)
 	) {
-		throw new InvalidPeerError(`Invalid peer ip or port`);
+		throw new InvalidPeerError(
+			`Invalid peer ip or port for peer with Ip: ${
+				protocolPeer.ip
+			} and wsPort ${protocolPeer.wsPort}`,
+		);
 	}
 
 	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
-		throw new InvalidPeerError(`Invalid peer version`);
+		throw new InvalidPeerError(
+			`Invalid peer version for peer with Ip: ${protocolPeer.ip}, port ${
+				protocolPeer.wsPort
+			} and version ${protocolPeer.version}`,
+		);
 	}
 
 	const version = protocolPeer.version;
