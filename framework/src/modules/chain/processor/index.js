@@ -15,9 +15,9 @@
 'use strict';
 
 const { Processor } = require('./processor');
-const { BlockProcessor } = require('./block_processor');
+const { BaseBlockProcessor } = require('./base_block_processor');
 
 module.exports = {
 	Processor,
-	BlockProcessor,
+	BaseBlockProcessor,
 };

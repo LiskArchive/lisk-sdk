@@ -15,17 +15,17 @@
 'use strict';
 
 const {
-	BlockProcessor,
+	BaseBlockProcessor,
 } = require('../../../../../../../src/modules/chain/processor');
 
-class FakeBlockProcessorV0 extends BlockProcessor {
+class FakeBlockProcessorV0 extends BaseBlockProcessor {
 	// eslint-disable-next-line class-methods-use-this
 	get version() {
 		return 0;
 	}
 }
 
-class FakeBlockProcessorV1 extends BlockProcessor {
+class FakeBlockProcessorV1 extends BaseBlockProcessor {
 	// eslint-disable-next-line class-methods-use-this
 	get version() {
 		return 1;

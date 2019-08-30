@@ -24,7 +24,7 @@ const {
 	signDataWithPrivateKey,
 } = require('@liskhq/lisk-cryptography');
 const { validator } = require('@liskhq/lisk-validator');
-const { BlockProcessor } = require('./processor');
+const { BaseBlockProcessor } = require('./processor');
 const { baseBlockSchema } = require('./blocks');
 
 const SIZE_INT32 = 4;
@@ -107,7 +107,7 @@ const validateSchema = ({ block }) => {
 	}
 };
 
-class BlockProcessorV0 extends BlockProcessor {
+class BlockProcessorV0 extends BaseBlockProcessor {
 	constructor({ blocksModule, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;

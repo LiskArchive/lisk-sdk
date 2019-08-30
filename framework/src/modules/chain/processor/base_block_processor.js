@@ -16,7 +16,7 @@
 
 const { Pipeline } = require('./pipeline');
 
-class BlockProcessor {
+class BaseBlockProcessor {
 	constructor() {
 		this.init = new Pipeline();
 		this.create = new Pipeline();
@@ -42,5 +42,5 @@ class BlockProcessor {
 }
 
 module.exports = {
-	BlockProcessor,
+	BaseBlockProcessor,
 };

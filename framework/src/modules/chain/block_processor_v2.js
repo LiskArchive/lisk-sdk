@@ -25,7 +25,7 @@ const {
 	LITTLE_ENDIAN,
 } = require('@liskhq/lisk-cryptography');
 const { baseBlockSchema } = require('./blocks');
-const { BlockProcessor } = require('./processor');
+const { BaseBlockProcessor } = require('./processor');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -151,7 +151,7 @@ const validateSchema = ({ block }) => {
 	}
 };
 
-class BlockProcessorV2 extends BlockProcessor {
+class BlockProcessorV2 extends BaseBlockProcessor {
 	constructor({ blocksModule, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;
