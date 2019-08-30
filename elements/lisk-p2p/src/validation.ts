@@ -93,7 +93,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		!validatePeerAddress(protocolPeer.ip, protocolPeer.wsPort)
 	) {
 		throw new InvalidPeerError(
-			`Invalid peer ip or port for peer with Ip: ${
+			`Invalid peer ip or port for peer with ip: ${
 				protocolPeer.ip
 			} and wsPort ${protocolPeer.wsPort}`,
 		);
@@ -101,7 +101,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 
 	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
 		throw new InvalidPeerError(
-			`Invalid peer version for peer with Ip: ${protocolPeer.ip}, port ${
+			`Invalid peer version for peer with ip: ${protocolPeer.ip}, wsPort ${
 				protocolPeer.wsPort
 			} and version ${protocolPeer.version}`,
 		);
