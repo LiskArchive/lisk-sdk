@@ -741,17 +741,14 @@ export class P2P extends EventEmitter {
 				// tslint:disable-next-line:no-let
 				let isInboundCreated = false;
 				if (
-					existingPeer &&
-					!existingDuplicatePeer &&
-					isVersionLessThan(incomingPeerInfo.version, this._nodeInfo.version)
+					(existingPeer &&
+						!existingDuplicatePeer &&
+						isVersionLessThan(
+							incomingPeerInfo.version,
+							this._nodeInfo.version,
+						)) ||
+					(!existingPeer && !existingDuplicatePeer)
 				) {
-					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
-					isInboundCreated = true;
-					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
-				}
-
-				if (!existingPeer && !existingDuplicatePeer) {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					isInboundCreated = true;
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
