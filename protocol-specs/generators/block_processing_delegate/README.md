@@ -2,7 +2,7 @@
 
 A set of fixture generatos for Delegate registration
 
-This generators makes use of an experimental library for combining transactions, include them into blocks and generate chain/account states.
+These generators makes use of an experimental library for combining transactions, include them into blocks and generate chain/account states.
 The library can be found in the file utils/chain_state_builder.js with this library it's possible to build scenarios fairly quickly with a fluent interface.
 
 Transfer Lisk:
