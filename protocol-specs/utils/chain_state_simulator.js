@@ -23,6 +23,7 @@ class ChainStateSimulator {
 			chain: includeGenesisBlockInState ? [this.genesisBlock] : [],
 			accounts: cloneDeep(accounts),
 			accountStore: cloneDeep(initialAccountsStates),
+			initialAccountStore: cloneDeep(initialAccountsStates),
 			pendingTransactions: [],
 			appliedTransactions: [],
 		};
@@ -76,13 +77,22 @@ class ChainStateSimulator {
 				);
 				// Push it to pending transaction
 				this.state.pendingTransactions.push(registerDelegateTx);
-				this.updateAccountBalances(delegateAddress, amountBedows);
+				this.updateAccountStateAfterDelegateRegistration(
+					delegateAddress,
+					amountBedows,
+					delegateName,
+				);
 				return this;
 			},
 		};
 	}
 
-	forge() {
+	// Forge a block with pending transactions. If empty is set to true it can be used
+	// to signal a block that should be empty due to invalid transactions
+	forge(empty = false) {
+		const transactionsToBeIncluded = empty
+			? []
+			: [...this.state.pendingTransactions];
 		const newBlock = createBlock(
 			defaultConfig,
 			this.state.accountStore,
@@ -91,21 +101,22 @@ class ChainStateSimulator {
 			this.slot,
 			{
 				version: 1,
-				transactions: [...this.state.pendingTransactions],
+				transactions: transactionsToBeIncluded,
 			},
 		);
 
 		this.state.chain.push(newBlock);
 		this.previousBlock = newBlock;
-		this.state.appliedTransactions.push([...this.state.pendingTransactions]);
+		this.state.appliedTransactions.push(transactionsToBeIncluded);
 		this.state.pendingTransactions = [];
 		return this;
 	}
 
 	getScenario() {
 		return {
+			initialAccountsState: this.state.initialAccountStore,
+			finalAccountsState: this.state.accountStore,
 			chain: this.state.chain,
-			accounts: this.state.accountStore,
 		};
 	}
 
@@ -155,14 +166,14 @@ class ChainStateSimulator {
 		this.state.accountStore = newAccountStoreState;
 	}
 
-	updateAccountBalances(from, amount) {
+	updateAccountStateAfterDelegateRegistration(from, amount, delegateName) {
 		const newAccountStoreState = cloneDeep(this.state.accountStore);
 
 		const sender = this.findAccountByAddress(from, newAccountStoreState);
 
 		if (!sender) {
 			throw new Error(
-				'Sender does not exists so it would not be possible to transfer form this account. Check the values passed to the constructor',
+				'Sender does not exists so it would not be possible to transfer from this account. Check the values passed to the constructor',
 			);
 		}
 		// Update sender balance
@@ -170,6 +181,9 @@ class ChainStateSimulator {
 			new BigNum(sender.balance.toString()).sub(amount).toString(),
 			10,
 		);
+		sender.username = delegateName;
+		sender.isDelegate = true;
+
 		this.state.accountStore = newAccountStoreState;
 	}
 
