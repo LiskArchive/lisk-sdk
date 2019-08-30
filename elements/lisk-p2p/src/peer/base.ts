@@ -136,7 +136,6 @@ export interface PeerConfig {
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
-	readonly banTime?: number;
 }
 
 export class Peer extends EventEmitter {

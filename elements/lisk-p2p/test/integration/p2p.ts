@@ -958,7 +958,7 @@ describe('Integration tests for P2P library', () => {
 				)[0] as InboundPeer;
 				firstPeerDuplicate = new OutboundPeer(
 					existingPeer.peerInfo,
-					firstP2PNode['_peerPool'].outboundPeerConfig,
+					firstP2PNode['_peerPool'].peerConfig,
 				);
 
 				firstPeerDuplicate.on(EVENT_CLOSE_OUTBOUND, (event: any) => {
