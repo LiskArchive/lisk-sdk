@@ -87,6 +87,7 @@ describe('blocks/verify', () => {
 
 	let storageStub;
 	let roundsModuleStub;
+	let dposModuleStub;
 	let blocksVerify;
 	let interfaceAdaptersMock;
 	let slots;
@@ -110,8 +111,11 @@ describe('blocks/verify', () => {
 		};
 
 		roundsModuleStub = {
-			validateBlockSlot: sinonSandbox.stub(),
 			fork: sinonSandbox.stub(),
+		};
+
+		dposModuleStub = {
+			verifyBlockForger: sinonSandbox.stub(),
 		};
 
 		sinonSandbox.stub(transactionsModule, 'checkAllowedTransactions').returns(
@@ -173,6 +177,7 @@ describe('blocks/verify', () => {
 			exceptions: exceptionsWithVersion,
 			slots,
 			roundsModule: roundsModuleStub,
+			dposModule: dposModuleStub,
 			interfaceAdapters: interfaceAdaptersMock,
 			genesisBlock: __testContext.config.genesisBlock,
 			blockReward,
@@ -186,6 +191,7 @@ describe('blocks/verify', () => {
 		it('should assign params to itself', async () => {
 			expect(blocksVerify.storage).to.eql(storageStub);
 			expect(blocksVerify.roundsModule).to.eql(roundsModuleStub);
+			expect(blocksVerify.dposModule).to.eql(dposModuleStub);
 			expect(blocksVerify.slots).to.eql(slots);
 			expect(blocksVerify.blockReward).to.eql(blockReward);
 			expect(blocksVerify.exceptions).to.eql(exceptionsWithVersion);
@@ -1140,36 +1146,36 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('validateBlockSlot', () => {
+	describe('verifyBlockForger', () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when rounds.validateBlockSlot fails', () => {
+		describe('when dpos.verifyBlockForger fails', () => {
 			beforeEach(async () => {
-				roundsModuleStub.validateBlockSlot.rejects(
-					new Error('validateBlockSlot-ERR'),
+				dposModuleStub.verifyBlockForger.rejects(
+					new Error('verifyBlockForger-ERR'),
 				);
 			});
 
 			it('should call a callback with error', async () => {
 				try {
-					await blocksVerify.validateBlockSlot(dummyBlock);
+					await blocksVerify.verifyBlockForger(dummyBlock);
 				} catch (error) {
 					expect(roundsModuleStub.fork).calledWith(dummyBlock, 3);
-					expect(roundsModuleStub.validateBlockSlot).calledWith(dummyBlock);
-					expect(error.message).to.equal('validateBlockSlot-ERR');
+					expect(dposModuleStub.verifyBlockForger).calledWith(dummyBlock);
+					expect(error.message).to.equal('verifyBlockForger-ERR');
 				}
 			});
 		});
 
-		describe('when modules.validateBlockSlot succeeds', () => {
+		describe('when modules.verifyBlockForger succeeds', () => {
 			beforeEach(async () => {
-				roundsModuleStub.validateBlockSlot.resolves(true);
+				dposModuleStub.verifyBlockForger.resolves(true);
 			});
 
 			it('should call a callback with no error', async () => {
-				await blocksVerify.validateBlockSlot(dummyBlock);
+				await blocksVerify.verifyBlockForger(dummyBlock);
 
-				expect(roundsModuleStub.validateBlockSlot).calledWith(dummyBlock);
+				expect(dposModuleStub.verifyBlockForger).calledWith(dummyBlock);
 				return expect(roundsModuleStub.fork).not.to.be.called;
 			});
 		});

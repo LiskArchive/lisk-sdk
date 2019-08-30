@@ -72,7 +72,7 @@ describe('blocks/process', () => {
 		blocksVerifyStub = {
 			verifyBlock: sinonSandbox.stub(),
 			checkExists: sinonSandbox.stub(),
-			validateBlockSlot: sinonSandbox.stub(),
+			verifyBlockForger: sinonSandbox.stub(),
 			checkTransactions: sinonSandbox.stub(),
 		};
 
@@ -240,13 +240,13 @@ describe('blocks/process', () => {
 			}
 		});
 
-		it('should call validateBlockSlot', async () => {
+		it('should call verifyBlockForger', async () => {
 			blocksVerifyStub.verifyBlock = sinonSandbox
 				.stub()
 				.returns({ verified: true, errors: [] });
 
 			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
-			expect(blocksVerifyStub.validateBlockSlot).to.be.calledWith(dummyBlock);
+			expect(blocksVerifyStub.verifyBlockForger).to.be.calledWith(dummyBlock);
 		});
 
 		it('should call checkTransactions', async () => {
