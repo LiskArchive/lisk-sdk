@@ -136,7 +136,7 @@ const generateTestCasesValidBlockDelegateRegistration = () => {
 		input: chainAndAccountStates.chain.slice(2),
 		output: {
 			chain: chainAndAccountStates.chain,
-			accounts: chainAndAccountStates.finalAccountsState,
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
 		},
 	};
 };
@@ -165,22 +165,23 @@ const generateTestCasesInvalidBlockDelegateRegistrationSecondTime = () => {
 		.for('2222471382442610527L')
 		.forge();
 
+	const invalidBlock = true;
 	chainSimulator
 		.registerDelegate('RadioHead')
 		.for('2222471382442610527L')
-		.forge(true);
+		.forge(invalidBlock);
 
 	const chainAndAccountStates = chainSimulator.getScenario();
 
 	return {
 		initialState: {
-			chain: chainAndAccountStates.chain,
+			chain: chainAndAccountStates.chain.slice(0, 3),
 			accounts: chainAndAccountStates.initialAccountsState,
 		},
-		input: chainAndAccountStates.chain.slice(2),
+		input: chainAndAccountStates.chain.slice(3),
 		output: {
 			chain: chainAndAccountStates.chain,
-			accounts: chainAndAccountStates.finalAccountsState,
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
 		},
 	};
 };

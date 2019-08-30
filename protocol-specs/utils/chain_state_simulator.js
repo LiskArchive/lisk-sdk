@@ -22,7 +22,7 @@ class ChainStateSimulator {
 		this.state = {
 			chain: includeGenesisBlockInState ? [this.genesisBlock] : [],
 			accounts: cloneDeep(accounts),
-			accountStore: cloneDeep(initialAccountsStates),
+			accountStore: [cloneDeep(initialAccountsStates)],
 			initialAccountStore: cloneDeep(initialAccountsStates),
 			pendingTransactions: [],
 			appliedTransactions: [],
@@ -89,13 +89,19 @@ class ChainStateSimulator {
 
 	// Forge a block with pending transactions. If empty is set to true it can be used
 	// to signal a block that should be empty due to invalid transactions
-	forge(empty = false) {
-		const transactionsToBeIncluded = empty
-			? []
-			: [...this.state.pendingTransactions];
+	forge(invalidBlock = false) {
+		const latestsAccountState = this.state.accountStore.slice(-1)[0];
+
+		let transactionsToBeIncluded = [...this.state.pendingTransactions];
+
+		if (invalidBlock) {
+			transactionsToBeIncluded = [];
+			this.state.accountStore.pop();
+		}
+
 		const newBlock = createBlock(
 			defaultConfig,
-			this.state.accountStore,
+			latestsAccountState,
 			this.previousBlock,
 			this.round,
 			this.slot,
@@ -121,8 +127,9 @@ class ChainStateSimulator {
 	}
 
 	updateAccountBalancesAfterTransfer(from, to, amount) {
-		const newAccountStoreState = cloneDeep(this.state.accountStore);
-
+		const newAccountStoreState = cloneDeep(
+			this.state.accountStore.slice(-1)[0],
+		);
 		const sender = this.findAccountByAddress(from, newAccountStoreState);
 		const recipient = this.findAccountByAddress(to, newAccountStoreState);
 
@@ -163,11 +170,13 @@ class ChainStateSimulator {
 			);
 		}
 
-		this.state.accountStore = newAccountStoreState;
+		this.state.accountStore.push(newAccountStoreState);
 	}
 
 	updateAccountStateAfterDelegateRegistration(from, amount, delegateName) {
-		const newAccountStoreState = cloneDeep(this.state.accountStore);
+		const newAccountStoreState = cloneDeep(
+			this.state.accountStore.slice(-1)[0],
+		);
 
 		const sender = this.findAccountByAddress(from, newAccountStoreState);
 
@@ -184,7 +193,7 @@ class ChainStateSimulator {
 		sender.username = delegateName;
 		sender.isDelegate = true;
 
-		this.state.accountStore = newAccountStoreState;
+		this.state.accountStore.push(newAccountStoreState);
 	}
 
 	// eslint-disable-next-line
