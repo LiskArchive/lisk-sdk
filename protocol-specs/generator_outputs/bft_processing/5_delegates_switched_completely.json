@@ -1,0 +1,1346 @@
+{
+	"title": "BFT processing generation",
+	"summary": "Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification",
+	"config": {
+		"activeDelegates": 5,
+		"finalizedHeight": 0
+	},
+	"runner": "bft_processing",
+	"handler": "5_delegates_switched_completely",
+	"testCases": [
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"blockId": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"blockId": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 2,
+					"2": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"blockId": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"blockId": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 4,
+					"2": 3,
+					"3": 2,
+					"4": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D5",
+				"blockHeader": {
+					"blockId": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 2,
+				"preVotes": {
+					"1": 5,
+					"2": 4,
+					"3": 3,
+					"4": 2,
+					"5": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"blockId": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 1,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 2
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 3,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				},
+				"preCommits": {
+					"1": 2,
+					"2": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"blockId": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 2,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 3
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 4,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 4,
+					"5": 3,
+					"6": 2,
+					"7": 1
+				},
+				"preCommits": {
+					"1": 3,
+					"2": 2,
+					"3": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"blockId": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 3,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 4
+				}
+			},
+			"output": {
+				"finalizedHeight": 1,
+				"preVotedConfirmedHeight": 5,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 4,
+					"6": 3,
+					"7": 2,
+					"8": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 3,
+					"3": 2,
+					"4": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"blockId": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 4,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 5
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 6,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 4,
+					"7": 3,
+					"8": 2,
+					"9": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 4,
+					"3": 3,
+					"4": 2,
+					"5": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D5",
+				"blockHeader": {
+					"blockId": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 5,
+					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 6
+				}
+			},
+			"output": {
+				"finalizedHeight": 3,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 4,
+					"8": 3,
+					"9": 2,
+					"10": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"blockId": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 4,
+				"preVotedConfirmedHeight": 8,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 4,
+					"5": 3,
+					"6": 2,
+					"7": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"blockId": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 7,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 8
+				}
+			},
+			"output": {
+				"finalizedHeight": 5,
+				"preVotedConfirmedHeight": 9,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 4,
+					"6": 3,
+					"7": 2,
+					"8": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"blockId": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 8,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 9
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 10,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 4,
+					"11": 3,
+					"12": 2,
+					"13": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 4,
+					"7": 3,
+					"8": 2,
+					"9": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"blockId": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 9,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 10
+				}
+			},
+			"output": {
+				"finalizedHeight": 7,
+				"preVotedConfirmedHeight": 11,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 4,
+					"12": 3,
+					"13": 2,
+					"14": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 4,
+					"8": 3,
+					"9": 2,
+					"10": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D5",
+				"blockHeader": {
+					"blockId": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 10,
+					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"activeSinceRound": 1,
+					"prevotedConfirmedUptoHeight": 11
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 12,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D6",
+				"blockHeader": {
+					"blockId": "12789931371912649502",
+					"height": 16,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
+					"activeSinceRound": 4,
+					"prevotedConfirmedUptoHeight": 12
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 12,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D7",
+				"blockHeader": {
+					"blockId": "4981918036555779351",
+					"height": 17,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"activeSinceRound": 4,
+					"prevotedConfirmedUptoHeight": 12
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 12,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 2,
+					"17": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D8",
+				"blockHeader": {
+					"blockId": "5677167347966923126",
+					"height": 18,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "8866be938b09f9abb626b9f48e7310b0b33735d8dbbf9ebd328d6ac4a821c440",
+					"activeSinceRound": 4,
+					"prevotedConfirmedUptoHeight": 12
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 12,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 3,
+					"17": 2,
+					"18": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D9",
+				"blockHeader": {
+					"blockId": "10664789664901441495",
+					"height": 19,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "80346e3d249bae58cc40792a8c82a6d89c1300ef71859a2ab959379d2a42cc26",
+					"activeSinceRound": 4,
+					"prevotedConfirmedUptoHeight": 12
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 16,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 4,
+					"17": 3,
+					"18": 2,
+					"19": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D10",
+				"blockHeader": {
+					"blockId": "17711031119314540266",
+					"height": 20,
+					"maxHeightPreviouslyForged": 0,
+					"delegatePublicKey": "cf4f97b6a8663ebcb37a82737670360c8c05d3f0fe2b9b8d2002d31ed663fae5",
+					"activeSinceRound": 4,
+					"prevotedConfirmedUptoHeight": 16
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 17,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"blockId": "8019615789267006368",
+					"height": 21,
+					"maxHeightPreviouslyForged": 11,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 5,
+					"prevotedConfirmedUptoHeight": 17
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 17,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"blockId": "8673720435704263435",
+					"height": 22,
+					"maxHeightPreviouslyForged": 12,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 5,
+					"prevotedConfirmedUptoHeight": 17
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 17,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 2,
+					"22": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D3",
+				"blockHeader": {
+					"blockId": "6007699706281844106",
+					"height": 23,
+					"maxHeightPreviouslyForged": 13,
+					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"activeSinceRound": 5,
+					"prevotedConfirmedUptoHeight": 17
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 17,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 3,
+					"22": 2,
+					"23": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D4",
+				"blockHeader": {
+					"blockId": "13994197425134364572",
+					"height": 24,
+					"maxHeightPreviouslyForged": 14,
+					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"activeSinceRound": 5,
+					"prevotedConfirmedUptoHeight": 17
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 21,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 4,
+					"22": 3,
+					"23": 2,
+					"24": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D5",
+				"blockHeader": {
+					"blockId": "13233097926675734316",
+					"height": 25,
+					"maxHeightPreviouslyForged": 15,
+					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"activeSinceRound": 5,
+					"prevotedConfirmedUptoHeight": 21
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 22,
+				"preVotes": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 5,
+					"22": 4,
+					"23": 3,
+					"24": 2,
+					"25": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1,
+					"21": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D1",
+				"blockHeader": {
+					"blockId": "6889463652104827991",
+					"height": 26,
+					"maxHeightPreviouslyForged": 21,
+					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"activeSinceRound": 5,
+					"prevotedConfirmedUptoHeight": 22
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 23,
+				"preVotes": {
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 5,
+					"22": 5,
+					"23": 4,
+					"24": 3,
+					"25": 2,
+					"26": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1,
+					"21": 2,
+					"22": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D2",
+				"blockHeader": {
+					"blockId": "7423746163586646358",
+					"height": 27,
+					"maxHeightPreviouslyForged": 22,
+					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"activeSinceRound": 5,
+					"prevotedConfirmedUptoHeight": 23
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 24,
+				"preVotes": {
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 5,
+					"22": 5,
+					"23": 5,
+					"24": 4,
+					"25": 3,
+					"26": 2,
+					"27": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1,
+					"21": 3,
+					"22": 2,
+					"23": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D9",
+				"blockHeader": {
+					"blockId": "6476623794736544246",
+					"height": 28,
+					"maxHeightPreviouslyForged": 19,
+					"delegatePublicKey": "80346e3d249bae58cc40792a8c82a6d89c1300ef71859a2ab959379d2a42cc26",
+					"activeSinceRound": 6,
+					"prevotedConfirmedUptoHeight": 24
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 24,
+				"preVotes": {
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 5,
+					"22": 5,
+					"23": 5,
+					"24": 4,
+					"25": 3,
+					"26": 3,
+					"27": 2,
+					"28": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1,
+					"21": 3,
+					"22": 2,
+					"23": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D10",
+				"blockHeader": {
+					"blockId": "3824500196583291025",
+					"height": 29,
+					"maxHeightPreviouslyForged": 20,
+					"delegatePublicKey": "cf4f97b6a8663ebcb37a82737670360c8c05d3f0fe2b9b8d2002d31ed663fae5",
+					"activeSinceRound": 6,
+					"prevotedConfirmedUptoHeight": 24
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 26,
+				"preVotes": {
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 5,
+					"22": 5,
+					"23": 5,
+					"24": 4,
+					"25": 3,
+					"26": 4,
+					"27": 3,
+					"28": 2,
+					"29": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1,
+					"21": 3,
+					"22": 2,
+					"23": 1
+				}
+			}
+		},
+		{
+			"input": {
+				"delegateName": "D8",
+				"blockHeader": {
+					"blockId": "7082861240554195963",
+					"height": 30,
+					"maxHeightPreviouslyForged": 18,
+					"delegatePublicKey": "8866be938b09f9abb626b9f48e7310b0b33735d8dbbf9ebd328d6ac4a821c440",
+					"activeSinceRound": 6,
+					"prevotedConfirmedUptoHeight": 26
+				}
+			},
+			"output": {
+				"finalizedHeight": 8,
+				"preVotedConfirmedHeight": 27,
+				"preVotes": {
+					"6": 5,
+					"7": 5,
+					"8": 5,
+					"9": 5,
+					"10": 5,
+					"11": 5,
+					"12": 4,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 5,
+					"17": 4,
+					"18": 3,
+					"19": 2,
+					"20": 1,
+					"21": 5,
+					"22": 5,
+					"23": 5,
+					"24": 4,
+					"25": 3,
+					"26": 5,
+					"27": 4,
+					"28": 3,
+					"29": 2,
+					"30": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 5,
+					"3": 5,
+					"4": 5,
+					"5": 5,
+					"6": 5,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1,
+					"16": 1,
+					"21": 3,
+					"22": 2,
+					"23": 1,
+					"26": 1
+				}
+			}
+		}
+	]
+}
