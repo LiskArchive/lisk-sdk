@@ -13,7 +13,7 @@
  *
  */
 /* tslint:disable: max-classes-per-file */
-export class PeerInboundHandshakeException extends Error {
+export class PeerInboundHandshakeError extends Error {
 	public statusCode: number;
 	public remoteAddress: string;
 	public handshakeURL?: string;
@@ -25,45 +25,45 @@ export class PeerInboundHandshakeException extends Error {
 		handshakeURL?: string,
 	) {
 		super(message);
-		this.name = 'PeerInboundHandshakeException';
+		this.name = 'PeerInboundHandshakeError';
 		this.statusCode = statusCode;
 		this.remoteAddress = remoteAddress;
 		this.handshakeURL = handshakeURL;
 	}
 }
 
-export class RPCResponseException extends Error {
+export class RPCResponseError extends Error {
 	public peerId: string;
 
 	public constructor(message: string, peerId: string) {
 		super(message);
-		this.name = 'RPCResponseException';
+		this.name = 'RPCResponseError';
 		this.peerId = peerId;
 	}
 }
 
-export class InvalidRPCResponseException extends Error {
+export class InvalidRPCResponseError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidRPCResponseException';
+		this.name = 'InvalidRPCResponseError';
 	}
 }
 
-export class RPCResponseAlreadySentException extends Error {
+export class RPCResponseAlreadySentError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'ResponseAlreadySentError';
 	}
 }
 
-export class InvalidPeerException extends Error {
+export class InvalidPeerError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidPeerException';
+		this.name = 'InvalidPeerError';
 	}
 }
 
-export class RequestFailException extends Error {
+export class RequestFailError extends Error {
 	public peerId: string;
 	public peerVersion: string;
 	public response: Error;
@@ -74,7 +74,7 @@ export class RequestFailException extends Error {
 		peerVersion?: string,
 	) {
 		super(message);
-		this.name = 'RequestFailException';
+		this.name = 'RequestFailError';
 		// The request was made and the peer responded with error
 		this.response = response || new Error(message);
 		this.peerId = peerId || '';
@@ -87,23 +87,23 @@ export class RequestFailException extends Error {
 	}
 }
 
-export class SendFailException extends Error {
+export class SendFailError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'SendFailException';
+		this.name = 'SendFailError';
 	}
 }
 
-export class InvalidRPCRequestException extends Error {
+export class InvalidRPCRequestError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidRPCRequestException';
+		this.name = 'InvalidRPCRequestError';
 	}
 }
 
-export class InvalidProtocolMessageException extends Error {
+export class InvalidProtocolMessageError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidProtocolMessageException';
+		this.name = 'InvalidProtocolMessageError';
 	}
 }

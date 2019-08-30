@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { RPCResponseAlreadySentException } from './exceptions';
+import { RPCResponseAlreadySentError } from './errors';
 import { P2PResponsePacket } from './p2p_types';
 
 interface RequestOptions {
@@ -57,7 +57,7 @@ export class P2PRequest {
 			responsePacket?: P2PResponsePacket,
 		) => {
 			if (this._wasResponseSent) {
-				throw new RPCResponseAlreadySentException(
+				throw new RPCResponseAlreadySentError(
 					`A response has already been sent for the request procedure <<${
 						options.procedure
 					}>>`,

@@ -22,6 +22,7 @@ import { EventEmitter } from 'events';
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
 import { EVICTED_PEER_CODE, INTENTIONAL_DISCONNECT_CODE } from './constants';
+import { RequestFailError, SendFailError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -42,7 +43,6 @@ import {
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
 } from './events';
-import { RequestFailException, SendFailException } from './exceptions';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -291,7 +291,7 @@ export class PeerPool extends EventEmitter {
 		});
 
 		if (selectedPeers.length <= 0) {
-			throw new RequestFailException(
+			throw new RequestFailError(
 				'Request failed due to no peers found in peer selection',
 			);
 		}
@@ -325,7 +325,7 @@ export class PeerPool extends EventEmitter {
 	): Promise<P2PResponsePacket> {
 		const peer = this._peerMap.get(peerId);
 		if (!peer) {
-			throw new RequestFailException(
+			throw new RequestFailError(
 				`Request failed because a peer with id ${peerId} could not be found`,
 			);
 		}
@@ -336,7 +336,7 @@ export class PeerPool extends EventEmitter {
 	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
 		const peer = this._peerMap.get(peerId);
 		if (!peer) {
-			throw new SendFailException(
+			throw new SendFailError(
 				`Send failed because a peer with id ${peerId} could not be found`,
 			);
 		}

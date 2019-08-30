@@ -20,11 +20,11 @@ import {
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
 } from '../constants';
 import {
-	InvalidPeerException,
-	InvalidProtocolMessageException,
-	InvalidRPCRequestException,
-	InvalidRPCResponseException,
-} from '../exceptions';
+	InvalidPeerError,
+	InvalidProtocolMessageError,
+	InvalidRPCRequestError,
+	InvalidRPCResponseError,
+} from '../errors';
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PDiscoveredPeerInfo,
@@ -112,7 +112,7 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 
 export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
-		throw new InvalidPeerException(`Invalid peer object`);
+		throw new InvalidPeerError(`Invalid peer object`);
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
@@ -121,11 +121,11 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		!protocolPeer.wsPort ||
 		!validatePeerAddress(protocolPeer.ip, protocolPeer.wsPort)
 	) {
-		throw new InvalidPeerException(`Invalid peer ip or port`);
+		throw new InvalidPeerError(`Invalid peer ip or port`);
 	}
 
 	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
-		throw new InvalidPeerException(`Invalid peer version`);
+		throw new InvalidPeerError(`Invalid peer version`);
 	}
 
 	const version = protocolPeer.version;
@@ -158,7 +158,7 @@ export const validatePeerInfo = (
 ): P2PPeerInfo => {
 	const byteSize = getByteSize(rawPeerInfo);
 	if (byteSize > maxByteSize) {
-		throw new InvalidRPCResponseException(
+		throw new InvalidRPCResponseError(
 			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
@@ -172,13 +172,13 @@ export const validatePeersInfoList = (
 	maxPeerInfoByteSize: number,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
-		throw new InvalidRPCResponseException('Invalid response type');
+		throw new InvalidRPCResponseError('Invalid response type');
 	}
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
 		if (peers.length > maxPeerInfoListLength) {
-			throw new InvalidRPCResponseException('PeerInfo list was too long');
+			throw new InvalidRPCResponseError('PeerInfo list was too long');
 		}
 		const cleanPeerList = peers.filter(
 			peerInfo => getByteSize(peerInfo) < maxPeerInfoByteSize,
@@ -189,7 +189,7 @@ export const validatePeersInfoList = (
 
 		return sanitizedPeerList;
 	} else {
-		throw new InvalidRPCResponseException('Invalid response type');
+		throw new InvalidRPCResponseError('Invalid response type');
 	}
 };
 
@@ -197,14 +197,12 @@ export const validateRPCRequest = (
 	request: unknown,
 ): ProtocolRPCRequestPacket => {
 	if (!request) {
-		throw new InvalidRPCRequestException('Invalid request');
+		throw new InvalidRPCRequestError('Invalid request');
 	}
 
 	const rpcRequest = request as ProtocolRPCRequestPacket;
 	if (typeof rpcRequest.procedure !== 'string') {
-		throw new InvalidRPCRequestException(
-			'Request procedure name is not a string',
-		);
+		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}
 
 	return rpcRequest;
@@ -214,14 +212,12 @@ export const validateProtocolMessage = (
 	message: unknown,
 ): ProtocolMessagePacket => {
 	if (!message) {
-		throw new InvalidProtocolMessageException('Invalid message');
+		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
 	const protocolMessage = message as ProtocolMessagePacket;
 	if (typeof protocolMessage.event !== 'string') {
-		throw new InvalidProtocolMessageException(
-			'Protocol message is not a string',
-		);
+		throw new InvalidProtocolMessageError('Protocol message is not a string');
 	}
 
 	return protocolMessage;

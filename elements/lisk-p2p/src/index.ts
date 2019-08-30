@@ -13,7 +13,7 @@
  *
  */
 export * from './constants';
-export * from './exceptions';
+export * from './errors';
 export * from './events';
 export * from './p2p_request';
 export * from './p2p_types';
