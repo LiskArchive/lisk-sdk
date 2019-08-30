@@ -14,17 +14,9 @@
 
 'use strict';
 
-const {
-	transfer,
-	TransferTransaction,
-	registerDelegate,
-	DelegateTransaction,
-} = require('@liskhq/lisk-transactions');
-const { cloneDeep } = require('lodash');
-const BigNum = require('@liskhq/bignum');
 const BaseGenerator = require('../base_generator');
 const defaultConfig = require('../../config/devnet');
-const { createBlock } = require('../../utils/blocks');
+const ChainStateSimulator = require('../../utils/chain_state_simulator');
 
 const { genesisBlock } = defaultConfig;
 
@@ -111,185 +103,40 @@ const accounts = {
 };
 
 const generateTestCasesValidBlockSecondSignatureTx = () => {
-	// Send funds to an existing delegate from genesis account
-	const amount = '6000000000';
-	const delegateFunding = new TransferTransaction(
-		transfer({
-			amount,
-			passphrase: accounts.genesis.passphrase,
-			recipientId: accounts.existingDelegate.address,
-		}),
-	);
-	// Forge the block containing the delegate's funding
-	const delegateFundingBlock = createBlock(
-		defaultConfig,
-		initialAccountsState,
+	const chainSimulator = new ChainStateSimulator(
 		genesisBlock,
-		1,
-		0,
-		{
-			version: 1,
-			transactions: [delegateFunding],
-		},
-	);
-
-	// Update account states
-	const resultingAccountStateAfterDelegateFunding = cloneDeep(
 		initialAccountsState,
+		accounts,
 	);
 
-	const { balance: senderBalance } = initialAccountsState.find(
-		account => account.address === accounts.genesis.address,
-	);
+	chainSimulator
+		.transfer('50')
+		.from('16313739661670634666L')
+		.to('10881167371402274308L')
+		.forge();
 
-	const { balance: recipientBalance } = initialAccountsState.find(
-		account => account.address === accounts.existingDelegate.address,
-	);
+	chainSimulator
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('2222471382442610527L')
+		.forge();
 
-	resultingAccountStateAfterDelegateFunding.find(
-		account => account.address === accounts.genesis.address,
-	).balance = parseInt(
-		new BigNum(senderBalance.toString()).sub(amount).toString(),
-		10,
-	);
+	chainSimulator
+		.registerDelegate('RadioHead')
+		.for('2222471382442610527L')
+		.forge();
 
-	resultingAccountStateAfterDelegateFunding.find(
-		account => account.address === accounts.existingDelegate.address,
-	).balance = parseInt(
-		new BigNum(recipientBalance.toString()).plus(amount).toString(),
-		10,
-	);
-
-	// Send funds from an existing delegate to a new account
-	const futureDelegateFundingTx = new TransferTransaction(
-		transfer({
-			amount,
-			passphrase: accounts.existingDelegate.passphrase,
-			recipientId: accounts.futureDelegate.address,
-		}),
-	);
-	// Forge the block containing the delegate's funding
-	const futureDelegateFundingBlock = createBlock(
-		defaultConfig,
-		resultingAccountStateAfterDelegateFunding,
-		delegateFundingBlock,
-		2,
-		0,
-		{
-			version: 1,
-			transactions: [futureDelegateFundingTx],
-		},
-	);
-
-	// Update account states
-	const accountStatesAfterFundingFutureDelegate = [
-		...resultingAccountStateAfterDelegateFunding,
-		{
-			address: '2222471382442610527L',
-			publicKey:
-				'caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee',
-			secondPublicKey: null,
-			username: '',
-			isDelegate: false,
-			secondSignature: false,
-			balance: 0,
-			multiMin: 0,
-			multiLifetime: 0,
-			nameExist: false,
-			missedBlocks: 0,
-			producedBlocks: 0,
-			rank: 0,
-			fees: 0,
-			rewards: 0,
-			vote: 0,
-			productivity: 0,
-		},
-	];
-
-	const {
-		balance: senderBalanceToFutureDelegate,
-	} = accountStatesAfterFundingFutureDelegate.find(
-		account => account.address === accounts.existingDelegate.address,
-	);
-
-	const {
-		balance: recipientBalanceToFutureDelegate,
-	} = accountStatesAfterFundingFutureDelegate.find(
-		account => account.address === accounts.futureDelegate.address,
-	);
-
-	const targetAccount = accountStatesAfterFundingFutureDelegate.find(
-		account => account.address === accounts.existingDelegate.address,
-	);
-
-	targetAccount.balance = parseInt(
-		new BigNum(senderBalanceToFutureDelegate.toString())
-			.sub(500000000)
-			.toString(),
-		10,
-	);
-
-	accountStatesAfterFundingFutureDelegate.find(
-		account => account.address === accounts.futureDelegate.address,
-	).balance = parseInt(
-		new BigNum(recipientBalanceToFutureDelegate.toString())
-			.plus(amount)
-			.toString(),
-		10,
-	);
-
-	// Register the new account as delegate
-	const newDelegateName = 'OneDelegate';
-	const registerDelegateTx = new DelegateTransaction(
-		registerDelegate({
-			username: newDelegateName,
-			passphrase: accounts.futureDelegate.passphrase,
-		}),
-	);
-
-	const registerDelegateBlock = createBlock(
-		defaultConfig,
-		initialAccountsState,
-		delegateFundingBlock,
-		3,
-		0,
-		{
-			version: 1,
-			transactions: [registerDelegateTx],
-		},
-	);
-
-	// Update account states
-	const finalAccountsState = cloneDeep(accountStatesAfterFundingFutureDelegate);
-
-	const registeredDelegateAccount = finalAccountsState.find(
-		account => account.address === accounts.futureDelegate.address,
-	);
-
-	registeredDelegateAccount.username = newDelegateName;
-	registeredDelegateAccount.balance = parseInt(
-		new BigNum(registeredDelegateAccount.balance.toString())
-			.sub(2500000000)
-			.toString(),
-		10,
-	);
-	registeredDelegateAccount.isDelegate = true;
+	const chainAndAccountStates = chainSimulator.getScenario();
 
 	return {
 		initialState: {
-			chain: [delegateFundingBlock, futureDelegateFundingBlock],
-			accounts: resultingAccountStateAfterDelegateFunding,
+			chain: chainAndAccountStates.chain.slice(0, 2),
+			accounts: chainAndAccountStates.initialAccountsState,
 		},
-		input: {
-			registerDelegateBlock,
-		},
+		input: chainAndAccountStates.chain.slice(2),
 		output: {
-			chain: [
-				delegateFundingBlock,
-				futureDelegateFundingBlock,
-				registerDelegateBlock,
-			],
-			accounts: finalAccountsState,
+			chain: chainAndAccountStates.chain,
+			accounts: chainAndAccountStates.finalAccountsState,
 		},
 	};
 };
