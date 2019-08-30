@@ -14,7 +14,7 @@
  */
 
 import { expect } from 'chai';
-import { P2P, EVENT_REMOVE_PEER } from '../../src/index';
+import { P2P, EVENT_REMOVE_PEER, EVENT_CLOSE_OUTBOUND } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
@@ -25,7 +25,7 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
-import { InboundPeer } from '../../src/peer';
+import { InboundPeer, OutboundPeer, ConnectionState } from '../../src/peer';
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import cloneDeep = require('lodash.clonedeep');
@@ -121,9 +121,9 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					connectTimeout: 100,
-					ackTimeout: 200,
+					ackTimeout: 100,
 					peerBanTime: 100,
-					populatorInterval: POPULATOR_INTERVAL,
+					populatorInterval: 100,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
@@ -148,7 +148,7 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover all peers in the network after a few cycles of discovery', async () => {
 				// Wait for a few cycles of discovery.
-				await wait(POPULATOR_INTERVAL * 10);
+				await wait(POPULATOR_INTERVAL * 15);
 
 				for (let p2p of p2pNodeList) {
 					const peerPorts = p2p
@@ -939,6 +939,64 @@ describe('Integration tests for P2P library', () => {
 				expect(peerPortsAfterPeerCrash).to.be.eql(
 					expectedPeerPortsAfterPeerCrash,
 				);
+			});
+		});
+
+		describe('Disconnect duplicate peers', () => {
+			let firstP2PNodeCloseEvents: Array<any> = [];
+			let firstPeerCloseEvents: Array<any> = [];
+			let firstPeerErrors: Array<any> = [];
+			let firstPeerDuplicate: OutboundPeer;
+			let firstP2PNode: P2P;
+			let existingPeer: InboundPeer;
+
+			beforeEach(async () => {
+				firstP2PNode = p2pNodeList[0];
+				firstPeerCloseEvents = [];
+				existingPeer = firstP2PNode['_peerPool'].getPeers(
+					InboundPeer,
+				)[0] as InboundPeer;
+				firstPeerDuplicate = new OutboundPeer(
+					existingPeer.peerInfo,
+					firstP2PNode['_peerPool'].peerConfig,
+				);
+
+				firstPeerDuplicate.on(EVENT_CLOSE_OUTBOUND, (event: any) => {
+					firstPeerCloseEvents.push(event);
+				});
+
+				try {
+					// This will create a connection.
+					await firstPeerDuplicate.applyNodeInfo(firstP2PNode.nodeInfo);
+				} catch (error) {
+					firstPeerErrors.push(error);
+				}
+
+				firstP2PNode.on(EVENT_CLOSE_OUTBOUND, event => {
+					firstP2PNodeCloseEvents.push(event);
+				});
+				await wait(100);
+			});
+			afterEach(() => {
+				firstPeerDuplicate.removeAllListeners(EVENT_CLOSE_OUTBOUND);
+				firstP2PNode.removeAllListeners(EVENT_CLOSE_OUTBOUND);
+				firstPeerDuplicate.disconnect();
+			});
+
+			// Simulate legacy behaviour where the node tries to connect back to an inbound peer.
+			it('should remove a peer if they try to connect but they are already connected', async () => {
+				expect(firstPeerErrors).to.have.length(1);
+				expect(firstPeerErrors[0])
+					.to.have.property('name')
+					.which.equals('BadConnectionError');
+				expect(firstPeerErrors[0])
+					.to.have.property('name')
+					.which.equals('BadConnectionError');
+				expect(firstPeerDuplicate)
+					.to.have.property('state')
+					.which.equals(ConnectionState.CLOSED);
+				// Disconnecting our new outbound socket should not cause the existing inbound peer instance to be removed.
+				expect(firstP2PNodeCloseEvents).to.be.empty;
 			});
 		});
 	});
