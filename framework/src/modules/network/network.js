@@ -201,7 +201,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
-			this.logger.info(
+			this.logger.trace(
 				`New peer found event: Discovered peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
 				}`,

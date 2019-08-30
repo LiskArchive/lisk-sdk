@@ -388,9 +388,10 @@ export class P2P extends EventEmitter {
 					}
 				} else {
 					this._peerBook.addPeer(detailedPeerInfo);
+					// Re-emit the message to allow it to bubble up the class hierarchy.
+					// Only emit event when a peer is discovered for the first time.
+					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 				}
-				// Re-emit the message to allow it to bubble up the class hierarchy.
-				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 			}
 		};
 
