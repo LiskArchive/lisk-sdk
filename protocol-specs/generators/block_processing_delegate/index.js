@@ -102,7 +102,7 @@ const accounts = {
 	},
 };
 
-const generateTestCasesValidBlockSecondSignatureTx = () => {
+const generateTestCasesValidBlockDelegateRegistration = () => {
 	const chainSimulator = new ChainStateSimulator(
 		genesisBlock,
 		initialAccountsState,
@@ -141,15 +141,69 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 	};
 };
 
-const validBlockWithSecondSignatureTxSuite = () => ({
+const generateTestCasesInvalidBlockDelegateRegistrationSecondTime = () => {
+	const chainSimulator = new ChainStateSimulator(
+		genesisBlock,
+		initialAccountsState,
+		accounts,
+	);
+
+	chainSimulator
+		.transfer('50')
+		.from('16313739661670634666L')
+		.to('10881167371402274308L')
+		.forge();
+
+	chainSimulator
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('2222471382442610527L')
+		.forge();
+
+	chainSimulator
+		.registerDelegate('RadioHead')
+		.for('2222471382442610527L')
+		.forge();
+
+	chainSimulator
+		.registerDelegate('RadioHead')
+		.for('2222471382442610527L')
+		.forge(true);
+
+	const chainAndAccountStates = chainSimulator.getScenario();
+
+	return {
+		initialState: {
+			chain: chainAndAccountStates.chain,
+			accounts: chainAndAccountStates.initialAccountsState,
+		},
+		input: chainAndAccountStates.chain.slice(2),
+		output: {
+			chain: chainAndAccountStates.chain,
+			accounts: chainAndAccountStates.finalAccountsState,
+		},
+	};
+};
+
+const validBlockWithDelegateRegistrationSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'A valid block with a delegate registration',
 	config: 'mainnet',
 	runner: 'block_processing_delegate',
 	handler: 'valid_block_processing_delegate_registration_tx',
-	testCases: generateTestCasesValidBlockSecondSignatureTx(),
+	testCases: generateTestCasesValidBlockDelegateRegistration(),
+});
+
+const invalidBlockWithSecondDelegateRegistrationSuite = () => ({
+	title: 'Invalid block processing',
+	summary: 'An invalid block with a second delegate registration',
+	config: 'mainnet',
+	runner: 'block_processing_delegate',
+	handler: 'invalid_block_processing_second_delegate_registration_tx',
+	testCases: generateTestCasesInvalidBlockDelegateRegistrationSecondTime(),
 });
 
 module.exports = BaseGenerator.runGenerator('block_processing_delegate', [
-	validBlockWithSecondSignatureTxSuite,
+	validBlockWithDelegateRegistrationSuite,
+	invalidBlockWithSecondDelegateRegistrationSuite,
 ]);

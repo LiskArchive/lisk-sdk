@@ -1,9 +1,9 @@
 {
-	"title": "Valid block processing",
-	"summary": "A valid block with a delegate registration",
+	"title": "Invalid block processing",
+	"summary": "An invalid block with a second delegate registration",
 	"config": "mainnet",
 	"runner": "block_processing_delegate",
-	"handler": "valid_block_processing_delegate_registration_tx",
+	"handler": "invalid_block_processing_second_delegate_registration_tx",
 	"testCases": {
 		"initialState": {
 			"chain": [
@@ -63,6 +63,52 @@
 					"payloadHash": "4e0f0ea5b96b6698fb72084b4a708baf84524d87963126ef2562a4e786e84f43",
 					"blockSignature": "44fd854259adefe4ec1ab2b834db6a330bc354c0063a7fcf1a9a52d0b544127ef5cb67cbd61980ada28092433c1224ba9f0aae7605f1ab65009407812313b40d",
 					"height": 3
+				},
+				{
+					"version": 1,
+					"totalAmount": "0",
+					"totalFee": "2500000000",
+					"reward": "0",
+					"timestamp": 30,
+					"numberOfTransactions": 1,
+					"payloadLength": 126,
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [
+						{
+							"id": "8720296781012104290",
+							"amount": "0",
+							"type": 2,
+							"timestamp": 103045561,
+							"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
+							"senderId": "2222471382442610527L",
+							"recipientId": "",
+							"fee": "2500000000",
+							"signature": "c2cf2d597bea18adfd87f9f45f2a2263b986db80b45a047a417c61f864d0c5a1edc5b2e39bf3e5be8bc79d0f5a696422292945084e886a535ef598a94c741b0c",
+							"signatures": [],
+							"asset": {
+								"delegate": {
+									"username": "RadioHead"
+								}
+							}
+						}
+					],
+					"payloadHash": "62743560b8b7047940ee6797bac04c4e5b1011330816bdbcdd23502c60928833",
+					"blockSignature": "e6f483e4285176275c8ae47eed0da793ad83abb2f4ae12d0ded8fb352be04629bceb52a02ce84452c2f586b93b31d1195adb19877a130bac1278db346080710e",
+					"height": 4
+				},
+				{
+					"version": 1,
+					"totalAmount": "0",
+					"totalFee": "0",
+					"reward": "0",
+					"timestamp": 40,
+					"numberOfTransactions": 0,
+					"payloadLength": 0,
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [],
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"blockSignature": "25ce1fd7028225e636ebc7c12efe1cdbca9b946794a25a39162f613850cdebe8f498043514f4e72c4be14371ae25113c27982d01394dd63aa37625b05da59f03",
+					"height": 5
 				}
 			],
 			"accounts": [
@@ -138,6 +184,20 @@
 				"payloadHash": "62743560b8b7047940ee6797bac04c4e5b1011330816bdbcdd23502c60928833",
 				"blockSignature": "e6f483e4285176275c8ae47eed0da793ad83abb2f4ae12d0ded8fb352be04629bceb52a02ce84452c2f586b93b31d1195adb19877a130bac1278db346080710e",
 				"height": 4
+			},
+			{
+				"version": 1,
+				"totalAmount": "0",
+				"totalFee": "0",
+				"reward": "0",
+				"timestamp": 40,
+				"numberOfTransactions": 0,
+				"payloadLength": 0,
+				"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+				"transactions": [],
+				"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+				"blockSignature": "25ce1fd7028225e636ebc7c12efe1cdbca9b946794a25a39162f613850cdebe8f498043514f4e72c4be14371ae25113c27982d01394dd63aa37625b05da59f03",
+				"height": 5
 			}
 		],
 		"output": {
@@ -230,6 +290,20 @@
 					"payloadHash": "62743560b8b7047940ee6797bac04c4e5b1011330816bdbcdd23502c60928833",
 					"blockSignature": "e6f483e4285176275c8ae47eed0da793ad83abb2f4ae12d0ded8fb352be04629bceb52a02ce84452c2f586b93b31d1195adb19877a130bac1278db346080710e",
 					"height": 4
+				},
+				{
+					"version": 1,
+					"totalAmount": "0",
+					"totalFee": "0",
+					"reward": "0",
+					"timestamp": 40,
+					"numberOfTransactions": 0,
+					"payloadLength": 0,
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [],
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"blockSignature": "25ce1fd7028225e636ebc7c12efe1cdbca9b946794a25a39162f613850cdebe8f498043514f4e72c4be14371ae25113c27982d01394dd63aa37625b05da59f03",
+					"height": 5
 				}
 			],
 			"accounts": [
@@ -278,7 +352,7 @@
 					"username": "RadioHead",
 					"isDelegate": true,
 					"secondSignature": false,
-					"balance": 500000000,
+					"balance": -2000000000,
 					"multiMin": 0,
 					"multiLifetime": 0,
 					"nameExist": false,
