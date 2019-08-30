@@ -18,14 +18,53 @@ const { Pipeline } = require('./pipeline');
 
 class BaseBlockProcessor {
 	constructor() {
+		/**
+		 * init is called once when the application starts
+		 * @return void
+		 */
 		this.init = new Pipeline();
+
+		/**
+		 * create is called for forging a block
+		 * @return valid block
+		 */
 		this.create = new Pipeline();
+
+		/**
+		 * fork should return a valid fork status
+		 * @return void
+		 */
 		this.fork = new Pipeline();
+
+		/**
+		 * validate should statically check the block data without history of chain
+		 * @return void
+		 */
 		this.validate = new Pipeline();
 		this.validateNew = new Pipeline();
+
+		/**
+		 * verify should check the block data with history of chain
+		 * @return void
+		 */
 		this.verify = new Pipeline();
+
+		/**
+		 * apply should apply a block to a new state
+		 * @return void
+		 */
 		this.apply = new Pipeline();
+
+		/**
+		 * applyGenesis should apply a genesis block to a new state
+		 * @return void
+		 */
 		this.applyGenesis = new Pipeline();
+
+		/**
+		 * undo should revert the changes done by apply
+		 * @return void
+		 */
 		this.undo = new Pipeline();
 	}
 
