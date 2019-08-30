@@ -31,6 +31,14 @@ const storageReadFunc = {
 };
 const storageRead = raw => storageReadFunc[raw.version](raw);
 
+const objectNormalizeFunc = {
+	0: blockV1.objectNormalize,
+	1: blockV1.objectNormalize,
+	2: blockV2.objectNormalize,
+};
+const objectNormalize = (block, exceptions) =>
+	objectNormalizeFunc[block.version](block, exceptions);
+
 /**
  * Normalize blocks and their transactions.
  *
@@ -209,4 +217,5 @@ module.exports = {
 	loadBlocksWithOffset,
 	loadLastBlock,
 	loadBlockByHeight,
+	objectNormalize,
 };
