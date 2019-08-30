@@ -1,5 +1,21 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const {
-	transfer,
+	transfer: transferLisk,
 	TransferTransaction,
 	registerDelegate,
 	DelegateTransaction,
@@ -7,10 +23,10 @@ const {
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 
-const { createBlock } = require('../utils/blocks');
+const { createBlock } = require('./blocks');
 const defaultConfig = require('../config/devnet');
 
-class ChainStateSimulator {
+class ChainStateBuilder {
 	constructor(
 		genesisBlock,
 		initialAccountsStates,
@@ -38,7 +54,7 @@ class ChainStateSimulator {
 				to: addressTo => {
 					const amountBedows = `${amount * this.fixedPoint}`;
 					const transferTx = new TransferTransaction(
-						transfer({
+						transferLisk({
 							amount: amountBedows,
 							passphrase: Object.values(this.state.accounts).find(
 								anAccount => anAccount.address === addressFrom,
@@ -87,8 +103,8 @@ class ChainStateSimulator {
 		};
 	}
 
-	// Forge a block with pending transactions. If empty is set to true it can be used
-	// to signal a block that should be empty due to invalid transactions
+	// Forge a block with pending transactions. If invalidBlock is set to true it can be used
+	// to signal a block that should be empty due to invalid transactions previously added to the state
 	forge(invalidBlock = false) {
 		const latestsAccountState = this.state.accountStore.slice(-1)[0];
 
@@ -225,4 +241,4 @@ class ChainStateSimulator {
 	}
 }
 
-module.exports = ChainStateSimulator;
+module.exports = ChainStateBuilder;

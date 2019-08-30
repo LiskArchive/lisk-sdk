@@ -16,7 +16,7 @@
 
 const BaseGenerator = require('../base_generator');
 const defaultConfig = require('../../config/devnet');
-const ChainStateSimulator = require('../../utils/chain_state_simulator');
+const ChainStateBuilder = require('../../utils/chain_state_builder');
 
 const { genesisBlock } = defaultConfig;
 
@@ -103,30 +103,30 @@ const accounts = {
 };
 
 const generateTestCasesValidBlockDelegateRegistration = () => {
-	const chainSimulator = new ChainStateSimulator(
+	const chainStateBuilder = new ChainStateBuilder(
 		genesisBlock,
 		initialAccountsState,
 		accounts,
 	);
 
-	chainSimulator
+	chainStateBuilder
 		.transfer('50')
 		.from('16313739661670634666L')
 		.to('10881167371402274308L')
 		.forge();
 
-	chainSimulator
+	chainStateBuilder
 		.transfer('30')
 		.from('10881167371402274308L')
 		.to('2222471382442610527L')
 		.forge();
 
-	chainSimulator
+	chainStateBuilder
 		.registerDelegate('RadioHead')
 		.for('2222471382442610527L')
 		.forge();
 
-	const chainAndAccountStates = chainSimulator.getScenario();
+	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
 		initialState: {
@@ -142,36 +142,36 @@ const generateTestCasesValidBlockDelegateRegistration = () => {
 };
 
 const generateTestCasesInvalidBlockDelegateRegistrationSecondTime = () => {
-	const chainSimulator = new ChainStateSimulator(
+	const chainStateBuilder = new ChainStateBuilder(
 		genesisBlock,
 		initialAccountsState,
 		accounts,
 	);
 
-	chainSimulator
+	chainStateBuilder
 		.transfer('50')
 		.from('16313739661670634666L')
 		.to('10881167371402274308L')
 		.forge();
 
-	chainSimulator
+	chainStateBuilder
 		.transfer('30')
 		.from('10881167371402274308L')
 		.to('2222471382442610527L')
 		.forge();
 
-	chainSimulator
+	chainStateBuilder
 		.registerDelegate('RadioHead')
 		.for('2222471382442610527L')
 		.forge();
 
 	const invalidBlock = true;
-	chainSimulator
+	chainStateBuilder
 		.registerDelegate('RadioHead')
 		.for('2222471382442610527L')
 		.forge(invalidBlock);
 
-	const chainAndAccountStates = chainSimulator.getScenario();
+	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
 		initialState: {
