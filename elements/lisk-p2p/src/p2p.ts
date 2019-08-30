@@ -609,6 +609,7 @@ export class P2P extends EventEmitter {
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'connection',
+			// tslint:disable-next-line:cyclomatic-complexity
 			(socket: SCServerSocket): void => {
 				// Check blacklist to avoid incoming connections from backlisted ips
 				if (this._sanitizedPeerLists.blacklistedPeers) {
@@ -735,23 +736,37 @@ export class P2P extends EventEmitter {
 				}
 
 				const existingPeer = this._peerPool.getPeer(peerId);
+				const existingDuplicatePeer = this._peerPool.getDuplicatePeer(peerId);
 				// Allow connections with lower version to have incoming connection even if it has outbound
+				// tslint:disable-next-line:no-let
+				let isInboundCreated = false;
 				if (
 					existingPeer &&
+					!existingDuplicatePeer &&
 					isVersionLessThan(incomingPeerInfo.version, this._nodeInfo.version)
 				) {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+					isInboundCreated = true;
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				if (!existingPeer) {
+				if (!existingPeer && !existingDuplicatePeer) {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+					isInboundCreated = true;
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				if (!this._peerBook.getPeer(incomingPeerInfo)) {
+				if (!isInboundCreated) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						DUPLICATE_CONNECTION,
+						DUPLICATE_CONNECTION_REASON,
+					);
+				}
+
+				if (!this._peerBook.getPeer(incomingPeerInfo) && isInboundCreated) {
 					this._peerBook.addPeer(incomingPeerInfo);
 				}
 			},
