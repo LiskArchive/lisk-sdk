@@ -119,7 +119,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.validate.pipe([
 			data => this._validateVersion(data),
-			validateSchema,
+			data => validateSchema(data),
 			({ block }) => getBytes(block),
 			(data, blockBytes) =>
 				this.blocksModule.validate({
@@ -128,7 +128,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 				}), // validate common block header
 		]);
 
-		this.fork.pipe([
+		this.forkStatus.pipe([
 			data => this.blocksModule.forkChoice(data), // validate common block header
 		]);
 

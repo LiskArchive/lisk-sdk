@@ -76,7 +76,7 @@ class Processor {
 			const blockProcessor = this._getBlockProcessor(block);
 			const { lastBlock } = this.blocksModule;
 
-			const forkStatus = await blockProcessor.fork.run({
+			const forkStatus = await blockProcessor.forkStatus.run({
 				block,
 				lastBlock,
 			});

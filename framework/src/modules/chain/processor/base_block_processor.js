@@ -34,7 +34,7 @@ class BaseBlockProcessor {
 		 * fork should return a valid fork status
 		 * @return void
 		 */
-		this.fork = new Pipeline();
+		this.forkStatus = new Pipeline();
 
 		/**
 		 * validate should statically check the block data without history of chain

@@ -252,7 +252,7 @@ describe('processor', () => {
 			applySteps = [jest.fn(), jest.fn()];
 			undoSteps = [jest.fn(), jest.fn()];
 			txStub = jest.fn();
-			blockProcessorV0.fork.pipe(forkSteps);
+			blockProcessorV0.forkStatus.pipe(forkSteps);
 			blockProcessorV0.validateNew.pipe(validateNewSteps);
 			blockProcessorV0.validate.pipe(validateSteps);
 			blockProcessorV0.verify.pipe(verifySteps);
@@ -270,7 +270,7 @@ describe('processor', () => {
 				);
 			});
 
-			it('should call fork pipelines with matching processor', async () => {
+			it('should call forkStatus pipelines with matching processor', async () => {
 				await processor.process(blockV0);
 				forkSteps.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
@@ -286,11 +286,11 @@ describe('processor', () => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				forkSteps2 = [jest.fn(), jest.fn()];
 				forkSteps2[1].mockResolvedValue(2);
-				blockProcessorV1.fork.pipe(forkSteps2);
+				blockProcessorV1.forkStatus.pipe(forkSteps2);
 				processor.register(blockProcessorV1);
 			});
 
-			it('should call fork pipelines with matching processor', async () => {
+			it('should call forkStatus pipelines with matching processor', async () => {
 				await processor.process(blockV1);
 				forkSteps2.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
@@ -753,7 +753,7 @@ describe('processor', () => {
 		});
 
 		describe('when only 1 processor is registered', () => {
-			it('should call fork pipelines with matching processor', async () => {
+			it('should call forkStatus pipelines with matching processor', async () => {
 				await processor.create(createInput);
 				createSteps.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
@@ -803,7 +803,7 @@ describe('processor', () => {
 		});
 
 		describe('when only 1 processor is registered', () => {
-			it('should call fork pipelines with matching processor', async () => {
+			it('should call validate pipelines with matching processor', async () => {
 				await processor.validate(blockV0);
 				validateSteps.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
@@ -857,7 +857,7 @@ describe('processor', () => {
 				);
 			});
 
-			it('should call fork pipelines with matching processor', async () => {
+			it('should call verify pipelines with matching processor', async () => {
 				await processor.processValidated(blockV0);
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 				verifySteps.forEach(step => {
@@ -1098,7 +1098,7 @@ describe('processor', () => {
 				);
 			});
 
-			it('should call fork pipelines with matching processor', async () => {
+			it('should call apply pipelines with matching processor', async () => {
 				await processor.apply(blockV0);
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 				verifySteps.forEach(step => {
