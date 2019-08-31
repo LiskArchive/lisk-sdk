@@ -61,6 +61,7 @@ describe('processor', () => {
 		loggerStub = {
 			debug: jest.fn(),
 			info: jest.fn(),
+			warn: jest.fn(),
 			error: jest.fn(),
 		};
 		blocksModuleStub = {
@@ -1430,58 +1431,7 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when skip is false and genesis block is not stored yet (scratch)', () => {
-			beforeEach(async () => {
-				blocksModuleStub.exists.mockResolvedValue(false);
-				await processor.applyGenesisBlock(genesisBlock, false);
-				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
-			});
-
-			it('should call exists on blocksModule', async () => {
-				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
-			});
-
-			it('should apply genesis block', async () => {
-				applyGenesisSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{ block: genesisBlock, tx: txStub },
-						undefined,
-					);
-				});
-			});
-
-			it('should save genesis block without skipSave', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: genesisBlock,
-					tx: txStub,
-					skipSave: false,
-				});
-			});
-		});
-
-		describe('when skip is false and genesis block is stored already (already started)', () => {
-			beforeEach(async () => {
-				blocksModuleStub.exists.mockResolvedValue(true);
-				await processor.applyGenesisBlock(genesisBlock, false);
-				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
-			});
-
-			it('should call exists on blocksModule', async () => {
-				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
-			});
-
-			it('should not apply genesis block', async () => {
-				applyGenesisSteps.forEach(step => {
-					expect(step).not.toHaveBeenCalled();
-				});
-			});
-
-			it('should not save genesis block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
-			});
-		});
-
-		describe('when skip is true and genesis block is not stored yet', () => {
+		describe('when genesis block is not stored yet', () => {
 			beforeEach(async () => {
 				blocksModuleStub.exists.mockResolvedValue(false);
 			});
@@ -1508,7 +1458,7 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when skip is true and genesis block is stored already (rebuilding)', () => {
+		describe('when genesis block is stored already (rebuilding)', () => {
 			beforeEach(async () => {
 				blocksModuleStub.exists.mockResolvedValue(true);
 				await processor.applyGenesisBlock(genesisBlock, true);

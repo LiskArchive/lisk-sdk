@@ -56,6 +56,10 @@ class Processor {
 
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
 	async init(genesisBlock) {
+		this.logger.debug(
+			{ id: genesisBlock.id, payloadHash: genesisBlock.payloadHash },
+			'initializing processor',
+		);
 		// do init check for block state. We need to load the blockchain
 		const blockProcessor = this._getBlockProcessor(genesisBlock);
 		await this._processGenesis(genesisBlock, blockProcessor, {
@@ -68,6 +72,7 @@ class Processor {
 	// process is for standard processing of block, especially when received from network
 	async process(block) {
 		return this.sequence.add(async () => {
+			this.logger.debug({ id: block.id }, 'starting to process block');
 			const blockProcessor = this._getBlockProcessor(block);
 			const { lastBlock } = this.blocksModule;
 
@@ -80,18 +85,17 @@ class Processor {
 				throw new Error('Unknown fork status');
 			}
 
-			this.logger.debug({ id: block.id }, 'Received block');
 			// Discarding block
 			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
 				this.logger.debug({ id: block.id }, 'Block already processed');
 				return;
 			}
 			if (forkStatus === FORK_STATUS_DISCARD) {
-				this.logger.info({ id: block.id }, 'Discarding block');
+				this.logger.debug({ id: block.id }, 'Discarding block');
 				return;
 			}
 			if (forkStatus === FORK_STATUS_DOUBLE_FORGING) {
-				this.logger.info(
+				this.logger.warn(
 					{ id: block.id, generatorPublicKey: block.generatorPublicKey },
 					'Discarding block due to double forging',
 				);
@@ -99,19 +103,23 @@ class Processor {
 			}
 			// Discard block and move to different chain
 			if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
+				this.logger.debug({ id: block.id }, 'detected different chain to sync');
 				this.channel.publish('chain:processor:sync');
 				return;
 			}
 			// Replacing a block
 			if (forkStatus === FORK_STATUS_TIE_BREAK) {
-				this.logger.info({ id: lastBlock.id }, 'Reverting block');
+				this.logger.info({ id: lastBlock.id }, 'Received tie breaking block');
 				await blockProcessor.validateNew.run({
 					block,
 					lastBlock,
 				});
-				await this._validate(block, lastBlock, blockProcessor);
+				await blockProcessor.validate.run({
+					block,
+					lastBlock,
+				});
 				const previousLastBlock = cloneDeep(lastBlock);
-				await this._revert(lastBlock, blockProcessor);
+				await this._deleteBlock(lastBlock, blockProcessor);
 				const newLastBlock = this.blocksModule.lastBlock;
 				try {
 					await this._processValidated(block, newLastBlock, blockProcessor);
@@ -130,17 +138,22 @@ class Processor {
 				return;
 			}
 
+			this.logger.debug({ id: lastBlock.id }, 'processing valid block');
 			// Process block as it's valid: FORK_STATUS_VALID_BLOCK
 			await blockProcessor.validateNew.run({
 				block,
 				lastBlock,
 			});
-			await this._validate(block, lastBlock, blockProcessor);
+			await blockProcessor.validate.run({
+				block,
+				lastBlock,
+			});
 			await this._processValidated(block, lastBlock, blockProcessor);
 		});
 	}
 
 	async create(values) {
+		this.logger.debug({ data: values }, 'creating block');
 		const heghestVersion = Math.max.apply(null, Object.keys(this.processors));
 		const processor = this.processors[heghestVersion];
 		return processor.create.run(values);
@@ -148,14 +161,19 @@ class Processor {
 
 	// validate checks the block statically
 	async validate(block) {
+		this.logger.debug({ id: block.id }, 'validating block');
 		const blockProcessor = this._getBlockProcessor(block);
 		const { lastBlock } = this.blocksModule;
-		await this._validate(block, lastBlock, blockProcessor);
+		await blockProcessor.validate.run({
+			block,
+			lastBlock,
+		});
 	}
 
 	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
 		return this.sequence.add(async () => {
+			this.logger.debug({ id: block.id }, 'processing validated block');
 			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
@@ -167,6 +185,7 @@ class Processor {
 	// apply processes a block assuming that statically it's valid without saving a block
 	async apply(block) {
 		return this.sequence.add(async () => {
+			this.logger.debug({ id: block.id }, 'applying block');
 			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
@@ -179,22 +198,16 @@ class Processor {
 	async deleteLastBlock() {
 		return this.sequence.add(async () => {
 			const { lastBlock } = this.blocksModule;
+			this.logger.debug({ id: lastBlock.id }, 'deleting last block');
 			const blockProcessor = this._getBlockProcessor(lastBlock);
-			await this._revert(lastBlock, blockProcessor);
+			await this._deleteBlock(lastBlock, blockProcessor);
 		});
 	}
 
-	async applyGenesisBlock(block, skipSave = false) {
+	async applyGenesisBlock(block) {
+		this.logger.debug({ id: block.id }, 'applying genesis block');
 		const blockProcessor = this._getBlockProcessor(block);
-		return this._processGenesis(block, blockProcessor, { skipSave });
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	async _validate(block, lastBlock, processor) {
-		await processor.validate.run({
-			block,
-			lastBlock,
-		});
+		return this._processGenesis(block, blockProcessor, { skipSave: true });
 	}
 
 	async _processValidated(
@@ -220,6 +233,7 @@ class Processor {
 				lastBlock,
 				tx,
 			});
+			// TODO: move save to inside below condition after moving tick to the block_processor
 			await this.blocksModule.save({ block, tx, skipSave });
 			if (!skipSave) {
 				this.channel.publish('chain:processor:newBlock', {
@@ -264,7 +278,7 @@ class Processor {
 		);
 	}
 
-	async _revert(block, processor) {
+	async _deleteBlock(block, processor) {
 		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
 			await processor.undo.run({
 				block,
