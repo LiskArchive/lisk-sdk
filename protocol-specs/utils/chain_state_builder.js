@@ -47,6 +47,12 @@ class ChainStateBuilder {
 		this.round = 0;
 		this.slot = 0;
 		this.fixedPoint = 10 ** 8;
+		this.fees = {
+			transfer: this.fixedPoint * 0.1,
+			signature: this.fixedPoint * 5,
+			delegate: this.fixedPoint * 25,
+			vote: this.fixedPoint * 1,
+		};
 	}
 
 	transfer(amount) {
@@ -150,7 +156,7 @@ class ChainStateBuilder {
 				case 2:
 					this.updateAccountStateAfterDelegateRegistration(
 						aTransaction.senderId,
-						`${25 * this.fixedPoint}`,
+						this.fees.delegate,
 						aTransaction.asset.delegate.username,
 					);
 					break;
@@ -191,7 +197,10 @@ class ChainStateBuilder {
 
 		// Update sender balance
 		sender.balance = parseInt(
-			new BigNum(sender.balance.toString()).sub(amount).toString(),
+			new BigNum(sender.balance.toString())
+				.sub(amount)
+				.sub(this.fees.transfer)
+				.toString(),
 			10,
 		);
 
