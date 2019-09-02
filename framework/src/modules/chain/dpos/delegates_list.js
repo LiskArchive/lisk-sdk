@@ -74,18 +74,17 @@ class DelegatesList extends EventEmitter {
 		);
 
 		if (!delegatePublicKeys.length) {
+			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
 			delegatePublicKeys = await this.getDelegatePublicKeysSortedByVote();
-			await this.storage.entities.RoundDelegates.create({
-				round,
-				delegatePublicKeys,
-			});
-		}
 
-		const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
-
-		if (!ignoreDelegateListCacheForRounds.includes(round)) {
-			// If the round is not an exception, cache the round.
-			this.delegateListCache[round] = delegatePublicKeys;
+			// If the round is not an exception, create entry in the database and cache the list.
+			if (!ignoreDelegateListCacheForRounds.includes(round)) {
+				await this.storage.entities.RoundDelegates.create({
+					round,
+					delegatePublicKeys,
+				});
+				this.delegateListCache[round] = delegatePublicKeys;
+			}
 		}
 
 		return delegatePublicKeys;
