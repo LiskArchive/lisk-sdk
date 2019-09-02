@@ -12,12 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	DEFAULT_EVICTION_THRESHOLD_TIME,
+	DEFAULT_NEW_PEER_BUCKET_COUNT,
+	DEFAULT_NEW_PEER_BUCKET_SIZE,
+} from '../constants';
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
-export const DEFAULT_NEW_PEER_BUCKET_COUNT = 128;
-export const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
-export const DEFAULT_EVICTION_THRESHOLD_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds;
+interface NewPeerInfo {
+	readonly peerInfo: P2PPeerInfo;
+	readonly dateAdded: Date;
+}
+
+interface AddPeerOutcome {
+	readonly success: boolean;
+	readonly isEvicted: boolean;
+	readonly evictedPeer?: P2PPeerInfo;
+}
 
 export interface NewPeerConfig {
 	readonly evictionThresholdTime?: number;
@@ -25,16 +37,7 @@ export interface NewPeerConfig {
 	readonly newPeerBucketSize?: number;
 	readonly secret: number;
 }
-interface NewPeerInfo {
-	readonly peerInfo: P2PPeerInfo;
-	readonly dateAdded: Date;
-}
 
-export interface AddPeerOutcome {
-	readonly success: boolean;
-	readonly isEvicted: boolean;
-	readonly evictedPeer?: P2PPeerInfo;
-}
 export class NewPeers {
 	private readonly _newPeerMap: Map<number, Map<string, NewPeerInfo>>;
 	private readonly _newPeerBucketCount: number;

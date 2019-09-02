@@ -12,18 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	DEFAULT_MAX_RECONNECT_TRIES,
+	DEFAULT_TRIED_PEER_BUCKET_SIZE,
+	DEFAULT_TRIED_PEER_LIST_SIZE,
+} from '../constants';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
-export const DEFAULT_TRIED_PEER_LIST_SIZE = 64;
-export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
-export const DEFAULT_MAX_RECONNECT_TRIES = 3;
-
-export interface TriedPeerConfig {
-	readonly triedPeerBucketCount?: number;
-	readonly triedPeerBucketSize?: number;
-	readonly maxReconnectTries?: number;
-	readonly secret: number;
+interface AddPeerOutcome {
+	readonly success: boolean;
+	readonly evicted: boolean;
+	readonly evictedPeer?: P2PPeerInfo;
 }
 
 interface TriedPeerInfo {
@@ -33,10 +33,11 @@ interface TriedPeerInfo {
 	readonly dateAdded: Date;
 }
 
-export interface AddPeerOutcome {
-	readonly success: boolean;
-	readonly evicted: boolean;
-	readonly evictedPeer?: P2PPeerInfo;
+export interface TriedPeerConfig {
+	readonly triedPeerBucketCount?: number;
+	readonly triedPeerBucketSize?: number;
+	readonly maxReconnectTries?: number;
+	readonly secret: number;
 }
 
 export class TriedPeers {

@@ -12,13 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { EventEmitter } from 'events';
+import * as socketClusterClient from 'socketcluster-client';
+import { SCServerSocket } from 'socketcluster-server';
 import {
+	DEFAULT_PRODUCTIVITY,
+	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
-} from '../disconnect_status_codes';
+} from '../constants';
 import { RPCResponseError } from '../errors';
+import {
+	EVENT_BAN_PEER,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_INVALID_MESSAGE_RECEIVED,
+	EVENT_INVALID_REQUEST_RECEIVED,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_RPC_GET_NODE_INFO,
+	REMOTE_EVENT_RPC_GET_PEERS_LIST,
+	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
+} from '../events';
 import { P2PRequest } from '../p2p_request';
 import {
 	P2PDiscoveredPeerInfo,
@@ -30,16 +51,26 @@ import {
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
 } from '../p2p_types';
-import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
-
-import * as socketClusterClient from 'socketcluster-client';
-import { SCServerSocket } from 'socketcluster-server';
 import {
+	constructPeerIdFromPeerInfo,
+	getNetgroup,
 	validatePeerInfo,
 	validatePeersInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
-} from '../validation';
+} from '../utils';
+
+type SCClientSocket = socketClusterClient.SCClientSocket;
+
+// Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
+const RATE_NORMALIZATION_FACTOR = 1000;
+
+interface Productivity {
+	readonly requestCounter: number;
+	readonly responseCounter: number;
+	readonly responseRate: number;
+	readonly lastResponded: number;
+}
 
 export interface ClientOptionsUpdated {
 	readonly hostname: string;
@@ -53,58 +84,11 @@ export interface ClientOptionsUpdated {
 	readonly maxPayload?: number;
 }
 
-export interface Productivity {
-	readonly requestCounter: number;
-	readonly responseCounter: number;
-	readonly responseRate: number;
-	readonly lastResponded: number;
-}
-
 export type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 	on(event: string | unknown, listener: (packet?: unknown) => void): void;
 	on(event: string, listener: (packet: any, respond: any) => void): void;
 } & SCServerSocket;
-
-type SCClientSocket = socketClusterClient.SCClientSocket;
-
-// Local emitted events.
-export const EVENT_REQUEST_RECEIVED = 'requestReceived';
-export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
-export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
-export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
-export const EVENT_BAN_PEER = 'banPeer';
-export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
-export const EVENT_UNBAN_PEER = 'unbanPeer';
-export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
-export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
-export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
-	'failedToCollectPeerDetailsOnConnect';
-export const EVENT_FAILED_TO_FETCH_PEERS = 'failedToFetchPeers';
-export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
-export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
-
-// Remote event or RPC names sent to or received from peers.
-export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
-export const REMOTE_EVENT_MESSAGE = 'remote-message';
-
-export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
-export const REMOTE_RPC_GET_NODE_INFO = 'status';
-export const REMOTE_RPC_GET_PEERS_LIST = 'list';
-
-export const DEFAULT_CONNECT_TIMEOUT = 2000;
-export const DEFAULT_ACK_TIMEOUT = 2000;
-export const DEFAULT_REPUTATION_SCORE = 100;
-export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 20000;
-export const DEFAULT_PRODUCTIVITY = {
-	requestCounter: 0,
-	responseCounter: 0,
-	responseRate: 0,
-	lastResponded: 0,
-};
-
-// Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
-const RATE_NORMALIZATION_FACTOR = 1000;
 
 export enum ConnectionState {
 	CONNECTING = 'connecting',
@@ -279,9 +263,9 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (rawRequest.procedure === REMOTE_RPC_UPDATE_PEER_INFO) {
+			if (rawRequest.procedure === REMOTE_EVENT_RPC_UPDATE_PEER_INFO) {
 				this._handleUpdatePeerInfo(request);
-			} else if (rawRequest.procedure === REMOTE_RPC_GET_NODE_INFO) {
+			} else if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
 				this._handleGetNodeInfo(request);
 			}
 
@@ -427,7 +411,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = convertNodeInfoToLegacyFormat(this._nodeInfo);
 		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
 		await this.request({
-			procedure: REMOTE_RPC_UPDATE_PEER_INFO,
+			procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 			data: legacyNodeInfo,
 		});
 	}
@@ -461,7 +445,7 @@ export class Peer extends EventEmitter {
 			// Emit legacy remote events.
 			this._socket.emit(packet.event, packet.data);
 		} else {
-			this._socket.emit(REMOTE_EVENT_MESSAGE, {
+			this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
 				event: packet.event,
 				data: packet.data,
 			});
@@ -478,7 +462,7 @@ export class Peer extends EventEmitter {
 					throw new Error('Peer socket does not exist');
 				}
 				this._socket.emit(
-					REMOTE_EVENT_RPC_REQUEST,
+					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
 						type: '/RPCRequest',
 						procedure: packet.procedure,
@@ -512,7 +496,7 @@ export class Peer extends EventEmitter {
 	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
-				procedure: REMOTE_RPC_GET_PEERS_LIST,
+				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
 
 			return validatePeersInfoList(
@@ -544,7 +528,7 @@ export class Peer extends EventEmitter {
 		let response: P2PResponsePacket;
 		try {
 			response = await this.request({
-				procedure: REMOTE_RPC_GET_NODE_INFO,
+				procedure: REMOTE_EVENT_RPC_GET_NODE_INFO,
 			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);

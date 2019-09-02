@@ -17,12 +17,32 @@
  * The purpose of the PeerPool is to provide a simple interface for selecting,
  * interacting with and handling aggregated events from a collection of peers.
  */
-
 import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
+import { EVICTED_PEER_CODE, INTENTIONAL_DISCONNECT_CODE } from './constants';
 import { RequestFailError, SendFailError } from './errors';
+import {
+	EVENT_BAN_PEER,
+	EVENT_CLOSE_INBOUND,
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_INBOUND_SOCKET_ERROR,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_REMOVE_PEER,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_UNBAN_PEER,
+	EVENT_UPDATED_PEER_INFO,
+} from './events';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -38,53 +58,8 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
-import {
-	ConnectionState,
-	EVENT_BAN_PEER,
-	EVENT_CLOSE_INBOUND,
-	EVENT_CLOSE_OUTBOUND,
-	EVENT_CONNECT_ABORT_OUTBOUND,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
-	EVENT_INBOUND_SOCKET_ERROR,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_OUTBOUND_SOCKET_ERROR,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_UNBAN_PEER,
-	EVENT_UPDATED_PEER_INFO,
-	InboundPeer,
-	OutboundPeer,
-	Peer,
-} from './peer';
-import { getUniquePeersbyIp } from './peer_selection';
-import { constructPeerIdFromPeerInfo } from './utils';
-
-import { EVICTED_PEER_CODE } from './disconnect_status_codes';
-
-export {
-	EVENT_CLOSE_INBOUND,
-	EVENT_CLOSE_OUTBOUND,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_CONNECT_ABORT_OUTBOUND,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_OUTBOUND_SOCKET_ERROR,
-	EVENT_INBOUND_SOCKET_ERROR,
-	EVENT_UPDATED_PEER_INFO,
-	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_BAN_PEER,
-	EVENT_UNBAN_PEER,
-	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
-	EVENT_DISCOVERED_PEER,
-};
+import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
+import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
 interface PeerPoolConfig {
 	readonly ackTimeout?: number;
@@ -110,18 +85,6 @@ interface PeerPoolConfig {
 	readonly secret: number;
 }
 
-export const MAX_PEER_LIST_BATCH_SIZE = 100;
-export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
-export const EVENT_REMOVE_PEER = 'removePeer';
-export const INTENTIONAL_DISCONNECT_STATUS_CODE = 1000;
-
-export enum PROTECTION_CATEGORY {
-	NET_GROUP = 'netgroup',
-	LATENCY = 'latency',
-	RESPONSE_RATE = 'responseRate',
-	CONNECT_TIME = 'connectTime',
-}
-
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
 	readonly percentage: number;
@@ -131,6 +94,7 @@ interface FilterPeersOptions {
 interface IndexablePeer {
 	readonly [key: string]: number;
 }
+
 const filterPeersByCategory = (
 	peers: Peer[],
 	options: FilterPeersOptions,
@@ -148,6 +112,13 @@ const filterPeersByCategory = (
 		)
 		.slice(peerCount, peers.length);
 };
+
+enum PROTECTION_CATEGORY {
+	NET_GROUP = 'netgroup',
+	LATENCY = 'latency',
+	RESPONSE_RATE = 'responseRate',
+	CONNECT_TIME = 'connectTime',
+}
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -514,7 +485,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.forEach((peer: Peer) => {
 			this.removePeer(
 				peer.id,
-				INTENTIONAL_DISCONNECT_STATUS_CODE,
+				INTENTIONAL_DISCONNECT_CODE,
 				`Intentionally removed peer ${peer.id}`,
 			);
 		});
