@@ -60,11 +60,11 @@ class ChainStateBuilder {
 		return {
 			from: addressFrom => ({
 				to: addressTo => {
-					const amountBedows = `${amount * this.fixedPoint}`;
+					const amountBeddows = `${amount * this.fixedPoint}`;
 
 					const transferTx = new TransferTransaction(
 						transferLisk({
-							amount: amountBedows,
+							amount: amountBeddows,
 							passphrase: Object.values(this.state.accounts).find(
 								anAccount => anAccount.address === addressFrom,
 							).passphrase,
@@ -186,7 +186,7 @@ class ChainStateBuilder {
 
 		if (!sender) {
 			throw new Error(
-				'Sender does not exists so it would not be possible to transfer form this account. Check the values passed to the constructor',
+				'Sender does not exists so it would not be possible to transfer from this account. Check the values passed to the constructor',
 			);
 		}
 
