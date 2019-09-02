@@ -103,7 +103,7 @@ class Processor {
 			}
 			// Discard block and move to different chain
 			if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
-				this.logger.debug({ id: block.id }, 'detected different chain to sync');
+				this.logger.debug({ id: block.id }, 'Detected different chain to sync');
 				this.channel.publish('chain:processor:sync');
 				return;
 			}
