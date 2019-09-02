@@ -52,6 +52,7 @@ class ChainStateBuilder {
 			signature: this.fixedPoint * 5,
 			delegate: this.fixedPoint * 25,
 			vote: this.fixedPoint * 1,
+			multisignature: this.fixedPoint * 5,
 		};
 	}
 
