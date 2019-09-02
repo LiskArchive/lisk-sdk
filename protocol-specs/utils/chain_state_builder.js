@@ -42,6 +42,7 @@ class ChainStateBuilder {
 			initialAccountStore: cloneDeep(initialAccountsStates),
 			pendingTransactions: [],
 			appliedTransactions: [],
+			inputBlock: [],
 		};
 		this.round = 0;
 		this.slot = 0;
@@ -53,6 +54,7 @@ class ChainStateBuilder {
 			from: addressFrom => ({
 				to: addressTo => {
 					const amountBedows = `${amount * this.fixedPoint}`;
+
 					const transferTx = new TransferTransaction(
 						transferLisk({
 							amount: amountBedows,
@@ -66,12 +68,6 @@ class ChainStateBuilder {
 					);
 					// Push it to pending transaction
 					this.state.pendingTransactions.push(transferTx);
-					// Update accounts
-					this.updateAccountBalancesAfterTransfer(
-						addressFrom,
-						addressTo,
-						amountBedows,
-					);
 					return this;
 				},
 			}),
@@ -81,8 +77,6 @@ class ChainStateBuilder {
 	registerDelegate(delegateName) {
 		return {
 			for: delegateAddress => {
-				const amountBedows = `${25 * this.fixedPoint}`;
-
 				const registerDelegateTx = new DelegateTransaction(
 					registerDelegate({
 						username: delegateName,
@@ -93,27 +87,14 @@ class ChainStateBuilder {
 				);
 				// Push it to pending transaction
 				this.state.pendingTransactions.push(registerDelegateTx);
-				this.updateAccountStateAfterDelegateRegistration(
-					delegateAddress,
-					amountBedows,
-					delegateName,
-				);
 				return this;
 			},
 		};
 	}
 
-	// Forge a block with pending transactions. If invalidBlock is set to true it can be used
-	// to signal a block that should be empty due to invalid transactions previously added to the state
-	forge(invalidBlock = false) {
+	forge() {
 		const latestsAccountState = this.state.accountStore.slice(-1)[0];
-
-		let transactionsToBeIncluded = [...this.state.pendingTransactions];
-
-		if (invalidBlock) {
-			transactionsToBeIncluded = [];
-			this.state.accountStore.pop();
-		}
+		this.processBlockTransactions(this.state.pendingTransactions);
 
 		const newBlock = createBlock(
 			defaultConfig,
@@ -123,14 +104,60 @@ class ChainStateBuilder {
 			this.slot,
 			{
 				version: 1,
-				transactions: transactionsToBeIncluded,
+				transactions: [...this.state.pendingTransactions],
 			},
 		);
 
 		this.state.chain.push(newBlock);
 		this.previousBlock = newBlock;
-		this.state.appliedTransactions.push(transactionsToBeIncluded);
+		this.state.appliedTransactions.push([...this.state.pendingTransactions]);
 		this.state.pendingTransactions = [];
+		return this;
+	}
+
+	forgeInvalidInputBlock() {
+		const latestsAccountState = this.state.accountStore.slice(-1)[0];
+
+		const newBlock = createBlock(
+			defaultConfig,
+			latestsAccountState,
+			this.previousBlock,
+			this.round,
+			this.slot,
+			{
+				version: 1,
+				transactions: [...this.state.pendingTransactions],
+			},
+		);
+
+		this.state.inputBlock.push(newBlock);
+		this.state.appliedTransactions.push(...this.state.pendingTransactions);
+		this.state.pendingTransactions = [];
+		return this;
+	}
+
+	processBlockTransactions() {
+		// eslint-disable-next-line no-restricted-syntax
+		for (const aTransaction of this.state.pendingTransactions) {
+			switch (aTransaction.type) {
+				case 0:
+					this.updateAccountBalancesAfterTransfer(
+						aTransaction.senderId,
+						aTransaction.recipientId,
+						aTransaction.amount.toString(),
+					);
+					break;
+				case 2:
+					this.updateAccountStateAfterDelegateRegistration(
+						aTransaction.senderId,
+						`${25 * this.fixedPoint}`,
+						aTransaction.asset.delegate.username,
+					);
+					break;
+				default:
+					break;
+			}
+		}
 		return this;
 	}
 
@@ -139,6 +166,7 @@ class ChainStateBuilder {
 			initialAccountsState: this.state.initialAccountStore,
 			finalAccountsState: this.state.accountStore,
 			chain: this.state.chain,
+			inputBlock: this.state.inputBlock,
 		};
 	}
 

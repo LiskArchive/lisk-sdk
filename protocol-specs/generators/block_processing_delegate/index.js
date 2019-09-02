@@ -165,11 +165,10 @@ const generateTestCasesInvalidBlockDelegateRegistrationSecondTime = () => {
 		.for('2222471382442610527L')
 		.forge();
 
-	const invalidBlock = true;
 	chainStateBuilder
 		.registerDelegate('RadioHead')
 		.for('2222471382442610527L')
-		.forge(invalidBlock);
+		.forgeInvalidInputBlock();
 
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
@@ -178,7 +177,46 @@ const generateTestCasesInvalidBlockDelegateRegistrationSecondTime = () => {
 			chain: chainAndAccountStates.chain.slice(0, 3),
 			accounts: chainAndAccountStates.initialAccountsState,
 		},
-		input: chainAndAccountStates.chain.slice(3),
+		input: chainAndAccountStates.inputBlock,
+		output: {
+			chain: chainAndAccountStates.chain,
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+		},
+	};
+};
+
+const generateTestCasesInvalidBlockDelegateRegistrationForbiddenName = () => {
+	const chainStateBuilder = new ChainStateBuilder(
+		genesisBlock,
+		initialAccountsState,
+		accounts,
+	);
+
+	chainStateBuilder
+		.transfer('50')
+		.from('16313739661670634666L')
+		.to('10881167371402274308L')
+		.forge();
+
+	chainStateBuilder
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('2222471382442610527L')
+		.forge();
+
+	chainStateBuilder
+		.registerDelegate('2222471382442610527L')
+		.for('2222471382442610527L')
+		.forgeInvalidInputBlock();
+
+	const chainAndAccountStates = chainStateBuilder.getScenario();
+
+	return {
+		initialState: {
+			chain: chainAndAccountStates.chain.slice(0, 2),
+			accounts: chainAndAccountStates.initialAccountsState,
+		},
+		input: chainAndAccountStates.inputBlock,
 		output: {
 			chain: chainAndAccountStates.chain,
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
@@ -204,7 +242,17 @@ const invalidBlockWithSecondDelegateRegistrationSuite = () => ({
 	testCases: generateTestCasesInvalidBlockDelegateRegistrationSecondTime(),
 });
 
+const invalidBlockWithForbiddenNameDelegateRegistrationSuite = () => ({
+	title: 'Invalid block processing',
+	summary: 'An invalid block with a delegate registration using invalid name',
+	config: 'mainnet',
+	runner: 'block_processing_delegate',
+	handler: 'invalid_block_processing_forbidden_name_delegate_registration_tx',
+	testCases: generateTestCasesInvalidBlockDelegateRegistrationForbiddenName(),
+});
+
 module.exports = BaseGenerator.runGenerator('block_processing_delegate', [
 	validBlockWithDelegateRegistrationSuite,
 	invalidBlockWithSecondDelegateRegistrationSuite,
+	invalidBlockWithForbiddenNameDelegateRegistrationSuite,
 ]);
