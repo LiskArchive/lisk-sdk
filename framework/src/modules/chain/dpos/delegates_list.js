@@ -58,7 +58,7 @@ class DelegatesList extends EventEmitter {
 		const filters = { isDelegate: true };
 		const options = {
 			limit: this.activeDelegates,
-			sort: ['vote:desc', 'publicKey:asc'],
+			sort: ['voteWeight:desc', 'publicKey:asc'],
 		};
 		const accounts = await this.storage.entities.Account.get(filters, options);
 		return accounts.map(account => account.publicKey);
