@@ -224,8 +224,12 @@ const prepare = async (stateStore, transaction) => {
 	];
 
 	const cacheFilter = senderRecipientVotedPublicKeys.map(publicKey => ({
-		address: getAddressFromPublicKey(publicKey),
+		publicKey,
 	}));
+
+	if (cacheFilter.length === 0) {
+		return true;
+	}
 
 	return stateStore.account.cache(cacheFilter);
 };

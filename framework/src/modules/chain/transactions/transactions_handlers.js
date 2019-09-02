@@ -115,8 +115,17 @@ const applyGenesisTransactions = storage => async (
 		tx,
 	});
 
-	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-	await Promise.all(transactions.map(t => votesWeight.prepare(stateStore, t)));
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await transaction.prepare(stateStore);
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await votesWeight.prepare(stateStore, transaction);
+	}
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.apply(stateStore);
