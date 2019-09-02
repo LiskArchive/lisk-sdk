@@ -108,13 +108,13 @@ export class TriedPeers extends BasePeerList {
 
 			return true;
 		}
-		const newTriedPeerInfo = {
+		const updatedTriedPeerInfo = {
 			peerInfo,
 			numOfConnectionFailures: numOfConnectionFailures + 1,
 			dateAdded,
 		};
 
-		bucket.set(incomingPeerId, newTriedPeerInfo);
+		bucket.set(incomingPeerId, updatedTriedPeerInfo);
 		this.peerMap.set(bucketId, bucket);
 
 		return false;

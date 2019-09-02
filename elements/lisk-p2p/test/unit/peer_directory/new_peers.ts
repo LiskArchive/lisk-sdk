@@ -17,7 +17,7 @@ import {
 	NewPeers,
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_NEW_BUCKET_COUNT,
-} from '../../../src/peer_directory/new_peers';
+} from '../../../src/peer_directory/new_list';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE, constructPeerIdFromPeerInfo } from '../../../src/utils';

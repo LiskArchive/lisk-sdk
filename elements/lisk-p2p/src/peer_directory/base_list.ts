@@ -113,10 +113,10 @@ export class BasePeerList {
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
 		if (bucket && bucket.get(incomingPeerId)) {
-			const success = bucket.delete(incomingPeerId);
+			const result = bucket.delete(incomingPeerId);
 			this.peerMap.set(bucketId, bucket);
 
-			return success;
+			return result;
 		}
 
 		return false;
@@ -185,9 +185,9 @@ export class BasePeerList {
 
 	// This action is called when a peer is disconnected
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const success = this.removePeer(incomingPeerInfo);
+		const result = this.removePeer(incomingPeerInfo);
 
-		return success;
+		return result;
 	}
 
 	public evictPeer(bucketId: number): CustomPeerInfo {
