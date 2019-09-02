@@ -138,7 +138,7 @@ class Processor {
 				return;
 			}
 
-			this.logger.debug({ id: lastBlock.id }, 'processing valid block');
+			this.logger.debug({ id: lastBlock.id }, 'Processing valid block');
 			// Process block as it's valid: FORK_STATUS_VALID_BLOCK
 			await blockProcessor.validateNew.run({
 				block,
