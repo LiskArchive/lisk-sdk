@@ -197,13 +197,10 @@ class ChainStateBuilder {
 		}
 
 		// Update sender balance
-		sender.balance = parseInt(
-			new BigNum(sender.balance.toString())
-				.sub(amount)
-				.sub(this.fees.transfer)
-				.toString(),
-			10,
-		);
+		sender.balance = new BigNum(sender.balance.toString())
+			.sub(amount)
+			.sub(this.fees.transfer)
+			.toString();
 
 		// If recipient does not exists create the account
 		if (!recipient) {
@@ -212,16 +209,14 @@ class ChainStateBuilder {
 					anAccount => anAccount.address === to,
 				),
 			);
-			newAccount.balance = parseInt(
-				new BigNum(newAccount.balance.toString()).add(amount).toString(),
-				10,
-			);
+			newAccount.balance = new BigNum(newAccount.balance.toString())
+				.add(amount)
+				.toString();
 			newAccountStoreState.push(newAccount);
 		} else {
-			recipient.balance = parseInt(
-				new BigNum(recipient.balance.toString()).add(amount).toString(),
-				10,
-			);
+			recipient.balance = new BigNum(recipient.balance.toString())
+				.add(amount)
+				.toString();
 		}
 
 		this.state.accountStore.push(newAccountStoreState);
@@ -240,10 +235,9 @@ class ChainStateBuilder {
 			);
 		}
 		// Update sender balance
-		sender.balance = parseInt(
-			new BigNum(sender.balance.toString()).sub(amount).toString(),
-			10,
-		);
+		sender.balance = new BigNum(sender.balance.toString())
+			.sub(amount)
+			.toString();
 		sender.username = delegateName;
 		sender.isDelegate = true;
 

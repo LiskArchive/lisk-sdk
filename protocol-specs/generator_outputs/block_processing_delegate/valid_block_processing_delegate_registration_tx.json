@@ -19,21 +19,21 @@
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 					"transactions": [
 						{
-							"id": "3770798053815405782",
+							"id": "16314749574547647287",
 							"amount": "5000000000",
 							"type": 0,
-							"timestamp": 103307278,
+							"timestamp": 103309958,
 							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 							"senderId": "16313739661670634666L",
 							"recipientId": "10881167371402274308L",
 							"fee": "10000000",
-							"signature": "f46c45dcc556def07422d9459f9b5c4df5bc82019ec3afbb8c906a272baa8264e33ae9ac2aa82778e8b4db15c71cb0990153cd5b4e6853d6b4f79720d76bc801",
+							"signature": "0c7a9874a9280dbcd1476ae0d175004fc6c7b83c66761d1ab95dc90f3850f1ad1109a3c91d56877636595f5f9795cf3c88b7d76d4523b1ae848e53d966e86603",
 							"signatures": [],
 							"asset": {}
 						}
 					],
-					"payloadHash": "d6cc66f5d990543437d291a6153dced3d9c3bf5709c3c07c6c31ec0e8dc52382",
-					"blockSignature": "7ab5e84fccfb1d0b158710f376eb2247454ef9d63b30a712f02e6de8ee75799289c9a4d5738eeabcb2a84a13cc3a14d4d2b4a1fe96aff0a46e82ccd88554a804",
+					"payloadHash": "372b5e7e4ca269e2a285d661dec0616d564eacb170fbe113d997d43df6505e11",
+					"blockSignature": "a1692cfb0efe700b08ac0c32dc15213c031e839243145d0e3f257fecbca5af55b45f14c60881e9c66a09badf0dc0a0d071f6860fd4280d28c2bbc644cf62420f",
 					"height": 2
 				},
 				{
@@ -47,21 +47,21 @@
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 					"transactions": [
 						{
-							"id": "13379989271704231791",
+							"id": "6298851632453615888",
 							"amount": "3000000000",
 							"type": 0,
-							"timestamp": 103307278,
+							"timestamp": 103309959,
 							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 							"senderId": "10881167371402274308L",
 							"recipientId": "2222471382442610527L",
 							"fee": "10000000",
-							"signature": "2a9e90982eee133aceb16dbf8e631fabb18e36d747cb35650f19f00a0c2dcd2b1b722f2945c6b1cacd6cedac65fffa8c41982e6fbd5e878b6955a47ba1f40c06",
+							"signature": "1c0ce828f79f82ef6f417519db4b861df07c44cb54d47428fa4833444537328fc8cd266035eb00a853d8464a22f930d341c425abcae2703a6f8fc69ddb124102",
 							"signatures": [],
 							"asset": {}
 						}
 					],
-					"payloadHash": "6fdf77365a45afb963e056f858ddf5bd7a94e47e41cb150bb55d179e36762878",
-					"blockSignature": "ce89bd93b510e9ade5e802c6aa1dcd96c3749fa8396dd3e1fd23881b46f402e332cdbe18f7264b98a7af5da2a3fd999eb51d9c30ea32b9482b176ae982121a0d",
+					"payloadHash": "108149dd2f046a5737f2313da822344c0aa934ccc33802d90cd7f84a39b50a40",
+					"blockSignature": "249f36c8908866e78da01b02e562ba816c8405cc398f73a9833b67462380bf61f1e83c0469d4bbe721309cdc7e354da8c6ff81740605160a9e8b0ea078c43200",
 					"height": 3
 				}
 			],
@@ -118,15 +118,15 @@
 				"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 				"transactions": [
 					{
-						"id": "11041616002916433325",
+						"id": "14370477604617796651",
 						"amount": "0",
 						"type": 2,
-						"timestamp": 103307278,
+						"timestamp": 103309959,
 						"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
 						"senderId": "2222471382442610527L",
 						"recipientId": "",
 						"fee": "2500000000",
-						"signature": "793f083502a8df12bfb29c927765e241ac0aa64fc4812e2c4b8388db58766cee98c5cfe3cc943e82e310ff5e9b9dc86bb1213e976f4be81a2e4db41a778a0105",
+						"signature": "bdb24d0fa9b799a7527aa6d3f738a2f1397d5a804e98e56685d4aa09016f14b89c69925544fd99a313d47ebffa1dd0e5f79b86271e7bfc9af57678431580c70e",
 						"signatures": [],
 						"asset": {
 							"delegate": {
@@ -135,8 +135,8 @@
 						}
 					}
 				],
-				"payloadHash": "ad3d1af040b33b9997e7082931f6013a846bd2a6ffa74c31885e71da5f1acb19",
-				"blockSignature": "96591ed13c9389d03ae446ad99491e2930675047c900316b395b9d70e61eb55904a28f49fa5295d1dd543db32de831718463189a9a63768ae549bb6e0838d806",
+				"payloadHash": "2b3cf34b3e316ec76a4518a3dacaf2475b9cfcab24ff9a215a2183cfb1dc6e37",
+				"blockSignature": "0c07a178f10536cf2412dd22d0b6af87fc2ba7cbd809a830035c105f71ef95fc233115211bc6f0fea56714ec0d66c318edf51a980a0a01958cc30813a6276d0d",
 				"height": 4
 			}
 		],
@@ -154,21 +154,21 @@
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 					"transactions": [
 						{
-							"id": "3770798053815405782",
+							"id": "16314749574547647287",
 							"amount": "5000000000",
 							"type": 0,
-							"timestamp": 103307278,
+							"timestamp": 103309958,
 							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 							"senderId": "16313739661670634666L",
 							"recipientId": "10881167371402274308L",
 							"fee": "10000000",
-							"signature": "f46c45dcc556def07422d9459f9b5c4df5bc82019ec3afbb8c906a272baa8264e33ae9ac2aa82778e8b4db15c71cb0990153cd5b4e6853d6b4f79720d76bc801",
+							"signature": "0c7a9874a9280dbcd1476ae0d175004fc6c7b83c66761d1ab95dc90f3850f1ad1109a3c91d56877636595f5f9795cf3c88b7d76d4523b1ae848e53d966e86603",
 							"signatures": [],
 							"asset": {}
 						}
 					],
-					"payloadHash": "d6cc66f5d990543437d291a6153dced3d9c3bf5709c3c07c6c31ec0e8dc52382",
-					"blockSignature": "7ab5e84fccfb1d0b158710f376eb2247454ef9d63b30a712f02e6de8ee75799289c9a4d5738eeabcb2a84a13cc3a14d4d2b4a1fe96aff0a46e82ccd88554a804",
+					"payloadHash": "372b5e7e4ca269e2a285d661dec0616d564eacb170fbe113d997d43df6505e11",
+					"blockSignature": "a1692cfb0efe700b08ac0c32dc15213c031e839243145d0e3f257fecbca5af55b45f14c60881e9c66a09badf0dc0a0d071f6860fd4280d28c2bbc644cf62420f",
 					"height": 2
 				},
 				{
@@ -182,21 +182,21 @@
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 					"transactions": [
 						{
-							"id": "13379989271704231791",
+							"id": "6298851632453615888",
 							"amount": "3000000000",
 							"type": 0,
-							"timestamp": 103307278,
+							"timestamp": 103309959,
 							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 							"senderId": "10881167371402274308L",
 							"recipientId": "2222471382442610527L",
 							"fee": "10000000",
-							"signature": "2a9e90982eee133aceb16dbf8e631fabb18e36d747cb35650f19f00a0c2dcd2b1b722f2945c6b1cacd6cedac65fffa8c41982e6fbd5e878b6955a47ba1f40c06",
+							"signature": "1c0ce828f79f82ef6f417519db4b861df07c44cb54d47428fa4833444537328fc8cd266035eb00a853d8464a22f930d341c425abcae2703a6f8fc69ddb124102",
 							"signatures": [],
 							"asset": {}
 						}
 					],
-					"payloadHash": "6fdf77365a45afb963e056f858ddf5bd7a94e47e41cb150bb55d179e36762878",
-					"blockSignature": "ce89bd93b510e9ade5e802c6aa1dcd96c3749fa8396dd3e1fd23881b46f402e332cdbe18f7264b98a7af5da2a3fd999eb51d9c30ea32b9482b176ae982121a0d",
+					"payloadHash": "108149dd2f046a5737f2313da822344c0aa934ccc33802d90cd7f84a39b50a40",
+					"blockSignature": "249f36c8908866e78da01b02e562ba816c8405cc398f73a9833b67462380bf61f1e83c0469d4bbe721309cdc7e354da8c6ff81740605160a9e8b0ea078c43200",
 					"height": 3
 				},
 				{
@@ -210,15 +210,15 @@
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 					"transactions": [
 						{
-							"id": "11041616002916433325",
+							"id": "14370477604617796651",
 							"amount": "0",
 							"type": 2,
-							"timestamp": 103307278,
+							"timestamp": 103309959,
 							"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
 							"senderId": "2222471382442610527L",
 							"recipientId": "",
 							"fee": "2500000000",
-							"signature": "793f083502a8df12bfb29c927765e241ac0aa64fc4812e2c4b8388db58766cee98c5cfe3cc943e82e310ff5e9b9dc86bb1213e976f4be81a2e4db41a778a0105",
+							"signature": "bdb24d0fa9b799a7527aa6d3f738a2f1397d5a804e98e56685d4aa09016f14b89c69925544fd99a313d47ebffa1dd0e5f79b86271e7bfc9af57678431580c70e",
 							"signatures": [],
 							"asset": {
 								"delegate": {
@@ -227,8 +227,8 @@
 							}
 						}
 					],
-					"payloadHash": "ad3d1af040b33b9997e7082931f6013a846bd2a6ffa74c31885e71da5f1acb19",
-					"blockSignature": "96591ed13c9389d03ae446ad99491e2930675047c900316b395b9d70e61eb55904a28f49fa5295d1dd543db32de831718463189a9a63768ae549bb6e0838d806",
+					"payloadHash": "2b3cf34b3e316ec76a4518a3dacaf2475b9cfcab24ff9a215a2183cfb1dc6e37",
+					"blockSignature": "0c07a178f10536cf2412dd22d0b6af87fc2ba7cbd809a830035c105f71ef95fc233115211bc6f0fea56714ec0d66c318edf51a980a0a01958cc30813a6276d0d",
 					"height": 4
 				}
 			],
@@ -241,7 +241,7 @@
 						"username": null,
 						"isDelegate": false,
 						"secondSignature": false,
-						"balance": 9999894980000000,
+						"balance": "9999894980000000",
 						"multiMin": 0,
 						"multiLifetime": 0,
 						"nameExist": false,
@@ -260,7 +260,7 @@
 						"username": "genesis_100",
 						"isDelegate": true,
 						"secondSignature": false,
-						"balance": 1990000000,
+						"balance": "1990000000",
 						"multiMin": 0,
 						"multiLifetime": 0,
 						"nameExist": false,
@@ -279,7 +279,7 @@
 						"username": "RadioHead",
 						"isDelegate": true,
 						"secondSignature": false,
-						"balance": 500000000,
+						"balance": "500000000",
 						"multiMin": 0,
 						"multiLifetime": 0,
 						"nameExist": false,
