@@ -90,7 +90,7 @@ const accounts = {
 		balance: '0',
 		delegateName: 'genesis_100',
 	},
-	newAccount: {
+	secondAccount: {
 		passphrase:
 			'blame address tube insect cost knock major level regret bring april stick',
 		privateKey:
@@ -100,7 +100,7 @@ const accounts = {
 		address: '2222471382442610527L',
 		balance: '0',
 	},
-	newAccount2: {
+	thirdAccount: {
 		passphrase:
 			'female favorite client offer winner loud ostrich rich slogan jacket owner february',
 		privateKey:
@@ -134,12 +134,14 @@ const generateTestCasesValidBlockTransferTx = () => {
 
 	return {
 		initialState: {
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
 			chain: chainAndAccountStates.chain.slice(0, 1),
 			accounts: chainAndAccountStates.initialAccountsState,
 		},
 		input: chainAndAccountStates.chain.slice(1),
 		output: {
 			chain: chainAndAccountStates.chain,
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
 		},
 	};
