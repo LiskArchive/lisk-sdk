@@ -1,9 +1,9 @@
 {
-	"title": "Valid block processing",
-	"summary": "A valid block with a transfer transaction is processed",
+	"title": "Invalid block processing",
+	"summary": "An invalid block with transfers valid on their own but invalid in the context of same block",
 	"config": "mainnet",
 	"runner": "block_processing_transfers",
-	"handler": "valid_block_processing_one_transfer_tx",
+	"handler": "invalid_block_processing_funding_and_transfer_same_block",
 	"testCases": {
 		"initialState": {
 			"chain": [
@@ -81,14 +81,27 @@
 		"input": [
 			{
 				"version": 1,
-				"totalAmount": "4000000000",
-				"totalFee": "10000000",
+				"totalAmount": "6000000000",
+				"totalFee": "20000000",
 				"reward": "0",
 				"timestamp": 20,
-				"numberOfTransactions": 1,
-				"payloadLength": 117,
+				"numberOfTransactions": 2,
+				"payloadLength": 234,
 				"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 				"transactions": [
+					{
+						"id": "10697776538370495000",
+						"amount": "2000000000",
+						"type": 0,
+						"timestamp": 103321489,
+						"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
+						"senderId": "2222471382442610527L",
+						"recipientId": "11325618463998518034L",
+						"fee": "10000000",
+						"signature": "4c4f036b908155d20f40862a3c8c7a89674f7eb3648f4cf12b1cba675706e8358f8634c16d53a24734a3255b348ac15b119aed156324c68fd2d8c2d88649a00f",
+						"signatures": [],
+						"asset": {}
+					},
 					{
 						"id": "1487567153532103921",
 						"amount": "4000000000",
@@ -103,8 +116,8 @@
 						"asset": {}
 					}
 				],
-				"payloadHash": "f1ecd1d571e6a414fe74e164a8b87695daecc5b1502a1c1e05f7ec39f9fe8e59",
-				"blockSignature": "a13b245421f174a4b96ac88e0f18f28d49f5ed89166d21a3cb85387bf088718de9a769ee08767f7d9ae061cc77c5e96c707c727ffd447b952a30e4bed12ba401",
+				"payloadHash": "c3c05672a6649ba844038f2bc77e0f9d7a71bec4d5c18b48f961950f8297ff43",
+				"blockSignature": "535d7de27b1ca77ef1fb7f200c34c4711ee99f14b4776d6616657fbd55a74ee2bac02d6854a83a195e97e4c4412cf37023bf34324d339b34148c16aef765fb04",
 				"height": 3
 			}
 		],
@@ -138,34 +151,6 @@
 					"payloadHash": "0434ee189997bc82aa8ef8390048e36f43a89029bb7234b57104e32735e49bdf",
 					"blockSignature": "04b5d100f2f51f2dea935bc720479dbd74a6df26f8e9953f23229fa0ca933ae3f6bd29e8247a3cffc74802b1bb71428e01056cec5b880e0a1dcb18d371bf4e0b",
 					"height": 2
-				},
-				{
-					"version": 1,
-					"totalAmount": "4000000000",
-					"totalFee": "10000000",
-					"reward": "0",
-					"timestamp": 20,
-					"numberOfTransactions": 1,
-					"payloadLength": 117,
-					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"transactions": [
-						{
-							"id": "1487567153532103921",
-							"amount": "4000000000",
-							"type": 0,
-							"timestamp": 103321489,
-							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-							"senderId": "10881167371402274308L",
-							"recipientId": "2222471382442610527L",
-							"fee": "10000000",
-							"signature": "3967f4506599f14b527447e1a9cf128c0295589127d7ee98549d367a6e3b52d18f07a2b00b719b34f025314c1c928afee7870f7567dfb2e66b2dde2f8608f501",
-							"signatures": [],
-							"asset": {}
-						}
-					],
-					"payloadHash": "f1ecd1d571e6a414fe74e164a8b87695daecc5b1502a1c1e05f7ec39f9fe8e59",
-					"blockSignature": "a13b245421f174a4b96ac88e0f18f28d49f5ed89166d21a3cb85387bf088718de9a769ee08767f7d9ae061cc77c5e96c707c727ffd447b952a30e4bed12ba401",
-					"height": 3
 				}
 			],
 			"accounts": [
@@ -196,7 +181,7 @@
 						"username": "genesis_100",
 						"isDelegate": true,
 						"secondSignature": false,
-						"balance": "990000000",
+						"balance": "5000000000",
 						"multiMin": 0,
 						"multiLifetime": 0,
 						"nameExist": false,
@@ -206,25 +191,6 @@
 						"fees": 0,
 						"rewards": 0,
 						"vote": 9999899990000000,
-						"productivity": 0
-					},
-					{
-						"address": "2222471382442610527L",
-						"publicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-						"secondPublicKey": null,
-						"username": "",
-						"isDelegate": false,
-						"secondSignature": false,
-						"balance": "4000000000",
-						"multiMin": 0,
-						"multiLifetime": 0,
-						"nameExist": false,
-						"missedBlocks": 0,
-						"producedBlocks": 0,
-						"rank": 0,
-						"fees": 0,
-						"rewards": 0,
-						"vote": 0,
 						"productivity": 0
 					}
 				]
