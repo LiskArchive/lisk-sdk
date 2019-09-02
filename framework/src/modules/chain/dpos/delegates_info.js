@@ -138,15 +138,15 @@ class DelegatesInfo {
 				const factor = undo ? -1 : 1;
 				const amount = fee.plus(reward);
 				const data = {
-					...account,
-					balance: account.balance.plus(amount.times(factor)),
-					fees: account.fees.plus(fee.times(factor)),
-					rewards: account.rewards.plus(reward.times(factor)),
+					balance: account.balance.plus(amount.times(factor)).toString(),
+					fees: account.fees.plus(fee.times(factor)).toString(),
+					rewards: account.rewards.plus(reward.times(factor)).toString(),
 				};
 
 				return this.storage.entities.Account.update(
 					{ publicKey: delegatePublicKey },
 					data,
+					{},
 					tx,
 				);
 			},
@@ -232,9 +232,16 @@ class DelegatesInfo {
 				tx,
 			);
 
+			const parsedDelegateAccounts = delegateAccounts.map(account => ({
+				...account,
+				balance: new BigNum(account.balance),
+				rewards: new BigNum(account.rewards),
+				fees: new BigNum(account.fees),
+			}));
+
 			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(item => ({
 				...item,
-				delegateAccount: delegateAccounts.find(
+				delegateAccount: parsedDelegateAccounts.find(
 					({ publicKey }) => publicKey === item.publicKey,
 				),
 			}));
