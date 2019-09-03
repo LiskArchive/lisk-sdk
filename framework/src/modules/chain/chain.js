@@ -207,6 +207,7 @@ module.exports = class Chain {
 					},
 					'Successfully rebuild the blockchain',
 				);
+				process.emit('cleanup');
 				return;
 			}
 
@@ -219,10 +220,6 @@ module.exports = class Chain {
 			// After binding, it should immediately load blockchain
 			await this.processor.init(this.options.genesisBlock);
 
-			if (this.options.loading.rebuildUpToRound) {
-				process.emit('cleanup');
-				return;
-			}
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
