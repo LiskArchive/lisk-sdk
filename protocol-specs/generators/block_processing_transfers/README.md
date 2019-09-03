@@ -1,8 +1,8 @@
 # Block Processing Test Generator
 
-A set of fixture generatos for Transfer transactions
+A set of fixture generators for Transfer transactions
 
-These generators makes use of an experimental library for combining transactions, include them into blocks and generate chain/account states.
+These generators make use of an experimental library for combining transactions, include them into blocks and generate chain/account states.
 The library can be found in the file utils/chain_state_builder.js with this library it's possible to build scenarios fairly quickly with a fluent interface.
 
 Transfer Lisk:
