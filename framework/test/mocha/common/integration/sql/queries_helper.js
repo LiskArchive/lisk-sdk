@@ -61,9 +61,9 @@ class Queries {
 		);
 	}
 
-	getDelegatesOrderedByVote() {
+	getDelegatesOrderedByVoteWeight() {
 		return self.storage.adapter.db.query(
-			`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`,
+			`SELECT "publicKey", "voteWeight" FROM mem_accounts ORDER BY "voteWeight" DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`,
 		);
 	}
 

@@ -86,6 +86,9 @@ class Round {
 		return new Promise((resolve, reject) => {
 			const data = {
 				publicKey: self.scope.block.generatorPublicKey,
+				// Decrement only for backwards because the forward happens during Dpos.apply
+				// This will be completely removed after Dpos.undo is in place (LiskHQ/lisk-sdk/issues/4158)
+				producedBlocks: self.scope.backwards ? -1 : 0,
 				round: self.scope.round,
 			};
 

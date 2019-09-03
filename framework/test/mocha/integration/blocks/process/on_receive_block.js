@@ -885,7 +885,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				});
 			});
 
-			describe('with 100 blocks forged', () => {
+			// eslint-disable-next-line mocha/no-skipped-tests
+			describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: with 100 blocks forged', () => {
 				let secondLastBlock;
 				let lastBlock;
 				let keypair;
