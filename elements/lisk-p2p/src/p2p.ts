@@ -29,6 +29,8 @@ import { REMOTE_RPC_GET_PEERS_LIST } from './peer';
 import { PeerBook } from './peer_directory';
 
 import {
+	DUPLICATE_CONNECTION,
+	DUPLICATE_CONNECTION_REASON,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
@@ -386,9 +388,10 @@ export class P2P extends EventEmitter {
 					}
 				} else {
 					this._peerBook.addPeer(detailedPeerInfo);
+					// Re-emit the message to allow it to bubble up the class hierarchy.
+					// Only emit event when a peer is discovered for the first time.
+					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 				}
-				// Re-emit the message to allow it to bubble up the class hierarchy.
-				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 			}
 		};
 
@@ -728,7 +731,13 @@ export class P2P extends EventEmitter {
 
 				const existingPeer = this._peerPool.getPeer(peerId);
 
-				if (!existingPeer) {
+				if (existingPeer) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						DUPLICATE_CONNECTION,
+						DUPLICATE_CONNECTION_REASON,
+					);
+				} else {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);

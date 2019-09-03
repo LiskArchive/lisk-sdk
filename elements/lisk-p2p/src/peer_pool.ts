@@ -60,6 +60,7 @@ import {
 	InboundPeer,
 	OutboundPeer,
 	Peer,
+	PeerConfig,
 } from './peer';
 import { getUniquePeersbyIp } from './peer_selection';
 import { constructPeerIdFromPeerInfo } from './utils';
@@ -188,11 +189,24 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
+	private readonly _peerConfig: PeerConfig;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
 		this._peerMap = new Map();
 		this._peerPoolConfig = peerPoolConfig;
+		this._peerConfig = {
+			connectTimeout: this._peerPoolConfig.connectTimeout,
+			ackTimeout: this._peerPoolConfig.ackTimeout,
+			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			maxPeerDiscoveryResponseLength: this._peerPoolConfig
+				.maxPeerDiscoveryResponseLength,
+			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
+			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
+			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
+			secret: this._peerPoolConfig.secret,
+		};
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
@@ -308,6 +322,10 @@ export class PeerPool extends EventEmitter {
 
 	public get nodeInfo(): P2PNodeInfo | undefined {
 		return this._nodeInfo;
+	}
+
+	public get peerConfig(): PeerConfig {
+		return { ...this._peerConfig };
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -428,18 +446,9 @@ export class PeerPool extends EventEmitter {
 			this._evictPeer(InboundPeer);
 		}
 
-		const peerConfig = {
-			connectTimeout: this._peerPoolConfig.connectTimeout,
-			ackTimeout: this._peerPoolConfig.ackTimeout,
-			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
-			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
-			maxPeerDiscoveryResponseLength: this._peerPoolConfig
-				.maxPeerDiscoveryResponseLength,
-			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
-			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
-			secret: this._peerPoolConfig.secret,
-		};
-		const peer = new InboundPeer(peerInfo, socket, peerConfig);
+		const peer = new InboundPeer(peerInfo, socket, {
+			...this._peerConfig,
+		});
 
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peer.id)) {
@@ -461,20 +470,7 @@ export class PeerPool extends EventEmitter {
 			return existingPeer;
 		}
 
-		const peerConfig = {
-			connectTimeout: this._peerPoolConfig.connectTimeout,
-			ackTimeout: this._peerPoolConfig.ackTimeout,
-			banTime: this._peerPoolConfig.peerBanTime,
-			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
-			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
-			maxPeerDiscoveryResponseLength: this._peerPoolConfig
-				.maxPeerDiscoveryResponseLength,
-			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
-			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
-			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
-			secret: this._peerPoolConfig.secret,
-		};
-		const peer = new OutboundPeer(peerInfo, peerConfig);
+		const peer = new OutboundPeer(peerInfo, { ...this._peerConfig });
 
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
