@@ -345,7 +345,8 @@ class Loader {
 			// eslint-disable-next-line no-await-in-loop
 			await this.processorModule.validate(block);
 			// eslint-disable-next-line no-await-in-loop
-			lastValidBlock = await this.processorModule.processValidated(block);
+			await this.processorModule.processValidated(block);
+			lastValidBlock = block;
 		}
 		this.blocksToSync = lastValidBlock.height;
 
@@ -380,10 +381,7 @@ class Loader {
 				failedAttemptsToLoad += 1;
 				// eslint-disable-next-line no-await-in-loop
 				await this._handleCommonBlockError(err);
-				this.logger.warn(
-					{ error: err },
-					'Failed to load blocks from the network.',
-				);
+				this.logger.warn(err, 'Failed to load blocks from the network.');
 			}
 		}
 	}

@@ -411,7 +411,7 @@ class Blocks extends EventEmitter {
 
 	// TODO: Add tests later, better remove!
 	readBlocksFromNetwork(blocks) {
-		const normalizedBlocks = blocksUtils.readDbRows(
+		const normalizedBlocks = blocksLogic.readDbRows(
 			blocks,
 			this.interfaceAdapters,
 			this.genesisBlock,

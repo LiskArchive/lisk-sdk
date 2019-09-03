@@ -168,21 +168,21 @@ module.exports = class Chain {
 
 			// TODO: remove this once we have version 2 genesis block
 			this.processor.register(new BlockProcessorV0(processorDependencies), {
-				matcher: ({ height }) => height >= 0 && height <= 0,
+				matcher: ({ height }) => height === 1,
 			});
 
 			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
-			if (this.options.exceptions.blockVersion) {
-				if (this.options.exceptions.blockVersion[0]) {
-					const period = this.options.exceptions.blockVersion[0];
+			if (this.options.exceptions.blockVersions) {
+				if (this.options.exceptions.blockVersions[0]) {
+					const period = this.options.exceptions.blockVersions[0];
 					this.processor.register(new BlockProcessorV0(processorDependencies), {
 						matcher: ({ height }) =>
 							height >= period.start && height <= period.end,
 					});
 				}
 
-				if (this.options.exceptions.blockVersion[1]) {
-					const period = this.options.exceptions.blockVersion[1];
+				if (this.options.exceptions.blockVersions[1]) {
+					const period = this.options.exceptions.blockVersions[1];
 					this.processor.register(new BlockProcessorV1(processorDependencies), {
 						matcher: ({ height }) =>
 							height >= period.start && height <= period.end,
@@ -190,9 +190,7 @@ module.exports = class Chain {
 				}
 			}
 
-			this.processor.register(new BlockProcessorV2(processorDependencies), {
-				matcher: ({ height }) => height >= 1,
-			});
+			this.processor.register(new BlockProcessorV2(processorDependencies));
 
 			// Deactivate broadcast and syncing during snapshotting process
 			if (this.options.loading.rebuildUpToRound) {

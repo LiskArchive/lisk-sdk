@@ -303,7 +303,7 @@ class Transport {
 			// Instantiate transaction classes
 			block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
 
-			block = blocksUtils.objectNormalize(block);
+			await this.processorModule.validate(block);
 		} catch (e) {
 			success = false;
 			this.logger.debug('Block normalization failed', {
