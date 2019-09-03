@@ -194,7 +194,7 @@ export class BasePeerList {
 		return this.evictRandomlyFromBucket(bucketId);
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
-	public evictRandomlyFromBucket(bucketId: number): CustomPeerInfo {
+	protected evictRandomlyFromBucket(bucketId: number): CustomPeerInfo {
 		const peerList = this.peerMap.get(bucketId);
 		if (!peerList) {
 			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
