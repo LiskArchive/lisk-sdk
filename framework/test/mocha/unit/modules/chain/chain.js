@@ -364,7 +364,7 @@ describe('Chain', () => {
 			await chain._syncTask();
 
 			// Assert
-			expect(stubs.logger.info).to.be.calledWith(
+			expect(stubs.logger.debug).to.be.calledWith(
 				{
 					syncing: chain.loader.syncing(),
 					lastReceipt: chain.blocks.lastReceipt,
