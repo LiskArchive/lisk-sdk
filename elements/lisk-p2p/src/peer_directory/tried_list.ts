@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	DEFAULT_MAX_RECONNECT_TRIES,
-	DEFAULT_TRIED_PEER_BUCKET_SIZE,
-	DEFAULT_TRIED_PEER_LIST_SIZE,
-} from '../constants';
+import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
 
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo } from '../utils';

@@ -12,20 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
-import { PEER_TYPE } from '../utils';
 import {
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_NEW_BUCKET_SIZE,
-	NewPeerConfig,
-	NewPeers,
-} from './new_list';
-import {
-	DEFAULT_TRIED_BUCKET_LENGTH,
+	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
-	TriedPeerConfig,
-	TriedPeers,
-} from './tried_list';
+} from '../constants';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { PEER_TYPE } from '../utils';
+import { NewPeerConfig, NewPeers } from './new_list';
+import { TriedPeerConfig, TriedPeers } from './tried_list';
 
 export interface PeerBookConfig {
 	readonly newPeerConfig?: NewPeerConfig;
@@ -56,7 +52,7 @@ export class PeerBook {
 				? triedPeerConfig
 				: {
 						secret,
-						peerBucketCount: DEFAULT_TRIED_BUCKET_LENGTH,
+						peerBucketCount: DEFAULT_TRIED_BUCKET_COUNT,
 						peerBucketSize: DEFAULT_TRIED_BUCKET_SIZE,
 						peerType: PEER_TYPE.TRIED_PEER,
 				  },

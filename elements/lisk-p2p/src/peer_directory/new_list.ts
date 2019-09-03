@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	DEFAULT_EVICTION_THRESHOLD_TIME,
-} from '../constants';
+import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 
-import { BasePeerList, CustomPeerInfo, PeerListConfig } from './basePeerList';
+import { BasePeerList, CustomPeerInfo, PeerListConfig } from './base_list';
 
 export interface NewPeerConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
