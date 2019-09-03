@@ -1,0 +1,461 @@
+{
+	"title": "Valid block processing",
+	"summary": "A valid block with a multisignature registration transaction processed",
+	"config": "mainnet",
+	"runner": "block_processing_multisignatures",
+	"handler": "valid_block_processing_multisignature_registration_tx",
+	"testCases": {
+		"initialState": {
+			"chain": [
+				{
+					"version": 1,
+					"totalAmount": "10000000000",
+					"totalFee": "10000000",
+					"reward": "0",
+					"timestamp": 10,
+					"numberOfTransactions": 1,
+					"payloadLength": 117,
+					"previousBlock": "6524861224470851795",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [
+						{
+							"id": "7844498035466535159",
+							"amount": "10000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+							"senderId": "16313739661670634666L",
+							"recipientId": "10881167371402274308L",
+							"fee": "10000000",
+							"signature": "bb71e4f985eb5dfa8320e6faffef20656dcd439036f3d85e34d9905fd7c7863b7a1d37cbbfead047160fa0902dfce358dd4199b8376ef9bd884e1ba2cb021706",
+							"signatures": [],
+							"asset": {}
+						}
+					],
+					"payloadHash": "f7803bbd6641dd6cf8235db4cf643a7df559e4ad7dd5f0c4325f763c1f36f081",
+					"blockSignature": "5b5a2e0978150a8c94f04cae06eaba92d03ddc87ed45a933c34f8266ed5220ffd5a44bc5371a723da3c32efb856549b50c33d3ce83d06f407427883f5223950b",
+					"height": 2
+				},
+				{
+					"version": 1,
+					"totalAmount": "9000000000",
+					"totalFee": "30000000",
+					"reward": "0",
+					"timestamp": 20,
+					"numberOfTransactions": 3,
+					"payloadLength": 351,
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [
+						{
+							"id": "1591692277051515811",
+							"amount": "3000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"senderId": "10881167371402274308L",
+							"recipientId": "8465920867403822059L",
+							"fee": "10000000",
+							"signature": "d8ed4ca92f82fe2bb5570cec81004708d8188d8a7e709b5608f6123910ef0502c863f292bb19d99b30f920d47d83a1e1fbe0f5aa484b51930f6a70ffa929a90a",
+							"signatures": [],
+							"asset": {}
+						},
+						{
+							"id": "16262726949218221711",
+							"amount": "3000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"senderId": "10881167371402274308L",
+							"recipientId": "1670991471799963578L",
+							"fee": "10000000",
+							"signature": "cd8474aea40ef996d770530f08306e2552525d15d19a8f0ed03e389a26a7fbe87307cfabcc5c1fbad33ff34a48bd46ba5d407597633b97d47807466196a9a200",
+							"signatures": [],
+							"asset": {}
+						},
+						{
+							"id": "12388063298219508076",
+							"amount": "3000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"senderId": "10881167371402274308L",
+							"recipientId": "2222471382442610527L",
+							"fee": "10000000",
+							"signature": "2232868d43e2661054a3e2021dbcd81deded264c540d6ff4b0623d521933afec391ade45af6505668d80e9295e521fe7aa69c2711591767a4a74300ab3afbb0a",
+							"signatures": [],
+							"asset": {}
+						}
+					],
+					"payloadHash": "12f382c361f02f38939f12c5790453ed8ff8a4a14edf84b03692c661e019cbfa",
+					"blockSignature": "5ddec0c0f4acf33d0b1c998b9deeb9834265ccc91674e4c9d493dc5de119662b2bfc31e2ecea239fab57b2046ca68910c7822b5bff115ac7b05e3b1ab230040b",
+					"height": 3
+				}
+			],
+			"accounts": [
+				{
+					"address": "16313739661670634666L",
+					"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+					"secondPublicKey": null,
+					"username": null,
+					"isDelegate": false,
+					"secondSignature": false,
+					"balance": "9999889980000000",
+					"multiMin": 0,
+					"multiLifetime": 0,
+					"nameExist": false,
+					"missedBlocks": 0,
+					"producedBlocks": 0,
+					"rank": null,
+					"fees": 0,
+					"rewards": 0,
+					"vote": 0,
+					"productivity": 0
+				},
+				{
+					"address": "10881167371402274308L",
+					"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"secondPublicKey": null,
+					"username": "genesis_100",
+					"isDelegate": true,
+					"secondSignature": false,
+					"balance": "970000000",
+					"multiMin": 0,
+					"multiLifetime": 0,
+					"nameExist": false,
+					"missedBlocks": 1,
+					"producedBlocks": 0,
+					"rank": 70,
+					"fees": 0,
+					"rewards": 0,
+					"vote": 9999899990000000,
+					"productivity": 0
+				},
+				{
+					"address": "8465920867403822059L",
+					"publicKey": "bed1c99f4a99cd584e886c80b300ef18e9d4265b5158e805bfdb609a77bd163f",
+					"secondPublicKey": null,
+					"username": "",
+					"isDelegate": false,
+					"secondSignature": false,
+					"balance": "3000000000",
+					"multiMin": 0,
+					"multiLifetime": 0,
+					"nameExist": false,
+					"missedBlocks": 0,
+					"producedBlocks": 0,
+					"rank": 0,
+					"fees": 0,
+					"rewards": 0,
+					"vote": 0,
+					"productivity": 0
+				},
+				{
+					"address": "1670991471799963578L",
+					"publicKey": "a3642d1c4605499182e5081f864b5a6f1584df336d2f2c3e49b197cbd1f36d78",
+					"secondPublicKey": null,
+					"username": "",
+					"isDelegate": false,
+					"secondSignature": false,
+					"balance": "3000000000",
+					"multiMin": 0,
+					"multiLifetime": 0,
+					"nameExist": false,
+					"missedBlocks": 0,
+					"producedBlocks": 0,
+					"rank": 0,
+					"fees": 0,
+					"rewards": 0,
+					"vote": 0,
+					"productivity": 0
+				},
+				{
+					"address": "2222471382442610527L",
+					"publicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
+					"secondPublicKey": null,
+					"username": "",
+					"isDelegate": false,
+					"secondSignature": false,
+					"balance": "3000000000",
+					"multiMin": 0,
+					"multiLifetime": 0,
+					"nameExist": false,
+					"missedBlocks": 0,
+					"producedBlocks": 0,
+					"rank": 0,
+					"fees": 0,
+					"rewards": 0,
+					"vote": 0,
+					"productivity": 0
+				}
+			]
+		},
+		"input": [
+			{
+				"version": 1,
+				"totalAmount": "0",
+				"totalFee": "1500000000",
+				"reward": "0",
+				"timestamp": 30,
+				"numberOfTransactions": 1,
+				"payloadLength": 249,
+				"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+				"transactions": [
+					{
+						"id": "962288346831274377",
+						"amount": "0",
+						"type": 4,
+						"timestamp": 103416572,
+						"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
+						"senderId": "2222471382442610527L",
+						"recipientId": "",
+						"fee": "1500000000",
+						"signature": "0e73ce591a75fb3047f7e10d0976bc9bbabbf402356a5b282f361225815a45f4382a3d551eb8aab4852c3a7f56c34086fff35e234f19f72cc05935cea2a5da08",
+						"signatures": [
+							"e74a3652483e812438896147031c0bcacbc7b8384242fa66e99be922f0834677fad81dbbc30d48511ed018a593e7f34b7d66b58fd2270ed7007db86b252b7e05",
+							"d21a9552f7e50cc28810b1cbbdb9e8c0f942c8b5c5d4eb5d92c305c3c58440fcfd638620bf787e57dc517e214c610b34cd6c1f80b4cf11c6325be35bb7e22c0a"
+						],
+						"asset": {
+							"multisignature": {
+								"min": 2,
+								"lifetime": 1,
+								"keysgroup": [
+									"+bed1c99f4a99cd584e886c80b300ef18e9d4265b5158e805bfdb609a77bd163f",
+									"+a3642d1c4605499182e5081f864b5a6f1584df336d2f2c3e49b197cbd1f36d78"
+								]
+							}
+						}
+					}
+				],
+				"payloadHash": "8941602c27bc5a0dea98acaf8149d2b02401ab09c540a55c4b7e3694ab18f90f",
+				"blockSignature": "7bdbfe73fbd1cabd1d56d0dccd6ff979e1dc4e27e2813fa2d3e41d39861332a6eca40bee0e33e234444438b71dde60b3e78f0fd573dfc6dd2ddd46b3aa600a05",
+				"height": 4
+			}
+		],
+		"output": {
+			"chain": [
+				{
+					"version": 1,
+					"totalAmount": "10000000000",
+					"totalFee": "10000000",
+					"reward": "0",
+					"timestamp": 10,
+					"numberOfTransactions": 1,
+					"payloadLength": 117,
+					"previousBlock": "6524861224470851795",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [
+						{
+							"id": "7844498035466535159",
+							"amount": "10000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+							"senderId": "16313739661670634666L",
+							"recipientId": "10881167371402274308L",
+							"fee": "10000000",
+							"signature": "bb71e4f985eb5dfa8320e6faffef20656dcd439036f3d85e34d9905fd7c7863b7a1d37cbbfead047160fa0902dfce358dd4199b8376ef9bd884e1ba2cb021706",
+							"signatures": [],
+							"asset": {}
+						}
+					],
+					"payloadHash": "f7803bbd6641dd6cf8235db4cf643a7df559e4ad7dd5f0c4325f763c1f36f081",
+					"blockSignature": "5b5a2e0978150a8c94f04cae06eaba92d03ddc87ed45a933c34f8266ed5220ffd5a44bc5371a723da3c32efb856549b50c33d3ce83d06f407427883f5223950b",
+					"height": 2
+				},
+				{
+					"version": 1,
+					"totalAmount": "9000000000",
+					"totalFee": "30000000",
+					"reward": "0",
+					"timestamp": 20,
+					"numberOfTransactions": 3,
+					"payloadLength": 351,
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [
+						{
+							"id": "1591692277051515811",
+							"amount": "3000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"senderId": "10881167371402274308L",
+							"recipientId": "8465920867403822059L",
+							"fee": "10000000",
+							"signature": "d8ed4ca92f82fe2bb5570cec81004708d8188d8a7e709b5608f6123910ef0502c863f292bb19d99b30f920d47d83a1e1fbe0f5aa484b51930f6a70ffa929a90a",
+							"signatures": [],
+							"asset": {}
+						},
+						{
+							"id": "16262726949218221711",
+							"amount": "3000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"senderId": "10881167371402274308L",
+							"recipientId": "1670991471799963578L",
+							"fee": "10000000",
+							"signature": "cd8474aea40ef996d770530f08306e2552525d15d19a8f0ed03e389a26a7fbe87307cfabcc5c1fbad33ff34a48bd46ba5d407597633b97d47807466196a9a200",
+							"signatures": [],
+							"asset": {}
+						},
+						{
+							"id": "12388063298219508076",
+							"amount": "3000000000",
+							"type": 0,
+							"timestamp": 103416572,
+							"senderPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"senderId": "10881167371402274308L",
+							"recipientId": "2222471382442610527L",
+							"fee": "10000000",
+							"signature": "2232868d43e2661054a3e2021dbcd81deded264c540d6ff4b0623d521933afec391ade45af6505668d80e9295e521fe7aa69c2711591767a4a74300ab3afbb0a",
+							"signatures": [],
+							"asset": {}
+						}
+					],
+					"payloadHash": "12f382c361f02f38939f12c5790453ed8ff8a4a14edf84b03692c661e019cbfa",
+					"blockSignature": "5ddec0c0f4acf33d0b1c998b9deeb9834265ccc91674e4c9d493dc5de119662b2bfc31e2ecea239fab57b2046ca68910c7822b5bff115ac7b05e3b1ab230040b",
+					"height": 3
+				},
+				{
+					"version": 1,
+					"totalAmount": "0",
+					"totalFee": "1500000000",
+					"reward": "0",
+					"timestamp": 30,
+					"numberOfTransactions": 1,
+					"payloadLength": 249,
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"transactions": [
+						{
+							"id": "962288346831274377",
+							"amount": "0",
+							"type": 4,
+							"timestamp": 103416572,
+							"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
+							"senderId": "2222471382442610527L",
+							"recipientId": "",
+							"fee": "1500000000",
+							"signature": "0e73ce591a75fb3047f7e10d0976bc9bbabbf402356a5b282f361225815a45f4382a3d551eb8aab4852c3a7f56c34086fff35e234f19f72cc05935cea2a5da08",
+							"signatures": [
+								"e74a3652483e812438896147031c0bcacbc7b8384242fa66e99be922f0834677fad81dbbc30d48511ed018a593e7f34b7d66b58fd2270ed7007db86b252b7e05",
+								"d21a9552f7e50cc28810b1cbbdb9e8c0f942c8b5c5d4eb5d92c305c3c58440fcfd638620bf787e57dc517e214c610b34cd6c1f80b4cf11c6325be35bb7e22c0a"
+							],
+							"asset": {
+								"multisignature": {
+									"min": 2,
+									"lifetime": 1,
+									"keysgroup": [
+										"+bed1c99f4a99cd584e886c80b300ef18e9d4265b5158e805bfdb609a77bd163f",
+										"+a3642d1c4605499182e5081f864b5a6f1584df336d2f2c3e49b197cbd1f36d78"
+									]
+								}
+							}
+						}
+					],
+					"payloadHash": "8941602c27bc5a0dea98acaf8149d2b02401ab09c540a55c4b7e3694ab18f90f",
+					"blockSignature": "7bdbfe73fbd1cabd1d56d0dccd6ff979e1dc4e27e2813fa2d3e41d39861332a6eca40bee0e33e234444438b71dde60b3e78f0fd573dfc6dd2ddd46b3aa600a05",
+					"height": 4
+				}
+			],
+			"accounts": [
+				[
+					{
+						"address": "16313739661670634666L",
+						"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+						"secondPublicKey": null,
+						"username": null,
+						"isDelegate": false,
+						"secondSignature": false,
+						"balance": "9999889980000000",
+						"multiMin": 0,
+						"multiLifetime": 0,
+						"nameExist": false,
+						"missedBlocks": 0,
+						"producedBlocks": 0,
+						"rank": null,
+						"fees": 0,
+						"rewards": 0,
+						"vote": 0,
+						"productivity": 0
+					},
+					{
+						"address": "10881167371402274308L",
+						"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+						"secondPublicKey": null,
+						"username": "genesis_100",
+						"isDelegate": true,
+						"secondSignature": false,
+						"balance": "970000000",
+						"multiMin": 0,
+						"multiLifetime": 0,
+						"nameExist": false,
+						"missedBlocks": 1,
+						"producedBlocks": 0,
+						"rank": 70,
+						"fees": 0,
+						"rewards": 0,
+						"vote": 9999899990000000,
+						"productivity": 0
+					},
+					{
+						"address": "8465920867403822059L",
+						"publicKey": "bed1c99f4a99cd584e886c80b300ef18e9d4265b5158e805bfdb609a77bd163f",
+						"secondPublicKey": null,
+						"username": "",
+						"isDelegate": false,
+						"secondSignature": false,
+						"balance": "2500000000",
+						"multiMin": 0,
+						"multiLifetime": 0,
+						"nameExist": false,
+						"missedBlocks": 0,
+						"producedBlocks": 0,
+						"rank": 0,
+						"fees": 0,
+						"rewards": 0,
+						"vote": 0,
+						"productivity": 0
+					},
+					{
+						"address": "1670991471799963578L",
+						"publicKey": "a3642d1c4605499182e5081f864b5a6f1584df336d2f2c3e49b197cbd1f36d78",
+						"secondPublicKey": null,
+						"username": "",
+						"isDelegate": false,
+						"secondSignature": false,
+						"balance": "2500000000",
+						"multiMin": 0,
+						"multiLifetime": 0,
+						"nameExist": false,
+						"missedBlocks": 0,
+						"producedBlocks": 0,
+						"rank": 0,
+						"fees": 0,
+						"rewards": 0,
+						"vote": 0,
+						"productivity": 0
+					},
+					{
+						"address": "2222471382442610527L",
+						"publicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
+						"secondPublicKey": null,
+						"username": "",
+						"isDelegate": false,
+						"secondSignature": false,
+						"balance": "2500000000",
+						"multiMin": 2,
+						"multiLifetime": 1,
+						"nameExist": false,
+						"missedBlocks": 0,
+						"producedBlocks": 0,
+						"rank": 0,
+						"fees": 0,
+						"rewards": 0,
+						"vote": 0,
+						"productivity": 0
+					}
+				]
+			]
+		}
+	}
+}

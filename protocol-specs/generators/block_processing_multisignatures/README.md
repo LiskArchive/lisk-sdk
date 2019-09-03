@@ -1,6 +1,6 @@
 # Block Processing Test Generator
 
-A set of fixture generators for Delegate registration
+A set of fixture generators for Multi-signature registration
 
 These generators makes use of an experimental library for combining transactions, include them into blocks and generate chain/account states.
 The library can be found in the file utils/chain_state_builder.js with this library it's possible to build scenarios fairly quickly with a fluent interface.
@@ -21,6 +21,17 @@ Register Delegate:
 chainStateBuilder
 	.registerDelegate('ADelegateName')
 	.for('2222471382442610527L')
+	.forge();
+```
+
+Register Multi-signature Account:
+
+```javascript
+chainStateBuilder
+	.registerMultisignature('2222471382442610527L')
+	.addMemberAndSign('8465920867403822059L')
+	.addMemberAndSign('1670991471799963578L')
+	.finish()
 	.forge();
 ```
 
