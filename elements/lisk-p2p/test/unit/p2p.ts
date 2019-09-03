@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { expect } from 'chai';
-import { P2P } from '../../src';
+import { P2P } from '../../src/p2p';
 
 describe('p2p', () => {
 	describe('#constructor', () => {

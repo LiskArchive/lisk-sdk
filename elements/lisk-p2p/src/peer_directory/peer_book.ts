@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { NewPeerConfig, NewPeers } from './new_peers';
 import { TriedPeerConfig, TriedPeers } from './tried_peers';

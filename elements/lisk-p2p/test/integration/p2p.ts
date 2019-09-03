@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { SCServerSocket } from 'socketcluster-server';
+import * as url from 'url';
+import cloneDeep = require('lodash.clonedeep');
 import { expect } from 'chai';
-import { P2P, EVENT_REMOVE_PEER } from '../../src/index';
+import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
@@ -25,10 +27,8 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
+import { EVENT_REMOVE_PEER } from '../../src/events';
 import { InboundPeer } from '../../src/peer';
-import { SCServerSocket } from 'socketcluster-server';
-import * as url from 'url';
-import cloneDeep = require('lodash.clonedeep');
 
 describe('Integration tests for P2P library', () => {
 	before(() => {

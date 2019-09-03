@@ -14,7 +14,6 @@
  */
 import { expect } from 'chai';
 import { SCServerSocket } from 'socketcluster-server';
-
 import { InboundPeer } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 

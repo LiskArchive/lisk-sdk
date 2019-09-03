@@ -12,28 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	Peer,
-	PeerConfig,
-	REMOTE_EVENT_MESSAGE,
-	REMOTE_EVENT_RPC_REQUEST,
-	SCServerSocketUpdated,
-} from './base';
-
-import { P2PDiscoveredPeerInfo } from '../p2p_types';
-
 import { SCServerSocket } from 'socketcluster-server';
+import {
+	DEFAULT_PING_INTERVAL_MAX,
+	DEFAULT_PING_INTERVAL_MIN,
+} from '../constants';
+import {
+	EVENT_CLOSE_INBOUND,
+	EVENT_INBOUND_SOCKET_ERROR,
+	REMOTE_EVENT_PING,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
+} from '../events';
+import { P2PDiscoveredPeerInfo } from '../p2p_types';
+import { Peer, PeerConfig, SCServerSocketUpdated } from './base';
+
 const socketErrorStatusCodes = {
 	...(SCServerSocket as any).errorStatuses,
 	1000: 'Intentionally disconnected',
 };
-
-export const EVENT_CLOSE_INBOUND = 'closeInbound';
-export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
-export const EVENT_PING = 'ping';
-
-const DEFAULT_PING_INTERVAL_MAX = 60000;
-const DEFAULT_PING_INTERVAL_MIN = 20000;
 
 const getRandomPingDelay = () =>
 	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
@@ -73,10 +70,17 @@ export class InboundPeer extends Peer {
 		};
 		this._sendPing = () => {
 			const pingStart = Date.now();
-			this._socket.emit(EVENT_PING, undefined, (_: Error, __: unknown) => {
-				this._latency = Date.now() - pingStart;
-				this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
-			});
+			this._socket.emit(
+				REMOTE_EVENT_PING,
+				undefined,
+				(_: Error, __: unknown) => {
+					this._latency = Date.now() - pingStart;
+					this._pingTimeoutId = setTimeout(
+						this._sendPing,
+						getRandomPingDelay(),
+					);
+				},
+			);
 		};
 		this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
 		this._socket = peerSocket;
@@ -103,8 +107,8 @@ export class InboundPeer extends Peer {
 		inboundSocket.on('message', this._handleWSMessage);
 
 		// Bind RPC and remote event handlers
-		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		inboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		inboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
 		inboundSocket.on(
 			'postSignatures',
@@ -124,8 +128,8 @@ export class InboundPeer extends Peer {
 		inboundSocket.off('message', this._handleWSMessage);
 
 		// Unbind RPC and remote event handlers
-		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		inboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		inboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
 		inboundSocket.off(
 			'postSignatures',

@@ -14,7 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
-import { P2PPeerInfo } from './p2p_types';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 
 const SECRET_BUFFER_LENGTH = 4;
 const NETWORK_BUFFER_LENGTH = 1;
@@ -24,16 +24,11 @@ const BYTES_16 = 16;
 const BYTES_64 = 64;
 const BYTES_128 = 128;
 
-export enum NETWORK {
-	NET_IPV4 = 0,
-	NET_PRIVATE,
-	NET_LOCAL,
-	NET_OTHER,
-}
-
-export enum PEER_TYPE {
-	NEW_PEER = 'newPeer',
-	TRIED_PEER = 'triedPeer',
+interface AddressBytes {
+	readonly aBytes: Buffer;
+	readonly bBytes: Buffer;
+	readonly cBytes: Buffer;
+	readonly dBytes: Buffer;
 }
 
 /* tslint:disable no-magic-numbers */
@@ -44,13 +39,6 @@ export const getIPGroup = (address: string, groupNumber: number): number => {
 
 	return parseInt(address.split('.')[groupNumber], 10);
 };
-
-interface AddressBytes {
-	readonly aBytes: Buffer;
-	readonly bBytes: Buffer;
-	readonly cBytes: Buffer;
-	readonly dBytes: Buffer;
-}
 
 // Each byte represents the corresponding subsection of the IP address e.g. AAA.BBB.CCC.DDD
 export const getIPBytes = (address: string): AddressBytes => {
@@ -70,6 +58,18 @@ export const getIPBytes = (address: string): AddressBytes => {
 		dBytes,
 	};
 };
+
+export enum NETWORK {
+	NET_IPV4 = 0,
+	NET_PRIVATE,
+	NET_LOCAL,
+	NET_OTHER,
+}
+
+export enum PEER_TYPE {
+	NEW_PEER = 'newPeer',
+	TRIED_PEER = 'triedPeer',
+}
 
 export const isPrivate = (address: string) =>
 	getIPGroup(address, 0) === 10 ||
@@ -197,5 +197,27 @@ export const getBucket = (options: {
 	return hash(bucketBytes).readUInt32BE(0) % secondMod;
 };
 
+export const getUniquePeersbyIp = (
+	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
+
+	for (const peer of peerList) {
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			if (peer.height > tempPeer.height) {
+				peerMap.set(peer.ipAddress, peer);
+			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	}
+
+	return [...peerMap.values()];
+};
+
 export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+
+export const getByteSize = (object: any): number =>
+	Buffer.byteLength(JSON.stringify(object));
