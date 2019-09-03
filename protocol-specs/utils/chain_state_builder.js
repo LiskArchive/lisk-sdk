@@ -15,10 +15,13 @@
 'use strict';
 
 const {
+	createSignatureObject,
 	transfer: transferLisk,
 	TransferTransaction,
 	registerDelegate,
 	DelegateTransaction,
+	MultisignatureTransaction,
+	registerMultisignature: registerMultisignatureLisk,
 } = require('@liskhq/lisk-transactions');
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
@@ -99,6 +102,67 @@ class ChainStateBuilder {
 		};
 	}
 
+	// eslint-disable-next-line class-methods-use-this
+	registerMultisignature(address) {
+		const members = [];
+
+		const finish = () => {
+			// Extract main account info
+			const targetAccount = this.findAccountByAddress(
+				address,
+				Object.values(this.state.accounts),
+			);
+			// Extract members info
+			const membersAccounts = [];
+			// eslint-disable-next-line no-restricted-syntax
+			for (const aMemberAddress of members) {
+				const thisMember = this.findAccountByAddress(
+					aMemberAddress,
+					Object.values(this.state.accounts),
+				);
+				if (!thisMember) {
+					throw new Error(
+						'One of the members for a Multisignature Transaction was not found. Check your initial account setup. Make sure all members exist',
+					);
+				}
+				membersAccounts.push(thisMember);
+			}
+			// Create basis multisignature object
+			const multisignatureObject = registerMultisignatureLisk({
+				passphrase: targetAccount.passphrase,
+				lifetime: 1,
+				minimum: membersAccounts.length,
+				keysgroup: membersAccounts.map(aMember => aMember.publicKey),
+			});
+			// Create a multisignature instance
+			const multisignatureTXInstance = new MultisignatureTransaction(
+				multisignatureObject,
+			);
+			// Add the signatures for each member
+			// eslint-disable-next-line no-restricted-syntax
+			for (const aMemberAccount of membersAccounts) {
+				const aSigObject = createSignatureObject(
+					multisignatureObject,
+					aMemberAccount.passphrase,
+				);
+				multisignatureTXInstance.addMultisignature(null, aSigObject);
+			}
+			// Push it to the pending
+			this.state.pendingTransactions.push(multisignatureTXInstance);
+
+			return this;
+		};
+
+		const addMemberAndSign = aMember => {
+			members.push(aMember);
+			return { finish, addMemberAndSign };
+		};
+
+		return {
+			addMemberAndSign,
+		};
+	}
+
 	forge() {
 		const latestsAccountState = this.state.accountStore.slice(-1)[0];
 		this.processBlockTransactions(this.state.pendingTransactions);
@@ -160,6 +224,9 @@ class ChainStateBuilder {
 						this.fees.delegate,
 						aTransaction.asset.delegate.username,
 					);
+					break;
+				case 4:
+					this.updateAccountStateAfterMultisignatureRegistration(aTransaction);
 					break;
 				default:
 					break;
@@ -241,6 +308,35 @@ class ChainStateBuilder {
 		sender.username = delegateName;
 		sender.isDelegate = true;
 
+		this.state.accountStore.push(newAccountStoreState);
+	}
+
+	updateAccountStateAfterMultisignatureRegistration(multisignatureTransaction) {
+		const newAccountStoreState = cloneDeep(
+			this.state.accountStore.slice(-1)[0],
+		);
+		// Update sender balance
+		const sender = this.findAccountByAddress(
+			multisignatureTransaction._senderId,
+			newAccountStoreState,
+		);
+		sender.balance = new BigNum(sender.balance.toString())
+			.sub(this.fees.multisignature)
+			.toString();
+		sender.multiMin = multisignatureTransaction.asset.multisignature.min;
+		sender.multiLifetime =
+			multisignatureTransaction.asset.multisignature.lifetime;
+		// Update balances for each of the signers
+		// eslint-disable-next-line no-restricted-syntax
+		for (const aMemberPublicKey of multisignatureTransaction.asset
+			.multisignature.keysgroup) {
+			const thisMember = newAccountStoreState.find(
+				aMember => aMember.publicKey === aMemberPublicKey.slice(1),
+			);
+			thisMember.balance = new BigNum(thisMember.balance.toString())
+				.sub(this.fees.multisignature)
+				.toString();
+		}
 		this.state.accountStore.push(newAccountStoreState);
 	}
 
