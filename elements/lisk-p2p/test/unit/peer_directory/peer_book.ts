@@ -14,12 +14,7 @@
  */
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../../utils/peers';
-// import { constructPeerIdFromPeerInfo } from '../../../src/utils';
-// import { P2PPeerInfo } from '../../../src/p2p_types';
-import {
-	PeerBook,
-	PeerBookConfig,
-} from '../../../src/peer_directory/peer_book';
+import { PeerBook, PeerBookConfig } from '../../../src/peer_directory';
 
 describe('peerBook', () => {
 	const peerBookConfig: PeerBookConfig = {

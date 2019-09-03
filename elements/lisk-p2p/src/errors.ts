@@ -13,7 +13,6 @@
  *
  */
 /* tslint:disable: max-classes-per-file */
-
 export class PeerInboundHandshakeError extends Error {
 	public statusCode: number;
 	public remoteAddress: string;
@@ -33,16 +32,6 @@ export class PeerInboundHandshakeError extends Error {
 	}
 }
 
-export class PeerOutboundConnectionError extends Error {
-	public statusCode?: number;
-
-	public constructor(message: string, statusCode?: number) {
-		super(message);
-		this.name = 'PeerOutboundConnectError';
-		this.statusCode = statusCode;
-	}
-}
-
 export class RPCResponseError extends Error {
 	public peerId: string;
 
@@ -50,13 +39,6 @@ export class RPCResponseError extends Error {
 		super(message);
 		this.name = 'RPCResponseError';
 		this.peerId = peerId;
-	}
-}
-
-export class FetchPeerStatusError extends Error {
-	public constructor(message: string) {
-		super(message);
-		this.name = 'FetchPeerStatusError';
 	}
 }
 
