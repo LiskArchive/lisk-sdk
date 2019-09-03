@@ -223,13 +223,13 @@ const prepare = async (stateStore, transaction) => {
 		...new Set([...senderVotedPublicKeys, ...recipientVotedPublicKeys]),
 	];
 
-	const cacheFilter = senderRecipientVotedPublicKeys.map(publicKey => ({
-		publicKey,
-	}));
-
-	if (cacheFilter.length === 0) {
+	if (senderRecipientVotedPublicKeys.length === 0) {
 		return true;
 	}
+
+	const cacheFilter = senderRecipientVotedPublicKeys.map(publicKey => ({
+		address: getAddressFromPublicKey(publicKey),
+	}));
 
 	return stateStore.account.cache(cacheFilter);
 };
