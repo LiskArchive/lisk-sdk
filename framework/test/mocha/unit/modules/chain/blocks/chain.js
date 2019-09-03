@@ -437,13 +437,6 @@ describe('blocks/chain', () => {
 							}),
 						);
 				});
-
-				it('modules.rouds.tick should call a callback', async () => {
-					await blocksChain.applyGenesisBlock(blockWithTransactions);
-					expect(roundsModuleStub.tick.args[0][0]).to.deep.equal(
-						blockWithTransactions,
-					);
-				});
 			});
 		});
 	});

@@ -460,26 +460,6 @@ class Round {
 
 	/**
 	 * Calls:
-	 * - updateVotes
-	 * - flushRound
-	 * - applyRound
-	 * - updateVotes
-	 * - flushRound
-	 *
-	 * @returns {function} Call result
-	 */
-	land() {
-		return this.updateVotes()
-			.then(this.flushRound.bind(this))
-			.then(this.applyRound.bind(this))
-			.then(this.updateVotes.bind(this))
-			.then(this.flushRound.bind(this))
-			.then(this.updateDelegatesRanks.bind(this))
-			.then(() => this.t);
-	}
-
-	/**
-	 * Calls:
 	 * - applyRound
 	 * - flushRound
 	 * - checkSnapshotAvailability

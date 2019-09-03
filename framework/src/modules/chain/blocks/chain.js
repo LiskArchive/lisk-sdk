@@ -203,18 +203,7 @@ const saveBlockStep = async (
 	if (shouldSave) {
 		await saveBlock(storage, block, tx);
 	}
-	await new Promise((resolve, reject) => {
-		roundsModule.tick(
-			block,
-			tickErr => {
-				if (tickErr) {
-					return reject(tickErr);
-				}
-				return resolve();
-			},
-			tx,
-		);
-	});
+
 	await dposModule.apply(block, tx);
 };
 
@@ -421,14 +410,7 @@ class BlocksChain {
 			block.transactions,
 			this.exceptions,
 		);
-		await new Promise((resolve, reject) => {
-			this.roundsModule.tick(block, tickErr => {
-				if (tickErr) {
-					return reject(tickErr);
-				}
-				return resolve();
-			});
-		});
+
 		return block;
 	}
 
