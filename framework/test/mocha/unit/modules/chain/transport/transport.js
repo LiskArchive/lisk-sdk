@@ -179,6 +179,7 @@ describe('transport', () => {
 				objectNormalize: sinonSandbox.stub(),
 			},
 			processorModule: {
+				validate: sinonSandbox.stub(),
 				process: sinonSandbox.stub(),
 			},
 			loaderModule: {
@@ -827,10 +828,10 @@ describe('transport', () => {
 							const blockValidationError = 'Failed to validate block schema';
 
 							beforeEach(async () => {
-								sinonSandbox
-									.stub(blocksModule, 'objectNormalize')
-									.throws(blockValidationError);
-								transportModule.postBlock(postBlockQuery);
+								transportModule.processorModule.validate.rejects(
+									blockValidationError,
+								);
+								await transportModule.postBlock(postBlockQuery);
 							});
 
 							it('should call transportModule.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () => {
