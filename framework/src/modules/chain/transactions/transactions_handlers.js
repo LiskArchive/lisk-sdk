@@ -115,6 +115,7 @@ const applyGenesisTransactions = storage => async (
 		tx,
 	});
 
+	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
 		// eslint-disable-next-line no-await-in-loop
