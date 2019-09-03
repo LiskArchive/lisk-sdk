@@ -16,6 +16,10 @@
 
 const { loadBlocksWithOffset } = require('./blocks');
 
+/**
+ * Rebuild a blockchain
+ * deletes and recalculates all the states from the blocks up to the specified round
+ */
 class Rebuilder {
 	constructor({
 		// components
