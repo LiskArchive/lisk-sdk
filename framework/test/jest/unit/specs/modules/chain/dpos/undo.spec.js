@@ -217,6 +217,7 @@ describe('dpos.undo()', () => {
 						publicKey: account.publicKey,
 					},
 					expect.any(Object),
+					{},
 					stubs.tx,
 				);
 			});
@@ -243,6 +244,7 @@ describe('dpos.undo()', () => {
 						publicKey: account.publicKey,
 					},
 					expect.any(Object),
+					{},
 					stubs.tx,
 				);
 			});
@@ -258,10 +260,9 @@ describe('dpos.undo()', () => {
 				const { fee, reward } = getTotalEarningsOfDelegate(account);
 				const amount = fee.plus(reward);
 				const data = {
-					...account,
-					balance: account.balance.minus(amount),
-					fees: account.fees.minus(fee),
-					rewards: account.rewards.minus(reward),
+					balance: account.balance.minus(amount).toString(),
+					fees: account.fees.minus(fee).toString(),
+					rewards: account.rewards.minus(reward).toString(),
 				};
 
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
@@ -269,6 +270,7 @@ describe('dpos.undo()', () => {
 						publicKey: account.publicKey,
 					},
 					data,
+					{},
 					stubs.tx,
 				);
 			});
@@ -299,10 +301,11 @@ describe('dpos.undo()', () => {
 					 * Delegate who forged last also forged 3 times,
 					 * Thus will get fee 3 times too.
 					 */
-					fees: delegateWhoForgedLast.fees.minus(
-						feePerDelegate * 3 + remainingFee,
-					),
+					fees: delegateWhoForgedLast.fees
+						.minus(feePerDelegate * 3 + remainingFee)
+						.toString(),
 				}),
+				{},
 				stubs.tx,
 			);
 
@@ -320,8 +323,9 @@ describe('dpos.undo()', () => {
 							/**
 							 * Rest of the delegates don't get the remaining fee
 							 */
-							fees: account.fees.minus(feePerDelegate * blockCount),
+							fees: account.fees.minus(feePerDelegate * blockCount).toString(),
 						}),
+						{},
 						stubs.tx,
 					);
 				});
@@ -441,7 +445,7 @@ describe('dpos.undo()', () => {
 					const exceptionReward =
 						reward * (-1 * exceptionFactors.rewards_factor);
 					const partialData = {
-						rewards: account.rewards.add(exceptionReward),
+						rewards: account.rewards.add(exceptionReward).toString(),
 					};
 
 					// Assert
@@ -450,6 +454,7 @@ describe('dpos.undo()', () => {
 							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
+						{},
 						stubs.tx,
 					);
 				});
@@ -472,7 +477,7 @@ describe('dpos.undo()', () => {
 						(exceptionTotalFee / constants.ACTIVE_DELEGATES) * blockCount;
 
 					const partialData = {
-						fees: account.fees.minus(earnedFee),
+						fees: account.fees.minus(earnedFee).toString(),
 					};
 
 					// Assert
@@ -481,6 +486,7 @@ describe('dpos.undo()', () => {
 							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
+						{},
 						stubs.tx,
 					);
 				});
