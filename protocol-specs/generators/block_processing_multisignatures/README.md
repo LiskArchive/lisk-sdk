@@ -35,6 +35,31 @@ chainStateBuilder
 	.forge();
 ```
 
+Sign transactions from a multisignature account:
+(can be done ONLY immediately after createing the transaction to be signed)
+
+```javascript
+chainStateBuilder
+	.registerMultisignature('2222471382442610527L')
+	.addMemberAndSign('8465920867403822059L')
+	.addMemberAndSign('1670991471799963578L')
+	.finish()
+	.forge();
+
+chainStateBuilder
+	.transfer('7')
+	.from('2222471382442610527L')
+	.to('10881167371402274308L');
+
+chainStateBuilder
+	.signTransaction(chainStateBuilder.lastTransactionId)
+	.withAccount('8465920867403822059L');
+
+chainStateBuilder
+	.signTransaction(chainStateBuilder.lastTransactionId)
+	.withAccount('1670991471799963578L');
+```
+
 Calls can also be chained:
 
 ```javascript
