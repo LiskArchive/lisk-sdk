@@ -57,6 +57,7 @@ class ChainStateBuilder {
 			vote: this.fixedPoint * 1,
 			multisignature: this.fixedPoint * 5,
 		};
+		this.lastTransactionId = null;
 	}
 
 	transfer(amount) {
@@ -78,6 +79,7 @@ class ChainStateBuilder {
 					);
 					// Push it to pending transaction
 					this.state.pendingTransactions.push(transferTx);
+					this.lastTransactionId = transferTx._id;
 					return this;
 				},
 			}),
@@ -97,6 +99,7 @@ class ChainStateBuilder {
 				);
 				// Push it to pending transaction
 				this.state.pendingTransactions.push(registerDelegateTx);
+				this.lastTransactionId = registerDelegateTx._id;
 				return this;
 			},
 		};
@@ -127,7 +130,7 @@ class ChainStateBuilder {
 				}
 				membersAccounts.push(thisMember);
 			}
-			// Create basis multisignature object
+			// Create basic multisignature object
 			const multisignatureObject = registerMultisignatureLisk({
 				passphrase: targetAccount.passphrase,
 				lifetime: 1,
@@ -149,7 +152,7 @@ class ChainStateBuilder {
 			}
 			// Push it to the pending
 			this.state.pendingTransactions.push(multisignatureTXInstance);
-
+			this.lastTransactionId = multisignatureTXInstance._id;
 			return this;
 		};
 
@@ -160,6 +163,40 @@ class ChainStateBuilder {
 
 		return {
 			addMemberAndSign,
+		};
+	}
+
+	// This method adds signatures ONLY too the last transaction sent
+	signTransaction(transactionId) {
+		const transactionToBeSigned = this.state.pendingTransactions.find(
+			aTransaction => aTransaction.id === transactionId,
+		);
+
+		if (!transactionToBeSigned) {
+			throw new Error(
+				'The provided transaction id was not found make sure you are callign `signTransaction` correctly.',
+			);
+		}
+
+		return {
+			withAccount: signerAccountAddress => {
+				const accountStore = Object.values(this.state.accounts);
+				const signerAccount = accountStore.find(
+					anAccount => anAccount.address === signerAccountAddress,
+				);
+				if (!signerAccount) {
+					throw new Error(
+						'Signer account not found make sure the account exists on your intial account state.',
+					);
+				}
+				const transactionSignature = createSignatureObject(
+					transactionToBeSigned.toJSON(),
+					signerAccount.passphrase,
+				);
+
+				transactionToBeSigned.signatures.push(transactionSignature.signature);
+				return this;
+			},
 		};
 	}
 
