@@ -36,7 +36,7 @@ chainStateBuilder
 ```
 
 Sign transactions from a multisignature account:
-(can be done ONLY immediately after createing the transaction to be signed)
+(can be done ONLY immediately after creating the transaction to be signed)
 
 ```javascript
 chainStateBuilder
