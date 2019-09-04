@@ -321,22 +321,11 @@ class ChainStateBuilder {
 			newAccountStoreState,
 		);
 		sender.balance = new BigNum(sender.balance.toString())
-			.sub(this.fees.multisignature)
+			.sub(multisignatureTransaction.fee)
 			.toString();
 		sender.multiMin = multisignatureTransaction.asset.multisignature.min;
 		sender.multiLifetime =
 			multisignatureTransaction.asset.multisignature.lifetime;
-		// Update balances for each of the signers
-		// eslint-disable-next-line no-restricted-syntax
-		for (const aMemberPublicKey of multisignatureTransaction.asset
-			.multisignature.keysgroup) {
-			const thisMember = newAccountStoreState.find(
-				aMember => aMember.publicKey === aMemberPublicKey.slice(1),
-			);
-			thisMember.balance = new BigNum(thisMember.balance.toString())
-				.sub(this.fees.multisignature)
-				.toString();
-		}
 		this.state.accountStore.push(newAccountStoreState);
 	}
 
