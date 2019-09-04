@@ -172,6 +172,56 @@ const generateTestCasesValidBlockMultisignatureRegistrationTx = () => {
 	};
 };
 
+const generateTestCasesInvalidBlockMultisignatureRegistrationAndFundingInSameBlock = () => {
+	const chainStateBuilder = new ChainStateBuilder(
+		genesisBlock,
+		initialAccountsState,
+		accounts,
+	);
+
+	// Transfer funds from genesis account to one of the delegates
+	chainStateBuilder
+		.transfer('100')
+		.from('16313739661670634666L')
+		.to('10881167371402274308L')
+		.forge();
+	// Fund three accounts
+	chainStateBuilder
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('8465920867403822059L')
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('1670991471799963578L')
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('2222471382442610527L');
+
+	// Register multisignature and two co-signers for it
+	chainStateBuilder
+		.registerMultisignature('2222471382442610527L')
+		.addMemberAndSign('8465920867403822059L')
+		.addMemberAndSign('1670991471799963578L')
+		.finish()
+		.forgeInvalidInputBlock();
+
+	const chainAndAccountStates = chainStateBuilder.getScenario();
+
+	return {
+		initialState: {
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+			chain: chainAndAccountStates.chain.slice(0),
+			accounts: chainAndAccountStates.initialAccountsState,
+		},
+		input: chainAndAccountStates.inputBlock,
+		output: {
+			chain: chainAndAccountStates.chain,
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+		},
+	};
+};
+
 const validBlockWithMultisignatureRegistrationTx = () => ({
 	title: 'Valid block processing',
 	summary:
@@ -182,6 +232,18 @@ const validBlockWithMultisignatureRegistrationTx = () => ({
 	testCases: generateTestCasesValidBlockMultisignatureRegistrationTx(),
 });
 
+const invalidBlockWithMultisignatureRegistrationAndFundingInSameBlock = () => ({
+	title: 'Valid block processing',
+	summary:
+		'An invalid block with a multisignature registration transaction and funding for members in same block',
+	config: 'mainnet',
+	runner: 'block_processing_multisignatures',
+	handler:
+		'invalid_block_processing_multisignature_registration_and_funding_for_members_same_block',
+	testCases: generateTestCasesInvalidBlockMultisignatureRegistrationAndFundingInSameBlock(),
+});
+
 module.exports = BaseGenerator.runGenerator('block_processing_transfers', [
 	validBlockWithMultisignatureRegistrationTx,
+	invalidBlockWithMultisignatureRegistrationAndFundingInSameBlock,
 ]);
