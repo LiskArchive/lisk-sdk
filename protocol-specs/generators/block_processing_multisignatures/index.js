@@ -172,6 +172,71 @@ const generateTestCasesValidBlockMultisignatureRegistrationTx = () => {
 	};
 };
 
+const generateTestCasesValidBlockTransferFromMultisignatureAccount = () => {
+	const chainStateBuilder = new ChainStateBuilder(
+		genesisBlock,
+		initialAccountsState,
+		accounts,
+	);
+
+	// Transfer funds from genesis account to one of the delegates
+	chainStateBuilder
+		.transfer('100')
+		.from('16313739661670634666L')
+		.to('10881167371402274308L')
+		.forge();
+	// Fund three accounts
+	chainStateBuilder
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('8465920867403822059L')
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('1670991471799963578L')
+		.transfer('30')
+		.from('10881167371402274308L')
+		.to('2222471382442610527L')
+		.forge();
+
+	// Register multisignature and two co-signers for it
+	chainStateBuilder
+		.registerMultisignature('2222471382442610527L')
+		.addMemberAndSign('8465920867403822059L')
+		.addMemberAndSign('1670991471799963578L')
+		.finish()
+		.forge();
+	// Tranfer from the new multisignature account
+	chainStateBuilder
+		.transfer('7')
+		.from('2222471382442610527L')
+		.to('10881167371402274308L');
+
+	chainStateBuilder
+		.signTransaction(chainStateBuilder.lastTransactionId)
+		.withAccount('8465920867403822059L');
+
+	chainStateBuilder
+		.signTransaction(chainStateBuilder.lastTransactionId)
+		.withAccount('1670991471799963578L')
+		.forge();
+
+	const chainAndAccountStates = chainStateBuilder.getScenario();
+
+	return {
+		initialState: {
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+			chain: chainAndAccountStates.chain.slice(0, 3),
+			accounts: chainAndAccountStates.finalAccountsState[4],
+		},
+		input: chainAndAccountStates.chain.slice(3),
+		output: {
+			chain: chainAndAccountStates.chain,
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+		},
+	};
+};
+
 const generateTestCasesInvalidBlockMultisignatureRegistrationAndFundingInSameBlock = () => {
 	const chainStateBuilder = new ChainStateBuilder(
 		genesisBlock,
@@ -232,8 +297,18 @@ const validBlockWithMultisignatureRegistrationTx = () => ({
 	testCases: generateTestCasesValidBlockMultisignatureRegistrationTx(),
 });
 
-const invalidBlockWithMultisignatureRegistrationAndFundingInSameBlock = () => ({
+const validBlockWithTransferFromMultisigAccount = () => ({
 	title: 'Valid block processing',
+	summary:
+		'A valid block with a transfer transaction from a multisignature account processed',
+	config: 'mainnet',
+	runner: 'block_processing_multisignatures',
+	handler: 'valid_block_processing_transfer_from_multisignature_account',
+	testCases: generateTestCasesValidBlockTransferFromMultisignatureAccount(),
+});
+
+const invalidBlockWithMultisignatureRegistrationAndFundingInSameBlock = () => ({
+	title: 'Invalid block processing',
 	summary:
 		'An invalid block with a multisignature registration transaction and funding for members in same block',
 	config: 'mainnet',
@@ -246,4 +321,5 @@ const invalidBlockWithMultisignatureRegistrationAndFundingInSameBlock = () => ({
 module.exports = BaseGenerator.runGenerator('block_processing_transfers', [
 	validBlockWithMultisignatureRegistrationTx,
 	invalidBlockWithMultisignatureRegistrationAndFundingInSameBlock,
+	validBlockWithTransferFromMultisigAccount,
 ]);
