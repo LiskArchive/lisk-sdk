@@ -125,6 +125,16 @@ class DelegatesList extends EventEmitter {
 			!expectedForgerPublicKey ||
 			block.generatorPublicKey !== expectedForgerPublicKey
 		) {
+			/**
+			 * Accepts any forger as valid for the rounds defined in exceptions.ignoreDelegateListCacheForRounds
+			 * This is only set for testnet due to `zero vote` active delegate issue (https://github.com/LiskHQ/lisk-sdk/pull/2543#pullrequestreview-178505587)
+			 * Should be tackled by https://github.com/LiskHQ/lisk-sdk/issues/4194
+			 */
+			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
+			if (ignoreDelegateListCacheForRounds.includes(round)) {
+				return true;
+			}
+
 			throw new Error(`Failed to verify slot: ${currentSlot}`);
 		}
 
