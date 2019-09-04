@@ -30,6 +30,7 @@ const {
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
 	deleteLastBlock,
+	deleteFromBlockId,
 	undoConfirmedStep,
 	saveBlockStep,
 	parseBlockToJson,
@@ -338,6 +339,10 @@ class Blocks extends EventEmitter {
 		} catch (err) {
 			return true;
 		}
+	}
+
+	async deleteAfter(block) {
+		return deleteFromBlockId(this.storage, block.id);
 	}
 
 	// TODO: Unit tests written in mocha, which should be migrated to jest.

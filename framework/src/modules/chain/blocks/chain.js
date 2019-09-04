@@ -123,7 +123,7 @@ const deleteFromBlockId = async (storage, blockId) => {
 		id: blockId,
 	});
 	return storage.entities.Block.delete({
-		height_gte: block.height,
+		height_gt: block.height,
 	});
 };
 

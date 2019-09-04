@@ -124,6 +124,8 @@ class Rebuilder {
 			}
 		}
 
+		await this.blocksModule.deleteAfter(lastBlock);
+
 		return lastBlock;
 	}
 }
