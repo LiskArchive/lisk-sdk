@@ -14,13 +14,13 @@
  */
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 
-import { BasePeerList, CustomPeerInfo, PeerListConfig } from './base_list';
+import { CustomPeerInfo, PeerList, PeerListConfig } from './peer_list';
 
 export interface NewPeerConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
 }
 
-export class NewPeers extends BasePeerList {
+export class NewPeers extends PeerList {
 	private readonly _evictionThresholdTime: number;
 
 	public constructor({

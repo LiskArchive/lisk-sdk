@@ -32,7 +32,7 @@ export interface AddPeerOutcome {
 	readonly evictedPeer?: P2PPeerInfo;
 }
 // Base peer list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
-export class BasePeerList {
+export class PeerList {
 	protected peerMap: Map<number, Map<string, CustomPeerInfo>>;
 	protected readonly peerListConfig: PeerListConfig;
 
