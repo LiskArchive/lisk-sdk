@@ -30,14 +30,14 @@ export interface PeerBookConfig {
 }
 
 export class PeerBook {
-	private readonly _newList: NewList;
-	private readonly _triedList: TriedList;
+	private readonly _newPeers: NewList;
+	private readonly _triedPeers: TriedList;
 	public constructor({
 		newListConfig: newListConfig,
 		triedListConfig: triedListConfig,
 		secret,
 	}: PeerBookConfig) {
-		this._newList = new NewList(
+		this._newPeers = new NewList(
 			newListConfig
 				? newListConfig
 				: {
@@ -47,7 +47,7 @@ export class PeerBook {
 						peerType: PEER_TYPE.NEW_PEER,
 				  },
 		);
-		this._triedList = new TriedList(
+		this._triedPeers = new TriedList(
 			triedListConfig
 				? triedListConfig
 				: {
@@ -59,34 +59,34 @@ export class PeerBook {
 		);
 	}
 
-	public get newList(): ReadonlyArray<P2PPeerInfo> {
-		return this._newList.peersList();
+	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._newPeers.peersList();
 	}
 
-	public get triedList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._triedList.peersList() as ReadonlyArray<P2PDiscoveredPeerInfo>;
+	public get triedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._triedPeers.peersList() as ReadonlyArray<P2PDiscoveredPeerInfo>;
 	}
 
 	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {
-		return [...this.newList, ...this.triedList];
+		return [...this.newPeers, ...this.triedPeers];
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const triedPeer = this._triedList.getPeer(peerInfo);
-		if (this._triedList.getPeer(peerInfo)) {
+		const triedPeer = this._triedPeers.getPeer(peerInfo);
+		if (this._triedPeers.getPeer(peerInfo)) {
 			return triedPeer;
 		}
 
-		return this._newList.getPeer(peerInfo);
+		return this._newPeers.getPeer(peerInfo);
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedList.getPeer(peerInfo)) {
-			return this._triedList.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
+		if (this._triedPeers.getPeer(peerInfo)) {
+			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
 		}
 
-		if (this._newList.getPeer(peerInfo)) {
-			return this._newList.updatePeer(peerInfo);
+		if (this._newPeers.getPeer(peerInfo)) {
+			return this._newPeers.updatePeer(peerInfo);
 		}
 
 		return false;
@@ -94,20 +94,23 @@ export class PeerBook {
 
 	// It will return evicted peer in the case a peer is removed from a peer list based on eviction strategy.
 	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		if (this._triedList.getPeer(peerInfo) || this._newList.getPeer(peerInfo)) {
+		if (
+			this._triedPeers.getPeer(peerInfo) ||
+			this._newPeers.getPeer(peerInfo)
+		) {
 			throw new Error('Peer already exists');
 		}
 
-		return this._newList.addPeer(peerInfo).evictedPeer;
+		return this._newPeers.addPeer(peerInfo).evictedPeer;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedList.getPeer(peerInfo)) {
-			return this._triedList.removePeer(peerInfo);
+		if (this._triedPeers.getPeer(peerInfo)) {
+			return this._triedPeers.removePeer(peerInfo);
 		}
 
-		if (this._newList.getPeer(peerInfo)) {
-			return this._newList.removePeer(peerInfo);
+		if (this._newPeers.getPeer(peerInfo)) {
+			return this._newPeers.removePeer(peerInfo);
 		}
 
 		return false;
@@ -115,13 +118,13 @@ export class PeerBook {
 
 	// Move a peer from newList to triedList on events like on successful connection.
 	public upgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedList.getPeer(peerInfo)) {
+		if (this._triedPeers.getPeer(peerInfo)) {
 			return true;
 		}
 
-		if (this._newList.getPeer(peerInfo)) {
-			this._newList.removePeer(peerInfo);
-			this._triedList.addPeer(peerInfo as P2PDiscoveredPeerInfo);
+		if (this._newPeers.getPeer(peerInfo)) {
+			this._newPeers.removePeer(peerInfo);
+			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
 
 			return true;
 		}
@@ -134,14 +137,14 @@ export class PeerBook {
 	 * if the peer is deleted from newList that means the peer is completely deleted from the peer lists and need to inform the calling entity by returning true.
 	 */
 	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._newList.getPeer(peerInfo)) {
-			if (this._newList.failedConnectionAction(peerInfo)) {
+		if (this._newPeers.getPeer(peerInfo)) {
+			if (this._newPeers.failedConnectionAction(peerInfo)) {
 				return true;
 			}
 		}
 
-		if (this._triedList.getPeer(peerInfo)) {
-			const failed = this._triedList.failedConnectionAction(peerInfo);
+		if (this._triedPeers.getPeer(peerInfo)) {
+			const failed = this._triedPeers.failedConnectionAction(peerInfo);
 			if (failed) {
 				this.addPeer(peerInfo);
 			}
