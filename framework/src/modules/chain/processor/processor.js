@@ -138,7 +138,10 @@ class Processor {
 				return;
 			}
 
-			this.logger.debug({ id: lastBlock.id }, 'Processing valid block');
+			this.logger.debug(
+				{ id: lastBlock.id, height: block.height },
+				'Processing valid block',
+			);
 			// Process block as it's valid: FORK_STATUS_VALID_BLOCK
 			await blockProcessor.validateNew.run({
 				block,
@@ -161,7 +164,10 @@ class Processor {
 
 	// validate checks the block statically
 	async validate(block) {
-		this.logger.debug({ id: block.id }, 'validating block');
+		this.logger.debug(
+			{ id: block.id, height: block.height },
+			'validating block',
+		);
 		const blockProcessor = this._getBlockProcessor(block);
 		const { lastBlock } = this.blocksModule;
 		await blockProcessor.validate.run({
@@ -173,7 +179,10 @@ class Processor {
 	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
 		return this.sequence.add(async () => {
-			this.logger.debug({ id: block.id }, 'processing validated block');
+			this.logger.debug(
+				{ id: block.id, height: block.height },
+				'processing validated block',
+			);
 			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
@@ -185,7 +194,10 @@ class Processor {
 	// apply processes a block assuming that statically it's valid without saving a block
 	async apply(block) {
 		return this.sequence.add(async () => {
-			this.logger.debug({ id: block.id }, 'applying block');
+			this.logger.debug(
+				{ id: block.id, height: block.height },
+				'applying block',
+			);
 			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
@@ -198,7 +210,10 @@ class Processor {
 	async deleteLastBlock() {
 		return this.sequence.add(async () => {
 			const { lastBlock } = this.blocksModule;
-			this.logger.debug({ id: lastBlock.id }, 'deleting last block');
+			this.logger.debug(
+				{ id: lastBlock.id, height: lastBlock.height },
+				'deleting last block',
+			);
 			const blockProcessor = this._getBlockProcessor(lastBlock);
 			await this._deleteBlock(lastBlock, blockProcessor);
 		});
