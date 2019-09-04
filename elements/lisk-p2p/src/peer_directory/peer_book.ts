@@ -20,26 +20,26 @@ import {
 } from '../constants';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
-import { NewPeerConfig, NewPeers } from './new_list';
-import { TriedPeerConfig, TriedPeers } from './tried_list';
+import { NewList, NewListConfig } from './new_list';
+import { TriedList, TriedListConfig } from './tried_list';
 
 export interface PeerBookConfig {
-	readonly newPeerConfig?: NewPeerConfig;
-	readonly triedPeerConfig?: TriedPeerConfig;
+	readonly newListConfig?: NewListConfig;
+	readonly triedListConfig?: TriedListConfig;
 	readonly secret: number;
 }
 
 export class PeerBook {
-	private readonly _newPeers: NewPeers;
-	private readonly _triedPeers: TriedPeers;
+	private readonly _newList: NewList;
+	private readonly _triedList: TriedList;
 	public constructor({
-		newPeerConfig,
-		triedPeerConfig,
+		newListConfig: newListConfig,
+		triedListConfig: triedListConfig,
 		secret,
 	}: PeerBookConfig) {
-		this._newPeers = new NewPeers(
-			newPeerConfig
-				? newPeerConfig
+		this._newList = new NewList(
+			newListConfig
+				? newListConfig
 				: {
 						secret,
 						peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
@@ -47,9 +47,9 @@ export class PeerBook {
 						peerType: PEER_TYPE.NEW_PEER,
 				  },
 		);
-		this._triedPeers = new TriedPeers(
-			triedPeerConfig
-				? triedPeerConfig
+		this._triedList = new TriedList(
+			triedListConfig
+				? triedListConfig
 				: {
 						secret,
 						peerBucketCount: DEFAULT_TRIED_BUCKET_COUNT,
@@ -59,34 +59,34 @@ export class PeerBook {
 		);
 	}
 
-	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
-		return this._newPeers.peersList();
+	public get newList(): ReadonlyArray<P2PPeerInfo> {
+		return this._newList.peersList();
 	}
 
-	public get triedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._triedPeers.peersList() as ReadonlyArray<P2PDiscoveredPeerInfo>;
+	public get triedList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._triedList.peersList() as ReadonlyArray<P2PDiscoveredPeerInfo>;
 	}
 
 	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {
-		return [...this.newPeers, ...this.triedPeers];
+		return [...this.newList, ...this.triedList];
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const triedPeer = this._triedPeers.getPeer(peerInfo);
-		if (this._triedPeers.getPeer(peerInfo)) {
+		const triedPeer = this._triedList.getPeer(peerInfo);
+		if (this._triedList.getPeer(peerInfo)) {
 			return triedPeer;
 		}
 
-		return this._newPeers.getPeer(peerInfo);
+		return this._newList.getPeer(peerInfo);
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
-			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
+		if (this._triedList.getPeer(peerInfo)) {
+			return this._triedList.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
-			return this._newPeers.updatePeer(peerInfo);
+		if (this._newList.getPeer(peerInfo)) {
+			return this._newList.updatePeer(peerInfo);
 		}
 
 		return false;
@@ -94,37 +94,34 @@ export class PeerBook {
 
 	// It will return evicted peer in the case a peer is removed from a peer list based on eviction strategy.
 	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		if (
-			this._triedPeers.getPeer(peerInfo) ||
-			this._newPeers.getPeer(peerInfo)
-		) {
+		if (this._triedList.getPeer(peerInfo) || this._newList.getPeer(peerInfo)) {
 			throw new Error('Peer already exists');
 		}
 
-		return this._newPeers.addPeer(peerInfo).evictedPeer;
+		return this._newList.addPeer(peerInfo).evictedPeer;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
-			return this._triedPeers.removePeer(peerInfo);
+		if (this._triedList.getPeer(peerInfo)) {
+			return this._triedList.removePeer(peerInfo);
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
-			return this._newPeers.removePeer(peerInfo);
+		if (this._newList.getPeer(peerInfo)) {
+			return this._newList.removePeer(peerInfo);
 		}
 
 		return false;
 	}
 
-	// Move a peer from newPeer to triedPeer on events like on successful connection.
+	// Move a peer from newList to triedList on events like on successful connection.
 	public upgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedList.getPeer(peerInfo)) {
 			return true;
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
-			this._newPeers.removePeer(peerInfo);
-			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
+		if (this._newList.getPeer(peerInfo)) {
+			this._newList.removePeer(peerInfo);
+			this._triedList.addPeer(peerInfo as P2PDiscoveredPeerInfo);
 
 			return true;
 		}
@@ -134,17 +131,17 @@ export class PeerBook {
 
 	/**
 	 * Description: When a peer is downgraded for some reasons then new/triedPeers will trigger their failedConnectionAction,
-	 * if the peer is deleted from newPeer that means the peer is completely deleted from the peer lists and need to inform the calling entity by returning true.
+	 * if the peer is deleted from newList that means the peer is completely deleted from the peer lists and need to inform the calling entity by returning true.
 	 */
 	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._newPeers.getPeer(peerInfo)) {
-			if (this._newPeers.failedConnectionAction(peerInfo)) {
+		if (this._newList.getPeer(peerInfo)) {
+			if (this._newList.failedConnectionAction(peerInfo)) {
 				return true;
 			}
 		}
 
-		if (this._triedPeers.getPeer(peerInfo)) {
-			const failed = this._triedPeers.failedConnectionAction(peerInfo);
+		if (this._triedList.getPeer(peerInfo)) {
+			const failed = this._triedList.failedConnectionAction(peerInfo);
 			if (failed) {
 				this.addPeer(peerInfo);
 			}

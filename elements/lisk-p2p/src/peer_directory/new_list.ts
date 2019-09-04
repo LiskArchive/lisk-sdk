@@ -16,11 +16,11 @@ import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 
 import { CustomPeerInfo, PeerList, PeerListConfig } from './peer_list';
 
-export interface NewPeerConfig extends PeerListConfig {
+export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
 }
 
-export class NewPeers extends PeerList {
+export class NewList extends PeerList {
 	private readonly _evictionThresholdTime: number;
 
 	public constructor({
@@ -29,7 +29,7 @@ export class NewPeers extends PeerList {
 		peerBucketSize,
 		secret,
 		peerType,
-	}: NewPeerConfig) {
+	}: NewListConfig) {
 		super({
 			secret,
 			peerBucketCount,
@@ -42,7 +42,7 @@ export class NewPeers extends PeerList {
 			: DEFAULT_EVICTION_THRESHOLD_TIME;
 	}
 
-	public get newPeerConfig(): NewPeerConfig {
+	public get newPeerConfig(): NewListConfig {
 		return {
 			...this.peerListConfig,
 			evictionThresholdTime: this._evictionThresholdTime,

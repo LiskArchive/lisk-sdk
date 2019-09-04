@@ -18,18 +18,18 @@ import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo } from '../utils';
 import { CustomPeerInfo, PeerList, PeerListConfig } from './peer_list';
 
-export interface TriedPeerConfig extends PeerListConfig {
+export interface TriedListConfig extends PeerListConfig {
 	readonly maxReconnectTries?: number;
 }
 
-interface TriedPeerInfo extends CustomPeerInfo {
+interface TriedListInfo extends CustomPeerInfo {
 	// tslint:disable-next-line:readonly-keyword
 	numOfConnectionFailures: number;
 }
 
-type TriedPeerMap = Map<number, Map<string, TriedPeerInfo>>;
+type TriedListMap = Map<number, Map<string, TriedListInfo>>;
 
-export class TriedPeers extends PeerList {
+export class TriedList extends PeerList {
 	private readonly _maxReconnectTries: number;
 
 	public constructor({
@@ -38,7 +38,7 @@ export class TriedPeers extends PeerList {
 		secret,
 		peerBucketSize,
 		peerType,
-	}: TriedPeerConfig) {
+	}: TriedListConfig) {
 		super({
 			secret,
 			peerBucketCount,
@@ -50,21 +50,21 @@ export class TriedPeers extends PeerList {
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 
-		this.initializePeerList(this.peerMap as TriedPeerMap);
+		this.initializePeerList(this.peerMap as TriedListMap);
 	}
 
 	public initializePeerList(
-		peerMap: Map<number, Map<string, TriedPeerInfo>>,
+		peerMap: Map<number, Map<string, TriedListInfo>>,
 	): void {
 		// Initialize the Map with all the buckets
 		for (const bucketId of [
 			...new Array(this.peerListConfig.peerBucketCount).keys(),
 		]) {
-			peerMap.set(bucketId, new Map<string, TriedPeerInfo>());
+			peerMap.set(bucketId, new Map<string, TriedListInfo>());
 		}
 	}
 
-	public get triedPeerConfig(): TriedPeerConfig {
+	public get triedPeerConfig(): TriedListConfig {
 		return {
 			...this.peerListConfig,
 			maxReconnectTries: this._maxReconnectTries,
@@ -72,7 +72,7 @@ export class TriedPeers extends PeerList {
 	}
 
 	// Extend to add custom TriedPeerInfo
-	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedPeerInfo => ({
+	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
 		peerInfo,
 		numOfConnectionFailures: 0,
 		dateAdded: new Date(),
@@ -96,7 +96,7 @@ export class TriedPeers extends PeerList {
 			peerInfo,
 			numOfConnectionFailures,
 			dateAdded,
-		} = foundPeer as TriedPeerInfo;
+		} = foundPeer as TriedListInfo;
 
 		if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
 			bucket.delete(incomingPeerId);

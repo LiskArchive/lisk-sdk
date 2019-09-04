@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { NewPeers } from '../../../src/peer_directory/new_list';
+import { NewList } from '../../../src/peer_directory/new_list';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE, constructPeerIdFromPeerInfo } from '../../../src/utils';
@@ -32,10 +32,10 @@ describe('newPeer', () => {
 	};
 
 	describe('#constructor', () => {
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 		});
 
 		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
@@ -46,11 +46,11 @@ describe('newPeer', () => {
 	});
 
 	describe('#addPeer', () => {
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 			newPeersObj.addPeer(samplePeers[0]);
 		});
 
@@ -67,11 +67,11 @@ describe('newPeer', () => {
 
 	describe('#getNewPeersList', () => {
 		const samplePeers = initializePeerInfoList();
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 		let newPeersArray: ReadonlyArray<P2PPeerInfo>;
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 			newPeersObj.addPeer(samplePeers[0]);
 			newPeersObj.addPeer(samplePeers[1]);
 			newPeersObj.addPeer(samplePeers[2]);
@@ -89,11 +89,11 @@ describe('newPeer', () => {
 	});
 
 	describe('#removePeer', () => {
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 			newPeersObj.addPeer(samplePeers[0]);
 			newPeersObj.addPeer(samplePeers[1]);
 		});
@@ -105,11 +105,11 @@ describe('newPeer', () => {
 	});
 
 	describe('#getPeer', () => {
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 			newPeersObj.addPeer(samplePeers[0]);
 			newPeersObj.addPeer(samplePeers[1]);
 		});
@@ -131,11 +131,11 @@ describe('newPeer', () => {
 	});
 
 	describe('#updatePeer', () => {
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 			newPeersObj.addPeer(samplePeers[0]);
 			newPeersObj.addPeer(samplePeers[1]);
 		});
@@ -169,11 +169,11 @@ describe('newPeer', () => {
 	});
 
 	describe('#findPeer', () => {
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 			newPeersObj.addPeer(samplePeers[0]);
 			newPeersObj.addPeer(samplePeers[1]);
 		});
@@ -194,11 +194,11 @@ describe('newPeer', () => {
 	});
 
 	describe('#failedConnectionAction', () => {
-		let newPeersObj: NewPeers;
+		let newPeersObj: NewList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			newPeersObj = new NewPeers(newPeerConfig);
+			newPeersObj = new NewList(newPeerConfig);
 			newPeersObj.addPeer(samplePeers[0]);
 			newPeersObj.addPeer(samplePeers[1]);
 		});
@@ -223,7 +223,7 @@ describe('newPeer', () => {
 		};
 		const samplePeers = initializePeerInfoList();
 
-		let newPeersobj = new NewPeers(newPeerConfig);
+		let newPeersobj = new NewList(newPeerConfig);
 		// Modify getBucketId function to only return buckets in range
 		newPeersobj['getBucketId'] = () => Math.floor(Math.random() * 2);
 		newPeersobj.addPeer(samplePeers[0]);
@@ -265,7 +265,7 @@ describe('newPeer', () => {
 		};
 		const samplePeers = initializePeerInfoList();
 
-		let newPeersList = new NewPeers(newPeerConfig);
+		let newPeersList = new NewList(newPeerConfig);
 		// Modify getBucketId function to only return buckets in range
 		newPeersList['getBucketId'] = () => Math.floor(Math.random() * 1);
 		// Add a custom map to peerMap

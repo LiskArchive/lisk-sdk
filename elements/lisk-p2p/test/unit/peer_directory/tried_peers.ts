@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { TriedPeers } from '../../../src/peer_directory/tried_list';
+import { TriedList } from '../../../src/peer_directory/tried_list';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
@@ -28,10 +28,10 @@ describe('triedPeer', () => {
 	};
 
 	describe('#constructor', () => {
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 
 		beforeEach(async () => {
-			triedPeersObj = new TriedPeers(triedPeerConfig);
+			triedPeersObj = new TriedList(triedPeerConfig);
 		});
 
 		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
@@ -42,11 +42,11 @@ describe('triedPeer', () => {
 	});
 
 	describe('#addPeer', () => {
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			triedPeersObj = new TriedPeers(triedPeerConfig);
+			triedPeersObj = new TriedList(triedPeerConfig);
 			triedPeersObj.addPeer(samplePeers[0]);
 		});
 
@@ -63,11 +63,11 @@ describe('triedPeer', () => {
 
 	describe('#gettriedPeersObj', () => {
 		const samplePeers = initializePeerInfoList();
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 		let triedPeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 		before(async () => {
-			triedPeersObj = new TriedPeers(triedPeerConfig);
+			triedPeersObj = new TriedList(triedPeerConfig);
 			triedPeersObj.addPeer(samplePeers[0]);
 			triedPeersObj.addPeer(samplePeers[1]);
 			triedPeersObj.addPeer(samplePeers[2]);
@@ -87,11 +87,11 @@ describe('triedPeer', () => {
 	});
 
 	describe('#removePeer', () => {
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			triedPeersObj = new TriedPeers(triedPeerConfig);
+			triedPeersObj = new TriedList(triedPeerConfig);
 			triedPeersObj.addPeer(samplePeers[0]);
 			triedPeersObj.addPeer(samplePeers[1]);
 		});
@@ -103,11 +103,11 @@ describe('triedPeer', () => {
 	});
 
 	describe('#getPeer', () => {
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			triedPeersObj = new TriedPeers(triedPeerConfig);
+			triedPeersObj = new TriedList(triedPeerConfig);
 			triedPeersObj.addPeer(samplePeers[0]);
 			triedPeersObj.addPeer(samplePeers[1]);
 		});
@@ -129,11 +129,11 @@ describe('triedPeer', () => {
 	});
 
 	describe('#updatePeer', () => {
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			triedPeersObj = new TriedPeers(triedPeerConfig);
+			triedPeersObj = new TriedList(triedPeerConfig);
 			triedPeersObj.addPeer(samplePeers[0]);
 			triedPeersObj.addPeer(samplePeers[1]);
 		});
@@ -167,11 +167,11 @@ describe('triedPeer', () => {
 	});
 
 	describe('#findPeer', () => {
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			triedPeersObj = new TriedPeers(triedPeerConfig);
+			triedPeersObj = new TriedList(triedPeerConfig);
 			triedPeersObj.addPeer(samplePeers[0]);
 			triedPeersObj.addPeer(samplePeers[1]);
 		});
@@ -191,7 +191,7 @@ describe('triedPeer', () => {
 	});
 
 	describe('#failedConnectionAction', () => {
-		let triedPeersObj: TriedPeers;
+		let triedPeersObj: TriedList;
 		const samplePeers = initializePeerInfoList();
 
 		describe('when maxReconnectTries is 1', () => {
@@ -203,7 +203,7 @@ describe('triedPeer', () => {
 					secret: 123456,
 					peerType: PEER_TYPE.TRIED_PEER,
 				};
-				triedPeersObj = new TriedPeers(triedPeerConfig);
+				triedPeersObj = new TriedList(triedPeerConfig);
 				triedPeersObj.addPeer(samplePeers[0]);
 			});
 
@@ -223,7 +223,7 @@ describe('triedPeer', () => {
 					secret: 123456,
 					peerType: PEER_TYPE.TRIED_PEER,
 				};
-				triedPeersObj = new TriedPeers(triedPeerConfig);
+				triedPeersObj = new TriedList(triedPeerConfig);
 				triedPeersObj.addPeer(samplePeers[0]);
 			});
 
@@ -248,7 +248,7 @@ describe('triedPeer', () => {
 			};
 			const samplePeers = initializePeerInfoList();
 
-			let triedPeersObj = new TriedPeers(newPeerConfig);
+			let triedPeersObj = new TriedList(newPeerConfig);
 			// Modify getBucketId function to only return buckets in range
 			triedPeersObj['getBucketId'] = () => Math.floor(Math.random() * 2);
 			triedPeersObj.addPeer(samplePeers[0]);
