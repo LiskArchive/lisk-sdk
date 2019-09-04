@@ -491,12 +491,7 @@ class BlocksVerify {
 		);
 	}
 
-	async reloadRequired(blocksCount, memRounds) {
-		const round = this.slots.calcRound(blocksCount);
-		const unapplied = memRounds.filter(row => row.round !== round);
-		if (unapplied.length > 0) {
-			throw new Error('Detected unapplied rounds in mem_round');
-		}
+	async reloadRequired() {
 		const accounts = await this.storage.entities.Account.get(
 			{ isDelegate: true },
 			{ limit: null },

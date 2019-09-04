@@ -254,7 +254,7 @@ class Blocks extends EventEmitter {
 		this._isActive = true;
 		await this.blocksChain.saveGenesisBlock();
 		// check mem tables
-		const { blocksCount, genesisBlock, memRounds } = await new Promise(
+		const { blocksCount, genesisBlock } = await new Promise(
 			(resolve, reject) => {
 				this.storage.entities.Block.begin('loader:checkMemTables', async tx => {
 					try {
@@ -286,7 +286,7 @@ class Blocks extends EventEmitter {
 		}
 		// check reload condition, true then reload
 		try {
-			await this.blocksVerify.reloadRequired(blocksCount, memRounds);
+			await this.blocksVerify.reloadRequired();
 		} catch (error) {
 			this.logger.error(error, 'Reload of blockchain is required');
 			this._lastBlock = await this._reload(blocksCount);
