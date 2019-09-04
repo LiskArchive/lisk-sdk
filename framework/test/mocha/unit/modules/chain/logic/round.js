@@ -250,6 +250,7 @@ describe('round', () => {
 				round = new Round(scope, task);
 				args = {
 					publicKey: scope.block.generatorPublicKey,
+					producedBlocks: 0,
 					round: scope.round,
 				};
 				address = getAddressFromPublicKey(args.publicKey);
@@ -277,6 +278,7 @@ describe('round', () => {
 				round = new Round(scope, task);
 				args = {
 					publicKey: scope.block.generatorPublicKey,
+					producedBlocks: -1,
 					round: scope.round,
 				};
 				address = getAddressFromPublicKey(args.publicKey);
