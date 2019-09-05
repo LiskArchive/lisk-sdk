@@ -106,6 +106,7 @@ for (const anAccount of genesisDelegateAccounts) {
 	};
 }
 
+// Generators
 const generateTestCasesValidBlockVotesTx = () => {
 	const chainStateBuilder = new ChainStateBuilder(
 		genesisBlock,
@@ -128,6 +129,45 @@ const generateTestCasesValidBlockVotesTx = () => {
 		.to('2222471382442610527L');
 
 	// Forge the block so as to have all delegates in the store
+	chainStateBuilder.forge();
+
+	// Vote for the 101 delegates with one account
+	chainStateBuilder
+		.castVotesFrom('2222471382442610527L')
+		.voteDelegates(
+			genesisDelegateAccounts
+				.slice(0, 33)
+				.map(aDelegate => aDelegate.publicKey),
+		)
+		.unvoteDelegates([]);
+
+	chainStateBuilder
+		.castVotesFrom('2222471382442610527L')
+		.voteDelegates(
+			genesisDelegateAccounts
+				.slice(33, 66)
+				.map(aDelegate => aDelegate.publicKey),
+		)
+		.unvoteDelegates([]);
+
+	chainStateBuilder
+		.castVotesFrom('2222471382442610527L')
+		.voteDelegates(
+			genesisDelegateAccounts
+				.slice(66, 99)
+				.map(aDelegate => aDelegate.publicKey),
+		)
+		.unvoteDelegates([]);
+
+	chainStateBuilder
+		.castVotesFrom('2222471382442610527L')
+		.voteDelegates(
+			genesisDelegateAccounts
+				.slice(99, 101)
+				.map(aDelegate => aDelegate.publicKey),
+		)
+		.unvoteDelegates([]);
+
 	chainStateBuilder.forge();
 };
 
