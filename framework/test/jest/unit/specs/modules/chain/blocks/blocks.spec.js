@@ -25,13 +25,10 @@ const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fo
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
-const {
-	Rounds: RoundsModule,
-} = require('../../../../../../../src/modules/chain/rounds');
 
 jest.mock('../../../../../../../src/modules/chain/transactions');
-jest.mock('../../../../../../../src/modules/chain/rounds');
 jest.mock('events');
+
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
 
@@ -100,8 +97,8 @@ describe('blocks', () => {
 				log: jest.fn(),
 				error: jest.fn(),
 			},
-			roundsModule: new RoundsModule(),
 			dposModule: {
+				apply: jest.fn(),
 				verifyBlockForger: jest.fn(),
 			},
 		};
@@ -1284,7 +1281,7 @@ describe('blocks', () => {
 	describe('save', () => {
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
-			stubs.dependencies.roundsModule.tick = jest.fn((block, cb) => cb(null));
+			stubs.dependencies.dposModule.apply = jest.fn().mockResolvedValue();
 		});
 
 		describe('when skipSave is set to true', () => {
@@ -1306,11 +1303,13 @@ describe('blocks', () => {
 				).not.toHaveBeenCalled();
 			});
 
-			it('should resolve when rounds module successfully performs tick', async () => {
+			it('should resolve when dpos module successfully performs apply', async () => {
 				// Arrange
 				const block = newBlock();
+
 				// Act & Assert
 				expect.assertions(2);
+
 				await expect(
 					blocksInstance.save({
 						block,
@@ -1318,23 +1317,22 @@ describe('blocks', () => {
 						tx: stubs.tx,
 					}),
 				).resolves.toEqual();
-				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+
+				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
 					block,
-					expect.any(Function),
 					stubs.tx,
 				);
 			});
 
-			it('should throw error with error from rounds module failed to tick', async () => {
+			it('should throw error with error from Dpos module failed to apply', async () => {
 				// Arrange
 				const block = newBlock();
-				const roundsError = new Error('rounds tick error');
-				stubs.dependencies.roundsModule.tick = jest.fn((_, cb) =>
-					cb(roundsError),
-				);
-				expect.assertions(2);
+				const roundsError = new Error('dpos.apply error');
+				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
 
 				// Act & Assert
+				expect.assertions(2);
+
 				await expect(
 					blocksInstance.save({
 						block,
@@ -1342,9 +1340,9 @@ describe('blocks', () => {
 						tx: stubs.tx,
 					}),
 				).rejects.toEqual(roundsError);
-				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+
+				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
 					block,
-					expect.any(Function),
 					stubs.tx,
 				);
 			});
@@ -1390,7 +1388,7 @@ describe('blocks', () => {
 				).rejects.toEqual(transactionCreateError);
 			});
 
-			it('should not perform round tick when save block fails', async () => {
+			it('should not perform Dpos apply when save block fails', async () => {
 				// Arrange
 				const transaction = new TransferTransaction(randomUtils.transaction());
 				const block = newBlock({ transactions: [transaction] });
@@ -1410,7 +1408,7 @@ describe('blocks', () => {
 				} catch (error) {
 					// Assert
 					expect(error).toEqual(transactionCreateError);
-					expect(stubs.dependencies.roundsModule.tick).not.toHaveBeenCalled();
+					expect(stubs.dependencies.dposModule.apply).not.toHaveBeenCalled();
 				}
 			});
 
@@ -1481,11 +1479,13 @@ describe('blocks', () => {
 				).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
 			});
 
-			it('should resolve when rounds module successfully performs tick', async () => {
+			it('should resolve when dpos module successfully performs apply', async () => {
 				// Arrange
 				const block = newBlock();
+
 				// Act & Assert
 				expect.assertions(2);
+
 				await expect(
 					blocksInstance.save({
 						block,
@@ -1493,20 +1493,19 @@ describe('blocks', () => {
 						tx: stubs.tx,
 					}),
 				).resolves.toEqual();
-				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+
+				return expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
 					block,
-					expect.any(Function),
 					stubs.tx,
 				);
 			});
 
-			it('should throw error with error from rounds module failed to tick', async () => {
+			it('should throw error with error from dpos module failed to apply', async () => {
 				// Arrange
 				const block = newBlock();
-				const roundsError = new Error('rounds tick error');
-				stubs.dependencies.roundsModule.tick = jest.fn((_, cb) =>
-					cb(roundsError),
-				);
+				const roundsError = new Error('dpos.apply error');
+				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
+
 				expect.assertions(2);
 
 				// Act & Assert
@@ -1517,9 +1516,9 @@ describe('blocks', () => {
 						tx: stubs.tx,
 					}),
 				).rejects.toEqual(roundsError);
-				expect(stubs.dependencies.roundsModule.tick).toHaveBeenCalledWith(
+
+				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
 					block,
-					expect.any(Function),
 					stubs.tx,
 				);
 			});
