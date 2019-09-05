@@ -139,7 +139,7 @@ class Processor {
 			}
 
 			this.logger.debug(
-				{ id: lastBlock.id, height: block.height },
+				{ id: block.id, height: block.height },
 				'Processing valid block',
 			);
 			// Process block as it's valid: FORK_STATUS_VALID_BLOCK
