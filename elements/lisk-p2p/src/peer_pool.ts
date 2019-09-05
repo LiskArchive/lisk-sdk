@@ -37,6 +37,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	PeerLists,
 } from './p2p_types';
 import {
 	ConnectionState,
@@ -109,6 +110,7 @@ interface PeerPoolConfig {
 	readonly wsMaxMessageRatePenalty: number;
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
+	readonly peerList: PeerLists;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -190,6 +192,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
 	private readonly _peerConfig: PeerConfig;
+	private readonly _peerLists: PeerLists;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -207,6 +210,7 @@ export class PeerPool extends EventEmitter {
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
 		};
+		this._peerLists = peerPoolConfig.peerList;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
