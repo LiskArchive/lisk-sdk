@@ -111,6 +111,7 @@ class DelegatesList extends EventEmitter {
 			.forEach(r => {
 				delete this.delegateListCache[r];
 			});
+	}
 
 	/**
 	 * Validates if block was forged by correct delegate
