@@ -121,7 +121,10 @@ async function _getConfirmedTransactionCount() {
 			);
 		} catch (error) {
 			// Ignore error and just put warn
-			library.components.logger.debug(error, "Transaction count wasn't cached");
+			library.components.logger.debug(
+				error,
+				'Failed to cache Transaction count',
+			);
 		}
 	}
 	return confirmed;
