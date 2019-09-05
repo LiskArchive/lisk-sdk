@@ -138,12 +138,6 @@ const generateTestCasesValidBlockMultisignatureRegistrationTx = () => {
 	chainStateBuilder
 		.transfer('30')
 		.from('10881167371402274308L')
-		.to('8465920867403822059L')
-		.transfer('30')
-		.from('10881167371402274308L')
-		.to('1670991471799963578L')
-		.transfer('30')
-		.from('10881167371402274308L')
 		.to('2222471382442610527L')
 		.forge();
 
@@ -187,12 +181,6 @@ const generateTestCasesValidBlockTransferFromMultisignatureAccount = () => {
 		.forge();
 	// Fund three accounts
 	chainStateBuilder
-		.transfer('30')
-		.from('10881167371402274308L')
-		.to('8465920867403822059L')
-		.transfer('30')
-		.from('10881167371402274308L')
-		.to('1670991471799963578L')
 		.transfer('30')
 		.from('10881167371402274308L')
 		.to('2222471382442610527L')
@@ -254,12 +242,6 @@ const generateTestCasesInvalidBlockMultisignatureRegistrationAndFundingInSameBlo
 	chainStateBuilder
 		.transfer('30')
 		.from('10881167371402274308L')
-		.to('8465920867403822059L')
-		.transfer('30')
-		.from('10881167371402274308L')
-		.to('1670991471799963578L')
-		.transfer('30')
-		.from('10881167371402274308L')
 		.to('2222471382442610527L');
 
 	// Register multisignature and two co-signers for it
@@ -302,12 +284,6 @@ const generateTestCasesInvalidBlockTransferFromMultisignatureAccountOnSameBlockA
 		.forge();
 	// Fund three accounts
 	chainStateBuilder
-		.transfer('30')
-		.from('10881167371402274308L')
-		.to('8465920867403822059L')
-		.transfer('30')
-		.from('10881167371402274308L')
-		.to('1670991471799963578L')
 		.transfer('30')
 		.from('10881167371402274308L')
 		.to('2222471382442610527L')
