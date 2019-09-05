@@ -12,35 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
-describe('Disconnected network: All nodes launch at the same time. Each node has an empty seedPeers list', () => {
+describe('P2P.sendToPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+	let collectedMessages: Array<any> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 	const POPULATOR_INTERVAL = 50;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
-	const ALL_NODE_PORTS: ReadonlyArray<number> = [
-		...new Array(NETWORK_PEER_COUNT).keys(),
-	].map(index => NETWORK_START_PORT + index);
-	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 	});
 
 	beforeEach(async () => {
-		// Make sure that integration tests use real timers.
-		sandbox.restore();
-		p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
+		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+			// Each node will have the previous node in the sequence as a seed peer except the first node.
+			const seedPeers =
+				index === 0
+					? []
+					: [
+							{
+								ipAddress: '127.0.0.1',
+								wsPort: NETWORK_START_PORT + index - 1,
+							},
+					  ];
+
+			const nodePort = NETWORK_START_PORT + index;
 			return new P2P({
-				connectTimeout: 200,
+				connectTimeout: 100,
+				ackTimeout: 200,
+				rateCalculationInterval: 10000,
+				seedPeers,
 				wsEngine: 'ws',
 				populatorInterval: POPULATOR_INTERVAL,
 				maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -61,7 +69,18 @@ describe('Disconnected network: All nodes launch at the same time. Each node has
 			});
 		});
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-		await wait(100);
+
+		await wait(1000);
+
+		collectedMessages = [];
+		for (let p2p of p2pNodeList) {
+			p2p.on('messageReceived', message => {
+				collectedMessages.push({
+					nodePort: p2p.nodeInfo.wsPort,
+					message,
+				});
+			});
+		}
 	});
 
 	afterEach(async () => {
@@ -73,21 +92,32 @@ describe('Disconnected network: All nodes launch at the same time. Each node has
 		await wait(1000);
 	});
 
-	it('should set the isActive property to true for all nodes', () => {
-		for (let p2p of p2pNodeList) {
-			expect(p2p).to.have.property('isActive', true);
-		}
-	});
+	it('should send message to a specific peer within the network', async () => {
+		const firstP2PNode = p2pNodeList[0];
 
-	describe('P2P.request', () => {
-		it('should throw an error when not able to get any peer in peer selection', async () => {
-			const firstP2PNode = p2pNodeList[0];
-			const response = firstP2PNode.request({
-				procedure: 'foo',
-				data: 'bar',
-			});
+		const targetPeerPort = NETWORK_START_PORT + 3;
+		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 
-			expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
-		});
+		firstP2PNode.sendToPeer(
+			{
+				event: 'foo',
+				data: 123,
+			},
+			targetPeerId,
+		);
+
+		await wait(100);
+
+		expect(collectedMessages.length).to.equal(1);
+		expect(collectedMessages[0])
+			.to.have.property('nodePort')
+			.which.is.equal(targetPeerPort);
+		expect(collectedMessages[0]).to.have.property('message');
+		expect(collectedMessages[0].message)
+			.to.have.property('event')
+			.which.is.equal('foo');
+		expect(collectedMessages[0].message)
+			.to.have.property('data')
+			.which.is.equal(123);
 	});
 });

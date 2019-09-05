@@ -25,11 +25,12 @@ import {
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
 
-describe('Network with custom selection algorithm is passed to each node', () => {
+describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 15;
 	const POPULATOR_INTERVAL = 50;
+
 	// Custom selection function that finds peers having common values for modules field for example.
 	const peerSelectionForSendRequest:
 		| P2PPeerSelectionForSendFunction
@@ -77,7 +78,6 @@ describe('Network with custom selection algorithm is passed to each node', () =>
 	) => [...input.newPeers, ...input.triedPeers];
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 	});
 

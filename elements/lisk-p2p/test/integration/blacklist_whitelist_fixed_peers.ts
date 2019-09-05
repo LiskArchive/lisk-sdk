@@ -20,7 +20,7 @@ import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
-describe('Network with blacklisted/fixed/whitelisted peers', () => {
+describe('Blacklisted/fixed/whitelisted peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const FIVE_CONNECTIONS = 5;
 	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
@@ -39,7 +39,6 @@ describe('Network with blacklisted/fixed/whitelisted peers', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 		await wait(1000);
 		const serverSocketPrototype = SCServerSocket.prototype as any;
@@ -83,6 +82,7 @@ describe('Network with blacklisted/fixed/whitelisted peers', () => {
 				number: undefined,
 			},
 		];
+
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.

@@ -17,7 +17,7 @@ import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
-describe('Network with modified peer discovery threshold', () => {
+describe('Peer discovery threshold', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;

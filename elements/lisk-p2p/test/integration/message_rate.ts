@@ -17,7 +17,7 @@ import { P2P, EVENT_REMOVE_PEER } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
-describe('Network with message rate limit', () => {
+describe('Message rate limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
@@ -26,7 +26,6 @@ describe('Network with message rate limit', () => {
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 	});
 

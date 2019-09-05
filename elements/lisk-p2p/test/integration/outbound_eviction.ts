@@ -17,7 +17,7 @@ import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
-describe('Network with frequent outbound peer shuffling', () => {
+describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT_SHUFFLING = 10;
@@ -25,7 +25,6 @@ describe('Network with frequent outbound peer shuffling', () => {
 	const OUTBOUND_SHUFFLE_INTERVAL = 500;
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 	});
 
@@ -80,17 +79,15 @@ describe('Network with frequent outbound peer shuffling', () => {
 		await wait(200);
 	});
 
-	describe('Peer outbound shuffling', () => {
-		it('should shuffle outbound peers in an interval', async () => {
-			const p2pNode = p2pNodeList[0];
-			const { outboundCount } = p2pNode['_peerPool'].getPeersCountPerKind();
-			// Wait for periodic shuffling
-			await wait(500);
-			const { outboundCount: updatedOutbound } = p2pNode[
-				'_peerPool'
-			].getPeersCountPerKind();
+	it('should shuffle outbound peers in an interval', async () => {
+		const p2pNode = p2pNodeList[0];
+		const { outboundCount } = p2pNode['_peerPool'].getPeersCountPerKind();
+		// Wait for periodic shuffling
+		await wait(500);
+		const { outboundCount: updatedOutbound } = p2pNode[
+			'_peerPool'
+		].getPeersCountPerKind();
 
-			expect(updatedOutbound).to.equal(outboundCount - 1);
-		});
+		expect(updatedOutbound).to.equal(outboundCount - 1);
 	});
 });

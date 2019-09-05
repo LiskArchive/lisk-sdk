@@ -18,7 +18,7 @@ import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import { InboundPeer } from '../../src/peer';
 
-describe('Network with peer inbound eviction protection for connection time enabled', () => {
+describe('Peer inbound eviction for connection time', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT_WITH_LIMIT = 10;
@@ -26,14 +26,12 @@ describe('Network with peer inbound eviction protection for connection time enab
 	const POPULATOR_INTERVAL_WITH_LIMIT = 100;
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 	});
 
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
 			index => {
-				// Each node will have the previous node in the sequence as a seed peer except the first node.
 				const seedPeers = [
 					{
 						ipAddress: '127.0.0.1',
