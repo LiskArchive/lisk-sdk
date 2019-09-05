@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -50,8 +50,8 @@
 		"@liskhq/lisk-cryptography": "2.3.0",
 		"lodash.shuffle": "4.2.0",
 		"semver": "5.6.0",
-		"socketcluster-client": "14.3.0",
-		"socketcluster-server": "14.5.0",
+		"socketcluster-client": "14.3.1",
+		"socketcluster-server": "14.6.0",
 		"validator": "10.11.0"
 	},
 	"devDependencies": {

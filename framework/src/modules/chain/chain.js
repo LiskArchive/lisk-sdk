@@ -498,7 +498,7 @@ module.exports = class Chain {
 	}
 
 	async _syncTask() {
-		this.logger.info(
+		this.logger.debug(
 			{
 				syncing: this.loader.syncing(),
 				lastReceipt: this.blocks.lastReceipt,

@@ -57,11 +57,11 @@ export const DEFAULT_PING_INTERVAL_MAX = 60000;
 export const DEFAULT_PING_INTERVAL_MIN = 20000;
 
 // Peer directory constants
-export const DEFAULT_NEW_PEER_BUCKET_COUNT = 128;
-export const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
+export const DEFAULT_NEW_BUCKET_COUNT = 128;
+export const DEFAULT_NEW_BUCKET_SIZE = 32;
 export const DEFAULT_EVICTION_THRESHOLD_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds;
-export const DEFAULT_TRIED_PEER_LIST_SIZE = 64;
-export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
+export const DEFAULT_TRIED_BUCKET_COUNT = 64;
+export const DEFAULT_TRIED_BUCKET_SIZE = 32;
 export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
@@ -86,3 +86,5 @@ export const INCOMPATIBLE_PEER_UNKNOWN_REASON =
 export const FORBIDDEN_CONNECTION = 4403;
 export const FORBIDDEN_CONNECTION_REASON = 'Peer is not allowed to connect';
 export const EVICTED_PEER_CODE = 4418;
+export const DUPLICATE_CONNECTION = 4404;
+export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
