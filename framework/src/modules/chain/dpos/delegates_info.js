@@ -121,30 +121,23 @@ class DelegatesInfo {
 	}
 
 	// update balance, rewards and fees to the forging delegates
-	async _updateBalanceRewardsAndFees(roundSummary, undo, tx) {
-		const { uniqForgersInfo } = roundSummary;
-		const delegatesWithEarnings = this._getDelegatesWithTheirEarnings(
-			roundSummary,
-		);
-
-		const updateDelegatesPromise = delegatesWithEarnings.map(
-			({ delegatePublicKey, earnings }) => {
-				const { delegateAccount: account } = uniqForgersInfo.find(
-					({ publicKey }) => publicKey === delegatePublicKey,
-				);
-
-				const { fee, reward } = earnings;
-
+	async _updateBalanceRewardsAndFees({ uniqForgersInfo }, undo, tx) {
+		const updateDelegatesPromise = uniqForgersInfo.map(
+			({ delegateAccount, earnings: { fee, reward } }) => {
 				const factor = undo ? -1 : 1;
 				const amount = fee.plus(reward);
 				const data = {
-					balance: account.balance.plus(amount.times(factor)).toString(),
-					fees: account.fees.plus(fee.times(factor)).toString(),
-					rewards: account.rewards.plus(reward.times(factor)).toString(),
+					balance: delegateAccount.balance
+						.plus(amount.times(factor))
+						.toString(),
+					fees: delegateAccount.fees.plus(fee.times(factor)).toString(),
+					rewards: delegateAccount.rewards
+						.plus(reward.times(factor))
+						.toString(),
 				};
 
 				return this.storage.entities.Account.update(
-					{ publicKey: delegatePublicKey },
+					{ publicKey: delegateAccount.publicKey },
 					data,
 					{},
 					tx,
@@ -156,29 +149,15 @@ class DelegatesInfo {
 	}
 
 	// update VoteWeight to accounts voted by delegates who forged
-	async _updateVotedDelegatesVoteWeight(roundSummary, undo, tx) {
-		const delegatesWithEarnings = this._getDelegatesWithTheirEarnings(
-			roundSummary,
-		);
-
+	async _updateVotedDelegatesVoteWeight({ uniqForgersInfo }, undo, tx) {
 		return Promise.all(
-			delegatesWithEarnings
-				.filter(({ delegatePublicKey }) => {
-					const { delegateAccount } = roundSummary.uniqForgersInfo.find(
-						({ publicKey }) => publicKey === delegatePublicKey,
-					);
-
-					return (
+			uniqForgersInfo
+				.filter(
+					({ delegateAccount }) =>
 						!!delegateAccount.votedDelegatesPublicKeys &&
-						delegateAccount.votedDelegatesPublicKeys.length > 0
-					);
-				})
-				.map(({ delegatePublicKey, earnings }) => {
-					const { delegateAccount } = roundSummary.uniqForgersInfo.find(
-						({ publicKey }) => publicKey === delegatePublicKey,
-					);
-
-					const { fee, reward } = earnings;
+						delegateAccount.votedDelegatesPublicKeys.length > 0,
+				)
+				.map(({ delegateAccount, earnings: { fee, reward } }) => {
 					const amount = fee.plus(reward);
 
 					const filters = {
@@ -206,6 +185,18 @@ class DelegatesInfo {
 		return round < nextRound || block.height === 1;
 	}
 
+	/**
+	 * Return an object that contains the summary of round information
+	 * as delegates who forged, their earnings and accounts
+	 *
+	 * @private
+	 * @param {block} block - Current block
+	 * @param {Object} [tx] - SQL transaction
+	 * @returns {Object} { round, totalFee, uniqForgersInfo }
+	 * @returns {Object} { uniqForgersInfo: [{ publicKey, reward, blocksForged, isGettingRemainingFees, earnings, delegateAccount }] }
+	 * @returns {Object} { earnings: { fee, reward } }
+	 * @returns {Object} { delegateAccount: AccountEntity }
+	 */
 	async _summarizeRound(block, tx) {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
@@ -239,16 +230,26 @@ class DelegatesInfo {
 				fees: new BigNum(account.fees),
 			}));
 
-			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(item => ({
-				...item,
-				delegateAccount: parsedDelegateAccounts.find(
-					({ publicKey }) => publicKey === item.publicKey,
-				),
-			}));
+			const totalFee = new BigNum(summedRound.fees);
+
+			// Aggregate forger infor into one object
+			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
+				forgerInfo => ({
+					...forgerInfo,
+					earnings: this._calculateRewardAndFeeForDelegate({
+						totalFee,
+						forgerInfo,
+						round,
+					}),
+					delegateAccount: parsedDelegateAccounts.find(
+						({ publicKey }) => publicKey === forgerInfo.publicKey,
+					),
+				}),
+			);
 
 			return {
 				round,
-				totalFee: new BigNum(summedRound.fees),
+				totalFee,
 				uniqForgersInfo,
 			};
 		} catch (error) {
@@ -276,26 +277,28 @@ class DelegatesInfo {
 	 * `_calculateRewardAndFeePerDelegate` method. `round` argument
 	 * can be safely removed when the exception on testnet was fixed.
 	 */
-	_calculateRewardAndFeeForDelegate({ totalFee, forgedDelegate, round }) {
-		const { rounds = {} } = this.exceptions;
-		const exceptionRound = rounds[round.toString()];
-		let { reward: delegateReward } = forgedDelegate;
+	_calculateRewardAndFeeForDelegate({ forgerInfo, totalFee, round }) {
+		const { exceptionsRounds = {} } = this.exceptions;
+		const exceptionRound = exceptionsRounds[round.toString()];
+
+		let { reward: delegateReward } = forgerInfo;
+		let calculatedTotalFee = totalFee;
 
 		if (exceptionRound) {
 			// Multiply with rewards factor
 			delegateReward = delegateReward.times(exceptionRound.rewards_factor);
 
 			// Multiply with fees factor and add bonus
-			totalFee = totalFee
+			calculatedTotalFee = calculatedTotalFee
 				.times(exceptionRound.fees_factor)
 				.plus(exceptionRound.fees_bonus);
 		}
 
-		const feePerDelegate = totalFee.div(this.activeDelegates).floor();
-		let fee = feePerDelegate.times(forgedDelegate.blocksForged);
+		const feePerDelegate = calculatedTotalFee.div(this.activeDelegates).floor();
+		let fee = feePerDelegate.times(forgerInfo.blocksForged);
 
-		if (forgedDelegate.isGettingRemainingFees) {
-			const feesRemaining = totalFee.minus(
+		if (forgerInfo.isGettingRemainingFees) {
+			const feesRemaining = calculatedTotalFee.minus(
 				feePerDelegate.times(this.activeDelegates),
 			);
 			fee = fee.plus(feesRemaining);
@@ -305,26 +308,6 @@ class DelegatesInfo {
 			fee,
 			reward: delegateReward,
 		};
-	}
-
-	_getDelegatesWithTheirEarnings(roundSummary) {
-		const { round, totalFee, uniqForgersInfo } = roundSummary;
-		return (
-			uniqForgersInfo
-				// calculate delegate earnings
-				.map(forgedDelegate => {
-					const earnings = this._calculateRewardAndFeeForDelegate({
-						totalFee,
-						forgedDelegate,
-						round,
-					});
-
-					return {
-						delegatePublicKey: forgedDelegate.publicKey,
-						earnings,
-					};
-				})
-		);
 	}
 }
 

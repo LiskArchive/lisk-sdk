@@ -187,9 +187,11 @@ const applyConfirmedStep = async (storage, slots, block, exceptions, tx) => {
  * Calls saveBlock for the block and performs round tick
  *
  * @private
+ * @param {Object} storage - Storage component with write methods
+ * @param {Object} dposModule - Dpos module class
  * @param {Object} block - Block object
- * @param {boolean} saveBlock - Flag to save block into database
- * @param {function} tx - Database transaction
+ * @param {boolean} shouldSave - Flag to save block into database
+ * @param {function} tx - Database transaction for atomic operations
  * @returns {Promise<reject|resolve>}
  */
 const saveBlockStep = async (
