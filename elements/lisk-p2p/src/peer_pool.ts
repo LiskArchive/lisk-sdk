@@ -402,17 +402,17 @@ export class PeerPool extends EventEmitter {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
 			peer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
+				!this._peerMap.get(constructPeerIdFromPeerInfo(peer)) ||
 				!fixedPeers.includes(peer),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
 			peer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
+				!this._peerMap.get(constructPeerIdFromPeerInfo(peer)) ||
 				!fixedPeers.includes(peer),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
-			.filter(peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)))
+			.filter(peer => !this._peerMap.get(constructPeerIdFromPeerInfo(peer)))
 			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
