@@ -57,11 +57,11 @@ export const DEFAULT_PING_INTERVAL_MAX = 60000;
 export const DEFAULT_PING_INTERVAL_MIN = 20000;
 
 // Peer directory constants
-export const DEFAULT_NEW_PEER_BUCKET_COUNT = 128;
-export const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
+export const DEFAULT_NEW_BUCKET_COUNT = 128;
+export const DEFAULT_NEW_BUCKET_SIZE = 32;
 export const DEFAULT_EVICTION_THRESHOLD_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds;
-export const DEFAULT_TRIED_PEER_LIST_SIZE = 64;
-export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
+export const DEFAULT_TRIED_BUCKET_COUNT = 64;
+export const DEFAULT_TRIED_BUCKET_SIZE = 32;
 export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
