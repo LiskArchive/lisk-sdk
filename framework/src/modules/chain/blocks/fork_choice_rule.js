@@ -1,3 +1,26 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+const FORK_STATUS_IDENTICAL_BLOCK = 1;
+const FORK_STATUS_VALID_BLOCK = 2;
+const FORK_STATUS_DOUBLE_FORGING = 3;
+const FORK_STATUS_TIE_BREAK = 4;
+const FORK_STATUS_DIFFERENT_CHAIN = 5;
+const FORK_STATUS_DISCARD = 6;
+
 /**
  * Utility functions only required in this file.
  */
@@ -127,6 +150,12 @@ const isDifferentChain = (lastBlock, currentBlock) =>
 			currentBlock.prevotedConfirmedUptoHeight);
 
 module.exports = {
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_VALID_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_DISCARD,
 	isTieBreak,
 	isDoubleForging,
 	isDifferentChain,

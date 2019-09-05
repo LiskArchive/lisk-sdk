@@ -376,7 +376,7 @@ describe('rounds', () => {
 				return Promise.join(
 					getMemAccounts(),
 					getDelegates(),
-					library.modules.rounds.generateDelegateList(tick.before.round, null),
+					library.modules.dpos.getRoundDelegates(tick.before.round),
 					Queries.getDelegatesOrderedByVote(),
 					(_accounts, _delegates, _delegatesList, _delegatesOrderedByVote) => {
 						tick.before.accounts = _.cloneDeep(_accounts);
@@ -400,9 +400,8 @@ describe('rounds', () => {
 							return Promise.join(
 								getMemAccounts(),
 								getDelegates(),
-								library.modules.rounds.generateDelegateList(
+								library.modules.dpos.getRoundDelegates(
 									slots.calcRound(tick.after.block.height + 1),
-									null,
 								),
 								Queries.getDelegatesOrderedByVote(),
 								(
@@ -444,8 +443,8 @@ describe('rounds', () => {
 				return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
 			});
 
-			it('block version should be 2', async () => {
-				return expect(tick.after.block.version).to.equal(2);
+			it('block version should be 1', async () => {
+				return expect(tick.after.block.version).to.equal(1);
 			});
 
 			it('height should be greather by 1', async () => {
@@ -586,9 +585,8 @@ describe('rounds', () => {
 			return Promise.join(
 				getMemAccounts(),
 				getDelegates(),
-				library.modules.rounds.generateDelegateList(
+				library.modules.dpos.getRoundDelegates(
 					slots.calcRound(lastBlock.height),
-					null,
 				),
 				(_accounts, _delegates, _delegatesList) => {
 					// Get genesis accounts address - should be senderId from first transaction
@@ -751,11 +749,11 @@ describe('rounds', () => {
 
 			it('should generate a different delegate list than one generated at the beginning of round 1', async () => {
 				const lastBlock = library.modules.blocks.lastBlock;
-				return library.modules.rounds
-					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
-					.then(delegatesList => {
-						expect(delegatesList).to.not.deep.equal(round.delegatesList);
-					});
+				const delegatesList = await library.modules.dpos.getRoundDelegates(
+					slots.calcRound(lastBlock.height + 1),
+				);
+
+				return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 			});
 		});
 
@@ -763,11 +761,8 @@ describe('rounds', () => {
 			let lastBlock;
 
 			before(async () => {
-				lastBlock = library.modules.blocks.lastBlock;
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			// eslint-disable-next-line mocha/no-skipped-tests
@@ -806,14 +801,10 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const freshLastBlock = library.modules.blocks.lastBlock;
-				return library.modules.rounds
-					.generateDelegateList(
-						slots.calcRound(freshLastBlock.height + 1),
-						null,
-					)
-					.then(delegatesList => {
-						expect(delegatesList).to.deep.equal(round.delegatesList);
-					});
+				const delegatesList = await library.modules.dpos.getRoundDelegates(
+					slots.calcRound(freshLastBlock.height + 1),
+				);
+				return expect(delegatesList).to.deep.equal(round.delegatesList);
 			});
 		});
 
@@ -823,10 +814,7 @@ describe('rounds', () => {
 			});
 
 			it('should be able to delete last block of round again', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
@@ -837,11 +825,10 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const lastBlock = library.modules.blocks.lastBlock;
-				return library.modules.rounds
-					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
-					.then(delegatesList => {
-						expect(delegatesList).to.deep.equal(round.delegatesList);
-					});
+				const delegatesList = await library.modules.dpos.getRoundDelegates(
+					slots.calcRound(lastBlock.height + 1),
+				);
+				return expect(delegatesList).to.deep.equal(round.delegatesList);
 			});
 		});
 
@@ -865,10 +852,7 @@ describe('rounds', () => {
 
 				lastBlock = library.modules.blocks.lastBlock;
 				// Delete one block more
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			it('last block height should be at height 99 after deleting one more block', async () => {
@@ -923,14 +907,10 @@ describe('rounds', () => {
 			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', async () => {
 					const freshLastBlock = library.modules.blocks.lastBlock;
-					return library.modules.rounds
-						.generateDelegateList(
-							slots.calcRound(freshLastBlock.height + 1),
-							null,
-						)
-						.then(delegatesList => {
-							expect(delegatesList).to.not.deep.equal(round.delegatesList);
-						});
+					const delegatesList = await library.modules.dpos.getRoundDelegates(
+						slots.calcRound(freshLastBlock.height + 1),
+					);
+					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
 
 				it('forger of last block of previous round should have vote = 0', async () => {
@@ -945,20 +925,16 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(library.modules.blocks.lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							const freshLastBlock = library.modules.blocks.lastBlock;
-							return library.modules.rounds
-								.generateDelegateList(
-									slots.calcRound(freshLastBlock.height),
-									null,
-								)
-								.then(delegatesList => {
-									expect(delegatesList).to.deep.equal(round.delegatesList);
-								});
-						});
+					return library.modules.processor.deleteLastBlock().then(() => {
+						const freshLastBlock = _.cloneDeep(
+							library.modules.blocks.lastBlock,
+						);
+						return library.modules.dpos
+							.getRoundDelegates(slots.calcRound(freshLastBlock.height))
+							.then(delegatesList => {
+								expect(delegatesList).to.deep.equal(round.delegatesList);
+							});
+					});
 				});
 
 				it('expected forger of last block of round should have proper votes again', async () => {
@@ -1015,20 +991,18 @@ describe('rounds', () => {
 
 					const transactionPool = library.modules.transactionPool;
 					// Delete two blocks more
-					lastBlock = library.modules.blocks.lastBlock;
-					library.modules.blocks.blocksChain
-						.deleteLastBlock(lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
+					lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+					library.modules.processor
+						.deleteLastBlock()
+						.then(() => {
 							_.each(lastBlock.transactions, eachTransaction => {
 								// Remove transaction from pool
 								transactionPool.onConfirmedTransactions([eachTransaction]);
 							});
-							lastBlock = library.modules.blocks.lastBlock;
-							library.modules.blocks.blocksChain
-								.deleteLastBlock(lastBlock)
-								.then(secondLastBlock => {
-									library.modules.blocks._lastBlock = secondLastBlock;
+							lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+							library.modules.processor
+								.deleteLastBlock()
+								.then(() => {
 									_.each(lastBlock.transactions, eachTransaction => {
 										// Remove transaction from pool
 										transactionPool.onConfirmedTransactions([eachTransaction]);
@@ -1058,9 +1032,8 @@ describe('rounds', () => {
 
 					return Promise.join(
 						getDelegates(),
-						library.modules.rounds.generateDelegateList(
+						library.modules.dpos.getRoundDelegates(
 							slots.calcRound(lastBlock.height + 1),
-							null,
 						),
 						(_delegates, _delegatesList) => {
 							delegatesList = _delegatesList;
@@ -1086,11 +1059,15 @@ describe('rounds', () => {
 					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
 
-				it('unvoted delegate should not be on list', async () => {
+				// TODO: to be unskiped on https://github.com/LiskHQ/lisk-sdk/issues/4147
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('unvoted delegate should not be on list', async () => {
 					return expect(delegatesList).to.not.contain(lastBlockForger);
 				});
 
-				it('delegate who replaced unvoted one should be on list', async () => {
+				// TODO: to be unskiped on https://github.com/LiskHQ/lisk-sdk/issues/4147
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('delegate who replaced unvoted one should be on list', async () => {
 					return expect(delegatesList).to.contain(tmpAccount.publicKey);
 				});
 
@@ -1108,17 +1085,14 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(library.modules.blocks.lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							lastBlock = library.modules.blocks.lastBlock;
-							return library.modules.rounds
-								.generateDelegateList(slots.calcRound(lastBlock.height), null)
-								.then(delegatesList => {
-									expect(delegatesList).to.deep.equal(round.delegatesList);
-								});
-						});
+					return library.modules.processor.deleteLastBlock().then(() => {
+						lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
+						return library.modules.dpos
+							.getRoundDelegates(slots.calcRound(lastBlock.height))
+							.then(delegatesList => {
+								expect(delegatesList).to.deep.equal(round.delegatesList);
+							});
+					});
 				});
 
 				it('last block height should be at height 100', async () => {
@@ -1278,11 +1252,7 @@ describe('rounds', () => {
 
 		before(() => {
 			return Promise.mapSeries([...Array(101)], async () => {
-				return library.modules.blocks.blocksChain
-					.deleteLastBlock(library.modules.blocks.lastBlock)
-					.then(newLastBlock => {
-						library.modules.blocks._lastBlock = newLastBlock;
-					});
+				return library.modules.processor.deleteLastBlock();
 			});
 		});
 
@@ -1293,9 +1263,7 @@ describe('rounds', () => {
 
 		it('should fail when try to delete one more block (last block of round 1)', async () => {
 			return expect(
-				library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				),
+				library.modules.processor.deleteLastBlock(),
 			).to.eventually.be.rejectedWith('Snapshot for round 1 not available');
 		});
 
@@ -1313,18 +1281,12 @@ describe('rounds', () => {
 		});
 
 		it('should be able to delete last block of round', async () => {
-			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-				library.modules.blocks.lastBlock,
-			);
-			library.modules.blocks._lastBlock = newLastBlock;
+			await library.modules.processor.deleteLastBlock();
 		});
 
 		it('should be able to delete last block of round again', async () => {
 			await addTransactionsAndForgePromise(library, [], 0);
-			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-				library.modules.blocks.lastBlock,
-			);
-			library.modules.blocks._lastBlock = newLastBlock;
+			await library.modules.processor.deleteLastBlock();
 		});
 	});
 });

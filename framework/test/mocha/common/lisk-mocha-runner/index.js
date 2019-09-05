@@ -141,7 +141,7 @@ if (testPathPattern && testPathPattern.indexOf('-') === 0) {
 	mochaCliOptions.unshift(testPathPattern);
 	testPathPattern = null;
 }
-
+mochaCliOptions.unshift('--');
 // Execute lisk mocha runner
 executeTests(testType, testPathPattern, mochaCliOptions)
 	.then(() => {

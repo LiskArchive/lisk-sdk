@@ -56,8 +56,9 @@ async function _getForgingStatus(publicKey) {
  * @private
  */
 async function _getNetworkHeight() {
-	const peers = await library.channel.invoke('network:getConnectedPeers', {
+	const peers = await library.channel.invoke('network:getPeers', {
 		limit: 100,
+		state: 2,
 	});
 	if (!peers || !peers.length) {
 		return 0;
@@ -196,7 +197,7 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const { lastBlock } = await library.channel.invoke('chain:getNodeStatus');
+		const lastBlock = await library.channel.invoke('chain:getLastBlock');
 		const milestone = await library.channel.invoke('chain:calculateMilestone', {
 			height: lastBlock.height,
 		});

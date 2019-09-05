@@ -368,47 +368,30 @@ describe('duplicate_signatures', () => {
 					);
 				});
 
-				it('should reject duplicated signature', done => {
-					// Make node receive 3 signatures in parallel (1 duplicated)
-					async.parallel(
-						async.reflectAll([
-							parallelCb => {
-								library.modules.transactionPool
-									.getTransactionAndProcessSignature(signatures[0])
-									.then(() => parallelCb())
-									.catch(err => parallelCb(err));
-							},
-							parallelCb => {
-								library.modules.transactionPool
-									.getTransactionAndProcessSignature(signatures[0])
-									.then(() => parallelCb())
-									.catch(err => parallelCb(err));
-							},
-							parallelCb => {
-								library.modules.transactionPool
-									.getTransactionAndProcessSignature(signatures[1])
-									.then(() => parallelCb())
-									.catch(err => parallelCb(err));
-							},
-						]),
-						(err, results) => {
-							// There should be an error from processing only for duplicated signature
-							expect(results[0].value).to.be.undefined;
-							expect(results[1].error[0].message).to.eql(
-								'Encountered duplicate signature in transaction',
-							);
-							expect(results[2].value).to.be.undefined;
+				it('should reject duplicated signature', async () => {
+					try {
+						await Promise.all([
+							library.modules.transactionPool.getTransactionAndProcessSignature(
+								signatures[0],
+							),
+							library.modules.transactionPool.getTransactionAndProcessSignature(
+								signatures[1],
+							),
+							library.modules.transactionPool.getTransactionAndProcessSignature(
+								signatures[0],
+							),
+						]);
+					} catch (errors) {
+						expect(errors[0].message).to.eql(
+							'Encountered duplicate signature in transaction',
+						);
+						const transaction = transactionPool.getMultisignatureTransaction(
+							transactions.multisignature.id,
+						);
 
-							// Get transaction from pool
-							const transaction = transactionPool.getMultisignatureTransaction(
-								transactions.multisignature.id,
-							);
-
-							// There should be 2 signatures
-							expect(transaction.signatures).to.have.lengthOf(2);
-							done();
-						},
-					);
+						// There should be 2 signatures
+						expect(transaction.signatures).to.have.lengthOf(2);
+					}
 				});
 
 				it('should forge a block', async () => {

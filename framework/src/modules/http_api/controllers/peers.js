@@ -39,7 +39,7 @@ function PeersController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-PeersController.getPeers = async function(context, next) {
+PeersController.getPeers = async function getPeers(context, next) {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -68,10 +68,7 @@ PeersController.getPeers = async function(context, next) {
 
 	try {
 		const peersByFilters = await channel.invoke('network:getPeers', filters);
-		const peersCount = await channel.invoke(
-			'network:getPeersCountByFilter',
-			filters,
-		);
+		const peersCount = await channel.invoke('network:getPeersCount', filters);
 
 		return next(null, {
 			data: peersByFilters,

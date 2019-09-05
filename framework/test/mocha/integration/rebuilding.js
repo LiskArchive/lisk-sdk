@@ -92,9 +92,14 @@ describe('rebuilding', () => {
 			const lastBlock = library.modules.blocks.lastBlock;
 			expect(lastBlock.height).to.eql(303);
 
-			await library.modules.blocks.loadBlockChain(2);
+			await library.modules.rebuilder.rebuild(2);
 			const _accounts = await getMemAccounts();
 			expect(_accounts).to.deep.equal(memAccountsBeforeRebuild);
+		});
+
+		it('should not have more blocks than 2 rounds', async () => {
+			const count = await library.components.storage.entities.Block.count();
+			expect(count).to.deep.equal(202);
 		});
 	});
 });

@@ -28,10 +28,24 @@ const {
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
 	EVENT_PRIORITY_CHAIN_DETECTED,
+	BLOCKCHAIN_STATUS_REBUILD,
+	BLOCKCHAIN_STATUS_RECOVERY,
+	BLOCKCHAIN_STATUS_READY,
 } = require('./blocks');
+const {
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_VALID_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_DISCARD,
+} = require('./fork_choice_rule');
+const { baseBlockSchema } = require('./schema');
+const { loadBlocksWithOffset } = require('./block');
 
 module.exports = {
 	Blocks,
+	baseBlockSchema,
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
@@ -40,6 +54,16 @@ module.exports = {
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
 	EVENT_PRIORITY_CHAIN_DETECTED,
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_VALID_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_DISCARD,
+	BLOCKCHAIN_STATUS_REBUILD,
+	BLOCKCHAIN_STATUS_RECOVERY,
+	BLOCKCHAIN_STATUS_READY,
+	loadBlocksWithOffset,
 	objectNormalize,
 	addBlockProperties,
 };

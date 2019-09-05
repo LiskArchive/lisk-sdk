@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { SCServerSocket } from 'socketcluster-server';
+import * as url from 'url';
+import cloneDeep = require('lodash.clonedeep');
 import { expect } from 'chai';
-import { P2P, EVENT_REMOVE_PEER } from '../../src/index';
+import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
@@ -25,10 +27,8 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
-import { InboundPeer } from '../../src/peer';
-import { SCServerSocket } from 'socketcluster-server';
-import * as url from 'url';
-import cloneDeep = require('lodash.clonedeep');
+import { EVENT_REMOVE_PEER, EVENT_CLOSE_OUTBOUND } from '../../src/events';
+import { InboundPeer, OutboundPeer, ConnectionState } from '../../src/peer';
 
 describe('Integration tests for P2P library', () => {
 	before(() => {
@@ -121,9 +121,9 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					connectTimeout: 100,
-					ackTimeout: 200,
+					ackTimeout: 100,
 					peerBanTime: 100,
-					populatorInterval: POPULATOR_INTERVAL,
+					populatorInterval: 100,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
@@ -148,12 +148,11 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover all peers in the network after a few cycles of discovery', async () => {
 				// Wait for a few cycles of discovery.
-				await wait(POPULATOR_INTERVAL * 10);
+				await wait(POPULATOR_INTERVAL * 15);
 
 				for (let p2p of p2pNodeList) {
-					const { connectedPeers } = p2p.getNetworkStatus();
-
-					const peerPorts = connectedPeers
+					const peerPorts = p2p
+						.getConnectedPeers()
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
 					const expectedPeerPorts = ALL_NODE_PORTS.filter(
@@ -168,16 +167,13 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer banning mechanism', () => {
 			it('should not ban a bad peer for a 10 point penalty', async () => {
 				const firstP2PNode = p2pNodeList[0];
-				const { connectedPeers } = firstP2PNode.getNetworkStatus();
-				const badPeer = connectedPeers[1];
+				const badPeer = firstP2PNode.getConnectedPeers()[1];
 				const peerPenalty = {
 					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
 					penalty: 10,
 				};
 				firstP2PNode.applyPenalty(peerPenalty);
-				const {
-					connectedPeers: updatedConnectedPeers,
-				} = firstP2PNode.getNetworkStatus();
+				const updatedConnectedPeers = firstP2PNode.getConnectedPeers();
 				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
 					badPeer.wsPort,
 				);
@@ -185,16 +181,13 @@ describe('Integration tests for P2P library', () => {
 
 			it('should ban a bad peer for a 100 point penalty', async () => {
 				const firstP2PNode = p2pNodeList[0];
-				const { connectedPeers } = firstP2PNode.getNetworkStatus();
-				const badPeer = connectedPeers[2];
+				const badPeer = firstP2PNode.getConnectedPeers()[2];
 				const peerPenalty = {
 					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
 					penalty: 100,
 				};
 				firstP2PNode.applyPenalty(peerPenalty);
-				const {
-					connectedPeers: updatedConnectedPeers,
-				} = firstP2PNode.getNetworkStatus();
+				const updatedConnectedPeers = firstP2PNode.getConnectedPeers();
 
 				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.not.include(
 					badPeer.wsPort,
@@ -203,8 +196,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should unban a peer after the ban period', async () => {
 				const firstP2PNode = p2pNodeList[0];
-				const { connectedPeers } = firstP2PNode.getNetworkStatus();
-				const badPeer = connectedPeers[2];
+				const badPeer = firstP2PNode.getConnectedPeers()[2];
 				const peerPenalty = {
 					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
 					penalty: 100,
@@ -212,9 +204,7 @@ describe('Integration tests for P2P library', () => {
 				firstP2PNode.applyPenalty(peerPenalty);
 				// Wait for ban time to expire and peer to be re-discovered
 				await wait(1000);
-				const {
-					connectedPeers: updatedConnectedPeers,
-				} = firstP2PNode.getNetworkStatus();
+				const updatedConnectedPeers = firstP2PNode.getConnectedPeers();
 
 				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
 					badPeer.wsPort,
@@ -367,10 +357,10 @@ describe('Integration tests for P2P library', () => {
 				});
 				await wait(200);
 
-				const connectedPeers = firstP2PNode.getNetworkStatus().connectedPeers;
 				const portOfLastInactivePort = ALL_NODE_PORTS[NETWORK_PEER_COUNT / 2];
 
-				const actualConnectedPeers = connectedPeers
+				const actualConnectedPeers = firstP2PNode
+					.getConnectedPeers()
 					.filter(
 						peer =>
 							peer.wsPort !== NETWORK_START_PORT &&
@@ -439,9 +429,8 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover all peers and add them to the connectedPeers list within each node', async () => {
 				for (let p2p of p2pNodeList) {
-					const { connectedPeers } = p2p.getNetworkStatus();
-
-					const peerPorts = connectedPeers
+					const peerPorts = p2p
+						.getConnectedPeers()
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
 
@@ -456,7 +445,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', () => {
 				for (let p2p of p2pNodeList) {
-					const { newPeers } = p2p.getNetworkStatus();
+					const newPeers = p2p['_peerBook'].newPeers;
 
 					const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
@@ -466,7 +455,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should discover all peers and add them to the triedPeers list within each node', () => {
 				for (let p2p of p2pNodeList) {
-					const { triedPeers } = p2p.getNetworkStatus();
+					const triedPeers = p2p['_peerBook'].triedPeers;
 
 					const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
 
@@ -481,23 +470,18 @@ describe('Integration tests for P2P library', () => {
 
 			it('should not contain itself in any of its peer list', async () => {
 				for (let p2p of p2pNodeList) {
-					const {
-						triedPeers,
-						connectedPeers,
-						newPeers,
-					} = p2p.getNetworkStatus();
+					const allPeers = p2p['_peerBook'].getAllPeers();
 
-					const triedPeerPorts = triedPeers
+					const allPeersPorts = allPeers
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
-					const newPeerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
-					const connectedPeerPorts = connectedPeers
+					const connectedPeerPorts = p2p
+						.getConnectedPeers()
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
 
 					expect([
-						...triedPeerPorts,
-						...newPeerPorts,
+						...allPeersPorts,
 						...connectedPeerPorts,
 					]).to.not.contain.members([p2p.nodeInfo.wsPort]);
 				}
@@ -506,9 +490,9 @@ describe('Integration tests for P2P library', () => {
 
 		describe('Cleanup unresponsive peers', () => {
 			it('should remove inactive 2nd node from connected peer list of other', async () => {
-				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
 				const secondNode = p2pNodeList[1];
-				const initialPeerPorts = initialNetworkStatus.connectedPeers
+				const initialPeerPorts = p2pNodeList[0]
+					.getConnectedPeers()
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
@@ -520,9 +504,8 @@ describe('Integration tests for P2P library', () => {
 
 				await wait(200);
 
-				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();
-
-				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
+				const peerPortsAfterPeerCrash = p2pNodeList[0]
+					.getConnectedPeers()
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
@@ -554,8 +537,8 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			it('should make request to the network; it should reach a single peer', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const response = await firstP2PNode.request({
+				const secondP2PNode = p2pNodeList[1];
+				const response = await secondP2PNode.request({
 					procedure: 'foo',
 					data: 'bar',
 				});
@@ -571,7 +554,7 @@ describe('Integration tests for P2P library', () => {
 					.which.is.equal('bar');
 				expect(response.data)
 					.to.have.property('requestPeerId')
-					.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+					.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
 			});
 
 			// Check for even distribution of requests across the network. Account for an error margin.
@@ -749,10 +732,9 @@ describe('Integration tests for P2P library', () => {
 
 				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
 				for (let p2pNode of p2pNodeList.slice(1)) {
-					const networkStatus = p2pNode.getNetworkStatus();
-					const firstP2PNodePeerInfo = networkStatus.connectedPeers.find(
-						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
-					);
+					const firstP2PNodePeerInfo = p2pNode
+						.getConnectedPeers()
+						.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
 					expect(firstP2PNodePeerInfo).to.exist;
 					expect(firstP2PNodePeerInfo)
 						.to.have.property('height')
@@ -778,37 +760,22 @@ describe('Integration tests for P2P library', () => {
 
 				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
 				for (let p2pNode of p2pNodeList.slice(1)) {
-					const networkStatus = p2pNode.getNetworkStatus();
-					const firstNodeInConnectedPeer = networkStatus.connectedPeers.find(
-						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
-					);
+					const firstNodeInConnectedPeer = p2pNode
+						.getConnectedPeers()
+						.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
 
-					const firstNodeInNewPeer = networkStatus.newPeers.find(
-						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
-					);
+					const allPeersList = p2pNode['_peerBook'].getAllPeers();
 
-					const firstNodeInTriedPeer = networkStatus.triedPeers.find(
+					const firstNodeInAllPeersList = allPeersList.find(
 						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
 					);
 
 					// Check if the peerinfo is updated in new peer list
-					if (firstNodeInNewPeer) {
-						expect(firstNodeInNewPeer)
+					if (firstNodeInAllPeersList) {
+						expect(firstNodeInAllPeersList)
 							.to.have.property('height')
 							.which.equals(10);
-						expect(firstNodeInNewPeer)
-							.to.have.property('nethash')
-							.which.equals(
-								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-							);
-					}
-
-					// Check if the peerinfo is updated in tried peer list
-					if (firstNodeInTriedPeer) {
-						expect(firstNodeInTriedPeer)
-							.to.have.property('height')
-							.which.equals(10);
-						expect(firstNodeInTriedPeer)
+						expect(firstNodeInAllPeersList)
 							.to.have.property('nethash')
 							.which.equals(
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -942,8 +909,8 @@ describe('Integration tests for P2P library', () => {
 
 		describe('Cleanup unresponsive peers', () => {
 			it('should remove crashed nodes from network status of other nodes', async () => {
-				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
-				const initialPeerPorts = initialNetworkStatus.connectedPeers
+				const initialPeerPorts = p2pNodeList[0]
+					.getConnectedPeers()
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
@@ -956,9 +923,8 @@ describe('Integration tests for P2P library', () => {
 				await p2pNodeList[1].stop();
 				await wait(100);
 
-				const networkStatusAfterPeerCrash = p2pNodeList[2].getNetworkStatus();
-
-				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
+				const peerPortsAfterPeerCrash = p2pNodeList[2]
+					.getConnectedPeers()
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
@@ -973,6 +939,64 @@ describe('Integration tests for P2P library', () => {
 				expect(peerPortsAfterPeerCrash).to.be.eql(
 					expectedPeerPortsAfterPeerCrash,
 				);
+			});
+		});
+
+		describe('Disconnect duplicate peers', () => {
+			let firstP2PNodeCloseEvents: Array<any> = [];
+			let firstPeerCloseEvents: Array<any> = [];
+			let firstPeerErrors: Array<any> = [];
+			let firstPeerDuplicate: OutboundPeer;
+			let firstP2PNode: P2P;
+			let existingPeer: InboundPeer;
+
+			beforeEach(async () => {
+				firstP2PNode = p2pNodeList[0];
+				firstPeerCloseEvents = [];
+				existingPeer = firstP2PNode['_peerPool'].getPeers(
+					InboundPeer,
+				)[0] as InboundPeer;
+				firstPeerDuplicate = new OutboundPeer(
+					existingPeer.peerInfo,
+					firstP2PNode['_peerPool'].peerConfig,
+				);
+
+				firstPeerDuplicate.on(EVENT_CLOSE_OUTBOUND, (event: any) => {
+					firstPeerCloseEvents.push(event);
+				});
+
+				try {
+					// This will create a connection.
+					await firstPeerDuplicate.applyNodeInfo(firstP2PNode.nodeInfo);
+				} catch (error) {
+					firstPeerErrors.push(error);
+				}
+
+				firstP2PNode.on(EVENT_CLOSE_OUTBOUND, event => {
+					firstP2PNodeCloseEvents.push(event);
+				});
+				await wait(100);
+			});
+			afterEach(() => {
+				firstPeerDuplicate.removeAllListeners(EVENT_CLOSE_OUTBOUND);
+				firstP2PNode.removeAllListeners(EVENT_CLOSE_OUTBOUND);
+				firstPeerDuplicate.disconnect();
+			});
+
+			// Simulate legacy behaviour where the node tries to connect back to an inbound peer.
+			it('should remove a peer if they try to connect but they are already connected', async () => {
+				expect(firstPeerErrors).to.have.length(1);
+				expect(firstPeerErrors[0])
+					.to.have.property('name')
+					.which.equals('BadConnectionError');
+				expect(firstPeerErrors[0])
+					.to.have.property('name')
+					.which.equals('BadConnectionError');
+				expect(firstPeerDuplicate)
+					.to.have.property('state')
+					.which.equals(ConnectionState.CLOSED);
+				// Disconnecting our new outbound socket should not cause the existing inbound peer instance to be removed.
+				expect(firstP2PNodeCloseEvents).to.be.empty;
 			});
 		});
 	});
@@ -1252,7 +1276,7 @@ describe('Integration tests for P2P library', () => {
 								{
 									ipAddress: '127.0.0.1',
 									wsPort:
-										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
+										NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
 								},
 						  ];
 
@@ -1297,10 +1321,8 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer Discovery', () => {
 			it('should run peer discovery successfully', async () => {
 				for (let p2p of p2pNodeList) {
-					const connectedPeers = p2p.getNetworkStatus().connectedPeers;
-
 					expect(p2p.isActive).to.be.true;
-					expect(connectedPeers.length).to.gt(1);
+					expect(p2p.getConnectedPeers().length).to.gt(1);
 				}
 			});
 		});
@@ -1322,8 +1344,8 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const response = await firstP2PNode.request({
+				const secondP2PNode = p2pNodeList[1];
+				const response = await secondP2PNode.request({
 					procedure: 'foo',
 					data: 'bar',
 				});
@@ -1447,11 +1469,8 @@ describe('Integration tests for P2P library', () => {
 		describe('all the nodes should be able to communicate and receive custom fields passed in nodeinfo', () => {
 			it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
 				for (let p2p of p2pNodeList) {
-					const {
-						connectedPeers,
-						newPeers,
-						triedPeers,
-					} = p2p.getNetworkStatus();
+					const triedPeers = p2p['_peerBook'].triedPeers;
+					const newPeers = p2p['_peerBook'].newPeers;
 
 					for (let peer of triedPeers) {
 						expect(peer)
@@ -1479,7 +1498,7 @@ describe('Integration tests for P2P library', () => {
 						}
 					}
 
-					for (let peer of connectedPeers) {
+					for (let peer of p2p.getConnectedPeers()) {
 						expect(peer)
 							.has.property('modules')
 							.has.property('names')
@@ -1569,12 +1588,31 @@ describe('Integration tests for P2P library', () => {
 
 			it('should discover peers and add them to the peer lists within each node', () => {
 				for (let p2p of p2pNodeList) {
-					const { newPeers, triedPeers } = p2p.getNetworkStatus();
-					const peerPorts = [...newPeers, ...triedPeers].map(
-						peerInfo => peerInfo.wsPort,
-					);
+					const allPeers = p2p['_peerBook'].getAllPeers();
+					const peerPorts = allPeers.map(peerInfo => peerInfo.wsPort);
 
 					expect(ALL_NODE_PORTS_WITH_LIMIT).to.include.members(peerPorts);
+				}
+			});
+
+			it('should have connected and disconnected peers', () => {
+				for (let p2p of p2pNodeList) {
+					const connectedPeers = p2p.getConnectedPeers();
+					const disconnectedPeers = p2p.getDisconnectedPeers();
+
+					expect(connectedPeers).is.not.empty;
+					expect(disconnectedPeers).is.not.empty;
+				}
+			});
+
+			it('should have disjoint connected and disconnected peers', () => {
+				for (let p2p of p2pNodeList) {
+					const connectedPeers = p2p.getConnectedPeers();
+					const disconnectedPeers = p2p.getDisconnectedPeers();
+
+					for (const connectedPeer of connectedPeers) {
+						expect(disconnectedPeers).to.not.deep.include(connectedPeer);
+					}
 				}
 			});
 		});
@@ -1597,8 +1635,8 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			it('should make request to the network; it should reach a single peer', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const response = await firstP2PNode.request({
+				const secondP2PNode = p2pNodeList[1];
+				const response = await secondP2PNode.request({
 					procedure: 'foo',
 					data: 'bar',
 				});
@@ -1614,7 +1652,7 @@ describe('Integration tests for P2P library', () => {
 					.which.is.equal('bar');
 				expect(response.data)
 					.to.have.property('requestPeerId')
-					.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+					.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
 			});
 
 			// Check for even distribution of requests across the network. Account for an error margin.
@@ -1849,7 +1887,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should not add any blacklisted peer to newPeers', () => {
 				for (let p2p of p2pNodeList) {
-					const { newPeers } = p2p.getNetworkStatus();
+					const newPeers = p2p['_peerBook'].newPeers;
 					const newPeersIPWS = newPeers.map(peer => {
 						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 					});
@@ -1859,7 +1897,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should not add any blacklisted peer to triedPeers', () => {
 				for (let p2p of p2pNodeList) {
-					const { triedPeers } = p2p.getNetworkStatus();
+					const triedPeers = p2p['_peerBook'].triedPeers;
 					const triedPeersIPWS = triedPeers.map(peer => {
 						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 					});
@@ -1869,8 +1907,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should not connect to any blacklisted peer', () => {
 				for (let p2p of p2pNodeList) {
-					const { connectedPeers } = p2p.getNetworkStatus();
-					const connectedPeersIPWS = connectedPeers.map(peer => {
+					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 					});
 					expect(connectedPeersIPWS).not.to.deep.include.members(
@@ -1942,8 +1979,7 @@ describe('Integration tests for P2P library', () => {
 			it('everyone but itself should have a permanent connection to the fixed peer', () => {
 				p2pNodeList.forEach((p2p, index) => {
 					if (index != 0) {
-						const { connectedPeers } = p2p.getNetworkStatus();
-						const connectedPeersIPWS = connectedPeers.map(peer => {
+						const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 						});
 						expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
@@ -2001,7 +2037,7 @@ describe('Integration tests for P2P library', () => {
 			it('should add every whitelisted peer to triedPeers', () => {
 				p2pNodeList.forEach((p2p, index) => {
 					if (![0, 9].includes(index)) {
-						const { triedPeers } = p2p.getNetworkStatus();
+						const triedPeers = p2p['_peerBook'].triedPeers;
 						const triedPeersIPWS = triedPeers.map(peer => {
 							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 						});
@@ -2021,8 +2057,7 @@ describe('Integration tests for P2P library', () => {
 				p2pNodeList.forEach((p2p, index) => {
 					if (![0, 9].includes(index)) {
 						p2p.applyPenalty(peerPenalty);
-						const { connectedPeers } = p2p.getNetworkStatus();
-						const connectedPeersIPWS = connectedPeers.map(peer => {
+						const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 						});
 						expect(connectedPeersIPWS).to.deep.include.members(
@@ -2037,7 +2072,7 @@ describe('Integration tests for P2P library', () => {
 	describe('Network with peer inbound eviction protection for connectTime enabled', () => {
 		const NETWORK_PEER_COUNT_WITH_LIMIT = 10;
 		const MAX_INBOUND_CONNECTIONS = 3;
-		const POPULATOR_INTERVAL_WITH_LIMIT = 150;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 100;
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
 				index => {
@@ -2047,14 +2082,15 @@ describe('Integration tests for P2P library', () => {
 							ipAddress: '127.0.0.1',
 							wsPort:
 								NETWORK_START_PORT +
-								((index + 1) % NETWORK_PEER_COUNT_WITH_LIMIT),
+								((index - 1 + NETWORK_PEER_COUNT_WITH_LIMIT) %
+									NETWORK_PEER_COUNT_WITH_LIMIT),
 						},
 					];
 
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
 						connectTimeout: 100,
-						ackTimeout: 5000,
+						ackTimeout: 200,
 						seedPeers,
 						wsEngine: 'ws',
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
@@ -2068,7 +2104,7 @@ describe('Integration tests for P2P library', () => {
 							nethash:
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 							version: '1.0.1',
-							protocolVersion: '1.0.1',
+							protocolVersion: '1.1',
 							minVersion: '1.0.0',
 							os: platform(),
 							height: 0,
@@ -2081,11 +2117,11 @@ describe('Integration tests for P2P library', () => {
 			);
 
 			// Start nodes incrementally to make inbound eviction behavior predictable
-			p2pNodeList.forEach(async p2p => {
-				await wait(500);
-				p2p.start();
-			});
-			await wait(1500);
+			for (const p2p of p2pNodeList) {
+				await wait(100);
+				await p2p.start();
+			}
+			await wait(500);
 		});
 
 		afterEach(async () => {
@@ -2101,13 +2137,12 @@ describe('Integration tests for P2P library', () => {
 			// Due to randomization from shuffling and timing of the nodes
 			// This test may experience some instability and not always evict.
 			it('should not evict earliest connected peers', async () => {
-				// We watch middle node for more predictable connection behavior
-				const middleNode = p2pNodeList[5];
-				const inboundPeers = middleNode['_peerPool']
+				const firstNode = p2pNodeList[0];
+				const inboundPeers = firstNode['_peerPool']
 					.getPeers(InboundPeer)
 					.map(peer => peer.wsPort);
 				expect(inboundPeers).to.satisfy(
-					(n: Number[]) => n.includes(5003) || n.includes(5004),
+					(n: Number[]) => n.includes(5001) || n.includes(5002),
 				);
 			});
 		});
@@ -2311,7 +2346,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should return list of peers with at most the minimum discovery threshold', async () => {
 				const firstP2PNode = p2pNodeList[0];
-				const { newPeers } = firstP2PNode.getNetworkStatus();
+				const newPeers = firstP2PNode['_peerBook'].newPeers;
 				expect(newPeers.length).to.be.at.most(MINIMUM_PEER_DISCOVERY_THRESHOLD);
 			});
 		});
@@ -2374,7 +2409,7 @@ describe('Integration tests for P2P library', () => {
 
 			it('should return list of peers with less than maximum discovery response size', async () => {
 				const firstP2PNode = p2pNodeList[0];
-				const { newPeers } = firstP2PNode.getNetworkStatus();
+				const newPeers = firstP2PNode['_peerBook'].newPeers;
 				expect(newPeers.length).to.be.lessThan(
 					MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 				);

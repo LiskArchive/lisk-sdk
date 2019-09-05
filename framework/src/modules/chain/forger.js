@@ -20,6 +20,7 @@ const {
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
+const { sortTransactions } = require('./transactions');
 
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.
@@ -32,13 +33,13 @@ const {
  * @todo Add description for the params
  */
 const getDelegateKeypairForCurrentSlot = async (
-	rounds,
+	dposModule,
 	keypairs,
 	currentSlot,
 	round,
 	numOfActiveDelegates,
 ) => {
-	const activeDelegates = await rounds.generateDelegateList(round);
+	const activeDelegates = await dposModule.getRoundDelegates(round);
 
 	const currentSlotIndex = currentSlot % numOfActiveDelegates;
 	const currentSlotDelegate = activeDelegates[currentSlotIndex];
@@ -71,7 +72,8 @@ class Forger {
 		// Unique requirements
 		slots,
 		// Modules
-		roundsModule,
+		processorModule,
+		dposModule,
 		transactionPoolModule,
 		blocksModule,
 		peersModule,
@@ -101,7 +103,8 @@ class Forger {
 			maxTransactionsPerBlock,
 		};
 
-		this.roundsModule = roundsModule;
+		this.processorModule = processorModule;
+		this.dposModule = dposModule;
 		this.peersModule = peersModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
@@ -318,7 +321,7 @@ class Forger {
 		try {
 			// eslint-disable-next-line no-use-before-define
 			delegateKeypair = await exportedInterfaces.getDelegateKeypairForCurrentSlot(
-				this.roundsModule,
+				this.dposModule,
 				this.keypairs,
 				currentSlot,
 				round,
@@ -381,11 +384,29 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
-		const forgedBlock = await this.blocksModule.generateBlock(
-			delegateKeypair,
-			this.slots.getSlotTime(currentSlot),
+		const timestamp = this.slots.getSlotTime(currentSlot);
+		const previousBlock = this.blocksModule.lastBlock;
+
+		const context = {
+			blockTimestamp: timestamp,
+		};
+		const readyTransactions = await this.blocksModule.filterReadyTransactions(
 			transactions,
+			context,
 		);
+
+		const sortedTransactions = sortTransactions(readyTransactions);
+
+		const forgedBlock = await this.processorModule.create({
+			keypair: delegateKeypair,
+			timestamp,
+			transactions: sortedTransactions,
+			previousBlock,
+			// FIXME: Add correct value from BFT in pipeline
+			maxHeightPreviouslyForged: 0,
+			prevotedConfirmedUptoHeight: 0,
+		});
+		await this.processorModule.process(forgedBlock);
 		this.logger.info(
 			`Forged new block id: ${forgedBlock.id} height: ${
 				forgedBlock.height

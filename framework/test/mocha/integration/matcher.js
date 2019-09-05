@@ -19,7 +19,6 @@ const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const { Slots } = require('../../../src/modules/chain/dpos');
-const blocksLogic = require('../../../src/modules/chain/blocks/block');
 
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
@@ -121,7 +120,7 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 	return aCustomTransation.toJSON();
 }
 
-function createRawBlock(library, rawTransactions, callback) {
+async function createRawBlock(library, rawTransactions) {
 	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
@@ -129,28 +128,32 @@ function createRawBlock(library, rawTransactions, callback) {
 		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction),
 	);
 
-	return getDelegateForSlot(library, slot, (err, delegateKey) => {
-		if (err) return callback(err);
-
-		const block = blocksLogic.create({
-			blockReward: library.modules.blocks.blockReward,
-			keypair: keypairs[delegateKey],
-			timestamp: slots.getSlotTime(slot),
-			previousBlock: lastBlock,
-			transactions,
-			maxTransactionPerBlock:
-				library.modules.blocks.constants.maxTransactionPerBlock,
-			maxHeightPreviouslyForged: 1,
-			prevotedConfirmedUptoHeight: 1,
+	const delegateKey = await new Promise((resolve, reject) => {
+		getDelegateForSlot(library, slot, (err, res) => {
+			if (err) {
+				return reject(err);
+			}
+			return resolve(res);
 		});
-
-		block.id = blocksLogic.getId(block);
-		block.height = lastBlock.height + 1;
-		block.transactions = block.transactions.map(transaction =>
-			transaction.toJSON(),
-		);
-		return callback(null, block);
 	});
+
+	const block = await library.modules.processor.create({
+		blockReward: library.modules.blocks.blockReward,
+		keypair: keypairs[delegateKey],
+		timestamp: slots.getSlotTime(slot),
+		previousBlock: lastBlock,
+		transactions,
+		maxTransactionPerBlock:
+			library.modules.blocks.constants.maxTransactionPerBlock,
+		maxHeightPreviouslyForged: 1,
+		prevotedConfirmedUptoHeight: 1,
+	});
+
+	block.transactions = block.transactions.map(transaction =>
+		transaction.toJSON(),
+	);
+
+	return block;
 }
 
 function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
@@ -284,14 +287,7 @@ describe('matcher', () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-			const rawBlock = await new Promise((resolve, reject) => {
-				createRawBlock(scope, [jsonTransaction], (err, block) => {
-					if (err) {
-						return reject(err);
-					}
-					return resolve(block);
-				});
-			});
+			const rawBlock = await createRawBlock(scope, [jsonTransaction]);
 			try {
 				await scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
 			} catch (err) {
@@ -314,7 +310,7 @@ describe('matcher', () => {
 					return resolve(block);
 				});
 			});
-			await scope.modules.blocks.receiveBlockFromNetwork(newBlock);
+			await scope.modules.processor.process(newBlock);
 			expect(scope.modules.blocks.lastBlock.height).to.equal(2);
 		});
 	});

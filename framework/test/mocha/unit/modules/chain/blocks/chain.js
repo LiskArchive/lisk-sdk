@@ -29,7 +29,9 @@ const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
 };
 
-describe('blocks/chain', () => {
+// Move valid tests to jest and remove the rest
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('blocks/chain', () => {
 	let blocksChain;
 	let storageStub;
 	let roundsModuleStub;
@@ -159,79 +161,6 @@ describe('blocks/chain', () => {
 			expect(blocksChain.genesisBlock).to.eql(
 				__testContext.config.genesisBlock,
 			);
-		});
-	});
-
-	describe('saveGenesisBlock', () => {
-		describe('when storage.entities.Block.isPersisted fails', () => {
-			beforeEach(async () =>
-				storageStub.entities.Block.isPersisted.rejects(
-					new Error('getGenesisBlockId-ERR'),
-				),
-			);
-
-			it('should throw an error', async () => {
-				try {
-					await blocksChain.saveGenesisBlock();
-				} catch (error) {
-					expect(error.message).to.equal('getGenesisBlockId-ERR');
-				}
-			});
-		});
-
-		describe('when storage.entities.Block.isPersisted succeeds', () => {
-			describe('if returns false (genesis block is not in database)', () => {
-				let txStub;
-
-				beforeEach(async () => {
-					txStub = {
-						blocks: {
-							save: sinonSandbox.stub(),
-						},
-						transactions: {
-							save: sinonSandbox.stub(),
-						},
-						batch: sinonSandbox.stub(),
-					};
-					storageStub.entities.Block.isPersisted.resolves(false);
-					storageStub.entities.Block.begin.callsArgWith(1, txStub);
-				});
-
-				describe('when saveBlock fails', () => {
-					beforeEach(async () => {
-						storageStub.entities.Block.begin.throws(new Error('saveBlock-ERR'));
-					});
-
-					it('should throw an error', async () => {
-						try {
-							await blocksChain.saveGenesisBlock();
-						} catch (error) {
-							expect(error.message).to.equal('saveBlock-ERR');
-						}
-					});
-				});
-
-				describe('when saveBlock succeeds', () => {
-					it('should call proper storage functions', async () => {
-						await blocksChain.saveGenesisBlock();
-						expect(storageStub.entities.Block.begin).to.be.calledOnce;
-						expect(storageStub.entities.Block.create).to.be.calledOnce;
-						expect(storageStub.entities.Transaction.create).to.be.calledOnce;
-					});
-				});
-			});
-
-			describe('if returns true', () => {
-				beforeEach(async () => {
-					storageStub.entities.Block.isPersisted.resolves(true);
-					storageStub.entities.Block.begin.callsArgWith(1);
-				});
-
-				it('should not save block', async () => {
-					await blocksChain.saveGenesisBlock();
-					expect(storageStub.entities.Block.begin).not.to.be.calledOnce;
-				});
-			});
 		});
 	});
 

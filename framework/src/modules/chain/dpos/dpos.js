@@ -31,8 +31,9 @@ module.exports = class Dpos {
 		this.delegatesList = new DelegatesList({
 			storage,
 			logger,
-			exceptions,
+      slots,
 			activeDelegates,
+			exceptions,
 		});
 		this.delegatesInfo = new DelegatesInfo({
 			storage,
@@ -65,6 +66,10 @@ module.exports = class Dpos {
 		await this.delegatesList.deleteDelegateListUntilRound(
 			disposableDelegateList,
 		);
+	}
+
+	async verifyBlockForger(block) {
+		return this.delegatesList.verifyBlockForger(block);
 	}
 
 	async apply(block, tx) {

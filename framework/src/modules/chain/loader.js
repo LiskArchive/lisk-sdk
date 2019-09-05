@@ -44,6 +44,7 @@ class Loader {
 		// Unique requirements
 		genesisBlock,
 		// Modules
+		processorModule,
 		transactionPoolModule,
 		blocksModule,
 		peersModule,
@@ -71,6 +72,7 @@ class Loader {
 			syncingActive,
 		};
 
+		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.peersModule = peersModule;
@@ -333,12 +335,21 @@ class Loader {
 	 * @returns {Promise} void
 	 * @todo Add description for the params
 	 */
-	async _getValidatedBlocksFromNetwork(blocks) {
+	async _getValidatedBlocksFromNetwork(blockRows) {
 		const { lastBlock } = this.blocksModule;
-		const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
-			blocks,
-		);
+		let lastValidBlock = lastBlock;
+		// TODO: this should be removed and the block should be received from the network using *normal* block property names
+		const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
+		// eslint-disable-next-line no-restricted-syntax
+		for (const block of blocks) {
+			// eslint-disable-next-line no-await-in-loop
+			await this.processorModule.validate(block);
+			// eslint-disable-next-line no-await-in-loop
+			await this.processorModule.processValidated(block);
+			lastValidBlock = block;
+		}
 		this.blocksToSync = lastValidBlock.height;
+
 		return lastValidBlock.id === lastBlock.id;
 	}
 
@@ -370,10 +381,7 @@ class Loader {
 				failedAttemptsToLoad += 1;
 				// eslint-disable-next-line no-await-in-loop
 				await this._handleCommonBlockError(err);
-				this.logger.warn(
-					{ error: err },
-					'Failed to load blocks from the network.',
-				);
+				this.logger.warn(err, 'Failed to load blocks from the network.');
 			}
 		}
 	}

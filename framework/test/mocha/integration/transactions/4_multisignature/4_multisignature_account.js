@@ -139,9 +139,7 @@ describe('integration test (type 4) - effect of multisignature registration on m
 
 		describe('after deleting block', () => {
 			before('delete last block', async () => {
-				return library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
+				return library.modules.processor.deleteLastBlock();
 			});
 
 			describe('sender db rows', () => {

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:no-empty-interface*/
-
 export interface P2PPacket {
 	readonly data?: unknown;
 }
@@ -111,14 +109,6 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
-}
-
-// Network info exposed by the P2P library.
-export interface P2PNetworkStatus {
-	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
-	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
-	readonly connectedUniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
 
 // TODO later: Switch to LIP protocol format.

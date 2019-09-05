@@ -12,23 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-
-interface SCServerUpdated extends SCServer {
-	readonly isReady: boolean;
-}
-
-import { REMOTE_RPC_GET_PEERS_LIST } from './peer';
-
-import { PeerBook } from './peer_directory';
-
 import {
+	DEFAULT_BAN_TIME,
+	DEFAULT_MAX_INBOUND_CONNECTIONS,
+	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+	DEFAULT_MAX_PEER_INFO_SIZE,
+	DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD,
+	DEFAULT_NODE_HOST_IP,
+	DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
+	DEFAULT_PEER_PROTECTION_FOR_LATENCY,
+	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
+	DEFAULT_PEER_PROTECTION_FOR_NETGROUP,
+	DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
+	DEFAULT_POPULATOR_INTERVAL,
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_RATE_CALCULATION_INTERVAL,
+	DEFAULT_SEND_PEER_LIMIT,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
+	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+	DEFAULT_WS_MAX_PAYLOAD,
+	DUPLICATE_CONNECTION,
+	DUPLICATE_CONNECTION_REASON,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
@@ -39,17 +50,39 @@ import {
 	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
-} from './disconnect_status_codes';
-
+} from './constants';
 import { PeerInboundHandshakeError } from './errors';
-
+import {
+	EVENT_BAN_PEER,
+	EVENT_CLOSE_INBOUND,
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_ADD_INBOUND_PEER,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_INBOUND_SOCKET_ERROR,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_NETWORK_READY,
+	EVENT_NEW_INBOUND_PEER,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_REMOVE_PEER,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_UNBAN_PEER,
+	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_RPC_GET_PEERS_LIST,
+} from './events';
+import { P2PRequest } from './p2p_request';
 import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
-	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
@@ -57,100 +90,23 @@ import {
 	P2PResponsePacket,
 	PeerLists,
 } from './p2p_types';
-
-import { P2PRequest } from './p2p_request';
-export { P2PRequest };
+import { PeerBook } from './peer_directory';
+import { PeerPool } from './peer_pool';
 import {
+	constructPeerIdFromPeerInfo,
+	sanitizeOutgoingPeerInfo,
+	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-} from './peer_selection';
+	validatePeerCompatibility,
+} from './utils';
 
-import {
-	EVENT_BAN_PEER,
-	EVENT_CLOSE_INBOUND,
-	EVENT_CLOSE_OUTBOUND,
-	EVENT_CONNECT_ABORT_OUTBOUND,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
-	EVENT_INBOUND_SOCKET_ERROR,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_OUTBOUND_SOCKET_ERROR,
-	EVENT_REMOVE_PEER,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_UNBAN_PEER,
-	EVENT_UPDATED_PEER_INFO,
-	PeerPool,
-} from './peer_pool';
-import { constructPeerIdFromPeerInfo } from './utils';
-import {
-	checkPeerCompatibility,
-	outgoingPeerInfoSanitization,
-	sanitizePeerLists,
-} from './validation';
-
-export {
-	EVENT_CLOSE_INBOUND,
-	EVENT_CLOSE_OUTBOUND,
-	EVENT_CONNECT_ABORT_OUTBOUND,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
-	EVENT_REMOVE_PEER,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_OUTBOUND_SOCKET_ERROR,
-	EVENT_INBOUND_SOCKET_ERROR,
-	EVENT_UPDATED_PEER_INFO,
-	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_BAN_PEER,
-	EVENT_UNBAN_PEER,
-};
-
-export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
-export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
-export const EVENT_NEW_PEER = 'newPeer';
-export const EVENT_NETWORK_READY = 'networkReady';
-
-export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
-export const DEFAULT_DISCOVERY_INTERVAL = 30000;
-export const DEFAULT_BAN_TIME = 86400;
-export const DEFAULT_POPULATOR_INTERVAL = 10000;
-export const DEFAULT_SEND_PEER_LIMIT = 25;
-// Max rate of WebSocket messages per second per peer.
-export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
-export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
-export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
-export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
+interface SCServerUpdated extends SCServer {
+	readonly isReady: boolean;
+}
 
 const BASE_10_RADIX = 10;
-export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
-export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
-export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
-export const DEFAULT_PEER_PROTECTION_FOR_NETGROUP = 0.034;
-export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
-export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
-export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
-export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
-export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
-export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
-
-const SECRET_BYTE_LENGTH = 4;
-export const DEFAULT_RANDOM_SECRET = getRandomBytes(
-	SECRET_BYTE_LENGTH,
-).readUInt32BE(0);
-
-const selectRandomPeerSample = (
-	peerList: ReadonlyArray<P2PPeerInfo>,
-	count: number,
-): ReadonlyArray<P2PPeerInfo> => shuffle(peerList).slice(0, count);
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
@@ -232,7 +188,7 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_RPC_GET_PEERS_LIST) {
+			if (request.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
 				this._handleGetPeersRequest(request);
 			}
 			// Re-emit the request for external use.
@@ -387,9 +343,10 @@ export class P2P extends EventEmitter {
 					}
 				} else {
 					this._peerBook.addPeer(detailedPeerInfo);
+					// Re-emit the message to allow it to bubble up the class hierarchy.
+					// Only emit event when a peer is discovered for the first time.
+					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 				}
-				// Re-emit the message to allow it to bubble up the class hierarchy.
-				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 			}
 		};
 
@@ -499,7 +456,7 @@ export class P2P extends EventEmitter {
 
 		this._peerHandshakeCheck = config.peerHandshakeCheck
 			? config.peerHandshakeCheck
-			: checkPeerCompatibility;
+			: validatePeerCompatibility;
 	}
 
 	public get config(): P2PConfig {
@@ -531,13 +488,34 @@ export class P2P extends EventEmitter {
 		}
 	}
 
-	public getNetworkStatus(): P2PNetworkStatus {
-		return {
-			newPeers: [...this._peerBook.newPeers],
-			triedPeers: [...this._peerBook.triedPeers],
-			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
-			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
-		};
+	public getConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this._peerPool.getAllConnectedPeerInfos();
+	}
+
+	public getUniqueOutboundConnectedPeers(): ReadonlyArray<
+		P2PDiscoveredPeerInfo
+	> {
+		return this._peerPool.getUniqueOutboundConnectedPeers();
+	}
+
+	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		const allPeers = this._peerBook.getAllPeers();
+		const connectedPeers = this.getConnectedPeers();
+		const disconnectedPeers = allPeers.filter(peer => {
+			if (
+				connectedPeers.find(
+					connectedPeer =>
+						peer.ipAddress === connectedPeer.ipAddress &&
+						peer.wsPort === connectedPeer.wsPort,
+				)
+			) {
+				return false;
+			}
+
+			return true;
+		});
+
+		return disconnectedPeers as P2PDiscoveredPeerInfo[];
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -708,10 +686,15 @@ export class P2P extends EventEmitter {
 
 				const existingPeer = this._peerPool.getPeer(peerId);
 
-				if (!existingPeer) {
+				if (existingPeer) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						DUPLICATE_CONNECTION,
+						DUPLICATE_CONNECTION_REASON,
+					);
+				} else {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
 				if (!this._peerBook.getPeer(incomingPeerInfo)) {
@@ -793,12 +776,6 @@ export class P2P extends EventEmitter {
 		return false;
 	}
 
-	private _pickRandomPeers(count: number): ReadonlyArray<P2PPeerInfo> {
-		const peerList: ReadonlyArray<P2PPeerInfo> = this._peerBook.getAllPeers(); // Peers whose values has been updated at least once.
-
-		return selectRandomPeerSample(peerList, count);
-	}
-
 	private _handleGetPeersRequest(request: P2PRequest): void {
 		const minimumPeerDiscoveryThreshold = this._config
 			.minimumPeerDiscoveryThreshold
@@ -822,9 +799,11 @@ export class P2P extends EventEmitter {
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
 
-		const selectedPeers = this._pickRandomPeers(randomPeerCount).map(
-			outgoingPeerInfoSanitization, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
-		);
+		const selectedPeers = shuffle(knownPeers)
+			.slice(0, randomPeerCount)
+			.map(
+				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
+			);
 
 		const peerInfoList = {
 			success: true,
