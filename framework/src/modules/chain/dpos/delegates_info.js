@@ -41,6 +41,10 @@ const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
 			return acc;
 		}, []);
 
+const _hasVotedDelegatesPublicKeys = ({
+	delegateAccount: { votedDelegatesPublicKeys },
+}) => !!votedDelegatesPublicKeys && votedDelegatesPublicKeys.length > 0;
+
 class DelegatesInfo {
 	constructor({
 		storage,
@@ -152,11 +156,7 @@ class DelegatesInfo {
 	async _updateVotedDelegatesVoteWeight({ uniqForgersInfo }, undo, tx) {
 		return Promise.all(
 			uniqForgersInfo
-				.filter(
-					({ delegateAccount }) =>
-						!!delegateAccount.votedDelegatesPublicKeys &&
-						delegateAccount.votedDelegatesPublicKeys.length > 0,
-				)
+				.filter(_hasVotedDelegatesPublicKeys)
 				.map(({ delegateAccount, earnings: { fee, reward } }) => {
 					const amount = fee.plus(reward);
 
@@ -278,7 +278,7 @@ class DelegatesInfo {
 	 * can be safely removed when the exception on testnet was fixed.
 	 */
 	_calculateRewardAndFeeForDelegate({ forgerInfo, totalFee, round }) {
-		const { exceptionsRounds = {} } = this.exceptions;
+		const { rounds: exceptionsRounds = {} } = this.exceptions;
 		const exceptionRound = exceptionsRounds[round.toString()];
 
 		let { reward: delegateReward } = forgerInfo;
@@ -287,7 +287,6 @@ class DelegatesInfo {
 		if (exceptionRound) {
 			// Multiply with rewards factor
 			delegateReward = delegateReward.times(exceptionRound.rewards_factor);
-
 			// Multiply with fees factor and add bonus
 			calculatedTotalFee = calculatedTotalFee
 				.times(exceptionRound.fees_factor)

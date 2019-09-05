@@ -545,7 +545,7 @@ describe('dpos.apply()', () => {
 				});
 			});
 
-			it('should multiple "totalFee" with "fee_factor" and add "fee_bonus"', async () => {
+			it('should multiply "totalFee" with "fee_factor" and add "fee_bonus"', async () => {
 				// Act
 				await dpos.apply(lastBlockOfTheRound, stubs.tx);
 
