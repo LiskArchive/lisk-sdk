@@ -581,7 +581,7 @@ class Blocks extends EventEmitter {
 				this._lastBlock = block;
 				this.logger.info(
 					{ blockId: block.id, height: block.height },
-					'Rebuilt block',
+					'Reloaded block',
 				);
 			},
 		);
