@@ -78,15 +78,13 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 		}
 	});
 
-	describe('P2P.request', () => {
-		it('should throw an error when not able to get any peer in peer selection', async () => {
-			const firstP2PNode = p2pNodeList[0];
-			const response = firstP2PNode.request({
-				procedure: 'foo',
-				data: 'bar',
-			});
-
-			expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
+	it('should throw an error when attempting to make a request', async () => {
+		const firstP2PNode = p2pNodeList[0];
+		const response = firstP2PNode.request({
+			procedure: 'foo',
+			data: 'bar',
 		});
+
+		expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
 	});
 });

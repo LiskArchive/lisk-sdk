@@ -149,7 +149,7 @@ describe('P2P.send', () => {
 			.which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
 	});
 
-	describe('P2P.send when peers are at different heights', () => {
+	describe('when peers are at different heights', () => {
 		const randomPeerIndex = Math.floor(Math.random() * NETWORK_PEER_COUNT);
 		let collectedMessages: Array<any> = [];
 		let randomP2PNode: any;

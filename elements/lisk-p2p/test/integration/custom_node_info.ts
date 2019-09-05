@@ -83,39 +83,25 @@ describe('Custom nodeInfo', () => {
 		await wait(1000);
 	});
 
-	describe('all the nodes should be able to communicate and receive custom fields passed in nodeinfo', () => {
-		it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
-			for (let p2p of p2pNodeList) {
-				const triedPeers = p2p['_peerBook'].triedPeers;
-				const newPeers = p2p['_peerBook'].newPeers;
+	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
+		for (let p2p of p2pNodeList) {
+			const triedPeers = p2p['_peerBook'].triedPeers;
+			const newPeers = p2p['_peerBook'].newPeers;
 
-				for (let peer of triedPeers) {
-					expect(peer)
-						.has.property('modules')
-						.has.property('names')
-						.is.an('array');
+			for (let peer of triedPeers) {
+				expect(peer)
+					.has.property('modules')
+					.has.property('names')
+					.is.an('array');
 
-					expect(peer)
-						.has.property('modules')
-						.has.property('active')
-						.is.a('boolean');
-				}
+				expect(peer)
+					.has.property('modules')
+					.has.property('active')
+					.is.a('boolean');
+			}
 
-				for (let peer of newPeers) {
-					if (peer.modules) {
-						expect(peer)
-							.has.property('modules')
-							.has.property('names')
-							.is.an('array');
-
-						expect(peer)
-							.has.property('modules')
-							.has.property('active')
-							.is.a('boolean');
-					}
-				}
-
-				for (let peer of p2p.getConnectedPeers()) {
+			for (let peer of newPeers) {
+				if (peer.modules) {
 					expect(peer)
 						.has.property('modules')
 						.has.property('names')
@@ -127,6 +113,18 @@ describe('Custom nodeInfo', () => {
 						.is.a('boolean');
 				}
 			}
-		});
+
+			for (let peer of p2p.getConnectedPeers()) {
+				expect(peer)
+					.has.property('modules')
+					.has.property('names')
+					.is.an('array');
+
+				expect(peer)
+					.has.property('modules')
+					.has.property('active')
+					.is.a('boolean');
+			}
+		}
 	});
 });

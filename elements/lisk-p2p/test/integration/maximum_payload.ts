@@ -19,6 +19,8 @@ import { platform } from 'os';
 
 describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+	let collectedMessages: Array<any> = [];
+	let closedPeers: Map<number, any>;
 	let dataLargerThanMaxPayload: Array<string>;
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
@@ -70,6 +72,35 @@ describe('Maximum payload', () => {
 
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 		await wait(300);
+
+		collectedMessages = [];
+		closedPeers = new Map();
+		p2pNodeList.forEach(p2p => {
+			p2p.on('messageReceived', message => {
+				collectedMessages.push({
+					nodePort: p2p.nodeInfo.wsPort,
+					message,
+				});
+			});
+
+			p2p.on('closeInbound', packet => {
+				let peers = [];
+				if (closedPeers.has(p2p.nodeInfo.wsPort)) {
+					peers = closedPeers.get(p2p.nodeInfo.wsPort);
+				}
+				peers.push(packet.peerInfo);
+				closedPeers.set(p2p.nodeInfo.wsPort, peers);
+			});
+
+			p2p.on('closeOutbound', packet => {
+				let peers = [];
+				if (closedPeers.has(p2p.nodeInfo.wsPort)) {
+					peers = closedPeers.get(p2p.nodeInfo.wsPort);
+				}
+				peers.push(packet.peerInfo);
+				closedPeers.set(p2p.nodeInfo.wsPort, peers);
+			});
+		});
 	});
 
 	afterEach(async () => {
@@ -81,77 +112,41 @@ describe('Maximum payload', () => {
 		await wait(100);
 	});
 
-	describe('P2P.send', () => {
-		let collectedMessages: Array<any> = [];
-		let closedPeers: Map<number, any>;
+	it('should not send a package larger than the ws max payload', async () => {
+		const firstP2PNode = p2pNodeList[0];
 
-		beforeEach(() => {
-			collectedMessages = [];
-			closedPeers = new Map();
-			p2pNodeList.forEach(p2p => {
-				p2p.on('messageReceived', message => {
-					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
-						message,
-					});
-				});
+		firstP2PNode.send({
+			event: 'maxPayload',
+			data: dataLargerThanMaxPayload,
+		});
+		await wait(100);
 
-				p2p.on('closeInbound', packet => {
-					let peers = [];
-					if (closedPeers.has(p2p.nodeInfo.wsPort)) {
-						peers = closedPeers.get(p2p.nodeInfo.wsPort);
-					}
-					peers.push(packet.peerInfo);
-					closedPeers.set(p2p.nodeInfo.wsPort, peers);
-				});
+		expect(collectedMessages).to.be.empty;
+	});
 
-				p2p.on('closeOutbound', packet => {
-					let peers = [];
-					if (closedPeers.has(p2p.nodeInfo.wsPort)) {
-						peers = closedPeers.get(p2p.nodeInfo.wsPort);
-					}
-					peers.push(packet.peerInfo);
-					closedPeers.set(p2p.nodeInfo.wsPort, peers);
-				});
-			});
+	it('should disconnect the peer which has sent the message', async () => {
+		const firstP2PNode = p2pNodeList[0];
+		firstP2PNode.send({
+			event: 'maxPayload',
+			data: dataLargerThanMaxPayload,
 		});
 
-		it('should not send a package larger than the ws max payload', async () => {
-			const firstP2PNode = p2pNodeList[0];
+		await wait(300);
 
-			firstP2PNode.send({
-				event: 'maxPayload',
-				data: dataLargerThanMaxPayload,
-			});
-			await wait(100);
-
-			expect(collectedMessages).to.be.empty;
-		});
-
-		it('should disconnect the peer which has sent the message', async () => {
-			const firstP2PNode = p2pNodeList[0];
-			firstP2PNode.send({
-				event: 'maxPayload',
-				data: dataLargerThanMaxPayload,
-			});
-
-			await wait(300);
-
-			const firstPeerDisconnectedList =
-				closedPeers.get(firstP2PNode.nodeInfo.wsPort) || [];
-			for (const p2pNode of p2pNodeList) {
-				const disconnectedList = closedPeers.get(p2pNode.nodeInfo.wsPort) || [];
-				const wasFirstPeerDisconnected =
-					disconnectedList.some((peerInfo: any) => peerInfo.wsPort === 5000) ||
-					firstPeerDisconnectedList.some(
-						(peerInfo: any) => peerInfo.wsPort === p2pNode.nodeInfo.wsPort,
-					);
-				if (p2pNode.nodeInfo.wsPort === 5000) {
-					expect(disconnectedList.length).to.be.gte(9);
-				} else {
-					expect(wasFirstPeerDisconnected).to.be.true;
-				}
+		const firstPeerDisconnectedList =
+			closedPeers.get(firstP2PNode.nodeInfo.wsPort) || [];
+		for (const p2pNode of p2pNodeList) {
+			const disconnectedList = closedPeers.get(p2pNode.nodeInfo.wsPort) || [];
+			const wasFirstPeerDisconnected =
+				disconnectedList.some((peerInfo: any) => peerInfo.wsPort === 5000) ||
+				firstPeerDisconnectedList.some(
+					(peerInfo: any) => peerInfo.wsPort === p2pNode.nodeInfo.wsPort,
+				);
+			if (p2pNode.nodeInfo.wsPort === 5000) {
+				expect(disconnectedList.length).to.be.gte(9);
+			} else {
+				expect(wasFirstPeerDisconnected).to.be.true;
 			}
-		});
+		}
 	});
 });

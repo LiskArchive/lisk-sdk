@@ -28,15 +28,6 @@ describe('Outbound peer shuffling', () => {
 		sandbox.restore();
 	});
 
-	after(async () => {
-		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
-		);
-		await wait(1000);
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()].map(
 			index => {
@@ -77,6 +68,15 @@ describe('Outbound peer shuffling', () => {
 		);
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 		await wait(200);
+	});
+
+	after(async () => {
+		await Promise.all(
+			p2pNodeList
+				.filter(p2p => p2p.isActive)
+				.map(async p2p => await p2p.stop()),
+		);
+		await wait(1000);
 	});
 
 	it('should shuffle outbound peers in an interval', async () => {
