@@ -52,27 +52,63 @@ const defaultConfig = {
 		blacklistedPeers: {
 			type: 'array',
 			items: {
-				type: 'string',
-				format: 'ip',
+				type: 'object',
+				properties: {
+					ip: {
+						type: 'string',
+						format: 'ipOrFQDN',
+					},
+					wsPort: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 65535,
+					},
+				},
 			},
+			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
+			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
 		// Warning! The connectivity of the node might be negatively impacted if using this option.
 		fixedPeers: {
 			type: 'array',
 			items: {
-				type: 'string',
-				format: 'ip',
+				type: 'object',
+				properties: {
+					ip: {
+						type: 'string',
+						format: 'ipOrFQDN',
+					},
+					wsPort: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 65535,
+					},
+				},
 			},
 			maximum: 4,
+			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
+			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
 		// Warning! Beware of declaring only trustworthy peers in this array as these could attack a
 		// node with a denial-of-service attack because the banning mechanism is deactivated.
 		whitelistedPeers: {
 			type: 'array',
 			items: {
-				type: 'string',
-				format: 'ip',
+				type: 'object',
+				properties: {
+					ip: {
+						type: 'string',
+						format: 'ipOrFQDN',
+					},
+					wsPort: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 65535,
+					},
+				},
 			},
+			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
+			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
 		discoveryInterval: {
 			type: 'integer',
