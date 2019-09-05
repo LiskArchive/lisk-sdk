@@ -39,7 +39,9 @@ const {
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 // const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
-describe('blocks/verify', () => {
+// Move valid tests to jest and remove the rest
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('blocks/verify', () => {
 	const validBlock = {
 		id: '16995938957789927028',
 		version: 0,

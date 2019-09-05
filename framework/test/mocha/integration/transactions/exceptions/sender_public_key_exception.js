@@ -73,7 +73,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 	localCommon.beforeBlock('system_exceptions_sender_public_key', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			senderPublicKey: ['5252526207733553499'],
 		};
@@ -99,7 +99,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -122,7 +122,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 						},
 					);
 				});
-				await library.modules.blocks.blocksProcess.processBlock(
+				await library.modules.processor.process(
 					newBlock,
 					library.modules.blocks.lastBlock,
 				);
@@ -150,10 +150,6 @@ describe('exceptions for senderPublicKey transactions', () => {
 							...library.modules.blocks.exceptions,
 							senderPublicKey: ['5252526207733553499'],
 						};
-						library.modules.blocks.blocksChain.exceptions = {
-							...library.modules.blocks.exceptions,
-							senderPublicKey: ['5252526207733553499'],
-						};
 						const newBlock = await new Promise((resolve, reject) => {
 							localCommon.createValidBlockWithSlotOffset(
 								library,
@@ -168,7 +164,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 								},
 							);
 						});
-						await library.modules.blocks.blocksProcess.processBlock(
+						await library.modules.processor.process(
 							newBlock,
 							library.modules.blocks.lastBlock,
 						);

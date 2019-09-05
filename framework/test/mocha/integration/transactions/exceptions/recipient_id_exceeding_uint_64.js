@@ -53,7 +53,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 
 	localCommon.beforeBlock('system_exceptions_recipientId_uint_64', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			recipientExceedingUint64: {
 				'393955899193580559': '19961131544040416558L',
@@ -82,7 +82,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -109,7 +109,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 						},
 					);
 				});
-				await library.modules.blocks.blocksProcess.processBlock(
+				await library.modules.processor.process(
 					newBlock,
 					library.modules.blocks.lastBlock,
 				);

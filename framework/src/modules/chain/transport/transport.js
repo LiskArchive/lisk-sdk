@@ -56,6 +56,7 @@ class Transport {
 		// Modules
 		transactionPoolModule,
 		blocksModule,
+		processorModule,
 		loaderModule,
 		interfaceAdapters,
 		// Constants
@@ -79,6 +80,7 @@ class Transport {
 
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
+		this.processorModule = processorModule;
 		this.loaderModule = loaderModule;
 		this.interfaceAdapters = interfaceAdapters;
 
@@ -301,7 +303,7 @@ class Transport {
 			// Instantiate transaction classes
 			block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
 
-			block = blocksUtils.objectNormalize(block);
+			await this.processorModule.validate(block);
 		} catch (e) {
 			success = false;
 			this.logger.debug('Block normalization failed', {
@@ -320,7 +322,15 @@ class Transport {
 			);
 		}
 		if (success) {
-			return this.blocksModule.receiveBlockFromNetwork(block);
+			try {
+				await this.processorModule.process(block);
+			} catch (e) {
+				this.logger.debug('Block processing failed', {
+					err: e.toString(),
+					module: 'transport',
+					block: query.block,
+				});
+			}
 		}
 		return null;
 	}

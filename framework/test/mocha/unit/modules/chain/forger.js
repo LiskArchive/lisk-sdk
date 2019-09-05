@@ -76,11 +76,15 @@ describe('forge', () => {
 					getUnconfirmedTransactionList: sinonSandbox.stub(),
 				},
 				blocksModule: {
-					generateBlock: sinonSandbox.stub(),
+					filterReadyTransactions: sinonSandbox.stub().returns([]),
 				},
 				peersModule: {
 					isPoorConsensus: sinonSandbox.stub(),
 					getLastConsensus: sinonSandbox.stub(),
+				},
+				processorModule: {
+					create: sinonSandbox.stub(),
+					process: sinonSandbox.stub(),
 				},
 			});
 		});
@@ -788,12 +792,12 @@ describe('forge', () => {
 
 			beforeEach(async () => {
 				forgeModule.blocksModule.lastBlock = lastBlock;
+				forgeModule.processorModule.create.resolves(forgedBlock);
 				getSlotNumberStub = forgeModule.slots.getSlotNumber;
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
 				forgeModule.peersModule.isPoorConsensus.resolves(false);
-				forgeModule.blocksModule.generateBlock.resolves(forgedBlock);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
 					'utf8',
@@ -887,7 +891,7 @@ describe('forge', () => {
 					.returns(changedLastBlockSlot);
 
 				await forgeModule.forge();
-				expect(forgeModule.blocksModule.generateBlock).to.not.been.called;
+				expect(forgeModule.processorModule.create).to.not.been.called;
 				expect(mockLogger.info).to.be.calledTwice;
 				expect(mockLogger.info.secondCall.args).to.be.eql([
 					'Skipping forging to wait for last block',
@@ -920,7 +924,7 @@ describe('forge', () => {
 					.returns(changedLastBlockSlot);
 
 				await forgeModule.forge();
-				expect(forgeModule.blocksModule.generateBlock).to.be.calledOnce;
+				expect(forgeModule.processorModule.create).to.be.calledOnce;
 				clock.restore();
 			});
 
@@ -942,7 +946,7 @@ describe('forge', () => {
 					.returns(lastBlockSlotChanged);
 
 				await forgeModule.forge();
-				expect(forgeModule.blocksModule.generateBlock).to.be.calledOnce;
+				expect(forgeModule.processorModule.create).to.be.calledOnce;
 				clock.restore();
 			});
 		});

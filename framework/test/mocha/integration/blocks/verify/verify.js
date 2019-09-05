@@ -35,9 +35,6 @@ const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const { Slots } = require('../../../../../src/modules/chain/dpos');
-const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
-const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
-const blocksUtils = require('../../../../../src/modules/chain/blocks/utils');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -55,8 +52,8 @@ const slots = new Slots({
 let block1;
 let block2;
 
-function createBlock(
-	blocksModule,
+async function createBlock(
+	library,
 	passphrase,
 	timestamp,
 	transactions,
@@ -70,19 +67,15 @@ function createBlock(
 	transactions = transactions.map(transaction =>
 		interfaceAdapters.transactions.fromJson(transaction),
 	);
-	blocksModule._lastBlock = previousBlockArgs;
-	const newBlock = blocksLogic.create({
-		blockReward: blocksModule.blockReward,
+	library.modules.blocks._lastBlock = previousBlockArgs;
+	const newBlock = await library.modules.processor.create({
 		keypair,
 		timestamp,
-		previousBlock: blocksModule.lastBlock,
+		previousBlock: library.modules.blocks.lastBlock,
 		transactions,
-		maxTransactionPerBlock: blocksModule.constants.maxTransactionPerBlock,
 		maxHeightPreviouslyForged: 1,
 		prevotedConfirmedUptoHeight: 1,
 	});
-
-	newBlock.id = blocksLogic.getId(newBlock);
 	return newBlock;
 }
 
@@ -106,8 +99,6 @@ function getValidKeypairForSlot(library, slot) {
 
 describe('blocks/verify', () => {
 	let library;
-	let blocksProcess;
-	let blocks;
 	let dpos;
 	let storage;
 
@@ -119,13 +110,10 @@ describe('blocks/verify', () => {
 				},
 			},
 			(err, scope) => {
-				blocksProcess = scope.modules.blocks.blocksProcess;
-				blocks = scope.modules.blocks;
 				dpos = scope.modules.dpos;
 				storage = scope.components.storage;
 
 				// Set current block version to 0
-				blockVersion.currentBlockVersion = 0;
 				scope.modules.blocks.blocksVerify.exceptions = {
 					...scope.modules.blocks.exceptions,
 					blockVersions: {
@@ -305,40 +293,31 @@ describe('blocks/verify', () => {
 			);
 		});
 
-		it('should generate block 1', done => {
+		it('should generate block 1', async () => {
 			const slot = slots.getSlotNumber();
 			const time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot)
-				.then(passphrase => {
-					block1 = createBlock(blocks, passphrase, time, [], genesisBlock);
-					expect(block1.version).to.equal(0);
-					expect(block1.timestamp).to.equal(time);
-					expect(block1.numberOfTransactions).to.equal(0);
-					expect(block1.reward.equals('0')).to.be.true;
-					expect(block1.totalFee.equals('0')).to.be.true;
-					expect(block1.totalAmount.equals('0')).to.be.true;
-					expect(block1.payloadLength).to.equal(0);
-					expect(block1.transactions).to.deep.equal([]);
-					expect(block1.previousBlock).to.equal(genesisBlock.id);
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
+			const passphrase = await getValidKeypairForSlot(library, slot);
+			block1 = await createBlock(library, passphrase, time, [], genesisBlock);
+			expect(block1.version).to.equal(1);
+			expect(block1.timestamp).to.equal(time);
+			expect(block1.numberOfTransactions).to.equal(0);
+			expect(block1.reward.equals('0')).to.be.true;
+			expect(block1.totalFee.equals('0')).to.be.true;
+			expect(block1.totalAmount.equals('0')).to.be.true;
+			expect(block1.payloadLength).to.equal(0);
+			expect(block1.transactions).to.deep.equal([]);
+			expect(block1.previousBlock).to.equal(genesisBlock.id);
 		});
 
 		it('should be ok when processing block 1', async () => {
-			await blocksProcess.processBlock(block1, blocks.lastBlock);
+			await library.modules.processor.process(block1);
 		});
 	});
 
 	describe('processBlock for invalid block {broadcast: true, saveBlock: true}', () => {
-		let broadcastSpy;
-
 		beforeEach(async () => {
-			broadcastSpy = sinonSandbox.spy();
-			await blocksProcess.processBlock(block1, blocks.lastBlock, broadcastSpy);
+			await library.modules.processor.process(block1);
 		});
 
 		afterEach(async () => {
@@ -347,11 +326,7 @@ describe('blocks/verify', () => {
 
 		it('should fail when processing block 1 multiple times', async () => {
 			try {
-				await blocksProcess.processBlock(
-					block1,
-					blocks.lastBlock,
-					broadcastSpy,
-				);
+				await library.modules.processor.process(block1);
 			} catch (error) {
 				expect(error.message).to.equal(`Block ${block1.id} already exists`);
 			}
@@ -362,18 +337,18 @@ describe('blocks/verify', () => {
 	describe('processBlock for invalid block {broadcast: false, saveBlock: true}', () => {
 		let invalidBlock2;
 
-		it('should generate block 2 with invalid generator slot', done => {
+		it('should generate block 2 with invalid generator slot', async () => {
 			const passphrase =
 				'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
-			invalidBlock2 = createBlock(
-				blocks,
+			invalidBlock2 = await createBlock(
+				library,
 				passphrase,
 				33772882,
 				[],
 				genesisBlock,
 			);
-			expect(invalidBlock2.version).to.equal(0);
+			expect(invalidBlock2.version).to.equal(1);
 			expect(invalidBlock2.timestamp).to.equal(33772882);
 			expect(invalidBlock2.numberOfTransactions).to.equal(0);
 			expect(invalidBlock2.reward.equals('0')).to.be.true;
@@ -382,11 +357,10 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.equal([]);
 			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
-			done();
 		});
 
 		describe('normalizeBlock validations', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				const account = random.account();
 				const transaction = transfer({
 					amount: new BigNum(NORMALIZER).times(1000).toString(),
@@ -394,22 +368,20 @@ describe('blocks/verify', () => {
 					passphrase: account.passphrase,
 				});
 
-				block2 = createBlock(
-					blocks,
+				block2 = await createBlock(
+					library,
 					random.password(),
 					33772882,
 					[transaction],
 					genesisBlock,
 				);
-				done();
 			});
 
 			it('should fail when timestamp property is missing', async () => {
-				block2 = blocksUtils.deleteBlockProperties(block2);
 				delete block2.timestamp;
 
 				try {
-					await blocksProcess.processBlock(block2, blocks.lastBlock);
+					await library.modules.processor.process(block2);
 				} catch (errors) {
 					expect(errors[0].message).equal(
 						"should have required property 'timestamp'",
@@ -420,10 +392,11 @@ describe('blocks/verify', () => {
 			it('should fail when transactions property is missing', async () => {
 				delete block2.transactions;
 				try {
-					await blocksProcess.processBlock(block2, blocks.lastBlock);
+					await library.modules.processor.process(block2);
 				} catch (errors) {
-					expect(errors[0]).to.be.instanceOf(Error);
-					expect(errors[0].message).equal('Invalid total fee');
+					expect(errors[0].message).equal(
+						"should have required property 'transactions'",
+					);
 				}
 			});
 
@@ -431,7 +404,7 @@ describe('blocks/verify', () => {
 				const transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 				try {
-					await blocksProcess.processBlock(block2, blocks.lastBlock);
+					await library.modules.processor.process(block2);
 				} catch (err) {
 					expect(err[0].message).equal(
 						"'' should have required property 'type'",
@@ -444,18 +417,16 @@ describe('blocks/verify', () => {
 				const transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 				try {
-					await blocksProcess.processBlock(block2, blocks.lastBlock);
+					await library.modules.processor.process(block2);
 				} catch (err) {
-					expect(err[0].message).equal(
-						"'' should have required property 'timestamp'",
-					);
+					expect(err.message).equal('Invalid payload hash');
 					block2.transactions[0].timestamp = transactionTimestamp;
 				}
 			});
 
 			it('should fail when block generator is invalid (fork:3)', async () => {
 				try {
-					await blocksProcess.processBlock(block2, blocks.lastBlock);
+					await library.modules.processor.process(block2);
 				} catch (err) {
 					expect(err.message).equal('Failed to verify slot: 3377288');
 				}
@@ -464,7 +435,7 @@ describe('blocks/verify', () => {
 			describe('block with processed transaction', () => {
 				let auxBlock;
 
-				it('should generate block 1 with valid generator slot and processed transaction', done => {
+				it('should generate block 1 with valid generator slot and processed transaction', async () => {
 					const slot = slots.getSlotNumber();
 					const time = slots.getSlotTime(slots.getSlotNumber());
 
@@ -475,34 +446,28 @@ describe('blocks/verify', () => {
 						passphrase: account.passphrase,
 					});
 
-					getValidKeypairForSlot(library, slot)
-						.then(passphrase => {
-							auxBlock = createBlock(
-								blocks,
-								passphrase,
-								time,
-								[transferTransaction],
-								genesisBlock,
-							);
+					const passphrase = await getValidKeypairForSlot(library, slot);
+					auxBlock = await createBlock(
+						library,
+						passphrase,
+						time,
+						[transferTransaction],
+						genesisBlock,
+					);
 
-							expect(auxBlock.version).to.equal(0);
-							expect(auxBlock.timestamp).to.equal(time);
-							expect(auxBlock.numberOfTransactions).to.equal(1);
-							expect(auxBlock.reward.equals('0')).to.be.true;
-							expect(auxBlock.totalFee.equals('10000000')).to.be.true;
-							expect(auxBlock.totalAmount.equals('100000000000')).to.be.true;
-							expect(auxBlock.payloadLength).to.equal(117);
-							expect(
-								auxBlock.transactions.map(transaction => transaction.id),
-							).to.deep.equal(
-								[transferTransaction].map(transaction => transaction.id),
-							);
-							expect(auxBlock.previousBlock).to.equal(genesisBlock.id);
-							done();
-						})
-						.catch(err => {
-							done(err);
-						});
+					expect(auxBlock.version).to.equal(1);
+					expect(auxBlock.timestamp).to.equal(time);
+					expect(auxBlock.numberOfTransactions).to.equal(1);
+					expect(auxBlock.reward.equals('0')).to.be.true;
+					expect(auxBlock.totalFee.equals('10000000')).to.be.true;
+					expect(auxBlock.totalAmount.equals('100000000000')).to.be.true;
+					expect(auxBlock.payloadLength).to.equal(117);
+					expect(
+						auxBlock.transactions.map(transaction => transaction.id),
+					).to.deep.equal(
+						[transferTransaction].map(transaction => transaction.id),
+					);
+					expect(auxBlock.previousBlock).to.equal(genesisBlock.id);
 				});
 
 				it('should fail when transaction is invalid', async () => {
@@ -514,21 +479,21 @@ describe('blocks/verify', () => {
 					});
 					transaction.senderId = account.address;
 
-					const createBlockPayload = (
+					const createBlockPayload = async (
 						passPhrase,
 						transactions,
 						previousBlockArgs,
 					) => {
 						const time = slots.getSlotTime(slots.getSlotNumber());
-						const firstBlock = createBlock(
-							blocks,
+						const firstBlock = await createBlock(
+							library,
 							passPhrase,
 							time,
 							transactions,
 							previousBlockArgs,
 						);
 
-						return blocksUtils.deleteBlockProperties(firstBlock);
+						return firstBlock;
 					};
 
 					const passPhrase = await getValidKeypairForSlot(
@@ -536,13 +501,13 @@ describe('blocks/verify', () => {
 						slots.getSlotNumber(),
 					);
 					const transactions = [transaction];
-					const firstBlock = createBlockPayload(
+					const firstBlock = await createBlockPayload(
 						passPhrase,
 						transactions,
 						genesisBlock,
 					);
 					try {
-						await blocksProcess.processBlock(firstBlock, blocks.lastBlock);
+						await library.modules.processor.process(firstBlock);
 					} catch (err) {
 						expect(err[0].message).to.equal(
 							`Account does not have enough LSK: ${
@@ -561,21 +526,21 @@ describe('blocks/verify', () => {
 					});
 					transaction.senderId = '16313739661670634666L';
 
-					const createBlockPayload = (
+					const createBlockPayload = async (
 						passPhrase,
 						transactions,
 						previousBlockArgs,
 					) => {
 						const time = slots.getSlotTime(slots.getSlotNumber());
-						const firstBlock = createBlock(
-							blocks,
+						const firstBlock = await createBlock(
+							library,
 							passPhrase,
 							time,
 							transactions,
 							previousBlockArgs,
 						);
 
-						return blocksUtils.deleteBlockProperties(firstBlock);
+						return firstBlock;
 					};
 
 					const passPhrase = await getValidKeypairForSlot(
@@ -583,29 +548,26 @@ describe('blocks/verify', () => {
 						slots.getSlotNumber(),
 					);
 					const transactions = [transaction];
-					const firstBlock = createBlockPayload(
+					const firstBlock = await createBlockPayload(
 						passPhrase,
 						transactions,
 						genesisBlock,
 					);
-					await blocksProcess.processBlock(firstBlock, blocks.lastBlock);
-					await new Promise(resolve => {
-						setTimeout(resolve, 10000);
-					});
+					await library.modules.processor.process(firstBlock);
 					const resultedPassPhrase = await getValidKeypairForSlot(
 						library,
 						slots.getSlotNumber(),
 					);
-					const secondBlock = createBlockPayload(
+					const secondBlock = await createBlockPayload(
 						resultedPassPhrase,
 						transactions,
 						firstBlock,
 					);
 					try {
-						await blocksProcess.processBlock(secondBlock, blocks.lastBlock);
+						await library.modules.processor.processValidated(secondBlock);
 					} catch (processBlockErr) {
-						expect(processBlockErr).to.be.instanceOf(Error);
-						expect(processBlockErr.message).to.equal(
+						expect(processBlockErr[0]).to.be.instanceOf(Error);
+						expect(processBlockErr[0].message).to.equal(
 							['Transaction is already confirmed:', transaction.id].join(' '),
 						);
 					}
@@ -615,31 +577,25 @@ describe('blocks/verify', () => {
 	});
 
 	describe('processBlock for valid block {broadcast: false, saveBlock: true}', () => {
-		it('should generate block 2 with valid generator slot', done => {
+		it('should generate block 2 with valid generator slot', async () => {
 			const slot = slots.getSlotNumber();
 			const time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot)
-				.then(passphrase => {
-					block2 = createBlock(blocks, passphrase, time, [], genesisBlock);
-					expect(block2.version).to.equal(0);
-					expect(block2.timestamp).to.equal(time);
-					expect(block2.numberOfTransactions).to.equal(0);
-					expect(block2.reward.equals('0')).to.be.true;
-					expect(block2.totalFee.equals('0')).to.be.true;
-					expect(block2.totalAmount.equals('0')).to.be.true;
-					expect(block2.payloadLength).to.equal(0);
-					expect(block2.transactions).to.deep.equal([]);
-					expect(block2.previousBlock).to.equal(genesisBlock.id);
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
+			const passphrase = await getValidKeypairForSlot(library, slot);
+			block2 = await createBlock(library, passphrase, time, [], genesisBlock);
+			expect(block2.version).to.equal(1);
+			expect(block2.timestamp).to.equal(time);
+			expect(block2.numberOfTransactions).to.equal(0);
+			expect(block2.reward.equals('0')).to.be.true;
+			expect(block2.totalFee.equals('0')).to.be.true;
+			expect(block2.totalAmount.equals('0')).to.be.true;
+			expect(block2.payloadLength).to.equal(0);
+			expect(block2.transactions).to.deep.equal([]);
+			expect(block2.previousBlock).to.equal(genesisBlock.id);
 		});
 
 		it('should be ok when processing block 2', async () => {
-			await blocksProcess.processBlock(block2, blocks.lastBlock);
+			await library.modules.processor.process(block2);
 		});
 	});
 });

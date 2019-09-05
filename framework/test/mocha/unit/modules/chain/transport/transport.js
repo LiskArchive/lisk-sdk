@@ -176,6 +176,11 @@ describe('transport', () => {
 					.returns({ height: 1, version: 1, timestamp: 1 }),
 				receiveBlockFromNetwork: sinonSandbox.stub(),
 				loadBlocksDataWS: sinonSandbox.stub(),
+				objectNormalize: sinonSandbox.stub(),
+			},
+			processorModule: {
+				validate: sinonSandbox.stub(),
+				process: sinonSandbox.stub(),
 			},
 			loaderModule: {
 				syncing: sinonSandbox.stub().returns(false),
@@ -823,10 +828,10 @@ describe('transport', () => {
 							const blockValidationError = 'Failed to validate block schema';
 
 							beforeEach(async () => {
-								sinonSandbox
-									.stub(blocksModule, 'objectNormalize')
-									.throws(blockValidationError);
-								transportModule.postBlock(postBlockQuery);
+								transportModule.processorModule.validate.rejects(
+									blockValidationError,
+								);
+								await transportModule.postBlock(postBlockQuery);
 							});
 
 							it('should call transportModule.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () => {
@@ -850,7 +855,7 @@ describe('transport', () => {
 							});
 
 							describe('when query.block is defined', () => {
-								it('should call modules.blocks.verify.addBlockProperties with query.block', async () =>
+								it('should call modules.blocks.addBlockProperties with query.block', async () =>
 									expect(
 										blocksModule.addBlockProperties.calledWith(
 											postBlockQuery.block,
@@ -858,13 +863,9 @@ describe('transport', () => {
 									).to.be.true);
 							});
 
-							it('should call transportModule.block.objectNormalize with block', async () =>
-								expect(blocksModule.objectNormalize.calledWith(blockMock)).to.be
-									.true);
-
-							it('should call block.process.receiveBlockFromNetwork with block', async () => {
+							it('should call transportModule.processorModule.process with block', async () => {
 								expect(
-									transportModule.blocksModule.receiveBlockFromNetwork,
+									transportModule.processorModule.process,
 								).to.be.calledWithExactly(blockMock);
 							});
 						});

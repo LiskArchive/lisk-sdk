@@ -18,11 +18,10 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-} from '../../src/peer_selection';
+} from '../../src/utils';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../../src/p2p_types';
 import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList, initializePeerInfoList } from '../utils/peers';
-import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
-import { P2PPeerInfo } from '../../src/p2p_types';
 import {
 	DEFAULT_WS_MAX_PAYLOAD,
 	DEFAULT_BAN_TIME,
@@ -34,7 +33,7 @@ import {
 	DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
 	DEFAULT_RANDOM_SECRET,
-} from '../../src/p2p';
+} from '../../src/constants';
 
 describe('peerPool', () => {
 	const peerPool = new PeerPool({

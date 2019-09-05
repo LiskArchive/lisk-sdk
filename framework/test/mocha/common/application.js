@@ -24,6 +24,14 @@ const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
+const { Processor } = require('../../../src/modules/chain/processor');
+const { Rebuilder } = require('../../../src/modules/chain/rebuilder');
+const {
+	BlockProcessorV0,
+} = require('../../../src/modules/chain/block_processor_v0');
+const {
+	BlockProcessorV1,
+} = require('../../../src/modules/chain/block_processor_v1');
 
 let currentAppScope;
 
@@ -109,6 +117,22 @@ const initStepsForTest = {
 			totalAmount: __testContext.config.constants.TOTAL_AMOUNT,
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
+		modules.processor = new Processor({
+			channel: scope.channel,
+			storage: scope.components.storage,
+			logger: scope.components.logger,
+			blocksModule: modules.blocks,
+		});
+		const processorDependency = {
+			blocksModule: modules.blocks,
+			logger: scope.components.logger,
+			constants: __testContext.config.constants,
+			exceptions: __testContext.config.modules.chain.exceptions,
+		};
+		modules.processor.register(new BlockProcessorV0(processorDependency), {
+			matcher: ({ height }) => height === 1,
+		});
+		modules.processor.register(new BlockProcessorV1(processorDependency));
 		scope.modules = modules;
 		const { Peers } = rewire('../../../src/modules/chain/peers');
 		scope.peers = new Peers({
@@ -202,6 +226,18 @@ const initStepsForTest = {
 			broadcasts: __testContext.config.modules.chain.broadcasts,
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
+		});
+
+		modules.rebuilder = new Rebuilder({
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			cache: scope.components.cache,
+			genesisBlock: __testContext.config.genesisBlock,
+			blocksModule: modules.blocks,
+			processorModule: modules.processor,
+			interfaceAdapters: modules.interfaceAdapters,
+			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
 
 		return modules;
@@ -338,8 +374,18 @@ async function __init(sandbox, initScope) {
 			return scope;
 		}
 
+		// Deserialize genesis block
+		const transactionInstances = __testContext.config.genesisBlock.transactions.map(
+			transaction =>
+				scope.modules.interfaceAdapters.transactions.fromJson(transaction),
+		);
+		const blockWithTransactionInstances = {
+			...__testContext.config.genesisBlock,
+			transactions: transactionInstances,
+		};
+
 		// Overwrite onBlockchainReady function to prevent automatic forging
-		await scope.modules.blocks.loadBlockChain();
+		await scope.modules.processor.init(blockWithTransactionInstances);
 		return scope;
 	} catch (error) {
 		__testContext.debug('Error during test application init.', error);

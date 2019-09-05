@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { expect } from 'chai';
 import {
 	InvalidPeerError,
@@ -23,7 +22,7 @@ import {
 	InvalidRPCRequestError,
 	RPCResponseAlreadySentError,
 	RequestFailError,
-} from '../../src';
+} from '../../src/errors';
 
 describe('errors', () => {
 	describe('#PeerInboundHandshakeError', () => {

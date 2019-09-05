@@ -14,16 +14,25 @@
 
 'use strict';
 
-describe('exceptions for null byte transaction', () => {
-	describe('when forging block with transaction with leading zero recipientId', () => {
-		it.todo('should deduct balance from the sender account');
+const {
+	BaseBlockProcessor,
+} = require('../../../../../../../src/modules/chain/processor');
 
-		it.todo('should save transaction in the database');
-	});
+class FakeBlockProcessorV0 extends BaseBlockProcessor {
+	// eslint-disable-next-line class-methods-use-this
+	get version() {
+		return 0;
+	}
+}
 
-	describe('when after deleting the block', () => {
-		it.todo('should update balance field of sender account');
+class FakeBlockProcessorV1 extends BaseBlockProcessor {
+	// eslint-disable-next-line class-methods-use-this
+	get version() {
+		return 1;
+	}
+}
 
-		it.todo('should delete transaction from the database');
-	});
-});
+module.exports = {
+	FakeBlockProcessorV0,
+	FakeBlockProcessorV1,
+};

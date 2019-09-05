@@ -82,11 +82,7 @@ describe('exceptions for multisignature transactions', () => {
 					},
 				);
 			});
-			const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
-				newBlock,
-				library.modules.blocks.lastBlock,
-			);
-			library.modules.blocks._lastBlock = newLastBlock;
+			await library.modules.processor.process(newBlock);
 		});
 
 		describe('details of the accounts', () => {
@@ -101,7 +97,7 @@ describe('exceptions for multisignature transactions', () => {
 
 			describe('when forging block with transaction with multisignature exception', () => {
 				before(async () => {
-					library.modules.blocks.blocksProcess.exceptions = {
+					library.modules.blocks.exceptions = {
 						...library.modules.blocks.exceptions,
 						multisignatures: ['8191213966308378713'],
 					};
@@ -119,11 +115,7 @@ describe('exceptions for multisignature transactions', () => {
 							},
 						);
 					});
-					const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
-						newBlock,
-						library.modules.blocks.lastBlock,
-					);
-					library.modules.blocks._lastBlock = newLastBlock;
+					await library.modules.processor.process(newBlock);
 				});
 
 				describe('details of the accounts', () => {
