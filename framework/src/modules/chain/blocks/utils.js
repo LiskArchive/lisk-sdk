@@ -41,6 +41,11 @@ const parseStorageObjToLegacyObj = block => {
 			b_id: _.get(block, 'id', null),
 			b_version: isNaN(+block.version) ? null : +block.version,
 			b_timestamp: isNaN(+block.timestamp) ? null : +block.timestamp,
+
+			b_maxHeightPreviouslyForged:
+				parseInt(block.maxHeightPreviouslyForged, 10) || 0,
+			b_prevotedConfirmedUptoHeight:
+				parseInt(block.prevotedConfirmedUptoHeight, 10) || 0,
 			b_height: isNaN(+block.height) ? null : +block.height,
 			b_previousBlock: _.get(block, 'previousBlockId', null),
 			b_numberOfTransactions: isNaN(+block.numberOfTransactions)
@@ -327,6 +332,26 @@ const deleteBlockProperties = block => {
 };
 
 /**
+ * Calculates block id based on block.
+ *
+ * @param {block} blockBytes
+ * @returns {string} Block id
+ * @todo Add description for the params
+ */
+const getId = blockBytes => {
+	const hashedBlock = hash(blockBytes);
+	const temp = Buffer.alloc(8);
+	// eslint-disable-next-line no-plusplus
+	for (let i = 0; i < 8; i++) {
+		temp[i] = hashedBlock[7 - i];
+	}
+
+	// eslint-disable-next-line new-cap
+	const id = new BigNum.fromBuffer(temp).toString();
+	return id;
+};
+
+/**
  * Set height according to the given last block.
  *
  * @private
@@ -365,9 +390,6 @@ const loadMemTables = async (storage, tx) => {
 	};
 };
 
-// TODO: remove type constraints
-const TRANSACTION_TYPES_MULTI = 4;
-
 /**
  * Sorts transactions for later including in the block.
  *
@@ -375,40 +397,9 @@ const TRANSACTION_TYPES_MULTI = 4;
  * @returns {Array} transactions Sorted collection of transactions
  * @static
  */
-const sortTransactions = transactions =>
-	transactions.sort((a, b) => {
-		// Place MULTI transaction after all other transaction types
-		if (
-			a.type === TRANSACTION_TYPES_MULTI &&
-			b.type !== TRANSACTION_TYPES_MULTI
-		) {
-			return 1;
-		}
-		// Place all other transaction types before MULTI transaction
-		if (
-			a.type !== TRANSACTION_TYPES_MULTI &&
-			b.type === TRANSACTION_TYPES_MULTI
-		) {
-			return -1;
-		}
-		// Place depending on type (lower first)
-		if (a.type < b.type) {
-			return -1;
-		}
-		if (a.type > b.type) {
-			return 1;
-		}
-		// Place depending on amount (lower first)
-		if (a.amount.lt(b.amount)) {
-			return -1;
-		}
-		if (a.amount.gt(b.amount)) {
-			return 1;
-		}
-		return 0;
-	});
 
 module.exports = {
+	getId,
 	parseStorageObjToLegacyObj,
 	getIdSequence,
 	loadBlocksDataWS,
@@ -417,5 +408,4 @@ module.exports = {
 	setHeight,
 	addBlockProperties,
 	deleteBlockProperties,
-	sortTransactions,
 };

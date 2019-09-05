@@ -20,6 +20,7 @@ const {
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
+const { sortTransactions } = require('./transactions');
 
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.
@@ -71,6 +72,7 @@ class Forger {
 		// Unique requirements
 		slots,
 		// Modules
+		processorModule,
 		dposModule,
 		transactionPoolModule,
 		blocksModule,
@@ -101,6 +103,7 @@ class Forger {
 			maxTransactionsPerBlock,
 		};
 
+		this.processorModule = processorModule;
 		this.dposModule = dposModule;
 		this.peersModule = peersModule;
 		this.transactionPoolModule = transactionPoolModule;
@@ -381,11 +384,29 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
-		const forgedBlock = await this.blocksModule.generateBlock(
-			delegateKeypair,
-			this.slots.getSlotTime(currentSlot),
+		const timestamp = this.slots.getSlotTime(currentSlot);
+		const previousBlock = this.blocksModule.lastBlock;
+
+		const context = {
+			blockTimestamp: timestamp,
+		};
+		const readyTransactions = await this.blocksModule.filterReadyTransactions(
 			transactions,
+			context,
 		);
+
+		const sortedTransactions = sortTransactions(readyTransactions);
+
+		const forgedBlock = await this.processorModule.create({
+			keypair: delegateKeypair,
+			timestamp,
+			transactions: sortedTransactions,
+			previousBlock,
+			// FIXME: Add correct value from BFT in pipeline
+			maxHeightPreviouslyForged: 0,
+			prevotedConfirmedUptoHeight: 0,
+		});
+		await this.processorModule.process(forgedBlock);
 		this.logger.info(
 			`Forged new block id: ${forgedBlock.id} height: ${
 				forgedBlock.height

@@ -94,7 +94,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 
 	localCommon.beforeBlock('system_duplicate_signatures', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			duplicatedSignatures: {
 				'15181013796707110990': [
@@ -103,7 +103,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 				],
 			},
 		};
-		library.modules.blocks.blocksChain.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			duplicatedSignatures: {
 				'15181013796707110990': [
@@ -144,11 +144,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
-				newBlock,
-				library.modules.blocks.lastBlock,
-			);
-			library.modules.blocks._lastBlock = newBlock;
+			await library.modules.processor.process(newBlock);
 		});
 
 		describe('when forging block with transaction which initializes the account', () => {
@@ -174,11 +170,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 						},
 					);
 				});
-				await library.modules.blocks.blocksProcess.processBlock(
-					newBlock,
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newBlock;
+				await library.modules.processor.process(newBlock);
 			});
 
 			describe('details of the accounts', () => {
@@ -227,11 +219,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 								},
 							);
 						});
-						await library.modules.blocks.blocksProcess.processBlock(
-							newBlock,
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newBlock;
+						await library.modules.processor.process(newBlock);
 					});
 
 					describe('details of the accounts', () => {

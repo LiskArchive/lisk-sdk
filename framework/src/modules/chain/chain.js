@@ -38,14 +38,7 @@ const {
 const { Slots, Dpos } = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
-const {
-	Blocks,
-	EVENT_NEW_BLOCK,
-	EVENT_DELETE_BLOCK,
-	EVENT_BROADCAST_BLOCK,
-	EVENT_NEW_BROADHASH,
-	EVENT_PRIORITY_CHAIN_DETECTED,
-} = require('./blocks');
+const { Blocks, EVENT_NEW_BROADHASH } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
@@ -54,6 +47,10 @@ const {
 	BlockSynchronizationMechanism,
 	FastChainSwitchingMechanism,
 } = require('./synchronizer');
+const { Processor } = require('./processor');
+const { Rebuilder } = require('./rebuilder');
+const { BlockProcessorV0 } = require('./block_processor_v0.js');
+const { BlockProcessorV1 } = require('./block_processor_v1.js');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -106,12 +103,6 @@ module.exports = class Chain {
 
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
-
-		// Deactivate broadcast and syncing during snapshotting process
-		if (this.options.loading.rebuildUpToRound) {
-			this.options.broadcasts.active = false;
-			this.options.syncing.active = false;
-		}
 
 		try {
 			if (!this.options.genesisBlock) {
@@ -166,19 +157,60 @@ module.exports = class Chain {
 
 			await this._initModules();
 
+			// Prepare dependency
+			const processorDependencies = {
+				blocksModule: this.blocks,
+				logger: this.logger,
+				constants: this.options.constants,
+				exceptions: this.options.exceptions,
+			};
+
+			// TODO: remove this once we have version 2 genesis block
+			this.processor.register(new BlockProcessorV0(processorDependencies), {
+				matcher: ({ height }) => height === 1,
+			});
+
+			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
+			if (this.options.exceptions.blockVersions) {
+				if (this.options.exceptions.blockVersions[0]) {
+					const period = this.options.exceptions.blockVersions[0];
+					this.processor.register(new BlockProcessorV0(processorDependencies), {
+						matcher: ({ height }) =>
+							height >= period.start && height <= period.end,
+					});
+				}
+			}
+
+			this.processor.register(new BlockProcessorV1(processorDependencies));
+
+			// Deactivate broadcast and syncing during snapshotting process
+			if (this.options.loading.rebuildUpToRound) {
+				this.options.broadcasts.active = false;
+				this.options.syncing.active = false;
+				await this.rebuilder.rebuild(
+					this.options.loading.rebuildUpToRound,
+					this.options.loading.loadPerIteration,
+				);
+				this.logger.info(
+					{
+						rebuildUpToRound: this.options.loading.rebuildUpToRound,
+						loadPerIteration: this.options.loading.loadPerIteration,
+					},
+					'Successfully rebuild the blockchain',
+				);
+				process.emit('cleanup');
+				return;
+			}
+
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
 			});
 
 			this.logger.info('Modules ready and launched');
-			// After binding, it should immediately load blockchain
-			await this.blocks.loadBlockChain(this.options.loading.rebuildUpToRound);
 			await this.bft.init();
+			// After binding, it should immediately load blockchain
+			await this.processor.init(this.options.genesisBlock);
 
-			if (this.options.loading.rebuildUpToRound) {
-				process.emit('cleanup');
-				return;
-			}
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
@@ -330,6 +362,17 @@ module.exports = class Chain {
 				this.options.registeredTransactions,
 			),
 		};
+
+		// Deserialize genesis block
+		const transactionInstances = this.options.genesisBlock.transactions.map(
+			transaction => this.interfaceAdapters.transactions.fromJson(transaction),
+		);
+		const blockWithTransactionInstances = {
+			...this.options.genesisBlock,
+			transactions: transactionInstances,
+		};
+		this.options.genesisBlock = blockWithTransactionInstances;
+
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		this.slots = new Slots({
 			epochTime: this.options.constants.EPOCH_TIME,
@@ -386,7 +429,13 @@ module.exports = class Chain {
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 		});
-
+		this.processor = new Processor({
+			channel: this.channel,
+			logger: this.logger,
+			storage: this.storage,
+			blocksModule: this.blocks,
+			interfaceAdapters: this.interfaceAdapters,
+		});
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
 			logger: this.logger,
@@ -409,12 +458,7 @@ module.exports = class Chain {
 		this.synchronizer = new Synchronizer({
 			storage: this.storage,
 			logger: this.logger,
-			blocks: this.blocks,
-			blockReward: this.blocks.blockReward,
-			exceptions: this.options.exceptions,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
-			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
+			processorModule: this.processor,
 		});
 		this.synchronizer.register(blockSyncMechanism);
 		this.synchronizer.register(fastChainSwitchMechanism);
@@ -452,11 +496,22 @@ module.exports = class Chain {
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
+			processorModule: this.processor,
 			interfaceAdapters: this.interfaceAdapters,
 			loadPerIteration: this.options.loading.loadPerIteration,
-			rebuildUpToRound: this.options.loading.rebuildUpToRound,
 			syncingActive: this.options.syncing.active,
 		});
+		this.rebuilder = new Rebuilder({
+			channel: this.channel,
+			logger: this.logger,
+			storage: this.storage,
+			genesisBlock: this.options.genesisBlock,
+			blocksModule: this.blocks,
+			processorModule: this.processor,
+			interfaceAdapters: this.interfaceAdapters,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+		});
+		this.scope.modules.rebuilder = this.rebuilder;
 		this.forger = new Forger({
 			channel: this.channel,
 			logger: this.logger,
@@ -465,6 +520,7 @@ module.exports = class Chain {
 			slots: this.slots,
 			dposModule: this.dpos,
 			transactionPoolModule: this.transactionPool,
+			processorModule: this.processor,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
@@ -482,6 +538,7 @@ module.exports = class Chain {
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
+			processorModule: this.processor,
 			blocksModule: this.blocks,
 			loaderModule: this.loader,
 			interfaceAdapters: this.interfaceAdapters,
@@ -505,7 +562,8 @@ module.exports = class Chain {
 			},
 			'Sync time triggered',
 		);
-		if (!this.loader.syncing() && this.blocks.isStale()) {
+		// TODO: Do we need further checks here, removing blocks.isStale()
+		if (!this.loader.syncing()) {
 			await this.scope.sequence.add(async () => {
 				try {
 					await this.loader.sync();
@@ -570,11 +628,14 @@ module.exports = class Chain {
 	}
 
 	_subscribeToEvents() {
-		this.blocks.on(EVENT_BROADCAST_BLOCK, ({ block }) => {
-			this.transport.onBroadcastBlock(block, true);
-		});
+		this.channel.subscribe(
+			'chain:processor:broadcast',
+			({ data: { block } }) => {
+				this.transport.onBroadcastBlock(block, true);
+			},
+		);
 
-		this.blocks.on(EVENT_DELETE_BLOCK, ({ block }) => {
+		this.channel.subscribe('chain:processor:deleteBlock', ({ block }) => {
 			if (block.transactions.length) {
 				const transactions = block.transactions.reverse();
 				this.transactionPool.onDeletedTransactions(transactions);
@@ -590,34 +651,37 @@ module.exports = class Chain {
 			this.channel.publish('chain:blocks:change', block);
 		});
 
-		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
-			if (block.transactions.length) {
-				this.transactionPool.onConfirmedTransactions(block.transactions);
-				this.channel.publish(
-					'chain:transactions:confirmed:change',
-					block.transactions,
+		this.channel.subscribe(
+			'chain:processor:newBlock',
+			({ data: { block } }) => {
+				if (block.transactions.length) {
+					this.transactionPool.onConfirmedTransactions(block.transactions);
+					this.channel.publish(
+						'chain:transactions:confirmed:change',
+						block.transactions,
+					);
+				}
+				this.logger.info(
+					{
+						id: block.id,
+						height: block.height,
+						numberOfTransactions: block.transactions.length,
+					},
+					'New block added to the chain',
 				);
-			}
-			this.logger.info(
-				{
-					id: block.id,
-					height: block.height,
-					numberOfTransactions: block.transactions.length,
-				},
-				'New block added to the chain',
-			);
-			this.channel.publish('chain:blocks:change', block);
+				this.channel.publish('chain:blocks:change', block);
 
-			if (!this.loader.syncing()) {
-				this.channel.invoke('app:updateApplicationState', {
-					height: block.height,
-					lastBlockId: block.id,
-					prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
-				});
-			}
-		});
+				if (!this.loader.syncing()) {
+					this.channel.invoke('app:updateApplicationState', {
+						height: block.height,
+						lastBlockId: block.id,
+						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+					});
+				}
+			},
+		);
 
-		this.blocks.on(EVENT_PRIORITY_CHAIN_DETECTED, ({ block }) => {
+		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
 			this.logger.info(
 				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.',
 			);
@@ -639,6 +703,7 @@ module.exports = class Chain {
 			this.transport.onUnconfirmedTransaction(transaction, true);
 		});
 
+		// TODO: Remove this event
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 			this.logger.debug(
@@ -661,10 +726,6 @@ module.exports = class Chain {
 	}
 
 	_unsubscribeToEvents() {
-		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
-		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
-		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
-		this.blocks.removeAllListeners(EVENT_PRIORITY_CHAIN_DETECTED);
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);

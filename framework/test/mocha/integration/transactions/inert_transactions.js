@@ -31,7 +31,7 @@ describe('inert transactions', () => {
 
 	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
-		library.modules.blocks.blocksChain.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			inertTransactions: [
 				transferInertTransaction.id,

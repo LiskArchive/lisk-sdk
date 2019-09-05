@@ -53,7 +53,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 	localCommon.beforeBlock('system_exceptions_recipientId_leading_zero', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			recipientLeadingZero: {
 				'12710869213547423905': '000123L',
@@ -82,7 +82,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -109,7 +109,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 						},
 					);
 				});
-				await library.modules.blocks.blocksProcess.processBlock(
+				await library.modules.processor.process(
 					newBlock,
 					library.modules.blocks.lastBlock,
 				);

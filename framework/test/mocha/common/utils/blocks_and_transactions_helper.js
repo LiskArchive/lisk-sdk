@@ -20,11 +20,10 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const random = require('../../common/utils/random');
 const localCommon = require('../../integration/common');
-const blocksLogic = require('../../../../src/modules/chain/blocks/block');
 const accountFixtures = require('../../fixtures/accounts');
 const {
 	sortTransactions,
-} = require('../../../../src/modules/chain/blocks/utils');
+} = require('../../../../src/modules/chain/transactions');
 
 const {
 	registeredTransactions,
@@ -36,13 +35,7 @@ const {
 const transactionInterfaceAdapter = new TransactionInterfaceAdapter(
 	registeredTransactions,
 );
-const {
-	NORMALIZER,
-	constants,
-	modules: {
-		chain: { exceptions },
-	},
-} = global.__testContext.config;
+const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
 const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
 const forge = util.promisify(localCommon.forge);
@@ -93,14 +86,6 @@ class BlocksTransactionsHelper {
 		this._library = library;
 		this._transactions = [];
 
-		this.promisifyProcessBlock = async block => {
-			const lastBlock = this._library.modules.blocks.lastBlock;
-			await this._library.modules.blocks.blocksProcess.processBlock(
-				block,
-				lastBlock,
-			);
-			this._library.modules.blocks._lastBlock = block;
-		};
 		this.txPool = this._library.modules.transactionPool;
 	}
 
@@ -221,14 +206,13 @@ class BlocksTransactionsHelper {
 			transactionInterfaceAdapter.fromJson(t.data),
 		);
 
-		this._block = blocksLogic.create({
-			blockReward: this._library.modules.blocks.blockReward,
+		const sortedTransactions = sortTransactions(transactions);
+
+		this._block = await this._library.modules.processor.create({
 			keypair,
 			timestamp,
 			previousBlock: lastBlock,
-			transactions,
-			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
-			exceptions,
+			transactions: sortedTransactions,
 			maxHeightPreviouslyForged: 0,
 			prevotedConfirmedUptoHeight: 0,
 		});
@@ -237,7 +221,8 @@ class BlocksTransactionsHelper {
 	async createAndProcessBlock() {
 		try {
 			await this.createBlock();
-			return await this.promisifyProcessBlock(this._block, true, true);
+			await this._library.modules.processor.process(this._block);
+			return undefined;
 		} catch (err) {
 			return err;
 		}

@@ -18,7 +18,7 @@
 const rewire = require('rewire');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
-const { Blocks } = require('../../../../../src/modules/chain/blocks');
+const { Processor } = require('../../../../../src/modules/chain/processor');
 const { BFT } = require('../../../../../src/modules/chain/bft');
 const {
 	loggerConfig,
@@ -34,7 +34,7 @@ describe('Chain', () => {
 	beforeEach(async () => {
 		// Arrange
 
-		sinonSandbox.stub(Blocks.prototype, 'loadBlockChain').resolves();
+		sinonSandbox.stub(Processor.prototype, 'init').resolves();
 		sinonSandbox.stub(BFT.prototype, 'init').resolves();
 
 		/* Arranging Stubs start */
@@ -391,11 +391,8 @@ describe('Chain', () => {
 			});
 		});
 
-		it('should invoke blocks.loadBlockChain', async () => {
-			expect(chain.blocks.loadBlockChain).to.have.been.calledOnce;
-			expect(chain.blocks.loadBlockChain).to.have.been.calledWith(
-				chain.options.loading.rebuildUpToRound,
-			);
+		it('should invoke Processor.init', async () => {
+			expect(chain.processor.init).to.have.been.calledOnce;
 		});
 
 		it('should invoke bft.init', async () => {
@@ -486,7 +483,6 @@ describe('Chain', () => {
 			await chain.bootstrap();
 			sinonSandbox.stub(chain.loader, 'sync').resolves();
 			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
-			sinonSandbox.stub(chain.blocks, 'isStale').returns(false);
 			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
@@ -509,10 +505,9 @@ describe('Chain', () => {
 			);
 		});
 
-		it('should use the Sequence if blocks.isStale and the node is not syncing', async () => {
+		it('should use the Sequence the node is not syncing', async () => {
 			// Arrange
 			chain.loader.syncing.returns(false);
-			chain.blocks.isStale.returns(true);
 
 			// Act
 			await chain._syncTask();
@@ -524,7 +519,6 @@ describe('Chain', () => {
 		describe('in sequence', () => {
 			beforeEach(async () => {
 				chain.loader.syncing.returns(false);
-				chain.blocks.isStale.returns(true);
 			});
 
 			it('should call loader.sync', async () => {
