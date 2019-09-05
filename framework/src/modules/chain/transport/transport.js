@@ -363,28 +363,16 @@ class Transport {
 					query,
 				},
 			);
-			throw new Error(errors);
+			throw errors;
 		}
 
 		let block;
-		let success = true;
-		try {
-			block = blocksUtils.addBlockProperties(query.block);
+		block = blocksUtils.addBlockProperties(query.block);
 
-			// Instantiate transaction classes
-			block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
+		// Instantiate transaction classes
+		block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
 
-			block = blocksUtils.objectNormalize(block);
-		} catch (e) {
-			success = false;
-			this.logger.debug('Block normalization failed', {
-				err: e.toString(),
-				module: 'transport',
-				block: query.block,
-			});
-
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-		}
+		block = blocksUtils.objectNormalize(block);
 		// TODO: endpoint should be protected before
 		if (this.loaderModule.syncing()) {
 			return this.logger.debug(
@@ -392,10 +380,7 @@ class Transport {
 				block.id,
 			);
 		}
-		if (success) {
-			return this.blocksModule.receiveBlockFromNetwork(block);
-		}
-		return null;
+		return this.blocksModule.receiveBlockFromNetwork(block);
 	}
 
 	/**
