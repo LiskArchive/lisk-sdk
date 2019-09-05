@@ -19,7 +19,15 @@ const {
 	TransferTransaction,
 	registerDelegate,
 	DelegateTransaction,
+	VoteTransaction,
+	castVotes,
 } = require('@liskhq/lisk-transactions');
+const {
+	getAddressFromPrivateKey,
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
+const { Mnemonic } = require('@liskhq/lisk-passphrase');
+
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 
@@ -96,6 +104,38 @@ class ChainStateBuilder {
 				this.state.pendingTransactions.push(registerDelegateTx);
 				return this;
 			},
+		};
+	}
+
+	castVotesFrom(votingAccountAddress) {
+		return {
+			voteDelegates: votedDelegates => ({
+				unvoteDelegates: unvotedDelegates => {
+					if (votedDelegates.length + unvotedDelegates.length > 33) {
+						throw new Error(
+							`Each vote transaction can contain a maximum of 33 votes but this included '${votedDelegates.length +
+								unvotedDelegates.length}' votes`,
+						);
+					}
+					// Get the account that's voting
+					const votingAccount = this.findAccountByAddress(
+						votingAccountAddress,
+						Object.values(this.state.accounts),
+					);
+
+					// Create the JSON for the vote transaction
+					const castVotesObject = castVotes({
+						passphrase: votingAccount.passphrase,
+						votes: votedDelegates,
+						unvotes: unvotedDelegates,
+					});
+					// Create vote transaction instance
+					const voteInstance = new VoteTransaction(castVotesObject);
+
+					this.state.pendingTransactions.push(voteInstance);
+					return this;
+				},
+			}),
 		};
 	}
 
@@ -269,6 +309,20 @@ class ChainStateBuilder {
 			rewards: 0,
 			vote: 0,
 			productivity: 0,
+		};
+	}
+
+	static createAccount() {
+		const passphrase = Mnemonic.generateMnemonic();
+		const keys = getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const address = getAddressFromPrivateKey(keys.privateKey);
+
+		return {
+			passphrase,
+			privateKey: keys.privateKey,
+			publicKey: keys.publicKey,
+			address,
+			balance: '0',
 		};
 	}
 }
