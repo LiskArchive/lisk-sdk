@@ -71,6 +71,10 @@ class RoundDelegates extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('dpos', sqlFiles, this.sqlDirectory);
 	}
 
+	/**
+	 * @returns {string[]} delegatePublicKeys
+	 */
+
 	async getRoundDelegates(round) {
 		const result = await this.adapter.executeFile(this.SQLs.getRoundDelegates, {
 			round,

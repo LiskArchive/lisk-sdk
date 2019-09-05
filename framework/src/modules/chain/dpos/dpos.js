@@ -28,7 +28,12 @@ module.exports = class Dpos {
 	}) {
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
-		this.delegatesList = new DelegatesList({ storage, logger, exceptions });
+		this.delegatesList = new DelegatesList({
+			storage,
+			logger,
+			exceptions,
+			activeDelegates,
+		});
 		this.delegatesInfo = new DelegatesInfo({
 			storage,
 			slots,

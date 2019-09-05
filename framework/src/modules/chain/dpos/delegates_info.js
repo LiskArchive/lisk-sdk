@@ -273,6 +273,7 @@ class DelegatesInfo {
 			delegateReward = delegateReward.times(exceptionRound.rewards_factor);
 
 			// Multiply with fees factor and add bonus
+			// eslint-disable-next-line no-param-reassign
 			totalFee = totalFee
 				.times(exceptionRound.fees_factor)
 				.plus(exceptionRound.fees_bonus);
