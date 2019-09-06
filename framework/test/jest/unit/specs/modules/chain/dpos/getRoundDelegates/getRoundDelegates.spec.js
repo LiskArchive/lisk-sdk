@@ -17,8 +17,16 @@
 const { when } = require('jest-when');
 const { Dpos } = require('../../../../../../../../src/modules/chain/dpos');
 const { delegatePublicKeys, delegateAccounts } = require('../round_delegates');
-const { constants, randomInt } = require('../../../../../utils');
-const { shuffleDelegateListForRound } = require('./utils');
+const shuffledDelegatePublicKeys = require('./shuffled_delegate_publickeys_for_round_5.json');
+const { constants } = require('../../../../../utils');
+
+/**
+ * shuffledDelegatePublicKeys is created for the round: 5
+ * If you need to update the round number or
+ * need shuffled list for another round, please create/update
+ * the list accordingly.
+ */
+const roundNo = 5;
 
 describe('dpos.getRoundDelegates()', () => {
 	const stubs = {};
@@ -47,18 +55,13 @@ describe('dpos.getRoundDelegates()', () => {
 	describe('When non-shuffled delegate public keys for the round IS in the cache', () => {
 		it('should return shuffled delegate public keys by ONLY using cache', async () => {
 			// Arrange
-			const roundNo = randomInt(10, 100);
-			const shuffledList = shuffleDelegateListForRound(
-				roundNo,
-				delegatePublicKeys,
-			);
 			dpos.delegatesList.delegateListCache[roundNo] = [...delegatePublicKeys];
 
 			// Act
 			const list = await dpos.getRoundDelegates(roundNo);
 
 			// Assert
-			expect(list).toEqual(shuffledList);
+			expect(list).toEqual(shuffledDelegatePublicKeys);
 			expect(
 				stubs.storage.entities.RoundDelegates.getRoundDelegates,
 			).not.toHaveBeenCalled();
@@ -67,16 +70,12 @@ describe('dpos.getRoundDelegates()', () => {
 	});
 
 	describe('When non-shuffled delegate public keys for the round is NOT in the cache', () => {
-		let roundNo;
-		let shuffledList;
 		let list;
 		beforeEach(async () => {
 			// Arrange
-			roundNo = randomInt(10, 100);
 			when(stubs.storage.entities.RoundDelegates.getRoundDelegates)
 				.calledWith(roundNo)
 				.mockResolvedValue(delegatePublicKeys);
-			shuffledList = shuffleDelegateListForRound(roundNo, delegatePublicKeys);
 
 			// Act
 			list = await dpos.getRoundDelegates(roundNo);
@@ -84,7 +83,7 @@ describe('dpos.getRoundDelegates()', () => {
 
 		it('should return shuffled delegate public keys by using round_delegates table', () => {
 			// Assert
-			expect(list).toEqual(shuffledList);
+			expect(list).toEqual(shuffledDelegatePublicKeys);
 		});
 
 		it('should add the non-shuffled delegate list to the cache for the round', () => {
@@ -96,17 +95,13 @@ describe('dpos.getRoundDelegates()', () => {
 	});
 
 	describe('Given the round is NOT in the cache and NOT in the round_delegates table', () => {
-		let roundNo;
-		let shuffledList;
 		let list;
 		beforeEach(async () => {
 			// Arrange
-			roundNo = randomInt(10, 100);
 			when(stubs.storage.entities.RoundDelegates.getRoundDelegates)
 				.calledWith(roundNo)
 				.mockResolvedValue([]);
 			stubs.storage.entities.Account.get.mockResolvedValue(delegateAccounts);
-			shuffledList = shuffleDelegateListForRound(roundNo, delegatePublicKeys);
 
 			// Act
 			list = await dpos.getRoundDelegates(roundNo);
@@ -121,7 +116,7 @@ describe('dpos.getRoundDelegates()', () => {
 					sort: ['voteWeight:desc', 'publicKey:asc'],
 				},
 			);
-			expect(list).toEqual(shuffledList);
+			expect(list).toEqual(shuffledDelegatePublicKeys);
 		});
 
 		it('should save delegate public keys to round_delegates table', () => {
