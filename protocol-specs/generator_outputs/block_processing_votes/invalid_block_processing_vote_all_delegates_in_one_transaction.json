@@ -1,9 +1,9 @@
 {
-	"title": "Valid block processing",
-	"summary": "A valid block with votes transactions",
+	"title": "Invalid block processing",
+	"summary": "An invalid block with a vote transaction that exceeds max votes",
 	"config": "mainnet",
 	"runner": "block_processing_votes",
-	"handler": "valid_block_processing_vote_all_delegates",
+	"handler": "invalid_block_processing_vote_all_delegates_in_one_transaction",
 	"testCases": {
 		"initialState": {
 			"chain": [
@@ -3355,15 +3355,15 @@
 			{
 				"version": 1,
 				"totalAmount": "0",
-				"totalFee": "400000000",
+				"totalFee": "100000000",
 				"reward": "0",
 				"timestamp": 60,
-				"numberOfTransactions": 4,
-				"payloadLength": 7033,
+				"numberOfTransactions": 1,
+				"payloadLength": 6682,
 				"generatorPublicKey": "e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c",
 				"transactions": [
 					{
-						"id": "14457840311600883493",
+						"id": "7450006712757762634",
 						"amount": "0",
 						"type": 3,
 						"timestamp": 103663542,
@@ -3372,7 +3372,7 @@
 						"recipientId": "2222471382442610527L",
 						"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
 						"fee": "100000000",
-						"signature": "cf1b70aabc9eca64ed9521d660d3bd79bccc031aedfba3eada0958963649714a8f56f2e32c6539676f9e092c6af4b05e4084c49469e038d58718fabb75320107",
+						"signature": "571b68dd94c42f0a4900286a832a2039d1482f94583cd8059b68f7b082afa79d733624abbcbae742a580c40018782447113ec4a35808cea1d8e9f6995f3f4406",
 						"signatures": [],
 						"asset": {
 							"votes": [
@@ -3408,24 +3408,7 @@
 								"+68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516",
 								"+96c16a6251e1b9a8c918d5821a5aa8dfb9385607258338297221c5a226eca5c6",
 								"+2f9b9a43b915bb8dcea45ea3b8552ebec202eb196a7889c2495d948e15f4a724",
-								"+f7b9751d59dd6be6029aa36a81a3f6436e2970cf4348845ab6254678fb946c18"
-							]
-						}
-					},
-					{
-						"id": "16404585817085422636",
-						"amount": "0",
-						"type": 3,
-						"timestamp": 103663542,
-						"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-						"senderId": "2222471382442610527L",
-						"recipientId": "2222471382442610527L",
-						"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-						"fee": "100000000",
-						"signature": "9fbc060b932003022e756a706aac9a59f550f4ea92a144d9cd28b4c97f20d2c25b90a9ea574910c31b9508a335eba9031f5a4249eb114b2aa03ff7ee6a6d9c0f",
-						"signatures": [],
-						"asset": {
-							"votes": [
+								"+f7b9751d59dd6be6029aa36a81a3f6436e2970cf4348845ab6254678fb946c18",
 								"+a10ed9c59dac2c4b8264dc34f2d318719fb5f20ecdd8d6be2d7abfe32294f20d",
 								"+27f43391cca75cbc82d1750307649508d1d318cd015f1f172b97318f17ab954e",
 								"+f25af3c59ac7f5155c7a9f36762bd941b9dc9c5c051a1bc2d4e34ed773dd04a3",
@@ -3458,24 +3441,7 @@
 								"+9986cedd4b5a28e4c81d9b4bff0461dddaa25099df00b8632fe99e88df28ce73",
 								"+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135",
 								"+3ea481498521e9fb1201b2295d0e9afa826ac6a3ef51de2f00365f915ac7ac06",
-								"+f9f6ff873c10c24eba834be28a56415a49c9c67b7c0ee9f106da827847168986"
-							]
-						}
-					},
-					{
-						"id": "18404625939634851518",
-						"amount": "0",
-						"type": 3,
-						"timestamp": 103663542,
-						"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-						"senderId": "2222471382442610527L",
-						"recipientId": "2222471382442610527L",
-						"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-						"fee": "100000000",
-						"signature": "565b34d7129e9fdd878ca9606ad6e375645c5d2ca4af5b22f8460839a0d2847e89689f7042975e51cd6a7f809a1fecf43a5b8ca3033f23ccc4ee1656b7973703",
-						"signatures": [],
-						"asset": {
-							"votes": [
+								"+f9f6ff873c10c24eba834be28a56415a49c9c67b7c0ee9f106da827847168986",
 								"+0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1",
 								"+f62062b7590d46f382fb8c37a26ab0a1bd512951777aedcaa96822230727d3a1",
 								"+07935c642c7409c365258c8488760e96a851cee618aec72eeeb135c9c827f0f9",
@@ -3508,32 +3474,15 @@
 								"+e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c",
 								"+1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c",
 								"+76c9494237e608d43fd6fb0114106a7517f5503cf79d7482db58a02304339b6c",
-								"+62bbb3c41e43df73de2c3f87e6577d095b84cf6deb1b2d6e87612a9156b980f8"
-							]
-						}
-					},
-					{
-						"id": "4706312388820664668",
-						"amount": "0",
-						"type": 3,
-						"timestamp": 103663542,
-						"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-						"senderId": "2222471382442610527L",
-						"recipientId": "2222471382442610527L",
-						"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-						"fee": "100000000",
-						"signature": "dc3f3fab217ea338337c17964da705fee9098c110f100c626c96370c3bc41dff2e03359f4b0d870cc148791a1ee5d9f0f4437d95211a170386e60908a7187d03",
-						"signatures": [],
-						"asset": {
-							"votes": [
+								"+62bbb3c41e43df73de2c3f87e6577d095b84cf6deb1b2d6e87612a9156b980f8",
 								"+aa33af13b440746b4f24312cba5fa910eb077ce6b16b84ebb482cb7720b5c686",
 								"+f827f60366fae9f9ed65384979de780f4a18c6dbfbefb1c7d100957dde51a06d"
 							]
 						}
 					}
 				],
-				"payloadHash": "7e8acbaccad33f656ae81ba8991655e6566cb5f5d16ea39aeba24b596cab444c",
-				"blockSignature": "4d53c7344e7e569dd04eecb5f842b396248c93c156aec81d224229b6595b7d6aae47e19a7006e047bd0fd8c524ba002d83f940ecb3d83e2adfef8eaec0929000",
+				"payloadHash": "4aba3328a2bd636777c4aeca9bb2ae307ab5565979fa75e69ac3218ff1244804",
+				"blockSignature": "5f99ee8d34e48e9ff2c8f5fad76b2d12cca793f9cea7d95e7e6e437a5f9407b8765bb126a77acdb339e302e59707bc99a0987d8f27b6a613adf00a439e18d108",
 				"height": 7
 			}
 		],
@@ -4940,190 +4889,6 @@
 					"payloadHash": "e65cf370583522b243e66fc4a1dd7cc6c02e0719244a433ab5898d9f459eb79d",
 					"blockSignature": "9844d100b25cd564364b0283bd6562dbb5e30536bfe4d2ea4c595cc14eaf03d8bcd02b1a392ac2cc799fb9b496aad02704d8eab87365e8790e47953e7be9f706",
 					"height": 6
-				},
-				{
-					"version": 1,
-					"totalAmount": "0",
-					"totalFee": "400000000",
-					"reward": "0",
-					"timestamp": 60,
-					"numberOfTransactions": 4,
-					"payloadLength": 7033,
-					"generatorPublicKey": "e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c",
-					"transactions": [
-						{
-							"id": "14457840311600883493",
-							"amount": "0",
-							"type": 3,
-							"timestamp": 103663542,
-							"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"senderId": "2222471382442610527L",
-							"recipientId": "2222471382442610527L",
-							"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"fee": "100000000",
-							"signature": "cf1b70aabc9eca64ed9521d660d3bd79bccc031aedfba3eada0958963649714a8f56f2e32c6539676f9e092c6af4b05e4084c49469e038d58718fabb75320107",
-							"signatures": [],
-							"asset": {
-								"votes": [
-									"+5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819",
-									"+9503d36c0810f9ac1a9d7d45bf778387a2baab151a45d77ac1289fbe29abb18f",
-									"+399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee",
-									"+74583aba9c0b92e4f08c8c75e6df341c255ca007971195ff64d6f909dc4b7177",
-									"+b00269bd169f0f89bd2f278788616521dd1539868ced5a63b652208a04ee1556",
-									"+3476bba16437ee0e04a29daa34d753139fbcfc14152372d7be5b7c75d51bac6c",
-									"+4fe5cd087a319956ddc05725651e56486961b7d5733ecd23e26e463bf9253bb5",
-									"+386217d98eee87268a54d2d76ce9e801ac86271284d793154989e37cb31bcd0e",
-									"+1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16",
-									"+6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae",
-									"+a796e9c0516a40ccd0eee7a32fdc2dc297fee40a9c76fef9c1bb0cf41ae69750",
-									"+82174ee408161186e650427032f4cfb2496f429b4157da78888cbcea39c387fc",
-									"+47b9b07df72d38c19867c6a8c12429e6b8e4d2be48b27cd407da590c7a2af0dc",
-									"+b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c",
-									"+948b8b509579306694c00833ec1c0f81e964487db2206ddb1517bfeca2b0dc1b",
-									"+6164b0cc68f8de44cde90c78e838b9ee1d6041fa61cf0cfbd834d76bb369a10e",
-									"+a50a55d4476bb118ba5121a07b51c185a8fe0a92b65840143b006b9820124df4",
-									"+1af35b29ca515ff5b805a5e3a0ab8c518915b780d5988e76b0672a71b5a3be02",
-									"+67651d29dc8d94bcb1174d5bd602762850a89850503b01a5ffde3b726b43d3d2",
-									"+910da2a8e20f25ccbcb029fdcafd369b43d75e5bc4dc6d92352c29404acc350f",
-									"+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f",
-									"+19ffdf99dee16e4be2db4b0e000b56ab3a4e10bee9f457d8988f75ff7a79fc00",
-									"+6d462852d410e84ca199a34d7ccad443784471f22cf3de37c531ce3b87ebbc41",
-									"+edbb9828fbe62da2a59afbc8623e8ebc5ed2f9b7f77a0cd1cdcf55edea30521c",
-									"+b6ac700bf890b887e218dbd55b8f6b091dfc5a684d0fd7a6f69db7dc0313b51b",
-									"+19d55c023d85d6061d1e196fa440a50907878e2d425bcd893366fa04bc23b4de",
-									"+fab7b58be4c1e9542c342023b52e9d359ea89a3af34440bdb97318273e8555f0",
-									"+31402977c7eaf9e38d18d0689a45d719d615de941f7e80f6db388453b46f4df5",
-									"+6f04988de7e63537c8f14e84b0eb51e0ea9c5da8b4b9256243b3e40b1aeccb76",
-									"+68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516",
-									"+96c16a6251e1b9a8c918d5821a5aa8dfb9385607258338297221c5a226eca5c6",
-									"+2f9b9a43b915bb8dcea45ea3b8552ebec202eb196a7889c2495d948e15f4a724",
-									"+f7b9751d59dd6be6029aa36a81a3f6436e2970cf4348845ab6254678fb946c18"
-								]
-							}
-						},
-						{
-							"id": "16404585817085422636",
-							"amount": "0",
-							"type": 3,
-							"timestamp": 103663542,
-							"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"senderId": "2222471382442610527L",
-							"recipientId": "2222471382442610527L",
-							"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"fee": "100000000",
-							"signature": "9fbc060b932003022e756a706aac9a59f550f4ea92a144d9cd28b4c97f20d2c25b90a9ea574910c31b9508a335eba9031f5a4249eb114b2aa03ff7ee6a6d9c0f",
-							"signatures": [],
-							"asset": {
-								"votes": [
-									"+a10ed9c59dac2c4b8264dc34f2d318719fb5f20ecdd8d6be2d7abfe32294f20d",
-									"+27f43391cca75cbc82d1750307649508d1d318cd015f1f172b97318f17ab954e",
-									"+f25af3c59ac7f5155c7a9f36762bd941b9dc9c5c051a1bc2d4e34ed773dd04a3",
-									"+73fec19d4bfe361c0680a7cfd24b3f744a1c1b29d932c4d89ce6157679f8af7d",
-									"+85b07e51ffe528f272b7eb734d0496158f2b0f890155ebe59ba2989a8ccc9a49",
-									"+526931663cbee883ff22369172cba091a5dd5fa1200284fa790d7aeca53d37af",
-									"+b137de324fcc79dd1a21ae39a2ee8eed05e76b86d8e89d378f8bb766afb8719f",
-									"+86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19",
-									"+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a",
-									"+47c8b3d6a9e418f0920ef58383260bcd04799db150612d4ff6eb399bcd07f216",
-									"+5c4af5cb0c1c92df2ed4feeb9751e54e951f9d3f77196511f13e636cf6064e74",
-									"+d3e3c8348bca51461eabfc382f8a01e8e284db54104ad37ec0695d48ae5531ac",
-									"+9a0f19e60581003b70291cf4a874e8217b04871e676b2c53c85a18ab95c2683b",
-									"+0779ca873bbda77f2850965c8a3a3d40a6ee4ec56af55f0a3f16c7c34c0f298b",
-									"+94b163c5a5ad346db1c84edaff51604164476cf78b8834b6b610dd03bd6b65d9",
-									"+95ea7eb026e250741be85e3593166ef0c4cb3a6eb9114dba8f0974987f10403f",
-									"+1e82c7db09da2010e7f5fef24d83bc46238a20ef7ecdf12d9f32e4318a818777",
-									"+c61d0822bbdbfe2a0b5503daff0ce8441c623115c94c0cfcf047a51f8b7160d3",
-									"+1e6ce18addd973ad432f05f16a4c86372eaca054cbdbcaf1169ad6df033f6b85",
-									"+e42bfabc4a61f02131760af5f2fa0311007932a819a508da25f2ce6af2468156",
-									"+9c16751dbe57f4dff7b3fb8911a62c0cb2bdee6240e3f3fefe76832788cb14c6",
-									"+9a7452495138cf7cf5a1564c3ef16b186dd8ab4f96423f160e22a3aec6eb614f",
-									"+64db2bce729e302f6021047dfd39b6c53caf83b42da4b5b881cb153a3fb31613",
-									"+4bde949c19a0803631768148019473929b5f8661e9e48efb8d895efa9dd24aef",
-									"+5f6cc5a8aac752d37c676b0d46a798f7625e37dfa1e96091983274e04ab7ffe2",
-									"+03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a",
-									"+3be2eb47134d5158e5f7d52076b624b76744b3fba8aa50791b46ba21408524c9",
-									"+cdd68a321ea737e82bce23d2208040f79471d36f2e6f84c74ea36ab26245e522",
-									"+55405aed8c3a1eabe678be3ad4d36043d6ef8e637d213b84ee703d87f6b250ed",
-									"+9986cedd4b5a28e4c81d9b4bff0461dddaa25099df00b8632fe99e88df28ce73",
-									"+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135",
-									"+3ea481498521e9fb1201b2295d0e9afa826ac6a3ef51de2f00365f915ac7ac06",
-									"+f9f6ff873c10c24eba834be28a56415a49c9c67b7c0ee9f106da827847168986"
-								]
-							}
-						},
-						{
-							"id": "18404625939634851518",
-							"amount": "0",
-							"type": 3,
-							"timestamp": 103663542,
-							"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"senderId": "2222471382442610527L",
-							"recipientId": "2222471382442610527L",
-							"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"fee": "100000000",
-							"signature": "565b34d7129e9fdd878ca9606ad6e375645c5d2ca4af5b22f8460839a0d2847e89689f7042975e51cd6a7f809a1fecf43a5b8ca3033f23ccc4ee1656b7973703",
-							"signatures": [],
-							"asset": {
-								"votes": [
-									"+0186d6cbee0c9b1a9783e7202f57fc234b1d98197ada1cc29cfbdf697a636ef1",
-									"+f62062b7590d46f382fb8c37a26ab0a1bd512951777aedcaa96822230727d3a1",
-									"+07935c642c7409c365258c8488760e96a851cee618aec72eeeb135c9c827f0f9",
-									"+640dfec4541daed209a455577d7ba519ad92b18692edd9ae71d1a02958f47b1b",
-									"+e818ac2e8e9ffacd2d49f0f2f6739e16711644194d10bb1a8e9e434603125fa1",
-									"+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37",
-									"+644a971f2c0d0d4b657d050fca27e5f9265e3dfa02a71f7fbf834cc2f2a6a4c8",
-									"+9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c",
-									"+031e27beab583e2c94cb3167d128fc1a356c1ae88adfcfaa2334abffa3ae0b4c",
-									"+ba2ea5e324eeb42fa6f4d1132a1d79911721e8507033bb0abd49715f531877b4",
-									"+a10f963752b3a44702dfa48b429ac742bea94d97849b1180a36750df3a783621",
-									"+8a0bcba8e909036b7a0fdb244f049d847b117d871d203ef7cc4c3917c94fd5fd",
-									"+fc8672466cc16688b5e239a784cd0e4c0acf214af039d9b2bf7a006da4043883",
-									"+6e904b2f678eb3b6c3042acb188a607d903d441d61508d047fe36b3c982995c8",
-									"+f33f93aa1f3ddcfd4e42d3206ddaab966f7f1b6672e5096d6da6adefd38edc67",
-									"+eabfe7093ef2394deb1b84287f2ceb1b55fe638edc3358a28fc74f64b3498094",
-									"+db821a4f828db977c6a8d186cc4a44280a6ef6f54ac18ec9eb32f78735f38683",
-									"+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-									"+ba7acc3bcbd47dbf13d744e57f696341c260ce2ea8f332919f18cb543b1f3fc7",
-									"+da673805f349faf9ca1db167cb941b27f4517a36d23b3c21da4159cff0045fbe",
-									"+c3d1bc76dea367512df3832c437c7b2c95508e140f655425a733090da86fb82d",
-									"+cf8a3bf23d1936a34facc4ff63d86d21cc2e1ac17e0010035dc3ef7ae85010dc",
-									"+d1c3a2cb254554971db289b917a665b5c547617d6fd20c2d6051bc5dfc805b34",
-									"+e13a0267444e026fe755ec128858bf3c519864631e0e4c474ba33f2470a18b83",
-									"+bf9f5cfc548d29983cc0dfa5c4ec47c66c31df0f87aa669869678996902ab47f",
-									"+c4dfedeb4f639f749e498a2307f1545ddd6bda62e5503ac1832b122c4a5aedf9",
-									"+01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746",
-									"+2b6f49383af36fd9f1a72d5d2708c8c354add89aaea7edc702c420e2d5fdf22e",
-									"+d8daea40fd098d4d546aa76b8e006ce4368c052ffe2c26b6eb843e925d54a408",
-									"+e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c",
-									"+1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c",
-									"+76c9494237e608d43fd6fb0114106a7517f5503cf79d7482db58a02304339b6c",
-									"+62bbb3c41e43df73de2c3f87e6577d095b84cf6deb1b2d6e87612a9156b980f8"
-								]
-							}
-						},
-						{
-							"id": "4706312388820664668",
-							"amount": "0",
-							"type": 3,
-							"timestamp": 103663542,
-							"senderPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"senderId": "2222471382442610527L",
-							"recipientId": "2222471382442610527L",
-							"recipientPublicKey": "caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee",
-							"fee": "100000000",
-							"signature": "dc3f3fab217ea338337c17964da705fee9098c110f100c626c96370c3bc41dff2e03359f4b0d870cc148791a1ee5d9f0f4437d95211a170386e60908a7187d03",
-							"signatures": [],
-							"asset": {
-								"votes": [
-									"+aa33af13b440746b4f24312cba5fa910eb077ce6b16b84ebb482cb7720b5c686",
-									"+f827f60366fae9f9ed65384979de780f4a18c6dbfbefb1c7d100957dde51a06d"
-								]
-							}
-						}
-					],
-					"payloadHash": "7e8acbaccad33f656ae81ba8991655e6566cb5f5d16ea39aeba24b596cab444c",
-					"blockSignature": "4d53c7344e7e569dd04eecb5f842b396248c93c156aec81d224229b6595b7d6aae47e19a7006e047bd0fd8c524ba002d83f940ecb3d83e2adfef8eaec0929000",
-					"height": 7
 				}
 			],
 			"accounts": [
@@ -5163,7 +4928,7 @@
 						"rank": 32,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 50
 					},
 					{
@@ -5182,7 +4947,7 @@
 						"rank": 56,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5201,7 +4966,7 @@
 						"rank": 21,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5220,7 +4985,7 @@
 						"rank": 46,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5239,7 +5004,7 @@
 						"rank": 71,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5258,7 +5023,7 @@
 						"rank": 19,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5277,7 +5042,7 @@
 						"rank": 28,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5296,7 +5061,7 @@
 						"rank": 20,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5315,7 +5080,7 @@
 						"rank": 12,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5334,7 +5099,7 @@
 						"rank": 44,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5353,7 +5118,7 @@
 						"rank": 68,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5372,7 +5137,7 @@
 						"rank": 48,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5391,7 +5156,7 @@
 						"rank": 25,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5410,7 +5175,7 @@
 						"rank": 73,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5429,7 +5194,7 @@
 						"rank": 54,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5448,7 +5213,7 @@
 						"rank": 34,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5467,7 +5232,7 @@
 						"rank": 67,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5486,7 +5251,7 @@
 						"rank": 10,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5505,7 +5270,7 @@
 						"rank": 39,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5524,7 +5289,7 @@
 						"rank": 53,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5543,7 +5308,7 @@
 						"rank": 63,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5562,7 +5327,7 @@
 						"rank": 9,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5581,7 +5346,7 @@
 						"rank": 41,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5600,7 +5365,7 @@
 						"rank": 93,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5619,7 +5384,7 @@
 						"rank": 74,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5638,7 +5403,7 @@
 						"rank": 8,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5657,7 +5422,7 @@
 						"rank": 100,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5676,7 +5441,7 @@
 						"rank": 18,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5695,7 +5460,7 @@
 						"rank": 43,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5714,7 +5479,7 @@
 						"rank": 40,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5733,7 +5498,7 @@
 						"rank": 58,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5752,7 +5517,7 @@
 						"rank": 17,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5771,7 +5536,7 @@
 						"rank": 97,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909990000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5790,7 +5555,7 @@
 						"rank": 65,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5809,7 +5574,7 @@
 						"rank": 15,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5828,7 +5593,7 @@
 						"rank": 94,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -5847,7 +5612,7 @@
 						"rank": 45,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5866,7 +5631,7 @@
 						"rank": 49,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5885,7 +5650,7 @@
 						"rank": 29,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5904,7 +5669,7 @@
 						"rank": 72,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5923,7 +5688,7 @@
 						"rank": 50,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5942,7 +5707,7 @@
 						"rank": 7,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5961,7 +5726,7 @@
 						"rank": 26,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5980,7 +5745,7 @@
 						"rank": 31,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -5999,7 +5764,7 @@
 						"rank": 84,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6018,7 +5783,7 @@
 						"rank": 60,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6037,7 +5802,7 @@
 						"rank": 5,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6056,7 +5821,7 @@
 						"rank": 55,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6075,7 +5840,7 @@
 						"rank": 57,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6094,7 +5859,7 @@
 						"rank": 14,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6113,7 +5878,7 @@
 						"rank": 80,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -6132,7 +5897,7 @@
 						"rank": 13,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -6151,7 +5916,7 @@
 						"rank": 89,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6170,7 +5935,7 @@
 						"rank": 62,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6189,7 +5954,7 @@
 						"rank": 61,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6208,7 +5973,7 @@
 						"rank": 38,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6227,7 +5992,7 @@
 						"rank": 27,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6246,7 +6011,7 @@
 						"rank": 33,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6265,7 +6030,7 @@
 						"rank": 4,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6284,7 +6049,7 @@
 						"rank": 22,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 50
 					},
 					{
@@ -6303,7 +6068,7 @@
 						"rank": 81,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6322,7 +6087,7 @@
 						"rank": 30,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6341,7 +6106,7 @@
 						"rank": 59,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6360,7 +6125,7 @@
 						"rank": 24,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6379,7 +6144,7 @@
 						"rank": 23,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6398,7 +6163,7 @@
 						"rank": 99,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909890000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6417,7 +6182,7 @@
 						"rank": 2,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6436,7 +6201,7 @@
 						"rank": 96,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6455,7 +6220,7 @@
 						"rank": 6,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6474,7 +6239,7 @@
 						"rank": 36,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6493,7 +6258,7 @@
 						"rank": 91,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6512,7 +6277,7 @@
 						"rank": 52,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6531,7 +6296,7 @@
 						"rank": 37,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -6550,7 +6315,7 @@
 						"rank": 64,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6569,7 +6334,7 @@
 						"rank": 3,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6588,7 +6353,7 @@
 						"rank": 75,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6607,7 +6372,7 @@
 						"rank": 66,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6626,7 +6391,7 @@
 						"rank": 51,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6645,7 +6410,7 @@
 						"rank": 101,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6664,7 +6429,7 @@
 						"rank": 42,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6683,7 +6448,7 @@
 						"rank": 95,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -6702,7 +6467,7 @@
 						"rank": 92,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -6721,7 +6486,7 @@
 						"rank": 87,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -6740,7 +6505,7 @@
 						"rank": 70,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -6759,7 +6524,7 @@
 						"rank": 76,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6778,7 +6543,7 @@
 						"rank": 86,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6797,7 +6562,7 @@
 						"rank": 78,
 						"fees": 198018,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6816,7 +6581,7 @@
 						"rank": 82,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6835,7 +6600,7 @@
 						"rank": 83,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6854,7 +6619,7 @@
 						"rank": 88,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6873,7 +6638,7 @@
 						"rank": 77,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6892,7 +6657,7 @@
 						"rank": 79,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 50
 					},
 					{
@@ -6911,7 +6676,7 @@
 						"rank": 1,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6930,7 +6695,7 @@
 						"rank": 16,
 						"fees": 99100,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6949,7 +6714,7 @@
 						"rank": 85,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -6968,7 +6733,7 @@
 						"rank": 90,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 50
 					},
 					{
@@ -6987,7 +6752,7 @@
 						"rank": 11,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -7006,7 +6771,7 @@
 						"rank": 47,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -7025,7 +6790,7 @@
 						"rank": 35,
 						"fees": 0,
 						"rewards": 0,
-						"vote": "9999909790000000",
+						"vote": "9999899990000000",
 						"productivity": 0
 					},
 					{
@@ -7044,7 +6809,7 @@
 						"rank": 69,
 						"fees": 99009,
 						"rewards": 0,
-						"vote": "9999909690000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -7063,7 +6828,7 @@
 						"rank": 98,
 						"fees": 297027,
 						"rewards": 0,
-						"vote": "9999909690000000",
+						"vote": "9999899990000000",
 						"productivity": 100
 					},
 					{
@@ -7073,7 +6838,7 @@
 						"username": "",
 						"isDelegate": false,
 						"secondSignature": false,
-						"balance": "9700000000",
+						"balance": "10100000000",
 						"multiMin": 0,
 						"multiLifetime": 0,
 						"nameExist": false,
