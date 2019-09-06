@@ -344,13 +344,12 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query) {
+	async postBlock(query = {}) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
 			);
 		}
-		query = query || {};
 
 		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
 
@@ -367,8 +366,7 @@ class Transport {
 			throw errors;
 		}
 
-		let block;
-		block = blocksUtils.addBlockProperties(query.block);
+		let block = blocksUtils.addBlockProperties(query.block);
 
 		// Instantiate transaction classes
 		block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
