@@ -76,7 +76,11 @@ class DelegatesInfo {
 	 * @param {Block} block
 	 */
 	async _update(block, undo, tx) {
-		// @todo add proper description
+		/**
+		 * If the block height is 1, that means the block is
+		 * the genesis block, in that case we don't have to
+		 * update anything in the accounts.
+		 */
 		if (block.height === 1) {
 			return false;
 		}
