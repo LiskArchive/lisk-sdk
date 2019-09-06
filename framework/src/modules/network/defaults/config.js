@@ -52,21 +52,9 @@ const defaultConfig = {
 		blacklistedPeers: {
 			type: 'array',
 			items: {
-				type: 'object',
-				properties: {
-					ip: {
-						type: 'string',
-						format: 'ipOrFQDN',
-					},
-					wsPort: {
-						type: 'integer',
-						minimum: 1,
-						maximum: 65535,
-					},
-				},
+				type: 'string',
+				format: 'ip',
 			},
-			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
-			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
 		// Warning! The connectivity of the node might be negatively impacted if using this option.
 		fixedPeers: {
@@ -76,7 +64,7 @@ const defaultConfig = {
 				properties: {
 					ip: {
 						type: 'string',
-						format: 'ipOrFQDN',
+						format: 'ip',
 					},
 					wsPort: {
 						type: 'integer',
@@ -98,7 +86,7 @@ const defaultConfig = {
 				properties: {
 					ip: {
 						type: 'string',
-						format: 'ipOrFQDN',
+						format: 'ip',
 					},
 					wsPort: {
 						type: 'integer',
