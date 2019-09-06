@@ -311,6 +311,189 @@ const generateTestCasesInvalidBlockVoteNoDelegateTx = () => {
 	};
 };
 
+const generateTestCasesInvalidBlockVoteAlreadyVotedDelegateTx = () => {
+	const chainStateBuilder = new ChainStateBuilder(
+		genesisBlock,
+		initialAccountsState,
+		accounts,
+	);
+
+	// Give balance from genesis account to delegates just for having account states to compare against
+	// As the state builder is pretty basic so far we need to control forging only 25 transactions like this.
+	let transactionCount = 0;
+	// eslint-disable-next-line no-restricted-syntax
+	for (const anAccount of genesisDelegateAccounts) {
+		if (transactionCount === 25) {
+			chainStateBuilder.forge();
+			transactionCount = 0;
+		}
+		transactionCount += 1;
+
+		chainStateBuilder
+			.transfer('99')
+			.from('16313739661670634666L')
+			.to(anAccount.address);
+	}
+	// Fund account that will issue votes
+	chainStateBuilder
+		.transfer('101')
+		.from('16313739661670634666L')
+		.to('2222471382442610527L');
+
+	// Forge the block so as to have all delegates in the store
+	chainStateBuilder.forge();
+	// Vote for an account is not a delegate
+	chainStateBuilder
+		.castVotesFrom('2222471382442610527L')
+		.voteDelegates([
+			'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+		])
+		.unvoteDelegates([]);
+
+	chainStateBuilder.forgeInvalidInputBlock();
+
+	const chainAndAccountStates = chainStateBuilder.getScenario();
+
+	return {
+		initialState: {
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+			chain: chainAndAccountStates.chain,
+			accounts: chainAndAccountStates.initialAccountsState,
+		},
+		input: chainAndAccountStates.inputBlock,
+		output: {
+			chain: chainAndAccountStates.chain,
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+		},
+	};
+};
+
+const generateTestCasesInvalidBlockWithUnvoteForDelegateNotPreviouslyVoted = () => {
+	const initialAccountsStateUnvote = [
+		{
+			address: '16313739661670634666L',
+			publicKey:
+				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+			secondPublicKey: null,
+			username: null,
+			isDelegate: false,
+			secondSignature: false,
+			balance: 9999899990000000,
+			multiMin: 0,
+			multiLifetime: 0,
+			nameExist: false,
+			missedBlocks: 0,
+			producedBlocks: 0,
+			rank: null,
+			fees: 0,
+			rewards: 0,
+			vote: 0,
+			productivity: 0,
+		},
+		{
+			address: '10881167371402274308L',
+			publicKey:
+				'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+			secondPublicKey: null,
+			username: 'genesis_100',
+			isDelegate: true,
+			secondSignature: false,
+			balance: 0,
+			multiMin: 0,
+			multiLifetime: 0,
+			nameExist: false,
+			missedBlocks: 1,
+			producedBlocks: 0,
+			rank: 70,
+			fees: 0,
+			rewards: 0,
+			vote: '9999899990000000',
+			productivity: 0,
+		},
+	];
+
+	const accountsForUnvote = {
+		// Genesis account, initially holding 100M total supply
+		genesis: {
+			address: '16313739661670634666L',
+			publicKey:
+				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+			passphrase:
+				'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
+			balance: '10000000000000000',
+			encryptedPassphrase:
+				'iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1',
+			password: 'elephant tree paris dragon chair galaxy',
+		},
+		aDelegate: {
+			address: '10881167371402274308L',
+			publicKey:
+				'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+			passphrase:
+				'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
+			balance: '0',
+			delegateName: 'genesis_100',
+		},
+		votingAccount: {
+			passphrase:
+				'blame address tube insect cost knock major level regret bring april stick',
+			privateKey:
+				'b92e223981770c716ee54192a0ad028639d28d41221b72e455447bc4767aeb94caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee',
+			publicKey:
+				'caff2242b740a733daa3f3f96fc1592303b60c1704a8ac626e2704da039f41ee',
+			address: '2222471382442610527L',
+			balance: '0',
+		},
+	};
+
+	const chainStateBuilder = new ChainStateBuilder(
+		genesisBlock,
+		initialAccountsStateUnvote,
+		accountsForUnvote,
+	);
+
+	// Give balance from genesis account to delegates just for having account states to compare against
+	chainStateBuilder
+		.transfer('10')
+		.from('16313739661670634666L')
+		.to('10881167371402274308L');
+
+	// Fund account that will issue votes
+	chainStateBuilder
+		.transfer('10')
+		.from('16313739661670634666L')
+		.to('2222471382442610527L');
+
+	// Forge the block so as to have all delegates in the store
+	chainStateBuilder.forge();
+	// Vote for an account is not a delegate
+	chainStateBuilder
+		.castVotesFrom('2222471382442610527L')
+		.voteDelegates([])
+		.unvoteDelegates([
+			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		]);
+
+	chainStateBuilder.forgeInvalidInputBlock();
+
+	const chainAndAccountStates = chainStateBuilder.getScenario();
+
+	return {
+		initialState: {
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+			chain: chainAndAccountStates.chain,
+			accounts: chainAndAccountStates.initialAccountsState,
+		},
+		input: chainAndAccountStates.inputBlock,
+		output: {
+			chain: chainAndAccountStates.chain,
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+		},
+	};
+};
+
 const validBlockWithVoteTxSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'A valid block with votes transactions',
@@ -338,8 +521,28 @@ const invalidBlockWithVotesForNoDelegateTxSuite = () => ({
 	testCases: generateTestCasesInvalidBlockVoteNoDelegateTx(),
 });
 
+const invalidBlockWithVoteForVotedDelegateSuite = () => ({
+	title: 'Invalid block processing',
+	summary: 'An invalid block with a vote transaction that exceeds max votes',
+	config: 'mainnet',
+	runner: 'block_processing_votes',
+	handler: 'invalid_block_processing_vote_already_voted_delegate',
+	testCases: generateTestCasesInvalidBlockVoteAlreadyVotedDelegateTx(),
+});
+
+const invalidBlockWithUnvoteForDelegateNotPreviouslyVoted = () => ({
+	title: 'Invalid block processing',
+	summary: 'An invalid block with a vote transaction that exceeds max votes',
+	config: 'mainnet',
+	runner: 'block_processing_votes',
+	handler: 'invalid_block_processing_unvote_not_voted_delegate',
+	testCases: generateTestCasesInvalidBlockWithUnvoteForDelegateNotPreviouslyVoted(),
+});
+
 module.exports = BaseGenerator.runGenerator('block_processing_transfers', [
 	validBlockWithVoteTxSuite,
 	invalidBlockWithTooManyVotesTxSuite,
 	invalidBlockWithVotesForNoDelegateTxSuite,
+	invalidBlockWithVoteForVotedDelegateSuite,
+	invalidBlockWithUnvoteForDelegateNotPreviouslyVoted,
 ]);
