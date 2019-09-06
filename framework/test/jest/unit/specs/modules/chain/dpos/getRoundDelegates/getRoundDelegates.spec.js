@@ -102,7 +102,7 @@ describe('dpos.getRoundDelegates()', () => {
 				{ isDelegate: true },
 				{
 					limit: constants.ACTIVE_DELEGATES,
-					sort: ['vote:desc', 'publicKey:asc'],
+					sort: ['voteWeight:desc', 'publicKey:asc'],
 				},
 			);
 			expect(list).toEqual(shuffledList);
