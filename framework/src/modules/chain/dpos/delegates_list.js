@@ -104,9 +104,9 @@ class DelegatesList extends EventEmitter {
 		);
 	}
 
-	deleteDelegateListsFromCache(filterCb) {
+	deleteDelegateListsFromCache(filterFn) {
 		Object.keys(this.delegateListCache)
-			.filter(filterCb)
+			.filter(filterFn)
 			.forEach(r => {
 				delete this.delegateListCache[r];
 			});
