@@ -88,7 +88,7 @@ class DelegatesInfo {
 				 * invalidate the cache for the next rounds.
 				 */
 				const round = this.slots.calcRound(block.height);
-				await this.delegatesList.deleteDelegateListAfterRound(round);
+				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
 			}
 
 			const roundSummary = await this._summarizeRound(block, tx);

@@ -98,11 +98,14 @@ class DelegatesList extends EventEmitter {
 		});
 	}
 
-	async deleteDelegateListAfterRound(round) {
+	async deleteDelegateListAfterRound(round, tx) {
 		this.deleteDelegateListsFromCache(r => r > round);
-		await this.storage.entities.RoundDelegates.delete({
-			round_gt: round,
-		});
+		await this.storage.entities.RoundDelegates.delete(
+			{
+				round_gt: round,
+			},
+			tx,
+		);
 	}
 
 	deleteDelegateListsFromCache(filterCb) {
