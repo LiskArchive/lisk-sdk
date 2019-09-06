@@ -112,9 +112,10 @@ class ChainStateBuilder {
 			voteDelegates: votedDelegates => ({
 				unvoteDelegates: unvotedDelegates => {
 					if (votedDelegates.length + unvotedDelegates.length > 33) {
-						throw new Error(
-							`Each vote transaction can contain a maximum of 33 votes but this included '${votedDelegates.length +
-								unvotedDelegates.length}' votes`,
+						// eslint-disable-next-line no-console
+						console.log(
+							`WARNING: you included '${votedDelegates.length +
+								unvotedDelegates.length}' votes in a vote transaction. This is only valid for simulating invalid scenarios!`,
 						);
 					}
 					// Get the account that's voting
