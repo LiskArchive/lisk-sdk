@@ -605,13 +605,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _selectPeersForEviction(): Peer[] {
-		const peers = [...this.getPeers(InboundPeer)].filter(peer => {
-			const found = !!this._peerLists.whitelisted.find(
-				whitePeer => constructPeerIdFromPeerInfo(whitePeer) === peer.id,
-			);
-
-			return !found;
-		});
+		const peers = [...this.getPeers(InboundPeer)].filter(peer =>
+			this._peerLists.whitelisted.every(
+				p => constructPeerIdFromPeerInfo(p) !== peer.id,
+			),
+		);
 
 		// Cannot predict which netgroups will be protected
 		const filteredPeersByNetgroup = this._peerPoolConfig.netgroupProtectionRatio
@@ -671,13 +669,11 @@ export class PeerPool extends EventEmitter {
 
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
-				peers.filter(peer => {
-					const found = !!this._peerLists.fixedPeers.find(
-						fixedPeer => constructPeerIdFromPeerInfo(fixedPeer) === peer.id,
-					);
-
-					return !found;
-				}),
+				peers.filter(peer =>
+					this._peerLists.fixedPeers.every(
+						p => constructPeerIdFromPeerInfo(p) !== peer.id,
+					),
+				),
 			)[0];
 			if (selectedPeer) {
 				this.removePeer(
