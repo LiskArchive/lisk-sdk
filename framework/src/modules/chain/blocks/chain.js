@@ -225,27 +225,26 @@ const applyConfirmedGenesisStep = async (
  * Calls saveBlock for the block and performs round tick
  *
  * @private
+ * @param {Object} storage - Storage component with write methods
+ * @param {Object} dposModule - Dpos module class
  * @param {Object} block - Block object
  * @param {boolean} skipSave - Flag to save block into database
- * @param {function} tx - Database transaction
+ * @param {function} tx - Database transaction for atomic operations
  * @returns {Promise<reject|resolve>}
  */
-const saveBlockStep = async (storage, roundsModule, block, skipSave, tx) => {
+const saveBlockStep = async (
+	storage,
+	roundsModule,
+	dposModule,
+	block,
+	skipSave,
+	tx,
+) => {
 	if (!skipSave) {
 		await saveBlock(storage, block, tx);
 	}
-	await new Promise((resolve, reject) => {
-		roundsModule.tick(
-			block,
-			tickErr => {
-				if (tickErr) {
-					return reject(tickErr);
-				}
-				return resolve();
-			},
-			tx,
-		);
-	});
+
+	await dposModule.apply(block, tx);
 };
 
 /**

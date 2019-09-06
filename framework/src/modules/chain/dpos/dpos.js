@@ -18,14 +18,7 @@ const { DelegatesList, EVENT_ROUND_FINISHED } = require('./delegates_list');
 const { DelegatesInfo } = require('./delegates_info');
 
 module.exports = class Dpos {
-	constructor({
-		storage,
-		slots,
-		activeDelegates,
-		logger,
-		schema,
-		exceptions = {},
-	}) {
+	constructor({ storage, slots, activeDelegates, logger, exceptions = {} }) {
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
 		this.delegatesList = new DelegatesList({
@@ -39,7 +32,6 @@ module.exports = class Dpos {
 			storage,
 			slots,
 			activeDelegates,
-			schema,
 			logger,
 			delegatesList: this.delegatesList,
 			exceptions,

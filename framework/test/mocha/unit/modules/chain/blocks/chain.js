@@ -35,6 +35,7 @@ describe.skip('blocks/chain', () => {
 	let blocksChain;
 	let storageStub;
 	let roundsModuleStub;
+	let dposModuleStub;
 	let slots;
 	let exceptions;
 
@@ -133,6 +134,11 @@ describe.skip('blocks/chain', () => {
 			tick: sinonSandbox.stub(),
 		};
 
+		dposModuleStub = {
+			apply: sinonSandbox.stub(),
+			undo: sinonSandbox.stub(),
+		};
+
 		slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
@@ -143,6 +149,7 @@ describe.skip('blocks/chain', () => {
 			storage: storageStub,
 			interfaceAdapters,
 			roundsModule: roundsModuleStub,
+			dposModule: dposModuleStub,
 			slots,
 			exceptions,
 			genesisBlock: __testContext.config.genesisBlock,
@@ -156,6 +163,7 @@ describe.skip('blocks/chain', () => {
 			expect(blocksChain.storage).to.eql(storageStub);
 			expect(blocksChain.interfaceAdapters).to.eql(interfaceAdapters);
 			expect(blocksChain.roundsModule).to.eql(roundsModuleStub);
+			expect(blocksChain.dposModule).to.eql(dposModuleStub);
 			expect(blocksChain.slots).to.eql(slots);
 			expect(blocksChain.exceptions).to.eql(exceptions);
 			expect(blocksChain.genesisBlock).to.eql(
@@ -358,13 +366,6 @@ describe.skip('blocks/chain', () => {
 							}),
 						);
 				});
-
-				it('modules.rouds.tick should call a callback', async () => {
-					await blocksChain.applyGenesisBlock(blockWithTransactions);
-					expect(roundsModuleStub.tick.args[0][0]).to.deep.equal(
-						blockWithTransactions,
-					);
-				});
 			});
 		});
 	});
@@ -413,6 +414,7 @@ describe.skip('blocks/chain', () => {
 						await blocksChainModule.saveBlockStep(
 							storageStub,
 							roundsModuleStub,
+							dposModuleStub,
 							blockWithTransactions,
 							true,
 						);
@@ -433,6 +435,7 @@ describe.skip('blocks/chain', () => {
 							await blocksChainModule.saveBlockStep(
 								storageStub,
 								roundsModuleStub,
+								dposModuleStub,
 								blockWithTransactions,
 								true,
 							);
@@ -449,6 +452,7 @@ describe.skip('blocks/chain', () => {
 						const res = await blocksChainModule.saveBlockStep(
 							storageStub,
 							roundsModuleStub,
+							dposModuleStub,
 							blockWithTransactions,
 							true,
 						);
@@ -465,6 +469,7 @@ describe.skip('blocks/chain', () => {
 				await blocksChainModule.saveBlockStep(
 					storageStub,
 					roundsModuleStub,
+					dposModuleStub,
 					blockWithTransactions,
 					false,
 				);

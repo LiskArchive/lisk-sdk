@@ -87,7 +87,7 @@ describe('dpos.undo()', () => {
 			expect(
 				stubs.storage.entities.Account.decreaseFieldBy,
 			).toHaveBeenCalledWith(
-				{ publicKey_eq: block.generatorPublicKey },
+				{ publicKey: block.generatorPublicKey },
 				'producedBlocks',
 				'1',
 				stubs.tx,
@@ -147,7 +147,7 @@ describe('dpos.undo()', () => {
 					{
 						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
 					},
-					{},
+					{ extended: true },
 					stubs.tx,
 				)
 				.mockResolvedValue(delegatesWhoForged);
@@ -155,7 +155,7 @@ describe('dpos.undo()', () => {
 			delegateAccounts.forEach(account => {
 				when(stubs.storage.entities.Account.get)
 					.calledWith({
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					})
 					.mockResolvedValue(account);
 			});
@@ -231,9 +231,10 @@ describe('dpos.undo()', () => {
 			uniqueDelegatesWhoForged.forEach(account => {
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					expect.any(Object),
+					{},
 					stubs.tx,
 				);
 			});
@@ -241,7 +242,7 @@ describe('dpos.undo()', () => {
 			// Assert Group 2/2
 			delegatesWhoForgedNone.forEach(account => {
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalledWith({
-					publicKey_eq: account.publicKey,
+					publicKey: account.publicKey,
 				});
 			});
 		});
@@ -257,9 +258,10 @@ describe('dpos.undo()', () => {
 			delegatesWhoForgedOnceMissedOnce.forEach(account => {
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					expect.any(Object),
+					{},
 					stubs.tx,
 				);
 			});
@@ -275,17 +277,17 @@ describe('dpos.undo()', () => {
 				const { fee, reward } = getTotalEarningsOfDelegate(account);
 				const amount = fee.plus(reward);
 				const data = {
-					...account,
-					balance: account.balance.minus(amount),
-					fees: account.fees.minus(fee),
-					rewards: account.rewards.minus(reward),
+					balance: account.balance.minus(amount).toString(),
+					fees: account.fees.minus(fee).toString(),
+					rewards: account.rewards.minus(reward).toString(),
 				};
 
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					data,
+					{},
 					stubs.tx,
 				);
 			});
@@ -309,17 +311,18 @@ describe('dpos.undo()', () => {
 			expect.assertions(uniqueDelegatesWhoForged);
 			expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 				{
-					publicKey_eq: delegateWhoForgedLast.publicKey,
+					publicKey: delegateWhoForgedLast.publicKey,
 				},
 				expect.objectContaining({
 					/**
 					 * Delegate who forged last also forged 3 times,
 					 * Thus will get fee 3 times too.
 					 */
-					fees: delegateWhoForgedLast.fees.minus(
-						feePerDelegate * 3 + remainingFee,
-					),
+					fees: delegateWhoForgedLast.fees
+						.minus(feePerDelegate * 3 + remainingFee)
+						.toString(),
 				}),
+				{},
 				stubs.tx,
 			);
 
@@ -331,14 +334,15 @@ describe('dpos.undo()', () => {
 					).length;
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining({
 							/**
 							 * Rest of the delegates don't get the remaining fee
 							 */
-							fees: account.fees.minus(feePerDelegate * blockCount),
+							fees: account.fees.minus(feePerDelegate * blockCount).toString(),
 						}),
+						{},
 						stubs.tx,
 					);
 				});
@@ -383,7 +387,7 @@ describe('dpos.undo()', () => {
 						{
 							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
 						},
-						{},
+						{ extended: true },
 						stubs.tx,
 					)
 					.mockResolvedValue(delegateAccounts);
@@ -458,15 +462,16 @@ describe('dpos.undo()', () => {
 					const exceptionReward =
 						reward * (-1 * exceptionFactors.rewards_factor);
 					const partialData = {
-						rewards: account.rewards.add(exceptionReward),
+						rewards: account.rewards.add(exceptionReward).toString(),
 					};
 
 					// Assert
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
+						{},
 						stubs.tx,
 					);
 				});
@@ -489,15 +494,16 @@ describe('dpos.undo()', () => {
 						(exceptionTotalFee / constants.ACTIVE_DELEGATES) * blockCount;
 
 					const partialData = {
-						fees: account.fees.minus(earnedFee),
+						fees: account.fees.minus(earnedFee).toString(),
 					};
 
 					// Assert
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
+						{},
 						stubs.tx,
 					);
 				});

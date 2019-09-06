@@ -107,7 +107,7 @@ describe('genesis block', () => {
 						accountsFromDb.find(
 							account =>
 								address === account.address &&
-								account.vote === voteWeightOfDevnetDelegates,
+								account.voteWeight === voteWeightOfDevnetDelegates,
 						),
 				);
 
@@ -185,7 +185,7 @@ describe('genesis block', () => {
 						accountsFromDb.find(
 							account =>
 								address === account.address &&
-								account.vote === voteWeightOfDevnetDelegates,
+								account.voteWeight === voteWeightOfDevnetDelegates,
 						),
 				);
 
