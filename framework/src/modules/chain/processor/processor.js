@@ -157,8 +157,8 @@ class Processor {
 
 	async create(values) {
 		this.logger.debug({ data: values }, 'creating block');
-		const heghestVersion = Math.max.apply(null, Object.keys(this.processors));
-		const processor = this.processors[heghestVersion];
+		const highestVersion = Math.max.apply(null, Object.keys(this.processors));
+		const processor = this.processors[highestVersion];
 		return processor.create.run(values);
 	}
 
