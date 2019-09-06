@@ -303,6 +303,9 @@ class ChainStateBuilder {
 						aTransaction.asset.delegate.username,
 					);
 					break;
+				case 3:
+					this.updateAccountStateAfterCastingvotes(aTransaction);
+					break;
 				case 4:
 					this.updateAccountStateAfterMultisignatureRegistration(aTransaction);
 					break;
@@ -404,6 +407,43 @@ class ChainStateBuilder {
 		sender.multiMin = multisignatureTransaction.asset.multisignature.min;
 		sender.multiLifetime =
 			multisignatureTransaction.asset.multisignature.lifetime;
+		this.state.accountStore.push(newAccountStoreState);
+	}
+
+	updateAccountStateAfterCastingvotes(castVotesTransaction) {
+		const newAccountStoreState = cloneDeep(
+			this.state.accountStore.slice(-1)[0],
+		);
+
+		// Update sender balance
+		const sender = this.findAccountByAddress(
+			castVotesTransaction._senderId,
+			newAccountStoreState,
+		);
+		sender.balance = new BigNum(sender.balance.toString())
+			.sub(castVotesTransaction.fee)
+			.toString();
+		// Extract voted publicKeys from vote transaction
+		// eslint-disable-next-line no-restricted-syntax
+		for (const aVotedPublicKey of castVotesTransaction.asset.votes) {
+			const action = aVotedPublicKey.slice(0, 1);
+			const publickKey = aVotedPublicKey.slice(1);
+			const affectedAccount = newAccountStoreState.find(
+				anAccount => anAccount.publicKey === publickKey,
+			);
+
+			if (action === '+') {
+				affectedAccount.vote = new BigNum(affectedAccount.vote)
+					.plus(sender.balance)
+					.toString();
+			} else {
+				affectedAccount.vote = new BigNum(affectedAccount.vote)
+					.sub(sender.balance)
+					.toString();
+			}
+		}
+
+		// Finally push all updates to the account store
 		this.state.accountStore.push(newAccountStoreState);
 	}
 

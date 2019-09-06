@@ -115,8 +115,16 @@ const generateTestCasesValidBlockVotesTx = () => {
 	);
 
 	// Give balance from geneis account to delegates just for having account states to compare against
+	// As the state builder is pretty basic so far we need to control forging only 25 transactions like this.
+	let transactionCount = 0;
 	// eslint-disable-next-line no-restricted-syntax
 	for (const anAccount of genesisDelegateAccounts) {
+		if (transactionCount === 25) {
+			chainStateBuilder.forge();
+			transactionCount = 0;
+		}
+		transactionCount += 1;
+
 		chainStateBuilder
 			.transfer('99')
 			.from('16313739661670634666L')
@@ -169,6 +177,22 @@ const generateTestCasesValidBlockVotesTx = () => {
 		.unvoteDelegates([]);
 
 	chainStateBuilder.forge();
+
+	const chainAndAccountStates = chainStateBuilder.getScenario();
+
+	return {
+		initialState: {
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+			chain: chainAndAccountStates.chain.slice(0, 5),
+			accounts: chainAndAccountStates.initialAccountsState,
+		},
+		input: chainAndAccountStates.chain.slice(1),
+		output: {
+			chain: chainAndAccountStates.chain,
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+		},
+	};
 };
 
 const validBlockWithVoteTxSuite = () => ({
