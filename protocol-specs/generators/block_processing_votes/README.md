@@ -24,6 +24,21 @@ chainStateBuilder
 	.forge();
 ```
 
+Cast Votes
+
+```javascript
+chainStateBuilder
+	.castVotesFrom('2222471382442610527L')
+	.voteDelegates([
+		'eeeb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		'aaab0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+	])
+	.unvoteDelegates([
+		'ooob0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
+		'uuub0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+	]);
+```
+
 Forge invalid input block (for cases where the final block should not be included):
 
 ```javascript
