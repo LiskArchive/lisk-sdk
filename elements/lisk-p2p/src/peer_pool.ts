@@ -401,14 +401,18 @@ export class PeerPool extends EventEmitter {
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
-			peer =>
-				!this._peerMap.get(constructPeerIdFromPeerInfo(peer)) ||
-				!fixedPeers.includes(peer),
+			newPeer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(newPeer)) ||
+				!fixedPeers
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(newPeer.ipAddress),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
-			peer =>
-				!this._peerMap.get(constructPeerIdFromPeerInfo(peer)) ||
-				!fixedPeers.includes(peer),
+			triedPeer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(triedPeer)) ||
+				!fixedPeers
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(triedPeer.ipAddress),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
@@ -602,12 +606,13 @@ export class PeerPool extends EventEmitter {
 
 	private _selectPeersForEviction(): Peer[] {
 		const peers = [...this.getPeers(InboundPeer)].filter(peer => {
-			const found = this._peerLists.whitelisted.find(
+			const found = !!this._peerLists.whitelisted.find(
 				whitePeer => constructPeerIdFromPeerInfo(whitePeer) === peer.id,
 			);
 
-			return found ? false : true;
+			return !found;
 		});
+
 		// Cannot predict which netgroups will be protected
 		const filteredPeersByNetgroup = this._peerPoolConfig.netgroupProtectionRatio
 			? filterPeersByCategory(peers, {
@@ -667,11 +672,11 @@ export class PeerPool extends EventEmitter {
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
 				peers.filter(peer => {
-					const found = this._peerLists.fixedPeers.find(
+					const found = !!this._peerLists.fixedPeers.find(
 						fixedPeer => constructPeerIdFromPeerInfo(fixedPeer) === peer.id,
 					);
 
-					return found ? false : true;
+					return !found;
 				}),
 			)[0];
 			if (selectedPeer) {
