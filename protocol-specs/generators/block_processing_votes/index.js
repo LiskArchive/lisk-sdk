@@ -253,6 +253,64 @@ const generateTestCasesInvalidBlockTooManyVotesTx = () => {
 	};
 };
 
+const generateTestCasesInvalidBlockVoteNoDelegateTx = () => {
+	const chainStateBuilder = new ChainStateBuilder(
+		genesisBlock,
+		initialAccountsState,
+		accounts,
+	);
+
+	// Give balance from genesis account to delegates just for having account states to compare against
+	// As the state builder is pretty basic so far we need to control forging only 25 transactions like this.
+	let transactionCount = 0;
+	// eslint-disable-next-line no-restricted-syntax
+	for (const anAccount of genesisDelegateAccounts) {
+		if (transactionCount === 25) {
+			chainStateBuilder.forge();
+			transactionCount = 0;
+		}
+		transactionCount += 1;
+
+		chainStateBuilder
+			.transfer('99')
+			.from('16313739661670634666L')
+			.to(anAccount.address);
+	}
+	// Fund account that will issue votes
+	chainStateBuilder
+		.transfer('101')
+		.from('16313739661670634666L')
+		.to('2222471382442610527L');
+
+	// Forge the block so as to have all delegates in the store
+	chainStateBuilder.forge();
+
+	const notAdelegate = ChainStateBuilder.createAccount();
+	// Vote for an account is not a delegate
+	chainStateBuilder
+		.castVotesFrom('2222471382442610527L')
+		.voteDelegates([notAdelegate.publicKey])
+		.unvoteDelegates([]);
+
+	chainStateBuilder.forgeInvalidInputBlock();
+
+	const chainAndAccountStates = chainStateBuilder.getScenario();
+
+	return {
+		initialState: {
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+			chain: chainAndAccountStates.chain,
+			accounts: chainAndAccountStates.initialAccountsState,
+		},
+		input: chainAndAccountStates.inputBlock,
+		output: {
+			chain: chainAndAccountStates.chain,
+			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+		},
+	};
+};
+
 const validBlockWithVoteTxSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'A valid block with votes transactions',
@@ -271,7 +329,17 @@ const invalidBlockWithTooManyVotesTxSuite = () => ({
 	testCases: generateTestCasesInvalidBlockTooManyVotesTx(),
 });
 
+const invalidBlockWithVotesForNoDelegateTxSuite = () => ({
+	title: 'Invalid block processing',
+	summary: 'An invalid block with a vote transaction that exceeds max votes',
+	config: 'mainnet',
+	runner: 'block_processing_votes',
+	handler: 'invalid_block_processing_vote_no_delegate',
+	testCases: generateTestCasesInvalidBlockVoteNoDelegateTx(),
+});
+
 module.exports = BaseGenerator.runGenerator('block_processing_transfers', [
 	validBlockWithVoteTxSuite,
 	invalidBlockWithTooManyVotesTxSuite,
+	invalidBlockWithVotesForNoDelegateTxSuite,
 ]);
