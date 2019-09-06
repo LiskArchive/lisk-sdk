@@ -564,7 +564,7 @@ Object {
     "network": Object {
       "ackTimeout": 20000,
       "address": "0.0.0.0",
-      "blacklistedPeers": Array [],
+      "blacklistedIps": Array [],
       "connectTimeout": 5000,
       "discoveryInterval": 30000,
       "emitPeerLimit": 25,

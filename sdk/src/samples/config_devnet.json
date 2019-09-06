@@ -548,7 +548,7 @@
 					"wsPort": 5000
 				}
 			],
-			"blacklistedPeers": [],
+			"blacklistedIps": [],
 			"ackTimeout": 20000,
 			"connectTimeout": 5000,
 			"wsEngine": "ws",
