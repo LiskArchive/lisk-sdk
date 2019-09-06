@@ -241,6 +241,7 @@ class Blocks extends EventEmitter {
 			},
 		);
 		if (blocksCount === 1) {
+			this.logger.info('Applying genesis block');
 			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
 			return;
@@ -580,7 +581,7 @@ class Blocks extends EventEmitter {
 				this._lastBlock = block;
 				this.logger.info(
 					{ blockId: block.id, height: block.height },
-					'Rebuilding block',
+					'Reloaded block',
 				);
 			},
 		);
