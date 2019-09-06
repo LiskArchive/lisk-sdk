@@ -110,7 +110,7 @@ interface PeerPoolConfig {
 	readonly wsMaxMessageRatePenalty: number;
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
-	readonly peerList: PeerLists;
+	readonly peerLists: PeerLists;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -210,7 +210,7 @@ export class PeerPool extends EventEmitter {
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
 		};
-		this._peerLists = peerPoolConfig.peerList;
+		this._peerLists = peerPoolConfig.peerLists;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;

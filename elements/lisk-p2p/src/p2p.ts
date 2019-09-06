@@ -477,7 +477,7 @@ export class P2P extends EventEmitter {
 					? config.rateCalculationInterval
 					: DEFAULT_RATE_CALCULATION_INTERVAL,
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
-			peerList: this._sanitizedPeerLists,
+			peerLists: this._sanitizedPeerLists,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
