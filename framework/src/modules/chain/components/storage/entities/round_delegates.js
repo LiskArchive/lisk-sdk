@@ -75,15 +75,18 @@ class RoundDelegates extends BaseEntity {
 	 * @returns {string[]} delegatePublicKeys
 	 */
 	async getRoundDelegates(round) {
-		const result = await this.adapter.executeFile(this.SQLs.getRoundDelegates, {
-			round,
-		});
+		const [result] = await this.adapter.executeFile(
+			this.SQLs.getRoundDelegates,
+			{
+				round,
+			},
+		);
 		/**
 		 * The query above returns delegatePublicKeys for the round.
 		 * But it returns them in following format: [{ delegatePublicKeys: [] }]
 		 * That's why if that record does not exist, we return an empty array.
 		 */
-		return result[0] ? result[0].delegatePublicKeys : [];
+		return result ? result.delegatePublicKeys : [];
 	}
 
 	/**
@@ -128,7 +131,7 @@ class RoundDelegates extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	delete(filters, tx = null) {
+	delete(filters, _options, tx = null) {
 		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);

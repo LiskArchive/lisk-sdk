@@ -96,6 +96,22 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
+		it('should delete delegate list for rounds which are after the current round', async () => {
+			// Arrange
+			const block = {
+				height: 2,
+				generatorPublicKey: 'generatorPublicKey#RANDOM',
+			};
+
+			// Act
+			await dpos.undo(block, stubs.tx);
+
+			// Assert
+			expect(
+				stubs.storage.entities.RoundDelegates.delete,
+			).not.toHaveBeenCalled();
+		});
+
 		it('should NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
 			// Arrange
 			const block = {
