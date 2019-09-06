@@ -57,6 +57,13 @@ describe('peerPool', () => {
 		maxPeerInfoSize: 10000,
 		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
+		peerLists: {
+			blacklistedPeers: [],
+			fixedPeers: [],
+			previousPeers: [],
+			seedPeers: [],
+			whitelisted: [],
+		},
 	});
 
 	describe('#constructor', () => {

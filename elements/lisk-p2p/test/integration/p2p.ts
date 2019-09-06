@@ -2092,6 +2092,12 @@ describe('Integration tests for P2P library', () => {
 						connectTimeout: 100,
 						ackTimeout: 200,
 						seedPeers,
+						whitelistedPeers: [
+							{
+								ipAddress: '127.0.0.3',
+								wsPort: NETWORK_START_PORT,
+							},
+						],
 						wsEngine: 'ws',
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: MAX_INBOUND_CONNECTIONS,
@@ -2144,6 +2150,15 @@ describe('Integration tests for P2P library', () => {
 				expect(inboundPeers).to.satisfy(
 					(n: Number[]) => n.includes(5001) || n.includes(5002),
 				);
+			});
+		});
+
+		// TODO: add a test to see if it doesn't drop the inbound connection with the whitelist
+		describe('whitelist peer', () => {
+			// Test to check if the whitelist peer is added to the sanitized whitelist.
+			it('should have whitelistpeer from config', async () => {
+				expect(p2pNodeList[1]['_sanitizedPeerLists'].whitelisted).not.to.be
+					.empty;
 			});
 		});
 	});

@@ -477,6 +477,7 @@ export class P2P extends EventEmitter {
 					? config.rateCalculationInterval
 					: DEFAULT_RATE_CALCULATION_INTERVAL,
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
+			peerLists: this._sanitizedPeerLists,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -897,6 +898,10 @@ export class P2P extends EventEmitter {
 			}
 		});
 
+		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
+		this._sanitizedPeerLists.whitelisted.forEach(whitelistPeer =>
+			this._peerBook.upgradePeer(whitelistPeer),
+		);
 		await this._startPeerServer();
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
