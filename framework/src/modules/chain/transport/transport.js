@@ -363,6 +363,7 @@ class Transport {
 					query,
 				},
 			);
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
@@ -434,6 +435,7 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug('Invalid signatures body', errors);
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
@@ -528,6 +530,7 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug('Invalid transactions body', errors);
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
