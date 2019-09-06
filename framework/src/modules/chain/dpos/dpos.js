@@ -24,7 +24,7 @@ module.exports = class Dpos {
 		this.delegatesList = new DelegatesList({
 			storage,
 			logger,
-      slots,
+			slots,
 			activeDelegates,
 			exceptions,
 		});
