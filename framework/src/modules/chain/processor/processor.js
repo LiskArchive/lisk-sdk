@@ -176,6 +176,14 @@ class Processor {
 		});
 	}
 
+	async validateDetached(block) {
+		this.logger.debug({ id: block.id }, 'validating detached block');
+		const blockProcessor = this._getBlockProcessor(block);
+		await blockProcessor.validateDetached.run({
+			block,
+		});
+	}
+
 	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
 		return this.sequence.add(async () => {

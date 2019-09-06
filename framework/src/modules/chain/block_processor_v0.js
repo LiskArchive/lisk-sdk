@@ -122,7 +122,18 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
 			(data, blockBytes) =>
-				this.blocksModule.validate({
+				this.blocksModule.validateAndVerifyInMemory({
+					...data,
+					blockBytes,
+				}), // validate common block header
+		]);
+
+		this.validateDetached.pipe([
+			data => this._validateVersion(data),
+			data => validateSchema(data),
+			({ block }) => getBytes(block),
+			(data, blockBytes) =>
+				this.blocksModule.validateDetached({
 					...data,
 					blockBytes,
 				}), // validate common block header

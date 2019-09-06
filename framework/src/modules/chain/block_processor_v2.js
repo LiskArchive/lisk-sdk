@@ -24,6 +24,7 @@ const {
 	intToBuffer,
 	LITTLE_ENDIAN,
 } = require('@liskhq/lisk-cryptography');
+// const { utils, extractBFTBlockHeaderFromBlock } = require('./bft');
 const { baseBlockSchema } = require('./blocks');
 const { BaseBlockProcessor } = require('./processor');
 
@@ -151,10 +152,24 @@ const validateSchema = ({ block }) => {
 	}
 };
 
+// const validateAndVerifyBFTproperties = ({ block }) => {
+// 	const blockHeader = extractBFTBlockHeaderFromBlock(block);
+//
+// 	// Check heightPrevoted correctness.
+// 	utils.validateBlockHeader(blockHeader);
+//
+// 	// Check for header contradictions against current chain
+// 	bft.verifyBlockHeaders(blockHeader);
+//
+// 	// Check reward has correct value.
+// 	// TODO: Find out how to do this.
+// };
+
 class BlockProcessorV2 extends BaseBlockProcessor {
-	constructor({ blocksModule, logger, constants, exceptions }) {
+	constructor({ blocksModule, bft, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;
+		this.bft = bft;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
@@ -166,7 +181,18 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
 			(data, blockBytes) =>
-				this.blocksModule.validate({
+				this.blocksModule.validateAndVerifyInMemory({
+					...data,
+					blockBytes,
+				}), // validate common block header
+		]);
+
+		this.validateDetached.pipe([
+			data => this._validateVersion(data),
+			data => validateSchema(data),
+			({ block }) => getBytes(block),
+			(data, blockBytes) =>
+				this.blocksModule.validateDetached({
 					...data,
 					blockBytes,
 				}), // validate common block header

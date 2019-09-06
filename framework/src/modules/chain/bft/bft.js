@@ -141,6 +141,10 @@ class BFT extends EventEmitter {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 	}
 
+	verifyBlockHeaders(blockHeader) {
+		return this.finalityManager.verifyBlockHeaders(blockHeader);
+	}
+
 	/**
 	 * Initialize the consensus manager and return the finalize height
 	 *
