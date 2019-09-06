@@ -187,8 +187,8 @@ module.exports = class Chain {
 								return;
 							}
 						} catch (error) {
-							this.logger.info(
-								{ error, event, data },
+							this.logger.warn(
+								{ error, event },
 								'Received invalid event message',
 							);
 						}
