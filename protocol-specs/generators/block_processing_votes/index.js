@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -114,7 +114,7 @@ const generateTestCasesValidBlockVotesTx = () => {
 		accounts,
 	);
 
-	// Give balance from geneis account to delegates just for having account states to compare against
+	// Give balance from genesis account to delegates just for having account states to compare against
 	// As the state builder is pretty basic so far we need to control forging only 25 transactions like this.
 	let transactionCount = 0;
 	// eslint-disable-next-line no-restricted-syntax
