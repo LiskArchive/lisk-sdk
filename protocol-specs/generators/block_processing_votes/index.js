@@ -97,7 +97,7 @@ for (const anAccount of genesisDelegateAccounts) {
 	const keys = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const address = getAddressFromPrivateKey(keys.privateKey);
 
-	accounts[anAccount.username] = {
+	accounts[`${anAccount.username}_delegate`] = {
 		passphrase,
 		privateKey: keys.privateKey,
 		publicKey: keys.publicKey,
@@ -179,14 +179,13 @@ const generateTestCasesValidBlockVotesTx = () => {
 	chainStateBuilder.forge();
 
 	const chainAndAccountStates = chainStateBuilder.getScenario();
-
 	return {
 		initialState: {
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
 			chain: chainAndAccountStates.chain.slice(0, 5),
 			accounts: chainAndAccountStates.initialAccountsState,
 		},
-		input: chainAndAccountStates.chain.slice(1),
+		input: chainAndAccountStates.chain.slice(-1),
 		output: {
 			chain: chainAndAccountStates.chain,
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
