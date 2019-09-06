@@ -124,7 +124,7 @@ class RoundDelegates extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	delete(filters, _options, tx = null) {
+	delete(filters, tx = null) {
 		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
