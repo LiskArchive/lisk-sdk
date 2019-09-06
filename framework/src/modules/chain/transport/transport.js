@@ -344,13 +344,12 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query) {
+	async postBlock(query = {}) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
 			);
 		}
-		query = query || {};
 
 		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
 
@@ -363,28 +362,16 @@ class Transport {
 					query,
 				},
 			);
-			throw new Error(errors);
-		}
-
-		let block;
-		let success = true;
-		try {
-			block = blocksUtils.addBlockProperties(query.block);
-
-			// Instantiate transaction classes
-			block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
-
-			block = blocksUtils.objectNormalize(block);
-		} catch (e) {
-			success = false;
-			this.logger.debug('Block normalization failed', {
-				err: e.toString(),
-				module: 'transport',
-				block: query.block,
-			});
-
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			throw errors;
 		}
+
+		let block = blocksUtils.addBlockProperties(query.block);
+
+		// Instantiate transaction classes
+		block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
+
+		block = blocksUtils.objectNormalize(block);
 		// TODO: endpoint should be protected before
 		if (this.loaderModule.syncing()) {
 			return this.logger.debug(
@@ -392,10 +379,7 @@ class Transport {
 				block.id,
 			);
 		}
-		if (success) {
-			return this.blocksModule.receiveBlockFromNetwork(block);
-		}
-		return null;
+		return this.blocksModule.receiveBlockFromNetwork(block);
 	}
 
 	/**
@@ -449,6 +433,7 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug('Invalid signatures body', errors);
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
@@ -543,6 +528,7 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug('Invalid transactions body', errors);
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
