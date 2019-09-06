@@ -116,7 +116,7 @@ describe('dpos.apply()', () => {
 			expect(
 				stubs.storage.entities.Account.increaseFieldBy,
 			).toHaveBeenCalledWith(
-				{ publicKey_eq: block.generatorPublicKey },
+				{ publicKey: block.generatorPublicKey },
 				'producedBlocks',
 				'1',
 				stubs.tx,
@@ -176,7 +176,7 @@ describe('dpos.apply()', () => {
 					{
 						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
 					},
-					{},
+					{ extended: true },
 					stubs.tx,
 				)
 				.mockResolvedValue(delegatesWhoForged);
@@ -184,7 +184,7 @@ describe('dpos.apply()', () => {
 			delegateAccounts.forEach(account => {
 				when(stubs.storage.entities.Account.get)
 					.calledWith({
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					})
 					.mockResolvedValue(account);
 			});
@@ -244,9 +244,10 @@ describe('dpos.apply()', () => {
 			uniqueDelegatesWhoForged.forEach(account => {
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					expect.any(Object),
+					{},
 					stubs.tx,
 				);
 			});
@@ -254,7 +255,7 @@ describe('dpos.apply()', () => {
 			// Assert Group 2/2
 			delegatesWhoForgedNone.forEach(account => {
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalledWith({
-					publicKey_eq: account.publicKey,
+					publicKey: account.publicKey,
 				});
 			});
 		});
@@ -270,9 +271,10 @@ describe('dpos.apply()', () => {
 			delegatesWhoForgedOnceMissedOnce.forEach(account => {
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					expect.any(Object),
+					{},
 					stubs.tx,
 				);
 			});
@@ -288,17 +290,17 @@ describe('dpos.apply()', () => {
 				const { fee, reward } = getTotalEarningsOfDelegate(account);
 				const amount = fee.plus(reward);
 				const data = {
-					...account,
-					balance: account.balance.plus(amount),
-					fees: account.fees.plus(fee),
-					rewards: account.rewards.plus(reward),
+					balance: account.balance.plus(amount).toString(),
+					fees: account.fees.plus(fee).toString(),
+					rewards: account.rewards.plus(reward).toString(),
 				};
 
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 					{
-						publicKey_eq: account.publicKey,
+						publicKey: account.publicKey,
 					},
 					data,
+					{},
 					stubs.tx,
 				);
 			});
@@ -322,17 +324,18 @@ describe('dpos.apply()', () => {
 			expect.assertions(uniqueDelegatesWhoForged);
 			expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 				{
-					publicKey_eq: delegateWhoForgedLast.publicKey,
+					publicKey: delegateWhoForgedLast.publicKey,
 				},
 				expect.objectContaining({
 					/**
 					 * Delegate who forged last also forged 3 times,
 					 * Thus will get fee 3 times too.
 					 */
-					fees: delegateWhoForgedLast.fees.add(
-						feePerDelegate * 3 + remainingFee,
-					),
+					fees: delegateWhoForgedLast.fees
+						.add(feePerDelegate * 3 + remainingFee)
+						.toString(),
 				}),
+				{},
 				stubs.tx,
 			);
 
@@ -344,14 +347,15 @@ describe('dpos.apply()', () => {
 					).length;
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining({
 							/**
 							 * Rest of the delegates don't get the remaining fee
 							 */
-							fees: account.fees.add(feePerDelegate * blockCount),
+							fees: account.fees.add(feePerDelegate * blockCount).toString(),
 						}),
+						{},
 						stubs.tx,
 					);
 				});
@@ -396,7 +400,7 @@ describe('dpos.apply()', () => {
 						{
 							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
 						},
-						{},
+						{ extended: true },
 						stubs.tx,
 					)
 					.mockResolvedValue(delegateAccounts);
@@ -526,21 +530,22 @@ describe('dpos.apply()', () => {
 					const { reward } = getTotalEarningsOfDelegate(account);
 					const exceptionReward = reward * exceptionFactors.rewards_factor;
 					const partialData = {
-						rewards: account.rewards.add(exceptionReward),
+						rewards: account.rewards.add(exceptionReward).toString(),
 					};
 
 					// Assert
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
+						{},
 						stubs.tx,
 					);
 				});
 			});
 
-			it('should should multiple "totalFee" with "fee_factor" and add "fee_bonus"', async () => {
+			it('should multiply "totalFee" with "fee_factor" and add "fee_bonus"', async () => {
 				// Act
 				await dpos.apply(lastBlockOfTheRound, stubs.tx);
 
@@ -557,15 +562,16 @@ describe('dpos.apply()', () => {
 						(exceptionTotalFee / constants.ACTIVE_DELEGATES) * blockCount;
 
 					const partialData = {
-						fees: account.fees.add(earnedFee),
+						fees: account.fees.add(earnedFee).toString(),
 					};
 
 					// Assert
 					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 						{
-							publicKey_eq: account.publicKey,
+							publicKey: account.publicKey,
 						},
 						expect.objectContaining(partialData),
+						{},
 						stubs.tx,
 					);
 				});

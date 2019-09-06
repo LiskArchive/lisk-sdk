@@ -86,7 +86,9 @@ class Round {
 		return new Promise((resolve, reject) => {
 			const data = {
 				publicKey: self.scope.block.generatorPublicKey,
-				producedBlocks: self.scope.backwards ? -1 : 1,
+				// Decrement only for backwards because the forward happens during Dpos.apply
+				// This will be completely removed after Dpos.undo is in place (LiskHQ/lisk-sdk/issues/4158)
+				producedBlocks: self.scope.backwards ? -1 : 0,
 				round: self.scope.round,
 			};
 
@@ -104,37 +106,6 @@ class Round {
 				self.t,
 			);
 		});
-	}
-
-	/**
-	 * If outsiders content, calls sql updateMissedBlocks.
-	 *
-	 * @todo Add @returns tag
-	 */
-	updateMissedBlocks() {
-		if (this.scope.roundOutsiders.length === 0) {
-			return this.t;
-		}
-
-		const filters = { address_in: this.scope.roundOutsiders };
-		const field = 'missedBlocks';
-		const value = '1';
-
-		if (this.scope.backwards) {
-			return this.scope.library.storage.entities.Account.decreaseFieldBy(
-				filters,
-				field,
-				value,
-				this.t,
-			);
-		}
-
-		return this.scope.library.storage.entities.Account.increaseFieldBy(
-			filters,
-			field,
-			value,
-			this.t,
-		);
 	}
 
 	/**
@@ -488,28 +459,6 @@ class Round {
 			return this.t.batch(queries);
 		}
 		return this.t;
-	}
-
-	/**
-	 * Calls:
-	 * - updateVotes
-	 * - updateMissedBlocks
-	 * - flushRound
-	 * - applyRound
-	 * - updateVotes
-	 * - flushRound
-	 *
-	 * @returns {function} Call result
-	 */
-	land() {
-		return this.updateVotes()
-			.then(this.updateMissedBlocks.bind(this))
-			.then(this.flushRound.bind(this))
-			.then(this.applyRound.bind(this))
-			.then(this.updateVotes.bind(this))
-			.then(this.flushRound.bind(this))
-			.then(this.updateDelegatesRanks.bind(this))
-			.then(() => this.t);
 	}
 
 	/**

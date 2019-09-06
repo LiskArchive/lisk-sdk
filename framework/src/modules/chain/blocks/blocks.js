@@ -145,11 +145,7 @@ class Blocks extends EventEmitter {
 
 	async init() {
 		// check mem tables
-		const {
-			blocksCount,
-			genesisBlock,
-			memRounds,
-		} = await this.storage.entities.Block.begin(
+		const { genesisBlock } = await this.storage.entities.Block.begin(
 			'loader:checkMemTables',
 			async tx => blocksUtils.loadMemTables(this.storage, tx),
 		);
@@ -161,7 +157,7 @@ class Blocks extends EventEmitter {
 		}
 
 		// check if the round related information is in valid state
-		await this.blocksVerify.reloadRequired(blocksCount, memRounds);
+		await this.blocksVerify.reloadRequired();
 
 		this._lastBlock = await blocksLogic.loadLastBlock(
 			this.storage,
@@ -308,7 +304,14 @@ class Blocks extends EventEmitter {
 	}
 
 	async save({ block, tx, skipSave }) {
-		await saveBlockStep(this.storage, this.roundsModule, block, skipSave, tx);
+		await saveBlockStep(
+			this.storage,
+			this.roundsModule,
+			this.dposModule,
+			block,
+			skipSave,
+			tx,
+		);
 		this._lastBlock = block;
 	}
 

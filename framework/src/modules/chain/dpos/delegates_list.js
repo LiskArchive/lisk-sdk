@@ -58,7 +58,7 @@ class DelegatesList extends EventEmitter {
 		const filters = { isDelegate: true };
 		const options = {
 			limit: this.activeDelegates,
-			sort: ['vote:desc', 'publicKey:asc'],
+			sort: ['voteWeight:desc', 'publicKey:asc'],
 		};
 		const accounts = await this.storage.entities.Account.get(filters, options);
 		return accounts.map(account => account.publicKey);
@@ -75,20 +75,16 @@ class DelegatesList extends EventEmitter {
 
 		if (!delegatePublicKeys.length) {
 			delegatePublicKeys = await this.getDelegatePublicKeysSortedByVote();
+
 			await this.storage.entities.RoundDelegates.create({
 				round,
 				delegatePublicKeys,
 			});
 		}
 
-		const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
+		this.delegateListCache[round] = delegatePublicKeys;
 
-		if (!ignoreDelegateListCacheForRounds.includes(round)) {
-			// If the round is not an exception, cache the round.
-			this.delegateListCache[round] = delegatePublicKeys;
-		}
-
-		return delegatePublicKeys;
+		return this.delegateListCache[round];
 	}
 
 	async deleteDelegateListUntilRound(round) {
@@ -126,6 +122,16 @@ class DelegatesList extends EventEmitter {
 			!expectedForgerPublicKey ||
 			block.generatorPublicKey !== expectedForgerPublicKey
 		) {
+			/**
+			 * Accepts any forger as valid for the rounds defined in exceptions.ignoreDelegateListCacheForRounds
+			 * This is only set for testnet due to `zero vote` active delegate issue (https://github.com/LiskHQ/lisk-sdk/pull/2543#pullrequestreview-178505587)
+			 * Should be tackled by https://github.com/LiskHQ/lisk-sdk/issues/4194
+			 */
+			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
+			if (ignoreDelegateListCacheForRounds.includes(round)) {
+				return true;
+			}
+
 			throw new Error(`Failed to verify slot: ${currentSlot}`);
 		}
 

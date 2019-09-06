@@ -140,7 +140,7 @@ describe('app', () => {
 							done();
 						});
 
-						it('fields vote, blocks_forged_count, blocks_missed_count, isDelegate should be valid', done => {
+						it('fields voteWeight, blocks_forged_count, blocks_missed_count, isDelegate should be valid', done => {
 							_.each(delegates, delegate => {
 								// Find accounts that vote for delegate
 								const voters = _.filter(
@@ -180,7 +180,7 @@ describe('app', () => {
 										.toString();
 								});
 
-								expect(delegate.vote).to.equal(voters_balance);
+								expect(delegate.voteWeight).to.equal(voters_balance);
 								expect(delegate.producedBlocks).to.equal(0);
 								expect(delegate.missedBlocks).to.equal(0);
 								expect(delegate.isDelegate).to.equal(1);

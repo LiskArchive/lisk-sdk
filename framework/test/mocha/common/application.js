@@ -89,6 +89,7 @@ const initStepsForTest = {
 			slots: scope.slots,
 			storage: scope.components.storage,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			exceptions: __testContext.config.modules.chain.exceptions,
 		});
 
 		const { Blocks: RewiredBlocks } = rewire(

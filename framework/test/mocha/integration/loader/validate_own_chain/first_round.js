@@ -19,7 +19,7 @@ const QueriesHelper = require('../../../common/integration/sql/queries_helper');
 const localCommon = require('../../common');
 
 // eslint-disable-next-line mocha/no-skipped-tests
-describe.skip('validateOwnChain', () => {
+describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: validateOwnChain', () => {
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
