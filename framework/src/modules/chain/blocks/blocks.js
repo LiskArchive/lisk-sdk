@@ -34,7 +34,7 @@ const {
 	undoConfirmedStep,
 	saveBlockStep,
 	parseBlockToJson,
-	backwardTickStep,
+	undoBlockStep,
 } = require('./chain');
 const {
 	calculateSupply,
@@ -286,21 +286,8 @@ class Blocks extends EventEmitter {
 			this.exceptions,
 			tx,
 		);
-		const [storageRowOfBlock] = await this.storage.entities.Block.get(
-			{ id: block.previousBlock },
-			{ extended: true },
-			tx,
-		);
 
-		if (!storageRowOfBlock) {
-			throw new Error('PreviousBlock is null');
-		}
-		const [secondLastBlock] = blocksLogic.readStorageRows(
-			[storageRowOfBlock],
-			this.interfaceAdapters,
-			this.genesisBlock,
-		);
-		await backwardTickStep(this.roundsModule, block, secondLastBlock, tx);
+		await undoBlockStep(this.dposModule, block, tx);
 	}
 
 	async save({ block, tx, skipSave }) {
