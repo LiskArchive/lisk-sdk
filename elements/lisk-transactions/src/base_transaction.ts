@@ -138,7 +138,6 @@ export abstract class BaseTransaction {
 	// tslint:disable-next-line no-any
 	protected abstract assetFromSync(raw: any): object | undefined;
 
-	// tslint:disable-next-line cyclomatic-complexity
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
