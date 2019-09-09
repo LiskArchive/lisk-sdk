@@ -96,7 +96,7 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
-		it('should delete delegate list for rounds which are after the current round', async () => {
+		it('should NOT delete delegate list for rounds which are after the current round', async () => {
 			// Arrange
 			const block = {
 				height: 2,
