@@ -17,7 +17,6 @@
 const {
 	createSignatureObject,
 	TransferTransaction,
-	registerDelegate,
 	DelegateTransaction,
 	VoteTransaction,
 	castVotes,
@@ -99,14 +98,20 @@ class ChainStateBuilder {
 	registerDelegate(delegateName) {
 		return {
 			for: delegateAddress => {
-				const registerDelegateTx = new DelegateTransaction(
-					registerDelegate({
-						username: delegateName,
-						passphrase: Object.values(this.state.accounts).find(
-							anAccount => anAccount.address === delegateAddress,
-						).passphrase,
-					}),
+				const sender = Object.values(this.state.accounts).find(
+					anAccount => anAccount.address === delegateAddress,
 				);
+				const registerDelegateTx = new DelegateTransaction({
+					timestamp: this.timestamp,
+					asset: {
+						delegate: {
+							username: delegateName,
+						},
+					},
+				});
+
+				registerDelegateTx.sign(sender.passphrase);
+
 				// Push it to pending transaction
 				this.state.pendingTransactions.push(registerDelegateTx);
 				this.lastTransactionId = registerDelegateTx._id;
