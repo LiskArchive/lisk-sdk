@@ -37,6 +37,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	PeerLists,
 } from './p2p_types';
 import {
 	ConnectionState,
@@ -109,6 +110,7 @@ interface PeerPoolConfig {
 	readonly wsMaxMessageRatePenalty: number;
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
+	readonly peerLists: PeerLists;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -190,6 +192,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
 	private readonly _peerConfig: PeerConfig;
+	private readonly _peerLists: PeerLists;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -207,6 +210,7 @@ export class PeerPool extends EventEmitter {
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
 		};
+		this._peerLists = peerPoolConfig.peerLists;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
@@ -397,18 +401,22 @@ export class PeerPool extends EventEmitter {
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
-			peer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
-				!fixedPeers.includes(peer),
+			newPeer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(newPeer)) ||
+				!fixedPeers
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(newPeer.ipAddress),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
-			peer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
-				!fixedPeers.includes(peer),
+			triedPeer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(triedPeer)) ||
+				!fixedPeers
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(triedPeer.ipAddress),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
-			.filter(peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)))
+			.filter(peer => !this._peerMap.get(constructPeerIdFromPeerInfo(peer)))
 			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
@@ -597,7 +605,12 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _selectPeersForEviction(): Peer[] {
-		const peers = [...this.getPeers(InboundPeer)];
+		const peers = [...this.getPeers(InboundPeer)].filter(peer =>
+			this._peerLists.whitelisted.every(
+				p => constructPeerIdFromPeerInfo(p) !== peer.id,
+			),
+		);
+
 		// Cannot predict which netgroups will be protected
 		const filteredPeersByNetgroup = this._peerPoolConfig.netgroupProtectionRatio
 			? filterPeersByCategory(peers, {
@@ -655,7 +668,13 @@ export class PeerPool extends EventEmitter {
 		}
 
 		if (kind === OutboundPeer) {
-			const selectedPeer = shuffle(peers)[0];
+			const selectedPeer = shuffle(
+				peers.filter(peer =>
+					this._peerLists.fixedPeers.every(
+						p => constructPeerIdFromPeerInfo(p) !== peer.id,
+					),
+				),
+			)[0];
 			if (selectedPeer) {
 				this.removePeer(
 					selectedPeer.id,
