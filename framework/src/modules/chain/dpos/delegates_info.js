@@ -76,7 +76,11 @@ class DelegatesInfo {
 	 * @param {Block} block
 	 */
 	async _update(block, undo, tx) {
-		// @todo add proper description
+		/**
+		 * If the block height is 1, that means the block is
+		 * the genesis block, in that case we don't have to
+		 * update anything in the accounts.
+		 */
 		if (block.height === 1) {
 			return false;
 		}
@@ -85,6 +89,16 @@ class DelegatesInfo {
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {
+			if (undo) {
+				/**
+				 * If we are reverting the block, new transactions
+				 * can change vote weight of delegates, so we need to
+				 * invalidate the cache for the next rounds.
+				 */
+				const round = this.slots.calcRound(block.height);
+				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
+			}
+
 			const roundSummary = await this._summarizeRound(block, tx);
 
 			await Promise.all([
