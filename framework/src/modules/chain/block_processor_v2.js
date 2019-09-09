@@ -24,7 +24,6 @@ const {
 	intToBuffer,
 	LITTLE_ENDIAN,
 } = require('@liskhq/lisk-cryptography');
-// const { utils, extractBFTBlockHeaderFromBlock } = require('./bft');
 const { baseBlockSchema } = require('./blocks');
 const { BaseBlockProcessor } = require('./processor');
 
@@ -181,10 +180,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
 			(data, blockBytes) =>
-				this.blocksModule.validateAndVerifyInMemory({
+				this.blocksModule.validateDetached({
 					...data,
 					blockBytes,
 				}), // validate common block header
+			data => this.blocksModule.verifyInMemory(data),
+			({ block }) => this.bft.validateBlock(block),
 		]);
 
 		this.validateDetached.pipe([
@@ -205,9 +206,13 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		// TODO: Remove validate new since it's no longer required
 		this.validateNew.pipe([() => Promise.resolve()]);
 
-		this.verify.pipe([data => this.blocksModule.verify(data)]);
+		this.verify.pipe([({ block }) => this.bft.verifyNewBlock(block)]);
 
-		this.apply.pipe([data => this.blocksModule.apply(data)]);
+		this.apply.pipe([
+			data => this.blocksModule.verify(data),
+			data => this.blocksModule.apply(data),
+			({ block }) => this.bft.addNewBlock(block),
+		]);
 
 		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
 

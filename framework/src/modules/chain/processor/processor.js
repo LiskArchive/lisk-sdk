@@ -243,7 +243,6 @@ class Processor {
 			await processor.verify.run({
 				block,
 				lastBlock,
-				skipExistingCheck: skipSave,
 				tx,
 			});
 			if (!skipBroadcast) {
@@ -254,6 +253,7 @@ class Processor {
 			await processor.apply.run({
 				block,
 				lastBlock,
+				skipExistingCheck: skipSave,
 				tx,
 			});
 			// TODO: move save to inside below condition after moving tick to the block_processor

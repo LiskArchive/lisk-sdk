@@ -201,10 +201,9 @@ class Blocks extends EventEmitter {
 		}
 	}
 
-	async validateAndVerifyInMemory({ block, lastBlock, blockBytes }) {
+	async verifyInMemory({ block, lastBlock }) {
 		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
 		validateBlockSlot(block, lastBlock, this.slots);
-		await this._validateDetached({ block, blockBytes });
 		await this.blocksVerify.verifyBlockForger(block);
 	}
 

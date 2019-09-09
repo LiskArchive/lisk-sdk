@@ -45,11 +45,11 @@ const validateSignature = (block, blockBytes) => {
 };
 
 /**
- * Validate previous block.
+ * Validate previous block property.
  *
- * @func validatePreviousBlock
+ * @func validatePreviousBlockProperty
  * @param {Object} block - Target block
- * @param genesisBlock
+ * @param {Object} genesisBlock
  */
 const validatePreviousBlockProperty = (block, genesisBlock) => {
 	const isGenesisBlock =
