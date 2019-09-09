@@ -52,24 +52,7 @@ describe('dpos.getRoundDelegates()', () => {
 		});
 	});
 
-	describe('When non-shuffled delegate public keys for the round IS in the cache', () => {
-		it('should return shuffled delegate public keys by ONLY using cache', async () => {
-			// Arrange
-			dpos.delegatesList.delegateListCache[roundNo] = [...delegatePublicKeys];
-
-			// Act
-			const list = await dpos.getRoundDelegates(roundNo);
-
-			// Assert
-			expect(list).toEqual(shuffledDelegatePublicKeys);
-			expect(
-				stubs.storage.entities.RoundDelegates.getRoundDelegates,
-			).not.toHaveBeenCalled();
-			expect(stubs.storage.entities.Account.get).not.toHaveBeenCalled();
-		});
-	});
-
-	describe('When non-shuffled delegate public keys for the round is NOT in the cache', () => {
+	describe('When non-shuffled delegate public keys exist in round_delegates table', () => {
 		let list;
 		beforeEach(async () => {
 			// Arrange
@@ -81,20 +64,13 @@ describe('dpos.getRoundDelegates()', () => {
 			list = await dpos.getRoundDelegates(roundNo);
 		});
 
-		it('should return shuffled delegate public keys by using round_delegates table', () => {
+		it('should return shuffled delegate public keys by using round_delegates table record', () => {
 			// Assert
 			expect(list).toEqual(shuffledDelegatePublicKeys);
 		});
-
-		it('should add the non-shuffled delegate list to the cache for the round', () => {
-			// Assert
-			expect(dpos.delegatesList.delegateListCache[roundNo]).toEqual(
-				delegatePublicKeys,
-			);
-		});
 	});
 
-	describe('Given the round is NOT in the cache and NOT in the round_delegates table', () => {
+	describe('Given the round is NOT in the round_delegates table', () => {
 		let list;
 		beforeEach(async () => {
 			// Arrange
@@ -126,13 +102,6 @@ describe('dpos.getRoundDelegates()', () => {
 					round: roundNo,
 					delegatePublicKeys,
 				},
-			);
-		});
-
-		it('should add the non-shuffled delegate list to the cache for the round', () => {
-			// Assert
-			expect(dpos.delegatesList.delegateListCache[roundNo]).toEqual(
-				delegatePublicKeys,
 			);
 		});
 	});
