@@ -15,6 +15,7 @@
 import { expect } from 'chai';
 import { Peer } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { DEFAULT_REPUTATION_SCORE } from '../../../src/constants';
 
 describe('peer/base', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
@@ -153,7 +154,64 @@ describe('peer/base', () => {
 				.to.be.an('object')
 				.and.be.deep.equal(defaultPeerInfo)));
 
-	describe('#applyPenalty', () => it('should apply penalty'));
+	describe('#applyPenalty', () => {
+		describe('when reputation does not go below 0', () => {
+			beforeEach(() => {
+				defaultPeer['_banPeer'] = sandbox.stub();
+			});
+
+			it('should apply penalty', () => {
+				const reputation = defaultPeer.reputation;
+				const penalty = DEFAULT_REPUTATION_SCORE / 10;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
+			});
+
+			it('should not ban peer', () => {
+				const penalty = DEFAULT_REPUTATION_SCORE / 10;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer['_banPeer']).to.be.not.called;
+			});
+		});
+
+		describe('when reputation goes below 0', () => {
+			beforeEach(() => {
+				defaultPeer['_banPeer'] = sandbox.stub();
+			});
+
+			it('should apply penalty', () => {
+				const reputation = defaultPeer.reputation;
+				const penalty = DEFAULT_REPUTATION_SCORE;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
+			});
+
+			it('should ban peer', () => {
+				const penalty = DEFAULT_REPUTATION_SCORE;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer['_banPeer']).to.be.calledOnce;
+			});
+		});
+
+		describe.skip('when peer is banned', () => {
+			beforeEach(() => {
+				defaultPeer.emit = sandbox.stub();
+				defaultPeer.disconnect = sandbox.stub();
+			});
+
+			it('should emit EVENT_BAN_PEER', () => {
+				const penalty = DEFAULT_REPUTATION_SCORE;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.emit).to.be.calledOnce;
+			});
+
+			it('should disconnect peer', () => {
+				const penalty = DEFAULT_REPUTATION_SCORE;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.emit).to.be.calledOnce;
+			});
+		});
+	});
 
 	describe('#wsPort', () =>
 		it('should get wsPort property', () =>
