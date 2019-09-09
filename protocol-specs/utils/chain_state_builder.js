@@ -16,7 +16,6 @@
 
 const {
 	createSignatureObject,
-	transfer: transferLisk,
 	TransferTransaction,
 	registerDelegate,
 	DelegateTransaction,
@@ -66,6 +65,7 @@ class ChainStateBuilder {
 			multisignature: this.fixedPoint * 5,
 		};
 		this.lastTransactionId = null;
+		this.timestamp = 102702700;
 	}
 
 	transfer(amount) {
@@ -74,16 +74,18 @@ class ChainStateBuilder {
 				to: addressTo => {
 					const amountBeddows = `${amount * this.fixedPoint}`;
 
-					const transferTx = new TransferTransaction(
-						transferLisk({
-							amount: amountBeddows,
-							passphrase: Object.values(this.state.accounts).find(
-								anAccount => anAccount.address === addressFrom,
-							).passphrase,
-							recipientId: Object.values(this.state.accounts).find(
-								anAccount => anAccount.address === addressTo,
-							).address,
-						}),
+					const transferTx = new TransferTransaction({
+						amount: amountBeddows,
+						recipientId: Object.values(this.state.accounts).find(
+							anAccount => anAccount.address === addressTo,
+						).address,
+						timestamp: this.timestamp,
+					});
+
+					transferTx.sign(
+						Object.values(this.state.accounts).find(
+							anAccount => anAccount.address === addressFrom,
+						).passphrase,
 					);
 					// Push it to pending transaction
 					this.state.pendingTransactions.push(transferTx);
