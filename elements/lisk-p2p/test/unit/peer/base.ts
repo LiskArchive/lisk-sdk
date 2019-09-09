@@ -57,6 +57,10 @@ describe('peer/base', () => {
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
 	});
 
+	afterEach(() => {
+		defaultPeer.disconnect();
+	});
+
 	describe('#constructor', () => {
 		it('should be an object', () => expect(defaultPeer).to.be.an('object'));
 
