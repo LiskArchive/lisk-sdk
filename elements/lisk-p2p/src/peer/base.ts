@@ -194,7 +194,6 @@ export class Peer extends EventEmitter {
 			this._wsMessageCount = 0;
 
 			if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
-				this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
 				this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
 
 				return;
