@@ -91,7 +91,7 @@ import {
 	PeerLists,
 } from './p2p_types';
 import { PeerBook } from './peer_directory';
-import { PeerPool } from './peer_pool';
+import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerIdFromPeerInfo,
 	sanitizeOutgoingPeerInfo,
@@ -154,7 +154,6 @@ export class P2P extends EventEmitter {
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 
-	// tslint:disable-next-line: cyclomatic-complexity
 	public constructor(config: P2PConfig) {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
@@ -365,7 +364,36 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
-		this._peerPool = new PeerPool({
+		const peerPoolConfig = this._createPeerPoolConfig(config);
+		this._peerPool = new PeerPool(peerPoolConfig);
+
+		this._bindHandlersToPeerPool(this._peerPool);
+		// Add peers to tried peers if want to re-use previously tried peers
+		if (this._sanitizedPeerLists.previousPeers) {
+			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
+				if (!this._peerBook.getPeer(peerInfo)) {
+					this._peerBook.addPeer(peerInfo);
+					this._peerBook.upgradePeer(peerInfo);
+				} else {
+					this._peerBook.upgradePeer(peerInfo);
+				}
+			});
+		}
+
+		this._nodeInfo = config.nodeInfo;
+		this.applyNodeInfo(this._nodeInfo);
+
+		this._populatorInterval = config.populatorInterval
+			? config.populatorInterval
+			: DEFAULT_POPULATOR_INTERVAL;
+
+		this._peerHandshakeCheck = config.peerHandshakeCheck
+			? config.peerHandshakeCheck
+			: validatePeerCompatibility;
+	}
+
+	private _createPeerPoolConfig(config: P2PConfig): PeerPoolConfig {
+		return {
 			connectTimeout: config.connectTimeout,
 			ackTimeout: config.ackTimeout,
 			wsMaxPayload: config.wsMaxPayload
@@ -433,31 +461,7 @@ export class P2P extends EventEmitter {
 					: DEFAULT_RATE_CALCULATION_INTERVAL,
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 			peerLists: this._sanitizedPeerLists,
-		});
-
-		this._bindHandlersToPeerPool(this._peerPool);
-		// Add peers to tried peers if want to re-use previously tried peers
-		if (this._sanitizedPeerLists.previousPeers) {
-			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
-				if (!this._peerBook.getPeer(peerInfo)) {
-					this._peerBook.addPeer(peerInfo);
-					this._peerBook.upgradePeer(peerInfo);
-				} else {
-					this._peerBook.upgradePeer(peerInfo);
-				}
-			});
-		}
-
-		this._nodeInfo = config.nodeInfo;
-		this.applyNodeInfo(this._nodeInfo);
-
-		this._populatorInterval = config.populatorInterval
-			? config.populatorInterval
-			: DEFAULT_POPULATOR_INTERVAL;
-
-		this._peerHandshakeCheck = config.peerHandshakeCheck
-			? config.peerHandshakeCheck
-			: validatePeerCompatibility;
+		};
 	}
 
 	public get config(): P2PConfig {
