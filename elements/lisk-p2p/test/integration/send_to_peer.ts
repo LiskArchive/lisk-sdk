@@ -94,7 +94,6 @@ describe('P2P.sendToPeer', () => {
 
 	it('should send message to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
-
 		const targetPeerPort = NETWORK_START_PORT + 3;
 		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 

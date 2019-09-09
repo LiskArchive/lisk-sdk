@@ -16,9 +16,15 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
+import {
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
+	EVENT_CLOSE_INBOUND,
+} from '../../src/index';
 
 describe('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+	const collectedEvents = new Map();
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
@@ -63,6 +69,18 @@ describe('Peer banning mechanism', () => {
 		});
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 		await wait(200);
+
+		const firstNode = p2pNodeList[0];
+
+		firstNode.on(EVENT_BAN_PEER, peerId => {
+			collectedEvents.set('EVENT_BAN_PEER', peerId);
+		});
+		firstNode.on(EVENT_UNBAN_PEER, peerId => {
+			collectedEvents.set('EVENT_UNBAN_PEER', peerId);
+		});
+		firstNode.on(EVENT_CLOSE_INBOUND, packet => {
+			collectedEvents.set('EVENT_CLOSE_INBOUND', packet);
+		});
 	});
 
 	after(async () => {
@@ -103,6 +121,14 @@ describe('Peer banning mechanism', () => {
 		);
 	});
 
+	it(`should fire ${EVENT_BAN_PEER} event`, () => {
+		expect(collectedEvents.get('EVENT_BAN_PEER')).to.exist;
+	});
+
+	it('should emit peerId of banned peer', () => {
+		expect(collectedEvents.get('EVENT_BAN_PEER')).to.eql('127.0.0.1:5002');
+	});
+
 	it('should unban a peer after the ban period', async () => {
 		const firstP2PNode = p2pNodeList[0];
 		const badPeer = firstP2PNode.getConnectedPeers()[2];
@@ -118,5 +144,6 @@ describe('Peer banning mechanism', () => {
 		expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
 			badPeer.wsPort,
 		);
+		expect(collectedEvents.get('EVENT_UNBAN_PEER')).to.exist;
 	});
 });

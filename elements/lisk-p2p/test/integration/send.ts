@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import { P2P, EVENT_MESSAGE_RECEIVED } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
@@ -74,7 +74,7 @@ describe('P2P.send', () => {
 
 		collectedMessages = [];
 		for (let p2p of p2pNodeList) {
-			p2p.on('messageReceived', message => {
+			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
 					nodePort: p2p.nodeInfo.wsPort,
 					message,

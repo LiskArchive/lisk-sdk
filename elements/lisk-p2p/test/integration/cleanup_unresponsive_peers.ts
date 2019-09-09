@@ -40,8 +40,8 @@ describe('Cleanup unresponsive peers', () => {
 								wsPort: NETWORK_START_PORT + index - 1,
 							},
 					  ];
-
 			const nodePort = NETWORK_START_PORT + index;
+			
 			return new P2P({
 				connectTimeout: 100,
 				ackTimeout: 200,
