@@ -16,9 +16,9 @@
 
 const {
 	TransferTransaction,
-	registerSecondPassphrase,
 	SecondSignatureTransaction,
 } = require('@liskhq/lisk-transactions');
+const { getKeys } = require('@liskhq/lisk-cryptography');
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 const BaseGenerator = require('../base_generator');
@@ -151,11 +151,17 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 
 	const secondSignature =
 		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
-	const secondPassphraseObject = registerSecondPassphrase({
-		secondPassphrase: secondSignature,
-	});
-	secondPassphraseObject.timestamp = timestamp;
-	secondPassphraseObject.senderPublicKey = accounts.existingDelegate.publicKey;
+
+	const { publicKey } = getKeys(secondSignature);
+	const secondPassphraseObject = {
+		timestamp,
+		senderPublicKey: accounts.existingDelegate.publicKey,
+		asset: {
+			signature: {
+				publicKey,
+			},
+		},
+	};
 
 	const secondPassphraseTx = new SecondSignatureTransaction(
 		secondPassphraseObject,
@@ -217,11 +223,16 @@ const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 
 	const secondSignature =
 		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
-	const secondPassphraseObject = registerSecondPassphrase({
-		secondPassphrase: secondSignature,
-	});
-	secondPassphraseObject.timestamp = timestamp;
-	secondPassphraseObject.senderPublicKey = accounts.existingDelegate.publicKey;
+	const { publicKey } = getKeys(secondSignature);
+	const secondPassphraseObject = {
+		timestamp,
+		senderPublicKey: accounts.existingDelegate.publicKey,
+		asset: {
+			signature: {
+				publicKey,
+			},
+		},
+	};
 
 	const secondPassphraseTx = new SecondSignatureTransaction(
 		secondPassphraseObject,
@@ -303,11 +314,17 @@ const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 
 	const secondSignature =
 		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
-	const secondPassphraseObject = registerSecondPassphrase({
-		secondPassphrase: secondSignature,
-	});
-	secondPassphraseObject.timestamp = timestamp;
-	secondPassphraseObject.senderPublicKey = accounts.existingDelegate.publicKey;
+
+	const { publicKey } = getKeys(secondSignature);
+	const secondPassphraseObject = {
+		timestamp,
+		senderPublicKey: accounts.existingDelegate.publicKey,
+		asset: {
+			signature: {
+				publicKey,
+			},
+		},
+	};
 
 	const secondPassphraseTx = new SecondSignatureTransaction(
 		secondPassphraseObject,
