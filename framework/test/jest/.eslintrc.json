@@ -1,26 +1,9 @@
 {
 	"extends": ["lisk-base/jest"],
-	"plugins": ["jest"],
-	"env": {
-		"jest/globals": true
-	},
 	"rules": {
 		"callback-return": "error",
 		"no-unused-expressions": "off",
 		"import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
-		"mocha/handle-done-callback": "off",
-		"mocha/max-top-level-suites": "off",
-		"mocha/no-async-describe": "off",
-		"mocha/no-exclusive-tests": "off",
-		"mocha/no-global-tests": "off",
-		"mocha/no-identical-title": "off",
-		"mocha/no-nested-tests": "off",
-		"mocha/no-pending-tests": "off",
-		"mocha/no-return-and-callback": "off",
-		"mocha/no-sibling-hooks": "off",
-		"mocha/no-skipped-tests": "off",
-		"mocha/no-synchronous-tests": "off",
-		"mocha/no-top-level-hooks": "off",
 		"arrow-body-style": "off"
 	}
 }
