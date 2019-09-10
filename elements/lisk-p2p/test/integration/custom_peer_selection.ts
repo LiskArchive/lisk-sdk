@@ -28,7 +28,7 @@ import {
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
-	const NETWORK_PEER_COUNT = 15;
+	const NETWORK_PEER_COUNT = 10;
 	const POPULATOR_INTERVAL = 50;
 
 	// Custom selection function that finds peers having common values for modules field for example.
@@ -84,17 +84,13 @@ describe('Custom peer selection', () => {
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 			// Each node will have the previous node in the sequence as a seed peer except the first node.
-			const seedPeers =
-				index === 0
-					? []
-					: [
-							{
-								ipAddress: '127.0.0.1',
-								wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-							},
-					  ];
-
 			const nodePort = NETWORK_START_PORT + index;
+			const seedPeers = [...new Array(NETWORK_PEER_COUNT / 2).keys()]
+				.map(index => ({
+					ipAddress: '127.0.0.1',
+					wsPort: NETWORK_START_PORT + ((index + 2) % NETWORK_PEER_COUNT),
+				}))
+				.filter(seedPeer => seedPeer.wsPort !== nodePort);
 
 			return new P2P({
 				connectTimeout: 100,
