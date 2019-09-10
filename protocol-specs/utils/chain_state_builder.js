@@ -147,20 +147,23 @@ class ChainStateBuilder {
 			}
 			// Create basic multisignature object
 			const multisignatureObject = registerMultisignatureLisk({
-				passphrase: targetAccount.passphrase,
 				lifetime: 1,
 				minimum: membersAccounts.length,
 				keysgroup: membersAccounts.map(aMember => aMember.publicKey),
 			});
+			multisignatureObject.timestamp = this.timestamp;
+
 			// Create a multisignature instance
 			const multisignatureTXInstance = new MultisignatureTransaction(
 				multisignatureObject,
 			);
+			multisignatureTXInstance.sign(targetAccount.passphrase);
+
 			// Add the signatures for each member
 			// eslint-disable-next-line no-restricted-syntax
 			for (const aMemberAccount of membersAccounts) {
 				const aSigObject = createSignatureObject(
-					multisignatureObject,
+					multisignatureTXInstance.toJSON(),
 					aMemberAccount.passphrase,
 				);
 				multisignatureTXInstance.addMultisignature(null, aSigObject);
