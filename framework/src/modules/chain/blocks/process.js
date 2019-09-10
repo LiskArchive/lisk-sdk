@@ -174,19 +174,16 @@ class BlocksProcess {
 			currentHeight,
 		);
 		let lastBlock = initialBlock;
-		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
 			if (isCleaning() || block.height > targetHeight) {
 				return lastBlock;
 			}
 			if (block.id === this.genesisBlock.id) {
-				// eslint-disable-next-line no-await-in-loop
 				lastBlock = await this.blocksChain.applyGenesisBlock(block);
 				onProgress(lastBlock);
 				// eslint-disable-next-line no-continue
 				continue;
 			}
-			// eslint-disable-next-line no-await-in-loop
 			lastBlock = await this.applyBlock(block, lastBlock);
 			onProgress(lastBlock);
 		}

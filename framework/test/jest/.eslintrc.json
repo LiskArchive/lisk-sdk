@@ -1,5 +1,5 @@
 {
-	"extends": ["plugin:jest/recommended"],
+	"extends": ["lisk-base/jest"],
 	"plugins": ["jest"],
 	"env": {
 		"jest/globals": true

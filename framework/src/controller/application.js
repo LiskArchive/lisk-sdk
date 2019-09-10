@@ -228,11 +228,10 @@ class Application {
 			Object.keys(modules).includes(alias),
 			`No module ${alias} is registered`,
 		);
-		this.config.modules[alias] = Object.assign(
-			{},
-			this.config.modules[alias],
-			options,
-		);
+		this.config.modules[alias] = {
+			...this.config.modules[alias],
+			...options,
+		};
 	}
 
 	/**

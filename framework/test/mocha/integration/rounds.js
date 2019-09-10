@@ -491,8 +491,8 @@ describe('rounds', () => {
 								tick.after.accounts,
 								(result, value, key) => {
 									// Clone actual and expected accounts states
-									const actualAccount = Object.assign({}, value);
-									const expectedAccount = Object.assign({}, expected[key]);
+									const actualAccount = { ...value };
+									const expectedAccount = { ...expected[key] };
 									// Compare actual and expected states
 									if (!_.isEqual(actualAccount.vote, expectedAccount.vote)) {
 										// When comparison fails - calculate absolute difference of 'vote' values

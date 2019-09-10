@@ -475,26 +475,26 @@ describe('block', () => {
 		});
 
 		it('should accept BigNum value (grater than 4294967295) for total amount as string', async () => {
-			const blockDataCopy = Object.assign({}, blockData);
+			const blockDataCopy = { ...blockData };
 			blockDataCopy.totalAmount = '11110000000';
 			return expect(block.getBytes(blockDataCopy)).to.be.an.instanceof(Buffer);
 		});
 
 		it('should accept BigNum value (grater than 4294967295) for total fee as string', async () => {
-			const blockDataCopy = Object.assign({}, blockData);
+			const blockDataCopy = { ...blockData };
 			blockDataCopy.totalFee = '11110000000';
 			return expect(block.getBytes(blockDataCopy)).to.be.an.instanceof(Buffer);
 		});
 
 		it('should accept BigNum value (grater than 4294967295) for reward as string', async () => {
-			const blockDataCopy = Object.assign({}, blockData);
+			const blockDataCopy = { ...blockData };
 			blockDataCopy.reward = '11110000000';
 			return expect(block.getBytes(blockDataCopy)).to.be.an.instanceof(Buffer);
 		});
 
 		it('should return different bytes for different blocks', async () => {
 			const bytes1 = block.getBytes(blockData);
-			const blockDataCopy = Object.assign({}, blockData);
+			const blockDataCopy = { ...blockData };
 			blockDataCopy.height = 100;
 			blockDataCopy.generatorPublicKey =
 				'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
@@ -518,69 +518,69 @@ describe('block', () => {
 			expect(block.verifySignature(blockData)).to.be.true);
 
 		it('should return false for a block with modified version', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.version += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified timestamp', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.timestamp += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified previousBlock', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.previousBlock = '1111112222333333';
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified numberOfTransactions', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.numberOfTransactions += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified totalAmount', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.totalAmount += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified totalFee', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.totalFee += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified reward', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.reward += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified payloadLength', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.payloadLength += 1;
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified payloadHash', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.payloadHash =
 				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified generatorPublicKey', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.generatorPublicKey =
 				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
 			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 
 		it('should return false for a block with modified blockSignature', async () => {
-			const blockCopy = Object.assign({}, blockData);
+			const blockCopy = { ...blockData };
 			blockCopy.blockSignature =
 				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
 			return expect(block.verifySignature(blockCopy)).to.be.false;
