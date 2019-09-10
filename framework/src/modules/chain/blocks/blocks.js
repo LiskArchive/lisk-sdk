@@ -461,13 +461,11 @@ class Blocks extends EventEmitter {
 				this.interfaceAdapters,
 				this.genesisBlock,
 			);
-			// eslint-disable-next-line no-restricted-syntax
 			for (const block of normalizedBlocks) {
 				// check if it's cleaning
 				if (this._cleaning) {
 					break;
 				}
-				// eslint-disable-next-line no-await-in-loop
 				this._lastBlock = await this.blocksProcess.processBlock(
 					block,
 					this._lastBlock,

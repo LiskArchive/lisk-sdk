@@ -291,10 +291,8 @@ class MigrationEntity extends BaseEntity {
 		);
 
 		if (pendingMigrations.length > 0) {
-			// eslint-disable-next-line no-restricted-syntax
 			for (const migration of pendingMigrations) {
 				const execute = tx => this.applyPendingMigration(migration, tx);
-				// eslint-disable-next-line no-await-in-loop
 				await this.begin('migrations:applyAll', execute);
 			}
 		}
