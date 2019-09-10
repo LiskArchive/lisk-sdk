@@ -15,7 +15,6 @@
 'use strict';
 
 const {
-	transfer,
 	TransferTransaction,
 	registerSecondPassphrase,
 	SecondSignatureTransaction,
@@ -105,11 +104,12 @@ const accounts = {
 
 const generateTestCasesValidBlockSecondSignatureTx = () => {
 	const amount = '5500000000';
-	const transferObject = transfer({
+	const transferObject = {
 		amount,
 		recipientId: accounts.existingDelegate.address,
-	});
-	transferObject.timestamp = timestamp;
+		timestamp,
+	};
+
 	const transferTx = new TransferTransaction(transferObject);
 	transferTx.sign(accounts.genesis.passphrase);
 
@@ -207,11 +207,11 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 
 const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 	const amount = '5500000000';
-	const transferObject = transfer({
+	const transferObject = {
 		amount,
 		recipientId: accounts.existingDelegate.address,
-	});
-	transferObject.timestamp = timestamp;
+		timestamp,
+	};
 	const transferTx = new TransferTransaction(transferObject);
 	transferTx.sign(accounts.genesis.passphrase);
 
@@ -257,11 +257,11 @@ const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 
 const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 	const amount = '5500000000';
-	const transferObject = transfer({
+	const transferObject = {
 		amount,
 		recipientId: accounts.existingDelegate.address,
-	});
-	transferObject.timestamp = timestamp;
+		timestamp,
+	};
 	const transferTx = new TransferTransaction(transferObject);
 	transferTx.sign(accounts.genesis.passphrase);
 
