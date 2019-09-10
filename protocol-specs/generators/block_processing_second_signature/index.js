@@ -28,8 +28,11 @@ const { createBlock } = require('../../utils/blocks');
 
 const { genesisBlock } = defaultConfig;
 
+const timestamp = 102702700;
+
 // Computed within Client application
 // TODO: Compute the initial account state here
+// TODO: add this to chain_state_builder
 const initialAccountState = [
 	{
 		address: '16313739661670634666L',
@@ -102,13 +105,13 @@ const accounts = {
 
 const generateTestCasesValidBlockSecondSignatureTx = () => {
 	const amount = '5500000000';
-	const transferTx = new TransferTransaction(
-		transfer({
-			amount,
-			passphrase: accounts.genesis.passphrase,
-			recipientId: accounts.existingDelegate.address,
-		}),
-	);
+	const transferObject = transfer({
+		amount,
+		recipientId: accounts.existingDelegate.address,
+	});
+	transferObject.timestamp = timestamp;
+	const transferTx = new TransferTransaction(transferObject);
+	transferTx.sign(accounts.genesis.passphrase);
 
 	const block = createBlock(
 		defaultConfig,
@@ -148,12 +151,16 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 
 	const secondSignature =
 		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
+	const secondPassphraseObject = registerSecondPassphrase({
+		secondPassphrase: secondSignature,
+	});
+	secondPassphraseObject.timestamp = timestamp;
+	secondPassphraseObject.senderPublicKey = accounts.existingDelegate.publicKey;
+
 	const secondPassphraseTx = new SecondSignatureTransaction(
-		registerSecondPassphrase({
-			passphrase: accounts.existingDelegate.passphrase,
-			secondPassphrase: secondSignature,
-		}),
+		secondPassphraseObject,
 	);
+	secondPassphraseTx.sign(accounts.existingDelegate.passphrase);
 
 	const blockWithSecondSignatureRegistered = createBlock(
 		defaultConfig,
@@ -200,22 +207,26 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 
 const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 	const amount = '5500000000';
-	const transferTx = new TransferTransaction(
-		transfer({
-			amount,
-			passphrase: accounts.genesis.passphrase,
-			recipientId: accounts.existingDelegate.address,
-		}),
-	);
+	const transferObject = transfer({
+		amount,
+		recipientId: accounts.existingDelegate.address,
+	});
+	transferObject.timestamp = timestamp;
+	const transferTx = new TransferTransaction(transferObject);
+	transferTx.sign(accounts.genesis.passphrase);
 
 	const secondSignature =
 		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
+	const secondPassphraseObject = registerSecondPassphrase({
+		secondPassphrase: secondSignature,
+	});
+	secondPassphraseObject.timestamp = timestamp;
+	secondPassphraseObject.senderPublicKey = accounts.existingDelegate.publicKey;
+
 	const secondPassphraseTx = new SecondSignatureTransaction(
-		registerSecondPassphrase({
-			passphrase: accounts.existingDelegate.passphrase,
-			secondPassphrase: secondSignature,
-		}),
+		secondPassphraseObject,
 	);
+	secondPassphraseTx.sign(accounts.existingDelegate.passphrase);
 
 	const block = createBlock(
 		defaultConfig,
@@ -246,13 +257,13 @@ const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 
 const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 	const amount = '5500000000';
-	const transferTx = new TransferTransaction(
-		transfer({
-			amount,
-			passphrase: accounts.genesis.passphrase,
-			recipientId: accounts.existingDelegate.address,
-		}),
-	);
+	const transferObject = transfer({
+		amount,
+		recipientId: accounts.existingDelegate.address,
+	});
+	transferObject.timestamp = timestamp;
+	const transferTx = new TransferTransaction(transferObject);
+	transferTx.sign(accounts.genesis.passphrase);
 
 	const block = createBlock(
 		defaultConfig,
@@ -292,12 +303,16 @@ const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 
 	const secondSignature =
 		'erupt sponsor rude supreme vacant delay salute allow laundry swamp curve brain';
+	const secondPassphraseObject = registerSecondPassphrase({
+		secondPassphrase: secondSignature,
+	});
+	secondPassphraseObject.timestamp = timestamp;
+	secondPassphraseObject.senderPublicKey = accounts.existingDelegate.publicKey;
+
 	const secondPassphraseTx = new SecondSignatureTransaction(
-		registerSecondPassphrase({
-			passphrase: accounts.existingDelegate.passphrase,
-			secondPassphrase: secondSignature,
-		}),
+		secondPassphraseObject,
 	);
+	secondPassphraseTx.sign(accounts.existingDelegate.passphrase);
 
 	const blockWithSecondSignatureRegistered = createBlock(
 		defaultConfig,
@@ -328,11 +343,9 @@ const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 	);
 
 	const newSecondPassphraseTx = new SecondSignatureTransaction(
-		registerSecondPassphrase({
-			passphrase: accounts.existingDelegate.passphrase,
-			secondPassphrase: secondSignature,
-		}),
+		secondPassphraseObject,
 	);
+	newSecondPassphraseTx.sign(accounts.existingDelegate.passphrase);
 
 	const blockWithNewSecondSignatureNewRegistration = createBlock(
 		defaultConfig,
