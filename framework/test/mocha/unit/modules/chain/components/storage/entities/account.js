@@ -159,7 +159,7 @@ describe('ChainAccount', () => {
 			const account = new accountFixtures.Account();
 			await AccountEntity.create(account);
 
-			const mergedObject = Object.assign({}, defaultCreateValues, account);
+			const mergedObject = { ...defaultCreateValues, ...account };
 
 			expect(AccountEntity.getValuesSet.firstCall.args[0]).to.be.eql([
 				mergedObject,
@@ -190,7 +190,7 @@ describe('ChainAccount', () => {
 					extended: true,
 				},
 			);
-			const mergedObject = Object.assign({}, defaultCreateValues, account);
+			const mergedObject = { ...defaultCreateValues, ...account };
 
 			expect(mergedObject).to.be.eql(accountResult);
 		});
@@ -211,7 +211,7 @@ describe('ChainAccount', () => {
 					extended: true,
 				},
 			);
-			const mergedObject = Object.assign({}, defaultCreateValues, account);
+			const mergedObject = { ...defaultCreateValues, ...account };
 
 			expect(mergedObject).to.be.eql(accountResult);
 			expect(accountResult.asset).to.be.eql(account.asset);
@@ -237,7 +237,7 @@ describe('ChainAccount', () => {
 							extended: true,
 						},
 					);
-					const mergedObject = Object.assign({}, defaultCreateValues, account);
+					const mergedObject = { ...defaultCreateValues, ...account };
 
 					return expect(mergedObject).to.be.eql(accountResult);
 				}),
@@ -1332,7 +1332,7 @@ describe('ChainAccount', () => {
 
 		const fork = new forksFixtures.Fork();
 		Object.keys(fork).forEach(attr => {
-			const params = Object.assign({}, fork);
+			const params = { ...fork };
 			delete params[attr];
 
 			it(`should be rejected with error if param "${attr}" is missing`, async () => {
