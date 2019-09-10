@@ -33,10 +33,7 @@ const runGenerator = (generatorName, suiteCreators) => {
 
 		const fullPath = `${dirPath}/${suiteResult.handler}.json`;
 
-		fs.writeFileSync(
-			fullPath,
-			`${JSON.stringify(suiteResult, null, 2)} \u000A`,
-		);
+		fs.writeFileSync(fullPath, `${JSON.stringify(suiteResult, null, 2)}\u000A`);
 	}
 };
 
