@@ -20,9 +20,17 @@ const {
 	TransferTransaction,
 	registerDelegate,
 	DelegateTransaction,
+	VoteTransaction,
+	castVotes,
 	MultisignatureTransaction,
 	registerMultisignature: registerMultisignatureLisk,
 } = require('@liskhq/lisk-transactions');
+const {
+	getAddressFromPrivateKey,
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
+const { Mnemonic } = require('@liskhq/lisk-passphrase');
+
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 
@@ -200,6 +208,39 @@ class ChainStateBuilder {
 		};
 	}
 
+	castVotesFrom(votingAccountAddress) {
+		return {
+			voteDelegates: votedDelegates => ({
+				unvoteDelegates: unvotedDelegates => {
+					if (votedDelegates.length + unvotedDelegates.length > 33) {
+						// eslint-disable-next-line no-console
+						console.log(
+							`WARNING: you included '${votedDelegates.length +
+								unvotedDelegates.length}' votes in a vote transaction. This is only valid for simulating invalid scenarios!`,
+						);
+					}
+					// Get the account that's voting
+					const votingAccount = this.findAccountByAddress(
+						votingAccountAddress,
+						Object.values(this.state.accounts),
+					);
+
+					// Create the JSON for the vote transaction
+					const castVotesObject = castVotes({
+						passphrase: votingAccount.passphrase,
+						votes: votedDelegates,
+						unvotes: unvotedDelegates,
+					});
+					// Create vote transaction instance
+					const voteInstance = new VoteTransaction(castVotesObject);
+
+					this.state.pendingTransactions.push(voteInstance);
+					return this;
+				},
+			}),
+		};
+	}
+
 	forge() {
 		const latestsAccountState = this.state.accountStore.slice(-1)[0];
 		this.processBlockTransactions(this.state.pendingTransactions);
@@ -261,6 +302,9 @@ class ChainStateBuilder {
 						this.fees.delegate,
 						aTransaction.asset.delegate.username,
 					);
+					break;
+				case 3:
+					this.updateAccountStateAfterCastingvotes(aTransaction);
 					break;
 				case 4:
 					this.updateAccountStateAfterMultisignatureRegistration(aTransaction);
@@ -366,6 +410,43 @@ class ChainStateBuilder {
 		this.state.accountStore.push(newAccountStoreState);
 	}
 
+	updateAccountStateAfterCastingvotes(castVotesTransaction) {
+		const newAccountStoreState = cloneDeep(
+			this.state.accountStore.slice(-1)[0],
+		);
+
+		// Update sender balance
+		const sender = this.findAccountByAddress(
+			castVotesTransaction._senderId,
+			newAccountStoreState,
+		);
+		sender.balance = new BigNum(sender.balance.toString())
+			.sub(castVotesTransaction.fee)
+			.toString();
+		// Extract voted publicKeys from vote transaction
+		// eslint-disable-next-line no-restricted-syntax
+		for (const aVotedPublicKey of castVotesTransaction.asset.votes) {
+			const action = aVotedPublicKey.slice(0, 1);
+			const publickKey = aVotedPublicKey.slice(1);
+			const affectedAccount = newAccountStoreState.find(
+				anAccount => anAccount.publicKey === publickKey,
+			);
+
+			if (action === '+') {
+				affectedAccount.vote = new BigNum(affectedAccount.vote)
+					.plus(sender.balance)
+					.toString();
+			} else {
+				affectedAccount.vote = new BigNum(affectedAccount.vote)
+					.sub(sender.balance)
+					.toString();
+			}
+		}
+
+		// Finally push all updates to the account store
+		this.state.accountStore.push(newAccountStoreState);
+	}
+
 	// eslint-disable-next-line
 	findAccountByAddress(address, collection) {
 		return collection.find(anAccount => anAccount.address === address);
@@ -391,6 +472,20 @@ class ChainStateBuilder {
 			rewards: 0,
 			vote: 0,
 			productivity: 0,
+		};
+	}
+
+	static createAccount() {
+		const passphrase = Mnemonic.generateMnemonic();
+		const keys = getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const address = getAddressFromPrivateKey(keys.privateKey);
+
+		return {
+			passphrase,
+			privateKey: keys.privateKey,
+			publicKey: keys.publicKey,
+			address,
+			balance: '0',
 		};
 	}
 }
