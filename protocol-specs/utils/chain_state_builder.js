@@ -234,12 +234,13 @@ class ChainStateBuilder {
 
 					// Create the JSON for the vote transaction
 					const castVotesObject = castVotes({
-						passphrase: votingAccount.passphrase,
 						votes: votedDelegates,
 						unvotes: unvotedDelegates,
 					});
+					castVotesObject.timestamp = this.timestamp;
 					// Create vote transaction instance
 					const voteInstance = new VoteTransaction(castVotesObject);
+					voteInstance.sign(votingAccount.passphrase);
 
 					this.state.pendingTransactions.push(voteInstance);
 					return this;
