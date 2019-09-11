@@ -14,11 +14,6 @@
 
 'use strict';
 
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-	// eslint-disable-next-line global-require
-	require('./helpers/newrelic_lisk');
-}
-
 const { createLoggerComponent } = require('../../components/logger');
 const {
 	createCacheComponent,
