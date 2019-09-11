@@ -1,10 +1,10 @@
 {
 	"extends": ["../.eslintrc.json"],
 	"rules": {
+		"camelcase": ["warn", { "properties": "never" }],
 		"strict": "off",
 		"max-len": "off",
 		"no-underscore-dangle": "off",
-		"camelcase": ["warn"],
 		"space-before-function-paren": ["warn"],
 		"no-param-reassign": ["warn"],
 		"no-throw-literal": ["warn"]

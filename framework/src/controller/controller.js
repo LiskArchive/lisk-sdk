@@ -202,24 +202,20 @@ class Controller {
 
 	async _loadModules(modules, moduleOptions) {
 		// To perform operations in sequence and not using bluebird
-		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
 			const klass = modules[alias];
 			const options = moduleOptions[alias];
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {
-					// eslint-disable-next-line no-await-in-loop
 					await this._loadChildProcessModule(alias, klass, options);
 				} else {
 					this.logger.warn(
 						`IPC is disabled. ${alias} will be loaded in-memory.`,
 					);
-					// eslint-disable-next-line no-await-in-loop
 					await this._loadInMemoryModule(alias, klass, options);
 				}
 			} else {
-				// eslint-disable-next-line no-await-in-loop
 				await this._loadInMemoryModule(alias, klass, options);
 			}
 		}
@@ -328,9 +324,7 @@ class Controller {
 	async unloadModules(modules = Object.keys(this.modules)) {
 		// To perform operations in sequence and not using bluebird
 
-		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of modules) {
-			// eslint-disable-next-line no-await-in-loop
 			await this.modules[alias].unload();
 			delete this.modules[alias];
 		}

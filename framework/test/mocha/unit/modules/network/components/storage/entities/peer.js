@@ -434,7 +434,7 @@ describe('Peer', () => {
 		});
 
 		it('should update all peers object successfully with matching condition', async () => {
-			const validPeerTwo = Object.assign({}, validPeer);
+			const validPeerTwo = { ...validPeer };
 			const oldOS = 'linux2.6.32-042stab127.2';
 			const newOS = 'Open BSD';
 			validPeerTwo.ip = '90.1.32.34';
@@ -536,7 +536,7 @@ describe('Peer', () => {
 		});
 
 		it('should update only one peer object successfully with matching condition', async () => {
-			const validPeerTwo = Object.assign({}, validPeer);
+			const validPeerTwo = { ...validPeer };
 			const updatedIp = '127.0.0.1';
 			validPeerTwo.ip = '90.1.32.34';
 			await storage.entities.Peer.create(validPeer);

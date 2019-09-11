@@ -82,7 +82,7 @@ module.exports = function create(fittingDef) {
 				.getJsonForKey(cacheKey)
 				.then(cachedValue => {
 					if (cachedValue) {
-						logger.debug(
+						logger.trace(
 							'Cache - Sending cached response for url:',
 							context.request.url,
 						);
@@ -91,7 +91,7 @@ module.exports = function create(fittingDef) {
 					return next(null, context.input);
 				})
 				.catch(getJsonForKeyErr => {
-					logger.debug(getJsonForKeyErr.message);
+					logger.trace(getJsonForKeyErr.message);
 					return next(null, context.input);
 				});
 		}
@@ -99,7 +99,7 @@ module.exports = function create(fittingDef) {
 		// If cache fitting is called after response processing
 		if (mode === 'post_response') {
 			if (context.statusCode === 200 || context.response.statusCode === 200) {
-				logger.debug(
+				logger.trace(
 					'Cache - Setting response cache for url:',
 					context.request.url,
 				);
@@ -107,7 +107,7 @@ module.exports = function create(fittingDef) {
 					.setJsonForKey(cacheKey, context.input)
 					.then(() => next(null, context.input))
 					.catch(error => {
-						logger.debug(error.message);
+						logger.trace(error.message);
 						return next(null, context.input);
 					});
 			}
