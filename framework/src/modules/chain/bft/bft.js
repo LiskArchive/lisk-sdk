@@ -16,6 +16,7 @@
 
 const EventEmitter = require('events');
 const assert = require('assert');
+const { cloneDeep } = require('lodash');
 const {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
@@ -139,6 +140,28 @@ class BFT extends EventEmitter {
 		// We don't need async operations here as of now but can require in future
 		// and for consistency with other interfaces keeping it async
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
+	}
+
+	/**
+	 * Computes maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties that are necessary
+	 * for creating a new block
+	 * @param delegatePubKey
+	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: (number|*)}>}
+	 */
+	async computeBlockHeadersForNewBlock(delegatePubKey) {
+		const blockHeaders = cloneDeep(this.finalityManager.headers.items);
+		const lastBlockForgedByDelegate = blockHeaders
+			.reverse()
+			.find(blockHeader => blockHeader.delegatePublicKey === delegatePubKey);
+
+		const maxHeightPreviouslyForged = !lastBlockForgedByDelegate
+			? 0
+			: lastBlockForgedByDelegate.height;
+
+		return {
+			maxHeightPreviouslyForged,
+			prevotedConfirmedUptoHeight: this.finalityManager.prevotedConfirmedHeight, // It is 0 by default. No need to set default values here.
+		};
 	}
 
 	/**
