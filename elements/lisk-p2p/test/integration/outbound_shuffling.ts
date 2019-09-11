@@ -21,7 +21,7 @@ describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT_SHUFFLING = 10;
-	const POPULATOR_INTERVAL_SHUFFLING = 10000;
+	const POPULATOR_INTERVAL_SHUFFLING = 3000;
 	const OUTBOUND_SHUFFLE_INTERVAL = 500;
 
 	before(async () => {
@@ -33,17 +33,19 @@ describe('Outbound peer shuffling', () => {
 			index => {
 				const nodePort = NETWORK_START_PORT + index;
 
-				const seedPeers = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()]
+				const seedPeers = [
+					...new Array(NETWORK_PEER_COUNT_SHUFFLING / 2).keys(),
+				]
 					.map(index => ({
 						ipAddress: '127.0.0.1',
 						wsPort:
-							NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT_SHUFFLING),
+							NETWORK_START_PORT + ((index + 2) % NETWORK_PEER_COUNT_SHUFFLING),
 					}))
 					.filter(seedPeer => seedPeer.wsPort !== nodePort);
 
 				return new P2P({
-					connectTimeout: 200,
-					ackTimeout: 200,
+					connectTimeout: 500,
+					ackTimeout: 500,
 					seedPeers,
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
@@ -88,6 +90,6 @@ describe('Outbound peer shuffling', () => {
 			'_peerPool'
 		].getPeersCountPerKind();
 
-		expect(updatedOutbound).to.equal(outboundCount - 1);
+		expect(updatedOutbound).lt(outboundCount);
 	});
 });
