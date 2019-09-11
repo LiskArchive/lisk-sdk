@@ -19,6 +19,7 @@ import { platform } from 'os';
 
 describe('Message rate limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+	const removedPeers = new Map();
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 	const POPULATOR_INTERVAL = 50;
@@ -72,6 +73,30 @@ describe('Message rate limit', () => {
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 
 		await wait(1000);
+		const secondP2PNode = p2pNodeList[1];
+		secondP2PNode.on(EVENT_REMOVE_PEER, peerId => {
+			const peerWsPort = peerId.split(':')[1];
+			const localRemovedNodes = [];
+			if (removedPeers.get(secondP2PNode.nodeInfo.wsPort)) {
+				localRemovedNodes.push(
+					...removedPeers.get(secondP2PNode.nodeInfo.wsPort),
+				);
+			}
+			localRemovedNodes.push(peerWsPort);
+			removedPeers.set(secondP2PNode.nodeInfo.wsPort, localRemovedNodes);
+		});
+		const thirdP2PNode = p2pNodeList[2];
+		thirdP2PNode.on(EVENT_REMOVE_PEER, peerId => {
+			const peerWsPort = peerId.split(':')[1];
+			const localRemovedNodes = [];
+			if (removedPeers.get(thirdP2PNode.nodeInfo.wsPort)) {
+				localRemovedNodes.push(
+					...removedPeers.get(thirdP2PNode.nodeInfo.wsPort),
+				);
+			}
+			localRemovedNodes.push(peerWsPort);
+			removedPeers.set(thirdP2PNode.nodeInfo.wsPort, localRemovedNodes);
+		});
 	});
 
 	afterEach(async () => {
@@ -135,13 +160,6 @@ describe('Message rate limit', () => {
 			const TOTAL_SENDS = 300;
 			const firstP2PNode = p2pNodeList[0];
 			const secondP2PNode = p2pNodeList[1];
-
-			const removedPeers: Array<string> = [];
-
-			secondP2PNode.on(EVENT_REMOVE_PEER, peerId => {
-				removedPeers.push(peerId);
-			});
-
 			const targetPeerId = `127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
@@ -157,9 +175,11 @@ describe('Message rate limit', () => {
 				} catch (error) {}
 			}
 
-			await wait(100);
+			await wait(10);
 
-			expect(removedPeers).to.contain('127.0.0.1:5000');
+			expect(removedPeers.get(secondP2PNode.nodeInfo.wsPort)).to.contain(
+				firstP2PNode.nodeInfo.wsPort.toString(),
+			);
 		});
 	});
 
@@ -225,12 +245,6 @@ describe('Message rate limit', () => {
 			const firstP2PNode = p2pNodeList[0];
 			const thirdP2PNode = p2pNodeList[2];
 
-			const removedPeers: Array<string> = [];
-
-			firstP2PNode.on(EVENT_REMOVE_PEER, peerId => {
-				removedPeers.push(peerId);
-			});
-
 			const targetPeerId = `127.0.0.1:${thirdP2PNode.nodeInfo.wsPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
@@ -248,9 +262,11 @@ describe('Message rate limit', () => {
 				})();
 			}
 
-			await wait(100);
+			await wait(10);
 
-			expect(removedPeers).to.contain('127.0.0.1:5002');
+			expect(removedPeers.get(thirdP2PNode.nodeInfo.wsPort)).to.contain(
+				firstP2PNode.nodeInfo.wsPort.toString(),
+			);
 		});
 	});
 });
