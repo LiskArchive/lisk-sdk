@@ -14,11 +14,6 @@
 
 'use strict';
 
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-	// eslint-disable-next-line global-require
-	require('./utils/newrelic_lisk');
-}
-
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const { createStorageComponent } = require('../../components/storage');
