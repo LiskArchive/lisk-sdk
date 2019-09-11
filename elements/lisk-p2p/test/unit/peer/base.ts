@@ -64,6 +64,7 @@ describe('peer/base', () => {
 	});
 
 	afterEach(() => {
+		sandbox.restore();
 		defaultPeer.disconnect();
 	});
 
@@ -181,8 +182,8 @@ describe('peer/base', () => {
 
 		describe('when reputation goes below 0', () => {
 			beforeEach(() => {
-				sandbox.spy(defaultPeer, 'emit');
-				sandbox.spy(defaultPeer, 'disconnect');
+				sandbox.stub(defaultPeer, 'emit');
+				sandbox.stub(defaultPeer, 'disconnect');
 			});
 
 			it('should apply penalty', () => {
@@ -226,7 +227,7 @@ describe('peer/base', () => {
 
 	describe('#applyNodeInfo', () => {
 		beforeEach(() => {
-			defaultPeer.request = sandbox.stub().resolves();
+			sandbox.stub(defaultPeer, 'request').resolves();
 		});
 
 		it('should apply node info', async () => {
@@ -240,7 +241,7 @@ describe('peer/base', () => {
 
 	describe('#nodeInfo', () => {
 		beforeEach(() => {
-			defaultPeer.request = sandbox.stub().resolves();
+			sandbox.stub(defaultPeer, 'request').resolves();
 		});
 
 		it('should apply node info', async () => {
