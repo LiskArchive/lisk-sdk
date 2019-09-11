@@ -543,10 +543,8 @@ class Transport {
 	 * @param {Array} signatures - Array of signatures
 	 */
 	async _receiveSignatures(signatures = []) {
-		// eslint-disable-next-line no-restricted-syntax
 		for (const signature of signatures) {
 			try {
-				// eslint-disable-next-line no-await-in-loop
 				await this._receiveSignature(signature);
 			} catch (err) {
 				this.logger.debug(err, signature);
@@ -584,13 +582,11 @@ class Transport {
 	 * @param {Array} transactions - Array of transactions
 	 */
 	async _receiveTransactions(transactions = []) {
-		// eslint-disable-next-line no-restricted-syntax
 		for (const transaction of transactions) {
 			try {
 				if (transaction) {
 					transaction.bundled = true;
 				}
-				// eslint-disable-next-line no-await-in-loop
 				await this._receiveTransaction(transaction);
 			} catch (err) {
 				this.logger.debug(convertErrorsToString(err), transaction);
