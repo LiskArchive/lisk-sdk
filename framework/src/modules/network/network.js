@@ -139,7 +139,8 @@ module.exports = class Network {
 				wsPort: peer.wsPort,
 			})),
 			previousPeers: previousPeers.map(peer => {
-				const { ip, ...strippedPeer } = peer;
+				// Remove the id field coming from the database.
+				const { ip, id, ...strippedPeer } = peer;
 
 				return {
 					ipAddress: ip,
