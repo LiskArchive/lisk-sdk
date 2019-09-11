@@ -16,9 +16,7 @@
 
 const {
 	createSignatureObject,
-	transfer: transferLisk,
 	TransferTransaction,
-	registerDelegate,
 	DelegateTransaction,
 	VoteTransaction,
 	castVotes,
@@ -66,6 +64,7 @@ class ChainStateBuilder {
 			multisignature: this.fixedPoint * 5,
 		};
 		this.lastTransactionId = null;
+		this.timestamp = 102702700;
 	}
 
 	transfer(amount) {
@@ -74,16 +73,18 @@ class ChainStateBuilder {
 				to: addressTo => {
 					const amountBeddows = `${amount * this.fixedPoint}`;
 
-					const transferTx = new TransferTransaction(
-						transferLisk({
-							amount: amountBeddows,
-							passphrase: Object.values(this.state.accounts).find(
-								anAccount => anAccount.address === addressFrom,
-							).passphrase,
-							recipientId: Object.values(this.state.accounts).find(
-								anAccount => anAccount.address === addressTo,
-							).address,
-						}),
+					const transferTx = new TransferTransaction({
+						amount: amountBeddows,
+						recipientId: Object.values(this.state.accounts).find(
+							anAccount => anAccount.address === addressTo,
+						).address,
+						timestamp: this.timestamp,
+					});
+
+					transferTx.sign(
+						Object.values(this.state.accounts).find(
+							anAccount => anAccount.address === addressFrom,
+						).passphrase,
 					);
 					// Push it to pending transaction
 					this.state.pendingTransactions.push(transferTx);
@@ -97,14 +98,20 @@ class ChainStateBuilder {
 	registerDelegate(delegateName) {
 		return {
 			for: delegateAddress => {
-				const registerDelegateTx = new DelegateTransaction(
-					registerDelegate({
-						username: delegateName,
-						passphrase: Object.values(this.state.accounts).find(
-							anAccount => anAccount.address === delegateAddress,
-						).passphrase,
-					}),
+				const sender = Object.values(this.state.accounts).find(
+					anAccount => anAccount.address === delegateAddress,
 				);
+				const registerDelegateTx = new DelegateTransaction({
+					timestamp: this.timestamp,
+					asset: {
+						delegate: {
+							username: delegateName,
+						},
+					},
+				});
+
+				registerDelegateTx.sign(sender.passphrase);
+
 				// Push it to pending transaction
 				this.state.pendingTransactions.push(registerDelegateTx);
 				this.lastTransactionId = registerDelegateTx._id;
@@ -140,20 +147,23 @@ class ChainStateBuilder {
 			}
 			// Create basic multisignature object
 			const multisignatureObject = registerMultisignatureLisk({
-				passphrase: targetAccount.passphrase,
 				lifetime: 1,
 				minimum: membersAccounts.length,
 				keysgroup: membersAccounts.map(aMember => aMember.publicKey),
 			});
+			multisignatureObject.timestamp = this.timestamp;
+
 			// Create a multisignature instance
 			const multisignatureTXInstance = new MultisignatureTransaction(
 				multisignatureObject,
 			);
+			multisignatureTXInstance.sign(targetAccount.passphrase);
+
 			// Add the signatures for each member
 			// eslint-disable-next-line no-restricted-syntax
 			for (const aMemberAccount of membersAccounts) {
 				const aSigObject = createSignatureObject(
-					multisignatureObject,
+					multisignatureTXInstance.toJSON(),
 					aMemberAccount.passphrase,
 				);
 				multisignatureTXInstance.addMultisignature(null, aSigObject);
@@ -227,12 +237,13 @@ class ChainStateBuilder {
 
 					// Create the JSON for the vote transaction
 					const castVotesObject = castVotes({
-						passphrase: votingAccount.passphrase,
 						votes: votedDelegates,
 						unvotes: unvotedDelegates,
 					});
+					castVotesObject.timestamp = this.timestamp;
 					// Create vote transaction instance
 					const voteInstance = new VoteTransaction(castVotesObject);
+					voteInstance.sign(votingAccount.passphrase);
 
 					this.state.pendingTransactions.push(voteInstance);
 					return this;
