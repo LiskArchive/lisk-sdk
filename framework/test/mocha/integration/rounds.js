@@ -229,35 +229,6 @@ describe('rounds', () => {
 		return accounts;
 	}
 
-	function recalculateVote(_accounts, voters) {
-		const accounts = _.cloneDeep(_accounts);
-
-		// Reset vote for all accounts
-		_.each(accounts, account => {
-			account.vote = '0';
-		});
-
-		// Recalculate vote
-		_.each(voters, delegate => {
-			let votes = '0';
-			const found = _.find(accounts, {
-				publicKey: hexToBuffer(delegate.dependentId),
-			});
-
-			_.each(delegate.array_agg, voter => {
-				const foundAccount = _.find(accounts, {
-					address: voter,
-				});
-				votes = new BigNum(votes)
-					.plus(new BigNum(foundAccount.balance))
-					.toString();
-			});
-			found.vote = votes;
-		});
-
-		return accounts;
-	}
-
 	function recalculateVoteWeight(_accounts, voters) {
 		const accounts = _.cloneDeep(_accounts);
 
@@ -285,60 +256,6 @@ describe('rounds', () => {
 		});
 
 		return accounts;
-	}
-
-	function recalculateRanks(_accounts) {
-		let accounts = _.cloneDeep(_accounts);
-
-		// Sort accounts - vote DESC, publicKey ASC
-		accounts = Object.keys(accounts)
-			.sort((a, b) => {
-				const aVote = new BigNum(accounts[a].vote);
-				const bVote = new BigNum(accounts[b].vote);
-				const aPK = accounts[a].publicKey;
-				const bPK = accounts[b].publicKey;
-				// Compare vote weights first:
-				// if first is less than second - return -1,
-				// if first is greather than second - return 1,
-				// if both are equal - compare public keys
-				if (aVote.lt(bVote)) {
-					return -1;
-				}
-				if (aVote.gt(bVote)) {
-					return 1;
-				}
-				// If both are buffers
-				// Return result of the compare
-				if (aPK && bPK) {
-					return Buffer.compare(bPK, aPK);
-				}
-				// If both are null - return 0
-				if (aPK === null && bPK === null) {
-					return 0;
-				}
-				// If first is null - return -1,
-				if (aPK === null) {
-					return -1;
-				}
-				// if not return 1;
-				return 1;
-			})
-			.map(key => accounts[key])
-			.reverse();
-
-		const tmpAccounts = {};
-		let rank = 0;
-		_.each(accounts, account => {
-			if (account.isDelegate) {
-				++rank;
-				account.rank = rank.toString();
-			} else {
-				account.rank = null;
-			}
-			tmpAccounts[account.address] = account;
-		});
-
-		return tmpAccounts;
 	}
 
 	function applyOutsiders(_accounts, delegatesList, blocks) {
@@ -382,7 +299,7 @@ describe('rounds', () => {
 						tick.before.accounts = _.cloneDeep(_accounts);
 						tick.before.delegates = _.cloneDeep(_delegates);
 						tick.before.delegatesList = _.cloneDeep(_delegatesList);
-						tick.before.delegatesOrderedByVote = _.cloneDeep(
+						tick.before.delegatesOrderedByVoteWeight = _.cloneDeep(
 							_delegatesOrderedByVote,
 						);
 					},
@@ -413,7 +330,7 @@ describe('rounds', () => {
 									tick.after.accounts = _.cloneDeep(_accounts);
 									tick.after.delegates = _.cloneDeep(_delegates);
 									tick.after.delegatesList = _.cloneDeep(_delegatesList);
-									tick.after.delegatesOrderedByVote = _.cloneDeep(
+									tick.after.delegatesOrderedByVoteWeight = _.cloneDeep(
 										_delegatesOrderedByVote,
 									);
 
@@ -459,8 +376,7 @@ describe('rounds', () => {
 				);
 			});
 
-			// eslint-disable-next-line mocha/no-skipped-tests
-			describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: mem_accounts table', () => {
+			describe('mem_accounts table', () => {
 				it('if block contains at least one transaction states before and after block should be different', done => {
 					if (transactions.length > 0) {
 						expect(tick.before.accounts).to.not.deep.equal(tick.after.accounts);
@@ -468,27 +384,17 @@ describe('rounds', () => {
 					done();
 				});
 
-				it('delegates with highest weight used for generating list should be the same for same round', async () => {
-					if (tick.isLastBlockOfRound) {
-						return expect(tick.before.delegatesOrderedByVote).to.not.deep.equal(
-							tick.after.delegatesOrderedByVote,
-						);
+				it('delegates ordered by voteWeight should change when round changes', async () => {
+					if (tick.isRoundChanged) {
+						return expect(
+							tick.before.delegatesOrderedByVoteWeight,
+						).to.not.deep.equal(tick.after.delegatesOrderedByVoteWeight);
 					}
-
-					return expect(tick.before.delegatesOrderedByVote).to.deep.equal(
-						tick.after.delegatesOrderedByVote,
-					);
+					return true;
 				});
 
 				it('delegates list should be the same for same round', async () => {
-					if (
-						(tick.isLastBlockOfRound &&
-							!_.isEqual(
-								tick.before.delegatesOrderedByVote,
-								tick.after.delegatesOrderedByVote,
-							)) ||
-						tick.isRoundChanged
-					) {
+					if (tick.isLastBlockOfRound || tick.isRoundChanged) {
 						return expect(tick.before.delegatesList).to.not.deep.equal(
 							tick.after.delegatesList,
 						);
@@ -508,65 +414,15 @@ describe('rounds', () => {
 					// Last block of round - apply round expectactions
 					if (tick.isLastBlockOfRound) {
 						expected = applyRoundRewards(expected, tick.roundBlocks);
-						expected = recalculateVote(expected, tick.roundVoters);
 						expected = applyOutsiders(
 							expected,
 							tick.before.delegatesList,
 							tick.roundBlocks,
 						);
-
-						// FIXME: Remove that nasty hack after https://github.com/LiskHQ/lisk/issues/2423 is closed
-						try {
-							expect(tick.after.accounts).to.deep.equal(expected);
-						} catch (err) {
-							// When comparison of mem_accounts states fail
-							_.reduce(
-								tick.after.accounts,
-								(result, value, key) => {
-									// Clone actual and expected accounts states
-									const actualAccount = Object.assign({}, value);
-									const expectedAccount = Object.assign({}, expected[key]);
-									// Compare actual and expected states
-									if (!_.isEqual(actualAccount.vote, expectedAccount.vote)) {
-										// When comparison fails - calculate absolute difference of 'vote' values
-										const absoluteDiff = Math.abs(
-											new BigNum(actualAccount.vote)
-												.minus(new BigNum(expectedAccount.vote))
-												.toNumber(),
-										);
-										// If absolute value is 1 beddows - pass the test, as reason is related to issue #716
-										if (absoluteDiff === 1) {
-											__testContext.debug(
-												`ERROR: Value of 'vote' for account ${key} doesn't match expectations, actual: ${
-													actualAccount.vote
-												}, expected: ${
-													expectedAccount.vote
-												}, diff: ${absoluteDiff} beddows`,
-											);
-											// Overwrite expected vote with current one, so recalculateRanks can be calculated correctly
-											expected[key].vote = actualAccount.vote;
-										} else {
-											// In every other case - fail the test
-											throw err;
-										}
-									}
-								},
-								[],
-							);
-						}
-
-						expected = recalculateRanks(expected);
 					}
 
 					expect(tick.after.accounts).to.deep.equal(expected);
 					done();
-				});
-
-				it('balances should be valid against blockchain balances', async () => {
-					// Perform validation of accounts balances against blockchain after every block
-					return expect(Queries.validateAccountsBalances()).to.eventually.be.an(
-						'array',
-					).that.is.empty;
 				});
 			});
 		});
@@ -702,12 +558,11 @@ describe('rounds', () => {
 				return expect(lastBlock.height).to.be.equal(ACTIVE_DELEGATES);
 			});
 
-			// eslint-disable-next-line mocha/no-skipped-tests
-			it.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)', async () => {
+			it('should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)', async () => {
 				return Promise.join(
 					getMemAccounts(),
 					Queries.getBlocks(round.current),
-					Queries.getRoundRewards(round.current),
+					Queries.getRoundRewards(round.current, ACTIVE_DELEGATES),
 					getDelegates(),
 					(_accounts, _blocks, _rewards, _delegates) => {
 						const delegates = {};
@@ -724,7 +579,7 @@ describe('rounds', () => {
 
 						// Get expected rewards for round (calculated)
 						const expectedRewards = getExpectedRoundRewards(_blocks);
-						// Rewards from database table rounds_rewards should match calculated rewards
+						// Rewards from database should match calculated rewards
 						expect(_rewards).to.deep.equal(expectedRewards);
 
 						// Because first block of round 1 is genesis block - there will be always 1 outsider in first round
@@ -759,8 +614,7 @@ describe('rounds', () => {
 			});
 		});
 
-		// eslint-disable-next-line mocha/no-skipped-tests
-		describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: delete last block of round 1, block contains 1 transaction type SEND', () => {
+		describe('delete last block of round 1, block contains 1 transaction type SEND', () => {
 			let lastBlock;
 
 			before(async () => {
@@ -783,25 +637,6 @@ describe('rounds', () => {
 				done();
 			});
 
-			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', async () => {
-				return expect(
-					Queries.getRoundRewards(round.current),
-				).to.eventually.deep.equal({});
-			});
-
-			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
-				return getMemAccounts().then(_accounts => {
-					// Add back empty account, created accounts are never deleted
-					const address = lastBlock.transactions[0].recipientId;
-					round.accountsBeforeLastBlock[address] = accountsFixtures.dbAccount({
-						address,
-						balance: '0',
-					});
-
-					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
-				});
-			});
-
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const freshLastBlock = library.modules.blocks.lastBlock;
 				const delegatesList = await library.modules.dpos.getRoundDelegates(
@@ -811,20 +646,13 @@ describe('rounds', () => {
 			});
 		});
 
-		// eslint-disable-next-line mocha/no-skipped-tests
-		describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: deleting last block of round twice in a row', () => {
+		describe('deleting last block of round twice in a row', () => {
 			before(() => {
 				return addTransactionsAndForgePromise(library, [], 0);
 			});
 
 			it('should be able to delete last block of round again', async () => {
 				await library.modules.processor.deleteLastBlock();
-			});
-
-			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
-				return getMemAccounts().then(_accounts => {
-					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
-				});
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
@@ -836,8 +664,7 @@ describe('rounds', () => {
 			});
 		});
 
-		// eslint-disable-next-line mocha/no-skipped-tests
-		describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: round rollback when forger of last block of round is unvoted', () => {
+		describe('round rollback when forger of last block of round is unvoted', () => {
 			let lastBlock;
 			let lastBlockForger;
 			const transactions = [];
@@ -856,6 +683,7 @@ describe('rounds', () => {
 				transactions.push(transaction);
 
 				lastBlock = library.modules.blocks.lastBlock;
+
 				// Delete one block more
 				await library.modules.processor.deleteLastBlock();
 			});
@@ -880,10 +708,10 @@ describe('rounds', () => {
 				done();
 			});
 
-			it('expected forger of last block of round should have proper votes', async () => {
+			it('expected forger of last block of round to have zero votes', async () => {
 				return getDelegates().then(delegates => {
 					const delegate = delegates[lastBlockForger];
-					expect(delegate.vote).to.equal('10000000000000000');
+					return expect(Number(delegate.voteWeight)).to.be.above(0);
 				});
 			});
 
@@ -899,10 +727,10 @@ describe('rounds', () => {
 					});
 				});
 
-				it('expected forger of last block of round should still have proper votes', async () => {
+				it('expected forger of last block of round to have zero votes', async () => {
 					return getDelegates().then(delegates => {
 						const delegate = delegates[lastBlockForger];
-						expect(delegate.vote).to.equal('10000000000000000');
+						expect(delegate.voteWeight).to.equal('0');
 					});
 				});
 			});
@@ -918,12 +746,12 @@ describe('rounds', () => {
 					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
 
-				it('forger of last block of previous round should have vote = 0', async () => {
+				it('expected forger of last block of round to have zero votes', async () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
 							1,
 						);
-						return expect(_delegates[lastBlockForger].vote).to.equal('0');
+						return expect(_delegates[lastBlockForger].voteWeight).to.equal('0');
 					});
 				});
 			});
@@ -942,21 +770,18 @@ describe('rounds', () => {
 					});
 				});
 
-				it('expected forger of last block of round should have proper votes again', async () => {
+				it('expected forger of last block of round to have zero votes', async () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
 							0,
 						);
-						return expect(_delegates[lastBlockForger].vote).to.equal(
-							'10000000000000000',
-						);
+						return expect(_delegates[lastBlockForger].voteWeight).to.equal('0');
 					});
 				});
 			});
 		});
 
-		// eslint-disable-next-line mocha/no-skipped-tests
-		describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: round rollback when forger of last block of round is replaced in last block of round', () => {
+		describe('round rollback when forger of last block of round is replaced in last block of round', () => {
 			let lastBlock;
 			let lastBlockForger;
 			let tmpAccount;
@@ -1065,26 +890,22 @@ describe('rounds', () => {
 					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
 
-				// TODO: to be unskiped on https://github.com/LiskHQ/lisk-sdk/issues/4147
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('unvoted delegate should not be on list', async () => {
+				it('unvoted delegate should not be on list', async () => {
 					return expect(delegatesList).to.not.contain(lastBlockForger);
 				});
 
-				// TODO: to be unskiped on https://github.com/LiskHQ/lisk-sdk/issues/4147
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('delegate who replaced unvoted one should be on list', async () => {
+				it('delegate who replaced unvoted one should be on list', async () => {
 					return expect(delegatesList).to.contain(tmpAccount.publicKey);
 				});
 
-				it('forger of last block of previous round should have vote = 0', async () => {
+				it('forger of last block of previous round should have voteWeight = 0', async () => {
 					expect(delegates[round.outsiderPublicKey].missedBlocks).to.equal(1);
-					return expect(delegates[lastBlockForger].vote).to.equal('0');
+					return expect(delegates[lastBlockForger].voteWeight).to.equal('0');
 				});
 
 				it('delegate who replaced last block forger should have proper votes', async () => {
 					return expect(
-						Number(delegates[tmpAccount.publicKey].vote),
+						Number(delegates[tmpAccount.publicKey].voteWeight),
 					).to.be.above(0);
 				});
 			});
@@ -1110,15 +931,15 @@ describe('rounds', () => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
 							0,
 						);
-						return expect(_delegates[lastBlockForger].vote).to.equal(
-							'10000000000000000',
-						);
+						return expect(
+							Number(_delegates[lastBlockForger].voteWeight),
+						).to.be.above(0);
 					});
 				});
 
-				it('delegate who replaced last block forger should have vote, producedBlocks, missedBlocks = 0', async () => {
+				it('delegate who replaced last block forger should have voteWeight, producedBlocks, missedBlocks = 0', async () => {
 					return getDelegates().then(_delegates => {
-						expect(_delegates[tmpAccount.publicKey].vote).to.equal('0');
+						expect(_delegates[tmpAccount.publicKey].voteWeight).to.equal('0');
 						expect(_delegates[tmpAccount.publicKey].producedBlocks).to.equal(0);
 						expect(_delegates[tmpAccount.publicKey].missedBlocks).to.equal(0);
 					});
@@ -1172,8 +993,7 @@ describe('rounds', () => {
 				);
 			});
 
-			// eslint-disable-next-line mocha/no-skipped-tests
-			describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: before rewards start', () => {
+			describe('before rewards start', () => {
 				it('last block height should be at height 149', async () => {
 					const lastBlock = library.modules.blocks.lastBlock;
 					return expect(lastBlock.height).to.equal(149);
@@ -1238,11 +1058,10 @@ describe('rounds', () => {
 			});
 
 			describe('after finish round', () => {
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)', async () => {
+				it('should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)', async () => {
 					return Promise.join(
 						Queries.getBlocks(2),
-						Queries.getRoundRewards(2),
+						Queries.getRoundRewards(2, ACTIVE_DELEGATES),
 						(_blocks, _rewards) => {
 							// Get expected rewards for round (native)
 							const expectedRewards = getExpectedRoundRewards(_blocks);
@@ -1255,35 +1074,22 @@ describe('rounds', () => {
 		});
 	});
 
-	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 ::rollback more than 1 round of blocks', () => {
+	describe('rollback more than 1 round of blocks', () => {
 		let lastBlock;
 
 		before(() => {
-			return Promise.mapSeries([...Array(101)], async () => {
+			return Promise.mapSeries([...Array(102)], async () => {
 				return library.modules.processor.deleteLastBlock();
 			});
 		});
 
-		it('last block height should be at height 101', async () => {
+		it('last block height should be at height 100', async () => {
 			lastBlock = library.modules.blocks.lastBlock;
-			return expect(lastBlock.height).to.equal(101);
-		});
-
-		it('should fail when try to delete one more block (last block of round 1)', async () => {
-			return expect(
-				library.modules.processor.deleteLastBlock(),
-			).to.eventually.be.rejectedWith('Snapshot for round 1 not available');
-		});
-
-		it('last block height should be still at height 101', async () => {
-			lastBlock = library.modules.blocks.lastBlock;
-			return expect(lastBlock.height).to.equal(101);
+			return expect(lastBlock.height).to.equal(100);
 		});
 	});
 
-	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: deleting last block of round twice in a row - no transactions during round', () => {
+	describe('deleting last block of round twice in a row - no transactions during round', () => {
 		before(() => {
 			return Promise.mapSeries([...Array(202)], async () => {
 				return addTransactionsAndForgePromise(library, [], 0);
