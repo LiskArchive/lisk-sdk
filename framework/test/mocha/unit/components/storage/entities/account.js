@@ -825,7 +825,7 @@ describe('Account', () => {
 					);
 
 					const sortedAccounts = _.orderBy(
-						Object.assign({}, accounts),
+						{ ...accounts },
 						['username', 'address'],
 						['desc', 'asc'],
 					);
