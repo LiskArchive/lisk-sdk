@@ -148,7 +148,7 @@ class BFT extends EventEmitter {
 	 * @param delegatePubKey
 	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: (number|*)}>}
 	 */
-	async computeBlockHeadersForNewBlock(delegatePubKey) {
+	async computeHeadersForNewBlock(delegatePubKey) {
 		const blockHeaders = cloneDeep(this.finalityManager.headers.items);
 		const lastBlockForgedByDelegate = blockHeaders
 			.reverse()
