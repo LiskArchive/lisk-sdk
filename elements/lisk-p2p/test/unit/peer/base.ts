@@ -21,6 +21,7 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 } from '../../../src/constants';
 import { EVENT_BAN_PEER } from '../../../src/events';
+import { SCServerSocket } from 'socketcluster-server';
 
 describe('peer/base', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
@@ -253,9 +254,53 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#connect', () => it('should connect'));
+	describe('#connect', () => {
+		it('should not throw error if socket exists', () => {
+			const socket = <SCServerSocket>({
+				destroy: sandbox.stub(),
+			} as any);
 
-	describe('#disconnect', () => it('should disconnect'));
+			try {
+				defaultPeer['_socket'] = socket;
+				defaultPeer.connect();
+				expect(defaultPeer['_socket']).to.be.not.undefined;
+			} catch (e) {
+				expect(e).to.be.undefined;
+			}
+		});
+
+		it('should throw error if socket does not exist', async () => {
+			defaultPeer.disconnect();
+			try {
+				defaultPeer.connect();
+			} catch (e) {
+				expect(e).to.be.an('Error');
+				expect(e.message).to.be.eql('Peer socket does not exist');
+			}
+		});
+	});
+
+	describe('#disconnect', () => {
+		it('should clear intervals', () => {
+			const counterResetIntervalId = defaultPeer['_counterResetInterval'];
+			const productivityResetIntervalId =
+				defaultPeer['_productivityResetInterval'];
+			sandbox.spy(global, 'clearInterval');
+			defaultPeer.disconnect();
+			expect(clearInterval).to.be.calledTwice;
+			expect(clearInterval).to.be.calledWith(counterResetIntervalId);
+			expect(clearInterval).to.be.calledWith(productivityResetIntervalId);
+		});
+
+		it('should destroy socket if it exists', async () => {
+			const socket = <SCServerSocket>({
+				destroy: sandbox.stub(),
+			} as any);
+			defaultPeer['_socket'] = socket;
+			defaultPeer.disconnect();
+			expect(socket.destroy).to.be.calledOnceWithExactly(1000, undefined);
+		});
+	});
 
 	describe('#send', () => it('should send'));
 
