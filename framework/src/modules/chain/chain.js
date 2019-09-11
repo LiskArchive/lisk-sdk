@@ -169,21 +169,30 @@ module.exports = class Chain {
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
-				this.channel.subscribe('network:event', ({ data: { event, data } }) => {
-					if (event === 'postTransactions') {
-						this.transport.postTransactions(data);
-						return;
-					}
-					if (event === 'postSignatures') {
-						this.transport.postSignatures(data);
-						return;
-					}
-					if (event === 'postBlock') {
-						this.transport.postBlock(data);
-						// eslint-disable-next-line no-useless-return
-						return;
-					}
-				});
+				this.channel.subscribe(
+					'network:event',
+					async ({ data: { event, data } }) => {
+						try {
+							if (event === 'postTransactions') {
+								await this.transport.postTransactions(data);
+								return;
+							}
+							if (event === 'postSignatures') {
+								await this.transport.postSignatures(data);
+								return;
+							}
+							if (event === 'postBlock') {
+								await this.transport.postBlock(data);
+								return;
+							}
+						} catch (error) {
+							this.logger.warn(
+								{ error, event },
+								'Received invalid event message',
+							);
+						}
+					},
+				);
 			}
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
