@@ -99,17 +99,14 @@ async function _getConfirmedTransactionCount() {
 	// if cache is ready, then get cache and return
 	if (library.components.cache.ready) {
 		try {
-			const { confirmed } = await library.components.cache.getJsonForKey(
+			const data = await library.components.cache.getJsonForKey(
 				CACHE_KEYS_TRANSACTION_COUNT,
 			);
-			if (confirmed === undefined || confirmed === null) {
-				throw new Error(
-					'Transaction count wasn cached but confirmed did not exist',
-				);
+			if (data && data.confirmed !== null && data.confirmed !== undefined) {
+				return data.confirmed;
 			}
-			return confirmed;
 		} catch (error) {
-			library.components.logger.warn("Transaction count wasn't cached", error);
+			library.components.logger.debug("Transaction count wasn't cached");
 		}
 	}
 	const confirmed = await library.components.storage.entities.Transaction.count();
@@ -124,7 +121,10 @@ async function _getConfirmedTransactionCount() {
 			);
 		} catch (error) {
 			// Ignore error and just put warn
-			library.components.logger.warn("Transaction count wasn't cached", error);
+			library.components.logger.debug(
+				error,
+				'Failed to cache Transaction count',
+			);
 		}
 	}
 	return confirmed;
