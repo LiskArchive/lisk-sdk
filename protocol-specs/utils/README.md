@@ -2,7 +2,7 @@
 
 This folder contains several helpers for helping in writting protocol-specs for the Lisk protocol.
 
-###Chain State Builder
+### Chain State Builder
 
 It's a library that abstracts transaction and block generation by usage of a fluent interface. It was constructed along with the writting of the basic generators for each transaction type so the code works but in the future we might want to improve it. All transactions types but `second signature` are implemented already and can be reused (check block generators for full usage examples)
 
@@ -117,12 +117,4 @@ chainStateBuilder
 	.forge();
 ```
 
-Calling `forge()` generates a new block in the state so depending on how many times transfer and registerDelegate are called different combination of transactions will be included in a block.
-
-## Resources
-
-- [Spec link or LIP]()
-
 ## Comments
-
-Further comments
