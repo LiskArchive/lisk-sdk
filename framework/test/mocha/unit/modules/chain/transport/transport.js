@@ -895,19 +895,15 @@ describe('transport', () => {
 							beforeEach(async () => {
 								sinonSandbox
 									.stub(blocksModule, 'objectNormalize')
-									.throws(blockValidationError);
-								transportModule.postBlock(postBlockQuery);
+									.throws(new Error(blockValidationError));
 							});
 
-							it('should call transportModule.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () => {
-								expect(transportModule.logger.debug).to.be.calledWith(
-									'Block normalization failed',
-									{
-										err: blockValidationError.toString(),
-										module: 'transport',
-										block: blockMock,
-									},
-								);
+							it('should throw an error', async () => {
+								try {
+									await transportModule.postBlock(postBlockQuery);
+								} catch (err) {
+									expect(err.message).to.equal(blockValidationError);
+								}
 							});
 						});
 
