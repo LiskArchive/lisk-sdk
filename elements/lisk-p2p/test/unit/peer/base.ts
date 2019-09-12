@@ -18,6 +18,7 @@ import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PRequestPacket,
+	P2PResponsePacket,
 } from '../../../src/p2p_types';
 import {
 	DEFAULT_REPUTATION_SCORE,
@@ -28,7 +29,10 @@ import {
 	EVENT_BAN_PEER,
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from '../../../src/events';
+import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
 
 describe('peer/base', () => {
@@ -403,7 +407,94 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#fetchPeers', () => it('should fetch peers'));
+	describe('#fetchPeers', () => {
+		it('should call request', async () => {
+			sandbox.stub(defaultPeer, 'request').resolves({
+				data: {
+					peers: [],
+					success: true,
+				},
+			});
+			await defaultPeer.fetchPeers();
+			expect(defaultPeer.request).to.be.calledOnceWith({
+				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
+			});
+		});
+
+		describe('when request() fails', () => {
+			beforeEach(() => {
+				sandbox.stub(defaultPeer, 'emit');
+				sandbox.stub(defaultPeer, 'request').throws('Error');
+			});
+
+			it(`should emit ${EVENT_FAILED_TO_FETCH_PEERS} event`, async () => {
+				try {
+					await defaultPeer.fetchPeers();
+				} catch (e) {
+					expect(defaultPeer.emit).to.be.calledOnceWith(
+						EVENT_FAILED_TO_FETCH_PEERS,
+					);
+				}
+			});
+
+			it('should throw an error', async () => {
+				try {
+					await defaultPeer.fetchPeers();
+				} catch (e) {
+					expect(e).to.be.an.instanceOf(RPCResponseError);
+					expect(e.message).to.be.eql('Failed to fetch peer list of peer');
+					expect(e.peerId).to.be.eql(defaultPeerInfo.ipAddress);
+				}
+			});
+		});
+
+		describe('when request() succeeds', () => {
+			const peers = [
+				{
+					ip: '1.1.1.1',
+					wsPort: 1111,
+					version: '1.1.1',
+				},
+				{
+					ip: '2.2.2.2',
+					wsPort: 2222,
+					version: '2.2.2',
+				},
+			];
+			const sanitizedPeers = [
+				{
+					ipAddress: '1.1.1.1',
+					wsPort: 1111,
+					version: '1.1.1',
+					height: 0,
+					protocolVersion: undefined,
+					os: '',
+				},
+				{
+					ipAddress: '2.2.2.2',
+					wsPort: 2222,
+					version: '2.2.2',
+					height: 0,
+					protocolVersion: undefined,
+					os: '',
+				},
+			];
+
+			beforeEach(() => {
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers,
+						success: true,
+					},
+				});
+			});
+
+			it('should return a sanitized peer list', async () => {
+				const response = ((await defaultPeer.fetchPeers()) as unknown) as P2PResponsePacket;
+				expect(response).to.be.eql(sanitizedPeers);
+			});
+		});
+	});
 
 	describe('#discoverPeers', () => it('should discover peers'));
 
