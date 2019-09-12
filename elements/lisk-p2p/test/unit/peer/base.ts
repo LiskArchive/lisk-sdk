@@ -17,13 +17,18 @@ import { Peer } from '../../../src/peer';
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
+	P2PRequestPacket,
 } from '../../../src/p2p_types';
 import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 } from '../../../src/constants';
-import { EVENT_BAN_PEER, REMOTE_SC_EVENT_MESSAGE } from '../../../src/events';
+import {
+	EVENT_BAN_PEER,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
+} from '../../../src/events';
 import { SCServerSocket } from 'socketcluster-server';
 
 describe('peer/base', () => {
@@ -365,7 +370,38 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#request', () => it('should request'));
+	describe('#request', () => {
+		it('should throw error if socket does not exists', async () => {
+			const p2pPacket = {
+				data: 'myData',
+				procedure: 'myProcedure',
+			} as P2PRequestPacket;
+			try {
+				await defaultPeer.request(p2pPacket);
+			} catch (e) {
+				expect(e).to.be.an('Error');
+				expect(e.message).to.be.eql('Peer socket does not exist');
+			}
+		});
+
+		it('should emit if socket exists', () => {
+			const p2pPacket = {
+				data: 'myData',
+				procedure: 'myProcedure',
+			} as P2PRequestPacket;
+			const socket = <SCServerSocket>({
+				emit: sandbox.stub(),
+				destroy: sandbox.stub(),
+			} as any);
+			defaultPeer['_socket'] = socket;
+			defaultPeer.request(p2pPacket);
+			expect(socket.emit).to.be.calledOnceWith(REMOTE_SC_EVENT_RPC_REQUEST, {
+				type: '/RPCRequest',
+				procedure: p2pPacket.procedure,
+				data: p2pPacket.data,
+			});
+		});
+	});
 
 	describe('#fetchPeers', () => it('should fetch peers'));
 
