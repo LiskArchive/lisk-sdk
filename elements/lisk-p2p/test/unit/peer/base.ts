@@ -14,13 +14,16 @@
  */
 import { expect } from 'chai';
 import { Peer } from '../../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import {
+	P2PDiscoveredPeerInfo,
+	P2PMessagePacket,
+} from '../../../src/p2p_types';
 import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 } from '../../../src/constants';
-import { EVENT_BAN_PEER } from '../../../src/events';
+import { EVENT_BAN_PEER, REMOTE_SC_EVENT_MESSAGE } from '../../../src/events';
 import { SCServerSocket } from 'socketcluster-server';
 
 describe('peer/base', () => {
@@ -194,7 +197,7 @@ describe('peer/base', () => {
 				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
 			});
 
-			it('should emit EVENT_BAN_PEER', () => {
+			it(`should emit ${EVENT_BAN_PEER} event`, () => {
 				const penalty = DEFAULT_REPUTATION_SCORE;
 				defaultPeer.applyPenalty(penalty);
 				expect(defaultPeer.emit).to.be.calledOnceWithExactly(
@@ -255,6 +258,16 @@ describe('peer/base', () => {
 	});
 
 	describe('#connect', () => {
+		it('should throw error if socket does not exist', async () => {
+			defaultPeer.disconnect();
+			try {
+				defaultPeer.connect();
+			} catch (e) {
+				expect(e).to.be.an('Error');
+				expect(e.message).to.be.eql('Peer socket does not exist');
+			}
+		});
+
 		it('should not throw error if socket exists', () => {
 			const socket = <SCServerSocket>({
 				destroy: sandbox.stub(),
@@ -266,16 +279,6 @@ describe('peer/base', () => {
 				expect(defaultPeer['_socket']).to.be.not.undefined;
 			} catch (e) {
 				expect(e).to.be.undefined;
-			}
-		});
-
-		it('should throw error if socket does not exist', async () => {
-			defaultPeer.disconnect();
-			try {
-				defaultPeer.connect();
-			} catch (e) {
-				expect(e).to.be.an('Error');
-				expect(e.message).to.be.eql('Peer socket does not exist');
 			}
 		});
 	});
@@ -302,7 +305,65 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#send', () => it('should send'));
+	describe('#send', () => {
+		it('should throw error if socket does not exists', () => {
+			const p2pPacket = {
+				data: 'myData',
+				event: 'myEvent',
+			} as P2PMessagePacket;
+			try {
+				defaultPeer.send(p2pPacket);
+			} catch (e) {
+				expect(e).to.be.an('Error');
+				expect(e.message).to.be.eql('Peer socket does not exist');
+			}
+		});
+
+		describe('when events are legacy', () => {
+			const legacyEvents = ['postBlock', 'postTransactions', 'postSignatures'];
+
+			legacyEvents.forEach(event => {
+				it(`should emit legacy remote events if '${event}' event`, () => {
+					const p2pPacket = {
+						data: 'myData',
+						event,
+					} as P2PMessagePacket;
+					const socket = <SCServerSocket>({
+						emit: sandbox.stub(),
+						destroy: sandbox.stub(),
+					} as any);
+					defaultPeer['_socket'] = socket;
+					defaultPeer.send(p2pPacket);
+					expect(socket.emit).to.be.calledOnceWithExactly(
+						p2pPacket.event,
+						p2pPacket.data,
+					);
+				});
+			});
+		});
+
+		describe('when events are not legacy', () => {
+			it(`should emit with ${REMOTE_SC_EVENT_MESSAGE} event`, () => {
+				const p2pPacket = {
+					data: 'myData',
+					event: 'myEvent',
+				} as P2PMessagePacket;
+				const socket = <SCServerSocket>({
+					emit: sandbox.stub(),
+					destroy: sandbox.stub(),
+				} as any);
+				defaultPeer['_socket'] = socket;
+				defaultPeer.send(p2pPacket);
+				expect(socket.emit).to.be.calledOnceWithExactly(
+					REMOTE_SC_EVENT_MESSAGE,
+					{
+						event: p2pPacket.event,
+						data: p2pPacket.data,
+					},
+				);
+			});
+		});
+	});
 
 	describe('#request', () => it('should request'));
 
