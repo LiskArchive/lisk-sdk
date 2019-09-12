@@ -147,21 +147,8 @@ class BFT extends EventEmitter {
 	 * @param delegatePubKey
 	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: (number|*)}>}
 	 */
-	async computeHeadersForNewBlock(delegatePubKey) {
-		const [
-			lastBlockForgedByDelegate,
-		] = this.finalityManager.headers.items
-			.filter(blockHeader => blockHeader.delegatePublicKey === delegatePubKey)
-			.slice(-1);
-
-		const maxHeightPreviouslyForged = !lastBlockForgedByDelegate
-			? 0
-			: lastBlockForgedByDelegate.height;
-
-		return {
-			maxHeightPreviouslyForged,
-			prevotedConfirmedUptoHeight: this.finalityManager.prevotedConfirmedHeight, // It is 0 by default. No need to set default values here.
-		};
+	async computeBFTHeaderProperties(delegatePubKey) {
+		return this.finalityManager.computeBFTHeaderProperties(delegatePubKey);
 	}
 
 	/**
