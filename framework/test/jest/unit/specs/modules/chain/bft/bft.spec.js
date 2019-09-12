@@ -397,17 +397,9 @@ describe('bft', () => {
 			beforeEach(async () => {
 				bft = new BFT(bftParams);
 
-				jest
-					.spyOn(bft, '_getLastBlockHeight')
-					.mockImplementation(() => jest.fn());
-				jest
-					.spyOn(bft, '_loadBlocksFromStorage')
-					.mockImplementation(() => jest.fn());
-
 				storageMock.entities.Block.get.mockReset();
 				storageMock.entities.Block.get.mockReturnValue([]);
 
-				bft._getLastBlockHeight.mockReturnValue(1);
 				await bft.init();
 			});
 
