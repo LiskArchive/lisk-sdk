@@ -16,7 +16,6 @@
 
 const EventEmitter = require('events');
 const assert = require('assert');
-const { cloneDeep } = require('lodash');
 const {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
@@ -149,10 +148,11 @@ class BFT extends EventEmitter {
 	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: (number|*)}>}
 	 */
 	async computeHeadersForNewBlock(delegatePubKey) {
-		const blockHeaders = cloneDeep(this.finalityManager.headers.items);
-		const lastBlockForgedByDelegate = blockHeaders
-			.reverse()
-			.find(blockHeader => blockHeader.delegatePublicKey === delegatePubKey);
+		const [
+			lastBlockForgedByDelegate,
+		] = this.finalityManager.headers.items
+			.filter(blockHeader => blockHeader.delegatePublicKey === delegatePubKey)
+			.slice(-1);
 
 		const maxHeightPreviouslyForged = !lastBlockForgedByDelegate
 			? 0
