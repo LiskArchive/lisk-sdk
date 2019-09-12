@@ -33,6 +33,7 @@ import {
 	DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
 	DEFAULT_RANDOM_SECRET,
+	DEFAULT_SEND_PEER_LIMIT,
 } from '../../src/constants';
 
 describe('peerPool', () => {
@@ -156,6 +157,79 @@ describe('peerPool', () => {
 
 			it('should return an empty array', async () => {
 				expect(peerPool.getConnectedPeers().map(peer => peer.peerInfo)).eql([]);
+			});
+		});
+	});
+
+	describe('#request', () => {
+		let caughtError: Error;
+		beforeEach(async () => {
+			// @ts-ignore
+			peerPool['_peerSelectForRequest'] = sandbox
+				.stub()
+				.returns([] as ReadonlyArray<P2PPeerInfo>);
+			try {
+				await peerPool.request({ procedure: 'proc', data: 123 });
+			} catch (err) {
+				caughtError = err;
+			}
+		});
+
+		it('should call _peerSelectForRequest with all the necessary options', async () => {
+			expect(peerPool['_peerSelectForRequest']).to.be.calledWith({
+				peers: [],
+				nodeInfo: peerPool.nodeInfo,
+				peerLimit: 1,
+				requestPacket: { procedure: 'proc', data: 123 },
+			});
+		});
+
+		it('should throw an error if no peers are found', async () => {
+			expect(caughtError).to.not.be.null;
+			expect(caughtError)
+				.to.have.property('name')
+				.which.equals('RequestFailError');
+		});
+	});
+
+	describe('#send', () => {
+		beforeEach(async () => {
+			// @ts-ignore
+			peerPool['_peerSelectForSend'] = sandbox
+				.stub()
+				.returns([] as ReadonlyArray<P2PPeerInfo>);
+			peerPool.send({ event: 'foo', data: 123 });
+		});
+
+		it('should call _peerSelectForSend with all the necessary options', async () => {
+			expect(peerPool['_peerSelectForSend']).to.be.calledWith({
+				peers: [],
+				nodeInfo: peerPool.nodeInfo,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
+				messagePacket: { event: 'foo', data: 123 },
+			});
+		});
+	});
+
+	describe('#triggerNewConnections', () => {
+		beforeEach(async () => {
+			// @ts-ignore
+			peerPool['_peerSelectForConnection'] = sandbox
+				.stub()
+				.returns([] as ReadonlyArray<P2PPeerInfo>);
+			sandbox.stub(peerPool, 'getPeersCountPerKind').returns({
+				outboundCount: 0,
+				inboundCount: 0,
+			});
+			peerPool.triggerNewConnections([], [], []);
+		});
+
+		it('should call _peerSelectForConnection with all the necessary options', async () => {
+			expect(peerPool['_peerSelectForConnection']).to.be.calledWith({
+				newPeers: [],
+				triedPeers: [],
+				nodeInfo: peerPool.nodeInfo,
+				peerLimit: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			});
 		});
 	});
