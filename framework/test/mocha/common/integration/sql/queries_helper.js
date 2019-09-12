@@ -93,28 +93,26 @@ class Queries {
 				{ round, numberOfDelegates },
 			)
 			.then(resp => {
-				const { delegates, rewards, fees } = resp[0];
-				const feesPerDelegate = new BigNum(fees || 0)
+				const { delegates, rewards, fees = 0 } = resp[0];
+				const feesPerDelegate = new BigNum(fees)
 					.dividedBy(numberOfDelegates)
 					.floor();
 
-				const feesRemaining = new BigNum(fees || 0).minus(
+				const feesRemaining = new BigNum(fees).minus(
 					feesPerDelegate.times(numberOfDelegates),
 				);
 
 				return delegates.reduce((respObj, publicKey, index) => {
-					const hexPublicKey = publicKey.toString('hex');
-
-					if (respObj[hexPublicKey]) {
-						respObj[hexPublicKey].fees = respObj[hexPublicKey].fees.plus(
+					if (respObj[publicKey]) {
+						respObj[publicKey].fees = respObj[publicKey].fees.plus(
 							feesPerDelegate,
 						);
-						respObj[hexPublicKey].rewards = respObj[hexPublicKey].rewards.plus(
+						respObj[publicKey].rewards = respObj[publicKey].rewards.plus(
 							rewards[index],
 						);
 					} else {
-						respObj[hexPublicKey] = {
-							publicKey: hexPublicKey,
+						respObj[publicKey] = {
+							publicKey,
 							fees: new BigNum(feesPerDelegate),
 							rewards: new BigNum(rewards[index]),
 						};
@@ -122,7 +120,7 @@ class Queries {
 
 					if (index === rewards.length - 1) {
 						// Apply remaining fees to last delegate
-						respObj[hexPublicKey].fees = respObj[hexPublicKey].fees.plus(
+						respObj[publicKey].fees = respObj[publicKey].fees.plus(
 							feesRemaining,
 						);
 					}

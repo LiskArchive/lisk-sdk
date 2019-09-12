@@ -637,6 +637,19 @@ describe('rounds', () => {
 				done();
 			});
 
+			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
+				return getMemAccounts().then(_accounts => {
+					// Add back empty account, created accounts are never deleted
+					const address = lastBlock.transactions[0].recipientId;
+					round.accountsBeforeLastBlock[address] = accountsFixtures.dbAccount({
+						address,
+						balance: '0',
+					});
+
+					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
+				});
+			});
+
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const freshLastBlock = library.modules.blocks.lastBlock;
 				const delegatesList = await library.modules.dpos.getRoundDelegates(
@@ -653,6 +666,12 @@ describe('rounds', () => {
 
 			it('should be able to delete last block of round again', async () => {
 				await library.modules.processor.deleteLastBlock();
+			});
+
+			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
+				return getMemAccounts().then(_accounts => {
+					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
+				});
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
@@ -708,7 +727,7 @@ describe('rounds', () => {
 				done();
 			});
 
-			it('expected forger of last block of round to have zero votes', async () => {
+			it('expected forger of last block of round to have voteWeight > 0', async () => {
 				return getDelegates().then(delegates => {
 					const delegate = delegates[lastBlockForger];
 					return expect(Number(delegate.voteWeight)).to.be.above(0);
@@ -727,7 +746,7 @@ describe('rounds', () => {
 					});
 				});
 
-				it('expected forger of last block of round to have zero votes', async () => {
+				it('expected forger of last block of round to have voteWeight = 0', async () => {
 					return getDelegates().then(delegates => {
 						const delegate = delegates[lastBlockForger];
 						expect(delegate.voteWeight).to.equal('0');
@@ -746,7 +765,7 @@ describe('rounds', () => {
 					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
 
-				it('expected forger of last block of round to have zero votes', async () => {
+				it('expected forger of last block of round to have voteWeight = 0', async () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
 							1,
@@ -770,7 +789,7 @@ describe('rounds', () => {
 					});
 				});
 
-				it('expected forger of last block of round to have zero votes', async () => {
+				it('expected forger of last block of round to have voteWeight = 0', async () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
 							0,
