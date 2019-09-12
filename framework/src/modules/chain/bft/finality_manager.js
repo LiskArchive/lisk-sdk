@@ -335,7 +335,7 @@ class FinalityManager extends EventEmitter {
 	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: number}>}
 	 */
 	async computeBFTHeaderProperties(delegatePubKey) {
-		const lastBlockForgedByDelegate = this._findLatestBlockForgedByDelegate(
+		const lastBlockForgedByDelegate = this._findLastBlockForgedByDelegate(
 			delegatePubKey,
 		);
 
@@ -380,7 +380,7 @@ class FinalityManager extends EventEmitter {
 		}
 
 		// Find top most block forged by same delegate
-		const delegateLastBlock = this._findLatestBlockForgedByDelegate(
+		const delegateLastBlock = this._findLastBlockForgedByDelegate(
 			blockHeader.delegatePublicKey,
 		);
 
