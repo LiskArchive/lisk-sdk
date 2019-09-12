@@ -353,7 +353,7 @@ class FinalityManager extends EventEmitter {
 	 * Returns the latest block that a delegate has forged
 	 * @return {BlockHeader | undefined} blockHeader
 	 */
-	_findLatestBlockForgedByDelegate(delegatePublicKey) {
+	_findLastBlockForgedByDelegate(delegatePublicKey) {
 		// Find top most block forged by same delegate
 		return this.headers
 			.top(this.processingThreshold)
