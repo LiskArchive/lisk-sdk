@@ -89,14 +89,19 @@ class DelegatesInfo {
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {
+			const round = this.slots.calcRound(block.height);
+
 			if (undo) {
 				/**
 				 * If we are reverting the block, new transactions
 				 * can change vote weight of delegates, so we need to
 				 * invalidate the cache for the next rounds.
 				 */
-				const round = this.slots.calcRound(block.height);
 				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
+			} else {
+				// Create round delegate list
+				const nextRound = round + 1;
+				await this.delegatesList.createRoundDelegateList(nextRound, tx);
 			}
 
 			const roundSummary = await this._summarizeRound(block, tx);

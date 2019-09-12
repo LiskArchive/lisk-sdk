@@ -53,7 +53,7 @@ class DelegatesList extends EventEmitter {
 		return shuffleDelegateListForRound(round, list);
 	}
 
-	async getDelegatePublicKeysSortedByVote() {
+	async getDelegatePublicKeysSortedByVoteWeight() {
 		const filters = { isDelegate: true };
 		const options = {
 			limit: this.activeDelegates,
@@ -64,20 +64,35 @@ class DelegatesList extends EventEmitter {
 	}
 
 	async generateActiveDelegateList(round) {
-		let delegatePublicKeys = await this.storage.entities.RoundDelegates.getRoundDelegates(
+		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getRoundDelegates(
 			round,
 		);
 
 		if (!delegatePublicKeys.length) {
-			delegatePublicKeys = await this.getDelegatePublicKeysSortedByVote();
-
-			await this.storage.entities.RoundDelegates.create({
-				round,
-				delegatePublicKeys,
-			});
+			throw new Error(`No delegate list found for round: ${round}`);
 		}
 
 		return delegatePublicKeys;
+	}
+
+	async createRoundDelegateList(round, tx) {
+		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight();
+
+		// Delete delegate list and create new updated list
+		await this.storage.entities.RoundDelegates.delete(
+			{
+				round_gte: round,
+			},
+			tx,
+		);
+		await this.storage.entities.RoundDelegates.create(
+			{
+				round,
+				delegatePublicKeys,
+			},
+			{},
+			tx,
+		);
 	}
 
 	async deleteDelegateListUntilRound(round, tx) {

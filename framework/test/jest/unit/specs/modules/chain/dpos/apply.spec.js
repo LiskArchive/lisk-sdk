@@ -43,6 +43,8 @@ describe('dpos.apply()', () => {
 				},
 				RoundDelegates: {
 					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					create: jest.fn(),
+					delete: jest.fn(),
 				},
 				Round: {
 					summedRound: jest.fn(),
@@ -181,6 +183,18 @@ describe('dpos.apply()', () => {
 				)
 				.mockResolvedValue(delegatesWhoForged);
 
+			when(stubs.storage.entities.Account.get)
+				.calledWith(
+					{
+						isDelegate: true,
+					},
+					{
+						limit: constants.ACTIVE_DELEGATES,
+						sort: ['voteWeight:desc', 'publicKey:asc'],
+					},
+				)
+				.mockResolvedValue(delegateAccounts);
+
 			delegateAccounts.forEach(account => {
 				when(stubs.storage.entities.Account.get)
 					.calledWith({
@@ -278,6 +292,28 @@ describe('dpos.apply()', () => {
 					stubs.tx,
 				);
 			});
+		});
+
+		it('should call create for RoundDelegates for last block of round', async () => {
+			// Act
+			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+
+			// Assert
+			const nextRound = slots.calcRound(lastBlockOfTheRound.height) + 1;
+			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
+				{
+					round: nextRound,
+					delegatePublicKeys,
+				},
+				{},
+				stubs.tx,
+			);
+			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
+				{
+					round_gte: nextRound,
+				},
+				stubs.tx,
+			);
 		});
 
 		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {

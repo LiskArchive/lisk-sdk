@@ -71,37 +71,18 @@ describe('dpos.getRoundDelegates()', () => {
 	});
 
 	describe('Given the round is NOT in the round_delegates table', () => {
-		let list;
 		beforeEach(async () => {
 			// Arrange
 			when(stubs.storage.entities.RoundDelegates.getRoundDelegates)
 				.calledWith(roundNo)
 				.mockResolvedValue([]);
 			stubs.storage.entities.Account.get.mockResolvedValue(delegateAccounts);
-
-			// Act
-			list = await dpos.getRoundDelegates(roundNo);
 		});
 
-		it('should return shuffled delegate list by using delegate accounts', () => {
+		it('should throw error when round is not in round_delegates table', async () => {
 			// Assert
-			expect(stubs.storage.entities.Account.get).toHaveBeenCalledWith(
-				{ isDelegate: true },
-				{
-					limit: constants.ACTIVE_DELEGATES,
-					sort: ['voteWeight:desc', 'publicKey:asc'],
-				},
-			);
-			expect(list).toEqual(shuffledDelegatePublicKeys);
-		});
-
-		it('should save delegate public keys to round_delegates table', () => {
-			// Assert
-			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
-				{
-					round: roundNo,
-					delegatePublicKeys,
-				},
+			return expect(dpos.getRoundDelegates(roundNo)).rejects.toThrow(
+				`No delegate list found for round: ${roundNo}`,
 			);
 		});
 	});
