@@ -18,6 +18,7 @@ const { Mnemonic } = require('@liskhq/lisk-passphrase');
 const {
 	getAddressAndPublicKeyFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
+const { cloneDeep } = require('lodash');
 const {
 	BFTChainDisjointError,
 	BFTLowerChainBranchError,
@@ -293,6 +294,16 @@ describe('finality_manager', () => {
 					maxHeightPreviouslyForged: 0,
 					prevotedConfirmedUptoHeight: 0,
 				});
+			});
+
+			it('should not alter the content of the headers object', async () => {
+				const headersBefore = cloneDeep(finalityManager.headers);
+
+				await finalityManager.computeBFTHeaderProperties('aDelegatePubKey');
+
+				const headersAfter = finalityManager.headers;
+
+				expect(headersBefore).toEqual(headersAfter);
 			});
 
 			it('should compute a correct value for maxHeightPreviouslyForged, returning the height of the last block a delegate with the given public key forged a block', async () => {
