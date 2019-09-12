@@ -14,6 +14,10 @@
 
 'use strict';
 
+const { Mnemonic } = require('@liskhq/lisk-passphrase');
+const {
+	getAddressAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const {
 	BFTChainDisjointError,
 	BFTLowerChainBranchError,
@@ -267,5 +271,125 @@ describe('finality_manager', () => {
 		});
 
 		describe('recompute', () => {});
+
+		describe('computeBFTHeaderProperties', () => {
+			let finalityManager;
+
+			beforeEach(async () => {
+				finalityManager = new FinalityManager({
+					finalizedHeight,
+					activeDelegates,
+				});
+			});
+
+			it('should return maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties in an object literal', async () => {
+				const headers = await finalityManager.computeBFTHeaderProperties(
+					'aDelegatePubKey',
+				);
+
+				expect(headers).toHaveProperty('maxHeightPreviouslyForged');
+				expect(headers).toHaveProperty('prevotedConfirmedUptoHeight');
+				expect(headers).toEqual({
+					maxHeightPreviouslyForged: 0,
+					prevotedConfirmedUptoHeight: 0,
+				});
+			});
+
+			it('should compute a correct value for maxHeightPreviouslyForged, returning the height of the last block a delegate with the given public key forged a block', async () => {
+				// Arrange
+				const {
+					publicKey: forgingDelegatePubKey,
+				} = getAddressAndPublicKeyFromPassphrase(Mnemonic.generateMnemonic());
+
+				const blockHeaders = [
+					{
+						blockId: '1234567',
+						height: 1,
+						maxHeightPreviouslyForged: 0,
+						prevotedConfirmedUptoHeight: 0,
+						activeSinceRound: 0,
+						delegatePublicKey: forgingDelegatePubKey,
+					},
+					{
+						blockId: '1234568',
+						height: 2,
+						maxHeightPreviouslyForged: 0,
+						prevotedConfirmedUptoHeight: 0,
+						activeSinceRound: 0,
+						delegatePublicKey: getAddressAndPublicKeyFromPassphrase(
+							Mnemonic.generateMnemonic(),
+						).publicKey,
+					},
+					{
+						blockId: '1234569',
+						height: 3,
+						maxHeightPreviouslyForged: 1,
+						prevotedConfirmedUptoHeight: 0,
+						activeSinceRound: 0,
+						delegatePublicKey: forgingDelegatePubKey,
+					},
+				];
+
+				blockHeaders.forEach(blockHeader => {
+					finalityManager.addBlockHeader(blockHeader);
+				});
+
+				// Act
+				const headers = await finalityManager.computeBFTHeaderProperties(
+					forgingDelegatePubKey,
+				);
+
+				// Assert
+				expect(headers).toEqual({
+					maxHeightPreviouslyForged: 3,
+					prevotedConfirmedUptoHeight: 0,
+				});
+			});
+
+			it("should compute set maxHeightPreviouslyForged to 0 if it's the first time the delegate is forging a block", async () => {
+				// Arrange
+				const {
+					publicKey: forgingDelegatePubKey,
+				} = getAddressAndPublicKeyFromPassphrase(Mnemonic.generateMnemonic());
+
+				const blockHeaders = [
+					{
+						blockId: '1234568',
+						height: 1,
+						maxHeightPreviouslyForged: 0,
+						prevotedConfirmedUptoHeight: 0,
+						activeSinceRound: 0,
+						delegatePublicKey: getAddressAndPublicKeyFromPassphrase(
+							Mnemonic.generateMnemonic(),
+						).publicKey,
+					},
+					{
+						blockId: '1234569',
+						height: 2,
+						maxHeightPreviouslyForged: 0,
+						prevotedConfirmedUptoHeight: 0,
+						activeSinceRound: 0,
+						delegatePublicKey: getAddressAndPublicKeyFromPassphrase(
+							Mnemonic.generateMnemonic(),
+						).publicKey,
+					},
+				];
+
+				blockHeaders.forEach(blockHeader => {
+					finalityManager.addBlockHeader(blockHeader);
+				});
+
+				// Act
+				const headers = await finalityManager.computeBFTHeaderProperties(
+					forgingDelegatePubKey,
+				);
+
+				// Assert
+				expect(headers).toEqual({
+					maxHeightPreviouslyForged: 0,
+					prevotedConfirmedUptoHeight: 0,
+				});
+			});
+		});
 	});
 });
