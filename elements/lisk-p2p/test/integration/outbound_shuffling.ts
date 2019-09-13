@@ -49,7 +49,7 @@ describe('Outbound peer shuffling', () => {
 		p2pNodeList = await createNetwork({ customConfig, customSeedPeers });
 	});
 
-	after(async () => {
+	afterEach(async () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
