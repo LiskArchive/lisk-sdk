@@ -17,7 +17,7 @@ import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from './setup';
 
-describe.only('Maximum payload', () => {
+describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 	let disconnectReasons: Array<any> = [];

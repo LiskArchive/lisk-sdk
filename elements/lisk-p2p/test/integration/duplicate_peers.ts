@@ -18,7 +18,7 @@ import { wait } from '../utils/helpers';
 import { InboundPeer, OutboundPeer, ConnectionState } from '../../src/peer';
 import { createNetwork, destroyNetwork } from './setup';
 
-describe.only('Disconnect duplicate peers', () => {
+describe('Disconnect duplicate peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let firstP2PNodeCloseEvents: Array<any> = [];
 	let firstPeerCloseEvents: Array<any> = [];

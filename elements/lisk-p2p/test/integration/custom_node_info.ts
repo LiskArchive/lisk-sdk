@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from './setup';
 
-describe.only('Custom nodeInfo', () => {
+describe('Custom nodeInfo', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {

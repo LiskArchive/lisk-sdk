@@ -22,7 +22,7 @@ import {
 	NETWORK_PEER_COUNT,
 } from './setup';
 
-describe.only('Cleanup unresponsive peers', () => {
+describe('Cleanup unresponsive peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),

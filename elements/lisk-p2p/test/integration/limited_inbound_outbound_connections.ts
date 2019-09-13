@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork, NETWORK_START_PORT, NETWORK_PEER_COUNT } from './setup';
 
-describe.only('Limited number of outbound/inbound connections', () => {
+describe('Limited number of outbound/inbound connections', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_PEER_COUNT_WITH_LIMIT = 30;
 	const LIMITED_CONNECTIONS = 5;

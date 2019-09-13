@@ -18,7 +18,7 @@ import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import { createNetwork, destroyNetwork } from './setup';
 
-describe.only('P2P.applyNodeInfo', () => {
+describe('P2P.applyNodeInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	let collectedMessages: Array<any> = [];
 

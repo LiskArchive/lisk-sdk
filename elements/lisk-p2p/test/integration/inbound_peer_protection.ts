@@ -17,7 +17,7 @@ import { P2P } from '../../src/index';
 import { InboundPeer } from '../../src/peer';
 import { createNetwork, destroyNetwork } from './setup';
 
-describe.only('Peer inbound eviction for connection time', () => {
+describe('Peer inbound eviction for connection time', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
