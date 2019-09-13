@@ -287,36 +287,16 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 };
 
 /**
- * Performs backward tick
- * @param {Object} oldLastBlock - secondLastBlock
- * @param {Object} previousBlock - block to delete
+ * Revert given block
+ * @param {Object} block - block to be undone
  * @param {Object} tx - database transaction
  */
-const backwardTickStep = async (
-	roundsModule,
-	oldLastBlock,
-	previousBlock,
-	tx,
-) =>
-	new Promise((resolve, reject) => {
-		// Perform backward tick on rounds
-		// WARNING: DB_WRITE
-		roundsModule.backwardTick(
-			oldLastBlock,
-			previousBlock,
-			backwardTickErr => {
-				if (backwardTickErr) {
-					return reject(backwardTickErr);
-				}
-				return resolve();
-			},
-			tx,
-		);
-	});
+const undoBlockStep = async (dposModule, block, tx) =>
+	dposModule.undo(block, tx);
 
 module.exports = {
 	saveBlock,
-	backwardTickStep,
+	undoBlockStep,
 	saveBlockBatch,
 	deleteLastBlock,
 	deleteFromBlockId,

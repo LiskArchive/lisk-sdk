@@ -99,6 +99,7 @@ describe('blocks', () => {
 			},
 			dposModule: {
 				apply: jest.fn(),
+				undo: jest.fn(),
 				verifyBlockForger: jest.fn(),
 			},
 		};

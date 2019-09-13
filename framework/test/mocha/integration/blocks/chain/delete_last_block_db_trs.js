@@ -81,11 +81,11 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				});
 			});
 
-			describe('when backwardTickStep fails', () => {
+			describe('when dpos.undo fails', () => {
 				beforeEach(async () => {
 					sinonSandbox
-						.stub(library.modules.blocks.roundsModule, 'backwardTick')
-						.throws(new Error('err'));
+						.stub(library.modules.blocks.dposModule, 'undo')
+						.throws(new Error('dposModule.undo err'));
 				});
 
 				afterEach(async () => {
@@ -96,17 +96,16 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					try {
 						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
-						expect(error.message).to.eql('err');
+						expect(error.message).to.eql('dposModule.undo err');
 					}
 				});
 
-				it('modules.rounds.backwardTick stub should be called once', async () => {
+				it('modules.dpos.undo stub should be called once', async () => {
 					try {
 						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error).to.exist;
-						expect(library.modules.blocks.roundsModule.backwardTick).to.be
-							.calledOnce;
+						expect(library.modules.blocks.dposModule.undo).to.be.calledOnce;
 					}
 				});
 
@@ -170,7 +169,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					);
 				});
 
-				it('should not perform backwardTick', async () => {
+				it('should not perform dpos.undo', async () => {
 					try {
 						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
@@ -229,7 +228,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				expect(account.mem_accounts.balance).to.equal('0');
 			});
 
-			it('should perform backwardTick', async () => {
+			it('should perform dpos.undo', async () => {
 				await library.modules.processor.deleteLastBlock();
 				const account = await localCommon.getAccountFromDb(
 					library,
