@@ -31,6 +31,7 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 	EVENT_FAILED_TO_FETCH_PEERS,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
+	EVENT_DISCOVERED_PEER,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
@@ -496,7 +497,59 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#discoverPeers', () => it('should discover peers'));
+	describe('#discoverPeers', () => {
+		const discoveredPeers = [
+			{
+				ipAddress: '1.1.1.1',
+				wsPort: 1111,
+				version: '1.1.1',
+				height: 0,
+				protocolVersion: undefined,
+				os: '',
+			},
+			{
+				ipAddress: '2.2.2.2',
+				wsPort: 2222,
+				version: '2.2.2',
+				height: 0,
+				protocolVersion: undefined,
+				os: '',
+			},
+		];
+
+		beforeEach(() => {
+			sandbox.stub(defaultPeer, 'fetchPeers').resolves(discoveredPeers);
+			sandbox.stub(defaultPeer, 'emit');
+		});
+
+		it('should call fetchPeers', async () => {
+			await defaultPeer.discoverPeers();
+			expect(defaultPeer.fetchPeers).to.be.calledOnce;
+		});
+
+		it(`should emit ${EVENT_DISCOVERED_PEER} event ${
+			discoveredPeers.length
+		} times`, async () => {
+			await defaultPeer.discoverPeers();
+			expect(defaultPeer.emit).to.be.calledTwice;
+		});
+
+		it(`should emit ${EVENT_DISCOVERED_PEER} event with every peer info`, async () => {
+			await defaultPeer.discoverPeers();
+			expect(discoveredPeers).to.be.not.empty;
+			discoveredPeers.forEach(discoveredPeer => {
+				expect(defaultPeer.emit).to.be.calledWith(
+					EVENT_DISCOVERED_PEER,
+					discoveredPeer,
+				);
+			});
+		});
+
+		it(`should return discoveredPeerInfoList`, async () => {
+			const discoveredPeerInfoList = await defaultPeer.discoverPeers();
+			expect(discoveredPeerInfoList).to.be.eql(discoveredPeers);
+		});
+	});
 
 	describe('#fetchStatus', () => {
 		it('should fetch status');
