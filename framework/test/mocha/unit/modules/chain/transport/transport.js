@@ -834,15 +834,12 @@ describe('transport', () => {
 								await transportModule.postBlock(postBlockQuery);
 							});
 
-							it('should call transportModule.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () => {
-								expect(transportModule.logger.debug).to.be.calledWith(
-									'Block normalization failed',
-									{
-										err: blockValidationError.toString(),
-										module: 'transport',
-										block: blockMock,
-									},
-								);
+							it('should throw an error', async () => {
+								try {
+									await transportModule.postBlock(postBlockQuery);
+								} catch (err) {
+									expect(err.message).to.equal(blockValidationError);
+								}
 							});
 						});
 
