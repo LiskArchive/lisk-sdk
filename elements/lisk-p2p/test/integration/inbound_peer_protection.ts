@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { InboundPeer } from '../../src/peer';
-import { createNetwork, destroyNetwork } from './setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Peer inbound eviction for connection time', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

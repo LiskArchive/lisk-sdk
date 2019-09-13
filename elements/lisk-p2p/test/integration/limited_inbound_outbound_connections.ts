@@ -14,7 +14,12 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
-import { createNetwork, destroyNetwork, NETWORK_START_PORT, NETWORK_PEER_COUNT } from './setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	NETWORK_START_PORT,
+	NETWORK_PEER_COUNT,
+} from '../utils/network_setup';
 
 describe('Limited number of outbound/inbound connections', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

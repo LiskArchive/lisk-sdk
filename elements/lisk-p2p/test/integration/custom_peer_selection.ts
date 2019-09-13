@@ -29,7 +29,7 @@ import {
 	NETWORK_PEER_COUNT,
 	POPULATOR_INTERVAL,
 	NETWORK_START_PORT,
-} from './setup';
+} from '../utils/network_setup';
 
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

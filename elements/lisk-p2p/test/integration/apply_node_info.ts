@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { P2P, EVENT_REQUEST_RECEIVED } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
-import { createNetwork, destroyNetwork } from './setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('P2P.applyNodeInfo', () => {
 	let p2pNodeList: P2P[] = [];

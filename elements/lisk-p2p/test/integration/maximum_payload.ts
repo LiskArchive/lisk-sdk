@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from './setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

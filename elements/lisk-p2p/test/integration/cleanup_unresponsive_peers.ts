@@ -20,7 +20,7 @@ import {
 	destroyNetwork,
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
-} from './setup';
+} from '../utils/network_setup';
 
 describe('Cleanup unresponsive peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

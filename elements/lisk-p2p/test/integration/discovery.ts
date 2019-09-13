@@ -25,7 +25,7 @@ import {
 } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
-import { createNetwork, destroyNetwork, NETWORK_START_PORT, NETWORK_PEER_COUNT, POPULATOR_INTERVAL } from './setup';
+import { createNetwork, destroyNetwork, NETWORK_START_PORT, NETWORK_PEER_COUNT, POPULATOR_INTERVAL } from '../utils/network_setup';
 
 describe('Peer discovery', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
