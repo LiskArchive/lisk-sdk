@@ -121,11 +121,11 @@ describe('Peer banning mechanism', () => {
 		);
 	});
 
-	it(`should fire ${EVENT_BAN_PEER} event`, () => {
+	it(`should fire ${EVENT_BAN_PEER} event`, async () => {
 		expect(collectedEvents.get('EVENT_BAN_PEER')).to.exist;
 	});
 
-	it('should emit peerId of banned peer', () => {
+	it('should emit peerId of banned peer', async () => {
 		expect(collectedEvents.get('EVENT_BAN_PEER')).to.eql('127.0.0.1:5002');
 	});
 

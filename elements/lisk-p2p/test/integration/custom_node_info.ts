@@ -83,7 +83,7 @@ describe('Custom nodeInfo', () => {
 		await wait(1000);
 	});
 
-	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
+	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', async () => {
 		for (let p2p of p2pNodeList) {
 			const triedPeers = p2p['_peerBook'].triedPeers;
 			const newPeers = p2p['_peerBook'].newPeers;

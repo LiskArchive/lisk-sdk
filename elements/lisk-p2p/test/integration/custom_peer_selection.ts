@@ -131,7 +131,7 @@ describe('Custom peer selection', () => {
 		await wait(1000);
 	});
 
-	it('should start all the nodes with custom selection functions without fail', () => {
+	it('should start all the nodes with custom selection functions without fail', async () => {
 		for (let p2p of p2pNodeList) {
 			expect(p2p).to.have.property('isActive', true);
 		}

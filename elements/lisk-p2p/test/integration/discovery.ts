@@ -134,7 +134,7 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 		}
 	});
 
-	it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', () => {
+	it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', async () => {
 		for (let p2p of p2pNodeList) {
 			const newPeers = p2p['_peerBook'].newPeers;
 
@@ -175,23 +175,23 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 		}
 	});
 
-	it(`should fire ${EVENT_NETWORK_READY} event`, () => {
+	it(`should fire ${EVENT_NETWORK_READY} event`, async () => {
 		expect(collectedEvents.get('EVENT_NETWORK_READY')).to.exist;
 	});
 
-	it(`should fire ${EVENT_NEW_INBOUND_PEER} event`, () => {
+	it(`should fire ${EVENT_NEW_INBOUND_PEER} event`, async () => {
 		expect(collectedEvents.get('EVENT_NEW_INBOUND_PEER')).to.exist;
 	});
 
-	it(`should fire ${EVENT_CONNECT_OUTBOUND} event`, () => {
+	it(`should fire ${EVENT_CONNECT_OUTBOUND} event`, async () => {
 		expect(collectedEvents.get('EVENT_CONNECT_OUTBOUND')).to.exist;
 	});
 
-	it(`should fire ${EVENT_UPDATED_PEER_INFO} event`, () => {
+	it(`should fire ${EVENT_UPDATED_PEER_INFO} event`, async () => {
 		expect(collectedEvents.get('EVENT_UPDATED_PEER_INFO')).to.exist;
 	});
 
-	it(`should fire ${EVENT_DISCOVERED_PEER} event`, () => {
+	it(`should fire ${EVENT_DISCOVERED_PEER} event`, async () => {
 		expect(collectedEvents.get('EVENT_DISCOVERED_PEER')).to.exist;
 	});
 

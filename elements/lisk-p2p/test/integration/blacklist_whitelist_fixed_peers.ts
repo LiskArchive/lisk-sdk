@@ -125,7 +125,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await wait(1000);
 		});
 
-		it('should not add any blacklisted peer to newPeers', () => {
+		it('should not add any blacklisted peer to newPeers', async () => {
 			for (let p2p of p2pNodeList) {
 				const newPeers = p2p['_peerBook'].newPeers;
 				const newPeersIPWS = newPeers.map(peer => {
@@ -135,7 +135,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			}
 		});
 
-		it('should not add any blacklisted peer to triedPeers', () => {
+		it('should not add any blacklisted peer to triedPeers', async () => {
 			for (let p2p of p2pNodeList) {
 				const triedPeers = p2p['_peerBook'].triedPeers;
 				const triedPeersIPWS = triedPeers.map(peer => {
@@ -145,7 +145,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			}
 		});
 
-		it('should not connect to any blacklisted peer', () => {
+		it('should not connect to any blacklisted peer', async () => {
 			for (let p2p of p2pNodeList) {
 				const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 					return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
@@ -156,7 +156,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			}
 		});
 
-		it('should isolate the blacklisted peer', () => {
+		it('should isolate the blacklisted peer', async () => {
 			for (let p2p of p2pNodeList) {
 				if (
 					p2p['_nodeInfo'].wsPort === blacklistedPeers[0].wsPort &&
@@ -216,7 +216,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await wait(1000);
 		});
 
-		it('everyone but itself should have a permanent connection to the fixed peer', () => {
+		it('everyone but itself should have a permanent connection to the fixed peer', async () => {
 			p2pNodeList.forEach((p2p, index) => {
 				if (index != 0) {
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
@@ -274,7 +274,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await wait(1000);
 		});
 
-		it('should add every whitelisted peer to triedPeers', () => {
+		it('should add every whitelisted peer to triedPeers', async () => {
 			p2pNodeList.forEach((p2p, index) => {
 				if (![0, 9].includes(index)) {
 					const triedPeers = p2p['_peerBook'].triedPeers;
@@ -286,7 +286,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			});
 		});
 
-		it('should not be possible to ban them', () => {
+		it('should not be possible to ban them', async () => {
 			const peerPenalty = {
 				peerId: `${whitelistedPeers[0].ipAddress}:${
 					whitelistedPeers[0].wsPort

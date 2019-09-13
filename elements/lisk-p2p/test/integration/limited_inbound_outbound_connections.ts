@@ -81,21 +81,21 @@ describe('Limited number of outbound/inbound connections', () => {
 		await wait(70);
 	});
 
-	it(`should not create more than ${LIMITED_CONNECTIONS} outbound connections`, () => {
+	it(`should not create more than ${LIMITED_CONNECTIONS} outbound connections`, async () => {
 		for (let p2p of p2pNodeList) {
 			const { outboundCount } = p2p['_peerPool'].getPeersCountPerKind();
 			expect(outboundCount).to.be.at.most(LIMITED_CONNECTIONS);
 		}
 	});
 
-	it(`should not create more than ${LIMITED_CONNECTIONS} inbound connections`, () => {
+	it(`should not create more than ${LIMITED_CONNECTIONS} inbound connections`, async () => {
 		for (let p2p of p2pNodeList) {
 			const { inboundCount } = p2p['_peerPool'].getPeersCountPerKind();
 			expect(inboundCount).to.be.at.most(LIMITED_CONNECTIONS);
 		}
 	});
 
-	it('should discover peers and add them to the peer lists within each node', () => {
+	it('should discover peers and add them to the peer lists within each node', async () => {
 		for (let p2p of p2pNodeList) {
 			const allPeers = p2p['_peerBook'].getAllPeers();
 			const peerPorts = allPeers.map(peerInfo => peerInfo.wsPort);
@@ -104,7 +104,7 @@ describe('Limited number of outbound/inbound connections', () => {
 		}
 	});
 
-	it('should have connected and disconnected peers', () => {
+	it('should have connected and disconnected peers', async () => {
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p.getConnectedPeers();
 
@@ -112,7 +112,7 @@ describe('Limited number of outbound/inbound connections', () => {
 		}
 	});
 
-	it('should have disjoint connected and disconnected peers', () => {
+	it('should have disjoint connected and disconnected peers', async () => {
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p.getConnectedPeers();
 			const disconnectedPeers = p2p.getDisconnectedPeers();

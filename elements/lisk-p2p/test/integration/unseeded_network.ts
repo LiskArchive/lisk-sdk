@@ -72,7 +72,7 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 		await wait(1000);
 	});
 
-	it('should set the isActive property to true for all nodes', () => {
+	it('should set the isActive property to true for all nodes', async () => {
 		for (let p2p of p2pNodeList) {
 			expect(p2p).to.have.property('isActive', true);
 		}
