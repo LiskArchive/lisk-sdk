@@ -974,14 +974,6 @@ describe('ChainAccount', () => {
 			expect(result[0].count).to.equal(0);
 		});
 
-		it('should empty the table "mem_round"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_round',
-			);
-			expect(result[0].count).to.equal(0);
-		});
-
 		it('should empty the table "mem_accounts2delegates"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(

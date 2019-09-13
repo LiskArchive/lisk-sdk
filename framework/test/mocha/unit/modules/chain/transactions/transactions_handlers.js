@@ -16,7 +16,6 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionHandlers = require('../../../../../../src/modules/chain/transactions/transactions_handlers');
-const voteHandlers = require('../../../../../../src/modules/chain/transactions/votes');
 const votesWeightHandler = require('../../../../../../src/modules/chain/transactions/votes_weight');
 const exceptionHandlers = require('../../../../../../src/modules/chain/transactions/exceptions_handlers');
 const StateStore = require('../../../../../../src/modules/chain/state_store');
@@ -341,7 +340,6 @@ describe('transactions', () => {
 		beforeEach(async () => {
 			trs1.apply.returns(trs1Response);
 			trs2.apply.returns(trs2Response);
-			sinonSandbox.stub(voteHandlers, 'apply');
 			sinonSandbox.stub(votesWeightHandler, 'prepare');
 			sinonSandbox.stub(votesWeightHandler, 'apply');
 		});
@@ -372,7 +370,6 @@ describe('transactions', () => {
 				trs2,
 			]);
 
-			expect(voteHandlers.apply).to.be.calledTwice;
 			expect(votesWeightHandler.apply).to.be.calledTwice;
 		});
 
@@ -441,7 +438,6 @@ describe('transactions', () => {
 			trs1.apply.returns(trs1Response);
 			trs2.apply.returns(trs2Response);
 
-			sinonSandbox.stub(voteHandlers, 'apply');
 			sinonSandbox.stub(votesWeightHandler, 'prepare');
 			sinonSandbox.stub(votesWeightHandler, 'apply');
 			sinonSandbox
@@ -543,12 +539,7 @@ describe('transactions', () => {
 			it('should add to roundInformation if transaction response is OK', async () => {
 				await transactionHandlers.applyTransactions(storageMock)([trs1, trs2]);
 
-				expect(voteHandlers.apply).to.be.calledOnce;
 				expect(votesWeightHandler.apply).to.be.calledOnce;
-				expect(voteHandlers.apply).to.be.calledWithExactly(
-					stateStoreMock,
-					trs1,
-				);
 			});
 
 			it('should not add to roundInformation if transaction response is not OK', async () => {
@@ -557,7 +548,6 @@ describe('transactions', () => {
 
 				await transactionHandlers.applyTransactions(storageMock)([trs1, trs2]);
 
-				expect(voteHandlers.apply).to.not.be.called;
 				expect(votesWeightHandler.apply).to.not.be.called;
 			});
 
@@ -612,7 +602,6 @@ describe('transactions', () => {
 			trs1.undo.returns(trs1Response);
 			trs2.undo.returns(trs2Response);
 
-			sinonSandbox.stub(voteHandlers, 'undo');
 			sinonSandbox.stub(votesWeightHandler, 'undo');
 			sinonSandbox.stub(
 				exceptionHandlers,
@@ -647,7 +636,6 @@ describe('transactions', () => {
 		it('should undo round information for every transaction', async () => {
 			await transactionHandlers.undoTransactions(storageMock)([trs1, trs2]);
 
-			expect(voteHandlers.undo).to.be.calledTwice;
 			expect(votesWeightHandler.undo).to.be.calledTwice;
 		});
 

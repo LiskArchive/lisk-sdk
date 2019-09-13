@@ -18,7 +18,6 @@ const {
 	Account,
 	Block,
 	RoundDelegates,
-	Round,
 	Transaction,
 	ChainMeta,
 	TempBlock,
@@ -33,7 +32,6 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 			replaceExisting: true,
 		});
 		storage.registerEntity('RoundDelegates', RoundDelegates);
-		storage.registerEntity('Round', Round);
 		storage.registerEntity('Transaction', Transaction, {
 			replaceExisting: true,
 		});

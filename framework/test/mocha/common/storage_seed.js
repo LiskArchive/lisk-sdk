@@ -140,7 +140,6 @@ class StorageSeed {
 			'mem_accounts',
 			'mem_accounts2multisignatures',
 			'mem_accounts2delegates',
-			'mem_round',
 			'rounds_rewards',
 			'peers',
 			'trs',

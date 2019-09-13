@@ -378,15 +378,13 @@ const loadMemTables = async (storage, tx) => {
 	const promises = [
 		storage.entities.Block.count({}, {}, tx),
 		storage.entities.Block.getOne({ height: 1 }, {}, tx),
-		storage.entities.Round.getUniqueRounds(tx),
 	];
 
-	const [blocksCount, genesisBlock, memRounds] = await tx.batch(promises);
+	const [blocksCount, genesisBlock] = await tx.batch(promises);
 
 	return {
 		blocksCount,
 		genesisBlock,
-		memRounds,
 	};
 };
 
