@@ -94,6 +94,14 @@ class DelegatesInfo {
 		if (this._isLastBlockOfTheRound(block)) {
 			const round = this.slots.calcRound(block.height);
 
+			const roundSummary = await this._summarizeRound(block, tx);
+
+			await Promise.all([
+				this._updateMissedBlocks(roundSummary, undo, tx),
+				this._updateBalanceRewardsAndFees(roundSummary, undo, tx),
+				this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx),
+			]);
+
 			if (undo) {
 				/**
 				 * If we are reverting the block, new transactions
@@ -106,14 +114,6 @@ class DelegatesInfo {
 				const nextRound = round + 1;
 				await this.delegatesList.createRoundDelegateList(nextRound, tx);
 			}
-
-			const roundSummary = await this._summarizeRound(block, tx);
-
-			await Promise.all([
-				this._updateMissedBlocks(roundSummary, undo, tx),
-				this._updateBalanceRewardsAndFees(roundSummary, undo, tx),
-				this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx),
-			]);
 		}
 
 		return true;
