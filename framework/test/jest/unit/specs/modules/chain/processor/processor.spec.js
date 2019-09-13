@@ -1180,7 +1180,6 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
-							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,
@@ -1224,7 +1223,6 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
-							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,
@@ -1238,6 +1236,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,
@@ -1273,7 +1272,6 @@ describe('processor', () => {
 							block: blockV0,
 							lastBlock: defaultLastBlock,
 							tx: txStub,
-							skipExistingCheck: true,
 						},
 						undefined,
 					);
@@ -1286,6 +1284,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,

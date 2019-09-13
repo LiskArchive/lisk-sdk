@@ -163,13 +163,12 @@ class Processor {
 	}
 
 	// validate checks the block statically
-	async validate(block) {
+	async validate(block, { lastBlock } = this.blocksModule) {
 		this.logger.debug(
 			{ id: block.id, height: block.height },
 			'validating block',
 		);
 		const blockProcessor = this._getBlockProcessor(block);
-		const { lastBlock } = this.blocksModule;
 		await blockProcessor.validate.run({
 			block,
 			lastBlock,
