@@ -42,7 +42,6 @@ const shuffleDelegateListForRound = (round, list) => {
 class DelegatesList extends EventEmitter {
 	constructor({ storage, activeDelegates, slots, exceptions }) {
 		super();
-		this.delegateListCache = {};
 		this.storage = storage;
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
@@ -65,10 +64,6 @@ class DelegatesList extends EventEmitter {
 	}
 
 	async generateActiveDelegateList(round) {
-		if (this.delegateListCache[round]) {
-			return this.delegateListCache[round];
-		}
-
 		let delegatePublicKeys = await this.storage.entities.RoundDelegates.getRoundDelegates(
 			round,
 		);
@@ -82,15 +77,25 @@ class DelegatesList extends EventEmitter {
 			});
 		}
 
-		this.delegateListCache[round] = delegatePublicKeys;
-
-		return this.delegateListCache[round];
+		return delegatePublicKeys;
 	}
 
-	async deleteDelegateListUntilRound(round) {
-		await this.storage.entities.RoundDelegates.delete({
-			round_lt: round,
-		});
+	async deleteDelegateListUntilRound(round, tx) {
+		await this.storage.entities.RoundDelegates.delete(
+			{
+				round_lt: round,
+			},
+			tx,
+		);
+	}
+
+	async deleteDelegateListAfterRound(round, tx) {
+		await this.storage.entities.RoundDelegates.delete(
+			{
+				round_gt: round,
+			},
+			tx,
+		);
 	}
 
 	/**

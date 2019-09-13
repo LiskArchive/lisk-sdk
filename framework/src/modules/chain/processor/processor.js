@@ -157,8 +157,8 @@ class Processor {
 
 	async create(values) {
 		this.logger.debug({ data: values }, 'creating block');
-		const heghestVersion = Math.max.apply(null, Object.keys(this.processors));
-		const processor = this.processors[heghestVersion];
+		const highestVersion = Math.max.apply(null, Object.keys(this.processors));
+		const processor = this.processors[highestVersion];
 		return processor.create.run(values);
 	}
 
@@ -227,7 +227,7 @@ class Processor {
 	}
 
 	async applyGenesisBlock(block) {
-		this.logger.debug({ id: block.id }, 'applying genesis block');
+		this.logger.info({ id: block.id }, 'applying genesis block');
 		const blockProcessor = this._getBlockProcessor(block);
 		return this._processGenesis(block, blockProcessor, { skipSave: true });
 	}
@@ -242,6 +242,7 @@ class Processor {
 			await processor.verify.run({
 				block,
 				lastBlock,
+				skipExistingCheck: skipSave,
 				tx,
 			});
 			if (!skipBroadcast) {
