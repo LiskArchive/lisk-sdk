@@ -113,6 +113,25 @@ describe('dpos.apply()', () => {
 
 			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 		});
+
+		it('should call RoundDelegates.delete method when applying genesis block', async () => {
+			// Act
+			await dpos.apply(genesisBlock, stubs.tx);
+
+			// Assert
+			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
+				{ round_gte: 1 },
+				stubs.tx,
+			);
+			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
+				{
+					round: 1,
+					delegatePublicKeys,
+				},
+				{},
+				stubs.tx,
+			);
+		});
 	});
 
 	describe('Given block height is greater than "1" (NOT the genesis block)', () => {
