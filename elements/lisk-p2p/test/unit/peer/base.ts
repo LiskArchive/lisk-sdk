@@ -32,6 +32,9 @@ import {
 	EVENT_FAILED_TO_FETCH_PEERS,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 	EVENT_DISCOVERED_PEER,
+	EVENT_UPDATED_PEER_INFO,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
@@ -552,6 +555,101 @@ describe('peer/base', () => {
 	});
 
 	describe('#fetchStatus', () => {
-		it('should fetch status');
+		const peer = {
+			ip: '1.1.1.1',
+			wsPort: 1111,
+			version: '1.1.1',
+		};
+		const fetchedPeer = {
+			ipAddress: '12.12.12.12',
+			wsPort: 5001,
+			version: '1.1.1',
+			height: 0,
+			protocolVersion: undefined,
+			os: '',
+		};
+
+		describe('when request() fails', () => {
+			beforeEach(() => {
+				sandbox.stub(defaultPeer, 'request').rejects();
+				sandbox.stub(defaultPeer, 'emit');
+			});
+
+			it(`should emit ${EVENT_FAILED_TO_FETCH_PEER_INFO} event with error`, async () => {
+				try {
+					await defaultPeer.fetchStatus();
+				} catch (e) {
+					expect(defaultPeer.emit).to.be.calledOnceWith(
+						EVENT_FAILED_TO_FETCH_PEER_INFO,
+					);
+				}
+			});
+
+			it('should throw error', async () => {
+				try {
+					await defaultPeer.fetchStatus();
+				} catch (e) {
+					expect(e).to.be.an.instanceOf(RPCResponseError);
+					expect(e.message).to.be.eql('Failed to fetch peer info of peer');
+					expect(e.peerId).to.be.eql(
+						`${fetchedPeer.ipAddress}:${fetchedPeer.wsPort}`,
+					);
+				}
+			});
+		});
+
+		describe('when request() succeeds', () => {
+			describe('when _updateFromProtocolPeerInfo() fails', () => {
+				beforeEach(() => {
+					sandbox.stub(defaultPeer, 'request').resolves({
+						data: {},
+					});
+					sandbox.stub(defaultPeer, 'emit');
+				});
+
+				it(`should emit ${EVENT_FAILED_PEER_INFO_UPDATE} event with error`, async () => {
+					try {
+						await defaultPeer.fetchStatus();
+					} catch (e) {
+						expect(defaultPeer.emit).to.be.calledOnceWith(
+							EVENT_FAILED_PEER_INFO_UPDATE,
+						);
+					}
+				});
+
+				it('should throw error', async () => {
+					try {
+						await defaultPeer.fetchStatus();
+					} catch (e) {
+						expect(e).to.be.an.instanceOf(RPCResponseError);
+						expect(e.message).to.be.eql(
+							'Failed to update peer info of peer as part of fetch operation',
+						);
+						expect(e.peerId).to.be.eql(
+							`${fetchedPeer.ipAddress}:${fetchedPeer.wsPort}`,
+						);
+					}
+				});
+			});
+
+			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
+				beforeEach(() => {
+					sandbox.stub(defaultPeer, 'request').resolves({
+						data: peer,
+					});
+					sandbox.stub(defaultPeer, 'emit');
+				});
+
+				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
+					await defaultPeer.fetchStatus();
+					expect(defaultPeer.emit).to.be.calledOnce;
+				});
+
+				it('should return fetched peer info', async () => {
+					const peerInfo = await defaultPeer.fetchStatus();
+					expect(peerInfo).to.be.eql(fetchedPeer);
+				});
+			});
+		});
 	});
 });
