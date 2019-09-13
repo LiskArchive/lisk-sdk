@@ -80,6 +80,18 @@ describe('dpos.apply()', () => {
 			genesisBlock = {
 				height: 1,
 			};
+
+			when(stubs.storage.entities.Account.get)
+				.calledWith(
+					{
+						isDelegate: true,
+					},
+					{
+						limit: constants.ACTIVE_DELEGATES,
+						sort: ['voteWeight:desc', 'publicKey:asc'],
+					},
+				)
+				.mockResolvedValue(delegateAccounts);
 		});
 
 		it('should resolve with "false"', async () => {
