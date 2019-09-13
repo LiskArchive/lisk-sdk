@@ -30,6 +30,10 @@ describe('Peer banning mechanism', () => {
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 
+	before(async () => {
+		sandbox.restore();
+	});
+
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 			// Each node will have the next node in the sequence as a seed peer.

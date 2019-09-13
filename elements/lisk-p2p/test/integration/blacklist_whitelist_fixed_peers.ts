@@ -39,6 +39,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 
 	before(async () => {
+		sandbox.restore();
 		const serverSocketPrototype = SCServerSocket.prototype as any;
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
