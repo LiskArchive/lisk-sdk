@@ -68,31 +68,6 @@ import {
 } from './peer';
 import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
-interface PeerPoolConfig {
-	readonly ackTimeout?: number;
-	readonly connectTimeout?: number;
-	readonly wsMaxPayload?: number;
-	readonly maxPeerInfoSize: number;
-	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
-	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
-	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
-	readonly sendPeerLimit: number;
-	readonly peerBanTime: number;
-	readonly maxOutboundConnections: number;
-	readonly maxInboundConnections: number;
-	readonly maxPeerDiscoveryResponseLength: number;
-	readonly outboundShuffleInterval: number;
-	readonly netgroupProtectionRatio: number;
-	readonly latencyProtectionRatio: number;
-	readonly productivityProtectionRatio: number;
-	readonly longevityProtectionRatio: number;
-	readonly wsMaxMessageRate: number;
-	readonly wsMaxMessageRatePenalty: number;
-	readonly rateCalculationInterval: number;
-	readonly secret: number;
-	readonly peerLists: PeerLists;
-}
-
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
 	readonly percentage: number;
@@ -126,6 +101,31 @@ enum PROTECTION_CATEGORY {
 	LATENCY = 'latency',
 	RESPONSE_RATE = 'responseRate',
 	CONNECT_TIME = 'connectTime',
+}
+
+export interface PeerPoolConfig {
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize: number;
+	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
+	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
+	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
+	readonly sendPeerLimit: number;
+	readonly peerBanTime: number;
+	readonly maxOutboundConnections: number;
+	readonly maxInboundConnections: number;
+	readonly maxPeerDiscoveryResponseLength: number;
+	readonly outboundShuffleInterval: number;
+	readonly netgroupProtectionRatio: number;
+	readonly latencyProtectionRatio: number;
+	readonly productivityProtectionRatio: number;
+	readonly longevityProtectionRatio: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly rateCalculationInterval: number;
+	readonly secret: number;
+	readonly peerLists: PeerLists;
 }
 
 export class PeerPool extends EventEmitter {
