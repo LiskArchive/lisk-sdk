@@ -114,7 +114,7 @@ describe('dpos.apply()', () => {
 			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 		});
 
-		it('should call RoundDelegates.delete method when applying genesis block', async () => {
+		it('should save round 1 active delegates list in RoundDelegates entity after applying genesis block', async () => {
 			// Act
 			await dpos.apply(genesisBlock, stubs.tx);
 
@@ -325,12 +325,18 @@ describe('dpos.apply()', () => {
 			});
 		});
 
-		it('should call create for RoundDelegates for last block of round', async () => {
+		it('should save next round active delegates list in RoundDelegates entity after applying last block of round', async () => {
 			// Act
 			await dpos.apply(lastBlockOfTheRound, stubs.tx);
 
 			// Assert
 			const nextRound = slots.calcRound(lastBlockOfTheRound.height) + 1;
+			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
+				{
+					round: nextRound,
+				},
+				stubs.tx,
+			);
 			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
 				{
 					round: nextRound,
@@ -339,12 +345,9 @@ describe('dpos.apply()', () => {
 				{},
 				stubs.tx,
 			);
-			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
-				{
-					round: nextRound,
-				},
-				stubs.tx,
-			);
+			expect(
+				stubs.storage.entities.RoundDelegates.create,
+			).toHaveBeenCalledAfter(stubs.storage.entities.RoundDelegates.delete);
 		});
 
 		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {
