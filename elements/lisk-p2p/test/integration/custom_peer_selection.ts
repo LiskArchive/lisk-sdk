@@ -25,11 +25,14 @@ import {
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
 
+import {
+	NETWORK_PEER_COUNT,
+	POPULATOR_INTERVAL,
+	NETWORK_START_PORT,
+} from './setup';
+
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const NETWORK_START_PORT = 5000;
-	const NETWORK_PEER_COUNT = 10;
-	const POPULATOR_INTERVAL = 50;
 
 	// Custom selection function that finds peers having common values for modules field for example.
 	const peerSelectionForSendRequest:
