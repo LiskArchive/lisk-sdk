@@ -53,13 +53,17 @@ class DelegatesList extends EventEmitter {
 		return shuffleDelegateListForRound(round, list);
 	}
 
-	async getDelegatePublicKeysSortedByVoteWeight() {
+	async getDelegatePublicKeysSortedByVoteWeight(tx) {
 		const filters = { isDelegate: true };
 		const options = {
 			limit: this.activeDelegates,
 			sort: ['voteWeight:desc', 'publicKey:asc'],
 		};
-		const accounts = await this.storage.entities.Account.get(filters, options);
+		const accounts = await this.storage.entities.Account.get(
+			filters,
+			options,
+			tx,
+		);
 		return accounts.map(account => account.publicKey);
 	}
 
@@ -76,7 +80,9 @@ class DelegatesList extends EventEmitter {
 	}
 
 	async createRoundDelegateList(round, tx) {
-		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight();
+		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight(
+			tx,
+		);
 
 		// Delete delegate list and create new updated list
 		await this.storage.entities.RoundDelegates.delete(

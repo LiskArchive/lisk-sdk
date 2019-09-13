@@ -82,6 +82,9 @@ class DelegatesInfo {
 		 * update anything in the accounts.
 		 */
 		if (block.height === 1) {
+			const round = 1;
+			await this.delegatesList.createRoundDelegateList(round, tx);
+
 			return false;
 		}
 
@@ -201,7 +204,7 @@ class DelegatesInfo {
 		const round = this.slots.calcRound(block.height);
 		const nextRound = this.slots.calcRound(block.height + 1);
 
-		return round < nextRound || block.height === 1;
+		return round < nextRound;
 	}
 
 	/**
