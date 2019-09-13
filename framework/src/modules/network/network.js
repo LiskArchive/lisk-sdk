@@ -112,19 +112,19 @@ module.exports = class Network {
 		);
 
 		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
-		const blacklistedPeers = this.options.blacklistedPeers
-			? this.options.blacklistedPeers.map(peer => ({
-					ipAddress: peer.ip,
-			  }))
-			: [];
+		const blacklistedPeers = this.options.blacklistedPeers || [];
+
 		const fixedPeers = this.options.fixedPeers
 			? this.options.fixedPeers.map(peer => ({
 					ipAddress: peer.ip,
+					wsPort: peer.wsPort,
 			  }))
 			: [];
-		const whitelistedPeers = this.options.whiteListedPeers
-			? this.options.whiteListedPeers.map(peer => ({
+
+		const whitelistedPeers = this.options.whitelistedPeers
+			? this.options.whitelistedPeers.map(peer => ({
 					ipAddress: peer.ip,
+					wsPort: peer.wsPort,
 			  }))
 			: [];
 
@@ -139,7 +139,8 @@ module.exports = class Network {
 				wsPort: peer.wsPort,
 			})),
 			previousPeers: previousPeers.map(peer => {
-				const { ip, ...strippedPeer } = peer;
+				// Remove the id field coming from the database.
+				const { ip, id, ...strippedPeer } = peer;
 
 				return {
 					ipAddress: ip,

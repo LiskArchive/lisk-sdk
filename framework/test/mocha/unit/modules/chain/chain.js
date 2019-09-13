@@ -302,14 +302,15 @@ describe('Chain', () => {
 		});
 
 		it('should throw error when waitThreshold is greater than BLOCK_TIME', async () => {
-			const invalidChainOptions = Object.assign({}, chainOptions, {
+			const invalidChainOptions = {
+				...chainOptions,
 				forging: {
 					waitThreshold: 5,
 				},
 				constants: {
 					BLOCK_TIME: 4,
 				},
-			});
+			};
 
 			chain = new Chain(stubs.channel, invalidChainOptions);
 
@@ -325,14 +326,15 @@ describe('Chain', () => {
 		});
 
 		it('should throw error when waitThreshold is same as BLOCK_TIME', async () => {
-			const invalidChainOptions = Object.assign({}, chainOptions, {
+			const invalidChainOptions = {
+				...chainOptions,
 				forging: {
 					waitThreshold: 5,
 				},
 				constants: {
 					BLOCK_TIME: 5,
 				},
-			});
+			};
 
 			chain = new Chain(stubs.channel, invalidChainOptions);
 

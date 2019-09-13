@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable max-classes-per-file */
 
 'use strict';
 
@@ -216,10 +217,10 @@ describe('Application', () => {
 			// Arrange
 			const app = new Application(genesisBlock, config);
 
-			const TransactionWithoutBase = Object.assign(
-				{ prototype: {} },
-				DappTransaction,
-			);
+			const TransactionWithoutBase = {
+				prototype: {},
+				...DappTransaction,
+			};
 
 			// Act && Assert
 			expect(() => app.registerTransaction(TransactionWithoutBase)).toThrow(

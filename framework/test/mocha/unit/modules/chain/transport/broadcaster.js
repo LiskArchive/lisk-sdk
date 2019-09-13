@@ -216,17 +216,14 @@ describe('Broadcaster', () => {
 					data: { transaction: validTransaction },
 					immediate: false,
 				});
-				broadcast = Object.assign(
-					{},
-					{ params },
-					{
-						options: {
-							api: 'postTransactions',
-							data: { transaction: validTransaction },
-							immediate: false,
-						},
+				broadcast = {
+					params,
+					options: {
+						api: 'postTransactions',
+						data: { transaction: validTransaction },
+						immediate: false,
 					},
-				);
+				};
 			});
 
 			it('should call transaction pool with [transaction.id]', async () => {
@@ -309,45 +306,30 @@ describe('Broadcaster', () => {
 					data: { transaction: { id: 3 } },
 					immediate: false,
 				});
-				auxBroadcasts.push(
-					Object.assign(
-						{},
-						{ params },
-						{
-							options: {
-								api: 'postTransactions',
-								data: { transaction: { id: 1 } },
-								immediate: false,
-							},
-						},
-					),
-				);
-				auxBroadcasts.push(
-					Object.assign(
-						{},
-						{ params },
-						{
-							options: {
-								api: 'postTransactions',
-								data: { transaction: { id: 2 } },
-								immediate: false,
-							},
-						},
-					),
-				);
-				auxBroadcasts.push(
-					Object.assign(
-						{},
-						{ params },
-						{
-							options: {
-								api: 'postTransactions',
-								data: { transaction: { id: 3 } },
-								immediate: false,
-							},
-						},
-					),
-				);
+				auxBroadcasts.push({
+					params,
+					options: {
+						api: 'postTransactions',
+						data: { transaction: { id: 1 } },
+						immediate: false,
+					},
+				});
+				auxBroadcasts.push({
+					params,
+					options: {
+						api: 'postTransactions',
+						data: { transaction: { id: 2 } },
+						immediate: false,
+					},
+				});
+				auxBroadcasts.push({
+					params,
+					options: {
+						api: 'postTransactions',
+						data: { transaction: { id: 3 } },
+						immediate: false,
+					},
+				});
 				broadcaster.enqueue(params, {
 					api: 'postSignatures',
 					data: { signature: { transactionId: 1 } },
@@ -358,32 +340,22 @@ describe('Broadcaster', () => {
 					data: { signature: { transactionId: 2 } },
 					immediate: false,
 				});
-				auxBroadcasts.push(
-					Object.assign(
-						{},
-						{ params },
-						{
-							options: {
-								api: 'postSignatures',
-								data: { signature: { transactionId: 1 } },
-								immediate: false,
-							},
-						},
-					),
-				);
-				auxBroadcasts.push(
-					Object.assign(
-						{},
-						{ params },
-						{
-							options: {
-								api: 'postSignatures',
-								data: { signature: { transactionId: 2 } },
-								immediate: false,
-							},
-						},
-					),
-				);
+				auxBroadcasts.push({
+					params,
+					options: {
+						api: 'postSignatures',
+						data: { signature: { transactionId: 1 } },
+						immediate: false,
+					},
+				});
+				auxBroadcasts.push({
+					params,
+					options: {
+						api: 'postSignatures',
+						data: { signature: { transactionId: 2 } },
+						immediate: false,
+					},
+				});
 			});
 
 			describe('when all of them exist in transaction pool', () => {
