@@ -20,7 +20,6 @@ const async = require('async');
 const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
-const Account = require('../../../src/modules/chain/rounds/account');
 
 // TODO: Remove this file
 const modulesLoader = new function() {
@@ -87,26 +86,8 @@ const modulesLoader = new function() {
 		jobsQueue.jobs = {};
 		scope = _.defaultsDeep(scope, this.scope);
 		switch (Logic.name) {
-			case 'Account':
-				new Logic(
-					scope.components.storage,
-					scope.components.logger,
-					scope.modules.rounds,
-				);
-				break;
 			case 'Block':
-				async.waterfall(
-					[
-						function(waterCb) {
-							new Account(scope.components.storage, scope.components.logger);
-
-							return waterCb();
-						},
-					],
-					() => {
-						new Logic(scope.ed, this.transactions, cb);
-					},
-				);
+				new Logic(scope.ed, this.transactions, cb);
 				break;
 			default:
 				console.info('no Logic case initLogic');
@@ -200,19 +181,12 @@ const modulesLoader = new function() {
 		this.initModules(
 			[
 				{ blocks: require('../../../src/modules/chain/blocks/blocks') },
-				{
-					delegates: require('../../../src/modules/chain/rounds/delegates'),
-				},
 				{ loader: require('../../../src/modules/chain/loader') },
-				{ rounds: require('../../../src/modules/chain/rounds/rounds') },
 				{
 					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
-			[
-				{ account: require('../../../src/modules/chain/rounds/account') },
-				{ block: require('../../../src/modules/chain/blocks/block') },
-			],
+			[{ block: require('../../../src/modules/chain/blocks/block') }],
 			scope || {},
 			cb,
 		);

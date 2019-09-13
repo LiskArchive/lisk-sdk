@@ -66,7 +66,6 @@ class Blocks extends EventEmitter {
 		slots,
 		exceptions,
 		// Modules
-		roundsModule,
 		dposModule,
 		interfaceAdapters,
 		// constants
@@ -98,7 +97,6 @@ class Blocks extends EventEmitter {
 
 		this.logger = logger;
 		this.storage = storage;
-		this.roundsModule = roundsModule;
 		this.dposModule = dposModule;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
@@ -130,7 +128,6 @@ class Blocks extends EventEmitter {
 			exceptions: this.exceptions,
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
-			roundsModule: this.roundsModule,
 			dposModule: this.dposModule,
 		});
 
@@ -291,14 +288,7 @@ class Blocks extends EventEmitter {
 	}
 
 	async save({ block, tx, skipSave }) {
-		await saveBlockStep(
-			this.storage,
-			this.roundsModule,
-			this.dposModule,
-			block,
-			skipSave,
-			tx,
-		);
+		await saveBlockStep(this.storage, this.dposModule, block, skipSave, tx);
 		this._lastBlock = block;
 	}
 

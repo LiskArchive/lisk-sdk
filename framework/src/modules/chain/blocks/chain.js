@@ -232,14 +232,7 @@ const applyConfirmedGenesisStep = async (
  * @param {function} tx - Database transaction for atomic operations
  * @returns {Promise<reject|resolve>}
  */
-const saveBlockStep = async (
-	storage,
-	roundsModule,
-	dposModule,
-	block,
-	skipSave,
-	tx,
-) => {
+const saveBlockStep = async (storage, dposModule, block, skipSave, tx) => {
 	if (!skipSave) {
 		await saveBlock(storage, block, tx);
 	}

@@ -65,24 +65,6 @@ const initStepsForTest = {
 			__testContext.config.modules.chain.registeredTransactions,
 		);
 
-		const {
-			Rounds: RewiredRounds,
-		} = require('../../../src/modules/chain/rounds');
-		modules.rounds = new RewiredRounds({
-			channel: scope.channel,
-			components: {
-				logger: scope.components.logger,
-				storage: scope.components.storage,
-			},
-			slots: scope.slots,
-			config: {
-				exceptions: __testContext.config.modules.chain.exceptions,
-				constants: {
-					activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
-				},
-			},
-		});
-
 		const { Dpos } = require('../../../src/modules/chain/dpos');
 		modules.dpos = new Dpos({
 			logger: scope.components.logger,
@@ -102,7 +84,6 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			slots: scope.slots,
 			exceptions: __testContext.config.modules.chain.exceptions,
-			roundsModule: modules.rounds,
 			dposModule: modules.dpos,
 			interfaceAdapters: modules.interfaceAdapters,
 			blockReceiptTimeout: __testContext.config.constants.BLOCK_RECEIPT_TIMEOUT,

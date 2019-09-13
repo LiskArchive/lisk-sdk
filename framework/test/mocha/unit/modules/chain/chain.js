@@ -589,7 +589,6 @@ describe('Chain', () => {
 			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
 			sinonSandbox.stub(chain.forger, 'forge');
 			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
-			sinonSandbox.stub(chain.rounds, 'ticking').returns(false);
 			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
@@ -622,20 +621,6 @@ describe('Chain', () => {
 				'Client not ready to forge',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
-			expect(chain.forger.forge).to.not.be.called;
-		});
-
-		it('should halt if the client is not ready to forge (rounds is ticking)', async () => {
-			// Arrange
-			chain.rounds.ticking.returns(true);
-
-			// Act
-			await chain._forgingTask();
-
-			// Assert
-			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
-				'Client not ready to forge',
-			);
 			expect(chain.forger.forge).to.not.be.called;
 		});
 
