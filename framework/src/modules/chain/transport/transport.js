@@ -295,11 +295,10 @@ class Transport {
 			throw errors;
 		}
 
-		let block = blocksUtils.addBlockProperties(query.block);
+		const block = blocksUtils.addBlockProperties(query.block);
 
 		await this.processorModule.validate(block);
 
-		block = blocksUtils.objectNormalize(block);
 		// TODO: endpoint should be protected before
 		if (this.loaderModule.syncing()) {
 			return this.logger.debug(

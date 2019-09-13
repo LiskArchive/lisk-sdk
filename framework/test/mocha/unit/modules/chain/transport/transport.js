@@ -176,7 +176,6 @@ describe('transport', () => {
 					.returns({ height: 1, version: 1, timestamp: 1 }),
 				receiveBlockFromNetwork: sinonSandbox.stub(),
 				loadBlocksDataWS: sinonSandbox.stub(),
-				objectNormalize: sinonSandbox.stub(),
 			},
 			processorModule: {
 				validate: sinonSandbox.stub(),
@@ -821,7 +820,7 @@ describe('transport', () => {
 					describe('when query is specified', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = true;
-							transportModule.postBlock(postBlockQuery);
+							await transportModule.postBlock(postBlockQuery);
 						});
 
 						describe('when it throws', () => {
@@ -831,14 +830,13 @@ describe('transport', () => {
 								transportModule.processorModule.validate.rejects(
 									blockValidationError,
 								);
-								await transportModule.postBlock(postBlockQuery);
 							});
 
 							it('should throw an error', async () => {
 								try {
 									await transportModule.postBlock(postBlockQuery);
 								} catch (err) {
-									expect(err.message).to.equal(blockValidationError);
+									expect(err.name).to.equal(blockValidationError);
 								}
 							});
 						});
