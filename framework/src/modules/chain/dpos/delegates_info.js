@@ -81,7 +81,7 @@ class DelegatesInfo {
 		 * the genesis block, in that case we don't have to
 		 * update anything in the accounts.
 		 */
-		if (block.height === 1) {
+		if (this._isGenesisBlock(block)) {
 			const round = 1;
 			await this.delegatesList.createRoundDelegateList(round, tx);
 
@@ -198,6 +198,11 @@ class DelegatesInfo {
 					);
 				}),
 		);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	_isGenesisBlock(block) {
+		return block.height === 1;
 	}
 
 	_isLastBlockOfTheRound(block) {

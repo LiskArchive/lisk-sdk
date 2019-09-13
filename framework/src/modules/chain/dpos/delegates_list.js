@@ -87,7 +87,7 @@ class DelegatesList extends EventEmitter {
 		// Delete delegate list and create new updated list
 		await this.storage.entities.RoundDelegates.delete(
 			{
-				round_gte: round,
+				round,
 			},
 			tx,
 		);
