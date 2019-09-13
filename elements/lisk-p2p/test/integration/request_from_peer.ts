@@ -27,7 +27,6 @@ describe('P2P.requestFromPeer', () => {
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 	});
 

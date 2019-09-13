@@ -26,8 +26,9 @@ import {
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
-describe('Peer discovery: Seed peers list of each node contains the previously launched node', () => {
+describe('Peer discovery', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+	let disconnectedNode: P2P;
 	const collectedEvents = new Map();
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
@@ -118,6 +119,10 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 		await wait(1000);
 	});
 
+	after(async () => {
+		await disconnectedNode.stop();
+	});
+
 	it('should discover all peers and add them to the connectedPeers list within each node', async () => {
 		for (let p2p of p2pNodeList) {
 			const peerPorts = p2p
@@ -196,7 +201,7 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 	});
 
 	it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} event`, async () => {
-		const disconnectedNode = new P2P({
+		disconnectedNode = new P2P({
 			connectTimeout: 100,
 			ackTimeout: 200,
 			seedPeers: [

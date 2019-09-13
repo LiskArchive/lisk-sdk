@@ -27,7 +27,6 @@ describe('Peer discovery threshold', () => {
 	const MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 3;
 
 	before(async () => {
-		// Make sure that integration tests use real timers.
 		sandbox.restore();
 	});
 

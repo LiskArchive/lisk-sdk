@@ -40,7 +40,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 	before(async () => {
 		sandbox.restore();
-		await wait(1000);
 		const serverSocketPrototype = SCServerSocket.prototype as any;
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
@@ -54,15 +53,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 	after(async () => {
 		SCServerSocket.prototype = serverSocketPrototypeBackup;
-	});
-
-	afterEach(async () => {
-		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
-		);
-		await wait(1000);
 	});
 
 	describe('blacklisting', () => {
@@ -122,6 +112,15 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				});
 			});
 			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+			await wait(1000);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
 			await wait(1000);
 		});
 
@@ -216,6 +215,15 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await wait(1000);
 		});
 
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+			await wait(1000);
+		});
+
 		it('everyone but itself should have a permanent connection to the fixed peer', async () => {
 			p2pNodeList.forEach((p2p, index) => {
 				if (index != 0) {
@@ -271,6 +279,15 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				});
 			});
 			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+			await wait(1000);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
 			await wait(1000);
 		});
 

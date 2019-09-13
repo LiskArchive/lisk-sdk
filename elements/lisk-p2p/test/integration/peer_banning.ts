@@ -32,6 +32,9 @@ describe('Peer banning mechanism', () => {
 
 	before(async () => {
 		sandbox.restore();
+	});
+
+	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 			// Each node will have the next node in the sequence as a seed peer.
 			const seedPeers = [
@@ -68,6 +71,7 @@ describe('Peer banning mechanism', () => {
 			});
 		});
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+
 		await wait(200);
 
 		const firstNode = p2pNodeList[0];
@@ -83,7 +87,7 @@ describe('Peer banning mechanism', () => {
 		});
 	});
 
-	after(async () => {
+	afterEach(async () => {
 		await Promise.all(
 			p2pNodeList
 				.filter(p2p => p2p.isActive)

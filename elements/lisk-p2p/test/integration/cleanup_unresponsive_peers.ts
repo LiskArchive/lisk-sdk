@@ -28,6 +28,10 @@ describe('Cleanup unresponsive peers', () => {
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
 
+	before(async () => {
+		sandbox.restore();
+	});
+
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 			// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -41,7 +45,7 @@ describe('Cleanup unresponsive peers', () => {
 							},
 					  ];
 			const nodePort = NETWORK_START_PORT + index;
-			
+
 			return new P2P({
 				connectTimeout: 100,
 				ackTimeout: 200,

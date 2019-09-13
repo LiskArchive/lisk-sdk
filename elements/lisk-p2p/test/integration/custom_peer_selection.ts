@@ -181,6 +181,7 @@ describe('Custom peer selection', () => {
 				.which.is.equal('bar');
 		});
 	});
+
 	describe('P2P.send', () => {
 		let collectedMessages: Array<any> = [];
 
