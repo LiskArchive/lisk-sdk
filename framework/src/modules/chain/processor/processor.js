@@ -220,7 +220,7 @@ class Processor {
 	}
 
 	async applyGenesisBlock(block) {
-		this.logger.debug({ id: block.id }, 'applying genesis block');
+		this.logger.info({ id: block.id }, 'applying genesis block');
 		const blockProcessor = this._getBlockProcessor(block);
 		return this._processGenesis(block, blockProcessor, { skipSave: true });
 	}
