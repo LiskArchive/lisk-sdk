@@ -96,7 +96,7 @@ describe('dpos.apply()', () => {
 
 		it('should resolve with "false"', async () => {
 			// Act
-			const result = await dpos.apply(genesisBlock);
+			const result = await dpos.apply(genesisBlock, stubs.tx);
 
 			// Assert
 			expect(result).toBeFalse();
@@ -104,7 +104,7 @@ describe('dpos.apply()', () => {
 
 		it('should NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
 			// Act
-			await dpos.apply(genesisBlock);
+			await dpos.apply(genesisBlock, stubs.tx);
 
 			// Assert
 			expect(
