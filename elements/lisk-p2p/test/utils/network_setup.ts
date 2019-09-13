@@ -20,11 +20,13 @@ export const NETWORK_PEER_COUNT = 10;
 export const POPULATOR_INTERVAL = 50;
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
-export const DEFAULT_CONNECTION_TIMEOUT = 100;
-export const DEFAULT_ACK_TIMEOUT = 200;
+export const DEFAULT_CONNECTION_TIMEOUT = 500;
+export const DEFAULT_ACK_TIMEOUT = 500;
 export const RATE_CALCULATION_INTERVAL = 10000;
 export const WEB_SOCKET_ENGINE = 'ws';
 export const SEED_PEER_IP = '127.0.0.1';
+export const NETWORK_CREATION_WAIT_TIME = 1000;
+export const NETWORK_DESTROY_WAIT_TIME = 1000;
 
 export const nodeInfoConstants = {
 	nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -40,6 +42,7 @@ export const nodeInfoConstants = {
 interface TestNetworkConfig {
 	networkSize?: number;
 	startNodePort?: number;
+	networkCreationWaitTime?: number;
 	customConfig?: (
 		index: number,
 		startPort: number,
@@ -60,6 +63,7 @@ interface TestNetworkConfig {
 export const createNetwork = async ({
 	networkSize,
 	startNodePort,
+	networkCreationWaitTime,
 	customConfig,
 	customNodeInfo,
 	customSeedPeers,
@@ -116,14 +120,23 @@ export const createNetwork = async ({
 	});
 	await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 
-	await wait(1000);
+	await wait(
+		networkCreationWaitTime
+			? networkCreationWaitTime
+			: NETWORK_CREATION_WAIT_TIME,
+	);
 
 	return p2pNodeList;
 };
 
-export const destroyNetwork = async (p2pNodeList: ReadonlyArray<P2P>) => {
+export const destroyNetwork = async (
+	p2pNodeList: ReadonlyArray<P2P>,
+	networkDestroyWaitTime?: number,
+) => {
 	await Promise.all(
 		p2pNodeList.filter(p2p => p2p.isActive).map(async p2p => await p2p.stop()),
 	);
-	await wait(1000);
+	await wait(
+		networkDestroyWaitTime ? networkDestroyWaitTime : NETWORK_DESTROY_WAIT_TIME,
+	);
 };
