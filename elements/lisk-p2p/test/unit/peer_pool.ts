@@ -44,6 +44,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_SEND_PEER_LIMIT,
 } from '../../src/constants';
+import { RequestFailError } from '../../src';
 
 describe('peerPool', () => {
 	const peerPoolConfig = {
@@ -424,6 +425,64 @@ describe('peerPool', () => {
 			const applyNodeInfoOnPeerCalls = applyNodeInfoOnPeerStub.getCalls()
 				.length;
 			expect(applyNodeInfoOnPeerCalls).eql(peerPool.getPeers().length);
+		});
+	});
+
+	describe('#request', () => {
+		const requestPacket = { procedure: 'abc', data: 'abc' };
+		const peer = {
+			ipAddress: '127.0.0.1',
+			wsPort: 5020,
+			height: 1,
+			updatedAt: new Date(),
+			version: '1.0.1',
+			protocolVersion: '1.0.1',
+		};
+		it('should call getUniqueOutboundConnectedPeers', async () => {
+			const getUniqueOutboundConnectedPeersStub = sandbox
+				.stub(peerPool, 'getUniqueOutboundConnectedPeers')
+				.returns([peer]);
+			try {
+				await peerPool.request(requestPacket);
+			} catch (err) {}
+
+			expect(getUniqueOutboundConnectedPeersStub).to.be.calledOnce;
+		});
+
+		it('should call _peerSelectForRequest', async () => {
+			const peers = peerPool.getUniqueOutboundConnectedPeers();
+			const _peerSelectForRequestStub = sandbox
+				.stub(peerPool as any, '_peerSelectForRequest')
+				.returns([peer]);
+			try {
+				await peerPool.request(requestPacket);
+			} catch (err) {}
+
+			expect(_peerSelectForRequestStub).to.be.calledWith({
+				peers,
+				nodeInfo: peerPool.nodeInfo,
+				peerLimit: 1,
+				requestPacket,
+			});
+		});
+
+		it('should throw error if no peers selected', async () => {
+			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([]);
+			try {
+				await peerPool.request(requestPacket);
+			} catch (err) {
+				expect(err).to.be.instanceOf(RequestFailError);
+			}
+		});
+
+		it('should call requestFromPeer', async () => {
+			const requestFromPeerStub = sandbox.stub(peerPool, 'requestFromPeer');
+			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([peer]);
+			try {
+				await peerPool.request(requestPacket);
+			} catch (err) {}
+
+			expect(requestFromPeerStub).to.be.calledOnce;
 		});
 	});
 
