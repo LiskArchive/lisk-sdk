@@ -85,13 +85,11 @@ const modulesLoader = new function() {
 	this.initLogic = function(Logic, scope, cb) {
 		jobsQueue.jobs = {};
 		scope = _.defaultsDeep(scope, this.scope);
-		switch (Logic.name) {
-			case 'Block':
-				new Logic(scope.ed, this.transactions, cb);
-				break;
-			default:
-				console.info('no Logic case initLogic');
+		if (Logic.name === 'Block') {
+			return new Logic(scope.ed, this.transactions, cb);
 		}
+
+		return console.info('no Logic case initLogic');
 	};
 
 	/**
