@@ -396,6 +396,34 @@ describe('peerPool', () => {
 
 				expect(selectedPeersForEviction.length).to.eql(10);
 			});
+			
+	describe('#applyNodeInfo', async () => {
+		const nodeInfo = {
+			os: 'darwin',
+			version: '1.1',
+			protocolVersion: '1.0.1',
+			nethash: 'abc',
+			wsPort: 5000,
+			height: 1000,
+		};
+		it('should set _nodeInfo', async () => {
+			peerPool.applyNodeInfo(nodeInfo);
+			expect(peerPool.nodeInfo).to.equal(nodeInfo);
+		});
+
+		it('should call getPeers', async () => {
+			const getPeersStub = sandbox.stub(peerPool, 'getPeers').callThrough();
+			peerPool.applyNodeInfo(nodeInfo);
+			expect(getPeersStub).to.be.calledOnce;
+		});
+
+		it('should call _applyNodeInfoOnPeer for each peer in peerMap', async () => {
+			const applyNodeInfoOnPeerStub = sandbox
+				.stub(peerPool as any, '_applyNodeInfoOnPeer')
+				.callThrough();
+			const applyNodeInfoOnPeerCalls = applyNodeInfoOnPeerStub.getCalls()
+				.length;
+			expect(applyNodeInfoOnPeerCalls).eql(peerPool.getPeers().length);
 		});
 	});
 
