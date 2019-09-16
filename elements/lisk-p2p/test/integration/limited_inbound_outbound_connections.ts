@@ -21,7 +21,7 @@ describe('Limited number of outbound/inbound connections', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
-	const LIMITED_CONNECTIONS = 5;
+	const LIMITED_CONNECTIONS = 3;
 	const ALL_NODE_PORTS_WITH_LIMIT: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
@@ -69,7 +69,7 @@ describe('Limited number of outbound/inbound connections', () => {
 			});
 		});
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-		await wait(1800);
+		await wait(1000);
 	});
 
 	afterEach(async () => {
@@ -78,7 +78,7 @@ describe('Limited number of outbound/inbound connections', () => {
 				.filter(p2p => p2p.isActive)
 				.map(async p2p => await p2p.stop()),
 		);
-		await wait(70);
+		await wait(100);
 	});
 
 	it(`should not create more than ${LIMITED_CONNECTIONS} outbound connections`, async () => {
