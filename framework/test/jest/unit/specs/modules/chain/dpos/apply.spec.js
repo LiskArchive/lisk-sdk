@@ -259,7 +259,7 @@ describe('dpos.apply()', () => {
 						sort: ['voteWeight:desc', 'publicKey:asc'],
 					},
 				)
-				.mockResolvedValue(delegateAccounts);
+				.mockResolvedValue(sortedDelegateAccounts);
 
 			feePerDelegate = randomInt(10, 100);
 			totalFee = feePerDelegate * constants.ACTIVE_DELEGATES;

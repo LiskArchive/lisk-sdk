@@ -31,6 +31,7 @@ describe('dpos.verifyBlockForger()', () => {
 					getActiveDelegatesForRound: jest
 						.fn()
 						.mockReturnValue(delegatePublicKeys),
+					// @todo create was stubbed but never used, create an issue to remove it or add a test case
 					create: jest.fn(),
 				},
 				Account: {
