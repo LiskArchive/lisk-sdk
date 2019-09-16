@@ -135,7 +135,6 @@ const BASE_10_RADIX = 10;
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
-export const DEFAULT_OUTBOUND_UPDATE_STATUS_INTERVAL = 2000;
 export const DEFAULT_PEER_PROTECTION_FOR_NETGROUP = 0.034;
 export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
@@ -449,9 +448,6 @@ export class P2P extends EventEmitter {
 			outboundShuffleInterval: config.outboundShuffleInterval
 				? config.outboundShuffleInterval
 				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
-			outboundUpdateStatusInterval: config.outboundUpdateStatusInterval
-				? config.outboundUpdateStatusInterval
-				: DEFAULT_OUTBOUND_UPDATE_STATUS_INTERVAL,
 			netgroupProtectionRatio:
 				typeof config.netgroupProtectionRatio === 'number'
 					? config.netgroupProtectionRatio

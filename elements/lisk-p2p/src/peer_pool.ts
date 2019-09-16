@@ -99,7 +99,6 @@ interface PeerPoolConfig {
 	readonly sendPeerLimit: number;
 	readonly peerBanTime: number;
 	readonly maxOutboundConnections: number;
-	readonly outboundUpdateStatusInterval?: number;
 	readonly maxInboundConnections: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly outboundShuffleInterval: number;
@@ -192,7 +191,6 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
-	private readonly _outboundUpdateStatusId: number;
 	private readonly _peerConfig: PeerConfig;
 	private readonly _peerLists: PeerLists;
 
@@ -219,13 +217,6 @@ export class PeerPool extends EventEmitter {
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
-		this._outboundUpdateStatusId = setInterval(() => {
-			// tslint:disable-next-line: no-floating-promises
-			(async () => {
-				await this._updateOutboundConnections();
-			})().catch(error => error);
-		}, peerPoolConfig.outboundUpdateStatusInterval);
-
 		this._outboundShuffleIntervalId = setInterval(() => {
 			this._evictPeer(OutboundPeer);
 		}, peerPoolConfig.outboundShuffleInterval);
@@ -522,7 +513,6 @@ export class PeerPool extends EventEmitter {
 		// Clear periodic eviction of outbound peers for shuffling
 		if (this._outboundShuffleIntervalId) {
 			clearInterval(this._outboundShuffleIntervalId);
-			clearInterval(this._outboundUpdateStatusId);
 		}
 
 		this._peerMap.forEach((peer: Peer) => {
@@ -612,18 +602,6 @@ export class PeerPool extends EventEmitter {
 				this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 			}
 		})();
-	}
-
-	private async _updateOutboundConnections(): Promise<void> {
-		try {
-			await Promise.all(
-				this.getConnectedPeers(OutboundPeer).map(async peer =>
-					peer.fetchStatus().catch(err => err),
-				),
-			);
-		} catch (err) {
-			return;
-		}
 	}
 
 	private _selectPeersForEviction(): Peer[] {
