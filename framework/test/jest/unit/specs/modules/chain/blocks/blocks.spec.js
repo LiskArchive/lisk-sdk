@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 const {
 	TransferTransaction,
@@ -313,7 +314,126 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('validate', () => {
+	describe('verifyInMemory', () => {
+		describe('verifyPreviousBlockId', () => {
+			it("should throw when the block is not a genesis block and previous block id doesn't match the last block id", async () => {
+				// Arrange
+				const block = newBlock({ previousBlock: null });
+				const blockBytes = getBytes(block);
+				const errorMessage = 'Invalid previous block';
+				expect.assertions(1);
+				// Act
+				try {
+					await blocksInstance.verifyInMemory({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					});
+				} catch (error) {
+					// Assert
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
+
+			it("should not throw when previous block property doesn't exist and block height = 1", async () => {
+				// Arrange
+				const block = cloneDeep(blocksInstance.genesisBlock);
+				const blockBytes = getBytes(block);
+				block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
+
+				blocksInstance.slots.getEpochTime = jest.fn(
+					() => blocksInstance._lastBlock.timestamp + 1010,
+				); // It will get assigned to newBlock.receivedAt
+
+				expect.assertions(1);
+				// Act
+				await expect(
+					blocksInstance.verifyInMemory({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).resolves.toBeUndefined();
+			});
+		});
+
+		describe('validateBlockSlot', () => {
+			it('should throw when block timestamp is in the future', async () => {
+				// Arrange
+				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
+				const block = newBlock({ timestamp: futureTimestamp });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.verifyInMemory({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+
+			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
+				// Arrange
+				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
+				const block = newBlock({ timestamp: futureTimestamp });
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.verifyInMemory({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+
+			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
+				// Arrange
+				const lastBlock = newBlock({});
+				const block = newBlock({
+					previousBlock: lastBlock.id,
+					height: lastBlock.height + 1,
+				});
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.verifyInMemory({
+						block,
+						lastBlock,
+						blockBytes,
+					}),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+		});
+
+		it('should call verifyBlockForger', async () => {
+			// Arrange
+			const block = cloneDeep(blocksInstance.genesisBlock);
+			const blockBytes = getBytes(block);
+			block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
+
+			blocksInstance.slots.getEpochTime = jest.fn(
+				() => blocksInstance._lastBlock.timestamp + 1010,
+			); // It will get assigned to newBlock.receivedAt
+
+			expect.assertions(1);
+			// Act
+			await blocksInstance.verifyInMemory({
+				block,
+				lastBlock: genesisBlock,
+				blockBytes,
+			});
+
+			// Assert
+			expect(blocksInstance.dposModule.verifyBlockForger).toHaveBeenCalled();
+		});
+	});
+
+	describe('validateDetached', () => {
 		let validateTransactionsFn;
 
 		beforeEach(async () => {
@@ -323,6 +443,44 @@ describe('blocks', () => {
 			transactionsModule.validateTransactions.mockReturnValue(
 				validateTransactionsFn,
 			);
+		});
+
+		describe('validateReward', () => {
+			// should not throw if block height === 1? (Where should the test go)
+			it('should throw if the expected reward does not match the reward property in block object', async () => {
+				// Arrange
+				const block = newBlock({ reward: '1' });
+				const blockBytes = getBytes(block);
+				const errorMessage = 'Invalid block reward: 1 expected: 0';
+				expect.assertions(1);
+				// Act
+				try {
+					await blocksInstance.validateDetached({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					});
+				} catch (error) {
+					// Assert
+					expect(error.message).toEqual(errorMessage);
+				}
+			});
+
+			it('should not throw if the expected reward does not match the reward property in block object but the block id included in exception', async () => {
+				// Arrange
+				const block = newBlock({ reward: '1' });
+				exceptions.blockRewards = [block.id];
+				const blockBytes = getBytes(block);
+				expect.assertions(1);
+				// Act
+				await expect(
+					blocksInstance.validateDetached({
+						block,
+						lastBlock: genesisBlock,
+						blockBytes,
+					}),
+				).resolves.toBeUndefined();
+			});
 		});
 
 		describe('validateSignature', () => {
@@ -338,7 +496,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validate({
+					await blocksInstance.validateDetached({
 						block,
 						lastBlock: genesisBlock,
 						blockBytes: mutatedBlockBytes,
@@ -361,7 +519,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validate({
+					await blocksInstance.validateDetached({
 						block: blockWithMutatedSignature,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -384,7 +542,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validate({
+					await blocksInstance.validateDetached({
 						block: blockWithDifferentGeneratorPublicKey,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -393,99 +551,6 @@ describe('blocks', () => {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
 				}
-			});
-		});
-
-		describe('validatePreviousBlock', () => {
-			it("should throw when the previous block doesn't exist and the block is not genesis block", async () => {
-				// Arrange
-				const block = newBlock({ previousBlock: null });
-				const blockBytes = getBytes(block);
-				const errorMessage = 'Invalid previous block';
-				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.validate({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					});
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
-			});
-
-			it("should not throw when previous block doesn't exist and block height = 1", async () => {
-				// Arrange
-				const block = newBlock({
-					height: 1,
-					previousBlock: undefined,
-				});
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act
-				await expect(
-					blocksInstance.validate({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).resolves.toBeUndefined();
-			});
-		});
-
-		describe('validateReward', () => {
-			// should not throw if block height === 1? (Where should the test go)
-			it('should throw if the expected reward does not match the reward property in block object', async () => {
-				// Arrange
-				const block = newBlock({ reward: '1' });
-				const blockBytes = getBytes(block);
-				const errorMessage = 'Invalid block reward: 1 expected: 0';
-				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.validate({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					});
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
-			});
-
-			it('should not throw if the expected reward does not match the reward property in block object but the block id included in exception', async () => {
-				// Arrange
-				const block = newBlock({ reward: '1' });
-				exceptions.blockRewards = [block.id];
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act
-				await expect(
-					blocksInstance.validate({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).resolves.toBeUndefined();
-			});
-
-			it('should not throw if block height === 1', async () => {
-				// Arrange
-				const block = newBlock({ height: 1, reward: '1' });
-				exceptions.blockRewards = [block.id.replace('1', '0')];
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validate({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).resolves.toBeUndefined();
 			});
 		});
 
@@ -499,7 +564,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -517,7 +582,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -537,7 +602,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -558,7 +623,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -579,7 +644,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block: blockWithDifferentPayloadhash,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -598,7 +663,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block: blockWithDifferentTotalAmount,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -617,65 +682,12 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block: blockWithDifferentTotalAmount,
 						lastBlock: genesisBlock,
 						blockBytes,
 					}),
 				).rejects.toThrow('Invalid total fee');
-			});
-		});
-
-		describe('validateBlockSlot', () => {
-			it('should throw when block timestamp is in the future', async () => {
-				// Arrange
-				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
-				const block = newBlock({ timestamp: futureTimestamp });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validate({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).rejects.toThrow('Invalid block timestamp');
-			});
-
-			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
-				// Arrange
-				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
-				const block = newBlock({ timestamp: futureTimestamp });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validate({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).rejects.toThrow('Invalid block timestamp');
-			});
-
-			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
-				// Arrange
-				const lastBlock = newBlock({});
-				const block = newBlock({
-					previousBlock: lastBlock.id,
-					height: lastBlock.height + 1,
-				});
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validate({
-						block,
-						lastBlock,
-						blockBytes,
-					}),
-				).rejects.toThrow('Invalid block timestamp');
 			});
 		});
 
@@ -689,7 +701,7 @@ describe('blocks', () => {
 
 			expect.assertions(1);
 			// Act & Assert
-			await blocksInstance.validate({
+			await blocksInstance.validateDetached({
 				block,
 				lastBlock: genesisBlock,
 				blockBytes,
@@ -704,7 +716,7 @@ describe('blocks', () => {
 				const blockBytes = getBytes(block);
 				expect.assertions(2);
 				// Act
-				await blocksInstance.validate({
+				await blocksInstance.validateDetached({
 					block,
 					lastBlock: genesisBlock,
 					blockBytes,
@@ -733,7 +745,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block,
 						lastBlock: genesisBlock,
 						blockBytes,
@@ -758,7 +770,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validate({
+					blocksInstance.validateDetached({
 						block,
 						lastBlock: genesisBlock,
 						blockBytes,

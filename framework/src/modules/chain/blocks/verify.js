@@ -26,6 +26,19 @@ const verifyBlockNotExists = async (storage, block) => {
 	}
 };
 
+const verifyPreviousBlockId = (block, lastBlock, genesisBlock) => {
+	const isGenesisBlock =
+		block.id === genesisBlock.id && !block.previousBlock && block.height === 1;
+
+	const isConsecutiveBlock =
+		lastBlock.height + 1 === block.height &&
+		block.previousBlock === lastBlock.id;
+
+	if (!isGenesisBlock && !isConsecutiveBlock) {
+		throw new Error('Invalid previous block');
+	}
+};
+
 class BlocksVerify {
 	constructor({ storage, exceptions, slots, dposModule, genesisBlock }) {
 		this.storage = storage;
@@ -131,5 +144,6 @@ class BlocksVerify {
 
 module.exports = {
 	BlocksVerify,
+	verifyPreviousBlockId,
 	verifyBlockNotExists,
 };

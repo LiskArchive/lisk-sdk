@@ -1179,8 +1179,8 @@ describe('processor', () => {
 					expect(step).toHaveBeenCalledWith(
 						{
 							block: blockV0,
-							lastBlock: defaultLastBlock,
 							skipExistingCheck: true,
+							lastBlock: defaultLastBlock,
 							tx: txStub,
 						},
 						undefined,
@@ -1238,6 +1238,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,
@@ -1286,6 +1287,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							skipExistingCheck: true,
 							tx: txStub,
 						},
 						undefined,

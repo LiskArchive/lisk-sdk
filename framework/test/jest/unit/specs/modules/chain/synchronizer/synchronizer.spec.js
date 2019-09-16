@@ -36,7 +36,7 @@ describe('Synchronizer', () => {
 		};
 
 		processorMock = {
-			validate: jest.fn(),
+			validateDetached: jest.fn(),
 		};
 
 		syncParameters = {
@@ -193,13 +193,15 @@ describe('Synchronizer', () => {
 		it('should verify the block before sync', async () => {
 			await synchronizer.run(receivedBlock);
 
-			expect(processorMock.validate).toHaveBeenCalledTimes(1);
-			expect(processorMock.validate).toHaveBeenCalledWith(receivedBlock);
+			expect(processorMock.validateDetached).toHaveBeenCalledTimes(1);
+			expect(processorMock.validateDetached).toHaveBeenCalledWith(
+				receivedBlock,
+			);
 		});
 
 		it('should reject with error if block verification failed', async () => {
 			const validationError = new Error('Block verifyError');
-			processorMock.validate.mockRejectedValue(validationError);
+			processorMock.validateDetached.mockRejectedValue(validationError);
 
 			await expect(synchronizer.run()).rejects.toThrow(validationError);
 		});

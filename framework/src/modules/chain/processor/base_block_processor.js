@@ -41,6 +41,7 @@ class BaseBlockProcessor {
 		 * @return void
 		 */
 		this.validate = new Pipeline();
+		this.validateDetached = new Pipeline();
 		this.validateNew = new Pipeline();
 
 		/**
