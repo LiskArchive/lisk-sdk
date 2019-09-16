@@ -232,7 +232,6 @@ describe('matcher', () => {
 					scope.components.storage.adapter.db.none(
 						'DELETE FROM blocks WHERE "height" > 1;',
 					),
-					scope.components.storage.adapter.db.none('DELETE FROM forks_stat;'),
 				]);
 			});
 			scope.modules.blocks._lastBlock = __testContext.config.genesisBlock;

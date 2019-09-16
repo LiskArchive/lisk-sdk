@@ -64,7 +64,6 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		})
 			.then(() => {
@@ -236,20 +235,6 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			});
 	}
 
-	function verifyForkStat(blockId, cause) {
-		return storage.adapter.db
-			.one(
-				'SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}',
-				{ blockId, cause },
-			)
-			.then(res => {
-				expect(res.blockId).to.equal(blockId);
-			})
-			.catch(err => {
-				__testContext.debug(err.stack);
-			});
-	}
-
 	describe('receiveBlockFromNetwork (empty transactions)', () => {
 		describe('for valid block', () => {
 			let lastBlock;
@@ -401,7 +386,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							lastBlock.id,
 							secondLastBlock.id,
 						]);
-						return verifyForkStat(blockWithGreaterTimestamp.id, 1).then(done);
+						done();
 					});
 				});
 			});
@@ -440,7 +425,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							secondLastBlock.id,
 							blockWithLowerTimestamp.id,
 						]);
-						return verifyForkStat(blockWithLowerTimestamp.id, 1).then(done);
+						done();
 					});
 				});
 			});
@@ -471,7 +456,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockFromPreviousRound.id, 1).then(done);
+							done();
 						});
 					});
 				});
@@ -495,7 +480,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(inSlotsWindowBlock.id, 1).then(done);
+							done();
 						});
 					});
 				});
@@ -518,7 +503,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(outOfSlotWindowBlock.id, 1).then(done);
+							done();
 						});
 					});
 				});
@@ -553,7 +538,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockFromFutureSlot.id, 1).then(done);
+							done();
 						});
 					});
 				});
@@ -609,7 +594,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(done);
+							done();
 						});
 					});
 
@@ -640,9 +625,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									lastBlock.id,
 									secondLastBlock.id,
 								]);
-								return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(
-									done,
-								);
+								done();
 							});
 						});
 					});
@@ -682,7 +665,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									secondLastBlock.id,
 									lastBlock.id,
 								]);
-								return verifyForkStat(blockWithInvalidSlot.id, 5).then(done);
+								done();
 							});
 						});
 					});
@@ -706,7 +689,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									blockWithLowerTimestamp.id,
 									secondLastBlock.id,
 								]);
-								return verifyForkStat(blockWithLowerTimestamp.id, 5).then(done);
+								done();
 							});
 						});
 					});
@@ -747,10 +730,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 										blockWithDifferentKeyAndTimestamp.id,
 										lastBlock.id,
 									]);
-									return verifyForkStat(
-										blockWithDifferentKeyAndTimestamp.id,
-										5,
-									).then(done);
+									done();
 								});
 							});
 						});
@@ -791,11 +771,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								expect(blockIds).to.not.include(
 									blockWithDifferentKeyAndTimestamp.id,
 								);
-								expect(blockIds).to.include.members([
+								return expect(blockIds).to.include.members([
 									secondLastBlock.id,
 									lastBlock.id,
 								]);
-								await verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5);
 							});
 						});
 					});
@@ -860,7 +839,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockWithUnskippedSlot.id, 5).then(done);
+							done();
 						});
 					});
 				});
@@ -912,7 +891,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								secondLastBlock.id,
 								blockFromPreviousRound.id,
 							]);
-							return verifyForkStat(blockFromPreviousRound.id, 5).then(done);
+							done();
 						});
 					});
 				});

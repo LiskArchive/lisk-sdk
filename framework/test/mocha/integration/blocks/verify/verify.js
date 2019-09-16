@@ -269,7 +269,6 @@ describe('blocks/verify', () => {
 					'blocks WHERE height > 1',
 					'trs WHERE "blockId" != \'6524861224470851795\'',
 					"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
-					'forks_stat',
 				],
 				(table, seriesCb) => {
 					clearDatabaseTable(

@@ -219,7 +219,9 @@ class DelegatesInfo {
 			// summedRound always returns 101 delegates,
 			// that means there can be recurring public keys for delegates
 			// who forged multiple times.
-			const [summedRound] = await this.storage.entities.Round.summedRound(
+			const [
+				summedRound,
+			] = await this.storage.entities.RoundDelegates.summedRound(
 				round,
 				this.activeDelegates,
 				tx,

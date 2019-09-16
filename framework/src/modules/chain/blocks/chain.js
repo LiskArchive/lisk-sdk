@@ -148,8 +148,6 @@ const applyGenesisBlockTransactions = async (
 		storage,
 	)(transactions, tx);
 	await stateStore.account.finalize();
-	stateStore.round.setRoundForData(slots.calcRound(1));
-	await stateStore.round.finalize();
 };
 
 /**
@@ -186,8 +184,6 @@ const applyConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 	}
 
 	await stateStore.account.finalize();
-	stateStore.round.setRoundForData(slots.calcRound(block.height));
-	await stateStore.round.finalize();
 };
 
 /**
@@ -232,14 +228,7 @@ const applyConfirmedGenesisStep = async (
  * @param {function} tx - Database transaction for atomic operations
  * @returns {Promise<reject|resolve>}
  */
-const saveBlockStep = async (
-	storage,
-	roundsModule,
-	dposModule,
-	block,
-	skipSave,
-	tx,
-) => {
+const saveBlockStep = async (storage, dposModule, block, skipSave, tx) => {
 	if (!skipSave) {
 		await saveBlock(storage, block, tx);
 	}
@@ -280,10 +269,6 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 	}
 
 	await stateStore.account.finalize();
-
-	stateStore.round.setRoundForData(slots.calcRound(block.height));
-
-	await stateStore.round.finalize();
 };
 
 /**

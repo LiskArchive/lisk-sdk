@@ -136,11 +136,9 @@ class StorageSeed {
 	static reset(storage) {
 		const tables = [
 			'blocks',
-			'forks_stat',
 			'mem_accounts',
 			'mem_accounts2multisignatures',
 			'mem_accounts2delegates',
-			'mem_round',
 			'rounds_rewards',
 			'peers',
 			'trs',

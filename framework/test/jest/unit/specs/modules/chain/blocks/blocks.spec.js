@@ -81,9 +81,6 @@ describe('blocks', () => {
 						get: jest.fn(),
 						isPersisted: jest.fn(),
 					},
-					Round: {
-						getUniqueRounds: jest.fn(),
-					},
 					Transaction: {
 						create: jest.fn(),
 					},
@@ -173,13 +170,6 @@ describe('blocks', () => {
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 				genesisBlock,
 			]);
-			stubs.dependencies.storage.entities.Round.getUniqueRounds.mockResolvedValue(
-				[
-					{
-						round: 1,
-					},
-				],
-			);
 			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
 			const random101DelegateAccounts = new Array(101)
 				.fill('')
@@ -1094,9 +1084,6 @@ describe('blocks', () => {
 			} catch (e) {
 				// Do nothing
 			}
-
-			expect(stateStore.round.finalize).toHaveBeenCalled();
-			expect(stateStore.round.setRoundForData).toHaveBeenCalled();
 		});
 	});
 
@@ -1141,8 +1128,6 @@ describe('blocks', () => {
 			await blocksInstance.applyGenesis({
 				block: newBlock(),
 			});
-
-			expect(stateStore.round.finalize).toHaveBeenCalled();
 		});
 	});
 
@@ -1273,9 +1258,6 @@ describe('blocks', () => {
 			} catch (e) {
 				// Do nothing
 			}
-
-			expect(stateStore.round.finalize).toHaveBeenCalled();
-			expect(stateStore.round.setRoundForData).toHaveBeenCalled();
 		});
 	});
 

@@ -41,7 +41,6 @@ describe('integration test (type 1) - second signature transactions from pool an
 		storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(() => {
 			library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
