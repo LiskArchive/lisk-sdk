@@ -33,7 +33,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
-import { convertNodeInfoToLegacyFormat } from '../utils';
+import { sanitizeNodeInfoToLegacyFormat } from '../utils';
 import { Peer, PeerConfig } from './base';
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
@@ -93,7 +93,7 @@ export class OutboundPeer extends Peer {
 
 	private _createOutboundSocket(): SCClientSocket {
 		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
+			? sanitizeNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
 		const connectTimeout = this._peerConfig.connectTimeout

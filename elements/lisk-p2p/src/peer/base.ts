@@ -52,8 +52,8 @@ import {
 } from '../p2p_types';
 import {
 	constructPeerIdFromPeerInfo,
-	convertNodeInfoToLegacyFormat,
 	getNetgroup,
+	sanitizeNodeInfoToLegacyFormat,
 	validatePeerInfo,
 	validatePeersInfoList,
 	validateProtocolMessage,
@@ -381,7 +381,7 @@ export class Peer extends EventEmitter {
 	public async applyNodeInfo(nodeInfo: P2PNodeInfo): Promise<void> {
 		this._nodeInfo = nodeInfo;
 		// TODO later: This conversion step will not be needed after switching to the new LIP protocol version.
-		const legacyNodeInfo = convertNodeInfoToLegacyFormat(this._nodeInfo);
+		const legacyNodeInfo = sanitizeNodeInfoToLegacyFormat(this._nodeInfo);
 		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
 		await this.request({
 			procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
@@ -553,7 +553,7 @@ export class Peer extends EventEmitter {
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
 		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
+			? sanitizeNodeInfoToLegacyFormat(this._nodeInfo)
 			: {};
 		request.end(legacyNodeInfo);
 	}

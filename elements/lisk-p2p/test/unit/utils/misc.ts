@@ -25,9 +25,8 @@ import {
 	getUniquePeersbyIp,
 	NETWORK,
 	PEER_TYPE,
-	convertNodeInfoToLegacyFormat,
 } from '../../../src/utils';
-import { P2PDiscoveredPeerInfo, P2PNodeInfo } from '../../../src/p2p_types';
+import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe('utils/misc', () => {
 	const IPv4Address = '1.160.10.240';
@@ -357,69 +356,6 @@ describe('utils/misc', () => {
 
 			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
 				expect(uniquePeerListByIp).eql(samplePeers);
-			});
-		});
-	});
-
-	describe('#convertNodeInfoToLegacyFormat', () => {
-		describe('when node info has broadhash, nonce and httpPort', () => {
-			const nodeInfo = {
-				os: 'os',
-				version: '1.2.0',
-				protocolVersion: '1.2',
-				nethash: 'nethash',
-				wsPort: 6001,
-				height: 100,
-				broadhash: 'myBroadhash',
-				nonce: 'myNonce',
-				httpPort: 8888,
-			} as P2PNodeInfo;
-
-			it('should return object containing broadhash property as a non-empty string', async () => {
-				expect(convertNodeInfoToLegacyFormat(nodeInfo))
-					.to.haveOwnProperty('broadhash')
-					.to.eql(nodeInfo.broadhash as string);
-			});
-
-			it('should return object containing nonce property as a non-empty string', async () => {
-				expect(convertNodeInfoToLegacyFormat(nodeInfo))
-					.to.haveOwnProperty('nonce')
-					.to.eql(nodeInfo.nonce as string);
-			});
-
-			it('should return object containing httpPort property as a number', async () => {
-				expect(convertNodeInfoToLegacyFormat(nodeInfo))
-					.to.haveOwnProperty('nonce')
-					.to.eql(nodeInfo.nonce as string);
-			});
-		});
-
-		describe('when node info has neither broadhash, nor nonce, nor httpPort', () => {
-			const nodeInfo = {
-				os: 'os',
-				version: '1.2.0',
-				protocolVersion: '1.2',
-				nethash: 'nethash',
-				wsPort: 6001,
-				height: 100,
-			} as P2PNodeInfo;
-
-			it('should return object containing broadhash property as an empty string', async () => {
-				expect(convertNodeInfoToLegacyFormat(nodeInfo)).to.haveOwnProperty(
-					'broadhash',
-				).to.be.empty;
-			});
-
-			it('should return object containing nonce property as an empty string', async () => {
-				expect(convertNodeInfoToLegacyFormat(nodeInfo)).to.haveOwnProperty(
-					'nonce',
-				).to.be.empty;
-			});
-
-			it('should return object containing httpPort property with zero value', async () => {
-				expect(convertNodeInfoToLegacyFormat(nodeInfo))
-					.to.haveOwnProperty('httpPort')
-					.to.be.equal(0);
 			});
 		});
 	});

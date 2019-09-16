@@ -13,7 +13,13 @@
  *
  */
 import { constructPeerIdFromPeerInfo } from '.';
-import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
+import {
+	P2PNodeInfo,
+	P2PPeerInfo,
+	PeerLists,
+	ProtocolNodeInfo,
+	ProtocolPeerInfo,
+} from '../p2p_types';
 
 export const sanitizeIncomingPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
@@ -121,5 +127,19 @@ export const sanitizePeerLists = (
 		fixedPeers,
 		whitelisted,
 		previousPeers,
+	};
+};
+
+// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
+export const sanitizeNodeInfoToLegacyFormat = (
+	nodeInfo: P2PNodeInfo,
+): ProtocolNodeInfo => {
+	const { httpPort, nonce, broadhash } = nodeInfo;
+
+	return {
+		...nodeInfo,
+		broadhash: broadhash ? (broadhash as string) : '',
+		nonce: nonce ? (nonce as string) : '',
+		httpPort: httpPort ? (httpPort as number) : 0,
 	};
 };

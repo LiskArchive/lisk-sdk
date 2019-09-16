@@ -14,12 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
-import {
-	P2PDiscoveredPeerInfo,
-	P2PNodeInfo,
-	P2PPeerInfo,
-	ProtocolNodeInfo,
-} from '../p2p_types';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 
 const SECRET_BUFFER_LENGTH = 4;
 const NETWORK_BUFFER_LENGTH = 1;
@@ -226,17 +221,3 @@ export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 
 export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));
-
-// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
-export const convertNodeInfoToLegacyFormat = (
-	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => {
-	const { httpPort, nonce, broadhash } = nodeInfo;
-
-	return {
-		...nodeInfo,
-		broadhash: broadhash ? (broadhash as string) : '',
-		nonce: nonce ? (nonce as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0,
-	};
-};

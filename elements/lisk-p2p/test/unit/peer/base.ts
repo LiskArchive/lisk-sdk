@@ -39,7 +39,7 @@ import {
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
-import { convertNodeInfoToLegacyFormat } from '../../../src/utils';
+import { sanitizeNodeInfoToLegacyFormat } from '../../../src/utils';
 
 describe('peer/base', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
@@ -262,7 +262,7 @@ describe('peer/base', () => {
 
 			expect(defaultPeer.request).to.be.calledOnceWithExactly({
 				procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
-				data: convertNodeInfoToLegacyFormat(nodeInfo),
+				data: sanitizeNodeInfoToLegacyFormat(nodeInfo),
 			});
 		});
 	});
