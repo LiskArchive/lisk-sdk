@@ -35,9 +35,11 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
+import { convertNodeInfoToLegacyFormat } from '../../../src/peer/base';
 
 describe('peer/base', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
@@ -253,6 +255,15 @@ describe('peer/base', () => {
 			expect(defaultPeer.nodeInfo)
 				.to.be.an('object')
 				.and.be.deep.equal(nodeInfo);
+		});
+
+		it('should call request with exact arguments', async () => {
+			await defaultPeer.applyNodeInfo(nodeInfo);
+
+			expect(defaultPeer.request).to.be.calledOnceWithExactly({
+				procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+				data: convertNodeInfoToLegacyFormat(nodeInfo),
+			});
 		});
 	});
 
