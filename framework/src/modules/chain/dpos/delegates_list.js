@@ -48,9 +48,16 @@ class DelegatesList extends EventEmitter {
 		this.exceptions = exceptions;
 	}
 
-	async getRoundDelegates(round) {
-		const list = await this.generateActiveDelegateList(round);
-		return shuffleDelegateListForRound(round, list);
+	async getForgerPublicKeysForRound(round) {
+		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
+			round,
+		);
+
+		if (!delegatePublicKeys.length) {
+			throw new Error(`No delegate list found for round: ${round}`);
+		}
+
+		return shuffleDelegateListForRound(round, delegatePublicKeys);
 	}
 
 	async getDelegatePublicKeysSortedByVoteWeight(tx) {
@@ -65,18 +72,6 @@ class DelegatesList extends EventEmitter {
 			tx,
 		);
 		return accounts.map(account => account.publicKey);
-	}
-
-	async generateActiveDelegateList(round) {
-		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getRoundDelegates(
-			round,
-		);
-
-		if (!delegatePublicKeys.length) {
-			throw new Error(`No delegate list found for round: ${round}`);
-		}
-
-		return delegatePublicKeys;
 	}
 
 	async createRoundDelegateList(round, tx) {
@@ -129,7 +124,7 @@ class DelegatesList extends EventEmitter {
 	async verifyBlockForger(block) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const round = this.slots.calcRound(block.height);
-		const delegateList = await this.getRoundDelegates(round);
+		const delegateList = await this.getForgerPublicKeysForRound(round);
 
 		if (!delegateList.length) {
 			throw new Error(

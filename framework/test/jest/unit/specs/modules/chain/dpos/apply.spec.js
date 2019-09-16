@@ -42,7 +42,9 @@ describe('dpos.apply()', () => {
 					update: jest.fn(),
 				},
 				RoundDelegates: {
-					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					getActiveDelegatesForRound: jest
+						.fn()
+						.mockReturnValue(delegatePublicKeys),
 					create: jest.fn(),
 					delete: jest.fn(),
 				},
@@ -270,7 +272,9 @@ describe('dpos.apply()', () => {
 				stubs.storage.entities.Account.increaseFieldBy,
 			).toHaveBeenCalledWith(
 				{
-					publicKey_in: delegatesWhoForgedNone.map(a => a.publicKey),
+					publicKey_in: expect.toContainAllValues(
+						delegatesWhoForgedNone.map(a => a.publicKey),
+					),
 				},
 				'missedBlocks',
 				'1',

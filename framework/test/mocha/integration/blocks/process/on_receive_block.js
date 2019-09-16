@@ -117,10 +117,12 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.dpos.getRoundDelegates(round).then(delegateList => {
-				const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
-				return seriesCb(nextForger);
-			});
+			library.modules.dpos
+				.getForgerPublicKeysForRound(round)
+				.then(delegateList => {
+					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
+					return seriesCb(nextForger);
+				});
 		}
 
 		async.waterfall(
@@ -207,7 +209,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		const round = slots.calcRound(lastBlock.height);
 
 		return library.modules.dpos
-			.getRoundDelegates(round)
+			.getForgerPublicKeysForRound(round)
 			.then(list => {
 				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 				return getKeypair(

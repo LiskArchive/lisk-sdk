@@ -286,7 +286,7 @@ class DelegatesInfo {
 	}
 
 	async _getMissedBlocksDelegatePublicKeys({ round, uniqForgersInfo }) {
-		const expectedForgingPublicKeys = await this.delegatesList.generateActiveDelegateList(
+		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
 			round,
 		);
 

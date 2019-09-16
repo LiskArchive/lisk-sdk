@@ -26,7 +26,7 @@ const {
 const sqlFiles = {
 	create: 'round_delegates/create.sql',
 	delete: 'round_delegates/delete.sql',
-	getRoundDelegates: 'round_delegates/get_round_delegates.sql',
+	getActiveDelegatesForRound: 'round_delegates/get_round_delegates.sql',
 };
 
 /**
@@ -74,9 +74,9 @@ class RoundDelegates extends BaseEntity {
 	/**
 	 * @returns {string[]} delegatePublicKeys
 	 */
-	async getRoundDelegates(round) {
+	async getActiveDelegatesForRound(round) {
 		const [result] = await this.adapter.executeFile(
-			this.SQLs.getRoundDelegates,
+			this.SQLs.getActiveDelegatesForRound,
 			{
 				round,
 			},

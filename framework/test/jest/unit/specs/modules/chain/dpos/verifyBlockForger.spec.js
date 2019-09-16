@@ -28,7 +28,9 @@ describe('dpos.verifyBlockForger()', () => {
 		stubs.storage = {
 			entities: {
 				RoundDelegates: {
-					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					getActiveDelegatesForRound: jest
+						.fn()
+						.mockReturnValue(delegatePublicKeys),
 					create: jest.fn(),
 				},
 				Account: {
@@ -89,7 +91,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should throw error if no delegate list is found', async () => {
 		// Arrange
-		stubs.storage.entities.RoundDelegates.getRoundDelegates.mockResolvedValue(
+		stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound.mockResolvedValue(
 			[],
 		);
 		const block = {

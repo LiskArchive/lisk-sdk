@@ -301,7 +301,7 @@ describe('app', () => {
 
 			before(() => {
 				return library.modules.dpos
-					.getRoundDelegates(1)
+					.getForgerPublicKeysForRound(1)
 					.then(_delegatesList => {
 						delegatesList = _delegatesList;
 					});

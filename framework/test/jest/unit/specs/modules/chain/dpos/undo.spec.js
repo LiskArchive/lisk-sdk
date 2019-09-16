@@ -43,7 +43,9 @@ describe('dpos.undo()', () => {
 				},
 				RoundDelegates: {
 					delete: jest.fn(),
-					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					getActiveDelegatesForRound: jest
+						.fn()
+						.mockReturnValue(delegatePublicKeys),
 				},
 				Round: {
 					summedRound: jest.fn(),
