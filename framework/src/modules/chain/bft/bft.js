@@ -142,6 +142,16 @@ class BFT extends EventEmitter {
 	}
 
 	/**
+	 * Computes maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties that are necessary
+	 * for creating a new block
+	 * @param delegatePubKey
+	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: (number|*)}>}
+	 */
+	async computeBFTHeaderProperties(delegatePubKey) {
+		return this.finalityManager.computeBFTHeaderProperties(delegatePubKey);
+	}
+
+	/**
 	 * Initialize the consensus manager and return the finalize height
 	 *
 	 * @return {Promise<number>} - Return the finalize height

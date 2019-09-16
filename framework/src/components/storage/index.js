@@ -14,7 +14,6 @@
 
 'use strict';
 
-const path = require('path');
 const { config: defaultConfig } = require('./defaults');
 const validator = require('../../controller/validator');
 const Storage = require('./storage');
@@ -22,18 +21,6 @@ const adapters = require('./adapters');
 const entities = require('./entities');
 const utils = require('./utils');
 const errors = require('./errors');
-
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-	// eslint-disable-next-line global-require
-	const newrelic = require('newrelic');
-	// eslint-disable-next-line global-require
-	const newrelicLisk = require('lisk-newrelic')(newrelic, {
-		exitOnFailure: true,
-		rootPath: path.dirname(__filename),
-	});
-
-	newrelicLisk.instrumentDatabase();
-}
 
 function createStorageComponent(options, logger) {
 	options = validator.parseEnvArgAndValidate(defaultConfig, options);

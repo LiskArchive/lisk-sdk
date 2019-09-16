@@ -200,7 +200,6 @@ class Loader {
 			for (let j = 0; j < subSignatureCount; j++) {
 				const signature = signaturePacket.signatures[j];
 
-				// eslint-disable-next-line no-await-in-loop
 				await this.transactionPoolModule.getTransactionAndProcessSignature({
 					signature,
 					transactionId: signature.transactionId,
@@ -266,7 +265,6 @@ class Loader {
 			try {
 				/* eslint-disable-next-line */
 				transaction.bundled = true;
-				// eslint-disable-next-line no-await-in-loop
 				await this.transactionPoolModule.processUnconfirmedTransaction(
 					transaction,
 				);
@@ -367,19 +365,15 @@ class Loader {
 		let loaded = false;
 		while (!loaded && failedAttemptsToLoad < 5) {
 			try {
-				// eslint-disable-next-line no-await-in-loop
 				const blocksFromNetwork = await this._getBlocksFromNetwork();
-				// eslint-disable-next-line no-await-in-loop
 				const blocksAfterValidate = await this._validateBlocks(
 					blocksFromNetwork,
 				);
-				// eslint-disable-next-line no-await-in-loop
 				loaded = await this._getValidatedBlocksFromNetwork(blocksAfterValidate);
 				// Reset counter after a batch of blocks was successfully loaded from the network
 				failedAttemptsToLoad = 0;
 			} catch (err) {
 				failedAttemptsToLoad += 1;
-				// eslint-disable-next-line no-await-in-loop
 				await this._handleCommonBlockError(err);
 				this.logger.warn(err, 'Failed to load blocks from the network.');
 			}
@@ -393,7 +387,6 @@ class Loader {
 		if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
 			this.logger.debug('Perform chain recovery due to poor consensus');
 			try {
-				// eslint-disable-next-line no-await-in-loop
 				await this.blocksModule.recoverChain();
 			} catch (recoveryError) {
 				this.logger.error(

@@ -217,7 +217,6 @@ class Forger {
 			} delegates using encrypted passphrases from config`,
 		);
 
-		// eslint-disable-next-line no-restricted-syntax
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
 			try {
@@ -257,7 +256,6 @@ class Forger {
 				extended: true,
 			};
 
-			// eslint-disable-next-line no-await-in-loop
 			const [account] = await this.storage.entities.Account.get(
 				filters,
 				options,
