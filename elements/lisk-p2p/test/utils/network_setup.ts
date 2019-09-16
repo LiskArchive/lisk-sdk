@@ -15,11 +15,13 @@
 import { P2P } from '../../src/index';
 import { wait } from './helpers';
 import { platform } from 'os';
+import {
+	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+	DEFAULT_MAX_INBOUND_CONNECTIONS,
+} from '../../src';
 export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
 export const POPULATOR_INTERVAL = 50;
-export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
-export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 export const DEFAULT_CONNECTION_TIMEOUT = 500;
 export const DEFAULT_ACK_TIMEOUT = 500;
 export const RATE_CALCULATION_INTERVAL = 10000;
@@ -118,7 +120,7 @@ export const createNetwork = async ({
 
 		return new P2P(p2pConfig);
 	});
-	await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+	await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 
 	await wait(
 		networkCreationWaitTime
@@ -134,7 +136,7 @@ export const destroyNetwork = async (
 	networkDestroyWaitTime?: number,
 ) => {
 	await Promise.all(
-		p2pNodeList.filter(p2p => p2p.isActive).map(async p2p => await p2p.stop()),
+		p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 	);
 	await wait(
 		networkDestroyWaitTime ? networkDestroyWaitTime : NETWORK_DESTROY_WAIT_TIME,
