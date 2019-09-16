@@ -49,10 +49,10 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolMessagePacket,
-	ProtocolNodeInfo,
 } from '../p2p_types';
 import {
 	constructPeerIdFromPeerInfo,
+	convertNodeInfoToLegacyFormat,
 	getNetgroup,
 	validatePeerInfo,
 	validatePeersInfoList,
@@ -83,20 +83,6 @@ export enum ConnectionState {
 	OPEN = 'open',
 	CLOSED = 'closed',
 }
-
-// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
-export const convertNodeInfoToLegacyFormat = (
-	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => {
-	const { httpPort, nonce, broadhash } = nodeInfo;
-
-	return {
-		...nodeInfo,
-		broadhash: broadhash ? (broadhash as string) : '',
-		nonce: nonce ? (nonce as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0,
-	};
-};
 
 export interface PeerConfig {
 	readonly connectTimeout?: number;

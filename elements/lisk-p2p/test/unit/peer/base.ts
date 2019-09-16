@@ -39,7 +39,7 @@ import {
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
-import { convertNodeInfoToLegacyFormat } from '../../../src/peer/base';
+import { convertNodeInfoToLegacyFormat } from '../../../src/utils';
 
 describe('peer/base', () => {
 	const DEFAULT_RANDOM_SECRET = 123;

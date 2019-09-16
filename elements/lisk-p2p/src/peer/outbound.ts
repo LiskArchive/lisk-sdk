@@ -33,7 +33,8 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
-import { convertNodeInfoToLegacyFormat, Peer, PeerConfig } from './base';
+import { convertNodeInfoToLegacyFormat } from '../utils';
+import { Peer, PeerConfig } from './base';
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
