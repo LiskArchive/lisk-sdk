@@ -571,14 +571,6 @@ describe('peer/base', () => {
 			wsPort: 1111,
 			version: '1.1.1',
 		};
-		const fetchedPeer = {
-			ipAddress: '12.12.12.12',
-			wsPort: 5001,
-			version: '1.1.1',
-			height: 0,
-			protocolVersion: undefined,
-			os: '',
-		};
 
 		describe('when request() fails', () => {
 			beforeEach(() => {
@@ -603,7 +595,7 @@ describe('peer/base', () => {
 					expect(e).to.be.an.instanceOf(RPCResponseError);
 					expect(e.message).to.be.eql('Failed to fetch peer info of peer');
 					expect(e.peerId).to.be.eql(
-						`${fetchedPeer.ipAddress}:${fetchedPeer.wsPort}`,
+						`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
 					);
 				}
 			});
@@ -637,7 +629,7 @@ describe('peer/base', () => {
 							'Failed to update peer info of peer as part of fetch operation',
 						);
 						expect(e.peerId).to.be.eql(
-							`${fetchedPeer.ipAddress}:${fetchedPeer.wsPort}`,
+							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
 						);
 					}
 				});
@@ -648,17 +640,36 @@ describe('peer/base', () => {
 					sandbox.stub(defaultPeer, 'request').resolves({
 						data: peer,
 					});
+					sandbox.stub(defaultPeer, 'updatePeerInfo');
 					sandbox.stub(defaultPeer, 'emit');
 				});
 
-				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
+				it(`should call updatePeerInfo()`, async () => {
+					const newPeer = {
+						wsPort: peer.wsPort,
+						version: peer.version,
+						ipAddress: defaultPeerInfo.ipAddress,
+						height: 0,
+						protocolVersion: undefined,
+						os: '',
+					};
 					await defaultPeer.fetchStatus();
-					expect(defaultPeer.emit).to.be.calledOnce;
+					expect(defaultPeer.updatePeerInfo).to.be.calledOnceWithExactly(
+						newPeer,
+					);
+				});
+
+				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
+					const peerInfo = await defaultPeer.fetchStatus();
+					expect(defaultPeer.emit).to.be.calledOnceWithExactly(
+						EVENT_UPDATED_PEER_INFO,
+						peerInfo,
+					);
 				});
 
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchStatus();
-					expect(peerInfo).to.be.eql(fetchedPeer);
+					expect(peerInfo).to.be.eql(defaultPeerInfo);
 				});
 			});
 		});
