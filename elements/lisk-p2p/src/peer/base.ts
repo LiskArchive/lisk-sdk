@@ -72,18 +72,6 @@ interface Productivity {
 	readonly lastResponded: number;
 }
 
-export interface ClientOptionsUpdated {
-	readonly hostname: string;
-	readonly port: number;
-	readonly query: string;
-	readonly autoConnect: boolean;
-	readonly autoReconnect: boolean;
-	readonly multiplex: boolean;
-	readonly ackTimeout?: number;
-	readonly connectTimeout?: number;
-	readonly maxPayload?: number;
-}
-
 export type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 	on(event: string | unknown, listener: (packet?: unknown) => void): void;
