@@ -30,6 +30,8 @@ import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../../src/p2p_types';
 import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList, initializePeerInfoList } from '../utils/peers';
 import {
+	DEFAULT_CONNECT_TIMEOUT,
+	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_WS_MAX_PAYLOAD,
 	DEFAULT_BAN_TIME,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -44,7 +46,9 @@ import {
 } from '../../src/constants';
 
 describe('peerPool', () => {
-	const peerPool = new PeerPool({
+	const peerPoolConfig = {
+		connectTimeout: DEFAULT_CONNECT_TIMEOUT,
+		ackTimeout: DEFAULT_ACK_TIMEOUT,
 		peerSelectionForConnection: selectPeersForConnection,
 		peerSelectionForRequest: selectPeersForRequest,
 		peerSelectionForSend: selectPeersForSend,
@@ -71,13 +75,109 @@ describe('peerPool', () => {
 			seedPeers: [],
 			whitelisted: [],
 		},
-	});
+	};
+	const peerPool = new PeerPool(peerPoolConfig);
 
 	describe('#constructor', () => {
-		it('should be an object and instance of PeerPool', () => {
-			return expect(peerPool)
+		it('should be an object and instance of PeerPool', async () => {
+			expect(peerPool)
 				.to.be.an('object')
 				.and.be.instanceof(PeerPool);
+		});
+
+		it('should have a _peerMap property which is a Map', async () => {
+			expect(peerPool)
+				.to.have.property('_peerMap')
+				.which.is.instanceOf(Map);
+		});
+
+		it('should have a _peerPoolConfig property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_peerPoolConfig')
+				.which.equals(peerPoolConfig);
+		});
+
+		it('should have a _peerConfig property which is set to the value specified in the constructor', async () => {
+			const actualConfig = { ...(peerPool as any)._peerConfig };
+			const expectedConfig = {
+				connectTimeout: peerPoolConfig.connectTimeout,
+				ackTimeout: peerPoolConfig.ackTimeout,
+				wsMaxMessageRate: peerPoolConfig.wsMaxMessageRate,
+				wsMaxMessageRatePenalty: peerPoolConfig.wsMaxMessageRatePenalty,
+				maxPeerDiscoveryResponseLength:
+					peerPoolConfig.maxPeerDiscoveryResponseLength,
+				rateCalculationInterval: peerPoolConfig.rateCalculationInterval,
+				wsMaxPayload: peerPoolConfig.wsMaxPayload,
+				maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
+				secret: peerPoolConfig.secret,
+			};
+			expect(actualConfig.connectTimeout).to.equal(
+				expectedConfig.connectTimeout,
+			);
+			expect(actualConfig.ackTimeout).to.equal(expectedConfig.ackTimeout);
+			expect(actualConfig.wsMaxMessageRate).to.equal(
+				expectedConfig.wsMaxMessageRate,
+			);
+			expect(actualConfig.wsMaxMessageRatePenalty).to.equal(
+				expectedConfig.wsMaxMessageRatePenalty,
+			);
+			expect(actualConfig.maxPeerDiscoveryResponseLength).to.equal(
+				expectedConfig.maxPeerDiscoveryResponseLength,
+			);
+			expect(actualConfig.rateCalculationInterval).to.equal(
+				expectedConfig.rateCalculationInterval,
+			);
+			expect(actualConfig.wsMaxPayload).to.equal(expectedConfig.wsMaxPayload);
+			expect(actualConfig.maxPeerInfoSize).to.equal(
+				expectedConfig.maxPeerInfoSize,
+			);
+			expect(actualConfig.secret).to.equal(expectedConfig.secret);
+		});
+
+		it('should have a _peerLists property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_peerLists')
+				.which.equals(peerPoolConfig.peerLists);
+		});
+
+		it('should have a _peerSelectForSend property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_peerSelectForSend')
+				.which.equals(peerPoolConfig.peerSelectionForSend);
+		});
+
+		it('should have a _peerSelectForRequest property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_peerSelectForRequest')
+				.which.equals(peerPoolConfig.peerSelectionForRequest);
+		});
+
+		it('should have a _peerSelectForConnection property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_peerSelectForConnection')
+				.which.equals(peerPoolConfig.peerSelectionForConnection);
+		});
+
+		it('should have a _maxOutboundConnections property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_maxOutboundConnections')
+				.which.equals(peerPoolConfig.maxOutboundConnections);
+		});
+
+		it('should have a _maxInboundConnections property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_maxInboundConnections')
+				.which.equals(peerPoolConfig.maxInboundConnections);
+		});
+
+		it('should have a _sendPeerLimit property which is set to the value specified in the constructor', async () => {
+			expect(peerPool)
+				.to.have.property('_sendPeerLimit')
+				.which.equals(peerPoolConfig.sendPeerLimit);
+		});
+
+		it('should have a _outboundShuffleIntervalId property', async () => {
+			expect(peerPool).to.have.property('_outboundShuffleIntervalId');
 		});
 	});
 
