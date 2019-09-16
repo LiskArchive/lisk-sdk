@@ -47,7 +47,6 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		await storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		});
 		library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
@@ -218,7 +217,6 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 				await storage.entities.Block.begin(t => {
 					return t.batch([
 						storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-						storage.adapter.db.none('DELETE FROM forks_stat;'),
 					]);
 				});
 				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;

@@ -63,7 +63,6 @@ const sqlFiles = {
 	deleteAllDependentRecords: 'accounts/delete_all_dependent_records.sql',
 	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
 	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
-	insertFork: 'accounts/insert_fork.sql',
 };
 
 class ChainAccount extends AccountEntity {
@@ -453,31 +452,6 @@ class ChainAccount extends AccountEntity {
 	 */
 	syncDelegatesRanks(tx) {
 		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
-	}
-
-	// TODO: Should create a separate entity to manage forks
-	/**
-	 * Inserts a fork data table entry.
-	 *
-	 * @param {Object} fork
-	 * @param {string} fork.delegatePublicKey
-	 * @param {integer} fork.blockTimestamp
-	 * @param {string} fork.blockId
-	 * @param {integer} fork.blockHeight
-	 * @param {string} fork.previousBlockId
-	 * @param {string} fork.cause
-	 * @param {Object} [tx] - Database transaction
-	 * @returns {Promise}
-	 */
-	insertFork(fork, tx) {
-		return this.adapter.executeFile(
-			this.SQLs.insertFork,
-			fork,
-			{
-				expectedResultCount: 0,
-			},
-			tx,
-		);
 	}
 
 	/**

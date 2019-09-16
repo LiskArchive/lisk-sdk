@@ -14,10 +14,11 @@
 
 
  /*
-  DESCRIPTION: Remove `mem_rounds`, `mem_round_snapshot` and `mem_votes_snapshot` tables as they are not used anymore in the new Dpos Module
+  DESCRIPTION: Remove `mem_rounds`, `mem_round_snapshot`, `mem_votes_snapshot` and `forks_stat` tables as they are not used anymore in the new Dpos Module
   PARAMETERS: None
 */
 
 DROP TABLE IF EXISTS "mem_round";
 DROP TABLE IF EXISTS "mem_round_snapshot";
 DROP TABLE IF EXISTS "mem_votes_snapshot";
+DROP TABLE IF EXISTS "forks_stat";
