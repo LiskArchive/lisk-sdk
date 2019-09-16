@@ -48,6 +48,10 @@ class DelegatesList extends EventEmitter {
 		this.exceptions = exceptions;
 	}
 
+	/**
+	 * Get sorted list of active delegate public keys for a specific round -> forger public keys
+	 * @param {number} round
+	 */
 	async getForgerPublicKeysForRound(round) {
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
 			round,
@@ -74,6 +78,12 @@ class DelegatesList extends EventEmitter {
 		return accounts.map(account => account.publicKey);
 	}
 
+	/**
+	 * Generate list of delegate public keys for the next round in database
+	 * Note: This function should only be called from `apply()` as we don't allow future rounds to be created
+	 * @param {number} round
+	 * @param {Object} tx - Database transaction object
+	 */
 	async createRoundDelegateList(round, tx) {
 		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight(
 			tx,
