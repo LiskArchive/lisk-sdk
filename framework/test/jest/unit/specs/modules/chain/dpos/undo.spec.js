@@ -230,7 +230,9 @@ describe('dpos.undo()', () => {
 				stubs.storage.entities.Account.decreaseFieldBy,
 			).toHaveBeenCalledWith(
 				{
-					publicKey_in: delegatesWhoForgedNone.map(a => a.publicKey),
+					publicKey_in: expect.toContainAllValues(
+						delegatesWhoForgedNone.map(a => a.publicKey),
+					),
 				},
 				'missedBlocks',
 				'1',
