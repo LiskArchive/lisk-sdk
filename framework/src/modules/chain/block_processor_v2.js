@@ -151,10 +151,24 @@ const validateSchema = ({ block }) => {
 	}
 };
 
+// const validateAndVerifyBFTproperties = ({ block }) => {
+// 	const blockHeader = extractBFTBlockHeaderFromBlock(block);
+//
+// 	// Check heightPrevoted correctness.
+// 	utils.validateBlockHeader(blockHeader);
+//
+// 	// Check for header contradictions against current chain
+// 	bft.verifyBlockHeaders(blockHeader);
+//
+// 	// Check reward has correct value.
+// 	// TODO: Find out how to do this.
+// };
+
 class BlockProcessorV2 extends BaseBlockProcessor {
-	constructor({ blocksModule, logger, constants, exceptions }) {
+	constructor({ blocksModule, bft, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;
+		this.bft = bft;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
@@ -166,7 +180,20 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
 			(data, blockBytes) =>
-				this.blocksModule.validate({
+				this.blocksModule.validateDetached({
+					...data,
+					blockBytes,
+				}), // validate common block header
+			data => this.blocksModule.verifyInMemory(data),
+			({ block }) => this.bft.validateBlock(block),
+		]);
+
+		this.validateDetached.pipe([
+			data => this._validateVersion(data),
+			data => validateSchema(data),
+			({ block }) => getBytes(block),
+			(data, blockBytes) =>
+				this.blocksModule.validateDetached({
 					...data,
 					blockBytes,
 				}), // validate common block header
@@ -179,9 +206,13 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		// TODO: Remove validate new since it's no longer required
 		this.validateNew.pipe([() => Promise.resolve()]);
 
-		this.verify.pipe([data => this.blocksModule.verify(data)]);
+		this.verify.pipe([({ block }) => this.bft.verifyNewBlock(block)]);
 
-		this.apply.pipe([data => this.blocksModule.apply(data)]);
+		this.apply.pipe([
+			data => this.blocksModule.verify(data),
+			data => this.blocksModule.apply(data),
+			({ block }) => this.bft.addNewBlock(block),
+		]);
 
 		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
 

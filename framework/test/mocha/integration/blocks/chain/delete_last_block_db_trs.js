@@ -35,7 +35,6 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 		await storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 				storage.adapter.db.none('UPDATE mem_accounts SET "producedBlocks" = 0'),
 			]);
 		});

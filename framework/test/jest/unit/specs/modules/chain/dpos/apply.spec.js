@@ -47,8 +47,6 @@ describe('dpos.apply()', () => {
 						.mockReturnValue(delegatePublicKeys),
 					create: jest.fn(),
 					delete: jest.fn(),
-				},
-				Round: {
 					summedRound: jest.fn(),
 				},
 			},
@@ -254,7 +252,7 @@ describe('dpos.apply()', () => {
 				};
 			};
 
-			stubs.storage.entities.Round.summedRound.mockResolvedValue([
+			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
 				{
 					fees: totalFee, // dividable to ACTIVE_DELEGATE count
 					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
@@ -383,7 +381,7 @@ describe('dpos.apply()', () => {
 		it('should give the remainingFee ONLY to the last delegate of the round who forged', async () => {
 			// Arrange
 			const remainingFee = randomInt(5, 10);
-			stubs.storage.entities.Round.summedRound.mockResolvedValue([
+			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
 				{
 					fees: totalFee + remainingFee,
 					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
@@ -461,7 +459,7 @@ describe('dpos.apply()', () => {
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
 				// Arrange
-				stubs.storage.entities.Round.summedRound.mockResolvedValue([
+				stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
 					{
 						fees: totalFee,
 						rewards: delegateAccounts.map(() => randomInt(1, 20)),
@@ -492,7 +490,9 @@ describe('dpos.apply()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				stubs.storage.entities.Round.summedRound.mockRejectedValue(err);
+				stubs.storage.entities.RoundDelegates.summedRound.mockRejectedValue(
+					err,
+				);
 
 				// Act && Assert
 				await expect(dpos.apply(lastBlockOfTheRound, stubs.tx)).rejects.toBe(
@@ -524,7 +524,7 @@ describe('dpos.apply()', () => {
 					randomInt(10, 1000),
 				);
 
-				stubs.storage.entities.Round.summedRound.mockResolvedValue([
+				stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
 					{
 						fees: totalFee.toString(), // dividable to ACTIVE_DELEGATE count
 						rewards: delegatesWhoForged.map(() => rewardPerDelegate),

@@ -64,18 +64,7 @@ class DelegatesInfo {
 
 	async apply(block, tx) {
 		const undo = false;
-		return this._update(block, undo, tx);
-	}
 
-	async undo(block, tx) {
-		const undo = true;
-		return this._update(block, undo, tx);
-	}
-
-	/**
-	 * @param {Block} block
-	 */
-	async _update(block, undo, tx) {
 		/**
 		 * If the block height is 1, that means the block is
 		 * the genesis block, in that case we don't have to
@@ -84,10 +73,26 @@ class DelegatesInfo {
 		if (this._isGenesisBlock(block)) {
 			const round = 1;
 			await this.delegatesList.createRoundDelegateList(round, tx);
-
 			return false;
 		}
 
+		return this._update(block, undo, tx);
+	}
+
+	async undo(block, tx) {
+		const undo = true;
+
+		// Never undo genesis block
+		if (this._isGenesisBlock(block)) {
+			throw new Error('Cannot undo genesis block');
+		}
+		return this._update(block, undo, tx);
+	}
+
+	/**
+	 * @param {Block} block
+	 */
+	async _update(block, undo, tx) {
 		await this._updateProducedBlocks(block, undo, tx);
 
 		// Perform updates that only happens in the end of the round
@@ -232,7 +237,9 @@ class DelegatesInfo {
 			// summedRound always returns 101 delegates,
 			// that means there can be recurring public keys for delegates
 			// who forged multiple times.
-			const [summedRound] = await this.storage.entities.Round.summedRound(
+			const [
+				summedRound,
+			] = await this.storage.entities.RoundDelegates.summedRound(
 				round,
 				this.activeDelegates,
 				tx,

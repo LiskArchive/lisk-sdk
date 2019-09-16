@@ -80,7 +80,7 @@ class DelegatesList extends EventEmitter {
 
 	/**
 	 * Generate list of delegate public keys for the next round in database
-	 * Note: This function should only be called from `apply()` as we don't allow future rounds to be created
+	 * WARNING: This function should only be called from `apply()` as we don't allow future rounds to be created
 	 * @param {number} round
 	 * @param {Object} tx - Database transaction object
 	 */

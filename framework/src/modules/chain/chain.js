@@ -32,7 +32,6 @@ const {
 } = require('./transaction_pool');
 const { Slots, Dpos } = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
-const { Rounds } = require('./rounds');
 const { Blocks, EVENT_NEW_BROADHASH } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
@@ -155,6 +154,7 @@ module.exports = class Chain {
 			// Prepare dependency
 			const processorDependencies = {
 				blocksModule: this.blocks,
+				bft: this.bft,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
@@ -390,20 +390,6 @@ module.exports = class Chain {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
-		this.rounds = new Rounds({
-			channel: this.channel,
-			components: {
-				logger: this.logger,
-				storage: this.storage,
-			},
-			slots: this.slots,
-			config: {
-				exceptions: this.options.exceptions,
-				constants: {
-					activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-				},
-			},
-		});
 		this.dpos = new Dpos({
 			storage: this.storage,
 			logger: this.logger,
@@ -411,7 +397,6 @@ module.exports = class Chain {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			exceptions: this.options.exceptions,
 		});
-		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
 			logger: this.logger,
 			storage: this.storage,
@@ -419,7 +404,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			slots: this.slots,
 			exceptions: this.options.exceptions,
-			roundsModule: this.rounds,
 			dposModule: this.dpos,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
@@ -608,7 +592,7 @@ module.exports = class Chain {
 					this.logger.debug('No delegates are enabled');
 					return;
 				}
-				if (this.loader.syncing() || this.rounds.ticking()) {
+				if (this.loader.syncing()) {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}

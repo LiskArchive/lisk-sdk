@@ -13,10 +13,12 @@
  */
 
 
-/*
-  DESCRIPTION: Delete rewards for round from round rewards table.
-
-  PARAMETERS: round - Round for which data will be deleted
+ /*
+  DESCRIPTION: Remove `mem_rounds`, `mem_round_snapshot`, `mem_votes_snapshot` and `forks_stat` tables as they are not used anymore in the new Dpos Module
+  PARAMETERS: None
 */
 
-DELETE FROM rounds_rewards WHERE round = ${round}
+DROP TABLE IF EXISTS "mem_round";
+DROP TABLE IF EXISTS "mem_round_snapshot";
+DROP TABLE IF EXISTS "mem_votes_snapshot";
+DROP TABLE IF EXISTS "forks_stat";

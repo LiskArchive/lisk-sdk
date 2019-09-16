@@ -27,6 +27,7 @@ const sqlFiles = {
 	create: 'round_delegates/create.sql',
 	delete: 'round_delegates/delete.sql',
 	getActiveDelegatesForRound: 'round_delegates/get_round_delegates.sql',
+	summedRound: 'round_delegates/summed_round.sql',
 };
 
 /**
@@ -144,6 +145,23 @@ class RoundDelegates extends BaseEntity {
 				tx,
 			)
 			.then(result => result);
+	}
+
+	/**
+	 * Summarize the results for a round.
+	 *
+	 * @param {string} round - Id of the round
+	 * @param {number} activeDelegates - Number of active delegates
+	 * @param {Object} [tx] - Database transaction object
+	 * @returns {Promise}
+	 */
+	summedRound(round, activeDelegates, tx = null) {
+		return this.adapter.executeFile(
+			this.SQLs.summedRound,
+			{ round, activeDelegates },
+			{},
+			tx,
+		);
 	}
 }
 

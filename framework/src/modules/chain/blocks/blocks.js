@@ -25,7 +25,11 @@ const {
 } = require('../transactions');
 const blocksUtils = require('./utils');
 const blocksLogic = require('./block');
-const { BlocksVerify, verifyBlockNotExists } = require('./verify');
+const {
+	BlocksVerify,
+	verifyBlockNotExists,
+	verifyPreviousBlockId,
+} = require('./verify');
 const {
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
@@ -44,7 +48,7 @@ const {
 const forkChoiceRule = require('./fork_choice_rule');
 const {
 	validateSignature,
-	validatePreviousBlock,
+	validatePreviousBlockProperty,
 	validateReward,
 	validatePayload,
 	validateBlockSlot,
@@ -66,7 +70,6 @@ class Blocks extends EventEmitter {
 		slots,
 		exceptions,
 		// Modules
-		roundsModule,
 		dposModule,
 		interfaceAdapters,
 		// constants
@@ -98,7 +101,6 @@ class Blocks extends EventEmitter {
 
 		this.logger = logger;
 		this.storage = storage;
-		this.roundsModule = roundsModule;
 		this.dposModule = dposModule;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
@@ -130,7 +132,6 @@ class Blocks extends EventEmitter {
 			exceptions: this.exceptions,
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
-			roundsModule: this.roundsModule,
 			dposModule: this.dposModule,
 		});
 
@@ -168,16 +169,19 @@ class Blocks extends EventEmitter {
 		// Remove initializing _lastNBlockIds variable since it's unnecessary
 	}
 
-	async validate({ block, lastBlock, blockBytes }) {
+	async validateDetached({ block, blockBytes }) {
+		return this._validateDetached({ block, blockBytes });
+	}
+
+	async _validateDetached({ block, blockBytes }) {
+		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes);
-		validatePreviousBlock(block);
 		validateReward(block, this.blockReward, this.exceptions);
 		validatePayload(
 			block,
 			this.constants.maxTransactionsPerBlock,
 			this.constants.maxPayloadLength,
 		);
-		validateBlockSlot(block, lastBlock, this.slots);
 		// Update id
 		block.id = blocksUtils.getId(blockBytes);
 
@@ -192,6 +196,12 @@ class Blocks extends EventEmitter {
 		if (invalidTransactionResponse) {
 			throw invalidTransactionResponse.errors;
 		}
+	}
+
+	async verifyInMemory({ block, lastBlock }) {
+		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
+		validateBlockSlot(block, lastBlock, this.slots);
+		await this.blocksVerify.verifyBlockForger(block);
 	}
 
 	forkChoice({ block, lastBlock }) {
@@ -242,8 +252,6 @@ class Blocks extends EventEmitter {
 	async verify({ block, skipExistingCheck }) {
 		if (skipExistingCheck !== true) {
 			await verifyBlockNotExists(this.storage, block);
-			// TODO: move to DPOS verify step
-			await this.blocksVerify.verifyBlockForger(block);
 			const {
 				transactionsResponses: persistedResponse,
 			} = await checkPersistedTransactions(this.storage)(block.transactions);
@@ -291,14 +299,7 @@ class Blocks extends EventEmitter {
 	}
 
 	async save({ block, tx, skipSave }) {
-		await saveBlockStep(
-			this.storage,
-			this.roundsModule,
-			this.dposModule,
-			block,
-			skipSave,
-			tx,
-		);
+		await saveBlockStep(this.storage, this.dposModule, block, skipSave, tx);
 		this._lastBlock = block;
 	}
 

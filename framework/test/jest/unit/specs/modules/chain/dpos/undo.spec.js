@@ -46,8 +46,6 @@ describe('dpos.undo()', () => {
 					getActiveDelegatesForRound: jest
 						.fn()
 						.mockReturnValue(delegatePublicKeys),
-				},
-				Round: {
 					summedRound: jest.fn(),
 				},
 			},
@@ -196,7 +194,7 @@ describe('dpos.undo()', () => {
 				};
 			};
 
-			stubs.storage.entities.Round.summedRound.mockResolvedValue([
+			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
 				{
 					fees: totalFee, // dividable to ACTIVE_DELEGATE count
 					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
@@ -316,7 +314,7 @@ describe('dpos.undo()', () => {
 		it('should remove the remainingFee ONLY from the last delegate of the round who forged', async () => {
 			// Arrange
 			const remainingFee = randomInt(5, 10);
-			stubs.storage.entities.Round.summedRound.mockResolvedValue([
+			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
 				{
 					fees: totalFee + remainingFee,
 					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
@@ -394,7 +392,7 @@ describe('dpos.undo()', () => {
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
 				// Arrange
-				stubs.storage.entities.Round.summedRound.mockResolvedValue([
+				stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
 					{
 						fees: totalFee,
 						rewards: delegateAccounts.map(() => randomInt(1, 20)),
@@ -425,7 +423,9 @@ describe('dpos.undo()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				stubs.storage.entities.Round.summedRound.mockRejectedValue(err);
+				stubs.storage.entities.RoundDelegates.summedRound.mockRejectedValue(
+					err,
+				);
 
 				// Act && Assert
 				await expect(dpos.undo(lastBlockOfTheRound, stubs.tx)).rejects.toBe(

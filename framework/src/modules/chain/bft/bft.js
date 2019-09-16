@@ -20,6 +20,7 @@ const {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
 } = require('./finality_manager');
+const { validateBlockHeader } = require('./utils');
 
 const META_KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
@@ -141,6 +142,12 @@ class BFT extends EventEmitter {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 	}
 
+	async verifyNewBlock(block) {
+		return this.finalityManager.verifyBlockHeaders(
+			extractBFTBlockHeaderFromBlock(block),
+		);
+	}
+
 	/**
 	 * Computes maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties that are necessary
 	 * for creating a new block
@@ -222,6 +229,11 @@ class BFT extends EventEmitter {
 
 			this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(row));
 		});
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	validateBlock(block) {
+		validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
 	}
 
 	get finalizedHeight() {

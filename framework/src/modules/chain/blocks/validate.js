@@ -45,14 +45,20 @@ const validateSignature = (block, blockBytes) => {
 };
 
 /**
- * Validate previous block.
+ * Validate previous block property.
  *
- * @func validatePreviousBlock
+ * @func validatePreviousBlockProperty
  * @param {Object} block - Target block
- * @param {Object} result - Verification results
+ * @param {Object} genesisBlock
  */
-const validatePreviousBlock = block => {
-	if (!block.previousBlock && block.height !== 1) {
+const validatePreviousBlockProperty = (block, genesisBlock) => {
+	const isGenesisBlock =
+		block.id === genesisBlock.id && !block.previousBlock && block.height === 1;
+	const propertyIsValid =
+		isGenesisBlock ||
+		(block.id !== genesisBlock.id && block.previousBlock && block.height !== 1);
+
+	if (!propertyIsValid) {
 		throw new Error('Invalid previous block');
 	}
 };
@@ -158,7 +164,7 @@ const validateBlockSlot = (block, lastBlock, slots) => {
 
 module.exports = {
 	validateSignature,
-	validatePreviousBlock,
+	validatePreviousBlockProperty,
 	validateReward,
 	validatePayload,
 	validateBlockSlot,
