@@ -15,12 +15,6 @@
 import { expect } from 'chai';
 import { Peer } from '../../../src/peer';
 import {
-	P2PDiscoveredPeerInfo,
-	P2PMessagePacket,
-	P2PRequestPacket,
-	P2PResponsePacket,
-} from '../../../src/p2p_types';
-import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
@@ -43,7 +37,7 @@ import { sanitizeNodeInfoToLegacyFormat } from '../../../src/utils';
 
 describe('peer/base', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
-	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
+	const defaultPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
@@ -334,7 +328,7 @@ describe('peer/base', () => {
 			const p2pPacket = {
 				data: 'myData',
 				event: 'myEvent',
-			} as P2PMessagePacket;
+			};
 			try {
 				defaultPeer.send(p2pPacket);
 			} catch (e) {
@@ -351,7 +345,7 @@ describe('peer/base', () => {
 					const p2pPacket = {
 						data: 'myData',
 						event,
-					} as P2PMessagePacket;
+					};
 					const socket = <SCServerSocket>({
 						emit: sandbox.stub(),
 						destroy: sandbox.stub(),
@@ -371,7 +365,7 @@ describe('peer/base', () => {
 				const p2pPacket = {
 					data: 'myData',
 					event: 'myEvent',
-				} as P2PMessagePacket;
+				};
 				const socket = <SCServerSocket>({
 					emit: sandbox.stub(),
 					destroy: sandbox.stub(),
@@ -394,7 +388,7 @@ describe('peer/base', () => {
 			const p2pPacket = {
 				data: 'myData',
 				procedure: 'myProcedure',
-			} as P2PRequestPacket;
+			};
 			try {
 				await defaultPeer.request(p2pPacket);
 			} catch (e) {
@@ -407,7 +401,7 @@ describe('peer/base', () => {
 			const p2pPacket = {
 				data: 'myData',
 				procedure: 'myProcedure',
-			} as P2PRequestPacket;
+			};
 			const socket = <SCServerSocket>({
 				emit: sandbox.stub(),
 				destroy: sandbox.stub(),
@@ -505,7 +499,7 @@ describe('peer/base', () => {
 			});
 
 			it('should return a sanitized peer list', async () => {
-				const response = ((await defaultPeer.fetchPeers()) as unknown) as P2PResponsePacket;
+				const response = await defaultPeer.fetchPeers();
 				expect(response).to.be.eql(sanitizedPeers);
 			});
 		});
