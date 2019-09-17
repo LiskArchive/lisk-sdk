@@ -21,9 +21,11 @@ const delegatePublicKeys = require('./delegate_publickeys.json');
 const delegateAccounts = delegatePublicKeys.map((pk, index) => {
 	const balance = new BigNum(randomInt(100, 1000));
 	const rewards = new BigNum(randomInt(100, 500));
+	const voteWeight = new BigNum(randomInt(10000, 50000));
 	return {
 		balance,
 		rewards,
+		voteWeight,
 		fees: balance.sub(rewards),
 		publicKey: pk,
 		votedDelegatesPublicKeys: [`abc${index}`, `def${index}`, `xyz${index}`],
@@ -77,6 +79,28 @@ const uniqueDelegatesWhoForged = delegatesWhoForged.filter(
 
 const delegateWhoForgedLast = delegatesWhoForged[delegatesWhoForged.length - 1];
 
+/**
+ * sorted by [voteWeight:Desc] [publicKey:asc]
+ */
+// eslint-disable-next-line consistent-return, array-callback-return
+const sortedDelegateAccounts = delegateAccounts.sort((a, b) => {
+	if (b.voteWeight.eq(a.voteWeight)) {
+		return a.publicKey.localeCompare(b.publicKey); // publicKey sorted by ascending
+	}
+
+	if (b.voteWeight.gt(a.voteWeight)) {
+		return 1; // voteWeight sorted by descending
+	}
+
+	if (b.voteWeight.lt(a.voteWeight)) {
+		return -1;
+	}
+});
+
+const sortedDelegatePublicKeys = sortedDelegateAccounts.map(
+	account => account.publicKey,
+);
+
 if (delegatesWhoForged.length !== delegateAccounts.length) {
 	throw new Error('delegatesWhoForged is miscalculated');
 }
@@ -91,6 +115,8 @@ if (
 module.exports = {
 	delegateAccounts,
 	delegatePublicKeys,
+	sortedDelegateAccounts,
+	sortedDelegatePublicKeys,
 	delegatesWhoForged,
 	uniqueDelegatesWhoForged,
 	delegatesWhoForgedNone,

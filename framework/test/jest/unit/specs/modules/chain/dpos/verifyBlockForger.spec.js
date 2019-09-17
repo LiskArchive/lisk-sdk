@@ -28,7 +28,9 @@ describe('dpos.verifyBlockForger()', () => {
 		stubs.storage = {
 			entities: {
 				RoundDelegates: {
-					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					getActiveDelegatesForRound: jest
+						.fn()
+						.mockReturnValue(delegatePublicKeys),
 					create: jest.fn(),
 				},
 				Account: {
@@ -89,7 +91,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should throw error if no delegate list is found', async () => {
 		// Arrange
-		stubs.storage.entities.RoundDelegates.getRoundDelegates.mockResolvedValue(
+		stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound.mockResolvedValue(
 			[],
 		);
 		const block = {
@@ -99,13 +101,11 @@ describe('dpos.verifyBlockForger()', () => {
 			generatorPublicKey: 'xxx',
 		};
 
-		const expectedSlot = slots.getSlotNumber(block.timestamp);
+		const expectedRound = slots.calcRound(block.height);
 
 		// Act && Assert
 		const error = new Error(
-			`Failed to verify slot: ${expectedSlot} for block ID: ${
-				block.id
-			} - No delegateList was found`,
+			`No delegate list found for round: ${expectedRound}`,
 		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
 	});

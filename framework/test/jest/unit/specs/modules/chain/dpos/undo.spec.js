@@ -43,7 +43,9 @@ describe('dpos.undo()', () => {
 				},
 				RoundDelegates: {
 					delete: jest.fn(),
-					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					getActiveDelegatesForRound: jest
+						.fn()
+						.mockReturnValue(delegatePublicKeys),
 					summedRound: jest.fn(),
 				},
 			},
@@ -70,7 +72,31 @@ describe('dpos.undo()', () => {
 		});
 	});
 
-	describe('Given block height is greater than "1" (NOT the genesis block)', () => {
+	describe('Given block is the genesis block (height === 1)', () => {
+		let genesisBlock;
+		beforeEach(() => {
+			// Arrange
+			genesisBlock = {
+				height: 1,
+			};
+		});
+
+		it('should throw exception and NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
+			// Act && Assert
+			expect(dpos.undo(genesisBlock, stubs.tx)).rejects.toThrow(
+				'Cannot undo genesis block',
+			);
+
+			// Assert
+			expect(
+				stubs.storage.entities.Account.decreaseFieldBy,
+			).not.toHaveBeenCalled();
+
+			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('Given block is NOT the genesis block (height > 1)', () => {
 		it('should decrease "producedBlocks" field by "1" for the generator delegate', async () => {
 			// Arrange
 			const block = {
@@ -94,22 +120,6 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
-		it('should NOT delete delegate list for rounds which are after the current round', async () => {
-			// Arrange
-			const block = {
-				height: 2,
-				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			};
-
-			// Act
-			await dpos.undo(block, stubs.tx);
-
-			// Assert
-			expect(
-				stubs.storage.entities.RoundDelegates.delete,
-			).not.toHaveBeenCalled();
-		});
-
 		it('should NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
 			// Arrange
 			const block = {
@@ -141,6 +151,22 @@ describe('dpos.undo()', () => {
 			).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeight');
 			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 		});
+
+		it('should NOT delete delegate list for rounds which are after the current round', async () => {
+			// Arrange
+			const block = {
+				height: 2,
+				generatorPublicKey: 'generatorPublicKey#RANDOM',
+			};
+
+			// Act
+			await dpos.undo(block, stubs.tx);
+
+			// Assert
+			expect(
+				stubs.storage.entities.RoundDelegates.delete,
+			).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('Given block is the last block of the round', () => {
@@ -165,14 +191,6 @@ describe('dpos.undo()', () => {
 					stubs.tx,
 				)
 				.mockResolvedValue(delegatesWhoForged);
-
-			delegateAccounts.forEach(account => {
-				when(stubs.storage.entities.Account.get)
-					.calledWith({
-						publicKey: account.publicKey,
-					})
-					.mockResolvedValue(account);
-			});
 
 			feePerDelegate = randomInt(10, 100);
 			totalFee = feePerDelegate * constants.ACTIVE_DELEGATES;
@@ -201,23 +219,7 @@ describe('dpos.undo()', () => {
 			]);
 		});
 
-		it('should delete delegate list for rounds which are after the current round', async () => {
-			// Arrange
-			const roundNo = slots.calcRound(lastBlockOfTheRound.height);
-
-			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
-
-			// Assert
-			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
-				{
-					round_gt: roundNo,
-				},
-				stubs.tx,
-			);
-		});
-
-		it('should decrease "missedBlocks" field by "1" for the delegates who didnt forge in the round', async () => {
+		it('should decrease "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
 			// Act
 			await dpos.undo(lastBlockOfTheRound, stubs.tx);
 
@@ -226,7 +228,9 @@ describe('dpos.undo()', () => {
 				stubs.storage.entities.Account.decreaseFieldBy,
 			).toHaveBeenCalledWith(
 				{
-					publicKey_in: delegatesWhoForgedNone.map(a => a.publicKey),
+					publicKey_in: expect.toContainAllValues(
+						delegatesWhoForgedNone.map(a => a.publicKey),
+					),
 				},
 				'missedBlocks',
 				'1',
@@ -383,6 +387,22 @@ describe('dpos.undo()', () => {
 					stubs.tx,
 				);
 			});
+		});
+
+		it('should delete delegate list for rounds which are after the current round', async () => {
+			// Arrange
+			const roundNo = slots.calcRound(lastBlockOfTheRound.height);
+
+			// Act
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+
+			// Assert
+			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
+				{
+					round_gt: roundNo,
+				},
+				stubs.tx,
+			);
 		});
 
 		describe('When all delegates successfully forges a block', () => {

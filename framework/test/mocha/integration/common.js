@@ -46,7 +46,7 @@ function getDelegateForSlot(library, slot, cb) {
 		.loadDelegates()
 		.then(() => {
 			library.modules.dpos
-				.getRoundDelegates(round)
+				.getForgerPublicKeysForRound(round)
 				.then(list => {
 					const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 					return cb(null, delegatePublicKey);

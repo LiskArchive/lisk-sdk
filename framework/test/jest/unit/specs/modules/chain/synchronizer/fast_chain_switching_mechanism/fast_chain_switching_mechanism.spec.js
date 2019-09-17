@@ -44,7 +44,7 @@ describe('fast_chain_switching_mechanism', () => {
 			},
 		};
 		const dposMock = {
-			getRoundDelegates: jest.fn().mockReturnValue([]),
+			getForgerPublicKeysForRound: jest.fn().mockReturnValue([]),
 		};
 		const slotsMock = {
 			getSlotNumber: jest.fn(),
@@ -131,7 +131,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 					return currentSlot;
 				});
-				dposMock.getRoundDelegates.mockReturnValue([
+				dposMock.getForgerPublicKeysForRound.mockReturnValue([
 					receivedBlock.generatorPublicKey,
 				]);
 
@@ -152,7 +152,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 					return currentSlot;
 				});
-				dposMock.getRoundDelegates.mockReturnValue([]);
+				dposMock.getForgerPublicKeysForRound.mockReturnValue([]);
 
 				const result = await syncMechanism.isValidFor(receivedBlock);
 

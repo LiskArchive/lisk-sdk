@@ -293,7 +293,7 @@ describe('rounds', () => {
 				return Promise.join(
 					getMemAccounts(),
 					getDelegates(),
-					library.modules.dpos.getRoundDelegates(tick.before.round),
+					library.modules.dpos.getForgerPublicKeysForRound(tick.before.round),
 					Queries.getDelegatesOrderedByVoteWeight(),
 					(_accounts, _delegates, _delegatesList, _delegatesOrderedByVote) => {
 						tick.before.accounts = _.cloneDeep(_accounts);
@@ -317,7 +317,7 @@ describe('rounds', () => {
 							return Promise.join(
 								getMemAccounts(),
 								getDelegates(),
-								library.modules.dpos.getRoundDelegates(
+								library.modules.dpos.getForgerPublicKeysForRound(
 									slots.calcRound(tick.after.block.height + 1),
 								),
 								Queries.getDelegatesOrderedByVoteWeight(),
@@ -442,7 +442,7 @@ describe('rounds', () => {
 			return Promise.join(
 				getMemAccounts(),
 				getDelegates(),
-				library.modules.dpos.getRoundDelegates(
+				library.modules.dpos.getForgerPublicKeysForRound(
 					slots.calcRound(lastBlock.height),
 				),
 				(_accounts, _delegates, _delegatesList) => {
@@ -606,7 +606,7 @@ describe('rounds', () => {
 
 			it('should generate a different delegate list than one generated at the beginning of round 1', async () => {
 				const lastBlock = library.modules.blocks.lastBlock;
-				const delegatesList = await library.modules.dpos.getRoundDelegates(
+				const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 					slots.calcRound(lastBlock.height + 1),
 				);
 
@@ -652,7 +652,7 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const freshLastBlock = library.modules.blocks.lastBlock;
-				const delegatesList = await library.modules.dpos.getRoundDelegates(
+				const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 					slots.calcRound(freshLastBlock.height + 1),
 				);
 				return expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -676,7 +676,7 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const lastBlock = library.modules.blocks.lastBlock;
-				const delegatesList = await library.modules.dpos.getRoundDelegates(
+				const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 					slots.calcRound(lastBlock.height + 1),
 				);
 				return expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -759,7 +759,7 @@ describe('rounds', () => {
 			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', async () => {
 					const freshLastBlock = library.modules.blocks.lastBlock;
-					const delegatesList = await library.modules.dpos.getRoundDelegates(
+					const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 						slots.calcRound(freshLastBlock.height + 1),
 					);
 					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
@@ -782,7 +782,9 @@ describe('rounds', () => {
 							library.modules.blocks.lastBlock,
 						);
 						return library.modules.dpos
-							.getRoundDelegates(slots.calcRound(freshLastBlock.height))
+							.getForgerPublicKeysForRound(
+								slots.calcRound(freshLastBlock.height),
+							)
 							.then(delegatesList => {
 								expect(delegatesList).to.deep.equal(round.delegatesList);
 							});
@@ -882,7 +884,7 @@ describe('rounds', () => {
 
 					return Promise.join(
 						getDelegates(),
-						library.modules.dpos.getRoundDelegates(
+						library.modules.dpos.getForgerPublicKeysForRound(
 							slots.calcRound(lastBlock.height + 1),
 						),
 						(_delegates, _delegatesList) => {
@@ -934,7 +936,7 @@ describe('rounds', () => {
 					return library.modules.processor.deleteLastBlock().then(() => {
 						lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
 						return library.modules.dpos
-							.getRoundDelegates(slots.calcRound(lastBlock.height))
+							.getForgerPublicKeysForRound(slots.calcRound(lastBlock.height))
 							.then(delegatesList => {
 								expect(delegatesList).to.deep.equal(round.delegatesList);
 							});

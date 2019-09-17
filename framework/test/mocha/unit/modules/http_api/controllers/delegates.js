@@ -361,9 +361,9 @@ describe('delegates/api', () => {
 			);
 		});
 
-		it('should call channel.invoke with chain:getRoundDelegates action', async () => {
+		it('should call channel.invoke with chain:getForgerPublicKeysForRound action', async () => {
 			expect(channelStub.invoke.getCall(4)).to.be.calledWith(
-				'chain:getRoundDelegates',
+				'chain:getForgerPublicKeysForRound',
 			);
 		});
 

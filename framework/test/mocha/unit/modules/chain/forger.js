@@ -70,7 +70,7 @@ describe('forge', () => {
 					getRealTime: sinonSandbox.stub(),
 				},
 				dposModule: {
-					getRoundDelegates: sinonSandbox.stub(),
+					getForgerPublicKeysForRound: sinonSandbox.stub(),
 				},
 				transactionPoolModule: {
 					getUnconfirmedTransactionList: sinonSandbox.stub(),
@@ -1007,7 +1007,7 @@ describe('forge', () => {
 			forgeModule.keypairs[genesis3.publicKey] = genesis3Keypair;
 
 			dposModuleStub = {
-				getRoundDelegates: sinonSandbox.stub(),
+				getForgerPublicKeysForRound: sinonSandbox.stub(),
 			};
 		});
 
@@ -1016,7 +1016,7 @@ describe('forge', () => {
 			const currentSlot = 35;
 			const round = 1;
 
-			dposModuleStub.getRoundDelegates
+			dposModuleStub.getForgerPublicKeysForRound
 				.withArgs(round)
 				.resolves(delegatesRoundsList[round]);
 
@@ -1036,7 +1036,9 @@ describe('forge', () => {
 			const currentSlot = 578;
 			const round = 2;
 
-			dposModuleStub.getRoundDelegates.resolves(delegatesRoundsList[round]);
+			dposModuleStub.getForgerPublicKeysForRound.resolves(
+				delegatesRoundsList[round],
+			);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
 				dposModuleStub,
@@ -1054,7 +1056,9 @@ describe('forge', () => {
 			const currentSlot = 1051;
 			const round = 3;
 
-			dposModuleStub.getRoundDelegates.resolves(delegatesRoundsList[round]);
+			dposModuleStub.getForgerPublicKeysForRound.resolves(
+				delegatesRoundsList[round],
+			);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
 				dposModuleStub,
@@ -1073,7 +1077,9 @@ describe('forge', () => {
 			const currentSlot = 1;
 			const round = 4;
 
-			dposModuleStub.getRoundDelegates.resolves(delegatesRoundsList[round]);
+			dposModuleStub.getForgerPublicKeysForRound.resolves(
+				delegatesRoundsList[round],
+			);
 
 			const keyPair = await getDelegateKeypairForCurrentSlot(
 				dposModuleStub,
@@ -1085,13 +1091,13 @@ describe('forge', () => {
 			expect(keyPair).to.be.null;
 		});
 
-		it('should return error when `getRoundDelegates` fails', async () => {
+		it('should return error when `getForgerPublicKeysForRound` fails', async () => {
 			const currentSlot = 1;
 			const round = 4;
 
-			const expectedError = new Error('getRoundDelegates error');
+			const expectedError = new Error('getForgerPublicKeysForRound error');
 
-			dposModuleStub.getRoundDelegates.rejects(expectedError);
+			dposModuleStub.getForgerPublicKeysForRound.rejects(expectedError);
 
 			try {
 				await getDelegateKeypairForCurrentSlot(

@@ -16,7 +16,7 @@
 'use strict';
 
 const getDelegateList = async (chainModule, round) =>
-	chainModule.dpos.getRoundDelegates(round);
+	chainModule.dpos.getForgerPublicKeysForRound(round);
 
 module.exports = {
 	getDelegateList,

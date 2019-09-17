@@ -32,7 +32,7 @@ describe('delegates', () => {
 			const deletedRoundNumbers = [1, 2, 3, 4];
 			// Act
 			deletedRoundNumbers.forEach(async round => {
-				const delegateListForRoundOne = await library.components.storage.entities.RoundDelegates.getRoundDelegates(
+				const delegateListForRoundOne = await library.components.storage.entities.RoundDelegates.getActiveDelegatesForRound(
 					round,
 				);
 				// Assert
@@ -45,7 +45,7 @@ describe('delegates', () => {
 			const deletedRoundNumbers = [5, 6, 7, 8, 9, 10];
 			// Act
 			deletedRoundNumbers.forEach(async round => {
-				const delegateListForRoundOne = await library.components.storage.entities.RoundDelegates.getRoundDelegates(
+				const delegateListForRoundOne = await library.components.storage.entities.RoundDelegates.getActiveDelegatesForRound(
 					round,
 				);
 				// Assert

@@ -21,6 +21,8 @@ const { constants, randomInt } = require('../../../../utils');
 const {
 	delegateAccounts,
 	delegatePublicKeys,
+	sortedDelegateAccounts,
+	sortedDelegatePublicKeys,
 	delegatesWhoForged,
 	delegatesWhoForgedNone,
 	uniqueDelegatesWhoForged,
@@ -42,7 +44,11 @@ describe('dpos.apply()', () => {
 					update: jest.fn(),
 				},
 				RoundDelegates: {
-					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					getActiveDelegatesForRound: jest
+						.fn()
+						.mockReturnValue(delegatePublicKeys),
+					create: jest.fn(),
+					delete: jest.fn(),
 					summedRound: jest.fn(),
 				},
 			},
@@ -69,18 +75,63 @@ describe('dpos.apply()', () => {
 		});
 	});
 
-	describe('Given block height is "1" (the genesis block)', () => {
+	describe('Given block is the genesis block (height === 1)', () => {
 		let genesisBlock;
 		beforeEach(() => {
 			// Arrange
 			genesisBlock = {
 				height: 1,
 			};
+
+			when(stubs.storage.entities.Account.get)
+				.calledWith(
+					{
+						isDelegate: true,
+					},
+					{
+						limit: constants.ACTIVE_DELEGATES,
+						sort: ['voteWeight:desc', 'publicKey:asc'],
+					},
+				)
+				.mockResolvedValue(sortedDelegateAccounts);
+		});
+
+		it('should save round 1 active delegates list in round_delegates table by using delegate accounts', async () => {
+			// Act
+			await dpos.apply(genesisBlock, stubs.tx);
+
+			// Assert
+			expect(stubs.storage.entities.Account.get).toHaveBeenCalledWith(
+				{ isDelegate: true },
+				{
+					limit: constants.ACTIVE_DELEGATES,
+					sort: ['voteWeight:desc', 'publicKey:asc'],
+				},
+				stubs.tx,
+			);
+
+			// we must delete the delegate list before creating the new one
+			expect(
+				stubs.storage.entities.RoundDelegates.delete,
+			).toHaveBeenCalledBefore(stubs.storage.entities.RoundDelegates.create);
+
+			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
+				{ round: 1 },
+				stubs.tx,
+			);
+			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
+				{
+					round: 1,
+					delegatePublicKeys: sortedDelegatePublicKeys,
+				},
+				{},
+				stubs.tx,
+			);
 		});
 
 		it('should resolve with "false"', async () => {
 			// Act
-			const result = await dpos.apply(genesisBlock);
+			const result = await dpos.apply(genesisBlock, stubs.tx);
 
 			// Assert
 			expect(result).toBeFalse();
@@ -88,7 +139,7 @@ describe('dpos.apply()', () => {
 
 		it('should NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
 			// Act
-			await dpos.apply(genesisBlock);
+			await dpos.apply(genesisBlock, stubs.tx);
 
 			// Assert
 			expect(
@@ -154,6 +205,25 @@ describe('dpos.apply()', () => {
 			).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeight');
 			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 		});
+
+		it('should NOT update "round_delegates" table', async () => {
+			// Arrange
+			const block = {
+				height: 2,
+				generatorPublicKey: 'generatorPublicKey#RANDOM',
+			};
+
+			// Act
+			await dpos.apply(block, stubs.tx);
+
+			// Assert
+			expect(
+				stubs.storage.entities.RoundDelegates.create,
+			).not.toHaveBeenCalled();
+			expect(
+				stubs.storage.entities.RoundDelegates.delete,
+			).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('Given block is the last block of the round', () => {
@@ -179,13 +249,17 @@ describe('dpos.apply()', () => {
 				)
 				.mockResolvedValue(delegatesWhoForged);
 
-			delegateAccounts.forEach(account => {
-				when(stubs.storage.entities.Account.get)
-					.calledWith({
-						publicKey: account.publicKey,
-					})
-					.mockResolvedValue(account);
-			});
+			when(stubs.storage.entities.Account.get)
+				.calledWith(
+					{
+						isDelegate: true,
+					},
+					{
+						limit: constants.ACTIVE_DELEGATES,
+						sort: ['voteWeight:desc', 'publicKey:asc'],
+					},
+				)
+				.mockResolvedValue(delegateAccounts);
 
 			feePerDelegate = randomInt(10, 100);
 			totalFee = feePerDelegate * constants.ACTIVE_DELEGATES;
@@ -214,7 +288,7 @@ describe('dpos.apply()', () => {
 			]);
 		});
 
-		it('should increase "missedBlocks" field by "1" for the delegates who didnt forge in the round', async () => {
+		it('should increase "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
 			// Act
 			await dpos.apply(lastBlockOfTheRound, stubs.tx);
 
@@ -223,7 +297,9 @@ describe('dpos.apply()', () => {
 				stubs.storage.entities.Account.increaseFieldBy,
 			).toHaveBeenCalledWith(
 				{
-					publicKey_in: delegatesWhoForgedNone.map(a => a.publicKey),
+					publicKey_in: expect.toContainAllValues(
+						delegatesWhoForgedNone.map(a => a.publicKey),
+					),
 				},
 				'missedBlocks',
 				'1',
@@ -258,7 +334,7 @@ describe('dpos.apply()', () => {
 			});
 		});
 
-		it('should distrubute reward and fee for delegate who forged once but missed once', async () => {
+		it('should distribute reward and fee for delegate who forged once but missed once', async () => {
 			// Act
 			await dpos.apply(lastBlockOfTheRound, stubs.tx);
 
@@ -380,6 +456,45 @@ describe('dpos.apply()', () => {
 					stubs.tx,
 				);
 			});
+		});
+
+		it('should save next round active delegates list in RoundDelegates entity after applying last block of round', async () => {
+			// Arrange
+			const currentRound = slots.calcRound(lastBlockOfTheRound.height);
+			const nextRound = slots.calcRound(lastBlockOfTheRound.height + 1);
+
+			// Act
+			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+
+			// Assert
+			// make sure we calculate round number correctly
+			expect(nextRound).toBe(currentRound + 1);
+			// we must delete the delegate list before creating the new one
+			expect(
+				stubs.storage.entities.RoundDelegates.delete,
+			).toHaveBeenCalledBefore(stubs.storage.entities.RoundDelegates.create);
+
+			expect(
+				stubs.storage.entities.RoundDelegates.delete,
+			).toHaveBeenCalledTimes(1);
+			expect(
+				stubs.storage.entities.RoundDelegates.create,
+			).toHaveBeenCalledTimes(1);
+
+			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
+				{
+					round: nextRound,
+				},
+				stubs.tx,
+			);
+			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
+				{
+					round: nextRound,
+					delegatePublicKeys: sortedDelegatePublicKeys,
+				},
+				{},
+				stubs.tx,
+			);
 		});
 
 		describe('When all delegates successfully forges a block', () => {

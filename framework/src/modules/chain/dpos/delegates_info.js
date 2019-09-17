@@ -41,6 +41,8 @@ const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
 			return acc;
 		}, []);
 
+const _isGenesisBlock = block => block.height === 1;
+
 const _hasVotedDelegatesPublicKeys = ({
 	delegateAccount: { votedDelegatesPublicKeys },
 }) => !!votedDelegatesPublicKeys && votedDelegatesPublicKeys.length > 0;
@@ -64,11 +66,27 @@ class DelegatesInfo {
 
 	async apply(block, tx) {
 		const undo = false;
+
+		/**
+		 * If the block is genesis block, we don't have to
+		 * update anything in the accounts.
+		 */
+		if (_isGenesisBlock(block)) {
+			const round = 1;
+			await this.delegatesList.createRoundDelegateList(round, tx);
+			return false;
+		}
+
 		return this._update(block, undo, tx);
 	}
 
 	async undo(block, tx) {
 		const undo = true;
+
+		// Never undo genesis block
+		if (_isGenesisBlock(block)) {
+			throw new Error('Cannot undo genesis block');
+		}
 		return this._update(block, undo, tx);
 	}
 
@@ -76,28 +94,11 @@ class DelegatesInfo {
 	 * @param {Block} block
 	 */
 	async _update(block, undo, tx) {
-		/**
-		 * If the block height is 1, that means the block is
-		 * the genesis block, in that case we don't have to
-		 * update anything in the accounts.
-		 */
-		if (block.height === 1) {
-			return false;
-		}
-
 		await this._updateProducedBlocks(block, undo, tx);
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {
-			if (undo) {
-				/**
-				 * If we are reverting the block, new transactions
-				 * can change vote weight of delegates, so we need to
-				 * invalidate the cache for the next rounds.
-				 */
-				const round = this.slots.calcRound(block.height);
-				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
-			}
+			const round = this.slots.calcRound(block.height);
 
 			const roundSummary = await this._summarizeRound(block, tx);
 
@@ -106,6 +107,19 @@ class DelegatesInfo {
 				this._updateBalanceRewardsAndFees(roundSummary, undo, tx),
 				this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx),
 			]);
+
+			if (undo) {
+				/**
+				 * If we are reverting the block, new transactions
+				 * can change vote weight of delegates, so we need to
+				 * invalidate the cache for the next rounds.
+				 */
+				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
+			} else {
+				// Create round delegate list
+				const nextRound = round + 1;
+				await this.delegatesList.createRoundDelegateList(nextRound, tx);
+			}
 		}
 
 		return true;
@@ -196,7 +210,7 @@ class DelegatesInfo {
 		const round = this.slots.calcRound(block.height);
 		const nextRound = this.slots.calcRound(block.height + 1);
 
-		return round < nextRound || block.height === 1;
+		return round < nextRound;
 	}
 
 	/**
@@ -275,7 +289,7 @@ class DelegatesInfo {
 	}
 
 	async _getMissedBlocksDelegatePublicKeys({ round, uniqForgersInfo }) {
-		const expectedForgingPublicKeys = await this.delegatesList.generateActiveDelegateList(
+		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
 			round,
 		);
 

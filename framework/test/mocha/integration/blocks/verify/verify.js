@@ -84,7 +84,7 @@ function getValidKeypairForSlot(library, slot) {
 	const round = slots.calcRound(lastBlock.height);
 
 	return library.modules.dpos
-		.getRoundDelegates(round)
+		.getForgerPublicKeysForRound(round)
 		.then(list => {
 			const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 			const passphrase = _.find(genesisDelegates, delegate => {
@@ -287,7 +287,7 @@ describe('blocks/verify', () => {
 					if (err) {
 						return done(err);
 					}
-					return dpos.getRoundDelegates(1).then(() => done());
+					return dpos.getForgerPublicKeysForRound(1).then(() => done());
 				},
 			);
 		});

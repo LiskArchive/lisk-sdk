@@ -39,7 +39,7 @@ const getDelegateKeypairForCurrentSlot = async (
 	round,
 	numOfActiveDelegates,
 ) => {
-	const activeDelegates = await dposModule.getRoundDelegates(round);
+	const activeDelegates = await dposModule.getForgerPublicKeysForRound(round);
 
 	const currentSlotIndex = currentSlot % numOfActiveDelegates;
 	const currentSlotDelegate = activeDelegates[currentSlotIndex];

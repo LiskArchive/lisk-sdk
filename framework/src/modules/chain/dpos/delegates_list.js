@@ -48,36 +48,62 @@ class DelegatesList extends EventEmitter {
 		this.exceptions = exceptions;
 	}
 
-	async getRoundDelegates(round) {
-		const list = await this.generateActiveDelegateList(round);
-		return shuffleDelegateListForRound(round, list);
+	/**
+	 * Get shuffled list of active delegate public keys for a specific round -> forger public keys
+	 * @param {number} round
+	 */
+	async getForgerPublicKeysForRound(round) {
+		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
+			round,
+		);
+
+		if (!delegatePublicKeys.length) {
+			throw new Error(`No delegate list found for round: ${round}`);
+		}
+
+		return shuffleDelegateListForRound(round, delegatePublicKeys);
 	}
 
-	async getDelegatePublicKeysSortedByVote() {
+	async getDelegatePublicKeysSortedByVoteWeight(tx) {
 		const filters = { isDelegate: true };
 		const options = {
 			limit: this.activeDelegates,
 			sort: ['voteWeight:desc', 'publicKey:asc'],
 		};
-		const accounts = await this.storage.entities.Account.get(filters, options);
+		const accounts = await this.storage.entities.Account.get(
+			filters,
+			options,
+			tx,
+		);
 		return accounts.map(account => account.publicKey);
 	}
 
-	async generateActiveDelegateList(round) {
-		let delegatePublicKeys = await this.storage.entities.RoundDelegates.getRoundDelegates(
-			round,
+	/**
+	 * Generate list of delegate public keys for the next round in database
+	 * WARNING: This function should only be called from `apply()` as we don't allow future rounds to be created
+	 * @param {number} round
+	 * @param {Object} tx - Database transaction object
+	 */
+	async createRoundDelegateList(round, tx) {
+		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight(
+			tx,
 		);
 
-		if (!delegatePublicKeys.length) {
-			delegatePublicKeys = await this.getDelegatePublicKeysSortedByVote();
-
-			await this.storage.entities.RoundDelegates.create({
+		// Delete delegate list and create new updated list
+		await this.storage.entities.RoundDelegates.delete(
+			{
+				round,
+			},
+			tx,
+		);
+		await this.storage.entities.RoundDelegates.create(
+			{
 				round,
 				delegatePublicKeys,
-			});
-		}
-
-		return delegatePublicKeys;
+			},
+			{},
+			tx,
+		);
 	}
 
 	async deleteDelegateListUntilRound(round, tx) {
@@ -108,7 +134,7 @@ class DelegatesList extends EventEmitter {
 	async verifyBlockForger(block) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const round = this.slots.calcRound(block.height);
-		const delegateList = await this.getRoundDelegates(round);
+		const delegateList = await this.getForgerPublicKeysForRound(round);
 
 		if (!delegateList.length) {
 			throw new Error(

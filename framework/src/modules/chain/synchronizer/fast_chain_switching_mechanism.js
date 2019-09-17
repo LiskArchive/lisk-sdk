@@ -51,7 +51,9 @@ class FastChainSwitchingMechanism {
 		}
 
 		const blockRound = this.slots.calcRound(receivedBlock.height);
-		const delegateList = await this.dpos.getRoundDelegates(blockRound);
+		const delegateList = await this.dpos.getForgerPublicKeysForRound(
+			blockRound,
+		);
 
 		return delegateList.includes(receivedBlock.generatorPublicKey);
 	}

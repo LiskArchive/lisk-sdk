@@ -98,9 +98,12 @@ async function _getForgers(filters) {
 		height: lastBlock.height + 1,
 	});
 
-	const activeDelegates = await channel.invoke('chain:getRoundDelegates', {
-		round: currentRound,
-	});
+	const activeDelegates = await channel.invoke(
+		'chain:getForgerPublicKeysForRound',
+		{
+			round: currentRound,
+		},
+	);
 
 	for (
 		let i = filters.offset + 1;

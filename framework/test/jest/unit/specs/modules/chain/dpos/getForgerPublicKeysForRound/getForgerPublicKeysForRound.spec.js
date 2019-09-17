@@ -28,7 +28,7 @@ const { constants } = require('../../../../../utils');
  */
 const roundNo = 5;
 
-describe('dpos.getRoundDelegates()', () => {
+describe('dpos.getForgerPublicKeysForRound()', () => {
 	const stubs = {};
 	let dpos;
 	beforeEach(() => {
@@ -39,7 +39,9 @@ describe('dpos.getRoundDelegates()', () => {
 					get: jest.fn(),
 				},
 				RoundDelegates: {
-					getRoundDelegates: jest.fn().mockReturnValue(delegatePublicKeys),
+					getActiveDelegatesForRound: jest
+						.fn()
+						.mockReturnValue(delegatePublicKeys),
 					create: jest.fn(),
 					delete: jest.fn(),
 				},
@@ -53,55 +55,31 @@ describe('dpos.getRoundDelegates()', () => {
 	});
 
 	describe('When non-shuffled delegate public keys exist in round_delegates table', () => {
-		let list;
-		beforeEach(async () => {
+		it('should return shuffled delegate public keys by using round_delegates table record', async () => {
 			// Arrange
-			when(stubs.storage.entities.RoundDelegates.getRoundDelegates)
+			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
 				.calledWith(roundNo)
 				.mockResolvedValue(delegatePublicKeys);
 
 			// Act
-			list = await dpos.getRoundDelegates(roundNo);
-		});
+			const list = await dpos.getForgerPublicKeysForRound(roundNo);
 
-		it('should return shuffled delegate public keys by using round_delegates table record', () => {
 			// Assert
 			expect(list).toEqual(shuffledDelegatePublicKeys);
 		});
 	});
 
 	describe('Given the round is NOT in the round_delegates table', () => {
-		let list;
-		beforeEach(async () => {
+		it('should throw error when round is not in round_delegates table', async () => {
 			// Arrange
-			when(stubs.storage.entities.RoundDelegates.getRoundDelegates)
+			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
 				.calledWith(roundNo)
 				.mockResolvedValue([]);
 			stubs.storage.entities.Account.get.mockResolvedValue(delegateAccounts);
 
-			// Act
-			list = await dpos.getRoundDelegates(roundNo);
-		});
-
-		it('should return shuffled delegate list by using delegate accounts', () => {
-			// Assert
-			expect(stubs.storage.entities.Account.get).toHaveBeenCalledWith(
-				{ isDelegate: true },
-				{
-					limit: constants.ACTIVE_DELEGATES,
-					sort: ['voteWeight:desc', 'publicKey:asc'],
-				},
-			);
-			expect(list).toEqual(shuffledDelegatePublicKeys);
-		});
-
-		it('should save delegate public keys to round_delegates table', () => {
-			// Assert
-			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
-				{
-					round: roundNo,
-					delegatePublicKeys,
-				},
+			// Act && Assert
+			return expect(dpos.getForgerPublicKeysForRound(roundNo)).rejects.toThrow(
+				`No delegate list found for round: ${roundNo}`,
 			);
 		});
 	});
