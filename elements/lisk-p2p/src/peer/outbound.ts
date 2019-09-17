@@ -34,9 +34,7 @@ import {
 	P2PResponsePacket,
 } from '../p2p_types';
 import { sanitizeNodeInfoToLegacyFormat } from '../utils';
-import { Peer, PeerConfig } from './base';
-
-type SCClientSocket = socketClusterClient.SCClientSocket;
+import { Peer, PeerConfig, SCClientSocket } from './base';
 
 const socketErrorStatusCodes = {
 	...(socketClusterClient.SCClientSocket as any).errorStatuses,

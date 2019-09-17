@@ -60,8 +60,6 @@ import {
 	validateRPCRequest,
 } from '../utils';
 
-type SCClientSocket = socketClusterClient.SCClientSocket;
-
 // Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
 const RATE_NORMALIZATION_FACTOR = 1000;
 
@@ -71,6 +69,8 @@ interface Productivity {
 	readonly responseRate: number;
 	readonly lastResponded: number;
 }
+
+export type SCClientSocket = socketClusterClient.SCClientSocket;
 
 export type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
