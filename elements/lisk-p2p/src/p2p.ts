@@ -79,6 +79,7 @@ import {
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
@@ -102,6 +103,7 @@ export {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
@@ -173,6 +175,7 @@ export class P2P extends EventEmitter {
 		discoveredPeerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
+	private readonly _handleFailedToSendMessage: (error: Error) => void;
 	private readonly _handleOutboundPeerConnect: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -398,6 +401,11 @@ export class P2P extends EventEmitter {
 		this._handleFailedToPushNodeInfo = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+		};
+
+		this._handleFailedToSendMessage = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
 		};
 
 		this._handleOutboundSocketError = (error: Error) => {
@@ -951,6 +959,7 @@ export class P2P extends EventEmitter {
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
 			this._handleFailedToPushNodeInfo,
 		);
+		peerPool.on(EVENT_FAILED_TO_SEND_MESSAGE, this._handleFailedToSendMessage);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
 		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);

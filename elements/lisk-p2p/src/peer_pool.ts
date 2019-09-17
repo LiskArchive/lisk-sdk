@@ -118,6 +118,9 @@ export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
 export const EVENT_REMOVE_PEER = 'removePeer';
 export const INTENTIONAL_DISCONNECT_STATUS_CODE = 1000;
 
+// TODO: Move to events.ts.
+export const EVENT_FAILED_TO_SEND_MESSAGE = 'failedToSendMessage';
+
 // TODO: Move these to constants.ts
 export const PEER_KIND_OUTBOUND = 'outbound';
 export const PEER_KIND_INBOUND = 'inbound';
@@ -378,7 +381,11 @@ export class PeerPool extends EventEmitter {
 
 		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			this.sendToPeer(message, selectedPeerId);
+			try {
+				this.sendToPeer(message, selectedPeerId);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
+			}
 		});
 	}
 
