@@ -41,6 +41,8 @@ const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
 			return acc;
 		}, []);
 
+const _isGenesisBlock = block => block.height === 1;
+
 const _hasVotedDelegatesPublicKeys = ({
 	delegateAccount: { votedDelegatesPublicKeys },
 }) => !!votedDelegatesPublicKeys && votedDelegatesPublicKeys.length > 0;
@@ -66,11 +68,10 @@ class DelegatesInfo {
 		const undo = false;
 
 		/**
-		 * If the block height is 1, that means the block is
-		 * the genesis block, in that case we don't have to
+		 * If the block is genesis block, we don't have to
 		 * update anything in the accounts.
 		 */
-		if (this._isGenesisBlock(block)) {
+		if (_isGenesisBlock(block)) {
 			const round = 1;
 			await this.delegatesList.createRoundDelegateList(round, tx);
 			return false;
@@ -83,7 +84,7 @@ class DelegatesInfo {
 		const undo = true;
 
 		// Never undo genesis block
-		if (this._isGenesisBlock(block)) {
+		if (_isGenesisBlock(block)) {
 			throw new Error('Cannot undo genesis block');
 		}
 		return this._update(block, undo, tx);
@@ -203,11 +204,6 @@ class DelegatesInfo {
 					);
 				}),
 		);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	_isGenesisBlock(block) {
-		return block.height === 1;
 	}
 
 	_isLastBlockOfTheRound(block) {
