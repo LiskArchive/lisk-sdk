@@ -63,8 +63,23 @@ export const selectPeersForRequest = (
 
 export const selectPeersForSend = (
 	input: P2PPeerSelectionForSendInput,
-): ReadonlyArray<P2PDiscoveredPeerInfo> =>
-	shuffle(input.peers).slice(0, input.peerLimit);
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const shuffledPeers = shuffle(input.peers);
+	// tslint:disable: no-magic-numbers
+	const halfPeerLimit = Math.round((input.peerLimit as number) / 2);
+
+	// TODO: Get outbound string from constants.ts file.
+	const selectedOutboundPeers = shuffledPeers
+		.filter((peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === 'outbound')
+		.slice(0, halfPeerLimit);
+
+	// TODO: Get inbound string from constants.ts file.
+	const selectedInboundPeers = shuffledPeers
+		.filter((peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === 'inbound')
+		.slice(0, halfPeerLimit);
+
+	return selectedOutboundPeers.concat(selectedInboundPeers);
+};
 
 export const selectPeersForConnection = (
 	input: P2PPeerSelectionForConnectionInput,
