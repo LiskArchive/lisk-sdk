@@ -312,12 +312,16 @@ export class Peer extends EventEmitter {
 		return this._ipAddress;
 	}
 
-	public get reputation(): number {
-		return this._reputation;
+	public get wsPort(): number {
+		return this._wsPort;
 	}
 
 	public get netgroup(): number {
 		return this._netgroup;
+	}
+
+	public get reputation(): number {
+		return this._reputation;
 	}
 
 	public get latency(): number {
@@ -340,30 +344,6 @@ export class Peer extends EventEmitter {
 		return this._wsMessageRate;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
-		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
-		this._peerInfo = {
-			...newPeerInfo,
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
-		};
-	}
-
-	public get peerInfo(): P2PPeerInfo {
-		return this._peerInfo;
-	}
-
-	public applyPenalty(penalty: number): void {
-		this._reputation -= penalty;
-		if (this._reputation <= 0) {
-			this._banPeer();
-		}
-	}
-
-	public get wsPort(): number {
-		return this._wsPort;
-	}
-
 	public get state(): ConnectionState {
 		const state = this._socket
 			? this._socket.state === this._socket.OPEN
@@ -372,6 +352,23 @@ export class Peer extends EventEmitter {
 			: ConnectionState.CLOSED;
 
 		return state;
+	}
+
+	public get peerInfo(): P2PPeerInfo {
+		return this._peerInfo;
+	}
+
+	public get nodeInfo(): P2PNodeInfo | undefined {
+		return this._nodeInfo;
+	}
+
+	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
+		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
+		this._peerInfo = {
+			...newPeerInfo,
+			ipAddress: this._ipAddress,
+			wsPort: this._wsPort,
+		};
 	}
 
 	/**
@@ -387,10 +384,6 @@ export class Peer extends EventEmitter {
 			procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 			data: legacyNodeInfo,
 		});
-	}
-
-	public get nodeInfo(): P2PNodeInfo | undefined {
-		return this._nodeInfo;
 	}
 
 	public connect(): void {
@@ -526,6 +519,13 @@ export class Peer extends EventEmitter {
 
 		// Return the updated detailed peer info.
 		return this._peerInfo;
+	}
+
+	public applyPenalty(penalty: number): void {
+		this._reputation -= penalty;
+		if (this._reputation <= 0) {
+			this._banPeer();
+		}
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {

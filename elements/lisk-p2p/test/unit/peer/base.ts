@@ -84,7 +84,7 @@ describe('peer/base', () => {
 	describe('#constructor', () => {
 		it('should be an object', () => expect(defaultPeer).to.be.an('object'));
 
-		it('should be an instance of P2P blockchain', () =>
+		it('should be an instance of Peer class', () =>
 			expect(defaultPeer)
 				.to.be.an('object')
 				.and.be.instanceof(Peer));
@@ -108,17 +108,23 @@ describe('peer/base', () => {
 				.to.be.a('string')
 				.and.be.eql('12.12.12.12')));
 
-	describe('#reputation', () =>
-		it('should get reputation property', () =>
-			expect(defaultPeer.reputation)
+	describe('#wsPort', () =>
+		it('should get wsPort property', () =>
+			expect(defaultPeer.wsPort)
 				.to.be.a('number')
-				.and.be.eql(100)));
+				.and.be.eql(5001)));
 
 	describe('#netgroup', () =>
 		it('should get netgroup property', () =>
 			expect(defaultPeer.netgroup)
 				.to.be.a('number')
 				.and.be.eql(3045444456)));
+
+	describe('#reputation', () =>
+		it('should get reputation property', () =>
+			expect(defaultPeer.reputation)
+				.to.be.a('number')
+				.and.be.eql(100)));
 
 	describe('#latency', () =>
 		it('should get latency property', () =>
@@ -158,6 +164,32 @@ describe('peer/base', () => {
 				.to.be.a('number')
 				.and.be.eql(0)));
 
+	describe('#state', () =>
+		it('should get state property', () =>
+			expect(defaultPeer.state)
+				.to.be.a('string')
+				.and.be.eql('closed')));
+
+	describe('#peerInfo', () =>
+		it('should get peerInfo property', () =>
+			expect(defaultPeer.peerInfo)
+				.to.be.an('object')
+				.and.be.deep.equal(defaultPeerInfo)));
+
+	describe('#nodeInfo', () => {
+		beforeEach(() => {
+			sandbox.stub(defaultPeer, 'request').resolves();
+		});
+
+		it('should get node info', async () => {
+			await defaultPeer.applyNodeInfo(nodeInfo);
+
+			expect(defaultPeer.nodeInfo)
+				.to.be.an('object')
+				.and.be.deep.equal(nodeInfo);
+		});
+	});
+
 	describe('#updatePeerInfo', () =>
 		it('should update peer info', () => {
 			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo);
@@ -166,77 +198,6 @@ describe('peer/base', () => {
 				.to.be.an('object')
 				.and.be.deep.equal(p2pDiscoveredPeerInfo);
 		}));
-
-	describe('#peerInfo', () =>
-		it('should get peerInfo property', () =>
-			expect(defaultPeer.peerInfo)
-				.to.be.an('object')
-				.and.be.deep.equal(defaultPeerInfo)));
-
-	describe('#applyPenalty', () => {
-		describe('when reputation does not go below 0', () => {
-			beforeEach(() => {
-				sandbox.stub(defaultPeer as any, '_banPeer');
-			});
-
-			it('should apply penalty', () => {
-				const reputation = defaultPeer.reputation;
-				const penalty = DEFAULT_REPUTATION_SCORE / 10;
-				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
-			});
-
-			it('should not ban peer', () => {
-				const penalty = DEFAULT_REPUTATION_SCORE / 10;
-				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer['_banPeer']).to.be.not.called;
-			});
-		});
-
-		describe('when reputation goes below 0', () => {
-			beforeEach(() => {
-				sandbox.stub(defaultPeer, 'emit');
-				sandbox.stub(defaultPeer, 'disconnect');
-			});
-
-			it('should apply penalty', () => {
-				const reputation = defaultPeer.reputation;
-				const penalty = DEFAULT_REPUTATION_SCORE;
-				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
-			});
-
-			it(`should emit ${EVENT_BAN_PEER} event`, () => {
-				const penalty = DEFAULT_REPUTATION_SCORE;
-				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.emit).to.be.calledOnceWithExactly(
-					EVENT_BAN_PEER,
-					defaultPeer.id,
-				);
-			});
-
-			it('should disconnect peer', () => {
-				const penalty = DEFAULT_REPUTATION_SCORE;
-				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.disconnect).to.be.calledOnceWithExactly(
-					FORBIDDEN_CONNECTION,
-					FORBIDDEN_CONNECTION_REASON,
-				);
-			});
-		});
-	});
-
-	describe('#wsPort', () =>
-		it('should get wsPort property', () =>
-			expect(defaultPeer.wsPort)
-				.to.be.a('number')
-				.and.be.eql(5001)));
-
-	describe('#state', () =>
-		it('should get state property', () =>
-			expect(defaultPeer.state)
-				.to.be.a('string')
-				.and.be.eql('closed')));
 
 	describe('#applyNodeInfo', () => {
 		beforeEach(() => {
@@ -258,20 +219,6 @@ describe('peer/base', () => {
 				procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 				data: sanitizeNodeInfoToLegacyFormat(nodeInfo),
 			});
-		});
-	});
-
-	describe('#nodeInfo', () => {
-		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'request').resolves();
-		});
-
-		it('should apply node info', async () => {
-			await defaultPeer.applyNodeInfo(nodeInfo);
-
-			expect(defaultPeer.nodeInfo)
-				.to.be.an('object')
-				.and.be.deep.equal(nodeInfo);
 		});
 	});
 
@@ -665,6 +612,59 @@ describe('peer/base', () => {
 					const peerInfo = await defaultPeer.fetchStatus();
 					expect(peerInfo).to.be.eql(defaultPeerInfo);
 				});
+			});
+		});
+	});
+
+	describe('#applyPenalty', () => {
+		describe('when reputation does not go below 0', () => {
+			beforeEach(() => {
+				sandbox.stub(defaultPeer as any, '_banPeer');
+			});
+
+			it('should apply penalty', () => {
+				const reputation = defaultPeer.reputation;
+				const penalty = DEFAULT_REPUTATION_SCORE / 10;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
+			});
+
+			it('should not ban peer', () => {
+				const penalty = DEFAULT_REPUTATION_SCORE / 10;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer['_banPeer']).to.be.not.called;
+			});
+		});
+
+		describe('when reputation goes below 0', () => {
+			beforeEach(() => {
+				sandbox.stub(defaultPeer, 'emit');
+				sandbox.stub(defaultPeer, 'disconnect');
+			});
+
+			it('should apply penalty', () => {
+				const reputation = defaultPeer.reputation;
+				const penalty = DEFAULT_REPUTATION_SCORE;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
+			});
+
+			it(`should emit ${EVENT_BAN_PEER} event`, () => {
+				const penalty = DEFAULT_REPUTATION_SCORE;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.emit).to.be.calledOnceWithExactly(
+					EVENT_BAN_PEER,
+					defaultPeer.id,
+				);
+			});
+
+			it('should disconnect peer', () => {
+				const penalty = DEFAULT_REPUTATION_SCORE;
+				defaultPeer.applyPenalty(penalty);
+				expect(defaultPeer.disconnect).to.be.calledOnceWithExactly(
+					FORBIDDEN_CONNECTION,
+					FORBIDDEN_CONNECTION_REASON,
+				);
 			});
 		});
 	});
