@@ -71,6 +71,11 @@ describe('peer/outbound', () => {
 		);
 	});
 
+	afterEach(() => {
+		sandbox.restore();
+		defaultOutboundPeer.disconnect();
+	});
+
 	describe('#constructor', () => {
 		it('should be an object', () =>
 			expect(defaultOutboundPeer).to.be.an('object'));
@@ -98,7 +103,7 @@ describe('peer/outbound', () => {
 		it('should set new socket', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 
-			expect(defaultOutboundPeer['_socket']).to.be.empty;
+			expect(defaultOutboundPeer['_socket']).to.be.undefined;
 			defaultOutboundPeer.socket = outboundSocket;
 			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
 		});
@@ -114,8 +119,26 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#connect', () => {
-		it('should create outbound socket if it does not exist');
-		it('should connect');
+		it('should create outbound socket if it does not exist', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			sandbox
+				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
+				.returns(outboundSocket);
+
+			expect(defaultOutboundPeer['_socket']).to.be.undefined;
+			defaultOutboundPeer.connect();
+			expect(defaultOutboundPeer['_createOutboundSocket']).to.be.calledOnce;
+			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
+		});
+
+		it('should call connect', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			defaultOutboundPeer['_socket'] = outboundSocket;
+			sandbox.stub(defaultOutboundPeer['_socket'], 'connect');
+
+			defaultOutboundPeer.connect();
+			expect(defaultOutboundPeer['_socket']['connect']).to.be.calledOnce;
+		});
 	});
 
 	describe('#disconnect', () => {
