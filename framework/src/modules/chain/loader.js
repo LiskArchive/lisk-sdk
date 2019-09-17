@@ -201,6 +201,7 @@ class Loader {
 				// eslint-disable-next-line no-await-in-loop
 				await this.transactionPoolModule.getTransactionAndProcessSignature({
 					signature,
+					// TODO: Update the getSignature schema to be transactionId or remove the schema
 					transactionId: signaturePacket.transaction,
 				});
 			}
