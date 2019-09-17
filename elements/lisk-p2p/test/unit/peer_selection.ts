@@ -43,7 +43,7 @@ describe('peer selector', () => {
 			wsPort: 5000,
 		};
 
-		it('returned array should contain an even number of inbound and outbound peers', () => {
+		it('should return an array containing an even number of inbound and outbound peers', () => {
 			const selectedPeers = selectPeersForSend({
 				peers: peerList,
 				nodeInfo,
