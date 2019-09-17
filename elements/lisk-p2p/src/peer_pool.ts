@@ -356,7 +356,6 @@ export class PeerPool extends EventEmitter {
 			peerLimit: this._sendPeerLimit,
 			messagePacket: message,
 		});
-
 		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
 			try {

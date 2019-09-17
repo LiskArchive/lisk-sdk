@@ -26,7 +26,6 @@ import {
 } from '../../src/utils';
 // For stubbing
 import * as utils from '../../src/utils';
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../../src/p2p_types';
 import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList, initializePeerInfoList } from '../utils/peers';
 import {
@@ -44,7 +43,13 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_SEND_PEER_LIMIT,
 } from '../../src/constants';
-import { RequestFailError } from '../../src';
+import {
+	RequestFailError,
+	P2PNodeInfo,
+	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
+} from '../../src';
+import { constructPeerIdFromPeerInfo } from '../../src/utils';
 
 describe('peerPool', () => {
 	const peerPoolConfig = {
@@ -77,7 +82,30 @@ describe('peerPool', () => {
 			whitelisted: [],
 		},
 	};
-	const peerPool = new PeerPool(peerPoolConfig);
+	let peerPool: PeerPool;
+	let peerInfo: P2PDiscoveredPeerInfo;
+	let nodeInfo: P2PNodeInfo;
+
+	beforeEach(async () => {
+		peerPool = new PeerPool(peerPoolConfig);
+		peerPool.emit = sandbox.stub();
+		peerInfo = {
+			ipAddress: '127.0.0.1',
+			wsPort: 5000,
+			height: 1,
+			updatedAt: new Date(),
+			version: '1.0.1',
+			protocolVersion: '1.0.1',
+		};
+		nodeInfo = {
+			os: 'darwin',
+			version: '1.1',
+			protocolVersion: '1.0.1',
+			nethash: 'abc',
+			wsPort: 5000,
+			height: 1000,
+		};
+	});
 
 	describe('#constructor', () => {
 		it('should be an object and instance of PeerPool', async () => {
@@ -112,66 +140,47 @@ describe('peerPool', () => {
 				maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
 				secret: peerPoolConfig.secret,
 			};
-			expect(actualConfig.connectTimeout).to.equal(
-				expectedConfig.connectTimeout,
-			);
-			expect(actualConfig.ackTimeout).to.equal(expectedConfig.ackTimeout);
-			expect(actualConfig.wsMaxMessageRate).to.equal(
-				expectedConfig.wsMaxMessageRate,
-			);
-			expect(actualConfig.wsMaxMessageRatePenalty).to.equal(
-				expectedConfig.wsMaxMessageRatePenalty,
-			);
-			expect(actualConfig.maxPeerDiscoveryResponseLength).to.equal(
-				expectedConfig.maxPeerDiscoveryResponseLength,
-			);
-			expect(actualConfig.rateCalculationInterval).to.equal(
-				expectedConfig.rateCalculationInterval,
-			);
-			expect(actualConfig.wsMaxPayload).to.equal(expectedConfig.wsMaxPayload);
-			expect(actualConfig.maxPeerInfoSize).to.equal(
-				expectedConfig.maxPeerInfoSize,
-			);
-			expect(actualConfig.secret).to.equal(expectedConfig.secret);
+
+			expect(actualConfig).to.eql(expectedConfig);
 		});
 
-		it('should have a _peerLists property which is set to the value specified in the constructor', async () => {
+		it('should set _peerLists property', async () => {
 			expect(peerPool)
 				.to.have.property('_peerLists')
 				.which.equals(peerPoolConfig.peerLists);
 		});
 
-		it('should have a _peerSelectForSend property which is set to the value specified in the constructor', async () => {
+		it('should set _peerSelectForSend property', async () => {
 			expect(peerPool)
 				.to.have.property('_peerSelectForSend')
 				.which.equals(peerPoolConfig.peerSelectionForSend);
 		});
 
-		it('should have a _peerSelectForRequest property which is set to the value specified in the constructor', async () => {
+		it('should set _peerSelectForRequest property', async () => {
 			expect(peerPool)
 				.to.have.property('_peerSelectForRequest')
 				.which.equals(peerPoolConfig.peerSelectionForRequest);
 		});
 
-		it('should have a _peerSelectForConnection property which is set to the value specified in the constructor', async () => {
+		it('should set _peerSelectForConnection property', async () => {
 			expect(peerPool)
 				.to.have.property('_peerSelectForConnection')
 				.which.equals(peerPoolConfig.peerSelectionForConnection);
 		});
 
-		it('should have a _maxOutboundConnections property which is set to the value specified in the constructor', async () => {
+		it('should set _maxOutboundConnections property', async () => {
 			expect(peerPool)
 				.to.have.property('_maxOutboundConnections')
 				.which.equals(peerPoolConfig.maxOutboundConnections);
 		});
 
-		it('should have a _maxInboundConnections property which is set to the value specified in the constructor', async () => {
+		it('should set _maxInboundConnections property', async () => {
 			expect(peerPool)
 				.to.have.property('_maxInboundConnections')
 				.which.equals(peerPoolConfig.maxInboundConnections);
 		});
 
-		it('should have a _sendPeerLimit property which is set to the value specified in the constructor', async () => {
+		it('should set _sendPeerLimit property', async () => {
 			expect(peerPool)
 				.to.have.property('_sendPeerLimit')
 				.which.equals(peerPoolConfig.sendPeerLimit);
@@ -181,6 +190,142 @@ describe('peerPool', () => {
 			expect(peerPool).to.have.property('_outboundShuffleIntervalId');
 		});
 	});
+
+	describe('#applyNodeInfo', async () => {
+		it('should set _nodeInfo', async () => {
+			peerPool.applyNodeInfo(nodeInfo);
+			expect(peerPool.nodeInfo).to.equal(nodeInfo);
+		});
+
+		it('should call getPeers', async () => {
+			const getPeersStub = sandbox.stub(peerPool, 'getPeers').callThrough();
+			peerPool.applyNodeInfo(nodeInfo);
+			expect(getPeersStub).to.be.calledOnce;
+		});
+
+		it('should call _applyNodeInfoOnPeer for each peer in peerMap', async () => {
+			const applyNodeInfoOnPeerStub = sandbox
+				.stub(peerPool as any, '_applyNodeInfoOnPeer')
+				.callThrough();
+			const applyNodeInfoOnPeerCalls = applyNodeInfoOnPeerStub.getCalls()
+				.length;
+			expect(applyNodeInfoOnPeerCalls).eql(peerPool.getPeers().length);
+		});
+	});
+
+	describe('#request', () => {
+		const requestPacket = { procedure: 'abc', data: 'abc' };
+
+		it('should call getUniqueOutboundConnectedPeers', async () => {
+			sandbox.stub(peerPool, 'requestFromPeer').resolves();
+			const getUniqueOutboundConnectedPeersStub = sandbox
+				.stub(peerPool, 'getUniqueOutboundConnectedPeers')
+				.returns([peerInfo]);
+			await peerPool.request(requestPacket);
+
+			expect(getUniqueOutboundConnectedPeersStub).to.be.calledOnce;
+		});
+
+		it('should call _peerSelectForRequest', async () => {
+			sandbox.stub(peerPool, 'requestFromPeer').resolves();
+			const peers = peerPool.getUniqueOutboundConnectedPeers();
+			const _peerSelectForRequestStub = sandbox
+				.stub(peerPool as any, '_peerSelectForRequest')
+				.returns([peerInfo]);
+
+			await peerPool.request(requestPacket);
+
+			expect(_peerSelectForRequestStub).to.be.calledWith({
+				peers,
+				nodeInfo: peerPool.nodeInfo,
+				peerLimit: 1,
+				requestPacket,
+			});
+		});
+
+		it('should throw error if no peers selected', async () => {
+			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([]);
+			try {
+				await peerPool.request(requestPacket);
+			} catch (err) {
+				expect(err).to.be.instanceOf(RequestFailError);
+			}
+		});
+
+		it('should call requestFromPeer', async () => {
+			const requestFromPeerStub = sandbox
+				.stub(peerPool, 'requestFromPeer')
+				.resolves();
+			sandbox
+				.stub(peerPool as any, '_peerSelectForRequest')
+				.returns([peerInfo]);
+			await peerPool.request(requestPacket);
+
+			expect(requestFromPeerStub).to.be.calledOnce;
+		});
+	});
+
+	describe('#send', () => {
+		const messagePacket = { procedure: 'abc', data: 'abc', event: 'abc' };
+		let _peerSelectForSendStub: any;
+		let sendToPeer: any;
+
+		beforeEach(async () => {
+			_peerSelectForSendStub = sandbox
+				.stub(peerPool as any, '_peerSelectForSend')
+				.returns([peerInfo]);
+			sendToPeer = sandbox.stub(peerPool, 'sendToPeer').resolves();
+		});
+
+		it('should call _peerSelectForSend', async () => {
+			await peerPool.send(messagePacket);
+
+			expect(_peerSelectForSendStub).to.be.calledOnce;
+		});
+
+		it('should call sendToPeer for each selected peer', async () => {
+			await peerPool.send(messagePacket);
+
+			expect(sendToPeer).to.be.calledOnceWithExactly(
+				messagePacket,
+				constructPeerIdFromPeerInfo(peerInfo),
+			);
+		});
+
+		it(`should emit event if sendToPeer fails`, async () => {
+			try {
+				await peerPool.send(1 as any);
+			} catch (err) {
+				expect(peerPool.emit).to.be.calledOnce;
+			}
+		});
+	});
+
+	describe('#sendToPeer', () => {});
+
+	describe('#addInboundPeer', () => {});
+
+	describe('#addOutboundPeer', () => {});
+
+	describe('#getPeersCountPerKind', () => {});
+
+	describe('#removeAllPeers', () => {});
+
+	describe('#getPeers', () => {});
+
+	describe('#getUniqueOutboundConnectedPeers', () => {});
+
+	describe('#getAllConnectedPeerInfos', () => {});
+
+	describe('#getConnectedPeers', () => {});
+
+	describe('#getPeer', () => {});
+
+	describe('#hasPeer', () => {});
+
+	describe('#removePeer', () => {});
+
+	describe('#applyPenalty', () => {});
 
 	describe('#filterPeersByCategory', () => {
 		const originalPeers = [...new Array(10).keys()].map(i => ({
@@ -397,92 +542,6 @@ describe('peerPool', () => {
 
 				expect(selectedPeersForEviction.length).to.eql(10);
 			});
-			
-	describe('#applyNodeInfo', async () => {
-		const nodeInfo = {
-			os: 'darwin',
-			version: '1.1',
-			protocolVersion: '1.0.1',
-			nethash: 'abc',
-			wsPort: 5000,
-			height: 1000,
-		};
-		it('should set _nodeInfo', async () => {
-			peerPool.applyNodeInfo(nodeInfo);
-			expect(peerPool.nodeInfo).to.equal(nodeInfo);
-		});
-
-		it('should call getPeers', async () => {
-			const getPeersStub = sandbox.stub(peerPool, 'getPeers').callThrough();
-			peerPool.applyNodeInfo(nodeInfo);
-			expect(getPeersStub).to.be.calledOnce;
-		});
-
-		it('should call _applyNodeInfoOnPeer for each peer in peerMap', async () => {
-			const applyNodeInfoOnPeerStub = sandbox
-				.stub(peerPool as any, '_applyNodeInfoOnPeer')
-				.callThrough();
-			const applyNodeInfoOnPeerCalls = applyNodeInfoOnPeerStub.getCalls()
-				.length;
-			expect(applyNodeInfoOnPeerCalls).eql(peerPool.getPeers().length);
-		});
-	});
-
-	describe('#request', () => {
-		const requestPacket = { procedure: 'abc', data: 'abc' };
-		const peer = {
-			ipAddress: '127.0.0.1',
-			wsPort: 5020,
-			height: 1,
-			updatedAt: new Date(),
-			version: '1.0.1',
-			protocolVersion: '1.0.1',
-		};
-		it('should call getUniqueOutboundConnectedPeers', async () => {
-			const getUniqueOutboundConnectedPeersStub = sandbox
-				.stub(peerPool, 'getUniqueOutboundConnectedPeers')
-				.returns([peer]);
-			try {
-				await peerPool.request(requestPacket);
-			} catch (err) {}
-
-			expect(getUniqueOutboundConnectedPeersStub).to.be.calledOnce;
-		});
-
-		it('should call _peerSelectForRequest', async () => {
-			const peers = peerPool.getUniqueOutboundConnectedPeers();
-			const _peerSelectForRequestStub = sandbox
-				.stub(peerPool as any, '_peerSelectForRequest')
-				.returns([peer]);
-			try {
-				await peerPool.request(requestPacket);
-			} catch (err) {}
-
-			expect(_peerSelectForRequestStub).to.be.calledWith({
-				peers,
-				nodeInfo: peerPool.nodeInfo,
-				peerLimit: 1,
-				requestPacket,
-			});
-		});
-
-		it('should throw error if no peers selected', async () => {
-			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([]);
-			try {
-				await peerPool.request(requestPacket);
-			} catch (err) {
-				expect(err).to.be.instanceOf(RequestFailError);
-			}
-		});
-
-		it('should call requestFromPeer', async () => {
-			const requestFromPeerStub = sandbox.stub(peerPool, 'requestFromPeer');
-			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([peer]);
-			try {
-				await peerPool.request(requestPacket);
-			} catch (err) {}
-
-			expect(requestFromPeerStub).to.be.calledOnce;
 		});
 	});
 
