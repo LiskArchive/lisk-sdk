@@ -118,6 +118,10 @@ export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
 export const EVENT_REMOVE_PEER = 'removePeer';
 export const INTENTIONAL_DISCONNECT_STATUS_CODE = 1000;
 
+// TODO: Move these to constants.ts
+export const PEER_KIND_OUTBOUND = 'outbound';
+export const PEER_KIND_INBOUND = 'inbound';
+
 export enum PROTECTION_CATEGORY {
 	NET_GROUP = 'netgroup',
 	LATENCY = 'latency',
@@ -333,9 +337,15 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers().map(
+			(peerInfo: P2PDiscoveredPeerInfo) => ({
+				...peerInfo,
+				kind: PEER_KIND_OUTBOUND,
+			}),
+		);
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: this.getUniqueOutboundConnectedPeers(),
+			peers: outboundPeerInfos,
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -353,9 +363,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public send(message: P2PMessagePacket): void {
-		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
-		);
+		const listOfPeerInfo = [...this._peerMap.values()].map((peer: Peer) => ({
+			...(peer.peerInfo as P2PDiscoveredPeerInfo),
+			kind:
+				peer instanceof OutboundPeer ? PEER_KIND_OUTBOUND : PEER_KIND_INBOUND,
+		}));
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
