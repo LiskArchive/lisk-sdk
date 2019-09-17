@@ -56,10 +56,15 @@ class PgHelper {
 	async createStorage(options = {}, logger) {
 		const storageOptions = {
 			database: this.dbName,
-			min: 1,
-			max: 10,
+			user: 'lisk',
+			password: 'password',
+			min: 10,
+			max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
 			logFileName: `logs/devnet/lisk_${this.dbName}.log`,
 			noWarnings: true,
+			poolIdleTimeout: 30000,
+			reapIntervalMillis: 1000,
+			logEvents: ['error'],
 			...options,
 		};
 		this.storage = await createStorageComponent(storageOptions, logger);
