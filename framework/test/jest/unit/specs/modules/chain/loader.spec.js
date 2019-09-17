@@ -125,6 +125,90 @@ describe('Loader', () => {
 		});
 	});
 
+	describe('#_getSignaturesFromNetwork', () => {
+		let loader;
+		let channelStub;
+		let transactionPoolModuleStub;
+
+		beforeEach(async () => {
+			const loggerStub = {
+				info: jest.fn(),
+			};
+			const interfaceAdapters = {
+				transactions: new TransactionInterfaceAdapter(registeredTransactions),
+			};
+			transactionPoolModuleStub = {
+				getTransactionAndProcessSignature: jest.fn(),
+			};
+			channelStub = {
+				invoke: jest.fn(),
+			};
+			loader = new Loader({
+				logger: loggerStub,
+				channel: channelStub,
+				transactionPoolModule: transactionPoolModuleStub,
+				interfaceAdapters,
+			});
+		});
+
+		describe('when peer returns valid signature response', () => {
+			const validSignatures = {
+				signatures: [
+					{
+						signatures: [
+							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+						],
+						transaction: '222675625422353767',
+					},
+				],
+			};
+
+			beforeEach(async () => {
+				channelStub.invoke.mockReturnValue({ data: validSignatures });
+			});
+
+			it('should not throw an error', async () => {
+				let error;
+				try {
+					await loader._getSignaturesFromNetwork();
+				} catch (err) {
+					error = err;
+				}
+				expect(error).toBe(undefined);
+			});
+
+			it('should process the transaction with transactionPoolModule', async () => {
+				await loader._getSignaturesFromNetwork();
+				expect(
+					transactionPoolModuleStub.getTransactionAndProcessSignature,
+				).toHaveBeenCalledWith({
+					signature: validSignatures.signatures[0].signatures[0],
+					transactionId: validSignatures.signatures[0].transaction,
+				});
+			});
+		});
+
+		describe('when peer returns invalid transaction response', () => {
+			const invalidTransactions = { signatures: [] };
+			beforeEach(async () => {
+				channelStub.invoke.mockReturnValue({ data: invalidTransactions });
+			});
+
+			it('should throw an error', async () => {
+				let error;
+				try {
+					await loader._getTransactionsFromNetwork();
+				} catch (err) {
+					error = err;
+				}
+				expect(error.length).toBe(1);
+				expect(error[0].message).toBe(
+					"should have required property 'transactions'",
+				);
+			});
+		});
+	});
+
 	describe('#_loadBlocksFromNetwork', () => {
 		let loader;
 		let channelStub;
