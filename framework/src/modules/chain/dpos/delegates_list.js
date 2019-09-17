@@ -49,7 +49,7 @@ class DelegatesList extends EventEmitter {
 	}
 
 	/**
-	 * Get sorted list of active delegate public keys for a specific round -> forger public keys
+	 * Get shuffled list of active delegate public keys for a specific round -> forger public keys
 	 * @param {number} round
 	 */
 	async getForgerPublicKeysForRound(round) {
