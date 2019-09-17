@@ -17,7 +17,7 @@ import { SCServerSocket } from 'socketcluster-server';
 import { InboundPeer } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
-describe('inbound_peer', () => {
+describe('peer/inbound', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
