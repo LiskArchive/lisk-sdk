@@ -18,6 +18,7 @@ import { expect } from 'chai';
 import { OutboundPeer } from '../../../src/peer';
 import { DEFAULT_WS_MAX_PAYLOAD } from '../../../src/constants';
 import { sanitizeNodeInfoToLegacyFormat } from '../../../src/utils';
+import { REMOTE_SC_EVENT_MESSAGE } from '../../../src/events';
 
 describe('peer/outbound', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
@@ -80,7 +81,7 @@ describe('peer/outbound', () => {
 		it('should be an object', () =>
 			expect(defaultOutboundPeer).to.be.an('object'));
 
-		it('should be an instance of P2P blockchain', () =>
+		it('should be an instance of OutboundPeer class', () =>
 			expect(defaultOutboundPeer)
 				.to.be.an('object')
 				.and.be.instanceof(OutboundPeer));
@@ -142,7 +143,7 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#disconnect', () => {
-		it('should destroy socket', () => {
+		it('should call disconnect and destroy socket', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			defaultOutboundPeer['_socket'] = outboundSocket;
 			sandbox.stub(defaultOutboundPeer['_socket'], 'destroy');
@@ -167,8 +168,37 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#send', () => {
-		it('should create outbound socket if it does not exist');
-		it('should send packet');
+		it('should create outbound socket if it does not exist', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			const packet = {
+				data: 'myData',
+				event: 'myEent',
+			};
+			sandbox
+				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
+				.returns(outboundSocket);
+
+			expect(defaultOutboundPeer['_socket']).to.be.undefined;
+			defaultOutboundPeer.send(packet);
+			expect(defaultOutboundPeer['_createOutboundSocket']).to.be.calledOnce;
+			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
+		});
+
+		it('should call send and emit', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			const packet = {
+				data: 'myData',
+				event: 'myEvent',
+			};
+			defaultOutboundPeer['_socket'] = outboundSocket;
+			sandbox.stub(defaultOutboundPeer['_socket'], 'emit');
+
+			defaultOutboundPeer.send(packet);
+			expect(defaultOutboundPeer['_socket']['emit']).to.be.calledOnceWith(
+				REMOTE_SC_EVENT_MESSAGE,
+				packet,
+			);
+		});
 	});
 
 	describe('#request', () => {
