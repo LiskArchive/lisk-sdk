@@ -142,8 +142,28 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#disconnect', () => {
-		it('should disconnect');
-		it('should unbind handlers from oubound socket if it exists');
+		it('should destroy socket', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			defaultOutboundPeer['_socket'] = outboundSocket;
+			sandbox.stub(defaultOutboundPeer['_socket'], 'destroy');
+			defaultOutboundPeer.disconnect();
+			expect(defaultOutboundPeer['_socket']['destroy']).to.be.calledOnceWith(
+				1000,
+			);
+		});
+
+		it('should unbind handlers from oubound socket if it exists', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			sandbox.stub(
+				defaultOutboundPeer as any,
+				'_unbindHandlersFromOutboundSocket',
+			);
+
+			defaultOutboundPeer['_socket'] = outboundSocket;
+			defaultOutboundPeer.disconnect();
+			expect(defaultOutboundPeer['_unbindHandlersFromOutboundSocket']).to.be
+				.calledOnce;
+		});
 	});
 
 	describe('#send', () => {
