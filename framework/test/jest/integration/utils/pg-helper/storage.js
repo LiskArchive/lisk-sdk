@@ -18,7 +18,7 @@ const modulesMigrations = {
 	[HttpAPIModule.alias]: HttpAPIModule.migrations,
 };
 
-const createStorageComponent = async (options, logger) => {
+const createStorageComponent = async (options, logger = console) => {
 	const storageOptions = validator.parseEnvArgAndValidate(
 		defaultConfig,
 		options,
