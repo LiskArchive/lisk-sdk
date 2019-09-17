@@ -77,10 +77,6 @@ describe('Custom peer selection', () => {
 		input: P2PPeerSelectionForConnectionInput,
 	) => [...input.newPeers, ...input.triedPeers];
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 			// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -124,9 +120,7 @@ describe('Custom peer selection', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
 	});

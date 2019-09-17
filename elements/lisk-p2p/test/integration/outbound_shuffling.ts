@@ -24,10 +24,6 @@ describe('Outbound peer shuffling', () => {
 	const POPULATOR_INTERVAL_SHUFFLING = 3000;
 	const OUTBOUND_SHUFFLE_INTERVAL = 500;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()].map(
 			index => {
@@ -68,7 +64,7 @@ describe('Outbound peer shuffling', () => {
 				});
 			},
 		);
-		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+		await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 		await wait(200);
 	});
 

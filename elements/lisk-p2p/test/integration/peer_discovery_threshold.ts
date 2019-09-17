@@ -26,10 +26,6 @@ describe('Peer discovery threshold', () => {
 	const MINIMUM_PEER_DISCOVERY_THRESHOLD = 1;
 	const MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 3;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	describe(`When minimum peer discovery threshold is set to ${MINIMUM_PEER_DISCOVERY_THRESHOLD}`, () => {
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -79,9 +75,7 @@ describe('Peer discovery threshold', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
+				p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 			);
 			await wait(100);
 		});

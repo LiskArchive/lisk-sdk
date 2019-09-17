@@ -39,7 +39,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 
 	before(async () => {
-		sandbox.restore();
 		const serverSocketPrototype = SCServerSocket.prototype as any;
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
@@ -117,9 +116,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		afterEach(async () => {
 			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
+				p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 			);
 			await wait(1000);
 		});
