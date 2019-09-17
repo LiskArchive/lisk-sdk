@@ -48,27 +48,27 @@ describe('peer/outbound', () => {
 		});
 	});
 
-	describe('#instanceProperties', () => {
-		it('should get height property', () => {
-			return expect(defaultPeer.height)
-				.to.be.a('number')
-				.and.be.eql(545776);
-		});
+	describe('#socket', () => {
+		it('should set socket');
+	});
 
-		it('should get ip property', () => {
-			return expect(defaultPeer.ipAddress)
-				.to.be.a('string')
-				.and.be.eql('12.12.12.12');
-		});
+	describe('#connect', () => {
+		it('should create outbound socket if it does not exist');
+		it('should connect');
+	});
 
-		it('should get wsPort property', () => {
-			return expect(defaultPeer.wsPort)
-				.to.be.a('number')
-				.and.be.eql(5001);
-		});
+	describe('#disconnect', () => {
+		it('should disconnect');
+		it('should unbind handlers from oubound socket if it exist');
+	});
 
-		it('should get socket property', () => {
-			return expect(defaultPeer.socket).to.be.undefined;
-		});
+	describe('#send', () => {
+		it('should create outbound socket if it does not exist');
+		it('should send packet');
+	});
+
+	describe('#request', () => {
+		it('should create outbound socket if it does not exist');
+		it('should request packet');
 	});
 });

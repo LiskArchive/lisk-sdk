@@ -73,6 +73,20 @@ export class OutboundPeer extends Peer {
 		this._bindHandlersToOutboundSocket(this._socket);
 	}
 
+	public connect(): void {
+		if (!this._socket) {
+			this._socket = this._createOutboundSocket();
+		}
+		this._socket.connect();
+	}
+
+	public disconnect(code: number = 1000, reason?: string): void {
+		super.disconnect(code, reason);
+		if (this._socket) {
+			this._unbindHandlersFromOutboundSocket(this._socket);
+		}
+	}
+
 	public send(packet: P2PMessagePacket): void {
 		if (!this._socket) {
 			this._socket = this._createOutboundSocket();
@@ -121,20 +135,6 @@ export class OutboundPeer extends Peer {
 		this._bindHandlersToOutboundSocket(outboundSocket);
 
 		return outboundSocket;
-	}
-
-	public connect(): void {
-		if (!this._socket) {
-			this._socket = this._createOutboundSocket();
-		}
-		this._socket.connect();
-	}
-
-	public disconnect(code: number = 1000, reason?: string): void {
-		super.disconnect(code, reason);
-		if (this._socket) {
-			this._unbindHandlersFromOutboundSocket(this._socket);
-		}
 	}
 
 	// All event handlers for the outbound socket should be bound in this method.
