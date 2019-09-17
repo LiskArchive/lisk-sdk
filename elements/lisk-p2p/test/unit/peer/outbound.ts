@@ -19,6 +19,7 @@ import { OutboundPeer } from '../../../src/peer';
 import { DEFAULT_WS_MAX_PAYLOAD } from '../../../src/constants';
 import { sanitizeNodeInfoToLegacyFormat } from '../../../src/utils';
 import { REMOTE_SC_EVENT_MESSAGE } from '../../../src/events';
+import { SCClientSocket } from 'socketcluster-client';
 
 describe('peer/outbound', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
@@ -184,7 +185,7 @@ describe('peer/outbound', () => {
 			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
 		});
 
-		it('should call send and emit', () => {
+		it('should call send and emit event', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			const packet = {
 				data: 'myData',
@@ -202,7 +203,40 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#request', () => {
-		it('should create outbound socket if it does not exist');
-		it('should request packet');
+		it('should create outbound socket if it does not exist', () => {
+			const socket = <SCClientSocket>({
+				emit: sandbox.stub(),
+				destroy: sandbox.stub(),
+				off: sandbox.stub(),
+			} as any);
+			const packet = {
+				data: 'myData',
+				procedure: 'myProcedure',
+			};
+			sandbox
+				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
+				.returns(socket);
+
+			expect(defaultOutboundPeer['_socket']).to.be.undefined;
+			defaultOutboundPeer.request(packet);
+			expect(defaultOutboundPeer['_createOutboundSocket']).to.be.calledOnce;
+			expect(defaultOutboundPeer['_socket']).to.eql(socket);
+		});
+
+		it('should call request and emit event', () => {
+			const socket = <SCClientSocket>({
+				emit: sandbox.stub(),
+				destroy: sandbox.stub(),
+				off: sandbox.stub(),
+			} as any);
+			const packet = {
+				data: 'myData',
+				procedure: 'myProcedure',
+			};
+			defaultOutboundPeer['_socket'] = socket;
+
+			defaultOutboundPeer.request(packet);
+			expect(socket.emit).to.be.called;
+		});
 	});
 });
