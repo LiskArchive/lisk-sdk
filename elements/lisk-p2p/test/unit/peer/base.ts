@@ -33,7 +33,11 @@ import {
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
-import { sanitizeNodeInfoToLegacyFormat } from '../../../src/utils';
+import {
+	sanitizeNodeInfoToLegacyFormat,
+	getNetgroup,
+	constructPeerIdFromPeerInfo,
+} from '../../../src/utils';
 
 describe('peer/base', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
@@ -85,64 +89,51 @@ describe('peer/base', () => {
 		it('should be an object', () => expect(defaultPeer).to.be.an('object'));
 
 		it('should be an instance of Peer class', () =>
-			expect(defaultPeer)
-				.to.be.an('object')
-				.and.be.instanceof(Peer));
+			expect(defaultPeer).to.be.instanceof(Peer));
 	});
 
 	describe('#height', () =>
 		it('should get height property', () =>
-			expect(defaultPeer.height)
-				.to.be.a('number')
-				.and.be.eql(545776)));
+			expect(defaultPeer.height).to.be.eql(defaultPeerInfo.height)));
 
 	describe('#id', () =>
 		it('should get id property', () =>
-			expect(defaultPeer.id)
-				.to.be.a('string')
-				.and.be.eql('12.12.12.12:5001')));
+			expect(defaultPeer.id).to.be.eql(
+				constructPeerIdFromPeerInfo({
+					ipAddress: defaultPeerInfo.ipAddress,
+					wsPort: defaultPeerInfo.wsPort,
+				}),
+			)));
 
 	describe('#ipAddress', () =>
 		it('should get ipAddress property', () =>
-			expect(defaultPeer.ipAddress)
-				.to.be.a('string')
-				.and.be.eql('12.12.12.12')));
+			expect(defaultPeer.ipAddress).to.be.eql(defaultPeerInfo.ipAddress)));
 
 	describe('#wsPort', () =>
 		it('should get wsPort property', () =>
-			expect(defaultPeer.wsPort)
-				.to.be.a('number')
-				.and.be.eql(5001)));
+			expect(defaultPeer.wsPort).to.be.eql(defaultPeerInfo.wsPort)));
 
 	describe('#netgroup', () =>
 		it('should get netgroup property', () =>
-			expect(defaultPeer.netgroup)
-				.to.be.a('number')
-				.and.be.eql(3045444456)));
+			expect(defaultPeer.netgroup).to.be.eql(
+				getNetgroup(defaultPeerInfo.ipAddress, peerConfig.secret),
+			)));
 
 	describe('#reputation', () =>
 		it('should get reputation property', () =>
-			expect(defaultPeer.reputation)
-				.to.be.a('number')
-				.and.be.eql(100)));
+			expect(defaultPeer.reputation).to.be.eql(DEFAULT_REPUTATION_SCORE)));
 
 	describe('#latency', () =>
 		it('should get latency property', () =>
-			expect(defaultPeer.latency)
-				.to.be.a('number')
-				.and.be.eql(0)));
+			expect(defaultPeer.latency).to.be.eql(0)));
 
 	describe('#connectTime', () =>
 		it('should get connectTime property', () =>
-			expect(defaultPeer.connectTime)
-				.to.be.a('number')
-				.and.be.at.least(0)));
+			expect(defaultPeer.connectTime).to.be.at.least(0)));
 
 	describe('#responseRate', () =>
 		it('should get responseRate property', () =>
-			expect(defaultPeer.responseRate)
-				.to.be.a('number')
-				.and.be.eql(0)));
+			expect(defaultPeer.responseRate).to.be.eql(0)));
 
 	describe('#productivity', () =>
 		it('should get productivity property', () => {
@@ -153,28 +144,20 @@ describe('peer/base', () => {
 				lastResponded: 0,
 			};
 
-			expect(defaultPeer.productivity)
-				.to.be.an('object')
-				.and.be.deep.equal(productivity);
+			expect(defaultPeer.productivity).to.be.eql(productivity);
 		}));
 
 	describe('#wsMessageRate', () =>
 		it('should get wsMessageRate property', () =>
-			expect(defaultPeer.wsMessageRate)
-				.to.be.a('number')
-				.and.be.eql(0)));
+			expect(defaultPeer.wsMessageRate).to.be.eql(0)));
 
 	describe('#state', () =>
 		it('should get state property', () =>
-			expect(defaultPeer.state)
-				.to.be.a('string')
-				.and.be.eql('closed')));
+			expect(defaultPeer.state).to.be.eql('closed')));
 
 	describe('#peerInfo', () =>
 		it('should get peerInfo property', () =>
-			expect(defaultPeer.peerInfo)
-				.to.be.an('object')
-				.and.be.deep.equal(defaultPeerInfo)));
+			expect(defaultPeer.peerInfo).to.be.eql(defaultPeerInfo)));
 
 	describe('#nodeInfo', () => {
 		beforeEach(() => {
@@ -184,9 +167,7 @@ describe('peer/base', () => {
 		it('should get node info', async () => {
 			await defaultPeer.applyNodeInfo(nodeInfo);
 
-			expect(defaultPeer.nodeInfo)
-				.to.be.an('object')
-				.and.be.deep.equal(nodeInfo);
+			expect(defaultPeer.nodeInfo).to.be.eql(nodeInfo);
 		});
 	});
 
@@ -194,9 +175,7 @@ describe('peer/base', () => {
 		it('should update peer info', () => {
 			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo);
 
-			expect(defaultPeer.peerInfo)
-				.to.be.an('object')
-				.and.be.deep.equal(p2pDiscoveredPeerInfo);
+			expect(defaultPeer.peerInfo).to.be.eql(p2pDiscoveredPeerInfo);
 		}));
 
 	describe('#applyNodeInfo', () => {
@@ -207,9 +186,7 @@ describe('peer/base', () => {
 		it('should apply node info', async () => {
 			await defaultPeer.applyNodeInfo(nodeInfo);
 
-			expect(defaultPeer.nodeInfo)
-				.to.be.an('object')
-				.and.be.deep.equal(nodeInfo);
+			expect(defaultPeer.nodeInfo).to.be.eql(nodeInfo);
 		});
 
 		it('should call request with exact arguments', async () => {
