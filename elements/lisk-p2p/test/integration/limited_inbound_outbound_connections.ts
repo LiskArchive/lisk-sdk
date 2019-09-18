@@ -87,14 +87,14 @@ describe('Limited number of outbound/inbound connections', () => {
 
 	it(`should not create more than ${LIMITED_CONNECTIONS} outbound connections`, () => {
 		for (let p2p of p2pNodeList) {
-			const { outboundCount } = p2p['_peerPool'].getPeersCountPerKind();
+			const { outboundCount } = (p2p as any)._peerPool.getPeersCountPerKind();
 			expect(outboundCount).to.be.at.most(LIMITED_CONNECTIONS);
 		}
 	});
 
 	it(`should not create more than ${LIMITED_CONNECTIONS} inbound connections`, () => {
 		for (let p2p of p2pNodeList) {
-			const { inboundCount } = p2p['_peerPool'].getPeersCountPerKind();
+			const { inboundCount } = (p2p as any)._peerPool.getPeersCountPerKind();
 			expect(inboundCount).to.be.at.most(LIMITED_CONNECTIONS);
 		}
 	});

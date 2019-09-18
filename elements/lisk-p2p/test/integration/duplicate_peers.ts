@@ -80,12 +80,12 @@ describe('Disconnect duplicate peers', () => {
 
 		firstP2PNode = p2pNodeList[0];
 		firstPeerCloseEvents = [];
-		existingPeer = firstP2PNode['_peerPool'].getPeers(
+		existingPeer = (firstP2PNode as any)._peerPool.getPeers(
 			InboundPeer,
 		)[0] as InboundPeer;
 		firstPeerDuplicate = new OutboundPeer(
 			existingPeer.peerInfo,
-			firstP2PNode['_peerPool'].peerConfig,
+			(firstP2PNode as any)._peerPool.peerConfig,
 		);
 
 		firstPeerDuplicate.on(EVENT_CLOSE_OUTBOUND, (event: any) => {

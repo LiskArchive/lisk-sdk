@@ -73,7 +73,7 @@ describe('inbound_peer', () => {
 		});
 
 		it('should get socket property', () => {
-			return expect(defaultPeer['_socket']).to.equal(socket);
+			return expect((defaultPeer as any)._socket).to.equal(socket);
 		});
 	});
 });

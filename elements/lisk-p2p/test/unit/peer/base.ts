@@ -239,9 +239,9 @@ describe('peer/base', () => {
 			} as any);
 
 			try {
-				defaultPeer['_socket'] = socket;
+				(defaultPeer as any)._socket = socket;
 				defaultPeer.connect();
-				expect(defaultPeer['_socket']).to.be.not.undefined;
+				expect((defaultPeer as any)._socket).to.be.not.undefined;
 			} catch (e) {
 				expect(e).to.be.undefined;
 			}
@@ -250,9 +250,9 @@ describe('peer/base', () => {
 
 	describe('#disconnect', () => {
 		it('should clear intervals', () => {
-			const counterResetIntervalId = defaultPeer['_counterResetInterval'];
-			const productivityResetIntervalId =
-				defaultPeer['_productivityResetInterval'];
+			const counterResetIntervalId = (defaultPeer as any)._counterResetInterval;
+			const productivityResetIntervalId = (defaultPeer as any)
+				._productivityResetInterval;
 			sandbox.spy(global, 'clearInterval');
 			defaultPeer.disconnect();
 			expect(clearInterval).to.be.calledTwice;
@@ -264,7 +264,7 @@ describe('peer/base', () => {
 			const socket = <SCServerSocket>({
 				destroy: sandbox.stub(),
 			} as any);
-			defaultPeer['_socket'] = socket;
+			(defaultPeer as any)._socket = socket;
 			defaultPeer.disconnect();
 			expect(socket.destroy).to.be.calledOnceWithExactly(1000, undefined);
 		});
@@ -297,7 +297,7 @@ describe('peer/base', () => {
 						emit: sandbox.stub(),
 						destroy: sandbox.stub(),
 					} as any);
-					defaultPeer['_socket'] = socket;
+					(defaultPeer as any)._socket = socket;
 					defaultPeer.send(p2pPacket);
 					expect(socket.emit).to.be.calledOnceWithExactly(
 						p2pPacket.event,
@@ -317,7 +317,7 @@ describe('peer/base', () => {
 					emit: sandbox.stub(),
 					destroy: sandbox.stub(),
 				} as any);
-				defaultPeer['_socket'] = socket;
+				(defaultPeer as any)._socket = socket;
 				defaultPeer.send(p2pPacket);
 				expect(socket.emit).to.be.calledOnceWithExactly(
 					REMOTE_SC_EVENT_MESSAGE,
@@ -353,7 +353,7 @@ describe('peer/base', () => {
 				emit: sandbox.stub(),
 				destroy: sandbox.stub(),
 			} as any);
-			defaultPeer['_socket'] = socket;
+			(defaultPeer as any)._socket = socket;
 			defaultPeer.request(p2pPacket);
 			expect(socket.emit).to.be.calledOnceWith(REMOTE_SC_EVENT_RPC_REQUEST, {
 				type: '/RPCRequest',
@@ -632,7 +632,7 @@ describe('peer/base', () => {
 			it('should not ban peer', () => {
 				const penalty = DEFAULT_REPUTATION_SCORE / 10;
 				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer['_banPeer']).to.be.not.called;
+				expect((defaultPeer as any)._banPeer).to.be.not.called;
 			});
 		});
 
