@@ -96,26 +96,26 @@ describe('peer/outbound', () => {
 				'_unbindHandlersFromOutboundSocket',
 			);
 
-			defaultOutboundPeer['_socket'] = outboundSocket;
-			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
+			(defaultOutboundPeer as any)._socket = outboundSocket;
+			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
 			defaultOutboundPeer.socket = outboundSocket;
-			expect(defaultOutboundPeer['_unbindHandlersFromOutboundSocket']).to.be
-				.calledOnce;
+			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
+				.be.calledOnce;
 		});
 		it('should set new socket', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 
-			expect(defaultOutboundPeer['_socket']).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
 			defaultOutboundPeer.socket = outboundSocket;
-			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
+			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
 		});
 		it('should bind handlers to outbound socket', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			sandbox.stub(defaultOutboundPeer as any, '_bindHandlersToOutboundSocket');
 
-			defaultOutboundPeer['_socket'] = outboundSocket;
+			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.socket = outboundSocket;
-			expect(defaultOutboundPeer['_bindHandlersToOutboundSocket']).to.be
+			expect((defaultOutboundPeer as any)._bindHandlersToOutboundSocket).to.be
 				.calledOnce;
 		});
 	});
@@ -127,31 +127,32 @@ describe('peer/outbound', () => {
 				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
 				.returns(outboundSocket);
 
-			expect(defaultOutboundPeer['_socket']).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
 			defaultOutboundPeer.connect();
-			expect(defaultOutboundPeer['_createOutboundSocket']).to.be.calledOnce;
-			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
+			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
+				.calledOnce;
+			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
 		});
 
 		it('should call connect', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
-			defaultOutboundPeer['_socket'] = outboundSocket;
-			sandbox.stub(defaultOutboundPeer['_socket'], 'connect');
+			(defaultOutboundPeer as any)._socket = outboundSocket;
+			sandbox.stub((defaultOutboundPeer as any)._socket, 'connect');
 
 			defaultOutboundPeer.connect();
-			expect(defaultOutboundPeer['_socket']['connect']).to.be.calledOnce;
+			expect((defaultOutboundPeer as any)._socket['connect']).to.be.calledOnce;
 		});
 	});
 
 	describe('#disconnect', () => {
 		it('should call disconnect and destroy socket', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
-			defaultOutboundPeer['_socket'] = outboundSocket;
-			sandbox.stub(defaultOutboundPeer['_socket'], 'destroy');
+			(defaultOutboundPeer as any)._socket = outboundSocket;
+			sandbox.stub((defaultOutboundPeer as any)._socket, 'destroy');
 			defaultOutboundPeer.disconnect();
-			expect(defaultOutboundPeer['_socket']['destroy']).to.be.calledOnceWith(
-				1000,
-			);
+			expect(
+				(defaultOutboundPeer as any)._socket['destroy'],
+			).to.be.calledOnceWith(1000);
 		});
 
 		it('should unbind handlers from oubound socket if it exists', () => {
@@ -161,10 +162,10 @@ describe('peer/outbound', () => {
 				'_unbindHandlersFromOutboundSocket',
 			);
 
-			defaultOutboundPeer['_socket'] = outboundSocket;
+			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.disconnect();
-			expect(defaultOutboundPeer['_unbindHandlersFromOutboundSocket']).to.be
-				.calledOnce;
+			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
+				.be.calledOnce;
 		});
 	});
 
@@ -179,10 +180,11 @@ describe('peer/outbound', () => {
 				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
 				.returns(outboundSocket);
 
-			expect(defaultOutboundPeer['_socket']).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
 			defaultOutboundPeer.send(packet);
-			expect(defaultOutboundPeer['_createOutboundSocket']).to.be.calledOnce;
-			expect(defaultOutboundPeer['_socket']).to.eql(outboundSocket);
+			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
+				.calledOnce;
+			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
 		});
 
 		it('should call send and emit event', () => {
@@ -191,11 +193,11 @@ describe('peer/outbound', () => {
 				data: 'myData',
 				event: 'myEvent',
 			};
-			defaultOutboundPeer['_socket'] = outboundSocket;
-			sandbox.stub(defaultOutboundPeer['_socket'], 'emit');
+			(defaultOutboundPeer as any)._socket = outboundSocket;
+			sandbox.stub((defaultOutboundPeer as any)._socket, 'emit');
 
 			defaultOutboundPeer.send(packet);
-			expect(defaultOutboundPeer['_socket']['emit']).to.be.calledOnceWith(
+			expect((defaultOutboundPeer as any)._socket['emit']).to.be.calledOnceWith(
 				REMOTE_SC_EVENT_MESSAGE,
 				packet,
 			);
@@ -217,10 +219,11 @@ describe('peer/outbound', () => {
 				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
 				.returns(socket);
 
-			expect(defaultOutboundPeer['_socket']).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
 			defaultOutboundPeer.request(packet);
-			expect(defaultOutboundPeer['_createOutboundSocket']).to.be.calledOnce;
-			expect(defaultOutboundPeer['_socket']).to.eql(socket);
+			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
+				.calledOnce;
+			expect((defaultOutboundPeer as any)._socket).to.eql(socket);
 		});
 
 		it('should call request and emit event', () => {
@@ -233,7 +236,7 @@ describe('peer/outbound', () => {
 				data: 'myData',
 				procedure: 'myProcedure',
 			};
-			defaultOutboundPeer['_socket'] = socket;
+			(defaultOutboundPeer as any)._socket = socket;
 
 			defaultOutboundPeer.request(packet);
 			expect(socket.emit).to.be.called;
