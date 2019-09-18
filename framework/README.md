@@ -133,7 +133,7 @@ If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/f
 
 | Reason                          | How                                                                                            |
 | ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Want to chat with our community | [Reach them on Discord](https://discord.gg/GA9DZmt)                                            |
+| Want to chat with our community | [Reach them on Discord](https://discord.gg/lisk)                                               |
 | Found a bug                     | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
 | Found a security issue          | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
 | Want to share your research     | [Propose your research](https://research.lisk.io)                                              |
