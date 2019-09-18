@@ -79,13 +79,8 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should be an object', () =>
-			expect(defaultOutboundPeer).to.be.an('object'));
-
 		it('should be an instance of OutboundPeer class', () =>
-			expect(defaultOutboundPeer)
-				.to.be.an('object')
-				.and.be.instanceof(OutboundPeer));
+			expect(defaultOutboundPeer).to.be.instanceof(OutboundPeer));
 	});
 
 	describe('#socket', () => {
