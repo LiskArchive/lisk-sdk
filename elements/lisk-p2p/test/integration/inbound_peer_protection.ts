@@ -25,10 +25,6 @@ describe('Peer inbound eviction for connection time', () => {
 	const MAX_INBOUND_CONNECTIONS = 3;
 	const POPULATOR_INTERVAL_WITH_LIMIT = 100;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
 			index => {
@@ -81,9 +77,7 @@ describe('Peer inbound eviction for connection time', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(100);
 	});
