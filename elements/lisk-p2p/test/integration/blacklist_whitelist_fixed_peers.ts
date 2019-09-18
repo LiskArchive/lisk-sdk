@@ -155,10 +155,10 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		it('should isolate the blacklisted peer', async () => {
 			for (let p2p of p2pNodeList) {
 				if (
-					p2p['_nodeInfo'].wsPort === blacklistedPeers[0].wsPort &&
-					p2p['_config'].hostIp === blacklistedPeers[0].ipAddress
+					(p2p as any)._nodeInfo.wsPort === blacklistedPeers[0].wsPort &&
+					(p2p as any)._config.hostIp === blacklistedPeers[0].ipAddress
 				) {
-					const connectedPeers = p2p['_peerPool'].getConnectedPeers();
+					const connectedPeers = (p2p as any)._peerPool.getConnectedPeers();
 					expect(connectedPeers.length).to.equal(0);
 				}
 			}

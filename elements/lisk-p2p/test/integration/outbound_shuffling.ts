@@ -79,12 +79,12 @@ describe('Outbound peer shuffling', () => {
 
 	it('should shuffle outbound peers in an interval', async () => {
 		const p2pNode = p2pNodeList[0];
-		const { outboundCount } = p2pNode['_peerPool'].getPeersCountPerKind();
+		const { outboundCount } = (p2pNode as any)._peerPool.getPeersCountPerKind();
 		// Wait for periodic shuffling
 		await wait(500);
-		const { outboundCount: updatedOutbound } = p2pNode[
-			'_peerPool'
-		].getPeersCountPerKind();
+		const {
+			outboundCount: updatedOutbound,
+		} = (p2pNode as any)._peerPool.getPeersCountPerKind();
 
 		expect(updatedOutbound).lt(outboundCount);
 	});

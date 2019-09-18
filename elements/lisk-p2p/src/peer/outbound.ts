@@ -33,19 +33,25 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
-import {
-	ClientOptionsUpdated,
-	convertNodeInfoToLegacyFormat,
-	Peer,
-	PeerConfig,
-} from './base';
-
-type SCClientSocket = socketClusterClient.SCClientSocket;
+import { sanitizeNodeInfoToLegacyFormat } from '../utils';
+import { Peer, PeerConfig, SCClientSocket } from './base';
 
 const socketErrorStatusCodes = {
 	...(socketClusterClient.SCClientSocket as any).errorStatuses,
 	1000: 'Intentionally disconnected',
 };
+
+interface ClientOptionsUpdated {
+	readonly hostname: string;
+	readonly port: number;
+	readonly query: string;
+	readonly autoConnect: boolean;
+	readonly autoReconnect: boolean;
+	readonly multiplex: boolean;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly maxPayload?: number;
+}
 
 export interface PeerInfoAndOutboundConnection {
 	readonly peerInfo: P2PDiscoveredPeerInfo;
@@ -85,7 +91,7 @@ export class OutboundPeer extends Peer {
 
 	private _createOutboundSocket(): SCClientSocket {
 		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
+			? sanitizeNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
 		const connectTimeout = this._peerConfig.connectTimeout
