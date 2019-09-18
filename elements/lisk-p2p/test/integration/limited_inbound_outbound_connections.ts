@@ -23,8 +23,7 @@ import {
 
 describe('Limited number of outbound/inbound connections', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const NETWORK_PEER_COUNT_WITH_LIMIT = 30;
-	const LIMITED_CONNECTIONS = 5;
+	const LIMITED_CONNECTIONS = 3;
 
 	const ALL_NODE_PORTS_WITH_LIMIT: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),
@@ -54,7 +53,6 @@ describe('Limited number of outbound/inbound connections', () => {
 		p2pNodeList = await createNetwork({
 			customSeedPeers,
 			customConfig,
-			networkSize: NETWORK_PEER_COUNT_WITH_LIMIT,
 		});
 	});
 
