@@ -13,12 +13,23 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import {
+	P2P,
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_TO_ADD_INBOUND_PEER,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_NEW_INBOUND_PEER,
+	EVENT_NETWORK_READY,
+	EVENT_UPDATED_PEER_INFO,
+} from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
-describe('Peer discovery: Seed peers list of each node contains the previously launched node', () => {
+describe('Peer discovery', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+	let disconnectedNode: P2P;
+	const collectedEvents = new Map();
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 	const POPULATOR_INTERVAL = 50;
@@ -27,10 +38,6 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
-
-	before(async () => {
-		sandbox.restore();
-	});
 
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -71,17 +78,43 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 			});
 		});
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+		const firstNode = p2pNodeList[0];
+
+		firstNode.on(EVENT_NEW_INBOUND_PEER, () => {
+			collectedEvents.set('EVENT_NEW_INBOUND_PEER', true);
+		});
+		firstNode.on(EVENT_FAILED_TO_ADD_INBOUND_PEER, () => {
+			collectedEvents.set('EVENT_FAILED_TO_ADD_INBOUND_PEER', true);
+		});
+		firstNode.on(EVENT_FAILED_TO_FETCH_PEERS, () => {
+			collectedEvents.set('EVENT_FAILED_TO_FETCH_PEERS', true);
+		});
+		// We monitor last node to ensure outbound connection
+		p2pNodeList[p2pNodeList.length - 1].on(EVENT_CONNECT_OUTBOUND, () => {
+			collectedEvents.set('EVENT_CONNECT_OUTBOUND', true);
+		});
+		p2pNodeList[p2pNodeList.length - 1].on(EVENT_DISCOVERED_PEER, () => {
+			collectedEvents.set('EVENT_DISCOVERED_PEER', true);
+		});
+		p2pNodeList[p2pNodeList.length - 1].on(EVENT_NETWORK_READY, () => {
+			collectedEvents.set('EVENT_NETWORK_READY', true);
+		});
+		p2pNodeList[p2pNodeList.length - 1].on(EVENT_UPDATED_PEER_INFO, () => {
+			collectedEvents.set('EVENT_UPDATED_PEER_INFO', true);
+		});
 
 		await wait(1000);
 	});
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
+	});
+
+	after(async () => {
+		await disconnectedNode.stop();
 	});
 
 	it('should discover all peers and add them to the connectedPeers list within each node', async () => {
@@ -100,7 +133,7 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 		}
 	});
 
-	it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', () => {
+	it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', async () => {
 		for (let p2p of p2pNodeList) {
 			const newPeers = p2p['_peerBook'].newPeers;
 
@@ -139,5 +172,56 @@ describe('Peer discovery: Seed peers list of each node contains the previously l
 				p2p.nodeInfo.wsPort,
 			]);
 		}
+	});
+
+	it(`should fire ${EVENT_NETWORK_READY} event`, async () => {
+		expect(collectedEvents.get('EVENT_NETWORK_READY')).to.exist;
+	});
+
+	it(`should fire ${EVENT_NEW_INBOUND_PEER} event`, async () => {
+		expect(collectedEvents.get('EVENT_NEW_INBOUND_PEER')).to.exist;
+	});
+
+	it(`should fire ${EVENT_CONNECT_OUTBOUND} event`, async () => {
+		expect(collectedEvents.get('EVENT_CONNECT_OUTBOUND')).to.exist;
+	});
+
+	it(`should fire ${EVENT_UPDATED_PEER_INFO} event`, async () => {
+		expect(collectedEvents.get('EVENT_UPDATED_PEER_INFO')).to.exist;
+	});
+
+	it(`should fire ${EVENT_DISCOVERED_PEER} event`, async () => {
+		expect(collectedEvents.get('EVENT_DISCOVERED_PEER')).to.exist;
+	});
+
+	it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} event`, async () => {
+		disconnectedNode = new P2P({
+			connectTimeout: 100,
+			ackTimeout: 200,
+			seedPeers: [
+				{
+					ipAddress: '127.0.0.1',
+					wsPort: 5000,
+				},
+			],
+			wsEngine: 'ws',
+			populatorInterval: POPULATOR_INTERVAL,
+			maxOutboundConnections: 1,
+			maxInboundConnections: 0,
+			nodeInfo: {
+				wsPort: 5020,
+				nethash: 'aaa',
+				version: '9.9.9',
+				protocolVersion: '9.9',
+				minVersion: '9.9.9',
+				os: platform(),
+				height: 10000,
+				broadhash: '404',
+				nonce: `404`,
+			},
+		});
+		await disconnectedNode.start();
+		await wait(1000);
+		expect(collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER')).to.exist;
 	});
 });
