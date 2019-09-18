@@ -25,10 +25,6 @@ describe('Maximum payload', () => {
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		dataLargerThanMaxPayload = [];
 		for (let i = 0; i < 6000; i++) {
@@ -101,9 +97,7 @@ describe('Maximum payload', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(100);
 	});

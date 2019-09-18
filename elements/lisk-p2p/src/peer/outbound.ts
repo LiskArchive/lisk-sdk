@@ -100,7 +100,6 @@ export class OutboundPeer extends Peer {
 		const ackTimeout = this._peerConfig.ackTimeout
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
-
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
