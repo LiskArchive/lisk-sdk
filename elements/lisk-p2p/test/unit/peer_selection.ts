@@ -14,15 +14,60 @@
  */
 
 import { expect } from 'chai';
-import { initializePeerInfoList } from '../utils/peers';
+import {
+	initializePeerInfoList,
+	initializeLongPeerInfoList,
+} from '../utils/peers';
 import {
 	selectPeersForConnection,
 	selectPeersForRequest,
+	selectPeersForSend,
 	getUniquePeersbyIp,
 } from '../../src/peer_selection';
-import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import {
+	P2PNodeInfo,
+	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
+} from '../../src/p2p_types';
 
 describe('peer selector', () => {
+	describe('#selectPeersForSend', () => {
+		let peerList = initializeLongPeerInfoList();
+
+		const nodeInfo: P2PNodeInfo = {
+			height: 545777,
+			nethash: '73458irc3yb7rg37r7326dbt7236',
+			os: 'linux',
+			version: '1.1.1',
+			protocolVersion: '1.1',
+			wsPort: 5000,
+		};
+
+		it('should return an array containing an even number of inbound and outbound peers', () => {
+			const selectedPeers = selectPeersForSend({
+				peers: peerList,
+				nodeInfo,
+				peerLimit: 24,
+				messagePacket: { event: 'foo', data: {} },
+			});
+
+			let peerKindCounts = selectedPeers.reduce(
+				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
+					const kind = peerInfo.kind as string;
+					if (!peerKindTracker[kind]) {
+						peerKindTracker[kind] = 0;
+					}
+					peerKindTracker[kind]++;
+					return peerKindTracker;
+				},
+				{},
+			);
+
+			expect(peerKindCounts.inbound)
+				.to.equal(peerKindCounts.outbound)
+				.to.equal(12);
+		});
+	});
 	describe('#selectPeersForRequest', () => {
 		let peerList = initializePeerInfoList();
 		const nodeInfo: P2PNodeInfo = {
