@@ -45,12 +45,17 @@ describe('Peer banning mechanism', () => {
 			},
 		];
 
-		const customConfig = () => ({
+		const customConfig = (
+			index: number,
+			startPort: number,
+			networkSize: number,
+		) => ({
 			populatorInterval: POPULATOR_INTERVAL,
 			peerBanTime: PEER_BAN_TIME,
+			seedPeers: customSeedPeers(index, startPort, networkSize),
 		});
 
-		p2pNodeList = await createNetwork({ customConfig, customSeedPeers });
+		p2pNodeList = await createNetwork({ customConfig });
 
 		const firstNode = p2pNodeList[0];
 

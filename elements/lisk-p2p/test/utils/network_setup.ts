@@ -50,16 +50,6 @@ interface TestNetworkConfig {
 		startPort: number,
 		networkSize: number,
 	) => object;
-	customNodeInfo?: (
-		index: number,
-		startPort: number,
-		networkSize: number,
-	) => object;
-	customSeedPeers?: (
-		index: number,
-		startPort: number,
-		networkSize: number,
-	) => any[];
 }
 
 export const createNetwork = async ({
@@ -67,38 +57,33 @@ export const createNetwork = async ({
 	startNodePort,
 	networkCreationWaitTime,
 	customConfig,
-	customNodeInfo,
-	customSeedPeers,
 }: TestNetworkConfig) => {
 	const numberOfPeers = networkSize ? networkSize : NETWORK_PEER_COUNT;
 	const startPort = startNodePort ? startNodePort : NETWORK_START_PORT;
 
 	const p2pNodeList = [...new Array(numberOfPeers).keys()].map(index => {
 		// Each node will have the previous node in the sequence as a seed peer except the first node.
-		const seedPeers = customSeedPeers
-			? customSeedPeers(index, startPort, numberOfPeers)
-			: index === 0
-			? []
-			: [
-					{
-						ipAddress: SEED_PEER_IP,
-						wsPort: NETWORK_START_PORT + index - 1,
-					},
-			  ];
+		const defaultSeedPeers =
+			index === 0
+				? []
+				: [
+						{
+							ipAddress: SEED_PEER_IP,
+							wsPort: NETWORK_START_PORT + index - 1,
+						},
+				  ];
 
 		const nodePort = NETWORK_START_PORT + index;
-		const customNodeInfoObject = customNodeInfo
-			? customNodeInfo(index, startPort, numberOfPeers)
-			: {};
-		const customConfigObject = customConfig
-			? customConfig(index, startPort, numberOfPeers)
-			: {};
+		// Extract the nodeInfo out of customConfig
+		const { nodeInfo: customNodeInfo, ...customConfigObject } = customConfig
+			? (customConfig(index, startPort, numberOfPeers) as any)
+			: { nodeInfo: {} };
 
 		const p2pConfig = {
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
-			seedPeers,
+			seedPeers: defaultSeedPeers,
 			wsEngine: WEB_SOCKET_ENGINE,
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -113,7 +98,7 @@ export const createNetwork = async ({
 				height: nodeInfoConstants.height,
 				broadhash: nodeInfoConstants.broadhash,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
-				...customNodeInfoObject,
+				...customNodeInfo,
 			},
 			...customConfigObject,
 		};

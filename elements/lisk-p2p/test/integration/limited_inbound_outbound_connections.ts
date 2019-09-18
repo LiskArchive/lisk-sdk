@@ -41,17 +41,21 @@ describe('Limited number of outbound/inbound connections', () => {
 				wsPort: startPort + ((index + 1) % networkSize),
 			},
 		];
-		const customConfig = () => ({
+		const customConfig = (
+			index: number,
+			startPort: number,
+			networkSize: number,
+		) => ({
 			populatorInterlatencyProtectionRatio: 0,
 			productivityProtectionRatio: 0,
 			longevityProtectionRatio: 0,
 			maxOutboundConnections: LIMITED_CONNECTIONS,
 			maxInboundConnections: LIMITED_CONNECTIONS,
 			val: POPULATOR_INTERVAL_WITH_LIMIT,
+			seedPeers: customSeedPeers(index, startPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({
-			customSeedPeers,
 			customConfig,
 		});
 	});

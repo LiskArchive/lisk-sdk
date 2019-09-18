@@ -32,15 +32,20 @@ describe('Peer inbound eviction for connection time', () => {
 			},
 		];
 
-		const customConfig = () => ({
+		const customConfig = (
+			index: number,
+			networkStartPort: number,
+			networkSize: number,
+		) => ({
 			latencyProtectionRatio: 0,
 			productivityProtectionRatio: 0,
 			longevityProtectionRatio: 0.5,
 			maxInboundConnections: 3,
 			populatorInterval: 100,
+			seedPeers: customSeedPeers(index, networkStartPort, networkSize),
 		});
 
-		p2pNodeList = await createNetwork({ customConfig, customSeedPeers });
+		p2pNodeList = await createNetwork({ customConfig });
 	});
 
 	afterEach(async () => {

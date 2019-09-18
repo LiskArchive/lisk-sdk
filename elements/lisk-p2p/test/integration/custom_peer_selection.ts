@@ -81,15 +81,6 @@ describe('Custom peer selection', () => {
 	) => [...input.newPeers, ...input.triedPeers];
 
 	beforeEach(async () => {
-		const customConfig = () => ({
-			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
-			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
-			peerSelectionForConnection,
-			populatorInterval: POPULATOR_INTERVAL,
-			maxOutboundConnections: 5,
-			maxInboundConnections: 5,
-		});
-
 		const customNodeInfo = (index: number) => ({
 			modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
 			height: 1000 + index,
@@ -107,10 +98,23 @@ describe('Custom peer selection', () => {
 				}))
 				.filter(seedPeer => seedPeer.wsPort !== startPort + index);
 
+		const customConfig = (
+			index: number,
+			startPort: number,
+			networkSize: number,
+		) => ({
+			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
+			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
+			peerSelectionForConnection,
+			populatorInterval: POPULATOR_INTERVAL,
+			maxOutboundConnections: 5,
+			maxInboundConnections: 5,
+			nodeInfo: customNodeInfo(index),
+			seedPeers: customSeedPeers(index, startPort, networkSize),
+		});
+
 		p2pNodeList = await createNetwork({
 			customConfig,
-			customNodeInfo,
-			customSeedPeers,
 		});
 	});
 

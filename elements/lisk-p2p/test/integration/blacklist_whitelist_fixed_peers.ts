@@ -73,17 +73,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		];
 
 		beforeEach(async () => {
-			const customConfig = (index: number) => ({
-				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-				maxOutboundConnections: FIVE_CONNECTIONS,
-				maxInboundConnections: FIVE_CONNECTIONS,
-				blacklistedPeers,
-				fixedPeers: blacklistedPeers,
-				whitelistedPeers: blacklistedPeers,
-				previousPeers: previousPeersBlacklisted,
-			});
-
 			const customSeedPeers = (
 				index: number,
 				startPort: number,
@@ -95,7 +84,23 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				},
 			];
 
-			p2pNodeList = await createNetwork({ customConfig, customSeedPeers });
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
+				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+				maxOutboundConnections: FIVE_CONNECTIONS,
+				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+				blacklistedPeers,
+				fixedPeers: blacklistedPeers,
+				whitelistedPeers: blacklistedPeers,
+				previousPeers: previousPeersBlacklisted,
+			});
+
+			p2pNodeList = await createNetwork({ customConfig });
 		});
 
 		afterEach(async () => {
@@ -163,15 +168,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			},
 		];
 		beforeEach(async () => {
-			const customConfig = (index: number) => ({
-				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-				maxOutboundConnections: FIVE_CONNECTIONS,
-				maxInboundConnections: FIVE_CONNECTIONS,
-				fixedPeers,
-				previousPeers,
-			});
-
 			const customSeedPeers = (
 				index: number,
 				startPort: number,
@@ -183,7 +179,21 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				},
 			];
 
-			p2pNodeList = await createNetwork({ customConfig, customSeedPeers });
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
+				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+				maxOutboundConnections: FIVE_CONNECTIONS,
+				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+				fixedPeers,
+				previousPeers,
+			});
+
+			p2pNodeList = await createNetwork({ customConfig });
 		});
 
 		afterEach(async () => {
@@ -221,15 +231,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			},
 		];
 		beforeEach(async () => {
-			const customConfig = (index: number) => ({
-				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-				maxOutboundConnections: FIVE_CONNECTIONS,
-				maxInboundConnections: FIVE_CONNECTIONS,
-				whitelistedPeers,
-				previousPeers,
-			});
-
 			const customSeedPeers = (
 				index: number,
 				startPort: number,
@@ -241,7 +242,21 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				},
 			];
 
-			p2pNodeList = await createNetwork({ customConfig, customSeedPeers });
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
+				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+				maxOutboundConnections: FIVE_CONNECTIONS,
+				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+				whitelistedPeers,
+				previousPeers,
+			});
+
+			p2pNodeList = await createNetwork({ customConfig });
 		});
 
 		afterEach(async () => {

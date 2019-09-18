@@ -20,14 +20,16 @@ describe('Custom nodeInfo', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
-		const customModules = () => ({
-			modules: {
-				names: ['test', 'crypto'],
-				active: true,
+		const customConfig = () => ({
+			nodeInfo: {
+				modules: {
+					names: ['test', 'crypto'],
+					active: true,
+				},
 			},
 		});
 
-		p2pNodeList = await createNetwork({ customNodeInfo: customModules });
+		p2pNodeList = await createNetwork({ customConfig });
 	});
 
 	afterEach(async () => {
