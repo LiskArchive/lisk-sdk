@@ -42,8 +42,8 @@ describe('Peer discovery', () => {
 	].map(index => NETWORK_START_PORT + index);
 
 	beforeEach(async () => {
-		// To capture all the initial events set network creation time to minimum
-		p2pNodeList = await createNetwork({ networkCreationWaitTime: 1 });
+		// To capture all the initial events set network creation time to minimum 1 ms
+		p2pNodeList = await createNetwork({ networkDiscoveryWaitTime: 1 });
 		const firstNode = p2pNodeList[0];
 
 		firstNode.on(EVENT_NEW_INBOUND_PEER, () => {

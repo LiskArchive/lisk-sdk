@@ -44,7 +44,7 @@ export const nodeInfoConstants = {
 interface TestNetworkConfig {
 	networkSize?: number;
 	startNodePort?: number;
-	networkCreationWaitTime?: number;
+	networkDiscoveryWaitTime?: number;
 	customConfig?: (
 		index: number,
 		startPort: number,
@@ -55,7 +55,7 @@ interface TestNetworkConfig {
 export const createNetwork = async ({
 	networkSize,
 	startNodePort,
-	networkCreationWaitTime,
+	networkDiscoveryWaitTime,
 	customConfig,
 }: TestNetworkConfig) => {
 	const numberOfPeers = networkSize ? networkSize : NETWORK_PEER_COUNT;
@@ -108,8 +108,8 @@ export const createNetwork = async ({
 	await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 
 	await wait(
-		networkCreationWaitTime
-			? networkCreationWaitTime
+		networkDiscoveryWaitTime
+			? networkDiscoveryWaitTime
 			: NETWORK_CREATION_WAIT_TIME,
 	);
 
