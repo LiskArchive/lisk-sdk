@@ -82,14 +82,13 @@ npm test
 
 ## Get Involved
 
-| Reason                           | How                                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Want to chat with our community  | [Chat with them on Lisk.chat](http://lisk.chat)                                                |
-| Want to chat with our developers | [Chat with them on Gitter](https://gitter.im/LiskHQ/lisk)                                      |
-| Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
-| Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
-| Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
-| Want to develop with us          | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
+| Reason                          | How                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Want to chat with our community | [Reach them on Discord](https://discord.gg/GA9DZmt)                                            |
+| Found a bug                     | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
+| Found a security issue          | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
+| Want to share your research     | [Propose your research](https://research.lisk.io)                                              |
+| Want to develop with us         | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
 
 ## License
 
