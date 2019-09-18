@@ -30,13 +30,7 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 	].map(index => NETWORK_START_PORT + index);
 	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
-		// Make sure that integration tests use real timers.
-		sandbox.restore();
 		p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
 			return new P2P({
 				connectTimeout: 200,
@@ -65,14 +59,12 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
 	});
 
-	it('should set the isActive property to true for all nodes', () => {
+	it('should set the isActive property to true for all nodes', async () => {
 		for (let p2p of p2pNodeList) {
 			expect(p2p).to.have.property('isActive', true);
 		}

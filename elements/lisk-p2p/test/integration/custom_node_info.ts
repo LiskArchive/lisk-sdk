@@ -23,10 +23,6 @@ describe('Custom nodeInfo', () => {
 	const NETWORK_PEER_COUNT = 15;
 	const POPULATOR_INTERVAL = 50;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 			// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -76,14 +72,12 @@ describe('Custom nodeInfo', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
 	});
 
-	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
+	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', async () => {
 		for (let p2p of p2pNodeList) {
 			const triedPeers = p2p['_peerBook'].triedPeers;
 			const newPeers = p2p['_peerBook'].newPeers;

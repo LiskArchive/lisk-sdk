@@ -40,8 +40,8 @@ describe('Cleanup unresponsive peers', () => {
 								wsPort: NETWORK_START_PORT + index - 1,
 							},
 					  ];
-
 			const nodePort = NETWORK_START_PORT + index;
+
 			return new P2P({
 				connectTimeout: 100,
 				ackTimeout: 200,
@@ -73,9 +73,7 @@ describe('Cleanup unresponsive peers', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
 	});
