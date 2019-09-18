@@ -25,7 +25,13 @@ import {
 } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
-import { createNetwork, destroyNetwork, NETWORK_START_PORT, NETWORK_PEER_COUNT, POPULATOR_INTERVAL } from '../utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	NETWORK_START_PORT,
+	NETWORK_PEER_COUNT,
+	POPULATOR_INTERVAL,
+} from '../utils/network_setup';
 
 describe('Peer discovery', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -36,7 +42,8 @@ describe('Peer discovery', () => {
 	].map(index => NETWORK_START_PORT + index);
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork({});
+		// To capture all the initial events set network creation time to minimum
+		p2pNodeList = await createNetwork({ networkCreationWaitTime: 1 });
 		const firstNode = p2pNodeList[0];
 
 		firstNode.on(EVENT_NEW_INBOUND_PEER, () => {
@@ -61,6 +68,8 @@ describe('Peer discovery', () => {
 		p2pNodeList[p2pNodeList.length - 1].on(EVENT_UPDATED_PEER_INFO, () => {
 			collectedEvents.set('EVENT_UPDATED_PEER_INFO', true);
 		});
+
+		await wait(1000);
 	});
 
 	afterEach(async () => {
