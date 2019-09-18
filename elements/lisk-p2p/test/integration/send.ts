@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import { P2P, EVENT_MESSAGE_RECEIVED } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
@@ -25,10 +25,6 @@ describe('P2P.send', () => {
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 	let collectedMessages: Array<any> = [];
-
-	before(async () => {
-		sandbox.restore();
-	});
 
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -74,7 +70,7 @@ describe('P2P.send', () => {
 
 		collectedMessages = [];
 		for (let p2p of p2pNodeList) {
-			p2p.on('messageReceived', message => {
+			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
 					nodePort: p2p.nodeInfo.wsPort,
 					message,
@@ -85,9 +81,7 @@ describe('P2P.send', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
 	});
