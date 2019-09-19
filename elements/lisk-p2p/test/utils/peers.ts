@@ -67,6 +67,26 @@ export const initializePeerInfoList = (): ReadonlyArray<
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];
 };
 
+export const initializeLongPeerInfoList = (): ReadonlyArray<
+	P2PDiscoveredPeerInfo
+> => {
+	let peerInfos = [];
+	// Generate a realistic list in which 1 in 4 peers is outbound.
+	for (let i = 0; i < 120; i++) {
+		// TODO: Get inbound and outbound strings from constants.ts.
+		peerInfos.push({
+			ipAddress: `204.120.0.${i}`,
+			wsPort: 5001,
+			height: 645980,
+			kind: i % 4 === 0 ? 'outbound' : 'inbound',
+			isDiscoveredPeer: false,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		});
+	}
+	return peerInfos;
+};
+
 export const initializePeerList = (): ReadonlyArray<Peer> =>
 	initializePeerInfoList().map(
 		(peerInfo: P2PDiscoveredPeerInfo) =>
