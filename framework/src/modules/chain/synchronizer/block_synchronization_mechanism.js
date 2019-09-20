@@ -39,7 +39,7 @@ class BlockSynchronizationMechanism {
 		this.active = false;
 	}
 
-	async run() {
+	async run(receivedBlock) {
 		this.active = true;
 		const { connectedPeers: peers } = await this.channel.invoke(
 			'network:getNetworkStatus',
@@ -52,6 +52,28 @@ class BlockSynchronizationMechanism {
 		// TODO: handle bestPeer and move on to step 2 defined in
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 		// ...
+
+		// The node requests the last common block C from P (Peer).
+		const { data: networkLastBlock } = await this.channel.invoke(
+			'network:requestFromPeer',
+			{
+				procedure: 'getLastBlock',
+				peerId: bestPeer.id,
+			},
+		);
+
+		try {
+			await this.processorModule.validateDetached(networkLastBlock);
+		} catch (err) {
+			this.channel.invoke('network:applyPenalty', {
+				peerId: bestPeer.id,
+				penalty: 100,
+			});
+			this.channel.publish('chain:processor:sync', { block: receivedBlock });
+			this.active = false;
+			throw err;
+		}
+
 		this.active = false;
 	}
 
