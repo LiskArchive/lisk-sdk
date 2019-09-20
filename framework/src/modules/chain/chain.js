@@ -433,6 +433,7 @@ module.exports = class Chain {
 			channel: this.channel,
 			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			processorModule: this.processor,
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({

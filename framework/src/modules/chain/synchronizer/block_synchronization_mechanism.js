@@ -26,6 +26,7 @@ class BlockSynchronizationMechanism {
 		channel,
 		blocks,
 		activeDelegates,
+		processorModule,
 	}) {
 		this.storage = storage;
 		this.logger = logger;
@@ -33,6 +34,7 @@ class BlockSynchronizationMechanism {
 		this.slots = slots;
 		this.channel = channel;
 		this.blocks = blocks;
+		this.processorModule = processorModule;
 		this.constants = {
 			activeDelegates,
 		};
