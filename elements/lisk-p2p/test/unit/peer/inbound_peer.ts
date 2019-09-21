@@ -28,17 +28,30 @@ describe('inbound_peer', () => {
 		protocolVersion: '1.1',
 	};
 
-	const socket = <SCServerSocket>({
-		on: sandbox.stub(),
-	} as any);
+	let socket: any;
+	let defaultPeer: InboundPeer;
 
-	const defaultPeer = new InboundPeer(defaultPeerInfo, socket, {
-		rateCalculationInterval: 1000,
-		wsMaxMessageRate: 1000,
-		wsMaxMessageRatePenalty: 10,
-		secret: DEFAULT_RANDOM_SECRET,
-		maxPeerInfoSize: 10000,
-		maxPeerDiscoveryResponseLength: 1000,
+	beforeEach(() => {
+		socket = <SCServerSocket>({
+			on: sandbox.stub(),
+			off: sandbox.stub(),
+			emit: sandbox.stub(),
+			destroy: sandbox.stub(),
+		} as any);
+
+		defaultPeer = new InboundPeer(defaultPeerInfo, socket, {
+			rateCalculationInterval: 1000,
+			wsMaxMessageRate: 1000,
+			wsMaxMessageRatePenalty: 10,
+			secret: DEFAULT_RANDOM_SECRET,
+			maxPeerInfoSize: 10000,
+			maxPeerDiscoveryResponseLength: 1000,
+		});
+	});
+
+	afterEach(() => {
+		defaultPeer.disconnect();
+		sandbox.restore();
 	});
 
 	describe('#constructor', () => {
