@@ -21,8 +21,6 @@ const NETWORK_BUFFER_LENGTH = 1;
 const PREFIX_BUFFER_LENGTH = 1;
 const BYTES_4 = 4;
 const BYTES_16 = 16;
-const BYTES_64 = 64;
-const BYTES_128 = 128;
 
 interface AddressBytes {
 	readonly aBytes: Buffer;
@@ -126,10 +124,10 @@ export const getBucket = (options: {
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 	readonly targetAddress: string;
+	readonly bucketCount: number;
 }): number => {
-	const { secret, targetAddress, peerType } = options;
+	const { secret, targetAddress, peerType, bucketCount } = options;
 	const firstMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_16 : BYTES_4;
-	const secondMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_128 : BYTES_64;
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
 	const network = getNetwork(targetAddress);
@@ -153,7 +151,7 @@ export const getBucket = (options: {
 	if (network !== NETWORK.NET_IPV4) {
 		return (
 			hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) %
-			secondMod
+			bucketCount
 		);
 	}
 
@@ -194,7 +192,7 @@ export const getBucket = (options: {
 		kBytes,
 	]);
 
-	return hash(bucketBytes).readUInt32BE(0) % secondMod;
+	return hash(bucketBytes).readUInt32BE(0) % bucketCount;
 };
 
 export const getUniquePeersbyIp = (
