@@ -249,8 +249,6 @@ describe('triedPeer', () => {
 			const samplePeers = initializePeerInfoList();
 
 			let triedPeersObj = new TriedList(newPeerConfig);
-			// Modify getBucketId function to only return buckets in range
-			triedPeersObj['getBucketId'] = () => Math.floor(Math.random() * 2);
 			triedPeersObj.addPeer(samplePeers[0]);
 			triedPeersObj.addPeer(samplePeers[1]);
 
@@ -264,7 +262,7 @@ describe('triedPeer', () => {
 					evictionResult1,
 					evictionResult2,
 					evictionResult3,
-				].map(result => result.isEvicted);
+				].map(result => result.evictedPeers.length > 0);
 				expect(evictionResultAfterAddition).includes(true);
 			});
 
@@ -274,8 +272,8 @@ describe('triedPeer', () => {
 					evictionResult2,
 					evictionResult3,
 				]
-					.filter(result => result.isEvicted)
-					.map(trueEvictionResult => trueEvictionResult.evictedPeer);
+					.filter(result => result.evictedPeers.length > 0)
+					.map(trueEvictionResult => trueEvictionResult.evictedPeers[0]);
 				expect(evictedPeersAfterAddition).not.members(
 					triedPeersObj.peersList(),
 				);
