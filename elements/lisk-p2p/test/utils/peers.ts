@@ -67,6 +67,24 @@ export const initializePeerInfoList = (): ReadonlyArray<
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];
 };
 
+export const initializePeerInfoListWithSuffix = (
+	ipSuffix: string,
+	qty: number,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	let peerList = [];
+	for (let i = 0; i < qty; i++) {
+		peerList.push({
+			ipAddress: `${i % 255}.${ipSuffix}`,
+			wsPort: 5000 + (i % 40000),
+			height: 645980,
+			isDiscoveredPeer: false,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		});
+	}
+	return peerList;
+};
+
 export const initializePeerList = (): ReadonlyArray<Peer> =>
 	initializePeerInfoList().map(
 		(peerInfo: P2PDiscoveredPeerInfo) =>
