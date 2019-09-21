@@ -28,8 +28,7 @@ export interface CustomPeerInfo {
 
 export interface AddPeerOutcome {
 	readonly success: boolean;
-	readonly isEvicted: boolean;
-	readonly evictedPeer?: P2PPeerInfo;
+	readonly evictedPeers: ReadonlyArray<P2PPeerInfo>;
 }
 // Base peer list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
 export class PeerList {
@@ -80,6 +79,7 @@ export class PeerList {
 			secret: this.peerListConfig.secret,
 			peerType: this.peerListConfig.peerType,
 			targetAddress: ipAddress,
+			bucketCount: this.peerListConfig.peerBucketCount,
 		});
 	}
 
@@ -102,7 +102,6 @@ export class PeerList {
 		};
 
 		bucket.set(incomingPeerId, updatedPeerInfo);
-		this.peerMap.set(bucketId, bucket);
 
 		return true;
 	}
@@ -114,7 +113,6 @@ export class PeerList {
 
 		if (bucket && bucket.get(incomingPeerId)) {
 			const result = bucket.delete(incomingPeerId);
-			this.peerMap.set(bucketId, bucket);
 
 			return result;
 		}
@@ -149,14 +147,14 @@ export class PeerList {
 		if (!bucket) {
 			return {
 				success: false,
-				isEvicted: false,
+				evictedPeers: [],
 			};
 		}
 
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
 				success: false,
-				isEvicted: false,
+				evictedPeers: [],
 			};
 		}
 
@@ -164,22 +162,19 @@ export class PeerList {
 
 		if (bucket.size < this.peerListConfig.peerBucketSize) {
 			bucket.set(incomingPeerId, newPeer);
-			this.peerMap.set(bucketId, bucket);
 
 			return {
 				success: true,
-				isEvicted: false,
+				evictedPeers: [],
 			};
 		}
 
-		const evictedPeer = this.evictPeer(bucketId);
+		const evictedPeers = this.evictPeers(bucketId);
 		bucket.set(incomingPeerId, newPeer);
-		this.peerMap.set(bucketId, bucket);
 
 		return {
 			success: true,
-			isEvicted: true,
-			evictedPeer: evictedPeer.peerInfo,
+			evictedPeers: evictedPeers.map(customPeerInfo => customPeerInfo.peerInfo),
 		};
 	}
 
@@ -190,23 +185,27 @@ export class PeerList {
 		return result;
 	}
 
-	public evictPeer(bucketId: number): CustomPeerInfo {
-		return this.evictRandomlyFromBucket(bucketId);
+	public evictPeers(bucketId: number): ReadonlyArray<CustomPeerInfo> {
+		const evictedPeer = this.evictRandomlyFromBucket(bucketId);
+		if (evictedPeer) {
+			return [evictedPeer];
+		}
+
+		return [];
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
 	protected evictRandomlyFromBucket(bucketId: number): CustomPeerInfo {
-		const peerList = this.peerMap.get(bucketId);
-		if (!peerList) {
+		const bucket = this.peerMap.get(bucketId);
+		if (!bucket) {
 			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
 		}
 
 		const randomPeerIndex = Math.floor(
 			Math.random() * this.peerListConfig.peerBucketSize,
 		);
-		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
-		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
-		peerList.delete(randomPeerId);
-		this.peerMap.set(bucketId, peerList);
+		const randomPeerId = Array.from(bucket.keys())[randomPeerIndex];
+		const randomPeer = Array.from(bucket.values())[randomPeerIndex];
+		bucket.delete(randomPeerId);
 
 		return randomPeer;
 	}
