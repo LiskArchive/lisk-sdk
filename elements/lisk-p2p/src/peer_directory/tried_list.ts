@@ -100,7 +100,6 @@ export class TriedList extends PeerList {
 
 		if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
 			bucket.delete(incomingPeerId);
-			this.peerMap.set(bucketId, bucket);
 
 			return true;
 		}
@@ -111,7 +110,6 @@ export class TriedList extends PeerList {
 		};
 
 		bucket.set(incomingPeerId, updatedTriedPeerInfo);
-		this.peerMap.set(bucketId, bucket);
 
 		return false;
 	}
