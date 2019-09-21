@@ -14,7 +14,10 @@
  */
 import { expect } from 'chai';
 import { NewList } from '../../../src/peer_directory/new_list';
-import { initializePeerInfoList } from '../../utils/peers';
+import {
+	initializePeerInfoList,
+	initializePeerInfoListWithSuffix,
+} from '../../utils/peers';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE, constructPeerIdFromPeerInfo } from '../../../src/utils';
 import {
@@ -224,8 +227,6 @@ describe('newPeer', () => {
 		const samplePeers = initializePeerInfoList();
 
 		let newPeersobj = new NewList(newPeerConfig);
-		// Modify getBucketId function to only return buckets in range
-		newPeersobj['getBucketId'] = () => Math.floor(Math.random() * 2);
 		newPeersobj.addPeer(samplePeers[0]);
 		newPeersobj.addPeer(samplePeers[1]);
 
@@ -239,7 +240,7 @@ describe('newPeer', () => {
 				evictionResult1,
 				evictionResult2,
 				evictionResult3,
-			].map(result => result.isEvicted);
+			].map(result => result.evictedPeers.length > 0);
 			expect(evictionResultAfterAddition).includes(true);
 		});
 
@@ -249,8 +250,8 @@ describe('newPeer', () => {
 				evictionResult2,
 				evictionResult3,
 			]
-				.filter(result => result.isEvicted)
-				.map(trueEvictionResult => trueEvictionResult.evictedPeer);
+				.filter(result => result.evictedPeers.length > 0)
+				.map(trueEvictionResult => trueEvictionResult.evictedPeers[0]);
 			expect(evictedPeersAfterAddition).not.members(newPeersobj.peersList());
 		});
 	});
@@ -266,8 +267,6 @@ describe('newPeer', () => {
 		const samplePeers = initializePeerInfoList();
 
 		let newPeersList = new NewList(newPeerConfig);
-		// Modify getBucketId function to only return buckets in range
-		newPeersList['getBucketId'] = () => Math.floor(Math.random() * 1);
 		// Add a custom map to peerMap
 		const newPeerMapCustom = new Map();
 		// Add a custom Date to a peer that has dateAdded above the evictionThresholdTime
@@ -292,11 +291,41 @@ describe('newPeer', () => {
 		const evictionResult = newPeersList.addPeer(samplePeers[3]);
 
 		it('should always evict the peer that has stayed in peer bucket for more than 10 seconds', async () => {
-			expect(evictionResult.isEvicted).eql(true);
-			expect(evictionResult.evictedPeer)
+			expect(evictionResult.evictedPeers.length).gt(0);
+			expect(evictionResult.evictedPeers[0])
 				.is.an('object')
 				.ownProperty('ipAddress')
 				.to.be.eql(oldPeer.peerInfo.ipAddress);
+		});
+	});
+
+	describe('#evictionBasedOnTimeWithLargeSample', () => {
+		const newPeerConfig = {
+			peerBucketSize: 32,
+			peerBucketCount: 128,
+			secret: 123456,
+			peerType: PEER_TYPE.NEW_PEER,
+			evictionThresholdTime: 600000,
+		};
+		const samplePeersA = initializePeerInfoListWithSuffix('1.222.123', 10000);
+		const samplePeersB = initializePeerInfoListWithSuffix('234.11.34', 10000);
+
+		let newPeersList = new NewList(newPeerConfig);
+
+		samplePeersA.forEach(peerInfo => {
+			global.sandbox.clock.tick(2);
+			newPeersList.addPeer(peerInfo);
+		});
+
+		global.sandbox.clock.tick(600000);
+
+		samplePeersB.forEach(peerInfo => {
+			global.sandbox.clock.tick(2);
+			newPeersList.addPeer(peerInfo);
+		});
+
+		it('should not allow newPeer list to grow beyond 4096 peers', async () => {
+			expect(newPeersList.peersList().length).to.be.lte(4096);
 		});
 	});
 });
