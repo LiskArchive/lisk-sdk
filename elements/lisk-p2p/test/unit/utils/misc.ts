@@ -141,6 +141,7 @@ describe('utils/misc', () => {
 					secret,
 					targetAddress: IPv4Address,
 					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
 				}),
 			).to.be.a('number');
 		});
@@ -151,11 +152,13 @@ describe('utils/misc', () => {
 				secret,
 				targetAddress: IPv4Address,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: secondIPv4Address,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
@@ -166,12 +169,14 @@ describe('utils/misc', () => {
 				secret,
 				targetAddress: localAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondLocalAddress = '127.0.1.1';
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: secondLocalAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.eql(secondBucket);
@@ -182,12 +187,14 @@ describe('utils/misc', () => {
 				secret,
 				targetAddress: privateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondPrivateAddress = '10.0.0.1';
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: secondPrivateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.eql(secondBucket);
@@ -198,11 +205,13 @@ describe('utils/misc', () => {
 				secret,
 				targetAddress: localAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: privateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
@@ -217,6 +226,7 @@ describe('utils/misc', () => {
 						secret,
 						targetAddress: address,
 						peerType: PEER_TYPE.NEW_PEER,
+						bucketCount: MAX_NEW_BUCKETS,
 					}),
 				);
 			const firstBucket = collectedBuckets[0];
@@ -239,6 +249,7 @@ describe('utils/misc', () => {
 						secret,
 						targetAddress,
 						peerType: PEER_TYPE.TRIED_PEER,
+						bucketCount: MAX_TRIED_BUCKETS,
 					});
 					if (!collectedBuckets[bucket]) {
 						collectedBuckets[bucket] = 0;
@@ -274,6 +285,7 @@ describe('utils/misc', () => {
 						secret,
 						targetAddress,
 						peerType: PEER_TYPE.NEW_PEER,
+						bucketCount: MAX_NEW_BUCKETS,
 					});
 					if (!collectedBuckets[bucket]) {
 						collectedBuckets[bucket] = 0;
