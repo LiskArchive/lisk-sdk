@@ -27,13 +27,22 @@ describe('outbound_peer', () => {
 		protocolVersion: '1.1',
 	};
 
-	const defaultPeer = new OutboundPeer(defaultPeerInfo, {
-		rateCalculationInterval: 1000,
-		wsMaxMessageRate: 1000,
-		wsMaxMessageRatePenalty: 10,
-		secret: DEFAULT_RANDOM_SECRET,
-		maxPeerInfoSize: 10000,
-		maxPeerDiscoveryResponseLength: 1000,
+	let defaultPeer: OutboundPeer;
+
+	beforeEach(() => {
+		defaultPeer = new OutboundPeer(defaultPeerInfo, {
+			rateCalculationInterval: 1000,
+			wsMaxMessageRate: 1000,
+			wsMaxMessageRatePenalty: 10,
+			secret: DEFAULT_RANDOM_SECRET,
+			maxPeerInfoSize: 10000,
+			maxPeerDiscoveryResponseLength: 1000,
+		});
+	});
+
+	afterEach(() => {
+		defaultPeer.disconnect();
+		sandbox.restore();
 	});
 
 	describe('#constructor', () => {
