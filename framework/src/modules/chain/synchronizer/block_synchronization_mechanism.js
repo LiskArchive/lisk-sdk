@@ -49,45 +49,14 @@ class BlockSynchronizationMechanism {
 		if (!peers.length) {
 			throw new Error('Connected peers list is empty');
 		}
-		// eslint-disable-next-line no-unused-vars
+
 		const bestPeer = this._computeBestPeer(peers);
-		// TODO: handle bestPeer and move on to step 2 defined in
-		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
-		// ...
 
-		// The node requests the last common block C from P (Peer).
-		const { data: networkLastBlock } = await this.channel.invoke(
-			'network:requestFromPeer',
-			{
-				procedure: 'getLastBlock',
-				peerId: bestPeer.id,
-			},
+		// eslint-disable-next-line no-unused-vars
+		const lastFullBlock = this._requestAndValidateLastBlock(
+			receivedBlock,
+			bestPeer,
 		);
-
-		try {
-			await this.processorModule.validateDetached(networkLastBlock);
-			// For networkLastBlock to be valid, it needs to be in a different chain,
-			// as this syncing mechanism is only triggered when a block from a different
-			// chain is received. We have to re validate this condition upon requesting
-			// the full block from the peer.
-			if (
-				!ForkChoiceRule.isDifferentChain(
-					this.blocks.lastBlock,
-					networkLastBlock,
-				)
-			) {
-				throw new Error('Block is not in a different chain');
-			}
-		} catch (err) {
-			this.channel.invoke('network:applyPenalty', {
-				peerId: bestPeer.id,
-				penalty: 100,
-			});
-			this.channel.publish('chain:processor:sync', { block: receivedBlock });
-			throw err;
-		} finally {
-			this.active = false;
-		}
 	}
 
 	get isActive() {
@@ -114,6 +83,78 @@ class BlockSynchronizationMechanism {
 		const threeRounds = this.constants.activeDelegates * 3;
 
 		return finalizedBlockSlot < currentBlockSlot - threeRounds;
+	}
+
+	/**
+	 * Request the last common block between the selected peer and the system.
+	 * Then, reverts the current chain so the new tip of the chain corresponds to this
+	 * last common block.
+	 * @param {Object} peer - The selected peer to target.
+	 * @return {Promise<void>}
+	 * @private
+	 */
+	async _revertToLastCommonBlock(peer) {
+		// The node requests the last common block C from P (Peer).
+		const { data: highestCommonBlockId } = await this.channel.invoke(
+			'network:requestFromPeer',
+			{
+				procedure: 'getHighestCommonBlockId',
+				peerId: peer.id,
+				data: [], // TODO: Get the id of the first block of consecutive rounds.
+			},
+		);
+	}
+
+	/**
+	 * Requests the last full block from an specific peer and performs
+	 * validations against this block after it has been received.
+	 * If valid, the full block is returned.
+	 * If invalid, an exception is thrown.
+	 *
+	 * This behavior is defined in section `2. Step: Obtain tip of chain` in LIP-0014
+	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
+	 * @param {Object} receivedBlock - The block received from the network that
+	 * triggered this syncing mechanism.
+	 * @param {Object } peer - Peer object containing a peer id, necessary to target
+	 * the peer specifically to request its last block of its chain.
+	 * @return {Promise<Object>}
+	 * @private
+	 */
+	async _requestAndValidateLastBlock(receivedBlock, peer) {
+		const { data: networkLastBlock } = await this.channel.invoke(
+			'network:requestFromPeer',
+			{
+				procedure: 'getLastBlock',
+				peerId: peer.id,
+			},
+		);
+
+		try {
+			await this.processorModule.validateDetached(networkLastBlock);
+			// For networkLastBlock to be valid, it needs to be in a different chain,
+			// as this syncing mechanism is only triggered when a block from a different
+			// chain is received. We have to re validate this condition upon requesting
+			// the full block from the peer.
+			if (
+				!ForkChoiceRule.isDifferentChain(
+					this.blocks.lastBlock,
+					networkLastBlock,
+				)
+			) {
+				throw new Error('Block is not in a different chain');
+			}
+
+			return networkLastBlock;
+		} catch (err) {
+			this.channel.invoke('network:applyPenalty', {
+				peerId: bestPeer.id,
+				penalty: 100,
+			});
+			this.channel.publish('chain:processor:sync', { block: receivedBlock });
+			throw err;
+		} finally {
+			this.active = false;
+		}
 	}
 
 	/**
