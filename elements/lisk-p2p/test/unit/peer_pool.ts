@@ -164,8 +164,7 @@ describe('peerPool', () => {
 	describe('#request', () => {
 		let caughtError: Error;
 		beforeEach(async () => {
-			// @ts-ignore
-			peerPool['_peerSelectForRequest'] = sandbox
+			(peerPool['_peerSelectForRequest'] as any) = sandbox
 				.stub()
 				.returns([] as ReadonlyArray<P2PPeerInfo>);
 			try {
@@ -194,8 +193,7 @@ describe('peerPool', () => {
 
 	describe('#send', () => {
 		beforeEach(async () => {
-			// @ts-ignore
-			peerPool['_peerSelectForSend'] = sandbox
+			(peerPool['_peerSelectForSend'] as any) = sandbox
 				.stub()
 				.returns([] as ReadonlyArray<P2PPeerInfo>);
 			peerPool.send({ event: 'foo', data: 123 });
@@ -213,8 +211,7 @@ describe('peerPool', () => {
 
 	describe('#triggerNewConnections', () => {
 		beforeEach(async () => {
-			// @ts-ignore
-			peerPool['_peerSelectForConnection'] = sandbox
+			(peerPool['_peerSelectForConnection'] as any) = sandbox
 				.stub()
 				.returns([] as ReadonlyArray<P2PPeerInfo>);
 			sandbox.stub(peerPool, 'getPeersCountPerKind').returns({
