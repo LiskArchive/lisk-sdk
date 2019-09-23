@@ -78,7 +78,6 @@ export class NewList extends PeerList {
 		if (!bucket) {
 			return undefined;
 		}
-		const evictedPeer: CustomPeerInfo | undefined;
 
 		for (const [peerId, peer] of bucket) {
 			const timeDifference = Math.round(
@@ -87,12 +86,11 @@ export class NewList extends PeerList {
 
 			if (timeDifference >= this._evictionThresholdTime) {
 				bucket.delete(peerId);
-				evictedPeer = peer;
 
-				break;
+				return peer;
 			}
 		}
 
-		return evictedPeer;
+		return undefined;
 	}
 }
