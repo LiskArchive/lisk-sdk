@@ -122,6 +122,29 @@ describe('peer/inbound', () => {
 	});
 
 	describe('#disconnect', () => {
-		it('should disconnect');
+		it('should call disconnect and destroy socket', () => {
+			defaultInboundPeer.disconnect();
+			expect(
+				(defaultInboundPeer as any)._socket['destroy'],
+			).to.be.calledOnceWith(1000);
+		});
+
+		it('should clear timeout', () => {
+			const pingTimeoutId = (defaultInboundPeer as any)._pingTimeoutId;
+			sandbox.spy(global, 'clearTimeout');
+			defaultInboundPeer.disconnect();
+			expect(clearTimeout).to.be.calledOnceWithExactly(pingTimeoutId);
+		});
+
+		it('should unbind handlers from former inbound socket', () => {
+			sandbox.stub(
+				defaultInboundPeer as any,
+				'_unbindHandlersFromInboundSocket',
+			);
+			defaultInboundPeer.disconnect();
+			expect(
+				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
+			).to.be.calledOnceWithExactly(socket);
+		});
 	});
 });
