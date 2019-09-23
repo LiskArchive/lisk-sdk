@@ -17,7 +17,7 @@
 const BigNum = require('@liskhq/bignum');
 const { when } = require('jest-when');
 const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { constants, randomInt } = require('../../../../utils');
+const { constants, randomInt } = require('../../../../../common_utils');
 const {
 	delegateAccounts,
 	delegatePublicKeys,

@@ -18,7 +18,7 @@ const { when } = require('jest-when');
 const { Dpos } = require('../../../../../../../../src/modules/chain/dpos');
 const { delegatePublicKeys, delegateAccounts } = require('../round_delegates');
 const shuffledDelegatePublicKeys = require('./shuffled_delegate_publickeys_for_round_5.json');
-const { constants } = require('../../../../../utils');
+const { constants } = require('../../../../../../common_utils');
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
