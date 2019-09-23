@@ -65,10 +65,14 @@ const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 	});
 
 	// TODO: Remove this parse, after #4295
-	return blocks.map(block => ({
-		...block,
-		previousBlock: block.previousBlockId ? block.previousBlockId : '',
-	}));
+	return blocks.map(block => {
+		const parsedBlock = {
+			...block,
+			previousBlock: block.previousBlockId ? block.previousBlockId : '',
+		};
+		delete parsedBlock.previousBlockId;
+		return parsedBlock;
+	});
 };
 
 /**

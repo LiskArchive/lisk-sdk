@@ -1769,7 +1769,12 @@ describe('blocks', () => {
 				id: 'block-id',
 			};
 
-			const validBlocks = [{ height: 101, id: 'block-id-1' }];
+			const validBlocksFromStorage = [
+				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
+			];
+			const validBlocks = [
+				{ height: 101, id: 'block-id-1', previousBlock: 'block-id' },
+			];
 
 			beforeEach(async () => {
 				when(stubs.dependencies.storage.entities.Block.get)
@@ -1787,7 +1792,7 @@ describe('blocks', () => {
 							sort: ['height'],
 						},
 					)
-					.mockResolvedValue(validBlocks);
+					.mockResolvedValue(validBlocksFromStorage);
 			});
 
 			it('should use the storage with correct filter', async () => {
@@ -1808,7 +1813,7 @@ describe('blocks', () => {
 						sort: ['height'],
 					},
 				);
-				expect(blocks).toBe(validBlocks);
+				expect(blocks).toEqual(validBlocks);
 			});
 		});
 	});
