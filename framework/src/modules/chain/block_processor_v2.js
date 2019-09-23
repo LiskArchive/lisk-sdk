@@ -165,10 +165,10 @@ const validateSchema = ({ block }) => {
 // };
 
 class BlockProcessorV2 extends BaseBlockProcessor {
-	constructor({ blocksModule, bft, logger, constants, exceptions }) {
+	constructor({ blocksModule, bftModule, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;
-		this.bft = bft;
+		this.bftModule = bftModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
@@ -185,7 +185,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					blockBytes,
 				}), // validate common block header
 			data => this.blocksModule.verifyInMemory(data),
-			({ block }) => this.bft.validateBlock(block),
+			({ block }) => this.bftModule.validateBlock(block),
 		]);
 
 		this.validateDetached.pipe([
@@ -206,19 +206,25 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		// TODO: Remove validate new since it's no longer required
 		this.validateNew.pipe([() => Promise.resolve()]);
 
-		this.verify.pipe([({ block }) => this.bft.verifyNewBlock(block)]);
+		this.verify.pipe([({ block }) => this.bftModule.verifyNewBlock(block)]);
 
 		this.apply.pipe([
 			data => this.blocksModule.verify(data),
 			data => this.blocksModule.apply(data),
-			({ block }) => this.bft.addNewBlock(block),
+			({ block }) => this.bftModule.addNewBlock(block),
 		]);
 
 		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
 
 		this.undo.pipe([data => this.blocksModule.undo(data)]);
 
-		this.create.pipe([data => this._create(data)]);
+		this.create.pipe([
+			async ({ keypair }) => {
+				const delegatePublicKey = keypair.publicKey.toString('hex');
+				return this.bftModule.computeBFTHeaderProperties(delegatePublicKey);
+			},
+			(data, bftHeader) => this._create({ ...data, ...bftHeader }),
+		]);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
