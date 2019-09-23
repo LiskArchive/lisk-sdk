@@ -66,17 +66,28 @@ class BlockSynchronizationMechanism {
 
 		try {
 			await this.processorModule.validateDetached(networkLastBlock);
+			// For networkLastBlock to be valid, it needs to be in a different chain,
+			// as this syncing mechanism is only triggered when a block from a different
+			// chain is received. We have to re validate this condition upon requesting
+			// the full block from the peer.
+			if (
+				!ForkChoiceRule.isDifferentChain(
+					this.blocks.lastBlock,
+					networkLastBlock,
+				)
+			) {
+				throw new Error('Block is not in a different chain');
+			}
 		} catch (err) {
 			this.channel.invoke('network:applyPenalty', {
 				peerId: bestPeer.id,
 				penalty: 100,
 			});
 			this.channel.publish('chain:processor:sync', { block: receivedBlock });
-			this.active = false;
 			throw err;
+		} finally {
+			this.active = false;
 		}
-
-		this.active = false;
 	}
 
 	get isActive() {
