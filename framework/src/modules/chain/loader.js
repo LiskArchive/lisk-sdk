@@ -91,11 +91,11 @@ class Loader {
 	/**
 	 * Pulls Transactions
 	 */
-	async loadTransactions() {
+	async loadUnconfirmedTransactions() {
 		await new Promise(resolve => {
 			async.retry(
 				this.retries,
-				async () => this._getTransactionsFromNetwork(),
+				async () => this._getUnconfirmedTransactionsFromNetwork(),
 				err => {
 					if (err) {
 						this.logger.error('Unconfirmed transactions loader', err);
@@ -165,7 +165,7 @@ class Loader {
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
 	 */
-	async _getTransactionsFromNetwork() {
+	async _getUnconfirmedTransactionsFromNetwork() {
 		this.logger.info('Loading transactions from the network');
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
