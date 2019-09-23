@@ -147,73 +147,48 @@ describe('WS transport', () => {
 				expect(data)
 					.to.have.property('blocks')
 					.that.is.an('array');
-				data.blocks.forEach(block => {
+				for (const block of data.blocks) {
 					expect(block)
-						.to.have.property('b_id')
+						.to.have.property('id')
 						.that.is.a('string');
 					expect(block)
-						.to.have.property('b_version')
+						.to.have.property('version')
 						.that.is.a('number');
 					expect(block)
-						.to.have.property('b_timestamp')
+						.to.have.property('timestamp')
 						.that.is.a('number');
 					expect(block)
-						.to.have.property('b_height')
+						.to.have.property('height')
 						.that.is.a('number');
-					expect(block).to.have.property('b_previousBlock');
+					expect(block).to.have.property('previousBlock');
 					expect(block)
-						.to.have.property('b_numberOfTransactions')
-						.that.is.a('number');
-					expect(block)
-						.to.have.property('b_totalAmount')
-						.that.is.a('string');
-					expect(block)
-						.to.have.property('b_totalFee')
-						.that.is.a('string');
-					expect(block)
-						.to.have.property('b_reward')
-						.that.is.a('string');
-					expect(block)
-						.to.have.property('b_payloadLength')
+						.to.have.property('numberOfTransactions')
 						.that.is.a('number');
 					expect(block)
-						.to.have.property('b_payloadHash')
+						.to.have.property('totalAmount')
 						.that.is.a('string');
 					expect(block)
-						.to.have.property('b_generatorPublicKey')
+						.to.have.property('totalFee')
 						.that.is.a('string');
 					expect(block)
-						.to.have.property('b_blockSignature')
+						.to.have.property('reward')
 						.that.is.a('string');
-					expect(block).to.have.property('t_id');
-					expect(block).to.have.property('t_type');
-					expect(block).to.have.property('t_timestamp');
-					expect(block).to.have.property('t_senderPublicKey');
-					expect(block).to.have.property('t_senderId');
-					expect(block).to.have.property('t_recipientId');
-					expect(block).to.have.property('t_amount');
-					expect(block).to.have.property('t_fee');
-					expect(block).to.have.property('t_signature');
-					expect(block).to.have.property('t_signSignature');
-					expect(block).to.have.property('s_publicKey');
-					expect(block).to.have.property('d_username');
-					expect(block).to.have.property('v_votes');
-					expect(block).to.have.property('m_min');
-					expect(block).to.have.property('m_lifetime');
-					expect(block).to.have.property('m_keysgroup');
-					expect(block).to.have.property('dapp_name');
-					expect(block).to.have.property('dapp_description');
-					expect(block).to.have.property('dapp_tags');
-					expect(block).to.have.property('dapp_type');
-					expect(block).to.have.property('dapp_link');
-					expect(block).to.have.property('dapp_category');
-					expect(block).to.have.property('dapp_icon');
-					expect(block).to.have.property('in_dappId');
-					expect(block).to.have.property('ot_dappId');
-					expect(block).to.have.property('ot_outTransactionId');
-					expect(block).to.have.property('t_requesterPublicKey');
-					expect(block).to.have.property('t_signatures');
-				});
+					expect(block)
+						.to.have.property('payloadLength')
+						.that.is.a('number');
+					expect(block)
+						.to.have.property('payloadHash')
+						.that.is.a('string');
+					expect(block)
+						.to.have.property('generatorPublicKey')
+						.that.is.a('string');
+					expect(block)
+						.to.have.property('blockSignature')
+						.that.is.a('string');
+					expect(block)
+						.to.have.property('transactions')
+						.that.is.an('array');
+				}
 			});
 
 			it('using empty headers should not be ok', async () => {

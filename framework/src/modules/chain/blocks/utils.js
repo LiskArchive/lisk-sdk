@@ -144,7 +144,11 @@ const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 		sort: ['height'],
 	});
 
-	return blocks;
+	// TODO: Remove this parse, after #4295
+	return blocks.map(block => ({
+		...block,
+		previousBlock: block.previousBlockId ? block.previousBlockId : '',
+	}));
 };
 
 /**
