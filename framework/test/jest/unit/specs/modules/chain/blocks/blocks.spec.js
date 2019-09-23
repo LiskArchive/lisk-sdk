@@ -1735,11 +1735,11 @@ describe('blocks', () => {
 				).toHaveBeenCalledWith(
 					{
 						height_gt: 100,
-						height_lt: 101,
+						height_lte: 101,
 					},
 					{
 						extended: true,
-						limit: null,
+						limit: 1,
 						sort: ['height'],
 					},
 				);
@@ -1749,7 +1749,7 @@ describe('blocks', () => {
 		describe('when called with invalid lastBlockId', () => {
 			beforeEach(async () => {
 				when(stubs.dependencies.storage.entities.Block.get)
-					.calledWith({ id: 'block-id' }, { limit: 1 })
+					.calledWith({ id: 'block-id' })
 					.mockResolvedValue([]);
 			});
 
@@ -1758,7 +1758,7 @@ describe('blocks', () => {
 				try {
 					await blocksInstance.loadBlocksFromLastBlockId('block-id');
 				} catch (err) {
-					expect(err.message).toBe('Invalid lastBlockId requested');
+					expect(err.message).toBe('Invalid lastBlockId requested: block-id');
 				}
 			});
 		});
@@ -1778,21 +1778,31 @@ describe('blocks', () => {
 
 			beforeEach(async () => {
 				when(stubs.dependencies.storage.entities.Block.get)
-					.calledWith({ id: 'block-id' }, { limit: 34 })
+					.calledWith({ id: 'block-id' })
 					.mockResolvedValue([validLastBlock]);
 				when(stubs.dependencies.storage.entities.Block.get)
 					.calledWith(
 						{
 							height_gt: 100,
-							height_lt: 134,
+							height_lte: 134,
 						},
 						{
 							extended: true,
-							limit: null,
+							limit: 34,
 							sort: ['height'],
 						},
 					)
 					.mockResolvedValue(validBlocksFromStorage);
+			});
+
+			it('should call storage for the lastBlockId', async () => {
+				await blocksInstance.loadBlocksFromLastBlockId('block-id', 34);
+
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith({
+					id: 'block-id',
+				});
 			});
 
 			it('should use the storage with correct filter', async () => {
@@ -1805,11 +1815,11 @@ describe('blocks', () => {
 				).toHaveBeenCalledWith(
 					{
 						height_gt: 100,
-						height_lt: 134,
+						height_lte: 134,
 					},
 					{
 						extended: true,
-						limit: null,
+						limit: 34,
 						sort: ['height'],
 					},
 				);

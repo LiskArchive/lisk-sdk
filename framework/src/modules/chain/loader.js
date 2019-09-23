@@ -337,14 +337,10 @@ class Loader {
 	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
-		// TODO: this should be removed and the block should be received from the network using *normal* block property names
-		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
 			// TODO: Fix with #4131 define serialization and deserialization
 			const parsedBlock = storageRead(block);
-			// eslint-disable-next-line no-await-in-loop
 			await this.processorModule.validate(parsedBlock);
-			// eslint-disable-next-line no-await-in-loop
 			await this.processorModule.processValidated(parsedBlock);
 			lastValidBlock = parsedBlock;
 		}

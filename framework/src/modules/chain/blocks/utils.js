@@ -40,12 +40,9 @@ const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 	}
 
 	// Get height of block with supplied ID
-	const [lastBlock] = await storage.entities.Block.get(
-		{ id: lastBlockId },
-		{ limit },
-	);
+	const [lastBlock] = await storage.entities.Block.get({ id: lastBlockId });
 	if (!lastBlock) {
-		throw new Error('Invalid lastBlockId requested');
+		throw new Error(`Invalid lastBlockId requested: ${lastBlockId}`);
 	}
 
 	const lastBlockHeight = lastBlock.height;
@@ -55,12 +52,12 @@ const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 
 	const filter = {
 		height_gt: lastBlockHeight,
-		height_lt: fetchUntilHeight,
+		height_lte: fetchUntilHeight,
 	};
 
 	const blocks = await storage.entities.Block.get(filter, {
 		extended: true,
-		limit: null,
+		limit,
 		sort: ['height'],
 	});
 
