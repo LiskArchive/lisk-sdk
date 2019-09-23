@@ -12,9 +12,9 @@ this.pgpOptions = {
 const pgp = pgpLib(this.pgpOptions);
 
 class PgHelper {
-	constructor({ dbName = 'lisk_dev' }) {
+	constructor({ dbName = 'lisk_dev', host = 'localhost', port = '5432' }) {
 		this.dbName = dbName;
-		this.cnStr = `postgres://localhost:5432/${dbName}`;
+		this.cnStr = `postgres://${host}:${port}/${dbName}`;
 		if (dbName.indexOf('postgres://') === 0) {
 			this.cnStr = dbName;
 		}
@@ -45,11 +45,13 @@ class PgHelper {
 	async bootstrap() {
 		await this._dropDB();
 		await this._createDB();
-		return this.pgp.connect();
+		this.conn = await this.pgp.connect();
+		return this.conn;
 	}
 
 	async cleanup() {
 		await this.storage.adapter.db.$pool.end();
+		await this.conn.done();
 		await this.pgp.$pool.end();
 	}
 
@@ -72,7 +74,7 @@ class PgHelper {
 		return this.storage;
 	}
 
-	static async createAccount(db, account) {
+	async createAccount(account) {
 		const keyValueSet = Object.keys(account).map(field => {
 			return {
 				field: `"${field}"`,
@@ -83,12 +85,12 @@ class PgHelper {
 			};
 		});
 
-		await db.query(
+		await this.conn.query(
 			'DELETE FROM mem_accounts WHERE "publicKey" = DECODE($1, \'hex\')',
 			account.publicKey,
 		);
 
-		await db.query(
+		await this.conn.query(
 			`INSERT INTO mem_accounts (${keyValueSet
 				.map(k => k.field)
 				.join(',')}) VALUES (${keyValueSet.map(k => k.value).join(',')})`,
@@ -96,20 +98,20 @@ class PgHelper {
 		);
 	}
 
-	static async getAccountByPublicKey(db, publicKey) {
-		return db.one(
+	async getAccountByPublicKey(publicKey) {
+		return this.conn.one(
 			`SELECT
 			"address",
 			ENCODE("publicKey", 'hex') as "publicKey",
 			ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 			"username",
-			"isDelegate"::int::boolean,
-			"secondSignature"::int::boolean,
+			"isDelegate",
+			"secondSignature",
 			"balance",
 			"asset",
 			"multimin" as "multiMin",
 			"multilifetime" as "multiLifetime",
-			"nameexist"::int::boolean as "nameExist",
+			"nameexist" as "nameExist",
 			"missedBlocks",
 			"producedBlocks",
 			"rank",
