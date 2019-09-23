@@ -14,6 +14,8 @@
 
 'use strict';
 
+const ForkChoiceRule = require('../../../../../../../../src/modules/chain/blocks/fork_choice_rule');
+
 const {
 	BlockSynchronizationMechanism,
 } = require('../../../../../../../../src/modules/chain/synchronizer/block_synchronization_mechanism');
@@ -67,6 +69,7 @@ describe('block_synchronization_mechanism', () => {
 		let syncMechanism;
 
 		beforeEach(() => {
+			ForkChoiceRule.isDifferentChain = jest.fn();
 			syncMechanism = new BlockSynchronizationMechanism(syncParams);
 		});
 
@@ -164,6 +167,7 @@ describe('block_synchronization_mechanism', () => {
 			});
 
 			it('should return a peer object', () => {
+				ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
 				lastBlockGetterMock.mockReturnValue({
 					height: 0,
 					prevotedConfirmedUptoHeight: 0,
@@ -195,6 +199,7 @@ describe('block_synchronization_mechanism', () => {
 				 */
 
 				it('should successfully select the best peer according to the steps defined in LIP-0014', () => {
+					ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
 					lastBlockGetterMock.mockReturnValue({
 						height: 0,
 						prevotedConfirmedUptoHeight: 0,
@@ -269,6 +274,7 @@ describe('block_synchronization_mechanism', () => {
 				processorModuleMock.validateDetached.mockImplementation(
 					() => fakeLastBlock,
 				);
+				ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
 
 				await syncMechanism.run();
 
@@ -301,6 +307,48 @@ describe('block_synchronization_mechanism', () => {
 				processorModuleMock.validateDetached.mockImplementation(() => {
 					throw new Error('Peer did not send valid block');
 				});
+				ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
+
+				try {
+					await syncMechanism.run(receivedBlock);
+
+					expect(channelMock.invoke.mock.calls[0]).toMatchObject([
+						'network:getNetworkStatus',
+					]);
+					expect(channelMock.invoke.mock.calls[1]).toMatchObject([
+						'network:requestFromPeer',
+						{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
+					]);
+				} catch (err) {
+					expect(channelMock.invoke.mock.calls[2]).toMatchObject([
+						'network:applyPenalty',
+						{ peerId: '127.0.0.1:30400', penalty: 100 },
+					]);
+
+					expect(channelMock.publish.mock.calls[0]).toMatchObject([
+						'chain:processor:sync',
+						{ block: receivedBlock },
+					]);
+				}
+			});
+
+			it('when peer returns invalid isDifferentChain block it should be banned and re-publish action', async () => {
+				const receivedBlock = { id: 12323, transactions: [] };
+				const fakeLastBlock = { foo: 'bar' };
+				syncMechanism._computeBestPeer = jest.fn(() => ({
+					...peersList[0],
+					id: '127.0.0.1:30400',
+				}));
+				channelMock.invoke.mockImplementationOnce(() => ({
+					connectedPeers: peersList,
+				}));
+				channelMock.invoke.mockImplementationOnce(() => ({
+					data: fakeLastBlock,
+				}));
+				processorModuleMock.validateDetached.mockImplementation(
+					() => fakeLastBlock,
+				);
+				ForkChoiceRule.isDifferentChain.mockImplementation(() => false);
 
 				try {
 					await syncMechanism.run(receivedBlock);
