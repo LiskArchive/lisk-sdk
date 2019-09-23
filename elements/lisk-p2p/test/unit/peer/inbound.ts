@@ -17,7 +17,7 @@ import { InboundPeer } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { SCServerSocket } from 'socketcluster-server';
 
-describe.only('peer/inbound', () => {
+describe('peer/inbound', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
@@ -76,16 +76,49 @@ describe.only('peer/inbound', () => {
 			expect((defaultInboundPeer as any)._sendPing).to.be.a('function');
 		});
 
+		it('should get ping timeout', () =>
+			expect((defaultInboundPeer as any)._pingTimeoutId).to.be.an('object'));
+
 		it('should get socket property', () =>
 			expect((defaultInboundPeer as any)._socket).to.equal(socket));
-
-		it('should get ping timeout', () => {
-			expect((defaultInboundPeer as any)._pingTimeoutId).to.be.an('object');
-		});
 	});
 
 	describe('#set socket', () => {
-		it('should set socket');
+		let newInboundSocket: SCServerSocket;
+
+		beforeEach(() => {
+			newInboundSocket = <SCServerSocket>({
+				on: sandbox.stub(),
+				off: sandbox.stub(),
+				emit: sandbox.stub(),
+				destroy: sandbox.stub(),
+			} as any);
+		});
+
+		it('should unbind handlers from former inbound socket', () => {
+			sandbox.stub(
+				defaultInboundPeer as any,
+				'_unbindHandlersFromInboundSocket',
+			);
+			defaultInboundPeer.socket = newInboundSocket;
+			expect(
+				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
+			).to.be.calledOnceWithExactly(socket);
+		});
+
+		it('should set new socket', () => {
+			expect((defaultInboundPeer as any)._socket).to.be.eql(socket);
+			defaultInboundPeer.socket = newInboundSocket;
+			expect((defaultInboundPeer as any)._socket).to.eql(newInboundSocket);
+		});
+
+		it('should bind handlers to new inbound socket', () => {
+			sandbox.stub(defaultInboundPeer as any, '_bindHandlersToInboundSocket');
+			defaultInboundPeer.socket = newInboundSocket;
+			expect(
+				(defaultInboundPeer as any)._bindHandlersToInboundSocket,
+			).to.be.be.calledOnceWithExactly(newInboundSocket);
+		});
 	});
 
 	describe('#disconnect', () => {
