@@ -548,7 +548,7 @@ describe('Chain', () => {
 	describe('#_startLoader', () => {
 		beforeEach(async () => {
 			await chain.bootstrap();
-			sinonSandbox.stub(chain.loader, 'loadTransactions');
+			sinonSandbox.stub(chain.loader, 'loadUnconfirmedTransactions');
 		});
 
 		it('should return if syncing.active in config is set to false', async () => {
@@ -564,7 +564,7 @@ describe('Chain', () => {
 
 		it('should load transactions and signatures', async () => {
 			chain._startLoader();
-			expect(chain.loader.loadTransactions).to.be.called;
+			expect(chain.loader.loadUnconfirmedTransactions).to.be.called;
 		});
 
 		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
