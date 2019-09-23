@@ -61,7 +61,7 @@ describe('peer/outbound', () => {
 			expect(defaultOutboundPeer).to.be.instanceof(OutboundPeer));
 	});
 
-	describe('#socket', () => {
+	describe('#set socket', () => {
 		it('should not unbind handlers from outbound socket if it does not exist', () => {
 			sandbox.stub(
 				defaultOutboundPeer as any,

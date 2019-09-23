@@ -45,19 +45,19 @@ describe('peer/inbound', () => {
 		it('should be an instance of P2P blockchain', () =>
 			expect(defaultPeer).and.be.instanceof(InboundPeer));
 
-		it('should have a _handleInboundSocketError function ', () => {
+		it('should have a function named _handleInboundSocketError', () => {
 			expect((defaultPeer as any)._handleInboundSocketError).to.be.a(
 				'function',
 			);
 		});
 
-		it('should have a _handleInboundSocketClose function ', () => {
+		it('should have a function named _handleInboundSocketClose ', () => {
 			expect((defaultPeer as any)._handleInboundSocketClose).to.be.a(
 				'function',
 			);
 		});
 
-		it('should have a _sendPing function ', () => {
+		it('should should have a function named _sendPing', () => {
 			expect((defaultPeer as any)._sendPing).to.be.a('function');
 		});
 

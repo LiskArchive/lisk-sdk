@@ -86,10 +86,38 @@ describe('peer/base', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should be an object', () => expect(defaultPeer).to.be.an('object'));
-
 		it('should be an instance of Peer class', () =>
 			expect(defaultPeer).to.be.instanceof(Peer));
+
+		it('should should have a function named _handleRawRPC ', () => {
+			expect((defaultPeer as any)._handleRawRPC).to.be.a('function');
+		});
+
+		it('should should have a function named _handleWSMessage', () => {
+			expect((defaultPeer as any)._handleWSMessage).to.be.a('function');
+		});
+
+		it('should should have a function named _handleRawMessage', () => {
+			expect((defaultPeer as any)._handleRawMessage).to.be.a('function');
+		});
+
+		it('should should have a function named _handleRawLegacyMessagePostBlock', () => {
+			expect((defaultPeer as any)._handleRawLegacyMessagePostBlock).to.be.a(
+				'function',
+			);
+		});
+
+		it('should should have a function named _handleRawLegacyMessagePostTransactions', () => {
+			expect(
+				(defaultPeer as any)._handleRawLegacyMessagePostTransactions,
+			).to.be.a('function');
+		});
+
+		it('should should have a function named _handleRawLegacyMessagePostSignatures', () => {
+			expect(
+				(defaultPeer as any)._handleRawLegacyMessagePostSignatures,
+			).to.be.a('function');
+		});
 	});
 
 	describe('#height', () =>
