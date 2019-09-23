@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DEFAULT_RANDOM_SECRET } from '../../src/constants';
+import {
+	DEFAULT_RANDOM_SECRET,
+	PEER_KIND_INBOUND,
+	PEER_KIND_OUTBOUND,
+} from '../../src/constants';
 import { Peer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
@@ -65,6 +69,25 @@ export const initializePeerInfoList = (): ReadonlyArray<
 	};
 
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];
+};
+
+export const initializeLongPeerInfoList = (): ReadonlyArray<
+	P2PDiscoveredPeerInfo
+> => {
+	let peerInfos = [];
+	// Generate a realistic list in which 1 in 4 peers is outbound.
+	for (let i = 0; i < 120; i++) {
+		peerInfos.push({
+			ipAddress: `204.120.0.${i}`,
+			wsPort: 5001,
+			height: 645980,
+			kind: i % 4 === 0 ? PEER_KIND_OUTBOUND : PEER_KIND_INBOUND,
+			isDiscoveredPeer: false,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		});
+	}
+	return peerInfos;
 };
 
 export const initializePeerList = (): ReadonlyArray<Peer> =>
