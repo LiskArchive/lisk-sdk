@@ -74,7 +74,6 @@ describe('peer/outbound', () => {
 	});
 
 	afterEach(() => {
-		sandbox.restore();
 		defaultOutboundPeer.disconnect();
 	});
 
@@ -84,6 +83,19 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#socket', () => {
+		it('should not unbind handlers from outbound socket if it does not exist', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			sandbox.stub(
+				defaultOutboundPeer as any,
+				'_unbindHandlersFromOutboundSocket',
+			);
+
+			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+			defaultOutboundPeer.socket = outboundSocket;
+			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
+				.not.called;
+		});
+
 		it('should unbind handlers from outbound socket if it exists', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			sandbox.stub(
@@ -97,6 +109,7 @@ describe('peer/outbound', () => {
 			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
 				.be.calledOnce;
 		});
+
 		it('should set new socket', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 
@@ -104,6 +117,7 @@ describe('peer/outbound', () => {
 			defaultOutboundPeer.socket = outboundSocket;
 			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
 		});
+
 		it('should bind handlers to outbound socket', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			sandbox.stub(defaultOutboundPeer as any, '_bindHandlersToOutboundSocket');
@@ -116,6 +130,16 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#connect', () => {
+		it('should not create outbound socket if one already exists', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			sandbox.stub(defaultOutboundPeer as any, '_createOutboundSocket');
+
+			(defaultOutboundPeer as any)._socket = outboundSocket;
+			defaultOutboundPeer.connect();
+			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be.not
+				.called;
+		});
+
 		it('should create outbound socket if it does not exist', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			sandbox
@@ -150,7 +174,18 @@ describe('peer/outbound', () => {
 			).to.be.calledOnceWith(1000);
 		});
 
-		it('should unbind handlers from oubound socket if it exists', () => {
+		it('should not unbind handlers if outbound socket does not exist', () => {
+			sandbox.stub(
+				defaultOutboundPeer as any,
+				'_unbindHandlersFromOutboundSocket',
+			);
+
+			defaultOutboundPeer.disconnect();
+			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
+				.be.not.called;
+		});
+
+		it('should unbind handlers from outbound socket if one exists', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			sandbox.stub(
 				defaultOutboundPeer as any,
@@ -165,7 +200,21 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#send', () => {
-		it('should create outbound socket if it does not exist', () => {
+		it('should not create outbound socket if one already exists', () => {
+			const outboundSocket = socketClusterClient.create(clientOptions);
+			(defaultOutboundPeer as any)._socket = outboundSocket;
+			const packet = {
+				data: 'myData',
+				event: 'myEent',
+			};
+			sandbox.stub(defaultOutboundPeer as any, '_createOutboundSocket');
+
+			defaultOutboundPeer.send(packet);
+			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be.not
+				.called;
+		});
+
+		it('should create outbound socket if it does not exist any', () => {
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			const packet = {
 				data: 'myData',
@@ -200,7 +249,25 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#request', () => {
-		it('should create outbound socket if it does not exist', () => {
+		it('should not create an outbound socket if one exists', () => {
+			const socket = <SCClientSocket>({
+				emit: sandbox.stub(),
+				destroy: sandbox.stub(),
+				off: sandbox.stub(),
+			} as any);
+			const packet = {
+				data: 'myData',
+				procedure: 'myProcedure',
+			};
+			sandbox.stub(defaultOutboundPeer as any, '_createOutboundSocket');
+
+			(defaultOutboundPeer as any)._socket = socket;
+			defaultOutboundPeer.request(packet);
+			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be.not
+				.called;
+		});
+
+		it('should create outbound socket if it does not exist any', () => {
 			const socket = <SCClientSocket>({
 				emit: sandbox.stub(),
 				destroy: sandbox.stub(),
@@ -221,7 +288,7 @@ describe('peer/outbound', () => {
 			expect((defaultOutboundPeer as any)._socket).to.eql(socket);
 		});
 
-		it('should call request and emit event', () => {
+		it('should emit event', () => {
 			const socket = <SCClientSocket>({
 				emit: sandbox.stub(),
 				destroy: sandbox.stub(),
