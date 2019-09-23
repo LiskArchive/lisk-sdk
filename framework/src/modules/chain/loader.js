@@ -17,6 +17,7 @@
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
+const { storageRead } = require('./blocks');
 const { validateTransactions } = require('./transactions');
 const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
@@ -339,11 +340,13 @@ class Loader {
 		// TODO: this should be removed and the block should be received from the network using *normal* block property names
 		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
+			// TODO: Fix with #4131 define serialization and deserialization
+			const parsedBlock = storageRead(block);
 			// eslint-disable-next-line no-await-in-loop
-			await this.processorModule.validate(block);
+			await this.processorModule.validate(parsedBlock);
 			// eslint-disable-next-line no-await-in-loop
-			await this.processorModule.processValidated(block);
-			lastValidBlock = block;
+			await this.processorModule.processValidated(parsedBlock);
+			lastValidBlock = parsedBlock;
 		}
 		this.blocksToSync = lastValidBlock.height;
 
