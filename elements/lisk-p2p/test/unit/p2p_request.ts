@@ -38,123 +38,127 @@ describe('p2p_request', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should have a procedure property which is set to the value specified in the constructor', () => {
-			return expect(request)
+		it('should have a procedure property which is set to the value specified in the constructor', async () => {
+			expect(request)
 				.to.have.property('procedure')
 				.which.equals('foo');
 		});
 
-		it('should have a data property which is set to the value specified in the constructor', () => {
-			return expect(request)
+		it('should have a data property which is set to the value specified in the constructor', async () => {
+			expect(request)
 				.to.have.property('data')
 				.which.equals(123);
 		});
 
-		it('should have a rate property which is set to the value specified in the constructor', () => {
-			return expect(request)
+		it('should have a rate property which is set to the value specified in the constructor', async () => {
+			expect(request)
 				.to.have.property('rate')
 				.which.equals(0);
 		});
 
-		it('should have a peerId property which is set to the value specified in the constructor', () => {
-			return expect(request)
+		it('should have a peerId property which is set to the value specified in the constructor', async () => {
+			expect(request)
 				.to.have.property('peerId')
 				.which.equals('abc123');
 		});
 
-		it('should have a wasResponseSent property which is false', () => {
-			return expect(request)
+		it('should have a wasResponseSent property which is false', async () => {
+			expect(request)
 				.to.have.property('wasResponseSent')
 				.which.equals(false);
 		});
 
-		it('should increment the productivity.requestCounter by 1', () => {
-			return expect(requestOptions.productivity.requestCounter).to.equal(1);
+		it('should increment the productivity.requestCounter by 1', async () => {
+			expect(requestOptions.productivity.requestCounter).to.equal(1);
 		});
 
-		it('should increment the productivity.requestCounter by 2 if a second P2PRequest instance is created with the same productivity tracker', () => {
+		it('should increment the productivity.requestCounter by 2 if a second P2PRequest instance is created with the same productivity tracker', async () => {
 			// P2PRequest instance can mutate the productivity tracker object.
 			new P2PRequest(requestOptions, respondCallback);
-			return expect(requestOptions.productivity.requestCounter).to.equal(2);
+			expect(requestOptions.productivity.requestCounter).to.equal(2);
 		});
 
-		it('should initiate productivity.responseCounter with the value specified in the constructor', () => {
-			return expect(requestOptions.productivity.responseCounter).to.equal(0);
+		it('should initiate productivity.responseCounter with the value specified in the constructor', async () => {
+			expect(requestOptions.productivity.responseCounter).to.equal(0);
 		});
 	});
 
-	describe('#methods', () => {
-		describe('#end', () => {
-			let timeBeforeLastResponse: number;
-			beforeEach(() => {
-				timeBeforeLastResponse = Date.now();
-				request.end('hello');
-			});
+	describe('#end', () => {
+		let timeBeforeLastResponse: number;
+		beforeEach(() => {
+			timeBeforeLastResponse = Date.now();
+			request.end('hello');
+		});
 
-			it('should send data back to callback in correct format', () => {
-				return expect(respondCallback).to.be.calledOnceWith(undefined, {
-					data: 'hello',
-				});
-			});
-
-			it('should increment the productivity.responseCounter by 1', () => {
-				return expect(requestOptions.productivity.responseCounter).to.equal(1);
-			});
-
-			it('should have a productivity.responseRate of 1; this indicates a success rate of 100%', () => {
-				return expect(requestOptions.productivity.responseRate).to.equal(1);
-			});
-
-			it('should increment the productivity.responseCounter by 2 if a second P2PRequest instance is ended', () => {
-				// P2PRequest instance can mutate the productivity tracker object.
-				let secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
-				secondP2PRequest.end('world');
-
-				return expect(requestOptions.productivity.responseCounter).to.equal(2);
-			});
-
-			it('should have a productivity.lastResponded which represents the time of the last successful response in milliseconds', () => {
-				return expect(requestOptions.productivity.lastResponded).to.gte(
-					timeBeforeLastResponse,
-				);
+		it('should send data back to callback in correct format', async () => {
+			expect(respondCallback).to.be.calledOnceWith(undefined, {
+				data: 'hello',
 			});
 		});
 
-		describe('#error', () => {
-			let err = new Error('Custom error');
-			err.name = 'CustomError';
-
-			beforeEach(() => {
-				request.error(err);
-			});
-
-			it('should send data back to callback in correct format', () => {
-				return expect(respondCallback).to.be.calledOnceWith(err);
-			});
-
-			it('should not increment the productivity.responseCounter', () => {
-				return expect(requestOptions.productivity.responseCounter).to.equal(0);
-			});
-
-			it('should have a productivity.responseRate of 0; this indicates a success rate of 0%', () => {
-				return expect(requestOptions.productivity.responseRate).to.equal(0);
-			});
+		it('should increment the productivity.responseCounter by 1', async () => {
+			expect(requestOptions.productivity.responseCounter).to.equal(1);
 		});
 
-		describe('#mixed success and error', () => {
-			let secondP2PRequest;
-			let err = new Error('Custom error');
-			err.name = 'CustomError';
+		it('should have a productivity.responseRate of 1; this indicates a success rate of 100%', async () => {
+			expect(requestOptions.productivity.responseRate).to.equal(1);
+		});
 
-			beforeEach(() => {
-				request.end('hello');
-				secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
-				secondP2PRequest.error(err);
-			});
+		it('should increment the productivity.responseCounter by 2 if a second P2PRequest instance is ended', async () => {
+			// P2PRequest instance can mutate the productivity tracker object.
+			let secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
+			secondP2PRequest.end('world');
 
-			it('should have a productivity.responseRate of 0.5; this indicates a success rate of 50%', () => {
-				return expect(requestOptions.productivity.responseRate).to.equal(0.5);
-			});
+			expect(requestOptions.productivity.responseCounter).to.equal(2);
+		});
+
+		it('should have a productivity.lastResponded which represents the time of the last successful response in milliseconds', async () => {
+			expect(requestOptions.productivity.lastResponded).to.gte(
+				timeBeforeLastResponse,
+			);
+		});
+
+		it('should set wasResponseSent property to true', async () => {
+			expect(request)
+				.to.have.property('wasResponseSent')
+				.which.equals(true);
+		});
+	});
+
+	describe('#when error', () => {
+		let err = new Error('Custom error');
+		err.name = 'CustomError';
+
+		beforeEach(() => {
+			request.error(err);
+		});
+
+		it('should send data back to callback in correct format', async () => {
+			expect(respondCallback).to.be.calledOnceWith(err);
+		});
+
+		it('should not increment the productivity.responseCounter', async () => {
+			expect(requestOptions.productivity.responseCounter).to.equal(0);
+		});
+
+		it('should have a productivity.responseRate of 0; this indicates a success rate of 0%', async () => {
+			expect(requestOptions.productivity.responseRate).to.equal(0);
+		});
+	});
+
+	describe('#when mixed success and error', () => {
+		let secondP2PRequest;
+		let err = new Error('Custom error');
+		err.name = 'CustomError';
+
+		beforeEach(() => {
+			request.end('hello');
+			secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
+			secondP2PRequest.error(err);
+		});
+
+		it('should have a productivity.responseRate of 0.5; this indicates a success rate of 50%', async () => {
+			expect(requestOptions.productivity.responseRate).to.equal(0.5);
 		});
 	});
 });
