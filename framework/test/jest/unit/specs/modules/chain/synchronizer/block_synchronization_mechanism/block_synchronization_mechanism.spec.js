@@ -29,7 +29,11 @@ describe('block_synchronization_mechanism', () => {
 
 	describe('BlockSynchronizationMechanism', () => {
 		const activeDelegates = 101;
-		const channelMock = { invoke: jest.fn() };
+		const channelMock = {
+			invoke: jest.fn(),
+			publish: jest.fn(),
+		};
+		const processorModuleMock = { validateDetached: jest.fn() };
 
 		const lastBlockGetterMock = jest.fn();
 		const blocksMock = {};
@@ -57,6 +61,7 @@ describe('block_synchronization_mechanism', () => {
 			slots: slotsMock,
 			bft: bftMock,
 			activeDelegates,
+			processorModule: processorModuleMock,
 		};
 
 		let syncMechanism;
@@ -245,6 +250,79 @@ describe('block_synchronization_mechanism', () => {
 				expect(
 					syncMechanism._computeLargestSubsetMaxBy(input, item => item.height),
 				).toEqual([input[1], input[2]]);
+			});
+		});
+
+		describe('async run()', () => {
+			it('when there are no errors', async () => {
+				const fakeLastBlock = { foo: 'bar' };
+				syncMechanism._computeBestPeer = jest.fn(() => ({
+					...peersList[0],
+					id: '127.0.0.1:30400',
+				}));
+				channelMock.invoke.mockImplementationOnce(() => ({
+					connectedPeers: peersList,
+				}));
+				channelMock.invoke.mockImplementationOnce(() => ({
+					data: fakeLastBlock,
+				}));
+				processorModuleMock.validateDetached.mockImplementation(
+					() => fakeLastBlock,
+				);
+
+				await syncMechanism.run();
+
+				expect(channelMock.invoke.mock.calls[0]).toMatchObject([
+					'network:getNetworkStatus',
+				]);
+				expect(channelMock.invoke.mock.calls[1]).toMatchObject([
+					'network:requestFromPeer',
+					{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
+				]);
+
+				expect(
+					processorModuleMock.validateDetached.mock.calls[0],
+				).toMatchObject([fakeLastBlock]);
+			});
+
+			it('when peer returns invalid block it should be banned and re-publish action', async () => {
+				const receivedBlock = { id: 12323, transactions: [] };
+				const fakeLastBlock = { foo: 'bar' };
+				syncMechanism._computeBestPeer = jest.fn(() => ({
+					...peersList[0],
+					id: '127.0.0.1:30400',
+				}));
+				channelMock.invoke.mockImplementationOnce(() => ({
+					connectedPeers: peersList,
+				}));
+				channelMock.invoke.mockImplementationOnce(() => ({
+					data: fakeLastBlock,
+				}));
+				processorModuleMock.validateDetached.mockImplementation(() => {
+					throw new Error('Peer did not send valid block');
+				});
+
+				try {
+					await syncMechanism.run(receivedBlock);
+
+					expect(channelMock.invoke.mock.calls[0]).toMatchObject([
+						'network:getNetworkStatus',
+					]);
+					expect(channelMock.invoke.mock.calls[1]).toMatchObject([
+						'network:requestFromPeer',
+						{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
+					]);
+				} catch (err) {
+					expect(channelMock.invoke.mock.calls[2]).toMatchObject([
+						'network:applyPenalty',
+						{ peerId: '127.0.0.1:30400', penalty: 100 },
+					]);
+
+					expect(channelMock.publish.mock.calls[0]).toMatchObject([
+						'chain:processor:sync',
+						{ block: receivedBlock },
+					]);
+				}
 			});
 		});
 	});
