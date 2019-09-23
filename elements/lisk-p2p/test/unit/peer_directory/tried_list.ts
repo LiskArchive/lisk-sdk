@@ -262,7 +262,7 @@ describe('triedPeer', () => {
 					evictionResult1,
 					evictionResult2,
 					evictionResult3,
-				].map(result => result.evictedPeers.length > 0);
+				].map(result => !!result.evictedPeer);
 				expect(evictionResultAfterAddition).includes(true);
 			});
 
@@ -272,8 +272,8 @@ describe('triedPeer', () => {
 					evictionResult2,
 					evictionResult3,
 				]
-					.filter(result => result.evictedPeers.length > 0)
-					.map(trueEvictionResult => trueEvictionResult.evictedPeers[0]);
+					.filter(result => result.evictedPeer)
+					.map(trueEvictionResult => trueEvictionResult.evictedPeer);
 				expect(evictedPeersAfterAddition).not.members(
 					triedPeersObj.peersList(),
 				);

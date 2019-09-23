@@ -240,7 +240,7 @@ describe('newPeer', () => {
 				evictionResult1,
 				evictionResult2,
 				evictionResult3,
-			].map(result => result.evictedPeers.length > 0);
+			].map(result => !!result.evictedPeer);
 			expect(evictionResultAfterAddition).includes(true);
 		});
 
@@ -250,8 +250,8 @@ describe('newPeer', () => {
 				evictionResult2,
 				evictionResult3,
 			]
-				.filter(result => result.evictedPeers.length > 0)
-				.map(trueEvictionResult => trueEvictionResult.evictedPeers[0]);
+				.filter(result => result.evictedPeer)
+				.map(trueEvictionResult => trueEvictionResult.evictedPeer);
 			expect(evictedPeersAfterAddition).not.members(newPeersobj.peersList());
 		});
 	});
@@ -291,8 +291,8 @@ describe('newPeer', () => {
 		const evictionResult = newPeersList.addPeer(samplePeers[3]);
 
 		it('should always evict the peer that has stayed in peer bucket for more than 10 seconds', async () => {
-			expect(evictionResult.evictedPeers.length).gt(0);
-			expect(evictionResult.evictedPeers[0])
+			expect(evictionResult.evictedPeer).to.not.be.undefined;
+			expect(evictionResult.evictedPeer)
 				.is.an('object')
 				.ownProperty('ipAddress')
 				.to.be.eql(oldPeer.peerInfo.ipAddress);

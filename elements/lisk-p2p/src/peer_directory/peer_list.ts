@@ -28,7 +28,7 @@ export interface CustomPeerInfo {
 
 export interface AddPeerOutcome {
 	readonly success: boolean;
-	readonly evictedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly evictedPeer: P2PPeerInfo | undefined;
 }
 // Base peer list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
 export class PeerList {
@@ -147,14 +147,14 @@ export class PeerList {
 		if (!bucket) {
 			return {
 				success: false,
-				evictedPeers: [],
+				evictedPeer: undefined,
 			};
 		}
 
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
 				success: false,
-				evictedPeers: [],
+				evictedPeer: undefined,
 			};
 		}
 
@@ -165,16 +165,16 @@ export class PeerList {
 
 			return {
 				success: true,
-				evictedPeers: [],
+				evictedPeer: undefined,
 			};
 		}
 
-		const evictedPeers = this.evictPeers(bucketId);
+		const evictedPeer = this.evictPeer(bucketId);
 		bucket.set(incomingPeerId, newPeer);
 
 		return {
 			success: true,
-			evictedPeers: evictedPeers.map(customPeerInfo => customPeerInfo.peerInfo),
+			evictedPeer: evictedPeer ? evictedPeer.peerInfo : undefined,
 		};
 	}
 
@@ -185,26 +185,22 @@ export class PeerList {
 		return result;
 	}
 
-	public evictPeers(bucketId: number): ReadonlyArray<CustomPeerInfo> {
-		const evictedPeer = this.evictRandomlyFromBucket(bucketId);
-		if (evictedPeer) {
-			return [evictedPeer];
-		}
-
-		return [];
+	public evictPeer(bucketId: number): CustomPeerInfo | undefined {
+		return this.evictRandomlyFromBucket(bucketId);
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
-	protected evictRandomlyFromBucket(bucketId: number): CustomPeerInfo {
+	protected evictRandomlyFromBucket(
+		bucketId: number,
+	): CustomPeerInfo | undefined {
 		const bucket = this.peerMap.get(bucketId);
 		if (!bucket) {
-			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
+			return undefined;
 		}
 
-		const randomPeerIndex = Math.floor(
-			Math.random() * this.peerListConfig.peerBucketSize,
-		);
-		const randomPeerId = Array.from(bucket.keys())[randomPeerIndex];
-		const randomPeer = Array.from(bucket.values())[randomPeerIndex];
+		const bucketPeerIds = Array.from(bucket.keys());
+		const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
+		const randomPeerId = bucketPeerIds[randomPeerIndex];
+		const randomPeer = bucket.get(randomPeerId);
 		bucket.delete(randomPeerId);
 
 		return randomPeer;

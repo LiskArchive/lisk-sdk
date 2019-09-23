@@ -93,7 +93,7 @@ export class PeerBook {
 	}
 
 	// It will return evicted peer in the case a peer is removed from a peer list based on eviction strategy.
-	public addPeer(peerInfo: P2PPeerInfo): ReadonlyArray<P2PPeerInfo> {
+	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		if (
 			this._triedPeers.getPeer(peerInfo) ||
 			this._newPeers.getPeer(peerInfo)
@@ -101,7 +101,7 @@ export class PeerBook {
 			throw new Error('Peer already exists');
 		}
 
-		return this._newPeers.addPeer(peerInfo).evictedPeers;
+		return this._newPeers.addPeer(peerInfo).evictedPeer;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
