@@ -95,6 +95,7 @@ export class InboundPeer extends Peer {
 
 	public disconnect(code: number = 1000, reason?: string): void {
 		super.disconnect(code, reason);
+		clearTimeout(this._pingTimeoutId);
 		this._unbindHandlersFromInboundSocket(this._socket);
 	}
 

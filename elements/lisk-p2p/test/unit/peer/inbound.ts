@@ -13,11 +13,11 @@
  *
  */
 import { expect } from 'chai';
-import { SCServerSocket } from 'socketcluster-server';
 import { InboundPeer } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { SCServerSocket } from 'socketcluster-server';
 
-describe('peer/inbound', () => {
+describe.only('peer/inbound', () => {
 	const DEFAULT_RANDOM_SECRET = 123;
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
@@ -27,48 +27,61 @@ describe('peer/inbound', () => {
 		version: '1.1.1',
 		protocolVersion: '1.1',
 	};
-
-	const socket = <SCServerSocket>({
-		on: sandbox.stub(),
-	} as any);
-
-	const defaultPeer = new InboundPeer(defaultPeerInfo, socket, {
+	const defaultPeerConfig = {
 		rateCalculationInterval: 1000,
 		wsMaxMessageRate: 1000,
 		wsMaxMessageRatePenalty: 10,
 		secret: DEFAULT_RANDOM_SECRET,
 		maxPeerInfoSize: 10000,
 		maxPeerDiscoveryResponseLength: 1000,
+	};
+	let defaultInboundPeer: InboundPeer;
+	let socket: SCServerSocket;
+
+	beforeEach(() => {
+		socket = <SCServerSocket>({
+			on: sandbox.stub(),
+			off: sandbox.stub(),
+			emit: sandbox.stub(),
+			destroy: sandbox.stub(),
+		} as any);
+		defaultInboundPeer = new InboundPeer(
+			defaultPeerInfo,
+			socket,
+			defaultPeerConfig,
+		);
+	});
+
+	afterEach(() => {
+		defaultInboundPeer.disconnect();
 	});
 
 	describe('#constructor', () => {
 		it('should be an instance of P2P blockchain', () =>
-			expect(defaultPeer).and.be.instanceof(InboundPeer));
+			expect(defaultInboundPeer).and.be.instanceof(InboundPeer));
 
 		it('should have a function named _handleInboundSocketError', () => {
-			expect((defaultPeer as any)._handleInboundSocketError).to.be.a(
+			expect((defaultInboundPeer as any)._handleInboundSocketError).to.be.a(
 				'function',
 			);
 		});
 
 		it('should have a function named _handleInboundSocketClose ', () => {
-			expect((defaultPeer as any)._handleInboundSocketClose).to.be.a(
+			expect((defaultInboundPeer as any)._handleInboundSocketClose).to.be.a(
 				'function',
 			);
 		});
 
 		it('should should have a function named _sendPing', () => {
-			expect((defaultPeer as any)._sendPing).to.be.a('function');
-		});
-
-		it('should get ping timeout', () => {
-			expect((defaultPeer as any)._pingTimeoutId.id).to.eql(85);
+			expect((defaultInboundPeer as any)._sendPing).to.be.a('function');
 		});
 
 		it('should get socket property', () =>
-			expect((defaultPeer as any)._socket).to.equal(socket));
+			expect((defaultInboundPeer as any)._socket).to.equal(socket));
 
-		it('should bind handlers to inbound socket');
+		it('should get ping timeout', () => {
+			expect((defaultInboundPeer as any)._pingTimeoutId).to.be.an('object');
+		});
 	});
 
 	describe('#set socket', () => {
