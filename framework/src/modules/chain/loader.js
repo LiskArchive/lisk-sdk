@@ -333,11 +333,10 @@ class Loader {
 	 * @returns {Promise} void
 	 * @todo Add description for the params
 	 */
-	async _getValidatedBlocksFromNetwork(blockRows) {
+	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
 		// TODO: this should be removed and the block should be received from the network using *normal* block property names
-		const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
 		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
 			// eslint-disable-next-line no-await-in-loop
