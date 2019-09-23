@@ -235,7 +235,7 @@ describe('newPeer', () => {
 		const evictionResult2 = newPeersobj.addPeer(samplePeers[3]);
 		const evictionResult3 = newPeersobj.addPeer(samplePeers[4]);
 
-		it('should evict atleast one peer from the peerlist based on random eviction', async () => {
+		it('should evict atleast one peer from the peerlist based on bucket eviction', async () => {
 			const evictionResultAfterAddition = [
 				evictionResult1,
 				evictionResult2,

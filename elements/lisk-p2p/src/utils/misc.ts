@@ -120,7 +120,7 @@ export const getNetgroup = (address: string, secret: number): number => {
 };
 
 // TODO: Source address to be included in hash for later version
-export const getBucket = (options: {
+export const getBucketId = (options: {
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 	readonly targetAddress: string;
