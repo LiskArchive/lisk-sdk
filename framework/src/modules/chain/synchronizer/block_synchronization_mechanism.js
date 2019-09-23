@@ -52,11 +52,9 @@ class BlockSynchronizationMechanism {
 
 		const bestPeer = this._computeBestPeer(peers);
 
-		// eslint-disable-next-line no-unused-vars
-		const lastFullBlock = this._requestAndValidateLastBlock(
-			receivedBlock,
-			bestPeer,
-		);
+		await this._requestAndValidateLastBlock(receivedBlock, bestPeer);
+
+		await this._revertToLastCommonBlock(receivedBlock, bestPeer);
 	}
 
 	get isActive() {
@@ -86,23 +84,94 @@ class BlockSynchronizationMechanism {
 	}
 
 	/**
-	 * Request the last common block between the selected peer and the system.
-	 * Then, reverts the current chain so the new tip of the chain corresponds to this
+	 * Requests the last common block id in common with the targeted peer.
+	 * In order to do that, sends a set of network calls which include a set of block ids
+	 * corresponding to the first block of descendent consecutive rounds (starting from the last one)
+	 * @param peer
+	 * @return {Promise<string>}
+	 * @private
+	 */
+	async _requestLastCommonBlockId(peer) {
+		// The node requests the last common block C from P (Peer).
+		const [block] = await this.storage.entities.Block.get({
+			sort: 'height:desc',
+			limit: 1,
+		});
+
+		const { height: tipHeight } = block;
+		const numberOfRoundsSinceGenesis =
+			tipHeight / this.constants.activeDelegates;
+		const numberOfRoundsPerRequest = 5;
+		let highestCommonBlockId;
+		let requestCounter = 0;
+
+		// TODO: I am assuming we try to perform a X number of calls to the peer before
+		// giving up. We have to discuss this, as we can also perform one single call with a bigger array.
+		// This would simplify the code a bit more.
+		while (!highestCommonBlockId && requestCounter < numberOfRoundsPerRequest) {
+			const blockIds = [];
+
+			// Compute the list of block ids
+			// TODO: Maybe we can avoid using ugly class for loop here. Feel free to change it
+			for (let j = numberOfRoundsSinceGenesis; j > 0; j--) {
+				const heightFirstBlockRound = j - 1 * this.constants.activeDelegates;
+
+				const [firstBlockRound] = await this.storage.entities.Block.get(
+					{ height: heightFirstBlockRound },
+					{
+						sort: 'height:desc',
+						limit: 1,
+					},
+				);
+
+				if (firstBlockRound) {
+					blockIds.push(firstBlockRound.id);
+				}
+			}
+
+			// Request the highest common block id with the previously computed list
+			// to the given peer
+			const { data } = await this.channel.invoke('network:requestFromPeer', {
+				procedure: 'getHighestCommonBlockId',
+				peerId: peer.id,
+				data: blockIds,
+			});
+
+			highestCommonBlockId = data;
+			requestCounter++;
+		}
+
+		return highestCommonBlockId;
+	}
+
+	/**
+	 * Reverts the current chain so the new tip of the chain corresponds to the
 	 * last common block.
 	 * @param {Object} peer - The selected peer to target.
 	 * @return {Promise<void>}
 	 * @private
 	 */
-	async _revertToLastCommonBlock(peer) {
-		// The node requests the last common block C from P (Peer).
-		const { data: highestCommonBlockId } = await this.channel.invoke(
-			'network:requestFromPeer',
-			{
-				procedure: 'getHighestCommonBlockId',
+	async _revertToLastCommonBlock(receivedBlock, peer) {
+		// FIXME: Maybe we need to return the full block instead of just the id, as the only use case  is this one and it requires the block height.
+		// We can also not do this and request the full block to the peer but this results in unnecessary network calls
+		const lastCommonBlockId = await this._requestLastCommonBlockId(peer);
+
+		const chainHeightFinalized = this.bft.finalizedHeight;
+
+		if (!lastCommonBlockId) {
+			// TODO: halt the execution of the syncing mechanism as stated in the LIP
+		}
+
+		if (lastCommonBlockId.height < chainHeightFinalized) {
+			this.channel.invoke('network:applyPenalty', {
 				peerId: peer.id,
-				data: [], // TODO: Get the id of the first block of consecutive rounds.
-			},
-		);
+				penalty: 100,
+			});
+			this.channel.publish('chain:processor:sync', { block: receivedBlock });
+			throw new Error('');
+		}
+
+		// TODO: Delete blocks on system chain from current tip to `lastCommonBlockId`
 	}
 
 	/**
@@ -147,7 +216,7 @@ class BlockSynchronizationMechanism {
 			return networkLastBlock;
 		} catch (err) {
 			this.channel.invoke('network:applyPenalty', {
-				peerId: bestPeer.id,
+				peerId: peer.id,
 				penalty: 100,
 			});
 			this.channel.publish('chain:processor:sync', { block: receivedBlock });
