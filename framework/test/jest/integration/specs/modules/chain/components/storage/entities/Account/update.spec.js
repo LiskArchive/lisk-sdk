@@ -2,6 +2,7 @@ const {
 	Account,
 } = require('../../../../../../../../../../src/modules/chain/components/storage/entities');
 const { PgHelper } = require('../../../../../../../utils/pg-helper');
+const { constants } = require('../../../../../../../../common_utils');
 
 describe('storage.entities.Account.update', () => {
 	let pgHelper;
@@ -20,17 +21,16 @@ describe('storage.entities.Account.update', () => {
 		storage.registerEntity('Account', Account);
 
 		storage.entities.Account.extendDefaultOptions({
-			limit: 101, // @todo get it from constants
+			limit: constants.ACTIVE_DELEGATES,
 		});
 	});
 
 	afterAll(async () => {
-		await db.done();
 		await pgHelper.cleanup();
 	});
 
 	describe('update(filter = {publicKey: account.publicKey}, data = {rewards, fees, balance}, tx = tx)', () => {
-		it('should update rewards, fees and balance fields for given account', async () => {
+		it('should update rewards, fees and balance fields for each given account', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
@@ -44,13 +44,12 @@ describe('storage.entities.Account.update', () => {
 
 			const expectedAccount = {
 				...account,
-				isDelegate: false,
 				balance: '2234',
 				fees: '423',
 				rewards: '3235',
 			};
 
-			await PgHelper.createAccount(db, account);
+			await pgHelper.createAccount(account);
 
 			// Act
 			await db.tx(async tx => {
@@ -69,8 +68,7 @@ describe('storage.entities.Account.update', () => {
 			});
 
 			// Assert
-			const updatedAccount = await PgHelper.getAccountByPublicKey(
-				db,
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
 				account.publicKey,
 			);
 			expect(updatedAccount).toMatchObject(expectedAccount);

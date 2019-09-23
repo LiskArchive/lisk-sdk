@@ -21,7 +21,6 @@ describe('storage.entities.RoundDelegates.delete', () => {
 	});
 
 	afterAll(async () => {
-		await db.done();
 		await pgHelper.cleanup();
 	});
 

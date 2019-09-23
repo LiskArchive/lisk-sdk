@@ -3,7 +3,7 @@ const {
 } = require('../../../../../../../../../../src/modules/chain/components/storage/entities');
 const { PgHelper } = require('../../../../../../../utils/pg-helper');
 
-describe('storage.entities.RoundDelegates.getRoundDelegates', () => {
+describe('storage.entities.RoundDelegates.getActiveDelegatesForRound', () => {
 	let pgHelper;
 	let storage;
 	let db;
@@ -21,7 +21,6 @@ describe('storage.entities.RoundDelegates.getRoundDelegates', () => {
 	});
 
 	afterAll(async () => {
-		await db.done();
 		await pgHelper.cleanup();
 	});
 
@@ -40,7 +39,7 @@ describe('storage.entities.RoundDelegates.getRoundDelegates', () => {
 			);
 
 			// Act
-			const roundDelegates = await storage.entities.RoundDelegates.getRoundDelegates(
+			const roundDelegates = await storage.entities.RoundDelegates.getActiveDelegatesForRound(
 				round,
 			);
 
@@ -60,7 +59,7 @@ describe('storage.entities.RoundDelegates.getRoundDelegates', () => {
 			);
 
 			// Act
-			const roundDelegates = await storage.entities.RoundDelegates.getRoundDelegates(
+			const roundDelegates = await storage.entities.RoundDelegates.getActiveDelegatesForRound(
 				'11',
 			);
 

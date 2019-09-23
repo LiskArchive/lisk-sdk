@@ -2,6 +2,7 @@ const {
 	Account,
 } = require('../../../../../../../../../../src/modules/chain/components/storage/entities');
 const { PgHelper } = require('../../../../../../../utils/pg-helper');
+const { constants } = require('../../../../../../../../common_utils');
 
 describe('storage.entities.Account.get', () => {
 	let pgHelper;
@@ -20,12 +21,11 @@ describe('storage.entities.Account.get', () => {
 		storage.registerEntity('Account', Account);
 
 		storage.entities.Account.extendDefaultOptions({
-			limit: 101, // @todo get it from constants
+			limit: constants.ACTIVE_DELEGATES,
 		});
 	});
 
 	afterAll(async () => {
-		await db.done();
 		await pgHelper.cleanup();
 	});
 
@@ -34,7 +34,7 @@ describe('storage.entities.Account.get', () => {
 	});
 
 	describe('Given arguments ({publicKey}, {extended: true}, tx)', () => {
-		it('should return array that contains 1 extended account object', async () => {
+		it('should return array that contains 1 extended account object that has "votedDelegatesPublicKeys" and "membersPublicKeys" properties', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
@@ -67,7 +67,7 @@ describe('storage.entities.Account.get', () => {
 				membersPublicKeys: null,
 			};
 
-			await PgHelper.createAccount(db, account);
+			await pgHelper.createAccount(account);
 
 			// Act
 			let accounts;
@@ -90,7 +90,7 @@ describe('storage.entities.Account.get', () => {
 	});
 
 	describe('Given arguments (publicKey_in: []}, {extended: true}, tx)', () => {
-		it('should return array that contains extended account objects for given publicKeys', async () => {
+		it('should return array that contains extended account objects for each given publicKey', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
@@ -154,8 +154,8 @@ describe('storage.entities.Account.get', () => {
 				membersPublicKeys: null,
 			};
 
-			await PgHelper.createAccount(db, account);
-			await PgHelper.createAccount(db, account2);
+			await pgHelper.createAccount(account);
+			await pgHelper.createAccount(account2);
 
 			// Act
 			let accounts;
@@ -171,6 +171,15 @@ describe('storage.entities.Account.get', () => {
 
 			// Assert
 			expect(accounts).toHaveLength(2);
+			/**
+			 * accounts should contain all expectedAccount objects
+			 * However, there is no native matcher in jest to check
+			 * if an array contains certain objects.
+			 * Thus We need to have the assertions below.
+			 *
+			 * @todo Add toContainObjects matcher by using jest.extend
+			 * https://jestjs.io/docs/en/expect.html#expectextendmatchers
+			 */
 			expect(accounts).toEqual(
 				expect.arrayContaining([
 					expect.objectContaining(expectedAccount),

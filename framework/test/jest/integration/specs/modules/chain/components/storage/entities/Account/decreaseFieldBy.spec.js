@@ -2,6 +2,7 @@ const {
 	Account,
 } = require('../../../../../../../../../../src/modules/chain/components/storage/entities');
 const { PgHelper } = require('../../../../../../../utils/pg-helper');
+const { constants } = require('../../../../../../../../common_utils');
 
 describe('storage.entities.Account.decreaseFieldBy', () => {
 	let pgHelper;
@@ -20,12 +21,11 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 		storage.registerEntity('Account', Account);
 
 		storage.entities.Account.extendDefaultOptions({
-			limit: 101, // @todo get it from constants
+			limit: constants.ACTIVE_DELEGATES,
 		});
 	});
 
 	afterAll(async () => {
-		await db.done();
 		await pgHelper.cleanup();
 	});
 
@@ -34,7 +34,7 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 	});
 
 	describe('Given arguments ({publicKey}, "producedBlocks", "1", tx)', () => {
-		it('should decrease "producedBlocks" property of given account by "1"', async () => {
+		it('should decrease "producedBlocks" property of each given account by "1"', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
@@ -47,24 +47,21 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 
 			const expectedValue = 4;
 
-			await PgHelper.createAccount(db, account);
+			await pgHelper.createAccount(account);
 
 			// Act
-			await db
-				.tx(async tx => {
-					await storage.entities.Account.decreaseFieldBy(
-						{
-							publicKey: account.publicKey,
-						},
-						'producedBlocks',
-						'1',
-						tx,
-					);
-				})
-				.catch(console.error);
+			await db.tx(async tx => {
+				await storage.entities.Account.decreaseFieldBy(
+					{
+						publicKey: account.publicKey,
+					},
+					'producedBlocks',
+					'1',
+					tx,
+				);
+			});
 
-			const updatedAccount = await PgHelper.getAccountByPublicKey(
-				db,
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
 				account.publicKey,
 			);
 
@@ -74,7 +71,7 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 	});
 
 	describe('Given arguments ({publicKey_in: []}, "missedBlocks", "1", tx)', () => {
-		it('should decrease "missedBlocks" property of given account by 1', async () => {
+		it('should decrease "missedBlocks" property of each account by 1', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
@@ -97,29 +94,25 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 			const expectedValue1 = 4;
 			const expectedValue2 = 9;
 
-			await PgHelper.createAccount(db, account);
-			await PgHelper.createAccount(db, account2);
+			await pgHelper.createAccount(account);
+			await pgHelper.createAccount(account2);
 
 			// Act
-			await db
-				.tx(async tx => {
-					await storage.entities.Account.decreaseFieldBy(
-						{
-							publicKey_in: [account.publicKey, account2.publicKey],
-						},
-						'missedBlocks',
-						'1',
-						tx,
-					);
-				})
-				.catch(console.error);
+			await db.tx(async tx => {
+				await storage.entities.Account.decreaseFieldBy(
+					{
+						publicKey_in: [account.publicKey, account2.publicKey],
+					},
+					'missedBlocks',
+					'1',
+					tx,
+				);
+			});
 
-			const updatedAccount1 = await PgHelper.getAccountByPublicKey(
-				db,
+			const updatedAccount1 = await pgHelper.getAccountByPublicKey(
 				account.publicKey,
 			);
-			const updatedAccount2 = await PgHelper.getAccountByPublicKey(
-				db,
+			const updatedAccount2 = await pgHelper.getAccountByPublicKey(
 				account2.publicKey,
 			);
 
@@ -130,7 +123,7 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 	});
 
 	describe('Given arguments ({publicKey}, "voteWeight", "Number", tx)', () => {
-		it('should decrease "voteWeight" property of given account by given value', async () => {
+		it('should decrease "voteWeight" property of each given account by given value', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
@@ -144,7 +137,7 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 			// @todo check why this is coming string form db.
 			const expectedValue = '190';
 
-			await PgHelper.createAccount(db, account);
+			await pgHelper.createAccount(account);
 
 			// Act
 			await db.tx(async tx => {
@@ -158,8 +151,7 @@ describe('storage.entities.Account.decreaseFieldBy', () => {
 				);
 			});
 
-			const updatedAccount = await PgHelper.getAccountByPublicKey(
-				db,
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
 				account.publicKey,
 			);
 

@@ -21,12 +21,11 @@ describe('storage.entities.RoundDelegates.create', () => {
 	});
 
 	afterAll(async () => {
-		await db.done();
 		await pgHelper.cleanup();
 	});
 
 	describe('Given arguments = ({round, delegatePublicKeys})', () => {
-		it('should delete delegate list after round', async () => {
+		it('should insert delegate list for the round to "round_delegates" table', async () => {
 			// Arrange
 			const delegatePublicKeys = ['pk1', 'pk2', 'pk3'];
 			const round = 6;

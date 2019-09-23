@@ -21,12 +21,11 @@ describe('storage.entities.RoundDelegates.summedRound', () => {
 	});
 
 	afterAll(async () => {
-		await db.done();
 		await pgHelper.cleanup();
 	});
 
 	describe('Given arguments = (round, activeDelegates, tx)', () => {
-		it.skip('should update rewards, fees and balance fields for given account', async () => {
+		it.skip('should return roundSummary', async () => {
 			// Act
 			let roundSummary;
 			await db.tx(async tx => {
@@ -36,8 +35,6 @@ describe('storage.entities.RoundDelegates.summedRound', () => {
 					tx,
 				);
 			});
-
-			// console.log('roundSummary', roundSummary);
 
 			// Assert
 			expect(roundSummary).toBeArray();
