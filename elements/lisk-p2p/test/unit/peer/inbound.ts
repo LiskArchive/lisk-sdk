@@ -42,38 +42,40 @@ describe('peer/inbound', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should be an object', () => {
-			return expect(defaultPeer).to.be.an('object');
+		it('should be an instance of P2P blockchain', () =>
+			expect(defaultPeer).and.be.instanceof(InboundPeer));
+
+		it('should have a _handleInboundSocketError function ', () => {
+			expect((defaultPeer as any)._handleInboundSocketError).to.be.a(
+				'function',
+			);
 		});
 
-		it('should be an instance of P2P blockchain', () => {
-			return expect(defaultPeer)
-				.to.be.an('object')
-				.and.be.instanceof(InboundPeer);
+		it('should have a _handleInboundSocketClose function ', () => {
+			expect((defaultPeer as any)._handleInboundSocketClose).to.be.a(
+				'function',
+			);
 		});
+
+		it('should have a _sendPing function ', () => {
+			expect((defaultPeer as any)._sendPing).to.be.a('function');
+		});
+
+		it('should get ping timeout', () => {
+			expect((defaultPeer as any)._pingTimeoutId.id).to.eql(85);
+		});
+
+		it('should get socket property', () =>
+			expect((defaultPeer as any)._socket).to.equal(socket));
+
+		it('should bind handlers to inbound socket');
 	});
 
-	describe('#instanceProperties', () => {
-		it('should get height property', () => {
-			return expect(defaultPeer.height)
-				.to.be.a('number')
-				.and.be.eql(545776);
-		});
+	describe('#set socket', () => {
+		it('should set socket');
+	});
 
-		it('should get ip property', () => {
-			return expect(defaultPeer.ipAddress)
-				.to.be.a('string')
-				.and.be.eql('12.12.12.12');
-		});
-
-		it('should get wsPort property', () => {
-			return expect(defaultPeer.wsPort)
-				.to.be.a('number')
-				.and.be.eql(5001);
-		});
-
-		it('should get socket property', () => {
-			return expect((defaultPeer as any)._socket).to.equal(socket);
-		});
+	describe('#disconnect', () => {
+		it('should disconnect');
 	});
 });
