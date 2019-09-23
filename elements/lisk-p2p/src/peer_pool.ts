@@ -21,7 +21,12 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
-import { EVICTED_PEER_CODE, INTENTIONAL_DISCONNECT_CODE } from './constants';
+import {
+	EVICTED_PEER_CODE,
+	INTENTIONAL_DISCONNECT_CODE,
+	PEER_KIND_INBOUND,
+	PEER_KIND_OUTBOUND,
+} from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
 	EVENT_BAN_PEER,
@@ -35,6 +40,7 @@ import {
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
@@ -66,16 +72,12 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
-import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
+import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils/misc';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
 	readonly percentage: number;
 	readonly asc: boolean;
-}
-
-interface IndexablePeer {
-	readonly [key: string]: number;
 }
 
 const filterPeersByCategory = (
@@ -89,9 +91,10 @@ const filterPeersByCategory = (
 	const peerCount = Math.ceil(peers.length * options.percentage);
 	const sign = !!options.asc ? 1 : -1;
 
+	// tslint:disable-next-line no-any
 	return peers
-		.sort((a: IndexablePeer | Peer, b: IndexablePeer | Peer) =>
-			a[options.category] > b[options.category] ? sign : sign * -1,
+		.sort((peerA: any, peerB: any) =>
+			peerA[options.category] > peerB[options.category] ? sign : sign * -1,
 		)
 		.slice(peerCount, peers.length);
 };
@@ -309,9 +312,15 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers().map(
+			(peerInfo: P2PDiscoveredPeerInfo) => ({
+				...peerInfo,
+				kind: PEER_KIND_OUTBOUND,
+			}),
+		);
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: this.getUniqueOutboundConnectedPeers(),
+			peers: outboundPeerInfos,
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -329,9 +338,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public send(message: P2PMessagePacket): void {
-		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
-		);
+		const listOfPeerInfo = [...this._peerMap.values()].map((peer: Peer) => ({
+			...(peer.peerInfo as P2PDiscoveredPeerInfo),
+			kind:
+				peer instanceof OutboundPeer ? PEER_KIND_OUTBOUND : PEER_KIND_INBOUND,
+		}));
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
@@ -342,7 +353,11 @@ export class PeerPool extends EventEmitter {
 
 		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			this.sendToPeer(message, selectedPeerId);
+			try {
+				this.sendToPeer(message, selectedPeerId);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
+			}
 		});
 	}
 
