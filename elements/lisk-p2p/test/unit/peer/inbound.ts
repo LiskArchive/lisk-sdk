@@ -45,6 +45,7 @@ describe('peer/inbound', () => {
 			emit: sandbox.stub(),
 			destroy: sandbox.stub(),
 		} as any);
+		sandbox.spy(global, 'setTimeout');
 		defaultInboundPeer = new InboundPeer(
 			defaultPeerInfo,
 			socket,
@@ -60,24 +61,25 @@ describe('peer/inbound', () => {
 		it('should be an instance of P2P blockchain', () =>
 			expect(defaultInboundPeer).and.be.instanceof(InboundPeer));
 
-		it('should have a function named _handleInboundSocketError', () => {
+		it('should have a function named _handleInboundSocketError', () =>
 			expect((defaultInboundPeer as any)._handleInboundSocketError).to.be.a(
 				'function',
-			);
-		});
+			));
 
-		it('should have a function named _handleInboundSocketClose ', () => {
+		it('should have a function named _handleInboundSocketClose ', () =>
 			expect((defaultInboundPeer as any)._handleInboundSocketClose).to.be.a(
 				'function',
+			));
+
+		it('should should have a function named _sendPing', () =>
+			expect((defaultInboundPeer as any)._sendPing).to.be.a('function'));
+
+		it('should set ping timeout', () => {
+			expect((defaultInboundPeer as any)._pingTimeoutId).to.be.an('object');
+			expect(setTimeout).to.be.calledOnceWith(
+				(defaultInboundPeer as any)._sendPing,
 			);
 		});
-
-		it('should should have a function named _sendPing', () => {
-			expect((defaultInboundPeer as any)._sendPing).to.be.a('function');
-		});
-
-		it('should get ping timeout', () =>
-			expect((defaultInboundPeer as any)._pingTimeoutId).to.be.an('object'));
 
 		it('should get socket property', () =>
 			expect((defaultInboundPeer as any)._socket).to.equal(socket));
