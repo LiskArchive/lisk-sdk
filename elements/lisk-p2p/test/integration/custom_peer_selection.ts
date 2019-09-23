@@ -24,6 +24,7 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
+import { PEER_KIND_OUTBOUND, PEER_KIND_INBOUND } from '../../src/constants';
 
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -38,6 +39,15 @@ describe('Custom peer selection', () => {
 		input: P2PPeerSelectionForSendInput | P2PPeerSelectionForRequestInput,
 	) => {
 		const { peers: peersList, nodeInfo } = input;
+
+		peersList.forEach(peerInfo => {
+			if (
+				peerInfo.kind !== PEER_KIND_INBOUND &&
+				peerInfo.kind !== PEER_KIND_OUTBOUND
+			) {
+				throw new Error(`Invalid peer kind: ${peerInfo.kind}`);
+			}
+		});
 
 		const filteredPeers = peersList.filter(peer => {
 			if (nodeInfo && nodeInfo.height <= peer.height) {
@@ -76,10 +86,6 @@ describe('Custom peer selection', () => {
 	const peerSelectionForConnection: P2PPeerSelectionForConnectionFunction = (
 		input: P2PPeerSelectionForConnectionInput,
 	) => [...input.newPeers, ...input.triedPeers];
-
-	before(async () => {
-		sandbox.restore();
-	});
 
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -124,14 +130,12 @@ describe('Custom peer selection', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
 	});
 
-	it('should start all the nodes with custom selection functions without fail', () => {
+	it('should start all the nodes with custom selection functions without fail', async () => {
 		for (let p2p of p2pNodeList) {
 			expect(p2p).to.have.property('isActive', true);
 		}
@@ -181,6 +185,7 @@ describe('Custom peer selection', () => {
 				.which.is.equal('bar');
 		});
 	});
+
 	describe('P2P.send', () => {
 		let collectedMessages: Array<any> = [];
 

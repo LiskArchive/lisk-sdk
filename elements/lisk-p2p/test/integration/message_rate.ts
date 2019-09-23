@@ -13,22 +13,24 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, EVENT_REMOVE_PEER } from '../../src/index';
+import {
+	P2P,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REMOVE_PEER,
+} from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 
 describe('Message rate limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+	let collectedMessages: Array<any> = [];
+	let messageRates: Map<number, Array<number>> = new Map();
 	const removedPeers = new Map();
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
 	const POPULATOR_INTERVAL = 50;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
-
-	before(async () => {
-		sandbox.restore();
-	});
 
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -71,8 +73,20 @@ describe('Message rate limit', () => {
 			});
 		});
 		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-
 		await wait(1000);
+
+		for (let p2p of p2pNodeList) {
+			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
+				collectedMessages.push({
+					nodePort: p2p.nodeInfo.wsPort,
+					message,
+				});
+				let peerRates = messageRates.get(p2p.nodeInfo.wsPort) || [];
+				peerRates.push(message.rate);
+				messageRates.set(p2p.nodeInfo.wsPort, peerRates);
+			});
+		}
+
 		const secondP2PNode = p2pNodeList[1];
 		secondP2PNode.on(EVENT_REMOVE_PEER, peerId => {
 			const peerWsPort = peerId.split(':')[1];
@@ -101,31 +115,15 @@ describe('Message rate limit', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(100);
 	});
 
 	describe('P2P.sendToPeer', () => {
-		let collectedMessages: Array<any> = [];
-		let messageRates: Map<number, Array<number>> = new Map();
-
 		beforeEach(() => {
 			collectedMessages = [];
 			messageRates = new Map();
-			for (let p2p of p2pNodeList) {
-				p2p.on('messageReceived', message => {
-					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
-						message,
-					});
-					let peerRates = messageRates.get(p2p.nodeInfo.wsPort) || [];
-					peerRates.push(message.rate);
-					messageRates.set(p2p.nodeInfo.wsPort, peerRates);
-				});
-			}
 		});
 
 		it('should track the message rate correctly when receiving messages', async () => {
@@ -139,13 +137,15 @@ describe('Message rate limit', () => {
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(10);
-				firstP2PNode.sendToPeer(
-					{
-						event: 'foo',
-						data: i,
-					},
-					targetPeerId,
-				);
+				try {
+					firstP2PNode.sendToPeer(
+						{
+							event: 'foo',
+							data: i,
+						},
+						targetPeerId,
+					);
+				} catch (e) {}
 			}
 
 			await wait(50);

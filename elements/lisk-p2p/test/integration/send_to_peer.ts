@@ -26,10 +26,6 @@ describe('P2P.sendToPeer', () => {
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 			// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -85,16 +81,13 @@ describe('P2P.sendToPeer', () => {
 
 	afterEach(async () => {
 		await Promise.all(
-			p2pNodeList
-				.filter(p2p => p2p.isActive)
-				.map(async p2p => await p2p.stop()),
+			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 		);
 		await wait(1000);
 	});
 
 	it('should send message to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
-
 		const targetPeerPort = NETWORK_START_PORT + 3;
 		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 

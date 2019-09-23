@@ -14,6 +14,7 @@
  */
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
+import { PEER_KIND_INBOUND, PEER_KIND_OUTBOUND } from '../constants';
 import {
 	P2PDiscoveredPeerInfo,
 	P2PPeerInfo,
@@ -41,8 +42,39 @@ export const selectPeersForRequest = (
 
 export const selectPeersForSend = (
 	input: P2PPeerSelectionForSendInput,
-): ReadonlyArray<P2PDiscoveredPeerInfo> =>
-	shuffle(input.peers).slice(0, input.peerLimit);
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const shuffledPeers = shuffle(input.peers);
+	const peerLimit = input.peerLimit as number;
+	// tslint:disable: no-magic-numbers
+	const halfPeerLimit = Math.round(peerLimit / 2);
+
+	const outboundPeers = shuffledPeers.filter(
+		(peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === PEER_KIND_OUTBOUND,
+	);
+
+	const inboundPeers = shuffledPeers.filter(
+		(peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === PEER_KIND_INBOUND,
+	);
+
+	// tslint:disable: no-let
+	let shortestPeersList;
+	// tslint:disable: no-let
+	let longestPeersList;
+
+	if (outboundPeers.length < inboundPeers.length) {
+		shortestPeersList = outboundPeers;
+		longestPeersList = inboundPeers;
+	} else {
+		shortestPeersList = inboundPeers;
+		longestPeersList = outboundPeers;
+	}
+
+	const selectedFirstKindPeers = shortestPeersList.slice(0, halfPeerLimit);
+	const remainingPeerLimit = peerLimit - selectedFirstKindPeers.length;
+	const selectedSecondKindPeers = longestPeersList.slice(0, remainingPeerLimit);
+
+	return selectedFirstKindPeers.concat(selectedSecondKindPeers);
+};
 
 export const selectPeersForConnection = (
 	input: P2PPeerSelectionForConnectionInput,

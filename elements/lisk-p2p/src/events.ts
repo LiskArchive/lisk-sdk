@@ -35,6 +35,7 @@ export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
 export const EVENT_FAILED_TO_FETCH_PEERS = 'failedToFetchPeers';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
+export const EVENT_FAILED_TO_SEND_MESSAGE = 'failedToSendMessage';
 
 // Peer base
 export const REMOTE_SC_EVENT_RPC_REQUEST = 'rpc-request';

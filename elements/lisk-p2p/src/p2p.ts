@@ -65,6 +65,7 @@ import {
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_NETWORK_READY,
@@ -91,7 +92,7 @@ import {
 	PeerLists,
 } from './p2p_types';
 import { PeerBook } from './peer_directory';
-import { PeerPool } from './peer_pool';
+import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerIdFromPeerInfo,
 	sanitizeOutgoingPeerInfo,
@@ -107,6 +108,79 @@ interface SCServerUpdated extends SCServer {
 }
 
 const BASE_10_RADIX = 10;
+
+const createPeerPoolConfig = (
+	config: P2PConfig,
+	peerLists: PeerLists,
+): PeerPoolConfig => ({
+	connectTimeout: config.connectTimeout,
+	ackTimeout: config.ackTimeout,
+	wsMaxPayload: config.wsMaxPayload
+		? config.wsMaxPayload
+		: DEFAULT_WS_MAX_PAYLOAD,
+	peerSelectionForSend: config.peerSelectionForSend
+		? config.peerSelectionForSend
+		: selectPeersForSend,
+	peerSelectionForRequest: config.peerSelectionForRequest
+		? config.peerSelectionForRequest
+		: selectPeersForRequest,
+	peerSelectionForConnection: config.peerSelectionForConnection
+		? config.peerSelectionForConnection
+		: selectPeersForConnection,
+	sendPeerLimit:
+		config.sendPeerLimit === undefined
+			? DEFAULT_SEND_PEER_LIMIT
+			: config.sendPeerLimit,
+	peerBanTime: config.peerBanTime ? config.peerBanTime : DEFAULT_BAN_TIME,
+	maxOutboundConnections:
+		config.maxOutboundConnections === undefined
+			? DEFAULT_MAX_OUTBOUND_CONNECTIONS
+			: config.maxOutboundConnections,
+	maxInboundConnections:
+		config.maxInboundConnections === undefined
+			? DEFAULT_MAX_INBOUND_CONNECTIONS
+			: config.maxInboundConnections,
+	maxPeerDiscoveryResponseLength:
+		config.maxPeerDiscoveryResponseLength === undefined
+			? DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH
+			: config.maxPeerDiscoveryResponseLength,
+	maxPeerInfoSize: config.maxPeerInfoSize
+		? config.maxPeerInfoSize
+		: DEFAULT_MAX_PEER_INFO_SIZE,
+	outboundShuffleInterval: config.outboundShuffleInterval
+		? config.outboundShuffleInterval
+		: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
+	netgroupProtectionRatio:
+		typeof config.netgroupProtectionRatio === 'number'
+			? config.netgroupProtectionRatio
+			: DEFAULT_PEER_PROTECTION_FOR_NETGROUP,
+	latencyProtectionRatio:
+		typeof config.latencyProtectionRatio === 'number'
+			? config.latencyProtectionRatio
+			: DEFAULT_PEER_PROTECTION_FOR_LATENCY,
+	productivityProtectionRatio:
+		typeof config.productivityProtectionRatio === 'number'
+			? config.productivityProtectionRatio
+			: DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
+	longevityProtectionRatio:
+		typeof config.longevityProtectionRatio === 'number'
+			? config.longevityProtectionRatio
+			: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
+	wsMaxMessageRate:
+		typeof config.wsMaxMessageRate === 'number'
+			? config.wsMaxMessageRate
+			: DEFAULT_WS_MAX_MESSAGE_RATE,
+	wsMaxMessageRatePenalty:
+		typeof config.wsMaxMessageRatePenalty === 'number'
+			? config.wsMaxMessageRatePenalty
+			: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+	rateCalculationInterval:
+		typeof config.rateCalculationInterval === 'number'
+			? config.rateCalculationInterval
+			: DEFAULT_RATE_CALCULATION_INTERVAL,
+	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
+	peerLists,
+});
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
@@ -128,6 +202,7 @@ export class P2P extends EventEmitter {
 		discoveredPeerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
+	private readonly _handleFailedToSendMessage: (error: Error) => void;
 	private readonly _handleOutboundPeerConnect: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -154,7 +229,6 @@ export class P2P extends EventEmitter {
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 
-	// tslint:disable-next-line: cyclomatic-complexity
 	public constructor(config: P2PConfig) {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
@@ -355,6 +429,11 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		};
 
+		this._handleFailedToSendMessage = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
+		};
+
 		this._handleOutboundSocketError = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
@@ -365,75 +444,11 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
-		this._peerPool = new PeerPool({
-			connectTimeout: config.connectTimeout,
-			ackTimeout: config.ackTimeout,
-			wsMaxPayload: config.wsMaxPayload
-				? config.wsMaxPayload
-				: DEFAULT_WS_MAX_PAYLOAD,
-			peerSelectionForSend: config.peerSelectionForSend
-				? config.peerSelectionForSend
-				: selectPeersForSend,
-			peerSelectionForRequest: config.peerSelectionForRequest
-				? config.peerSelectionForRequest
-				: selectPeersForRequest,
-			peerSelectionForConnection: config.peerSelectionForConnection
-				? config.peerSelectionForConnection
-				: selectPeersForConnection,
-			sendPeerLimit:
-				config.sendPeerLimit === undefined
-					? DEFAULT_SEND_PEER_LIMIT
-					: config.sendPeerLimit,
-			peerBanTime: config.peerBanTime ? config.peerBanTime : DEFAULT_BAN_TIME,
-			maxOutboundConnections:
-				config.maxOutboundConnections === undefined
-					? DEFAULT_MAX_OUTBOUND_CONNECTIONS
-					: config.maxOutboundConnections,
-			maxInboundConnections:
-				config.maxInboundConnections === undefined
-					? DEFAULT_MAX_INBOUND_CONNECTIONS
-					: config.maxInboundConnections,
-			maxPeerDiscoveryResponseLength:
-				config.maxPeerDiscoveryResponseLength === undefined
-					? DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH
-					: config.maxPeerDiscoveryResponseLength,
-			maxPeerInfoSize: config.maxPeerInfoSize
-				? config.maxPeerInfoSize
-				: DEFAULT_MAX_PEER_INFO_SIZE,
-			outboundShuffleInterval: config.outboundShuffleInterval
-				? config.outboundShuffleInterval
-				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
-			netgroupProtectionRatio:
-				typeof config.netgroupProtectionRatio === 'number'
-					? config.netgroupProtectionRatio
-					: DEFAULT_PEER_PROTECTION_FOR_NETGROUP,
-			latencyProtectionRatio:
-				typeof config.latencyProtectionRatio === 'number'
-					? config.latencyProtectionRatio
-					: DEFAULT_PEER_PROTECTION_FOR_LATENCY,
-			productivityProtectionRatio:
-				typeof config.productivityProtectionRatio === 'number'
-					? config.productivityProtectionRatio
-					: DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
-			longevityProtectionRatio:
-				typeof config.longevityProtectionRatio === 'number'
-					? config.longevityProtectionRatio
-					: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
-			wsMaxMessageRate:
-				typeof config.wsMaxMessageRate === 'number'
-					? config.wsMaxMessageRate
-					: DEFAULT_WS_MAX_MESSAGE_RATE,
-			wsMaxMessageRatePenalty:
-				typeof config.wsMaxMessageRatePenalty === 'number'
-					? config.wsMaxMessageRatePenalty
-					: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
-			rateCalculationInterval:
-				typeof config.rateCalculationInterval === 'number'
-					? config.rateCalculationInterval
-					: DEFAULT_RATE_CALCULATION_INTERVAL,
-			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
-			peerLists: this._sanitizedPeerLists,
-		});
+		const peerPoolConfig = createPeerPoolConfig(
+			config,
+			this._sanitizedPeerLists,
+		);
+		this._peerPool = new PeerPool(peerPoolConfig);
 
 		this._bindHandlersToPeerPool(this._peerPool);
 		// Add peers to tried peers if want to re-use previously tried peers
@@ -901,6 +916,7 @@ export class P2P extends EventEmitter {
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
 			this._handleFailedToPushNodeInfo,
 		);
+		peerPool.on(EVENT_FAILED_TO_SEND_MESSAGE, this._handleFailedToSendMessage);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
 		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
