@@ -65,7 +65,10 @@ class Processor {
 		await this._processGenesis(genesisBlock, blockProcessor, {
 			skipSave: false,
 		});
-		await blockProcessor.init.run();
+		await this.blocksModule.init();
+		for (const processor of Object.values(this.processors)) {
+			await processor.init.run();
+		}
 		this.logger.info('Blockchain ready');
 	}
 

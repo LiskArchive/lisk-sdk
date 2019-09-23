@@ -211,7 +211,6 @@ module.exports = class Chain {
 			});
 
 			this.logger.info('Modules ready and launched');
-			await this.bft.init();
 			// After binding, it should immediately load blockchain
 			await this.processor.init(this.options.genesisBlock);
 
