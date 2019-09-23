@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { when } = require('jest-when');
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 const {
@@ -1703,12 +1704,113 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('loadBlocksDataWs', () => {
-		it.todo('a');
-	});
+	describe('loadBlocksFromLastBlockId', () => {
+		describe('when called without lastBlockId', () => {
+			it('should reject with error', async () => {
+				expect.assertions(1);
+				try {
+					await blocksInstance.loadBlocksFromLastBlockId();
+				} catch (err) {
+					expect(err.message).toBe('lastBlockId needs to be specified');
+				}
+			});
+		});
 
-	describe('readBlocksFromNetwork', () => {
-		it.todo('b');
+		describe('when called without limit', () => {
+			const validLastBlock = {
+				height: 100,
+				id: 'block-id',
+			};
+
+			beforeEach(async () => {
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+					validLastBlock,
+				]);
+			});
+
+			it('should use limit 1 as default', async () => {
+				await blocksInstance.loadBlocksFromLastBlockId('block-id');
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{
+						height_gt: 100,
+						height_lt: 101,
+					},
+					{
+						extended: true,
+						limit: null,
+						sort: ['height'],
+					},
+				);
+			});
+		});
+
+		describe('when called with invalid lastBlockId', () => {
+			beforeEach(async () => {
+				when(stubs.dependencies.storage.entities.Block.get)
+					.calledWith({ id: 'block-id' }, { limit: 1 })
+					.mockResolvedValue([]);
+			});
+
+			it('should reject with error', async () => {
+				expect.assertions(1);
+				try {
+					await blocksInstance.loadBlocksFromLastBlockId('block-id');
+				} catch (err) {
+					expect(err.message).toBe('Invalid lastBlockId requested');
+				}
+			});
+		});
+
+		describe('when called with valid lastBlockId and limit', () => {
+			const validLastBlock = {
+				height: 100,
+				id: 'block-id',
+			};
+
+			const validBlocks = [{ height: 101, id: 'block-id-1' }];
+
+			beforeEach(async () => {
+				when(stubs.dependencies.storage.entities.Block.get)
+					.calledWith({ id: 'block-id' }, { limit: 34 })
+					.mockResolvedValue([validLastBlock]);
+				when(stubs.dependencies.storage.entities.Block.get)
+					.calledWith(
+						{
+							height_gt: 100,
+							height_lt: 134,
+						},
+						{
+							extended: true,
+							limit: null,
+							sort: ['height'],
+						},
+					)
+					.mockResolvedValue(validBlocks);
+			});
+
+			it('should use the storage with correct filter', async () => {
+				const blocks = await blocksInstance.loadBlocksFromLastBlockId(
+					'block-id',
+					34,
+				);
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{
+						height_gt: 100,
+						height_lt: 134,
+					},
+					{
+						extended: true,
+						limit: null,
+						sort: ['height'],
+					},
+				);
+				expect(blocks).toBe(validBlocks);
+			});
+		});
 	});
 
 	describe('getHighestCommonBlock', () => {

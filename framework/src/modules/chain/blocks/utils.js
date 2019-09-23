@@ -100,7 +100,6 @@ const parseStorageObjToLegacyObj = block => {
 
 /**
  * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
- * NOTE: changing the original method loadBlocksDataWS() could potentially change behaviour (popLastBlock() uses it for instance)
  * so that's why this new method was added
  * @param {Object} filter - Filter options
  * @param {Object} filter.limit - Limit blocks to amount
@@ -112,66 +111,40 @@ const parseStorageObjToLegacyObj = block => {
  * @returns {Object} cb.rows - List of blocks
  */
 // eslint-disable-next-line class-methods-use-this
-const loadBlocksDataWS = async (storage, filter, tx) => {
-	const params = { limit: filter.limit || 1 };
-
-	// FIXME: filter.id is not used
-	if (filter.id && filter.lastId) {
-		throw new Error('Invalid filter: Received both id and lastId');
+const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
+	if (!lastBlockId) {
+		throw new Error('lastBlockId needs to be specified');
 	}
-	if (filter.id) {
-		params.id = filter.id;
-	} else if (filter.lastId) {
-		params.lastId = filter.lastId;
+	if (!limit) {
+		throw new Error('Limit needs to be specified');
 	}
 
 	// Get height of block with supplied ID
-	const rows = await storage.entities.Block.get(
-		{ id: filter.lastId || null },
-		{ limit: params.limit },
-		tx,
+	const [lastBlock] = await storage.entities.Block.get(
+		{ id: lastBlockId },
+		{ limit },
 	);
-	if (!rows.length) {
+	if (!lastBlock) {
 		throw new Error('Invalid lastBlockId requested');
 	}
 
-	const height = rows.length ? rows[0].height : 0;
+	const lastBlockHeight = lastBlock.height;
+
 	// Calculate max block height for database query
-	const realLimit = height + (parseInt(filter.limit, 10) || 1);
+	const fetchUntilHeight = lastBlockHeight + limit;
 
-	params.limit = realLimit;
-	params.height = height;
+	const filter = {
+		height_gt: lastBlockHeight,
+		height_lt: fetchUntilHeight,
+	};
 
-	const mergedParams = { ...filter, ...params };
-	const queryFilters = {};
-
-	if (!mergedParams.id && !mergedParams.lastId) {
-		queryFilters.height_lt = mergedParams.limit;
-	}
-
-	if (mergedParams.id) {
-		queryFilters.id = mergedParams.id;
-	}
-
-	if (mergedParams.lastId) {
-		queryFilters.height_gt = mergedParams.height;
-		queryFilters.height_lt = mergedParams.limit;
-	}
-	const blockRows = await storage.entities.Block.get(
-		queryFilters,
-		{
-			extended: true,
-			limit: null,
-			sort: ['height'],
-		},
-		tx,
-	);
-
-	let parsedBlocks = [];
-	blockRows.forEach(block => {
-		parsedBlocks = parsedBlocks.concat(parseStorageObjToLegacyObj(block));
+	const blocks = await storage.entities.Block.get(filter, {
+		extended: true,
+		limit: null,
+		sort: ['height'],
 	});
-	return parsedBlocks;
+
+	return blocks;
 };
 
 /**
@@ -400,7 +373,7 @@ module.exports = {
 	getId,
 	parseStorageObjToLegacyObj,
 	getIdSequence,
-	loadBlocksDataWS,
+	loadBlocksFromLastBlockId,
 	loadMemTables,
 	calculateNewBroadhash,
 	setHeight,
