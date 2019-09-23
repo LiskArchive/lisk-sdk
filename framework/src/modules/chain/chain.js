@@ -45,6 +45,7 @@ const { Processor } = require('./processor');
 const { Rebuilder } = require('./rebuilder');
 const { BlockProcessorV0 } = require('./block_processor_v0.js');
 const { BlockProcessorV1 } = require('./block_processor_v1.js');
+const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -174,9 +175,17 @@ module.exports = class Chain {
 							height >= period.start && height <= period.end,
 					});
 				}
+
+				if (this.options.exceptions.blockVersions[1]) {
+					const period = this.options.exceptions.blockVersions[1];
+					this.processor.register(new BlockProcessorV1(processorDependencies), {
+						matcher: ({ height }) =>
+							height >= period.start && height <= period.end,
+					});
+				}
 			}
 
-			this.processor.register(new BlockProcessorV1(processorDependencies));
+			this.processor.register(new BlockProcessorV2(processorDependencies));
 
 			// Deactivate broadcast and syncing during snapshotting process
 			if (this.options.loading.rebuildUpToRound) {
