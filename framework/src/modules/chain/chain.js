@@ -564,7 +564,7 @@ module.exports = class Chain {
 	}
 
 	_startLoader() {
-		this.loader.loadTransactionsAndSignatures();
+		this.loader.loadTransactions();
 		if (!this.options.syncing.active) {
 			return;
 		}

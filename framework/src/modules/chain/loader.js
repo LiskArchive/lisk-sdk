@@ -89,9 +89,9 @@ class Loader {
 	}
 
 	/**
-	 * Pulls Transactions and signatures.
+	 * Pulls Transactions
 	 */
-	async loadTransactionsAndSignatures() {
+	async loadTransactions() {
 		await new Promise(resolve => {
 			async.retry(
 				this.retries,
@@ -99,18 +99,6 @@ class Loader {
 				err => {
 					if (err) {
 						this.logger.error('Unconfirmed transactions loader', err);
-					}
-					resolve();
-				},
-			);
-		});
-		await new Promise(resolve => {
-			async.retry(
-				this.retries,
-				async () => this._getSignaturesFromNetwork(),
-				err => {
-					if (err) {
-						this.logger.error('Signatures loader', err);
 					}
 					resolve();
 				},
@@ -165,46 +153,6 @@ class Loader {
 
 		if (this.cache.ready) {
 			this.cache.enable();
-		}
-	}
-
-	/**
-	 * Loads signatures from network.
-	 * Processes each signature from the network.
-	 *
-	 * @private
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
-	 */
-	async _getSignaturesFromNetwork() {
-		this.logger.info('Loading signatures from the network');
-
-		// TODO: Add target module to procedure name. E.g. chain:getSignatures
-		const { data: result } = await this.channel.invoke('network:request', {
-			procedure: 'getSignatures',
-		});
-
-		const errors = validator.validate(definitions.WSSignaturesResponse, result);
-		if (errors.length) {
-			throw errors;
-		}
-
-		const { signatures } = result;
-
-		const signatureCount = signatures.length;
-		// eslint-disable-next-line no-plusplus
-		for (let i = 0; i < signatureCount; i++) {
-			const signaturePacket = signatures[i];
-			const subSignatureCount = signaturePacket.signatures.length;
-			// eslint-disable-next-line no-plusplus
-			for (let j = 0; j < subSignatureCount; j++) {
-				const signature = signaturePacket.signatures[j];
-
-				await this.transactionPoolModule.getTransactionAndProcessSignature({
-					signature,
-					transactionId: signature.transactionId,
-				});
-			}
 		}
 	}
 
