@@ -72,7 +72,7 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
-import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils/misc';
+import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
