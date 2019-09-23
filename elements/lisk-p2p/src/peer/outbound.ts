@@ -33,12 +33,12 @@ import {
 	P2PResponsePacket,
 } from '../p2p_types';
 import { sanitizeNodeInfoToLegacyFormat } from '../utils';
-import { Peer, PeerConfig, SCClientSocket } from './base';
-
-const socketErrorStatusCodes = {
-	...(socketClusterClient.SCClientSocket as any).errorStatuses,
-	1000: 'Intentionally disconnected',
-};
+import {
+	Peer,
+	PeerConfig,
+	SCClientSocket,
+	socketErrorStatusCodes,
+} from './base';
 
 interface ClientOptionsUpdated {
 	readonly hostname: string;

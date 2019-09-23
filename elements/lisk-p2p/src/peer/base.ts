@@ -60,6 +60,11 @@ import {
 	validateRPCRequest,
 } from '../utils';
 
+export const socketErrorStatusCodes = {
+	...(socketClusterClient.SCClientSocket as any).errorStatuses,
+	1000: 'Intentionally disconnected',
+};
+
 // Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
 const RATE_NORMALIZATION_FACTOR = 1000;
 

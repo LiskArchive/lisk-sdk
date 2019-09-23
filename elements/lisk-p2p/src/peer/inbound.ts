@@ -25,12 +25,12 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import { P2PDiscoveredPeerInfo } from '../p2p_types';
-import { Peer, PeerConfig, SCServerSocketUpdated } from './base';
-
-const socketErrorStatusCodes = {
-	...(SCServerSocket as any).errorStatuses,
-	1000: 'Intentionally disconnected',
-};
+import {
+	Peer,
+	PeerConfig,
+	SCServerSocketUpdated,
+	socketErrorStatusCodes,
+} from './base';
 
 const getRandomPingDelay = () =>
 	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
