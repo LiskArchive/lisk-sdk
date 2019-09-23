@@ -58,12 +58,10 @@ export class NewList extends PeerList {
 		}
 
 		// First eviction strategy
-		const evictedPeersBasedOnTime = this._evictPeerBasedOnTimeInBucket(
-			bucketId,
-		);
+		const evictedPeerBasedOnTime = this._evictPeerBasedOnTimeInBucket(bucketId);
 
-		if (evictedPeersBasedOnTime) {
-			return evictedPeersBasedOnTime;
+		if (evictedPeerBasedOnTime) {
+			return evictedPeerBasedOnTime;
 		}
 
 		// Second eviction strategy: Default eviction based on base class
