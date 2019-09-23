@@ -331,22 +331,4 @@ export class DappTransaction extends BaseTransaction {
 	protected undoAsset(_: StateStore): ReadonlyArray<TransactionError> {
 		return [];
 	}
-
-	// tslint:disable:next-line: prefer-function-over-method no-any
-	protected assetFromSync(raw: any): object | undefined {
-		if (!raw.dapp_name) {
-			return undefined;
-		}
-		const dapp = {
-			name: raw.dapp_name,
-			description: raw.dapp_description,
-			tags: raw.dapp_tags,
-			type: raw.dapp_type,
-			link: raw.dapp_link,
-			category: raw.dapp_category,
-			icon: raw.dapp_icon,
-		};
-
-		return { dapp };
-	}
 }

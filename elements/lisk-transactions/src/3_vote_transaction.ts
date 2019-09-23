@@ -324,14 +324,4 @@ export class VoteTransaction extends BaseTransaction {
 
 		return errors;
 	}
-
-	// tslint:disable:next-line: prefer-function-over-method no-any
-	protected assetFromSync(raw: any): object | undefined {
-		if (!raw.v_votes) {
-			return undefined;
-		}
-		const votes = raw.v_votes.split(',');
-
-		return { votes };
-	}
 }

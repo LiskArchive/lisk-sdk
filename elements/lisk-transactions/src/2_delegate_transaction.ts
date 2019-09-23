@@ -192,18 +192,4 @@ export class DelegateTransaction extends BaseTransaction {
 
 		return [];
 	}
-
-	// tslint:disable:next-line: prefer-function-over-method no-any
-	protected assetFromSync(raw: any): object | undefined {
-		if (!raw.d_username) {
-			return undefined;
-		}
-		const delegate = {
-			username: raw.d_username,
-			publicKey: raw.t_senderPublicKey,
-			address: raw.t_senderId,
-		};
-
-		return { delegate };
-	}
 }

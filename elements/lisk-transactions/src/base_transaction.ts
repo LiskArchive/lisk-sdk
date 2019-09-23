@@ -135,8 +135,6 @@ export abstract class BaseTransaction {
 	protected abstract verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): ReadonlyArray<TransactionError>;
-	// tslint:disable-next-line no-any
-	protected abstract assetFromSync(raw: any): object | undefined;
 
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
@@ -543,39 +541,6 @@ export abstract class BaseTransaction {
 			this._signSignature = signData(hash(this.getBytes()), secondPassphrase);
 		}
 		this._id = getId(this.getBytes());
-	}
-
-	/* tslint:disable:next-line: no-any no-null-keyword */
-	public fromSync(raw: any): TransactionJSON | null {
-		const transactionJSON: TransactionJSON & {
-			readonly requesterPublicKey: string;
-			readonly [key: string]: string | number | object | null;
-		} = {
-			id: raw.t_id,
-			height: raw.b_height,
-			blockId: raw.b_id || raw.t_blockId,
-			type: parseInt(raw.t_type, 10),
-			timestamp: parseInt(raw.t_timestamp, 10),
-			senderPublicKey: raw.t_senderPublicKey,
-			requesterPublicKey: raw.t_requesterPublicKey,
-			senderId: raw.t_senderId,
-			recipientId: raw.t_recipientId,
-			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: raw.t_amount,
-			fee: raw.t_fee,
-			signature: raw.t_signature,
-			signSignature: raw.t_signSignature,
-			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations || 0, 10),
-			asset: {},
-		};
-
-		const transaction = {
-			...transactionJSON,
-			asset: this.assetFromSync(raw) || {},
-		};
-
-		return transaction;
 	}
 
 	protected getBasicBytes(): Buffer {
