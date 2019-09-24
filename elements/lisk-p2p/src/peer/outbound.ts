@@ -27,7 +27,6 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import {
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PPeerInfo,
 	P2PRequestPacket,
@@ -51,11 +50,6 @@ interface ClientOptionsUpdated {
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
 	readonly maxPayload?: number;
-}
-
-export interface PeerInfoAndOutboundConnection {
-	readonly peerInfo: P2PDiscoveredPeerInfo;
-	readonly socket: SCClientSocket;
 }
 
 export class OutboundPeer extends Peer {
