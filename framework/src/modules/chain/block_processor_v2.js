@@ -224,6 +224,13 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				return this.bftModule.computeBFTHeaderProperties(delegatePublicKey);
 			},
 			(data, bftHeader) => this._create({ ...data, ...bftHeader }),
+			async (data, block) => {
+				await this.bftModule.saveMaxHeightPreviouslyForged(
+					block.generatorPublicKey,
+					block.height,
+				);
+				return block;
+			},
 		]);
 	}
 
