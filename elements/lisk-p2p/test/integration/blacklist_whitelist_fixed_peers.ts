@@ -15,17 +15,15 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { platform } from 'os';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
+import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
-	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const FIVE_CONNECTIONS = 5;
 	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 	const NETWORK_START_PORT = 5000;
-	const NETWORK_PEER_COUNT = 10;
 	const previousPeers = [
 		{
 			ipAddress: '127.0.0.15',
@@ -55,6 +53,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	});
 
 	describe('blacklisting', () => {
+		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const blacklistedPeers = [
 			{
 				ipAddress: '127.0.0.15',
@@ -73,45 +72,38 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		];
 
 		beforeEach(async () => {
-			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
-				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers = [
-					{
-						ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
-						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-					},
-				];
-				const nodePort = NETWORK_START_PORT + index;
-				return new P2P({
-					hostIp: '127.0.0.' + (index + 10),
-					connectTimeout: 100,
-					ackTimeout: 200,
-					blacklistedPeers: blacklistedPeers,
-					seedPeers,
-					fixedPeers: blacklistedPeers,
-					whitelistedPeers: blacklistedPeers,
-					previousPeers: previousPeersBlacklisted,
-					wsEngine: 'ws',
-					populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-					maxOutboundConnections: FIVE_CONNECTIONS,
-					maxInboundConnections: FIVE_CONNECTIONS,
-					nodeInfo: {
-						wsPort: nodePort,
-						nethash:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.1',
-						protocolVersion: '1.0.1',
-						minVersion: '1.0.0',
-						os: platform(),
-						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: `O2wTkjqplHII${nodePort}`,
-					},
-				});
+			const customSeedPeers = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => [
+				{
+					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
+				},
+			];
+
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
+				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+				maxOutboundConnections: FIVE_CONNECTIONS,
+				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+				blacklistedPeers,
+				fixedPeers: blacklistedPeers,
+				whitelistedPeers: blacklistedPeers,
+				previousPeers: previousPeersBlacklisted,
 			});
-			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-			await wait(1000);
+
+			p2pNodeList = await createNetwork({ customConfig });
+		});
+
+		afterEach(async () => {
+			await destroyNetwork(p2pNodeList);
 		});
 
 		afterEach(async () => {
@@ -166,6 +158,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	});
 
 	describe('fixed', () => {
+		let p2pNodeList: ReadonlyArray<P2P> = [];
+
 		const fixedPeers = [
 			{
 				ipAddress: '127.0.0.10',
@@ -173,43 +167,36 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			},
 		];
 		beforeEach(async () => {
-			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
-				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers = [
-					{
-						ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
-						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-					},
-				];
-				const nodePort = NETWORK_START_PORT + index;
-				return new P2P({
-					hostIp: '127.0.0.' + (index + 10),
-					connectTimeout: 100,
-					ackTimeout: 200,
-					seedPeers,
-					fixedPeers,
-					previousPeers,
-					wsEngine: 'ws',
-					populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-					maxOutboundConnections: FIVE_CONNECTIONS,
-					maxInboundConnections: FIVE_CONNECTIONS,
-					nodeInfo: {
-						wsPort: nodePort,
-						nethash:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.1',
-						protocolVersion: '1.0.1',
-						minVersion: '1.0.0',
-						os: platform(),
-						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: `O2wTkjqplHII${nodePort}`,
-					},
-				});
+			const customSeedPeers = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => [
+				{
+					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
+				},
+			];
+
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
+				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+				maxOutboundConnections: FIVE_CONNECTIONS,
+				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+				fixedPeers,
+				previousPeers,
 			});
-			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-			await wait(1000);
+
+			p2pNodeList = await createNetwork({ customConfig });
+		});
+
+		afterEach(async () => {
+			await destroyNetwork(p2pNodeList);
 		});
 
 		afterEach(async () => {
@@ -234,6 +221,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	});
 
 	describe('whitelisting', () => {
+		let p2pNodeList: ReadonlyArray<P2P> = [];
+
 		const whitelistedPeers = [
 			{
 				ipAddress: '127.0.0.10',
@@ -241,42 +230,36 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			},
 		];
 		beforeEach(async () => {
-			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
-				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers = [
-					{
-						ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
-						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
-					},
-				];
-				const nodePort = NETWORK_START_PORT + index;
-				return new P2P({
-					hostIp: '127.0.0.' + (index + 10),
-					connectTimeout: 100,
-					ackTimeout: 200,
-					seedPeers,
-					whitelistedPeers,
-					wsEngine: 'ws',
-					populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-					maxOutboundConnections: FIVE_CONNECTIONS,
-					maxInboundConnections: FIVE_CONNECTIONS,
-					nodeInfo: {
-						wsPort: nodePort,
-						nethash:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.1',
-						protocolVersion: '1.0.1',
-						minVersion: '1.0.0',
-						os: platform(),
-						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: `O2wTkjqplHII${nodePort}`,
-					},
-				});
+			const customSeedPeers = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => [
+				{
+					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
+				},
+			];
+
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
+				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+				maxOutboundConnections: FIVE_CONNECTIONS,
+				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+				whitelistedPeers,
+				previousPeers,
 			});
-			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-			await wait(1000);
+
+			p2pNodeList = await createNetwork({ customConfig });
+		});
+
+		afterEach(async () => {
+			await destroyNetwork(p2pNodeList);
 		});
 
 		afterEach(async () => {
