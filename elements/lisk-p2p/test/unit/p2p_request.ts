@@ -156,7 +156,7 @@ describe('p2p_request', () => {
 		});
 	});
 
-	describe('#when mixed success and error', () => {
+	describe('when success and error are mixed', () => {
 		let secondP2PRequest;
 		let err = new Error('Custom error');
 		err.name = 'CustomError';
