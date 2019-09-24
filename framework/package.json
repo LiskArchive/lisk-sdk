@@ -89,7 +89,7 @@
 		"z-schema": "3.24.2"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-passphrase": "2.0.1",
+		"@liskhq/lisk-passphrase": "2.0.3",
 		"chai": "4.2.0",
 		"chai-as-promised": "7.1.1",
 		"co-mocha": "1.2.2",

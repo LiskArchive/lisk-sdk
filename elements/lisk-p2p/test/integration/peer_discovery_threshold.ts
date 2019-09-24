@@ -15,69 +15,24 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { platform } from 'os';
+import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Peer discovery threshold', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const NETWORK_START_PORT = 5000;
-	const NETWORK_PEER_COUNT = 10;
-	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
-	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 	const MINIMUM_PEER_DISCOVERY_THRESHOLD = 1;
 	const MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 3;
 
 	describe(`When minimum peer discovery threshold is set to ${MINIMUM_PEER_DISCOVERY_THRESHOLD}`, () => {
 		beforeEach(async () => {
-			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
-				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers =
-					index === 0
-						? []
-						: [
-								{
-									ipAddress: '127.0.0.1',
-									wsPort: NETWORK_START_PORT + index - 1,
-								},
-						  ];
-
-				const nodePort = NETWORK_START_PORT + index;
-
-				return new P2P({
-					connectTimeout: 10000,
-					ackTimeout: 200,
-					seedPeers,
-					wsEngine: 'ws',
-					populatorInterval: 10000,
-					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
-					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
-					minimumPeerDiscoveryThreshold: MINIMUM_PEER_DISCOVERY_THRESHOLD,
-					nodeInfo: {
-						wsPort: nodePort,
-						nethash:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.1',
-						protocolVersion: '1.1',
-						minVersion: '1.0.0',
-						os: platform(),
-						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: `O2wTkjqplHII${nodePort}`,
-					},
-				});
+			const customConfig = () => ({
+				minimumPeerDiscoveryThreshold: MINIMUM_PEER_DISCOVERY_THRESHOLD,
 			});
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				await p2p.start();
-			}
-			await wait(200);
+
+			p2pNodeList = await createNetwork({ customConfig });
 		});
 
 		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
-			);
-			await wait(100);
+			await destroyNetwork(p2pNodeList);
 		});
 
 		it('should return list of peers with at most the minimum discovery threshold', async () => {
@@ -89,49 +44,12 @@ describe('Peer discovery threshold', () => {
 
 	describe(`When maximum peer discovery response size is set to ${MAX_PEER_DISCOVERY_RESPONSE_LENGTH}`, () => {
 		beforeEach(async () => {
-			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
-				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers =
-					index === 0
-						? []
-						: [
-								{
-									ipAddress: '127.0.0.1',
-									wsPort: NETWORK_START_PORT + index - 1,
-								},
-						  ];
-
-				const nodePort = NETWORK_START_PORT + index;
-
-				return new P2P({
-					connectTimeout: 10000,
-					ackTimeout: 200,
-					seedPeers,
-					wsEngine: 'ws',
-					populatorInterval: 10000,
-					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
-					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
-					maxPeerDiscoveryResponseLength: MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-					nodeInfo: {
-						wsPort: nodePort,
-						nethash:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.1',
-						protocolVersion: '1.1',
-						minVersion: '1.0.0',
-						os: platform(),
-						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: `O2wTkjqplHII${nodePort}`,
-					},
-				});
+			const customConfig = () => ({
+				minimumPeerDiscoveryThreshold: MINIMUM_PEER_DISCOVERY_THRESHOLD,
+				maxPeerDiscoveryResponseLength: MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 			});
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				await p2p.start();
-			}
-			await wait(200);
+
+			p2pNodeList = await createNetwork({ customConfig });
 		});
 
 		afterEach(async () => {
