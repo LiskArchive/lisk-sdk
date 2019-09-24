@@ -84,10 +84,10 @@ class BlockSynchronizationMechanism {
 				penalty: 100,
 			});
 			this.channel.publish('chain:processor:sync', { block: receivedBlock });
-			throw err;
-		} finally {
 			this.active = false;
+			throw err;
 		}
+		this.active = false;
 	}
 
 	get isActive() {
