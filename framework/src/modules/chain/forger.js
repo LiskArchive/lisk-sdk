@@ -400,9 +400,6 @@ class Forger {
 			timestamp,
 			transactions: sortedTransactions,
 			previousBlock,
-			// FIXME: Add correct value from BFT in pipeline
-			maxHeightPreviouslyForged: 0,
-			prevotedConfirmedUptoHeight: 0,
 		});
 		await this.processorModule.process(forgedBlock);
 		this.logger.info(
