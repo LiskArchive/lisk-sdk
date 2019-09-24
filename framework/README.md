@@ -117,6 +117,17 @@ npm run jest:<testType>
 npm run jest:<testType> -- [testPathPattern] [jestCliOptions]
 ```
 
+### API Performance and APM
+
+To access the API Peformance of your Lisk Instance, navigate to `http://localhost:4000/http-stats/ui`, the APM is enabled by default to all environment except `testnet` and `mainnet`. The APM doesn't store any of the performance metrics, neither it forwards to any external services. The stats is served until the instance is up and running, once the instance is restarted it will not hold any stats.
+
+To access the stats, follow the steps below:
+
+```
+node test/test_app | npx bunyan
+Access: http://localhost:4000/http-stats/ui
+```
+
 ## Contribution
 
 To test the changes in framework you can run,
