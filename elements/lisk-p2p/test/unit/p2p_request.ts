@@ -38,36 +38,6 @@ describe('p2p_request', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should have a procedure property which is set to the value specified in the constructor', async () => {
-			expect(request)
-				.to.have.property('procedure')
-				.which.equals('foo');
-		});
-
-		it('should have a data property which is set to the value specified in the constructor', async () => {
-			expect(request)
-				.to.have.property('data')
-				.which.equals(123);
-		});
-
-		it('should have a rate property which is set to the value specified in the constructor', async () => {
-			expect(request)
-				.to.have.property('rate')
-				.which.equals(0);
-		});
-
-		it('should have a peerId property which is set to the value specified in the constructor', async () => {
-			expect(request)
-				.to.have.property('peerId')
-				.which.equals('abc123');
-		});
-
-		it('should have a wasResponseSent property which is false', async () => {
-			expect(request)
-				.to.have.property('wasResponseSent')
-				.which.equals(false);
-		});
-
 		it('should increment the productivity.requestCounter by 1', async () => {
 			expect(requestOptions.productivity.requestCounter).to.equal(1);
 		});
@@ -80,6 +50,46 @@ describe('p2p_request', () => {
 
 		it('should initiate productivity.responseCounter with the value specified in the constructor', async () => {
 			expect(requestOptions.productivity.responseCounter).to.equal(0);
+		});
+	});
+
+	describe('#procedure', () => {
+		it('should have a procedure property which is set to the value specified in the constructor', async () => {
+			expect(request)
+				.to.have.property('procedure')
+				.which.equals('foo');
+		});
+	});
+
+	describe('#data', () => {
+		it('should have a data property which is set to the value specified in the constructor', async () => {
+			expect(request)
+				.to.have.property('data')
+				.which.equals(123);
+		});
+	});
+
+	describe('#rate', () => {
+		it('should have a rate property which is set to the value specified in the constructor', async () => {
+			expect(request)
+				.to.have.property('rate')
+				.which.equals(0);
+		});
+	});
+
+	describe('#peerId', () => {
+		it('should have a peerId property which is set to the value specified in the constructor', async () => {
+			expect(request)
+				.to.have.property('peerId')
+				.which.equals('abc123');
+		});
+	});
+
+	describe('#wasResponseSent', () => {
+		it('should have a wasResponseSent property which is false', async () => {
+			expect(request)
+				.to.have.property('wasResponseSent')
+				.which.equals(false);
 		});
 	});
 
@@ -125,7 +135,7 @@ describe('p2p_request', () => {
 		});
 	});
 
-	describe('#when error', () => {
+	describe('#error', () => {
 		let err = new Error('Custom error');
 		err.name = 'CustomError';
 
@@ -151,13 +161,11 @@ describe('p2p_request', () => {
 		let err = new Error('Custom error');
 		err.name = 'CustomError';
 
-		beforeEach(() => {
+		it('should have a productivity.responseRate of 0.5; this indicates a success rate of 50%', async () => {
 			request.end('hello');
 			secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
 			secondP2PRequest.error(err);
-		});
 
-		it('should have a productivity.responseRate of 0.5; this indicates a success rate of 50%', async () => {
 			expect(requestOptions.productivity.responseRate).to.equal(0.5);
 		});
 	});
