@@ -23,7 +23,7 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 
 	beforeEach(async () => {
 		// Make sure that integration tests use real timers.
-		p2pNodeList = await createNetwork({});
+		p2pNodeList = await createNetwork();
 	});
 
 	afterEach(async () => {

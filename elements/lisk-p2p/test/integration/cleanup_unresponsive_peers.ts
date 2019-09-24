@@ -29,7 +29,7 @@ describe('Cleanup unresponsive peers', () => {
 	].map(index => NETWORK_START_PORT + index);
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork({});
+		p2pNodeList = await createNetwork();
 	});
 
 	afterEach(async () => {

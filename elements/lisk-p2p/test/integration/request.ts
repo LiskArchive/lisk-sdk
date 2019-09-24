@@ -24,7 +24,7 @@ describe('P2P.request', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork({});
+		p2pNodeList = await createNetwork();
 
 		for (let p2p of p2pNodeList) {
 			// Collect port numbers to check which peer handled which request.

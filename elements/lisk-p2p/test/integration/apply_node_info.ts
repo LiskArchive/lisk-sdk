@@ -23,7 +23,7 @@ describe('P2P.applyNodeInfo', () => {
 	let collectedMessages: Array<any> = [];
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork({});
+		p2pNodeList = await createNetwork();
 
 		collectedMessages = [];
 		for (let p2p of p2pNodeList) {

@@ -57,7 +57,7 @@ export const createNetwork = async ({
 	startNodePort,
 	networkDiscoveryWaitTime,
 	customConfig,
-}: TestNetworkConfig) => {
+}: TestNetworkConfig = {}) => {
 	const numberOfPeers = networkSize ? networkSize : NETWORK_PEER_COUNT;
 	const startPort = startNodePort ? startNodePort : NETWORK_START_PORT;
 
