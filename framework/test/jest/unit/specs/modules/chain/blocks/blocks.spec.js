@@ -21,9 +21,6 @@ const {
 	Status: TransactionStatus,
 } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
-const {
-	parseBlockToJson,
-} = require('../../../../../../../src/modules/chain/blocks/chain');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
@@ -445,36 +442,6 @@ describe('blocks', () => {
 
 			// Assert
 			expect(blocksInstance.dposModule.verifyBlockForger).toHaveBeenCalled();
-		});
-	});
-
-	describe('restoreBlocks', () => {
-		let block;
-
-		beforeEach(async () => {
-			block = newBlock();
-			const parsedBlock = parseBlockToJson(block);
-
-			stubs.dependencies.storage.entities.TempBlock.get.mockResolvedValue([
-				{
-					id: '1111',
-					height: 10,
-					fullBlock: parsedBlock,
-				},
-			]);
-		});
-
-		it.only('should restore blocks to chain', async () => {
-			await blocksInstance.restoreBlocks(stubs.tx);
-
-			expect(
-				stubs.dependencies.storage.entities.Account.increaseFieldBy,
-			).toHaveBeenCalledWith(
-				{ publicKey: block.generatorPublicKey },
-				'producedBlocks',
-				'1',
-				stubs.tx,
-			);
 		});
 	});
 
