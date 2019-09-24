@@ -184,7 +184,7 @@ class Processor {
 	}
 
 	// processValidated processes a block assuming that statically it's valid
-	async processValidated(block) {
+	async processValidated(block, removeFromTempTable = false) {
 		return this.sequence.add(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },
@@ -194,6 +194,7 @@ class Processor {
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
 				skipBroadcast: true,
+				removeFromTempTable,
 			});
 		});
 	}
@@ -236,7 +237,7 @@ class Processor {
 		block,
 		lastBlock,
 		processor,
-		{ skipSave, skipBroadcast } = {},
+		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
 	) {
 		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
 			await processor.verify.run({
@@ -262,6 +263,10 @@ class Processor {
 				this.channel.publish('chain:processor:newBlock', {
 					block: cloneDeep(block),
 				});
+			}
+			if (removeFromTempTable) {
+				// Remove block from temp tabel
+				await this.blocksModule.removeBlockFromTempTable(block.id);
 			}
 			return block;
 		});

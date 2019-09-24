@@ -21,11 +21,15 @@ const {
 	Status: TransactionStatus,
 } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
+const {
+	parseBlockToJson,
+} = require('../../../../../../../src/modules/chain/blocks/chain');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+const { delegatePublicKeys } = require('../dpos/round_delegates');
 
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('events');
@@ -72,6 +76,7 @@ describe('blocks', () => {
 					Account: {
 						get: jest.fn(),
 						update: jest.fn(),
+						increaseFieldBy: jest.fn(),
 					},
 					Block: {
 						begin: jest.fn(),
@@ -82,11 +87,21 @@ describe('blocks', () => {
 						get: jest.fn(),
 						isPersisted: jest.fn(),
 					},
+					RoundDelegates: {
+						getActiveDelegatesForRound: jest
+							.fn()
+							.mockReturnValue(delegatePublicKeys),
+						create: jest.fn(),
+						delete: jest.fn(),
+						summedRound: jest.fn(),
+					},
 					Transaction: {
 						create: jest.fn(),
 					},
 					TempBlock: {
 						create: jest.fn(),
+						get: jest.fn(),
+						delete: jest.fn(),
 					},
 				},
 			},
@@ -430,6 +445,36 @@ describe('blocks', () => {
 
 			// Assert
 			expect(blocksInstance.dposModule.verifyBlockForger).toHaveBeenCalled();
+		});
+	});
+
+	describe('restoreBlocks', () => {
+		let block;
+
+		beforeEach(async () => {
+			block = newBlock();
+			const parsedBlock = parseBlockToJson(block);
+
+			stubs.dependencies.storage.entities.TempBlock.get.mockResolvedValue([
+				{
+					id: '1111',
+					height: 10,
+					fullBlock: parsedBlock,
+				},
+			]);
+		});
+
+		it.only('should restore blocks to chain', async () => {
+			await blocksInstance.restoreBlocks(stubs.tx);
+
+			expect(
+				stubs.dependencies.storage.entities.Account.increaseFieldBy,
+			).toHaveBeenCalledWith(
+				{ publicKey: block.generatorPublicKey },
+				'producedBlocks',
+				'1',
+				stubs.tx,
+			);
 		});
 	});
 
