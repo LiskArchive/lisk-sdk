@@ -13,32 +13,35 @@
  *
  */
 import { expect } from 'chai';
-import { OutboundPeer } from '../../../src/peer';
+import { OutboundPeer, PeerConfig } from '../../../src/peer';
 import { REMOTE_SC_EVENT_MESSAGE } from '../../../src/events';
 import { SCClientSocket } from 'socketcluster-client';
+import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('peer/outbound', () => {
-	const DEFAULT_RANDOM_SECRET = 123;
-	const defaultPeerInfo = {
-		ipAddress: '12.12.12.12',
-		wsPort: 5001,
-		height: 545776,
-		isDiscoveredPeer: true,
-		version: '1.1.1',
-		protocolVersion: '1.1',
-	};
-	const defaultOutboundPeerConfig = {
-		rateCalculationInterval: 1000,
-		wsMaxMessageRate: 1000,
-		wsMaxMessageRatePenalty: 10,
-		secret: DEFAULT_RANDOM_SECRET,
-		maxPeerInfoSize: 10000,
-		maxPeerDiscoveryResponseLength: 1000,
-	};
+	let defaultPeerInfo: P2PPeerInfo;
+	let defaultOutboundPeerConfig: PeerConfig;
 	let defaultOutboundPeer: OutboundPeer;
 	let outboundSocket: SCClientSocket;
 
 	beforeEach(() => {
+		defaultPeerInfo = {
+			ipAddress: '12.12.12.12',
+			wsPort: 5001,
+			height: 545776,
+			isDiscoveredPeer: true,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		};
+		defaultOutboundPeerConfig = {
+			rateCalculationInterval: 1000,
+			wsMaxMessageRate: 1000,
+			wsMaxMessageRatePenalty: 10,
+			secret: DEFAULT_RANDOM_SECRET,
+			maxPeerInfoSize: 10000,
+			maxPeerDiscoveryResponseLength: 1000,
+		};
 		outboundSocket = <SCClientSocket>({
 			on: sandbox.stub(),
 			emit: sandbox.stub(),

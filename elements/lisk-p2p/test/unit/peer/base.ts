@@ -13,11 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import { Peer } from '../../../src/peer';
+import { Peer, PeerConfig } from '../../../src/peer';
 import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -38,45 +39,49 @@ import {
 	getNetgroup,
 	constructPeerIdFromPeerInfo,
 } from '../../../src/utils';
+import { P2PDiscoveredPeerInfo, P2PNodeInfo, P2PPeerInfo } from '../../../src';
 
 describe('peer/base', () => {
-	const DEFAULT_RANDOM_SECRET = 123;
-	const defaultPeerInfo = {
-		ipAddress: '12.12.12.12',
-		wsPort: 5001,
-		height: 545776,
-		isDiscoveredPeer: true,
-		version: '1.1.1',
-		protocolVersion: '1.1',
-	};
-	const peerConfig = {
-		rateCalculationInterval: 1000,
-		wsMaxMessageRate: 1000,
-		wsMaxMessageRatePenalty: 10,
-		secret: DEFAULT_RANDOM_SECRET,
-		maxPeerInfoSize: 10000,
-		maxPeerDiscoveryResponseLength: 1000,
-	};
-	const nodeInfo = {
-		os: 'os',
-		version: '1.2.0',
-		protocolVersion: '1.2',
-		nethash: 'nethash',
-		wsPort: 6001,
-		height: 100,
-	};
-	const p2pDiscoveredPeerInfo = {
-		ipAddress: defaultPeerInfo.ipAddress,
-		wsPort: defaultPeerInfo.wsPort,
-		height: 1000,
-		updatedAt: new Date(),
-		os: 'MYOS',
-		version: '1.3.0',
-		protocolVersion: '1.3',
-	};
+	let defaultPeerInfo: P2PPeerInfo;
+	let peerConfig: PeerConfig;
+	let nodeInfo: P2PNodeInfo;
+	let p2pDiscoveredPeerInfo: P2PDiscoveredPeerInfo;
 	let defaultPeer: Peer;
 
 	beforeEach(() => {
+		defaultPeerInfo = {
+			ipAddress: '12.12.12.12',
+			wsPort: 5001,
+			height: 545776,
+			isDiscoveredPeer: true,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		};
+		peerConfig = {
+			rateCalculationInterval: 1000,
+			wsMaxMessageRate: 1000,
+			wsMaxMessageRatePenalty: 10,
+			secret: DEFAULT_RANDOM_SECRET,
+			maxPeerInfoSize: 10000,
+			maxPeerDiscoveryResponseLength: 1000,
+		};
+		nodeInfo = {
+			os: 'os',
+			version: '1.2.0',
+			protocolVersion: '1.2',
+			nethash: 'nethash',
+			wsPort: 6001,
+			height: 100,
+		};
+		p2pDiscoveredPeerInfo = {
+			ipAddress: defaultPeerInfo.ipAddress,
+			wsPort: defaultPeerInfo.wsPort,
+			height: 1000,
+			updatedAt: new Date(),
+			os: 'MYOS',
+			version: '1.3.0',
+			protocolVersion: '1.3',
+		};
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
 	});
 
@@ -172,7 +177,7 @@ describe('peer/base', () => {
 				lastResponded: 0,
 			};
 
-			expect(defaultPeer.productivity).to.be.eql(productivity);
+			expect(defaultPeer.productivity).to.eql(productivity);
 		}));
 
 	describe('#wsMessageRate', () =>
@@ -410,19 +415,54 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
-			const peers = [
-				{
-					ip: '1.1.1.1',
-					wsPort: 1111,
-					version: '1.1.1',
-				},
-				{
-					ip: '2.2.2.2',
-					wsPort: 2222,
-					version: '2.2.2',
-				},
-			];
-			const sanitizedPeers = [
+			it('should return a sanitized peer list', async () => {
+				const peers = [
+					{
+						ip: '1.1.1.1',
+						wsPort: 1111,
+						version: '1.1.1',
+					},
+					{
+						ip: '2.2.2.2',
+						wsPort: 2222,
+						version: '2.2.2',
+					},
+				];
+				const sanitizedPeers = [
+					{
+						ipAddress: '1.1.1.1',
+						wsPort: 1111,
+						version: '1.1.1',
+						height: 0,
+						protocolVersion: undefined,
+						os: '',
+					},
+					{
+						ipAddress: '2.2.2.2',
+						wsPort: 2222,
+						version: '2.2.2',
+						height: 0,
+						protocolVersion: undefined,
+						os: '',
+					},
+				];
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers,
+						success: true,
+					},
+				});
+				const response = await defaultPeer.fetchPeers();
+				expect(response).to.be.eql(sanitizedPeers);
+			});
+		});
+	});
+
+	describe('#discoverPeers', () => {
+		let discoveredPeers: ReadonlyArray<P2PPeerInfo>;
+
+		beforeEach(() => {
+			discoveredPeers = [
 				{
 					ipAddress: '1.1.1.1',
 					wsPort: 1111,
@@ -440,44 +480,6 @@ describe('peer/base', () => {
 					os: '',
 				},
 			];
-
-			beforeEach(() => {
-				sandbox.stub(defaultPeer, 'request').resolves({
-					data: {
-						peers,
-						success: true,
-					},
-				});
-			});
-
-			it('should return a sanitized peer list', async () => {
-				const response = await defaultPeer.fetchPeers();
-				expect(response).to.be.eql(sanitizedPeers);
-			});
-		});
-	});
-
-	describe('#discoverPeers', () => {
-		const discoveredPeers = [
-			{
-				ipAddress: '1.1.1.1',
-				wsPort: 1111,
-				version: '1.1.1',
-				height: 0,
-				protocolVersion: undefined,
-				os: '',
-			},
-			{
-				ipAddress: '2.2.2.2',
-				wsPort: 2222,
-				version: '2.2.2',
-				height: 0,
-				protocolVersion: undefined,
-				os: '',
-			},
-		];
-
-		beforeEach(() => {
 			sandbox.stub(defaultPeer, 'fetchPeers').resolves(discoveredPeers);
 			sandbox.stub(defaultPeer, 'emit');
 		});
@@ -487,9 +489,7 @@ describe('peer/base', () => {
 			expect(defaultPeer.fetchPeers).to.be.calledOnce;
 		});
 
-		it(`should emit ${EVENT_DISCOVERED_PEER} event ${
-			discoveredPeers.length
-		} times`, async () => {
+		it(`should emit ${EVENT_DISCOVERED_PEER} event 2 times`, async () => {
 			await defaultPeer.discoverPeers();
 			expect(defaultPeer.emit).to.be.calledTwice;
 		});
@@ -512,12 +512,6 @@ describe('peer/base', () => {
 	});
 
 	describe('#fetchStatus', () => {
-		const peer = {
-			ip: '1.1.1.1',
-			wsPort: 1111,
-			version: '1.1.1',
-		};
-
 		describe('when request() fails', () => {
 			beforeEach(() => {
 				sandbox.stub(defaultPeer, 'request').rejects();
@@ -582,6 +576,12 @@ describe('peer/base', () => {
 			});
 
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
+				const peer = {
+					ip: '1.1.1.1',
+					wsPort: 1111,
+					version: '1.1.1',
+				};
+
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
 						data: peer,
