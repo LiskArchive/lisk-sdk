@@ -58,7 +58,7 @@ describe('peer/inbound', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should be an instance of P2P blockchain', () =>
+		it('should be an instance of InboundPeer class', () =>
 			expect(defaultInboundPeer).and.be.instanceof(InboundPeer));
 
 		it('should have a function named _handleInboundSocketError', () =>
