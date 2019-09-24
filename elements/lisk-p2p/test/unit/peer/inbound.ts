@@ -36,10 +36,10 @@ describe('peer/inbound', () => {
 		maxPeerDiscoveryResponseLength: 1000,
 	};
 	let defaultInboundPeer: InboundPeer;
-	let socket: SCServerSocket;
+	let inboundSocket: SCServerSocket;
 
 	beforeEach(() => {
-		socket = <SCServerSocket>({
+		inboundSocket = <SCServerSocket>({
 			on: sandbox.stub(),
 			off: sandbox.stub(),
 			emit: sandbox.stub(),
@@ -48,7 +48,7 @@ describe('peer/inbound', () => {
 		sandbox.spy(global, 'setTimeout');
 		defaultInboundPeer = new InboundPeer(
 			defaultPeerInfo,
-			socket,
+			inboundSocket,
 			defaultPeerConfig,
 		);
 	});
@@ -82,7 +82,7 @@ describe('peer/inbound', () => {
 		});
 
 		it('should get socket property', () =>
-			expect((defaultInboundPeer as any)._socket).to.equal(socket));
+			expect((defaultInboundPeer as any)._socket).to.equal(inboundSocket));
 	});
 
 	describe('#set socket', () => {
@@ -105,11 +105,11 @@ describe('peer/inbound', () => {
 			defaultInboundPeer.socket = newInboundSocket;
 			expect(
 				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
-			).to.be.calledOnceWithExactly(socket);
+			).to.be.calledOnceWithExactly(inboundSocket);
 		});
 
 		it('should set new socket', () => {
-			expect((defaultInboundPeer as any)._socket).to.be.eql(socket);
+			expect((defaultInboundPeer as any)._socket).to.be.eql(inboundSocket);
 			defaultInboundPeer.socket = newInboundSocket;
 			expect((defaultInboundPeer as any)._socket).to.eql(newInboundSocket);
 		});
@@ -126,9 +126,7 @@ describe('peer/inbound', () => {
 	describe('#disconnect', () => {
 		it('should call disconnect and destroy socket', () => {
 			defaultInboundPeer.disconnect();
-			expect(
-				(defaultInboundPeer as any)._socket['destroy'],
-			).to.be.calledOnceWith(1000);
+			expect(inboundSocket.destroy).to.be.calledOnceWith(1000);
 		});
 
 		it('should clear timeout', () => {
@@ -146,7 +144,7 @@ describe('peer/inbound', () => {
 			defaultInboundPeer.disconnect();
 			expect(
 				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
-			).to.be.calledOnceWithExactly(socket);
+			).to.be.calledOnceWithExactly(inboundSocket);
 		});
 	});
 });
