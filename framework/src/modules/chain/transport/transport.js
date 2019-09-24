@@ -16,7 +16,6 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const _ = require('lodash');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const definitions = require('../schema/definitions');
@@ -235,27 +234,10 @@ class Transport {
 		}
 
 		try {
-			const data = await this.blocksModule.loadBlocksDataWS({
-				limit: 34, // 1977100 bytes
-				lastId: query.lastBlockId,
-			});
-
-			_.each(data, block => {
-				if (block.tf_data) {
-					try {
-						block.tf_data = block.tf_data.toString('utf8');
-					} catch (e) {
-						this.logger.error(
-							'Transport->blocks: Failed to convert data field to UTF-8',
-							{
-								block,
-								error: e,
-							},
-						);
-					}
-				}
-			});
-
+			const data = await this.blocksModule.loadBlocksFromLastBlockId(
+				query.lastBlockId,
+				34, // 1977100 bytes
+			);
 			return { blocks: data, success: true };
 		} catch (err) {
 			return {

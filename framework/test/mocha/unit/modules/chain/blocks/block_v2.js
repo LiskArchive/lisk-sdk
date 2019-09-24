@@ -20,7 +20,6 @@ const {
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../../../../src/modules/chain/interface_adapters');
-const block = require('../../../../../../src/modules/chain/blocks/block');
 
 describe('block', () => {
 	const interfaceAdapters = {
@@ -177,59 +176,5 @@ describe('block', () => {
 		transactions = transactions.map(transaction =>
 			interfaceAdapters.transactions.fromJson(transaction),
 		);
-	});
-
-	describe('dbRead', () => {
-		it('should throw error for null values', async () =>
-			expect(() => {
-				block.dbRead(null);
-			}).to.throw("Cannot read property 'b_version' of null"));
-
-		it('should return raw block data', async () => {
-			const rawBlock = {
-				b_version: 2,
-				b_totalAmount: 0,
-				b_totalFee: 0,
-				b_reward: 0,
-				b_payloadHash:
-					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-				b_timestamp: 41898490,
-				b_numberOfTransactions: 0,
-				b_payloadLength: 0,
-				b_previousBlock: '1087874036928524397',
-				b_generatorPublicKey:
-					'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
-				b_transactions: [],
-				b_blockSignature:
-					'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-				b_height: 6,
-				b_maxHeightPreviouslyForged: 1,
-				b_prevotedConfirmedUptoHeight: 1,
-				b_id: '3920300554926889269',
-				b_relays: 1,
-				b_confirmations: 0,
-			};
-
-			return expect(block.dbRead(rawBlock)).to.contain.keys(
-				'id',
-				'version',
-				'timestamp',
-				'height',
-				'maxHeightPreviouslyForged',
-				'prevotedConfirmedUptoHeight',
-				'previousBlock',
-				'numberOfTransactions',
-				'totalAmount',
-				'totalFee',
-				'reward',
-				'payloadLength',
-				'payloadHash',
-				'generatorPublicKey',
-				'generatorId',
-				'blockSignature',
-				'confirmations',
-				'totalForged',
-			);
-		});
 	});
 });

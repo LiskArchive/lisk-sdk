@@ -23,7 +23,7 @@ const {
 } = require('../../../utils/registered_transactions');
 
 describe('Loader', () => {
-	describe('#_getTransactionsFromNetwork', () => {
+	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
 		let loader;
 		let channelStub;
 		let transactionPoolModuleStub;
@@ -89,7 +89,7 @@ describe('Loader', () => {
 			it('should not throw an error', async () => {
 				let error;
 				try {
-					await loader._getTransactionsFromNetwork();
+					await loader._getUnconfirmedTransactionsFromNetwork();
 				} catch (err) {
 					error = err;
 				}
@@ -97,7 +97,7 @@ describe('Loader', () => {
 			});
 
 			it('should process the transaction with transactionPoolModule', async () => {
-				await loader._getTransactionsFromNetwork();
+				await loader._getUnconfirmedTransactionsFromNetwork();
 				expect(
 					transactionPoolModuleStub.processUnconfirmedTransaction,
 				).toHaveBeenCalledTimes(1);
@@ -113,7 +113,7 @@ describe('Loader', () => {
 			it('should throw an error', async () => {
 				let error;
 				try {
-					await loader._getTransactionsFromNetwork();
+					await loader._getUnconfirmedTransactionsFromNetwork();
 				} catch (err) {
 					error = err;
 				}

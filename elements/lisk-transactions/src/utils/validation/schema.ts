@@ -78,7 +78,6 @@ export const transactionInterface = {
 		'addMultisignature',
 		'addVerifiedMultisignature',
 		'isExpired',
-		'fromSync',
 	],
 	properties: {
 		toJSON: {
@@ -115,9 +114,6 @@ export const transactionInterface = {
 			typeof: 'function',
 		},
 		isExpired: {
-			typeof: 'function',
-		},
-		fromSync: {
 			typeof: 'function',
 		},
 	},

@@ -400,19 +400,12 @@ class Blocks extends EventEmitter {
 		await nextWatch();
 	}
 
-	// TODO: Add tests later
-	async loadBlocksDataWS(filter, tx) {
-		return blocksUtils.loadBlocksDataWS(this.storage, filter, tx);
-	}
-
-	// TODO: Add tests later, better remove!
-	readBlocksFromNetwork(blocks) {
-		const normalizedBlocks = blocksLogic.readDbRows(
-			blocks,
-			this.interfaceAdapters,
-			this.genesisBlock,
+	async loadBlocksFromLastBlockId(lastBlockId, limit = 1) {
+		return blocksUtils.loadBlocksFromLastBlockId(
+			this.storage,
+			lastBlockId,
+			limit,
 		);
-		return normalizedBlocks;
 	}
 
 	/**
