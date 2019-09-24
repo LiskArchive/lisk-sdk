@@ -199,6 +199,7 @@ describe('bft', () => {
 
 		describe('#addNewBlock', () => {
 			const block1 = blockFixture({ height: 1, version: '2' });
+			const lastFinalizedHeight = 5;
 
 			let bft;
 			let txStub;
@@ -206,18 +207,20 @@ describe('bft', () => {
 			beforeEach(async () => {
 				storageMock.entities.Block.get.mockReturnValue([]);
 				bft = new BFT(bftParams);
-				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
+				storageMock.entities.ChainMeta.getKey.mockReturnValue(
+					lastFinalizedHeight,
+				);
 				txStub = jest.fn();
 				await bft.init();
 				storageMock.entities.Block.get.mockClear();
 			});
 
-			describe('when valid block is added', () => {
+			describe('when valid block which does not change the finality is added', () => {
 				it('should update the latest finalized height to storage', async () => {
 					await bft.addNewBlock(block1, txStub);
 					expect(storageMock.entities.ChainMeta.setKey).toHaveBeenCalledWith(
 						'BFT.finalizedHeight',
-						5,
+						lastFinalizedHeight,
 						txStub,
 					);
 				});
