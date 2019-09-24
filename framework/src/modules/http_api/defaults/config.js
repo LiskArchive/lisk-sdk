@@ -226,7 +226,7 @@ const defaultConfig = {
 			enabled: true,
 			options: {
 				name: 'Lisk-APM',
-				uriPath: '/lisk-stats',
+				uriPath: '/http-stats',
 			},
 		},
 	},

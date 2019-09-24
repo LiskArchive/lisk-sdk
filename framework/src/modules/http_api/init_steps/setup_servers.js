@@ -42,13 +42,14 @@ module.exports = ({ components: { logger }, config }) => {
 	}
 
 	if (config.apm.enabled) {
+		const { name, uriPath } = config.apm.options;
 		expressApp.use(
 			swStats.getMiddleware({
-				name: config.apm.options.name,
-				uriPath: config.apm.options.uriPath,
+				name,
+				uriPath,
 			}),
 		);
-		logger.info('Enabled Lisk APM');
+		logger.info({ 'service-name': name, uriPath }, 'Enabled Lisk APM');
 	}
 
 	const httpServer = http.createServer(expressApp);
