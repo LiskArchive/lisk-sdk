@@ -26,7 +26,6 @@ const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fo
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
-const { delegatePublicKeys } = require('../dpos/round_delegates');
 
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('events');
@@ -73,7 +72,6 @@ describe('blocks', () => {
 					Account: {
 						get: jest.fn(),
 						update: jest.fn(),
-						increaseFieldBy: jest.fn(),
 					},
 					Block: {
 						begin: jest.fn(),
@@ -84,21 +82,11 @@ describe('blocks', () => {
 						get: jest.fn(),
 						isPersisted: jest.fn(),
 					},
-					RoundDelegates: {
-						getActiveDelegatesForRound: jest
-							.fn()
-							.mockReturnValue(delegatePublicKeys),
-						create: jest.fn(),
-						delete: jest.fn(),
-						summedRound: jest.fn(),
-					},
 					Transaction: {
 						create: jest.fn(),
 					},
 					TempBlock: {
 						create: jest.fn(),
-						get: jest.fn(),
-						delete: jest.fn(),
 					},
 				},
 			},
