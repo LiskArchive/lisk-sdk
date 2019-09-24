@@ -98,6 +98,10 @@ class PgHelper {
 		);
 	}
 
+	async deleteAllAccounts() {
+		return this.conn.query('DELETE FROM mem_accounts');
+	}
+
 	async getAccountByPublicKey(publicKey) {
 		return this.conn.one(
 			`SELECT

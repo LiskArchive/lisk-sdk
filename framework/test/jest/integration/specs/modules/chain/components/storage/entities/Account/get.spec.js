@@ -30,7 +30,7 @@ describe('storage.entities.Account.get', () => {
 	});
 
 	beforeEach(async () => {
-		await db.query('DELETE FROM mem_accounts');
+		await pgHelper.deleteAllAccounts();
 	});
 
 	describe('Given arguments ({publicKey}, {extended: true}, tx)', () => {
