@@ -280,7 +280,7 @@ describe('block_synchronization_mechanism', () => {
 					await syncMechanism.run();
 
 					expect(channelMock.invoke.mock.calls[0]).toMatchObject([
-						'network:getNetworkStatus',
+						'network:getUniqueOutboundConnectedPeers',
 					]);
 					expect(channelMock.invoke.mock.calls[1]).toMatchObject([
 						'network:requestFromPeer',
@@ -316,15 +316,16 @@ describe('block_synchronization_mechanism', () => {
 
 					try {
 						await syncMechanism.run(receivedBlock);
-
+					} catch (err) {
 						expect(channelMock.invoke.mock.calls[0]).toMatchObject([
-							'network:getNetworkStatus',
+							'network:getUniqueOutboundConnectedPeers',
 						]);
+
 						expect(channelMock.invoke.mock.calls[1]).toMatchObject([
 							'network:requestFromPeer',
 							{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
 						]);
-					} catch (err) {
+
 						expect(channelMock.invoke.mock.calls[2]).toMatchObject([
 							'network:applyPenalty',
 							{ peerId: '127.0.0.1:30400', penalty: 100 },
@@ -359,15 +360,16 @@ describe('block_synchronization_mechanism', () => {
 
 					try {
 						await syncMechanism.run(receivedBlock);
-
+					} catch (err) {
 						expect(channelMock.invoke.mock.calls[0]).toMatchObject([
-							'network:getNetworkStatus',
+							'network:getUniqueOutboundConnectedPeers',
 						]);
+
 						expect(channelMock.invoke.mock.calls[1]).toMatchObject([
 							'network:requestFromPeer',
 							{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
 						]);
-					} catch (err) {
+
 						expect(channelMock.invoke.mock.calls[2]).toMatchObject([
 							'network:applyPenalty',
 							{ peerId: '127.0.0.1:30400', penalty: 100 },
