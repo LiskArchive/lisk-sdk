@@ -17,74 +17,12 @@
 const blockV1 = require('./block_v1');
 const blockV2 = require('./block_v2');
 
-const dbReadFunc = {
-	0: blockV1.dbRead,
-	1: blockV1.dbRead,
-	2: blockV2.dbRead,
-};
-const dbRead = raw => dbReadFunc[raw.b_version](raw);
-
 const storageReadFunc = {
 	0: blockV1.storageRead,
 	1: blockV1.storageRead,
 	2: blockV2.storageRead,
 };
 const storageRead = raw => storageReadFunc[raw.version](raw);
-
-/**
- * Normalize blocks and their transactions.
- *
- * @param {Array} rows - Data from full_blocks_list view
- * @returns {Array} blocks - List of normalized blocks with transactions
- */
-const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
-	let blocks = {};
-	const order = [];
-
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0, { length } = rows; i < length; i++) {
-		// Normalize block
-		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-		const block = dbRead(rows[i]);
-
-		if (block) {
-			// If block is not already in the list...
-			if (!blocks[block.id]) {
-				if (block.id === genesisBlock.id) {
-					// Generate fake signature for genesis block
-					block.generationSignature = new Array(65).join('0');
-				}
-
-				// Add block ID to order list
-				order.push(block.id);
-				// Add block to list
-				blocks[block.id] = block;
-			}
-
-			// Normalize transaction
-			const transaction = interfaceAdapters.transactions.dbRead(rows[i]);
-			// Set empty object if there are no transactions in block
-			blocks[block.id].transactions = blocks[block.id].transactions || {};
-
-			if (transaction) {
-				// Add transaction to block if not there already
-				if (!blocks[block.id].transactions[transaction.id]) {
-					blocks[block.id].transactions[transaction.id] = transaction;
-				}
-			}
-		}
-	}
-
-	// Reorganize list
-	blocks = order.map(v => {
-		blocks[v].transactions = Object.keys(blocks[v].transactions).map(
-			t => blocks[v].transactions[t],
-		);
-		return blocks[v];
-	});
-
-	return blocks;
-};
 
 /**
  * Normalize blocks and their transactions.
@@ -202,9 +140,7 @@ const loadBlockByHeight = async (
 };
 
 module.exports = {
-	dbRead,
 	storageRead,
-	readDbRows,
 	readStorageRows,
 	loadBlocksWithOffset,
 	loadLastBlock,

@@ -19,43 +19,6 @@ const { omitBy, isNull } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 
 /**
- * Creates block object based on raw data.
- *
- * @param {Object} raw
- * @returns {null|block} Block object
- * @todo Add description for the params
- */
-const dbRead = raw => {
-	if (!raw.b_id) {
-		return null;
-	}
-	const block = {
-		id: raw.b_id,
-		version: parseInt(raw.b_version, 10),
-		timestamp: parseInt(raw.b_timestamp, 10),
-		height: parseInt(raw.b_height, 10),
-		maxHeightPreviouslyForged: parseInt(raw.b_maxHeightPreviouslyForged, 10),
-		prevotedConfirmedUptoHeight: parseInt(
-			raw.b_prevotedConfirmedUptoHeight,
-			10,
-		),
-		previousBlock: raw.b_previousBlock,
-		numberOfTransactions: parseInt(raw.b_numberOfTransactions, 10),
-		totalAmount: new BigNum(raw.b_totalAmount),
-		totalFee: new BigNum(raw.b_totalFee),
-		reward: new BigNum(raw.b_reward),
-		payloadLength: parseInt(raw.b_payloadLength, 10),
-		payloadHash: raw.b_payloadHash,
-		generatorPublicKey: raw.b_generatorPublicKey,
-		generatorId: getAddressFromPublicKey(raw.b_generatorPublicKey),
-		blockSignature: raw.b_blockSignature,
-		confirmations: parseInt(raw.b_confirmations, 10),
-	};
-	block.totalForged = block.totalFee.plus(block.reward).toString();
-	return block;
-};
-
-/**
  * Creates block object based on raw database block data.
  *
  * @param {Object} raw Raw database data block object
@@ -98,6 +61,5 @@ const storageRead = raw => {
 };
 
 module.exports = {
-	dbRead,
 	storageRead,
 };

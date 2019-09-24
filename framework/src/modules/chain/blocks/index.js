@@ -15,7 +15,7 @@
 'use strict';
 
 const { addBlockProperties } = require('./utils');
-const { objectNormalize } = require('./block');
+const { objectNormalize, storageRead } = require('./block');
 const {
 	calculateMilestone,
 	calculateReward,
@@ -66,4 +66,5 @@ module.exports = {
 	loadBlocksWithOffset,
 	objectNormalize,
 	addBlockProperties,
+	storageRead,
 };

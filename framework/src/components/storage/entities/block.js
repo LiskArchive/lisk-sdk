@@ -44,7 +44,7 @@ const sqlFiles = {
  * @property {number} numberOfTransactions
  * @property {string} totalAmount
  * @property {number} timestamp
- * @property {string} version
+ * @property {number} version
  */
 
 /**
@@ -137,13 +137,13 @@ const sqlFiles = {
  * @property {string} [reward_lt]
  * @property {string} [reward_lte]
  * @property {Array.<string>} [reward_in]
- * @property {string} [version]
- * @property {string} [version_eql]
- * @property {string} [version_ne]
- * @property {string} [version_gt]
- * @property {string} [version_gte]
- * @property {string} [version_lt]
- * @property {string} [version_lte]
+ * @property {number} [version]
+ * @property {number} [version_eql]
+ * @property {number} [version_ne]
+ * @property {number} [version_gt]
+ * @property {number} [version_gte]
+ * @property {number} [version_lt]
+ * @property {number} [version_lte]
  * @property {Array.<string>} [version_in]
  * @property {string} [confirmations]
  * @property {string} [confirmations_eql]

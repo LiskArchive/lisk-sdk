@@ -374,24 +374,4 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		return createResponse(this.id, errors);
 	}
-
-	// tslint:disable:next-line: prefer-function-over-method no-any
-	protected assetFromSync(raw: any): object | undefined {
-		if (!raw.m_keysgroup) {
-			return undefined;
-		}
-
-		// When syncing, nodes should receive `m_keysgroup` as csv string and then split the values into an array
-		// Due to the issue https://github.com/LiskHQ/lisk-sdk/issues/3612, v1.6 nodes will send `m_keysgroup` as an array thus skipping the array convertion
-		const multisignature = {
-			min: raw.m_min,
-			lifetime: raw.m_lifetime,
-			keysgroup:
-				typeof raw.m_keysgroup === 'string'
-					? raw.m_keysgroup.split(',')
-					: raw.m_keysgroup,
-		};
-
-		return { multisignature };
-	}
 }

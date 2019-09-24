@@ -17,6 +17,7 @@
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
+const { storageRead } = require('./blocks');
 const { validateTransactions } = require('./transactions');
 const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
@@ -281,18 +282,15 @@ class Loader {
 	 * @returns {Promise} void
 	 * @todo Add description for the params
 	 */
-	async _getValidatedBlocksFromNetwork(blockRows) {
+	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
-		// TODO: this should be removed and the block should be received from the network using *normal* block property names
-		const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
-		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
-			// eslint-disable-next-line no-await-in-loop
-			await this.processorModule.validate(block);
-			// eslint-disable-next-line no-await-in-loop
-			await this.processorModule.processValidated(block);
-			lastValidBlock = block;
+			// TODO: Fix with #4131 define serialization and deserialization
+			const parsedBlock = storageRead(block);
+			await this.processorModule.validate(parsedBlock);
+			await this.processorModule.processValidated(parsedBlock);
+			lastValidBlock = parsedBlock;
 		}
 		this.blocksToSync = lastValidBlock.height;
 

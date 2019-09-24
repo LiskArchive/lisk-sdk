@@ -175,7 +175,7 @@ describe('transport', () => {
 					.stub()
 					.returns({ height: 1, version: 1, timestamp: 1 }),
 				receiveBlockFromNetwork: sinonSandbox.stub(),
-				loadBlocksDataWS: sinonSandbox.stub(),
+				loadBlocksFromLastBlockId: sinonSandbox.stub(),
 			},
 			processorModule: {
 				validate: sinonSandbox.stub(),
@@ -757,29 +757,26 @@ describe('transport', () => {
 					});
 
 					describe('when query is defined', () => {
-						it('should call modules.blocks.utils.loadBlocksDataWS with { limit: 34, lastId: query.lastBlockId }', async () => {
+						it('should call modules.blocks.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
 							query = {
 								lastBlockId: '6258354802676165798',
 							};
 
 							await transportModule.blocks(query);
 							return expect(
-								transportModule.blocksModule.loadBlocksDataWS,
-							).to.be.calledWith({
-								limit: 34,
-								lastId: query.lastBlockId,
-							});
+								transportModule.blocksModule.loadBlocksFromLastBlockId,
+							).to.be.calledWith(query.lastBlockId, 34);
 						});
 					});
 
-					describe('when modules.blocks.utils.loadBlocksDataWS fails', () => {
+					describe('when modules.blocks.loadBlocksFromLastBlockId fails', () => {
 						it('should resolve with result = { blocks: [] }', async () => {
 							query = {
 								lastBlockId: '6258354802676165798',
 							};
 
 							const loadBlockFailed = new Error('Failed to load blocks...');
-							transportModule.blocksModule.loadBlocksDataWS.rejects(
+							transportModule.blocksModule.loadBlocksFromLastBlockId.rejects(
 								loadBlockFailed,
 							);
 
