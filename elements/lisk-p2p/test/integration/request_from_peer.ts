@@ -24,10 +24,6 @@ describe('P2P.requestFromPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({});
 

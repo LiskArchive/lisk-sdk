@@ -28,12 +28,7 @@ describe('Peer banning mechanism', () => {
 	const POPULATOR_INTERVAL = 100;
 	const PEER_BAN_TIME = 100;
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
-		sandbox.restore();
 		const customSeedPeers = (
 			index: number,
 			startPort: number,

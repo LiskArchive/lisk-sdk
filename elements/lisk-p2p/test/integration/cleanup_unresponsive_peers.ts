@@ -28,10 +28,6 @@ describe('Cleanup unresponsive peers', () => {
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
 
-	before(async () => {
-		sandbox.restore();
-	});
-
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({});
 	});
