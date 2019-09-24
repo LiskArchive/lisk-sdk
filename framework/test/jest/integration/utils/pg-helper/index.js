@@ -66,7 +66,7 @@ class PgHelper {
 			database: this.dbName,
 			user: 'lisk',
 			password: 'password',
-			min: 10,
+			min: 1,
 			max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
 			logFileName: `logs/devnet/lisk_${this.dbName}.log`,
 			noWarnings: true,
