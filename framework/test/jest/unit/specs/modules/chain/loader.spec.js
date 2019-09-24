@@ -20,7 +20,7 @@ const {
 } = require('../../../../../../src/modules/chain/interface_adapters');
 const {
 	registeredTransactions,
-} = require('../../../../common_utils/registered_transactions');
+} = require('../../../../utils/registered_transactions');
 
 describe('Loader', () => {
 	describe('#_getTransactionsFromNetwork', () => {

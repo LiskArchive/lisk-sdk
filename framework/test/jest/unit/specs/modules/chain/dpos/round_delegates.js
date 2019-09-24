@@ -15,7 +15,7 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
-const { randomInt } = require('../../../../../common_utils');
+const { randomInt } = require('../../../../../utils');
 const delegatePublicKeys = require('./delegate_publickeys.json');
 
 const delegateAccounts = delegatePublicKeys.map((pk, index) => {

@@ -2,7 +2,7 @@ const {
 	Account,
 } = require('../../../../../../../../../../src/modules/chain/components/storage/entities');
 const { PgHelper } = require('../../../../../../../utils/pg-helper');
-const { constants } = require('../../../../../../../../common_utils');
+const { constants } = require('../../../../../../../../utils');
 
 describe('storage.entities.Account.decreaseFieldBy', () => {
 	let pgHelper;
