@@ -35,7 +35,6 @@ describe('Chain', () => {
 		// Arrange
 
 		sinonSandbox.stub(Processor.prototype, 'init').resolves();
-		sinonSandbox.stub(BFT.prototype, 'init').resolves();
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -395,10 +394,6 @@ describe('Chain', () => {
 
 		it('should invoke Processor.init', async () => {
 			expect(chain.processor.init).to.have.been.calledOnce;
-		});
-
-		it('should invoke bft.init', async () => {
-			expect(chain.bft.init).to.have.been.calledOnce;
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {
