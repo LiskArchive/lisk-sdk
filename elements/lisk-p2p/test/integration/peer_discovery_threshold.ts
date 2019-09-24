@@ -37,7 +37,7 @@ describe('Peer discovery threshold', () => {
 
 		it('should return list of peers with at most the minimum discovery threshold', async () => {
 			const firstP2PNode = p2pNodeList[0];
-			const newPeers = firstP2PNode['_peerBook'].newPeers;
+			const newPeers = (firstP2PNode as any)._peerBook.newPeers;
 			expect(newPeers.length).to.be.at.most(MINIMUM_PEER_DISCOVERY_THRESHOLD);
 		});
 	});
@@ -63,7 +63,7 @@ describe('Peer discovery threshold', () => {
 
 		it('should return list of peers with less than maximum discovery response size', async () => {
 			const firstP2PNode = p2pNodeList[0];
-			const newPeers = firstP2PNode['_peerBook'].newPeers;
+			const newPeers = (firstP2PNode as any)._peerBook.newPeers;
 			expect(newPeers.length).to.be.lessThan(
 				MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 			);

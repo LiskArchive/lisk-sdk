@@ -27,29 +27,29 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import {
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
-import {
-	ClientOptionsUpdated,
-	convertNodeInfoToLegacyFormat,
-	Peer,
-	PeerConfig,
-} from './base';
-
-type SCClientSocket = socketClusterClient.SCClientSocket;
+import { sanitizeNodeInfoToLegacyFormat } from '../utils';
+import { Peer, PeerConfig, SCClientSocket } from './base';
 
 const socketErrorStatusCodes = {
 	...(socketClusterClient.SCClientSocket as any).errorStatuses,
 	1000: 'Intentionally disconnected',
 };
 
-export interface PeerInfoAndOutboundConnection {
-	readonly peerInfo: P2PDiscoveredPeerInfo;
-	readonly socket: SCClientSocket;
+interface ClientOptionsUpdated {
+	readonly hostname: string;
+	readonly port: number;
+	readonly query: string;
+	readonly autoConnect: boolean;
+	readonly autoReconnect: boolean;
+	readonly multiplex: boolean;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly maxPayload?: number;
 }
 
 export class OutboundPeer extends Peer {
@@ -65,6 +65,20 @@ export class OutboundPeer extends Peer {
 		}
 		this._socket = scClientSocket;
 		this._bindHandlersToOutboundSocket(this._socket);
+	}
+
+	public connect(): void {
+		if (!this._socket) {
+			this._socket = this._createOutboundSocket();
+		}
+		this._socket.connect();
+	}
+
+	public disconnect(code: number = 1000, reason?: string): void {
+		super.disconnect(code, reason);
+		if (this._socket) {
+			this._unbindHandlersFromOutboundSocket(this._socket);
+		}
 	}
 
 	public send(packet: P2PMessagePacket): void {
@@ -85,7 +99,7 @@ export class OutboundPeer extends Peer {
 
 	private _createOutboundSocket(): SCClientSocket {
 		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
+			? sanitizeNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
 
 		const connectTimeout = this._peerConfig.connectTimeout
@@ -115,20 +129,6 @@ export class OutboundPeer extends Peer {
 		this._bindHandlersToOutboundSocket(outboundSocket);
 
 		return outboundSocket;
-	}
-
-	public connect(): void {
-		if (!this._socket) {
-			this._socket = this._createOutboundSocket();
-		}
-		this._socket.connect();
-	}
-
-	public disconnect(code: number = 1000, reason?: string): void {
-		super.disconnect(code, reason);
-		if (this._socket) {
-			this._unbindHandlersFromOutboundSocket(this._socket);
-		}
 	}
 
 	// All event handlers for the outbound socket should be bound in this method.

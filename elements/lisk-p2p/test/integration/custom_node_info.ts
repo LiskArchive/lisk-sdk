@@ -38,8 +38,8 @@ describe('Custom nodeInfo', () => {
 
 	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', async () => {
 		for (let p2p of p2pNodeList) {
-			const triedPeers = p2p['_peerBook'].triedPeers;
-			const newPeers = p2p['_peerBook'].newPeers;
+			const triedPeers = (p2p as any)._peerBook.triedPeers;
+			const newPeers = (p2p as any)._peerBook.newPeers;
 
 			for (let peer of triedPeers) {
 				expect(peer)

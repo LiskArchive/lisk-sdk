@@ -49,18 +49,16 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolMessagePacket,
-	ProtocolNodeInfo,
 } from '../p2p_types';
 import {
 	constructPeerIdFromPeerInfo,
 	getNetgroup,
+	sanitizeNodeInfoToLegacyFormat,
 	validatePeerInfo,
 	validatePeersInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../utils';
-
-type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
 const RATE_NORMALIZATION_FACTOR = 1000;
@@ -72,17 +70,7 @@ interface Productivity {
 	readonly lastResponded: number;
 }
 
-export interface ClientOptionsUpdated {
-	readonly hostname: string;
-	readonly port: number;
-	readonly query: string;
-	readonly autoConnect: boolean;
-	readonly autoReconnect: boolean;
-	readonly multiplex: boolean;
-	readonly ackTimeout?: number;
-	readonly connectTimeout?: number;
-	readonly maxPayload?: number;
-}
+export type SCClientSocket = socketClusterClient.SCClientSocket;
 
 export type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
@@ -95,20 +83,6 @@ export enum ConnectionState {
 	OPEN = 'open',
 	CLOSED = 'closed',
 }
-
-// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
-export const convertNodeInfoToLegacyFormat = (
-	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => {
-	const { httpPort, nonce, broadhash } = nodeInfo;
-
-	return {
-		...nodeInfo,
-		broadhash: broadhash ? (broadhash as string) : '',
-		nonce: nonce ? (nonce as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0,
-	};
-};
 
 export interface PeerConfig {
 	readonly connectTimeout?: number;
@@ -338,12 +312,16 @@ export class Peer extends EventEmitter {
 		return this._ipAddress;
 	}
 
-	public get reputation(): number {
-		return this._reputation;
+	public get wsPort(): number {
+		return this._wsPort;
 	}
 
 	public get netgroup(): number {
 		return this._netgroup;
+	}
+
+	public get reputation(): number {
+		return this._reputation;
 	}
 
 	public get latency(): number {
@@ -366,30 +344,6 @@ export class Peer extends EventEmitter {
 		return this._wsMessageRate;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
-		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
-		this._peerInfo = {
-			...newPeerInfo,
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
-		};
-	}
-
-	public get peerInfo(): P2PPeerInfo {
-		return this._peerInfo;
-	}
-
-	public applyPenalty(penalty: number): void {
-		this._reputation -= penalty;
-		if (this._reputation <= 0) {
-			this._banPeer();
-		}
-	}
-
-	public get wsPort(): number {
-		return this._wsPort;
-	}
-
 	public get state(): ConnectionState {
 		const state = this._socket
 			? this._socket.state === this._socket.OPEN
@@ -400,6 +354,23 @@ export class Peer extends EventEmitter {
 		return state;
 	}
 
+	public get peerInfo(): P2PPeerInfo {
+		return this._peerInfo;
+	}
+
+	public get nodeInfo(): P2PNodeInfo | undefined {
+		return this._nodeInfo;
+	}
+
+	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
+		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
+		this._peerInfo = {
+			...newPeerInfo,
+			ipAddress: this._ipAddress,
+			wsPort: this._wsPort,
+		};
+	}
+
 	/**
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on the socket to pass it the new node status.
@@ -407,16 +378,12 @@ export class Peer extends EventEmitter {
 	public async applyNodeInfo(nodeInfo: P2PNodeInfo): Promise<void> {
 		this._nodeInfo = nodeInfo;
 		// TODO later: This conversion step will not be needed after switching to the new LIP protocol version.
-		const legacyNodeInfo = convertNodeInfoToLegacyFormat(this._nodeInfo);
+		const legacyNodeInfo = sanitizeNodeInfoToLegacyFormat(this._nodeInfo);
 		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
 		await this.request({
 			procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 			data: legacyNodeInfo,
 		});
-	}
-
-	public get nodeInfo(): P2PNodeInfo | undefined {
-		return this._nodeInfo;
 	}
 
 	public connect(): void {
@@ -554,6 +521,13 @@ export class Peer extends EventEmitter {
 		return this._peerInfo;
 	}
 
+	public applyPenalty(penalty: number): void {
+		this._reputation -= penalty;
+		if (this._reputation <= 0) {
+			this._banPeer();
+		}
+	}
+
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
 		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
 		const newPeerInfo = validatePeerInfo(
@@ -579,7 +553,7 @@ export class Peer extends EventEmitter {
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
 		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
+			? sanitizeNodeInfoToLegacyFormat(this._nodeInfo)
 			: {};
 		request.end(legacyNodeInfo);
 	}
