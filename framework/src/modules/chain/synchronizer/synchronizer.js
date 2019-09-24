@@ -114,7 +114,7 @@ class Synchronizer {
 	 * @param {Object} tx - database transaction
 	 */
 	async restoreBlocks(tx) {
-		this.logger.info('Attempting to restore blocks from temp_table');
+		this.logger.info('Attempting to restore blocks from temp_block table');
 
 		const tempBlocks = await this.blocksModule.getTempBlocks(tx);
 		for (const block of tempBlocks) {
@@ -122,6 +122,7 @@ class Synchronizer {
 			await this.processorModule.processValidated(block);
 		}
 
+		this.logger.info('Successfully restored blocks from temp_block table');
 		return true;
 	}
 

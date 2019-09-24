@@ -332,6 +332,10 @@ class Blocks extends EventEmitter {
 		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
 	}
 
+	/**
+	 * Get all blocks from temp_block table
+	 * @param {Object} tx - database transaction
+	 */
 	async getTempBlocks(tx) {
 		const tempBlocks = await this.storage.entities.TempBlock.get({}, {}, tx);
 		return tempBlocks;
