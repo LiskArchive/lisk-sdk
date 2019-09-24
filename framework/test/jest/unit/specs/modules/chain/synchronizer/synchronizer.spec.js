@@ -28,20 +28,31 @@ describe('Synchronizer', () => {
 	let syncMechanism2;
 	let loggerMock;
 	let processorMock;
+	let blocksMock;
 	let syncParameters;
+	const stubs = {};
 
 	beforeEach(async () => {
 		loggerMock = {
 			info: jest.fn(),
+			debug: jest.fn(),
 		};
 
 		processorMock = {
 			validateDetached: jest.fn(),
+			processValidated: jest.fn(),
 		};
+
+		blocksMock = {
+			getTempBlocks: jest.fn(),
+		};
+
+		stubs.tx = jest.fn();
 
 		syncParameters = {
 			logger: loggerMock,
 			processorModule: processorMock,
+			blocksModule: blocksMock,
 		};
 		syncMechanism1 = {
 			isActive: false,
@@ -151,6 +162,42 @@ describe('Synchronizer', () => {
 			syncMechanism2.isActive = true;
 
 			expect(synchronizer.activeMechanism).toBe(syncMechanism2);
+		});
+	});
+
+	describe('restoreBlocks()', () => {
+		it('should return true', async () => {
+			// Arrange
+			const blocks = [{ id: 'block1' }, { id: 'block2' }];
+			blocksMock.getTempBlocks = jest.fn().mockReturnValue(blocks);
+
+			// Act
+			const result = await synchronizer.restoreBlocks(stubs.tx);
+
+			// Assert
+			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(stubs.tx);
+			expect(processorMock.processValidated).toHaveBeenCalledTimes(2);
+			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
+				1,
+				blocks[0],
+			);
+			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
+				2,
+				blocks[1],
+			);
+			expect(result).toBeTrue();
+		});
+
+		it('should throw error when temp_block table is empty', async () => {
+			// Arrange
+			blocksMock.getTempBlocks = jest.fn().mockReturnValue([]);
+
+			// Act && Assert
+			await expect(synchronizer.restoreBlocks(stubs.tx)).rejects.toBe(
+				'Temp_block table is empty',
+			);
+			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(stubs.tx);
+			expect(processorMock.processValidated).not.toHaveBeenCalled();
 		});
 	});
 

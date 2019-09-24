@@ -117,8 +117,13 @@ class Synchronizer {
 		this.logger.info('Attempting to restore blocks from temp_block table');
 
 		const tempBlocks = await this.blocksModule.getTempBlocks(tx);
+
+		if (tempBlocks.length === 0) {
+			throw new Error('Temp_block table is empty');
+		}
+
 		for (const block of tempBlocks) {
-			this.logger.debug('Restoring block from temp_table', block);
+			this.logger.debug('Restoring block from temp_block table', block);
 			await this.processorModule.processValidated(block);
 		}
 
