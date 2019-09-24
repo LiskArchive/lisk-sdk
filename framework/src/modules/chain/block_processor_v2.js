@@ -211,7 +211,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.apply.pipe([
 			data => this.blocksModule.verify(data),
 			data => this.blocksModule.apply(data),
-			({ block }) => this.bftModule.addNewBlock(block),
+			({ block, tx }) => this.bftModule.addNewBlock(block, tx),
 		]);
 
 		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
