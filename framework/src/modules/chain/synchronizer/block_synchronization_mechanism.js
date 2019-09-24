@@ -26,6 +26,7 @@ class BlockSynchronizationMechanism {
 		channel,
 		blocks,
 		activeDelegates,
+		processorModule,
 	}) {
 		this.storage = storage;
 		this.logger = logger;
@@ -33,26 +34,71 @@ class BlockSynchronizationMechanism {
 		this.slots = slots;
 		this.channel = channel;
 		this.blocks = blocks;
+		this.processorModule = processorModule;
 		this.constants = {
 			activeDelegates,
 		};
 		this.active = false;
 	}
 
-	async run() {
-		this.active = true;
-		const { connectedPeers: peers } = await this.channel.invoke(
-			'network:getNetworkStatus',
-		);
-		if (!peers.length) {
-			throw new Error('Connected peers list is empty');
+	async run(receivedBlock) {
+		try {
+			this.active = true;
+			const { connectedPeers: peers } = await this.channel.invoke(
+				'network:getUniqueOutboundConnectedPeers',
+			);
+			if (!peers.length) {
+				throw new Error('Connected peers list is empty');
+			}
+			// eslint-disable-next-line no-unused-vars
+			const bestPeer = this._computeBestPeer(peers);
+			// TODO: handle bestPeer and move on to step 2 defined in
+			// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
+			// ...
+
+			// The node requests the last common block C from P (Peer).
+			const { data: networkLastBlock } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getLastBlock',
+					peerId: bestPeer.id,
+				},
+			);
+
+			const { valid: validBlock, err } = await this._blockDetachedStatus(
+				networkLastBlock,
+			);
+			const notInDifferentChain = ForkChoiceRule.isDifferentChain(
+				this.blocks.lastBlock,
+				networkLastBlock,
+			);
+
+			if (!validBlock || !notInDifferentChain) {
+				this.channel.invoke('network:applyPenalty', {
+					peerId: bestPeer.id,
+					penalty: 100,
+				});
+				this.channel.publish('chain:processor:sync', { block: receivedBlock });
+				throw err;
+			}
+		} finally {
+			this.active = false;
 		}
-		// eslint-disable-next-line no-unused-vars
-		const bestPeer = this._computeBestPeer(peers);
-		// TODO: handle bestPeer and move on to step 2 defined in
-		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
-		// ...
-		this.active = false;
+	}
+
+	// This wrappers allows us to check using an if
+	// instead of forcing us to use a try/catch block
+	// for branching code execution.
+	// The original method works well in the context
+	// of the Pipeline but not in other cases
+	// that's why we wrap it here.
+	async _blockDetachedStatus(networkLastBlock) {
+		try {
+			await this.processorModule.validateDetached(networkLastBlock);
+			return { valid: true, err: null };
+		} catch (err) {
+			return { valid: false, err };
+		}
 	}
 
 	get isActive() {

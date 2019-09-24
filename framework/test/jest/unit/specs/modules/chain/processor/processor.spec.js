@@ -657,9 +657,10 @@ describe('processor', () => {
 				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not publish sync', async () => {
+			it('should publish sync', async () => {
 				expect(channelStub.publish).toHaveBeenCalledWith(
 					'chain:processor:sync',
+					{ block: blockV0 },
 				);
 			});
 		});
