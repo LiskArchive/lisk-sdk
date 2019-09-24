@@ -12,9 +12,15 @@ this.pgpOptions = {
 const pgp = pgpLib(this.pgpOptions);
 
 class PgHelper {
-	constructor({ dbName = 'lisk_dev', host = 'localhost', port = '5432' }) {
+	constructor({
+		dbName = 'lisk_dev',
+		user = 'lisk',
+		password = 'password',
+		host = 'localhost',
+		port = '5432',
+	}) {
 		this.dbName = dbName;
-		this.cnStr = `postgres://${host}:${port}/${dbName}`;
+		this.cnStr = `postgres://${user}:${password}@${host}:${port}/${dbName}`;
 		if (dbName.indexOf('postgres://') === 0) {
 			this.cnStr = dbName;
 		}
