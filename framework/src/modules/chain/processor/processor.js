@@ -265,8 +265,9 @@ class Processor {
 				});
 			}
 			if (removeFromTempTable) {
-				// Remove block from temp tabel
+				// Remove block from temp_block table
 				await this.blocksModule.removeBlockFromTempTable(block.id);
+				this.logger.debug('Removed block from temp_block table', block);
 			}
 			return block;
 		});
