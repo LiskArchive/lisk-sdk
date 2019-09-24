@@ -55,16 +55,16 @@ class BlockSynchronizationMechanism {
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 		// ...
 
-		// The node requests the last common block C from P (Peer).
-		const { data: networkLastBlock } = await this.channel.invoke(
-			'network:requestFromPeer',
-			{
-				procedure: 'getLastBlock',
-				peerId: bestPeer.id,
-			},
-		);
-
 		try {
+			// The node requests the last common block C from P (Peer).
+			const { data: networkLastBlock } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getLastBlock',
+					peerId: bestPeer.id,
+				},
+			);
+
 			await this.processorModule.validateDetached(networkLastBlock);
 			// For networkLastBlock to be valid, it needs to be in a different chain,
 			// as this syncing mechanism is only triggered when a block from a different
