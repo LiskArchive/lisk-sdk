@@ -307,22 +307,19 @@ module.exports = class Chain {
 			}),
 			getLastBlock: async () => this.blocks.lastBlock,
 			blocks: async action => this.transport.blocks(action.params || {}),
-			getHighestCommonBlockId: async action => {
+			getHighestCommonBlock: async action => {
 				const valid = validator.validate(
-					definitions.getHighestCommonBlockIdRequest,
+					definitions.getHighestCommonBlockRequest,
 					action.params,
 				);
 
 				if (valid.length) {
 					const err = valid;
 					const error = `${err[0].message}: ${err[0].path}`;
-					this.logger.debug(
-						'getHighestCommonBlockId request validation failed',
-						{
-							err: error,
-							req: action.params,
-						},
-					);
+					this.logger.debug('getHighestCommonBlock request validation failed', {
+						err: error,
+						req: action.params,
+					});
 					throw new Error(error);
 				}
 
@@ -330,7 +327,7 @@ module.exports = class Chain {
 					action.params.ids,
 				);
 
-				return commonBlock ? commonBlock.id : null;
+				return commonBlock || null;
 			},
 		};
 	}

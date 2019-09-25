@@ -99,8 +99,8 @@ module.exports = {
 			type: 'object',
 		},
 	},
-	getHighestCommonBlockIdRequest: {
-		id: 'getHighestCommonBlockIdRequest',
+	getHighestCommonBlockRequest: {
+		id: 'getHighestCommonBlockRequest',
 		type: 'object',
 		required: ['ids'],
 		properties: {
