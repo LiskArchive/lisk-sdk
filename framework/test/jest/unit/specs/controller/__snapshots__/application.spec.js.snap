@@ -522,6 +522,13 @@ Object {
         ],
       },
       "address": "0.0.0.0",
+      "apm": Object {
+        "enabled": true,
+        "options": Object {
+          "name": "Lisk-APM",
+          "uriPath": "/http-stats",
+        },
+      },
       "enabled": true,
       "forging": Object {
         "access": Object {
