@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { P2PRequest, RequestOptions } from '../../src';
+import { P2PRequest, RequestOptions } from '../../src/p2p_request';
 
 describe('p2p_request', () => {
 	let requestOptions: RequestOptions;
@@ -53,37 +53,27 @@ describe('p2p_request', () => {
 
 	describe('#procedure', () => {
 		it('should have a procedure property which is set to the value specified in the constructor', () =>
-			expect(request)
-				.to.have.property('procedure')
-				.which.equals('foo'));
+			expect(request.procedure).to.eql('foo'));
 	});
 
 	describe('#data', () => {
 		it('should have a data property which is set to the value specified in the constructor', () =>
-			expect(request)
-				.to.have.property('data')
-				.which.equals(123));
+			expect(request.data).to.eql(123));
 	});
 
 	describe('#rate', () => {
 		it('should have a rate property which is set to the value specified in the constructor', () =>
-			expect(request)
-				.to.have.property('rate')
-				.which.equals(0));
+			expect(request.rate).to.eql(0));
 	});
 
 	describe('#peerId', () => {
 		it('should have a peerId property which is set to the value specified in the constructor', () =>
-			expect(request)
-				.to.have.property('peerId')
-				.which.equals('abc123'));
+			expect(request.peerId).to.eql('abc123'));
 	});
 
 	describe('#wasResponseSent', () => {
 		it('should have a wasResponseSent property which is false', () =>
-			expect(request)
-				.to.have.property('wasResponseSent')
-				.which.equals(false));
+			expect(request.wasResponseSent).to.eql(false));
 	});
 
 	describe('#end', () => {
