@@ -124,7 +124,7 @@ class Synchronizer {
 
 		for (const block of tempBlocks) {
 			this.logger.debug('Restoring block from temp_block table', block);
-			await this.processorModule.processValidated(block);
+			await this.processorModule.processValidated(block, true);
 		}
 
 		this.logger.info('Successfully restored blocks from temp_block table');

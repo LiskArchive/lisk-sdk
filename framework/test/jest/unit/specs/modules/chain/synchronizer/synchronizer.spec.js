@@ -166,7 +166,7 @@ describe('Synchronizer', () => {
 	});
 
 	describe('restoreBlocks()', () => {
-		it('should return true', async () => {
+		it('should return true on success', async () => {
 			// Arrange
 			const blocks = [{ id: 'block1' }, { id: 'block2' }];
 			blocksMock.getTempBlocks = jest.fn().mockReturnValue(blocks);

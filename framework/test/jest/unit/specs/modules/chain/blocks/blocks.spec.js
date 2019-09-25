@@ -87,6 +87,8 @@ describe('blocks', () => {
 					},
 					TempBlock: {
 						create: jest.fn(),
+						delete: jest.fn(),
+						get: jest.fn(),
 					},
 				},
 			},
@@ -1650,7 +1652,11 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('exists', () => {
+	describe('removeBlockFromTempTable()', async () => {});
+
+	describe('getTempBlocks()', async () => {});
+
+	describe('exists()', () => {
 		beforeEach(async () => {
 			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
 				true,
