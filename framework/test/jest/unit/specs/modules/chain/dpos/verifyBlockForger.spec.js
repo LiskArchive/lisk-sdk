@@ -15,7 +15,7 @@
 'use strict';
 
 const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { constants } = require('../../../../utils');
+const { constants } = require('../../../../../utils');
 const { delegatePublicKeys } = require('./round_delegates');
 
 describe('dpos.verifyBlockForger()', () => {
@@ -31,6 +31,7 @@ describe('dpos.verifyBlockForger()', () => {
 					getActiveDelegatesForRound: jest
 						.fn()
 						.mockReturnValue(delegatePublicKeys),
+					// @todo create was stubbed but never used, create an issue to remove it or add a test case
 					create: jest.fn(),
 				},
 				Account: {
