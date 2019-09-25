@@ -100,8 +100,8 @@ describe('bft', () => {
 				expect(bft.storage).toBe(storageMock);
 				expect(bft.logger).toBe(loggerMock);
 				expect(bft.constants).toEqual({ activeDelegates, startingHeight });
-				expect(bft.BlockEntity).toBe(storageMock.entities.Block);
-				expect(bft.ChainMetaEntity).toBe(storageMock.entities.ChainMeta);
+				expect(bft.blockEntity).toBe(storageMock.entities.Block);
+				expect(bft.chainMetaEntity).toBe(storageMock.entities.ChainMeta);
 			});
 		});
 
