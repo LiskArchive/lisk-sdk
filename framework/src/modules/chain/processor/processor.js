@@ -184,7 +184,7 @@ class Processor {
 	}
 
 	// processValidated processes a block assuming that statically it's valid
-	async processValidated(block, removeFromTempTable = false) {
+	async processValidated(block, { removeFromTempTable = false } = {}) {
 		return this.sequence.add(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },

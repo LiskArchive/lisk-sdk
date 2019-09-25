@@ -1020,7 +1020,9 @@ describe('processor', () => {
 
 		describe('when block successfully processed with flag removeFromTempTable = true', () => {
 			beforeEach(async () => {
-				await processor.processValidated(blockV0, true);
+				await processor.processValidated(blockV0, {
+					removeFromTempTable: true,
+				});
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 			});
 
@@ -1076,6 +1078,12 @@ describe('processor', () => {
 					'chain:processor:broadcast',
 					expect.anything(),
 				);
+			});
+
+			it('should not save block in temp_block table', async () => {
+				expect(
+					blocksModuleStub.removeBlockFromTempTable,
+				).not.toHaveBeenCalled();
 			});
 
 			it('should emit newBlock event', async () => {
