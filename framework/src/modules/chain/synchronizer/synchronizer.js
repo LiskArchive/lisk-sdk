@@ -18,10 +18,9 @@ const util = require('util');
 const assert = require('assert');
 
 class Synchronizer {
-	constructor({ logger, processorModule, blocksModule }) {
+	constructor({ logger, processorModule }) {
 		this.logger = logger;
 		this.processorModule = processorModule;
-		this.blocksModule = blocksModule;
 
 		this.mechanisms = [];
 	}
@@ -102,33 +101,6 @@ class Synchronizer {
 	 */
 	get activeMechanism() {
 		return this.mechanisms.find(mechanism => mechanism.isActive);
-	}
-
-	/**
-	 * Restore blocks from temp table and re-apply to chain
-	 * Steps:
-	 * 1. Read all blocks from temp_block table
-	 * 2. Apply blocks one by one to current chain
-	 * 3. Each block gets deleted from temp_block table when its being applied
-	 *
-	 * @param {Object} tx - database transaction
-	 */
-	async restoreBlocks(tx) {
-		this.logger.info('Attempting to restore blocks from temp_block table');
-
-		const tempBlocks = await this.blocksModule.getTempBlocks(tx);
-
-		if (tempBlocks.length === 0) {
-			throw new Error('Temp_block table is empty');
-		}
-
-		for (const block of tempBlocks) {
-			this.logger.debug('Restoring block from temp_block table', block);
-			await this.processorModule.processValidated(block, true);
-		}
-
-		this.logger.info('Successfully restored blocks from temp_block table');
-		return true;
 	}
 
 	/**
