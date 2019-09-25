@@ -32,7 +32,9 @@ const restoreBlocks = async (blocksModule, processorModule, tx) => {
 	}
 
 	for (const block of tempBlocks) {
-		await processorModule.processValidated(block, true);
+		await processorModule.processValidated(block, {
+			removeFromTempTable: true,
+		});
 	}
 
 	return true;
