@@ -295,17 +295,6 @@ describe('WS transport', () => {
 				}
 			});
 
-			it('using ids which include genesisBlock.id should be ok', async () => {
-				const { data } = await p2p.request({
-					procedure: 'getHighestCommonBlock',
-					data: {
-						ids: [__testContext.config.genesisBlock.id.toString(), '2', '3'],
-					},
-				});
-				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
-				expect(data).to.equal(__testContext.config.genesisBlock);
-			});
-
 			it('using ["1","2","3"] should return an empty array (no common blocks)', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getHighestCommonBlock',

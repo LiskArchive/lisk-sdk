@@ -186,7 +186,7 @@ describe('Chain', () => {
 				const response = await chain.actions.getHighestCommonBlock({
 					params: { ids: ['1', '2'] },
 				});
-				expect(response).to.equal({ id: '123', height: '1' });
+				expect(response).to.deep.equal({ id: '123', height: '1' });
 			});
 
 			it('should call blocks.getHighestCommonBlock with proper arguments', async () => {});
