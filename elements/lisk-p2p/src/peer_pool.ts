@@ -80,7 +80,8 @@ interface FilterPeersOptions {
 	readonly asc: boolean;
 }
 
-const filterPeersByCategory = (
+// Returns an array of peers to be protected
+export const filterPeersByCategory = (
 	peers: Peer[],
 	options: FilterPeersOptions,
 ): Peer[] => {
@@ -88,15 +89,18 @@ const filterPeersByCategory = (
 	if (options.percentage > 1 || options.percentage < 0) {
 		return peers;
 	}
-	const peerCount = Math.ceil(peers.length * options.percentage);
+	const protectedPeerIndex = Math.max(
+		1,
+		Math.floor(peers.length * (1 - options.percentage)),
+	);
 	const sign = !!options.asc ? 1 : -1;
 
 	// tslint:disable-next-line no-any
 	return peers
-		.sort((peerA: any, peerB: any) =>
-			peerA[options.category] > peerB[options.category] ? sign : sign * -1,
+		.sort((a: any, b: any) =>
+			a[options.category] > b[options.category] ? sign : sign * -1,
 		)
-		.slice(peerCount, peers.length);
+		.slice(protectedPeerIndex, peers.length);
 };
 
 enum PROTECTION_CATEGORY {
