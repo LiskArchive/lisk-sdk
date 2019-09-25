@@ -153,6 +153,27 @@ const defaultConfig = {
 			},
 			required: ['access'],
 		},
+		apm: {
+			type: 'object',
+			properties: {
+				enabled: {
+					type: 'boolean',
+				},
+				options: {
+					type: 'object',
+					properties: {
+						name: {
+							type: 'string',
+						},
+						uriPath: {
+							type: 'string',
+						},
+					},
+					required: ['name', 'uriPath'],
+				},
+			},
+			required: ['enabled', 'options'],
+		},
 	},
 	required: [
 		'httpPort',
@@ -199,6 +220,13 @@ const defaultConfig = {
 		forging: {
 			access: {
 				whiteList: ['127.0.0.1'],
+			},
+		},
+		apm: {
+			enabled: true,
+			options: {
+				name: 'Lisk-APM',
+				uriPath: '/http-stats',
 			},
 		},
 	},
