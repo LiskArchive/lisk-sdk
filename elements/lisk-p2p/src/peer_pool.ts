@@ -607,53 +607,58 @@ export class PeerPool extends EventEmitter {
 		);
 
 		// Cannot predict which netgroups will be protected
-		const filteredPeersByNetgroup = this._peerPoolConfig.netgroupProtectionRatio
+		const protectedPeersByNetgroup = this._peerPoolConfig
+			.netgroupProtectionRatio
 			? filterPeersByCategory(peers, {
 					category: PROTECTION_CATEGORY.NET_GROUP,
 					percentage: this._peerPoolConfig.netgroupProtectionRatio,
 					asc: true,
 			  })
-			: peers;
-		if (filteredPeersByNetgroup.length <= 1) {
-			return filteredPeersByNetgroup;
-		}
+			: [];
 
 		// Cannot manipulate without physically moving nodes closer to the target.
-		const filteredPeersByLatency = this._peerPoolConfig.latencyProtectionRatio
+		const protectedPeersByLatency = this._peerPoolConfig.latencyProtectionRatio
 			? filterPeersByCategory(peers, {
 					category: PROTECTION_CATEGORY.LATENCY,
 					percentage: this._peerPoolConfig.latencyProtectionRatio,
-					asc: true,
-			  })
-			: filteredPeersByNetgroup;
-		if (filteredPeersByLatency.length <= 1) {
-			return filteredPeersByLatency;
-		}
-
-		// Cannot manipulate this metric without performing useful work.
-		const filteredPeersByResponseRate = this._peerPoolConfig
-			.productivityProtectionRatio
-			? filterPeersByCategory(filteredPeersByLatency, {
-					category: PROTECTION_CATEGORY.RESPONSE_RATE,
-					percentage: this._peerPoolConfig.productivityProtectionRatio,
 					asc: false,
 			  })
-			: filteredPeersByLatency;
-		if (filteredPeersByResponseRate.length <= 1) {
-			return filteredPeersByResponseRate;
-		}
+			: [];
 
-		// Protect remaining half of peers by longevity, precludes attacks that start later.
-		const filteredPeersByConnectTime = this._peerPoolConfig
-			.longevityProtectionRatio
-			? filterPeersByCategory(filteredPeersByResponseRate, {
-					category: PROTECTION_CATEGORY.CONNECT_TIME,
-					percentage: this._peerPoolConfig.longevityProtectionRatio,
+		// Cannot manipulate this metric without performing useful work.
+		const protectedPeersByResponseRate = this._peerPoolConfig
+			.productivityProtectionRatio
+			? filterPeersByCategory(peers, {
+					category: PROTECTION_CATEGORY.RESPONSE_RATE,
+					percentage: this._peerPoolConfig.productivityProtectionRatio,
 					asc: true,
 			  })
-			: filteredPeersByResponseRate;
+			: [];
 
-		return filteredPeersByConnectTime;
+		const uniqueProtectedPeers = [
+			...new Set([
+				...protectedPeersByNetgroup,
+				...protectedPeersByLatency,
+				...protectedPeersByResponseRate,
+			]),
+		];
+		const unprotectedPeers = peers.filter(
+			peer => !uniqueProtectedPeers.includes(peer),
+		);
+
+		// Protect *the remaining half* of peers by longevity, precludes attacks that start later.
+		const protectedPeersByConnectTime = this._peerPoolConfig
+			.longevityProtectionRatio
+			? filterPeersByCategory(unprotectedPeers, {
+					category: PROTECTION_CATEGORY.CONNECT_TIME,
+					percentage: this._peerPoolConfig.longevityProtectionRatio,
+					asc: false,
+			  })
+			: [];
+
+		return unprotectedPeers.filter(
+			peer => !protectedPeersByConnectTime.includes(peer),
+		);
 	}
 
 	private _evictPeer(kind: typeof InboundPeer | typeof OutboundPeer): void {
