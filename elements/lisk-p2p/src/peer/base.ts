@@ -168,42 +168,10 @@ export class Peer extends EventEmitter {
 		this._wsMessageRate = 0;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
-			this._wsMessageRate =
-				(this._wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
-			this._wsMessageCount = 0;
-
-			if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
-				this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
-
-				return;
-			}
-
-			this._rpcRates = new Map(
-				[...this._rpcCounter.entries()].map(([key, value]) => {
-					const rate = value / this._rateInterval;
-
-					return [key, rate] as any;
-				}),
-			);
-			this._rpcCounter = new Map();
-
-			this._messageRates = new Map(
-				[...this._messageCounter.entries()].map(([key, value]) => {
-					const rate = value / this._rateInterval;
-
-					return [key, rate] as any;
-				}),
-			);
-			this._messageCounter = new Map();
+			this._resetCounters();
 		}, this._rateInterval);
 		this._productivityResetInterval = setInterval(() => {
-			// If peer has not recently responded, reset productivity to 0
-			if (
-				this._productivity.lastResponded <
-				Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
-			) {
-				this._productivity = { ...DEFAULT_PRODUCTIVITY };
-			}
+			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
 
@@ -530,6 +498,46 @@ export class Peer extends EventEmitter {
 		this._reputation -= penalty;
 		if (this._reputation <= 0) {
 			this._banPeer();
+		}
+	}
+
+	private _resetCounters(): void {
+		this._wsMessageRate =
+			(this._wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
+		this._wsMessageCount = 0;
+
+		if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
+			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
+
+			return;
+		}
+
+		this._rpcRates = new Map(
+			[...this._rpcCounter.entries()].map(([key, value]) => {
+				const rate = value / this._rateInterval;
+
+				return [key, rate] as any;
+			}),
+		);
+		this._rpcCounter = new Map();
+
+		this._messageRates = new Map(
+			[...this._messageCounter.entries()].map(([key, value]) => {
+				const rate = value / this._rateInterval;
+
+				return [key, rate] as any;
+			}),
+		);
+		this._messageCounter = new Map();
+	}
+
+	private _resetProductivity(): void {
+		// If peer has not recently responded, reset productivity to 0
+		if (
+			this._productivity.lastResponded <
+			Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
+		) {
+			this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
 

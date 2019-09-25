@@ -19,6 +19,7 @@ import {
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
+	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -40,6 +41,7 @@ import {
 	constructPeerIdFromPeerInfo,
 } from '../../../src/utils';
 import { P2PDiscoveredPeerInfo, P2PNodeInfo, P2PPeerInfo } from '../../../src';
+import * as sinon from 'sinon';
 
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
@@ -47,8 +49,10 @@ describe('peer/base', () => {
 	let nodeInfo: P2PNodeInfo;
 	let p2pDiscoveredPeerInfo: P2PDiscoveredPeerInfo;
 	let defaultPeer: Peer;
+	let clock: sinon.SinonFakeTimers;
 
 	beforeEach(() => {
+		clock = sinon.useFakeTimers();
 		defaultPeerInfo = {
 			ipAddress: '12.12.12.12',
 			wsPort: 5001,
@@ -86,7 +90,7 @@ describe('peer/base', () => {
 	});
 
 	afterEach(() => {
-		sandbox.restore();
+		clock.restore();
 		defaultPeer.disconnect();
 	});
 
@@ -259,15 +263,18 @@ describe('peer/base', () => {
 	});
 
 	describe('#disconnect', () => {
-		it('should clear intervals', () => {
-			const counterResetIntervalId = (defaultPeer as any)._counterResetInterval;
-			const productivityResetIntervalId = (defaultPeer as any)
-				._productivityResetInterval;
-			sandbox.spy(global, 'clearInterval');
+		it('should clear _counterResetInterval', () => {
+			sandbox.spy(defaultPeer as any, '_resetCounters');
 			defaultPeer.disconnect();
-			expect(clearInterval).to.be.calledTwice;
-			expect(clearInterval).to.be.calledWith(counterResetIntervalId);
-			expect(clearInterval).to.be.calledWith(productivityResetIntervalId);
+			clock.tick(peerConfig.rateCalculationInterval + 1);
+			expect((defaultPeer as any)._resetCounters).to.not.be.called;
+		});
+
+		it('should clear _productivityResetInterval', () => {
+			sandbox.spy(defaultPeer as any, '_resetProductivity');
+			defaultPeer.disconnect();
+			clock.tick(DEFAULT_PRODUCTIVITY_RESET_INTERVAL + 1);
+			expect((defaultPeer as any)._resetProductivity).to.not.be.called;
 		});
 
 		it('should destroy socket if it exists', async () => {

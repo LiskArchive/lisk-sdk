@@ -56,6 +56,7 @@ describe('peer/inbound', () => {
 	});
 
 	afterEach(() => {
+		clock.restore();
 		defaultInboundPeer.disconnect();
 	});
 
