@@ -5,6 +5,7 @@ Object {
   "collectCoverage": true,
   "collectCoverageFrom": Array [
     "framework/src/controller/**",
+    "framework/src/modules/chain/**",
   ],
   "coverageDirectory": ".coverage/unit",
   "coverageReporters": Array [

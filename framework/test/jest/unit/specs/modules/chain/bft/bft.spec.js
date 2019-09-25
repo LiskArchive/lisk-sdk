@@ -88,7 +88,7 @@ describe('bft', () => {
 			startingHeight,
 		};
 
-		describe('constructor()', () => {
+		describe('#constructor', () => {
 			it('should create instance of BFT', async () => {
 				expect(new BFT(bftParams)).toBeInstanceOf(BFT);
 			});
@@ -105,7 +105,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('init()', () => {
+		describe('#init', () => {
 			let bft;
 
 			beforeEach(async () => {
@@ -320,7 +320,37 @@ describe('bft', () => {
 			});
 		});
 
-		describe('deleteBlocks()', () => {
+		describe('#addNewBlock', () => {
+			const block1 = blockFixture({ height: 1, version: '2' });
+			const lastFinalizedHeight = 5;
+
+			let bft;
+			let txStub;
+
+			beforeEach(async () => {
+				storageMock.entities.Block.get.mockReturnValue([]);
+				bft = new BFT(bftParams);
+				storageMock.entities.ChainMeta.getKey.mockReturnValue(
+					lastFinalizedHeight,
+				);
+				txStub = jest.fn();
+				await bft.init();
+				storageMock.entities.Block.get.mockClear();
+			});
+
+			describe('when valid block which does not change the finality is added', () => {
+				it('should update the latest finalized height to storage', async () => {
+					await bft.addNewBlock(block1, txStub);
+					expect(storageMock.entities.ChainMeta.setKey).toHaveBeenCalledWith(
+						'BFT.finalizedHeight',
+						lastFinalizedHeight,
+						txStub,
+					);
+				});
+			});
+		});
+
+		describe('#deleteBlocks', () => {
 			let bft;
 
 			beforeEach(async () => {
@@ -511,7 +541,7 @@ describe('bft', () => {
 		});
 
 		// TODO: Remove tests for private methods
-		describe('_initFinalityManager()', () => {
+		describe('#_initFinalityManager', () => {
 			it('should call ChainMetaEntity.getKey to get stored finalized height', async () => {
 				const bft = new BFT(bftParams);
 				const result = await bft._initFinalityManager();
@@ -564,7 +594,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('_getLastBlockHeight()', () => {
+		describe('#_getLastBlockHeight', () => {
 			it('should call BlockEntity.get with particular parameters', async () => {
 				const bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
@@ -605,7 +635,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('_loadBlocksFromStorage()', () => {
+		describe('#_loadBlocksFromStorage', () => {
 			const fromHeight = 0;
 			const tillHeight = 10;
 			let bft;

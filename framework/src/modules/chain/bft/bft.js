@@ -135,12 +135,18 @@ class BFT extends EventEmitter {
 	 * Load new block to BFT
 	 *
 	 * @param {Object} block - The block which is forged
+	 * @param {Object} tx - database transaction
 	 * @return {Promise<void>}
 	 */
-	async addNewBlock(block) {
-		// We don't need async operations here as of now but can require in future
-		// and for consistency with other interfaces keeping it async
+	async addNewBlock(block, tx) {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
+		const { finalizedHeight } = this.finalityManager;
+		// TODO: this should be memory operation in the state store
+		return this.chainMetaEntity.setKey(
+			META_KEYS.FINALIZED_HEIGHT,
+			finalizedHeight,
+			tx,
+		);
 	}
 
 	async verifyNewBlock(block) {
