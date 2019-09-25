@@ -24,7 +24,7 @@ const { validateBlockHeader } = require('./utils');
 
 const META_KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
-	LAST_BLOCK_FORGED: 'BFT.lastBlockForged',
+	LAST_BLOCK_FORGED: 'BFT.maxHeightPreviouslyForged',
 };
 const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
@@ -160,12 +160,18 @@ class BFT extends EventEmitter {
 		const maxHeightPreviouslyForged = previouslyForged[delegatePublicKey] || 0;
 
 		return {
-			// FIXME: prevotedConfirmedHeight needs to be updated before creating?
+			// prevotedConfirmedUptoHeight is up till height - 1
 			prevotedConfirmedUptoHeight: this.finalityManager.prevotedConfirmedHeight,
 			maxHeightPreviouslyForged,
 		};
 	}
 
+	/**
+	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
+	 * so it needs to be outside of the DB transaction
+	 * @param delegatePublicKey
+	 * @param height
+	 */
 	async saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
 		const previouslyForged = await this._getPreviouslyForgedMap();
 		const updatedPreviouslyForged = {
