@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { platform } from 'os';
 import {
 	P2PPeerSelectionForSendFunction,
 	P2PPeerSelectionForRequestFunction,
@@ -26,11 +25,15 @@ import {
 } from '../../src/p2p_types';
 import { PEER_KIND_OUTBOUND, PEER_KIND_INBOUND } from '../../src/constants';
 
+import {
+	POPULATOR_INTERVAL,
+	createNetwork,
+	SEED_PEER_IP,
+	destroyNetwork,
+} from '../utils/network_setup';
+
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const NETWORK_START_PORT = 5000;
-	const NETWORK_PEER_COUNT = 10;
-	const POPULATOR_INTERVAL = 50;
 
 	// Custom selection function that finds peers having common values for modules field for example.
 	const peerSelectionForSendRequest:
@@ -88,51 +91,45 @@ describe('Custom peer selection', () => {
 	) => [...input.newPeers, ...input.triedPeers];
 
 	beforeEach(async () => {
-		p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
-			// Each node will have the previous node in the sequence as a seed peer except the first node.
-			const nodePort = NETWORK_START_PORT + index;
-			const seedPeers = [...new Array(NETWORK_PEER_COUNT / 2).keys()]
-				.map(index => ({
-					ipAddress: '127.0.0.1',
-					wsPort: NETWORK_START_PORT + ((index + 2) % NETWORK_PEER_COUNT),
-				}))
-				.filter(seedPeer => seedPeer.wsPort !== nodePort);
-
-			return new P2P({
-				connectTimeout: 100,
-				ackTimeout: 200,
-				peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
-				peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
-				peerSelectionForConnection,
-				seedPeers,
-				wsEngine: 'ws',
-				populatorInterval: POPULATOR_INTERVAL,
-				maxOutboundConnections: 5,
-				maxInboundConnections: 5,
-				nodeInfo: {
-					wsPort: nodePort,
-					nethash:
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					version: '1.0.1',
-					protocolVersion: '1.1',
-					os: platform(),
-					height: 1000 + index,
-					broadhash:
-						'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-					nonce: `O2wTkjqplHII${nodePort}`,
-					modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
-				},
-			});
+		const customNodeInfo = (index: number) => ({
+			modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
+			height: 1000 + index,
 		});
-		await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-		await wait(1000);
+
+		const customSeedPeers = (
+			index: number,
+			startPort: number,
+			networkSize: number,
+		) =>
+			[...new Array(networkSize / 2).keys()]
+				.map(index => ({
+					ipAddress: SEED_PEER_IP,
+					wsPort: startPort + ((index + 2) % networkSize),
+				}))
+				.filter(seedPeer => seedPeer.wsPort !== startPort + index);
+
+		const customConfig = (
+			index: number,
+			startPort: number,
+			networkSize: number,
+		) => ({
+			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
+			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
+			peerSelectionForConnection,
+			populatorInterval: POPULATOR_INTERVAL,
+			maxOutboundConnections: 5,
+			maxInboundConnections: 5,
+			nodeInfo: customNodeInfo(index),
+			seedPeers: customSeedPeers(index, startPort, networkSize),
+		});
+
+		p2pNodeList = await createNetwork({
+			customConfig,
+		});
 	});
 
 	afterEach(async () => {
-		await Promise.all(
-			p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
-		);
-		await wait(1000);
+		await destroyNetwork(p2pNodeList);
 	});
 
 	it('should start all the nodes with custom selection functions without fail', async () => {

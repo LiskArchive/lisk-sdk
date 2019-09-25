@@ -27,7 +27,6 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import {
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PPeerInfo,
 	P2PRequestPacket,
@@ -53,11 +52,6 @@ interface ClientOptionsUpdated {
 	readonly maxPayload?: number;
 }
 
-export interface PeerInfoAndOutboundConnection {
-	readonly peerInfo: P2PDiscoveredPeerInfo;
-	readonly socket: SCClientSocket;
-}
-
 export class OutboundPeer extends Peer {
 	protected _socket: SCClientSocket | undefined;
 
@@ -71,6 +65,20 @@ export class OutboundPeer extends Peer {
 		}
 		this._socket = scClientSocket;
 		this._bindHandlersToOutboundSocket(this._socket);
+	}
+
+	public connect(): void {
+		if (!this._socket) {
+			this._socket = this._createOutboundSocket();
+		}
+		this._socket.connect();
+	}
+
+	public disconnect(code: number = 1000, reason?: string): void {
+		super.disconnect(code, reason);
+		if (this._socket) {
+			this._unbindHandlersFromOutboundSocket(this._socket);
+		}
 	}
 
 	public send(packet: P2PMessagePacket): void {
@@ -121,20 +129,6 @@ export class OutboundPeer extends Peer {
 		this._bindHandlersToOutboundSocket(outboundSocket);
 
 		return outboundSocket;
-	}
-
-	public connect(): void {
-		if (!this._socket) {
-			this._socket = this._createOutboundSocket();
-		}
-		this._socket.connect();
-	}
-
-	public disconnect(code: number = 1000, reason?: string): void {
-		super.disconnect(code, reason);
-		if (this._socket) {
-			this._unbindHandlersFromOutboundSocket(this._socket);
-		}
 	}
 
 	// All event handlers for the outbound socket should be bound in this method.
