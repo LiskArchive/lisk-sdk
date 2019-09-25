@@ -1,4 +1,17 @@
-/* eslint-disable no-console */
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 const pgpLib = require('pg-promise');
 const childProcess = require('child_process');
 const { createStorageComponent } = require('./storage');
@@ -31,6 +44,7 @@ class PgHelper {
 
 	_dropDB() {
 		return new Promise(resolve => {
+			// eslint-disable-next-line no-console
 			console.log('Dropping database instance:', this.dbName);
 			childProcess.exec(`dropdb ${this.dbName}`, () => resolve());
 		});
@@ -38,6 +52,7 @@ class PgHelper {
 
 	_createDB() {
 		return new Promise((resolve, reject) => {
+			// eslint-disable-next-line no-console
 			console.log('Creating database instance:', this.dbName);
 			childProcess.exec(`createdb ${this.dbName}`, error => {
 				if (error) {
