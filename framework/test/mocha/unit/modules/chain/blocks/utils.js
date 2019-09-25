@@ -283,61 +283,6 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('loadBlocksDataWS', () => {
-		it('should return error when storage.entities.Block.get fails', async () => {
-			storageStub.entities.Block.get
-				.onCall(0)
-				.resolves(['1'])
-				.onCall(1)
-				.resolves(null);
-
-			try {
-				await blocksUtils.loadBlocksDataWS(storageStub, { id: '1' });
-			} catch (err) {
-				expect(err.message).to.equal("Cannot read property 'forEach' of null");
-			}
-		});
-
-		it('should return error when called with both id and lastId', async () => {
-			storageStub.entities.Block.get.resolves(['1']);
-
-			try {
-				await blocksUtils.loadBlocksDataWS(storageStub, { id: '1' });
-			} catch (err) {
-				expect(err.message).to.equal(
-					'Invalid filter: Received both id and lastId',
-				);
-			}
-		});
-
-		it('should return empty row when called with invalid id', async () => {
-			storageStub.entities.Block.get
-				.onCall(0)
-				.resolves(['1'])
-				.onCall(1)
-				.resolves([]);
-
-			const blocks = await blocksUtils.loadBlocksDataWS(storageStub, {
-				id: '1',
-			});
-			expect(blocks).to.an('array').that.is.empty;
-		});
-
-		it('should return one row when called with valid id', async () => {
-			storageStub.entities.Block.get
-				.onCall(0)
-				.resolves(['1'])
-				.onCall(1)
-				.resolves([...storageBlocksListRows]);
-
-			const blocks = await blocksUtils.loadBlocksDataWS(storageStub, {
-				id: '13068833527549895884',
-			});
-			expect(blocks).to.be.an('array');
-			expect(blocks[0].b_id).to.eql('13068833527549895884');
-		});
-	});
-
 	describe('setHeight', () => {
 		const dummyBlock = {
 			id: '6',

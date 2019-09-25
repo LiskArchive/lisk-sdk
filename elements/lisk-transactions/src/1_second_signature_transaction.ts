@@ -183,17 +183,4 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		this._signature = signData(hash(this.getBytes()), passphrase);
 		this._id = getId(this.getBytes());
 	}
-
-	// tslint:disable:next-line: prefer-function-over-method no-any
-	protected assetFromSync(raw: any): object | undefined {
-		if (!raw.s_publicKey) {
-			return undefined;
-		}
-		const signature = {
-			transactionId: raw.t_id,
-			publicKey: raw.s_publicKey,
-		};
-
-		return { signature };
-	}
 }

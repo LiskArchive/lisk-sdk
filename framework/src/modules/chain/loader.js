@@ -17,6 +17,7 @@
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
+const { storageRead } = require('./blocks');
 const { validateTransactions } = require('./transactions');
 const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
@@ -89,28 +90,16 @@ class Loader {
 	}
 
 	/**
-	 * Pulls Transactions and signatures.
+	 * Pulls Transactions
 	 */
-	async loadTransactionsAndSignatures() {
+	async loadUnconfirmedTransactions() {
 		await new Promise(resolve => {
 			async.retry(
 				this.retries,
-				async () => this._getTransactionsFromNetwork(),
+				async () => this._getUnconfirmedTransactionsFromNetwork(),
 				err => {
 					if (err) {
 						this.logger.error('Unconfirmed transactions loader', err);
-					}
-					resolve();
-				},
-			);
-		});
-		await new Promise(resolve => {
-			async.retry(
-				this.retries,
-				async () => this._getSignaturesFromNetwork(),
-				err => {
-					if (err) {
-						this.logger.error('Signatures loader', err);
 					}
 					resolve();
 				},
@@ -169,46 +158,6 @@ class Loader {
 	}
 
 	/**
-	 * Loads signatures from network.
-	 * Processes each signature from the network.
-	 *
-	 * @private
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
-	 */
-	async _getSignaturesFromNetwork() {
-		this.logger.info('Loading signatures from the network');
-
-		// TODO: Add target module to procedure name. E.g. chain:getSignatures
-		const { data: result } = await this.channel.invoke('network:request', {
-			procedure: 'getSignatures',
-		});
-
-		const errors = validator.validate(definitions.WSSignaturesResponse, result);
-		if (errors.length) {
-			throw errors;
-		}
-
-		const { signatures } = result;
-
-		const signatureCount = signatures.length;
-		// eslint-disable-next-line no-plusplus
-		for (let i = 0; i < signatureCount; i++) {
-			const signaturePacket = signatures[i];
-			const subSignatureCount = signaturePacket.signatures.length;
-			// eslint-disable-next-line no-plusplus
-			for (let j = 0; j < subSignatureCount; j++) {
-				const signature = signaturePacket.signatures[j];
-
-				await this.transactionPoolModule.getTransactionAndProcessSignature({
-					signature,
-					transactionId: signature.transactionId,
-				});
-			}
-		}
-	}
-
-	/**
 	 * Loads transactions from the network:
 	 * - Validates each transaction from the network and applies a penalty if invalid.
 	 * - Calls processUnconfirmedTransaction for each transaction.
@@ -217,7 +166,7 @@ class Loader {
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
 	 */
-	async _getTransactionsFromNetwork() {
+	async _getUnconfirmedTransactionsFromNetwork() {
 		this.logger.info('Loading transactions from the network');
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
@@ -333,18 +282,15 @@ class Loader {
 	 * @returns {Promise} void
 	 * @todo Add description for the params
 	 */
-	async _getValidatedBlocksFromNetwork(blockRows) {
+	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
-		// TODO: this should be removed and the block should be received from the network using *normal* block property names
-		const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
-		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
-			// eslint-disable-next-line no-await-in-loop
-			await this.processorModule.validate(block);
-			// eslint-disable-next-line no-await-in-loop
-			await this.processorModule.processValidated(block);
-			lastValidBlock = block;
+			// TODO: Fix with #4131 define serialization and deserialization
+			const parsedBlock = storageRead(block);
+			await this.processorModule.validate(parsedBlock);
+			await this.processorModule.processValidated(parsedBlock);
+			lastValidBlock = parsedBlock;
 		}
 		this.blocksToSync = lastValidBlock.height;
 

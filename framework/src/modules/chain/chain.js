@@ -45,6 +45,7 @@ const { Processor } = require('./processor');
 const { Rebuilder } = require('./rebuilder');
 const { BlockProcessorV0 } = require('./block_processor_v0.js');
 const { BlockProcessorV1 } = require('./block_processor_v1.js');
+const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -154,7 +155,7 @@ module.exports = class Chain {
 			// Prepare dependency
 			const processorDependencies = {
 				blocksModule: this.blocks,
-				bft: this.bft,
+				bftModule: this.bft,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
@@ -174,9 +175,17 @@ module.exports = class Chain {
 							height >= period.start && height <= period.end,
 					});
 				}
+
+				if (this.options.exceptions.blockVersions[1]) {
+					const period = this.options.exceptions.blockVersions[1];
+					this.processor.register(new BlockProcessorV1(processorDependencies), {
+						matcher: ({ height }) =>
+							height >= period.start && height <= period.end,
+					});
+				}
 			}
 
-			this.processor.register(new BlockProcessorV1(processorDependencies));
+			this.processor.register(new BlockProcessorV2(processorDependencies));
 
 			// Deactivate broadcast and syncing during snapshotting process
 			if (this.options.loading.rebuildUpToRound) {
@@ -202,7 +211,6 @@ module.exports = class Chain {
 			});
 
 			this.logger.info('Modules ready and launched');
-			await this.bft.init();
 			// After binding, it should immediately load blockchain
 			await this.processor.init(this.options.genesisBlock);
 
@@ -565,7 +573,7 @@ module.exports = class Chain {
 	}
 
 	_startLoader() {
-		this.loader.loadTransactionsAndSignatures();
+		this.loader.loadUnconfirmedTransactions();
 		if (!this.options.syncing.active) {
 			return;
 		}

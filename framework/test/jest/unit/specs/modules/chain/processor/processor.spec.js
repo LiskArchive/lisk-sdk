@@ -65,6 +65,7 @@ describe('processor', () => {
 			error: jest.fn(),
 		};
 		blocksModuleStub = {
+			init: jest.fn(),
 			save: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
@@ -177,6 +178,10 @@ describe('processor', () => {
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 			});
 
+			it('should call blocksModule init', async () => {
+				expect(blocksModuleStub.init).toHaveBeenCalledTimes(1);
+			});
+
 			it('should check if genesis block exists', async () => {
 				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
@@ -207,6 +212,10 @@ describe('processor', () => {
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 			});
 
+			it('should call blocksModule init', async () => {
+				expect(blocksModuleStub.init).toHaveBeenCalledTimes(1);
+			});
+
 			it('should check if genesis block exists', async () => {
 				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
@@ -219,6 +228,25 @@ describe('processor', () => {
 
 			it('should not save the genesis block', async () => {
 				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('when processor has multiple block processor registered', () => {
+			let initSteps2;
+			let blockProcessorV1;
+
+			beforeEach(async () => {
+				initSteps2 = [jest.fn(), jest.fn()];
+				blockProcessorV1 = new FakeBlockProcessorV1();
+				blockProcessorV1.init.pipe(initSteps2);
+				processor.register(blockProcessorV1);
+			});
+
+			it('should call all of the init steps', async () => {
+				await processor.init(genesisBlock);
+				for (const step of initSteps2) {
+					expect(step).toHaveBeenCalledTimes(1);
+				}
 			});
 		});
 

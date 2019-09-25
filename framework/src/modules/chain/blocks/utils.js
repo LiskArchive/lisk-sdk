@@ -19,88 +19,7 @@ const { hash } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
 
 /**
- * Generates a list of full blocks structured as full_blocks_list DB view
- * db.blocks.loadBlocksDataWS used to return the raw full_blocks_list fields and peers expect to receive this schema
- * After replacing db.blocks for storage.entities.Block, this parser was required to transfor storage object to the expected format.
- * This should be removed along with https://github.com/LiskHQ/lisk/issues/2424 implementation
- *
- * @param {Object} ExtendedBlock - Storage ExtendedBlock object
- * @returns {Array} Array of transactions with block data formated as full_blocks_list db view
- */
-const parseStorageObjToLegacyObj = block => {
-	const parsedBlocks = [];
-	let transactions = [{}];
-
-	if (Array.isArray(block.transactions) && block.transactions.length > 0) {
-		({ transactions } = block);
-	}
-
-	/* eslint-disable no-restricted-globals */
-	transactions.forEach(t => {
-		parsedBlocks.push({
-			b_id: _.get(block, 'id', null),
-			b_version: isNaN(+block.version) ? null : +block.version,
-			b_timestamp: isNaN(+block.timestamp) ? null : +block.timestamp,
-
-			b_maxHeightPreviouslyForged:
-				parseInt(block.maxHeightPreviouslyForged, 10) || 0,
-			b_prevotedConfirmedUptoHeight:
-				parseInt(block.prevotedConfirmedUptoHeight, 10) || 0,
-			b_height: isNaN(+block.height) ? null : +block.height,
-			b_previousBlock: _.get(block, 'previousBlockId', null),
-			b_numberOfTransactions: isNaN(+block.numberOfTransactions)
-				? null
-				: +block.numberOfTransactions,
-			b_totalAmount: _.get(block, 'totalAmount', null),
-			b_totalFee: _.get(block, 'totalFee', null),
-			b_reward: _.get(block, 'reward', null),
-			b_payloadLength: isNaN(+block.payloadLength)
-				? null
-				: +block.payloadLength,
-			b_payloadHash: _.get(block, 'payloadHash', null),
-			b_generatorPublicKey: _.get(block, 'generatorPublicKey', null),
-			b_blockSignature: _.get(block, 'blockSignature', null),
-			t_id: _.get(t, 'id', null),
-			t_type: _.get(t, 'type', null),
-			t_timestamp: _.get(t, 'timestamp', null),
-			t_senderPublicKey: _.get(t, 'senderPublicKey', null),
-			t_senderId: _.get(t, 'senderId', null),
-			t_recipientId: _.get(t, 'recipientId', null),
-			t_amount: _.get(t, 'amount', null),
-			t_fee: _.get(t, 'fee', null),
-			t_signature: _.get(t, 'signature', null),
-			t_signSignature: _.get(t, 'signSignature', null),
-			t_requesterPublicKey: _.get(t, 'requesterPublicKey', null),
-			t_signatures: t.signatures ? t.signatures.join(',') : null,
-			tf_data: _.get(t, 'asset.data', null),
-			s_publicKey: _.get(t, 'asset.signature.publicKey', null),
-			d_username: _.get(t, 'asset.delegate.username', null),
-			v_votes: t.asset && t.asset.votes ? t.asset.votes.join(',') : null,
-			m_min: _.get(t, 'asset.multisignature.min', null),
-			m_lifetime: _.get(t, 'asset.multisignature.lifetime', null),
-			m_keysgroup:
-				t.asset && t.asset.multisignature && t.asset.multisignature.keysgroup
-					? t.asset.multisignature.keysgroup.join(',')
-					: null,
-			dapp_name: _.get(t, 'asset.dapp.name', null),
-			dapp_description: _.get(t, 'asset.dapp.description', null),
-			dapp_tags: _.get(t, 'asset.dapp.tags', null),
-			dapp_type: _.get(t, 'asset.dapp.type', null),
-			dapp_link: _.get(t, 'asset.dapp.link', null),
-			dapp_category: _.get(t, 'asset.dapp.category', null),
-			dapp_icon: _.get(t, 'asset.dapp.icon', null),
-			in_dappId: _.get(t, 'asset.inTransfer.dappId', null),
-			ot_dappId: _.get(t, 'asset.outTransfer.dappId', null),
-			ot_outTransactionId: _.get(t, 'asset.outTransfer.transactionId', null),
-		});
-	});
-
-	return parsedBlocks;
-};
-
-/**
  * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
- * NOTE: changing the original method loadBlocksDataWS() could potentially change behaviour (popLastBlock() uses it for instance)
  * so that's why this new method was added
  * @param {Object} filter - Filter options
  * @param {Object} filter.limit - Limit blocks to amount
@@ -112,66 +31,45 @@ const parseStorageObjToLegacyObj = block => {
  * @returns {Object} cb.rows - List of blocks
  */
 // eslint-disable-next-line class-methods-use-this
-const loadBlocksDataWS = async (storage, filter, tx) => {
-	const params = { limit: filter.limit || 1 };
-
-	// FIXME: filter.id is not used
-	if (filter.id && filter.lastId) {
-		throw new Error('Invalid filter: Received both id and lastId');
+const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
+	if (!lastBlockId) {
+		throw new Error('lastBlockId needs to be specified');
 	}
-	if (filter.id) {
-		params.id = filter.id;
-	} else if (filter.lastId) {
-		params.lastId = filter.lastId;
+	if (!limit) {
+		throw new Error('Limit needs to be specified');
 	}
 
 	// Get height of block with supplied ID
-	const rows = await storage.entities.Block.get(
-		{ id: filter.lastId || null },
-		{ limit: params.limit },
-		tx,
-	);
-	if (!rows.length) {
-		throw new Error('Invalid lastBlockId requested');
+	const [lastBlock] = await storage.entities.Block.get({ id: lastBlockId });
+	if (!lastBlock) {
+		throw new Error(`Invalid lastBlockId requested: ${lastBlockId}`);
 	}
 
-	const height = rows.length ? rows[0].height : 0;
+	const lastBlockHeight = lastBlock.height;
+
 	// Calculate max block height for database query
-	const realLimit = height + (parseInt(filter.limit, 10) || 1);
+	const fetchUntilHeight = lastBlockHeight + limit;
 
-	params.limit = realLimit;
-	params.height = height;
+	const filter = {
+		height_gt: lastBlockHeight,
+		height_lte: fetchUntilHeight,
+	};
 
-	const mergedParams = { ...filter, ...params };
-	const queryFilters = {};
-
-	if (!mergedParams.id && !mergedParams.lastId) {
-		queryFilters.height_lt = mergedParams.limit;
-	}
-
-	if (mergedParams.id) {
-		queryFilters.id = mergedParams.id;
-	}
-
-	if (mergedParams.lastId) {
-		queryFilters.height_gt = mergedParams.height;
-		queryFilters.height_lt = mergedParams.limit;
-	}
-	const blockRows = await storage.entities.Block.get(
-		queryFilters,
-		{
-			extended: true,
-			limit: null,
-			sort: ['height'],
-		},
-		tx,
-	);
-
-	let parsedBlocks = [];
-	blockRows.forEach(block => {
-		parsedBlocks = parsedBlocks.concat(parseStorageObjToLegacyObj(block));
+	const blocks = await storage.entities.Block.get(filter, {
+		extended: true,
+		limit,
+		sort: ['height'],
 	});
-	return parsedBlocks;
+
+	// TODO: Remove this parse, after #4295
+	return blocks.map(block => {
+		const parsedBlock = {
+			...block,
+			previousBlock: block.previousBlockId ? block.previousBlockId : '',
+		};
+		delete parsedBlock.previousBlockId;
+		return parsedBlock;
+	});
 };
 
 /**
@@ -398,9 +296,8 @@ const loadMemTables = async (storage, tx) => {
 
 module.exports = {
 	getId,
-	parseStorageObjToLegacyObj,
 	getIdSequence,
-	loadBlocksDataWS,
+	loadBlocksFromLastBlockId,
 	loadMemTables,
 	calculateNewBroadhash,
 	setHeight,

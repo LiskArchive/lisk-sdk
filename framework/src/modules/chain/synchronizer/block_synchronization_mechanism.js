@@ -43,44 +43,51 @@ class BlockSynchronizationMechanism {
 
 	async run(receivedBlock) {
 		this.active = true;
-		const { connectedPeers: peers } = await this.channel.invoke(
-			'network:getNetworkStatus',
-		);
-		if (!peers.length) {
-			throw new Error('Connected peers list is empty');
+		try {
+			const { connectedPeers: peers } = await this.channel.invoke(
+				'network:getNetworkStatus',
+			);
+			if (!peers.length) {
+				throw new Error('Connected peers list is empty');
+			}
+
+			const bestPeer = this._computeBestPeer(peers);
+			await this._requestAndValidateLastBlock(receivedBlock, bestPeer);
+			await this._revertToLastCommonBlock(receivedBlock, bestPeer);
+		} finally {
+			this.active = false;
 		}
-
-		const bestPeer = this._computeBestPeer(peers);
-
-		await this._requestAndValidateLastBlock(receivedBlock, bestPeer);
-
-		await this._revertToLastCommonBlock(receivedBlock, bestPeer);
-	}
-
-	get isActive() {
-		return this.active;
 	}
 
 	/**
-	 * Check if this sync mechanism is valid for the received block
-	 *
-	 * @param {object} receivedBlock - The blocked received from the network
-	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
-	 * @throws {Error} - In case want to abort the sync pipeline
+	 * Reverts the current chain so the new tip of the chain corresponds to the
+	 * last common block.
+	 * @param receivedBlock
+	 * @param {Object} peer - The selected peer to target.
+	 * @return {Promise<void>}
+	 * @private
 	 */
-	// eslint-disable-next-line no-unused-vars
-	async isValidFor(receivedBlock) {
-		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
-		const finalizedBlock = await this.storage.entities.Block.getOne({
-			height_eq: this.bft.finalizedHeight,
-		});
-		const finalizedBlockSlot = this.slots.getSlotNumber(
-			finalizedBlock.timestamp,
-		);
-		const currentBlockSlot = this.slots.getSlotNumber();
-		const threeRounds = this.constants.activeDelegates * 3;
+	async _revertToLastCommonBlock(receivedBlock, peer) {
+		// FIXME: Maybe we need to return the full block instead of just the id, as the only use case  is this one and it requires the block height.
+		// We can also not do this and request the full block to the peer but this results in unnecessary network calls
+		const lastCommonBlockId = await this._requestLastCommonBlockId(peer);
 
-		return finalizedBlockSlot < currentBlockSlot - threeRounds;
+		const chainHeightFinalized = this.bft.finalizedHeight;
+
+		if (!lastCommonBlockId) {
+			// TODO: halt the execution of the syncing mechanism as stated in the LIP
+		}
+
+		if (lastCommonBlockId.height < chainHeightFinalized) {
+			this.channel.invoke('network:applyPenalty', {
+				peerId: peer.id,
+				penalty: 100,
+			});
+			this.channel.publish('chain:processor:sync', { block: receivedBlock });
+			throw new Error('');
+		}
+
+		// TODO: Delete blocks on system chain from current tip to `lastCommonBlockId`
 	}
 
 	/**
@@ -112,8 +119,8 @@ class BlockSynchronizationMechanism {
 			const blockIds = [];
 
 			// Compute the list of block ids
-			// TODO: Maybe we can avoid using ugly class for loop here. Feel free to change it
-			for (let j = numberOfRoundsSinceGenesis; j > 0; j--) {
+			// TODO: Maybe we can avoid using ugly classic for loop here. Feel free to change it
+			for (let j = numberOfRoundsSinceGenesis; j > 0; j -= 1) {
 				const heightFirstBlockRound = j - 1 * this.constants.activeDelegates;
 
 				const [firstBlockRound] = await this.storage.entities.Block.get(
@@ -138,40 +145,10 @@ class BlockSynchronizationMechanism {
 			});
 
 			highestCommonBlockId = data;
-			requestCounter++;
+			requestCounter += 1;
 		}
 
 		return highestCommonBlockId;
-	}
-
-	/**
-	 * Reverts the current chain so the new tip of the chain corresponds to the
-	 * last common block.
-	 * @param {Object} peer - The selected peer to target.
-	 * @return {Promise<void>}
-	 * @private
-	 */
-	async _revertToLastCommonBlock(receivedBlock, peer) {
-		// FIXME: Maybe we need to return the full block instead of just the id, as the only use case  is this one and it requires the block height.
-		// We can also not do this and request the full block to the peer but this results in unnecessary network calls
-		const lastCommonBlockId = await this._requestLastCommonBlockId(peer);
-
-		const chainHeightFinalized = this.bft.finalizedHeight;
-
-		if (!lastCommonBlockId) {
-			// TODO: halt the execution of the syncing mechanism as stated in the LIP
-		}
-
-		if (lastCommonBlockId.height < chainHeightFinalized) {
-			this.channel.invoke('network:applyPenalty', {
-				peerId: peer.id,
-				penalty: 100,
-			});
-			this.channel.publish('chain:processor:sync', { block: receivedBlock });
-			throw new Error('');
-		}
-
-		// TODO: Delete blocks on system chain from current tip to `lastCommonBlockId`
 	}
 
 	/**
@@ -190,6 +167,7 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _requestAndValidateLastBlock(receivedBlock, peer) {
+		// The node requests the last common block C from P (Peer).
 		const { data: networkLastBlock } = await this.channel.invoke(
 			'network:requestFromPeer',
 			{
@@ -198,32 +176,63 @@ class BlockSynchronizationMechanism {
 			},
 		);
 
-		try {
-			await this.processorModule.validateDetached(networkLastBlock);
-			// For networkLastBlock to be valid, it needs to be in a different chain,
-			// as this syncing mechanism is only triggered when a block from a different
-			// chain is received. We have to re validate this condition upon requesting
-			// the full block from the peer.
-			if (
-				!ForkChoiceRule.isDifferentChain(
-					this.blocks.lastBlock,
-					networkLastBlock,
-				)
-			) {
-				throw new Error('Block is not in a different chain');
-			}
+		const { valid: validBlock, err } = await this._blockDetachedStatus(
+			networkLastBlock,
+		);
+		const notInDifferentChain = ForkChoiceRule.isDifferentChain(
+			this.blocks.lastBlock,
+			networkLastBlock,
+		);
 
-			return networkLastBlock;
-		} catch (err) {
+		if (!validBlock || !notInDifferentChain) {
 			this.channel.invoke('network:applyPenalty', {
 				peerId: peer.id,
 				penalty: 100,
 			});
 			this.channel.publish('chain:processor:sync', { block: receivedBlock });
 			throw err;
-		} finally {
-			this.active = false;
 		}
+	}
+
+	// This wrappers allows us to check using an if
+	// instead of forcing us to use a try/catch block
+	// for branching code execution.
+	// The original method works well in the context
+	// of the Pipeline but not in other cases
+	// that's why we wrap it here.
+	async _blockDetachedStatus(networkLastBlock) {
+		try {
+			await this.processorModule.validateDetached(networkLastBlock);
+			return { valid: true, err: null };
+		} catch (err) {
+			return { valid: false, err };
+		}
+	}
+
+	get isActive() {
+		return this.active;
+	}
+
+	/**
+	 * Check if this sync mechanism is valid for the received block
+	 *
+	 * @param {object} receivedBlock - The blocked received from the network
+	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
+	 * @throws {Error} - In case want to abort the sync pipeline
+	 */
+	// eslint-disable-next-line no-unused-vars
+	async isValidFor(receivedBlock) {
+		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
+		const finalizedBlock = await this.storage.entities.Block.getOne({
+			height_eq: this.bft.finalizedHeight,
+		});
+		const finalizedBlockSlot = this.slots.getSlotNumber(
+			finalizedBlock.timestamp,
+		);
+		const currentBlockSlot = this.slots.getSlotNumber();
+		const threeRounds = this.constants.activeDelegates * 3;
+
+		return finalizedBlockSlot < currentBlockSlot - threeRounds;
 	}
 
 	/**
