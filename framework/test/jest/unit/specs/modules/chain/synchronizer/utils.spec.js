@@ -50,12 +50,12 @@ describe('#synchronizer/utils', () => {
 			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
 				1,
 				blocks[0],
-				true,
+				{ removeFromTempTable: true },
 			);
 			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
 				2,
 				blocks[1],
-				true,
+				{ removeFromTempTable: true },
 			);
 			expect(result).toBeTrue();
 		});
