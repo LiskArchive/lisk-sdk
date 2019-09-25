@@ -27,7 +27,8 @@ export interface CustomPeerInfo {
 }
 
 export interface AddPeerOutcome {
-	readonly success: boolean;
+	readonly wasPeerAdded: boolean;
+	readonly wasPeerEvicted: boolean;
 	readonly evictedPeer: P2PPeerInfo | undefined;
 }
 // Base peer list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
@@ -146,14 +147,16 @@ export class PeerList {
 
 		if (!bucket) {
 			return {
-				success: false,
+				wasPeerAdded: false,
+				wasPeerEvicted: false,
 				evictedPeer: undefined,
 			};
 		}
 
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
-				success: false,
+				wasPeerAdded: false,
+				wasPeerEvicted: false,
 				evictedPeer: undefined,
 			};
 		}
@@ -164,16 +167,18 @@ export class PeerList {
 			bucket.set(incomingPeerId, newPeer);
 
 			return {
-				success: true,
+				wasPeerAdded: true,
+				wasPeerEvicted: false,
 				evictedPeer: undefined,
 			};
 		}
 
-		const evictedPeer = this.evictPeer(bucketId);
+		const evictedPeer = this.evictPeerFromBucket(bucketId);
 		bucket.set(incomingPeerId, newPeer);
 
 		return {
-			success: true,
+			wasPeerAdded: true,
+			wasPeerEvicted: !!evictedPeer,
 			evictedPeer: evictedPeer ? evictedPeer.peerInfo : undefined,
 		};
 	}
@@ -185,7 +190,7 @@ export class PeerList {
 		return result;
 	}
 
-	public evictPeer(bucketId: number): CustomPeerInfo | undefined {
+	protected evictPeerFromBucket(bucketId: number): CustomPeerInfo | undefined {
 		return this.evictRandomlyFromBucket(bucketId);
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.

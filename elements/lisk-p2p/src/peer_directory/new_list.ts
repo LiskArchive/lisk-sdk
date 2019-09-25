@@ -50,11 +50,10 @@ export class NewList extends PeerList {
 	}
 
 	// Extend eviction of NewPeers
-	public evictPeer(bucketId: number): CustomPeerInfo | undefined {
-		const peerList = this.peerMap.get(bucketId);
-
-		if (!peerList) {
-			throw new Error(`No Peer list for bucket Id: ${bucketId}`);
+	protected evictPeerFromBucket(bucketId: number): CustomPeerInfo | undefined {
+		const bucket = this.peerMap.get(bucketId);
+		if (!bucket) {
+			return undefined;
 		}
 
 		// First eviction strategy
@@ -68,7 +67,7 @@ export class NewList extends PeerList {
 		return this.evictRandomlyFromBucket(bucketId);
 	}
 
-	// Evict a peer when a bucket is full based on the time of residence in a peerlist
+	// Evict a peer when a bucket is full based on the time of residence in a bucket
 	private _evictPeerBasedOnTimeInBucket(
 		bucketId: number,
 	): CustomPeerInfo | undefined {
