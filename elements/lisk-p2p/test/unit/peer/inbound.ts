@@ -21,6 +21,10 @@ import {
 	DEFAULT_PING_INTERVAL_MAX,
 	DEFAULT_PING_INTERVAL_MIN,
 } from '../../../src/constants';
+import {
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
+} from '../../../src/events';
 
 describe('peer/inbound', () => {
 	let defaultPeerInfo: P2PDiscoveredPeerInfo;
@@ -91,6 +95,42 @@ describe('peer/inbound', () => {
 			expect((defaultInboundPeer as any)._sendPing).to.be.not.called;
 			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
 			expect((defaultInboundPeer as any)._sendPing).to.be.calledOnce.at.least;
+		});
+
+		it('should bind handlers to inbound socket', () => {
+			expect((defaultInboundPeer as any)._socket.on.callCount).to.eql(8);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'close',
+				(defaultInboundPeer as any)._handleInboundSocketClose,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'error',
+				(defaultInboundPeer as any)._handleInboundSocketError,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'message',
+				(defaultInboundPeer as any)._handleWSMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_RPC_REQUEST,
+				(defaultInboundPeer as any)._handleRawRPC,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_MESSAGE,
+				(defaultInboundPeer as any)._handleRawMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postBlock',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostBlock,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postSignatures',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostSignatures,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postTransactions',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostTransactions,
+			);
 		});
 	});
 
