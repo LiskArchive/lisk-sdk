@@ -219,12 +219,15 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.undo.pipe([data => this.blocksModule.undo(data)]);
 
 		this.create.pipe([
+			// Getting the BFT header (maxHeightPreviouslyForged and prevotedConfirmedUptoHeight)
 			async ({ keypair }) => {
 				const delegatePublicKey = keypair.publicKey.toString('hex');
 				return this.bftModule.computeBFTHeaderProperties(delegatePublicKey);
 			},
+			// Create a block with with basic block and bft properties
 			(data, bftHeader) => this._create({ ...data, ...bftHeader }),
 			async (data, block) => {
+				// Saving maxHeightPreviouslyForged before broadcasting
 				await this.bftModule.saveMaxHeightPreviouslyForged(
 					block.generatorPublicKey,
 					block.height,
