@@ -97,8 +97,8 @@ export const filterPeersByCategory = (
 
 	// tslint:disable-next-line no-any
 	return peers
-		.sort((a: any, b: any) =>
-			a[options.category] > b[options.category] ? sign : sign * -1,
+		.sort((peerA: any, peerB: any) =>
+			peerA[options.category] > peerB[options.category] ? sign : sign * -1,
 		)
 		.slice(protectedPeerIndex, peers.length);
 };

@@ -23,6 +23,8 @@ import {
 	selectPeersForRequest,
 	selectPeersForSend,
 } from '../../src/utils';
+// For stubbing
+import * as utils from '../../src/utils';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../../src/p2p_types';
 import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList, initializePeerInfoList } from '../utils/peers';
@@ -128,6 +130,150 @@ describe('peerPool', () => {
 
 			filteredPeers.forEach(peer => {
 				expect(peer.connectTime).to.be.lessThan(2);
+			});
+		});
+	});
+
+	describe('#_selectPeersForEviction', () => {
+		let originalPeers: Array<any> = [];
+
+		beforeEach(async () => {
+			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
+			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
+			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
+			(peerPool as any)._peerPoolConfig.longevityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LONGEVITY;
+			sandbox
+				.stub(utils, 'constructPeerIdFromPeerInfo')
+				.returns('notAWhitelistedId');
+		});
+
+		describe('when node using default protection ratio values has 100 inbound peers', () => {
+			beforeEach(() => {
+				originalPeers = [...new Array(100).keys()].map(i => ({
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				}));
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(42);
+			});
+		});
+
+		describe('when node using default protection ratio values has 10 inbound peers', () => {
+			beforeEach(() => {
+				originalPeers = [...new Array(10).keys()].map(i => ({
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				}));
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(4);
+			});
+		});
+
+		describe('when node using default protection ratio values has 5 inbound peers', () => {
+			beforeEach(() => {
+				originalPeers = [...new Array(5).keys()].map(i => ({
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				}));
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(1);
+			});
+		});
+
+		describe('when node with netgroup protection disabled has 100 inbound peers', () => {
+			beforeEach(() => {
+				(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = 0;
+				originalPeers = [...new Array(100).keys()].map(i => ({
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				}));
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(44);
+			});
+		});
+
+		describe('when node with latency protection disabled has 100 inbound peers', () => {
+			beforeEach(() => {
+				(peerPool as any)._peerPoolConfig.latencyProtectionRatio = 0;
+				originalPeers = [...new Array(100).keys()].map(i => ({
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				}));
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(45);
+			});
+		});
+
+		describe('when node with usefulness protection disabled has 100 inbound peers', () => {
+			beforeEach(() => {
+				(peerPool as any)._peerPoolConfig.productivityProtectionRatio = 0;
+				originalPeers = [...new Array(100).keys()].map(i => ({
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				}));
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(44);
+			});
+		});
+
+		describe('when node with longevity protection disabled has 100 inbound peers', () => {
+			beforeEach(() => {
+				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
+				originalPeers = [...new Array(100).keys()].map(i => ({
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				}));
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(85);
 			});
 		});
 	});
