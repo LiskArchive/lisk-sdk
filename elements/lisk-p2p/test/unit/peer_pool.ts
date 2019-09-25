@@ -13,7 +13,11 @@
  *
  */
 import { expect } from 'chai';
-import { PeerPool } from '../../src/peer_pool';
+import {
+	PeerPool,
+	PROTECTION_CATEGORY,
+	filterPeersByCategory,
+} from '../../src/peer_pool';
 import {
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -70,6 +74,61 @@ describe('peerPool', () => {
 			return expect(peerPool)
 				.to.be.an('object')
 				.and.be.instanceof(PeerPool);
+		});
+	});
+
+	describe('#filterPeersByCategory', () => {
+		const originalPeers = [...new Array(10).keys()].map(i => ({
+			netgroup: i,
+			latency: i,
+			responseRate: i % 2 ? 0 : 1,
+			connectTime: i,
+		}));
+
+		it('should protect peers with highest netgroup value when sorted by ascending', async () => {
+			const filteredPeers = filterPeersByCategory(originalPeers as any, {
+				category: PROTECTION_CATEGORY.NET_GROUP,
+				percentage: 0.2,
+				asc: true,
+			});
+
+			filteredPeers.forEach(peer => {
+				expect(peer.netgroup).to.be.greaterThan(1);
+			});
+		});
+
+		it('should protect peers with lowest latency value when sorted by descending', async () => {
+			const filteredPeers = filterPeersByCategory(originalPeers as any, {
+				category: PROTECTION_CATEGORY.LATENCY,
+				percentage: 0.2,
+				asc: false,
+			});
+
+			filteredPeers.forEach(peer => {
+				expect(peer.latency).to.be.lessThan(3);
+			});
+		});
+
+		it('should protect 2 peers with responseRate value of 1 when sorted by ascending', async () => {
+			const filteredPeers = filterPeersByCategory(originalPeers as any, {
+				category: PROTECTION_CATEGORY.RESPONSE_RATE,
+				percentage: 0.2,
+				asc: true,
+			});
+
+			expect(filteredPeers.filter(p => p.responseRate === 1).length).to.eql(2);
+		});
+
+		it('should protect peers with lowest connectTime value when sorted by descending', async () => {
+			const filteredPeers = filterPeersByCategory(originalPeers as any, {
+				category: PROTECTION_CATEGORY.CONNECT_TIME,
+				percentage: 0.2,
+				asc: false,
+			});
+
+			filteredPeers.forEach(peer => {
+				expect(peer.connectTime).to.be.lessThan(2);
+			});
 		});
 	});
 
