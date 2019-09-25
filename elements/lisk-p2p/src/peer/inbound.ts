@@ -43,7 +43,6 @@ export class InboundPeer extends Peer {
 		code: number,
 		reason: string | undefined,
 	) => void;
-	private readonly _sendPing: () => void;
 	private _pingTimeoutId: NodeJS.Timer;
 
 	public constructor(
@@ -68,21 +67,9 @@ export class InboundPeer extends Peer {
 				reason,
 			});
 		};
-		this._sendPing = () => {
-			const pingStart = Date.now();
-			this._socket.emit(
-				REMOTE_EVENT_PING,
-				undefined,
-				(_: Error, __: unknown) => {
-					this._latency = Date.now() - pingStart;
-					this._pingTimeoutId = setTimeout(
-						this._sendPing,
-						getRandomPingDelay(),
-					);
-				},
-			);
-		};
-		this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
+		this._pingTimeoutId = setTimeout(() => {
+			this._sendPing();
+		}, getRandomPingDelay());
 		this._socket = peerSocket;
 		this._bindHandlersToInboundSocket(this._socket);
 	}
@@ -97,6 +84,16 @@ export class InboundPeer extends Peer {
 		super.disconnect(code, reason);
 		clearTimeout(this._pingTimeoutId);
 		this._unbindHandlersFromInboundSocket(this._socket);
+	}
+
+	private _sendPing(): void {
+		const pingStart = Date.now();
+		this._socket.emit(REMOTE_EVENT_PING, undefined, (_: Error, __: unknown) => {
+			this._latency = Date.now() - pingStart;
+			this._pingTimeoutId = setTimeout(() => {
+				this._sendPing();
+			}, getRandomPingDelay());
+		});
 	}
 
 	// All event handlers for the inbound socket should be bound in this method.

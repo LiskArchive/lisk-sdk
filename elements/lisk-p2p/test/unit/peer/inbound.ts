@@ -16,15 +16,21 @@ import { expect } from 'chai';
 import { InboundPeer, PeerConfig } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { SCServerSocket } from 'socketcluster-server';
-import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import {
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_PING_INTERVAL_MAX,
+	DEFAULT_PING_INTERVAL_MIN,
+} from '../../../src/constants';
 
 describe('peer/inbound', () => {
 	let defaultPeerInfo: P2PDiscoveredPeerInfo;
 	let defaultPeerConfig: PeerConfig;
 	let defaultInboundPeer: InboundPeer;
 	let inboundSocket: SCServerSocket;
+	let clock: sinon.SinonFakeTimers;
 
 	beforeEach(() => {
+		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
 			ipAddress: '12.12.12.12',
 			wsPort: 5001,
@@ -47,7 +53,6 @@ describe('peer/inbound', () => {
 			emit: sandbox.stub(),
 			destroy: sandbox.stub(),
 		} as any);
-		sandbox.spy(global, 'setTimeout');
 		defaultInboundPeer = new InboundPeer(
 			defaultPeerInfo,
 			inboundSocket,
@@ -74,18 +79,19 @@ describe('peer/inbound', () => {
 				'function',
 			));
 
-		it('should have a function named _sendPing', () =>
-			expect((defaultInboundPeer as any)._sendPing).to.be.a('function'));
-
 		it('should set ping timeout', () => {
 			expect((defaultInboundPeer as any)._pingTimeoutId).to.be.an('object');
-			expect(setTimeout).to.be.calledOnceWith(
-				(defaultInboundPeer as any)._sendPing,
-			);
 		});
 
 		it('should get socket property', () =>
 			expect((defaultInboundPeer as any)._socket).to.equal(inboundSocket));
+
+		it('should send ping at least once after some time', () => {
+			sandbox.stub(defaultInboundPeer as any, '_sendPing');
+			expect((defaultInboundPeer as any)._sendPing).to.be.not.called;
+			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
+			expect((defaultInboundPeer as any)._sendPing).to.be.calledOnce.at.least;
+		});
 	});
 
 	describe('#set socket', () => {
@@ -132,11 +138,11 @@ describe('peer/inbound', () => {
 			expect(inboundSocket.destroy).to.be.calledOnceWith(1000);
 		});
 
-		it.skip('should clear timeout', () => {
-			const pingTimeoutId = (defaultInboundPeer as any)._pingTimeoutId;
-			sandbox.spy(global, 'clearTimeout');
+		it('should not send ping anymore', () => {
+			sandbox.stub(defaultInboundPeer as any, '_sendPing');
 			defaultInboundPeer.disconnect();
-			expect(clearTimeout).to.be.calledOnceWithExactly(pingTimeoutId);
+			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
+			expect((defaultInboundPeer as any)._sendPing).to.not.be.called;
 		});
 
 		it('should unbind handlers from former inbound socket', () => {
