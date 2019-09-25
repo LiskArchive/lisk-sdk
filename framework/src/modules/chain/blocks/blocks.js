@@ -337,8 +337,7 @@ class Blocks extends EventEmitter {
 	 * @param {Object} tx - database transaction
 	 */
 	async getTempBlocks(tx) {
-		const tempBlocks = await this.storage.entities.TempBlock.get({}, {}, tx);
-		return tempBlocks;
+		return this.storage.entities.TempBlock.get({}, {}, tx);
 	}
 
 	async exists(block) {
