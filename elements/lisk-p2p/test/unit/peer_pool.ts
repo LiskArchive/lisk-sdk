@@ -138,6 +138,12 @@ describe('peerPool', () => {
 		let originalPeers: Array<any> = [];
 
 		beforeEach(async () => {
+			originalPeers = [...new Array(100).keys()].map(i => ({
+				netgroup: i,
+				latency: i,
+				responseRate: i % 2 ? 0 : 1,
+				connectTime: i,
+			}));
 			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
 			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
 			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
@@ -149,12 +155,6 @@ describe('peerPool', () => {
 
 		describe('when node using default protection ratio values has 100 inbound peers', () => {
 			beforeEach(() => {
-				originalPeers = [...new Array(100).keys()].map(i => ({
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
-				}));
 				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
 			});
 
@@ -204,12 +204,6 @@ describe('peerPool', () => {
 		describe('when node with netgroup protection disabled has 100 inbound peers', () => {
 			beforeEach(() => {
 				(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = 0;
-				originalPeers = [...new Array(100).keys()].map(i => ({
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
-				}));
 				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
 			});
 
@@ -223,12 +217,6 @@ describe('peerPool', () => {
 		describe('when node with latency protection disabled has 100 inbound peers', () => {
 			beforeEach(() => {
 				(peerPool as any)._peerPoolConfig.latencyProtectionRatio = 0;
-				originalPeers = [...new Array(100).keys()].map(i => ({
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
-				}));
 				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
 			});
 
@@ -242,12 +230,6 @@ describe('peerPool', () => {
 		describe('when node with usefulness protection disabled has 100 inbound peers', () => {
 			beforeEach(() => {
 				(peerPool as any)._peerPoolConfig.productivityProtectionRatio = 0;
-				originalPeers = [...new Array(100).keys()].map(i => ({
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
-				}));
 				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
 			});
 
@@ -261,7 +243,23 @@ describe('peerPool', () => {
 		describe('when node with longevity protection disabled has 100 inbound peers', () => {
 			beforeEach(() => {
 				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
-				originalPeers = [...new Array(100).keys()].map(i => ({
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(85);
+			});
+		});
+
+		describe('when node has all inbound protection disabled has 10 inbound peers', () => {
+			beforeEach(() => {
+				(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = 0;
+				(peerPool as any)._peerPoolConfig.latencyProtectionRatio = 0;
+				(peerPool as any)._peerPoolConfig.productivityProtectionRatio = 0;
+				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
+				originalPeers = [...new Array(10).keys()].map(i => ({
 					netgroup: i,
 					latency: i,
 					responseRate: i % 2 ? 0 : 1,
@@ -270,10 +268,10 @@ describe('peerPool', () => {
 				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
 			});
 
-			it('should return expected amount of eviction candidates', async () => {
+			it('should not evict any candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).to.eql(85);
+				expect(selectedPeersForEviction.length).to.eql(10);
 			});
 		});
 	});
