@@ -201,6 +201,19 @@ describe('peerPool', () => {
 			});
 		});
 
+		describe('when node using default protection ratio values has 0 inbound peers', () => {
+			beforeEach(() => {
+				originalPeers = [];
+				sandbox.stub(peerPool, 'getPeers').returns(originalPeers as Peer[]);
+			});
+
+			it('should return expected amount of eviction candidates', async () => {
+				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
+
+				expect(selectedPeersForEviction.length).to.eql(0);
+			});
+		});
+
 		describe('when node with netgroup protection disabled has 100 inbound peers', () => {
 			beforeEach(() => {
 				(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = 0;
