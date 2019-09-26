@@ -155,7 +155,7 @@ describe('peer/inbound', () => {
 			} as any);
 		});
 
-		it('should unbind handlers from former inbound socket', () => {
+		it('should unbind handlers from a former inbound socket', () => {
 			sandbox.stub(
 				defaultInboundPeer as any,
 				'_unbindHandlersFromInboundSocket',
@@ -166,13 +166,13 @@ describe('peer/inbound', () => {
 			).to.be.calledOnceWithExactly(inboundSocket);
 		});
 
-		it('should set new socket', () => {
+		it('should set a new socket', () => {
 			expect((defaultInboundPeer as any)._socket).to.be.eql(inboundSocket);
 			defaultInboundPeer.socket = newInboundSocket;
 			expect((defaultInboundPeer as any)._socket).to.eql(newInboundSocket);
 		});
 
-		it('should bind handlers to new inbound socket', () => {
+		it('should bind handlers to a new inbound socket', () => {
 			sandbox.stub(defaultInboundPeer as any, '_bindHandlersToInboundSocket');
 			defaultInboundPeer.socket = newInboundSocket;
 			expect(
@@ -205,7 +205,7 @@ describe('peer/inbound', () => {
 			).to.be.calledOnceWithExactly(inboundSocket);
 		});
 
-		it('should unbind handlers from inbound socket', () => {
+		it('should unbind handlers from an inbound socket', () => {
 			defaultInboundPeer.disconnect();
 			expect((defaultInboundPeer as any)._socket.off.callCount).to.eql(7);
 			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(

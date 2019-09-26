@@ -125,7 +125,7 @@ export class InboundPeer extends Peer {
 		inboundSocket.off('close', this._handleInboundSocketClose);
 		inboundSocket.off('message', this._handleWSMessage);
 
-		// Undbind RPC and remote event handlers
+		// Unbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);

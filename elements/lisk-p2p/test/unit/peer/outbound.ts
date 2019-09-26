@@ -76,7 +76,7 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#set socket', () => {
-		it('should not unbind handlers from outbound socket if it does not exist', () => {
+		it('should not unbind handlers from the outbound socket if it does not exist', () => {
 			sandbox.stub(
 				defaultOutboundPeer as any,
 				'_unbindHandlersFromOutboundSocket',
@@ -115,7 +115,7 @@ describe('peer/outbound', () => {
 			).to.be.calledOnceWithExactly(outboundSocket);
 		});
 
-		it('should bind handlers to outbound socket', () => {
+		it('should bind handlers to an outbound socket', () => {
 			defaultOutboundPeer.socket = outboundSocket;
 			expect((defaultOutboundPeer as any)._socket.on.callCount).to.eql(11);
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('error');
