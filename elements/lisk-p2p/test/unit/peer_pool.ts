@@ -162,32 +162,38 @@ describe('peerPool', () => {
 	});
 
 	describe('#request', () => {
-		let caughtError: Error;
-		beforeEach(async () => {
-			(peerPool as any)._peerSelectForRequest = sandbox
-				.stub()
-				.returns([] as ReadonlyArray<P2PPeerInfo>);
-			try {
-				await peerPool.request({ procedure: 'proc', data: 123 });
-			} catch (err) {
-				caughtError = err;
-			}
-		});
+		describe('when no peers are found', () => {
+			let caughtError: Error;
+			beforeEach(async () => {
+				(peerPool as any)._peerSelectForRequest = sandbox
+					.stub()
+					.returns([] as ReadonlyArray<P2PPeerInfo>);
+				try {
+					await peerPool.request({ procedure: 'proc', data: 123 });
+				} catch (err) {
+					caughtError = err;
+				}
+			});
 
-		it('should call _peerSelectForRequest with all the necessary options', async () => {
-			expect((peerPool as any)._peerSelectForRequest).to.be.calledWith({
-				peers: [],
-				nodeInfo: peerPool.nodeInfo,
-				peerLimit: 1,
-				requestPacket: { procedure: 'proc', data: 123 },
+			it('should call _peerSelectForRequest with all the necessary options', async () => {
+				expect((peerPool as any)._peerSelectForRequest).to.be.calledWith({
+					peers: [],
+					nodeInfo: peerPool.nodeInfo,
+					peerLimit: 1,
+					requestPacket: { procedure: 'proc', data: 123 },
+				});
+			});
+
+			it('should throw an error', async () => {
+				expect(caughtError).to.not.be.null;
+				expect(caughtError)
+					.to.have.property('name')
+					.which.equals('RequestFailError');
 			});
 		});
 
-		it('should throw an error if no peers are found', async () => {
-			expect(caughtError).to.not.be.null;
-			expect(caughtError)
-				.to.have.property('name')
-				.which.equals('RequestFailError');
+		describe('when peers are found', () => {
+			it('should not throw an error');
 		});
 	});
 
