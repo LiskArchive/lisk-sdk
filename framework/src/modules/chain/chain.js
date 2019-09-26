@@ -156,6 +156,7 @@ module.exports = class Chain {
 			const processorDependencies = {
 				blocksModule: this.blocks,
 				bftModule: this.bft,
+				dposModule: this.dpos,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,

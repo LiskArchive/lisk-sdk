@@ -165,10 +165,19 @@ const validateSchema = ({ block }) => {
 // };
 
 class BlockProcessorV2 extends BaseBlockProcessor {
-	constructor({ blocksModule, bftModule, logger, constants, exceptions }) {
+	constructor({
+		blocksModule,
+		bftModule,
+		dposModule,
+		logger,
+		constants,
+		exceptions,
+	}) {
 		super();
+		const verifyBlockForgerOffset = 2;
 		this.blocksModule = blocksModule;
 		this.bftModule = bftModule;
+		this.dposModule = dposModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
@@ -185,6 +194,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					blockBytes,
 				}), // validate common block header
 			data => this.blocksModule.verifyInMemory(data),
+			({ block }) =>
+				this.dposModule.verifyBlockForger(block, verifyBlockForgerOffset),
 			({ block }) => this.bftModule.validateBlock(block),
 		]);
 

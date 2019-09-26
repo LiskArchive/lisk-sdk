@@ -128,13 +128,18 @@ class DelegatesList extends EventEmitter {
 	 * Validates if block was forged by correct delegate
 	 *
 	 * @param {Object} block
+	 * @param {Number} roundOffset - use delegate list generated at the end of `roundOffset` before the current round
 	 * @return {Boolean} - `true`
 	 * @throw {Error} Failed to verify slot
 	 */
-	async verifyBlockForger(block) {
+	async verifyBlockForger(block, roundOffset = 0) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
-		const round = this.slots.calcRound(block.height);
-		const delegateList = await this.getForgerPublicKeysForRound(round);
+		const currentRound = this.slots.calcRound(block.height);
+
+		// Delegate list is generated from round 1 hence `roundToVerify` can't be less than 1
+		const roundToVerify = Math.max(currentRound - roundOffset, 1);
+
+		const delegateList = await this.getForgerPublicKeysForRound(roundToVerify);
 
 		if (!delegateList.length) {
 			throw new Error(
@@ -159,7 +164,7 @@ class DelegatesList extends EventEmitter {
 			 * Should be tackled by https://github.com/LiskHQ/lisk-sdk/issues/4194
 			 */
 			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
-			if (ignoreDelegateListCacheForRounds.includes(round)) {
+			if (ignoreDelegateListCacheForRounds.includes(roundToVerify)) {
 				return true;
 			}
 
