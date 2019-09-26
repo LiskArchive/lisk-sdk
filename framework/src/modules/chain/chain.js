@@ -454,7 +454,6 @@ module.exports = class Chain {
 		});
 
 		this.synchronizer = new Synchronizer({
-			storage: this.storage,
 			logger: this.logger,
 			processorModule: this.processor,
 		});

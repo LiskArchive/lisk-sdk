@@ -323,6 +323,23 @@ class Blocks extends EventEmitter {
 		this._lastBlock = secondLastBlock;
 	}
 
+	/**
+	 * Remove one block from temp_block table
+	 * @param {string} blockId
+	 * @param {Object} tx - database transaction
+	 */
+	async removeBlockFromTempTable(blockId, tx) {
+		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
+	}
+
+	/**
+	 * Get all blocks from temp_block table
+	 * @param {Object} tx - database transaction
+	 */
+	async getTempBlocks(tx) {
+		return this.storage.entities.TempBlock.get({}, {}, tx);
+	}
+
 	async exists(block) {
 		try {
 			await verifyBlockNotExists(this.storage, block);

@@ -69,6 +69,7 @@ describe('processor', () => {
 			save: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
+			removeBlockFromTempTable: jest.fn(),
 		};
 		Object.defineProperty(blocksModuleStub, 'lastBlock', {
 			get: jest.fn().mockReturnValue(defaultLastBlock),
@@ -895,7 +896,7 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when more than 2 processor is registered', () => {
+		describe('when more than 2 processors are registered', () => {
 			let blockProcessorV1;
 			let verifySteps2;
 
@@ -1046,6 +1047,22 @@ describe('processor', () => {
 			});
 		});
 
+		describe('when block successfully processed with flag removeFromTempTable = true', () => {
+			beforeEach(async () => {
+				await processor.processValidated(blockV0, {
+					removeFromTempTable: true,
+				});
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should remove block from temp_block table', async () => {
+				expect(blocksModuleStub.removeBlockFromTempTable).toHaveBeenCalledWith(
+					blockV0.id,
+					txStub,
+				);
+			});
+		});
+
 		describe('when block successfully processed', () => {
 			beforeEach(async () => {
 				await processor.processValidated(blockV0);
@@ -1090,6 +1107,12 @@ describe('processor', () => {
 					'chain:processor:broadcast',
 					expect.anything(),
 				);
+			});
+
+			it('should not save block in temp_block table', async () => {
+				expect(
+					blocksModuleStub.removeBlockFromTempTable,
+				).not.toHaveBeenCalled();
 			});
 
 			it('should emit newBlock event', async () => {
