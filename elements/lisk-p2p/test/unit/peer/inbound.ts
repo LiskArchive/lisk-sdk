@@ -24,6 +24,7 @@ import {
 import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
+	REMOTE_EVENT_PING,
 } from '../../../src/events';
 
 describe('peer/inbound', () => {
@@ -95,6 +96,14 @@ describe('peer/inbound', () => {
 			expect((defaultInboundPeer as any)._sendPing).to.be.not.called;
 			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
 			expect((defaultInboundPeer as any)._sendPing).to.be.calledOnce.at.least;
+		});
+
+		it(`should emit ${REMOTE_EVENT_PING} event`, () => {
+			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
+			expect((defaultInboundPeer as any)._socket.emit).to.be.calledOnceWith(
+				REMOTE_EVENT_PING,
+				undefined,
+			);
 		});
 
 		it('should bind handlers to inbound socket', () => {

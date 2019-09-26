@@ -88,7 +88,7 @@ export class InboundPeer extends Peer {
 
 	private _sendPing(): void {
 		const pingStart = Date.now();
-		this._socket.emit(REMOTE_EVENT_PING, undefined, (_: Error, __: unknown) => {
+		this._socket.emit(REMOTE_EVENT_PING, undefined, () => {
 			this._latency = Date.now() - pingStart;
 			this._pingTimeoutId = setTimeout(() => {
 				this._sendPing();
@@ -125,7 +125,7 @@ export class InboundPeer extends Peer {
 		inboundSocket.off('close', this._handleInboundSocketClose);
 		inboundSocket.off('message', this._handleWSMessage);
 
-		// Unbind RPC and remote event handlers
+		// Undbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
