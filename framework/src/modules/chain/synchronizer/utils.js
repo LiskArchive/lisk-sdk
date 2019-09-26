@@ -22,13 +22,13 @@
  * 3. Each block gets deleted from temp_block table when its being applied
  *
  * @param {Object} tx - database transaction
- * @return {Promise<Boolean>|Error} - returns true when successfully restoring blocks
+ * @return {Promise<Boolean>} - returns true when successfully restoring blocks, returns false if no blocks were found
  */
 const restoreBlocks = async (blocksModule, processorModule, tx) => {
 	const tempBlocks = await blocksModule.getTempBlocks(tx);
 
 	if (tempBlocks.length === 0) {
-		throw new Error('Temp_block table is empty');
+		return false;
 	}
 
 	for (const block of tempBlocks) {

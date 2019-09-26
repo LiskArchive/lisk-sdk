@@ -45,6 +45,18 @@ describe('#synchronizer/utils', () => {
 			const result = await restoreBlocks(blocksMock, processorMock, stubs.tx);
 
 			// Assert
+			expect(result).toBeTrue();
+		});
+
+		it('should pass block to processValidated with right flags', async () => {
+			// Arrange
+			const blocks = [{ id: 'block1' }, { id: 'block2' }];
+			blocksMock.getTempBlocks = jest.fn().mockReturnValue(blocks);
+
+			// Act
+			await restoreBlocks(blocksMock, processorMock, stubs.tx);
+
+			// Assert
 			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(stubs.tx);
 			expect(processorMock.processValidated).toHaveBeenCalledTimes(2);
 			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
@@ -57,17 +69,17 @@ describe('#synchronizer/utils', () => {
 				blocks[1],
 				{ removeFromTempTable: true },
 			);
-			expect(result).toBeTrue();
 		});
 
-		it('should throw error when temp_block table is empty', async () => {
+		it('should return false when temp_block table is empty', async () => {
 			// Arrange
 			blocksMock.getTempBlocks = jest.fn().mockReturnValue([]);
 
-			// Act && Assert
-			await expect(
-				restoreBlocks(blocksMock, processorMock, stubs.tx),
-			).rejects.toEqual(new Error('Temp_block table is empty'));
+			// Act
+			const result = await restoreBlocks(blocksMock, processorMock, stubs.tx);
+
+			// Assert
+			expect(result).toBeFalsy();
 			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(stubs.tx);
 			expect(processorMock.processValidated).not.toHaveBeenCalled();
 		});
