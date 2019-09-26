@@ -182,13 +182,13 @@ class BFT extends EventEmitter {
 		const previouslyForgedMap = await this._getPreviouslyForgedMap();
 		const previouslyForgedHeightByDelegate =
 			previouslyForgedMap[delegatePublicKey] || 0;
-		const maxHeightPreviouslyForged = Math.max(
-			height,
-			previouslyForgedHeightByDelegate,
-		);
+		// previously forged height only saves maximum forged height
+		if (height <= previouslyForgedHeightByDelegate) {
+			return;
+		}
 		const updatedPreviouslyForged = {
 			...previouslyForgedMap,
-			[delegatePublicKey]: maxHeightPreviouslyForged,
+			[delegatePublicKey]: height,
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
 		await this.chainMetaEntity.setKey(

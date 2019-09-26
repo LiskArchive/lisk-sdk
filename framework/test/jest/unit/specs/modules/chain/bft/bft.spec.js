@@ -337,13 +337,28 @@ describe('bft', () => {
 						delegatePublicKey,
 						forgingHeight,
 					);
-					expect(storageMock.entities.ChainMeta.setKey).toHaveBeenCalledWith(
-						'BFT.maxHeightPreviouslyForged',
-						JSON.stringify({
-							...previouslyForgedMap,
-							[delegatePublicKey]: higherHeightOriginallyForged,
-						}),
+					expect(storageMock.entities.ChainMeta.setKey).not.toHaveBeenCalled();
+				});
+			});
+
+			describe('when a delegate forged before on the same height', () => {
+				const previouslyForgedMap = {
+					dummyDelegate: 100,
+					[delegatePublicKey]: forgingHeight,
+				};
+
+				beforeEach(async () => {
+					when(storageMock.entities.ChainMeta.getKey)
+						.calledWith('BFT.maxHeightPreviouslyForged')
+						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
+				});
+
+				it('should save the forging height and not change other properties', async () => {
+					await bft.saveMaxHeightPreviouslyForged(
+						delegatePublicKey,
+						forgingHeight,
 					);
+					expect(storageMock.entities.ChainMeta.setKey).not.toHaveBeenCalled();
 				});
 			});
 		});
