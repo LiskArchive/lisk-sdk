@@ -185,7 +185,7 @@ describe('peer/inbound', () => {
 			expect((defaultInboundPeer as any)._sendPing).to.not.be.called;
 		});
 
-		it('should unbind handlers from former inbound socket', () => {
+		it('should call _unbindHandlersFromInboundSocket with inbound socket', () => {
 			sandbox.stub(
 				defaultInboundPeer as any,
 				'_unbindHandlersFromInboundSocket',
@@ -194,6 +194,39 @@ describe('peer/inbound', () => {
 			expect(
 				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
 			).to.be.calledOnceWithExactly(inboundSocket);
+		});
+
+		it('should unbind handlers from inbound socket', () => {
+			defaultInboundPeer.disconnect();
+			expect((defaultInboundPeer as any)._socket.off.callCount).to.eql(7);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'close',
+				(defaultInboundPeer as any)._handleInboundSocketClose,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'message',
+				(defaultInboundPeer as any)._handleWSMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_RPC_REQUEST,
+				(defaultInboundPeer as any)._handleRawRPC,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_MESSAGE,
+				(defaultInboundPeer as any)._handleRawMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'postBlock',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostBlock,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'postSignatures',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostSignatures,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'postTransactions',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostTransactions,
+			);
 		});
 	});
 });
