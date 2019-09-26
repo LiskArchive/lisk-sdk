@@ -84,12 +84,13 @@
 		"socket.io": "2.2.0",
 		"sodium-native": "2.4.6",
 		"swagger-node-runner": "0.7.3",
+		"swagger-stats": "0.95.11",
 		"sway": "2.0.5",
 		"yargs": "13.2.2",
 		"z-schema": "3.24.2"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-passphrase": "2.0.1",
+		"@liskhq/lisk-passphrase": "2.0.3",
 		"chai": "4.2.0",
 		"chai-as-promised": "7.1.1",
 		"co-mocha": "1.2.2",

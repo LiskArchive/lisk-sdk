@@ -20,6 +20,7 @@ const express = require('express');
 const http = require('http');
 const https = require('https');
 const socketIO = require('socket.io');
+const swStats = require('swagger-stats');
 
 module.exports = ({ components: { logger }, config }) => {
 	const expressApp = express();
@@ -38,6 +39,17 @@ module.exports = ({ components: { logger }, config }) => {
 
 	if (config.trustProxy) {
 		expressApp.enable('trust proxy');
+	}
+
+	if (config.apm.enabled) {
+		const { name, uriPath } = config.apm.options;
+		expressApp.use(
+			swStats.getMiddleware({
+				name,
+				uriPath,
+			}),
+		);
+		logger.info({ 'service-name': name, uriPath }, 'Enabled Lisk APM');
 	}
 
 	const httpServer = http.createServer(expressApp);
