@@ -316,10 +316,13 @@ module.exports = class Chain {
 				if (valid.length) {
 					const err = valid;
 					const error = `${err[0].message}: ${err[0].path}`;
-					this.logger.debug('getHighestCommonBlock request validation failed', {
-						err: error,
-						req: action.params,
-					});
+					this.logger.debug(
+						{
+							err: error,
+							req: action.params,
+						},
+						'getHighestCommonBlock request validation failed',
+					);
 					throw new Error(error);
 				}
 
