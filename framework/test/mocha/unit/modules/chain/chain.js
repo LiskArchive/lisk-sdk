@@ -158,12 +158,12 @@ describe('Chain', () => {
 						'should NOT have duplicate items (items ## 1 and 0 are identical): undefined',
 					);
 					expect(chain.logger.debug).to.be.calledWith(
-						'getHighestCommonBlock request validation failed',
 						{
 							err:
 								'should NOT have duplicate items (items ## 1 and 0 are identical): undefined',
 							req: actionQuery.params,
 						},
+						'getHighestCommonBlock request validation failed',
 					);
 				}
 			});
@@ -186,7 +186,7 @@ describe('Chain', () => {
 				const response = await chain.actions.getHighestCommonBlock({
 					params: { ids: ['1', '2'] },
 				});
-				expect(response).to.deep.equal({ id: '123', height: '1' });
+				expect(response).to.eql({ id: '123', height: '1' });
 			});
 
 			it('should call blocks.getHighestCommonBlock with proper arguments', async () => {});
