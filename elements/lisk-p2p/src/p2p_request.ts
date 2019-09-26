@@ -15,7 +15,7 @@
 import { RPCResponseAlreadySentError } from './errors';
 import { P2PResponsePacket } from './p2p_types';
 
-interface RequestOptions {
+export interface RequestOptions {
 	readonly procedure: string;
 	readonly data: unknown;
 	readonly id: string;
@@ -68,10 +68,10 @@ export class P2PRequest {
 			if (!responseError && responsePacket) {
 				options.productivity.lastResponded = Date.now();
 				options.productivity.responseCounter += 1;
-				options.productivity.responseRate =
-					options.productivity.responseCounter /
-					options.productivity.requestCounter;
 			}
+			options.productivity.responseRate =
+				options.productivity.responseCounter /
+				options.productivity.requestCounter;
 			respondCallback(responseError, responsePacket);
 		};
 		this._wasResponseSent = false;
@@ -85,11 +85,11 @@ export class P2PRequest {
 		return this._data;
 	}
 
-	public get rate(): unknown {
+	public get rate(): number {
 		return this._rate;
 	}
 
-	public get peerId(): unknown {
+	public get peerId(): string {
 		return this._peerId;
 	}
 
