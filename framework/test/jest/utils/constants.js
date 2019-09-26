@@ -14,11 +14,11 @@
 
 'use strict';
 
-const validator = require('../../../../src/controller/validator');
+const validator = require('../../../src/controller/validator');
 const {
 	constantsSchema,
 	applicationConfigSchema,
-} = require('../../../../src/controller/schema');
+} = require('../../../src/controller/schema');
 const { deepFreeze } = require('./deep_freeze');
 
 const sharedConstants = validator.parseEnvArgAndValidate(constantsSchema, {});

@@ -17,7 +17,7 @@
 const BigNum = require('@liskhq/bignum');
 const { when } = require('jest-when');
 const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { constants, randomInt } = require('../../../../utils');
+const { constants, randomInt } = require('../../../../../utils');
 const {
 	delegateAccounts,
 	delegatePublicKeys,
@@ -259,7 +259,7 @@ describe('dpos.apply()', () => {
 						sort: ['voteWeight:desc', 'publicKey:asc'],
 					},
 				)
-				.mockResolvedValue(delegateAccounts);
+				.mockResolvedValue(sortedDelegateAccounts);
 
 			feePerDelegate = randomInt(10, 100);
 			totalFee = feePerDelegate * constants.ACTIVE_DELEGATES;
