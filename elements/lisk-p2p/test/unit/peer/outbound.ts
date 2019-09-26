@@ -13,6 +13,8 @@
  *
  */
 import { expect } from 'chai';
+import * as querystring from 'querystring';
+import * as socketClusterClient from 'socketcluster-client';
 import { OutboundPeer, PeerConfig } from '../../../src/peer';
 import {
 	REMOTE_SC_EVENT_MESSAGE,
@@ -20,7 +22,11 @@ import {
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
 import { SCClientSocket } from 'socketcluster-client';
-import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import {
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_CONNECT_TIMEOUT,
+	DEFAULT_ACK_TIMEOUT,
+} from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('peer/outbound', () => {
@@ -45,6 +51,7 @@ describe('peer/outbound', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			wsMaxPayload: 1000,
 		};
 		outboundSocket = <SCClientSocket>({
 			on: sandbox.stub(),
@@ -158,22 +165,59 @@ describe('peer/outbound', () => {
 				.called;
 		});
 
-		it('should create outbound socket if it does not exist', () => {
-			sandbox
-				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
-				.returns(outboundSocket);
-
-			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
-			defaultOutboundPeer.connect();
-			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
-				.calledOnce;
-			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
-		});
-
 		it('should call connect', () => {
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.connect();
 			expect(outboundSocket.connect).to.be.calledOnce;
+		});
+
+		describe('when no outbound socket exists', () => {
+			it('should call _createOutboundSocket', () => {
+				sandbox
+					.stub(defaultOutboundPeer as any, '_createOutboundSocket')
+					.returns(outboundSocket);
+
+				expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+				defaultOutboundPeer.connect();
+				expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
+					.calledOnce;
+				expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
+			});
+
+			it('should call socketClusterClient create method', () => {
+				const legacyNodeInfo = undefined as any;
+				const clientOptions = {
+					hostname: defaultOutboundPeer.ipAddress,
+					port: defaultOutboundPeer.wsPort,
+					query: querystring.stringify({
+						...legacyNodeInfo,
+						options: JSON.stringify(legacyNodeInfo),
+					}),
+					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
+					ackTimeout: DEFAULT_ACK_TIMEOUT,
+					multiplex: false,
+					autoConnect: false,
+					autoReconnect: false,
+					maxPayload: defaultOutboundPeerConfig.wsMaxPayload,
+				};
+				sandbox.spy(socketClusterClient, 'create');
+				defaultOutboundPeer.connect();
+				expect(socketClusterClient.create).to.be.calledOnceWithExactly(
+					clientOptions,
+				);
+			});
+
+			it('should bind handlers to the just created outbound socket', () => {
+				sandbox.stub(
+					defaultOutboundPeer as any,
+					'_bindHandlersToOutboundSocket',
+				);
+				expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+				defaultOutboundPeer.connect();
+				expect(
+					(defaultOutboundPeer as any)._bindHandlersToOutboundSocket,
+				).to.be.calledOnceWithExactly((defaultOutboundPeer as any)._socket);
+			});
 		});
 	});
 
