@@ -34,6 +34,7 @@ describe('delegates', () => {
 	const mockLogger = {
 		debug: sinonSandbox.stub(),
 		info: sinonSandbox.stub(),
+		warn: sinonSandbox.stub(),
 		error: sinonSandbox.stub(),
 	};
 	const mockStorage = {
@@ -106,6 +107,25 @@ describe('delegates', () => {
 					previousBlockId: dummyBlock.previousBlock,
 					cause,
 				};
+				await delegatesModule.fork(dummyBlock, cause);
+				expect(mockChannel.publish).to.be.calledWithExactly(
+					'chain:delegates:fork',
+					fork,
+				);
+			});
+
+			it('should not throw an error when the database fails', async () => {
+				const fork = {
+					delegatePublicKey: dummyBlock.generatorPublicKey,
+					blockTimestamp: dummyBlock.timestamp,
+					blockId: dummyBlock.id,
+					blockHeight: dummyBlock.height,
+					previousBlockId: dummyBlock.previousBlock,
+					cause,
+				};
+				mockStorage.entities.Account.insertFork.rejects(
+					new Error('invalid DB state'),
+				);
 				await delegatesModule.fork(dummyBlock, cause);
 				expect(mockChannel.publish).to.be.calledWithExactly(
 					'chain:delegates:fork',

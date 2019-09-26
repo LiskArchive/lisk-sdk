@@ -21,7 +21,12 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
-import { EVICTED_PEER_CODE, INTENTIONAL_DISCONNECT_CODE } from './constants';
+import {
+	EVICTED_PEER_CODE,
+	INTENTIONAL_DISCONNECT_CODE,
+	PEER_KIND_INBOUND,
+	PEER_KIND_OUTBOUND,
+} from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
 	EVENT_BAN_PEER,
@@ -35,6 +40,7 @@ import {
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
@@ -57,6 +63,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	PeerLists,
 } from './p2p_types';
 import {
 	ConnectionState,
@@ -67,7 +74,39 @@ import {
 } from './peer';
 import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 
-interface PeerPoolConfig {
+interface FilterPeersOptions {
+	readonly category: PROTECTION_CATEGORY;
+	readonly percentage: number;
+	readonly asc: boolean;
+}
+
+const filterPeersByCategory = (
+	peers: Peer[],
+	options: FilterPeersOptions,
+): Peer[] => {
+	// tslint:disable-next-line no-magic-numbers
+	if (options.percentage > 1 || options.percentage < 0) {
+		return peers;
+	}
+	const peerCount = Math.ceil(peers.length * options.percentage);
+	const sign = !!options.asc ? 1 : -1;
+
+	// tslint:disable-next-line no-any
+	return peers
+		.sort((peerA: any, peerB: any) =>
+			peerA[options.category] > peerB[options.category] ? sign : sign * -1,
+		)
+		.slice(peerCount, peers.length);
+};
+
+enum PROTECTION_CATEGORY {
+	NET_GROUP = 'netgroup',
+	LATENCY = 'latency',
+	RESPONSE_RATE = 'responseRate',
+	CONNECT_TIME = 'connectTime',
+}
+
+export interface PeerPoolConfig {
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
 	readonly wsMaxPayload?: number;
@@ -89,41 +128,7 @@ interface PeerPoolConfig {
 	readonly wsMaxMessageRatePenalty: number;
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
-}
-
-interface FilterPeersOptions {
-	readonly category: PROTECTION_CATEGORY;
-	readonly percentage: number;
-	readonly asc: boolean;
-}
-
-interface IndexablePeer {
-	readonly [key: string]: number;
-}
-
-const filterPeersByCategory = (
-	peers: Peer[],
-	options: FilterPeersOptions,
-): Peer[] => {
-	// tslint:disable-next-line no-magic-numbers
-	if (options.percentage > 1 || options.percentage < 0) {
-		return peers;
-	}
-	const peerCount = Math.ceil(peers.length * options.percentage);
-	const sign = !!options.asc ? 1 : -1;
-
-	return peers
-		.sort((a: IndexablePeer | Peer, b: IndexablePeer | Peer) =>
-			a[options.category] > b[options.category] ? sign : sign * -1,
-		)
-		.slice(peerCount, peers.length);
-};
-
-enum PROTECTION_CATEGORY {
-	NET_GROUP = 'netgroup',
-	LATENCY = 'latency',
-	RESPONSE_RATE = 'responseRate',
-	CONNECT_TIME = 'connectTime',
+	readonly peerLists: PeerLists;
 }
 
 export class PeerPool extends EventEmitter {
@@ -166,6 +171,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
 	private readonly _peerConfig: PeerConfig;
+	private readonly _peerLists: PeerLists;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -183,6 +189,7 @@ export class PeerPool extends EventEmitter {
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
 		};
+		this._peerLists = peerPoolConfig.peerLists;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
@@ -305,9 +312,15 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers().map(
+			(peerInfo: P2PDiscoveredPeerInfo) => ({
+				...peerInfo,
+				kind: PEER_KIND_OUTBOUND,
+			}),
+		);
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: this.getUniqueOutboundConnectedPeers(),
+			peers: outboundPeerInfos,
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -325,9 +338,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public send(message: P2PMessagePacket): void {
-		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
-		);
+		const listOfPeerInfo = [...this._peerMap.values()].map((peer: Peer) => ({
+			...(peer.peerInfo as P2PDiscoveredPeerInfo),
+			kind:
+				peer instanceof OutboundPeer ? PEER_KIND_OUTBOUND : PEER_KIND_INBOUND,
+		}));
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
@@ -338,7 +353,11 @@ export class PeerPool extends EventEmitter {
 
 		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			this.sendToPeer(message, selectedPeerId);
+			try {
+				this.sendToPeer(message, selectedPeerId);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
+			}
 		});
 	}
 
@@ -373,18 +392,22 @@ export class PeerPool extends EventEmitter {
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
-			peer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
-				!fixedPeers.includes(peer),
+			newPeer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(newPeer)) ||
+				!fixedPeers
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(newPeer.ipAddress),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
-			peer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
-				!fixedPeers.includes(peer),
+			triedPeer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(triedPeer)) ||
+				!fixedPeers
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(triedPeer.ipAddress),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
-			.filter(peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)))
+			.filter(peer => !this._peerMap.get(constructPeerIdFromPeerInfo(peer)))
 			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
@@ -573,7 +596,12 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _selectPeersForEviction(): Peer[] {
-		const peers = [...this.getPeers(InboundPeer)];
+		const peers = [...this.getPeers(InboundPeer)].filter(peer =>
+			this._peerLists.whitelisted.every(
+				p => constructPeerIdFromPeerInfo(p) !== peer.id,
+			),
+		);
+
 		// Cannot predict which netgroups will be protected
 		const filteredPeersByNetgroup = this._peerPoolConfig.netgroupProtectionRatio
 			? filterPeersByCategory(peers, {
@@ -631,7 +659,13 @@ export class PeerPool extends EventEmitter {
 		}
 
 		if (kind === OutboundPeer) {
-			const selectedPeer = shuffle(peers)[0];
+			const selectedPeer = shuffle(
+				peers.filter(peer =>
+					this._peerLists.fixedPeers.every(
+						p => constructPeerIdFromPeerInfo(p) !== peer.id,
+					),
+				),
+			)[0];
 			if (selectedPeer) {
 				this.removePeer(
 					selectedPeer.id,

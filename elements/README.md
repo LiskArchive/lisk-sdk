@@ -22,7 +22,7 @@ Lisk Elements supports the modular architecture of the Lisk SDK, where libraries
 | [@liskhq/lisk-passphrase](/elements/lisk-passphrase)             |    [![](https://img.shields.io/badge/npm-v2.0.3-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)    | Mnemonic passphrase helpers for use with Lisk-related software     |
 | [@liskhq/lisk-transactions](/elements/lisk-transactions)         |   [![](https://img.shields.io/badge/npm-v2.3.1-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions)   | Everything related to transactions according to the Lisk protocol  |
 | [@liskhq/lisk-transaction-pool](/elements/lisk-transaction-pool) | [![](https://img.shields.io/badge/npm-v0.2.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transaction-pool) | Transaction pool implementation for the Lisk network               |
-| [@liskhq/lisk-p2p](/elements/lisk-p2p)                           |       [![](https://img.shields.io/badge/npm-v0.3.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-p2p)        | _unstructured_ P2P library for the Lisk protocol                   |
+| [@liskhq/lisk-p2p](/elements/lisk-p2p)                           |       [![](https://img.shields.io/badge/npm-v0.3.3-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-p2p)        | _unstructured_ P2P library for the Lisk protocol                   |
 
 ## Installation
 
@@ -82,14 +82,13 @@ npm test
 
 ## Get Involved
 
-| Reason                           | How                                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Want to chat with our community  | [Chat with them on Lisk.chat](http://lisk.chat)                                                |
-| Want to chat with our developers | [Chat with them on Gitter](https://gitter.im/LiskHQ/lisk)                                      |
-| Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
-| Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
-| Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
-| Want to develop with us          | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
+| Reason                          | How                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Want to chat with our community | [Reach them on Discord](https://discord.gg/lisk)                                               |
+| Found a bug                     | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
+| Found a security issue          | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
+| Want to share your research     | [Propose your research](https://research.lisk.io)                                              |
+| Want to develop with us         | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
 
 ## License
 

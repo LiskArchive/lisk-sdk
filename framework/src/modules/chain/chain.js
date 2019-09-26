@@ -14,11 +14,6 @@
 
 'use strict';
 
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-	// eslint-disable-next-line global-require
-	require('./utils/newrelic_lisk');
-}
-
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const { createStorageComponent } = require('../../components/storage');
@@ -169,21 +164,30 @@ module.exports = class Chain {
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
-				this.channel.subscribe('network:event', ({ data: { event, data } }) => {
-					if (event === 'postTransactions') {
-						this.transport.postTransactions(data);
-						return;
-					}
-					if (event === 'postSignatures') {
-						this.transport.postSignatures(data);
-						return;
-					}
-					if (event === 'postBlock') {
-						this.transport.postBlock(data);
-						// eslint-disable-next-line no-useless-return
-						return;
-					}
-				});
+				this.channel.subscribe(
+					'network:event',
+					async ({ data: { event, data } }) => {
+						try {
+							if (event === 'postTransactions') {
+								await this.transport.postTransactions(data);
+								return;
+							}
+							if (event === 'postSignatures') {
+								await this.transport.postSignatures(data);
+								return;
+							}
+							if (event === 'postBlock') {
+								await this.transport.postBlock(data);
+								return;
+							}
+						} catch (error) {
+							this.logger.warn(
+								{ error, event },
+								'Received invalid event message',
+							);
+						}
+					},
+				);
 			}
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {

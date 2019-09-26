@@ -138,7 +138,7 @@ const loadBlocksDataWS = async (storage, filter, tx) => {
 	params.limit = realLimit;
 	params.height = height;
 
-	const mergedParams = Object.assign({}, filter, params);
+	const mergedParams = { ...filter, ...params };
 	const queryFilters = {};
 
 	if (!mergedParams.id && !mergedParams.lastId) {

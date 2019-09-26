@@ -217,7 +217,11 @@ class Delegates {
 			cause,
 		};
 
-		await this.storage.entities.Account.insertFork(fork);
+		try {
+			await this.storage.entities.Account.insertFork(fork);
+		} catch (err) {
+			this.logger.warn(err, 'Failed to insert fork info');
+		}
 		this.channel.publish('chain:delegates:fork', fork);
 	}
 

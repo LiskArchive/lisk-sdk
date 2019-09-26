@@ -32,7 +32,7 @@ describe('WS transport', () => {
 		let p2p;
 
 		function postTransaction(transactionToPost) {
-			p2p.send({
+			return p2p.send({
 				event: 'postTransactions',
 				data: {
 					nonce: 'sYHEDBKcScaAAAYg',
@@ -71,6 +71,10 @@ describe('WS transport', () => {
 				postTransaction(transaction);
 				goodTransactions.push(transaction);
 				done();
+			});
+
+			it('should not crash the application', async () => {
+				await postTransaction('Invalid transaction');
 			});
 		});
 
@@ -378,6 +382,22 @@ describe('WS transport', () => {
 					}
 				});
 				await p2p.send({ event: 'postBlock', data: { block: testBlock } });
+			});
+
+			it('should not crash the application when sending the invalid block', async () => {
+				await p2p.send({
+					event: 'postBlock',
+					data: { block: { generatorPublicKey: '123' } },
+				});
+			});
+		});
+
+		describe('postSignatures', () => {
+			it('should not crash the application when sending the invalid signatures', async () => {
+				await p2p.send({
+					event: 'postSignatures',
+					data: { signatures: ['not object signature'] },
+				});
 			});
 		});
 	});
