@@ -164,7 +164,7 @@ describe('peerPool', () => {
 	describe('#request', () => {
 		let caughtError: Error;
 		beforeEach(async () => {
-			(peerPool['_peerSelectForRequest'] as any) = sandbox
+			(peerPool as any)._peerSelectForRequest = sandbox
 				.stub()
 				.returns([] as ReadonlyArray<P2PPeerInfo>);
 			try {
@@ -175,7 +175,7 @@ describe('peerPool', () => {
 		});
 
 		it('should call _peerSelectForRequest with all the necessary options', async () => {
-			expect(peerPool['_peerSelectForRequest']).to.be.calledWith({
+			expect((peerPool as any)._peerSelectForRequest).to.be.calledWith({
 				peers: [],
 				nodeInfo: peerPool.nodeInfo,
 				peerLimit: 1,
