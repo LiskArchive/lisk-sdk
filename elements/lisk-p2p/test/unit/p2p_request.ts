@@ -14,6 +14,7 @@
  */
 import { expect } from 'chai';
 import { P2PRequest, RequestOptions } from '../../src/p2p_request';
+import { RPCResponseAlreadySentError } from '../../src/errors';
 
 describe('p2p_request', () => {
 	let requestOptions: RequestOptions;
@@ -111,6 +112,19 @@ describe('p2p_request', () => {
 			expect(request)
 				.to.have.property('wasResponseSent')
 				.which.equals(true));
+
+		it('should throw error when sending another request', () => {
+			try {
+				request.end('hello');
+			} catch (e) {
+				expect(e).to.be.an.instanceOf(RPCResponseAlreadySentError);
+				expect(e.message).to.be.eql(
+					`A response has already been sent for the request procedure <<${
+						requestOptions.procedure
+					}>>`,
+				);
+			}
+		});
 	});
 
 	describe('#error', () => {
