@@ -21,6 +21,8 @@
  * 2. Apply blocks one by one to current chain
  * 3. Each block gets deleted from temp_block table when its being applied
  *
+ * @param {Object} blocksModule - injection of blocks module object
+ * @param {Object} processorModule - injection of processor module object
  * @param {Object} tx - database transaction
  * @return {Promise<Boolean>} - returns true when successfully restoring blocks, returns false if no blocks were found
  */
