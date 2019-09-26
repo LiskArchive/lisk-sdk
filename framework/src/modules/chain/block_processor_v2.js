@@ -216,7 +216,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
 
-		this.undo.pipe([data => this.blocksModule.undo(data)]);
+		this.undo.pipe([
+			data => this.blocksModule.undo(data),
+			() => {
+				// Back the block up in temp table
+			},
+		]);
 
 		this.create.pipe([
 			async ({ keypair }) => {

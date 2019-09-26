@@ -217,7 +217,7 @@ class Processor {
 		});
 	}
 
-	async deleteLastBlock() {
+	async deleteLastBlock({ saveTempBlock = false } = {}) {
 		return this.sequence.add(async () => {
 			const { lastBlock } = this.blocksModule;
 			this.logger.debug(
@@ -225,7 +225,7 @@ class Processor {
 				'deleting last block',
 			);
 			const blockProcessor = this._getBlockProcessor(lastBlock);
-			await this._deleteBlock(lastBlock, blockProcessor);
+			await this._deleteBlock(lastBlock, blockProcessor, saveTempBlock);
 		});
 	}
 
@@ -304,13 +304,13 @@ class Processor {
 		);
 	}
 
-	async _deleteBlock(block, processor) {
+	async _deleteBlock(block, processor, saveTempBlock = false) {
 		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
 			await processor.undo.run({
 				block,
 				tx,
 			});
-			await this.blocksModule.remove({ block, tx });
+			await this.blocksModule.remove({ block, tx, saveTempBlock });
 			this.channel.publish('chain:processor:deleteBlock', {
 				block: cloneDeep(block),
 			});
