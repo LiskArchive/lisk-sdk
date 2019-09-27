@@ -238,6 +238,7 @@ class Account extends BaseEntity {
 		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');
 		this.addField('votedDelegatesPublicKeys', 'string');
+		this.addField('membersPublicKeys', 'string');
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:

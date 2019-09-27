@@ -40,13 +40,13 @@ const defaultCreateValues = {
 	multiLifetime: 0,
 	asset: {},
 	votedDelegatesPublicKeys: null,
+	membersPublicKeys: null,
 };
 
 const readOnlyFields = ['address'];
 
 const dependentFieldsTableMap = {
 	membersPublicKeys: 'mem_accounts2multisignatures',
-	votedDelegatesPublicKeys: 'mem_accounts2delegates',
 };
 
 const sqlFiles = {
@@ -152,6 +152,7 @@ class ChainAccount extends AccountEntity {
 		accounts = accounts.map(account => {
 			let parsedAccount = _.defaults(account, defaultCreateValues);
 			parsedAccount = ChainAccount._stringifyVotedDelegates(parsedAccount);
+			parsedAccount = ChainAccount._stringifyMembersPublicKeys(parsedAccount);
 			return parsedAccount;
 		});
 
@@ -172,7 +173,10 @@ class ChainAccount extends AccountEntity {
 
 		this.validateFilters(filters, atLeastOneRequired);
 
-		const sanitizedCreateData = ChainAccount._stringifyVotedDelegates(data);
+		let sanitizedCreateData = ChainAccount._stringifyVotedDelegates(data);
+		sanitizedCreateData = ChainAccount._stringifyMembersPublicKeys(
+			sanitizedCreateData,
+		);
 
 		const objectData = _.omit(sanitizedCreateData, readOnlyFields);
 
@@ -600,6 +604,19 @@ class ChainAccount extends AccountEntity {
 			return {
 				...data,
 				votedDelegatesPublicKeys: JSON.stringify(data.votedDelegatesPublicKeys),
+			};
+		}
+		return data;
+	}
+
+	/**
+	 * @param {Object} data - create/update data
+	 */
+	static _stringifyMembersPublicKeys(data) {
+		if (data.membersPublicKeys) {
+			return {
+				...data,
+				membersPublicKeys: JSON.stringify(data.membersPublicKeys),
 			};
 		}
 		return data;
