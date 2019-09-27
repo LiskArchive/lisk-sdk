@@ -13,80 +13,229 @@
  *
  */
 import { expect } from 'chai';
-import { SCServerSocket } from 'socketcluster-server';
-import { InboundPeer } from '../../../src/peer';
+import { InboundPeer, PeerConfig } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { SCServerSocket } from 'socketcluster-server';
+import {
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_PING_INTERVAL_MAX,
+	DEFAULT_PING_INTERVAL_MIN,
+} from '../../../src/constants';
+import {
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
+	REMOTE_EVENT_PING,
+} from '../../../src/events';
 
 describe('peer/inbound', () => {
-	const DEFAULT_RANDOM_SECRET = 123;
-	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
-		ipAddress: '12.12.12.12',
-		wsPort: 5001,
-		height: 545776,
-		isDiscoveredPeer: true,
-		version: '1.1.1',
-		protocolVersion: '1.1',
-	};
-
-	let socket: any;
-	let defaultPeer: InboundPeer;
+	let defaultPeerInfo: P2PDiscoveredPeerInfo;
+	let defaultPeerConfig: PeerConfig;
+	let defaultInboundPeer: InboundPeer;
+	let inboundSocket: SCServerSocket;
+	let clock: sinon.SinonFakeTimers;
 
 	beforeEach(() => {
-		socket = <SCServerSocket>({
-			on: sandbox.stub(),
-			off: sandbox.stub(),
-			emit: sandbox.stub(),
-			destroy: sandbox.stub(),
-		} as any);
-
-		defaultPeer = new InboundPeer(defaultPeerInfo, socket, {
+		clock = sandbox.useFakeTimers();
+		defaultPeerInfo = {
+			ipAddress: '12.12.12.12',
+			wsPort: 5001,
+			height: 545776,
+			isDiscoveredPeer: true,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		};
+		defaultPeerConfig = {
 			rateCalculationInterval: 1000,
 			wsMaxMessageRate: 1000,
 			wsMaxMessageRatePenalty: 10,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
-		});
+		};
+		inboundSocket = <SCServerSocket>({
+			on: sandbox.stub(),
+			off: sandbox.stub(),
+			emit: sandbox.stub(),
+			destroy: sandbox.stub(),
+		} as any);
+		defaultInboundPeer = new InboundPeer(
+			defaultPeerInfo,
+			inboundSocket,
+			defaultPeerConfig,
+		);
 	});
 
 	afterEach(() => {
-		defaultPeer.disconnect();
-		sandbox.restore();
+		clock.restore();
+		defaultInboundPeer.disconnect();
 	});
 
 	describe('#constructor', () => {
-		it('should be an object', () => {
-			return expect(defaultPeer).to.be.an('object');
+		it('should be an instance of InboundPeer class', () =>
+			expect(defaultInboundPeer).and.be.instanceof(InboundPeer));
+
+		it('should have a function named _handleInboundSocketError', () =>
+			expect((defaultInboundPeer as any)._handleInboundSocketError).to.be.a(
+				'function',
+			));
+
+		it('should have a function named _handleInboundSocketClose ', () =>
+			expect((defaultInboundPeer as any)._handleInboundSocketClose).to.be.a(
+				'function',
+			));
+
+		it('should set ping timeout', () => {
+			expect((defaultInboundPeer as any)._pingTimeoutId).to.be.an('object');
 		});
 
-		it('should be an instance of P2P blockchain', () => {
-			return expect(defaultPeer)
-				.to.be.an('object')
-				.and.be.instanceof(InboundPeer);
+		it('should get socket property', () =>
+			expect((defaultInboundPeer as any)._socket).to.equal(inboundSocket));
+
+		it('should send ping at least once after some time', () => {
+			sandbox.stub(defaultInboundPeer as any, '_sendPing');
+			expect((defaultInboundPeer as any)._sendPing).to.be.not.called;
+			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
+			expect((defaultInboundPeer as any)._sendPing).to.be.calledOnce.at.least;
+		});
+
+		it(`should emit ${REMOTE_EVENT_PING} event`, () => {
+			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
+			expect((defaultInboundPeer as any)._socket.emit).to.be.calledOnceWith(
+				REMOTE_EVENT_PING,
+				undefined,
+			);
+		});
+
+		it('should bind handlers to inbound socket', () => {
+			expect((defaultInboundPeer as any)._socket.on.callCount).to.eql(8);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'close',
+				(defaultInboundPeer as any)._handleInboundSocketClose,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'error',
+				(defaultInboundPeer as any)._handleInboundSocketError,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'message',
+				(defaultInboundPeer as any)._handleWSMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_RPC_REQUEST,
+				(defaultInboundPeer as any)._handleRawRPC,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_MESSAGE,
+				(defaultInboundPeer as any)._handleRawMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postBlock',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostBlock,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postSignatures',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostSignatures,
+			);
+			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postTransactions',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostTransactions,
+			);
 		});
 	});
 
-	describe('#instanceProperties', () => {
-		it('should get height property', () => {
-			return expect(defaultPeer.height)
-				.to.be.a('number')
-				.and.be.eql(545776);
+	describe('#set socket', () => {
+		let newInboundSocket: SCServerSocket;
+
+		beforeEach(() => {
+			newInboundSocket = <SCServerSocket>({
+				on: sandbox.stub(),
+				off: sandbox.stub(),
+				emit: sandbox.stub(),
+				destroy: sandbox.stub(),
+			} as any);
 		});
 
-		it('should get ip property', () => {
-			return expect(defaultPeer.ipAddress)
-				.to.be.a('string')
-				.and.be.eql('12.12.12.12');
+		it('should unbind handlers from a former inbound socket', () => {
+			sandbox.stub(
+				defaultInboundPeer as any,
+				'_unbindHandlersFromInboundSocket',
+			);
+			defaultInboundPeer.socket = newInboundSocket;
+			expect(
+				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
+			).to.be.calledOnceWithExactly(inboundSocket);
 		});
 
-		it('should get wsPort property', () => {
-			return expect(defaultPeer.wsPort)
-				.to.be.a('number')
-				.and.be.eql(5001);
+		it('should set a new socket', () => {
+			expect((defaultInboundPeer as any)._socket).to.be.eql(inboundSocket);
+			defaultInboundPeer.socket = newInboundSocket;
+			expect((defaultInboundPeer as any)._socket).to.eql(newInboundSocket);
 		});
 
-		it('should get socket property', () => {
-			return expect((defaultPeer as any)._socket).to.equal(socket);
+		it('should bind handlers to a new inbound socket', () => {
+			sandbox.stub(defaultInboundPeer as any, '_bindHandlersToInboundSocket');
+			defaultInboundPeer.socket = newInboundSocket;
+			expect(
+				(defaultInboundPeer as any)._bindHandlersToInboundSocket,
+			).to.be.be.calledOnceWithExactly(newInboundSocket);
+		});
+	});
+
+	describe('#disconnect', () => {
+		it('should call disconnect and destroy socket', () => {
+			defaultInboundPeer.disconnect();
+			expect(inboundSocket.destroy).to.be.calledOnceWith(1000);
+		});
+
+		it('should not send ping anymore', () => {
+			sandbox.stub(defaultInboundPeer as any, '_sendPing');
+			defaultInboundPeer.disconnect();
+			clock.tick(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
+			expect((defaultInboundPeer as any)._sendPing).to.not.be.called;
+		});
+
+		it('should call _unbindHandlersFromInboundSocket with inbound socket', () => {
+			sandbox.stub(
+				defaultInboundPeer as any,
+				'_unbindHandlersFromInboundSocket',
+			);
+			defaultInboundPeer.disconnect();
+			expect(
+				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
+			).to.be.calledOnceWithExactly(inboundSocket);
+		});
+
+		it('should unbind handlers from an inbound socket', () => {
+			defaultInboundPeer.disconnect();
+			expect((defaultInboundPeer as any)._socket.off.callCount).to.eql(7);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'close',
+				(defaultInboundPeer as any)._handleInboundSocketClose,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'message',
+				(defaultInboundPeer as any)._handleWSMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_RPC_REQUEST,
+				(defaultInboundPeer as any)._handleRawRPC,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_MESSAGE,
+				(defaultInboundPeer as any)._handleRawMessage,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'postBlock',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostBlock,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'postSignatures',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostSignatures,
+			);
+			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
+				'postTransactions',
+				(defaultInboundPeer as any)._handleRawLegacyMessagePostTransactions,
+			);
 		});
 	});
 });
