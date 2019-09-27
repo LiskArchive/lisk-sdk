@@ -300,28 +300,34 @@ describe('newPeer', () => {
 	});
 
 	describe('#evictionBasedOnTimeWithLargeSample', () => {
-		const newPeerConfig = {
-			peerBucketSize: 32,
-			peerBucketCount: 128,
-			secret: 123456,
-			peerType: PEER_TYPE.NEW_PEER,
-			evictionThresholdTime: 600000,
-		};
-		const samplePeersA = initializePeerInfoListWithSuffix('1.222.123', 10000);
-		const samplePeersB = initializePeerInfoListWithSuffix('234.11.34', 10000);
+		let newPeersList: NewList;
+		let clock: sinon.SinonFakeTimers;
 
-		let newPeersList = new NewList(newPeerConfig);
+		beforeEach(() => {
+			clock = sandbox.useFakeTimers();
+			const newPeerConfig = {
+				peerBucketSize: 32,
+				peerBucketCount: 128,
+				secret: 123456,
+				peerType: PEER_TYPE.NEW_PEER,
+				evictionThresholdTime: 600000,
+			};
+			const samplePeersA = initializePeerInfoListWithSuffix('1.222.123', 10000);
+			const samplePeersB = initializePeerInfoListWithSuffix('234.11.34', 10000);
 
-		samplePeersA.forEach(peerInfo => {
-			global.sandbox.clock.tick(2);
-			newPeersList.addPeer(peerInfo);
-		});
+			newPeersList = new NewList(newPeerConfig);
 
-		global.sandbox.clock.tick(600000);
+			samplePeersA.forEach(peerInfo => {
+				clock.tick(2);
+				newPeersList.addPeer(peerInfo);
+			});
 
-		samplePeersB.forEach(peerInfo => {
-			global.sandbox.clock.tick(2);
-			newPeersList.addPeer(peerInfo);
+			clock.tick(600000);
+
+			samplePeersB.forEach(peerInfo => {
+				clock.tick(2);
+				newPeersList.addPeer(peerInfo);
+			});
 		});
 
 		it('should not allow newPeer list to grow beyond 4096 peers', async () => {
