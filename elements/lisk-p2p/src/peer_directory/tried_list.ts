@@ -16,7 +16,7 @@ import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
 
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo } from '../utils';
-import { CustomPeerInfo, PeerList, PeerListConfig } from './peer_list';
+import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {
 	readonly maxReconnectTries?: number;
@@ -29,7 +29,7 @@ interface TriedListInfo extends CustomPeerInfo {
 
 type TriedListMap = Map<number, Map<string, TriedListInfo>>;
 
-export class TriedList extends PeerList {
+export class TriedList extends BaseList {
 	private readonly _maxReconnectTries: number;
 
 	public constructor({
@@ -71,7 +71,7 @@ export class TriedList extends PeerList {
 		};
 	}
 
-	// Extend to add custom TriedPeerInfo
+	// Override to add custom TriedPeerInfo
 	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
 		peerInfo,
 		numOfConnectionFailures: 0,

@@ -21,15 +21,10 @@ export interface PeerListConfig {
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 }
+
 export interface CustomPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
 	readonly dateAdded: Date;
-}
-
-export interface AddPeerOutcome {
-	readonly success: boolean;
-	readonly isAdded: boolean;
-	readonly evictedPeer: P2PPeerInfo | undefined;
 }
 
 export const evictPeerRandomlyFromBucket = (
@@ -44,8 +39,8 @@ export const evictPeerRandomlyFromBucket = (
 	return randomPeer;
 };
 
-// Base peer list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
-export class PeerList {
+// Base list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
+export class BaseList {
 	protected peerMap: Map<number, Map<string, CustomPeerInfo>>;
 	protected readonly peerListConfig: PeerListConfig;
 

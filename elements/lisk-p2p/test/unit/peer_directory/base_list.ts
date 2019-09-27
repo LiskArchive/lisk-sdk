@@ -13,12 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import { PeerList } from '../../../src/peer_directory/peer_list';
+import { BaseList } from '../../../src/peer_directory/base_list';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
 
-describe('peer list base', () => {
+describe('Peer list base', () => {
 	const peerConfig = {
 		peerBucketSize: 32,
 		peerBucketCount: 64,
@@ -27,10 +27,10 @@ describe('peer list base', () => {
 	};
 
 	describe('#constructor', () => {
-		let peerListObj: PeerList;
+		let peerListObj: BaseList;
 
 		beforeEach(async () => {
-			peerListObj = new PeerList(peerConfig);
+			peerListObj = new BaseList(peerConfig);
 		});
 
 		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
@@ -46,11 +46,11 @@ describe('peer list base', () => {
 
 	describe('#peerList', () => {
 		const samplePeers = initializePeerInfoList();
-		let peerListObj: PeerList;
+		let peerListObj: BaseList;
 		let triedPeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 		before(async () => {
-			peerListObj = new PeerList(peerConfig);
+			peerListObj = new BaseList(peerConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
@@ -69,12 +69,16 @@ describe('peer list base', () => {
 		});
 	});
 
+	describe('#initPeerInfo', () => {
+		it('should the peer info initiated');
+	});
+
 	describe('#getPeer', () => {
-		let peerListObj: PeerList;
+		let peerListObj: BaseList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			peerListObj = new PeerList(peerConfig);
+			peerListObj = new BaseList(peerConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
@@ -96,11 +100,11 @@ describe('peer list base', () => {
 	});
 
 	describe('#addPeer', () => {
-		let peerListObj: PeerList;
+		let peerListObj: BaseList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			peerListObj = new PeerList(peerConfig);
+			peerListObj = new BaseList(peerConfig);
 			peerListObj.addPeer(samplePeers[0]);
 		});
 
@@ -119,11 +123,11 @@ describe('peer list base', () => {
 	});
 
 	describe('#updatePeer', () => {
-		let peerListObj: PeerList;
+		let peerListObj: BaseList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			peerListObj = new PeerList(peerConfig);
+			peerListObj = new BaseList(peerConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
@@ -157,11 +161,11 @@ describe('peer list base', () => {
 	});
 
 	describe('#removePeer', () => {
-		let peerListObj: PeerList;
+		let peerListObj: BaseList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			peerListObj = new PeerList(peerConfig);
+			peerListObj = new BaseList(peerConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
@@ -172,12 +176,28 @@ describe('peer list base', () => {
 		});
 	});
 
+	describe('#getBucket', () => {
+		it('should get a bucket');
+	});
+
+	describe('#makeSpace', () => {
+		it('should call get bucket');
+
+		describe('when bucket is full', () => {
+			it('should evict randomly a peer from bucket');
+		});
+
+		describe('when bucket is not full', () => {
+			it('should not evict any peer');
+		});
+	});
+
 	describe('#failedConnectionAction', () => {
-		let peerListObj: PeerList;
+		let peerListObj: BaseList;
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			peerListObj = new PeerList(peerConfig);
+			peerListObj = new BaseList(peerConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
