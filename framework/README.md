@@ -2,11 +2,7 @@
 
 # Lisk Framework
 
-[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-core/development)](https://jenkins.lisk.io/job/lisk-core/job/development)
-[![Coverage Status](https://coveralls.io/repos/github/LiskHQ/lisk/badge.svg?branch=development)](https://coveralls.io/github/LiskHQ/lisk?branch=development)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-<a href="https://david-dm.org/LiskHQ/lisk"><img src="https://david-dm.org/LiskHQ/lisk.svg" alt="Dependency Status"></a>
-<a href="https://david-dm.org/LiskHQ/lisk/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk/dev-status.svg" alt="devDependency Status"></a>
 
 ## What is Lisk Framework
 
@@ -119,6 +115,17 @@ npm run jest:<testType>
 
 ```
 npm run jest:<testType> -- [testPathPattern] [jestCliOptions]
+```
+
+### API Performance and APM
+
+To access the API Peformance of your Lisk Instance, navigate to `http://localhost:4000/http-stats/ui`. The APM doesn't store any of the performance metrics, neither it forwards to any external services. The stats are served from the point on the instance is up and running, once the instance is restarted it will not hold any stats.
+
+To access the stats, follow the steps below:
+
+```
+node test/test_app | npx bunyan
+Access: http://localhost:4000/http-stats/ui
 ```
 
 ## Contribution

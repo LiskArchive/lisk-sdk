@@ -15,6 +15,7 @@
 'use strict';
 
 const { maxBy, groupBy } = require('lodash');
+const { deleteBlocksAfterHeight } = require('./utils');
 const ForkChoiceRule = require('../blocks/fork_choice_rule');
 
 class BlockSynchronizationMechanism {
@@ -111,14 +112,21 @@ class BlockSynchronizationMechanism {
 			);
 		}
 
-		// for each block until lastCommonBlock.height do:
-		await this.processorModule.deleteLastBlock({ saveTempBlock: false });
-
-		// TODO: Delete blocks on system chain from current tip to `lastCommonBlockId`
+		try {
+			await deleteBlocksAfterHeight(
+				this.processorModule,
+				this.blocks,
+				lastCommonBlock.height,
+			);
+		} catch (e) {
+			this.logger.debug(
+				`Failure deleting blocks after height ${
+					lastCommonBlock.height
+				} while reverting chain to last common block`,
+			);
+			throw e;
+		}
 	}
-
-	// eslint-disable-next-line no-empty-function
-	async deleteBlocksBackToHeight(height) {}
 
 	/**
 	 * Requests the last common block in common with the targeted peer.
@@ -130,42 +138,43 @@ class BlockSynchronizationMechanism {
 	 */
 	async _requestLastCommonBlock(peer) {
 		// The node requests the last common block C from P (Peer).
-		const [block] = await this.storage.entities.Block.get({
+		const [lastBlock] = await this.storage.entities.Block.get({
 			sort: 'height:desc',
 			limit: 1,
 		});
 
-		const { height: tipHeight } = block;
+		const { height: tipHeight } = lastBlock;
 		const numberOfRoundsSinceGenesis =
 			tipHeight / this.constants.activeDelegates;
 		const numberOfRoundsPerRequest = 5;
+		const numberOfRequests = 5;
 		let highestCommonBlock;
 		let requestCounter = 0;
 
 		// TODO: I am assuming we try to perform a X number of calls to the peer before
 		// giving up. We have to discuss this, as we can also perform one single call with a bigger array.
 		// This would simplify the code a bit more.
-		while (!highestCommonBlock && requestCounter < numberOfRoundsPerRequest) {
-			const blockIds = [];
 
-			// Compute the list of block ids
-			// TODO: Maybe we can avoid using ugly classic for loop here. Feel free to change it
-			for (let j = numberOfRoundsSinceGenesis; j > 0; j -= 1) {
+		let roundsCounter = numberOfRoundsSinceGenesis;
+
+		while (!highestCommonBlock && requestCounter < numberOfRequests) {
+			const blockHeights = [];
+
+			for (let j = roundsCounter; j > j - numberOfRoundsPerRequest; j -= 1) {
 				const heightFirstBlockOfTheRound =
 					j - 1 * this.constants.activeDelegates;
 
-				const [firstBlockRound] = await this.storage.entities.Block.get(
-					{ height: heightFirstBlockOfTheRound },
-					{
-						sort: 'height:desc',
-						limit: 1,
-					},
-				);
-
-				if (firstBlockRound) {
-					blockIds.push(firstBlockRound.id);
-				}
+				blockHeights.push(heightFirstBlockOfTheRound);
 			}
+
+			const blocks = await this.storage.entities.Block.get(
+				{ height: blockHeights },
+				{
+					sort: 'height:asc',
+				},
+			);
+
+			const blockIds = blocks.map(block => block.id);
 
 			// Request the highest common block with the previously computed list
 			// to the given peer
@@ -177,6 +186,7 @@ class BlockSynchronizationMechanism {
 
 			highestCommonBlock = data;
 			requestCounter += 1;
+			roundsCounter -= numberOfRoundsPerRequest;
 		}
 
 		return highestCommonBlock;

@@ -454,10 +454,10 @@ module.exports = class Chain {
 		});
 
 		this.synchronizer = new Synchronizer({
-			storage: this.storage,
 			logger: this.logger,
 			processorModule: this.processor,
 		});
+
 		this.synchronizer.register(blockSyncMechanism);
 		this.synchronizer.register(fastChainSwitchMechanism);
 

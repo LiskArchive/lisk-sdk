@@ -24,6 +24,7 @@ const { validateBlockHeader } = require('./utils');
 
 const META_KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
+	LAST_BLOCK_FORGED: 'BFT.maxHeightPreviouslyForged',
 };
 const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
@@ -59,8 +60,8 @@ class BFT extends EventEmitter {
 			startingHeight,
 		};
 
-		this.BlockEntity = this.storage.entities.Block;
-		this.ChainMetaEntity = this.storage.entities.ChainMeta;
+		this.blockEntity = this.storage.entities.Block;
+		this.chainMetaEntity = this.storage.entities.ChainMeta;
 	}
 
 	/**
@@ -141,7 +142,7 @@ class BFT extends EventEmitter {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 		const { finalizedHeight } = this.finalityManager;
 		// TODO: this should be memory operation in the state store
-		return this.ChainMetaEntity.setKey(
+		return this.chainMetaEntity.setKey(
 			META_KEYS.FINALIZED_HEIGHT,
 			finalizedHeight,
 			tx,
@@ -157,11 +158,50 @@ class BFT extends EventEmitter {
 	/**
 	 * Computes maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties that are necessary
 	 * for creating a new block
-	 * @param delegatePubKey
+	 * @param delegatePublicKey
 	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: (number|*)}>}
 	 */
-	async computeBFTHeaderProperties(delegatePubKey) {
-		return this.finalityManager.computeBFTHeaderProperties(delegatePubKey);
+	async computeBFTHeaderProperties(delegatePublicKey) {
+		const previouslyForged = await this._getPreviouslyForgedMap();
+		const maxHeightPreviouslyForged = previouslyForged[delegatePublicKey] || 0;
+
+		return {
+			// prevotedConfirmedUptoHeight is up till height - 1
+			prevotedConfirmedUptoHeight: this.finalityManager.prevotedConfirmedHeight,
+			maxHeightPreviouslyForged,
+		};
+	}
+
+	/**
+	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
+	 * so it needs to be outside of the DB transaction
+	 * @param delegatePublicKey
+	 * @param height
+	 */
+	async saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
+		const previouslyForgedMap = await this._getPreviouslyForgedMap();
+		const previouslyForgedHeightByDelegate =
+			previouslyForgedMap[delegatePublicKey] || 0;
+		// previously forged height only saves maximum forged height
+		if (height <= previouslyForgedHeightByDelegate) {
+			return;
+		}
+		const updatedPreviouslyForged = {
+			...previouslyForgedMap,
+			[delegatePublicKey]: height,
+		};
+		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
+		await this.chainMetaEntity.setKey(
+			META_KEYS.LAST_BLOCK_FORGED,
+			previouslyForgedStr,
+		);
+	}
+
+	async _getPreviouslyForgedMap() {
+		const previouslyForgedStr = await this.chainMetaEntity.getKey(
+			META_KEYS.LAST_BLOCK_FORGED,
+		);
+		return previouslyForgedStr ? JSON.parse(previouslyForgedStr) : {};
 	}
 
 	/**
@@ -174,7 +214,7 @@ class BFT extends EventEmitter {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
 			parseInt(
-				await this.ChainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT),
+				await this.chainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT),
 				10,
 			) || 0;
 
@@ -200,7 +240,7 @@ class BFT extends EventEmitter {
 	 * @private
 	 */
 	async _getLastBlockHeight() {
-		const lastBlock = await this.BlockEntity.get(
+		const lastBlock = await this.blockEntity.get(
 			{},
 			{ limit: 1, sort: 'height:desc' },
 		);
@@ -225,7 +265,7 @@ class BFT extends EventEmitter {
 			sortOrder = 'height:desc';
 		}
 
-		const rows = await this.BlockEntity.get(
+		const rows = await this.blockEntity.get(
 			{ height_gte: fromHeight, height_lte: tillHeight },
 			{ limit: null, sort: sortOrder },
 		);

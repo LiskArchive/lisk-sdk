@@ -88,6 +88,8 @@ describe('blocks', () => {
 					},
 					TempBlock: {
 						create: jest.fn(),
+						delete: jest.fn(),
+						get: jest.fn(),
 					},
 				},
 			},
@@ -1651,14 +1653,41 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('exists', () => {
+	describe('removeBlockFromTempTable()', () => {
+		it('should remove block from table for block ID', async () => {
+			// Arrange
+			const block = newBlock();
+
+			// Act
+			await blocksInstance.removeBlockFromTempTable(block.id, stubs.tx);
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.TempBlock.delete,
+			).toHaveBeenCalledWith({ id: block.id }, {}, stubs.tx);
+		});
+	});
+
+	describe('getTempBlocks()', () => {
+		it('should retrieve all blocks from temp_block table', async () => {
+			// Act
+			await blocksInstance.getTempBlocks(stubs.tx);
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.TempBlock.get,
+			).toHaveBeenCalledWith({}, {}, stubs.tx);
+		});
+	});
+
+	describe('exists()', () => {
 		beforeEach(async () => {
 			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
 				true,
 			);
 		});
 
-		it("should return true if the block doesn't exist", async () => {
+		it('should return true if the block does not exist', async () => {
 			// Arrange
 			const block = newBlock();
 			expect.assertions(2);
