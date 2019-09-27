@@ -242,7 +242,7 @@ class Account extends BaseEntity {
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
+				'mem_accounts."votedDelegatesPublicKeys" @> ANY (ARRAY [${votedDelegatesPublicKeys_in:csv}]::jsonb[])',
 		});
 
 		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {

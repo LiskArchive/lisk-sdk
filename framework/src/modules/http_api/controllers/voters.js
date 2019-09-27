@@ -123,7 +123,7 @@ VotersController.getVoters = async function(context, next) {
 		data.username = data.username || '';
 
 		const voters = await storage.entities.Account.get(
-			{ votedDelegatesPublicKeys_in: [delegate.publicKey] },
+			{ votedDelegatesPublicKeys_in: [`"${delegate.publicKey}"`] }, // Need to add quotes for PSQL array search
 			options,
 		);
 
@@ -132,7 +132,7 @@ VotersController.getVoters = async function(context, next) {
 		);
 
 		const votersCount = await storage.entities.Account.count({
-			votedDelegatesPublicKeys_in: [delegate.publicKey],
+			votedDelegatesPublicKeys_in: [`"${delegate.publicKey}"`], // Need to add quotes for PSQL array search
 		});
 
 		data.votes = votersCount;
