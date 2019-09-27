@@ -216,7 +216,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
 
-		this.undo.pipe([data => this.blocksModule.undo(data)]);
+		this.undo.pipe([
+			data => this.blocksModule.undo(data),
+			({ block }) => this.bftModule.deleteBlocks([block]),
+		]);
 
 		this.create.pipe([
 			// Getting the BFT header (maxHeightPreviouslyForged and prevotedConfirmedUptoHeight)
