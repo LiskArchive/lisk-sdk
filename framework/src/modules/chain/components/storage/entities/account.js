@@ -39,6 +39,7 @@ const defaultCreateValues = {
 	multiMin: 0,
 	multiLifetime: 0,
 	asset: {},
+	votedDelegatesPublicKeys: null,
 };
 
 const readOnlyFields = ['address'];
@@ -163,7 +164,8 @@ class ChainAccount extends AccountEntity {
 		}
 
 		accounts = accounts.map(account => {
-			const parsedAccount = _.defaults(account, defaultCreateValues);
+			let parsedAccount = _.defaults(account, defaultCreateValues);
+			parsedAccount = ChainAccount._stringifyVotedDelegates(parsedAccount);
 			return parsedAccount;
 		});
 
@@ -184,7 +186,9 @@ class ChainAccount extends AccountEntity {
 
 		this.validateFilters(filters, atLeastOneRequired);
 
-		const objectData = _.omit(data, readOnlyFields);
+		const sanitizedCreateData = ChainAccount._stringifyVotedDelegates(data);
+
+		const objectData = _.omit(sanitizedCreateData, readOnlyFields);
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -200,23 +204,12 @@ class ChainAccount extends AccountEntity {
 			return false;
 		}
 
+		// update multisignature related public keys
 		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
 			await this.updateDependentRecords(
 				'membersPublicKeys',
 				filters.address,
 				data.membersPublicKeys,
-				tx,
-			);
-		}
-
-		if (
-			data.votedDelegatesPublicKeys &&
-			data.votedDelegatesPublicKeys.length > 0
-		) {
-			await this.updateDependentRecords(
-				'votedDelegatesPublicKeys',
-				filters.address,
-				data.votedDelegatesPublicKeys,
 				tx,
 			);
 		}
@@ -611,6 +604,19 @@ class ChainAccount extends AccountEntity {
 				tx,
 			);
 		}
+	}
+
+	/**
+	 * @param {Object} data - create/update data
+	 */
+	static _stringifyVotedDelegates(data) {
+		if (data.votedDelegatesPublicKeys) {
+			return {
+				...data,
+				votedDelegatesPublicKeys: JSON.stringify(data.votedDelegatesPublicKeys),
+			};
+		}
+		return data;
 	}
 }
 

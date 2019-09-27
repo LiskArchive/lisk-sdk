@@ -237,6 +237,7 @@ class Account extends BaseEntity {
 		this.addField('vote', 'string', { filter: ft.NUMBER });
 		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');
+		this.addField('votedDelegatesPublicKeys', 'string');
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
@@ -378,7 +379,6 @@ class Account extends BaseEntity {
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
