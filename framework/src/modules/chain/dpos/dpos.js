@@ -60,8 +60,8 @@ module.exports = class Dpos {
 		);
 	}
 
-	async verifyBlockForger(block) {
-		return this.delegatesList.verifyBlockForger(block);
+	async verifyBlockForger(block, roundOffset = 0) {
+		return this.delegatesList.verifyBlockForger(block, roundOffset);
 	}
 
 	async apply(block, tx) {

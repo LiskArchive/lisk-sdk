@@ -132,7 +132,7 @@ class DelegatesList extends EventEmitter {
 	 * @return {Boolean} - `true`
 	 * @throw {Error} Failed to verify slot
 	 */
-	async verifyBlockForger(block, roundOffset = 0) {
+	async verifyBlockForger(block, roundOffset) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.slots.calcRound(block.height);
 
