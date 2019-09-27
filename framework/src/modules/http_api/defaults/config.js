@@ -223,7 +223,7 @@ const defaultConfig = {
 			},
 		},
 		apm: {
-			enabled: true,
+			enabled: false,
 			options: {
 				name: 'Lisk-APM',
 				uriPath: '/http-stats',

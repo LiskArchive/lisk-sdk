@@ -524,7 +524,7 @@ Object {
       },
       "address": "0.0.0.0",
       "apm": Object {
-        "enabled": true,
+        "enabled": false,
         "options": Object {
           "name": "Lisk-APM",
           "uriPath": "/http-stats",
