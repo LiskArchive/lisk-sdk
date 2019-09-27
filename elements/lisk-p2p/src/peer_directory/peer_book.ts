@@ -24,8 +24,6 @@ import { NewList, NewListConfig } from './new_list';
 import { AddPeerOutcome } from './peer_list';
 import { TriedList, TriedListConfig } from './tried_list';
 
-export { AddPeerOutcome } from './peer_list';
-
 export interface PeerBookConfig {
 	readonly newListConfig?: NewListConfig;
 	readonly triedListConfig?: TriedListConfig;

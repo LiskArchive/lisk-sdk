@@ -57,7 +57,7 @@ describe('triedPeer', () => {
 		it('should not add the incoming peer if it exists', async () => {
 			expect(triedPeersObj.addPeer(samplePeers[0]))
 				.to.be.an('object')
-				.haveOwnProperty('wasPeerAdded').to.be.false;
+				.haveOwnProperty('isAdded').to.be.false;
 		});
 	});
 

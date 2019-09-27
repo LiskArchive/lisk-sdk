@@ -28,7 +28,7 @@ export interface CustomPeerInfo {
 
 export interface AddPeerOutcome {
 	readonly success: boolean;
-	readonly wasPeerAdded: boolean;
+	readonly isAdded: boolean;
 	readonly evictedPeer: P2PPeerInfo | undefined;
 }
 // Base peer list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
@@ -148,7 +148,7 @@ export class PeerList {
 		if (!bucket) {
 			return {
 				success: false,
-				wasPeerAdded: false,
+				isAdded: false,
 				evictedPeer: undefined,
 			};
 		}
@@ -156,7 +156,7 @@ export class PeerList {
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
 				success: false,
-				wasPeerAdded: false,
+				isAdded: false,
 				evictedPeer: undefined,
 			};
 		}
@@ -168,7 +168,7 @@ export class PeerList {
 
 			return {
 				success: true,
-				wasPeerAdded: true,
+				isAdded: true,
 				evictedPeer: undefined,
 			};
 		}
@@ -178,7 +178,7 @@ export class PeerList {
 
 		return {
 			success: !!evictedPeer,
-			wasPeerAdded: true,
+			isAdded: true,
 			evictedPeer: evictedPeer ? evictedPeer.peerInfo : undefined,
 		};
 	}
