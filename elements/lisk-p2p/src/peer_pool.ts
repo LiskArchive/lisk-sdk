@@ -77,7 +77,12 @@ import { constructPeerIdFromPeerInfo, getUniquePeersbyIp } from './utils';
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
 	readonly percentage: number;
-	readonly asc: boolean;
+	readonly protectBy: PROTECT_BY;
+}
+
+export enum PROTECT_BY {
+	HIGHEST = 'highest',
+	LOWEST = 'lowest',
 }
 
 // Returns an array of peers to be protected
@@ -89,18 +94,15 @@ export const filterPeersByCategory = (
 	if (options.percentage > 1 || options.percentage < 0) {
 		return peers;
 	}
-	const protectedPeerIndex = Math.max(
-		1,
-		Math.floor(peers.length * (1 - options.percentage)),
-	);
-	const sign = !!options.asc ? 1 : -1;
+	const numberOfProtectedPeers = Math.ceil(peers.length * options.percentage);
+	const sign = options.protectBy === PROTECT_BY.HIGHEST ? -1 : 1;
 
 	// tslint:disable-next-line no-any
 	return peers
 		.sort((peerA: any, peerB: any) =>
 			peerA[options.category] > peerB[options.category] ? sign : sign * -1,
 		)
-		.slice(protectedPeerIndex, peers.length);
+		.slice(0, numberOfProtectedPeers);
 };
 
 export enum PROTECTION_CATEGORY {
@@ -612,8 +614,8 @@ export class PeerPool extends EventEmitter {
 			? filterPeersByCategory(peers, {
 					category: PROTECTION_CATEGORY.NET_GROUP,
 					percentage: this._peerPoolConfig.netgroupProtectionRatio,
-					asc: true,
-			  })
+					protectBy: PROTECT_BY.HIGHEST,
+			  }).map(peer => peer.id)
 			: [];
 
 		// Cannot manipulate without physically moving nodes closer to the target.
@@ -621,8 +623,8 @@ export class PeerPool extends EventEmitter {
 			? filterPeersByCategory(peers, {
 					category: PROTECTION_CATEGORY.LATENCY,
 					percentage: this._peerPoolConfig.latencyProtectionRatio,
-					asc: false,
-			  })
+					protectBy: PROTECT_BY.LOWEST,
+			  }).map(peer => peer.id)
 			: [];
 
 		// Cannot manipulate this metric without performing useful work.
@@ -631,33 +633,33 @@ export class PeerPool extends EventEmitter {
 			? filterPeersByCategory(peers, {
 					category: PROTECTION_CATEGORY.RESPONSE_RATE,
 					percentage: this._peerPoolConfig.productivityProtectionRatio,
-					asc: true,
-			  })
+					protectBy: PROTECT_BY.HIGHEST,
+			  }).map(peer => peer.id)
 			: [];
 
-		const uniqueProtectedPeers = [
-			...new Set([
-				...protectedPeersByNetgroup,
-				...protectedPeersByLatency,
-				...protectedPeersByResponseRate,
-			]),
-		];
+		const uniqueProtectedPeers = new Set([
+			...protectedPeersByNetgroup,
+			...protectedPeersByLatency,
+			...protectedPeersByResponseRate,
+		]);
 		const unprotectedPeers = peers.filter(
-			peer => !uniqueProtectedPeers.includes(peer),
+			peer => !uniqueProtectedPeers.has(peer.id),
 		);
 
 		// Protect *the remaining half* of peers by longevity, precludes attacks that start later.
 		const protectedPeersByConnectTime = this._peerPoolConfig
 			.longevityProtectionRatio
-			? filterPeersByCategory(unprotectedPeers, {
-					category: PROTECTION_CATEGORY.CONNECT_TIME,
-					percentage: this._peerPoolConfig.longevityProtectionRatio,
-					asc: false,
-			  })
-			: [];
+			? new Set([
+					...filterPeersByCategory(unprotectedPeers, {
+						category: PROTECTION_CATEGORY.CONNECT_TIME,
+						percentage: this._peerPoolConfig.longevityProtectionRatio,
+						protectBy: PROTECT_BY.LOWEST,
+					}).map(peer => peer.id),
+			  ])
+			: new Set();
 
 		return unprotectedPeers.filter(
-			peer => !protectedPeersByConnectTime.includes(peer),
+			peer => !protectedPeersByConnectTime.has(peer.id),
 		);
 	}
 

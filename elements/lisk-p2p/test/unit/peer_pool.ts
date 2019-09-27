@@ -15,6 +15,7 @@
 import { expect } from 'chai';
 import {
 	PeerPool,
+	PROTECT_BY,
 	PROTECTION_CATEGORY,
 	filterPeersByCategory,
 } from '../../src/peer_pool';
@@ -81,6 +82,7 @@ describe('peerPool', () => {
 
 	describe('#filterPeersByCategory', () => {
 		const originalPeers = [...new Array(10).keys()].map(i => ({
+			id: i,
 			netgroup: i,
 			latency: i,
 			responseRate: i % 2 ? 0 : 1,
@@ -91,7 +93,7 @@ describe('peerPool', () => {
 			const filteredPeers = filterPeersByCategory(originalPeers as any, {
 				category: PROTECTION_CATEGORY.NET_GROUP,
 				percentage: 0.2,
-				asc: true,
+				protectBy: PROTECT_BY.HIGHEST,
 			});
 
 			filteredPeers.forEach(peer => {
@@ -103,7 +105,7 @@ describe('peerPool', () => {
 			const filteredPeers = filterPeersByCategory(originalPeers as any, {
 				category: PROTECTION_CATEGORY.LATENCY,
 				percentage: 0.2,
-				asc: false,
+				protectBy: PROTECT_BY.LOWEST,
 			});
 
 			filteredPeers.forEach(peer => {
@@ -115,7 +117,7 @@ describe('peerPool', () => {
 			const filteredPeers = filterPeersByCategory(originalPeers as any, {
 				category: PROTECTION_CATEGORY.RESPONSE_RATE,
 				percentage: 0.2,
-				asc: true,
+				protectBy: PROTECT_BY.HIGHEST,
 			});
 
 			expect(filteredPeers.filter(p => p.responseRate === 1).length).to.eql(2);
@@ -125,7 +127,7 @@ describe('peerPool', () => {
 			const filteredPeers = filterPeersByCategory(originalPeers as any, {
 				category: PROTECTION_CATEGORY.CONNECT_TIME,
 				percentage: 0.2,
-				asc: false,
+				protectBy: PROTECT_BY.LOWEST,
 			});
 
 			filteredPeers.forEach(peer => {
@@ -134,11 +136,15 @@ describe('peerPool', () => {
 		});
 	});
 
+	// Expected protection candidates for 100 inbound peers using default ratios:
+	// netgroup: 4 peers, latency: 7 peers, usefulness: 7 peers, longevity: 41 peers
+	// Rounding up for +1 difference in some expectations
 	describe('#_selectPeersForEviction', () => {
 		let originalPeers: Array<any> = [];
 
 		beforeEach(async () => {
 			originalPeers = [...new Array(100).keys()].map(i => ({
+				id: i,
 				netgroup: i,
 				latency: i,
 				responseRate: i % 2 ? 0 : 1,
@@ -168,6 +174,7 @@ describe('peerPool', () => {
 		describe('when node using default protection ratio values has 10 inbound peers', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(10).keys()].map(i => ({
+					id: i,
 					netgroup: i,
 					latency: i,
 					responseRate: i % 2 ? 0 : 1,
@@ -179,13 +186,14 @@ describe('peerPool', () => {
 			it('should return expected amount of eviction candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).to.eql(4);
+				expect(selectedPeersForEviction.length).to.eql(3);
 			});
 		});
 
 		describe('when node using default protection ratio values has 5 inbound peers', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(5).keys()].map(i => ({
+					id: i,
 					netgroup: i,
 					latency: i,
 					responseRate: i % 2 ? 0 : 1,
@@ -262,7 +270,7 @@ describe('peerPool', () => {
 			it('should return expected amount of eviction candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).to.eql(85);
+				expect(selectedPeersForEviction.length).to.eql(84);
 			});
 		});
 
@@ -273,6 +281,7 @@ describe('peerPool', () => {
 				(peerPool as any)._peerPoolConfig.productivityProtectionRatio = 0;
 				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
 				originalPeers = [...new Array(10).keys()].map(i => ({
+					id: i,
 					netgroup: i,
 					latency: i,
 					responseRate: i % 2 ? 0 : 1,
