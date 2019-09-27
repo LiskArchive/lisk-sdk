@@ -125,20 +125,6 @@ class ChainAccount extends AccountEntity {
 			);
 		}
 
-		if (
-			data.votedDelegatesPublicKeys &&
-			data.votedDelegatesPublicKeys.length > 0
-		) {
-			dependentRecordsPromsies.push(
-				this.updateDependentRecords(
-					'votedDelegatesPublicKeys',
-					data.address,
-					data.votedDelegatesPublicKeys,
-					tx,
-				),
-			);
-		}
-
 		return accountCreatePromise.then(() =>
 			Promise.all(dependentRecordsPromsies),
 		);
