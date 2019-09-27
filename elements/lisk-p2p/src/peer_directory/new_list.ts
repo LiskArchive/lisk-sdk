@@ -59,34 +59,21 @@ export class NewList extends BaseList {
 		const bucket = this.getBucket(ipAddress);
 
 		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
-			// First eviction strategy
-			const evictedPeerBasedOnTime = this._evictPeerBasedOnTimeInBucket(bucket);
+			// First eviction strategy: eviction by time of residence
+			for (const [peerId, peer] of bucket) {
+				const timeDifference = Math.round(
+					Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+				);
 
-			if (evictedPeerBasedOnTime) {
-				return evictedPeerBasedOnTime;
+				if (timeDifference >= this._evictionThresholdTime) {
+					bucket.delete(peerId);
+
+					return peer;
+				}
 			}
 
 			// Second eviction strategy: Default eviction based on base class
 			return evictPeerRandomlyFromBucket(bucket);
-		}
-
-		return undefined;
-	}
-
-	// Evict a peer when a bucket is full based on the time of residence in a bucket
-	private _evictPeerBasedOnTimeInBucket(
-		bucket: Map<string, CustomPeerInfo>,
-	): CustomPeerInfo | undefined {
-		for (const [peerId, peer] of bucket) {
-			const timeDifference = Math.round(
-				Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
-			);
-
-			if (timeDifference >= this._evictionThresholdTime) {
-				bucket.delete(peerId);
-
-				return peer;
-			}
 		}
 
 		return undefined;

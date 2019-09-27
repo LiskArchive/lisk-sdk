@@ -184,7 +184,7 @@ describe('Peer list base', () => {
 		it('should call get bucket');
 
 		describe('when bucket is full', () => {
-			it('should evict randomly a peer from bucket');
+			it('should evict one peer randomly');
 		});
 
 		describe('when bucket is not full', () => {
