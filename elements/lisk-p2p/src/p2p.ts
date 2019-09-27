@@ -515,7 +515,7 @@ export class P2P extends EventEmitter {
 	}
 
 	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const allPeers = this._peerBook.getAllPeers();
+		const allPeers = this._peerBook.allPeers;
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
@@ -801,7 +801,7 @@ export class P2P extends EventEmitter {
 			? this._config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 
-		const knownPeers = this._peerBook.getAllPeers();
+		const knownPeers = this._peerBook.allPeers;
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
 			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.25),

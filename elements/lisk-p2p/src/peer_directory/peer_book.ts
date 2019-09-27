@@ -67,7 +67,7 @@ export class PeerBook {
 		return this._triedPeers.peersList as ReadonlyArray<P2PDiscoveredPeerInfo>;
 	}
 
-	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {
+	public get allPeers(): ReadonlyArray<P2PPeerInfo> {
 		return [...this.newPeers, ...this.triedPeers];
 	}
 
@@ -80,18 +80,6 @@ export class PeerBook {
 		return this._newPeers.getPeer(peerInfo);
 	}
 
-	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
-			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
-		}
-
-		if (this._newPeers.getPeer(peerInfo)) {
-			return this._newPeers.updatePeer(peerInfo);
-		}
-
-		return false;
-	}
-
 	public addPeer(peerInfo: P2PPeerInfo): void {
 		if (
 			this._triedPeers.getPeer(peerInfo) ||
@@ -102,6 +90,18 @@ export class PeerBook {
 
 		this._newPeers.makeSpace(peerInfo.ipAddress);
 		this._newPeers.addPeer(peerInfo);
+	}
+
+	public updatePeer(peerInfo: P2PPeerInfo): boolean {
+		if (this._triedPeers.getPeer(peerInfo)) {
+			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
+		}
+
+		if (this._newPeers.getPeer(peerInfo)) {
+			return this._newPeers.updatePeer(peerInfo);
+		}
+
+		return false;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {

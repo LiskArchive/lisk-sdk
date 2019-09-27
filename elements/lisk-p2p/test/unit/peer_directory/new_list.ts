@@ -96,7 +96,7 @@ describe('newPeer', () => {
 
 				it('should just evict one old peers');
 
-				describe('when there is a large sample', () => {
+				describe.skip('when there is a large sample', () => {
 					let newPeersList: NewList;
 					let clock: sinon.SinonFakeTimers;
 

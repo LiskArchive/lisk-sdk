@@ -35,6 +35,22 @@ describe('peerBook', () => {
 		});
 	});
 
+	describe('#newPeers', () => {
+		it('should get new peers');
+	});
+
+	describe('#triedPeers', () => {
+		it('should get tried peers');
+	});
+
+	describe('#allPeers', () => {
+		it('should get all peers');
+	});
+
+	describe('#getPeer', () => {
+		it('should get a peer by info');
+	});
+
 	describe('#addPeer', () => {
 		const samplePeers = initPeerInfoList();
 		let peerBook: PeerBook;
@@ -64,6 +80,23 @@ describe('peerBook', () => {
 		it('should add peer to the new peer list', async () => {
 			expect(peerBook.newPeers).length(1);
 			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
+		});
+	});
+
+	describe('#removePeer', () => {
+		const samplePeers = initPeerInfoList();
+		let peerBook: PeerBook;
+
+		beforeEach(async () => {
+			peerBook = new PeerBook(peerBookConfig);
+			peerBook.addPeer(samplePeers[0]);
+			peerBook.removePeer(samplePeers[0]);
+		});
+
+		it('should add peer to the new peer list', async () => {
+			expect(peerBook.triedPeers).length(0);
+			expect(peerBook.newPeers).length(0);
+			expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 		});
 	});
 
@@ -100,7 +133,7 @@ describe('peerBook', () => {
 			// Downgrade the peer over disconnection or any other event
 			peerBook.downgradePeer(samplePeers[0]);
 			// Peer should be deleted completely since it was only residing inside newPeers
-			expect(peerBook.getAllPeers()).length(0);
+			expect(peerBook.allPeers).length(0);
 		});
 
 		it('should add peer to the new peer list when downgraded 3 times after an upgrade', async () => {
@@ -127,23 +160,6 @@ describe('peerBook', () => {
 			// Should move to newPeers
 			expect(peerBook.newPeers).length(1);
 			peerBook.downgradePeer(samplePeers[0]);
-			expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
-		});
-	});
-
-	describe('#removePeer', () => {
-		const samplePeers = initPeerInfoList();
-		let peerBook: PeerBook;
-
-		beforeEach(async () => {
-			peerBook = new PeerBook(peerBookConfig);
-			peerBook.addPeer(samplePeers[0]);
-			peerBook.removePeer(samplePeers[0]);
-		});
-
-		it('should add peer to the new peer list', async () => {
-			expect(peerBook.triedPeers).length(0);
-			expect(peerBook.newPeers).length(0);
 			expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 		});
 	});
