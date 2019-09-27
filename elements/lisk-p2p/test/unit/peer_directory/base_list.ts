@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { BaseList } from '../../../src/peer_directory/base_list';
-import { initializePeerInfoList } from '../../utils/peers';
+import { initPeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
 
@@ -45,7 +45,7 @@ describe('Peer list base', () => {
 	});
 
 	describe('#peerList', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 		let peerListObj: BaseList;
 		let triedPeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>;
 
@@ -70,12 +70,12 @@ describe('Peer list base', () => {
 	});
 
 	describe('#initPeerInfo', () => {
-		it('should the peer info initiated');
+		it('should init peer info');
 	});
 
 	describe('#getPeer', () => {
 		let peerListObj: BaseList;
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		beforeEach(async () => {
 			peerListObj = new BaseList(peerConfig);
@@ -92,7 +92,7 @@ describe('Peer list base', () => {
 		});
 
 		describe('when peer does not exist in the peerMap', () => {
-			const randomPeer = initializePeerInfoList()[2];
+			const randomPeer = initPeerInfoList()[2];
 			it('should return undefined for the given peer that does not exist in peerMap', async () => {
 				expect(peerListObj.getPeer(randomPeer)).to.be.undefined;
 			});
@@ -101,7 +101,7 @@ describe('Peer list base', () => {
 
 	describe('#addPeer', () => {
 		let peerListObj: BaseList;
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		beforeEach(async () => {
 			peerListObj = new BaseList(peerConfig);
@@ -124,7 +124,7 @@ describe('Peer list base', () => {
 
 	describe('#updatePeer', () => {
 		let peerListObj: BaseList;
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		beforeEach(async () => {
 			peerListObj = new BaseList(peerConfig);
@@ -162,7 +162,7 @@ describe('Peer list base', () => {
 
 	describe('#removePeer', () => {
 		let peerListObj: BaseList;
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		beforeEach(async () => {
 			peerListObj = new BaseList(peerConfig);
@@ -194,7 +194,7 @@ describe('Peer list base', () => {
 
 	describe('#failedConnectionAction', () => {
 		let peerListObj: BaseList;
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		beforeEach(async () => {
 			peerListObj = new BaseList(peerConfig);

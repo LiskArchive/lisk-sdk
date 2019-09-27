@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { initializePeerInfoList } from '../../utils/peers';
+import { initPeerInfoList } from '../../utils/peers';
 import { PeerBook, PeerBookConfig } from '../../../src/peer_directory';
 
 describe('peerBook', () => {
@@ -36,7 +36,7 @@ describe('peerBook', () => {
 	});
 
 	describe('#addPeer', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 		let peerBook: PeerBook;
 
 		beforeEach(async () => {
@@ -53,7 +53,7 @@ describe('peerBook', () => {
 	});
 
 	describe('#updatePeer', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 		let peerBook: PeerBook;
 
 		beforeEach(async () => {
@@ -68,7 +68,7 @@ describe('peerBook', () => {
 	});
 
 	describe('#upgradePeer', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 		let peerBook: PeerBook;
 
 		beforeEach(async () => {
@@ -86,7 +86,7 @@ describe('peerBook', () => {
 	});
 
 	describe('#downgradePeer', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 		let peerBook: PeerBook;
 
 		beforeEach(async () => {
@@ -132,7 +132,7 @@ describe('peerBook', () => {
 	});
 
 	describe('#removePeer', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 		let peerBook: PeerBook;
 
 		beforeEach(async () => {

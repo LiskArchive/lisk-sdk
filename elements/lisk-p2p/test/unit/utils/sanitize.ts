@@ -18,13 +18,13 @@ import {
 	sanitizeOutgoingPeerInfo,
 	sanitizeNodeInfoToLegacyFormat,
 } from '../../../src/utils';
-import { initializePeerInfoList } from 'utils/peers';
+import { initPeerInfoList } from 'utils/peers';
 import { P2PNodeInfo } from '../../../src/p2p_types';
 
 describe('utils/sanitize', () => {
 	describe('#sanitizeIncomingPeerInfo', () => {
 		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
-			const samplePeers = initializePeerInfoList();
+			const samplePeers = initPeerInfoList();
 			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
 			const protocolPeerInfo = {
 				ip: ipAddress,
@@ -37,7 +37,7 @@ describe('utils/sanitize', () => {
 
 	describe('#sanitizeOutgoingPeerInfo', () => {
 		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
-			const samplePeers = initializePeerInfoList();
+			const samplePeers = initPeerInfoList();
 			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
 			const protocolPeerInfo = {
 				ip: ipAddress,

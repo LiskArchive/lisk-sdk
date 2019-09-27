@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { initializePeerInfoList } from '../../utils/peers';
+import { initPeerInfoList } from '../../utils/peers';
 import {
 	getIPGroup,
 	isPrivate,
@@ -316,7 +316,7 @@ describe('utils/misc', () => {
 	});
 
 	describe('#getUniquePeersbyIp', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		describe('when two peers have same peer infos', () => {
 			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;

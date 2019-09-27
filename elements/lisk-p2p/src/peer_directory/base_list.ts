@@ -57,13 +57,11 @@ export class BaseList {
 			secret,
 		};
 		this.peerMap = new Map();
-		this.initializePeerList(this.peerMap);
+		this.initPeerList(this.peerMap);
 	}
 
-	public initializePeerList(
-		peerMap: Map<number, Map<string, CustomPeerInfo>>,
-	): void {
-		// Initialize the Map with all the buckets
+	public initPeerList(peerMap: Map<number, Map<string, CustomPeerInfo>>): void {
+		// Init the Map with all the buckets
 		for (const bucketId of [
 			...new Array(this.peerListConfig.peerBucketCount).keys(),
 		]) {

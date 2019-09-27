@@ -15,8 +15,8 @@
 import { expect } from 'chai';
 import { NewList } from '../../../src/peer_directory/new_list';
 import {
-	initializePeerInfoList,
-	initializePeerInfoListWithSuffix,
+	initPeerInfoList,
+	initPeerInfoListWithSuffix,
 } from '../../utils/peers';
 import { PEER_TYPE, constructPeerIdFromPeerInfo } from '../../../src/utils';
 import {
@@ -65,7 +65,7 @@ describe('newPeer', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					evictionThresholdTime: 10000,
 				};
-				const samplePeers = initializePeerInfoList();
+				const samplePeers = initPeerInfoList();
 
 				let newPeersList = new NewList(newPeerConfig);
 				// Add a custom map to peerMap
@@ -109,8 +109,8 @@ describe('newPeer', () => {
 							peerType: PEER_TYPE.NEW_PEER,
 							evictionThresholdTime: 600000,
 						};
-						const samplePeersA = initializePeerInfoListWithSuffix('1.222.123', 10000);
-						const samplePeersB = initializePeerInfoListWithSuffix('234.11.34', 10000);
+						const samplePeersA = initPeerInfoListWithSuffix('1.222.123', 10000);
+						const samplePeersB = initPeerInfoListWithSuffix('234.11.34', 10000);
 
 						newPeersList = new NewList(newPeerConfig);
 

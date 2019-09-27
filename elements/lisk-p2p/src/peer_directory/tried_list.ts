@@ -50,13 +50,12 @@ export class TriedList extends BaseList {
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 
-		this.initializePeerList(this.peerMap as TriedListMap);
+		this.initPeerList(this.peerMap as TriedListMap);
 	}
 
-	public initializePeerList(
-		peerMap: Map<number, Map<string, TriedListInfo>>,
-	): void {
-		// Initialize the Map with all the buckets
+	// Override init peer list
+	public initPeerList(peerMap: Map<number, Map<string, TriedListInfo>>): void {
+		// Init the Map with all the buckets
 		for (const bucketId of [
 			...new Array(this.peerListConfig.peerBucketCount).keys(),
 		]) {
@@ -64,19 +63,19 @@ export class TriedList extends BaseList {
 		}
 	}
 
+	// Override init peer info
+	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
+		peerInfo,
+		numOfConnectionFailures: 0,
+		dateAdded: new Date(),
+	});
+
 	public get triedPeerConfig(): TriedListConfig {
 		return {
 			...this.peerListConfig,
 			maxReconnectTries: this._maxReconnectTries,
 		};
 	}
-
-	// Override to add custom TriedPeerInfo
-	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
-		peerInfo,
-		numOfConnectionFailures: 0,
-		dateAdded: new Date(),
-	});
 
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {

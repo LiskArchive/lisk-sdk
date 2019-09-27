@@ -14,8 +14,7 @@
  */
 import { expect } from 'chai';
 import { TriedList } from '../../../src/peer_directory/tried_list';
-import { initializePeerInfoList } from '../../utils/peers';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 
 describe('triedPeer', () => {
@@ -41,9 +40,21 @@ describe('triedPeer', () => {
 		});
 	});
 
+	describe('#initPeerList', () => {
+		it('should get tried peer config');
+	});
+
+	describe('#initPeerInfo', () => {
+		it('should init peer info');
+	});
+
+	describe('#triedPeerConfig', () => {
+		it('should get tried peer config');
+	});
+
 	describe('#failedConnectionAction', () => {
 		let triedPeersObj: TriedList;
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		describe('when maxReconnectTries is 1', () => {
 			beforeEach(async () => {
@@ -86,48 +97,6 @@ describe('triedPeer', () => {
 				const success2 = triedPeersObj.failedConnectionAction(samplePeers[0]);
 				expect(success2).to.be.true;
 				expect(triedPeersObj.getPeer(samplePeers[0])).to.be.undefined;
-			});
-		});
-
-		describe('#evictionRandomly', () => {
-			const newPeerConfig = {
-				peerBucketSize: 2,
-				peerBucketCount: 2,
-				secret: 123456,
-				peerType: PEER_TYPE.NEW_PEER,
-				evictionThresholdTime: 86400000,
-			};
-			const samplePeers = initializePeerInfoList();
-
-			let triedPeersObj = new TriedList(newPeerConfig);
-			triedPeersObj.addPeer(samplePeers[0]);
-			triedPeersObj.addPeer(samplePeers[1]);
-
-			// Now capture the evicted peers from addition of new Peers
-			const evictionResult1 = triedPeersObj.addPeer(samplePeers[2]);
-			const evictionResult2 = triedPeersObj.addPeer(samplePeers[3]);
-			const evictionResult3 = triedPeersObj.addPeer(samplePeers[4]);
-
-			it('should evict at least one peer from the peerlist based on random eviction', async () => {
-				const evictionResultAfterAddition = [
-					evictionResult1,
-					evictionResult2,
-					evictionResult3,
-				].map(result => !!result.evictedPeer);
-				expect(evictionResultAfterAddition).includes(true);
-			});
-
-			it('should remove the evicted peers from the peer list', async () => {
-				const evictedPeersAfterAddition = [
-					evictionResult1,
-					evictionResult2,
-					evictionResult3,
-				]
-					.filter(result => result.evictedPeer)
-					.map(trueEvictionResult => trueEvictionResult.evictedPeer);
-				expect(evictedPeersAfterAddition).not.members(
-					triedPeersObj.peersList(),
-				);
 			});
 		});
 	});
