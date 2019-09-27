@@ -71,15 +71,15 @@ export const initializePeerInfoList = (): ReadonlyArray<
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];
 };
 
-export const initializeLongPeerInfoList = (): ReadonlyArray<
-	P2PDiscoveredPeerInfo
-> => {
+export const initializePeerInfoListWithSuffix = (
+	ipSuffix: string,
+	qty: number,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 	let peerInfos = [];
-	// Generate a realistic list in which 1 in 4 peers is outbound.
-	for (let i = 0; i < 120; i++) {
+	for (let i = 0; i < qty; i++) {
 		peerInfos.push({
-			ipAddress: `204.120.0.${i}`,
-			wsPort: 5001,
+			ipAddress: `${i % 255}.${ipSuffix}`,
+			wsPort: 5000 + (i % 40000),
 			height: 645980,
 			kind: i % 4 === 0 ? PEER_KIND_OUTBOUND : PEER_KIND_INBOUND,
 			isDiscoveredPeer: false,
