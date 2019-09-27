@@ -421,6 +421,7 @@ export class PeerPool extends EventEmitter {
 		const peersToConnect = this._peerSelectForConnection({
 			newPeers: disconnectedNewPeers,
 			triedPeers: disconnectedTriedPeers,
+			nodeInfo: this._nodeInfo,
 			peerLimit,
 		});
 

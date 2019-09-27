@@ -225,6 +225,8 @@ export class Peer extends EventEmitter {
 			this._updateRPCCounter(rawRequest);
 			const rate = this._getRPCRate(rawRequest);
 
+			// Each P2PRequest contributes to the Peer's productivity.
+			// A P2PRequest can mutate this._productivity from the current Peer instance.
 			const request = new P2PRequest(
 				{
 					procedure: rawRequest.procedure,
