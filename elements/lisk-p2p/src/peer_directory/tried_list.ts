@@ -80,7 +80,7 @@ export class TriedList extends PeerList {
 
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.getBucketId(incomingPeerInfo.ipAddress);
+		const bucketId = this.selectBucketId(incomingPeerInfo.ipAddress);
 		const bucket = this.peerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
 
@@ -100,7 +100,6 @@ export class TriedList extends PeerList {
 
 		if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
 			bucket.delete(incomingPeerId);
-			this.peerMap.set(bucketId, bucket);
 
 			return true;
 		}
@@ -111,7 +110,6 @@ export class TriedList extends PeerList {
 		};
 
 		bucket.set(incomingPeerId, updatedTriedPeerInfo);
-		this.peerMap.set(bucketId, bucket);
 
 		return false;
 	}

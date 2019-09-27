@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import {
 	initializePeerInfoList,
-	initializeLongPeerInfoList,
+	initializePeerInfoListWithSuffix,
 } from '../../utils/peers';
 import {
 	selectPeersForConnection,
@@ -26,7 +26,7 @@ import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('peer selector', () => {
 	describe('#selectPeersForSend', () => {
-		let peerList = initializeLongPeerInfoList();
+		let peerList = initializePeerInfoListWithSuffix('111.112.113', 120);
 
 		const nodeInfo: P2PNodeInfo = {
 			height: 545777,
