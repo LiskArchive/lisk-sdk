@@ -21,7 +21,10 @@ import {
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
 import { NewList, NewListConfig } from './new_list';
+import { AddPeerOutcome } from './peer_list';
 import { TriedList, TriedListConfig } from './tried_list';
+
+export { AddPeerOutcome } from './peer_list';
 
 export interface PeerBookConfig {
 	readonly newListConfig?: NewListConfig;
@@ -93,7 +96,7 @@ export class PeerBook {
 	}
 
 	// It will return evicted peer in the case a peer is removed from a peer list based on eviction strategy.
-	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
+	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
 		if (
 			this._triedPeers.getPeer(peerInfo) ||
 			this._newPeers.getPeer(peerInfo)
@@ -101,7 +104,7 @@ export class PeerBook {
 			throw new Error('Peer already exists');
 		}
 
-		return this._newPeers.addPeer(peerInfo).evictedPeer;
+		return this._newPeers.addPeer(peerInfo);
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
