@@ -140,47 +140,22 @@ export class PeerList {
 	});
 
 	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
-	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
-		const bucketId = this.selectBucketId(peerInfo.ipAddress);
-		const bucket = this.peerMap.get(bucketId);
+	public addPeer(peerInfo: P2PPeerInfo): void {
+		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-
-		if (!bucket) {
-			return {
-				success: false,
-				isAdded: false,
-				evictedPeer: undefined,
-			};
-		}
-
-		if (bucket && bucket.get(incomingPeerId)) {
-			return {
-				success: false,
-				isAdded: false,
-				evictedPeer: undefined,
-			};
-		}
-
 		const newPeer = this.initPeerInfo(peerInfo);
 
-		if (bucket.size < this.peerListConfig.peerBucketSize) {
-			bucket.set(incomingPeerId, newPeer);
+		bucket.set(incomingPeerId, newPeer);
+	}
 
-			return {
-				success: true,
-				isAdded: true,
-				evictedPeer: undefined,
-			};
+	public makeSpace(ipAddress: string): CustomPeerInfo | undefined {
+		const bucket = this.getBucket(ipAddress);
+
+		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
+			return evictPeerFromBucket(bucket);
 		}
 
-		const evictedPeer = this.evictPeerFromBucket(bucketId);
-		bucket.set(incomingPeerId, newPeer);
-
-		return {
-			success: !!evictedPeer,
-			isAdded: true,
-			evictedPeer: evictedPeer ? evictedPeer.peerInfo : undefined,
-		};
+		return undefined;
 	}
 
 	// This action is called when a peer is disconnected
