@@ -88,22 +88,19 @@ export class PeerList {
 		return peersListMap;
 	}
 
-	public selectBucketId(ipAddress: string): number {
-		return getBucketId({
+	public getBucket(ipAddress: string): Map<string, CustomPeerInfo> {
+		const bucketId = getBucketId({
 			secret: this.peerListConfig.secret,
 			peerType: this.peerListConfig.peerType,
 			targetAddress: ipAddress,
 			bucketCount: this.peerListConfig.peerBucketCount,
 		});
+
+		return this.peerMap.get(bucketId) as Map<string, CustomPeerInfo>;
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.selectBucketId(peerInfo.ipAddress);
-		const bucket = this.peerMap.get(bucketId);
-
-		if (!bucket) {
-			return false;
-		}
+		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		const foundPeer = bucket.get(incomingPeerId);
 
@@ -121,11 +118,10 @@ export class PeerList {
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.selectBucketId(peerInfo.ipAddress);
-		const bucket = this.peerMap.get(bucketId);
+		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
-		if (bucket && bucket.get(incomingPeerId)) {
+		if (bucket.get(incomingPeerId)) {
 			const result = bucket.delete(incomingPeerId);
 
 			return result;
@@ -135,13 +131,8 @@ export class PeerList {
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const bucketId = this.selectBucketId(peerInfo.ipAddress);
-		const bucket = this.peerMap.get(bucketId);
+		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-
-		if (!bucket) {
-			return undefined;
-		}
 		const peer = bucket.get(incomingPeerId);
 
 		return peer ? peer.peerInfo : undefined;

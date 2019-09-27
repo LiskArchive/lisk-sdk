@@ -75,13 +75,8 @@ export class NewList extends PeerList {
 
 	// Evict a peer when a bucket is full based on the time of residence in a bucket
 	private _evictPeerBasedOnTimeInBucket(
-		bucketId: number,
+		bucket: Map<string, CustomPeerInfo>,
 	): CustomPeerInfo | undefined {
-		const bucket = this.peerMap.get(bucketId);
-		if (!bucket) {
-			return undefined;
-		}
-
 		for (const [peerId, peer] of bucket) {
 			const timeDifference = Math.round(
 				Math.abs(peer.dateAdded.getTime() - new Date().getTime()),

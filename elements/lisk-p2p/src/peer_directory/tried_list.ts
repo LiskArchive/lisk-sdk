@@ -80,15 +80,9 @@ export class TriedList extends PeerList {
 
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.selectBucketId(incomingPeerInfo.ipAddress);
-		const bucket = this.peerMap.get(bucketId);
+		const bucket = this.getBucket(incomingPeerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
-
-		if (!bucket) {
-			return false;
-		}
 		const foundPeer = bucket.get(incomingPeerId);
-
 		if (!foundPeer) {
 			return false;
 		}
