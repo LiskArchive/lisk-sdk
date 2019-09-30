@@ -45,11 +45,6 @@ const defaultCreateValues = {
 	multiLifetime: 0,
 };
 
-const dependentFieldsTableMap = {
-	membersPublicKeys: 'mem_accounts2multisignatures',
-	votedDelegatesPublicKeys: 'mem_accounts2delegates',
-};
-
 describe('ChainAccount', () => {
 	let adapter;
 	let storage;
@@ -78,8 +73,6 @@ describe('ChainAccount', () => {
 			'resetMemTables',
 			'increaseFieldBy',
 			'decreaseFieldBy',
-			'createDependentRecord',
-			'deleteDependentRecord',
 			'delegateBlocksRewards',
 			'syncDelegatesRank',
 		];
@@ -179,16 +172,11 @@ describe('ChainAccount', () => {
 
 			await expect(
 				AccountEntity.create(account),
-			).to.eventually.be.fulfilled.and.deep.equal([]);
+			).to.eventually.be.fulfilled.and.deep.equal(null);
 
-			const accountResult = await AccountEntity.getOne(
-				{
-					address: account.address,
-				},
-				{
-					extended: true,
-				},
-			);
+			const accountResult = await AccountEntity.getOne({
+				address: account.address,
+			});
 			const mergedObject = { ...defaultCreateValues, ...account };
 
 			expect(mergedObject).to.be.eql(accountResult);
@@ -200,7 +188,7 @@ describe('ChainAccount', () => {
 
 			await expect(
 				AccountEntity.create(account),
-			).to.eventually.be.fulfilled.and.deep.equal([]);
+			).to.eventually.be.fulfilled.and.deep.equal(null);
 
 			const accountResult = await AccountEntity.getOne(
 				{
@@ -224,7 +212,7 @@ describe('ChainAccount', () => {
 
 			await expect(
 				AccountEntity.create(accounts),
-			).to.eventually.be.fulfilled.and.deep.equal([]);
+			).to.eventually.be.fulfilled.and.deep.equal(null);
 
 			return Promise.all(
 				accounts.map(async account => {
@@ -541,10 +529,10 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update({ address }, { balance: 100 });
 			// Assert
-			const relelatedRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${address}'`,
-			);
-			expect(relelatedRecords).to.be.eql([]);
+			const updatedAccount = await AccountEntity.getOne({
+				address,
+			});
+			expect(updatedAccount.membersPublicKeys).to.be.eql(null);
 		});
 
 		it('should not create mem_accounts2delegates records if property votedDelegatesPublicKeys is null', async () => {
@@ -554,11 +542,11 @@ describe('ChainAccount', () => {
 			await AccountEntity.create(account);
 			// Act
 			await AccountEntity.update({ address }, { balance: 100 });
+			const updatedAccount = await AccountEntity.getOne({
+				address,
+			});
 			// Assert
-			const relelatedRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${address}'`,
-			);
-			expect(relelatedRecords).to.be.eql([]);
+			expect(updatedAccount.votedDelegatesPublicKeys).to.be.eql(null);
 		});
 	});
 
@@ -582,7 +570,7 @@ describe('ChainAccount', () => {
 					},
 					account,
 				),
-			).to.eventually.be.fulfilled.and.deep.equal([]);
+			).to.eventually.be.fulfilled.and.deep.equal(null);
 		});
 
 		it('should insert account if matching filters not found', async () => {
@@ -972,22 +960,6 @@ describe('ChainAccount', () => {
 			expect(result[0].count).to.equal(0);
 		});
 
-		it('should empty the table "mem_accounts2delegates"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2delegates',
-			);
-			expect(result[0].count).to.equal(0);
-		});
-
-		it('should empty the table "mem_accounts2multisignatures"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures',
-			);
-			expect(result[0].count).to.equal(0);
-		});
-
 		it('should empty the table "rounds_rewards"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
@@ -1147,118 +1119,6 @@ describe('ChainAccount', () => {
 		});
 	});
 
-	describe('createDependentRecord()', () => {
-		it('should throw error if wrong dependency is passed', async () => {
-			expect(() =>
-				AccountEntity.createDependentRecord('unknown', '12L', '12345'),
-			).to.throw('Invalid dependency name "unknown" provided.');
-		});
-
-		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
-			dependentTable => {
-				describe(`${dependentTable}`, () => {
-					it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
-						const accounts = await AccountEntity.get(
-							{},
-							{
-								limit: 2,
-							},
-						);
-
-						sinonSandbox.spy(adapter, 'executeFile');
-						await AccountEntity.createDependentRecord(
-							dependentTable,
-							accounts[0].address,
-							accounts[1].publicKey,
-						);
-
-						return expect(adapter.executeFile).to.be.calledWith(
-							SQLs.createDependentRecord,
-							{
-								tableName: dependentFieldsTableMap[dependentTable],
-								accountId: accounts[0].address,
-								dependentId: accounts[1].publicKey,
-							},
-							{
-								expectedResultCount: 0,
-							},
-						);
-					});
-
-					it(`should insert dependent account from ${dependentTable}`, async () => {
-						const accounts = await AccountEntity.get(
-							{},
-							{
-								limit: 2,
-							},
-						);
-
-						const before = await adapter.execute(
-							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
-						);
-
-						await AccountEntity.createDependentRecord(
-							dependentTable,
-							accounts[0].address,
-							accounts[1].publicKey,
-						);
-						const after = await adapter.execute(
-							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
-						);
-
-						expect(before[0].count).to.eql('0');
-						expect(after[0].count).to.eql('1');
-					});
-				});
-			},
-		);
-	});
-
-	describe('deleteDependentRecord()', () => {
-		it('should throw error if wrong dependency is passed', async () => {
-			expect(() =>
-				AccountEntity.deleteDependentRecord('unknown', '12L', '12345'),
-			).to.throw('Invalid dependency name "unknown" provided.');
-		});
-
-		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
-			dependentTable => {
-				it(`should remove dependent account from ${dependentTable}`, async () => {
-					const accounts = await AccountEntity.get(
-						{},
-						{
-							limit: 2,
-						},
-					);
-
-					await adapter.execute(
-						`INSERT INTO ${
-							dependentFieldsTableMap[dependentTable]
-						} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
-							accounts[1].publicKey
-						}')`,
-					);
-
-					const before = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
-					);
-
-					await AccountEntity.deleteDependentRecord(
-						dependentTable,
-						accounts[0].address,
-						accounts[1].publicKey,
-					);
-					const after = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
-					);
-
-					expect(before[0].count).to.eql('1');
-					expect(after[0].count).to.eql('0');
-				});
-			},
-		);
-	});
-
 	describe('syncDelegatesRanks', () => {
 		it('should use the correct SQL', async () => {
 			// Arrange
@@ -1277,212 +1137,5 @@ describe('ChainAccount', () => {
 		);
 
 		it('should not throw error if there is no delegate available');
-	});
-
-	describe('updateDependentRecords', () => {
-		it('should update mem_accounts2multisignatures if membersPublicKeys present', async () => {
-			// Arrange
-			const account = new accountFixtures.Account();
-			await AccountEntity.create(account);
-			const savedAccount = await AccountEntity.getOne({
-				address: account.address,
-			});
-			savedAccount.membersPublicKeys = ['1234L', '9876L'];
-			const expectedRelatedRecords = [
-				{ accountId: account.address, dependentId: '1234L' },
-				{ accountId: account.address, dependentId: '9876L' },
-			];
-			// Act
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			// Assert
-			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
-		});
-
-		it('should update mem_accounts2multisignatures with new keys if membersPublicKeys present', async () => {
-			// Arrange
-			const account = new accountFixtures.Account();
-			await AccountEntity.create(account);
-			const savedAccount = await AccountEntity.getOne({
-				address: account.address,
-			});
-			savedAccount.membersPublicKeys = ['1234L', '9876L'];
-			const expectedRelatedRecords = [
-				{ accountId: account.address, dependentId: '1234L' },
-				{ accountId: account.address, dependentId: '9876L' },
-			];
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
-
-			savedAccount.membersPublicKeys = ['999L', '888L'];
-			const newExpectedRelatedRecords = [
-				{ accountId: account.address, dependentId: '999L' },
-				{ accountId: account.address, dependentId: '888L' },
-			];
-
-			// Act
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			const newMulitsigDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			// Assert
-			expect(newExpectedRelatedRecords).to.be.eql(newMulitsigDependentRecords);
-		});
-
-		it('should update mem_accounts2delegates if votedDelegatesPublicKeys present', async () => {
-			// Arrange
-			const account = new accountFixtures.Account();
-			await AccountEntity.create(account);
-			const savedAccount = await AccountEntity.getOne({
-				address: account.address,
-			});
-			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
-			const expectedRelatedRecords = [
-				{ accountId: account.address, dependentId: '1234L' },
-				{ accountId: account.address, dependentId: '9876L' },
-			];
-			// Act
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			// Assert
-			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			expect(expectedRelatedRecords).to.be.eql(
-				votedDelegatesPublicKeysDependentRecords,
-			);
-		});
-
-		it('should update mem_accounts2delegates with new votes if votedDelegatesPublicKeys present', async () => {
-			// Arrange
-			const account = new accountFixtures.Account();
-			await AccountEntity.create(account);
-			const savedAccount = await AccountEntity.getOne({
-				address: account.address,
-			});
-			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
-			const expectedRelatedRecords = [
-				{ accountId: account.address, dependentId: '1234L' },
-				{ accountId: account.address, dependentId: '9876L' },
-			];
-			// Act
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			// Assert
-			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			expect(expectedRelatedRecords).to.be.eql(
-				votedDelegatesPublicKeysDependentRecords,
-			);
-
-			savedAccount.votedDelegatesPublicKeys = ['42L', '43L', '63L'];
-			const newExpectedRelatedRecords = [
-				{ accountId: account.address, dependentId: '42L' },
-				{ accountId: account.address, dependentId: '43L' },
-				{ accountId: account.address, dependentId: '63L' },
-			];
-			// Act
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			// Assert
-			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			expect(newExpectedRelatedRecords).to.be.eql(
-				newVotedDelegatesPublicKeysDependentRecords,
-			);
-		});
-
-		it('should handle empty dependent data correctly for votedDelegatesPublicKeys', async () => {
-			// Arrange
-			const account = new accountFixtures.Account();
-			await AccountEntity.create(account);
-			const savedAccount = await AccountEntity.getOne({
-				address: account.address,
-			});
-			savedAccount.votedDelegatesPublicKeys = [];
-			// Act & Assert
-			expect(() =>
-				AccountEntity.update({ address: savedAccount.address }, savedAccount),
-			).not.to.throw();
-		});
-
-		it('should clear votes when votedDelegatesPublicKeys is an empty array', async () => {
-			// Arrange
-			const account = new accountFixtures.Account();
-			await AccountEntity.create(account);
-			const savedAccount = await AccountEntity.getOne({
-				address: account.address,
-			});
-			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
-			const expectedRelatedRecords = [
-				{ accountId: account.address, dependentId: '1234L' },
-				{ accountId: account.address, dependentId: '9876L' },
-			];
-			// Act
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			// Assert
-			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			expect(expectedRelatedRecords).to.be.eql(
-				votedDelegatesPublicKeysDependentRecords,
-			);
-
-			savedAccount.votedDelegatesPublicKeys = [];
-			const newExpectedRelatedRecords = [];
-			// Act
-			await AccountEntity.update(
-				{ address: savedAccount.address },
-				savedAccount,
-			);
-			// Assert
-			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
-					savedAccount.address
-				}'`,
-			);
-			expect(newExpectedRelatedRecords).to.be.eql(
-				newVotedDelegatesPublicKeysDependentRecords,
-			);
-		});
 	});
 });
