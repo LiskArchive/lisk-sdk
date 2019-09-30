@@ -175,7 +175,7 @@ describe('Chain', () => {
 						ids: ['1', '2'],
 					},
 				});
-				expect(response).to.be.null;
+				expect(response).to.be.undefined;
 			});
 
 			it('should return the block id if commonBlock has been found', async () => {
