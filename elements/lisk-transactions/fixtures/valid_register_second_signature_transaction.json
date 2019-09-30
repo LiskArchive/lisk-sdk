@@ -4,15 +4,9 @@
 	"timestamp": 1653152,
 	"senderPublicKey": "8aceda0f39b35d778f55593227f97152f0b5a78b80b5c4ae88979909095d6204",
 	"senderId": "10020978176543317477L",
-	"recipientId": "",
-	"recipientPublicKey": "",
-	"amount": "0",
-	"fee": "500000000",
 	"signature": "06041001f829ef0bcf0986bda00afdb2b1b58b604d0636325562146d13018cd02917c39ec4e98a89401554b08441b6685079013cc6951666a87a31997ee07909",
 	"signatures": [],
 	"asset": {
-		"signature": {
-			"publicKey": "ea8ff0123782a82268ddd69dbbd1b91ffaf2243a3415fc8d3ee8c5f0a5a48e6c"
-		}
+		"publicKey": "ea8ff0123782a82268ddd69dbbd1b91ffaf2243a3415fc8d3ee8c5f0a5a48e6c"
 	}
 }

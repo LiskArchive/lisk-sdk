@@ -13,8 +13,13 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { TransferTransaction } from './0_transfer_transaction';
+import { SecondSignatureTransaction } from './1_second_signature_transaction';
+import { DelegateTransaction } from './2_delegate_transaction';
+import { VoteTransaction } from './3_vote_transaction';
+import { MultisignatureTransaction } from './4_multisignature_transaction';
+import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
-import { multiSignTransaction, verifyTransaction } from './utils';
 
 export interface SignatureObject {
 	readonly publicKey: string;
@@ -22,15 +27,45 @@ export interface SignatureObject {
 	readonly transactionId: string;
 }
 
+// tslint:disable-next-line no-any
+const transactionMap: { readonly [key: number]: any } = {
+	0: TransferTransaction,
+	1: SecondSignatureTransaction,
+	2: DelegateTransaction,
+	3: VoteTransaction,
+	4: MultisignatureTransaction,
+};
+
+// TODO: need to reimplement
 export const createSignatureObject = (
 	transaction: TransactionJSON,
 	passphrase: string,
 ): SignatureObject => {
-	if (!verifyTransaction(transaction)) {
+	if (transaction.type === undefined || transaction.type === null) {
 		throw new Error('Invalid transaction.');
 	}
 
-	if (!transaction.id) {
+	// tslint:disable-next-line no-magic-numbers
+	if (transaction.type < 0 || transaction.type > 4) {
+		throw new Error('Invalid transaction type.');
+	}
+	// tslint:disable-next-line variable-name
+	const TransactionClass = transactionMap[transaction.type];
+	const {
+		signature,
+		signSignature,
+		...transactionWithoutSignature
+	} = transaction;
+	const tx = new TransactionClass(
+		transactionWithoutSignature,
+	) as BaseTransaction;
+
+	const validStatus = tx.validate();
+	if (validStatus.errors.length > 0) {
+		throw validStatus.errors;
+	}
+
+	if (!tx.id) {
 		throw new Error('Transaction ID is required to create a signature object.');
 	}
 
@@ -38,9 +73,11 @@ export const createSignatureObject = (
 		passphrase,
 	);
 
+	const multiSignature = cryptography.signData(tx.getBytes(), passphrase);
+
 	return {
-		transactionId: transaction.id,
+		transactionId: tx.id,
 		publicKey,
-		signature: multiSignTransaction(transaction, passphrase),
+		signature: multiSignature,
 	};
 };

@@ -168,22 +168,16 @@ describe('#registerMultisignature transaction', () => {
 
 				it('should have a min number equal to provided minimum', () => {
 					const {
-						multisignature,
+						min,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(multisignature)
-						.to.have.property('min')
-						.and.be.a('number')
-						.and.be.equal(minimum);
+					return expect(min).to.equal(minimum);
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
 					const {
-						multisignature,
+						lifetime,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(multisignature)
-						.to.have.property('lifetime')
-						.and.be.a('number')
-						.and.be.equal(lifetime);
+					return expect(lifetime).to.equal(lifetime);
 				});
 
 				it('should have a keysgroup array with plus prepended', () => {
@@ -192,11 +186,9 @@ describe('#registerMultisignature transaction', () => {
 						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					];
 					const {
-						multisignature,
+						keysgroup,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(multisignature)
-						.to.have.property('keysgroup')
-						.and.be.eql(expectedArray);
+					return expect(keysgroup).to.eql(expectedArray);
 				});
 			});
 		});

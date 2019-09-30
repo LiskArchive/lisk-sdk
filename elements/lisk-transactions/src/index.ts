@@ -39,16 +39,9 @@ import {
 	checkPublicKeysForDuplicates,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getTransactionBytes,
-	getTransactionHash,
-	getTransactionId,
 	isValidInteger,
-	multiSignTransaction,
-	prepareTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	signRawTransaction,
-	signTransaction,
 	stringEndsWith,
 	transactionInterface,
 	validateAddress,
@@ -57,11 +50,9 @@ import {
 	validateNonTransferAmount,
 	validatePublicKey,
 	validatePublicKeys,
-	validateTransaction,
 	validateTransferAmount,
 	validator,
 	verifyAmountBalance,
-	verifyTransaction,
 } from './utils';
 
 const exposedUtils = {
@@ -69,7 +60,6 @@ const exposedUtils = {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	isValidInteger,
-	multiSignTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	stringEndsWith,
@@ -83,16 +73,8 @@ const exposedUtils = {
 	validateTransferAmount,
 
 	// TODO: Deprecated
-	signTransaction,
-	getTransactionBytes,
-	getTransactionId,
-	verifyTransaction,
 	checkPublicKeysForDuplicates,
-	getTransactionHash,
-	prepareTransaction,
-	signRawTransaction,
 	validateFee,
-	validateTransaction,
 };
 
 export {

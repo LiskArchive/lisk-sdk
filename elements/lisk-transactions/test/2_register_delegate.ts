@@ -138,11 +138,8 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should have the provided username as a string', () => {
-				const { delegate } = registerDelegateTransaction.asset as DelegateAsset;
-				return expect(delegate)
-					.to.have.property('username')
-					.and.be.a('string')
-					.and.equal(username);
+				const { username } = registerDelegateTransaction.asset as DelegateAsset;
+				return expect(username).to.equal(username);
 			});
 		});
 	});

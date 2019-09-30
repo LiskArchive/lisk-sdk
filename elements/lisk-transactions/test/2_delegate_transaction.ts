@@ -45,8 +45,7 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should set the delegate asset', async () => {
-			expect(validTestTransaction.asset.delegate).to.be.an('object');
-			expect(validTestTransaction.asset.delegate.username).to.eql('0x0');
+			expect(validTestTransaction.asset.username).to.eql('0x0');
 		});
 
 		it('should not throw when asset is not valid string', async () => {
@@ -68,7 +67,7 @@ describe('Delegate registration transaction class', () => {
 		it('should return valid buffer', async () => {
 			const assetBytes = (validTestTransaction as any).assetToBytes();
 			expect(assetBytes).to.eql(
-				Buffer.from(validDelegateTransaction.asset.delegate.username, 'utf8'),
+				Buffer.from(validDelegateTransaction.asset.username, 'utf8'),
 			);
 		});
 	});
@@ -107,7 +106,7 @@ describe('Delegate registration transaction class', () => {
 			await validTestTransaction.prepare(store);
 			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validTestTransaction.senderId },
-				{ username: validTestTransaction.asset.delegate.username },
+				{ username: validTestTransaction.asset.username },
 			]);
 		});
 	});
@@ -198,7 +197,7 @@ describe('Delegate registration transaction class', () => {
 				...sender,
 				isDelegate: 1,
 				vote: 0,
-				username: validTestTransaction.asset.delegate.username,
+				username: validTestTransaction.asset.username,
 			});
 		});
 
@@ -214,14 +213,14 @@ describe('Delegate registration transaction class', () => {
 			storeAccountFindStub.returns(true);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
+			expect(errors[0].dataPath).to.be.equal('.asset.username');
 		});
 
 		it('should return an error when account is already delegate', async () => {
 			const errors = (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
+			expect(errors[0].dataPath).to.be.equal('.asset.username');
 		});
 	});
 

@@ -13,8 +13,6 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { TransactionJSON } from '../transaction_types';
-import { getTransactionBytes } from './get_transaction_bytes';
 
 export const getId = (transactionBytes: Buffer): string => {
 	const transactionHash = cryptography.hash(transactionBytes);
@@ -26,18 +24,4 @@ export const getId = (transactionBytes: Buffer): string => {
 	);
 
 	return transactionId;
-};
-
-// FIXME: Deprecated
-export const getTransactionId = (transaction: TransactionJSON): string => {
-	const transactionBytes = getTransactionBytes(transaction);
-	const transactionHash = cryptography.hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const firstEntriesToNumber = cryptography.bufferToIntAsString(
-		bufferFromFirstEntriesReversed,
-	);
-
-	return firstEntriesToNumber;
 };

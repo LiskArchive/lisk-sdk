@@ -147,11 +147,9 @@ describe('#registerSecondPassphrase transaction', () => {
 					.to.have.property('signature')
 					.with.property('publicKey').and.be.hexString;
 				const {
-					signature,
+					publicKey,
 				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(Buffer.from(signature.publicKey, 'hex')).to.have.length(
-					32,
-				);
+				return expect(Buffer.from(publicKey, 'hex')).to.have.length(32);
 			});
 
 			it('should have a publicKey equal to the public key for the provided second passphrase', () => {
@@ -167,9 +165,9 @@ describe('#registerSecondPassphrase transaction', () => {
 					secondPassphrase: '',
 				});
 				const {
-					signature,
+					publicKey,
 				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(signature.publicKey).to.be.equal(emptyStringPublicKey);
+				return expect(publicKey).to.be.equal(emptyStringPublicKey);
 			});
 		});
 	});

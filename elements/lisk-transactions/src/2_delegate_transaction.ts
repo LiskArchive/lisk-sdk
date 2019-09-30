@@ -111,7 +111,7 @@ export class DelegateTransaction extends BaseTransaction {
 				new TransactionError(
 					`Username is not unique.`,
 					this.id,
-					'.asset.delegate.username',
+					'.asset.username',
 				),
 			);
 		}
@@ -120,7 +120,7 @@ export class DelegateTransaction extends BaseTransaction {
 				new TransactionError(
 					'Account is already a delegate',
 					this.id,
-					'.asset.delegate.username',
+					'.asset.username',
 				),
 			);
 		}

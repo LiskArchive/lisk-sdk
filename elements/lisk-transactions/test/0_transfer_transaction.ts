@@ -108,7 +108,7 @@ describe('Transfer transaction class', () => {
 			await validSelfTransferTestTransaction.prepare(store);
 			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validSelfTransferTestTransaction.senderId },
-				{ address: validSelfTransferTestTransaction.recipientId },
+				{ address: validSelfTransferTestTransaction.asset.recipientId },
 			]);
 		});
 	});
@@ -194,18 +194,18 @@ describe('Transfer transaction class', () => {
 				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
 					...sender,
 					balance: new BigNum(sender.balance)
-						.sub(validTransferTestTransaction.amount)
+						.sub(validTransferTestTransaction.asset.amount)
 						.toString(),
 				}),
 			);
 			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
-				validTransferTestTransaction.recipientId,
+				validTransferTestTransaction.asset.recipientId,
 			);
 			expect(
 				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
 					...recipient,
 					balance: new BigNum(recipient.balance)
-						.add(validTransferTestTransaction.amount)
+						.add(validTransferTestTransaction.asset.amount)
 						.toString(),
 				}),
 			);
@@ -243,18 +243,18 @@ describe('Transfer transaction class', () => {
 				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
 					...sender,
 					balance: new BigNum(sender.balance)
-						.add(validTransferTestTransaction.amount)
+						.add(validTransferTestTransaction.asset.amount)
 						.toString(),
 				}),
 			);
 			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
-				validTransferTestTransaction.recipientId,
+				validTransferTestTransaction.asset.recipientId,
 			);
 			expect(
 				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
 					...recipient,
 					balance: new BigNum(recipient.balance)
-						.sub(validTransferTestTransaction.amount)
+						.sub(validTransferTestTransaction.asset.amount)
 						.toString(),
 				}),
 			);

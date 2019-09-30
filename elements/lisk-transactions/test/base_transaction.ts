@@ -81,10 +81,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should set default values', async () => {
-			expect(transactionWithDefaultValues.amount.toString()).to.be.eql('0');
 			expect(transactionWithDefaultValues.fee.toString()).to.be.eql('10000000');
-			expect(transactionWithDefaultValues.recipientId).to.be.eql('');
-			expect(transactionWithDefaultValues.recipientPublicKey).to.be.undefined;
 			expect(transactionWithDefaultValues.timestamp).to.be.eql(0);
 			expect(transactionWithDefaultValues.type).to.be.eql(0);
 			expect(transactionWithDefaultValues.confirmations).to.be.undefined;
@@ -548,13 +545,6 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should call validateFee', async () => {
-			sandbox.spy(validTestTransaction, 'validateFee');
-			validTestTransaction.validate();
-
-			expect(validTestTransaction.validateFee).to.be.called;
-		});
-
 		it('should return a failed transaction response with invalid signature', async () => {
 			const invalidSignature = defaultTransaction.signature.replace('1', '0');
 			const invalidSignatureTransaction = {
@@ -601,38 +591,6 @@ describe('Base transaction class', () => {
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property('dataPath', '.signatures');
 			expect(status).to.eql(Status.FAIL);
-		});
-	});
-
-	describe('#validateFee', () => {
-		it('should return undefined if fee is valid', async () => {
-			const validFee = validTestTransaction.validateFee();
-
-			expect(validFee).to.be.undefined;
-		});
-
-		it('should return transactionError if fee is invalid', async () => {
-			const invalidTransaction = {
-				type: 0,
-				amount: '00001',
-				fee: '0000',
-				recipientId: '',
-				senderPublicKey: '11111111',
-				senderId: '11111111',
-				timestamp: 79289378,
-				asset: {},
-				signature: '1111111111',
-				id: '1',
-			};
-			const invalidTestTransaction = new TestTransaction(
-				invalidTransaction as any,
-			);
-
-			const feeError = invalidTestTransaction.validateFee();
-
-			expect(feeError)
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property('message', 'Invalid fee');
 		});
 	});
 

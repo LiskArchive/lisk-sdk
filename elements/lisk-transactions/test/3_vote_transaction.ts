@@ -110,7 +110,7 @@ describe('Vote transaction class', () => {
 				status,
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				validVoteTransactions[0],
-			] as ReadonlyArray<TransactionJSON>);
+			] as any);
 			expect(errors)
 				.to.be.an('array')
 				.of.length(0);

@@ -77,7 +77,7 @@ describe('Multisignature transaction class', () => {
 			expect(validTestTransaction.fee.toString()).to.eql(
 				(
 					MULTISIGNATURE_FEE *
-					(validTestTransaction.asset.multisignature.keysgroup.length + 1)
+					(validTestTransaction.asset.keysgroup.length + 1)
 				).toString(),
 			);
 		});
@@ -178,7 +178,7 @@ describe('Multisignature transaction class', () => {
 		it('should call state store with correct params', async () => {
 			await validTestTransaction.prepare(store);
 			// Derive addresses from public keys
-			const membersAddresses = validTestTransaction.asset.multisignature.keysgroup
+			const membersAddresses = validTestTransaction.asset.keysgroup
 				.map(key => key.substring(1))
 				.map(aKey => ({ address: getAddressFromPublicKey(aKey) }));
 			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
