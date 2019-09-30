@@ -106,9 +106,7 @@ VotersController.getVoters = async function(context, next) {
 		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
-		const delegate = await storage.entities.Account.getOne(delegateFilters, {
-			extended: true,
-		});
+		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
 		const data = _.pick(delegate, [
 			'username',
@@ -213,9 +211,7 @@ VotersController.getVotes = async function(context, next) {
 		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
-		const delegate = await storage.entities.Account.getOne(delegateFilters, {
-			extended: true,
-		});
+		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
 		const data = _.pick(delegate, [
 			'address',
