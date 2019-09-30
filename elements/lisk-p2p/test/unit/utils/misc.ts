@@ -21,7 +21,7 @@ import {
 	getNetwork,
 	getIPBytes,
 	getNetgroup,
-	getBucket,
+	getBucketId,
 	getUniquePeersbyIp,
 	NETWORK,
 	PEER_TYPE,
@@ -134,75 +134,84 @@ describe('utils/misc', () => {
 		});
 	});
 
-	describe('#getBucket', () => {
+	describe('#getBucketId', () => {
 		it('should return a bucket number', () => {
 			return expect(
-				getBucket({
+				getBucketId({
 					secret,
 					targetAddress: IPv4Address,
 					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
 				}),
 			).to.be.a('number');
 		});
 
 		it('should return different buckets for different target addresses', () => {
 			const secondIPv4Address = '1.161.10.240';
-			const firstBucket = getBucket({
+			const firstBucket = getBucketId({
 				secret,
 				targetAddress: IPv4Address,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
-			const secondBucket = getBucket({
+			const secondBucket = getBucketId({
 				secret,
 				targetAddress: secondIPv4Address,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
 		});
 
 		it('should return same bucket for unique local target addresses', () => {
-			const firstBucket = getBucket({
+			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondLocalAddress = '127.0.1.1';
-			const secondBucket = getBucket({
+			const secondBucket = getBucketId({
 				secret,
 				targetAddress: secondLocalAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.eql(secondBucket);
 		});
 
 		it('should return same bucket for unique private target addresses', () => {
-			const firstBucket = getBucket({
+			const firstBucket = getBucketId({
 				secret,
 				targetAddress: privateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondPrivateAddress = '10.0.0.1';
-			const secondBucket = getBucket({
+			const secondBucket = getBucketId({
 				secret,
 				targetAddress: secondPrivateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.eql(secondBucket);
 		});
 
 		it('should return different buckets for local and private target addresses', () => {
-			const firstBucket = getBucket({
+			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
-			const secondBucket = getBucket({
+			const secondBucket = getBucketId({
 				secret,
 				targetAddress: privateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
 			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
@@ -213,15 +222,26 @@ describe('utils/misc', () => {
 				.fill(0)
 				.map(() => '61.26.254.' + Math.floor(Math.random() * 256))
 				.map(address =>
-					getBucket({
+					getBucketId({
 						secret,
 						targetAddress: address,
 						peerType: PEER_TYPE.NEW_PEER,
+						bucketCount: MAX_NEW_BUCKETS,
 					}),
 				);
 			const firstBucket = collectedBuckets[0];
 			expect(collectedBuckets.every(bucket => bucket === firstBucket)).to.be
 				.true;
+		});
+
+		it('should return NaN if bucketCount is 0', async () => {
+			const bucketId = getBucketId({
+				secret,
+				targetAddress: '61.26.254.123',
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: 0,
+			});
+			expect(bucketId).is.NaN;
 		});
 
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', async () => {
@@ -235,10 +255,11 @@ describe('utils/misc', () => {
 					const targetAddress = `${Math.floor(
 						Math.random() * 256,
 					)}.${Math.floor(Math.random() * 256)}.254.1`;
-					const bucket = getBucket({
+					const bucket = getBucketId({
 						secret,
 						targetAddress,
 						peerType: PEER_TYPE.TRIED_PEER,
+						bucketCount: MAX_TRIED_BUCKETS,
 					});
 					if (!collectedBuckets[bucket]) {
 						collectedBuckets[bucket] = 0;
@@ -270,10 +291,11 @@ describe('utils/misc', () => {
 					const targetAddress = `${Math.floor(
 						Math.random() * 256,
 					)}.${Math.floor(Math.random() * 256)}.254.1`;
-					const bucket = getBucket({
+					const bucket = getBucketId({
 						secret,
 						targetAddress,
 						peerType: PEER_TYPE.NEW_PEER,
+						bucketCount: MAX_NEW_BUCKETS,
 					});
 					if (!collectedBuckets[bucket]) {
 						collectedBuckets[bucket] = 0;

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 beforeEach(() => {
-	return sandbox.restore();
+	sandbox.restore();
 });
