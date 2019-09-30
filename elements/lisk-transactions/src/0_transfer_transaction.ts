@@ -13,7 +13,7 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { hexToBuffer } from '@liskhq/lisk-cryptography';
+import { hexToBuffer, intToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	StateStore,
@@ -96,8 +96,10 @@ export class TransferTransaction extends BaseTransaction {
 
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
-		// TODO: Remove on the hard fork change
-		const transactionRecipientID = Buffer.alloc(BYTESIZES.RECIPIENT_ID);
+		const transactionRecipientID = intToBuffer(
+			this.asset.recipientId.slice(0, -1),
+			BYTESIZES.RECIPIENT_ID,
+		).slice(0, BYTESIZES.RECIPIENT_ID);
 
 		const transactionAmount = this.asset.amount.toBuffer({
 			endian: 'little',
@@ -145,7 +147,8 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(transferAssetFormatSchema, this.asset);
+		const asset = this.assetToJSON();
+		validator.validate(transferAssetFormatSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
 			validator.errors,

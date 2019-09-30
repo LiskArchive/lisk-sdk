@@ -62,8 +62,22 @@ describe('Transfer transaction class', () => {
 				.and.be.instanceof(TransferTransaction);
 		});
 
-		it('should set transfer asset', async () => {
-			expect(validSelfTransferTestTransaction.asset).to.eql({ data: 'a' });
+		it('should set transfer asset data', async () => {
+			expect(validSelfTransferTestTransaction.asset.data).to.eql(
+				validSelfTransferTestTransaction.asset.data,
+			);
+		});
+
+		it('should set transfer asset amount', async () => {
+			expect(validSelfTransferTestTransaction.asset.amount.toString()).to.eql(
+				validSelfTransferTransaction.asset.amount,
+			);
+		});
+
+		it('should set transfer asset recipientId', async () => {
+			expect(validSelfTransferTestTransaction.asset.recipientId).to.eql(
+				validSelfTransferTransaction.asset.recipientId,
+			);
 		});
 
 		it('should set fee to transfer transaction fee amount', async () => {
@@ -73,11 +87,13 @@ describe('Transfer transaction class', () => {
 		});
 	});
 
-	describe('#assetToBytes', () => {
+	describe('#getBasicBytes', () => {
+		// generated using TransferTransaction@2.0.2
+		const expectedBytes =
+			'00c40068049becd3e545be91f85270d8a796ae3b9e8ec01a8cb479fef46a298b4efd943a0f65b7848a47afca70010000000000000061';
 		it('should return a buffer', async () => {
-			const expectedBytes = '61';
-			const assetBytes = (validSelfTransferTestTransaction as any).assetToBytes();
-			expect(assetBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
+			const basicBytes = (validSelfTransferTestTransaction as any).getBasicBytes();
+			expect(basicBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
 		});
 	});
 
@@ -116,7 +132,6 @@ describe('Transfer transaction class', () => {
 	describe('#validateAsset', () => {
 		it('should return no errors with a valid transfer transaction', async () => {
 			const errors = (validTransferTestTransaction as any).validateAsset();
-
 			expect(errors).to.be.empty;
 		});
 
@@ -124,7 +139,10 @@ describe('Transfer transaction class', () => {
 			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
 				{
 					...validTransferTransaction,
-					recipientId: '123456',
+					asset: {
+						...validTransferTransaction.asset,
+						recipientId: '123456',
+					},
 				},
 			);
 			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
@@ -133,14 +151,17 @@ describe('Transfer transaction class', () => {
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
-					'Address format does not match requirements. Expected "L" at the end.',
+					'\'.recipientId\' should match format "address"',
 				);
 		});
 
 		it('should return error with invalid amount', async () => {
 			const transferTransactionWithInvalidAmount = new TransferTransaction({
 				...validTransferTransaction,
-				amount: '9223372036854775808',
+				asset: {
+					...validTransferTransaction.asset,
+					amount: '9223372036854775808',
+				},
 			});
 			const errors = (transferTransactionWithInvalidAmount as any).validateAsset();
 
@@ -156,6 +177,7 @@ describe('Transfer transaction class', () => {
 			const transferTransactionWithInvalidAsset = new TransferTransaction({
 				...validTransferTransaction,
 				asset: {
+					...validTransferTransaction.asset,
 					data:
 						'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
 				},
