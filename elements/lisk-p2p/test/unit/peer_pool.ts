@@ -51,7 +51,7 @@ import {
 } from '../../src';
 import { constructPeerIdFromPeerInfo } from '../../src/utils';
 
-describe('peerPool', () => {
+describe.only('peerPool', () => {
 	const peerPoolConfig = {
 		connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 		ackTimeout: DEFAULT_ACK_TIMEOUT,
@@ -85,7 +85,7 @@ describe('peerPool', () => {
 	let peerPool: PeerPool;
 	let peerInfo: P2PDiscoveredPeerInfo;
 	let nodeInfo: P2PNodeInfo;
-
+	let peerId: string;
 	beforeEach(async () => {
 		peerPool = new PeerPool(peerPoolConfig);
 		peerPool.emit = sandbox.stub();
@@ -105,6 +105,7 @@ describe('peerPool', () => {
 			wsPort: 5000,
 			height: 1000,
 		};
+		peerId = '127.0.0.1:5000';
 	});
 
 	describe('#constructor', () => {
@@ -301,7 +302,53 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe('#sendToPeer', () => {});
+	describe('#requestFromPeer', () => {
+		const requestPacket = { procedure: 'abc', data: 'abc' };
+
+		it('should throw error if no peers in peerPool', async () => {
+			(peerPool as any)._peerMap = new Map();
+			try {
+				await peerPool.requestFromPeer(requestPacket, peerId);
+			} catch (err) {
+				expect(err).to.exist;
+			}
+		});
+
+		it('should call peer request with packet', async () => {
+			const peerStub = {
+				request: sandbox.stub(),
+			};
+
+			(peerPool as any)._peerMap = new Map([['127.0.0.1:5000', peerStub]]);
+			await peerPool.requestFromPeer(requestPacket, peerId);
+			expect(peerStub.request).to.be.calledWithExactly(requestPacket);
+		});
+	});
+
+	describe('#sendToPeer', () => {
+		const messagePacket = { procedure: 'abc', data: 'abc', event: 'abc' };
+
+		it('should throw error if no peers in peerPool', async () => {
+			(peerPool as any)._peerMap = new Map();
+			try {
+				await peerPool.sendToPeer(messagePacket, peerId);
+			} catch (err) {
+				expect(err).to.exist;
+			}
+		});
+
+		it('should call peer send with message packet', async () => {
+			const peerStub = {
+				send: sandbox.stub(),
+			};
+
+			(peerPool as any)._peerMap = new Map([['127.0.0.1:5000', peerStub]]);
+			await peerPool.sendToPeer(messagePacket, peerId);
+			expect(peerStub.send).to.be.calledWithExactly(messagePacket);
+		});
+	});
+
+	describe('#triggerNewConnections', () => {});
 
 	describe('#addInboundPeer', () => {});
 
