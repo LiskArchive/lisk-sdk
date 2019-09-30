@@ -521,7 +521,7 @@ describe('ChainAccount', () => {
 			}).not.to.throw();
 		});
 
-		it('should not create mem_accounts2delegates records if property membersPublicKeys is null', async () => {
+		it('should not create membersPublicKeys records if property membersPublicKeys is null', async () => {
 			// Arrange
 			const account = new accountFixtures.Account();
 			const address = account.address;
@@ -535,7 +535,7 @@ describe('ChainAccount', () => {
 			expect(updatedAccount.membersPublicKeys).to.be.eql(null);
 		});
 
-		it('should not create mem_accounts2delegates records if property votedDelegatesPublicKeys is null', async () => {
+		it('should not create votedDelegatesPublicKeys records if property votedDelegatesPublicKeys is null', async () => {
 			// Arrange
 			const account = new accountFixtures.Account();
 			const address = account.address;
