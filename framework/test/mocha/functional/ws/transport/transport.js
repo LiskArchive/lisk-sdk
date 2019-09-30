@@ -303,7 +303,7 @@ describe('WS transport', () => {
 					},
 				});
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
-				expect(data).to.be.null;
+				expect(data).to.be.undefined;
 			});
 		});
 

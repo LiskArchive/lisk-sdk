@@ -13,32 +13,46 @@
  *
  */
 import { expect } from 'chai';
-import { OutboundPeer } from '../../../src/peer';
-import { REMOTE_SC_EVENT_MESSAGE } from '../../../src/events';
+import * as querystring from 'querystring';
+import * as socketClusterClient from 'socketcluster-client';
+import { OutboundPeer, PeerConfig } from '../../../src/peer';
+import {
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
+	REMOTE_EVENT_PING,
+} from '../../../src/events';
 import { SCClientSocket } from 'socketcluster-client';
+import {
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_CONNECT_TIMEOUT,
+	DEFAULT_ACK_TIMEOUT,
+} from '../../../src/constants';
+import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('peer/outbound', () => {
-	const DEFAULT_RANDOM_SECRET = 123;
-	const defaultPeerInfo = {
-		ipAddress: '12.12.12.12',
-		wsPort: 5001,
-		height: 545776,
-		isDiscoveredPeer: true,
-		version: '1.1.1',
-		protocolVersion: '1.1',
-	};
-	const defaultOutboundPeerConfig = {
-		rateCalculationInterval: 1000,
-		wsMaxMessageRate: 1000,
-		wsMaxMessageRatePenalty: 10,
-		secret: DEFAULT_RANDOM_SECRET,
-		maxPeerInfoSize: 10000,
-		maxPeerDiscoveryResponseLength: 1000,
-	};
+	let defaultPeerInfo: P2PPeerInfo;
+	let defaultOutboundPeerConfig: PeerConfig;
 	let defaultOutboundPeer: OutboundPeer;
 	let outboundSocket: SCClientSocket;
 
 	beforeEach(() => {
+		defaultPeerInfo = {
+			ipAddress: '12.12.12.12',
+			wsPort: 5001,
+			height: 545776,
+			isDiscoveredPeer: true,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		};
+		defaultOutboundPeerConfig = {
+			rateCalculationInterval: 1000,
+			wsMaxMessageRate: 1000,
+			wsMaxMessageRatePenalty: 10,
+			secret: DEFAULT_RANDOM_SECRET,
+			maxPeerInfoSize: 10000,
+			maxPeerDiscoveryResponseLength: 1000,
+			wsMaxPayload: 1000,
+		};
 		outboundSocket = <SCClientSocket>({
 			on: sandbox.stub(),
 			emit: sandbox.stub(),
@@ -61,8 +75,8 @@ describe('peer/outbound', () => {
 			expect(defaultOutboundPeer).to.be.instanceof(OutboundPeer));
 	});
 
-	describe('#socket', () => {
-		it('should not unbind handlers from outbound socket if it does not exist', () => {
+	describe('#set socket', () => {
+		it('should not unbind handlers from the outbound socket if it does not exist', () => {
 			sandbox.stub(
 				defaultOutboundPeer as any,
 				'_unbindHandlersFromOutboundSocket',
@@ -93,12 +107,52 @@ describe('peer/outbound', () => {
 			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
 		});
 
-		it('should bind handlers to outbound socket', () => {
+		it('should call _bindHandlersToOutboundSocket with outbound socket', () => {
 			sandbox.stub(defaultOutboundPeer as any, '_bindHandlersToOutboundSocket');
-			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._bindHandlersToOutboundSocket).to.be
-				.calledOnce;
+			expect(
+				(defaultOutboundPeer as any)._bindHandlersToOutboundSocket,
+			).to.be.calledOnceWithExactly(outboundSocket);
+		});
+
+		it('should bind handlers to an outbound socket', () => {
+			defaultOutboundPeer.socket = outboundSocket;
+			expect((defaultOutboundPeer as any)._socket.on.callCount).to.eql(11);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('error');
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
+				'connect',
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
+				'connectAbort',
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('close');
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'message',
+				(defaultOutboundPeer as any)._handleWSMessage,
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
+				REMOTE_EVENT_PING,
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_RPC_REQUEST,
+				(defaultOutboundPeer as any)._handleRawRPC,
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+				REMOTE_SC_EVENT_MESSAGE,
+				(defaultOutboundPeer as any)._handleRawMessage,
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postBlock',
+				(defaultOutboundPeer as any)._handleRawLegacyMessagePostBlock,
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postSignatures',
+				(defaultOutboundPeer as any)._handleRawLegacyMessagePostSignatures,
+			);
+			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+				'postTransactions',
+				(defaultOutboundPeer as any)._handleRawLegacyMessagePostTransactions,
+			);
 		});
 	});
 
@@ -111,22 +165,59 @@ describe('peer/outbound', () => {
 				.called;
 		});
 
-		it('should create outbound socket if it does not exist', () => {
-			sandbox
-				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
-				.returns(outboundSocket);
-
-			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
-			defaultOutboundPeer.connect();
-			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
-				.calledOnce;
-			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
-		});
-
 		it('should call connect', () => {
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.connect();
 			expect(outboundSocket.connect).to.be.calledOnce;
+		});
+
+		describe('when no outbound socket exists', () => {
+			it('should call _createOutboundSocket', () => {
+				sandbox
+					.stub(defaultOutboundPeer as any, '_createOutboundSocket')
+					.returns(outboundSocket);
+
+				expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+				defaultOutboundPeer.connect();
+				expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
+					.calledOnce;
+				expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
+			});
+
+			it('should call socketClusterClient create method', () => {
+				const legacyNodeInfo = undefined as any;
+				const clientOptions = {
+					hostname: defaultOutboundPeer.ipAddress,
+					port: defaultOutboundPeer.wsPort,
+					query: querystring.stringify({
+						...legacyNodeInfo,
+						options: JSON.stringify(legacyNodeInfo),
+					}),
+					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
+					ackTimeout: DEFAULT_ACK_TIMEOUT,
+					multiplex: false,
+					autoConnect: false,
+					autoReconnect: false,
+					maxPayload: defaultOutboundPeerConfig.wsMaxPayload,
+				};
+				sandbox.spy(socketClusterClient, 'create');
+				defaultOutboundPeer.connect();
+				expect(socketClusterClient.create).to.be.calledOnceWithExactly(
+					clientOptions,
+				);
+			});
+
+			it('should bind handlers to the just created outbound socket', () => {
+				sandbox.stub(
+					defaultOutboundPeer as any,
+					'_bindHandlersToOutboundSocket',
+				);
+				expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+				defaultOutboundPeer.connect();
+				expect(
+					(defaultOutboundPeer as any)._bindHandlersToOutboundSocket,
+				).to.be.calledOnceWithExactly((defaultOutboundPeer as any)._socket);
+			});
 		});
 	});
 
@@ -148,16 +239,68 @@ describe('peer/outbound', () => {
 				.be.not.called;
 		});
 
-		it('should unbind handlers from outbound socket if one exists', () => {
-			sandbox.stub(
-				defaultOutboundPeer as any,
-				'_unbindHandlersFromOutboundSocket',
-			);
+		describe('when a socket exists', () => {
+			it('should call _unbindHandlersFromOutboundSocket', () => {
+				sandbox.stub(
+					defaultOutboundPeer as any,
+					'_unbindHandlersFromOutboundSocket',
+				);
+				(defaultOutboundPeer as any)._socket = outboundSocket;
+				defaultOutboundPeer.disconnect();
+				expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket)
+					.to.be.calledOnce;
+			});
 
-			(defaultOutboundPeer as any)._socket = outboundSocket;
-			defaultOutboundPeer.disconnect();
-			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
-				.be.calledOnce;
+			it('should unbind handlers from inbound socket', () => {
+				(defaultOutboundPeer as any)._socket = outboundSocket;
+				defaultOutboundPeer.disconnect();
+				expect((defaultOutboundPeer as any)._socket.off.callCount).to.eql(10);
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly('connect');
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly('connectAbort');
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly('close');
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly(
+					'message',
+					(defaultOutboundPeer as any)._handleWSMessage,
+				);
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly(
+					REMOTE_SC_EVENT_RPC_REQUEST,
+					(defaultOutboundPeer as any)._handleRawRPC,
+				);
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly(
+					REMOTE_SC_EVENT_MESSAGE,
+					(defaultOutboundPeer as any)._handleRawMessage,
+				);
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly(
+					'postBlock',
+					(defaultOutboundPeer as any)._handleRawLegacyMessagePostBlock,
+				);
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly(
+					'postSignatures',
+					(defaultOutboundPeer as any)._handleRawLegacyMessagePostSignatures,
+				);
+				expect(
+					(defaultOutboundPeer as any)._socket.off,
+				).to.be.calledWithExactly(
+					'postTransactions',
+					(defaultOutboundPeer as any)._handleRawLegacyMessagePostTransactions,
+				);
+			});
 		});
 	});
 

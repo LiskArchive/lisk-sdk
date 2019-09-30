@@ -14,5 +14,5 @@
  */
 
 afterEach(() => {
-	return sandbox.restore();
+	sandbox.restore();
 });

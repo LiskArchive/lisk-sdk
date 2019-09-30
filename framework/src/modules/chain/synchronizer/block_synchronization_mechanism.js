@@ -92,6 +92,7 @@ class BlockSynchronizationMechanism {
 		const lastCommonBlock = await this._requestLastCommonBlock(peer);
 
 		if (!lastCommonBlock) {
+			// TODO: Should we apply penalty here?
 			this._applyPenaltyAndRestartSync(
 				peer,
 				receivedBlock,
@@ -133,42 +134,36 @@ class BlockSynchronizationMechanism {
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one)
 	 * @param peer
-	 * @return {Promise<string>}
+	 * @return {Promise<Object>}
 	 * @private
 	 */
 	async _requestLastCommonBlock(peer) {
-		// The node requests the last common block C from P (Peer).
 		const [lastBlock] = await this.storage.entities.Block.get({
 			sort: 'height:desc',
 			limit: 1,
 		});
 
-		const { height: tipHeight } = lastBlock;
-		const numberOfRoundsSinceGenesis =
-			tipHeight / this.constants.activeDelegates;
-		const numberOfRoundsPerRequest = 5;
-		const numberOfRequests = 5;
+		const blocksPerRequestLimit = 10;
+		const requestLimit = 10;
+
+		let numberOfRequests = 0;
+		let numberOfBlocks = 0;
+		let currentRound = Math.floor(
+			lastBlock.height / this.constants.activeDelegates,
+		); // Assuming Round number 0 is the first round ever
 		let highestCommonBlock;
-		let requestCounter = 0;
 
-		// TODO: I am assuming we try to perform a X number of calls to the peer before
-		// giving up. We have to discuss this, as we can also perform one single call with a bigger array.
-		// This would simplify the code a bit more.
-
-		let roundsCounter = numberOfRoundsSinceGenesis;
-
-		while (!highestCommonBlock && requestCounter < numberOfRequests) {
+		while (!highestCommonBlock && numberOfRequests < requestLimit) {
 			const blockHeights = [];
 
-			for (let j = roundsCounter; j > j - numberOfRoundsPerRequest; j -= 1) {
-				const heightFirstBlockOfTheRound =
-					j - 1 * this.constants.activeDelegates;
-
-				blockHeights.push(heightFirstBlockOfTheRound);
+			while (numberOfBlocks < blocksPerRequestLimit) {
+				blockHeights.push(currentRound * this.constants.activeDelegates);
+				currentRound -= 1;
+				numberOfBlocks += 1;
 			}
 
 			const blocks = await this.storage.entities.Block.get(
-				{ height: blockHeights },
+				{ height_in: blockHeights },
 				{
 					sort: 'height:asc',
 				},
@@ -184,9 +179,9 @@ class BlockSynchronizationMechanism {
 				data: blockIds,
 			});
 
-			highestCommonBlock = data;
-			requestCounter += 1;
-			roundsCounter -= numberOfRoundsPerRequest;
+			highestCommonBlock = data; // If no common block, data is undefined.
+
+			numberOfRequests += 1;
 		}
 
 		return highestCommonBlock;

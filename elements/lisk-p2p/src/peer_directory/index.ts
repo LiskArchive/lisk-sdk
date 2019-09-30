@@ -12,3 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export * from './peer_book';
+export { AddPeerOutcome } from './peer_list';
