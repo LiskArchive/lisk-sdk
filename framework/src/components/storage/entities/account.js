@@ -22,7 +22,6 @@ const BaseEntity = require('./base_entity');
 
 const sqlFiles = {
 	selectSimple: 'accounts/get.sql',
-	selectFull: 'accounts/get_extended.sql',
 	count: 'accounts/count.sql',
 	isPersisted: 'accounts/is_persisted.sql',
 };
@@ -417,7 +416,7 @@ class Account extends BaseEntity {
 		};
 
 		return this.adapter.executeFile(
-			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
+			this.SQLs.selectSimple,
 			params,
 			{ expectedResultCount },
 			tx,
