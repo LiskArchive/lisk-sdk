@@ -133,8 +133,8 @@ class BlockSynchronizationMechanism {
 	 * Requests the last common block in common with the targeted peer.
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one)
-	 * @param peer
-	 * @return {Promise<Object>}
+	 * @param peer - The peer to target.
+	 * @return {Promise<Object | undefined>}
 	 * @private
 	 */
 	async _requestLastCommonBlock(peer) {
@@ -143,21 +143,36 @@ class BlockSynchronizationMechanism {
 			limit: 1,
 		});
 
-		const blocksPerRequestLimit = 10;
-		const requestLimit = 10;
+		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
+		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 
-		let numberOfRequests = 0;
-		let numberOfBlocks = 0;
+		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
+		let numberOfBlocks = 0; // Keeps track of the number of block IDs to be included in a request
 		let currentRound = Math.floor(
 			lastBlock.height / this.constants.activeDelegates,
-		); // Assuming Round number 0 is the first round ever
-		let highestCommonBlock;
+		); // Keeps track of the round number it is  being used to compute the first block of the round to be included in the request payload
+		let highestCommonBlock; // Holds the common block returned by the peer if found.
 
-		while (!highestCommonBlock && numberOfRequests < requestLimit) {
+		while (
+			!highestCommonBlock &&
+			numberOfRequests < requestLimit &&
+			currentRound * this.constants.activeDelegates < this.bft.finalizedHeight
+		) {
 			const blockHeights = [];
 
-			while (numberOfBlocks < blocksPerRequestLimit) {
-				blockHeights.push(currentRound * this.constants.activeDelegates);
+			while (
+				numberOfBlocks < blocksPerRequestLimit &&
+				currentRound * this.constants.activeDelegates < this.bft.finalizedHeight
+			) {
+				let height = currentRound * this.constants.activeDelegates;
+				if (height <= this.bft.finalizedHeight) {
+					// if the calculated height is smaller than finalized height we push finalized height
+					// on the array and currentRound -= 1 will stop the loop.
+					// The reason for this is stated in step 3.b of LIP-0014 under Block Synchronization Mechanism
+					height = this.bft.finalizedHeight;
+				}
+
+				blockHeights.push(height);
 				currentRound -= 1;
 				numberOfBlocks += 1;
 			}
@@ -203,7 +218,6 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _requestAndValidateLastBlock(receivedBlock, peer) {
-		// The node requests the last common block C from P (Peer).
 		const { data: networkLastBlock } = await this.channel.invoke(
 			'network:requestFromPeer',
 			{
