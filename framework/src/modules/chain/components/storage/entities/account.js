@@ -293,8 +293,6 @@ class ChainAccount extends AccountEntity {
 	 * - mem_accounts
 	 * - rounds_rewards
 	 * - mem_round
-	 * - mem_accounts2delegates
-	 * - mem_accounts2multisignatures
 	 *
 	 * @param {Object} tx - DB transaction object
 	 * @returns {Promise}

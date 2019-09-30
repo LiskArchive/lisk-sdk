@@ -38,10 +38,7 @@ SELECT
 		ROUND((("producedBlocks"::float / ("producedBlocks" + "missedBlocks")) * 100.0)::numeric, 2)::float
 	end AS productivity,
 	"votedDelegatesPublicKeys",
-	(SELECT array_agg("dependentId")
-  		FROM mem_accounts2multisignatures
-  		WHERE "accountId" = mem_accounts.address
-	) as "membersPublicKeys"
+	"membersPublicKeys"
 FROM
 	mem_accounts
 
