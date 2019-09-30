@@ -204,12 +204,12 @@ describe('WS transport', () => {
 			});
 		});
 
-		describe('getHighestCommonBlockId', () => {
+		describe('getHighestCommonBlock', () => {
 			it('using no params should fail', async () => {
 				let res;
 				try {
 					const { data } = await p2p.request({
-						procedure: 'getHighestCommonBlockId',
+						procedure: 'getHighestCommonBlock',
 					});
 					res = data;
 				} catch (err) {
@@ -227,7 +227,7 @@ describe('WS transport', () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'getHighestCommonBlockId',
+						procedure: 'getHighestCommonBlock',
 						data: { ids: ['1', '2', '2'] },
 					});
 				} catch (err) {
@@ -246,7 +246,7 @@ describe('WS transport', () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'getHighestCommonBlockId',
+						procedure: 'getHighestCommonBlock',
 						data: { ids: [] },
 					});
 				} catch (err) {
@@ -265,7 +265,7 @@ describe('WS transport', () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'getHighestCommonBlockId',
+						procedure: 'getHighestCommonBlock',
 						data: { ids: ['abcde', '1'] },
 					});
 				} catch (err) {
@@ -282,7 +282,7 @@ describe('WS transport', () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'getHighestCommonBlockId',
+						procedure: 'getHighestCommonBlock',
 						data: { ids: '1,2,3,4,5,6' },
 					});
 				} catch (err) {
@@ -295,26 +295,15 @@ describe('WS transport', () => {
 				}
 			});
 
-			it('using ids which include genesisBlock.id should be ok', async () => {
-				const { data } = await p2p.request({
-					procedure: 'getHighestCommonBlockId',
-					data: {
-						ids: [__testContext.config.genesisBlock.id.toString(), '2', '3'],
-					},
-				});
-				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
-				expect(data).to.equal(__testContext.config.genesisBlock.id.toString());
-			});
-
 			it('using ["1","2","3"] should return an empty array (no common blocks)', async () => {
 				const { data } = await p2p.request({
-					procedure: 'getHighestCommonBlockId',
+					procedure: 'getHighestCommonBlock',
 					data: {
 						ids: ['1', '2', '3'],
 					},
 				});
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
-				expect(data).to.be.null;
+				expect(data).to.be.undefined;
 			});
 		});
 
