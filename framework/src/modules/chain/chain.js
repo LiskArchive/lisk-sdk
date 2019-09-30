@@ -330,7 +330,7 @@ module.exports = class Chain {
 					action.params.ids,
 				);
 
-				return commonBlock || null;
+				return commonBlock;
 			},
 		};
 	}
