@@ -108,9 +108,10 @@ const validateSchema = ({ block }) => {
 };
 
 class BlockProcessorV0 extends BaseBlockProcessor {
-	constructor({ blocksModule, logger, constants, exceptions }) {
+	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;
+		this.dposModule = dposModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
@@ -125,6 +126,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 					blockBytes,
 				}), // validate common block header
 			data => this.blocksModule.verifyInMemory(data),
+			({ block }) => this.dposModule.verifyBlockForger(block),
 		]);
 
 		this.validateDetached.pipe([
