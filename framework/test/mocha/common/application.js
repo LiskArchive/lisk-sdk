@@ -106,6 +106,7 @@ const initStepsForTest = {
 		});
 		const processorDependency = {
 			blocksModule: modules.blocks,
+			dposModule: modules.dpos,
 			logger: scope.components.logger,
 			constants: __testContext.config.constants,
 			exceptions: __testContext.config.modules.chain.exceptions,
