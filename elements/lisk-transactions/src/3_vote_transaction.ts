@@ -200,7 +200,8 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(voteAssetFormatSchema, this.asset);
+		const asset = this.assetToJSON();
+		validator.validate(voteAssetFormatSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
