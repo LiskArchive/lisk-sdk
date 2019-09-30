@@ -14,10 +14,10 @@
 
 'use strict';
 
+const { when } = require('jest-when');
 const {
 	Block: blockFixture,
 } = require('../../../../../../mocha/fixtures/blocks');
-
 const {
 	FinalityManager,
 } = require('../../../../../../../src/modules/chain/bft/finality_manager');
@@ -100,8 +100,8 @@ describe('bft', () => {
 				expect(bft.storage).toBe(storageMock);
 				expect(bft.logger).toBe(loggerMock);
 				expect(bft.constants).toEqual({ activeDelegates, startingHeight });
-				expect(bft.BlockEntity).toBe(storageMock.entities.Block);
-				expect(bft.ChainMetaEntity).toBe(storageMock.entities.ChainMeta);
+				expect(bft.blockEntity).toBe(storageMock.entities.Block);
+				expect(bft.chainMetaEntity).toBe(storageMock.entities.ChainMeta);
 			});
 		});
 
@@ -193,6 +193,172 @@ describe('bft', () => {
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
 					fromHeight: bft.constants.startingHeight,
 					tillHeight: lastBlockHeight,
+				});
+			});
+		});
+
+		describe('#computeBFTHeaderProperties', () => {
+			const delegatePublicKey =
+				'9986cedd4b5a28e4c81d9b4bff0461dddaa25099df00b8632fe99e88df28ce73';
+
+			let bft;
+
+			beforeEach(async () => {
+				bft = new BFT(bftParams);
+				storageMock.entities.Block.get.mockReturnValue([]);
+				await bft.init();
+				storageMock.entities.Block.get.mockClear();
+			});
+
+			describe('when a delegate is first time forging', () => {
+				beforeEach(async () => {
+					when(storageMock.entities.ChainMeta.getKey)
+						.calledWith('BFT.maxHeightPreviouslyForged')
+						.mockResolvedValue(undefined);
+				});
+
+				it('should return maxHeightPreviouslyForged as 0', async () => {
+					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
+					expect(props.maxHeightPreviouslyForged).toBe(0);
+				});
+
+				it('should return prevotedConfirmedUptoHeight up to last block', async () => {
+					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
+					expect(props.prevotedConfirmedUptoHeight).toBe(0);
+				});
+			});
+
+			describe('when a delegate forged before', () => {
+				const lastForgedHeight = 123;
+				beforeEach(async () => {
+					const previouslyForgedMap = {
+						[delegatePublicKey]: lastForgedHeight,
+						dummyDelegate: 100,
+					};
+					when(storageMock.entities.ChainMeta.getKey)
+						.calledWith('BFT.maxHeightPreviouslyForged')
+						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
+				});
+
+				it('should return maxHeightPreviouslyForged as height previouslyForged', async () => {
+					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
+					expect(props.maxHeightPreviouslyForged).toBe(lastForgedHeight);
+				});
+
+				it('should return prevotedConfirmedUptoHeight up to last block', async () => {
+					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
+					expect(props.prevotedConfirmedUptoHeight).toBe(0);
+				});
+			});
+		});
+
+		describe('#saveMaxHeightPreviouslyForged', () => {
+			const delegatePublicKey =
+				'9986cedd4b5a28e4c81d9b4bff0461dddaa25099df00b8632fe99e88df28ce73';
+			const forgingHeight = 303;
+
+			let bft;
+
+			beforeEach(async () => {
+				bft = new BFT(bftParams);
+				storageMock.entities.Block.get.mockReturnValue([]);
+				await bft.init();
+				storageMock.entities.Block.get.mockClear();
+			});
+
+			describe('when a delegate is first time forging', () => {
+				const previouslyForgedMap = {
+					dummyDelegate: 100,
+				};
+
+				beforeEach(async () => {
+					when(storageMock.entities.ChainMeta.getKey)
+						.calledWith('BFT.maxHeightPreviouslyForged')
+						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
+				});
+
+				it('should save the forging height and not change other properties', async () => {
+					await bft.saveMaxHeightPreviouslyForged(
+						delegatePublicKey,
+						forgingHeight,
+					);
+					expect(storageMock.entities.ChainMeta.setKey).toHaveBeenCalledWith(
+						'BFT.maxHeightPreviouslyForged',
+						JSON.stringify({
+							...previouslyForgedMap,
+							[delegatePublicKey]: forgingHeight,
+						}),
+					);
+				});
+			});
+
+			describe('when a delegate forged before on lower height', () => {
+				const previouslyForgedMap = {
+					dummyDelegate: 100,
+					[delegatePublicKey]: 11,
+				};
+
+				beforeEach(async () => {
+					when(storageMock.entities.ChainMeta.getKey)
+						.calledWith('BFT.maxHeightPreviouslyForged')
+						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
+				});
+
+				it('should save the forging height and not change other properties', async () => {
+					await bft.saveMaxHeightPreviouslyForged(
+						delegatePublicKey,
+						forgingHeight,
+					);
+					expect(storageMock.entities.ChainMeta.setKey).toHaveBeenCalledWith(
+						'BFT.maxHeightPreviouslyForged',
+						JSON.stringify({
+							...previouslyForgedMap,
+							[delegatePublicKey]: forgingHeight,
+						}),
+					);
+				});
+			});
+
+			describe('when a delegate forged before on higher height', () => {
+				const higherHeightOriginallyForged = 500;
+				const previouslyForgedMap = {
+					dummyDelegate: 100,
+					[delegatePublicKey]: higherHeightOriginallyForged,
+				};
+
+				beforeEach(async () => {
+					when(storageMock.entities.ChainMeta.getKey)
+						.calledWith('BFT.maxHeightPreviouslyForged')
+						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
+				});
+
+				it('should save the forging height and not change other properties', async () => {
+					await bft.saveMaxHeightPreviouslyForged(
+						delegatePublicKey,
+						forgingHeight,
+					);
+					expect(storageMock.entities.ChainMeta.setKey).not.toHaveBeenCalled();
+				});
+			});
+
+			describe('when a delegate forged before on the same height', () => {
+				const previouslyForgedMap = {
+					dummyDelegate: 100,
+					[delegatePublicKey]: forgingHeight,
+				};
+
+				beforeEach(async () => {
+					when(storageMock.entities.ChainMeta.getKey)
+						.calledWith('BFT.maxHeightPreviouslyForged')
+						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
+				});
+
+				it('should save the forging height and not change other properties', async () => {
+					await bft.saveMaxHeightPreviouslyForged(
+						delegatePublicKey,
+						forgingHeight,
+					);
+					expect(storageMock.entities.ChainMeta.setKey).not.toHaveBeenCalled();
 				});
 			});
 		});

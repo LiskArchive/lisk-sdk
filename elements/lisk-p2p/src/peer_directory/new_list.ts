@@ -50,18 +50,14 @@ export class NewList extends PeerList {
 	}
 
 	// Extend eviction of NewPeers
-	public evictPeer(bucketId: number): CustomPeerInfo {
-		const peerList = this.peerMap.get(bucketId);
-
-		if (!peerList) {
-			throw new Error(`No Peer list for bucket Id: ${bucketId}`);
+	protected evictPeerFromBucket(bucketId: number): CustomPeerInfo | undefined {
+		const bucket = this.peerMap.get(bucketId);
+		if (!bucket) {
+			return undefined;
 		}
 
 		// First eviction strategy
-		const evictedPeerBasedOnTime = this._evictionBasedOnTimeInBucket(
-			bucketId,
-			peerList,
-		);
+		const evictedPeerBasedOnTime = this._evictPeerBasedOnTimeInBucket(bucketId);
 
 		if (evictedPeerBasedOnTime) {
 			return evictedPeerBasedOnTime;
@@ -70,34 +66,28 @@ export class NewList extends PeerList {
 		// Second eviction strategy: Default eviction based on base class
 		return this.evictRandomlyFromBucket(bucketId);
 	}
-	// Evict a peer when a bucket is full based on the time of residence in a peerlist
-	private _evictionBasedOnTimeInBucket(
+
+	// Evict a peer when a bucket is full based on the time of residence in a bucket
+	private _evictPeerBasedOnTimeInBucket(
 		bucketId: number,
-		peerList: Map<string, CustomPeerInfo>,
 	): CustomPeerInfo | undefined {
-		// tslint:disable-next-line:no-let
-		let evictedPeer: CustomPeerInfo | undefined;
+		const bucket = this.peerMap.get(bucketId);
+		if (!bucket) {
+			return undefined;
+		}
 
-		[...this.peerMap.values()].forEach(peersMap => {
-			[...peersMap.keys()].forEach(peerId => {
-				const peer = peersMap.get(peerId);
+		for (const [peerId, peer] of bucket) {
+			const timeDifference = Math.round(
+				Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+			);
 
-				if (!peer) {
-					return;
-				}
+			if (timeDifference >= this._evictionThresholdTime) {
+				bucket.delete(peerId);
 
-				const timeDifference = Math.round(
-					Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
-				);
+				return peer;
+			}
+		}
 
-				if (timeDifference >= this._evictionThresholdTime) {
-					peerList.delete(peerId);
-					this.peerMap.set(bucketId, peerList);
-					evictedPeer = peer;
-				}
-			});
-		});
-
-		return evictedPeer;
+		return undefined;
 	}
 }
