@@ -28,7 +28,6 @@ describe('#registerDelegate transaction', () => {
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
-	const amount = '0';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let registerDelegateTransaction: Partial<TransactionJSON>;
@@ -81,24 +80,11 @@ describe('#registerDelegate transaction', () => {
 				.and.equal(transactionType);
 		});
 
-		it('should have amount string equal to 0', () => {
-			return expect(registerDelegateTransaction)
-				.to.have.property('amount')
-				.and.be.a('string')
-				.and.equal(amount);
-		});
-
 		it('should have fee string equal to 25 LSK', () => {
 			return expect(registerDelegateTransaction)
 				.to.have.property('fee')
 				.and.be.a('string')
 				.and.equal(fee);
-		});
-
-		it('should have recipientId equal to empty string', () => {
-			return expect(registerDelegateTransaction)
-				.to.have.property('recipientId')
-				.and.equal('');
 		});
 
 		it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -133,8 +119,8 @@ describe('#registerDelegate transaction', () => {
 		describe('delegate asset', () => {
 			it('should be an object', () => {
 				return expect(registerDelegateTransaction.asset)
-					.to.have.property('delegate')
-					.and.be.an('object');
+					.to.have.property('username')
+					.and.be.an('string');
 			});
 
 			it('should have the provided username as a string', () => {
@@ -196,22 +182,10 @@ describe('#registerDelegate transaction', () => {
 					.equal(transactionType);
 			});
 
-			it('should have the amount', () => {
-				return expect(registerDelegateTransaction)
-					.to.have.property('amount')
-					.equal(amount);
-			});
-
 			it('should have the fee', () => {
 				return expect(registerDelegateTransaction)
 					.to.have.property('fee')
 					.equal(fee);
-			});
-
-			it('should have the recipient id', () => {
-				return expect(registerDelegateTransaction)
-					.to.have.property('recipientId')
-					.equal('');
 			});
 
 			it('should have the sender public key', () => {
@@ -229,7 +203,6 @@ describe('#registerDelegate transaction', () => {
 			it('should have the asset with the delegate', () => {
 				return expect(registerDelegateTransaction)
 					.to.have.property('asset')
-					.with.property('delegate')
 					.with.property('username');
 			});
 
