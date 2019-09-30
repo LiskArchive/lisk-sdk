@@ -13,7 +13,6 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { TransactionError } from '../errors';
 import { TransactionJSON } from '../transaction_types';
 import { getTransactionBytes } from './get_transaction_bytes';
 
@@ -27,17 +26,6 @@ export const getId = (transactionBytes: Buffer): string => {
 	);
 
 	return transactionId;
-};
-
-export const validateTransactionId = (
-	id: string,
-	bytes: Buffer,
-): TransactionError | undefined => {
-	const expectedId = getId(bytes);
-
-	return id !== expectedId
-		? new TransactionError(`Invalid transaction id`, id, '.id', id, expectedId)
-		: undefined;
 };
 
 // FIXME: Deprecated

@@ -24,24 +24,16 @@ import { TransactionJSON } from './transaction_types';
 import { getId, validator } from './utils';
 
 export interface SecondSignatureAsset {
-	readonly signature: {
-		readonly publicKey: string;
-	};
+	readonly publicKey: string;
 }
 
 export const secondSignatureAssetFormatSchema = {
 	type: 'object',
-	required: ['signature'],
+	required: ['publicKey'],
 	properties: {
-		signature: {
-			type: 'object',
-			required: ['publicKey'],
-			properties: {
-				publicKey: {
-					type: 'string',
-					format: 'publicKey',
-				},
-			},
+		publicKey: {
+			type: 'string',
+			format: 'publicKey',
 		},
 	},
 };
@@ -61,9 +53,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	}
 
 	protected assetToBytes(): Buffer {
-		const {
-			signature: { publicKey },
-		} = this.asset;
+		const { publicKey } = this.asset;
 
 		return hexToBuffer(publicKey);
 	}
@@ -101,42 +91,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for second signature registration transaction',
-					this.id,
-					'.amount',
-					this.amount.toString(),
-					'0',
-				),
-			);
-		}
-
-		if (this.recipientId) {
-			errors.push(
-				new TransactionError(
-					'RecipientId is expected to be undefined.',
-					this.id,
-					'.recipientId',
-					this.recipientId,
-					'',
-				),
-			);
-		}
-
-		if (this.recipientPublicKey) {
-			errors.push(
-				new TransactionError(
-					'RecipientPublicKey is expected to be undefined.',
-					this.id,
-					'.recipientPublicKey',
-					this.recipientPublicKey,
-					'',
-				),
-			);
-		}
-
 		return errors;
 	}
 
@@ -155,7 +109,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		}
 		const updatedSender = {
 			...sender,
-			secondPublicKey: this.asset.signature.publicKey,
+			secondPublicKey: this.asset.publicKey,
 			secondSignature: 1,
 		};
 		store.account.set(updatedSender.address, updatedSender);

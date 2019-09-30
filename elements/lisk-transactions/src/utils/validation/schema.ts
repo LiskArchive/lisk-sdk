@@ -12,59 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const transaction = {
-	$id: 'lisk/transaction',
-	type: 'object',
-	required: ['type', 'amount', 'fee', 'senderPublicKey', 'timestamp'],
-	properties: {
-		id: {
-			type: 'string',
-		},
-		blockId: {
-			type: 'string',
-		},
-		amount: {
-			type: ['string', 'integer'],
-		},
-		fee: {
-			type: ['string', 'integer'],
-		},
-		type: {
-			type: 'integer',
-		},
-		timestamp: {
-			type: 'integer',
-		},
-		senderId: {
-			type: 'string',
-		},
-		senderPublicKey: {
-			type: 'string',
-		},
-		recipientId: {
-			type: ['string', 'null'],
-		},
-		recipientPublicKey: {
-			type: ['string', 'null'],
-		},
-		signature: {
-			type: 'string',
-		},
-		signSignature: {
-			type: 'string',
-		},
-		signatures: {
-			type: 'array',
-		},
-		asset: {
-			type: 'object',
-		},
-		receivedAt: {
-			type: 'string',
-		},
-	},
-};
-
 export const transactionInterface = {
 	required: [
 		'toJSON',
@@ -126,8 +73,6 @@ export const baseTransaction = {
 	required: [
 		'id',
 		'type',
-		'amount',
-		'fee',
 		'senderPublicKey',
 		'timestamp',
 		'asset',
@@ -150,15 +95,6 @@ export const baseTransaction = {
 			type: 'integer',
 			minimum: 0,
 		},
-
-		amount: {
-			type: 'string',
-			format: 'amount',
-		},
-		fee: {
-			type: 'string',
-			format: 'fee',
-		},
 		type: {
 			type: 'integer',
 			minimum: 0,
@@ -168,10 +104,6 @@ export const baseTransaction = {
 			minimum: -2147483648,
 			maximum: 2147483647,
 		},
-		senderId: {
-			type: 'string',
-			format: 'address',
-		},
 		senderPublicKey: {
 			type: 'string',
 			format: 'publicKey',
@@ -179,13 +111,6 @@ export const baseTransaction = {
 		senderSecondPublicKey: {
 			type: 'string',
 			format: 'publicKey',
-		},
-		recipientId: {
-			type: 'string',
-		},
-		recipientPublicKey: {
-			type: 'string',
-			format: 'emptyOrPublicKey',
 		},
 		signature: {
 			type: 'string',

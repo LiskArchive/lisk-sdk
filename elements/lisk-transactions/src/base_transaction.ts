@@ -18,7 +18,6 @@ import {
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
-	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
 import {
@@ -37,15 +36,12 @@ import { createResponse, Status } from './response';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
-	isValidNumber,
 	validateSenderIdAndPublicKey,
 	validateSignature,
-	validateTransactionId,
 	validator,
 	verifyBalance,
 	verifyMultiSignatures,
 	verifySecondSignature,
-	verifySenderId,
 	verifySenderPublicKey,
 } from './utils';
 import * as schemas from './utils/validation/schema';
@@ -99,26 +95,22 @@ export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
 export abstract class BaseTransaction {
-	public readonly amount: BigNum;
-	public readonly recipientId: string;
 	public readonly blockId?: string;
 	public readonly height?: number;
 	public readonly relays?: number;
 	public readonly confirmations?: number;
-	public readonly recipientPublicKey?: string;
 	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
-	public readonly fee: BigNum;
 	public readonly asset: object;
+	public fee: BigNum;
 	public receivedAt?: Date;
 
 	public static TYPE: number;
 	public static FEE = '0';
 
 	protected _id?: string;
-	protected _senderId?: string;
 	protected _senderPublicKey?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
@@ -141,15 +133,7 @@ export abstract class BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 
-		this.amount = new BigNum(
-			isValidNumber(tx.amount) ? (tx.amount as string | number) : '0',
-		);
-
-		this.fee = new BigNum(
-			isValidNumber(tx.fee)
-				? (tx.fee as string | number)
-				: (this.constructor as typeof BaseTransaction).FEE,
-		);
+		this.fee = new BigNum((this.constructor as typeof BaseTransaction).FEE);
 
 		this.type =
 			typeof tx.type === 'number'
@@ -157,16 +141,7 @@ export abstract class BaseTransaction {
 				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
-		this.recipientId = tx.recipientId || '';
-		this.recipientPublicKey = tx.recipientPublicKey || undefined;
 		this._senderPublicKey = tx.senderPublicKey || '';
-		try {
-			this._senderId = tx.senderId
-				? tx.senderId
-				: getAddressFromPublicKey(this.senderPublicKey);
-		} catch (error) {
-			this._senderId = '';
-		}
 
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
@@ -191,11 +166,7 @@ export abstract class BaseTransaction {
 	}
 
 	public get senderId(): string {
-		if (!this._senderId) {
-			throw new Error('senderId is required to be set before use');
-		}
-
-		return this._senderId;
+		return getAddressFromPublicKey(this.senderPublicKey);
 	}
 
 	public get senderPublicKey(): string {
@@ -225,13 +196,10 @@ export abstract class BaseTransaction {
 			height: this.height,
 			relays: this.relays,
 			confirmations: this.confirmations,
-			amount: this.amount.toString(),
 			type: this.type,
 			timestamp: this.timestamp,
 			senderPublicKey: this.senderPublicKey,
 			senderId: this.senderId,
-			recipientId: this.recipientId,
-			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
 			signature: this.signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
@@ -271,6 +239,8 @@ export abstract class BaseTransaction {
 		}
 		const transactionBytes = this.getBasicBytes();
 
+		// TODO: calculate ID here?
+
 		const {
 			valid: signatureValid,
 			error: verificationError,
@@ -285,12 +255,6 @@ export abstract class BaseTransaction {
 			errors.push(verificationError);
 		}
 
-		const idError = validateTransactionId(this.id, this.getBytes());
-
-		if (idError) {
-			errors.push(idError);
-		}
-
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
 				new TransactionError(
@@ -303,25 +267,7 @@ export abstract class BaseTransaction {
 			);
 		}
 
-		const feeError = this.validateFee();
-
-		if (feeError) {
-			errors.push(feeError);
-		}
-
 		return createResponse(this.id, errors);
-	}
-
-	public validateFee(): TransactionError | undefined {
-		return !this.fee.eq((this.constructor as typeof BaseTransaction).FEE)
-			? new TransactionError(
-					`Invalid fee`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					(this.constructor as typeof BaseTransaction).FEE.toString(),
-			  )
-			: undefined;
 	}
 
 	public verifyAgainstOtherTransactions(
@@ -515,15 +461,7 @@ export abstract class BaseTransaction {
 	}
 
 	public sign(passphrase: string, secondPassphrase?: string): void {
-		const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
-			passphrase,
-		);
-
-		if (this._senderId !== '' && this._senderId !== address) {
-			throw new Error(
-				'Transaction senderId does not match address from passphrase',
-			);
-		}
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
 			throw new Error(
@@ -531,7 +469,6 @@ export abstract class BaseTransaction {
 			);
 		}
 
-		this._senderId = address;
 		this._senderPublicKey = publicKey;
 
 		this._signature = undefined;
@@ -550,14 +487,11 @@ export abstract class BaseTransaction {
 
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
-		const transactionRecipientID = this.recipientId
-			? intToBuffer(
-					this.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  ).slice(0, BYTESIZES.RECIPIENT_ID)
-			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
+		// TODO: Remove on the hard fork change
+		const transactionRecipientID = Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
-		const transactionAmount = this.amount.toBuffer({
+		// TODO: Remove on the hard fork change
+		const transactionAmount = new BigNum(0).toBuffer({
 			endian: 'little',
 			size: BYTESIZES.AMOUNT,
 		});
@@ -596,7 +530,6 @@ export abstract class BaseTransaction {
 		// Verify Basic state
 		return [
 			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
-			verifySenderId(this.id, sender, this.senderId),
 			verifyBalance(this.id, sender, this.fee),
 			verifySecondSignature(
 				this.id,

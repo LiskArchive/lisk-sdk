@@ -61,23 +61,13 @@ export const getAssetDataForTransferTransaction = ({
 
 // FIXME: Deprecated
 export const getAssetDataForRegisterSecondSignatureTransaction = ({
-	signature,
-}: SecondSignatureAsset): Buffer => {
-	checkRequiredFields(['publicKey'], signature);
-	const { publicKey } = signature;
-
-	return cryptography.hexToBuffer(publicKey);
-};
+	publicKey,
+}: SecondSignatureAsset): Buffer => cryptography.hexToBuffer(publicKey);
 
 // FIXME: Deprecated
 export const getAssetDataForRegisterDelegateTransaction = ({
-	delegate,
-}: DelegateAsset): Buffer => {
-	checkRequiredFields(['username'], delegate);
-	const { username } = delegate;
-
-	return Buffer.from(username, 'utf8');
-};
+	username,
+}: DelegateAsset): Buffer => Buffer.from(username, 'utf8');
 
 // FIXME: Deprecated
 export const getAssetDataForCastVotesTransaction = ({
@@ -92,10 +82,10 @@ export const getAssetDataForCastVotesTransaction = ({
 
 // FIXME: Deprecated
 export const getAssetDataForRegisterMultisignatureAccountTransaction = ({
-	multisignature,
+	min,
+	lifetime,
+	keysgroup,
 }: MultiSignatureAsset): Buffer => {
-	checkRequiredFields(['min', 'lifetime', 'keysgroup'], multisignature);
-	const { min, lifetime, keysgroup } = multisignature;
 	const minBuffer = Buffer.alloc(1, min);
 	const lifetimeBuffer = Buffer.alloc(1, lifetime);
 	const keysgroupBuffer = Buffer.from(keysgroup.join(''), 'utf8');
@@ -196,12 +186,15 @@ const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 	'type',
 	'timestamp',
 	'senderPublicKey',
-	'amount',
 ];
 
 // FIXME: Deprecated
 export const checkTransaction = (transaction: TransactionJSON): boolean => {
-	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
+	// TODO: temporal fix, remove on other PR
+	checkRequiredFields(
+		REQUIRED_TRANSACTION_PARAMETERS,
+		(transaction as unknown) as { readonly [key: string]: unknown },
+	);
 	const { data } = transaction.asset as TransferAsset;
 	if (data && data.length > BYTESIZES.DATA) {
 		throw new Error(
@@ -212,6 +205,14 @@ export const checkTransaction = (transaction: TransactionJSON): boolean => {
 	return true;
 };
 
+interface AssetWithRecipientId {
+	readonly recipientId: string;
+}
+
+interface AssetWithAmount {
+	readonly amount: string | number;
+}
+
 // FIXME: Deprecated
 export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	checkTransaction(transaction);
@@ -219,8 +220,6 @@ export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 		type,
 		timestamp,
 		senderPublicKey,
-		recipientId,
-		amount,
 		signature,
 		signSignature,
 	} = transaction;
@@ -231,11 +230,19 @@ export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 
 	const transactionSenderPublicKey = cryptography.hexToBuffer(senderPublicKey);
 
-	const transactionRecipientID = recipientId
-		? cryptography.intToBuffer(recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
-		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
+	const transactionRecipientID =
+		transaction.asset && 'recipientId' in transaction.asset
+			? cryptography.intToBuffer(
+					(transaction.asset as AssetWithRecipientId).recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  )
+			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
-	const amountBigNum = new BigNum(amount);
+	const amountBigNum = new BigNum(
+		transaction.asset && 'amount' in transaction.asset
+			? (transaction.asset as AssetWithAmount).amount
+			: '0',
+	);
 	if (amountBigNum.lt(0)) {
 		throw new Error('Transaction amount must not be negative.');
 	}

@@ -23,26 +23,18 @@ import { Account, TransactionJSON } from './transaction_types';
 import { validator } from './utils';
 
 export interface DelegateAsset {
-	readonly delegate: {
-		readonly username: string;
-	};
+	readonly username: string;
 }
 
 export const delegateAssetFormatSchema = {
 	type: 'object',
-	required: ['delegate'],
+	required: ['username'],
 	properties: {
-		delegate: {
-			type: 'object',
-			required: ['username'],
-			properties: {
-				username: {
-					type: 'string',
-					minLength: 1,
-					maxLength: 20,
-					format: 'username',
-				},
-			},
+		username: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 20,
+			format: 'username',
 		},
 	},
 };
@@ -63,9 +55,7 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	protected assetToBytes(): Buffer {
-		const {
-			delegate: { username },
-		} = this.asset;
+		const { username } = this.asset;
 
 		return Buffer.from(username, 'utf8');
 	}
@@ -76,7 +66,7 @@ export class DelegateTransaction extends BaseTransaction {
 				address: this.senderId,
 			},
 			{
-				username: this.asset.delegate.username,
+				username: this.asset.username,
 			},
 		]);
 	}
@@ -106,39 +96,6 @@ export class DelegateTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for delegate registration transaction',
-					this.id,
-					'.amount',
-					this.amount.toString(),
-					'0',
-				),
-			);
-		}
-
-		if (this.recipientId) {
-			errors.push(
-				new TransactionError(
-					'RecipientId is expected to be undefined',
-					this.id,
-					'.recipientId',
-					this.recipientId,
-				),
-			);
-		}
-
-		if (this.recipientPublicKey) {
-			errors.push(
-				new TransactionError(
-					'Invalid recipientPublicKey',
-					this.id,
-					'.recipientPublicKey',
-				),
-			);
-		}
-
 		return errors;
 	}
 
@@ -146,7 +103,7 @@ export class DelegateTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
 		const usernameExists = store.account.find(
-			(account: Account) => account.username === this.asset.delegate.username,
+			(account: Account) => account.username === this.asset.username,
 		);
 
 		if (usernameExists) {
@@ -169,7 +126,7 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 		const updatedSender = {
 			...sender,
-			username: this.asset.delegate.username,
+			username: this.asset.username,
 			vote: 0,
 			isDelegate: 1,
 		};

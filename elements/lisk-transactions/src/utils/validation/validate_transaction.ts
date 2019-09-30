@@ -45,8 +45,8 @@ export interface ValidationResult {
 
 const validateMultiTransaction = (tx: TransactionJSON): ValidationResult => {
 	if (
-		(tx.asset as MultiSignatureAsset).multisignature.min >
-		(tx.asset as MultiSignatureAsset).multisignature.keysgroup.length
+		(tx.asset as MultiSignatureAsset).min >
+		(tx.asset as MultiSignatureAsset).keysgroup.length
 	) {
 		return {
 			valid: false,
