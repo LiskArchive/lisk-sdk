@@ -22,7 +22,7 @@ export class TestTransaction extends BaseTransaction {
 	public static FEE = TRANSFER_FEE.toString();
 
 	public assetToJSON(): object {
-		return {};
+		return this.asset;
 	}
 
 	public async prepare() {

@@ -239,7 +239,7 @@ export abstract class BaseTransaction {
 		}
 		const transactionBytes = this.getBasicBytes();
 
-		// TODO: calculate ID here?
+		this._id = getId(this.getBytes());
 
 		const {
 			valid: signatureValid,
