@@ -123,7 +123,7 @@ describe('Second signature registration transaction class', () => {
 		it('should return an object of type transfer asset', async () => {
 			expect(validTestTransaction.assetToJSON())
 				.to.be.an('object')
-				.and.to.have.property('signature');
+				.and.to.have.property('publicKey');
 		});
 	});
 
@@ -143,24 +143,11 @@ describe('Second signature registration transaction class', () => {
 			expect(errors).to.be.empty;
 		});
 
-		it('should return error when amount is non-zero', async () => {
-			const invalidTransaction = {
-				...validRegisterSecondSignatureTransaction,
-				amount: '100',
-			};
-			const transaction = new SecondSignatureTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-
-			expect(errors).not.to.be.empty;
-		});
-
 		it('should return error when asset includes invalid publicKey', async () => {
 			const invalidTransaction = {
 				...validRegisterSecondSignatureTransaction,
 				asset: {
-					signature: {
-						publicKey: '1234',
-					},
+					publicKey: '1234',
 				},
 			};
 			const transaction = new SecondSignatureTransaction(invalidTransaction);

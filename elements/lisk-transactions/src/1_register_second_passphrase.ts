@@ -14,7 +14,6 @@
  */
 import { getKeys } from '@liskhq/lisk-cryptography';
 import { SecondSignatureTransaction } from './1_second_signature_transaction';
-import { SIGNATURE_FEE } from './constants';
 import { TransactionJSON } from './transaction_types';
 import { createBaseTransaction } from './utils';
 
@@ -44,8 +43,7 @@ export const registerSecondPassphrase = (
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 1,
-		fee: SIGNATURE_FEE.toString(),
-		asset: { signature: { publicKey } },
+		asset: { publicKey },
 	};
 
 	if (!passphrase) {
