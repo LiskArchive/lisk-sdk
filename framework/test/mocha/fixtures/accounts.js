@@ -120,6 +120,8 @@ const Account = stampit({
 			this.producedBlocks / (this.producedBlocks + this.missedBlocks) || 0;
 		this.balance = balance || '0';
 		this.asset = asset || {};
+		this.votedDelegatesPublicKeys = null;
+		this.membersPublicKeys = null;
 	},
 });
 
@@ -145,6 +147,8 @@ const dbAccount = stampit({
 		vote: '0',
 		voteWeight: '0',
 		asset: {},
+		votedDelegatesPublicKeys: null,
+		membersPublicKeys: null,
 	},
 	init({ address, balance }) {
 		this.address = address || this.address;
