@@ -18,6 +18,8 @@ const { maxBy, groupBy } = require('lodash');
 const { deleteBlocksAfterHeight } = require('./utils');
 const ForkChoiceRule = require('../blocks/fork_choice_rule');
 
+const PEER_STATE_CONNECTED = 2;
+
 class BlockSynchronizationMechanism {
 	constructor({
 		storage,
@@ -45,9 +47,10 @@ class BlockSynchronizationMechanism {
 	async run(receivedBlock) {
 		this.active = true;
 		try {
-			const { connectedPeers: peers } = await this.channel.invoke(
-				'network:getNetworkStatus',
-			);
+			const peers = await this.channel.invoke('network:getPeers', {
+				state: PEER_STATE_CONNECTED,
+			});
+
 			if (!peers.length) {
 				throw new Error('Connected peers list is empty');
 			}
@@ -92,7 +95,6 @@ class BlockSynchronizationMechanism {
 		const lastCommonBlock = await this._requestLastCommonBlock(peer);
 
 		if (!lastCommonBlock) {
-			// TODO: Should we apply penalty here?
 			this._applyPenaltyAndRestartSync(
 				peer,
 				receivedBlock,
@@ -113,20 +115,47 @@ class BlockSynchronizationMechanism {
 			);
 		}
 
-		try {
-			await deleteBlocksAfterHeight(
-				this.processorModule,
-				this.blocks,
-				lastCommonBlock.height,
-			);
-		} catch (e) {
-			this.logger.debug(
-				`Failure deleting blocks after height ${
-					lastCommonBlock.height
-				} while reverting chain to last common block`,
-			);
-			throw e;
+		await deleteBlocksAfterHeight(
+			this.processorModule,
+			this.blocks,
+			lastCommonBlock.height,
+		);
+	}
+
+	/**
+	 * Returns a list of block heights corresponding to the first block of a defined number
+	 * of rounds (listSizeLimit)
+	 *
+	 * @param listSizeLimit
+	 * @param _currentRound
+	 * @return {Promise<*>}
+	 * @private
+	 */
+	async _computeBlockHeightsList(listSizeLimit, _currentRound) {
+		const blockHeights = [];
+		let numberOfBlocks = 0; // Keeps track of the number of block IDs to be included in a request
+		let currentRound = _currentRound;
+		let currentHeight = currentRound * this.constants.activeDelegates;
+
+		while (
+			numberOfBlocks < listSizeLimit &&
+			currentHeight > this.bft.finalizedHeight
+		) {
+			let height = currentRound * this.constants.activeDelegates;
+			if (height <= this.bft.finalizedHeight) {
+				// if the calculated height is smaller than finalized height we push finalized height
+				// on the array and currentRound -= 1 will stop the loop.
+				// The reason for this is stated in step 3.b of LIP-0014 under Block Synchronization Mechanism
+				height = this.bft.finalizedHeight;
+			}
+
+			blockHeights.push(height);
+			currentRound -= 1;
+			currentHeight = currentRound * this.constants.activeDelegates;
+			numberOfBlocks += 1;
 		}
+
+		return blockHeights;
 	}
 
 	/**
@@ -138,53 +167,32 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _requestLastCommonBlock(peer) {
-		const [lastBlock] = await this.storage.entities.Block.get({
-			sort: 'height:desc',
-			limit: 1,
-		});
-
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 
 		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
-		let numberOfBlocks = 0; // Keeps track of the number of block IDs to be included in a request
-		let currentRound = Math.floor(
-			lastBlock.height / this.constants.activeDelegates,
-		); // Keeps track of the round number it is  being used to compute the first block of the round to be included in the request payload
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
+		let currentRound = Math.floor(
+			this.blocks.lastBlock.height / this.constants.activeDelegates,
+		);
+		let currentHeight = currentRound * this.constants.activeDelegates;
 
 		while (
 			!highestCommonBlock &&
 			numberOfRequests < requestLimit &&
-			currentRound * this.constants.activeDelegates < this.bft.finalizedHeight
+			currentHeight > this.bft.finalizedHeight
 		) {
-			const blockHeights = [];
-
-			while (
-				numberOfBlocks < blocksPerRequestLimit &&
-				currentRound * this.constants.activeDelegates < this.bft.finalizedHeight
-			) {
-				let height = currentRound * this.constants.activeDelegates;
-				if (height <= this.bft.finalizedHeight) {
-					// if the calculated height is smaller than finalized height we push finalized height
-					// on the array and currentRound -= 1 will stop the loop.
-					// The reason for this is stated in step 3.b of LIP-0014 under Block Synchronization Mechanism
-					height = this.bft.finalizedHeight;
-				}
-
-				blockHeights.push(height);
-				currentRound -= 1;
-				numberOfBlocks += 1;
-			}
-
-			const blocks = await this.storage.entities.Block.get(
-				{ height_in: blockHeights },
+			const blockIds = (await this.storage.entities.Block.get(
+				{
+					height_in: this._computeBlockHeightsList(
+						blocksPerRequestLimit,
+						currentRound,
+					),
+				},
 				{
 					sort: 'height:asc',
 				},
-			);
-
-			const blockIds = blocks.map(block => block.id);
+			)).map(block => block.id);
 
 			// Request the highest common block with the previously computed list
 			// to the given peer
@@ -196,6 +204,8 @@ class BlockSynchronizationMechanism {
 
 			highestCommonBlock = data; // If no common block, data is undefined.
 
+			currentRound -= blocksPerRequestLimit;
+			currentHeight = currentRound * this.constants.activeDelegates;
 			numberOfRequests += 1;
 		}
 
@@ -335,7 +345,10 @@ class BlockSynchronizationMechanism {
 			throw new Error('Violation of fork choice rule');
 		}
 
-		return selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
+		const bestPeer =
+			selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
+		bestPeer.id = `${bestPeer.ip}:${bestPeer.wsPort}`;
+		return bestPeer;
 	}
 
 	/**
