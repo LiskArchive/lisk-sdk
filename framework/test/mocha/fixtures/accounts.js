@@ -62,6 +62,8 @@ accounts.mem_accountsFields = [
 	'fees',
 	'rewards',
 	'asset',
+	'membersPublicKeys',
+	'votedDelegatesPublicKeys',
 ];
 
 const Account = stampit({
