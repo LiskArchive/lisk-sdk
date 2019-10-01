@@ -41,7 +41,7 @@ import {
 	DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
 	DEFAULT_RANDOM_SECRET,
-	DEFAULT_SEND_PEER_LIMIT,
+	INTENTIONAL_DISCONNECT_CODE,
 } from '../../src/constants';
 import {
 	RequestFailError,
@@ -110,6 +110,7 @@ describe.only('peerPool', () => {
 		};
 		peerObject = <SCServerSocket>({
 			...peerInfo,
+			id: peerId,
 			connect: sandbox.stub(),
 			on: sandbox.stub(),
 			off: sandbox.stub(),
@@ -358,8 +359,6 @@ describe.only('peerPool', () => {
 		});
 	});
 
-	describe('#triggerNewConnections', () => {});
-
 	describe('#addInboundPeer', () => {
 		let getPeersStub: any;
 
@@ -510,19 +509,60 @@ describe.only('peerPool', () => {
 		});
 	});
 
-	describe('#removeAllPeers', () => {});
+	describe('#removeAllPeers', () => {
+		let removePeerStub: any;
+		beforeEach(() => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+			removePeerStub = sandbox.stub(peerPool, 'removePeer');
+		});
 
-	describe('#getPeers', () => {});
+		it('should call removePeer for all peers in peerMap', async () => {
+			peerPool.removeAllPeers();
+			expect(removePeerStub).to.be.calledWithExactly(
+				peerId,
+				INTENTIONAL_DISCONNECT_CODE,
+				`Intentionally removed peer ${peerId}`,
+			);
+		});
+	});
 
-	describe('#getUniqueOutboundConnectedPeers', () => {});
+	describe('#getPeers', () => {
+		beforeEach(() => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+		});
 
-	describe('#getAllConnectedPeerInfos', () => {});
+		it('should return peers by kind', async () => {
+			const inboundPeers = peerPool.getPeers(Object as any);
 
-	describe('#getConnectedPeers', () => {});
+			expect(inboundPeers).to.have.length(1);
+		});
+	});
 
-	describe('#getPeer', () => {});
+	describe('#getPeer', () => {
+		beforeEach(() => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+		});
 
-	describe('#hasPeer', () => {});
+		it('should return a peer based on peerId', async () => {
+			const peer = peerPool.getPeer(peerId);
+
+			expect(peer).to.exist;
+		});
+	});
+
+	describe('#hasPeer', () => {
+		it('should return true if peer exists in pool', () => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+
+			expect(peerPool.hasPeer(peerId)).to.be.true;
+		});
+
+		it('should return false if peer does not exist in pool', () => {
+			(peerPool as any)._peerMap = new Map([]);
+
+			expect(peerPool.hasPeer(peerId)).to.be.false;
+		});
+	});
 
 	describe('#removePeer', () => {});
 
@@ -829,60 +869,6 @@ describe.only('peerPool', () => {
 
 			it('should return an empty array', async () => {
 				expect(peerPool.getConnectedPeers().map(peer => peer.peerInfo)).eql([]);
-			});
-		});
-	});
-
-	describe('#request', () => {
-		describe('when no peers are found', () => {
-			let caughtError: Error;
-			beforeEach(async () => {
-				(peerPool as any)._peerSelectForRequest = sandbox
-					.stub()
-					.returns([] as ReadonlyArray<P2PPeerInfo>);
-				try {
-					await peerPool.request({ procedure: 'proc', data: 123 });
-				} catch (err) {
-					caughtError = err;
-				}
-			});
-
-			it('should call _peerSelectForRequest with all the necessary options', async () => {
-				expect((peerPool as any)._peerSelectForRequest).to.be.calledWith({
-					peers: [],
-					nodeInfo: peerPool.nodeInfo,
-					peerLimit: 1,
-					requestPacket: { procedure: 'proc', data: 123 },
-				});
-			});
-
-			it('should throw an error', async () => {
-				expect(caughtError).to.not.be.null;
-				expect(caughtError)
-					.to.have.property('name')
-					.which.equals('RequestFailError');
-			});
-		});
-
-		describe('when peers are found', () => {
-			it('should not throw an error');
-		});
-	});
-
-	describe('#send', () => {
-		beforeEach(async () => {
-			(peerPool['_peerSelectForSend'] as any) = sandbox
-				.stub()
-				.returns([] as ReadonlyArray<P2PPeerInfo>);
-			peerPool.send({ event: 'foo', data: 123 });
-		});
-
-		it('should call _peerSelectForSend with all the necessary options', async () => {
-			expect(peerPool['_peerSelectForSend']).to.be.calledWith({
-				peers: [],
-				nodeInfo: peerPool.nodeInfo,
-				peerLimit: DEFAULT_SEND_PEER_LIMIT,
-				messagePacket: { event: 'foo', data: 123 },
 			});
 		});
 	});
