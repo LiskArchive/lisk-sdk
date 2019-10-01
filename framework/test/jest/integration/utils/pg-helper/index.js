@@ -32,6 +32,8 @@ class PgHelper {
 			database: 'lisk_dev',
 			user: 'lisk',
 			password: 'password',
+			min: 1,
+			max: 1,
 		};
 
 		// eslint-disable-next-line no-param-reassign
@@ -83,7 +85,7 @@ class PgHelper {
 			user: 'lisk',
 			password: 'password',
 			min: 1,
-			max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
+			max: 1,
 			logFileName: `logs/devnet/lisk_${this.database}.log`,
 			noWarnings: true,
 			poolIdleTimeout: 30000,
