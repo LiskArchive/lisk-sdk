@@ -50,7 +50,7 @@ const restoreBlocks = async (blocksModule, processorModule, tx) => {
  * @param {Number} desiredHeight - The height desired to delete blocks after.
  * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
  */
-const deleteBlocksAfterHeight = async (
+const deleteBlocksAfterHeightAndBackup = async (
 	processorModule,
 	blocksModule,
 	desiredHeight,
@@ -66,5 +66,5 @@ const deleteBlocksAfterHeight = async (
 
 module.exports = {
 	restoreBlocks,
-	deleteBlocksAfterHeight,
+	deleteBlocksAfterHeightAndBackup,
 };

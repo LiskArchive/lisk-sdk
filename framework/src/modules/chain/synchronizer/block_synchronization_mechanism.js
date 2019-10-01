@@ -15,8 +15,8 @@
 'use strict';
 
 const { maxBy, groupBy } = require('lodash');
-const { deleteBlocksAfterHeight } = require('./utils');
-const ForkChoiceRule = require('../blocks/fork_choice_rule');
+const { deleteBlocksAfterHeightAndBackup } = require('./utils');
+const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
 
 const PEER_STATE_CONNECTED = 2;
 
@@ -55,7 +55,7 @@ class BlockSynchronizationMechanism {
 				throw new Error('Connected peers list is empty');
 			}
 
-			const bestPeer = this._computeBestPeer(peers);
+			const bestPeer = await this._computeBestPeer(peers);
 			await this._requestAndValidateLastBlock(receivedBlock, bestPeer);
 			await this._revertToLastCommonBlock(receivedBlock, bestPeer);
 		} finally {
@@ -115,7 +115,7 @@ class BlockSynchronizationMechanism {
 			);
 		}
 
-		await deleteBlocksAfterHeight(
+		await deleteBlocksAfterHeightAndBackup(
 			this.processorModule,
 			this.blocks,
 			lastCommonBlock.height,
@@ -126,7 +126,7 @@ class BlockSynchronizationMechanism {
 	 * Returns a list of block heights corresponding to the first block of a defined number
 	 * of rounds (listSizeLimit)
 	 *
-	 * @param listSizeLimit
+	 * @param listSizeLimit - The size of the array to be computed
 	 * @param _currentRound
 	 * @return {Promise<*>}
 	 * @private
@@ -174,7 +174,7 @@ class BlockSynchronizationMechanism {
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
 		let currentRound = Math.floor(
 			this.blocks.lastBlock.height / this.constants.activeDelegates,
-		);
+		); // Holds the current round number
 		let currentHeight = currentRound * this.constants.activeDelegates;
 
 		while (
@@ -239,12 +239,15 @@ class BlockSynchronizationMechanism {
 		const { valid: validBlock, err } = await this._blockDetachedStatus(
 			networkLastBlock,
 		);
-		const notInDifferentChain = ForkChoiceRule.isDifferentChain(
-			this.blocks.lastBlock,
-			networkLastBlock,
-		);
 
-		if (!validBlock || !notInDifferentChain) {
+		const forkStatus = await this.processorModule.forkStatus.run({
+			block: networkLastBlock,
+			lastBlock: this.blocks.lastBlock,
+		});
+
+		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+
+		if (!validBlock || !inDifferentChain) {
 			this._applyPenaltyAndRestartSync(peer, receivedBlock, err);
 		}
 	}
@@ -298,7 +301,7 @@ class BlockSynchronizationMechanism {
 	 * @return {Array<Object>}
 	 * @private
 	 */
-	_computeBestPeer(peers) {
+	async _computeBestPeer(peers) {
 		// Largest subset of peers with largest prevotedConfirmedUptoHeight
 		const largestSubsetByPrevotedConfirmedUptoHeight = this._computeLargestSubsetMaxBy(
 			peers,
@@ -341,7 +344,14 @@ class BlockSynchronizationMechanism {
 			height: peers[0].height,
 		};
 
-		if (!ForkChoiceRule.isDifferentChain(this.blocks.lastBlock, peersTip)) {
+		const forkStatus = await this.processorModule.forkStatus.run({
+			block: peersTip,
+			lastBlock: this.blocks.lastBlock,
+		});
+
+		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+
+		if (!inDifferentChain) {
 			throw new Error('Violation of fork choice rule');
 		}
 
