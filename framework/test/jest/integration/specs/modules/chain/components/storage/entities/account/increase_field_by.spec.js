@@ -25,7 +25,7 @@ describe('storage.entities.Account.increaseFieldBy', () => {
 
 	beforeAll(async () => {
 		// Arrange
-		pgHelper = new PgHelper({ dbName: 'AccountIncreaseFieldBy' });
+		pgHelper = new PgHelper({ database: 'AccountIncreaseFieldBy' });
 
 		// Create second postgres connection
 		db = await pgHelper.bootstrap();
