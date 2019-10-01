@@ -429,9 +429,86 @@ describe.only('peerPool', () => {
 		});
 	});
 
-	describe('#addOutboundPeer', () => {});
+	describe('#addOutboundPeer', () => {
+		let getPeerStub: any;
+		let _bindHandlersToPeerStub: any;
 
-	describe('#getPeersCountPerKind', () => {});
+		beforeEach(async () => {
+			getPeerStub = sandbox
+				.stub(peerPool, 'getPeer')
+				.returns(peerObject as Peer);
+		});
+
+		it('should call getPeer with peerId', async () => {
+			peerPool.addOutboundPeer(peerId, peerObject as any);
+
+			expect(getPeerStub).to.be.calledWithExactly(peerId);
+		});
+
+		it('should return peer if peer already exists in peerpool', async () => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+
+			try {
+				peerPool.addOutboundPeer(peerId, peerObject as any);
+			} catch (err) {
+				expect(err.message).to.equal(
+					`Peer ${peerId} was already in the peer pool`,
+				);
+			}
+		});
+
+		it('should add peer to peerMap', async () => {
+			(peerPool as any)._peerMap = new Map([]);
+			peerPool.addOutboundPeer(peerId, peerObject as any);
+
+			expect((peerPool as any)._peerMap.has(peerId)).to.exist;
+		});
+
+		it('should call _bindHandlersToPeer', async () => {
+			getPeerStub.returns(undefined);
+			_bindHandlersToPeerStub = sandbox.stub(
+				peerPool as any,
+				'_bindHandlersToPeer',
+			);
+			peerPool.addOutboundPeer(peerId, peerObject as any);
+
+			expect(_bindHandlersToPeerStub).to.be.calledOnce;
+		});
+
+		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
+			getPeerStub.returns(undefined);
+			(peerPool as any)._nodeInfo = {
+				os: 'darwin',
+				protocolVersion: '1.0.1',
+				version: '1.1',
+			};
+			let _applyNodeInfoOnPeerStub = sandbox.stub(
+				peerPool as any,
+				'_applyNodeInfoOnPeer',
+			);
+			peerPool.addOutboundPeer(peerId, peerObject as any);
+
+			expect(_applyNodeInfoOnPeerStub).to.have.been.calledOnce;
+		});
+
+		it('should return peer object', async () => {
+			const peer = peerPool.addInboundPeer(peerInfo, peerObject as any);
+
+			expect(peer).to.exist;
+		});
+	});
+
+	describe('#getPeersCountPerKind', () => {
+		beforeEach(async () => {
+			peerPool.addOutboundPeer(peerId, peerObject as any);
+		});
+
+		it('should return an object with outboundCount and inboundCount', async () => {
+			const peerCount = peerPool.getPeersCountPerKind();
+			expect(peerCount).to.have.property('outboundCount', 1);
+			expect(peerCount).to.have.property('inboundCount', 0);
+		});
+	});
 
 	describe('#removeAllPeers', () => {});
 
