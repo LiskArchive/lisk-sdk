@@ -36,7 +36,6 @@ const transactionMap: { readonly [key: number]: any } = {
 	4: MultisignatureTransaction,
 };
 
-// TODO: need to reimplement
 export const createSignatureObject = (
 	transaction: TransactionJSON,
 	passphrase: string,
@@ -49,31 +48,33 @@ export const createSignatureObject = (
 	if (transaction.type < 0 || transaction.type > 4) {
 		throw new Error('Invalid transaction type.');
 	}
+
+	if (!transaction.id) {
+		throw new Error('Transaction ID is required to create a signature object.');
+	}
+
 	// tslint:disable-next-line variable-name
 	const TransactionClass = transactionMap[transaction.type];
-	const {
-		signature,
-		signSignature,
-		...transactionWithoutSignature
-	} = transaction;
-	const tx = new TransactionClass(
-		transactionWithoutSignature,
-	) as BaseTransaction;
+	const tx = new TransactionClass(transaction) as BaseTransaction;
 
 	const validStatus = tx.validate();
 	if (validStatus.errors.length > 0) {
-		throw validStatus.errors;
-	}
-
-	if (!tx.id) {
-		throw new Error('Transaction ID is required to create a signature object.');
+		throw new Error('Invalid transaction.');
 	}
 
 	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(
 		passphrase,
 	);
 
-	const multiSignature = cryptography.signData(tx.getBytes(), passphrase);
+	// tslint:disable-next-line no-any
+	(tx as any)._signature = undefined;
+	// tslint:disable-next-line no-any
+	(tx as any)._signSignature = undefined;
+
+	const multiSignature = cryptography.signData(
+		cryptography.hash(tx.getBytes()),
+		passphrase,
+	);
 
 	return {
 		transactionId: tx.id,
