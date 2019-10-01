@@ -19,7 +19,7 @@ import {
 } from '../src/create_signature_object';
 import { TransactionJSON } from '../src/transaction_types';
 
-describe.only('#createSignatureObject', () => {
+describe('#createSignatureObject', () => {
 	const transaction = {
 		senderPublicKey:
 			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',

@@ -36,7 +36,6 @@ import { convertToAssetError, TransactionError } from './errors';
 import { Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import {
-	checkPublicKeysForDuplicates,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	isValidInteger,
@@ -45,7 +44,6 @@ import {
 	stringEndsWith,
 	transactionInterface,
 	validateAddress,
-	validateFee,
 	validateKeysgroup,
 	validateNonTransferAmount,
 	validatePublicKey,
@@ -71,10 +69,6 @@ const exposedUtils = {
 	verifyAmountBalance,
 	validateNonTransferAmount,
 	validateTransferAmount,
-
-	// TODO: Deprecated
-	checkPublicKeysForDuplicates,
-	validateFee,
 };
 
 export {
