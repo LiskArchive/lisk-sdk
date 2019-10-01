@@ -87,11 +87,13 @@ describe.only('peerPool', () => {
 	let peerInfo: P2PDiscoveredPeerInfo;
 	let nodeInfo: P2PNodeInfo;
 	let peerId: string;
+	let peerObject: any;
 	beforeEach(async () => {
 		peerPool = new PeerPool(peerPoolConfig);
 		peerPool.emit = sandbox.stub();
+		peerId = '127.0.0.1:5000';
 		peerInfo = {
-			ipAddress: '127.0.0.1',
+			ipAddress: peerId,
 			wsPort: 5000,
 			height: 1,
 			updatedAt: new Date(),
@@ -106,7 +108,14 @@ describe.only('peerPool', () => {
 			wsPort: 5000,
 			height: 1000,
 		};
-		peerId = '127.0.0.1:5000';
+		peerObject = <SCServerSocket>({
+			...peerInfo,
+			connect: sandbox.stub(),
+			on: sandbox.stub(),
+			off: sandbox.stub(),
+			emit: sandbox.stub(),
+			destroy: sandbox.stub(),
+		} as any);
 	});
 
 	describe('#constructor', () => {
@@ -351,37 +360,29 @@ describe.only('peerPool', () => {
 
 	describe('#triggerNewConnections', () => {});
 
-	describe.only('#addInboundPeer', () => {
+	describe('#addInboundPeer', () => {
 		let getPeersStub: any;
-		let inboundPeer: any;
 
 		beforeEach(async () => {
-			inboundPeer = <SCServerSocket>({
-				...peerInfo,
-				on: sandbox.stub(),
-				off: sandbox.stub(),
-				emit: sandbox.stub(),
-				destroy: sandbox.stub(),
-			} as any);
-			getPeersStub = sandbox.stub(peerPool, 'getPeers').returns([inboundPeer]);
+			getPeersStub = sandbox.stub(peerPool, 'getPeers').returns([peerObject]);
 		});
 
 		it('should call getPeers with InboundPeer class', async () => {
-			peerPool.addInboundPeer(peerInfo, inboundPeer as any);
+			peerPool.addInboundPeer(peerInfo, peerObject as any);
 			expect(getPeersStub).to.be.calledWithExactly(InboundPeer);
 		});
 
 		it('should call _evictPeer if max inbound connections reached', async () => {
 			(peerPool as any)._maxInboundConnections = 0;
 			sandbox.stub(peerPool as any, '_evictPeer');
-			peerPool.addInboundPeer(peerInfo, inboundPeer as any);
+			peerPool.addInboundPeer(peerInfo, peerObject as any);
 			expect((peerPool as any)._evictPeer).to.be.calledWithExactly(InboundPeer);
 		});
 
 		it('should throw error if peer already exists in peerpool', async () => {
-			(peerPool as any)._peerMap = new Map([[peerId, inboundPeer]]);
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
 			try {
-				peerPool.addInboundPeer(peerInfo, inboundPeer as any);
+				peerPool.addInboundPeer(peerInfo, peerObject as any);
 			} catch (err) {
 				expect(err.message).to.equal(
 					`Peer ${peerId} was already in the peer pool`,
@@ -391,7 +392,7 @@ describe.only('peerPool', () => {
 
 		it('should add peer to peerMap', async () => {
 			(peerPool as any)._peerMap = new Map([]);
-			peerPool.addInboundPeer(peerInfo, inboundPeer as any);
+			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
 			expect((peerPool as any)._peerMap.has(peerId)).to.exist;
 		});
@@ -401,9 +402,30 @@ describe.only('peerPool', () => {
 				peerPool as any,
 				'_bindHandlersToPeer',
 			);
-			peerPool.addInboundPeer(peerInfo, inboundPeer as any);
+			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
 			expect(_bindHandlersToPeerStub).to.be.calledOnce;
+		});
+
+		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
+			(peerPool as any)._nodeInfo = {
+				os: 'darwin',
+				protocolVersion: '1.0.1',
+				version: '1.1',
+			};
+			let _applyNodeInfoOnPeerStub = sandbox.stub(
+				peerPool as any,
+				'_applyNodeInfoOnPeer',
+			);
+			peerPool.addInboundPeer(peerInfo, peerObject as any);
+
+			expect(_applyNodeInfoOnPeerStub).to.have.been.calledOnce;
+		});
+
+		it('should return peer object', async () => {
+			const peer = peerPool.addInboundPeer(peerInfo, peerObject as any);
+
+			expect(peer).to.exist;
 		});
 	});
 
