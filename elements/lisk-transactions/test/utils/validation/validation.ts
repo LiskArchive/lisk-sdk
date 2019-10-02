@@ -30,6 +30,7 @@ import {
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	isValidInteger,
+	isValidNumber,
 	isNullByteIncluded,
 } from '../../../src/utils/validation/validation';
 
@@ -391,6 +392,20 @@ describe('validation', () => {
 
 		it('should return true when negative integer was provided', () => {
 			return expect(isValidInteger(-6)).to.be.true;
+		});
+	});
+
+	describe('#isValidNumber', () => {
+		it('should return true when number was provided', () => {
+			return expect(isValidNumber(0)).to.be.true;
+		});
+
+		it('should return true when string with number was provided', () => {
+			return expect(isValidNumber('0')).to.be.true;
+		});
+
+		it('should return false when not a number was provided', () => {
+			return expect(isValidNumber('lorem ipsum')).to.be.false;
 		});
 	});
 
