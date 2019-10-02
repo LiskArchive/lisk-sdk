@@ -64,3 +64,5 @@ export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
 
 	return Buffer.from(matchedHex, 'hex');
 };
+
+export const stringToBuffer = (str: string): Buffer => Buffer.from(str, 'utf8');

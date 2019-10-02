@@ -13,7 +13,12 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { hexToBuffer, intToBuffer } from '@liskhq/lisk-cryptography';
+import {
+	bigNumberToBuffer,
+	hexToBuffer,
+	intToBuffer,
+	stringToBuffer,
+} from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	StateStore,
@@ -36,6 +41,7 @@ export interface VoteAsset {
 	// tslint:disable-next-line readonly-keyword
 	recipientId: string;
 	// Amount is kept for handling exception
+	// For exceptions.votes 15449731671927352923
 	readonly amount: BigNum;
 	readonly votes: ReadonlyArray<string>;
 }
@@ -118,11 +124,15 @@ export class VoteTransaction extends BaseTransaction {
 		this.asset.recipientId = this.senderId;
 	}
 
+	// Function getBasicBytes is overriden to maintain the bytes order
+	// TODO: remove after hardfork implementation
 	protected getBasicBytes(): Buffer {
-		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
-
+		const transactionType = intToBuffer(this.type, BYTESIZES.TYPE);
+		const transactionTimestamp = intToBuffer(
+			this.timestamp,
+			BYTESIZES.TIMESTAMP,
+			'little',
+		);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		// TODO: Remove on the hard fork change
@@ -130,13 +140,13 @@ export class VoteTransaction extends BaseTransaction {
 			this.asset.recipientId.slice(0, -1),
 			BYTESIZES.RECIPIENT_ID,
 		).slice(0, BYTESIZES.RECIPIENT_ID);
+		const transactionAmount = bigNumberToBuffer(
+			this.asset.amount.toString(),
+			BYTESIZES.AMOUNT,
+			'little',
+		);
 
-		const transactionAmount = this.asset.amount.toBuffer({
-			endian: 'little',
-			size: BYTESIZES.AMOUNT,
-		});
-
-		const votesBuffer = Buffer.from(this.asset.votes.join(''), 'utf8');
+		const votesBuffer = stringToBuffer(this.asset.votes.join(''));
 
 		return Buffer.concat([
 			transactionType,
