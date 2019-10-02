@@ -15,7 +15,10 @@
 'use strict';
 
 const { maxBy, groupBy } = require('lodash');
-const { deleteBlocksAfterHeightAndBackup } = require('./utils');
+const {
+	deleteBlocksAfterHeightAndBackup,
+	computeBlockHeightsList,
+} = require('./utils');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
 
 const PEER_STATE_CONNECTED = 2;
@@ -123,42 +126,6 @@ class BlockSynchronizationMechanism {
 	}
 
 	/**
-	 * Returns a list of block heights corresponding to the first block of a defined number
-	 * of rounds (listSizeLimit)
-	 *
-	 * @param listSizeLimit - The size of the array to be computed
-	 * @param _currentRound
-	 * @return {Promise<*>}
-	 * @private
-	 */
-	async _computeBlockHeightsList(listSizeLimit, _currentRound) {
-		const blockHeights = [];
-		let numberOfBlocks = 0; // Keeps track of the number of block IDs to be included in a request
-		let currentRound = _currentRound;
-		let currentHeight = currentRound * this.constants.activeDelegates;
-
-		while (
-			numberOfBlocks < listSizeLimit &&
-			currentHeight > this.bft.finalizedHeight
-		) {
-			let height = currentRound * this.constants.activeDelegates;
-			if (height <= this.bft.finalizedHeight) {
-				// if the calculated height is smaller than finalized height we push finalized height
-				// on the array and currentRound -= 1 will stop the loop.
-				// The reason for this is stated in step 3.b of LIP-0014 under Block Synchronization Mechanism
-				height = this.bft.finalizedHeight;
-			}
-
-			blockHeights.push(height);
-			currentRound -= 1;
-			currentHeight = currentRound * this.constants.activeDelegates;
-			numberOfBlocks += 1;
-		}
-
-		return blockHeights;
-	}
-
-	/**
 	 * Requests the last common block in common with the targeted peer.
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one)
@@ -184,7 +151,7 @@ class BlockSynchronizationMechanism {
 		) {
 			const blockIds = (await this.storage.entities.Block.get(
 				{
-					height_in: this._computeBlockHeightsList(
+					height_in: computeBlockHeightsList(
 						blocksPerRequestLimit,
 						currentRound,
 					),
