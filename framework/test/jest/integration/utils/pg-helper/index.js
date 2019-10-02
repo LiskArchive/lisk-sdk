@@ -53,8 +53,10 @@ class PgHelper {
 			// eslint-disable-next-line no-console
 			console.log('Dropping database instance:', this.database);
 			childProcess.exec(`dropdb ${this.database}`, err => {
-				// eslint-disable-next-line no-console
-				console.log(`dropdb ${this.database} failed`, err);
+				if (err) {
+					// eslint-disable-next-line no-console
+					console.log(`dropdb ${this.database} failed`, err);
+				}
 				resolve();
 			});
 		});
