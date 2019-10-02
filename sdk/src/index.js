@@ -22,6 +22,7 @@ const {
 	version,
 	systemDirs,
 	configurator,
+	BaseModule,
 } = require('lisk-framework');
 
 const samples = require('./samples');
@@ -31,6 +32,7 @@ module.exports = {
 	version,
 	systemDirs,
 	configurator,
+	BaseModule,
 	BigNum,
 	cryptography,
 	transactions,

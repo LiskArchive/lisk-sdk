@@ -18,6 +18,7 @@ const Application = require('./controller/application');
 const version = require('./version');
 const defaultConfigurator = require('./controller/default_configurator');
 const systemDirs = require('./controller/system_dirs');
+const BaseModule = require('./modules/base_module');
 
 /**
  * @namespace framework
@@ -28,4 +29,5 @@ module.exports = {
 	version,
 	systemDirs,
 	configurator: defaultConfigurator,
+	BaseModule,
 };
