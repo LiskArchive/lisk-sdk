@@ -139,9 +139,7 @@ class BlockSynchronizationMechanism {
 
 		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = Math.floor(
-			this.blocks.lastBlock.height / this.constants.activeDelegates,
-		); // Holds the current round number
+		let currentRound = this.slots.calcRound(this.blocks.lastBlock.height); // Holds the current round number
 		let currentHeight = currentRound * this.constants.activeDelegates;
 
 		while (
