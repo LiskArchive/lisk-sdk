@@ -52,7 +52,7 @@ import {
 import { constructPeerIdFromPeerInfo } from '../../src/utils';
 import { SCServerSocket } from 'socketcluster-server';
 
-describe.only('peerPool', () => {
+describe('peerPool', () => {
 	const peerPoolConfig = {
 		connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 		ackTimeout: DEFAULT_ACK_TIMEOUT,
@@ -88,6 +88,8 @@ describe.only('peerPool', () => {
 	let nodeInfo: P2PNodeInfo;
 	let peerId: string;
 	let peerObject: any;
+	let messagePacket: any;
+	let requestPacket: any;
 	beforeEach(async () => {
 		peerPool = new PeerPool(peerPoolConfig);
 		peerPool.emit = sandbox.stub();
@@ -108,10 +110,17 @@ describe.only('peerPool', () => {
 			wsPort: 5000,
 			height: 1000,
 		};
+		requestPacket = { procedure: 'abc', data: 'abc' };
+		messagePacket = { ...requestPacket, event: 'abc' };
 		peerObject = <SCServerSocket>({
 			...peerInfo,
 			id: peerId,
+			send: sandbox.stub(),
+			request: sandbox.stub(),
 			connect: sandbox.stub(),
+			applyPenalty: sandbox.stub(),
+			disconnect: sandbox.stub(),
+			removeListener: sandbox.stub(),
 			on: sandbox.stub(),
 			off: sandbox.stub(),
 			emit: sandbox.stub(),
@@ -226,8 +235,6 @@ describe.only('peerPool', () => {
 	});
 
 	describe('#request', () => {
-		const requestPacket = { procedure: 'abc', data: 'abc' };
-
 		it('should call getUniqueOutboundConnectedPeers', async () => {
 			sandbox.stub(peerPool, 'requestFromPeer').resolves();
 			const getUniqueOutboundConnectedPeersStub = sandbox
@@ -278,7 +285,6 @@ describe.only('peerPool', () => {
 	});
 
 	describe('#send', () => {
-		const messagePacket = { procedure: 'abc', data: 'abc', event: 'abc' };
 		let _peerSelectForSendStub: any;
 		let sendToPeer: any;
 
@@ -314,8 +320,6 @@ describe.only('peerPool', () => {
 	});
 
 	describe('#requestFromPeer', () => {
-		const requestPacket = { procedure: 'abc', data: 'abc' };
-
 		it('should throw error if no peers in peerPool', async () => {
 			(peerPool as any)._peerMap = new Map();
 			try {
@@ -326,19 +330,13 @@ describe.only('peerPool', () => {
 		});
 
 		it('should call peer request with packet', async () => {
-			const peerStub = {
-				request: sandbox.stub(),
-			};
-
-			(peerPool as any)._peerMap = new Map([['127.0.0.1:5000', peerStub]]);
+			(peerPool as any)._peerMap = new Map([['127.0.0.1:5000', peerObject]]);
 			await peerPool.requestFromPeer(requestPacket, peerId);
-			expect(peerStub.request).to.be.calledWithExactly(requestPacket);
+			expect(peerObject.request).to.be.calledWithExactly(requestPacket);
 		});
 	});
 
 	describe('#sendToPeer', () => {
-		const messagePacket = { procedure: 'abc', data: 'abc', event: 'abc' };
-
 		it('should throw error if no peers in peerPool', async () => {
 			(peerPool as any)._peerMap = new Map();
 			try {
@@ -564,9 +562,44 @@ describe.only('peerPool', () => {
 		});
 	});
 
-	describe('#removePeer', () => {});
+	describe('#removePeer', () => {
+		beforeEach(() => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+		});
 
-	describe('#applyPenalty', () => {});
+		it('should disconnect peer', async () => {
+			peerPool.removePeer(
+				peerId,
+				INTENTIONAL_DISCONNECT_CODE,
+				'Disconnect peer',
+			);
+
+			expect(peerObject.disconnect).to.be.calledOnce;
+		});
+
+		it('should remove peer from peerMap', () => {
+			peerPool.removePeer(
+				peerId,
+				INTENTIONAL_DISCONNECT_CODE,
+				'Disconnect peer',
+			);
+
+			expect((peerPool as any)._peerMap.has(peerId)).to.be.false;
+		});
+	});
+
+	describe('#applyPenalty', () => {
+		beforeEach(() => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+		});
+
+		it('should call applyPenalty on peer', async () => {
+			const penalty = 50;
+			peerPool.applyPenalty({ peerId, penalty });
+
+			expect(peerObject.applyPenalty).to.be.calledOnce;
+		});
+	});
 
 	describe('#filterPeersByCategory', () => {
 		const originalPeers = [...new Array(10).keys()].map(i => ({
