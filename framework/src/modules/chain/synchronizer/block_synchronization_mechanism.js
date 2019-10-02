@@ -207,10 +207,7 @@ class BlockSynchronizationMechanism {
 			networkLastBlock,
 		);
 
-		const forkStatus = await this.processorModule.forkStatus.run({
-			block: networkLastBlock,
-			lastBlock: this.blocks.lastBlock,
-		});
+		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
 
 		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
@@ -309,12 +306,10 @@ class BlockSynchronizationMechanism {
 		const peersTip = {
 			prevotedConfirmedUptoHeight: peers[0].prevotedConfirmedUptoHeight,
 			height: peers[0].height,
+			version: peers[0].version,
 		};
 
-		const forkStatus = await this.processorModule.forkStatus.run({
-			block: peersTip,
-			lastBlock: this.blocks.lastBlock,
-		});
+		const forkStatus = await this.processorModule.forkStatus(peersTip);
 
 		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 

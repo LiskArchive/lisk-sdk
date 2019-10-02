@@ -158,6 +158,16 @@ class Processor {
 		});
 	}
 
+	async forkStatus(receivedBlock) {
+		const blockProcessor = this._getBlockProcessor(receivedBlock);
+		const { lastBlock } = this.blocksModule;
+
+		return blockProcessor.forkStatus.run({
+			block: receivedBlock,
+			lastBlock,
+		});
+	}
+
 	async create(values) {
 		this.logger.debug({ data: values }, 'creating block');
 		const highestVersion = Math.max.apply(null, Object.keys(this.processors));
