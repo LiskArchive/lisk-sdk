@@ -18,7 +18,6 @@ const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
-const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
@@ -87,47 +86,6 @@ async function _getNetworkHeight() {
 	);
 
 	return parseInt(networkHeight, 10);
-}
-
-/**
- * Get count of confirmedTransaction from cache
- *
- * @returns Number
- * @private
- */
-async function _getConfirmedTransactionCount() {
-	// if cache is ready, then get cache and return
-	if (library.components.cache.ready) {
-		try {
-			const data = await library.components.cache.getJsonForKey(
-				CACHE_KEYS_TRANSACTION_COUNT,
-			);
-			if (data && data.confirmed !== null && data.confirmed !== undefined) {
-				return data.confirmed;
-			}
-		} catch (error) {
-			library.components.logger.debug("Transaction count wasn't cached");
-		}
-	}
-	const confirmed = await library.components.storage.entities.Transaction.count();
-	// only update cache if ready
-	if (library.components.cache.ready) {
-		try {
-			await library.components.cache.setJsonForKey(
-				CACHE_KEYS_TRANSACTION_COUNT,
-				{
-					confirmed,
-				},
-			);
-		} catch (error) {
-			// Ignore error and just put warn
-			library.components.logger.debug(
-				error,
-				'Failed to cache Transaction count',
-			);
-		}
-	}
-	return confirmed;
 }
 
 /**
