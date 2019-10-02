@@ -153,7 +153,7 @@ export const isNumberString = (str: string) => {
 		return false;
 	}
 
-	return /^[0-9]+$/g.test(str);
+	return /^-?[0-9]+$/g.test(str);
 };
 
 export const validateNonTransferAmount = (data: string) =>

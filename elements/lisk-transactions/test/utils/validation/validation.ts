@@ -370,6 +370,10 @@ describe('validation', () => {
 		it('should return true when string contains only number', () => {
 			return expect(isNumberString('1234568789')).to.be.true;
 		});
+
+		it('should return true when string contains only negative number', () => {
+			return expect(isNumberString('-1234568789')).to.be.true;
+		});
 	});
 
 	describe('#isValidInteger', () => {
