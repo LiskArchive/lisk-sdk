@@ -251,22 +251,10 @@ NodeController.getStatus = async (context, next) => {
 			secondsSinceEpoch,
 			loaded,
 			syncing,
-			unconfirmedTransactions,
 			lastBlock,
 		} = await library.channel.invoke('chain:getNodeStatus');
 
-		// get confirmed count from cache or chain
-
-		const [confirmed, networkHeight] = await Promise.all([
-			_getConfirmedTransactionCount(),
-			_getNetworkHeight(),
-		]);
-		const total =
-			confirmed +
-			Object.values(unconfirmedTransactions).reduce(
-				(prev, current) => prev + current,
-				0,
-			);
+		const networkHeight = await _getNetworkHeight();
 
 		const data = {
 			broadhash: library.applicationState.broadhash,
@@ -277,11 +265,6 @@ NodeController.getStatus = async (context, next) => {
 			loaded,
 			networkHeight,
 			syncing,
-			transactions: {
-				confirmed,
-				...unconfirmedTransactions,
-				total,
-			},
 		};
 
 		return next(null, data);
