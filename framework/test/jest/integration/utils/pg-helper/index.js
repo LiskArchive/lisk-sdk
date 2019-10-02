@@ -29,12 +29,15 @@ class PgHelper {
 		const defaultOptions = {
 			host: 'localhost',
 			port: 5432,
-			database: 'lisk_dev',
 			user: 'lisk',
 			password: 'password',
 			min: 1,
 			max: 1,
 		};
+
+		if (!options.database) {
+			throw new Error('Please define a database name');
+		}
 
 		// eslint-disable-next-line no-param-reassign
 		options = { ...defaultOptions, ...options };
@@ -49,7 +52,11 @@ class PgHelper {
 		return new Promise(resolve => {
 			// eslint-disable-next-line no-console
 			console.log('Dropping database instance:', this.database);
-			childProcess.exec(`dropdb ${this.database}`, () => resolve());
+			childProcess.exec(`dropdb ${this.database}`, err => {
+				// eslint-disable-next-line no-console
+				console.log(`dropdb ${this.database} failed`, err);
+				resolve();
+			});
 		});
 	}
 
@@ -77,6 +84,7 @@ class PgHelper {
 		await this.storage.adapter.db.$pool.end();
 		await this.conn.done();
 		await this.pgp.$pool.end();
+		await this._dropDB();
 	}
 
 	async createStorage(options = {}, logger) {
