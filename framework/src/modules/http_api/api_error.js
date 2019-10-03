@@ -15,7 +15,7 @@
 'use strict';
 
 /**
- * Extends standard Error with a code field and toJson function.
+ * Extends standard Error with a code field and toJSON function.
  *
  * @class
  * @memberof helpers
@@ -37,7 +37,7 @@ class ApiError extends Error {
 	 *
 	 * @returns {string}
 	 */
-	toJson() {
+	toJSON() {
 		return {
 			message: this.message,
 		};

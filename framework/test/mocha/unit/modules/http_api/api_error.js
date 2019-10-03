@@ -49,14 +49,14 @@ describe('helpers/apiError', () => {
 		});
 	});
 
-	describe('toJson', () => {
+	describe('toJSON', () => {
 		it('should return Object type result', done => {
-			expect(apiError.toJson()).to.be.an('Object');
+			expect(apiError.toJSON()).to.be.an('Object');
 			done();
 		});
 
 		it('should return result containing message = "Valid error message"', done => {
-			expect(apiError.toJson())
+			expect(apiError.toJSON())
 				.to.have.property('message')
 				.equal(validErrorMessage);
 			done();

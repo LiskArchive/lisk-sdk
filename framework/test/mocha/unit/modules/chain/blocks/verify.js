@@ -127,7 +127,7 @@ describe('blocks/verify', () => {
 
 		interfaceAdaptersMock = {
 			transactions: {
-				toJson: sinonSandbox.stub(),
+				toJSON: sinonSandbox.stub(),
 			},
 		};
 
