@@ -35,11 +35,32 @@ export interface P2PPenalty {
 	readonly penalty: number;
 }
 
-export interface P2PPeerInfo {
+export interface P2PSharedState {
 	readonly ipAddress: string;
 	readonly wsPort: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
+}
+
+export enum ConnectionKind {
+	OUTBOUND,
+	INBOUND,
+}
+
+export interface P2PInternalState {
+	readonly productivity: number;
+	readonly reputation: number;
+	readonly connectionKind: ConnectionKind;
+	readonly isFixedlistedPeer: boolean;
+	readonly isBlacklistedPeer: boolean;
+	readonly isWhitelistedPeer: boolean;
+	readonly isSeedPeer: boolean;
+	readonly isbanned: boolean;
+}
+
+export interface P2PPeerInfo {
+	readonly sharedState: P2PSharedState;
+	readonly internalState: P2PInternalState;
 }
 
 export interface P2PPeersCount {
