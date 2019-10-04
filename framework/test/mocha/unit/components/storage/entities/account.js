@@ -210,8 +210,8 @@ describe('Account', () => {
 			'voteWeight_lt',
 			'voteWeight_lte',
 			'voteWeight_in',
-			'votedDelegatesPublicKeys_in',
-			'membersPublicKeys_in',
+			'votedDelegatesPublicKeys',
+			'membersPublicKeys',
 			'asset_contains',
 			'asset_exists',
 		];

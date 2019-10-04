@@ -239,16 +239,16 @@ class Account extends BaseEntity {
 		this.addField('votedDelegatesPublicKeys', 'string');
 		this.addField('membersPublicKeys', 'string');
 
-		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
+		this.addFilter('votedDelegatesPublicKeys', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts."votedDelegatesPublicKeys" @> ANY (ARRAY [${votedDelegatesPublicKeys_in:csv}]::jsonb[])',
+				'mem_accounts."votedDelegatesPublicKeys" @> ${votedDelegatesPublicKeys}',
 		});
 
-		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
+		this.addFilter('membersPublicKeys', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts."membersPublicKeys" @> ANY (ARRAY [${membersPublicKeys_in:csv}]::jsonb[])',
+				'mem_accounts."membersPublicKeys" @> ${membersPublicKeys}',
 		});
 
 		this.addFilter('asset_contains', ft.CUSTOM, {

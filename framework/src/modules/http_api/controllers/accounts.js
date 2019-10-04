@@ -249,7 +249,7 @@ AccountsController.getMultisignatureMemberships = async function(
 
 	try {
 		let groups = await storage.entities.Account.get(
-			{ membersPublicKeys_in: [`"${account.publicKey}"`] }, // Need to add quotes for PSQL array search
+			{ membersPublicKeys: `"${account.publicKey}"` }, // Need to add quotes for PSQL array search
 		);
 
 		groups = await Promise.map(groups, multiSigAccountFormatter);
