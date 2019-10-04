@@ -35,7 +35,10 @@ describe('block_synchronization_mechanism', () => {
 			invoke: jest.fn(),
 			publish: jest.fn(),
 		};
-		const processorModuleMock = { validateDetached: jest.fn() };
+		const processorModuleMock = {
+			validateDetached: jest.fn(),
+			forkStatus: jest.fn(),
+		};
 
 		const lastBlockGetterMock = jest.fn();
 		const blocksMock = {};
@@ -162,12 +165,17 @@ describe('block_synchronization_mechanism', () => {
 		});
 
 		describe('#_computeBestPeer', () => {
+			beforeEach(() => {
+				processorModuleMock.forkStatus.mockResolvedValue(
+					ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
+				);
+			});
+
 			it('should accept an array of peers as input', () => {
 				expect(syncMechanism._computeBestPeer).toHaveLength(1);
 			});
 
-			it('should return a peer object', () => {
-				ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
+			it('should return a peer object', async () => {
 				lastBlockGetterMock.mockReturnValue({
 					height: 0,
 					prevotedConfirmedUptoHeight: 0,
@@ -182,7 +190,7 @@ describe('block_synchronization_mechanism', () => {
 					},
 				];
 
-				expect(syncMechanism._computeBestPeer(peers)).toEqual(peers[0]);
+				expect(await syncMechanism._computeBestPeer(peers)).toEqual(peers[0]);
 			});
 
 			describe('given a set of peers', () => {
@@ -198,14 +206,13 @@ describe('block_synchronization_mechanism', () => {
 				 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 				 */
 
-				it('should successfully select the best peer according to the steps defined in LIP-0014', () => {
-					ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
+				it('should successfully select the best peer according to the steps defined in LIP-0014', async () => {
 					lastBlockGetterMock.mockReturnValue({
 						height: 0,
 						prevotedConfirmedUptoHeight: 0,
 					}); // So ForkChoiceRule.isDifferentChain returns is TRUTHY
 
-					const selectedPeer = syncMechanism._computeBestPeer(peersList);
+					const selectedPeer = await syncMechanism._computeBestPeer(peersList);
 
 					// selectedPeers should be one of peers[3 - 5] ends included.
 
@@ -217,7 +224,11 @@ describe('block_synchronization_mechanism', () => {
 					);
 				});
 
-				it('should throw an error if the ForkChoiceRule.isDifferentChain evaluates falsy', () => {
+				it('should throw an error if the ForkChoiceRule.isDifferentChain evaluates falsy', async () => {
+					processorModuleMock.forkStatus.mockResolvedValue(
+						ForkChoiceRule.FORK_STATUS_DISCARD,
+					);
+
 					lastBlockGetterMock.mockReturnValue({
 						height: 66,
 						prevotedConfirmedUptoHeight: 0,
@@ -232,9 +243,11 @@ describe('block_synchronization_mechanism', () => {
 						},
 					];
 
-					expect(() => syncMechanism._computeBestPeer(peers)).toThrow(
-						'Violation of fork choice rule',
-					);
+					try {
+						await syncMechanism._computeBestPeer(peers);
+					} catch (e) {
+						expect(e.message).toEqual('Violation of fork choice rule');
+					}
 				});
 			});
 		});
@@ -260,22 +273,23 @@ describe('block_synchronization_mechanism', () => {
 
 		describe('#run()', () => {
 			describe('when there are no errors', () => {
-				it('should not ban peer or restart sync', async () => {
+				it.only('should not ban peer or restart sync', async () => {
 					const fakeLastBlock = { foo: 'bar' };
 					syncMechanism._computeBestPeer = jest.fn(() => ({
 						...peersList[0],
 						id: '127.0.0.1:30400',
 					}));
-					channelMock.invoke.mockImplementationOnce(() => ({
-						connectedPeers: peersList,
-					}));
+					channelMock.invoke.mockImplementationOnce(() => peersList);
 					channelMock.invoke.mockImplementationOnce(() => ({
 						data: fakeLastBlock,
 					}));
 					processorModuleMock.validateDetached.mockImplementation(
 						() => fakeLastBlock,
 					);
-					ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
+
+					processorModuleMock.forkStatus.mockResolvedValue(
+						ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
+					);
 
 					await syncMechanism.run();
 

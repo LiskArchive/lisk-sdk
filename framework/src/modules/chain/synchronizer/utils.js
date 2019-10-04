@@ -50,7 +50,7 @@ const restoreBlocks = async (blocksModule, processorModule, tx) => {
  * @param {Number} desiredHeight - The height desired to delete blocks after.
  * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
  */
-const deleteBlocksAfterHeight = async (
+const deleteBlocksAfterHeightAndBackup = async (
 	processorModule,
 	blocksModule,
 	desiredHeight,
@@ -64,7 +64,31 @@ const deleteBlocksAfterHeight = async (
 	}
 };
 
+/**
+ * Returns a list of block heights corresponding to the first block of a defined number
+ * of rounds (listSizeLimit)
+ *
+ * @param listSizeLimit - The size of the array to be computed
+ * @param currentRound
+ * @return {Promise<Array<string>>}
+ * @private
+ */
+const computeBlockHeightsList = async (listSizeLimit, currentRound) => {
+	const startingHeight = currentRound * this.constants.activeDelegates;
+	const heightList = new Array(listSizeLimit)
+		.fill(0)
+		.map((_, i) => startingHeight - i * this.constants.activeDelegates)
+		.filter(height => height > 0);
+	const heightListAfterFinalized = heightList.filter(
+		height => height > this.bft.finalizedHeight,
+	);
+	return heightList.length !== heightListAfterFinalized.length
+		? [...heightListAfterFinalized, this.bft.finalizedHeight]
+		: heightListAfterFinalized;
+};
+
 module.exports = {
 	restoreBlocks,
-	deleteBlocksAfterHeight,
+	deleteBlocksAfterHeightAndBackup,
+	computeBlockHeightsList,
 };

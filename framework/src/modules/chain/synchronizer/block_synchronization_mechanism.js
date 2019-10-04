@@ -15,8 +15,13 @@
 'use strict';
 
 const { maxBy, groupBy } = require('lodash');
-const { deleteBlocksAfterHeight } = require('./utils');
-const ForkChoiceRule = require('../blocks/fork_choice_rule');
+const {
+	deleteBlocksAfterHeightAndBackup,
+	computeBlockHeightsList,
+} = require('./utils');
+const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
+
+const PEER_STATE_CONNECTED = 2;
 
 class BlockSynchronizationMechanism {
 	constructor({
@@ -45,14 +50,15 @@ class BlockSynchronizationMechanism {
 	async run(receivedBlock) {
 		this.active = true;
 		try {
-			const { connectedPeers: peers } = await this.channel.invoke(
-				'network:getNetworkStatus',
-			);
+			const peers = await this.channel.invoke('network:getPeers', {
+				state: PEER_STATE_CONNECTED,
+			});
+
 			if (!peers.length) {
 				throw new Error('Connected peers list is empty');
 			}
 
-			const bestPeer = this._computeBestPeer(peers);
+			const bestPeer = await this._computeBestPeer(peers);
 			await this._requestAndValidateLastBlock(receivedBlock, bestPeer);
 			await this._revertToLastCommonBlock(receivedBlock, bestPeer);
 		} finally {
@@ -92,7 +98,6 @@ class BlockSynchronizationMechanism {
 		const lastCommonBlock = await this._requestLastCommonBlock(peer);
 
 		if (!lastCommonBlock) {
-			// TODO: Should we apply penalty here?
 			this._applyPenaltyAndRestartSync(
 				peer,
 				receivedBlock,
@@ -113,20 +118,11 @@ class BlockSynchronizationMechanism {
 			);
 		}
 
-		try {
-			await deleteBlocksAfterHeight(
-				this.processorModule,
-				this.blocks,
-				lastCommonBlock.height,
-			);
-		} catch (e) {
-			this.logger.debug(
-				`Failure deleting blocks after height ${
-					lastCommonBlock.height
-				} while reverting chain to last common block`,
-			);
-			throw e;
-		}
+		await deleteBlocksAfterHeightAndBackup(
+			this.processorModule,
+			this.blocks,
+			lastCommonBlock.height,
+		);
 	}
 
 	/**
@@ -138,38 +134,30 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _requestLastCommonBlock(peer) {
-		const [lastBlock] = await this.storage.entities.Block.get({
-			sort: 'height:desc',
-			limit: 1,
-		});
-
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 
 		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
-		let numberOfBlocks = 0; // Keeps track of the number of block IDs to be included in a request
-		let currentRound = Math.floor(
-			lastBlock.height / this.constants.activeDelegates,
-		); // Keeps track of the round number it is  being used to compute the first block of the round to be included in the request payload
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
+		let currentRound = this.slots.calcRound(this.blocks.lastBlock.height); // Holds the current round number
+		let currentHeight = currentRound * this.constants.activeDelegates;
 
-		while (!highestCommonBlock && numberOfRequests < requestLimit) {
-			const blockHeights = [];
-
-			while (numberOfBlocks < blocksPerRequestLimit) {
-				blockHeights.push(currentRound * this.constants.activeDelegates);
-				currentRound -= 1;
-				numberOfBlocks += 1;
-			}
-
-			const blocks = await this.storage.entities.Block.get(
-				{ height_in: blockHeights },
+		while (
+			!highestCommonBlock &&
+			numberOfRequests < requestLimit &&
+			currentHeight > this.bft.finalizedHeight
+		) {
+			const blockIds = (await this.storage.entities.Block.get(
+				{
+					height_in: computeBlockHeightsList(
+						blocksPerRequestLimit,
+						currentRound,
+					),
+				},
 				{
 					sort: 'height:asc',
 				},
-			);
-
-			const blockIds = blocks.map(block => block.id);
+			)).map(block => block.id);
 
 			// Request the highest common block with the previously computed list
 			// to the given peer
@@ -181,6 +169,8 @@ class BlockSynchronizationMechanism {
 
 			highestCommonBlock = data; // If no common block, data is undefined.
 
+			currentRound -= blocksPerRequestLimit;
+			currentHeight = currentRound * this.constants.activeDelegates;
 			numberOfRequests += 1;
 		}
 
@@ -203,7 +193,6 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _requestAndValidateLastBlock(receivedBlock, peer) {
-		// The node requests the last common block C from P (Peer).
 		const { data: networkLastBlock } = await this.channel.invoke(
 			'network:requestFromPeer',
 			{
@@ -215,12 +204,12 @@ class BlockSynchronizationMechanism {
 		const { valid: validBlock, err } = await this._blockDetachedStatus(
 			networkLastBlock,
 		);
-		const notInDifferentChain = ForkChoiceRule.isDifferentChain(
-			this.blocks.lastBlock,
-			networkLastBlock,
-		);
 
-		if (!validBlock || !notInDifferentChain) {
+		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
+
+		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+
+		if (!validBlock || !inDifferentChain) {
 			this._applyPenaltyAndRestartSync(peer, receivedBlock, err);
 		}
 	}
@@ -274,7 +263,7 @@ class BlockSynchronizationMechanism {
 	 * @return {Array<Object>}
 	 * @private
 	 */
-	_computeBestPeer(peers) {
+	async _computeBestPeer(peers) {
 		// Largest subset of peers with largest prevotedConfirmedUptoHeight
 		const largestSubsetByPrevotedConfirmedUptoHeight = this._computeLargestSubsetMaxBy(
 			peers,
@@ -315,13 +304,21 @@ class BlockSynchronizationMechanism {
 		const peersTip = {
 			prevotedConfirmedUptoHeight: peers[0].prevotedConfirmedUptoHeight,
 			height: peers[0].height,
+			version: peers[0].version,
 		};
 
-		if (!ForkChoiceRule.isDifferentChain(this.blocks.lastBlock, peersTip)) {
+		const forkStatus = await this.processorModule.forkStatus(peersTip);
+
+		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+
+		if (!inDifferentChain) {
 			throw new Error('Violation of fork choice rule');
 		}
 
-		return selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
+		const bestPeer =
+			selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
+		bestPeer.id = `${bestPeer.ip}:${bestPeer.wsPort}`;
+		return bestPeer;
 	}
 
 	/**
