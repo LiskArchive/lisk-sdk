@@ -89,7 +89,10 @@ describe('P2P.applyNodeInfo', () => {
 		for (let p2pNode of p2pNodeList.slice(1)) {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(
+					peerInfo =>
+						peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+				);
 			expect(firstP2PNodePeerInfo).to.exist;
 			expect(firstP2PNodePeerInfo)
 				.to.have.property('height')
@@ -117,12 +120,16 @@ describe('P2P.applyNodeInfo', () => {
 		for (let p2pNode of p2pNodeList.slice(1)) {
 			const firstNodeInConnectedPeer = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(
+					peerInfo =>
+						peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+				);
 
 			const allPeersList = p2pNode['_peerBook'].allPeers;
 
 			const firstNodeInAllPeersList = allPeersList.find(
-				peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+				peerInfo =>
+					peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
 			);
 
 			// Check if the peerinfo is updated in new peer list

@@ -105,11 +105,11 @@ export interface P2PClosePacket {
 }
 
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly previousPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly blacklistedPeers?: ReadonlyArray<P2PSharedState>;
+	readonly seedPeers?: ReadonlyArray<P2PSharedState>;
+	readonly fixedPeers?: ReadonlyArray<P2PSharedState>;
+	readonly whitelistedPeers?: ReadonlyArray<P2PSharedState>;
+	readonly previousPeers?: ReadonlyArray<P2PDiscoveredSharedPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;

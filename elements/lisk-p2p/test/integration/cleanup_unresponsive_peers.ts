@@ -39,7 +39,7 @@ describe('Cleanup unresponsive peers', () => {
 	it('should remove crashed nodes from network status of other nodes', async () => {
 		const initialPeerPorts = p2pNodeList[0]
 			.getConnectedPeers()
-			.map(peerInfo => peerInfo.wsPort)
+			.map(peerInfo => peerInfo.sharedState.wsPort)
 			.sort();
 
 		expect(initialPeerPorts).to.be.eql(
@@ -53,7 +53,7 @@ describe('Cleanup unresponsive peers', () => {
 
 		const peerPortsAfterPeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
-			.map(peerInfo => peerInfo.wsPort)
+			.map(peerInfo => peerInfo.sharedState.wsPort)
 			.sort();
 
 		const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {

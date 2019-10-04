@@ -233,11 +233,36 @@ export class P2P extends EventEmitter {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
-				seedPeers: config.seedPeers || [],
-				blacklistedPeers: config.blacklistedPeers || [],
-				fixedPeers: config.fixedPeers || [],
-				whitelisted: config.whitelistedPeers || [],
-				previousPeers: config.previousPeers || [],
+				seedPeers: config.seedPeers
+					? config.seedPeers.map(peer => ({
+							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							sharedState: { ...peer },
+					  }))
+					: [],
+				blacklistedPeers: config.blacklistedPeers
+					? config.blacklistedPeers.map(peer => ({
+							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							sharedState: { ...peer },
+					  }))
+					: [],
+				fixedPeers: config.fixedPeers
+					? config.fixedPeers.map(peer => ({
+							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							sharedState: { ...peer },
+					  }))
+					: [],
+				whitelisted: config.whitelistedPeers
+					? config.whitelistedPeers.map(peer => ({
+							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							sharedState: { ...peer },
+					  }))
+					: [],
+				previousPeers: config.previousPeers
+					? config.previousPeers.map(peer => ({
+							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							sharedState: { ...peer },
+					  }))
+					: [],
 			},
 			{
 				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
