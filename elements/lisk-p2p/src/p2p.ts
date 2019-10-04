@@ -286,9 +286,11 @@ export class P2P extends EventEmitter {
 				}
 
 				const updatedPeerInfo = {
-					...peerInfo,
-					ipAddress: error.peerInfo.ipAddress,
-					wsPort: error.peerInfo.wsPort,
+					internalState: error.internalState,
+					sharedState: error.sharedState,
+					peerId: error.peerId,
+					ipAddress: error.ipAddress,
+					wsPort: error.wsPort,
 				};
 				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
@@ -383,8 +385,11 @@ export class P2P extends EventEmitter {
 				wsPort: +peerId.split(':')[1],
 			};
 
-			if (this._peerBook.getPeer(bannedPeerInfo) && !isWhitelisted) {
-				this._peerBook.removePeer(bannedPeerInfo);
+			if (
+				this._peerBook.getPeer({ sharedState: bannedPeerInfo, peerId }) &&
+				!isWhitelisted
+			) {
+				this._peerBook.removePeer({ sharedState: bannedPeerInfo, peerId });
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
@@ -416,13 +421,8 @@ export class P2P extends EventEmitter {
 
 					const updatedPeerInfo = {
 						...detailedPeerInfo,
-<<<<<<< HEAD
 						ipAddress: error.peerInfo.ipAddress,
 						wsPort: error.peerInfo.wsPort,
-=======
-						ipAddress: foundPeer.sharedState.ipAddress,
-						wsPort: foundPeer.sharedState.wsPort,
->>>>>>> Update constructPeerIdFromPeerInfo to accept ipAddress and wsPort
 					};
 					const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 					if (isUpdated) {
@@ -627,8 +627,14 @@ export class P2P extends EventEmitter {
 
 					// Delete you peerinfo from both the lists
 					this._peerBook.removePeer({
-						ipAddress: socket.remoteAddress,
-						wsPort: selfWSPort,
+						peerId: constructPeerIdFromPeerInfo(
+							socket.remoteAddress,
+							selfWSPort,
+						),
+						sharedState: {
+							ipAddress: socket.remoteAddress,
+							wsPort: selfWSPort,
+						},
 					});
 
 					return;
@@ -683,12 +689,15 @@ export class P2P extends EventEmitter {
 				}
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
-					...queryObject,
-					...queryOptions,
-					ipAddress: socket.remoteAddress,
-					wsPort,
-					height: queryObject.height ? +queryObject.height : 0,
-					version: queryObject.version,
+					sharedState: {
+						...queryObject,
+						...queryOptions,
+						ipAddress: socket.remoteAddress,
+						wsPort,
+						height: queryObject.height ? +queryObject.height : 0,
+						version: queryObject.version,
+					},
+					peerId: constructPeerIdFromPeerInfo(socket.remoteAddress, wsPort),
 				};
 
 				const { success, errors } = this._peerHandshakeCheck(

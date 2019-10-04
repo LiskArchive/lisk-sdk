@@ -34,6 +34,7 @@ import {
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from '../p2p_types';
+import { constructPeerIdFromPeerInfo } from './misc';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -47,11 +48,11 @@ const validateNetworkCompatibility = (
 	peerInfo: P2PDiscoveredPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
-	if (!peerInfo.nethash) {
+	if (!peerInfo.sharedState.nethash) {
 		return false;
 	}
 
-	return peerInfo.nethash === nodeInfo.nethash;
+	return peerInfo.sharedState.nethash === nodeInfo.nethash;
 };
 
 const validateProtocolVersionCompatibility = (
@@ -59,18 +60,24 @@ const validateProtocolVersionCompatibility = (
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
 	// Backwards compatibility for older peers which do not have a protocolVersion field.
-	if (!peerInfo.protocolVersion) {
+	if (!peerInfo.sharedState.protocolVersion) {
 		try {
-			return isVersionGTE(peerInfo.version, nodeInfo.minVersion as string);
+			return isVersionGTE(
+				peerInfo.sharedState.version,
+				nodeInfo.minVersion as string,
+			);
 		} catch (error) {
 			return false;
 		}
 	}
-	if (typeof peerInfo.protocolVersion !== 'string') {
+	if (typeof peerInfo.sharedState.protocolVersion !== 'string') {
 		return false;
 	}
 
-	const peerHardForks = parseInt(peerInfo.protocolVersion.split('.')[0], 10);
+	const peerHardForks = parseInt(
+		peerInfo.sharedState.protocolVersion.split('.')[0],
+		10,
+	);
 	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
@@ -145,7 +152,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 			? +protocolPeer.height
 			: 0;
 	const { options, ...protocolPeerWithoutOptions } = protocolPeer;
-	const peerInfo: P2PPeerInfo = {
+	const { ip, ...sharedStateObj } = {
 		...protocolPeerWithoutOptions,
 		ipAddress: protocolPeerWithoutOptions.ip,
 		wsPort,
@@ -154,10 +161,12 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		version,
 		protocolVersion,
 	};
+	const peerInfo: P2PPeerInfo = {
+		peerId: constructPeerIdFromPeerInfo(protocolPeer.ip, protocolPeer.wsPort),
+		sharedState: { ...sharedStateObj },
+	};
 
-	const { ip, ...peerInfoUpdated } = peerInfo;
-
-	return peerInfoUpdated;
+	return peerInfo;
 };
 
 export const validatePeerInfo = (

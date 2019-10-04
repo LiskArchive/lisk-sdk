@@ -45,24 +45,26 @@ export interface P2PSharedState {
 export enum ConnectionKind {
 	OUTBOUND,
 	INBOUND,
+	NONE,
 }
 
 export interface P2PInternalState {
-	readonly productivity: number;
-	readonly reputation: number;
-	readonly connectionKind: ConnectionKind;
+	readonly dateAdded: Date;
 	readonly isFixedlistedPeer: boolean;
 	readonly isBlacklistedPeer: boolean;
 	readonly isWhitelistedPeer: boolean;
 	readonly isSeedPeer: boolean;
 	readonly isbanned: boolean;
+	readonly productivity?: number;
+	readonly reputation?: number;
+	readonly connectionKind?: ConnectionKind;
 }
 
 export interface P2PPeerInfo {
 	// String to uniquely identify each peer
 	readonly peerId: string;
 	readonly sharedState: P2PSharedState;
-	readonly internalState: P2PInternalState;
+	readonly internalState?: P2PInternalState;
 }
 
 export interface P2PPeersCount {
@@ -78,11 +80,9 @@ export interface P2PDiscoveredSharedPeerInfo extends P2PSharedState {
 	readonly protocolVersion: string;
 }
 
-export interface P2PDiscoveredPeerInfo {
+export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	// String to uniquely identify each peer
-	readonly peerId: string;
 	readonly sharedState: P2PDiscoveredSharedPeerInfo;
-	readonly internalState: P2PInternalState;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.

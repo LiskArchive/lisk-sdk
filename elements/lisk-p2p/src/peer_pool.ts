@@ -237,7 +237,7 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
-			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
+			const peerId = closePacket.peerInfo.peerId;
 			this.removePeer(
 				peerId,
 				closePacket.code,
@@ -248,7 +248,7 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
-			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
+			const peerId = closePacket.peerInfo.peerId;
 			this.removePeer(
 				peerId,
 				closePacket.code,
@@ -338,7 +338,7 @@ export class PeerPool extends EventEmitter {
 			);
 		}
 
-		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeers[0]);
+		const selectedPeerId = selectedPeers[0].peerId;
 
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
@@ -357,7 +357,7 @@ export class PeerPool extends EventEmitter {
 			messagePacket: message,
 		});
 		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
-			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
+			const selectedPeerId = peerInfo.peerId;
 			try {
 				this.sendToPeer(message, selectedPeerId);
 			} catch (error) {
@@ -398,21 +398,21 @@ export class PeerPool extends EventEmitter {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
 			newPeer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(newPeer)) ||
+				!this._peerMap.has(newPeer.peerId) ||
 				!fixedPeers
-					.map(fixedPeer => fixedPeer.ipAddress)
-					.includes(newPeer.ipAddress),
+					.map(fixedPeer => fixedPeer.sharedState.ipAddress)
+					.includes(newPeer.sharedState.ipAddress),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
 			triedPeer =>
-				!this._peerMap.has(constructPeerIdFromPeerInfo(triedPeer)) ||
+				!this._peerMap.has(triedPeer.peerId) ||
 				!fixedPeers
-					.map(fixedPeer => fixedPeer.ipAddress)
-					.includes(triedPeer.ipAddress),
+					.map(fixedPeer => fixedPeer.sharedState.ipAddress)
+					.includes(triedPeer.sharedState.ipAddress),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
-			.filter(peer => !this._peerMap.get(constructPeerIdFromPeerInfo(peer)))
+			.filter(peer => !this._peerMap.get(peer.peerId))
 			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
@@ -432,12 +432,11 @@ export class PeerPool extends EventEmitter {
 
 		[...peersToConnect, ...disconnectedFixedPeers].forEach(
 			(peerInfo: P2PPeerInfo) => {
-				const peerId = constructPeerIdFromPeerInfo(peerInfo);
-				const existingPeer = this.getPeer(peerId);
+				const existingPeer = this.getPeer(peerInfo.peerId);
 
 				return existingPeer
 					? existingPeer
-					: this.addOutboundPeer(peerId, peerInfo);
+					: this.addOutboundPeer(peerInfo.peerId, peerInfo);
 			},
 		);
 	}
@@ -602,9 +601,7 @@ export class PeerPool extends EventEmitter {
 
 	private _selectPeersForEviction(): Peer[] {
 		const peers = [...this.getPeers(InboundPeer)].filter(peer =>
-			this._peerLists.whitelisted.every(
-				p => constructPeerIdFromPeerInfo(p) !== peer.id,
-			),
+			this._peerLists.whitelisted.every(p => p.peerId !== peer.id),
 		);
 
 		// Cannot predict which netgroups will be protected
@@ -671,9 +668,7 @@ export class PeerPool extends EventEmitter {
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
 				peers.filter(peer =>
-					this._peerLists.fixedPeers.every(
-						p => constructPeerIdFromPeerInfo(p) !== peer.id,
-					),
+					this._peerLists.fixedPeers.every(p => p.peerId !== peer.id),
 				),
 			)[0];
 			if (selectedPeer) {
