@@ -215,15 +215,15 @@ class Transport {
 	 */
 
 	/**
-	 * Returns a set of full blocks starting on the ID defined in the payload up to
+	 * Returns a set of full blocks starting from the ID defined in the payload up to
 	 * the current tip of the chain.
 	 * @param {object} payload
 	 * @param {string} payload.blockID - The ID of the starting block
 	 * @return {Promise<*|Promise<*>>}
 	 */
-	async getBlocksFromID(payload) {
+	async getBlocksFromId(payload) {
 		const validationResult = validator.validate(
-			definitions.getBlocksFromIDRequest,
+			definitions.getBlocksFromIdRequest,
 			payload,
 		);
 
@@ -240,17 +240,7 @@ class Transport {
 			throw new Error(error);
 		}
 
-		// Get 34 blocks with all data (joins) from provided block id
-		// According to maximum payload of 58150 bytes per block with every transaction being a vote
-		// Discounting maximum compression setting used in middleware
-		// Maximum transport payload = 2000000 bytes
-
-		const data = await this.blocksModule.loadBlocksFromLastBlockId(
-			payload.blockID,
-			34, // 1977100 bytes
-		);
-
-		return data;
+		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockID, 34);
 	}
 
 	/**
