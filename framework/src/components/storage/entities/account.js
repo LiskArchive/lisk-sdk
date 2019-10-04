@@ -21,7 +21,7 @@ const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 const sqlFiles = {
-	selectSimple: 'accounts/get.sql',
+	get: 'accounts/get.sql',
 	count: 'accounts/count.sql',
 	isPersisted: 'accounts/is_persisted.sql',
 };
@@ -416,7 +416,7 @@ class Account extends BaseEntity {
 		};
 
 		return this.adapter.executeFile(
-			this.SQLs.selectSimple,
+			this.SQLs.get,
 			params,
 			{ expectedResultCount },
 			tx,

@@ -52,7 +52,7 @@ describe('Account', () => {
 		AccountEntity = storage.entities.Account;
 		SQLs = AccountEntity.SQLs;
 
-		validAccountSQLs = ['selectSimple', 'count', 'isPersisted'];
+		validAccountSQLs = ['get', 'count', 'isPersisted'];
 
 		validAccountFields = [
 			'address',
