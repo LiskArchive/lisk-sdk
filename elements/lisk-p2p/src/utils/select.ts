@@ -49,11 +49,13 @@ export const selectPeersForSend = (
 	const halfPeerLimit = Math.round(peerLimit / 2);
 
 	const outboundPeers = shuffledPeers.filter(
-		(peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === PEER_KIND_OUTBOUND,
+		(peerInfo: P2PDiscoveredPeerInfo) =>
+			peerInfo.sharedState.kind === PEER_KIND_OUTBOUND,
 	);
 
 	const inboundPeers = shuffledPeers.filter(
-		(peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === PEER_KIND_INBOUND,
+		(peerInfo: P2PDiscoveredPeerInfo) =>
+			peerInfo.sharedState.kind === PEER_KIND_INBOUND,
 	);
 
 	// tslint:disable: no-let

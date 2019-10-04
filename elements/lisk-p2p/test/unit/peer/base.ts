@@ -53,12 +53,15 @@ describe('peer/base', () => {
 	beforeEach(() => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
-			ipAddress: '12.12.12.12',
-			wsPort: 5001,
-			height: 545776,
-			isDiscoveredPeer: true,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			peerId: constructPeerIdFromPeerInfo('12.12.12.12', 5001),
+			sharedState: {
+				ipAddress: '12.12.12.12',
+				wsPort: 5001,
+				height: 545776,
+				isDiscoveredPeer: true,
+				version: '1.1.1',
+				protocolVersion: '1.1',
+			},
 		};
 		peerConfig = {
 			rateCalculationInterval: 1000,
@@ -77,13 +80,20 @@ describe('peer/base', () => {
 			height: 100,
 		};
 		p2pDiscoveredPeerInfo = {
-			ipAddress: defaultPeerInfo.ipAddress,
-			wsPort: defaultPeerInfo.wsPort,
-			height: 1000,
-			updatedAt: new Date(),
-			os: 'MYOS',
-			version: '1.3.0',
-			protocolVersion: '1.3',
+			peerId: constructPeerIdFromPeerInfo(
+				defaultPeerInfo.sharedState.ipAddress,
+				defaultPeerInfo.sharedState.wsPort,
+			),
+			sharedState: {
+				ipAddress: defaultPeerInfo.sharedState.ipAddress,
+				wsPort: defaultPeerInfo.sharedState.wsPort,
+				height: 1000,
+				updatedAt: new Date(),
+				os: 'MYOS',
+				version: '1.3.0',
+				protocolVersion: '1.3',
+			},
+			internalState: undefined,
 		};
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
 	});
@@ -130,29 +140,30 @@ describe('peer/base', () => {
 
 	describe('#height', () =>
 		it('should get height property', () =>
-			expect(defaultPeer.height).to.be.eql(defaultPeerInfo.height)));
+			expect(defaultPeer.height).to.be.eql(
+				defaultPeerInfo.sharedState.height,
+			)));
 
 	describe('#id', () =>
 		it('should get id property', () =>
-			expect(defaultPeer.id).to.be.eql(
-				constructPeerIdFromPeerInfo({
-					ipAddress: defaultPeerInfo.ipAddress,
-					wsPort: defaultPeerInfo.wsPort,
-				}),
-			)));
+			expect(defaultPeer.id).to.be.eql(defaultPeerInfo.peerId)));
 
 	describe('#ipAddress', () =>
 		it('should get ipAddress property', () =>
-			expect(defaultPeer.ipAddress).to.be.eql(defaultPeerInfo.ipAddress)));
+			expect(defaultPeer.ipAddress).to.be.eql(
+				defaultPeerInfo.sharedState.ipAddress,
+			)));
 
 	describe('#wsPort', () =>
 		it('should get wsPort property', () =>
-			expect(defaultPeer.wsPort).to.be.eql(defaultPeerInfo.wsPort)));
+			expect(defaultPeer.wsPort).to.be.eql(
+				defaultPeerInfo.sharedState.wsPort,
+			)));
 
 	describe('#netgroup', () =>
 		it('should get netgroup property', () =>
 			expect(defaultPeer.netgroup).to.be.eql(
-				getNetgroup(defaultPeerInfo.ipAddress, peerConfig.secret),
+				getNetgroup(defaultPeerInfo.sharedState.ipAddress, peerConfig.secret),
 			)));
 
 	describe('#reputation', () =>
@@ -406,37 +417,49 @@ describe('peer/base', () => {
 			it('should return a sanitized peer list', async () => {
 				const peers = [
 					{
-						ip: '1.1.1.1',
-						wsPort: 1111,
-						version: '1.1.1',
+						peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+						sharedState: {
+							ip: '1.1.1.1',
+							wsPort: 1111,
+							version: '1.1.1',
+						},
 					},
 					{
-						ip: '2.2.2.2',
-						wsPort: 2222,
-						version: '2.2.2',
+						peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+						sharedState: {
+							ip: '2.2.2.2',
+							wsPort: 2222,
+							version: '2.2.2',
+						},
 					},
 				];
 				const sanitizedPeers = [
 					{
-						ipAddress: '1.1.1.1',
-						wsPort: 1111,
-						version: '1.1.1',
-						height: 0,
-						protocolVersion: undefined,
-						os: '',
+						peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+						sharedState: {
+							ipAddress: '1.1.1.1',
+							wsPort: 1111,
+							version: '1.1.1',
+							height: 0,
+							protocolVersion: undefined,
+							os: '',
+						},
 					},
 					{
-						ipAddress: '2.2.2.2',
-						wsPort: 2222,
-						version: '2.2.2',
-						height: 0,
-						protocolVersion: undefined,
-						os: '',
+						peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+						sharedState: {
+							ipAddress: '2.2.2.2',
+							wsPort: 2222,
+							version: '2.2.2',
+							height: 0,
+							protocolVersion: undefined,
+							os: '',
+						},
 					},
 				];
 				sandbox.stub(defaultPeer, 'request').resolves({
 					data: {
-						peers,
+						peers: peers.map(peer => peer.sharedState),
 						success: true,
 					},
 				});
@@ -452,20 +475,26 @@ describe('peer/base', () => {
 		beforeEach(() => {
 			discoveredPeers = [
 				{
-					ipAddress: '1.1.1.1',
-					wsPort: 1111,
-					version: '1.1.1',
-					height: 0,
-					protocolVersion: undefined,
-					os: '',
+					peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+					sharedState: {
+						ipAddress: '1.1.1.1',
+						wsPort: 1111,
+						version: '1.1.1',
+						height: 0,
+						protocolVersion: undefined,
+						os: '',
+					},
 				},
 				{
-					ipAddress: '2.2.2.2',
-					wsPort: 2222,
-					version: '2.2.2',
-					height: 0,
-					protocolVersion: undefined,
-					os: '',
+					peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+					sharedState: {
+						ipAddress: '2.2.2.2',
+						wsPort: 2222,
+						version: '2.2.2',
+						height: 0,
+						protocolVersion: undefined,
+						os: '',
+					},
 				},
 			];
 			sandbox.stub(defaultPeer, 'fetchPeers').resolves(discoveredPeers);
@@ -557,7 +586,7 @@ describe('peer/base', () => {
 				const peer = {
 					ip: '1.1.1.1',
 					wsPort: 1111,
-					version: '1.1.1',
+					version: '1.1.2',
 				};
 
 				beforeEach(() => {
@@ -570,12 +599,18 @@ describe('peer/base', () => {
 
 				it(`should call updatePeerInfo()`, async () => {
 					const newPeer = {
-						wsPort: peer.wsPort,
-						version: peer.version,
-						ipAddress: defaultPeerInfo.ipAddress,
-						height: 0,
-						protocolVersion: undefined,
-						os: '',
+						peerId: constructPeerIdFromPeerInfo(
+							defaultPeerInfo.sharedState.ipAddress,
+							defaultPeerInfo.sharedState.wsPort,
+						),
+						sharedState: {
+							wsPort: defaultPeerInfo.sharedState.wsPort,
+							version: peer.version,
+							ipAddress: defaultPeerInfo.sharedState.ipAddress,
+							height: 0,
+							protocolVersion: undefined,
+							os: '',
+						},
 					};
 					await defaultPeer.fetchStatus();
 					expect(defaultPeer.updatePeerInfo).to.be.calledOnceWithExactly(

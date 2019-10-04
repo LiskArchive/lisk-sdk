@@ -338,10 +338,9 @@ export class Peer extends EventEmitter {
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
-			peerId: this._peerInfo.peerId,
-			internalState: this._peerInfo.internalState,
+			...newPeerInfo,
 			sharedState: {
-				...newPeerInfo,
+				...newPeerInfo.sharedState,
 				ipAddress: this._ipAddress,
 				wsPort: this._wsPort,
 			},
@@ -546,7 +545,11 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
+		const protocolPeerInfo = {
+			...rawPeerInfo,
+			ip: this._ipAddress,
+			wsPort: this._wsPort,
+		};
 		const newPeerInfo = validatePeerInfo(
 			protocolPeerInfo,
 			this._peerConfig.maxPeerInfoSize,
