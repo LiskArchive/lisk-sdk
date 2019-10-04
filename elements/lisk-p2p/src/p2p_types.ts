@@ -59,6 +59,8 @@ export interface P2PInternalState {
 }
 
 export interface P2PPeerInfo {
+	// String to uniquely identify each peer
+	readonly peerId: string;
 	readonly sharedState: P2PSharedState;
 	readonly internalState: P2PInternalState;
 }
@@ -68,12 +70,19 @@ export interface P2PPeersCount {
 	readonly inboundCount: number;
 }
 
-export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
+export interface P2PDiscoveredSharedPeerInfo extends P2PSharedState {
 	readonly height: number;
 	readonly updatedAt?: Date;
 	readonly os?: string;
 	readonly version: string;
 	readonly protocolVersion: string;
+}
+
+export interface P2PDiscoveredPeerInfo {
+	// String to uniquely identify each peer
+	readonly peerId: string;
+	readonly sharedState: P2PDiscoveredSharedPeerInfo;
+	readonly internalState: P2PInternalState;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.

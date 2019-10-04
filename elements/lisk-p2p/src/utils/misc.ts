@@ -126,13 +126,13 @@ export const getUniquePeersbyIp = (
 	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
 
 	for (const peer of peerList) {
-		const tempPeer = peerMap.get(peer.ipAddress);
+		const tempPeer = peerMap.get(peer.sharedState.ipAddress);
 		if (tempPeer) {
-			if (peer.height > tempPeer.height) {
-				peerMap.set(peer.ipAddress, peer);
+			if (peer.sharedState.height > tempPeer.sharedState.height) {
+				peerMap.set(peer.sharedState.ipAddress, peer);
 			}
 		} else {
-			peerMap.set(peer.ipAddress, peer);
+			peerMap.set(peer.sharedState.ipAddress, peer);
 		}
 	}
 
@@ -140,7 +140,7 @@ export const getUniquePeersbyIp = (
 };
 
 export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+	`${peerInfo.sharedState.ipAddress}:${peerInfo.sharedState.wsPort}`;
 
 export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));

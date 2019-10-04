@@ -51,7 +51,6 @@ import {
 	ProtocolMessagePacket,
 } from '../p2p_types';
 import {
-	constructPeerIdFromPeerInfo,
 	getNetgroup,
 	sanitizeNodeInfoToLegacyFormat,
 	validatePeerInfo,
@@ -149,13 +148,12 @@ export class Peer extends EventEmitter {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig;
-		this._ipAddress = peerInfo.ipAddress;
-		this._wsPort = peerInfo.wsPort;
-		this._id = constructPeerIdFromPeerInfo({
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
-		});
-		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
+		this._ipAddress = peerInfo.sharedState.ipAddress;
+		this._wsPort = peerInfo.sharedState.wsPort;
+		this._id = peerInfo.peerId;
+		this._height = peerInfo.sharedState.height
+			? (peerInfo.sharedState.height as number)
+			: 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
 		this._latency = 0;
@@ -340,9 +338,13 @@ export class Peer extends EventEmitter {
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
-			...newPeerInfo,
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
+			peerId: this._peerInfo.peerId,
+			internalState: this._peerInfo.internalState,
+			sharedState: {
+				...newPeerInfo,
+				ipAddress: this._ipAddress,
+				wsPort: this._wsPort,
+			},
 		};
 	}
 
