@@ -20,7 +20,7 @@
 
 -- Create new column for holding multisignature members Public Keys
 
-ALTER TABLE mem_accounts ADD COLUMN "membersPublicKeys" jsonb;
+ALTER TABLE mem_accounts ADD COLUMN IF NOT EXISTS "membersPublicKeys" jsonb;
 
 -- Move members public keys from mem_accounts2multisignatures to mem_accounts
 
@@ -33,7 +33,7 @@ SET "membersPublicKeys" =
 	WHERE "accountId" = mem_accounts.address
 	GROUP BY "accountId"
 )
-WHERE address in (SELECT "accountId" FROM mem_accounts2multisignatures);
+WHERE address IN (SELECT "accountId" FROM mem_accounts2multisignatures);
 
 -- drop the unused table
 

@@ -20,7 +20,7 @@
 
 -- -- Create new column for holding voted delegates PKs
 
-ALTER TABLE mem_accounts ADD COLUMN "votedDelegatesPublicKeys" jsonb;
+ALTER TABLE mem_accounts ADD COLUMN IF NOT EXISTS "votedDelegatesPublicKeys" jsonb;
 
 -- -- -- Move voted public keys from mem_accounts2delegates to mem_accounts
 
@@ -33,7 +33,7 @@ SET "votedDelegatesPublicKeys" =
 	WHERE "accountId" = mem_accounts.address
 	GROUP BY "accountId"
 )
-WHERE address in (SELECT "accountId" FROM mem_accounts2delegates);
+WHERE address IN (SELECT "accountId" FROM mem_accounts2delegates);
 
 -- drop the unused table
 
