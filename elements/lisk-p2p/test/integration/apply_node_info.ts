@@ -95,6 +95,7 @@ describe('P2P.applyNodeInfo', () => {
 				);
 			expect(firstP2PNodePeerInfo).to.exist;
 			expect(firstP2PNodePeerInfo)
+				.to.have.property('sharedState')
 				.to.have.property('height')
 				.which.equals(10);
 		}
@@ -135,9 +136,11 @@ describe('P2P.applyNodeInfo', () => {
 			// Check if the peerinfo is updated in new peer list
 			if (firstNodeInAllPeersList) {
 				expect(firstNodeInAllPeersList)
+					.to.have.property('sharedState')
 					.to.have.property('height')
 					.which.equals(10);
 				expect(firstNodeInAllPeersList)
+					.to.have.property('sharedState')
 					.to.have.property('nethash')
 					.which.equals(
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -147,9 +150,11 @@ describe('P2P.applyNodeInfo', () => {
 			// Check if the peerinfo is updated in connected peer list
 			if (firstNodeInConnectedPeer) {
 				expect(firstNodeInConnectedPeer)
+					.to.have.property('sharedState')
 					.to.have.property('height')
 					.which.equals(10);
 				expect(firstNodeInConnectedPeer)
+					.to.have.property('sharedState')
 					.to.have.property('nethash')
 					.which.equals(
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
