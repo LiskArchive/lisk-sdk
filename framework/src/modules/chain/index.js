@@ -132,8 +132,8 @@ class ChainModule extends BaseModule {
 				handler: async () => this.chain.actions.getLastBlock(),
 				isPublic: true,
 			},
-			blocks: {
-				handler: async action => this.chain.actions.blocks(action),
+			getBlocksFromID: {
+				handler: async action => this.chain.actions.getBlocksFromID(action),
 				isPublic: true,
 			},
 			getHighestCommonBlock: {

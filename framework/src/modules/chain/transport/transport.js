@@ -215,37 +215,42 @@ class Transport {
 	 */
 
 	/**
-	 * Description of blocks.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add description of the function
+	 * Returns a set of full blocks starting on the ID defined in the payload up to
+	 * the current tip of the chain.
+	 * @param {object} payload
+	 * @param {string} payload.blockID - The ID of the starting block
+	 * @return {Promise<*|Promise<*>>}
 	 */
-	// eslint-disable-next-line consistent-return
-	async blocks(query) {
-		// Get 34 blocks with all data (joins) from provided block id
-		// According to maxium payload of 58150 bytes per block with every transaction being a vote
-		// Discounting maxium compression setting used in middleware
-		// Maximum transport payload = 2000000 bytes
-		if (!query || !query.lastBlockId) {
-			return {
-				success: false,
-				message: 'Invalid lastBlockId requested',
-			};
+	async getBlocksFromID(payload) {
+		const validationResult = validator.validate(
+			definitions.getBlocksFromIDRequest,
+			payload,
+		);
+
+		if (validationResult.length) {
+			const err = validationResult;
+			const error = `${err[0].message}: ${err[0].path}`;
+			this.logger.debug(
+				{
+					err: error,
+					req: payload,
+				},
+				'getBlocksFromID request validation failed',
+			);
+			throw new Error(error);
 		}
 
-		try {
-			const data = await this.blocksModule.loadBlocksFromLastBlockId(
-				query.lastBlockId,
-				34, // 1977100 bytes
-			);
-			return { blocks: data, success: true };
-		} catch (err) {
-			return {
-				blocks: [],
-				message: err,
-				success: false,
-			};
-		}
+		// Get 34 blocks with all data (joins) from provided block id
+		// According to maximum payload of 58150 bytes per block with every transaction being a vote
+		// Discounting maximum compression setting used in middleware
+		// Maximum transport payload = 2000000 bytes
+
+		const data = await this.blocksModule.loadBlocksFromLastBlockId(
+			payload.blockID,
+			34, // 1977100 bytes
+		);
+
+		return data;
 	}
 
 	/**
