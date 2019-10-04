@@ -132,7 +132,6 @@ class Blocks extends EventEmitter {
 			exceptions: this.exceptions,
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
-			dposModule: this.dposModule,
 		});
 
 		this.blocksUtils = blocksUtils;
@@ -201,7 +200,6 @@ class Blocks extends EventEmitter {
 	async verifyInMemory({ block, lastBlock }) {
 		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
 		validateBlockSlot(block, lastBlock, this.slots);
-		await this.blocksVerify.verifyBlockForger(block);
 	}
 
 	forkChoice({ block, lastBlock }) {

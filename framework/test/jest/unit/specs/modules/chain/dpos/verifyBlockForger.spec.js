@@ -19,6 +19,7 @@ const { constants } = require('../../../../../utils');
 const { delegatePublicKeys } = require('./round_delegates');
 
 describe('dpos.verifyBlockForger()', () => {
+	const roundOffset = 2;
 	const stubs = {};
 	let dpos;
 	let slots;
@@ -109,5 +110,83 @@ describe('dpos.verifyBlockForger()', () => {
 			`No delegate list found for round: ${expectedRound}`,
 		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
+	});
+
+	describe('Given roundOffset is set and equal to 2', () => {
+		it('should use round 1 delegate list when block round is equal to 1', async () => {
+			// Arrange
+			const expectedRound = 1;
+			const block = {
+				height: 99,
+				timestamp: 23450,
+				generatorPublicKey:
+					'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
+			};
+
+			// Act
+			await dpos.verifyBlockForger(block, roundOffset);
+
+			// Assert
+			expect(
+				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
+			).toHaveBeenCalledWith(expectedRound);
+		});
+
+		it('should use round 1 delegate list when block round is equal to 2', async () => {
+			// Arrange
+			const expectedRound = 1;
+			const block = {
+				height: 104,
+				timestamp: 23450,
+				generatorPublicKey:
+					'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
+			};
+
+			// Act
+			await dpos.verifyBlockForger(block, roundOffset);
+
+			// Assert
+			expect(
+				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
+			).toHaveBeenCalledWith(expectedRound);
+		});
+
+		it('should use round 1 delegate list when block round is equal to 3', async () => {
+			// Arrange
+			const expectedRound = 1;
+			const block = {
+				height: 222,
+				timestamp: 23450,
+				generatorPublicKey:
+					'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
+			};
+
+			// Act
+			await dpos.verifyBlockForger(block, roundOffset);
+
+			// Assert
+			expect(
+				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
+			).toHaveBeenCalledWith(expectedRound);
+		});
+
+		it('should use (round - roundOffset) delegate list when block round is greater than 3', async () => {
+			// Arrange
+			const block = {
+				height: 321,
+				timestamp: 23450,
+				generatorPublicKey:
+					'386217d98eee87268a54d2d76ce9e801ac86271284d793154989e37cb31bcd0e',
+			};
+			const round = slots.calcRound(block.height);
+
+			// Act
+			await dpos.verifyBlockForger(block, roundOffset);
+
+			// Assert
+			expect(
+				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
+			).toHaveBeenCalledWith(round - roundOffset);
+		});
 	});
 });

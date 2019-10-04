@@ -101,7 +101,6 @@ describe('blocks', () => {
 			dposModule: {
 				apply: jest.fn(),
 				undo: jest.fn(),
-				verifyBlockForger: jest.fn(),
 			},
 		};
 
@@ -411,28 +410,6 @@ describe('blocks', () => {
 					}),
 				).rejects.toThrow('Invalid block timestamp');
 			});
-		});
-
-		it('should call verifyBlockForger', async () => {
-			// Arrange
-			const block = cloneDeep(blocksInstance.genesisBlock);
-			const blockBytes = getBytes(block);
-			block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
-
-			blocksInstance.slots.getEpochTime = jest.fn(
-				() => blocksInstance._lastBlock.timestamp + 1010,
-			); // It will get assigned to newBlock.receivedAt
-
-			expect.assertions(1);
-			// Act
-			await blocksInstance.verifyInMemory({
-				block,
-				lastBlock: genesisBlock,
-				blockBytes,
-			});
-
-			// Assert
-			expect(blocksInstance.dposModule.verifyBlockForger).toHaveBeenCalled();
 		});
 	});
 
