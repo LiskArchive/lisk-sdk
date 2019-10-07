@@ -121,6 +121,18 @@ describe('Peer list base', () => {
 				expect(e.message).to.be.eql('Peer already exists');
 			}
 		});
+
+		it('should call makeSpace method', () => {
+			expect(peerListObj.getPeer(samplePeers[0])).eql(samplePeers[0]);
+		});
+
+		describe('when bucket is full', () => {
+			it('should return evicted peer');
+		});
+
+		describe('when bucket is not full', () => {
+			it('should return undefined');
+		});
 	});
 
 	describe('#updatePeer', () => {

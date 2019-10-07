@@ -88,7 +88,6 @@ export class PeerBook {
 			throw new Error('Peer already exists');
 		}
 
-		this._newPeers.makeSpace(peerInfo.ipAddress);
 		this._newPeers.addPeer(peerInfo);
 	}
 
@@ -124,8 +123,6 @@ export class PeerBook {
 
 		if (this._newPeers.getPeer(peerInfo)) {
 			this._newPeers.removePeer(peerInfo);
-
-			this._triedPeers.makeSpace(peerInfo.ipAddress);
 			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
 
 			return true;

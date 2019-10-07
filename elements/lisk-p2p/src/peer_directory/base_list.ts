@@ -94,15 +94,18 @@ export class BaseList {
 		return peer ? peer.peerInfo : undefined;
 	}
 
-	public addPeer(peerInfo: P2PPeerInfo): void {
+	public addPeer(peerInfo: P2PPeerInfo): CustomPeerInfo | undefined {
 		if (this.getPeer(peerInfo)) {
 			throw new Error('Peer already exists');
 		}
 		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		const newPeer = this.initPeerInfo(peerInfo);
-
+		const result = this.makeSpace(peerInfo.ipAddress);
 		bucket.set(incomingPeerId, newPeer);
+
+		// If a peer was evicted in order to make space for the new one, we return its info
+		return result;
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {

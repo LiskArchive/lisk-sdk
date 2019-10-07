@@ -60,8 +60,6 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 		});
 
-		it('should make space into the new peer list');
-
 		it('should add peer to the new peer list', () => {
 			expect(peerBook.newPeers).length(1);
 			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
@@ -103,8 +101,6 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 			peerBook.upgradePeer(samplePeers[0]);
 		});
-
-		it('should make space into the tried peer list');
 
 		it('should add peer to the tried peer list', () => {
 			expect(peerBook.triedPeers).length(1);
