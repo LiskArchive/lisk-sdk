@@ -91,7 +91,7 @@ import {
 	P2PResponsePacket,
 	PeerLists,
 } from './p2p_types';
-import { PeerBook } from './peer_directory';
+import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerIdFromPeerInfo,

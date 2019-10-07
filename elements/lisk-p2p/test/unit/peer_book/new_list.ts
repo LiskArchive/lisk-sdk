@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { NewList, NewListConfig } from '../../../src/peer_directory/new_list';
+import { NewList, NewListConfig } from '../../../src/peer_book/new_list';
 import { initPeerInfoListWithSuffix } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 import {
@@ -23,7 +23,7 @@ import {
 	DEFAULT_EVICTION_THRESHOLD_TIME,
 } from '../../../src/constants';
 
-describe('newPeer', () => {
+describe('New Peers List', () => {
 	let newPeerConfig: NewListConfig;
 	let newPeersObj: NewList;
 

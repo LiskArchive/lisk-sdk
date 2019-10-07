@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { initPeerInfoList } from '../../utils/peers';
-import { PeerBook, PeerBookConfig } from '../../../src/peer_directory';
+import { PeerBook, PeerBookConfig } from '../../../src/peer_book';
 import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 

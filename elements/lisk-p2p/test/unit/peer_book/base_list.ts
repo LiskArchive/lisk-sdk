@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { BaseList } from '../../../src/peer_directory/base_list';
+import { BaseList } from '../../../src/peer_book/base_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
@@ -23,7 +23,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
 
-describe('Peer list base', () => {
+describe('Peers base list', () => {
 	const peerListConfig = {
 		peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
 		peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,

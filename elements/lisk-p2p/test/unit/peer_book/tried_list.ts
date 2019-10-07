@@ -13,10 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import {
-	TriedList,
-	TriedListConfig,
-} from '../../../src/peer_directory/tried_list';
+import { TriedList, TriedListConfig } from '../../../src/peer_book/tried_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 import {
@@ -25,7 +22,7 @@ import {
 	DEFAULT_NEW_BUCKET_COUNT,
 } from '../../../src/constants';
 
-describe('triedPeer', () => {
+describe('Tried Peers List', () => {
 	let triedPeerConfig: TriedListConfig;
 
 	describe('#constructor', () => {
