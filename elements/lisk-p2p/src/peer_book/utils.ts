@@ -28,7 +28,7 @@ const BYTES_16 = 16;
 
 export const evictPeerRandomlyFromBucket = (
 	bucket: Map<string, CustomPeerInfo>,
-) => {
+): CustomPeerInfo | undefined => {
 	const bucketPeerIds = Array.from(bucket.keys());
 	const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
 	const randomPeerId = bucketPeerIds[randomPeerIndex];

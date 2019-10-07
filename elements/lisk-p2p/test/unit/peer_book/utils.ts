@@ -27,6 +27,19 @@ describe('peer_book/utils', () => {
 	const privateAddress = '10.0.0.0';
 	const localAddress = '127.0.0.1';
 
+	describe('#evictPeerRandomlyFromBucket', () => {
+		it('must return a the evicted peer info');
+	});
+
+	describe('#evictAnOldPeerFromBucket', () => {
+		describe('when bucket contains old peers', () => {
+			it('should return the evicted peer info');
+		});
+		describe('when bucket does not contains old peers', () => {
+			it('should return undefined');
+		});
+	});
+
 	describe('#getBucketId', () => {
 		it('should return a bucket number', () => {
 			return expect(
