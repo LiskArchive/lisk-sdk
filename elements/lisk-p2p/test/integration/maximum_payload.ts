@@ -45,7 +45,7 @@ describe('Maximum payload', () => {
 
 			p2p.on('closeInbound', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.sharedState.wsPort,
 					code: packet.code,
 					reason: packet.reason,
 				});
@@ -53,7 +53,7 @@ describe('Maximum payload', () => {
 
 			p2p.on('closeOutbound', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.sharedState.wsPort,
 					code: packet.code,
 					reason: packet.reason,
 				});
@@ -79,6 +79,7 @@ describe('Maximum payload', () => {
 
 	it('should disconnect the peer which has sent the message', async () => {
 		const firstP2PNode = p2pNodeList[0];
+
 		firstP2PNode.send({
 			event: 'maxPayload',
 			data: dataLargerThanMaxPayload,
