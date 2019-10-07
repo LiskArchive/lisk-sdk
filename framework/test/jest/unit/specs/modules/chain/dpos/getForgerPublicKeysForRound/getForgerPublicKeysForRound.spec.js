@@ -48,6 +48,10 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 			},
 		};
 
+		stubs.channel = {
+			subscribe: jest.fn(),
+		};
+
 		dpos = new Dpos({
 			...stubs,
 			activeDelegates: constants.ACTIVE_DELEGATES,

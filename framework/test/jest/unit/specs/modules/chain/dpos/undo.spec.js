@@ -57,6 +57,11 @@ describe('dpos.undo()', () => {
 			error: jest.fn(),
 		};
 
+		stubs.channel = {
+			subscribe: jest.fn(),
+			publish: jest.fn(),
+		};
+
 		stubs.tx = jest.fn();
 
 		slots = new Slots({

@@ -423,11 +423,15 @@ describe('blocks/verify', () => {
 				}
 			});
 
-			it('should fail when block generator is invalid (fork:3)', async () => {
+			it('should fail when block generator is invalid', async () => {
 				try {
 					await library.modules.processor.process(block2);
 				} catch (err) {
-					expect(err.message).equal('Failed to verify slot: 3377288');
+					expect(err.message).equal(
+						`Failed to verify slot: 3377288. Block ID: ${
+							block2.id
+						}. Block Height: ${block2.height}`,
+					);
 				}
 			});
 
