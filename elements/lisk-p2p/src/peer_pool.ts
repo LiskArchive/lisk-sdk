@@ -24,7 +24,6 @@ import { SCServerSocket } from 'socketcluster-server';
 import {
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
-	PEER_KIND_INBOUND,
 	PEER_KIND_OUTBOUND,
 } from './constants';
 import { RequestFailError, SendFailError } from './errors';
@@ -51,8 +50,11 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
+	ConnectionKind,
 	P2PClosePacket,
 	P2PDiscoveredPeerInfo,
+	P2PDiscoveredSharedPeerInfo,
+	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -321,7 +323,7 @@ export class PeerPool extends EventEmitter {
 		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers().map(
 			(peerInfo: P2PDiscoveredPeerInfo) => ({
 				...peerInfo,
-				kind: PEER_KIND_OUTBOUND,
+				sharedState: { ...peerInfo.sharedState, kind: PEER_KIND_OUTBOUND },
 			}),
 		);
 		// This function can be customized so we should pass as much info as possible.
@@ -344,10 +346,20 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public send(message: P2PMessagePacket): void {
-		const listOfPeerInfo = [...this._peerMap.values()].map((peer: Peer) => ({
-			...(peer.peerInfo as P2PDiscoveredPeerInfo),
-			kind:
-				peer instanceof OutboundPeer ? PEER_KIND_OUTBOUND : PEER_KIND_INBOUND,
+		const listOfPeerInfo: ReadonlyArray<P2PDiscoveredPeerInfo> = [
+			...this._peerMap.values(),
+		].map((peer: Peer) => ({
+			...peer.peerInfo,
+			sharedState: {
+				...(peer.peerInfo.sharedState as P2PDiscoveredSharedPeerInfo),
+			},
+			internalState: {
+				...(peer.peerInfo.internalState as P2PInternalState),
+				connectionKind:
+					peer instanceof OutboundPeer
+						? ConnectionKind.OUTBOUND
+						: ConnectionKind.INBOUND,
+			},
 		}));
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({

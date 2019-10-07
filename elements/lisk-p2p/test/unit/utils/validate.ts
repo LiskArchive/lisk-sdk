@@ -56,15 +56,18 @@ describe('utils/validate', () => {
 				expect(validatePeerInfo(peer, 10000))
 					.to.be.an('object')
 					.eql({
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						height: 23232,
-						os: 'darwin',
-						version: '1.1.2',
-						protocolVersion: '1.1',
-						broadhash: '92hdbcwsdjcosi',
-						httpPort: 2000,
-						nonce: '89wsufhucsdociuds',
+						peerId: '12.23.54.3:5393',
+						sharedState: {
+							ipAddress: '12.23.54.3',
+							wsPort: 5393,
+							height: 23232,
+							os: 'darwin',
+							version: '1.1.2',
+							protocolVersion: '1.1',
+							broadhash: '92hdbcwsdjcosi',
+							httpPort: 2000,
+							nonce: '89wsufhucsdociuds',
+						},
 					});
 			});
 
@@ -72,15 +75,18 @@ describe('utils/validate', () => {
 				expect(validatePeerInfo(peerWithInvalidHeightValue, 10000))
 					.to.be.an('object')
 					.eql({
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						height: 0,
-						os: '778',
-						version: '3.4.5-alpha.9',
-						protocolVersion: '1.1',
-						broadhash: '92hdbcwsdjcosi',
-						httpPort: 2000,
-						nonce: '89wsufhucsdociuds',
+						peerId: '12.23.54.3:5393',
+						sharedState: {
+							ipAddress: '12.23.54.3',
+							wsPort: 5393,
+							height: 0,
+							os: '778',
+							version: '3.4.5-alpha.9',
+							protocolVersion: '1.1',
+							broadhash: '92hdbcwsdjcosi',
+							httpPort: 2000,
+							nonce: '89wsufhucsdociuds',
+						},
 					});
 			});
 		});

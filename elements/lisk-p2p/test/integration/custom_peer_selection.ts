@@ -45,8 +45,9 @@ describe('Custom peer selection', () => {
 
 		peersList.forEach(peerInfo => {
 			if (
-				peerInfo.sharedState.kind !== PEER_KIND_INBOUND &&
-				peerInfo.sharedState.kind !== PEER_KIND_OUTBOUND
+				peerInfo.internalState &&
+				peerInfo.internalState.connectionKind !== PEER_KIND_INBOUND &&
+				peerInfo.internalState.connectionKind !== PEER_KIND_OUTBOUND
 			) {
 				throw new Error(`Invalid peer kind: ${peerInfo.sharedState.kind}`);
 			}

@@ -43,9 +43,9 @@ export interface P2PSharedState {
 }
 
 export enum ConnectionKind {
-	OUTBOUND,
-	INBOUND,
-	NONE,
+	OUTBOUND = 'outbound',
+	INBOUND = 'inbound',
+	NONE = 'none',
 }
 
 export interface P2PInternalState {
