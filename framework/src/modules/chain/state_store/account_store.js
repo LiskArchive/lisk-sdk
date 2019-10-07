@@ -56,7 +56,7 @@ class AccountStore {
 			this.tx,
 		);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
-		return _.cloneDeep(this.data);
+		return _.cloneDeep(result);
 	}
 
 	createSnapshot() {
