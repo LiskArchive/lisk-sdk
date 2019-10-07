@@ -37,12 +37,15 @@ describe('peer/inbound', () => {
 	beforeEach(() => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
-			ipAddress: '12.12.12.12',
-			wsPort: 5001,
-			height: 545776,
-			isDiscoveredPeer: true,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			peerId: '12.12.12.12:5001',
+			sharedState: {
+				ipAddress: '12.12.12.12',
+				wsPort: 5001,
+				height: 545776,
+				isDiscoveredPeer: true,
+				version: '1.1.1',
+				protocolVersion: '1.1',
+			},
 		};
 		defaultPeerConfig = {
 			rateCalculationInterval: 1000,
