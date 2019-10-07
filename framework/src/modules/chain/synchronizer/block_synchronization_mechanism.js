@@ -77,12 +77,14 @@ class BlockSynchronizationMechanism {
 	 * a penalty and restarting sync
 	 * @private
 	 */
-	_applyPenaltyAndRestartSync(peer, receivedBlock, error) {
-		this.channel.invoke('network:applyPenalty', {
+	async _applyPenaltyAndRestartSync(peer, receivedBlock, error) {
+		await this.channel.invoke('network:applyPenalty', {
 			peerId: peer.id,
 			penalty: 100,
 		});
-		this.channel.publish('chain:processor:sync', { block: receivedBlock });
+		await this.channel.publish('chain:processor:sync', {
+			block: receivedBlock,
+		});
 		throw error;
 	}
 
@@ -98,7 +100,7 @@ class BlockSynchronizationMechanism {
 		const lastCommonBlock = await this._requestLastCommonBlock(peer);
 
 		if (!lastCommonBlock) {
-			this._applyPenaltyAndRestartSync(
+			return this._applyPenaltyAndRestartSync(
 				peer,
 				receivedBlock,
 				new Error(
@@ -110,7 +112,7 @@ class BlockSynchronizationMechanism {
 		}
 
 		if (lastCommonBlock.height < this.bft.finalizedHeight) {
-			this._applyPenaltyAndRestartSync(
+			return this._applyPenaltyAndRestartSync(
 				peer,
 				new Error(
 					'The last common block height is less than the finalized height of the current chain',
@@ -118,7 +120,7 @@ class BlockSynchronizationMechanism {
 			);
 		}
 
-		await deleteBlocksAfterHeightAndBackup(
+		return deleteBlocksAfterHeightAndBackup(
 			this.processorModule,
 			this.blocks,
 			lastCommonBlock.height,
@@ -210,7 +212,7 @@ class BlockSynchronizationMechanism {
 		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
 		if (!validBlock || !inDifferentChain) {
-			this._applyPenaltyAndRestartSync(peer, receivedBlock, err);
+			await this._applyPenaltyAndRestartSync(peer, receivedBlock, err);
 		}
 	}
 
