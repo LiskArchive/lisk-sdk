@@ -14,36 +14,12 @@
  */
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 
-import {
-	BaseList,
-	CustomPeerInfo,
-	evictPeerRandomlyFromBucket,
-	PeerListConfig,
-} from './base_list';
+import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
+import { evictAnOldPeerFromBucket, evictPeerRandomlyFromBucket } from './utils';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
 }
-
-export const evictAnOldPeerFromBucket = (
-	bucket: Map<string, CustomPeerInfo>,
-	thresholdTime: number,
-): CustomPeerInfo | undefined => {
-	// First eviction strategy: eviction by time of residence
-	for (const [peerId, peer] of bucket) {
-		const timeDifference = Math.round(
-			Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
-		);
-
-		if (timeDifference >= thresholdTime) {
-			bucket.delete(peerId);
-
-			return peer;
-		}
-	}
-
-	return undefined;
-};
 
 export class NewList extends BaseList {
 	private readonly _evictionThresholdTime: number;

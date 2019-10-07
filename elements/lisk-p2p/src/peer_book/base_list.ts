@@ -13,7 +13,8 @@
  *
  */
 import { P2PPeerInfo } from '../p2p_types';
-import { constructPeerIdFromPeerInfo, getBucketId, PEER_TYPE } from '../utils';
+import { constructPeerIdFromPeerInfo, PEER_TYPE } from '../utils';
+import { evictPeerRandomlyFromBucket, getBucketId } from './utils';
 
 export interface PeerListConfig {
 	readonly peerBucketCount: number;
@@ -26,18 +27,6 @@ export interface CustomPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
 	readonly dateAdded: Date;
 }
-
-export const evictPeerRandomlyFromBucket = (
-	bucket: Map<string, CustomPeerInfo>,
-) => {
-	const bucketPeerIds = Array.from(bucket.keys());
-	const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
-	const randomPeerId = bucketPeerIds[randomPeerIndex];
-	const randomPeer = bucket.get(randomPeerId);
-	bucket.delete(randomPeerId);
-
-	return randomPeer;
-};
 
 // Base list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
 export class BaseList {
