@@ -402,6 +402,7 @@ module.exports = class Chain {
 		this.dpos = new Dpos({
 			storage: this.storage,
 			logger: this.logger,
+			channel: this.channel,
 			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			exceptions: this.options.exceptions,

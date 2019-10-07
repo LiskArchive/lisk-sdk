@@ -16,6 +16,8 @@
 
 const BigNum = require('@liskhq/bignum');
 
+const EVENT_ROUND_CHANGED = 'chain:rounds:change';
+
 const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
 	delegatePublicKeys
 		.map((publicKey, index) => ({
@@ -53,6 +55,7 @@ class DelegatesInfo {
 		slots,
 		activeDelegates,
 		logger,
+		channel,
 		delegatesList,
 		exceptions,
 	}) {
@@ -60,6 +63,7 @@ class DelegatesInfo {
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
 		this.logger = logger;
+		this.channel = channel;
 		this.delegatesList = delegatesList;
 		this.exceptions = exceptions;
 	}
@@ -120,6 +124,9 @@ class DelegatesInfo {
 				const nextRound = round + 1;
 				await this.delegatesList.createRoundDelegateList(nextRound, tx);
 			}
+
+			// Emit rounds change event
+			this.channel.publish(EVENT_ROUND_CHANGED, { number: round });
 		}
 
 		return true;
@@ -340,4 +347,4 @@ class DelegatesInfo {
 	}
 }
 
-module.exports = { DelegatesInfo };
+module.exports = { DelegatesInfo, EVENT_ROUND_CHANGED };

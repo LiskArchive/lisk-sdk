@@ -14,13 +14,21 @@
 
 'use strict';
 
-const { DelegatesList, EVENT_ROUND_FINISHED } = require('./delegates_list');
-const { DelegatesInfo } = require('./delegates_info');
+const { DelegatesList } = require('./delegates_list');
+const { DelegatesInfo, EVENT_ROUND_CHANGED } = require('./delegates_info');
 
 module.exports = class Dpos {
-	constructor({ storage, slots, activeDelegates, logger, exceptions = {} }) {
+	constructor({
+		storage,
+		slots,
+		activeDelegates,
+		logger,
+		channel,
+		exceptions = {},
+	}) {
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
+		this.channel = channel;
 		this.delegatesList = new DelegatesList({
 			storage,
 			logger,
@@ -33,11 +41,12 @@ module.exports = class Dpos {
 			slots,
 			activeDelegates,
 			logger,
+			channel,
 			delegatesList: this.delegatesList,
 			exceptions,
 		});
 
-		this.delegatesList.on(EVENT_ROUND_FINISHED, () => {
+		this.channel.subscribe(EVENT_ROUND_CHANGED, () => {
 			this.onRoundFinish();
 		});
 	}
