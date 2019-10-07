@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { maxBy, groupBy } = require('lodash');
+const { maxBy, groupBy, cloneDeep } = require('lodash');
 const {
 	deleteBlocksAfterHeightAndBackup,
 	computeBlockHeightsList,
@@ -60,10 +60,129 @@ class BlockSynchronizationMechanism {
 
 			const bestPeer = await this._computeBestPeer(peers);
 			await this._requestAndValidateLastBlock(receivedBlock, bestPeer);
-			await this._revertToLastCommonBlock(receivedBlock, bestPeer);
+			const lastCommonBlock = await this._revertToLastCommonBlock(
+				receivedBlock,
+				bestPeer,
+			);
+			await this._requestAndApplyBlocksToCurrentChain(
+				receivedBlock,
+				bestPeer,
+				lastCommonBlock,
+			);
 		} finally {
 			this.active = false;
 		}
+	}
+
+	/**
+	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer`
+	 *
+	 * @param {object} peer - The peer to target
+	 * @param {string} fromID - The starting block ID to fetch from
+	 * @param {string} toID - The ending block ID
+	 * @return {Promise<Array<object>>}
+	 * @private
+	 */
+	async _requestBlocksWithinIDs(peer, fromID, toID) {
+		const blocks = [];
+		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer
+		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
+		let finished = false;
+		let lastFetchedID = fromID;
+
+		while (!finished && failedAttempts < maxFailedAttempts) {
+			const { data } = await this.channel.invoke('network:requestFromPeer', {
+				procedure: 'getBlocksFromID',
+				peerId: peer.id,
+				data: {
+					blockID: lastFetchedID,
+				},
+			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+
+			if (data) {
+				blocks.push(data); // `data` is an array of blocks.
+				lastFetchedID = data.slice(-1)[0].id;
+				finished = toID === lastFetchedID;
+			} else {
+				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
+			}
+		}
+
+		return blocks;
+	}
+
+	/**
+	 * Applies a set of blocks on top of the current chain
+	 * @param {Array<object>} blocks - An array of full blocks
+	 * @return {Promise<void>}
+	 * @private
+	 */
+	async _applyBlocksToCurrentChain(blocks) {
+		for (const block of blocks) {
+			await this.processorModule.process(block);
+		}
+	}
+
+	/**
+	 * Requests blocks from startingBlockID to an specific peer until endingBlockID
+	 * is met and applies them on top of the current chain.
+	 * @param receivedBlock
+	 * @param lastCommonBlock
+	 * @param {Object} peer - The peer to target
+	 * @return {Promise<void | boolean>}
+	 * @private
+	 */
+	async _requestAndApplyBlocksToCurrentChain(
+		receivedBlock,
+		lastCommonBlock,
+		peer,
+	) {
+		const listOfFullBlocks = await this._requestBlocksWithinIDs(
+			peer,
+			lastCommonBlock.id,
+			receivedBlock.id,
+		);
+		const tipBeforeApplying = cloneDeep(this.blocks.lastBlock);
+
+		if (!listOfFullBlocks.length) {
+			return this._applyPenaltyAndRestartSync(
+				peer,
+				receivedBlock,
+				new Error("Peer didn't return any block"),
+			);
+		}
+
+		try {
+			await this._applyBlocksToCurrentChain(listOfFullBlocks);
+		} catch (e) {
+			this.logger.error(
+				{ err: e },
+				'Applying blocks to the current chain failed',
+			);
+		}
+
+		// If the list of blocks has not been fully applied
+		if (!this.blocks.lastBlock.id === receivedBlock.id) {
+			// Check if the new tip has priority over the last tip we had before applying
+			const forkStatus = await this.processorModule.forkStatus(
+				this.blocks.lastBlock, // New tip of the chain
+				tipBeforeApplying, // Previous tip of the chain
+			);
+
+			if (!forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
+				return this._applyPenaltyAndRestartSync(
+					peer,
+					receivedBlock,
+					new Error('Applying blocks failed'),
+				);
+			}
+
+			return this.channel.publish('chain:processor:sync', {
+				block: receivedBlock,
+			});
+		}
+
+		return true;
 	}
 
 	/**
@@ -91,9 +210,11 @@ class BlockSynchronizationMechanism {
 	/**
 	 * Reverts the current chain so the new tip of the chain corresponds to the
 	 * last common block.
+	 *
+	 * Returns the last common block
 	 * @param receivedBlock
 	 * @param {Object} peer - The selected peer to target.
-	 * @return {Promise<void>}
+	 * @return {Promise<object>}
 	 * @private
 	 */
 	async _revertToLastCommonBlock(receivedBlock, peer) {
@@ -120,11 +241,13 @@ class BlockSynchronizationMechanism {
 			);
 		}
 
-		return deleteBlocksAfterHeightAndBackup(
+		await deleteBlocksAfterHeightAndBackup(
 			this.processorModule,
 			this.blocks,
 			lastCommonBlock.height,
 		);
+
+		return lastCommonBlock;
 	}
 
 	/**
