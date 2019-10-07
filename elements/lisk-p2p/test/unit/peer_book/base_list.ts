@@ -16,12 +16,13 @@ import { expect } from 'chai';
 import { BaseList, CustomPeerInfo } from '../../../src/peer_book/base_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
-import { PEER_TYPE, getBucketId } from '../../../src/utils';
+import { PEER_TYPE } from '../../../src/utils';
 import {
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
+import { getBucketId } from '../../../src/peer_book/utils';
 
 describe('Peers base list', () => {
 	const peerListConfig = {
@@ -243,8 +244,8 @@ describe('Peers base list', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList({
-				peerBucketSize: 1,
-				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				peerBucketSize: 2,
+				peerBucketCount: 1,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 			});
@@ -262,11 +263,10 @@ describe('Peers base list', () => {
 
 		describe('when bucket is full', () => {
 			it('should evict one peer randomly', () => {
-				const result = peerListObj.makeSpace(samplePeers[0].ipAddress);
+				peerListObj.addPeer(samplePeers[1]);
+				const result = peerListObj.makeSpace(samplePeers[2].ipAddress);
 
-				expect(result)
-					.to.be.an('object')
-					.and.eql(peerListObj.initPeerInfo(samplePeers[0]));
+				expect(samplePeers).to.include((result as any).peerInfo);
 			});
 		});
 
