@@ -106,9 +106,7 @@ VotersController.getVoters = async function(context, next) {
 		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
-		const delegate = await storage.entities.Account.getOne(delegateFilters, {
-			extended: true,
-		});
+		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
 		const data = _.pick(delegate, [
 			'username',
@@ -123,7 +121,7 @@ VotersController.getVoters = async function(context, next) {
 		data.username = data.username || '';
 
 		const voters = await storage.entities.Account.get(
-			{ votedDelegatesPublicKeys_in: [delegate.publicKey] },
+			{ votedDelegatesPublicKeys: `"${delegate.publicKey}"` }, // Need to add quotes for PSQL array search
 			options,
 		);
 
@@ -132,7 +130,7 @@ VotersController.getVoters = async function(context, next) {
 		);
 
 		const votersCount = await storage.entities.Account.count({
-			votedDelegatesPublicKeys_in: [delegate.publicKey],
+			votedDelegatesPublicKeys: `"${delegate.publicKey}"`, // Need to add quotes for PSQL array search
 		});
 
 		data.votes = votersCount;
@@ -213,9 +211,7 @@ VotersController.getVotes = async function(context, next) {
 		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
-		const delegate = await storage.entities.Account.getOne(delegateFilters, {
-			extended: true,
-		});
+		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
 		const data = _.pick(delegate, [
 			'address',

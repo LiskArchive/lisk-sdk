@@ -249,7 +249,7 @@ class DelegatesInfo {
 
 			const delegateAccounts = await this.storage.entities.Account.get(
 				{ publicKey_in: summedRound.delegates },
-				{ extended: true },
+				{},
 				tx,
 			);
 

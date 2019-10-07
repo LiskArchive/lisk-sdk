@@ -36,7 +36,9 @@ SELECT
 		"producedBlocks" + "missedBlocks" = 0 then 0
 	else
 		ROUND((("producedBlocks"::float / ("producedBlocks" + "missedBlocks")) * 100.0)::numeric, 2)::float
-	end AS productivity
+	end AS productivity,
+	"votedDelegatesPublicKeys",
+	"membersPublicKeys"
 FROM
 	mem_accounts
 
