@@ -50,12 +50,15 @@ export const selectPeersForSend = (
 
 	const outboundPeers = shuffledPeers.filter(
 		(peerInfo: P2PDiscoveredPeerInfo) =>
-			peerInfo.sharedState.kind === PEER_KIND_OUTBOUND,
+			peerInfo.internalState
+				? peerInfo.internalState.connectionKind === PEER_KIND_OUTBOUND
+				: false,
 	);
 
-	const inboundPeers = shuffledPeers.filter(
-		(peerInfo: P2PDiscoveredPeerInfo) =>
-			peerInfo.sharedState.kind === PEER_KIND_INBOUND,
+	const inboundPeers = shuffledPeers.filter((peerInfo: P2PDiscoveredPeerInfo) =>
+		peerInfo.internalState
+			? peerInfo.internalState.connectionKind === PEER_KIND_INBOUND
+			: false,
 	);
 
 	// tslint:disable: no-let
