@@ -20,7 +20,6 @@ this.pgpOptions = {
 	capSQL: true,
 	promiseLib: Promise,
 	noLocking: false,
-	noWarnings: true,
 };
 const pgp = pgpLib(this.pgpOptions);
 
@@ -55,7 +54,7 @@ class PgHelper {
 			childProcess.exec(`dropdb ${this.database}`, err => {
 				if (err) {
 					// eslint-disable-next-line no-console
-					console.log(`dropdb ${this.database} failed`, err);
+					console.log(`dropdb ${this.database} failed`, err.message);
 				}
 				resolve();
 			});
