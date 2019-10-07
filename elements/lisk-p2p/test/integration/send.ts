@@ -23,7 +23,7 @@ import {
 	NETWORK_PEER_COUNT,
 } from 'utils/network_setup';
 
-describe.only('P2P.send', () => {
+describe('P2P.send', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 
