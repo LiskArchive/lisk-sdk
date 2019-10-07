@@ -13,30 +13,27 @@
  *
  */
 import { expect } from 'chai';
-import { NewList } from '../../../src/peer_directory/new_list';
-import {
-	initPeerInfoList,
-	initPeerInfoListWithSuffix,
-} from '../../utils/peers';
-import { PEER_TYPE, constructPeerIdFromPeerInfo } from '../../../src/utils';
+import { NewList, NewListConfig } from '../../../src/peer_directory/new_list';
+import { initPeerInfoListWithSuffix } from '../../utils/peers';
+import { PEER_TYPE } from '../../../src/utils';
 import {
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_NEW_BUCKET_SIZE,
 } from '../../../src';
 
 describe('newPeer', () => {
-	const newPeerConfig = {
-		peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-		peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
-		secret: 123456,
-		peerType: PEER_TYPE.NEW_PEER,
-		evictionThresholdTime: 86400000,
-	};
+	let newPeerConfig: NewListConfig;
+	let newPeersObj: NewList;
 
 	describe('#constructor', () => {
-		let newPeersObj: NewList;
-
 		beforeEach(async () => {
+			newPeerConfig = {
+				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				secret: 123456,
+				peerType: PEER_TYPE.NEW_PEER,
+				evictionThresholdTime: 86400000,
+			};
 			newPeersObj = new NewList(newPeerConfig);
 		});
 
@@ -58,45 +55,9 @@ describe('newPeer', () => {
 			});
 
 			describe('when bucket contains very old peers', () => {
-				const newPeerConfig = {
-					peerBucketSize: 3,
-					peerBucketCount: 1,
-					secret: 123456,
-					peerType: PEER_TYPE.NEW_PEER,
-					evictionThresholdTime: 10000,
-				};
-				const samplePeers = initPeerInfoList();
-
-				let newPeersList = new NewList(newPeerConfig);
-				// Add a custom map to peerMap
-				const newPeerMapCustom = new Map();
-				// Add a custom Date to a peer that has dateAdded above the evictionThresholdTime
-				const peerDate = new Date();
-				peerDate.setMilliseconds(peerDate.getMilliseconds() + 11000);
-				const oldPeer = { peerInfo: samplePeers[0], dateAdded: peerDate };
-				// Now set 2 peer with one peer staying in a bucket for longer than 10 seconds
-				newPeerMapCustom.set(
-					constructPeerIdFromPeerInfo(samplePeers[0]),
-					oldPeer,
-				);
-				newPeerMapCustom.set(constructPeerIdFromPeerInfo(samplePeers[1]), {
-					peerInfo: samplePeers[1],
-					dateAdded: new Date(),
-				});
-				newPeerMapCustom.set(constructPeerIdFromPeerInfo(samplePeers[2]), {
-					peerInfo: samplePeers[2],
-					dateAdded: new Date(),
-				});
-
-				// Set the peerMap for a bucket
-				newPeersList['peerMap'].set(0, newPeerMapCustom);
-
-				// Since the bucket is already full it should evict one peer but it should trigger eviction based on time
-				// const evictionResult = newPeersList.addPeer(samplePeers[3]);
-
 				it('should just evict one old peers');
 
-				describe.skip('when there is a large sample', () => {
+				describe('when there is a large sample', () => {
 					let newPeersList: NewList;
 					let clock: sinon.SinonFakeTimers;
 
@@ -116,6 +77,7 @@ describe('newPeer', () => {
 
 						samplePeersA.forEach(peerInfo => {
 							clock.tick(2);
+							newPeersList.makeSpace(peerInfo.ipAddress);
 							newPeersList.addPeer(peerInfo);
 						});
 
@@ -123,6 +85,7 @@ describe('newPeer', () => {
 
 						samplePeersB.forEach(peerInfo => {
 							clock.tick(2);
+							newPeersList.makeSpace(peerInfo.ipAddress);
 							newPeersList.addPeer(peerInfo);
 						});
 					});

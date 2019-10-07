@@ -66,6 +66,7 @@ describe('triedPeer', () => {
 					peerType: PEER_TYPE.TRIED_PEER,
 				};
 				triedPeersObj = new TriedList(triedPeerConfig);
+				triedPeersObj.makeSpace(samplePeers[0].ipAddress);
 				triedPeersObj.addPeer(samplePeers[0]);
 			});
 
@@ -86,6 +87,7 @@ describe('triedPeer', () => {
 					peerType: PEER_TYPE.TRIED_PEER,
 				};
 				triedPeersObj = new TriedList(triedPeerConfig);
+				triedPeersObj.makeSpace(samplePeers[0].ipAddress);
 				triedPeersObj.addPeer(samplePeers[0]);
 			});
 
