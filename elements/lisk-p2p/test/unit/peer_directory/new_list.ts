@@ -19,28 +19,34 @@ import { PEER_TYPE } from '../../../src/utils';
 import {
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_NEW_BUCKET_SIZE,
-} from '../../../src';
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_EVICTION_THRESHOLD_TIME,
+} from '../../../src/constants';
 
 describe('newPeer', () => {
 	let newPeerConfig: NewListConfig;
 	let newPeersObj: NewList;
 
 	describe('#constructor', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			newPeerConfig = {
 				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
 				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
-				secret: 123456,
+				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.NEW_PEER,
-				evictionThresholdTime: 86400000,
+				evictionThresholdTime: DEFAULT_EVICTION_THRESHOLD_TIME,
 			};
 			newPeersObj = new NewList(newPeerConfig);
 		});
 
-		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
+		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect(newPeersObj.newPeerConfig).to.be.eql(newPeerConfig);
-			expect(newPeersObj.newPeerConfig.peerBucketCount).to.be.equal(128);
-			expect(newPeersObj.newPeerConfig.peerBucketSize).to.be.equal(32);
+			expect(newPeersObj.newPeerConfig.peerBucketSize).to.be.equal(
+				DEFAULT_NEW_BUCKET_SIZE,
+			);
+			expect(newPeersObj.newPeerConfig.peerBucketCount).to.be.equal(
+				DEFAULT_NEW_BUCKET_COUNT,
+			);
 		});
 	});
 
@@ -64,14 +70,20 @@ describe('newPeer', () => {
 					beforeEach(() => {
 						clock = sandbox.useFakeTimers();
 						const newPeerConfig = {
-							peerBucketSize: 32,
-							peerBucketCount: 128,
-							secret: 123456,
+							peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+							peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+							secret: DEFAULT_RANDOM_SECRET,
 							peerType: PEER_TYPE.NEW_PEER,
 							evictionThresholdTime: 600000,
 						};
-						const samplePeersA = initPeerInfoListWithSuffix('1.222.123', 10000);
-						const samplePeersB = initPeerInfoListWithSuffix('234.11.34', 10000);
+						const samplePeersA = initPeerInfoListWithSuffix(
+							'1.222.123',
+							DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT * 2,
+						);
+						const samplePeersB = initPeerInfoListWithSuffix(
+							'234.11.34',
+							DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT * 2,
+						);
 
 						newPeersList = new NewList(newPeerConfig);
 
@@ -90,8 +102,11 @@ describe('newPeer', () => {
 						});
 					});
 
-					it('should not allow newPeer list to grow beyond 4096 peers', async () => {
-						expect(newPeersList.peersList.length).to.be.lte(4096);
+					it(`should not allow newPeer list to grow beyond ${DEFAULT_NEW_BUCKET_SIZE *
+						DEFAULT_NEW_BUCKET_COUNT} peers`, () => {
+						expect(newPeersList.peersList.length).to.be.lte(
+							DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT,
+						);
 					});
 				});
 			});

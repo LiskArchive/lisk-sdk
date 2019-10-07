@@ -17,40 +17,45 @@ import { BaseList } from '../../../src/peer_directory/base_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
+import {
+	DEFAULT_NEW_BUCKET_SIZE,
+	DEFAULT_NEW_BUCKET_COUNT,
+	DEFAULT_RANDOM_SECRET,
+} from '../../../src/constants';
 
 describe('Peer list base', () => {
-	const peerConfig = {
-		peerBucketSize: 32,
-		peerBucketCount: 64,
-		secret: 123456,
+	const peerListConfig = {
+		peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+		peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+		secret: DEFAULT_RANDOM_SECRET,
 		peerType: PEER_TYPE.TRIED_PEER,
 	};
+	let peerListObj: BaseList;
+	let samplePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 	describe('#constructor', () => {
-		let peerListObj: BaseList;
-
-		beforeEach(async () => {
-			peerListObj = new BaseList(peerConfig);
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
 		});
 
-		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
-			expect((peerListObj as any).peerListConfig).to.be.eql(peerConfig);
-			expect((peerListObj as any).peerListConfig.peerBucketCount).to.be.equal(
-				64,
-			);
+		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
+			expect((peerListObj as any).peerListConfig).to.be.eql(peerListConfig);
 			expect((peerListObj as any).peerListConfig.peerBucketSize).to.be.equal(
-				32,
+				DEFAULT_NEW_BUCKET_SIZE,
+			);
+			expect((peerListObj as any).peerListConfig.peerBucketCount).to.be.equal(
+				DEFAULT_NEW_BUCKET_COUNT,
 			);
 		});
 	});
 
 	describe('#peerList', () => {
-		const samplePeers = initPeerInfoList();
-		let peerListObj: BaseList;
 		let triedPeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>;
 
-		before(async () => {
-			peerListObj = new BaseList(peerConfig);
+		before(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
@@ -59,7 +64,7 @@ describe('Peer list base', () => {
 			>;
 		});
 
-		it('should return tried peers list', async () => {
+		it('should return tried peers list', () => {
 			const expectedTriedPeersArray = [
 				samplePeers[0],
 				samplePeers[1],
@@ -74,17 +79,15 @@ describe('Peer list base', () => {
 	});
 
 	describe('#getPeer', () => {
-		let peerListObj: BaseList;
-		const samplePeers = initPeerInfoList();
-
-		beforeEach(async () => {
-			peerListObj = new BaseList(peerConfig);
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
 
 		describe('when peer exists in the peerMap', () => {
-			it('should get the peer from the incoming peerId', async () => {
+			it('should get the peer from the incoming peerId', () => {
 				expect(peerListObj.getPeer(samplePeers[0]))
 					.to.be.an('object')
 					.and.eql(samplePeers[0]);
@@ -92,27 +95,25 @@ describe('Peer list base', () => {
 		});
 
 		describe('when peer does not exist in the peerMap', () => {
-			const randomPeer = initPeerInfoList()[2];
-			it('should return undefined for the given peer that does not exist in peerMap', async () => {
+			it('should return undefined for the given peer that does not exist in peerMap', () => {
+				const randomPeer = initPeerInfoList()[2];
 				expect(peerListObj.getPeer(randomPeer)).to.be.undefined;
 			});
 		});
 	});
 
 	describe('#addPeer', () => {
-		let peerListObj: BaseList;
-		const samplePeers = initPeerInfoList();
-
-		beforeEach(async () => {
-			peerListObj = new BaseList(peerConfig);
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 		});
 
-		it('should add the incoming peer if it does not exist already', async () => {
+		it('should add the incoming peer if it does not exist already', () => {
 			expect(peerListObj.getPeer(samplePeers[0])).eql(samplePeers[0]);
 		});
 
-		it('should not add the incoming peer if it exists', async () => {
+		it('should not add the incoming peer if it exists', () => {
 			try {
 				peerListObj.addPeer(samplePeers[0]);
 			} catch (e) {
@@ -123,17 +124,15 @@ describe('Peer list base', () => {
 	});
 
 	describe('#updatePeer', () => {
-		let peerListObj: BaseList;
-		const samplePeers = initPeerInfoList();
-
-		beforeEach(async () => {
-			peerListObj = new BaseList(peerConfig);
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
 
 		describe('when trying to update a peer that exist', () => {
-			it('should update the peer from the incoming peerInfo', async () => {
+			it('should update the peer from the incoming peerInfo', () => {
 				let updatedPeer = {
 					...samplePeers[0],
 					height: 0,
@@ -147,7 +146,7 @@ describe('Peer list base', () => {
 		});
 
 		describe('when trying to update a peer that does not exist', () => {
-			it('should return false when the peer does not exist', async () => {
+			it('should return false when the peer does not exist', () => {
 				let updatedPeer = {
 					...samplePeers[2],
 					height: 0,
@@ -161,16 +160,14 @@ describe('Peer list base', () => {
 	});
 
 	describe('#removePeer', () => {
-		let peerListObj: BaseList;
-		const samplePeers = initPeerInfoList();
-
-		beforeEach(async () => {
-			peerListObj = new BaseList(peerConfig);
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
 
-		it('should remove the peer from the incoming peerInfo', async () => {
+		it('should remove the peer from the incoming peerInfo', () => {
 			peerListObj.removePeer(samplePeers[0]);
 			expect(peerListObj.getPeer(samplePeers[0])).to.be.undefined;
 		});
@@ -193,17 +190,15 @@ describe('Peer list base', () => {
 	});
 
 	describe('#failedConnectionAction', () => {
-		let peerListObj: BaseList;
-		const samplePeers = initPeerInfoList();
-
-		beforeEach(async () => {
-			peerListObj = new BaseList(peerConfig);
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 		});
 
 		describe('when the peer exist and applied failedConnectionAction', () => {
-			it('should delete the peer and for the second call it should return false', async () => {
+			it('should delete the peer and for the second call it should return false', () => {
 				const success1 = peerListObj.failedConnectionAction(samplePeers[0]);
 				expect(success1).to.be.true;
 				const success2 = peerListObj.failedConnectionAction(samplePeers[0]);

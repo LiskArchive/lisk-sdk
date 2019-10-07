@@ -13,30 +13,43 @@
  *
  */
 import { expect } from 'chai';
-import { TriedList } from '../../../src/peer_directory/tried_list';
+import {
+	TriedList,
+	TriedListConfig,
+} from '../../../src/peer_directory/tried_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
+import {
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_NEW_BUCKET_SIZE,
+	DEFAULT_NEW_BUCKET_COUNT,
+} from '../../../src/constants';
 
 describe('triedPeer', () => {
-	const triedPeerConfig = {
-		maxReconnectTries: 3,
-		peerBucketSize: 32,
-		peerBucketCount: 64,
-		secret: 123456,
-		peerType: PEER_TYPE.TRIED_PEER,
-	};
+	let triedPeerConfig: TriedListConfig;
 
 	describe('#constructor', () => {
 		let triedPeersObj: TriedList;
 
-		beforeEach(async () => {
+		beforeEach(() => {
+			triedPeerConfig = {
+				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+				maxReconnectTries: 3,
+			};
 			triedPeersObj = new TriedList(triedPeerConfig);
 		});
 
-		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
+		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect(triedPeersObj.triedPeerConfig).to.be.eql(triedPeerConfig);
-			expect(triedPeersObj.triedPeerConfig.peerBucketCount).to.be.equal(64);
-			expect(triedPeersObj.triedPeerConfig.peerBucketSize).to.be.equal(32);
+			expect(triedPeersObj.triedPeerConfig.peerBucketSize).to.be.equal(
+				DEFAULT_NEW_BUCKET_SIZE,
+			);
+			expect(triedPeersObj.triedPeerConfig.peerBucketCount).to.be.equal(
+				DEFAULT_NEW_BUCKET_COUNT,
+			);
 		});
 	});
 
@@ -57,20 +70,20 @@ describe('triedPeer', () => {
 		const samplePeers = initPeerInfoList();
 
 		describe('when maxReconnectTries is 1', () => {
-			beforeEach(async () => {
-				const triedPeerConfig = {
-					maxReconnectTries: 1,
-					peerBucketSize: 32,
-					peerBucketCount: 64,
-					secret: 123456,
+			beforeEach(() => {
+				triedPeerConfig = {
+					peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+					peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+					secret: DEFAULT_RANDOM_SECRET,
 					peerType: PEER_TYPE.TRIED_PEER,
+					maxReconnectTries: 1,
 				};
 				triedPeersObj = new TriedList(triedPeerConfig);
 				triedPeersObj.makeSpace(samplePeers[0].ipAddress);
 				triedPeersObj.addPeer(samplePeers[0]);
 			});
 
-			it('should remove the peer from the triedPeerList', async () => {
+			it('should remove the peer from the triedPeerList', () => {
 				const success = triedPeersObj.failedConnectionAction(samplePeers[0]);
 				expect(success).to.be.true;
 				expect(triedPeersObj.getPeer(samplePeers[0])).to.be.undefined;
@@ -78,20 +91,20 @@ describe('triedPeer', () => {
 		});
 
 		describe('when maxReconnectTries is 2', () => {
-			beforeEach(async () => {
-				const triedPeerConfig = {
-					maxReconnectTries: 2,
-					peerBucketSize: 32,
-					peerBucketCount: 64,
-					secret: 123456,
+			beforeEach(() => {
+				triedPeerConfig = {
+					peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+					peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+					secret: DEFAULT_RANDOM_SECRET,
 					peerType: PEER_TYPE.TRIED_PEER,
+					maxReconnectTries: 2,
 				};
 				triedPeersObj = new TriedList(triedPeerConfig);
 				triedPeersObj.makeSpace(samplePeers[0].ipAddress);
 				triedPeersObj.addPeer(samplePeers[0]);
 			});
 
-			it('should not remove the peer after the first call and remove it after second failed connection', async () => {
+			it('should not remove the peer after the first call and remove it after second failed connection', () => {
 				const success1 = triedPeersObj.failedConnectionAction(samplePeers[0]);
 				expect(success1).to.be.false;
 				expect(triedPeersObj.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);

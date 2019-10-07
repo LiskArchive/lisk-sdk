@@ -15,20 +15,22 @@
 import { expect } from 'chai';
 import { initPeerInfoList } from '../../utils/peers';
 import { PeerBook, PeerBookConfig } from '../../../src/peer_directory';
+import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe('peerBook', () => {
 	const peerBookConfig: PeerBookConfig = {
-		secret: 123456,
+		secret: DEFAULT_RANDOM_SECRET,
 	};
+	let peerBook: PeerBook;
+	let samplePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 	describe('#constructor', () => {
-		let peerBook: PeerBook;
-
-		beforeEach(async () => {
+		beforeEach(() => {
 			peerBook = new PeerBook(peerBookConfig);
 		});
 
-		it('should intialize the blank peer lists and set the secret', async () => {
+		it('should intialize the blank peer lists and set the secret', () => {
 			expect(peerBook).to.be.an('object');
 			expect(peerBook.newPeers).length(0);
 			expect(peerBook.triedPeers).length(0);
@@ -52,48 +54,42 @@ describe('peerBook', () => {
 	});
 
 	describe('#addPeer', () => {
-		const samplePeers = initPeerInfoList();
-		let peerBook: PeerBook;
-
-		beforeEach(async () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
 			peerBook = new PeerBook(peerBookConfig);
 			peerBook.addPeer(samplePeers[0]);
 		});
 
 		it('should make space into the new peer list');
 
-		it('should add peer to the new peer list', async () => {
+		it('should add peer to the new peer list', () => {
 			expect(peerBook.newPeers).length(1);
 			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 	});
 
 	describe('#updatePeer', () => {
-		const samplePeers = initPeerInfoList();
-		let peerBook: PeerBook;
-
-		beforeEach(async () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
 			peerBook = new PeerBook(peerBookConfig);
 			peerBook.addPeer(samplePeers[0]);
 		});
 
-		it('should add peer to the new peer list', async () => {
+		it('should add peer to the new peer list', () => {
 			expect(peerBook.newPeers).length(1);
 			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 	});
 
 	describe('#removePeer', () => {
-		const samplePeers = initPeerInfoList();
-		let peerBook: PeerBook;
-
-		beforeEach(async () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
 			peerBook = new PeerBook(peerBookConfig);
 			peerBook.addPeer(samplePeers[0]);
 			peerBook.removePeer(samplePeers[0]);
 		});
 
-		it('should add peer to the new peer list', async () => {
+		it('should add peer to the new peer list', () => {
 			expect(peerBook.triedPeers).length(0);
 			expect(peerBook.newPeers).length(0);
 			expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
@@ -101,10 +97,8 @@ describe('peerBook', () => {
 	});
 
 	describe('#upgradePeer', () => {
-		const samplePeers = initPeerInfoList();
-		let peerBook: PeerBook;
-
-		beforeEach(async () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
 			peerBook = new PeerBook(peerBookConfig);
 			peerBook.addPeer(samplePeers[0]);
 			peerBook.upgradePeer(samplePeers[0]);
@@ -112,22 +106,20 @@ describe('peerBook', () => {
 
 		it('should make space into the tried peer list');
 
-		it('should add peer to the tried peer list', async () => {
+		it('should add peer to the tried peer list', () => {
 			expect(peerBook.triedPeers).length(1);
 			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 	});
 
 	describe('#downgradePeer', () => {
-		const samplePeers = initPeerInfoList();
-		let peerBook: PeerBook;
-
-		beforeEach(async () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
 			peerBook = new PeerBook(peerBookConfig);
 			peerBook.addPeer(samplePeers[0]);
 		});
 
-		it('should remove a peer when downgraded without any upgrade after addition to the peer list', async () => {
+		it('should remove a peer when downgraded without any upgrade after addition to the peer list', () => {
 			// The added peer is in newPeers
 			expect(peerBook.newPeers).length(1);
 			// Downgrade the peer over disconnection or any other event
@@ -136,7 +128,7 @@ describe('peerBook', () => {
 			expect(peerBook.allPeers).length(0);
 		});
 
-		it('should add peer to the new peer list when downgraded 3 times after an upgrade', async () => {
+		it('should add peer to the new peer list when downgraded 3 times after an upgrade', () => {
 			peerBook.upgradePeer(samplePeers[0]);
 			// Should move to triedPeers
 			expect(peerBook.triedPeers).length(1);
@@ -149,7 +141,7 @@ describe('peerBook', () => {
 			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 
-		it('should remove a peer from all peer lists when downgraded 4 times after one upgrade before', async () => {
+		it('should remove a peer from all peer lists when downgraded 4 times after one upgrade before', () => {
 			peerBook.upgradePeer(samplePeers[0]);
 			// Should move to triedPeers
 			expect(peerBook.triedPeers).length(1);
