@@ -13,10 +13,10 @@
  *
  */
 import { expect } from 'chai';
-import { BaseList } from '../../../src/peer_book/base_list';
+import { BaseList, CustomPeerInfo } from '../../../src/peer_book/base_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
-import { PEER_TYPE } from '../../../src/utils';
+import { PEER_TYPE, getBucketId } from '../../../src/utils';
 import {
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_NEW_BUCKET_COUNT,
@@ -47,6 +47,24 @@ describe('Peers base list', () => {
 			expect((peerListObj as any).peerListConfig.peerBucketCount).to.be.equal(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
+			expect((peerListObj as any).peerListConfig.secret).to.be.equal(
+				DEFAULT_RANDOM_SECRET,
+			);
+			expect((peerListObj as any).peerListConfig.peerType).to.be.equal(
+				PEER_TYPE.TRIED_PEER,
+			);
+			expect((peerListObj as any).peerMap)
+				.to.be.a('map')
+				.of.length(DEFAULT_NEW_BUCKET_COUNT);
+			for (const peer of (peerListObj as any).peerMap) {
+				expect(peer)
+					.to.be.an('array')
+					.of.length(2);
+				expect(peer[0])
+					.to.be.a('number')
+					.within(0, DEFAULT_NEW_BUCKET_COUNT);
+				expect(peer[1]).to.be.a('map').empty;
+			}
 		});
 	});
 
@@ -72,10 +90,6 @@ describe('Peers base list', () => {
 			];
 			expect(triedPeersArray).to.have.members(expectedTriedPeersArray);
 		});
-	});
-
-	describe('#initPeerInfo', () => {
-		it('should init peer info');
 	});
 
 	describe('#getPeer', () => {
@@ -122,16 +136,35 @@ describe('Peers base list', () => {
 			}
 		});
 
-		it('should call makeSpace method', () => {
-			expect(peerListObj.getPeer(samplePeers[0])).eql(samplePeers[0]);
-		});
+		it('should call makeSpace method with the ip address of the peer to add', () => {
+			sandbox.stub(peerListObj, 'makeSpace');
+			peerListObj.addPeer(samplePeers[1]);
 
-		describe('when bucket is full', () => {
-			it('should return evicted peer');
+			expect(peerListObj.makeSpace).to.be.calledOnceWithExactly(
+				samplePeers[1].ipAddress,
+			);
 		});
 
 		describe('when bucket is not full', () => {
-			it('should return undefined');
+			it('should return undefined', () => {
+				sandbox.stub(peerListObj, 'makeSpace').returns(undefined);
+				const result = peerListObj.addPeer(samplePeers[1]);
+
+				expect(result).to.be.undefined;
+			});
+		});
+
+		describe('when bucket is full', () => {
+			it('should return evicted peer', () => {
+				const customPeer: CustomPeerInfo = {
+					peerInfo: samplePeers[2],
+					dateAdded: new Date(),
+				};
+				sandbox.stub(peerListObj, 'makeSpace').returns(customPeer);
+				const result = peerListObj.addPeer(samplePeers[1]);
+
+				expect(result).to.eql(customPeer);
+			});
 		});
 	});
 
@@ -186,18 +219,66 @@ describe('Peers base list', () => {
 	});
 
 	describe('#getBucket', () => {
-		it('should get a bucket');
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
+			peerListObj.addPeer(samplePeers[0]);
+		});
+
+		it('should get a bucket by ip address', () => {
+			const bucketId = getBucketId({
+				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+				targetAddress: samplePeers[0].ipAddress,
+			});
+
+			expect(peerListObj.getBucket(samplePeers[0].ipAddress)).to.eql(
+				(peerListObj as any).peerMap.get(bucketId),
+			);
+		});
 	});
 
 	describe('#makeSpace', () => {
-		it('should call get bucket');
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList({
+				peerBucketSize: 1,
+				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+			});
+			peerListObj.addPeer(samplePeers[0]);
+		});
+
+		it('should call get bucket', () => {
+			sandbox.stub(peerListObj, 'getBucket');
+			peerListObj.makeSpace(samplePeers[0].ipAddress);
+
+			expect(peerListObj.getBucket).to.be.calledOnceWithExactly(
+				samplePeers[0].ipAddress,
+			);
+		});
 
 		describe('when bucket is full', () => {
-			it('should evict one peer randomly');
+			it('should evict one peer randomly', () => {
+				const result = peerListObj.makeSpace(samplePeers[0].ipAddress);
+
+				expect(result)
+					.to.be.an('object')
+					.and.eql(peerListObj.initPeerInfo(samplePeers[0]));
+			});
 		});
 
 		describe('when bucket is not full', () => {
-			it('should not evict any peer');
+			it('should not evict any peer', () => {
+				const bucket = new Map<string, CustomPeerInfo>();
+				sandbox.stub(peerListObj, 'getBucket').returns(bucket);
+
+				const result = peerListObj.makeSpace(samplePeers[0].ipAddress);
+
+				expect(result).to.be.undefined;
+			});
 		});
 	});
 
