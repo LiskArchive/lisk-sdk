@@ -25,6 +25,26 @@ export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
 }
 
+export const evictAnOldPeerFromBucket = (
+	bucket: Map<string, CustomPeerInfo>,
+	thresholdTime: number,
+): CustomPeerInfo | undefined => {
+	// First eviction strategy: eviction by time of residence
+	for (const [peerId, peer] of bucket) {
+		const timeDifference = Math.round(
+			Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+		);
+
+		if (timeDifference >= thresholdTime) {
+			bucket.delete(peerId);
+
+			return peer;
+		}
+	}
+
+	return undefined;
+};
+
 export class NewList extends BaseList {
 	private readonly _evictionThresholdTime: number;
 
@@ -60,16 +80,12 @@ export class NewList extends BaseList {
 
 		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
 			// First eviction strategy: eviction by time of residence
-			for (const [peerId, peer] of bucket) {
-				const timeDifference = Math.round(
-					Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
-				);
-
-				if (timeDifference >= this._evictionThresholdTime) {
-					bucket.delete(peerId);
-
-					return peer;
-				}
+			const result = evictAnOldPeerFromBucket(
+				bucket,
+				this._evictionThresholdTime,
+			);
+			if (result) {
+				return result;
 			}
 
 			// Second eviction strategy: Default eviction based on base class
