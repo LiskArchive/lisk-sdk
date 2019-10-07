@@ -49,8 +49,6 @@ class PgHelper {
 
 	_dropDB() {
 		return new Promise(resolve => {
-			// eslint-disable-next-line no-console
-			console.log('Dropping database instance:', this.database);
 			childProcess.exec(`dropdb ${this.database}`, err => {
 				if (err) {
 					// eslint-disable-next-line no-console
@@ -63,11 +61,11 @@ class PgHelper {
 
 	_createDB() {
 		return new Promise((resolve, reject) => {
-			// eslint-disable-next-line no-console
-			console.log('Creating database instance:', this.database);
-			childProcess.exec(`createdb ${this.database}`, error => {
-				if (error) {
-					return reject(error);
+			childProcess.exec(`createdb ${this.database}`, err => {
+				if (err) {
+					// eslint-disable-next-line no-console
+					console.log(`createdb ${this.database} failed`, err.message);
+					return reject(err);
 				}
 				return resolve();
 			});
