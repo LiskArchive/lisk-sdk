@@ -286,7 +286,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			size += transactionBytes.length;
 
 			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.asset.amount);
+			totalAmount = totalAmount.plus(transaction.asset.amount || 0);
 
 			blockTransactions.push(transaction);
 			transactionsBytesArray.push(transactionBytes);
