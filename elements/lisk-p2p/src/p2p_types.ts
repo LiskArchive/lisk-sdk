@@ -48,13 +48,17 @@ export enum ConnectionKind {
 	NONE = 'none',
 }
 
+export enum PeerType {
+	FIXED_PEER = 'fixedPeer',
+	WHITELISTED_PEER = 'whitelistedPeer',
+	SEED_PEER = 'seedPeer',
+	BLACKLISTED_PEER = 'blacklistedPeer',
+	NONE = 'NONE',
+}
 export interface P2PInternalState {
 	readonly dateAdded: Date;
-	readonly isFixedlistedPeer: boolean;
-	readonly isBlacklistedPeer: boolean;
-	readonly isWhitelistedPeer: boolean;
-	readonly isSeedPeer: boolean;
-	readonly isbanned: boolean;
+	readonly peerType: PeerType;
+	readonly isBanned: boolean;
 	readonly productivity?: number;
 	readonly reputation?: number;
 	readonly connectionKind?: ConnectionKind;

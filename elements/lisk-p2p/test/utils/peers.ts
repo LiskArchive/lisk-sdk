@@ -14,7 +14,11 @@
  */
 import { DEFAULT_RANDOM_SECRET } from '../../src/constants';
 import { Peer } from '../../src/peer';
-import { P2PDiscoveredPeerInfo, ConnectionKind } from '../../src/p2p_types';
+import {
+	P2PDiscoveredPeerInfo,
+	ConnectionKind,
+	PeerType,
+} from '../../src/p2p_types';
 
 export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 	const peerOption1: P2PDiscoveredPeerInfo = {
@@ -100,11 +104,8 @@ export const initPeerInfoListWithSuffix = (
 				connectionKind:
 					i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
 				dateAdded: new Date(),
-				isFixedlistedPeer: false,
-				isBlacklistedPeer: false,
-				isWhitelistedPeer: false,
-				isSeedPeer: false,
-				isbanned: false,
+				peerType: PeerType.NONE,
+				isBanned: false,
 			},
 		});
 	}
