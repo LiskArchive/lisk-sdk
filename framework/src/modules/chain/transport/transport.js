@@ -247,11 +247,11 @@ class Transport {
 			);
 		}
 
-		// TODO: endpoint should be protected before
-		if (this.synchronizer.isActive) {
+		// Should ignore received block if syncing
+		if (this.synchronizer.isActive()) {
 			return this.logger.debug(
-				"Client is syncing. Can't receive block at the moment.",
-				query.block.id,
+				{ id: query.block.id, height: query.block.height },
+				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
 
