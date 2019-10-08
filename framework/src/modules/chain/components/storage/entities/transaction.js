@@ -188,9 +188,16 @@ class ChainTransaction extends TransactionEntity {
 			transaction.signatures = transaction.signatures
 				? transaction.signatures.join()
 				: null;
-			transaction.amount = transaction.amount.toString();
+
+			if (transaction.type === 0) {
+				transaction.amount = transaction.asset.amount.toString();
+				transaction.recipientId = transaction.asset.recipientId;
+			} else {
+				transaction.recipientId = null;
+				transaction.amount = 0;
+			}
+
 			transaction.fee = transaction.fee.toString();
-			transaction.recipientId = transaction.recipientId || null;
 			transaction.transferData = null;
 
 			// Transfer data is bytea and can not be included as json when null byte is present

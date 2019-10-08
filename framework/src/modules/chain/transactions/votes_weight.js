@@ -121,7 +121,8 @@ const updateSenderDelegateVotes = (
 	exceptions,
 	undo = false,
 ) => {
-	const amount = transaction.fee.plus(transaction.amount);
+	// use the ammount or default to zero as LIP-0012 removes the 'amount' property from all transactions but transfer
+	const amount = transaction.fee.plus(transaction.asset.amount || '0');
 	const method = undo ? 'add' : 'sub';
 	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
 	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];
