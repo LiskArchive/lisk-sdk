@@ -77,31 +77,25 @@ describe('integration test (type 4) - effect of multisignature registration on m
 				return localCommon
 					.getAccountFromDb(library, multisigAccount.address)
 					.then(res => {
-						accountRow = res;
+						accountRow = res.mem_accounts;
 					});
 			});
 
-			it('should include rows in mem_accounts2multisignatures', async () => {
-				const signKeysInDb = _.map(
-					accountRow.mem_accounts2multisignatures,
-					row => {
-						return row.dependentId;
-					},
-				);
-				return expect(signKeysInDb).to.include(
+			it('should include signers PKs in membersPublicKeys', async () => {
+				return expect(accountRow.membersPublicKeys).to.include(
 					signer1.publicKey,
 					signer2.publicKey,
 				);
 			});
 
 			it('should set multimin field set on mem_accounts', async () => {
-				return expect(accountRow.mem_accounts.multimin).to.eql(
+				return expect(accountRow.multimin).to.eql(
 					multisigTransaction.asset.multisignature.min,
 				);
 			});
 
 			it('should set multilifetime field set on mem_accounts', async () => {
-				return expect(accountRow.mem_accounts.multilifetime).to.eql(
+				return expect(accountRow.multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime,
 				);
 			});
@@ -145,24 +139,24 @@ describe('integration test (type 4) - effect of multisignature registration on m
 			describe('sender db rows', () => {
 				let accountRow;
 
-				before('get mem_account, mem_account2multisignature rows', async () => {
+				before('get mem_account', async () => {
 					return localCommon
 						.getAccountFromDb(library, multisigAccount.address)
 						.then(res => {
-							accountRow = res;
+							accountRow = res.mem_accounts;
 						});
 				});
 
-				it('should have no rows in mem_accounts2multisignatures', async () => {
-					return expect(accountRow.mem_accounts2multisignatures).to.eql([]);
+				it('should have no data in mem_account.membersPublicKeys', async () => {
+					return expect(accountRow.membersPublicKeys).to.eql([]);
 				});
 
 				it('should have multimin field set to 0 on mem_accounts', async () => {
-					return expect(accountRow.mem_accounts.multimin).to.eql(0);
+					return expect(accountRow.multimin).to.eql(0);
 				});
 
 				it('should have multilifetime field set to 0 on mem_accounts', async () => {
-					return expect(accountRow.mem_accounts.multilifetime).to.eql(0);
+					return expect(accountRow.multilifetime).to.eql(0);
 				});
 			});
 
@@ -176,8 +170,8 @@ describe('integration test (type 4) - effect of multisignature registration on m
 					);
 				});
 
-				it('should set multisignatures field to null on account', async () => {
-					return expect(account.membersPublicKeys).to.be.null;
+				it('should set multisignatures field to empty array on account', async () => {
+					return expect(account.membersPublicKeys).to.eql([]);
 				});
 
 				it('should set multimin field to 0 on account', async () => {

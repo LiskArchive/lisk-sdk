@@ -32,7 +32,7 @@ class TransactionStore {
 			this.tx,
 		);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
-		return result;
+		return _.cloneDeep(result);
 	}
 
 	add(element) {

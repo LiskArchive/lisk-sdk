@@ -122,6 +122,24 @@ describe('rounds', () => {
 					accounts[address].username = transaction.asset.delegate.username;
 					accounts[address].isDelegate = 1;
 				}
+
+				// After merging mem_accounts depdentent tables the returned account has more fields so we need to account for this
+				if (transaction.type === 3) {
+					const upvotes = transaction.asset.votes
+						.filter(vote => vote.charAt(0) === '+')
+						.map(vote => vote.substring(1));
+					const unvotes = transaction.asset.votes
+						.filter(vote => vote.charAt(0) === '-')
+						.map(vote => vote.substring(1));
+					const originalVotes =
+						accounts[address].votedDelegatesPublicKeys || [];
+					const votedDelegatesPublicKeys = [
+						...originalVotes,
+						...upvotes,
+					].filter(vote => !unvotes.includes(vote));
+
+					accounts[address].votedDelegatesPublicKeys = votedDelegatesPublicKeys;
+				}
 			}
 
 			// RECIPIENT: Get address from recipientId
