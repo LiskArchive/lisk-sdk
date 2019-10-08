@@ -48,6 +48,7 @@ import {
 	P2PNodeInfo,
 	P2PDiscoveredPeerInfo,
 	P2PPeerInfo,
+	SendFailError,
 } from '../../src';
 import { constructPeerIdFromPeerInfo } from '../../src/utils';
 
@@ -136,9 +137,7 @@ describe('peerPool', () => {
 
 	describe('#constructor', () => {
 		it('should be an object and instance of PeerPool', async () => {
-			expect(peerPool)
-				.to.be.an('object')
-				.and.be.instanceof(PeerPool);
+			expect(peerPool).to.be.instanceof(PeerPool);
 		});
 
 		it('should have a _peerMap property which is a Map', async () => {
@@ -273,14 +272,10 @@ describe('peerPool', () => {
 
 		it('should throw error if no peers selected', async () => {
 			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([]);
-			let err;
-			try {
-				await peerPool.request(requestPacket);
-			} catch (error) {
-				err = error;
-			}
 
-			expect(err).to.be.instanceOf(RequestFailError);
+			expect(peerPool.request(requestPacket)).to.be.rejectedWith(
+				RequestFailError,
+			);
 		});
 
 		it('should call requestFromPeer', async () => {
@@ -324,9 +319,7 @@ describe('peerPool', () => {
 
 		it(`should emit event if sendToPeer fails`, async () => {
 			sendToPeer.throws();
-			try {
-				await peerPool.send(1 as any);
-			} catch (error) {}
+			await peerPool.send(1 as any);
 
 			expect(peerPool.emit).to.be.calledOnce;
 		});
@@ -335,14 +328,10 @@ describe('peerPool', () => {
 	describe('#requestFromPeer', () => {
 		it('should throw error if no peers in peerPool', async () => {
 			(peerPool as any)._peerMap = new Map();
-			let err;
-			try {
-				await peerPool.requestFromPeer(requestPacket, peerId);
-			} catch (error) {
-				err = error;
-			}
 
-			expect(err).to.exist;
+			expect(
+				peerPool.requestFromPeer(requestPacket, peerId),
+			).to.be.rejectedWith(RequestFailError);
 		});
 
 		it('should call peer request with packet', async () => {
@@ -356,14 +345,10 @@ describe('peerPool', () => {
 	describe('#sendToPeer', () => {
 		it('should throw error if no peers in peerPool', async () => {
 			(peerPool as any)._peerMap = new Map();
-			let err;
-			try {
-				await peerPool.sendToPeer(messagePacket, peerId);
-			} catch (error) {
-				err = error;
-			}
 
-			expect(err).to.exist;
+			expect(() => peerPool.sendToPeer(messagePacket, peerId)).to.throw(
+				SendFailError,
+			);
 		});
 
 		it('should call peer send with message packet', async () => {
@@ -398,18 +383,12 @@ describe('peerPool', () => {
 			expect((peerPool as any)._evictPeer).to.be.calledWithExactly(InboundPeer);
 		});
 
-		it('should throw error if peer already exists in peerpool', async () => {
+		it('should throw error if peer already exists in peerpool', () => {
 			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
-			let err;
-			try {
-				peerPool.addInboundPeer(peerInfo, peerObject as any);
-			} catch (error) {
-				err = error;
-			}
 
-			expect(err.message).to.equal(
-				`Peer ${peerId} was already in the peer pool`,
-			);
+			expect(() =>
+				peerPool.addInboundPeer(peerInfo, peerObject as any),
+			).to.throw();
 		});
 
 		it('should add peer to peerMap', async () => {
