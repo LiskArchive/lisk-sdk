@@ -16,7 +16,6 @@ import * as BigNum from '@liskhq/bignum';
 import { expect } from 'chai';
 import {
 	verifySenderPublicKey,
-	verifySenderId,
 	verifyBalance,
 	verifySecondSignature,
 	verifyMultiSignatures,
@@ -46,33 +45,6 @@ describe('#verify', () => {
 			)
 				.to.be.instanceOf(TransactionError)
 				.and.have.property('dataPath', '.senderPublicKey');
-		});
-	});
-
-	describe('#verifySenderId', () => {
-		const defaultAddress = '15610000000000000000L';
-
-		it('should return undefined when sender id and address is the same', async () => {
-			const address = '15610000000000000000L';
-			expect(
-				verifySenderId(defaultId, { address: defaultAddress } as any, address),
-			).to.be.undefined;
-		});
-
-		it('should return undefined when sender id has lower case', async () => {
-			const address = '15610000000000000000l';
-			expect(
-				verifySenderId(defaultId, { address: defaultAddress } as any, address),
-			).to.be.undefined;
-		});
-
-		it('should return TransactionError when sender id and account address is not the same', async () => {
-			const address = '15610000000000005555L';
-			expect(
-				verifySenderId(defaultId, { address: defaultAddress } as any, address),
-			)
-				.to.be.instanceOf(TransactionError)
-				.and.have.property('dataPath', '.senderId');
 		});
 	});
 

@@ -36,32 +36,21 @@ import { convertToAssetError, TransactionError } from './errors';
 import { Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import {
-	checkPublicKeysForDuplicates,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getTransactionBytes,
-	getTransactionHash,
-	getTransactionId,
 	isValidInteger,
-	multiSignTransaction,
-	prepareTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	signRawTransaction,
-	signTransaction,
 	stringEndsWith,
 	transactionInterface,
 	validateAddress,
-	validateFee,
 	validateKeysgroup,
 	validateNonTransferAmount,
 	validatePublicKey,
 	validatePublicKeys,
-	validateTransaction,
 	validateTransferAmount,
 	validator,
 	verifyAmountBalance,
-	verifyTransaction,
 } from './utils';
 
 const exposedUtils = {
@@ -69,7 +58,6 @@ const exposedUtils = {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	isValidInteger,
-	multiSignTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	stringEndsWith,
@@ -81,18 +69,6 @@ const exposedUtils = {
 	verifyAmountBalance,
 	validateNonTransferAmount,
 	validateTransferAmount,
-
-	// TODO: Deprecated
-	signTransaction,
-	getTransactionBytes,
-	getTransactionId,
-	verifyTransaction,
-	checkPublicKeysForDuplicates,
-	getTransactionHash,
-	prepareTransaction,
-	signRawTransaction,
-	validateFee,
-	validateTransaction,
 };
 
 export {

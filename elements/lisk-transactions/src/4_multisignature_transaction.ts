@@ -33,32 +33,26 @@ import { validateMultisignatures, validateSignature, validator } from './utils';
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
-	required: ['multisignature'],
+	required: ['min', 'lifetime', 'keysgroup'],
 	properties: {
-		multisignature: {
-			type: 'object',
-			required: ['min', 'lifetime', 'keysgroup'],
-			properties: {
-				min: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 15,
-				},
-				lifetime: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 72,
-				},
-				keysgroup: {
-					type: 'array',
-					uniqueItems: true,
-					minItems: 1,
-					maxItems: 15,
-					items: {
-						type: 'string',
-						format: 'additionPublicKey',
-					},
-				},
+		min: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 15,
+		},
+		lifetime: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 72,
+		},
+		keysgroup: {
+			type: 'array',
+			uniqueItems: true,
+			minItems: 1,
+			maxItems: 15,
+			items: {
+				type: 'string',
+				format: 'additionPublicKey',
 			},
 		},
 	},
@@ -83,11 +77,9 @@ const extractPublicKeysFromAsset = (assetPublicKeys: ReadonlyArray<string>) =>
 	assetPublicKeys.map(key => key.substring(1));
 
 export interface MultiSignatureAsset {
-	readonly multisignature: {
-		readonly keysgroup: ReadonlyArray<string>;
-		readonly lifetime: number;
-		readonly min: number;
-	};
+	readonly keysgroup: ReadonlyArray<string>;
+	readonly lifetime: number;
+	readonly min: number;
 }
 
 export class MultisignatureTransaction extends BaseTransaction {
@@ -103,12 +95,14 @@ export class MultisignatureTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || { multisignature: {} }) as MultiSignatureAsset;
+		// Overwrite fee as it is different from the static fee
+		this.fee = new BigNum(MultisignatureTransaction.FEE).mul(
+			this.asset.keysgroup.length + 1,
+		);
 	}
 
 	protected assetToBytes(): Buffer {
-		const {
-			multisignature: { min, lifetime, keysgroup },
-		} = this.asset;
+		const { min, lifetime, keysgroup } = this.asset;
 		const minBuffer = Buffer.alloc(1, min);
 		const lifetimeBuffer = Buffer.alloc(1, lifetime);
 		const keysgroupBuffer = Buffer.from(keysgroup.join(''), 'utf8');
@@ -118,7 +112,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		const membersAddresses = extractPublicKeysFromAsset(
-			this.asset.multisignature.keysgroup,
+			this.asset.keysgroup,
 		).map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
 
 		await store.account.cache([
@@ -156,53 +150,17 @@ export class MultisignatureTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for multisignature registration transaction',
-					this.id,
-					'.amount',
-					this.amount.toString(),
-					'0',
-				),
-			);
-		}
-
 		if (errors.length > 0) {
 			return errors;
 		}
 
-		if (
-			this.asset.multisignature.min > this.asset.multisignature.keysgroup.length
-		) {
+		if (this.asset.min > this.asset.keysgroup.length) {
 			errors.push(
 				new TransactionError(
 					'Invalid multisignature min. Must be less than or equal to keysgroup size',
 					this.id,
-					'.asset.multisignature.min',
-					this.asset.multisignature.min,
-				),
-			);
-		}
-
-		if (this.recipientId) {
-			errors.push(
-				new TransactionError(
-					'RecipientId is expected to be undefined',
-					this.id,
-					'.recipientId',
-					this.recipientId,
-				),
-			);
-		}
-
-		if (this.recipientPublicKey) {
-			errors.push(
-				new TransactionError(
-					'RecipientPublicKey is expected to be undefined',
-					this.id,
-					'.recipientPublicKey',
-					this.recipientPublicKey,
+					'.asset.min',
+					this.asset.min,
 				),
 			);
 		}
@@ -210,32 +168,14 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	public validateFee(): TransactionError | undefined {
-		const expectedFee = new BigNum(MultisignatureTransaction.FEE).mul(
-			this.asset.multisignature.keysgroup.length + 1,
-		);
-
-		return !this.fee.eq(expectedFee)
-			? new TransactionError(
-					`Fee must be equal to ${expectedFee.toString()}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					expectedFee.toString(),
-			  )
-			: undefined;
-	}
-
 	public processMultisignatures(_: StateStore): TransactionResponse {
 		const transactionBytes = this.getBasicBytes();
 
 		const { valid, errors } = validateMultisignatures(
-			this.asset.multisignature.keysgroup.map(signedPublicKey =>
-				signedPublicKey.substring(1),
-			),
+			this.asset.keysgroup.map(signedPublicKey => signedPublicKey.substring(1)),
 			this.signatures,
 			// Required to get signature from all of keysgroup
-			this.asset.multisignature.keysgroup.length,
+			this.asset.keysgroup.length,
 			transactionBytes,
 			this.id,
 		);
@@ -279,7 +219,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check if multisignatures includes sender's own publicKey
-		if (this.asset.multisignature.keysgroup.includes(`+${sender.publicKey}`)) {
+		if (this.asset.keysgroup.includes(`+${sender.publicKey}`)) {
 			errors.push(
 				new TransactionError(
 					'Invalid multisignature keysgroup. Can not contain sender',
@@ -291,11 +231,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		const updatedSender = {
 			...sender,
-			membersPublicKeys: extractPublicKeysFromAsset(
-				this.asset.multisignature.keysgroup,
-			),
-			multiMin: this.asset.multisignature.min,
-			multiLifetime: this.asset.multisignature.lifetime,
+			membersPublicKeys: extractPublicKeysFromAsset(this.asset.keysgroup),
+			multiMin: this.asset.min,
+			multiLifetime: this.asset.lifetime,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -324,9 +262,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		signatureObject: SignatureObject,
 	): TransactionResponse {
 		// Validate signature key belongs to pending multisig registration transaction
-		const keysgroup = this.asset.multisignature.keysgroup.map((aKey: string) =>
-			aKey.slice(1),
-		);
+		const keysgroup = this.asset.keysgroup.map((aKey: string) => aKey.slice(1));
 
 		if (!keysgroup.includes(signatureObject.publicKey)) {
 			return createResponse(this.id, [

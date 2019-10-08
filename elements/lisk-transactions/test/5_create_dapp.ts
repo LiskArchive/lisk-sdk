@@ -21,7 +21,6 @@ import * as time from '../src/utils/time';
 describe('#createDapp transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const transactionType = 5;
-	const amount = '0';
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
 	const publicKey =
@@ -212,24 +211,11 @@ describe('#createDapp transaction', () => {
 					.and.equal(5);
 			});
 
-			it('should have amount string equal to 0', () => {
-				return expect(createDappTransaction)
-					.to.have.property('amount')
-					.and.be.a('string')
-					.and.equal('0');
-			});
-
 			it('should have fee string equal to 25 LSK', () => {
 				return expect(createDappTransaction)
 					.to.have.property('fee')
 					.and.be.a('string')
 					.and.equal(fee);
-			});
-
-			it('should have recipientId equal to empty string', () => {
-				return expect(createDappTransaction)
-					.to.have.property('recipientId')
-					.and.equal('');
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -353,24 +339,6 @@ describe('#createDapp transaction', () => {
 				return expect(createDappTransaction)
 					.to.have.property('type')
 					.equal(transactionType);
-			});
-
-			it('should have the amount', () => {
-				return expect(createDappTransaction)
-					.to.have.property('amount')
-					.equal(amount);
-			});
-
-			it('should have the fee', () => {
-				return expect(createDappTransaction)
-					.to.have.property('fee')
-					.equal(fee);
-			});
-
-			it('should have the recipient id', () => {
-				return expect(createDappTransaction)
-					.to.have.property('recipientId')
-					.equal('');
 			});
 
 			it('should have the sender public key', () => {
