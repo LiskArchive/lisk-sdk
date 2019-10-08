@@ -148,14 +148,14 @@ class BlockSynchronizationMechanism {
 			return this._applyPenaltyAndRestartSync(
 				peer,
 				receivedBlock,
-				new Error("Peer didn't return any block"),
+				new Error("Peer didn't return any block after calling getBlocksFromId"),
 			);
 		}
 
 		try {
 			await this._applyBlocksToCurrentChain(listOfFullBlocks);
 		} catch (e) {
-			this.logger.error(
+			this.logger.debug(
 				{ err: e },
 				'Applying blocks to the current chain failed',
 			);
@@ -173,7 +173,9 @@ class BlockSynchronizationMechanism {
 				return this._applyPenaltyAndRestartSync(
 					peer,
 					receivedBlock,
-					new Error('Chain restore has not been fully completed'),
+					new Error(
+						'New tip of the chain has no preference over the previous tip before synchronizing',
+					),
 				);
 			}
 
@@ -197,6 +199,10 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _applyPenaltyAndRestartSync(peer, receivedBlock, error) {
+		this.logger.debug(
+			{ peer },
+			'Applying penalty to peer and restarting block synchronization',
+		);
 		await this.channel.invoke('network:applyPenalty', {
 			peerId: peer.id,
 			penalty: 100,
