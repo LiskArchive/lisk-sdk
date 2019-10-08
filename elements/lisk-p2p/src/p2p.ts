@@ -83,6 +83,7 @@ import {
 	P2PClosePacket,
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
+	P2PDiscoveredSharedPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -542,14 +543,20 @@ export class P2P extends EventEmitter {
 		}
 	}
 
-	public getConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._peerPool.getAllConnectedPeerInfos();
+	public getConnectedPeers(): ReadonlyArray<P2PDiscoveredSharedPeerInfo> {
+		// Only share the shared state to the user
+		return this._peerPool
+			.getAllConnectedPeerInfos()
+			.map(peer => peer.sharedState);
 	}
 
 	public getUniqueOutboundConnectedPeers(): ReadonlyArray<
-		P2PDiscoveredPeerInfo
+		P2PDiscoveredSharedPeerInfo
 	> {
-		return this._peerPool.getUniqueOutboundConnectedPeers();
+		// Only share the shared state to the user
+		return this._peerPool
+			.getUniqueOutboundConnectedPeers()
+			.map(peer => peer.sharedState);
 	}
 
 	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
@@ -557,9 +564,7 @@ export class P2P extends EventEmitter {
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
-				connectedPeers.find(
-					connectedPeer => peer.peerId === connectedPeer.peerId,
-				)
+				connectedPeers.find(connectedPeer => peer.peerId === connectedPeer.id)
 			) {
 				return false;
 			}
@@ -567,7 +572,10 @@ export class P2P extends EventEmitter {
 			return true;
 		});
 
-		return disconnectedPeers as P2PDiscoveredPeerInfo[];
+		// Only share the shared state to the user
+		return disconnectedPeers.map(
+			peer => peer.sharedState,
+		) as P2PDiscoveredSharedPeerInfo[];
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
