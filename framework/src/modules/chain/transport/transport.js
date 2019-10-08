@@ -218,7 +218,7 @@ class Transport {
 	 * Returns a set of full blocks starting from the ID defined in the payload up to
 	 * the current tip of the chain.
 	 * @param {object} payload
-	 * @param {string} payload.blockID - The ID of the starting block
+	 * @param {string} payload.blockId - The ID of the starting block
 	 * @return {Promise<*|Promise<*>>}
 	 */
 	async getBlocksFromId(payload) {
@@ -240,7 +240,7 @@ class Transport {
 			throw new Error(error);
 		}
 
-		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockID, 34);
+		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
 	}
 
 	/**

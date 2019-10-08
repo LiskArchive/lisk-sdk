@@ -102,9 +102,9 @@ module.exports = {
 	getBlocksFromIdRequest: {
 		id: 'getBlocksFromIdRequest',
 		type: 'object',
-		required: ['blockID'],
+		required: ['blockId'],
 		properties: {
-			blockID: {
+			blockId: {
 				type: 'string',
 				format: 'id',
 			},
