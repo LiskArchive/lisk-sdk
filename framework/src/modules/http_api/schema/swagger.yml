@@ -2262,7 +2262,6 @@ definitions:
       - networkHeight
       - secondsSinceEpoch
       - syncing
-      - transactions
     properties:
       broadhash:
         type: string
@@ -2308,46 +2307,6 @@ definitions:
         type: boolean
         example: false
         description: True if the node syncing with other peers.
-      transactions:
-        type: object
-        required:
-          - ready
-          - pending
-          - verified
-          - confirmed
-          - validated
-          - received
-          - total
-        description: Transactions known to the node.
-        properties:
-          ready:
-            type: integer
-            example: 5
-            description: Number of unconfirmed Transactions known to the node.
-          pending:
-            type: integer
-            example: 2
-            description: Number of pending Transactions known to the node.
-          verified:
-            type: integer
-            example: 3
-            description: Number of verified Transactions known to the node.
-          confirmed:
-            type: integer
-            example: 5
-            description: Number of confirmed Transactions known to the node.
-          validated:
-            type: integer
-            example: 5
-            description: Number of validated Transactions known to the node.
-          received:
-            type: integer
-            example: 5
-            description: Number of received Transactions known to the node.
-          total:
-            type: integer
-            example: 15
-            description: Number of total Transactions known to the node.
 
   TransactionError:
     type: object
