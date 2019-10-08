@@ -92,7 +92,7 @@ class PgHelper {
 			user: 'lisk',
 			password: 'password',
 			min: 1,
-			max: 1,
+			max: 2,
 			logFileName: `logs/devnet/lisk_${this.database}.log`,
 			noWarnings: true,
 			poolIdleTimeout: 30000,
