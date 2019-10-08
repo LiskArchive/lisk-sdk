@@ -62,11 +62,12 @@ module.exports = class Dpos {
 
 	async getForgerPublicKeysForRound(
 		round,
-		delegateListRoundOffset = this.delegateListRoundOffset,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
 	) {
 		return this.delegatesList.getForgerPublicKeysForRound(
 			round,
 			delegateListRoundOffset,
+			tx,
 		);
 	}
 
@@ -84,9 +85,9 @@ module.exports = class Dpos {
 
 	async verifyBlockForger(
 		block,
-		{ delegateListRoundOffset = this.delegateListRoundOffset } = {},
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
 	) {
-		return this.delegatesList.verifyBlockForger(block, delegateListRoundOffset);
+		return this.delegatesList.verifyBlockForger(block, { tx, delegateListRoundOffset });
 	}
 
 	async apply(

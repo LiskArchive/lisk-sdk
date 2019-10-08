@@ -154,6 +154,7 @@ class DelegatesInfo {
 	async _updateMissedBlocks(roundSummary, undo, tx) {
 		const missedBlocksDelegatePublicKeys = await this._getMissedBlocksDelegatePublicKeys(
 			roundSummary,
+			tx,
 		);
 
 		if (!missedBlocksDelegatePublicKeys.length) {
@@ -310,10 +311,12 @@ class DelegatesInfo {
 		round,
 		delegateListRoundOffset,
 		uniqForgersInfo,
+		tx,
 	}) {
 		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
 			round,
 			delegateListRoundOffset,
+			tx,
 		);
 
 		return expectedForgingPublicKeys.filter(
