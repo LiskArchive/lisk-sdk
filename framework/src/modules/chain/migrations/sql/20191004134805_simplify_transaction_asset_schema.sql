@@ -26,17 +26,17 @@
 -- Update 2nd signatures transaction assets
 UPDATE trs 
 SET asset = asset->'signature'
-WHERE asset->'signature' IS NOT NULL
+WHERE asset->'signature' IS NOT NULL;
 
 
 -- Update delegate registration transaction assets
 UPDATE trs 
 SET asset = asset->'delegate'
-WHERE asset->'delegate' IS NOT NULL
+WHERE asset->'delegate' IS NOT NULL;
 
 
 -- Update multisignature registration transaction assets
 UPDATE trs
 SET asset = asset->'multisignature'
-WHERE asset->'multisignature' IS NOT NULL
+WHERE asset->'multisignature' IS NOT NULL;
 
