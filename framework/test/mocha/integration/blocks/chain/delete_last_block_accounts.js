@@ -378,7 +378,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.votedDelegatesPublicKeys).to.be.null;
+					expect(account.votedDelegatesPublicKeys).to.eql([]);
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -470,7 +470,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.be.null;
+					expect(account.membersPublicKeys).to.eql([]);
 				});
 
 				it('should forge a block with transaction pool', done => {

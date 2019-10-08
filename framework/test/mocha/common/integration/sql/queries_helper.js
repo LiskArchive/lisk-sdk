@@ -137,7 +137,11 @@ class Queries {
 
 	getVoters() {
 		return self.storage.adapter.db.query(
-			'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"',
+			`SELECT 
+			jsonb_array_elements("votedDelegatesPublicKeys") as "dependentId",
+			ARRAY_AGG(address) FROM mem_accounts WHERE "votedDelegatesPublicKeys" IS NOT NULL
+			GROUP BY address
+			ORDER BY "dependentId"`,
 		);
 	}
 	/* eslint-enable class-methods-use-this */

@@ -170,11 +170,7 @@ class Forger {
 			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 		};
 
-		const options = {
-			extended: true,
-		};
-
-		const [account] = await this.storage.entities.Account.get(filters, options);
+		const [account] = await this.storage.entities.Account.get(filters);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -252,14 +248,7 @@ class Forger {
 				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 			};
 
-			const options = {
-				extended: true,
-			};
-
-			const [account] = await this.storage.entities.Account.get(
-				filters,
-				options,
-			);
+			const [account] = await this.storage.entities.Account.get(filters);
 			if (!account) {
 				throw `Account with public key: ${keypair.publicKey.toString(
 					'hex',
