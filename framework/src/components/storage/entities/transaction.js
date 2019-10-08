@@ -502,14 +502,20 @@ class Transaction extends BaseEntity {
 			)
 			.then(resp => {
 				const parseResponse = transaction => {
-					if (parsedOptions.extended) {
-						transaction.asset = transaction.asset ? transaction.asset : {};
-						if (transaction.transferData) {
-							transaction.asset.data =
-								transaction.transferData.toString('utf8') || null;
-						}
-						delete transaction.transferData;
+					transaction.asset = transaction.asset ? transaction.asset : {};
+
+					if (transaction.type === 0) {
+						transaction.asset.amount = transaction.amount;
+						transaction.asset.recipientId = transaction.recipientId;
 					}
+
+					if (transaction.transferData) {
+						transaction.asset.data =
+							transaction.transferData.toString('utf8') || null;
+					}
+
+					delete transaction.transferData;
+
 					transaction.signatures = transaction.signatures
 						? transaction.signatures.filter(Boolean)
 						: [];
