@@ -299,20 +299,13 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 }
 
 function getAccountFromDb(library, address) {
-	return Promise.all([
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts where address = '${address}'`,
-		),
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`,
-		),
-	]).then(res => {
-		return {
-			// Get the first row if resultant array is not empty
-			mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
-			mem_accounts2multisignatures: res[1],
-		};
-	});
+	return library.components.storage.adapter
+		.execute(`SELECT * FROM mem_accounts where address = '${address}'`)
+		.then(res => {
+			return {
+				mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
+			};
+		});
 }
 
 function getTransactionFromModule(library, filter, cb) {

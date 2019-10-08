@@ -244,7 +244,7 @@ describe('dpos.apply()', () => {
 					{
 						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
 					},
-					{ extended: true },
+					{},
 					stubs.tx,
 				)
 				.mockResolvedValue(delegatesWhoForged);
@@ -513,7 +513,7 @@ describe('dpos.apply()', () => {
 						{
 							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
 						},
-						{ extended: true },
+						{},
 						stubs.tx,
 					)
 					.mockResolvedValue(delegateAccounts);

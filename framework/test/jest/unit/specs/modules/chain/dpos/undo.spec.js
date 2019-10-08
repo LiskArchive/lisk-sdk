@@ -187,7 +187,7 @@ describe('dpos.undo()', () => {
 					{
 						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
 					},
-					{ extended: true },
+					{},
 					stubs.tx,
 				)
 				.mockResolvedValue(delegatesWhoForged);
@@ -421,7 +421,7 @@ describe('dpos.undo()', () => {
 						{
 							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
 						},
-						{ extended: true },
+						{},
 						stubs.tx,
 					)
 					.mockResolvedValue(delegateAccounts);
