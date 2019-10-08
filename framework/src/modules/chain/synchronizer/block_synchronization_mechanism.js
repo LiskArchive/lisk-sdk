@@ -66,8 +66,8 @@ class BlockSynchronizationMechanism {
 			);
 			await this._requestAndApplyBlocksToCurrentChain(
 				receivedBlock,
-				bestPeer,
 				lastCommonBlock,
+				bestPeer,
 			);
 		} finally {
 			this.active = false;
@@ -173,7 +173,7 @@ class BlockSynchronizationMechanism {
 				return this._applyPenaltyAndRestartSync(
 					peer,
 					receivedBlock,
-					new Error('Applying blocks failed'),
+					new Error('Chain restore has not been fully completed'),
 				);
 			}
 

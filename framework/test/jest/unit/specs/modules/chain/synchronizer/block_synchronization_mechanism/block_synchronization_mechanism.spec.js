@@ -275,7 +275,7 @@ describe('block_synchronization_mechanism', () => {
 
 		describe.skip('#run()', () => {
 			describe('when there are no errors', () => {
-				it.only('should not ban peer or restart sync', async () => {
+				it('should not ban peer or restart sync', async () => {
 					const fakeLastBlock = { foo: 'bar' };
 					syncMechanism._computeBestPeer = jest.fn(() => ({
 						...peersList[0],
