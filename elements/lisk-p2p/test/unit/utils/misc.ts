@@ -39,11 +39,7 @@ describe('utils/misc', () => {
 		});
 
 		it('should throw an error for second argument greater than 3', () => {
-			try {
-				getIPGroup(IPv4Address, 4);
-			} catch (err) {
-				expect(err).to.have.property('message', 'Invalid IP group.');
-			}
+			expect(() => getIPGroup(IPv4Address, 4)).to.throw('Invalid IP group.');
 		});
 	});
 

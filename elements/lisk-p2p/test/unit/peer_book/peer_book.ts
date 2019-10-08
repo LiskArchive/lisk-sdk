@@ -164,23 +164,18 @@ describe('peerBook', () => {
 
 		describe('when peer exists in the tried peers list', () => {
 			it('should throw error', () => {
-				try {
-					peerBook.addPeer(samplePeers[0]);
-				} catch (e) {
-					expect(e).to.be.an('error');
-					expect(e.message).to.be.eql('Peer already exists');
-				}
+				expect(() => peerBook.addPeer(samplePeers[0])).to.throw(
+					'Peer already exists',
+				);
 			});
 		});
 
 		describe('when peer exists in the tried peers list', () => {
-			it('should throw erro', () => {
-				try {
+			it('should throw error', () => {
+				expect(() => {
+					peerBook.upgradePeer(samplePeers[0]);
 					peerBook.addPeer(samplePeers[0]);
-				} catch (e) {
-					expect(e).to.be.an('error');
-					expect(e.message).to.be.eql('Peer already exists');
-				}
+				}).to.throw('Peer already exists');
 			});
 		});
 

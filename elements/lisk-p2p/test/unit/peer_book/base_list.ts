@@ -129,12 +129,9 @@ describe('Peers base list', () => {
 		});
 
 		it('should not add the incoming peer if it exists', () => {
-			try {
-				peerListObj.addPeer(samplePeers[0]);
-			} catch (e) {
-				expect(e).to.be.an('error');
-				expect(e.message).to.be.eql('Peer already exists');
-			}
+			expect(() => peerListObj.addPeer(samplePeers[0])).to.throw(
+				'Peer already exists',
+			);
 		});
 
 		it('should call makeSpace method with the ip address of the peer to add', () => {
