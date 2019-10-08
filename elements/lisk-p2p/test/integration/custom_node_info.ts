@@ -73,13 +73,11 @@ describe('Custom nodeInfo', () => {
 
 			for (let peer of p2p.getConnectedPeers()) {
 				expect(peer)
-					.has.property('sharedState')
 					.has.property('modules')
 					.has.property('names')
 					.is.an('array');
 
 				expect(peer)
-					.has.property('sharedState')
 					.has.property('modules')
 					.has.property('active')
 					.is.a('boolean');

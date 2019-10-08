@@ -84,7 +84,7 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const peerPorts = p2p
 				.getConnectedPeers()
-				.map(peerInfo => peerInfo.sharedState.wsPort)
+				.map(peerInfo => peerInfo.wsPort)
 				.sort();
 
 			// The current node should not be in its own peer list.
@@ -134,7 +134,7 @@ describe('Peer discovery', () => {
 				.sort();
 			const connectedPeerPorts = p2p
 				.getConnectedPeers()
-				.map(peerInfo => peerInfo.sharedState.wsPort)
+				.map(peerInfo => peerInfo.wsPort)
 				.sort();
 
 			expect([...allPeersPorts, ...connectedPeerPorts]).to.not.contain.members([
