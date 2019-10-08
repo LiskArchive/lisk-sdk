@@ -121,7 +121,7 @@ const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
 		if (transactionBytes) {
 			transactionsBytesArray.push(transactionBytes);
 		}
-		totalAmount = totalAmount.plus(transaction.amount);
+		totalAmount = totalAmount.plus(transaction.asset.amount);
 		totalFee = totalFee.plus(transaction.fee);
 	});
 
