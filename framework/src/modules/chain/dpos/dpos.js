@@ -42,8 +42,8 @@ module.exports = class Dpos {
 		});
 	}
 
-	async getForgerPublicKeysForRound(round) {
-		return this.delegatesList.getForgerPublicKeysForRound(round);
+	async getForgerPublicKeysForRound(round, tx) {
+		return this.delegatesList.getForgerPublicKeysForRound(round, tx);
 	}
 
 	async onBlockFinalized({ height }) {
@@ -60,8 +60,8 @@ module.exports = class Dpos {
 		);
 	}
 
-	async verifyBlockForger(block) {
-		return this.delegatesList.verifyBlockForger(block);
+	async verifyBlockForger(block, tx) {
+		return this.delegatesList.verifyBlockForger(block, tx);
 	}
 
 	async apply(block, tx) {
