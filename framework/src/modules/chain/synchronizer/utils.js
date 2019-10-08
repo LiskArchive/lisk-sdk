@@ -51,10 +51,15 @@ const restoreBlocks = async (blocksModule, processorModule, tx) => {
  * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
  */
 const deleteBlocksAfterHeightAndBackup = async (
+	logger,
 	processorModule,
 	blocksModule,
 	desiredHeight,
 ) => {
+	logger.debug(
+		{ height: desiredHeight },
+		'Deleting blocks after target height',
+	);
 	let { height: currentHeight } = blocksModule.lastBlock;
 	while (desiredHeight > currentHeight) {
 		const lastBlock = await processorModule.deleteLastBlock({

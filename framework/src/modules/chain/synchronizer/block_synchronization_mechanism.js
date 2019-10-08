@@ -84,8 +84,8 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _requestBlocksWithinIDs(peer, fromID, toID) {
+		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		const blocks = [];
-		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
 		let finished = false;
 		let lastFetchedID = fromID;
@@ -101,8 +101,12 @@ class BlockSynchronizationMechanism {
 
 			if (data) {
 				blocks.push(data); // `data` is an array of blocks.
-				lastFetchedID = data.slice(-1)[0].id;
-				finished = toID === lastFetchedID;
+				lastFetchedID = data.slice(-1).pop().id;
+				const index = data.findIndex(block => block.id === toID);
+				if (index > -1) {
+					finished = true;
+					blocks.splice(0, index + 1); // Removes unwanted extra blocks
+				}
 			} else {
 				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
 			}
@@ -137,6 +141,11 @@ class BlockSynchronizationMechanism {
 		lastCommonBlock,
 		peer,
 	) {
+		this.logger.debug(
+			{ peer, fromID: lastCommonBlock.id, toID: receivedBlock.id },
+			'Requesting blocks within IDs from peer',
+		);
+
 		const listOfFullBlocks = await this._requestBlocksWithinIDs(
 			peer,
 			lastCommonBlock.id,
@@ -157,7 +166,7 @@ class BlockSynchronizationMechanism {
 		} catch (e) {
 			this.logger.debug(
 				{ err: e },
-				'Applying blocks to the current chain failed',
+				'Applying obtained blocks to the current chain failed',
 			);
 		}
 
@@ -178,6 +187,8 @@ class BlockSynchronizationMechanism {
 					),
 				);
 			}
+
+			this.logger.debug('Restarting block synchronization');
 
 			return this.channel.publish('chain:processor:sync', {
 				block: receivedBlock,
@@ -248,6 +259,7 @@ class BlockSynchronizationMechanism {
 		}
 
 		await deleteBlocksAfterHeightAndBackup(
+			this.logger,
 			this.processorModule,
 			this.blocks,
 			lastCommonBlock.height,
