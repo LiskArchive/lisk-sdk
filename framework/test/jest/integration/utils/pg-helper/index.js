@@ -31,7 +31,7 @@ class PgHelper {
 			user: 'lisk',
 			password: 'password',
 			min: 1,
-			max: 1,
+			max: 2,
 		};
 
 		if (!options.database) {
