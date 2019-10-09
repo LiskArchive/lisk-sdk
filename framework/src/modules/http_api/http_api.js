@@ -192,12 +192,13 @@ module.exports = class HttpApi {
 				this.scope.components.cache.removeByPattern(key),
 			);
 			try {
-				this.logger.info(
-					`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on '${eventInfo}'`,
+				this.logger.debug(
+					{ cacheKeysToClear, eventInfo },
+					'Cache - clear cache keys',
 				);
 				await Promise.all(tasks);
 			} catch (error) {
-				this.logger.error(`Cache - Error clearing keys on new Block: ${error}`);
+				this.logger.error(error, 'Cache - Error clearing keys on new Block');
 			}
 		}
 	}

@@ -96,7 +96,10 @@ class Loader {
 				async () => this._getTransactionsFromNetwork(),
 				err => {
 					if (err) {
-						this.logger.error('Unconfirmed transactions loader', err);
+						this.logger.error(
+							{ err },
+							'Failed to get transactions from network',
+						);
 					}
 					resolve();
 				},
@@ -108,7 +111,7 @@ class Loader {
 				async () => this._getSignaturesFromNetwork(),
 				err => {
 					if (err) {
-						this.logger.error('Signatures loader', err);
+						this.logger.error({ err }, 'Failed to get signatures from network');
 					}
 					resolve();
 				},
@@ -247,11 +250,14 @@ class Loader {
 		} catch (errors) {
 			const error =
 				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
-			this.logger.debug('Transaction normalization failed', {
-				id: error.id,
-				err: error.toString(),
-				module: 'loader',
-			});
+			this.logger.error(
+				{
+					id: error.id,
+					err: error.toString(),
+					module: 'loader',
+				},
+				'Transaction normalization failed',
+			);
 			throw error;
 		}
 

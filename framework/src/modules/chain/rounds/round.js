@@ -278,7 +278,8 @@ class Round {
 	 */
 	deleteRoundRewards() {
 		this.scope.library.logger.debug(
-			`Deleting rewards for round ${this.scope.round}`,
+			{ round: this.scope.round },
+			'Deleting rewards for the round',
 		);
 		return this.scope.library.storage.entities.Round.deleteRoundRewards(
 			this.scope.round,
@@ -366,10 +367,13 @@ class Round {
 			delegate = self.scope.roundDelegates[i];
 			changes = this.rewardsAtRound(i);
 
-			this.scope.library.logger.trace('Delegate changes', {
-				delegate,
-				changes,
-			});
+			this.scope.library.logger.trace(
+				{
+					delegate,
+					changes,
+				},
+				'Delegate changes',
+			);
 
 			const accountData = {
 				publicKey: delegate,
@@ -422,11 +426,14 @@ class Round {
 				? -changes.feesRemaining
 				: changes.feesRemaining;
 
-			this.scope.library.logger.trace('Fees remaining', {
-				index: remainderIndex,
-				delegate: remainderDelegate,
-				fees: feesRemaining,
-			});
+			this.scope.library.logger.trace(
+				{
+					index: remainderIndex,
+					delegate: remainderDelegate,
+					fees: feesRemaining,
+				},
+				'Fees remaining',
+			);
 
 			p = new Promise((resolve, reject) => {
 				const data = {
@@ -479,10 +486,13 @@ class Round {
 			);
 		});
 
-		self.scope.library.logger.trace('Applying round', {
-			queries_count: queries.length,
-			rewards: roundRewards,
-		});
+		self.scope.library.logger.trace(
+			{
+				queries_count: queries.length,
+				rewards: roundRewards,
+			},
+			'Applying round',
+		);
 
 		if (queries.length > 0) {
 			return this.t.batch(queries);

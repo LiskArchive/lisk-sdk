@@ -249,9 +249,9 @@ class Broadcaster {
 			return this.logger.info(
 				`Broadcasts released: ${squashedBroadcasts.length}`,
 			);
-		} catch (err) {
-			this.logger.error('Failed to release broadcast queue', err);
-			throw err;
+		} catch (error) {
+			this.logger.error({ error }, 'Failed to release broadcast queue');
+			throw error;
 		}
 	}
 }

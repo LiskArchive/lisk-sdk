@@ -70,7 +70,6 @@ const middleware = {
 			});
 		}
 		logger.error(`API error ${req.url}`, convertErrorsToString(err));
-		logger.trace(err);
 		return res.status(500).send({
 			success: false,
 			error: `API error: ${convertErrorsToString(err)}`,
@@ -296,13 +295,11 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 
 			// Some error occurred in configuring the swagger
 			if (!_.isEmpty(errors.validationErrors)) {
-				logger.error('Swagger Validation Errors:');
-				logger.error(errors.validationErrors);
+				logger.error(errors.validationErrors, 'Swagger Validation Errors');
 			}
 
 			if (!_.isEmpty(errors.validationWarnings)) {
-				logger.error('Swagger Validation Warnings:');
-				logger.error(errors.validationWarnings);
+				logger.error(errors.validationWarnings, 'Swagger Validation Warnings');
 			}
 
 			if (
@@ -321,8 +318,10 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		runner.on('responseValidationError', validationResponse => {
 			// TODO: Troubleshoot why default validation hook considers json response as string response
 			if (validationResponse.errors[0].code !== 'INVALID_RESPONSE_BODY') {
-				logger.error('Swagger Response Validation Errors:');
-				logger.error(validationResponse.errors[0].errors);
+				logger.error(
+					validationResponse.errors[0].errors,
+					'Swagger Response Validation Errors',
+				);
 			}
 		});
 

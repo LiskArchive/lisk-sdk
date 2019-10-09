@@ -164,7 +164,7 @@ class Blocks extends EventEmitter {
 			this._lastNBlockIds = rows.map(row => row.id);
 		} catch (error) {
 			this.logger.error(
-				error,
+				{ error },
 				`Unable to load last ${this.constants.blockSlotWindow} block ids`,
 			);
 		}
@@ -241,7 +241,7 @@ class Blocks extends EventEmitter {
 			},
 		);
 		if (blocksCount === 1) {
-			this.logger.info('Applying genesis block');
+			this.logger.info('Applying genesis block...');
 			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
 			return;
@@ -263,7 +263,7 @@ class Blocks extends EventEmitter {
 		try {
 			await this.blocksVerify.reloadRequired(blocksCount, memRounds);
 		} catch (error) {
-			this.logger.error(error, 'Reload of blockchain is required');
+			this.logger.error({ error }, 'Failed to reload blocks');
 			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
 			return;
@@ -275,7 +275,7 @@ class Blocks extends EventEmitter {
 				this.genesisBlock,
 			);
 		} catch (error) {
-			this.logger.error(error, 'Failed to fetch last block');
+			this.logger.error({ error }, 'Failed to load last block');
 			// This is last attempt
 			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
@@ -387,8 +387,8 @@ class Blocks extends EventEmitter {
 				this.roundsModule.fork(block, 5);
 				if (this.blocksVerify.isDoubleForge(block, this._lastBlock)) {
 					this.logger.warn(
+						{ generatorPublicKey: block.generatorPublicKey },
 						'Delegate forging on multiple nodes',
-						block.generatorPublicKey,
 					);
 				}
 				if (this.blocksVerify.shouldDiscardForkFive(block, this._lastBlock)) {

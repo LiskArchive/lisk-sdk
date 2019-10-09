@@ -233,9 +233,9 @@ class Rounds {
 							.then(() => {
 								library.logger.trace('Round snapshot done');
 							})
-							.catch(err => {
-								library.logger.error('Round snapshot failed', err);
-								throw err;
+							.catch(error => {
+								library.logger.error({ error }, 'Round snapshot failed');
+								throw error;
 							});
 					}
 					return true;
@@ -455,7 +455,7 @@ __private.sumRound = function(scope, cb, tx) {
 		return setImmediate(cb);
 	}
 
-	library.logger.debug('Summing round', scope.round);
+	library.logger.debug(`Summing round - ${scope.round}`);
 
 	return library.storage.entities.Round.summedRound(
 		scope.round,
@@ -480,8 +480,7 @@ __private.sumRound = function(scope, cb, tx) {
 			return setImmediate(cb);
 		})
 		.catch(err => {
-			library.logger.error('Failed to sum round', scope.round);
-			library.logger.error(err.stack);
+			library.logger.error({ err }, `Failed to sum round: ${scope.round}`);
 			return setImmediate(cb, err);
 		});
 };

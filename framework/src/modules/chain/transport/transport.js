@@ -231,10 +231,13 @@ class Transport {
 
 		if (errors.length) {
 			const error = `${errors[0].message}: ${errors[0].path}`;
-			this.logger.debug('Common block request validation failed', {
-				err: error.toString(),
-				req: query,
-			});
+			this.logger.debug(
+				{
+					err: error.toString(),
+					req: query,
+				},
+				'Common block request validation failed',
+			);
 			throw new Error(error);
 		}
 
@@ -247,10 +250,13 @@ class Transport {
 			.filter(id => /^[0-9]+$/.test(id));
 
 		if (!escapedIds.length) {
-			this.logger.debug('Common block request validation failed', {
-				err: 'ESCAPE',
-				req: query.ids,
-			});
+			this.logger.debug(
+				{
+					err: 'ESCAPE',
+					req: query.ids,
+				},
+				'Common block request validation failed',
+			);
 
 			throw new Error('Invalid block id sequence');
 		}
@@ -317,11 +323,11 @@ class Transport {
 						block.tf_data = block.tf_data.toString('utf8');
 					} catch (e) {
 						this.logger.error(
-							'Transport->blocks: Failed to convert data field to UTF-8',
 							{
 								block,
 								error: e,
 							},
+							'Transport->blocks: Failed to convert data field to UTF-8',
 						);
 					}
 				}
@@ -355,12 +361,12 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug(
-				'Received post block broadcast request in unexpected format',
 				{
 					errors,
 					module: 'transport',
 					query,
 				},
+				'Received post block broadcast request in unexpected format',
 			);
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
@@ -432,7 +438,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSSignaturesList, query);
 
 		if (errors.length) {
-			this.logger.debug('Invalid signatures body', errors);
+			this.logger.debug({ errors }, 'Invalid signatures body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
@@ -527,7 +533,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSTransactionsRequest, query);
 
 		if (errors.length) {
-			this.logger.debug('Invalid transactions body', errors);
+			this.logger.debug({ errors }, 'Invalid transactions body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
@@ -627,17 +633,20 @@ class Transport {
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			this.logger.debug('Transaction normalization failed', {
-				id,
-				err: errString,
-				module: 'transport',
-			});
+			this.logger.error(
+				{
+					id,
+					err: errString,
+					module: 'transport',
+				},
+				'Transaction normalization failed',
+			);
 
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
-		this.logger.debug(`Received transaction ${transaction.id}`);
+		this.logger.debug({ id: transaction.id }, 'Received transaction');
 
 		try {
 			await this.transactionPoolModule.processUnconfirmedTransaction(
@@ -648,7 +657,7 @@ class Transport {
 		} catch (err) {
 			this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 			if (transaction) {
-				this.logger.debug('Transaction', transaction);
+				this.logger.debug({ transaction }, 'Transaction');
 			}
 			throw err;
 		}

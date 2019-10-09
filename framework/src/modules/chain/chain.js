@@ -190,10 +190,13 @@ module.exports = class Chain {
 				);
 			}
 		} catch (error) {
-			this.logger.fatal('Chain initialization', {
-				message: error.message,
-				stack: error.stack,
-			});
+			this.logger.fatal(
+				{
+					message: error.message,
+					stack: error.stack,
+				},
+				'Failed to initialization chain module',
+			);
 			process.emit('cleanup', error);
 		}
 	}
@@ -415,14 +418,14 @@ module.exports = class Chain {
 				syncing: this.loader.syncing(),
 				lastReceipt: this.blocks.lastReceipt,
 			},
-			'Sync time triggered',
+			'Sync timer triggered',
 		);
 		if (!this.loader.syncing() && this.blocks.isStale()) {
 			await this.scope.sequence.add(async () => {
 				try {
 					await this.loader.sync();
 				} catch (error) {
-					this.logger.error(error, 'Sync timer');
+					this.logger.error({ error }, 'Sync trigger failed');
 				}
 			});
 		}
@@ -443,7 +446,10 @@ module.exports = class Chain {
 				const consensus = await this.peers.calculateConsensus(
 					this.blocks.broadhash,
 				);
-				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
+				return this.logger.debug(
+					{ consensus },
+					'Broadhash consensus calculation timer triggered',
+				);
 			},
 			this.peers.broadhashConsensusCalculationInterval,
 		);
@@ -463,7 +469,7 @@ module.exports = class Chain {
 				}
 				await this.forger.forge();
 			} catch (error) {
-				this.logger.error(error);
+				this.logger.error({ error });
 			}
 		});
 	}
@@ -471,8 +477,8 @@ module.exports = class Chain {
 	async _startForging() {
 		try {
 			await this.forger.loadDelegates();
-		} catch (err) {
-			this.logger.error(err, 'Failed to load delegates');
+		} catch (error) {
+			this.logger.error({ error }, 'Failed to load delegates for forging');
 		}
 		jobQueue.register(
 			'nextForge',
@@ -496,7 +502,7 @@ module.exports = class Chain {
 				);
 			}
 			this.logger.info(
-				{ id: block.id, height: block.height },
+				{ id: block.id, height: block.height, event: EVENT_DELETE_BLOCK },
 				'Deleted a block from the chain',
 			);
 			this.channel.publish('chain:blocks:change', block);
@@ -515,6 +521,7 @@ module.exports = class Chain {
 					id: block.id,
 					height: block.height,
 					numberOfTransactions: block.transactions.length,
+					event: EVENT_NEW_BLOCK,
 				},
 				'New block added to the chain',
 			);
@@ -532,7 +539,7 @@ module.exports = class Chain {
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 			this.logger.debug(
-				{ broadhash, height },
+				{ broadhash, height, event: EVENT_NEW_BROADHASH },
 				'Updating the application state',
 			);
 		});
