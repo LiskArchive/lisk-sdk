@@ -515,6 +515,8 @@ class Transaction extends BaseEntity {
 					}
 
 					delete transaction.transferData;
+					delete transaction.amount;
+					delete transaction.recipientId;
 
 					transaction.signatures = transaction.signatures
 						? transaction.signatures.filter(Boolean)
