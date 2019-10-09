@@ -47,13 +47,12 @@ function TransactionsController(scope) {
 function transactionFormatter(transaction) {
 	const result = _.omit(transaction, ['requesterPublicKey']);
 	result.senderId = result.senderId || '';
-	result.recipientId = result.recipientId || '';
 	result.recipientPublicKey = result.recipientPublicKey || '';
 	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
 	if (transaction.type === TRANSACTION_TYPES.DELEGATE) {
-		result.asset.delegate.publicKey = result.senderPublicKey;
-		result.asset.delegate.address = result.senderId;
+		result.asset.publicKey = result.senderPublicKey;
+		result.asset.address = result.senderId;
 	}
 
 	return result;
