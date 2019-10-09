@@ -1235,10 +1235,8 @@ definitions:
     required:
       - id
       - type
-      - amount
       - fee
       - senderPublicKey
-      - recipientId
       - timestamp
       - asset
       - signature
@@ -1252,11 +1250,6 @@ definitions:
         description: |
           Unique identifier of the transaction.
           Derived from the transaction signature.
-      amount:
-        type: string
-        example: '150000000'
-        description: |
-          Amount of Lisk to be transferred in this transaction.
       fee:
         type: string
         example: '1000000'
@@ -1291,12 +1284,6 @@ definitions:
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         description: |
           The second public key of the Senders' account, if it exists.
-      recipientId:
-        type: string
-        format: address
-        example: 12668885769632475474L
-        description: |
-          Lisk Address of the Recipients' account.
       signature:
         type: string
         format: signature
@@ -1321,6 +1308,18 @@ definitions:
         description: |
           Displays additional transaction data.
           Can include e.g. vote data or delegate username.
+        properties:
+          amount:
+            type: string
+            example: '150000000'
+            description: |
+              Amount of Lisk to be transferred in this transaction.
+          recipientId:
+            type: string
+            format: address
+            example: 12668885769632475474L
+            description: |
+              Lisk Address of the Recipients' account.
   NodeStatusResponse:
     type: object
     required:
