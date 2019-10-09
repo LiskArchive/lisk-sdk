@@ -245,7 +245,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
-			this.logger.debug(
+			this.logger.trace(
 				{
 					ipAddress: peerInfo.ipAddress,
 					wsPort: peerInfo.wsPort,
