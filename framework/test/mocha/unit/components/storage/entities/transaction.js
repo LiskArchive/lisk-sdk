@@ -164,8 +164,6 @@ describe('Transaction', () => {
 			'type',
 			'timestamp',
 			'senderId',
-			'recipientId',
-			'amount',
 			'fee',
 			'signature',
 			'signSignature',
@@ -174,6 +172,7 @@ describe('Transaction', () => {
 			'recipientPublicKey',
 			'requesterPublicKey',
 			'confirmations',
+			'asset',
 		];
 
 		validExtendedObjectFields = [
@@ -184,8 +183,6 @@ describe('Transaction', () => {
 			'type',
 			'timestamp',
 			'senderId',
-			'recipientId',
-			'amount',
 			'fee',
 			'signature',
 			'signSignature',
