@@ -194,7 +194,7 @@ class Controller {
 						name: event.name,
 						data: event.data,
 					},
-					'MONITOR Bus Channel',
+					'Monitor Bus Channel',
 				);
 			});
 		}

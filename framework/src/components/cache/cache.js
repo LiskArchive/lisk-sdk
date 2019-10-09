@@ -71,7 +71,7 @@ class Cache {
 
 		this.client.on('error', err => {
 			// Log Cache errors before and after server was connected
-			this.logger.info({ err }, 'Cache client connection error');
+			this.logger.error({ err }, 'Cache client connection error');
 		});
 	}
 

@@ -68,7 +68,7 @@ class PgpAdapter extends BaseAdapter {
 		const monitorOptions = {
 			error: (error, e) => {
 				this.emit(this.EVENT_ERROR);
-				this.logger.error({ error });
+				this.logger.error({ error }, 'Database monitoring error');
 
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
 				// https://vitaly-t.github.io/pg-promise/global.html#event:error
