@@ -31,10 +31,8 @@ const Transaction = stampit({
 		requesterPublicKey:
 			'a0c4ebee8c0c50ebee32918655e089f6e1a604b83afa760367c61e0f18ac6a',
 		senderId: '2525786814299543383L',
-		recipientId: '16313739661670634666L',
 		recipientPublicKey:
 			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-		amount: '112340000',
 		fee: '20000000',
 		signature:
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
@@ -57,11 +55,13 @@ const Transaction = stampit({
 			// SEND
 			case 0:
 				this.asset.data = randomstring.generate({ length: 64 });
+				this.asset.amount = '112340000';
+				this.asset.recipientId = '16313739661670634666L';
 				break;
 
 			// SIGNATURE
 			case 1:
-				this.asset.signature = {
+				this.asset = {
 					publicKey: randomstring.generate({
 						charset: 'hex',
 						length: 64,
@@ -72,7 +72,7 @@ const Transaction = stampit({
 
 			// DELEGATE
 			case 2:
-				this.asset.delegate = {
+				this.asset = {
 					username:
 						delegateName ||
 						randomstring.generate({ length: 10, charset: 'alphabetic' }),
@@ -97,7 +97,7 @@ const Transaction = stampit({
 
 			// MULTI
 			case 4:
-				this.asset.multisignature = {
+				this.asset = {
 					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),
 					keysgroup: [
