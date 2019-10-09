@@ -54,7 +54,7 @@ describe('peer_book/utils', () => {
 			).to.throw('IP address is unsupported.');
 		});
 
-		it('should a bucket number', () => {
+		it('should return a bucket number', () => {
 			expect(
 				getBucketId({
 					secret,
@@ -62,10 +62,12 @@ describe('peer_book/utils', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			).to.be.a('number');
+			)
+				.to.be.a('number')
+				.within(0, MAX_NEW_BUCKETS);
 		});
 
-		it('should different buckets for different target addresses', () => {
+		it('should return different buckets for different target addresses', () => {
 			const secondIPv4Address = '1.161.10.240';
 			const firstBucket = getBucketId({
 				secret,
@@ -83,7 +85,7 @@ describe('peer_book/utils', () => {
 			expect(firstBucket).to.not.eql(secondBucket);
 		});
 
-		it('should same bucket for unique local target addresses', () => {
+		it('should return same bucket for unique local target addresses', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,
@@ -101,7 +103,7 @@ describe('peer_book/utils', () => {
 			expect(firstBucket).to.eql(secondBucket);
 		});
 
-		it('should same bucket for unique private target addresses', () => {
+		it('should return same bucket for unique private target addresses', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: privateAddress,
@@ -119,7 +121,7 @@ describe('peer_book/utils', () => {
 			expect(firstBucket).to.eql(secondBucket);
 		});
 
-		it('should different buckets for local and private target addresses', () => {
+		it('should return ifferent buckets for local and private target addresses', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,
@@ -136,7 +138,7 @@ describe('peer_book/utils', () => {
 			expect(firstBucket).to.not.eql(secondBucket);
 		});
 
-		it('should the same bucket given random ip addresses in the same group for new peers', () => {
+		it('should return the same bucket given random ip addresses in the same group for new peers', () => {
 			const collectedBuckets = new Array(MAX_GROUP_NUM)
 				.fill(0)
 				.map(() => '61.26.254.' + Math.floor(Math.random() * 256))
@@ -153,7 +155,7 @@ describe('peer_book/utils', () => {
 				.true;
 		});
 
-		it('should NaN if bucketCount is 0', () => {
+		it('should return NaN if bucketCount is 0', () => {
 			const bucketId = getBucketId({
 				secret,
 				targetAddress: '61.26.254.123',
@@ -163,7 +165,7 @@ describe('peer_book/utils', () => {
 			expect(bucketId).is.NaN;
 		});
 
-		it('should an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
+		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
 			const expectedPeerCountPerBucketLowerBound =
 				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
 			const expectedPeerCountPerBucketUpperBound =
@@ -199,7 +201,7 @@ describe('peer_book/utils', () => {
 		});
 
 		// The bounds are more tolerant here due to our temporary solution to not include source IP changing the outcome of distribution
-		it('should an even distribution of peers in each bucket given random ip addresses in different groups for new peers', () => {
+		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for new peers', () => {
 			const expectedPeerCountPerBucketLowerBound =
 				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.2;
 			const expectedPeerCountPerBucketUpperBound =
