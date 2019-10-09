@@ -93,6 +93,8 @@ const Transaction = stampit({
 						capitalization: 'lowercase',
 					}),
 				];
+				this.asset.amount = '112340000';
+				this.asset.recipientId = '16313739661670634666L';
 				break;
 
 			// MULTI

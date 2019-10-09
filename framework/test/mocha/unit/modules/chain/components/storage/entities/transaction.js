@@ -34,21 +34,15 @@ const expectValidTransactionRow = (row, transaction) => {
 	expect(row.blockId).to.be.eql(transaction.blockId);
 	expect(row.type).to.be.eql(transaction.type);
 	expect(row.timestamp).to.be.eql(transaction.timestamp);
-	expect(row.senderPublicKey).to.be.eql(
-		Buffer.from(transaction.senderPublicKey, 'hex'),
-	);
-	expect(row.requesterPublicKey).to.be.eql(
-		Buffer.from(transaction.requesterPublicKey, 'hex'),
-	);
+	expect(row.senderPublicKey).to.be.eql(transaction.senderPublicKey);
+	expect(row.requesterPublicKey).to.be.eql(transaction.requesterPublicKey);
 	expect(row.senderId).to.be.eql(transaction.senderId);
-	expect(row.recipientId).to.be.eql(transaction.recipientId);
-	expect(row.amount).to.be.eql(transaction.amount);
+	expect(row.asset.recipientId).to.be.eql(transaction.asset.recipientId);
+	expect(row.asset.amount).to.be.eql(transaction.asset.amount);
 	expect(row.fee).to.be.eql(transaction.fee);
-	expect(row.signature).to.be.eql(Buffer.from(transaction.signature, 'hex'));
-	expect(row.signSignature).to.be.eql(
-		Buffer.from(transaction.signSignature, 'hex'),
-	);
-	expect(row.signatures).to.be.eql(transaction.signatures.join());
+	expect(row.signature).to.be.eql(transaction.signature);
+	expect(row.signSignature).to.be.eql(transaction.signSignature);
+	expect(row.signatures).to.be.eql(transaction.signatures);
 };
 
 describe('Transaction', () => {
@@ -122,9 +116,7 @@ describe('Transaction', () => {
 				blockId: block.id,
 			});
 			let result = await storage.entities.Transaction.create(transaction);
-
-			result = await storage.adapter.execute('SELECT * from trs');
-
+			result = await storage.entities.Transaction.get({ id: transaction.id });
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(1);
 			expectValidTransactionRow(result[0], transaction);
@@ -143,7 +135,9 @@ describe('Transaction', () => {
 				transaction2,
 			]);
 
-			result = await storage.adapter.execute('SELECT * from trs');
+			result = await storage.entities.Transaction.get({
+				id_in: [transaction1.id, transaction2.id],
+			});
 
 			expect(result).to.not.empty;
 			expect(result).to.have.lengthOf(2);
