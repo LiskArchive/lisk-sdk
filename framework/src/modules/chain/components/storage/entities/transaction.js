@@ -184,7 +184,7 @@ class ChainTransaction extends TransactionEntity {
 				? transaction.signatures.join()
 				: null;
 
-			if (transaction.type === 0) {
+			if (transaction.type === 0 || transaction.type === 3) {
 				transaction.amount = transaction.asset.amount.toString();
 				transaction.recipientId = transaction.asset.recipientId;
 			} else {
