@@ -122,6 +122,7 @@ describe('dpos.apply()', () => {
 
 			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
 				{ round: 1 },
+				{},
 				stubs.tx,
 			);
 			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
@@ -483,6 +484,7 @@ describe('dpos.apply()', () => {
 				{
 					round: nextRound,
 				},
+				{},
 				stubs.tx,
 			);
 			expect(stubs.storage.entities.RoundDelegates.create).toHaveBeenCalledWith(
