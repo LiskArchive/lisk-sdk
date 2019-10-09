@@ -175,17 +175,15 @@ describe('transactions', () => {
 						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 					timestamp: 54196078,
 					asset: {
-						multisignature: {
-							min: 5,
-							lifetime: 1,
-							keysgroup: [
-								'+6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf',
-								'+a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed',
-								'+4bb9e15fa15cbe87d19b6854474d57c3aa515deb586548bb515630dc7121d021',
-								'+068bcac57c9d988f0a03bab381785c67ef4b63ca8047f41863fb2a0202aa88a5',
-								'+261fb86d60785e208ba7541db9ab56d3e02fcf9357a25bf859f826e87cadb816',
-							],
-						},
+						min: 5,
+						lifetime: 1,
+						keysgroup: [
+							'+6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf',
+							'+a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed',
+							'+4bb9e15fa15cbe87d19b6854474d57c3aa515deb586548bb515630dc7121d021',
+							'+068bcac57c9d988f0a03bab381785c67ef4b63ca8047f41863fb2a0202aa88a5',
+							'+261fb86d60785e208ba7541db9ab56d3e02fcf9357a25bf859f826e87cadb816',
+						],
 					},
 					signature:
 						'46f6ce8da1b5948aaa63a51cf28913210d356cc27a2cc952a2bf1b88f47d6cd6f250f8d907b9a4e0c531a66c601b50aa483a461e803412f2ae9543d99155970f',
