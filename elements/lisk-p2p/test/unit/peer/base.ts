@@ -347,7 +347,7 @@ describe('peer/base', () => {
 				procedure: 'myProcedure',
 			};
 
-			expect(defaultPeer.request(p2pPacket)).to.be.rejectedWith(
+			return expect(defaultPeer.request(p2pPacket)).to.be.rejectedWith(
 				'Peer socket does not exist',
 			);
 		});
@@ -399,7 +399,7 @@ describe('peer/base', () => {
 			});
 
 			it('should throw an error', () => {
-				expect(defaultPeer.fetchPeers()).to.be.rejectedWith(
+				return expect(defaultPeer.fetchPeers()).to.be.rejectedWith(
 					'Failed to fetch peer list of peer',
 				);
 			});
@@ -520,7 +520,7 @@ describe('peer/base', () => {
 			});
 
 			it('should throw error', async () => {
-				expect(defaultPeer.fetchStatus()).to.be.rejectedWith(
+				return expect(defaultPeer.fetchStatus()).to.be.rejectedWith(
 					'Failed to fetch peer info of peer',
 				);
 			});

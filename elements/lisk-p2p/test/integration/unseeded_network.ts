@@ -43,6 +43,6 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 			data: 'bar',
 		});
 
-		expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
+		return expect(response).to.be.rejectedWith(NO_PEERS_FOUND_ERROR);
 	});
 });
