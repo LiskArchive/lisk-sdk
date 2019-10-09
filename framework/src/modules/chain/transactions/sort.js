@@ -41,10 +41,10 @@ const sortTransactions = transactions =>
 			return 1;
 		}
 		// Place depending on amount (lower first)
-		if (a.amount.lt(b.amount)) {
+		if (a.type === 0 && a.asset.amount.lt(b.amount)) {
 			return -1;
 		}
-		if (a.amount.gt(b.amount)) {
+		if (a.type === 0 && a.asset.amount.gt(b.amount)) {
 			return 1;
 		}
 		return 0;
