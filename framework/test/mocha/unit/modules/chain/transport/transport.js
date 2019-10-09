@@ -23,7 +23,7 @@ const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const accountFixtures = require('../../../../fixtures/accounts');
-const Block = require('../../../../fixtures/blocks').Block;
+const { Block, GenesisBlock } = require('../../../../fixtures/blocks');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
@@ -37,6 +37,7 @@ const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');
 const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
+const blocksUtils = require('../../../../../../src/modules/chain/blocks');
 
 const expect = chai.expect;
 
@@ -147,9 +148,6 @@ describe('transport', () => {
 			info: sinonSandbox.spy(),
 			trace: sinonSandbox.spy(),
 		};
-
-		validator.validate = sinonSandbox.stub().returns(true);
-		validator.errors = [];
 
 		channelStub = {
 			publish: sinonSandbox.stub(),
@@ -277,6 +275,7 @@ describe('transport', () => {
 		describe('receiveSignature', () => {
 			beforeEach(async () => {
 				transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
+				sinonSandbox.spy(validator, 'validate');
 			});
 
 			describe('when validator.validate succeeds', () => {
@@ -323,13 +322,11 @@ describe('transport', () => {
 
 			describe('when validator.validate fails', () => {
 				it('should reject with error = "Invalid signature body"', async () => {
-					const validateErr = new Error('Signature did not match schema');
-					validateErr.code = 'INVALID_FORMAT';
-					validator.validate = sinonSandbox.stub().returns([validateErr]);
-
-					return expect(
-						transportModule._receiveSignature(SAMPLE_SIGNATURE_1),
-					).to.be.rejectedWith([validateErr]);
+					try {
+						await transportModule._receiveSignature(SAMPLE_SIGNATURE_1);
+					} catch (e) {
+						expect(e.message).to.equal('Invalid signture body');
+					}
 				});
 			});
 		});
@@ -743,47 +740,52 @@ describe('transport', () => {
 				let result;
 				let query = { ids: ['1', '2', '3'] };
 
-				describe('blocks', () => {
+				describe('getBlocksFromId', () => {
 					describe('when query is undefined', () => {
 						it('should send back empty blocks', async () => {
-							query = undefined;
+							query = {};
 
-							const response = await transportModule.blocks(query);
-							return expect(response).to.eql({
-								success: false,
-								message: 'Invalid lastBlockId requested',
-							});
+							try {
+								await transportModule.getBlocksFromId(query);
+							} catch (e) {
+								expect(e.message).to.equal(
+									"should have required property 'blockId': undefined",
+								);
+							}
 						});
 					});
 
 					describe('when query is defined', () => {
 						it('should call modules.blocks.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
 							query = {
-								lastBlockId: '6258354802676165798',
+								blockId: '6258354802676165798',
 							};
 
-							await transportModule.blocks(query);
+							await transportModule.getBlocksFromId(query);
 							return expect(
 								transportModule.blocksModule.loadBlocksFromLastBlockId,
-							).to.be.calledWith(query.lastBlockId, 34);
+							).to.be.calledWith(query.blockId, 34);
 						});
 					});
 
 					describe('when modules.blocks.loadBlocksFromLastBlockId fails', () => {
-						it('should resolve with result = { blocks: [] }', async () => {
+						it('should throw an error', async () => {
 							query = {
-								lastBlockId: '6258354802676165798',
+								blockId: '6258354802676165798',
 							};
 
-							const loadBlockFailed = new Error('Failed to load blocks...');
+							const errorMessage = 'Failed to load blocks...';
+							const loadBlockFailed = new Error(errorMessage);
+
 							transportModule.blocksModule.loadBlocksFromLastBlockId.rejects(
 								loadBlockFailed,
 							);
 
-							const response = await transportModule.blocks(query);
-							return expect(response)
-								.to.have.property('blocks')
-								.which.is.an('array').that.is.empty;
+							try {
+								await transportModule.getBlocksFromId(query);
+							} catch (e) {
+								expect(e.message).to.equal(errorMessage);
+							}
 						});
 					});
 				});
@@ -795,12 +797,13 @@ describe('transport', () => {
 						postBlockQuery = {
 							block: blockMock,
 						};
+						sinonSandbox.spy(validator, 'validate');
 					});
 
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							transportModule.postBlock(postBlockQuery);
+							await transportModule.postBlock(postBlockQuery);
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -817,48 +820,51 @@ describe('transport', () => {
 					describe('when query is specified', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = true;
-							await transportModule.postBlock(postBlockQuery);
 						});
 
 						describe('when it throws', () => {
-							const blockValidationError = 'Failed to validate block schema';
-
-							beforeEach(async () => {
-								transportModule.processorModule.validate.rejects(
-									blockValidationError,
-								);
-							});
+							const blockValidationError = 'should match format "id"';
 
 							it('should throw an error', async () => {
 								try {
 									await transportModule.postBlock(postBlockQuery);
 								} catch (err) {
-									expect(err.name).to.equal(blockValidationError);
+									expect(err[0].message).to.equal(blockValidationError);
 								}
 							});
 						});
 
 						describe('when it does not throw', () => {
+							const genesisBlock = new GenesisBlock();
+							genesisBlock.previousBlockId = genesisBlock.id; // So validations pass
+
 							beforeEach(async () => {
 								sinonSandbox
 									.stub(blocksModule, 'objectNormalize')
-									.returns(blockMock);
-								transportModule.postBlock(postBlockQuery);
+									.returns(genesisBlock);
 							});
 
 							describe('when query.block is defined', () => {
-								it('should call modules.blocks.addBlockProperties with query.block', async () =>
+								it('should call modules.blocks.addBlockProperties with query.block', async () => {
+									await transportModule.postBlock({
+										block: genesisBlock,
+									});
 									expect(
-										blocksModule.addBlockProperties.calledWith(
-											postBlockQuery.block,
-										),
-									).to.be.true);
+										blocksModule.addBlockProperties.calledWith(genesisBlock),
+									).to.be.true;
+								});
 							});
 
 							it('should call transportModule.processorModule.process with block', async () => {
+								const blockWithProperties = blocksUtils.addBlockProperties(
+									genesisBlock,
+								);
+								await transportModule.postBlock({
+									block: genesisBlock,
+								});
 								expect(
 									transportModule.processorModule.process,
-								).to.be.calledWithExactly(blockMock);
+								).to.be.calledWithExactly(blockWithProperties);
 							});
 						});
 					});
@@ -913,6 +919,7 @@ describe('transport', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
 							transportModule.postSignatures(query);
+							sinonSandbox.spy(validator, 'validate');
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -929,7 +936,7 @@ describe('transport', () => {
 					describe('when validator.validate succeeds', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = true;
-							transportModule.postSignatures(query);
+							return transportModule.postSignatures(query);
 						});
 
 						it('should call transportModule._receiveSignatures with query.signatures as argument', async () =>
@@ -1131,18 +1138,21 @@ describe('transport', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							return transportModule.postTransactions(query);
 						});
 
-						it('should call transportModule.logger.debug', async () =>
+						it('should call transportModule.logger.debug', async () => {
+							await transportModule.postTransactions(query);
 							expect(
 								transportModule.logger.debug.calledWith(
 									'Receiving transactions disabled by user through config.json',
 								),
-							).to.be.true);
+							).to.be.true;
+						});
 
-						it('should not call validator.validate; function should return before', async () =>
-							expect(validator.validate.called).to.be.false);
+						it('should not call validator.validate; function should return before', async () => {
+							await transportModule.postTransactions(query);
+							expect(validator.validate).to.be.called;
+						});
 					});
 
 					describe('when validator.validate succeeds', () => {
@@ -1152,15 +1162,17 @@ describe('transport', () => {
 							};
 							transportModule.constants.broadcasts.active = true;
 							transportModule._receiveTransactions = sinonSandbox.stub();
-							return transportModule.postTransactions(query);
 						});
 
-						it('should call transportModule._receiveTransactions with query.transaction as argument', async () =>
+						it('should call transportModule._receiveTransactions with query.transaction as argument', async () => {
+							validator.validate.returns(true);
+							await transportModule.postTransactions(query);
 							expect(
 								transportModule._receiveTransactions.calledWith(
 									query.transactions,
 								),
-							).to.be.true);
+							).to.be.true;
+						});
 					});
 
 					describe('when validator.validate fails', () => {
