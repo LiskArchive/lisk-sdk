@@ -248,13 +248,9 @@ describe('peer/base', () => {
 				destroy: sandbox.stub(),
 			} as any);
 
-			try {
-				(defaultPeer as any)._socket = socket;
-				defaultPeer.connect();
-				expect((defaultPeer as any)._socket).to.be.not.undefined;
-			} catch (e) {
-				expect(e).to.be.undefined;
-			}
+			(defaultPeer as any)._socket = socket;
+			defaultPeer.connect();
+			expect((defaultPeer as any)._socket).to.be.not.undefined;
 		});
 	});
 
@@ -341,7 +337,7 @@ describe('peer/base', () => {
 	});
 
 	describe('#request', () => {
-		it('should throw error if socket does not exists', () => {
+		it('should throw error if socket does not exists', async () => {
 			const p2pPacket = {
 				data: 'myData',
 				procedure: 'myProcedure',
@@ -391,17 +387,18 @@ describe('peer/base', () => {
 				sandbox.stub(defaultPeer, 'request').throws('Error');
 			});
 
-			it(`should emit ${EVENT_FAILED_TO_FETCH_PEERS} event`, () => {
-				expect(defaultPeer.fetchPeers()).to.be.rejected;
+			it(`should emit ${EVENT_FAILED_TO_FETCH_PEERS} event`, async () => {
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
 				expect(defaultPeer.emit).to.be.calledOnceWith(
 					EVENT_FAILED_TO_FETCH_PEERS,
 				);
 			});
 
-			it('should throw an error', () => {
-				return expect(defaultPeer.fetchPeers()).to.be.rejectedWith(
-					'Failed to fetch peer list of peer',
-				);
+			it('should throw an error', async () => {
+				return expect(defaultPeer.fetchPeers())
+					.to.eventually.be.rejectedWith('Failed to fetch peer list of peer')
+					.and.be.an.instanceOf(RPCResponseError)
+					.and.have.property('peerId', defaultPeerInfo.ipAddress);
 			});
 		});
 
@@ -510,19 +507,20 @@ describe('peer/base', () => {
 			});
 
 			it(`should emit ${EVENT_FAILED_TO_FETCH_PEER_INFO} event with error`, async () => {
-				try {
-					await defaultPeer.fetchStatus();
-				} catch (e) {
-					expect(defaultPeer.emit).to.be.calledOnceWith(
-						EVENT_FAILED_TO_FETCH_PEER_INFO,
-					);
-				}
+				await expect(defaultPeer.fetchStatus()).to.be.rejected;
+				expect(defaultPeer.emit).to.be.calledOnceWith(
+					EVENT_FAILED_TO_FETCH_PEER_INFO,
+				);
 			});
 
 			it('should throw error', async () => {
-				return expect(defaultPeer.fetchStatus()).to.be.rejectedWith(
-					'Failed to fetch peer info of peer',
-				);
+				return expect(defaultPeer.fetchStatus())
+					.to.eventually.be.rejectedWith('Failed to fetch peer info of peer')
+					.and.be.an.instanceOf(RPCResponseError)
+					.and.have.property(
+						'peerId',
+						`${defaultPeer.ipAddress}:${defaultPeer.wsPort}`,
+					);
 			});
 		});
 
@@ -536,27 +534,22 @@ describe('peer/base', () => {
 				});
 
 				it(`should emit ${EVENT_FAILED_PEER_INFO_UPDATE} event with error`, async () => {
-					try {
-						await defaultPeer.fetchStatus();
-					} catch (e) {
-						expect(defaultPeer.emit).to.be.calledOnceWith(
-							EVENT_FAILED_PEER_INFO_UPDATE,
-						);
-					}
+					await expect(defaultPeer.fetchStatus()).to.be.rejected;
+					expect(defaultPeer.emit).to.be.calledOnceWith(
+						EVENT_FAILED_PEER_INFO_UPDATE,
+					);
 				});
 
 				it('should throw error', async () => {
-					try {
-						await defaultPeer.fetchStatus();
-					} catch (e) {
-						expect(e).to.be.an.instanceOf(RPCResponseError);
-						expect(e.message).to.be.eql(
+					return expect(defaultPeer.fetchStatus())
+						.to.eventually.be.rejectedWith(
 							'Failed to update peer info of peer as part of fetch operation',
-						);
-						expect(e.peerId).to.be.eql(
+						)
+						.and.be.an.instanceOf(RPCResponseError)
+						.and.have.property(
+							'peerId',
 							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
 						);
-					}
 				});
 			});
 
