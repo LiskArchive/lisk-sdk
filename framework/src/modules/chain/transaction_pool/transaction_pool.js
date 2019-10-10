@@ -498,7 +498,7 @@ class TransactionPool extends EventEmitter {
 				if (sortAttribute.sortField === 'fee') {
 					return a.fee.minus(b.fee) * sortOrder;
 				}
-				return a.amount.minus(b.amount) * sortOrder;
+				return (a.asset.amount || 0).minus(b.asset.amount || 0) * sortOrder;
 			});
 		} else {
 			toSend = _.orderBy(
