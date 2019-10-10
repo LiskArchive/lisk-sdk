@@ -262,8 +262,8 @@ class Blocks extends EventEmitter {
 		// check reload condition, true then reload
 		try {
 			await this.blocksVerify.reloadRequired(blocksCount, memRounds);
-		} catch (error) {
-			this.logger.error({ error }, 'Failed to reload blocks');
+		} catch (err) {
+			this.logger.error({ err }, 'Failed to reload blocks');
 			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
 			return;
@@ -274,8 +274,8 @@ class Blocks extends EventEmitter {
 				this.interfaceAdapters,
 				this.genesisBlock,
 			);
-		} catch (error) {
-			this.logger.error({ error }, 'Failed to load last block');
+		} catch (err) {
+			this.logger.error({ err }, 'Failed to load last block');
 			// This is last attempt
 			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;

@@ -66,9 +66,9 @@ class PgpAdapter extends BaseAdapter {
 
 		pgpOptions.noLocking = this.inTest;
 		const monitorOptions = {
-			error: (error, e) => {
+			error: (err, e) => {
 				this.emit(this.EVENT_ERROR);
-				this.logger.error({ error }, 'Database monitoring error');
+				this.logger.error({ err }, 'Database monitoring error');
 
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
 				// https://vitaly-t.github.io/pg-promise/global.html#event:error
@@ -180,7 +180,7 @@ class PgpAdapter extends BaseAdapter {
 		const qf = new QueryFile(fullPath, options);
 
 		if (qf.error) {
-			this.logger.error({ error: qf.error }, 'SQL query file error'); // Something is wrong with our query file
+			this.logger.error({ err: qf.error }, 'SQL query file error'); // Something is wrong with our query file
 			throw qf.error; // throw pg-promisse QueryFileError error
 		}
 

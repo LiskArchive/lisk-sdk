@@ -322,9 +322,9 @@ class Forger {
 				round,
 				this.constants.activeDelegates,
 			);
-		} catch (error) {
-			this.logger.error({ error }, 'Skipping delegate slot');
-			throw error;
+		} catch (err) {
+			this.logger.error({ err }, 'Skipping delegate slot');
+			throw err;
 		}
 
 		if (delegateKeypair === null) {

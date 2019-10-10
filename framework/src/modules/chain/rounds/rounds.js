@@ -233,9 +233,9 @@ class Rounds {
 							.then(() => {
 								library.logger.trace('Round snapshot done');
 							})
-							.catch(error => {
-								library.logger.error({ error }, 'Round snapshot failed');
-								throw error;
+							.catch(err => {
+								library.logger.error({ err }, 'Round snapshot failed');
+								throw err;
 							});
 					}
 					return true;

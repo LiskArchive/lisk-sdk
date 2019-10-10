@@ -438,7 +438,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSSignaturesList, query);
 
 		if (errors.length) {
-			this.logger.debug({ errors }, 'Invalid signatures body');
+			this.logger.debug({ err: errors }, 'Invalid signatures body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
@@ -533,7 +533,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSTransactionsRequest, query);
 
 		if (errors.length) {
-			this.logger.debug({ errors }, 'Invalid transactions body');
+			this.logger.debug({ err: errors }, 'Invalid transactions body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}

@@ -351,8 +351,8 @@ class Controller {
 			await this.bus.cleanup();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
-		} catch (error) {
-			this.logger.error({ error }, 'Caused error during modules cleanup');
+		} catch (err) {
+			this.logger.error({ err }, 'Caused error during modules cleanup');
 		}
 	}
 }

@@ -424,8 +424,8 @@ module.exports = class Chain {
 			await this.scope.sequence.add(async () => {
 				try {
 					await this.loader.sync();
-				} catch (error) {
-					this.logger.error({ error }, 'Sync trigger failed');
+				} catch (err) {
+					this.logger.error({ err }, 'Sync trigger failed');
 				}
 			});
 		}
@@ -468,8 +468,8 @@ module.exports = class Chain {
 					return;
 				}
 				await this.forger.forge();
-			} catch (error) {
-				this.logger.error({ error });
+			} catch (err) {
+				this.logger.error({ err });
 			}
 		});
 	}
@@ -477,8 +477,8 @@ module.exports = class Chain {
 	async _startForging() {
 		try {
 			await this.forger.loadDelegates();
-		} catch (error) {
-			this.logger.error({ error }, 'Failed to load delegates for forging');
+		} catch (err) {
+			this.logger.error({ err }, 'Failed to load delegates for forging');
 		}
 		jobQueue.register(
 			'nextForge',
