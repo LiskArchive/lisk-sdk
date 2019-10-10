@@ -75,12 +75,14 @@ class RoundDelegates extends BaseEntity {
 	/**
 	 * @returns {string[]} delegatePublicKeys
 	 */
-	async getActiveDelegatesForRound(round) {
+	async getActiveDelegatesForRound(round, tx) {
 		const [result] = await this.adapter.executeFile(
 			this.SQLs.getActiveDelegatesForRound,
 			{
 				round,
 			},
+			{},
+			tx,
 		);
 		/**
 		 * The query above returns delegatePublicKeys for the round.

@@ -52,9 +52,10 @@ class DelegatesList extends EventEmitter {
 	 * Get shuffled list of active delegate public keys for a specific round -> forger public keys
 	 * @param {number} round
 	 */
-	async getForgerPublicKeysForRound(round) {
+	async getForgerPublicKeysForRound(round, tx) {
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
 			round,
+			tx,
 		);
 
 		if (!delegatePublicKeys.length) {
@@ -94,6 +95,7 @@ class DelegatesList extends EventEmitter {
 			{
 				round,
 			},
+			{},
 			tx,
 		);
 		await this.storage.entities.RoundDelegates.create(
@@ -111,6 +113,7 @@ class DelegatesList extends EventEmitter {
 			{
 				round_lt: round,
 			},
+			{},
 			tx,
 		);
 	}
@@ -120,6 +123,7 @@ class DelegatesList extends EventEmitter {
 			{
 				round_gt: round,
 			},
+			{},
 			tx,
 		);
 	}
@@ -131,10 +135,10 @@ class DelegatesList extends EventEmitter {
 	 * @return {Boolean} - `true`
 	 * @throw {Error} Failed to verify slot
 	 */
-	async verifyBlockForger(block) {
+	async verifyBlockForger(block, tx) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const round = this.slots.calcRound(block.height);
-		const delegateList = await this.getForgerPublicKeysForRound(round);
+		const delegateList = await this.getForgerPublicKeysForRound(round, tx);
 
 		if (!delegateList.length) {
 			throw new Error(

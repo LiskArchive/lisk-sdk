@@ -401,6 +401,7 @@ describe('dpos.undo()', () => {
 				{
 					round_gt: roundNo,
 				},
+				{},
 				stubs.tx,
 			);
 		});
