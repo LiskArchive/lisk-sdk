@@ -91,7 +91,7 @@ export class PeerBook {
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
 		if (this._triedPeers.getPeer(peerInfo)) {
-			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
+			return this._triedPeers.updatePeer(peerInfo);
 		}
 
 		if (this._newPeers.getPeer(peerInfo)) {
@@ -121,7 +121,7 @@ export class PeerBook {
 
 		if (this._newPeers.getPeer(peerInfo)) {
 			this._newPeers.removePeer(peerInfo);
-			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
+			this._triedPeers.addPeer(peerInfo);
 
 			return true;
 		}
