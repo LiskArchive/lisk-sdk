@@ -80,7 +80,7 @@ const verifyTotalSpending = (transactions, stateStore) => {
 
 		senderTransactions[senderId].forEach(transaction => {
 			const senderTotalSpending = senderSpending[senderId]
-				.plus(transaction.asset.amount)
+				.plus(transaction.asset.amount || 0)
 				.plus(transaction.fee);
 
 			if (senderBalance.lt(senderTotalSpending)) {
