@@ -273,8 +273,11 @@ describe('peerPool', () => {
 		it('should throw error if no peers selected', async () => {
 			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([]);
 
-			expect(peerPool.request(requestPacket)).to.eventually.be.rejectedWith(
+			return expect(
+				peerPool.request(requestPacket),
+			).to.eventually.be.rejectedWith(
 				RequestFailError,
+				'Request failed due to no peers found in peer selection',
 			);
 		});
 
@@ -329,9 +332,12 @@ describe('peerPool', () => {
 		it('should throw error if no peers in peerPool', async () => {
 			(peerPool as any)._peerMap = new Map();
 
-			expect(
+			return expect(
 				peerPool.requestFromPeer(requestPacket, peerId),
-			).to.eventually.be.rejectedWith(RequestFailError);
+			).to.eventually.be.rejectedWith(
+				RequestFailError,
+				`Request failed because a peer with id ${peerId} could not be found`,
+			);
 		});
 
 		it('should call peer request with packet', async () => {
@@ -888,10 +894,6 @@ describe('peerPool', () => {
 	describe('#_selectPeersForEviction', () => {
 		let originalPeers: Array<any>;
 		let getPeersStub: any;
-		let constructPeerIdFromPeerInfoStub: any = sandbox.stub(
-			utils,
-			'constructPeerIdFromPeerInfo',
-		);
 		beforeEach(async () => {
 			originalPeers = [...new Array(100).keys()].map(i => ({
 				id: i,
@@ -900,7 +902,9 @@ describe('peerPool', () => {
 				responseRate: i % 2 ? 0 : 1,
 				connectTime: i,
 			}));
-			constructPeerIdFromPeerInfoStub.returns('notAWhitelistedId');
+			sandbox
+				.stub(utils, 'constructPeerIdFromPeerInfo')
+				.returns('notAWhitelistedId');
 			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
 			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
 			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
@@ -1043,4 +1047,6 @@ describe('peerPool', () => {
 	});
 
 	describe.skip('#_evictPeer', () => {});
+
+	describe.skip('#_bindHandlersToPeer', () => {});
 });
