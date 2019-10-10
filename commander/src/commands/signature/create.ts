@@ -20,7 +20,10 @@ import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
 import { getInputsFromSources } from '../../utils/input';
 import { getStdIn } from '../../utils/input/utils';
-import { parseTransactionString } from '../../utils/transactions';
+import {
+	instantiateTransaction,
+	parseTransactionString,
+} from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;
@@ -72,8 +75,10 @@ export default class CreateCommand extends BaseCommand {
 
 		const transactionObject = parseTransactionString(transactionInput);
 
-		const { valid } = transactions.utils.validateTransaction(transactionObject);
-		if (!valid) {
+		const txInstance = instantiateTransaction(transactionObject);
+		const { errors } = txInstance.validate();
+
+		if (errors.length !== 0) {
 			throw new Error('Provided transaction is invalid.');
 		}
 

@@ -14,7 +14,6 @@
  *
  */
 import { expect, test } from '@oclif/test';
-import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as inputModule from '../../../src/utils/input/utils';
@@ -22,29 +21,42 @@ import * as inputUtils from '../../../src/utils/input';
 
 describe('transaction:sign', () => {
 	const defaultTransaction = {
-		amount: '10000000000',
-		recipientId: '123L',
-		senderPublicKey: null,
-		timestamp: 66492418,
+		timestamp: 106582966,
 		type: 0,
-		fee: '10000000',
-		recipientPublicKey: null,
-		asset: {},
+		senderPublicKey:
+			'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+		asset: {
+			recipientId: '123L',
+			amount: '10000000000',
+			data: undefined,
+		},
+		id: '14814738582865173524',
 	};
+
 	const invalidTransaction = 'invalid transaction';
 	const defaultInputs = {
 		passphrase: '123',
+	};
+
+	const defaultInputsWithSecondPassphrase = {
+		...defaultInputs,
 		secondPassphrase: '456',
 	};
 
-	const defaultSignedTransaction = Object.assign({}, defaultTransaction, {
+	const defaultSignedTransaction = {
+		...defaultTransaction,
+		fee: '10000000',
+		senderId: '12475940823804898745L',
+		signatures: [],
 		signature:
-			'c9c8a9a0d0ba1c8ee519792f286d751071de588448eb984ddd9fe4ea0fe34db474692407004047068dee785abca22a744203fb0342b5404349fa9d6abab1480d',
-	});
+			'bc7bbaef2cf4bb2a3b19c0958ac3b43e102cf611af1cba3928f03a6940d663976b60902a52cb29c5e01294fa873a551211bba6d9207fcd0df0fa93305cc4d503',
+	};
 
-	const transactionUtilStub = {
-		prepareTransaction: sandbox.stub().returns(defaultSignedTransaction),
-		validateTransaction: sandbox.stub().returns({ valid: true }),
+	const defaultSecondSignedTransaction = {
+		...defaultSignedTransaction,
+		id: '11148343814295761202',
+		signSignature:
+			'3247d8dd5de5e1a5246148c05555281e0292ac04e8bfa1fdebb9ee7411a3d8a73629e88c20b1a18b88b391869bc78bfefe78cbbbbe8a0cf8a72f1f72234cd50f',
 	};
 
 	const printMethodStub = sandbox.stub();
@@ -52,7 +64,6 @@ describe('transaction:sign', () => {
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(
 				inputUtils,
 				'getInputsFromSources',
@@ -85,10 +96,13 @@ describe('transaction:sign', () => {
 			.it('should throw an error');
 
 		setupTest()
-			.stub(transactions, 'utils', {
-				validateTransaction: sandbox.stub().returns({ valid: false }),
-			})
-			.command(['transaction:sign', JSON.stringify(defaultTransaction)])
+			.command([
+				'transaction:sign',
+				JSON.stringify({
+					...defaultTransaction,
+					asset: { ...defaultTransaction.asset, amount: '-1' },
+				}),
+			])
 			.catch(error => {
 				return expect(error.message).to.contain(
 					'Provided transaction is invalid.',
@@ -106,11 +120,6 @@ describe('transaction:sign', () => {
 					},
 					secondPassphrase: undefined,
 				});
-				expect(transactionUtilStub.prepareTransaction).to.be.calledWithExactly(
-					defaultTransaction,
-					defaultInputs.passphrase,
-					defaultInputs.secondPassphrase,
-				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedTransaction,
 				);
@@ -134,13 +143,6 @@ describe('transaction:sign', () => {
 						},
 						secondPassphrase: undefined,
 					});
-					expect(
-						transactionUtilStub.prepareTransaction,
-					).to.be.calledWithExactly(
-						defaultTransaction,
-						defaultInputs.passphrase,
-						defaultInputs.secondPassphrase,
-					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignedTransaction,
 					);
@@ -150,6 +152,11 @@ describe('transaction:sign', () => {
 
 	describe('transaction:sign transaction --passphrase=pass:xxx --second-passphrase=pass:xxx', () => {
 		setupTest()
+			.stub(
+				inputUtils,
+				'getInputsFromSources',
+				sandbox.stub().resolves(defaultInputsWithSecondPassphrase),
+			)
 			.command([
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
@@ -169,15 +176,8 @@ describe('transaction:sign', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						transactionUtilStub.prepareTransaction,
-					).to.be.calledWithExactly(
-						defaultTransaction,
-						defaultInputs.passphrase,
-						defaultInputs.secondPassphrase,
-					);
 					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultSignedTransaction,
+						defaultSecondSignedTransaction,
 					);
 				},
 			);
@@ -221,11 +221,6 @@ describe('transaction:sign', () => {
 					},
 					secondPassphrase: undefined,
 				});
-				expect(transactionUtilStub.prepareTransaction).to.be.calledWithExactly(
-					defaultTransaction,
-					defaultInputs.passphrase,
-					defaultInputs.secondPassphrase,
-				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedTransaction,
 				);
@@ -250,13 +245,6 @@ describe('transaction:sign', () => {
 						},
 						secondPassphrase: undefined,
 					});
-					expect(
-						transactionUtilStub.prepareTransaction,
-					).to.be.calledWithExactly(
-						defaultTransaction,
-						defaultInputs.passphrase,
-						defaultInputs.secondPassphrase,
-					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignedTransaction,
 					);
@@ -289,13 +277,6 @@ describe('transaction:sign', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						transactionUtilStub.prepareTransaction,
-					).to.be.calledWithExactly(
-						defaultTransaction,
-						defaultInputs.passphrase,
-						defaultInputs.secondPassphrase,
-					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignedTransaction,
 					);

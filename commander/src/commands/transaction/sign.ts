@@ -13,14 +13,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
 import { getInputsFromSources } from '../../utils/input';
 import { getStdIn } from '../../utils/input/utils';
-import { parseTransactionString } from '../../utils/transactions';
+import {
+	instantiateTransaction,
+	parseTransactionString,
+} from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;
@@ -74,11 +76,6 @@ export default class SignCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
-		const { valid } = transactions.utils.validateTransaction(transactionObject);
-		if (!valid) {
-			throw new Error('Provided transaction is invalid.');
-		}
-
 		const { passphrase, secondPassphrase } = await getInputsFromSources({
 			passphrase: {
 				source: passphraseSource,
@@ -92,12 +89,33 @@ export default class SignCommand extends BaseCommand {
 				  },
 		});
 
-		const result = transactions.utils.prepareTransaction(
-			transactionObject,
-			passphrase,
-			secondPassphrase,
+		if (!passphrase) {
+			throw new Error('Passphrase is required to sign the transaction');
+		}
+
+		const txInstance = instantiateTransaction(transactionObject);
+		txInstance.sign(passphrase, secondPassphrase);
+
+		const { errors } = txInstance.validate();
+
+		if (errors.length !== 0) {
+			throw new Error('Provided transaction is invalid.');
+		}
+
+		const data = Object.entries(txInstance.toJSON()).reduce(
+			(prev, [key, val]) => {
+				if (val !== undefined) {
+					return {
+						...prev,
+						[key]: val,
+					};
+				}
+
+				return prev;
+			},
+			{},
 		);
 
-		this.print(result);
+		this.print(data);
 	}
 }
