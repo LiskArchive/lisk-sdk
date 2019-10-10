@@ -99,6 +99,17 @@ module.exports = {
 			type: 'object',
 		},
 	},
+	getBlocksFromIdRequest: {
+		id: 'getBlocksFromIdRequest',
+		type: 'object',
+		required: ['blockId'],
+		properties: {
+			blockId: {
+				type: 'string',
+				format: 'id',
+			},
+		},
+	},
 	getHighestCommonBlockRequest: {
 		id: 'getHighestCommonBlockRequest',
 		type: 'object',

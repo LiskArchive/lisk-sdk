@@ -307,7 +307,8 @@ module.exports = class Chain {
 				lastBlock: this.blocks.lastBlock,
 			}),
 			getLastBlock: async () => this.blocks.lastBlock,
-			blocks: async action => this.transport.blocks(action.params || {}),
+			getBlocksFromId: async action =>
+				this.transport.getBlocksFromId(action.params || {}),
 			getHighestCommonBlock: async action => {
 				const valid = validator.validate(
 					definitions.getHighestCommonBlockRequest,
