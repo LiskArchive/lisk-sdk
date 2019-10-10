@@ -14,8 +14,12 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
+<<<<<<< HEAD
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { CustomPeerInfo } from '../peer_book/base_list';
+=======
+import { P2PPeerInfo } from '../p2p_types';
+>>>>>>> Update all the utils func to use P2PPeerInfo
 
 const BYTES_4 = 4;
 const BYTES_16 = 16;

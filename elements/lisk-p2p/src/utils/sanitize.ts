@@ -25,12 +25,18 @@ import {
 export const sanitizeIncomingPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
 ): P2PPeerInfo => {
-	const { ip, ...restOfPeerInfo } = peerInfo;
+	const { ip, wsPort, height, ...restOfPeerInfo } = peerInfo;
 
 	return {
 		peerId: constructPeerIdFromPeerInfo(peerInfo.ip, peerInfo.wsPort),
+		ipAddress: ip,
+		wsPort,
 		sharedState: {
-			ipAddress: ip,
+			height: restOfPeerInfo.height ? (restOfPeerInfo.height as number) : 0,
+			protocolVersion: restOfPeerInfo.protocolVersion
+				? restOfPeerInfo.protocolVersion
+				: '',
+			version: restOfPeerInfo.version ? restOfPeerInfo.version : '',
 			...restOfPeerInfo,
 		},
 	};
@@ -39,13 +45,12 @@ export const sanitizeIncomingPeerInfo = (
 export const sanitizeOutgoingPeerInfo = (
 	peerInfo: P2PPeerInfo,
 ): ProtocolPeerInfo => {
-	const {
-		sharedState: { ipAddress, ...restOfPeerInfo },
-	} = peerInfo;
+	const { ipAddress, wsPort, sharedState } = peerInfo;
 
 	return {
 		ip: ipAddress,
-		...restOfPeerInfo,
+		wsPort,
+		...sharedState,
 	};
 };
 
@@ -54,23 +59,21 @@ export const sanitizePeerLists = (
 	nodeInfo: P2PSharedState,
 ): PeerLists => {
 	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
-		if (peerInfo.sharedState.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
 
 		return true;
 	});
 
-	const blacklistedIPs = blacklistedPeers.map(
-		peerInfo => peerInfo.sharedState.ipAddress,
-	);
+	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
 
 	const seedPeers = lists.seedPeers.filter(peerInfo => {
-		if (peerInfo.sharedState.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
 
-		if (blacklistedIPs.includes(peerInfo.sharedState.ipAddress)) {
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 			return false;
 		}
 
@@ -78,11 +81,11 @@ export const sanitizePeerLists = (
 	});
 
 	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
-		if (peerInfo.sharedState.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
 
-		if (blacklistedIPs.includes(peerInfo.sharedState.ipAddress)) {
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 			return false;
 		}
 
@@ -90,11 +93,11 @@ export const sanitizePeerLists = (
 	});
 
 	const whitelisted = lists.whitelisted.filter(peerInfo => {
-		if (peerInfo.sharedState.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
 
-		if (blacklistedIPs.includes(peerInfo.sharedState.ipAddress)) {
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 			return false;
 		}
 
@@ -110,11 +113,11 @@ export const sanitizePeerLists = (
 	});
 
 	const previousPeers = lists.previousPeers.filter(peerInfo => {
-		if (peerInfo.sharedState.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
 
-		if (blacklistedIPs.includes(peerInfo.sharedState.ipAddress)) {
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 			return false;
 		}
 

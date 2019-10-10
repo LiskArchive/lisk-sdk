@@ -27,7 +27,6 @@ import {
 } from '../errors';
 import {
 	P2PCompatibilityCheckReturnType,
-	P2PDiscoveredPeerInfo,
 	P2PNodeInfo,
 	P2PPeerInfo,
 	ProtocolMessagePacket,
@@ -45,9 +44,13 @@ const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
 
 const validateNetworkCompatibility = (
-	peerInfo: P2PDiscoveredPeerInfo,
+	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
+	if (!peerInfo.sharedState) {
+		return false;
+	}
+
 	if (!peerInfo.sharedState.nethash) {
 		return false;
 	}
@@ -56,9 +59,12 @@ const validateNetworkCompatibility = (
 };
 
 const validateProtocolVersionCompatibility = (
-	peerInfo: P2PDiscoveredPeerInfo,
+	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
+	if (!peerInfo.sharedState) {
+		return false;
+	}
 	// Backwards compatibility for older peers which do not have a protocolVersion field.
 	if (!peerInfo.sharedState.protocolVersion) {
 		try {
@@ -84,7 +90,7 @@ const validateProtocolVersionCompatibility = (
 };
 
 export const validatePeerCompatibility = (
-	peerInfo: P2PDiscoveredPeerInfo,
+	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): P2PCompatibilityCheckReturnType => {
 	if (!validateNetworkCompatibility(peerInfo, nodeInfo)) {
@@ -143,27 +149,28 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		);
 	}
 
-	const version = protocolPeer.version;
-	const protocolVersion = protocolPeer.protocolVersion;
-	const wsPort = +protocolPeer.wsPort;
-	const os = protocolPeer.os ? protocolPeer.os : '';
-	const height =
-		protocolPeer.height && isNumeric(protocolPeer.height.toString())
-			? +protocolPeer.height
-			: 0;
-	const { options, ...protocolPeerWithoutOptions } = protocolPeer;
-	const { ip, ...sharedStateObj } = {
-		...protocolPeerWithoutOptions,
-		ipAddress: protocolPeerWithoutOptions.ip,
-		wsPort,
-		height,
-		os,
+	const {
+		ip,
 		version,
 		protocolVersion,
-	};
+		height,
+		os,
+		wsPort,
+		options,
+		...restOfProtocolPeer
+	} = protocolPeer;
+
 	const peerInfo: P2PPeerInfo = {
 		peerId: constructPeerIdFromPeerInfo(protocolPeer.ip, protocolPeer.wsPort),
-		sharedState: { ...sharedStateObj },
+		ipAddress: ip,
+		wsPort: +wsPort,
+		sharedState: {
+			version,
+			protocolVersion: protocolVersion as string,
+			os: os ? os : '',
+			height: height && isNumeric(height.toString()) ? +height : 0,
+			...restOfProtocolPeer,
+		},
 	};
 
 	return peerInfo;
