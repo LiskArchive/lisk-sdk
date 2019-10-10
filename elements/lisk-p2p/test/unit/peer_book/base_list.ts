@@ -93,6 +93,27 @@ describe('Peers base list', () => {
 		});
 	});
 
+	describe('#getBucket', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
+			peerListObj.addPeer(samplePeers[0]);
+		});
+
+		it('should get a bucket by ip address', () => {
+			const bucketId = getBucketId({
+				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+				targetAddress: samplePeers[0].ipAddress,
+			});
+
+			expect(peerListObj.getBucket(samplePeers[0].ipAddress)).to.eql(
+				(peerListObj as any).peerMap.get(bucketId),
+			);
+		});
+	});
+
 	describe('#getPeer', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
@@ -213,27 +234,6 @@ describe('Peers base list', () => {
 		it('should remove the peer from the incoming peerInfo', () => {
 			peerListObj.removePeer(samplePeers[0]);
 			expect(peerListObj.getPeer(samplePeers[0])).to.be.undefined;
-		});
-	});
-
-	describe('#getBucket', () => {
-		beforeEach(() => {
-			samplePeers = initPeerInfoList();
-			peerListObj = new BaseList(peerListConfig);
-			peerListObj.addPeer(samplePeers[0]);
-		});
-
-		it('should get a bucket by ip address', () => {
-			const bucketId = getBucketId({
-				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
-				secret: DEFAULT_RANDOM_SECRET,
-				peerType: PEER_TYPE.TRIED_PEER,
-				targetAddress: samplePeers[0].ipAddress,
-			});
-
-			expect(peerListObj.getBucket(samplePeers[0].ipAddress)).to.eql(
-				(peerListObj as any).peerMap.get(bucketId),
-			);
 		});
 	});
 

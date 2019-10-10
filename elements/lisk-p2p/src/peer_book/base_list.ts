@@ -75,6 +75,17 @@ export class BaseList {
 		dateAdded: new Date(),
 	});
 
+	public getBucket(ipAddress: string): Map<string, CustomPeerInfo> {
+		const bucketId = getBucketId({
+			secret: this.peerListConfig.secret,
+			peerType: this.peerListConfig.peerType,
+			targetAddress: ipAddress,
+			bucketCount: this.peerListConfig.peerBucketCount,
+		});
+
+		return this.peerMap.get(bucketId) as Map<string, CustomPeerInfo>;
+	}
+
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
@@ -126,17 +137,6 @@ export class BaseList {
 		}
 
 		return false;
-	}
-
-	public getBucket(ipAddress: string): Map<string, CustomPeerInfo> {
-		const bucketId = getBucketId({
-			secret: this.peerListConfig.secret,
-			peerType: this.peerListConfig.peerType,
-			targetAddress: ipAddress,
-			bucketCount: this.peerListConfig.peerBucketCount,
-		});
-
-		return this.peerMap.get(bucketId) as Map<string, CustomPeerInfo>;
 	}
 
 	public makeSpace(ipAddress: string): CustomPeerInfo | undefined {
