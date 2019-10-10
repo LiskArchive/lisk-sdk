@@ -42,7 +42,6 @@ import {
 } from '../events';
 import { P2PRequest } from '../p2p_request';
 import {
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -148,12 +147,10 @@ export class Peer extends EventEmitter {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig;
-		this._ipAddress = peerInfo.sharedState.ipAddress;
-		this._wsPort = peerInfo.sharedState.wsPort;
+		this._ipAddress = peerInfo.ipAddress;
+		this._wsPort = peerInfo.wsPort;
 		this._id = peerInfo.peerId;
-		this._height = peerInfo.sharedState.height
-			? (peerInfo.sharedState.height as number)
-			: 0;
+		this._height = peerInfo.sharedState ? peerInfo.sharedState.height : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
 		this._latency = 0;
@@ -335,15 +332,14 @@ export class Peer extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
+	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
-			...newPeerInfo,
-			sharedState: {
-				...newPeerInfo.sharedState,
-				ipAddress: this._ipAddress,
-				wsPort: this._wsPort,
-			},
+			sharedState: newPeerInfo.sharedState,
+			internalState: this._peerInfo.internalState,
+			ipAddress: this._ipAddress,
+			wsPort: this._wsPort,
+			peerId: this._peerInfo.peerId,
 		};
 	}
 
@@ -553,7 +549,7 @@ export class Peer extends EventEmitter {
 		const newPeerInfo = validatePeerInfo(
 			protocolPeerInfo,
 			this._peerConfig.maxPeerInfoSize,
-		) as P2PDiscoveredPeerInfo;
+		);
 		this.updatePeerInfo(newPeerInfo);
 	}
 
