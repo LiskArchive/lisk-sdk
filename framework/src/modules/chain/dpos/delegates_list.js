@@ -139,7 +139,7 @@ class DelegatesList extends EventEmitter {
 		// Delegate list is generated from round 1 hence `roundToVerify` can't be less than 1
 		const roundToVerify = Math.max(currentRound - roundOffset, 1);
 
-		const delegateList = await this.getForgerPublicKeysForRound(roundToVerify);
+		const delegateList = await this.getForgerPublicKeysForRound(currentRound);
 
 		if (!delegateList.length) {
 			throw new Error(

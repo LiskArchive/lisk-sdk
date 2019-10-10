@@ -19,7 +19,10 @@ const {
 	deleteBlocksAfterHeightAndBackup,
 	computeBlockHeightsList,
 } = require('./utils');
-const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
+const {
+	FORK_STATUS_DIFFERENT_CHAIN,
+	addBlockProperties,
+} = require('../blocks');
 
 const PEER_STATE_CONNECTED = 2;
 
@@ -87,25 +90,23 @@ class BlockSynchronizationMechanism {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		const blocks = [];
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
-		let finished = false;
 		let lastFetchedID = fromID;
 
-		while (!finished && failedAttempts < maxFailedAttempts) {
+		while (failedAttempts < maxFailedAttempts) {
 			const { data } = await this.channel.invoke('network:requestFromPeer', {
-				procedure: 'getBlocksFromID',
+				procedure: 'getBlocksFromId',
 				peerId: peer.id,
 				data: {
-					blockID: lastFetchedID,
+					blockId: lastFetchedID,
 				},
 			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
 			if (data) {
-				blocks.push(data); // `data` is an array of blocks.
+				blocks.push(...data); // `data` is an array of blocks.
 				lastFetchedID = data.slice(-1).pop().id;
-				const index = data.findIndex(block => block.id === toID);
+				const index = blocks.findIndex(block => block.id === toID);
 				if (index > -1) {
-					finished = true;
-					blocks.splice(0, index + 1); // Removes unwanted extra blocks
+					return blocks.splice(0, index + 1); // Removes unwanted extra blocks
 				}
 			} else {
 				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
@@ -123,7 +124,7 @@ class BlockSynchronizationMechanism {
 	 */
 	async _applyBlocksToCurrentChain(blocks) {
 		for (const block of blocks) {
-			await this.processorModule.process(block);
+			await this.processorModule.process(addBlockProperties(block));
 		}
 	}
 
@@ -293,6 +294,8 @@ class BlockSynchronizationMechanism {
 			const blockIds = (await this.storage.entities.Block.get(
 				{
 					height_in: computeBlockHeightsList(
+						this.bft.finalizedHeight,
+						this.constants.activeDelegates,
 						blocksPerRequestLimit,
 						currentRound,
 					),
@@ -307,7 +310,9 @@ class BlockSynchronizationMechanism {
 			const { data } = await this.channel.invoke('network:requestFromPeer', {
 				procedure: 'getHighestCommonBlock',
 				peerId: peer.id,
-				data: blockIds,
+				data: {
+					ids: blockIds,
+				},
 			});
 
 			highestCommonBlock = data; // If no common block, data is undefined.
@@ -387,7 +392,7 @@ class BlockSynchronizationMechanism {
 	async isValidFor(receivedBlock) {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
 		const finalizedBlock = await this.storage.entities.Block.getOne({
-			height_eq: this.bft.finalizedHeight,
+			height_eql: this.bft.finalizedHeight,
 		});
 		const finalizedBlockSlot = this.slots.getSlotNumber(
 			finalizedBlock.timestamp,
@@ -447,7 +452,7 @@ class BlockSynchronizationMechanism {
 		const peersTip = {
 			prevotedConfirmedUptoHeight: peers[0].prevotedConfirmedUptoHeight,
 			height: peers[0].height,
-			version: peers[0].version,
+			version: peers[0].blockVersion,
 		};
 
 		const forkStatus = await this.processorModule.forkStatus(peersTip);

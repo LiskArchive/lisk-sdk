@@ -47,7 +47,6 @@ const { BlockProcessorV0 } = require('./block_processor_v0.js');
 const { BlockProcessorV1 } = require('./block_processor_v1.js');
 const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
-const syncInterval = 10000;
 const forgeInterval = 1000;
 
 /**
@@ -306,7 +305,12 @@ module.exports = class Chain {
 				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
 			}),
-			getLastBlock: async () => this.blocks.lastBlock,
+			getLastBlock: async () => ({
+				...this.blocks.lastBlock,
+				reward: this.blocks.lastBlock.reward.toString(),
+				totalAmount: this.blocks.lastBlock.totalAmount.toString(),
+				totalFee: this.blocks.lastBlock.totalFee.toString(),
+			}),
 			getBlocksFromId: async action =>
 				this.transport.getBlocksFromId(action.params || {}),
 			getHighestCommonBlock: async action => {
@@ -576,10 +580,6 @@ module.exports = class Chain {
 
 	_startLoader() {
 		this.loader.loadUnconfirmedTransactions();
-		if (!this.options.syncing.active) {
-			return;
-		}
-		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
 	}
 
 	_calculateConsensus() {
@@ -676,6 +676,7 @@ module.exports = class Chain {
 						height: block.height,
 						lastBlockId: block.id,
 						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+						blockVersion: block.version,
 					});
 				}
 			},

@@ -54,15 +54,15 @@ const baseBlockSchema = {
 			type: 'integer',
 		},
 		totalAmount: {
-			type: 'object',
+			type: ['string', 'object'],
 			format: 'amount',
 		},
 		totalFee: {
-			type: 'object',
+			type: ['string', 'object'],
 			format: 'amount',
 		},
 		reward: {
-			type: 'object',
+			type: ['string', 'object'],
 			format: 'amount',
 		},
 		transactions: {

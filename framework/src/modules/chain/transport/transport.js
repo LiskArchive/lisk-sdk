@@ -257,6 +257,14 @@ class Transport {
 			);
 		}
 
+		// TODO: endpoint should be protected before
+		if (this.loaderModule.syncing()) {
+			return this.logger.debug(
+				"Client is syncing. Can't receive block at the moment.",
+				query.block.id,
+			);
+		}
+
 		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
 
 		if (errors.length) {
@@ -273,16 +281,6 @@ class Transport {
 		}
 
 		const block = blocksUtils.addBlockProperties(query.block);
-
-		await this.processorModule.validate(block);
-
-		// TODO: endpoint should be protected before
-		if (this.loaderModule.syncing()) {
-			return this.logger.debug(
-				"Client is syncing. Can't receive block at the moment.",
-				block.id,
-			);
-		}
 
 		return this.processorModule.process(block);
 	}

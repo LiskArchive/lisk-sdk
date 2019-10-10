@@ -95,22 +95,14 @@ const getBytes = block => {
 	);
 
 	const totalAmountBuffer = intToBuffer(
-		block.totalAmount.toString(),
+		block.totalAmount,
 		SIZE_INT64,
 		LITTLE_ENDIAN,
 	);
 
-	const totalFeeBuffer = intToBuffer(
-		block.totalFee.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
+	const totalFeeBuffer = intToBuffer(block.totalFee, SIZE_INT64, LITTLE_ENDIAN);
 
-	const rewardBuffer = intToBuffer(
-		block.reward.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
+	const rewardBuffer = intToBuffer(block.reward, SIZE_INT64, LITTLE_ENDIAN);
 
 	const payloadLengthBuffer = intToBuffer(
 		block.payloadLength,
