@@ -101,7 +101,9 @@ const updateRecipientDelegateVotes = (
 		return false;
 	}
 
-	const { amount } = transaction;
+	const {
+		asset: { amount },
+	} = transaction;
 	const account = stateStore.account.get(address);
 	const method = undo ? 'sub' : 'add';
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
