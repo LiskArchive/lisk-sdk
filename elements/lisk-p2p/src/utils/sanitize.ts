@@ -56,7 +56,7 @@ export const sanitizeOutgoingPeerInfo = (
 
 export const sanitizePeerLists = (
 	lists: PeerLists,
-	nodeInfo: P2PSharedState,
+	nodeInfo: P2PPeerInfo,
 ): PeerLists => {
 	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
