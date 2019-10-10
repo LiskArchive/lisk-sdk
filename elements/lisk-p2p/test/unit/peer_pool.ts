@@ -91,6 +91,7 @@ describe('peerPool', () => {
 	let messagePacket: any;
 	let requestPacket: any;
 	let clock: any;
+	let constructPeerIdFromPeerInfoStub: any;
 
 	beforeEach(async () => {
 		clock = sandbox.useFakeTimers();
@@ -129,6 +130,10 @@ describe('peerPool', () => {
 			destroy: sandbox.stub(),
 		} as any;
 		peerPool.emit = sandbox.stub().resolves();
+		constructPeerIdFromPeerInfoStub = sandbox.stub(
+			utils,
+			'constructPeerIdFromPeerInfo',
+		);
 	});
 
 	afterEach(async () => {
@@ -902,9 +907,7 @@ describe('peerPool', () => {
 				responseRate: i % 2 ? 0 : 1,
 				connectTime: i,
 			}));
-			sandbox
-				.stub(utils, 'constructPeerIdFromPeerInfo')
-				.returns('notAWhitelistedId');
+			constructPeerIdFromPeerInfoStub.returns('notAWhitelistedId');
 			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
 			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
 			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
