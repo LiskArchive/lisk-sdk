@@ -90,6 +90,7 @@ import {
 	P2PResponsePacket,
 	P2PSharedState,
 	PeerLists,
+	ProtocolPeerInfo,
 } from './p2p_types';
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
@@ -563,23 +564,29 @@ export class P2P extends EventEmitter {
 		}
 	}
 	// Make sure you always share shared peer state to a user
-	public getConnectedPeers(): ReadonlyArray<P2PSharedState> {
+	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		// Only share the shared state to the user
-		return this._peerPool
-			.getAllConnectedPeerInfos()
-			.map(peer => peer.sharedState);
+		return this._peerPool.getAllConnectedPeerInfos().map(peer => ({
+			...peer.sharedState,
+			ip: peer.ipAddress,
+			wsPort: peer.wsPort,
+			peerId: peer.wsPort,
+		}));
 	}
 	// Make sure you always share shared peer state to a user
-	public getUniqueOutboundConnectedPeers(): ReadonlyArray<P2PSharedState> {
+	public getUniqueOutboundConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		// Only share the shared state to the user
-		return this._peerPool
-			.getUniqueOutboundConnectedPeers()
-			.map(peer => peer.sharedState);
+		return this._peerPool.getUniqueOutboundConnectedPeers().map(peer => ({
+			...peer.sharedState,
+			ip: peer.ipAddress,
+			wsPort: peer.wsPort,
+			peerId: peer.wsPort,
+		}));
 	}
-
-	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const allPeers = this._peerBook.allPeers;
-		const connectedPeers = this.getConnectedPeers();
+	// Make sure you always share shared peer state to a user
+	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+		const allPeers = this._peerBook.getAllPeers();
+		const connectedPeers = this._peerPool.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
 				connectedPeers.find(connectedPeer => peer.peerId === connectedPeer.id)
@@ -591,7 +598,12 @@ export class P2P extends EventEmitter {
 		});
 
 		// Only share the shared state to the user
-		return disconnectedPeers.map(peer => peer.sharedState) as P2PSharedState[];
+		return disconnectedPeers.map(peer => ({
+			...peer.sharedState,
+			ip: peer.ipAddress,
+			wsPort: peer.wsPort,
+			peerId: peer.wsPort,
+		}));
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
