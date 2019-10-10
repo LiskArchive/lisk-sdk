@@ -13,8 +13,12 @@
  *
  */
 import { P2PPeerInfo } from '../p2p_types';
-import { constructPeerIdFromPeerInfo, PEER_TYPE } from '../utils';
-import { evictPeerRandomlyFromBucket, getBucketId } from './utils';
+import {
+	constructPeerIdFromPeerInfo,
+	evictPeerRandomlyFromBucket,
+	getBucketId,
+	PEER_TYPE,
+} from '../utils';
 
 export interface PeerListConfig {
 	readonly peerBucketCount: number;

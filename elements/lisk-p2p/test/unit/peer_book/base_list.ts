@@ -22,7 +22,7 @@ import {
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
-import { getBucketId } from '../../../src/peer_book/utils';
+import { getBucketId } from '../../../src/utils';
 
 describe('Peers base list', () => {
 	const peerListConfig = {

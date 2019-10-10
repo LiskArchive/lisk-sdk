@@ -13,9 +13,8 @@
  *
  */
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
-
+import { evictPeerRandomlyFromBucket, expirePeerFromBucket } from '../utils';
 import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
-import { evictPeerRandomlyFromBucket, expirePeerFromBucket } from './utils';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
