@@ -28,15 +28,15 @@ describe('peer_book/utils', () => {
 	const localAddress = '127.0.0.1';
 
 	describe('#evictPeerRandomlyFromBucket', () => {
-		it('must a the evicted peer info');
+		it('must return the evicted peer info');
 	});
 
-	describe('#evictAnOldPeerFromBucket', () => {
+	describe('#expirePeerFromBucket', () => {
 		describe('when bucket contains old peers', () => {
-			it('should the evicted peer info');
+			it('should return the evicted peer info');
 		});
 		describe('when bucket does not contains old peers', () => {
-			it('should undefined');
+			it('should return undefined');
 		});
 	});
 

@@ -15,7 +15,7 @@
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 
 import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
-import { evictAnOldPeerFromBucket, evictPeerRandomlyFromBucket } from './utils';
+import { evictPeerRandomlyFromBucket, expirePeerFromBucket } from './utils';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
@@ -56,7 +56,7 @@ export class NewList extends BaseList {
 
 		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
 			// First eviction strategy: eviction by time of residence
-			const evictedPeer = evictAnOldPeerFromBucket(
+			const evictedPeer = expirePeerFromBucket(
 				bucket,
 				this._evictionThresholdTime,
 			);

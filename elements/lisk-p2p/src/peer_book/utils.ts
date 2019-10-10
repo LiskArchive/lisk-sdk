@@ -38,7 +38,7 @@ export const evictPeerRandomlyFromBucket = (
 	return evictedPeer;
 };
 
-export const evictAnOldPeerFromBucket = (
+export const expirePeerFromBucket = (
 	bucket: Map<string, CustomPeerInfo>,
 	thresholdTime: number,
 ): CustomPeerInfo | undefined => {
