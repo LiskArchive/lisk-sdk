@@ -25,7 +25,6 @@ import {
 	selectPeersForSend,
 } from '../../src/utils';
 // For stubbing
-import * as utils from '../../src/utils';
 import { Peer, ConnectionState, InboundPeer } from '../../src/peer';
 import { initializePeerList, initializePeerInfoList } from '../utils/peers';
 import {
@@ -90,11 +89,9 @@ describe('peerPool', () => {
 	let peerObject: any;
 	let messagePacket: any;
 	let requestPacket: any;
-	let clock: any;
-	let constructPeerIdFromPeerInfoStub: any;
+	let clock: sinon.SinonFakeTimers;
 
 	beforeEach(async () => {
-		sandbox.restore();
 		clock = sandbox.useFakeTimers();
 		peerPool = new PeerPool(peerPoolConfig);
 		peerId = '127.0.0.1:5000';
@@ -131,10 +128,6 @@ describe('peerPool', () => {
 			destroy: sandbox.stub(),
 		} as any;
 		peerPool.emit = sandbox.stub().resolves();
-		constructPeerIdFromPeerInfoStub = sandbox.stub(
-			utils,
-			'constructPeerIdFromPeerInfo',
-		);
 	});
 
 	afterEach(async () => {
@@ -900,6 +893,7 @@ describe('peerPool', () => {
 	describe('#_selectPeersForEviction', () => {
 		let originalPeers: Array<any>;
 		let getPeersStub: any;
+
 		beforeEach(async () => {
 			originalPeers = [...new Array(100).keys()].map(i => ({
 				id: i,
@@ -908,7 +902,6 @@ describe('peerPool', () => {
 				responseRate: i % 2 ? 0 : 1,
 				connectTime: i,
 			}));
-			constructPeerIdFromPeerInfoStub.returns('notAWhitelistedId');
 			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
 			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
 			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
