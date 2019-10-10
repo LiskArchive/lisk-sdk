@@ -146,9 +146,9 @@ describe('Peers base list', () => {
 		describe('when bucket is not full', () => {
 			it('should return undefined', () => {
 				sandbox.stub(peerListObj, 'makeSpace').returns(undefined);
-				const result = peerListObj.addPeer(samplePeers[1]);
+				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
-				expect(result).to.be.undefined;
+				expect(evictedPeer).to.be.undefined;
 			});
 		});
 
@@ -159,9 +159,9 @@ describe('Peers base list', () => {
 					dateAdded: new Date(),
 				};
 				sandbox.stub(peerListObj, 'makeSpace').returns(customPeer);
-				const result = peerListObj.addPeer(samplePeers[1]);
+				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
-				expect(result).to.eql(customPeer);
+				expect(evictedPeer).to.eql(customPeer);
 			});
 		});
 	});
@@ -261,9 +261,9 @@ describe('Peers base list', () => {
 		describe('when bucket is full', () => {
 			it('should evict one peer randomly', () => {
 				peerListObj.addPeer(samplePeers[1]);
-				const result = peerListObj.makeSpace(samplePeers[2].ipAddress);
+				const evictedPeer = peerListObj.makeSpace(samplePeers[2].ipAddress);
 
-				expect(samplePeers).to.include((result as any).peerInfo);
+				expect(samplePeers).to.include((evictedPeer as any).peerInfo);
 			});
 		});
 
@@ -272,9 +272,9 @@ describe('Peers base list', () => {
 				const bucket = new Map<string, CustomPeerInfo>();
 				sandbox.stub(peerListObj, 'getBucket').returns(bucket);
 
-				const result = peerListObj.makeSpace(samplePeers[0].ipAddress);
+				const evictedPeer = peerListObj.makeSpace(samplePeers[0].ipAddress);
 
-				expect(result).to.be.undefined;
+				expect(evictedPeer).to.be.undefined;
 			});
 		});
 	});

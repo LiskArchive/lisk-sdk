@@ -90,11 +90,11 @@ export class BaseList {
 		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		const newPeer = this.initPeerInfo(peerInfo);
-		const result = this.makeSpace(peerInfo.ipAddress);
+		const evictedPeer = this.makeSpace(peerInfo.ipAddress);
 		bucket.set(incomingPeerId, newPeer);
 
 		// If a peer was evicted in order to make space for the new one, we return its info
-		return result;
+		return evictedPeer;
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {

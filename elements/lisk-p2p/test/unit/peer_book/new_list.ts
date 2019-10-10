@@ -105,9 +105,9 @@ describe('New Peers List', () => {
 					clock.tick(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
 					newPeersList.addPeer(samplePeers[1]);
 					newPeersList.addPeer(samplePeers[2]);
-					const result = newPeersList.makeSpace(samplePeers[3].ipAddress);
+					const evictedPeer = newPeersList.makeSpace(samplePeers[3].ipAddress);
 
-					expect((result as any).peerInfo).to.be.eql(samplePeers[0]);
+					expect((evictedPeer as any).peerInfo).to.be.eql(samplePeers[0]);
 				});
 			});
 
@@ -115,18 +115,18 @@ describe('New Peers List', () => {
 				it('should evict one peer randomly', () => {
 					newPeersList.addPeer(samplePeers[1]);
 					newPeersList.addPeer(samplePeers[2]);
-					const result = newPeersList.makeSpace(samplePeers[3].ipAddress);
+					const evictedPeer = newPeersList.makeSpace(samplePeers[3].ipAddress);
 
-					expect(samplePeers).to.include((result as any).peerInfo);
+					expect(samplePeers).to.include((evictedPeer as any).peerInfo);
 				});
 			});
 		});
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
-				const result = newPeersList.makeSpace(samplePeers[0].ipAddress);
+				const evictedPeer = newPeersList.makeSpace(samplePeers[0].ipAddress);
 
-				expect(result).to.be.undefined;
+				expect(evictedPeer).to.be.undefined;
 			});
 		});
 	});
@@ -156,7 +156,6 @@ describe('New Peers List', () => {
 
 			samplePeersA.forEach(peerInfo => {
 				clock.tick(2);
-				newPeersList.makeSpace(peerInfo.ipAddress);
 				newPeersList.addPeer(peerInfo);
 			});
 
@@ -164,7 +163,6 @@ describe('New Peers List', () => {
 
 			samplePeersB.forEach(peerInfo => {
 				clock.tick(2);
-				newPeersList.makeSpace(peerInfo.ipAddress);
 				newPeersList.addPeer(peerInfo);
 			});
 		});

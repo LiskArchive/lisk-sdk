@@ -32,10 +32,10 @@ export const evictPeerRandomlyFromBucket = (
 	const bucketPeerIds = Array.from(bucket.keys());
 	const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
 	const randomPeerId = bucketPeerIds[randomPeerIndex];
-	const randomPeer = bucket.get(randomPeerId);
+	const evictedPeer = bucket.get(randomPeerId);
 	bucket.delete(randomPeerId);
 
-	return randomPeer;
+	return evictedPeer;
 };
 
 export const evictAnOldPeerFromBucket = (

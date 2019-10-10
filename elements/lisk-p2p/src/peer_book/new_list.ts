@@ -56,12 +56,12 @@ export class NewList extends BaseList {
 
 		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
 			// First eviction strategy: eviction by time of residence
-			const result = evictAnOldPeerFromBucket(
+			const evictedPeer = evictAnOldPeerFromBucket(
 				bucket,
 				this._evictionThresholdTime,
 			);
-			if (result) {
-				return result;
+			if (evictedPeer) {
+				return evictedPeer;
 			}
 
 			// Second eviction strategy: Default eviction based on base class

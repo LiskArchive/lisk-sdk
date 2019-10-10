@@ -103,7 +103,6 @@ describe('Tried Peers List', () => {
 					maxReconnectTries: 1,
 				};
 				triedPeersList = new TriedList(triedPeerConfig);
-				triedPeersList.makeSpace(samplePeers[0].ipAddress);
 				triedPeersList.addPeer(samplePeers[0]);
 			});
 
@@ -124,7 +123,6 @@ describe('Tried Peers List', () => {
 					maxReconnectTries: 2,
 				};
 				triedPeersList = new TriedList(triedPeerConfig);
-				triedPeersList.makeSpace(samplePeers[0].ipAddress);
 				triedPeersList.addPeer(samplePeers[0]);
 			});
 
