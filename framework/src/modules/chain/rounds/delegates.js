@@ -111,7 +111,7 @@ class Delegates {
 	 */
 	async generateDelegateList(round, source, tx) {
 		if (this.delegatesListCache[round]) {
-			this.logger.debug('Using delegate list from the cache for round', round);
+			this.logger.debug({ round }, 'Using delegate list from the cache');
 			return this.delegatesListCache[round];
 		}
 
@@ -197,16 +197,19 @@ class Delegates {
 	 * @todo Add description for the params
 	 */
 	async fork(block, cause) {
-		this.logger.info('Fork', {
-			delegate: block.generatorPublicKey,
-			block: {
-				id: block.id,
-				timestamp: block.timestamp,
-				height: block.height,
-				previousBlock: block.previousBlock,
+		this.logger.info(
+			{
+				delegate: block.generatorPublicKey,
+				block: {
+					id: block.id,
+					timestamp: block.timestamp,
+					height: block.height,
+					previousBlock: block.previousBlock,
+				},
+				cause,
 			},
-			cause,
-		});
+			'Fork info',
+		);
 
 		const fork = {
 			delegatePublicKey: block.generatorPublicKey,
@@ -220,7 +223,7 @@ class Delegates {
 		try {
 			await this.storage.entities.Account.insertFork(fork);
 		} catch (err) {
-			this.logger.warn(err, 'Failed to insert fork info');
+			this.logger.warn({ err }, 'Failed to insert fork info');
 		}
 		this.channel.publish('chain:delegates:fork', fork);
 	}
@@ -233,7 +236,7 @@ class Delegates {
 	 * @param {array} delegatesList - Delegate list
 	 */
 	updateDelegateListCache(round, delegatesList) {
-		this.logger.debug('Updating delegate list cache for round', round);
+		this.logger.debug({ round }, 'Updating delegate list cache');
 		this.delegatesListCache[round] = delegatesList;
 		// We want to cache delegates for only last 2 rounds and get rid of old ones
 		this.delegatesListCache = Object.keys(this.delegatesListCache)

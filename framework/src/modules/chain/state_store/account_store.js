@@ -51,7 +51,7 @@ class AccountStore {
 	async cache(filter) {
 		const result = await this.account.get(filter, { extended: true }, this.tx);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
-		return _.cloneDeep(this.data);
+		return _.cloneDeep(result);
 	}
 
 	createSnapshot() {

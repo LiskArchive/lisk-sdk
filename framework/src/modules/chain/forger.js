@@ -238,9 +238,11 @@ class Forger {
 			};
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
-				throw `Invalid encryptedPassphrase for publicKey: ${
-					encryptedItem.publicKey
-				}. Public keys do not match`;
+				throw new Error(
+					`Invalid encryptedPassphrase for publicKey: ${
+						encryptedItem.publicKey
+					}. Public keys do not match`,
+				);
 			}
 
 			const filters = {
@@ -256,9 +258,11 @@ class Forger {
 				options,
 			);
 			if (!account) {
-				throw `Account with public key: ${keypair.publicKey.toString(
-					'hex',
-				)} not found`;
+				throw new Error(
+					`Account with public key: ${keypair.publicKey.toString(
+						'hex',
+					)} not found`,
+				);
 			}
 			if (account.isDelegate) {
 				this.keypairs[keypair.publicKey.toString('hex')] = keypair;
@@ -299,7 +303,10 @@ class Forger {
 			currentSlot ===
 			this.slots.getSlotNumber(this.blocksModule.lastBlock.timestamp)
 		) {
-			this.logger.debug('Block already forged for the current slot');
+			this.logger.debug(
+				{ slot: currentSlot },
+				'Block already forged for the current slot',
+			);
 			return;
 		}
 
@@ -315,18 +322,16 @@ class Forger {
 				round,
 				this.constants.activeDelegates,
 			);
-		} catch (getDelegateKeypairForCurrentSlotError) {
-			this.logger.error(
-				'Skipping delegate slot',
-				getDelegateKeypairForCurrentSlotError,
-			);
-			throw getDelegateKeypairForCurrentSlotError;
+		} catch (err) {
+			this.logger.error({ err }, 'Skipping delegate slot');
+			throw err;
 		}
 
 		if (delegateKeypair === null) {
-			this.logger.debug('Waiting for delegate slot', {
-				currentSlot: this.slots.getSlotNumber(),
-			});
+			this.logger.debug(
+				{ currentSlot: this.slots.getSlotNumber() },
+				'Waiting for delegate slot',
+			);
 			return;
 		}
 		const isPoorConsensus = await this.peersModule.isPoorConsensus(
@@ -336,10 +341,9 @@ class Forger {
 			const consensus = await this.peersModule.getLastConsensus(
 				this.blocksModule.broadhash,
 			);
-			const consensusErr = `Inadequate broadhash consensus before forging a block: ${consensus} %`;
 			this.logger.error(
-				'Failed to generate block within delegate slot',
-				consensusErr,
+				{ consensus },
+				'Inadequate broadhash consensus before forging a block',
 			);
 			return;
 		}
@@ -348,7 +352,8 @@ class Forger {
 			this.blocksModule.broadhash,
 		);
 		this.logger.info(
-			`Broadhash consensus before forging a block: ${consensus} %`,
+			{ consensus },
+			'Broadhash consensus before forging a block',
 		);
 
 		const transactions =
@@ -363,13 +368,14 @@ class Forger {
 			transactions,
 		);
 		this.logger.info(
-			`Forged new block id: ${forgedBlock.id} height: ${
-				forgedBlock.height
-			} round: ${this.slots.calcRound(
-				forgedBlock.height,
-			)} slot: ${this.slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
-				forgedBlock.reward
-			}`,
+			{
+				id: forgedBlock.id,
+				height: forgedBlock.height,
+				round: this.slots.calcRound(forgedBlock.height),
+				slot: this.slots.getSlotNumber(forgedBlock.timestamp),
+				reward: forgedBlock.reward.toString(),
+			},
+			'Forged new block',
 		);
 	}
 

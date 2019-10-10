@@ -144,15 +144,6 @@ describe('node/api', () => {
 			loaded: true,
 			networkHeight: 456,
 			syncing: false,
-			transactions: {
-				confirmed: confirmedTransactions,
-				ready: 0,
-				verified: 0,
-				pending: 0,
-				validated: 0,
-				received: 0,
-				total: 10,
-			},
 			currentTime: now,
 		};
 
