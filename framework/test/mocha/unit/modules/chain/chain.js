@@ -410,7 +410,7 @@ describe('Chain', () => {
 				// Assert
 				expect(stubs.logger.error).to.be.calledWith(
 					{
-						error: expectedError,
+						err: expectedError,
 					},
 					'Sync trigger failed',
 				);
