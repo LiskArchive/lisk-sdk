@@ -256,7 +256,7 @@ NodeController.updateForgingStatus = async (context, next) => {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getPooledTransactions = async function(context, next) {
+NodeController.getPooledTransactions = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
