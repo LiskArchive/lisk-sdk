@@ -14,21 +14,17 @@
 
 'use strict';
 
+const EventEmitter = require('events');
+const { EVENT_ROUND_CHANGED } = require('./constants');
 const { DelegatesList } = require('./delegates_list');
-const { DelegatesInfo, EVENT_ROUND_CHANGED } = require('./delegates_info');
+const { DelegatesInfo } = require('./delegates_info');
 
 module.exports = class Dpos {
-	constructor({
-		storage,
-		slots,
-		activeDelegates,
-		logger,
-		channel,
-		exceptions = {},
-	}) {
+	constructor({ storage, slots, activeDelegates, logger, exceptions = {} }) {
+		this.events = new EventEmitter();
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
-		this.channel = channel;
+
 		this.delegatesList = new DelegatesList({
 			storage,
 			logger,
@@ -36,17 +32,18 @@ module.exports = class Dpos {
 			activeDelegates,
 			exceptions,
 		});
+
 		this.delegatesInfo = new DelegatesInfo({
 			storage,
 			slots,
 			activeDelegates,
 			logger,
-			channel,
+			events: this.events,
 			delegatesList: this.delegatesList,
 			exceptions,
 		});
 
-		this.channel.subscribe(EVENT_ROUND_CHANGED, () => {
+		this.events.on(EVENT_ROUND_CHANGED, () => {
 			this.onRoundFinish();
 		});
 	}
