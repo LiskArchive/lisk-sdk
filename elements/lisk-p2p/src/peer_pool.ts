@@ -21,11 +21,7 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
-import {
-	EVICTED_PEER_CODE,
-	INTENTIONAL_DISCONNECT_CODE,
-	PEER_KIND_OUTBOUND,
-} from './constants';
+import { EVICTED_PEER_CODE, INTENTIONAL_DISCONNECT_CODE } from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
 	EVENT_BAN_PEER,
@@ -50,11 +46,7 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
-	ConnectionKind,
 	P2PClosePacket,
-	P2PDiscoveredPeerInfo,
-	P2PDiscoveredSharedPeerInfo,
-	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -144,14 +136,10 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
-	private readonly _handleOutboundPeerConnect: (
-		peerInfo: P2PDiscoveredPeerInfo,
-	) => void;
-	private readonly _handleDiscoverPeer: (
-		peerInfo: P2PDiscoveredPeerInfo,
-	) => void;
+	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handleDiscoverPeer: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleOutboundPeerConnectAbort: (
-		peerInfo: P2PDiscoveredPeerInfo,
+		peerInfo: P2PPeerInfo,
 	) => void;
 	private readonly _handlePeerCloseOutbound: (
 		closePacket: P2PClosePacket,
@@ -161,9 +149,7 @@ export class PeerPool extends EventEmitter {
 	) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
-	private readonly _handlePeerInfoUpdate: (
-		peerInfo: P2PDiscoveredPeerInfo,
-	) => void;
+	private readonly _handlePeerInfoUpdate: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeers: (error: Error) => void;
@@ -221,20 +207,16 @@ export class PeerPool extends EventEmitter {
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handleDiscoverPeer = (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handleDiscoverPeer = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		};
 
-		this._handleOutboundPeerConnect = async (
-			peerInfo: P2PDiscoveredPeerInfo,
-		) => {
+		this._handleOutboundPeerConnect = async (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
-		this._handleOutboundPeerConnectAbort = (
-			peerInfo: P2PDiscoveredPeerInfo,
-		) => {
+		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
@@ -268,7 +250,7 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
-		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 		};
@@ -320,12 +302,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers().map(
-			(peerInfo: P2PDiscoveredPeerInfo) => ({
-				...peerInfo,
-				sharedState: { ...peerInfo.sharedState, kind: PEER_KIND_OUTBOUND },
-			}),
-		);
+		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers();
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
 			peers: outboundPeerInfos,
@@ -346,21 +323,9 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public send(message: P2PMessagePacket): void {
-		const listOfPeerInfo: ReadonlyArray<P2PDiscoveredPeerInfo> = [
+		const listOfPeerInfo: ReadonlyArray<P2PPeerInfo> = [
 			...this._peerMap.values(),
-		].map((peer: Peer) => ({
-			...peer.peerInfo,
-			sharedState: {
-				...(peer.peerInfo.sharedState as P2PDiscoveredSharedPeerInfo),
-			},
-			internalState: {
-				...(peer.peerInfo.internalState as P2PInternalState),
-				connectionKind:
-					peer instanceof OutboundPeer
-						? ConnectionKind.OUTBOUND
-						: ConnectionKind.INBOUND,
-			},
-		}));
+		].map(peer => peer.peerInfo);
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
@@ -368,7 +333,8 @@ export class PeerPool extends EventEmitter {
 			peerLimit: this._sendPeerLimit,
 			messagePacket: message,
 		});
-		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
+
+		selectedPeers.forEach((peerInfo: P2PPeerInfo) => {
 			const selectedPeerId = peerInfo.peerId;
 			try {
 				this.sendToPeer(message, selectedPeerId);
@@ -412,20 +378,20 @@ export class PeerPool extends EventEmitter {
 			newPeer =>
 				!this._peerMap.has(newPeer.peerId) ||
 				!fixedPeers
-					.map(fixedPeer => fixedPeer.sharedState.ipAddress)
-					.includes(newPeer.sharedState.ipAddress),
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(newPeer.ipAddress),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
 			triedPeer =>
 				!this._peerMap.has(triedPeer.peerId) ||
 				!fixedPeers
-					.map(fixedPeer => fixedPeer.sharedState.ipAddress)
-					.includes(triedPeer.sharedState.ipAddress),
+					.map(fixedPeer => fixedPeer.ipAddress)
+					.includes(triedPeer.ipAddress),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
 			.filter(peer => !this._peerMap.get(peer.peerId))
-			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
+			.map(peer2Convert => peer2Convert);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
@@ -453,10 +419,7 @@ export class PeerPool extends EventEmitter {
 		);
 	}
 
-	public addInboundPeer(
-		peerInfo: P2PDiscoveredPeerInfo,
-		socket: SCServerSocket,
-	): Peer {
+	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
 		const inboundPeers = this.getPeers(InboundPeer);
 		if (inboundPeers.length >= this._maxInboundConnections) {
 			this._evictPeer(InboundPeer);
@@ -542,18 +505,14 @@ export class PeerPool extends EventEmitter {
 		return peers;
 	}
 
-	public getUniqueOutboundConnectedPeers(): ReadonlyArray<
-		P2PDiscoveredPeerInfo
-	> {
+	public getUniqueOutboundConnectedPeers(): ReadonlyArray<P2PPeerInfo> {
 		return getUniquePeersbyIp(this.getAllConnectedPeerInfos(OutboundPeer));
 	}
 
 	public getAllConnectedPeerInfos(
 		kind?: typeof OutboundPeer | typeof InboundPeer,
-	): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getConnectedPeers(kind).map(
-			peer => peer.peerInfo as P2PDiscoveredPeerInfo,
-		);
+	): ReadonlyArray<P2PPeerInfo> {
+		return this.getConnectedPeers(kind).map(peer => peer.peerInfo);
 	}
 
 	public getConnectedPeers(
