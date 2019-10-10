@@ -94,6 +94,7 @@ describe('peerPool', () => {
 	let constructPeerIdFromPeerInfoStub: any;
 
 	beforeEach(async () => {
+		sandbox.restore();
 		clock = sandbox.useFakeTimers();
 		peerPool = new PeerPool(peerPoolConfig);
 		peerId = '127.0.0.1:5000';
