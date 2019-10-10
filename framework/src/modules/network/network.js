@@ -369,7 +369,54 @@ module.exports = class Network {
 			},
 			applyPenalty: action =>
 				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
+			getNetworkHeight: () => this._getNetworkHeight(),
 		};
+	}
+
+	/**
+	 * Network height:
+	 * gets list of peers from network module and
+	 * groups peer by common height and returns
+	 * the common group of height has network height
+	 * @private
+	 * @returns {integer}
+	 */
+	async _getNetworkHeight() {
+		const consolidatedPeers = consolidatePeers({
+			connectedPeers: this.p2p.getConnectedPeers(),
+		});
+
+		if (!consolidatedPeers || !consolidatedPeers.length) {
+			return 0;
+		}
+		const networkHeightCount = consolidatedPeers.reduce(
+			(previous, { height }) => {
+				const heightCount = previous[height] || 0;
+				// eslint-disable-next-line no-param-reassign
+				previous[height] = heightCount + 1;
+				return previous;
+			},
+			{},
+		);
+		const heightCountPairs = Object.entries(networkHeightCount);
+		const [defaultHeight, defaultCount] = heightCountPairs[0];
+		const { height: networkHeight } = heightCountPairs.reduce(
+			(prev, [height, count]) => {
+				if (count > prev.count) {
+					return {
+						height,
+						count,
+					};
+				}
+				return prev;
+			},
+			{
+				height: defaultHeight,
+				count: defaultCount,
+			},
+		);
+
+		return parseInt(networkHeight, 10);
 	}
 
 	async cleanup() {

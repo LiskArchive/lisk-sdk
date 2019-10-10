@@ -512,10 +512,6 @@ class Blocks extends EventEmitter {
 	}
 
 	async _rebuildMode(rebuildUpToRound, blocksCount) {
-		this.logger.info(
-			{ rebuildUpToRound, blocksCount },
-			'Rebuild process started',
-		);
 		if (blocksCount < this.constants.activeDelegates) {
 			throw new Error(
 				'Unable to rebuild, blockchain should contain at least one round of blocks',
@@ -529,6 +525,14 @@ class Blocks extends EventEmitter {
 				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 			);
 		}
+		this.logger.info(
+			{
+				rebuildUpToRound,
+				blocksToRebuild: this.constants.activeDelegates * rebuildUpToRound,
+				currentHeight: blocksCount,
+			},
+			'Start rebuilding blockchain state',
+		);
 		const totalRounds = Math.floor(
 			blocksCount / this.constants.activeDelegates,
 		);
@@ -540,7 +544,10 @@ class Blocks extends EventEmitter {
 		this._lastBlock = await this._reload(targetHeight);
 		// Remove remaining
 		await this.storage.entities.Block.delete({ height_gt: targetHeight });
-		this.logger.info({ targetHeight, totalRounds }, 'Rebuilding finished');
+		this.logger.info(
+			{ targetHeight, totalRounds },
+			'Finished rebuilding blockchain state',
+		);
 	}
 
 	_updateLastNBlocks(block) {

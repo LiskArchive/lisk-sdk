@@ -49,46 +49,6 @@ async function _getForgingStatus(publicKey) {
 }
 
 /**
- * Get the network height
- *
- * @returns Number
- * @private
- */
-async function _getNetworkHeight() {
-	const peers = await library.channel.invoke('network:getPeers', {
-		limit: 100,
-		state: 2,
-	});
-	if (!peers || !peers.length) {
-		return 0;
-	}
-	const networkHeightCount = peers.reduce((previous, { height }) => {
-		const heightCount = previous[height] || 0;
-		previous[height] = heightCount + 1;
-		return previous;
-	}, {});
-	const heightCountPairs = Object.entries(networkHeightCount);
-	const [defaultHeight, defaultCount] = heightCountPairs[0];
-	const { height: networkHeight } = heightCountPairs.reduce(
-		(prev, [height, count]) => {
-			if (count > prev.count) {
-				return {
-					height,
-					count,
-				};
-			}
-			return prev;
-		},
-		{
-			height: defaultHeight,
-			count: defaultCount,
-		},
-	);
-
-	return parseInt(networkHeight, 10);
-}
-
-/**
  * Parse transaction instance to raw data
  *
  * @returns Object
@@ -212,7 +172,9 @@ NodeController.getStatus = async (context, next) => {
 			lastBlock,
 		} = await library.channel.invoke('chain:getNodeStatus');
 
-		const networkHeight = await _getNetworkHeight();
+		const networkHeight = await library.channel.invoke(
+			'network:getNetworkHeight',
+		);
 
 		const data = {
 			broadhash: library.applicationState.broadhash,

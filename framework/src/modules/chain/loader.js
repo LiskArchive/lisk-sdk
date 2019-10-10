@@ -117,6 +117,20 @@ class Loader {
 	}
 
 	/**
+	 * Syncing status:
+	 * returns the height of blockchain and network height
+	 * @returns {integer, integer}
+	 */
+	async syncStatus() {
+		const networkHeight = await this.channel.invoke('network:getNetworkHeight');
+		const {
+			lastBlock: { height },
+		} = await this.channel.invoke('chain:getNodeStatus');
+
+		return { height, networkHeight };
+	}
+
+	/**
 	 * Performs sync operation:
 	 * - Undoes unconfirmed transactions.
 	 * - Establishes broadhash consensus before sync.
@@ -132,10 +146,15 @@ class Loader {
 	 * @todo Add description for the params
 	 */
 	async sync() {
-		this.logger.info('Starting sync');
 		if (this.cache.ready) {
 			this.cache.disable();
 		}
+		const { height, networkHeight } = await this.syncStatus();
+
+		this.logger.info(
+			{ height, networkHeight },
+			'Syncing in progress with the network',
+		);
 
 		this.isActive = true;
 
@@ -159,7 +178,12 @@ class Loader {
 		this.isActive = false;
 		this.blocksToSync = 0;
 
-		this.logger.info('Finished sync');
+		if (height === networkHeight) {
+			this.logger.info(
+				{ height, networkHeight },
+				'Finished syncing with the network',
+			);
+		}
 
 		if (this.cache.ready) {
 			this.cache.enable();
