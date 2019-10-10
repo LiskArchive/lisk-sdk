@@ -180,9 +180,9 @@ module.exports = class Chain {
 								await this.transport.postBlock(data);
 								return;
 							}
-						} catch (error) {
+						} catch (err) {
 							this.logger.warn(
-								{ error, event },
+								{ err, event },
 								'Received invalid event message',
 							);
 						}

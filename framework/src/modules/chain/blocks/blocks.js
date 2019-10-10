@@ -162,9 +162,9 @@ class Blocks extends EventEmitter {
 				{ limit: this.constants.blockSlotWindow, sort: 'height:desc' },
 			);
 			this._lastNBlockIds = rows.map(row => row.id);
-		} catch (error) {
+		} catch (err) {
 			this.logger.error(
-				{ error },
+				{ err },
 				`Unable to load last ${this.constants.blockSlotWindow} block ids`,
 			);
 		}

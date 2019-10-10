@@ -43,12 +43,9 @@ class Cache {
 		// but cache server is not available.
 		return new Promise(resolve => {
 			this.client = redis.createClient(this.options);
-			this.client.once('error', error => {
+			this.client.once('error', err => {
 				// Called if the "error" event occured before "ready" event
-				this.logger.warn(
-					{ error },
-					'App was unable to connect to Cache server',
-				);
+				this.logger.warn({ err }, 'App was unable to connect to Cache server');
 				// Error handler needs to exist to ignore the error
 				this.client.on('error', () => {});
 				resolve();
