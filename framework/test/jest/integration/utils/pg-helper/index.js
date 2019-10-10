@@ -20,43 +20,52 @@ this.pgpOptions = {
 	capSQL: true,
 	promiseLib: Promise,
 	noLocking: false,
-	noWarnings: true,
 };
 const pgp = pgpLib(this.pgpOptions);
 
 class PgHelper {
-	constructor({
-		dbName = 'lisk_dev',
-		user = 'lisk',
-		password = 'password',
-		host = 'localhost',
-		port = '5432',
-	}) {
-		this.dbName = dbName;
-		this.cnStr = `postgres://${user}:${password}@${host}:${port}/${dbName}`;
-		if (dbName.indexOf('postgres://') === 0) {
-			this.cnStr = dbName;
+	constructor(options) {
+		const defaultOptions = {
+			host: 'localhost',
+			port: 5432,
+			user: 'lisk',
+			password: 'password',
+			min: 1,
+			max: 2,
+		};
+
+		if (!options.database) {
+			throw new Error('Please define a database name');
 		}
 
-		this.pgp = pgp(this.cnStr);
+		// eslint-disable-next-line no-param-reassign
+		options = { ...defaultOptions, ...options };
+
+		this.database = options.database;
+
+		this.pgp = pgp(options);
 		this.storage = null;
 	}
 
 	_dropDB() {
 		return new Promise(resolve => {
-			// eslint-disable-next-line no-console
-			console.log('Dropping database instance:', this.dbName);
-			childProcess.exec(`dropdb ${this.dbName}`, () => resolve());
+			childProcess.exec(`dropdb ${this.database}`, err => {
+				if (err) {
+					// eslint-disable-next-line no-console
+					console.log(`dropdb ${this.database} failed`, err.message);
+				}
+				resolve();
+			});
 		});
 	}
 
 	_createDB() {
 		return new Promise((resolve, reject) => {
-			// eslint-disable-next-line no-console
-			console.log('Creating database instance:', this.dbName);
-			childProcess.exec(`createdb ${this.dbName}`, error => {
-				if (error) {
-					return reject(error);
+			childProcess.exec(`createdb ${this.database}`, err => {
+				if (err) {
+					// eslint-disable-next-line no-console
+					console.log(`createdb ${this.database} failed`, err.message);
+					return reject(err);
 				}
 				return resolve();
 			});
@@ -74,16 +83,17 @@ class PgHelper {
 		await this.storage.adapter.db.$pool.end();
 		await this.conn.done();
 		await this.pgp.$pool.end();
+		await this._dropDB();
 	}
 
 	async createStorage(options = {}, logger) {
 		const storageOptions = {
-			database: this.dbName,
+			database: this.database,
 			user: 'lisk',
 			password: 'password',
 			min: 1,
-			max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
-			logFileName: `logs/devnet/lisk_${this.dbName}.log`,
+			max: 2,
+			logFileName: `logs/devnet/lisk_${this.database}.log`,
 			noWarnings: true,
 			poolIdleTimeout: 30000,
 			reapIntervalMillis: 1000,

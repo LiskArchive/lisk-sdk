@@ -25,7 +25,7 @@ describe('storage.entities.Account.update', () => {
 
 	beforeAll(async () => {
 		// Arrange
-		pgHelper = new PgHelper({ dbName: 'AccountUpdate' });
+		pgHelper = new PgHelper({ database: 'AccountUpdate' });
 
 		// Create second postgres connection
 		db = await pgHelper.bootstrap();
