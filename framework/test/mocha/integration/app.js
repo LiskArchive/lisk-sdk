@@ -129,9 +129,7 @@ describe('app', () => {
 									id: delegate.transactionId,
 								});
 								expect(found).to.be.an('object');
-								expect(delegate.username).to.equal(
-									found.asset.delegate.username,
-								);
+								expect(delegate.username).to.equal(found.asset.username);
 								expect(delegate.address).to.equal(found.senderId);
 								expect(delegate.publicKey.toString('hex')).to.equal(
 									found.senderPublicKey,

@@ -60,7 +60,7 @@ const getRecipientAddress = (stateStore, transaction) => {
 		transaction.type === TRANSACTION_TYPES_OUT_TRANSFER ||
 		transaction.type === TRANSACTION_TYPES_VOTE
 	) {
-		return transaction.recipientId;
+		return transaction.asset.recipientId;
 	}
 
 	return null;
