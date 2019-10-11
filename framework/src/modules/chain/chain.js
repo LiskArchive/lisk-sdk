@@ -17,7 +17,7 @@
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const { restoreBlocks } = require('./synchronizer/utils');
+const { restoreBlocksUponStartup } = require('./synchronizer/utils');
 const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
@@ -33,11 +33,7 @@ const {
 } = require('./transaction_pool');
 const { Slots, Dpos } = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
-const {
-	Blocks,
-	EVENT_NEW_BROADHASH,
-	FORK_STATUS_DIFFERENT_CHAIN,
-} = require('./blocks');
+const { Blocks, EVENT_NEW_BROADHASH } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
@@ -262,20 +258,11 @@ module.exports = class Chain {
 			// Check if blocks are left in temp_block table
 			const isEmpty = await this.storage.entities.TempBlock.isEmpty();
 			if (!isEmpty) {
-				// Get all blocks and find lowest height (next one to be applied)
-				const tempBlocks = await this.storage.entities.TempBlock.get();
-				tempBlocks.sort((a, b) => (a.height > b.height ? 1 : -1));
-				const nextTempBlock = JSON.parse(tempBlocks[0].fullBlock); // parseBlock todo && move wrapper to BFT
-				const forkStatus = await this.processor.forkStatus(nextTempBlock);
-
-				const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
-				if (inDifferentChain) {
-					// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_block table
-					await restoreBlocks(this.blocks, this.processor);
-				} else {
-					// Not different chain - Delete remaining blocks from temp_block table
-					await this.storage.entities.TempBlock.truncate();
-				}
+				await restoreBlocksUponStartup(
+					this.blocks,
+					this.processor,
+					this.storage,
+				);
 			}
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
