@@ -292,11 +292,9 @@ describe('Chain', () => {
 
 			// Assert
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'Failed to assign nethash from genesis block',
+			expect(chain.logger.fatal).to.have.been.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -321,9 +319,6 @@ describe('Chain', () => {
 				{},
 				'Failed to initialization chain module',
 			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
-			);
 		});
 
 		it('should throw error when waitThreshold is same as BLOCK_TIME', async () => {
@@ -342,11 +337,9 @@ describe('Chain', () => {
 			await chain.bootstrap();
 
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
+			expect(chain.logger.fatal).to.have.been.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
