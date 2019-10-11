@@ -106,7 +106,7 @@ describe('rounds', () => {
 				accounts[address].balance = new BigNum(accounts[address].balance)
 					.minus(
 						new BigNum(transaction.fee).plus(
-							new BigNum(transaction.asset.amount),
+							new BigNum(transaction.asset.amount || 0),
 						),
 					)
 					.toString();
@@ -152,13 +152,13 @@ describe('rounds', () => {
 				if (accounts[address]) {
 					// Update recipient
 					accounts[address].balance = new BigNum(accounts[address].balance)
-						.plus(new BigNum(transaction.asset.amount))
+						.plus(new BigNum(transaction.asset.amount || 0))
 						.toString();
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
-						balance: new BigNum(transaction.asset.amount).toString(),
+						balance: new BigNum(transaction.asset.amount || 0).toString(),
 					});
 				}
 			}
