@@ -13,6 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	BaseTransaction,
+	DelegateTransaction,
+	MultisignatureTransaction,
+	SecondSignatureTransaction,
+	TransactionJSON,
+	TransferTransaction,
+	VoteTransaction,
+} from '@liskhq/lisk-transactions';
 import { ValidationError } from './error';
 
 export const parseTransactionString = (transactionStr: string) => {
@@ -21,4 +30,29 @@ export const parseTransactionString = (transactionStr: string) => {
 	} catch (error) {
 		throw new ValidationError('Could not parse transaction JSON.');
 	}
+};
+
+// tslint:disable-next-line no-any
+const defaultTransactions: { readonly [key: number]: any } = {
+	0: TransferTransaction,
+	1: SecondSignatureTransaction,
+	2: DelegateTransaction,
+	3: VoteTransaction,
+	4: MultisignatureTransaction,
+};
+
+export const instantiateTransaction = (
+	data: TransactionJSON,
+): BaseTransaction => {
+	if (data.type === undefined || data.type === null) {
+		throw new Error('Invalid transaction without type');
+	}
+
+	if (!Object.keys(defaultTransactions).includes(String(data.type))) {
+		throw new Error(`Transaction type ${data.type} is not supported`);
+	}
+	// tslint:disable-next-line variable-name
+	const TransactionClass = defaultTransactions[data.type];
+
+	return new TransactionClass(data);
 };
