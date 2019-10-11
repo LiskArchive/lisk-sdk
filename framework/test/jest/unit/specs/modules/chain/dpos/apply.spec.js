@@ -16,7 +16,11 @@
 
 const BigNum = require('@liskhq/bignum');
 const { when } = require('jest-when');
-const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
+const {
+	Dpos,
+	Slots,
+	constants: { EVENT_ROUND_CHANGED },
+} = require('../../../../../../../src/modules/chain/dpos');
 const { constants, randomInt } = require('../../../../../utils');
 const {
 	delegateAccounts,
@@ -58,11 +62,6 @@ describe('dpos.apply()', () => {
 			debug: jest.fn(),
 			log: jest.fn(),
 			error: jest.fn(),
-		};
-
-		stubs.channel = {
-			subscribe: jest.fn(),
-			publish: jest.fn(),
 		};
 
 		stubs.tx = jest.fn();
@@ -497,7 +496,10 @@ describe('dpos.apply()', () => {
 
 		it('should delete RoundDelegates entitries older than (finalizedBlockRound - 2)', async () => {
 			// Arrange
-			dpos.finalizedBlockRound = 5;
+			const finalizedBlockRoundStub = 5;
+			const bftRoundOffset = 2; // TODO: get from BFT constants
+			const expectedRound = finalizedBlockRoundStub - bftRoundOffset;
+			dpos.finalizedBlockRound = finalizedBlockRoundStub;
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
@@ -505,10 +507,27 @@ describe('dpos.apply()', () => {
 			// Assert
 			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
 				{
-					round_lt: 3,
+					round_lt: expectedRound,
 				},
 				undefined,
 			);
+		});
+
+		it('should should emit EVENT_ROUND_CHANGED', async () => {
+			// Arrange
+			const eventCallback = jest.fn();
+			const oldRound =
+				lastBlockOfTheRoundNine.height / constants.ACTIVE_DELEGATES;
+			dpos.events.on(EVENT_ROUND_CHANGED, eventCallback);
+
+			// Act
+			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+
+			// Assert
+			expect(eventCallback).toHaveBeenCalledWith({
+				oldRound,
+				newRound: oldRound + 1,
+			});
 		});
 
 		describe('When all delegates successfully forges a block', () => {

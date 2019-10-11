@@ -413,7 +413,7 @@ module.exports = class Chain {
 		});
 
 		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
-			this.channel.publish('chain:rounds:change', { number: data.round });
+			this.channel.publish('chain:rounds:change', { number: data.newRound });
 		});
 
 		this.blocks = new Blocks({
