@@ -95,6 +95,14 @@ describe('utils/misc', () => {
 	});
 
 	describe('#getNetgroup', () => {
+		it(`should throw an error if network is equal to ${
+			NETWORK.NET_OTHER
+		}`, () => {
+			expect(() => getNetgroup('wrong ip', DEFAULT_RANDOM_SECRET)).to.throw(
+				'IP address is unsupported.',
+			);
+		});
+
 		it('should return a number netgroup', () => {
 			return expect(getNetgroup(IPv4Address, secret)).to.be.a('number');
 		});
