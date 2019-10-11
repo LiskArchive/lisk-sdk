@@ -67,6 +67,8 @@ const deleteBlocksAfterHeightAndBackup = async (
 		});
 		currentHeight = lastBlock.height;
 	}
+
+	logger.debug('Blocks deleted successfully');
 };
 
 /**
