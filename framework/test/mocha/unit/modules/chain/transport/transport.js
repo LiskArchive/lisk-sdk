@@ -519,8 +519,12 @@ describe('transport', () => {
 				describe('when transaction is defined', () => {
 					it('should call transportModule.logger.debug with "Transaction" and transaction as arguments', async () => {
 						expect(transportModule.logger.debug).to.be.calledWith(
+							{
+								transaction: interfaceAdapters.transactions.fromJson(
+									transaction,
+								),
+							},
 							'Transaction',
-							interfaceAdapters.transactions.fromJson(transaction),
 						);
 					});
 				});
@@ -544,7 +548,8 @@ describe('transport', () => {
 				it('should call transportModule.logger.debug with "Received transaction " + transaction.id', async () =>
 					expect(
 						transportModule.logger.debug.calledWith(
-							`Received transaction ${transaction.id}`,
+							{ id: transaction.id },
+							'Received transaction',
 						),
 					).to.be.true);
 			});
@@ -956,12 +961,10 @@ describe('transport', () => {
 								validateErr,
 							]);
 
-							return expect(
-								transportModule.logger.debug.calledWith(
-									'Invalid signatures body',
-									[validateErr],
-								),
-							).to.be.true;
+							return expect(transportModule.logger.debug).to.be.calledWithMatch(
+								{},
+								'Invalid signatures body',
+							);
 						});
 					});
 				});

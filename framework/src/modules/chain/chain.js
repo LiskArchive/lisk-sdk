@@ -244,9 +244,9 @@ module.exports = class Chain {
 								await this.transport.postBlock(data);
 								return;
 							}
-						} catch (error) {
+						} catch (err) {
 							this.logger.warn(
-								{ error, event },
+								{ err, event },
 								'Received invalid event message',
 							);
 						}
@@ -254,10 +254,13 @@ module.exports = class Chain {
 				);
 			}
 		} catch (error) {
-			this.logger.fatal('Chain initialization', {
-				message: error.message,
-				stack: error.stack,
-			});
+			this.logger.fatal(
+				{
+					message: error.message,
+					stack: error.stack,
+				},
+				'Failed to initialization chain module',
+			);
 			process.emit('cleanup', error);
 		}
 	}
@@ -560,15 +563,15 @@ module.exports = class Chain {
 				syncing: this.loader.syncing(),
 				lastReceipt: this.blocks.lastReceipt,
 			},
-			'Sync time triggered',
+			'Sync timer triggered',
 		);
 		// TODO: Do we need further checks here, removing blocks.isStale()
 		if (!this.loader.syncing()) {
 			await this.scope.sequence.add(async () => {
 				try {
 					await this.loader.sync();
-				} catch (error) {
-					this.logger.error(error, 'Sync timer');
+				} catch (err) {
+					this.logger.error({ err }, 'Sync trigger failed');
 				}
 			});
 		}
@@ -589,7 +592,10 @@ module.exports = class Chain {
 				const consensus = await this.peers.calculateConsensus(
 					this.blocks.broadhash,
 				);
-				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
+				return this.logger.debug(
+					{ consensus },
+					'Broadhash consensus calculation timer triggered',
+				);
 			},
 			this.peers.broadhashConsensusCalculationInterval,
 		);
@@ -608,8 +614,8 @@ module.exports = class Chain {
 					return;
 				}
 				await this.forger.forge();
-			} catch (error) {
-				this.logger.error(error);
+			} catch (err) {
+				this.logger.error({ err });
 			}
 		});
 	}
@@ -618,7 +624,7 @@ module.exports = class Chain {
 		try {
 			await this.forger.loadDelegates();
 		} catch (err) {
-			this.logger.error(err, 'Failed to load delegates');
+			this.logger.error({ err }, 'Failed to load delegates for forging');
 		}
 		jobQueue.register(
 			'nextForge',
@@ -683,7 +689,12 @@ module.exports = class Chain {
 
 		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
 			this.logger.info(
-				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.',
+				{
+					id: block.id,
+					height: block.height,
+					numberOfTransactions: block.transactions.length,
+				},
+				'New block added to the chain',
 			);
 			this.synchronizer
 				.run(block)
@@ -707,7 +718,7 @@ module.exports = class Chain {
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 			this.logger.debug(
-				{ broadhash, height },
+				{ broadhash, height, event: EVENT_NEW_BROADHASH },
 				'Updating the application state',
 			);
 		});

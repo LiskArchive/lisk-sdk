@@ -440,7 +440,7 @@ class Blocks extends EventEmitter {
 			return block;
 		} catch (e) {
 			const errMessage = 'Failed to access storage layer';
-			this.logger.error(e, errMessage);
+			this.logger.error({ err: e }, errMessage);
 			throw new Error(errMessage);
 		}
 	}
