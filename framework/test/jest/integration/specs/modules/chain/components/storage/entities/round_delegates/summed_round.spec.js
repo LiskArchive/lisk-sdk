@@ -24,7 +24,7 @@ describe('storage.entities.RoundDelegates.summedRound', () => {
 
 	beforeAll(async () => {
 		// Arrange
-		pgHelper = new PgHelper({ dbName: 'RoundDelegatesSummedRound' });
+		pgHelper = new PgHelper({ database: 'RoundDelegatesSummedRound' });
 
 		// Create second postgres connection
 		db = await pgHelper.bootstrap();
