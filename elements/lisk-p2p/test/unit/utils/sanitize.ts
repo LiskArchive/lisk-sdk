@@ -48,6 +48,10 @@ describe('utils/sanitize', () => {
 		});
 	});
 
+	describe('#sanitizePeerLists', () => {
+		it('should return an object with several peer lists');
+	});
+
 	describe('#sanitizeNodeInfoToLegacyFormat', () => {
 		describe('when node info has broadhash, nonce and httpPort', () => {
 			const nodeInfo = {
