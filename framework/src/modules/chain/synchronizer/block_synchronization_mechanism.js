@@ -229,10 +229,9 @@ class BlockSynchronizationMechanism {
 	 * Reverts the current chain so the new tip of the chain corresponds to the
 	 * last common block.
 	 *
-	 * Returns the last common block
 	 * @param receivedBlock
 	 * @param {Object} peer - The selected peer to target.
-	 * @return {Promise<object>}
+	 * @return {Promise<object>} - Returns the last common block
 	 * @private
 	 */
 	async _revertToLastCommonBlock(receivedBlock, peer) {
