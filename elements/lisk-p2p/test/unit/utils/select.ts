@@ -25,43 +25,6 @@ import {
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('peer selector', () => {
-	describe('#selectPeersForSend', () => {
-		let peerList = initPeerInfoListWithSuffix('111.112.113', 120);
-
-		const nodeInfo: P2PNodeInfo = {
-			height: 545777,
-			nethash: '73458irc3yb7rg37r7326dbt7236',
-			os: 'linux',
-			version: '1.1.1',
-			protocolVersion: '1.1',
-			wsPort: 5000,
-		};
-
-		it('should return an array containing an even number of inbound and outbound peers', () => {
-			const selectedPeers = selectPeersForSend({
-				peers: peerList,
-				nodeInfo,
-				peerLimit: 24,
-				messagePacket: { event: 'foo', data: {} },
-			});
-
-			let peerKindCounts = selectedPeers.reduce(
-				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
-					const kind = peerInfo.kind as string;
-					if (!peerKindTracker[kind]) {
-						peerKindTracker[kind] = 0;
-					}
-					peerKindTracker[kind]++;
-					return peerKindTracker;
-				},
-				{},
-			);
-
-			expect(peerKindCounts.inbound)
-				.to.equal(peerKindCounts.outbound)
-				.to.equal(12);
-		});
-	});
 	describe('#selectPeersForRequest', () => {
 		let peerList = initPeerInfoList();
 		const nodeInfo: P2PNodeInfo = {
@@ -194,7 +157,41 @@ describe('peer selector', () => {
 	});
 
 	describe('#selectPeersForSend', () => {
-		it('should check all cases');
+		let peerList = initPeerInfoListWithSuffix('111.112.113', 120);
+
+		const nodeInfo: P2PNodeInfo = {
+			height: 545777,
+			nethash: '73458irc3yb7rg37r7326dbt7236',
+			os: 'linux',
+			version: '1.1.1',
+			protocolVersion: '1.1',
+			wsPort: 5000,
+		};
+
+		it('should return an array containing an even number of inbound and outbound peers', () => {
+			const selectedPeers = selectPeersForSend({
+				peers: peerList,
+				nodeInfo,
+				peerLimit: 24,
+				messagePacket: { event: 'foo', data: {} },
+			});
+
+			let peerKindCounts = selectedPeers.reduce(
+				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
+					const kind = peerInfo.kind as string;
+					if (!peerKindTracker[kind]) {
+						peerKindTracker[kind] = 0;
+					}
+					peerKindTracker[kind]++;
+					return peerKindTracker;
+				},
+				{},
+			);
+
+			expect(peerKindCounts.inbound)
+				.to.equal(peerKindCounts.outbound)
+				.to.equal(12);
+		});
 	});
 
 	describe('#selectPeersForConnection', () => {
