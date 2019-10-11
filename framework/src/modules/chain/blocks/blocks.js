@@ -302,7 +302,7 @@ class Blocks extends EventEmitter {
 		this._lastBlock = block;
 	}
 
-	async remove({ block, tx }, saveToTemp) {
+	async remove({ block, tx }, saveTempBlock = false) {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
 		const [secondLastBlock] = blocksLogic.readStorageRows(
 			[storageRowOfBlock],
@@ -310,7 +310,7 @@ class Blocks extends EventEmitter {
 			this.genesisBlock,
 		);
 
-		if (saveToTemp) {
+		if (saveTempBlock) {
 			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
 				id: parsedDeletedBlock.id,
@@ -441,7 +441,7 @@ class Blocks extends EventEmitter {
 			return block;
 		} catch (e) {
 			const errMessage = 'Failed to access storage layer';
-			this.logger.error(e, errMessage);
+			this.logger.error({ err: e }, errMessage);
 			throw new Error(errMessage);
 		}
 	}

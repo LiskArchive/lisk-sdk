@@ -176,45 +176,55 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
 			this.logger.debug(
-				`Peer disconnect event: Outbound connection of peer ${
-					closePacket.peerInfo.ipAddress
-				}:${closePacket.peerInfo.wsPort} was closed with code ${
-					closePacket.code
-				} and reason: ${closePacket.reason}`,
+				{
+					ipAddress: closePacket.peerInfo.ipAddress,
+					wsPort: closePacket.peerInfo.wsPort,
+					code: closePacket.code,
+					reason: closePacket.reason,
+				},
+				'EVENT_CLOSE_OUTBOUND: Close outbound peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_CLOSE_INBOUND, closePacket => {
 			this.logger.debug(
-				`Inbound connection of peer ${closePacket.peerInfo.ipAddress}:${
-					closePacket.peerInfo.wsPort
-				} was closed with code ${closePacket.code} and reason: ${
-					closePacket.reason
-				}`,
+				{
+					ipAddress: closePacket.peerInfo.ipAddress,
+					wsPort: closePacket.peerInfo.wsPort,
+					code: closePacket.code,
+					reason: closePacket.reason,
+				},
+				'EVENT_CLOSE_INBOUND: Close inbound peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
-			this.logger.info(
-				`Peer connect event: Connected to peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				}`,
+			this.logger.debug(
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_CONNECT_OUTBOUND: Outbound peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
 			this.logger.trace(
-				`New peer found event: Discovered peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				}`,
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_DISCOVERED_PEER: Discovered peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_NEW_INBOUND_PEER, peerInfo => {
 			this.logger.debug(
-				`New inbound peer event: Connected from peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				} ${JSON.stringify(peerInfo)}`,
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_NEW_INBOUND_PEER: Inbound peer connection',
 			);
 		});
 
@@ -236,9 +246,12 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
 			this.logger.trace(
-				`Peer update info event: Updated info of peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				} to ${JSON.stringify(peerInfo)}`,
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_UPDATED_PEER_INFO: Update peer info',
+				JSON.stringify(peerInfo),
 			);
 		});
 
@@ -248,7 +261,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
 			this.logger.trace(
-				`Incoming request event: Received inbound request for procedure ${
+				`EVENT_REQUEST_RECEIVED: Received inbound request for procedure ${
 					request.procedure
 				}`,
 			);
@@ -284,7 +297,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
 			this.logger.trace(
-				`Message received event: Received inbound message for event ${
+				`EVENT_MESSAGE_RECEIVED: Received inbound message for event ${
 					packet.event
 				}`,
 			);
@@ -292,11 +305,17 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_BAN_PEER, peerId => {
-			this.logger.error(`Peer ${peerId} has been temporarily banned.`);
+			this.logger.error(
+				{ peerId },
+				'EVENT_MESSAGE_RECEIVED: Peer has been banned temporarily',
+			);
 		});
 
 		this.p2p.on(EVENT_UNBAN_PEER, peerId => {
-			this.logger.error(`Ban on peer ${peerId} has expired.`);
+			this.logger.error(
+				{ peerId },
+				'EVENT_MESSAGE_RECEIVED: Peer ban has expired',
+			);
 		});
 
 		// ---- END: Bind event handlers ----
@@ -304,10 +323,13 @@ module.exports = class Network {
 		try {
 			await this.p2p.start();
 		} catch (error) {
-			this.logger.fatal('Network initialization', {
-				message: error.message,
-				stack: error.stack,
-			});
+			this.logger.fatal(
+				{
+					message: error.message,
+					stack: error.stack,
+				},
+				'Failed to initialize network',
+			);
 			process.emit('cleanup', error);
 		}
 	}

@@ -127,27 +127,23 @@ describe('WS transport', () => {
 				const blockRes = await blocksEndpoint.makeRequest({ height: 2 }, 200);
 				const blockId = blockRes.body.data[0].id;
 				const { data } = await p2p.request({
-					procedure: 'blocks',
-					data: { lastBlockId: blockId },
+					procedure: 'getBlocksFromId',
+					data: { blockId },
 				});
-				expect(data)
-					.to.have.property('blocks')
-					.to.be.an('array');
+				expect(data).to.be.an('array');
 			});
 
-			it('using valid headers should be ok', async () => {
+			it('using a valid payload should be ok', async () => {
 				const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 				const blockRes = await blocksEndpoint.makeRequest({ height: 2 }, 200);
 				const blockId = blockRes.body.data[0].id;
 				const { data } = await p2p.request({
-					procedure: 'blocks',
-					data: { lastBlockId: blockId },
+					procedure: 'getBlocksFromId',
+					data: { blockId },
 				});
-				expect(data)
-					.to.have.property('blocks')
-					.that.is.an('array');
-				for (const block of data.blocks) {
+				expect(data).that.is.an('array');
+				for (const block of data) {
 					expect(block)
 						.to.have.property('id')
 						.that.is.a('string');
@@ -191,16 +187,41 @@ describe('WS transport', () => {
 				}
 			});
 
-			it('using empty headers should not be ok', async () => {
-				const { data } = await p2p.request({ procedure: 'blocks', data: {} });
-				expect(data)
-					.to.have.property('success')
-					.that.is.a('boolean').and.is.false;
+			it('using empty payload should not be ok', async () => {
+				try {
+					await p2p.request({
+						procedure: 'getBlocksFromId',
+						data: {},
+					});
+				} catch (e) {
+					expect(e.message).to.equal(
+						"should have required property 'blockId': undefined",
+					);
+				}
 			});
 
-			it('using invalid headers should not be ok', async () => {
-				const { data } = await p2p.request({ procedure: 'blocks', data: {} });
-				expect(data).to.have.property('success', false);
+			it('using an invalid block ID format should throw an error', async () => {
+				try {
+					await p2p.request({
+						procedure: 'getBlocksFromId',
+						data: { blockId: 'abcd1234' },
+					});
+				} catch (e) {
+					expect(e.message).to.equal('should match format "id": undefined');
+				}
+			});
+
+			it('using invalid payload should not be ok', async () => {
+				try {
+					await p2p.request({
+						procedure: 'getBlocksFromId',
+						data: { unwantedProperty: 1 },
+					});
+				} catch (e) {
+					expect(e.message).to.equal(
+						"should have required property 'blockId': undefined",
+					);
+				}
 			});
 		});
 
