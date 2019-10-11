@@ -30,6 +30,7 @@ describe('utils/validate', () => {
 		describe('for valid peer response object', () => {
 			const peer: ProtocolPeerInfo = {
 				ip: '12.23.54.3',
+				ipAddress: '12.23.54.3',
 				wsPort: 5393,
 				os: 'darwin',
 				height: 23232,
@@ -42,6 +43,7 @@ describe('utils/validate', () => {
 
 			const peerWithInvalidHeightValue: unknown = {
 				ip: '12.23.54.3',
+				ipAddress: '12.23.54.3',
 				wsPort: 5393,
 				os: '778',
 				height: '2323wqdqd2',
@@ -103,6 +105,7 @@ describe('utils/validate', () => {
 			it('should throw if PeerInfo is too big', async () => {
 				const peer: ProtocolPeerInfo = {
 					ip: '12.23.54.3',
+					ipAddress: '12.23.54.3',
 					wsPort: 5393,
 					os: 'darwin',
 					height: 23232,

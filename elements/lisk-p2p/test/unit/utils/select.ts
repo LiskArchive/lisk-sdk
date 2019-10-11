@@ -138,7 +138,7 @@ describe('peer selector', () => {
 				peerList = initPeerInfoList();
 			});
 			const lowHeightPeers = peerList.filter(
-				peer => peer.sharedState.height < nodeInfo.height,
+				peer => peer.sharedState && peer.sharedState.height < nodeInfo.height,
 			);
 
 			it('should return an array with 1 good peer', () => {

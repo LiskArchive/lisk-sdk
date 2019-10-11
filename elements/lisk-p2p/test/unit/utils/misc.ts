@@ -26,8 +26,8 @@ import {
 	getBucketId,
 	PEER_TYPE,
 } from '../../../src/utils';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('utils/misc', () => {
 	const MAX_GROUP_NUM = 255;
@@ -143,7 +143,7 @@ describe('utils/misc', () => {
 		const samplePeers = initPeerInfoList();
 
 		describe('when two peers have same peer infos', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+			let uniquePeerListByIp: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
 				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
@@ -156,7 +156,7 @@ describe('utils/misc', () => {
 		});
 
 		describe('when two peers have same IP and different wsPort and height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+			let uniquePeerListByIp: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
 				const peer1 = {
@@ -181,7 +181,7 @@ describe('utils/misc', () => {
 		});
 
 		describe('when two peers have same IP and different wsPort but same height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+			let uniquePeerListByIp: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
 				const peer1 = {

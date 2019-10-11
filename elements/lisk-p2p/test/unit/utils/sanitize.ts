@@ -28,6 +28,7 @@ describe('utils/sanitize', () => {
 			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
 			const protocolPeerInfo = {
 				ip: ipAddress,
+				ipAddress,
 				...restOfPeerInfo,
 			};
 
@@ -41,6 +42,7 @@ describe('utils/sanitize', () => {
 			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
 			const protocolPeerInfo = {
 				ip: ipAddress,
+				ipAddress,
 				...restOfPeerInfo,
 			};
 

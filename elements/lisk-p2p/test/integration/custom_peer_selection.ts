@@ -49,12 +49,18 @@ describe('Custom peer selection', () => {
 				peerInfo.internalState.connectionKind !== PEER_KIND_INBOUND &&
 				peerInfo.internalState.connectionKind !== PEER_KIND_OUTBOUND
 			) {
-				throw new Error(`Invalid peer kind: ${peerInfo.sharedState.kind}`);
+				throw new Error(
+					`Invalid peer kind: ${peerInfo.internalState.connectionKind}`,
+				);
 			}
 		});
 
 		const filteredPeers = peersList.filter(peer => {
-			if (nodeInfo && nodeInfo.height <= peer.sharedState.height) {
+			if (
+				nodeInfo &&
+				peer.sharedState &&
+				nodeInfo.height <= peer.sharedState.height
+			) {
 				const nodesModules = nodeInfo.modules
 					? (nodeInfo.modules as ReadonlyArray<string>)
 					: undefined;
@@ -80,7 +86,9 @@ describe('Custom peer selection', () => {
 			(filteredPeers.length / peersList.length) * 100 < 30
 		) {
 			return peersList.filter(
-				peer => peer.sharedState.height >= (nodeInfo ? nodeInfo.height : 0),
+				peer =>
+					peer.sharedState &&
+					peer.sharedState.height >= (nodeInfo ? nodeInfo.height : 0),
 			);
 		}
 

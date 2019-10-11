@@ -118,8 +118,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				const newPeers = p2p['_peerBook'].newPeers;
 				const newPeersIPWS = newPeers.map(peer => {
 					return {
-						ipAddress: peer.sharedState.ipAddress,
-						wsPort: peer.sharedState.wsPort,
+						ipAddress: peer.ipAddress,
+						wsPort: peer.wsPort,
 					};
 				});
 				expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
@@ -131,8 +131,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				const triedPeers = p2p['_peerBook'].triedPeers;
 				const triedPeersIPWS = triedPeers.map(peer => {
 					return {
-						ipAddress: peer.sharedState.ipAddress,
-						wsPort: peer.sharedState.wsPort,
+						ipAddress: peer.ipAddress,
+						wsPort: peer.wsPort,
 					};
 				});
 				expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
@@ -289,8 +289,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					const triedPeers = p2p['_peerBook'].triedPeers;
 					const triedPeersIPWS = triedPeers.map(peer => {
 						return {
-							ipAddress: peer.sharedState.ipAddress,
-							wsPort: peer.sharedState.wsPort,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
 						};
 					});
 					expect(triedPeersIPWS).to.deep.include.members(whitelistedPeers);

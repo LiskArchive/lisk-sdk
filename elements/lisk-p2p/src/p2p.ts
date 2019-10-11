@@ -88,7 +88,6 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	P2PSharedState,
 	PeerLists,
 	ProtocolPeerInfo,
 } from './p2p_types';
@@ -259,19 +258,10 @@ export class P2P extends EventEmitter {
 					  }))
 					: [],
 				previousPeers: config.previousPeers
-					? config.previousPeers.map(peer => {
-							const { ipAddress, wsPort, sharedState } = peer;
-
-							return {
-								peerId: constructPeerIdFromPeerInfo(
-									peer.ipAddress,
-									peer.wsPort,
-								),
-								ipAddress,
-								wsPort,
-								sharedState,
-							};
-					  })
+					? config.previousPeers.map(peer => ({
+							...peer,
+							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+					  }))
 					: [],
 			},
 			{
@@ -568,7 +558,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return this._peerPool.getAllConnectedPeerInfos().map(peer => ({
 			...peer.sharedState,
-			ip: peer.ipAddress,
+			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
 			peerId: peer.wsPort,
 		}));
@@ -578,7 +568,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return this._peerPool.getUniqueOutboundConnectedPeers().map(peer => ({
 			...peer.sharedState,
-			ip: peer.ipAddress,
+			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
 			peerId: peer.wsPort,
 		}));
@@ -600,7 +590,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return disconnectedPeers.map(peer => ({
 			...peer.sharedState,
-			ip: peer.ipAddress,
+			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
 			peerId: peer.wsPort,
 		}));

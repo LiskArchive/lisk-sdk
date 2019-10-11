@@ -14,18 +14,14 @@
  */
 import { DEFAULT_RANDOM_SECRET } from '../../src/constants';
 import { Peer } from '../../src/peer';
-import {
-	P2PDiscoveredPeerInfo,
-	ConnectionKind,
-	PeerType,
-} from '../../src/p2p_types';
+import { P2PPeerInfo, ConnectionKind, PeerType } from '../../src/p2p_types';
 
-export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const peerOption1: P2PDiscoveredPeerInfo = {
+export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
+	const peerOption1: P2PPeerInfo = {
 		peerId: '204.120.0.15:5001',
+		ipAddress: '204.120.0.15',
+		wsPort: 5001,
 		sharedState: {
-			ipAddress: '204.120.0.15',
-			wsPort: 5001,
 			height: 545776,
 			isDiscoveredPeer: false,
 			version: '1.1.1',
@@ -33,11 +29,11 @@ export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 		},
 	};
 
-	const peerOption2: P2PDiscoveredPeerInfo = {
+	const peerOption2: P2PPeerInfo = {
 		peerId: '204.120.0.16:5002',
+		ipAddress: '204.120.0.16',
+		wsPort: 5002,
 		sharedState: {
-			ipAddress: '204.120.0.16',
-			wsPort: 5002,
 			height: 545981,
 			isDiscoveredPeer: false,
 			version: '1.1.1',
@@ -45,11 +41,11 @@ export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 		},
 	};
 
-	const peerOption3: P2PDiscoveredPeerInfo = {
+	const peerOption3: P2PPeerInfo = {
 		peerId: '204.120.0.17:5008',
+		ipAddress: '204.120.0.17',
+		wsPort: 5008,
 		sharedState: {
-			ipAddress: '204.120.0.17',
-			wsPort: 5008,
 			height: 645980,
 			isDiscoveredPeer: false,
 			version: '1.3.1',
@@ -57,11 +53,11 @@ export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 		},
 	};
 
-	const peerOption4: P2PDiscoveredPeerInfo = {
+	const peerOption4: P2PPeerInfo = {
 		peerId: '204.120.0.18:5006',
+		ipAddress: '204.120.0.18',
+		wsPort: 5006,
 		sharedState: {
-			ipAddress: '204.120.0.18',
-			wsPort: 5006,
 			height: 645982,
 			isDiscoveredPeer: false,
 			version: '1.2.1',
@@ -69,11 +65,11 @@ export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 		},
 	};
 
-	const peerOption5: P2PDiscoveredPeerInfo = {
+	const peerOption5: P2PPeerInfo = {
 		peerId: '204.120.0.19:5001',
+		ipAddress: '204.120.0.19',
+		wsPort: 5001,
 		sharedState: {
-			ipAddress: '204.120.0.19',
-			wsPort: 5001,
 			height: 645980,
 			isDiscoveredPeer: false,
 			version: '1.1.1',
@@ -87,14 +83,14 @@ export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 export const initPeerInfoListWithSuffix = (
 	ipSuffix: string,
 	qty: number,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	let peerInfos = [];
 	for (let i = 0; i < qty; i++) {
 		peerInfos.push({
 			peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
+			ipAddress: `${i % 255}.${ipSuffix}`,
+			wsPort: 5000 + (i % 40000),
 			sharedState: {
-				ipAddress: `${i % 255}.${ipSuffix}`,
-				wsPort: 5000 + (i % 40000),
 				height: 645980,
 				isDiscoveredPeer: false,
 				version: '1.1.1',
@@ -115,7 +111,7 @@ export const initPeerInfoListWithSuffix = (
 
 export const initPeerList = (): ReadonlyArray<Peer> =>
 	initPeerInfoList().map(
-		(peerInfo: P2PDiscoveredPeerInfo) =>
+		(peerInfo: P2PPeerInfo) =>
 			new Peer(peerInfo, {
 				rateCalculationInterval: 1000,
 				wsMaxMessageRate: 1000,

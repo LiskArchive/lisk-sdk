@@ -122,8 +122,7 @@ describe('P2P.applyNodeInfo', () => {
 			const allPeersList = p2pNode['_peerBook'].allPeers;
 
 			const firstNodeInAllPeersList = allPeersList.find(
-				peerInfo =>
-					peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+				peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
 			);
 
 			// Check if the peerinfo is updated in new peer list

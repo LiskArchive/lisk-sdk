@@ -14,7 +14,6 @@
  */
 import { expect } from 'chai';
 import { InboundPeer, PeerConfig } from '../../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { SCServerSocket } from 'socketcluster-server';
 import {
 	DEFAULT_RANDOM_SECRET,
@@ -26,9 +25,10 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
+import { P2PPeerInfo } from '../../../src';
 
 describe('peer/inbound', () => {
-	let defaultPeerInfo: P2PDiscoveredPeerInfo;
+	let defaultPeerInfo: P2PPeerInfo;
 	let defaultPeerConfig: PeerConfig;
 	let defaultInboundPeer: InboundPeer;
 	let inboundSocket: SCServerSocket;
@@ -38,9 +38,9 @@ describe('peer/inbound', () => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
 			peerId: '12.12.12.12:5001',
+			ipAddress: '12.12.12.12',
+			wsPort: 5001,
 			sharedState: {
-				ipAddress: '12.12.12.12',
-				wsPort: 5001,
 				height: 545776,
 				isDiscoveredPeer: true,
 				version: '1.1.1',

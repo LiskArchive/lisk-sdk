@@ -100,9 +100,7 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const newPeers = p2p['_peerBook'].newPeers;
 
-			const peerPorts = newPeers
-				.map(peerInfo => peerInfo.sharedState.wsPort)
-				.sort();
+			const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
 			expect(ALL_NODE_PORTS).to.include.members(peerPorts);
 		}
@@ -112,9 +110,7 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const triedPeers = p2p['_peerBook'].triedPeers;
 
-			const peerPorts = triedPeers
-				.map(peerInfo => peerInfo.sharedState.wsPort)
-				.sort();
+			const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
 
 			// The current node should not be in its own peer list.
 			const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
@@ -129,9 +125,7 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const allPeers = p2p['_peerBook'].allPeers;
 
-			const allPeersPorts = allPeers
-				.map(peerInfo => peerInfo.sharedState.wsPort)
-				.sort();
+			const allPeersPorts = allPeers.map(peerInfo => peerInfo.wsPort).sort();
 			const connectedPeerPorts = p2p
 				.getConnectedPeers()
 				.map(peerInfo => peerInfo.wsPort)

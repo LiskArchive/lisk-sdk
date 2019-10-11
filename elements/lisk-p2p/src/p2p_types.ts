@@ -100,12 +100,16 @@ export interface P2PClosePacket {
 	readonly reason?: string;
 }
 
+export interface P2PConfigPeerInfo {
+	readonly ipAddress: string;
+	readonly wsPort: number;
+}
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly previousPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly blacklistedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
+	readonly seedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
+	readonly fixedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
+	readonly whitelistedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
+	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
@@ -197,8 +201,11 @@ export type P2PCheckPeerCompatibility = (
 
 // This is a representation of the inbound peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.
+// TODO: Include peerId as field
 export interface ProtocolPeerInfo {
-	readonly ip: string;
+	// To support the existing protocol
+	readonly ip?: string;
+	readonly ipAddress: string;
 	readonly wsPort: number;
 	readonly broadhash?: string;
 	readonly height?: number;

@@ -40,13 +40,13 @@ import {
 	getNetgroup,
 	constructPeerIdFromPeerInfo,
 } from '../../../src/utils';
-import { P2PDiscoveredPeerInfo, P2PNodeInfo, P2PPeerInfo } from '../../../src';
+import { P2PNodeInfo, P2PPeerInfo } from '../../../src';
 
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
 	let nodeInfo: P2PNodeInfo;
-	let p2pDiscoveredPeerInfo: P2PDiscoveredPeerInfo;
+	let p2pDiscoveredPeerInfo: P2PPeerInfo;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
 
@@ -54,9 +54,9 @@ describe('peer/base', () => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
 			peerId: constructPeerIdFromPeerInfo('12.12.12.12', 5001),
+			ipAddress: '12.12.12.12',
+			wsPort: 5001,
 			sharedState: {
-				ipAddress: '12.12.12.12',
-				wsPort: 5001,
 				height: 545776,
 				isDiscoveredPeer: true,
 				version: '1.1.1',
@@ -81,12 +81,12 @@ describe('peer/base', () => {
 		};
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerIdFromPeerInfo(
-				defaultPeerInfo.sharedState.ipAddress,
-				defaultPeerInfo.sharedState.wsPort,
+				defaultPeerInfo.ipAddress,
+				defaultPeerInfo.wsPort,
 			),
+			ipAddress: defaultPeerInfo.ipAddress,
+			wsPort: defaultPeerInfo.wsPort,
 			sharedState: {
-				ipAddress: defaultPeerInfo.sharedState.ipAddress,
-				wsPort: defaultPeerInfo.sharedState.wsPort,
 				height: 1000,
 				updatedAt: new Date(),
 				os: 'MYOS',
@@ -141,7 +141,9 @@ describe('peer/base', () => {
 	describe('#height', () =>
 		it('should get height property', () =>
 			expect(defaultPeer.height).to.be.eql(
-				defaultPeerInfo.sharedState.height,
+				defaultPeerInfo.sharedState
+					? defaultPeerInfo.sharedState.height
+					: undefined,
 			)));
 
 	describe('#id', () =>
@@ -150,20 +152,16 @@ describe('peer/base', () => {
 
 	describe('#ipAddress', () =>
 		it('should get ipAddress property', () =>
-			expect(defaultPeer.ipAddress).to.be.eql(
-				defaultPeerInfo.sharedState.ipAddress,
-			)));
+			expect(defaultPeer.ipAddress).to.be.eql(defaultPeerInfo.ipAddress)));
 
 	describe('#wsPort', () =>
 		it('should get wsPort property', () =>
-			expect(defaultPeer.wsPort).to.be.eql(
-				defaultPeerInfo.sharedState.wsPort,
-			)));
+			expect(defaultPeer.wsPort).to.be.eql(defaultPeerInfo.wsPort)));
 
 	describe('#netgroup', () =>
 		it('should get netgroup property', () =>
 			expect(defaultPeer.netgroup).to.be.eql(
-				getNetgroup(defaultPeerInfo.sharedState.ipAddress, peerConfig.secret),
+				getNetgroup(defaultPeerInfo.ipAddress, peerConfig.secret),
 			)));
 
 	describe('#reputation', () =>
@@ -476,23 +474,23 @@ describe('peer/base', () => {
 			discoveredPeers = [
 				{
 					peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+					ipAddress: '1.1.1.1',
+					wsPort: 1111,
 					sharedState: {
-						ipAddress: '1.1.1.1',
-						wsPort: 1111,
 						version: '1.1.1',
 						height: 0,
-						protocolVersion: undefined,
+						protocolVersion: '',
 						os: '',
 					},
 				},
 				{
 					peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+					ipAddress: '2.2.2.2',
+					wsPort: 2222,
 					sharedState: {
-						ipAddress: '2.2.2.2',
-						wsPort: 2222,
 						version: '2.2.2',
 						height: 0,
-						protocolVersion: undefined,
+						protocolVersion: '',
 						os: '',
 					},
 				},
@@ -600,13 +598,13 @@ describe('peer/base', () => {
 				it(`should call updatePeerInfo()`, async () => {
 					const newPeer = {
 						peerId: constructPeerIdFromPeerInfo(
-							defaultPeerInfo.sharedState.ipAddress,
-							defaultPeerInfo.sharedState.wsPort,
+							defaultPeerInfo.ipAddress,
+							defaultPeerInfo.wsPort,
 						),
 						sharedState: {
-							wsPort: defaultPeerInfo.sharedState.wsPort,
+							wsPort: defaultPeerInfo.wsPort,
 							version: peer.version,
-							ipAddress: defaultPeerInfo.sharedState.ipAddress,
+							ipAddress: defaultPeerInfo.ipAddress,
 							height: 0,
 							protocolVersion: undefined,
 							os: '',

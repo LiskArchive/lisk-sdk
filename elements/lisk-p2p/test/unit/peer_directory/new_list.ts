@@ -296,7 +296,7 @@ describe('newPeer', () => {
 				.is.an('object')
 				.has.property('sharedState')
 				.ownProperty('ipAddress')
-				.to.be.eql(oldPeer.peerInfo.sharedState.ipAddress);
+				.to.be.eql(oldPeer.peerInfo.ipAddress);
 		});
 	});
 

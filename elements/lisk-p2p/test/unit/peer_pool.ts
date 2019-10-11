@@ -25,6 +25,13 @@ import {
 	selectPeersForSend,
 } from '../../src/utils';
 // For stubbing
+<<<<<<< HEAD
+=======
+import * as utils from '../../src/utils';
+import { P2PPeerInfo } from '../../src/p2p_types';
+import { Peer, ConnectionState } from '../../src/peer';
+import { initializePeerList, initializePeerInfoList } from '../utils/peers';
+>>>>>>> Update all the integration tests around new P2PPeerInfo
 import {
 	P2PDiscoveredPeerInfo,
 	P2PPeerInfo,

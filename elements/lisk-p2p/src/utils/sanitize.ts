@@ -16,7 +16,6 @@ import { constructPeerIdFromPeerInfo } from '.';
 import {
 	P2PNodeInfo,
 	P2PPeerInfo,
-	P2PSharedState,
 	PeerLists,
 	ProtocolNodeInfo,
 	ProtocolPeerInfo,
@@ -25,11 +24,14 @@ import {
 export const sanitizeIncomingPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
 ): P2PPeerInfo => {
-	const { ip, wsPort, height, ...restOfPeerInfo } = peerInfo;
+	const { ip, ipAddress, wsPort, height, ...restOfPeerInfo } = peerInfo;
 
 	return {
-		peerId: constructPeerIdFromPeerInfo(peerInfo.ip, peerInfo.wsPort),
-		ipAddress: ip,
+		peerId: constructPeerIdFromPeerInfo(
+			peerInfo.ip || peerInfo.ipAddress,
+			peerInfo.wsPort,
+		),
+		ipAddress: ip || ipAddress,
 		wsPort,
 		sharedState: {
 			height: restOfPeerInfo.height ? (restOfPeerInfo.height as number) : 0,
@@ -49,6 +51,7 @@ export const sanitizeOutgoingPeerInfo = (
 
 	return {
 		ip: ipAddress,
+		ipAddress,
 		wsPort,
 		...sharedState,
 	};
