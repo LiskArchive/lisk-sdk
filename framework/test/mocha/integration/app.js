@@ -159,9 +159,9 @@ describe('app', () => {
 									const balance = _.reduce(
 										library.genesisBlock.block.transactions,
 										(reduceBalance, acc) => {
-											if (acc.recipientId === voter.senderId) {
+											if (acc.asset.recipientId === voter.senderId) {
 												return new BigNum(reduceBalance)
-													.plus(acc.amount)
+													.plus(acc.asset.amount)
 													.toString();
 											}
 											if (acc.senderId === voter.senderId) {
@@ -263,7 +263,7 @@ describe('app', () => {
 									(reduceBalance, acc) => {
 										if (acc.senderId === genesisAccount.address) {
 											return new BigNum(reduceBalance)
-												.minus(acc.amount)
+												.minus(acc.asset.amount)
 												.toString();
 										}
 										return reduceBalance;

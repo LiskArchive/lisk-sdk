@@ -105,7 +105,9 @@ describe('rounds', () => {
 				// Update sender
 				accounts[address].balance = new BigNum(accounts[address].balance)
 					.minus(
-						new BigNum(transaction.fee).plus(new BigNum(transaction.amount)),
+						new BigNum(transaction.fee).plus(
+							new BigNum(transaction.asset.amount),
+						),
 					)
 					.toString();
 
@@ -119,7 +121,7 @@ describe('rounds', () => {
 
 				// Apply register delegate transaction
 				if (transaction.type === 2) {
-					accounts[address].username = transaction.asset.delegate.username;
+					accounts[address].username = transaction.asset.username;
 					accounts[address].isDelegate = 1;
 				}
 
@@ -143,20 +145,20 @@ describe('rounds', () => {
 			}
 
 			// RECIPIENT: Get address from recipientId
-			address = transaction.recipientId;
+			address = transaction.asset.recipientId;
 			// Perform only when address exists (exclude non-standard tyransaction types)
 			if (address) {
 				// If account with address exists - set expected values
 				if (accounts[address]) {
 					// Update recipient
 					accounts[address].balance = new BigNum(accounts[address].balance)
-						.plus(new BigNum(transaction.amount))
+						.plus(new BigNum(transaction.asset.amount))
 						.toString();
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
-						balance: new BigNum(transaction.amount).toString(),
+						balance: new BigNum(transaction.asset.amount).toString(),
 					});
 				}
 			}
@@ -658,7 +660,7 @@ describe('rounds', () => {
 			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
 				return getMemAccounts().then(_accounts => {
 					// Add back empty account, created accounts are never deleted
-					const address = lastBlock.transactions[0].recipientId;
+					const address = lastBlock.transactions[0].asset.recipientId;
 					round.accountsBeforeLastBlock[address] = accountsFixtures.dbAccount({
 						address,
 						balance: '0',

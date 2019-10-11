@@ -148,7 +148,7 @@ function _normalizeTransactionOutput(transaction) {
 		signature: transaction.signature,
 		signatures: transaction.signatures,
 		recipientPublicKey: transaction.recipientPublicKey || '',
-		recipientId: transaction.recipientId || '',
+		recipientId: transaction.asset.recipientId || '',
 		asset: transaction.asset,
 	};
 }

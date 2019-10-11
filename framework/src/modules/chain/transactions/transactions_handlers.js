@@ -128,6 +128,8 @@ const applyGenesisTransactions = storage => async (
 	}
 
 	const transactionsResponses = transactions.map(transaction => {
+		// Fee is handled by Elements now so we set it to zero here. LIP-0012
+		transaction.fee = new BigNum(0);
 		const transactionResponse = transaction.apply(stateStore);
 
 		votesWeight.apply(stateStore, transaction);

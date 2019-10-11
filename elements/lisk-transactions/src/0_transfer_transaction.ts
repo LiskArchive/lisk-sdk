@@ -181,7 +181,7 @@ export class TransferTransaction extends BaseTransaction {
 				new TransactionError(
 					'`recipientId` must be provided.',
 					this.id,
-					'.recipientId',
+					'.asset.recipientId',
 				),
 			);
 		}
@@ -193,7 +193,7 @@ export class TransferTransaction extends BaseTransaction {
 				new TransactionError(
 					error.message,
 					this.id,
-					'.recipientId',
+					'.asset.recipientId',
 					this.asset.recipientId,
 				),
 			);

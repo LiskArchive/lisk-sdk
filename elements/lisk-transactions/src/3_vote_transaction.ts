@@ -224,7 +224,7 @@ export class VoteTransaction extends BaseTransaction {
 				new TransactionError(
 					'RecipientId must be set for vote transaction',
 					this.id,
-					'.recipientId',
+					'asset.recipientId',
 					this.asset.recipientId,
 				),
 			);

@@ -290,7 +290,7 @@ describe('Vote transaction class', () => {
 
 			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.recipientId');
+			expect(errors[0].dataPath).to.be.equal('.asset.recipientId');
 		});
 	});
 
