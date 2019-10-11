@@ -28,7 +28,7 @@ import { BYTESIZES, MAX_TRANSACTION_AMOUNT, VOTE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput, verifyAmountBalance } from './utils';
-import { isValidNumber, validateAddress, validator } from './utils/validation';
+import { isValidNumber, validator } from './utils/validation';
 
 const PREFIX_UPVOTE = '+';
 const PREFIX_UNVOTE = '-';
@@ -216,19 +216,6 @@ export class VoteTransaction extends BaseTransaction {
 			this.id,
 			validator.errors,
 		) as TransactionError[];
-
-		try {
-			validateAddress(this.asset.recipientId);
-		} catch (err) {
-			errors.push(
-				new TransactionError(
-					'RecipientId must be set for vote transaction',
-					this.id,
-					'asset.recipientId',
-					this.asset.recipientId,
-				),
-			);
-		}
 
 		return errors;
 	}
