@@ -69,6 +69,7 @@ const initStepsForTest = {
 		modules.dpos = new Dpos({
 			logger: scope.components.logger,
 			slots: scope.slots,
+			channel: scope.channel,
 			storage: scope.components.storage,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
 			exceptions: __testContext.config.modules.chain.exceptions,
@@ -314,7 +315,7 @@ async function __init(sandbox, initScope) {
 				channel: {
 					invoke: sinonSandbox.stub(),
 					publish: sinonSandbox.stub(),
-					suscribe: sinonSandbox.stub(),
+					subscribe: sinonSandbox.stub(),
 					once: sinonSandbox.stub().callsArg(1),
 				},
 				applicationState: __testContext.config.initialState,

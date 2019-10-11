@@ -14,10 +14,7 @@
 
 'use strict';
 
-const EventEmitter = require('events');
 const { hash } = require('@liskhq/lisk-cryptography');
-// Will be fired once a round is finished
-const EVENT_ROUND_FINISHED = 'EVENT_ROUND_FINISHED';
 
 const shuffleDelegateListForRound = (round, list) => {
 	const seedSource = round.toString();
@@ -39,9 +36,8 @@ const shuffleDelegateListForRound = (round, list) => {
 	return delegateList;
 };
 
-class DelegatesList extends EventEmitter {
+class DelegatesList {
 	constructor({ storage, activeDelegates, slots, exceptions }) {
-		super();
 		this.storage = storage;
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
@@ -168,7 +164,11 @@ class DelegatesList extends EventEmitter {
 				return true;
 			}
 
-			throw new Error(`Failed to verify slot: ${currentSlot}`);
+			throw new Error(
+				`Failed to verify slot: ${currentSlot}. Block ID: ${
+					block.id
+				}. Block Height: ${block.height}`,
+			);
 		}
 
 		return true;
@@ -177,6 +177,5 @@ class DelegatesList extends EventEmitter {
 
 module.exports = {
 	DelegatesList,
-	EVENT_ROUND_FINISHED,
 	shuffleDelegateListForRound,
 };

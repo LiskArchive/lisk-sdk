@@ -14,13 +14,17 @@
 
 'use strict';
 
-const { DelegatesList, EVENT_ROUND_FINISHED } = require('./delegates_list');
+const EventEmitter = require('events');
+const { EVENT_ROUND_CHANGED } = require('./constants');
+const { DelegatesList } = require('./delegates_list');
 const { DelegatesInfo } = require('./delegates_info');
 
 module.exports = class Dpos {
 	constructor({ storage, slots, activeDelegates, logger, exceptions = {} }) {
+		this.events = new EventEmitter();
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
+
 		this.delegatesList = new DelegatesList({
 			storage,
 			logger,
@@ -28,17 +32,23 @@ module.exports = class Dpos {
 			activeDelegates,
 			exceptions,
 		});
+
 		this.delegatesInfo = new DelegatesInfo({
 			storage,
 			slots,
 			activeDelegates,
 			logger,
+			events: this.events,
 			delegatesList: this.delegatesList,
 			exceptions,
 		});
 
-		this.delegatesList.on(EVENT_ROUND_FINISHED, () => {
-			this.onRoundFinish();
+		this.events.on(EVENT_ROUND_CHANGED, async () => {
+			try {
+				await this.onRoundFinish();
+			} catch (err) {
+				this.logger.error({ err }, 'Failed to apply round finish');
+			}
 		});
 	}
 

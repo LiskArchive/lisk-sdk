@@ -30,7 +30,11 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Slots, Dpos } = require('./dpos');
+const {
+	Slots,
+	Dpos,
+	constants: { EVENT_ROUND_CHANGED },
+} = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Blocks, EVENT_NEW_BROADHASH } = require('./blocks');
 const { Loader } = require('./loader');
@@ -410,6 +414,11 @@ module.exports = class Chain {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			exceptions: this.options.exceptions,
 		});
+
+		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
+			this.channel.publish('chain:rounds:change', { number: data.newRound });
+		});
+
 		this.blocks = new Blocks({
 			logger: this.logger,
 			storage: this.storage,
