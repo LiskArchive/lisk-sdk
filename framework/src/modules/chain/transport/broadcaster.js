@@ -250,7 +250,7 @@ class Broadcaster {
 				`Broadcasts released: ${squashedBroadcasts.length}`,
 			);
 		} catch (err) {
-			this.logger.error('Failed to release broadcast queue', err);
+			this.logger.error({ err }, 'Failed to release broadcast queue');
 			throw err;
 		}
 	}

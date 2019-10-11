@@ -292,11 +292,9 @@ describe('Chain', () => {
 
 			// Assert
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'Failed to assign nethash from genesis block',
+			expect(chain.logger.fatal).to.have.been.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -316,11 +314,10 @@ describe('Chain', () => {
 			await chain.bootstrap();
 
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
+			// Ignoring the error object as its non-deterministic
+			expect(chain.logger.fatal).to.be.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -340,11 +337,9 @@ describe('Chain', () => {
 			await chain.bootstrap();
 
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
+			expect(chain.logger.fatal).to.have.been.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -430,9 +425,10 @@ describe('Chain', () => {
 				sinonSandbox.restore();
 			});
 
-			it('should log "Chain initialization"', async () => {
-				expect(chain.logger.fatal).to.have.been.calledWith(
-					'Chain initialization',
+			it('should log "Failed to initialization chain module"', async () => {
+				expect(chain.logger.fatal).to.be.calledWithMatch(
+					{},
+					'Failed to initialization chain module',
 				);
 			});
 			it('should emit an event "cleanup" on the process', () => {
@@ -498,7 +494,7 @@ describe('Chain', () => {
 					syncing: chain.loader.syncing(),
 					lastReceipt: chain.blocks.lastReceipt,
 				},
-				'Sync time triggered',
+				'Sync timer triggered',
 			);
 		});
 
@@ -525,7 +521,7 @@ describe('Chain', () => {
 
 			it('should catch and log the error if the above fails', async () => {
 				// Arrange
-				const expectedError = new Error('an error');
+				const expectedError = new Error('an error, Sync trigger failed');
 				chain.loader.sync.rejects(expectedError);
 
 				// Act
@@ -533,8 +529,10 @@ describe('Chain', () => {
 
 				// Assert
 				expect(stubs.logger.error).to.be.calledWith(
-					expectedError,
-					'Sync timer',
+					{
+						err: expectedError,
+					},
+					'Sync trigger failed',
 				);
 			});
 		});
