@@ -24,7 +24,7 @@ describe('storage.entities.RoundDelegates.delete', () => {
 
 	beforeAll(async () => {
 		// Arrange
-		pgHelper = new PgHelper({ dbName: 'RoundDelegatesDelete' });
+		pgHelper = new PgHelper({ database: 'RoundDelegatesDelete' });
 
 		// Create second postgres connection
 		db = await pgHelper.bootstrap();

@@ -112,11 +112,8 @@ const deleteLastBlock = async (storage, lastBlock, tx) => {
 /**
  * Deletes all blocks with height >= supplied block ID.
  *
+ * @param storage - Storage module dependency
  * @param {number} blockId - ID of block to begin with
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - SQL error
- * @returns {Object} cb.res - SQL response
  */
 const deleteFromBlockId = async (storage, blockId) => {
 	const block = await storage.entities.Block.getOne({

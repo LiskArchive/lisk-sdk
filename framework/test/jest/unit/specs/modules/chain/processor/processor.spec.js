@@ -458,6 +458,7 @@ describe('processor', () => {
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
 					block: defaultLastBlock,
 					tx: txStub,
+					saveTempBlock: false,
 				});
 			});
 
@@ -560,6 +561,7 @@ describe('processor', () => {
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
 					block: defaultLastBlock,
 					tx: txStub,
+					saveTempBlock: false,
 				});
 			});
 
@@ -1454,6 +1456,7 @@ describe('processor', () => {
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
 					block: defaultLastBlock,
 					tx: txStub,
+					saveTempBlock: false,
 				});
 			});
 

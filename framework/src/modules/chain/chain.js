@@ -311,7 +311,8 @@ module.exports = class Chain {
 				lastBlock: this.blocks.lastBlock,
 			}),
 			getLastBlock: async () => this.blocks.lastBlock,
-			blocks: async action => this.transport.blocks(action.params || {}),
+			getBlocksFromId: async action =>
+				this.transport.getBlocksFromId(action.params || {}),
 			getHighestCommonBlock: async action => {
 				const valid = validator.validate(
 					definitions.getHighestCommonBlockRequest,
@@ -467,6 +468,7 @@ module.exports = class Chain {
 			logger: this.logger,
 			processorModule: this.processor,
 		});
+
 		this.synchronizer.register(blockSyncMechanism);
 		this.synchronizer.register(fastChainSwitchMechanism);
 
