@@ -1235,7 +1235,6 @@ definitions:
     required:
       - id
       - type
-      - fee
       - senderPublicKey
       - timestamp
       - asset
