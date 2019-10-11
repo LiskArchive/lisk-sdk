@@ -558,26 +558,6 @@ module.exports = class Chain {
 		this.scope.modules.synchronizer = this.synchronizer;
 	}
 
-	async _syncTask() {
-		this.logger.debug(
-			{
-				syncing: this.loader.syncing(),
-				lastReceipt: this.blocks.lastReceipt,
-			},
-			'Sync time triggered',
-		);
-		// TODO: Do we need further checks here, removing blocks.isStale()
-		if (!this.loader.syncing()) {
-			await this.scope.sequence.add(async () => {
-				try {
-					await this.loader.sync();
-				} catch (error) {
-					this.logger.error(error, 'Sync timer');
-				}
-			});
-		}
-	}
-
 	_startLoader() {
 		this.loader.loadUnconfirmedTransactions();
 	}
