@@ -93,7 +93,7 @@ class ApplicationState {
 			newState.broadhash = broadhash;
 			newState.height = height;
 			__private.state.set(this, newState);
-			this.logger.debug('Application state', this.state);
+			this.logger.debug(this.state, 'Update application state');
 			await this.stateChannel.publish('app:state:updated', this.state);
 			return true;
 		} catch (err) {

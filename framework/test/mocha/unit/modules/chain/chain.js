@@ -224,8 +224,10 @@ describe('Chain', () => {
 			await chain.bootstrap();
 
 			// Assert
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
+			// Ignoring the error object as its non-deterministic
+			expect(chain.logger.fatal).to.be.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -300,9 +302,10 @@ describe('Chain', () => {
 				sinonSandbox.restore();
 			});
 
-			it('should log "Chain initialization"', async () => {
-				expect(chain.logger.fatal).to.have.been.calledWith(
-					'Chain initialization',
+			it('should log "Failed to initialization chain module"', async () => {
+				expect(chain.logger.fatal).to.be.calledWithMatch(
+					{},
+					'Failed to initialization chain module',
 				);
 			});
 			it('should emit an event "cleanup" on the process', () => {
@@ -369,7 +372,7 @@ describe('Chain', () => {
 					syncing: chain.loader.syncing(),
 					lastReceipt: chain.blocks.lastReceipt,
 				},
-				'Sync time triggered',
+				'Sync timer triggered',
 			);
 		});
 
@@ -398,7 +401,7 @@ describe('Chain', () => {
 
 			it('should catch and log the error if the above fails', async () => {
 				// Arrange
-				const expectedError = new Error('an error');
+				const expectedError = new Error('an error, Sync trigger failed');
 				chain.loader.sync.rejects(expectedError);
 
 				// Act
@@ -406,8 +409,10 @@ describe('Chain', () => {
 
 				// Assert
 				expect(stubs.logger.error).to.be.calledWith(
-					expectedError,
-					'Sync timer',
+					{
+						err: expectedError,
+					},
+					'Sync trigger failed',
 				);
 			});
 		});
