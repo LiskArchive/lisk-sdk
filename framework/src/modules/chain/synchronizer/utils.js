@@ -56,10 +56,6 @@ const deleteBlocksAfterHeightAndBackup = async (
 	blocksModule,
 	desiredHeight,
 ) => {
-	logger.debug(
-		{ height: desiredHeight },
-		'Deleting blocks after target height',
-	);
 	let { height: currentHeight } = blocksModule.lastBlock;
 	while (desiredHeight > currentHeight) {
 		const lastBlock = await processorModule.deleteLastBlock({
@@ -67,8 +63,6 @@ const deleteBlocksAfterHeightAndBackup = async (
 		});
 		currentHeight = lastBlock.height;
 	}
-
-	logger.debug('Blocks deleted successfully');
 };
 
 /**

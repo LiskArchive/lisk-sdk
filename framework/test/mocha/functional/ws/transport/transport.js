@@ -133,7 +133,7 @@ describe('WS transport', () => {
 				expect(data).to.be.an('array');
 			});
 
-			it('using a valid payload should be ok', async () => {
+			it('should be ok to use a valid payload', async () => {
 				const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 				const blockRes = await blocksEndpoint.makeRequest({ height: 2 }, 200);
@@ -187,7 +187,7 @@ describe('WS transport', () => {
 				}
 			});
 
-			it('using empty payload should not be ok', async () => {
+			it('should fail when using an empty payload', async () => {
 				try {
 					await p2p.request({
 						procedure: 'getBlocksFromId',
@@ -200,7 +200,7 @@ describe('WS transport', () => {
 				}
 			});
 
-			it('using an invalid block ID format should throw an error', async () => {
+			it('should fail when using an invalid block ID format', async () => {
 				try {
 					await p2p.request({
 						procedure: 'getBlocksFromId',
@@ -211,7 +211,7 @@ describe('WS transport', () => {
 				}
 			});
 
-			it('using invalid payload should not be ok', async () => {
+			it("should throw an error when payload doesn't have the correct format", async () => {
 				try {
 					await p2p.request({
 						procedure: 'getBlocksFromId',

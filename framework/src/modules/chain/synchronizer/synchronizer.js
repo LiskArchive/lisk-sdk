@@ -64,11 +64,16 @@ class Synchronizer {
 	async run(receivedBlock) {
 		if (this.activeMechanism) {
 			throw new Error(
-				`Blocks Sychronizer with ${
+				`Synchronizer: ${
 					this.activeMechanism.constructor.name
 				} is already running`,
 			);
 		}
+
+		this.logger.info(
+			{ blockId: receivedBlock.id, height: receivedBlock.height },
+			'Starting synchronizer',
+		);
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
@@ -79,12 +84,16 @@ class Synchronizer {
 
 		if (!validMechanism) {
 			return this.logger.info(
-				'Sync mechanism could not be determined for the given block',
-				receivedBlock,
+				{ blockId: receivedBlock.id },
+				'Syncing mechanism could not be determined for the given block',
 			);
 		}
 
-		return validMechanism.run(receivedBlock);
+		this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
+
+		await validMechanism.run(receivedBlock);
+
+		return this.logger.info('Synchronization finished successfully');
 	}
 
 	/**

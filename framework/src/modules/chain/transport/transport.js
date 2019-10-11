@@ -219,25 +219,23 @@ class Transport {
 	 * the current tip of the chain.
 	 * @param {object} payload
 	 * @param {string} payload.blockId - The ID of the starting block
-	 * @return {Promise<*|Promise<*>>}
+	 * @return {Promise<Array<object>>}
 	 */
 	async getBlocksFromId(payload) {
-		const validationResult = validator.validate(
+		const valid = validator.validate(
 			definitions.getBlocksFromIdRequest,
 			payload,
 		);
 
-		if (validationResult.length) {
-			const err = validationResult;
-			const error = `${err[0].message}: ${err[0].path}`;
+		if (!valid) {
 			this.logger.debug(
 				{
-					err: error,
+					err: validator.errors,
 					req: payload,
 				},
 				'getBlocksFromID request validation failed',
 			);
-			throw new Error(error);
+			throw validator.errors;
 		}
 
 		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
@@ -269,12 +267,12 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug(
-				'Received post block broadcast request in unexpected format',
 				{
 					errors,
 					module: 'transport',
 					query,
 				},
+				'Received post block broadcast request in unexpected format',
 			);
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
@@ -335,7 +333,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSSignaturesList, query);
 
 		if (errors.length) {
-			this.logger.debug('Invalid signatures body', errors);
+			this.logger.debug({ err: errors }, 'Invalid signatures body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
@@ -430,7 +428,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSTransactionsRequest, query);
 
 		if (errors.length) {
-			this.logger.debug('Invalid transactions body', errors);
+			this.logger.debug({ err: errors }, 'Invalid transactions body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
@@ -530,17 +528,20 @@ class Transport {
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			this.logger.debug('Transaction normalization failed', {
-				id,
-				err: errString,
-				module: 'transport',
-			});
+			this.logger.error(
+				{
+					id,
+					err: errString,
+					module: 'transport',
+				},
+				'Transaction normalization failed',
+			);
 
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
-		this.logger.debug(`Received transaction ${transaction.id}`);
+		this.logger.debug({ id: transaction.id }, 'Received transaction');
 
 		try {
 			await this.transactionPoolModule.processUnconfirmedTransaction(
@@ -551,7 +552,7 @@ class Transport {
 		} catch (err) {
 			this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 			if (transaction) {
-				this.logger.debug('Transaction', transaction);
+				this.logger.debug({ transaction }, 'Transaction');
 			}
 			throw err;
 		}

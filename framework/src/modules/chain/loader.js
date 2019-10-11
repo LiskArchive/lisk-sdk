@@ -99,7 +99,10 @@ class Loader {
 				async () => this._getUnconfirmedTransactionsFromNetwork(),
 				err => {
 					if (err) {
-						this.logger.error('Unconfirmed transactions loader', err);
+						this.logger.error(
+							{ err },
+							'Failed to get transactions from network',
+						);
 					}
 					resolve();
 				},
@@ -198,11 +201,14 @@ class Loader {
 		} catch (errors) {
 			const error =
 				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
-			this.logger.debug('Transaction normalization failed', {
-				id: error.id,
-				err: error.toString(),
-				module: 'loader',
-			});
+			this.logger.error(
+				{
+					id: error.id,
+					err: error.toString(),
+					module: 'loader',
+				},
+				'Transaction normalization failed',
+			);
 			throw error;
 		}
 
@@ -321,7 +327,7 @@ class Loader {
 			} catch (err) {
 				failedAttemptsToLoad += 1;
 				await this._handleCommonBlockError(err);
-				this.logger.warn(err, 'Failed to load blocks from the network.');
+				this.logger.warn({ err }, 'Failed to load blocks from the network.');
 			}
 		}
 	}
@@ -334,9 +340,9 @@ class Loader {
 			this.logger.debug('Perform chain recovery due to poor consensus');
 			try {
 				await this.blocksModule.recoverChain();
-			} catch (recoveryError) {
+			} catch (err) {
 				this.logger.error(
-					{ error: recoveryError },
+					{ err },
 					'Chain recovery failed after failing to load blocks while network consensus was low.',
 				);
 			}

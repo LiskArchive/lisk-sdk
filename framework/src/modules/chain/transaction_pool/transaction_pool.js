@@ -212,7 +212,7 @@ class TransactionPool extends EventEmitter {
 		if (!transaction) {
 			const message =
 				'Unable to process signature, corresponding transaction not found';
-			this.logger.error(message, { signature });
+			this.logger.error({ signature }, message);
 			throw [new TransactionError(message, '', '.signature')];
 		}
 

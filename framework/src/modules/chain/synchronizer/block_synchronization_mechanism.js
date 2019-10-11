@@ -117,18 +117,6 @@ class BlockSynchronizationMechanism {
 	}
 
 	/**
-	 * Applies a set of blocks on top of the current chain
-	 * @param {Array<object>} blocks - An array of full blocks
-	 * @return {Promise<void>}
-	 * @private
-	 */
-	async _applyBlocksToCurrentChain(blocks) {
-		for (const block of blocks) {
-			await this.processorModule.process(addBlockProperties(block));
-		}
-	}
-
-	/**
 	 * Requests blocks from startingBlockID to an specific peer until endingBlockID
 	 * is met and applies them on top of the current chain.
 	 * @param receivedBlock
@@ -142,12 +130,14 @@ class BlockSynchronizationMechanism {
 		lastCommonBlock,
 		peer,
 	) {
-		this.logger.info(
-			{ peerId: peer.id, fromId: lastCommonBlock.id, toId: receivedBlock.id },
-			'Requesting and applying blocks from peer',
+		this.logger.debug(
+			{
+				peerId: peer.id,
+				fromBlockId: lastCommonBlock.id,
+				toBlockId: receivedBlock.id,
+			},
+			'Requesting blocks within ID range from peer',
 		);
-
-		this.logger.debug({ peer }, 'Requesting blocks within IDs from peer');
 
 		const listOfFullBlocks = await this._requestBlocksWithinIDs(
 			peer,
@@ -160,7 +150,7 @@ class BlockSynchronizationMechanism {
 			return this._applyPenaltyAndRestartSync(
 				peer,
 				receivedBlock,
-				new Error("Peer didn't return any block after calling getBlocksFromId"),
+				new Error("Peer didn't return any block after requesting blocks"),
 			);
 		}
 
@@ -171,7 +161,7 @@ class BlockSynchronizationMechanism {
 				await this.processorModule.process(addBlockProperties(block));
 			}
 			this.logger.debug(
-				'Successfully applied obtained blocks from peer to the current chain',
+				'Successfully applied blocks obtained from peer to chain',
 			);
 		} catch (err) {
 			this.logger.debug({ err }, 'Failed to apply obtained blocks from peer');
@@ -201,7 +191,10 @@ class BlockSynchronizationMechanism {
 			});
 		}
 
-		this.logger.info('Successfully requested and applied blocks from peer');
+		this.logger.debug(
+			{ peerId: peer.id },
+			'Successfully requested and applied blocks from peer',
+		);
 
 		return true;
 	}
@@ -219,8 +212,8 @@ class BlockSynchronizationMechanism {
 	 */
 	async _applyPenaltyAndRestartSync(peer, receivedBlock, error) {
 		this.logger.info(
-			{ peer },
-			'Applying penalty to peer and restarting block synchronization',
+			{ peerId: peer.id },
+			'Applying penalty to peer and restarting synchronizer',
 		);
 		await this.channel.invoke('network:applyPenalty', {
 			peerId: peer.id,
@@ -243,14 +236,14 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _revertToLastCommonBlock(receivedBlock, peer) {
-		this.logger.info(
+		this.logger.debug(
 			{ peerId: peer.id },
-			'Reverting chain to the last common block from peer',
+			'Reverting chain to the last common block with peer',
 		);
 
 		this.logger.debug(
 			{ peerId: peer.id },
-			'Obtaining last common block from peer',
+			'Requesting the last common block from peer',
 		);
 		const lastCommonBlock = await this._requestLastCommonBlock(peer);
 
@@ -259,14 +252,14 @@ class BlockSynchronizationMechanism {
 				peer,
 				receivedBlock,
 				new Error(
-					`No common block has been found between the system chain and the targeted peer ${
+					`No common block has been found between the chain and the targeted peer ${
 						peer.id
 					}`,
 				),
 			);
 		}
 
-		this.logger.debug({ blockId: lastCommonBlock.id }, 'Common block found');
+		this.logger.debug({ blockId: lastCommonBlock.id }, 'Found common block');
 
 		if (lastCommonBlock.height < this.bft.finalizedHeight) {
 			return this._applyPenaltyAndRestartSync(
@@ -277,6 +270,11 @@ class BlockSynchronizationMechanism {
 			);
 		}
 
+		this.logger.debug(
+			{ blockId: lastCommonBlock.id, height: lastCommonBlock.height },
+			'Deleting blocks after common block',
+		);
+
 		await deleteBlocksAfterHeightAndBackup(
 			this.logger,
 			this.processorModule,
@@ -284,9 +282,9 @@ class BlockSynchronizationMechanism {
 			lastCommonBlock.height,
 		);
 
-		this.logger.info(
+		this.logger.debug(
 			{ lastBlockId: this.blocks.lastBlock.id },
-			'Successfully reverted chain to common block',
+			'Successfully deleted blocks',
 		);
 
 		return lastCommonBlock;
@@ -378,8 +376,8 @@ class BlockSynchronizationMechanism {
 		);
 
 		this.logger.debug(
-			{ blockId: networkLastBlock.id },
-			'Tip of the chain received',
+			{ peerId: peer.id, blockId: networkLastBlock.id },
+			'Received tip of the chain from peer',
 		);
 
 		const { valid: validBlock, err } = await this._blockDetachedStatus(
@@ -389,7 +387,6 @@ class BlockSynchronizationMechanism {
 		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
 
 		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
-
 		if (!validBlock || !inDifferentChain) {
 			await this._applyPenaltyAndRestartSync(peer, receivedBlock, err);
 		}
@@ -445,7 +442,11 @@ class BlockSynchronizationMechanism {
 	 * @private
 	 */
 	async _computeBestPeer(peers) {
-		this.logger.info('Computing the best peer to synchronize from');
+		this.logger.trace(
+			{ peers: peers.map(peer => peer.id) },
+			'List of connected peers',
+		);
+		this.logger.debug('Computing the best peer to synchronize from');
 		// Largest subset of peers with largest prevotedConfirmedUptoHeight
 		const largestSubsetByPrevotedConfirmedUptoHeight = this._computeLargestSubsetMaxBy(
 			peers,
@@ -501,9 +502,9 @@ class BlockSynchronizationMechanism {
 			selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
 		bestPeer.id = `${bestPeer.ip}:${bestPeer.wsPort}`;
 
-		this.logger.info(
-			{ peerId: bestPeer.id },
-			'Best peer computed successfully',
+		this.logger.debug(
+			{ peer: bestPeer },
+			'Successfully computed the best peer',
 		);
 
 		return bestPeer;

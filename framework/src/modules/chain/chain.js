@@ -243,9 +243,9 @@ module.exports = class Chain {
 								await this.transport.postBlock(data);
 								return;
 							}
-						} catch (error) {
+						} catch (err) {
 							this.logger.warn(
-								{ error, event },
+								{ err, event },
 								'Received invalid event message',
 							);
 						}
@@ -253,10 +253,13 @@ module.exports = class Chain {
 				);
 			}
 		} catch (error) {
-			this.logger.fatal('Chain initialization', {
-				message: error.message,
-				stack: error.stack,
-			});
+			this.logger.fatal(
+				{
+					message: error.message,
+					stack: error.stack,
+				},
+				'Failed to initialization chain module',
+			);
 			process.emit('cleanup', error);
 		}
 	}
@@ -569,7 +572,10 @@ module.exports = class Chain {
 				const consensus = await this.peers.calculateConsensus(
 					this.blocks.broadhash,
 				);
-				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
+				return this.logger.debug(
+					{ consensus },
+					'Broadhash consensus calculation timer triggered',
+				);
 			},
 			this.peers.broadhashConsensusCalculationInterval,
 		);
@@ -588,8 +594,8 @@ module.exports = class Chain {
 					return;
 				}
 				await this.forger.forge();
-			} catch (error) {
-				this.logger.error(error);
+			} catch (err) {
+				this.logger.error({ err });
 			}
 		});
 	}
@@ -598,7 +604,7 @@ module.exports = class Chain {
 		try {
 			await this.forger.loadDelegates();
 		} catch (err) {
-			this.logger.error(err, 'Failed to load delegates');
+			this.logger.error({ err }, 'Failed to load delegates for forging');
 		}
 		jobQueue.register(
 			'nextForge',
@@ -663,17 +669,9 @@ module.exports = class Chain {
 		);
 
 		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
-			this.logger.info(
-				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.',
-			);
-			this.synchronizer
-				.run(block)
-				.then(() => {
-					this.logger.info('Synchronization finished.');
-				})
-				.catch(error => {
-					this.logger.error('Error occurred during synchronization.', error);
-				});
+			this.synchronizer.run(block).catch(err => {
+				this.logger.error({ err }, 'Error occurred during synchronization.');
+			});
 		});
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
@@ -688,7 +686,7 @@ module.exports = class Chain {
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 			this.logger.debug(
-				{ broadhash, height },
+				{ broadhash, height, event: EVENT_NEW_BROADHASH },
 				'Updating the application state',
 			);
 		});

@@ -818,6 +818,7 @@ describe('forge', () => {
 				expect(data).to.be.undefined;
 				expect(mockLogger.debug).to.be.calledOnce;
 				expect(mockLogger.debug).to.be.calledWith(
+					{ slot: 5 },
 					'Block already forged for the current slot',
 				);
 			});
@@ -835,8 +836,8 @@ describe('forge', () => {
 					expect(data).to.be.undefined;
 					expect(mockLogger.error).to.be.calledOnce;
 					expect(mockLogger.error).to.be.calledWithExactly(
+						{ err: rejectionError },
 						'Skipping delegate slot',
-						rejectionError,
 					);
 				}
 			});
@@ -849,7 +850,10 @@ describe('forge', () => {
 				const data = await forgeModule.forge();
 				expect(data).to.be.undefined;
 				expect(mockLogger.debug).to.be.calledOnce;
-				expect(mockLogger.debug).to.be.calledWith('Waiting for delegate slot');
+				expect(mockLogger.debug).to.be.calledWith(
+					{ currentSlot: 5 },
+					'Waiting for delegate slot',
+				);
 			});
 
 			it('should log message and return if there is poor consensus', async () => {
@@ -866,8 +870,8 @@ describe('forge', () => {
 				expect(data).to.be.undefined;
 				expect(mockLogger.error).to.be.calledOnce;
 				expect(mockLogger.error).to.be.calledWithExactly(
-					'Failed to generate block within delegate slot',
-					`Inadequate broadhash consensus before forging a block: ${lastConsensus} %`,
+					{ consensus: lastConsensus },
+					'Inadequate broadhash consensus before forging a block',
 				);
 			});
 

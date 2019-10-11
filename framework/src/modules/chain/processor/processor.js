@@ -85,16 +85,20 @@ class Processor {
 			});
 
 			if (!forkStatusList.includes(forkStatus)) {
+				this.logger.debug(
+					{ status: forkStatus, blockId: block.id },
+					'Unknown fork status',
+				);
 				throw new Error('Unknown fork status');
 			}
 
 			// Discarding block
-			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
-				this.logger.debug({ id: block.id }, 'Block already processed');
-				return;
-			}
 			if (forkStatus === FORK_STATUS_DISCARD) {
 				this.logger.debug({ id: block.id }, 'Discarding block');
+				return;
+			}
+			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
+				this.logger.debug({ id: block.id }, 'Block already processed');
 				return;
 			}
 			if (forkStatus === FORK_STATUS_DOUBLE_FORGING) {

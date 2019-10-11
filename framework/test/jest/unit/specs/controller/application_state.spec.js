@@ -211,8 +211,8 @@ describe('Application State', () => {
 				// Assert
 				expect(logger.debug).toHaveBeenCalled();
 				expect(logger.debug).toHaveBeenLastCalledWith(
-					'Application state',
 					updatedState,
+					'Update application state',
 				);
 			});
 
