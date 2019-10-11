@@ -105,7 +105,7 @@ describe('transaction:sign', () => {
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Provided transaction is invalid.',
+					'Transaction: 2567924752873475295 failed at .amount',
 				);
 			})
 			.it('should throw an error when transaction is invalid');

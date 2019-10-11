@@ -19,6 +19,7 @@ import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
 import { getInputsFromSources } from '../../utils/input';
 import { getStdIn } from '../../utils/input/utils';
+import { removeUndefinedValues } from '../../utils/object';
 import {
 	instantiateTransaction,
 	parseTransactionString,
@@ -99,23 +100,9 @@ export default class SignCommand extends BaseCommand {
 		const { errors } = txInstance.validate();
 
 		if (errors.length !== 0) {
-			throw new Error('Provided transaction is invalid.');
+			throw errors;
 		}
 
-		const data = Object.entries(txInstance.toJSON()).reduce(
-			(prev, [key, val]) => {
-				if (val !== undefined) {
-					return {
-						...prev,
-						[key]: val,
-					};
-				}
-
-				return prev;
-			},
-			{},
-		);
-
-		this.print(data);
+		this.print(removeUndefinedValues(txInstance.toJSON()));
 	}
 }
