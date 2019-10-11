@@ -43,8 +43,12 @@ module.exports = class Dpos {
 			exceptions,
 		});
 
-		this.events.on(EVENT_ROUND_CHANGED, () => {
-			this.onRoundFinish();
+		this.events.on(EVENT_ROUND_CHANGED, async () => {
+			try {
+				await this.onRoundFinish();
+			} catch (err) {
+				this.logger.error({ err }, 'Failed to apply round finish');
+			}
 		});
 	}
 
