@@ -24,7 +24,7 @@ describe('storage.entities.RoundDelegates.getActiveDelegatesForRound', () => {
 
 	beforeAll(async () => {
 		// Arrange
-		pgHelper = new PgHelper({ dbName: 'RoundDelegatesGetRoundDelegates' });
+		pgHelper = new PgHelper({ database: 'RoundDelegatesGetRoundDelegates' });
 
 		// Create second postgres connection
 		db = await pgHelper.bootstrap();

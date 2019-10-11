@@ -50,19 +50,25 @@ const registerProcessHooks = app => {
 
 	process.on('uncaughtException', err => {
 		// Handle error safely
-		app.logger.error('System error: uncaughtException :', {
-			message: err.message,
-			stack: err.stack,
-		});
+		app.logger.error(
+			{
+				message: err.message,
+				stack: err.stack,
+			},
+			'System error: uncaughtException',
+		);
 		app.shutdown(1, err.message);
 	});
 
 	process.on('unhandledRejection', err => {
 		// Handle error safely
-		app.logger.fatal('System error: unhandledRejection :', {
-			message: err.message,
-			stack: err.stack,
-		});
+		app.logger.fatal(
+			{
+				message: err.message,
+				stack: err.stack,
+			},
+			'System error: unhandledRejection',
+		);
 		app.shutdown(1, err.message);
 	});
 
@@ -382,7 +388,7 @@ class Application {
 		if (this.controller) {
 			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.info(`Shutting down with error code ${errorCode}: ${message}`);
+		this.logger.info({ errorCode, message }, 'Shutting down application');
 		process.exit(errorCode);
 	}
 
@@ -426,7 +432,7 @@ class Application {
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 
-		this.logger.trace('Compiled configurations', this.config);
+		this.logger.trace(this.config, 'Compiled configurations');
 	}
 }
 
