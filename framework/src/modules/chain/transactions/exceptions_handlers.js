@@ -170,7 +170,7 @@ const checkRecipientLeadingZero = (
 	if (!transactionResponse.errors.length > 1) {
 		return false;
 	}
-	if (transactionResponse.errors[1].dataPath !== '.asset.recipientId') {
+	if (transactionResponse.errors[0].dataPath !== '.recipientId') {
 		return false;
 	}
 
@@ -199,7 +199,7 @@ const checkRecipientExceedingUint64 = (
 		return false;
 	}
 
-	if (transactionResponse.errors[1].dataPath !== '.asset.recipientId') {
+	if (transactionResponse.errors[0].dataPath !== '.recipientId') {
 		return false;
 	}
 
