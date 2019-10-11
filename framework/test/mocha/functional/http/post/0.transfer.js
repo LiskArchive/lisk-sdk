@@ -16,10 +16,7 @@
 
 require('../../functional');
 const crypto = require('crypto');
-const {
-	transfer,
-	utils: transactionUtils,
-} = require('@liskhq/lisk-transactions');
+const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../fixtures/accounts');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
@@ -28,8 +25,6 @@ const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
 const randomUtil = require('../../../common/utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
-
-const { NORMALIZER } = global.__testContext.config;
 
 const specialChar = '❤';
 const nullChar1 = '\0';
@@ -59,9 +54,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('with lowercase recipientId should fail', async () => {
 			transaction = randomUtil.transaction();
-			transaction.recipientId = transaction.recipientId.toLowerCase();
+			transaction.asset.recipientId = transaction.asset.recipientId.toLowerCase();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = transactionUtils.getTransactionId(transaction);
 
 			return sendTransactionPromise(transaction, 400).then(res => {
 				expect(res.body.message).to.be.equal('Validation errors');
@@ -74,7 +68,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('with invalid signature should fail', async () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = transactionUtils.getTransactionId(transaction);
 
 			return sendTransactionPromise(
 				transaction,
@@ -108,19 +101,18 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('using zero amount should fail', async () => {
 			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-			transaction = transactionUtils.signRawTransaction({
-				transaction: {
-					type: 0,
+			transaction = new TransferTransaction({
+				type: 0,
+				asset: {
 					amount: '0',
 					recipientId: account.address,
-					fee: new BigNum(10000000).toString(),
-					asset: {},
 				},
-				passphrase: accountFixtures.genesis.passphrase,
 			});
 
+			transaction.sign(accountFixtures.genesis.passphrase);
+
 			return sendTransactionPromise(
-				transaction,
+				transaction.toJSON(),
 				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
@@ -180,18 +172,18 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('from the genesis account should fail', async () => {
 			const signedTransactionFromGenesis = {
-				type: 0,
-				amount: new BigNum('1000').toString(),
 				senderPublicKey:
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 				requesterPublicKey: null,
 				timestamp: 24259352,
-				asset: {},
-				recipientId: accountFixtures.existingDelegate.address,
+				type: 0,
+				asset: {
+					amount: new BigNum('1000').toString(),
+					recipientId: accountFixtures.existingDelegate.address,
+				},
 				signature:
 					'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
 				id: '15307587316657110485',
-				fee: new BigNum(NORMALIZER).times(0.1).toString(),
 			};
 
 			return sendTransactionPromise(
@@ -242,8 +234,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[1].message).to.be.equal(
-					'Invalid transaction id',
+				expect(res.body.errors[0].message).to.be.equal(
+					`Failed to validate signature ${cloneGoodTransaction.signature}`,
 				);
 			});
 		});
