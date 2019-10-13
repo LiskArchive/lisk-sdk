@@ -17,6 +17,7 @@
 require('../../functional');
 const crypto = require('crypto');
 const {
+	TransferTransaction,
 	transfer,
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
@@ -108,16 +109,15 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('using zero amount should fail', async () => {
 			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-			transaction = transactionUtils.signRawTransaction({
-				transaction: {
-					type: 0,
-					amount: '0',
-					recipientId: account.address,
-					fee: new BigNum(10000000).toString(),
-					asset: {},
-				},
-				passphrase: accountFixtures.genesis.passphrase,
+			const tx = new TransferTransaction({
+				type: 0,
+				amount: '0',
+				recipientId: account.address,
+				fee: new BigNum(10000000).toString(),
+				asset: {},
 			});
+			tx.sign(accountFixtures.genesis.passphrase);
+			transaction = tx.toJSON();
 
 			return sendTransactionPromise(
 				transaction,

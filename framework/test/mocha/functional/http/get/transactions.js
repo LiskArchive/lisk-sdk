@@ -468,16 +468,10 @@ describe('GET /api/transactions', () => {
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction => {
 						expect(Object.keys(transaction.asset).length).to.equal(1);
-						expect(transaction.asset.multisignature.min).to.be.within(1, 15); // Exception: Should be 2 for multisig
-						expect(transaction.asset.multisignature.lifetime).to.be.within(
-							1,
-							72,
-						);
-						expect(transaction.asset.multisignature.keysgroup).to.be.an(
-							'array',
-						);
-						return expect(transaction.asset.multisignature.keysgroup).to.not
-							.empty;
+						expect(transaction.asset.min).to.be.within(1, 15); // Exception: Should be 2 for multisig
+						expect(transaction.asset.lifetime).to.be.within(1, 72);
+						expect(transaction.asset.keysgroup).to.be.an('array');
+						return expect(transaction.asset.keysgroup).to.not.empty;
 					});
 				});
 				// eslint-disable-next-line
