@@ -349,7 +349,7 @@ describe('GET /api/node', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
 						res.body.data.map(mapTransaction => {
-							return expect(mapTransaction.recipientId).to.be.equal(
+							return expect(mapTransaction.asset.recipientId).to.be.equal(
 								recipientAccount.address,
 							);
 						});
@@ -359,44 +359,6 @@ describe('GET /api/node', () => {
 				it('using valid but unknown recipientId should be ok', async () => {
 					return PendingEndpoint.makeRequest(
 						{ recipientId: '1631373961111634666L' },
-						200,
-					).then(res => {
-						expect(res.body.data).to.be.empty;
-					});
-				});
-			});
-
-			describe('recipientPublicKey', () => {
-				it('using invalid recipientPublicKey should fail', async () => {
-					return PendingEndpoint.makeRequest(
-						{ recipientPublicKey: '79fjdfd' },
-						400,
-					).then(res => {
-						expectSwaggerParamError(res, 'recipientPublicKey');
-					});
-				});
-
-				it('using valid recipientPublicKey should be ok', async () => {
-					return PendingEndpoint.makeRequest(
-						{ recipientPublicKey: recipientAccount.publicKey },
-						200,
-					).then(res => {
-						expect(res.body.data).to.not.empty;
-						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(mapTransaction => {
-							return expect(mapTransaction.recipientId).to.be.equal(
-								recipientAccount.address,
-							);
-						});
-					});
-				});
-
-				it('using valid but unknown recipientPublicKey should be ok', async () => {
-					return PendingEndpoint.makeRequest(
-						{
-							recipientPublicKey:
-								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-						},
 						200,
 					).then(res => {
 						expect(res.body.data).to.be.empty;

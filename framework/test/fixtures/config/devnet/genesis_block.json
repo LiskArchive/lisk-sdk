@@ -1439,13 +1439,13 @@
 		},
 		{
 			"type": 3,
-			"amount": "0",
 			"fee": "0",
 			"timestamp": 0,
-			"recipientId": "16313739661670634666L",
 			"senderId": "16313739661670634666L",
 			"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 			"asset": {
+				"amount": "0",
+				"recipientId": "16313739661670634666L",
 				"votes": [
 					"+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f",
 					"+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a",
