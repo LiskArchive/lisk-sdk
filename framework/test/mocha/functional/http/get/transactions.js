@@ -393,7 +393,7 @@ describe('GET /api/transactions', () => {
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction =>
-						expect(Object.keys(transaction.asset).length).to.equal(3),
+						expect(Object.keys(transaction.asset).length).to.be.greaterThan(2),
 					);
 				});
 
