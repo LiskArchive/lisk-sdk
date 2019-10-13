@@ -65,7 +65,7 @@ function Multisig(options) {
 
 	multisigTrs.sign(this.account.passphrase);
 
-	this.multiSigTransaction = multisigTrs;
+	this.multiSigTransaction = multisigTrs.toJSON();
 
 	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
 	const multisigSecondSignatureTrs = new MultisignatureTransaction({
@@ -86,7 +86,7 @@ function Multisig(options) {
 		this.account.secondPassphrase,
 	);
 
-	this.multiSigSecondSignatureTransaction = multisigTrs;
+	this.multiSigSecondSignatureTransaction = multisigTrs.toJSON();
 
 	this.creditTransaction = transfer({
 		amount: this.amount.toString(),
