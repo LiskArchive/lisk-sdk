@@ -451,18 +451,29 @@ class BlockSynchronizationMechanism {
 			state: PEER_STATE_CONNECTED,
 		});
 
-		if (!peers.length) {
-			throw new Error('Connected peers list is empty');
+		this.logger.trace(
+			{ peers: peers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			'List of connected peers',
+		);
+
+		// TODO: Move this to validator
+		const requiredProps = ['blockVersion', 'prevotedConfirmedUptoHeight'];
+		const compatiblePeers = peers.filter(p =>
+			Object.keys(p).every(k => k.includes(requiredProps)),
+		);
+
+		if (!compatiblePeers.length) {
+			throw new Error('Connected compatible peers list is empty');
 		}
 
 		this.logger.trace(
-			{ peers: peers.map(peer => peer.id) },
-			'List of connected peers',
+			{ peers: compatiblePeers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			'List of compatible peers connected peers',
 		);
 		this.logger.debug('Computing the best peer to synchronize from');
 		// Largest subset of peers with largest prevotedConfirmedUptoHeight
 		const largestSubsetByPrevotedConfirmedUptoHeight = this._computeLargestSubsetMaxBy(
-			peers,
+			compatiblePeers,
 			peer => peer.prevotedConfirmedUptoHeight,
 		);
 		// Largest subset of peers with largest height
@@ -497,10 +508,13 @@ class BlockSynchronizationMechanism {
 			}
 		}
 
+		// Pick random peer from list
+		const randomPeerIndex = Math.floor(Math.random() * selectedPeers.length);
 		const peersTip = {
-			prevotedConfirmedUptoHeight: peers[0].prevotedConfirmedUptoHeight,
-			height: peers[0].height,
-			version: peers[0].blockVersion,
+			prevotedConfirmedUptoHeight:
+				selectedPeers[randomPeerIndex].prevotedConfirmedUptoHeight,
+			height: selectedPeers[randomPeerIndex].height,
+			version: selectedPeers[randomPeerIndex].blockVersion,
 		};
 
 		const forkStatus = await this.processorModule.forkStatus(peersTip);

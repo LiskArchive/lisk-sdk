@@ -94,7 +94,10 @@ class Processor {
 
 			// Discarding block
 			if (forkStatus === FORK_STATUS_DISCARD) {
-				this.logger.debug({ id: block.id }, 'Discarding block');
+				this.logger.debug(
+					{ id: block.id, height: block.height },
+					'Discarding block',
+				);
 				return;
 			}
 			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
