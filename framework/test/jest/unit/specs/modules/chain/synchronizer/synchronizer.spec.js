@@ -17,6 +17,7 @@
 const {
 	Synchronizer,
 } = require('../../../../../../../src/modules/chain/synchronizer/synchronizer');
+const utils = require('../../../../../../../src/modules/chain/synchronizer/utils');
 
 const {
 	Block: blockFixture,
@@ -33,6 +34,7 @@ describe('Synchronizer', () => {
 	let syncParameters;
 
 	beforeEach(async () => {
+		utils.restoreBlocksUponStartup = jest.fn();
 		loggerMock = {
 			info: jest.fn(),
 		};
@@ -53,6 +55,7 @@ describe('Synchronizer', () => {
 				TempBlock: {
 					get: jest.fn(),
 					truncate: jest.fn(),
+					isEmpty: jest.fn(),
 				},
 			},
 		};
@@ -88,6 +91,30 @@ describe('Synchronizer', () => {
 			expect(synchronizer.logger).toBe(syncParameters.logger);
 			expect(synchronizer.processorModule).toBe(syncParameters.processorModule);
 			expect(synchronizer.mechanisms).toEqual([syncMechanism1, syncMechanism2]);
+		});
+	});
+
+	describe('init()', () => {
+		it('should call restoreBlocksUponStartup if temp_block table is not empty', async () => {
+			// Arrange
+			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(false);
+			utils.restoreBlocksUponStartup.mockResolvedValue(true);
+			// Act
+			await synchronizer.init();
+
+			// Assert
+			expect(utils.restoreBlocksUponStartup).toHaveBeenCalled();
+		});
+
+		it('should NOT call restoreBlocksUponStartup if temp_block table is empty', async () => {
+			// Arrange
+			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(true);
+
+			// Act
+			await synchronizer.init();
+
+			// Assert
+			expect(utils.restoreBlocksUponStartup).not.toHaveBeenCalled();
 		});
 	});
 

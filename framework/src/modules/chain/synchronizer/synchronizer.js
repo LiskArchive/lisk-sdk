@@ -16,7 +16,7 @@
 
 const util = require('util');
 const assert = require('assert');
-const { restoreBlocksUponStartup } = require('./utils');
+const utils = require('./utils');
 
 class Synchronizer {
 	constructor({ logger, blocksModule, processorModule, storageModule }) {
@@ -37,7 +37,7 @@ class Synchronizer {
 	async init() {
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
-			await restoreBlocksUponStartup(
+			await utils.restoreBlocksUponStartup(
 				this.blocksModule,
 				this.processorModule,
 				this.storageModule,
