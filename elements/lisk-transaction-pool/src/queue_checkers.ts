@@ -4,14 +4,21 @@ export type TransactionFilterableKeys =
 	| 'id'
 	| 'recipientId'
 	| 'senderPublicKey'
-	| 'senderId'
 	| 'type';
 
 export const checkTransactionPropertyForValues = (
 	values: ReadonlyArray<string | number>,
 	propertyName: TransactionFilterableKeys,
-): ((transaction: Transaction) => boolean) => (transaction: Transaction) =>
-	values.includes(transaction[propertyName]);
+): ((transaction: Transaction) => boolean) => (transaction: Transaction) => {
+	if (propertyName === 'recipientId') {
+		return transaction.asset.recipientId &&
+			typeof transaction.asset.recipientId === 'string'
+			? values.includes(transaction.asset.recipientId)
+			: false;
+	}
+
+	return values.includes(transaction[propertyName]);
+};
 
 export const returnTrueUntilLimit = (
 	limit: number,
@@ -51,16 +58,16 @@ export const checkTransactionForId = (
 	return checkTransactionPropertyForValues(ids, idProperty);
 };
 
-export const checkTransactionForSenderIdWithRecipientIds = (
+export const checkTransactionForSenderPublicKeyWithRecipientIds = (
 	transactions: ReadonlyArray<Transaction>,
 ): ((transaction: Transaction) => boolean) => {
 	const recipientProperty: TransactionFilterableKeys = 'recipientId';
-	const senderId: TransactionFilterableKeys = 'senderId';
-	const recipients = transactions.map(
-		transaction => transaction[recipientProperty],
-	);
+	const senderPublicKey: TransactionFilterableKeys = 'senderPublicKey';
+	const recipients = transactions
+		.map(transaction => transaction.asset[recipientProperty])
+		.filter(id => id !== undefined) as ReadonlyArray<string>;
 
-	return checkTransactionPropertyForValues(recipients, senderId);
+	return checkTransactionPropertyForValues(recipients, senderPublicKey);
 };
 
 export const checkTransactionForTypes = (

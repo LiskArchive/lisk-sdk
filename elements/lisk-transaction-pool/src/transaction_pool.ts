@@ -29,11 +29,12 @@ import * as queueCheckers from './queue_checkers';
 export interface TransactionObject {
 	readonly id: string;
 	receivedAt?: Date;
-	readonly recipientId: string;
+	readonly asset: {
+		[key: string]: string | number | ReadonlyArray<string> | undefined;
+	};
 	readonly senderPublicKey: string;
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
-	readonly senderId: string;
 	containsUniqueData?: boolean;
 	verifiedOnce?: boolean;
 }
@@ -256,7 +257,9 @@ export class TransactionPool extends EventEmitter {
 		// Move transactions from the validated queue to the received queue where account was a receipient in the verified removed transactions
 		// Rationale is explained in issue #963
 		const removedTransactionsByRecipientIdFromValidatedQueue = this._queues.validated.removeFor(
-			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
+			queueCheckers.checkTransactionForSenderPublicKeyWithRecipientIds(
+				transactions,
+			),
 		);
 
 		this._queues.received.enqueueMany(
@@ -266,7 +269,9 @@ export class TransactionPool extends EventEmitter {
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
 		const removedTransactionsByRecipientIdFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
+			queueCheckers.checkTransactionForSenderPublicKeyWithRecipientIds(
+				transactions,
+			),
 		);
 
 		this._queues.validated.enqueueMany(
