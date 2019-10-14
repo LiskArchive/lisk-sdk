@@ -73,7 +73,6 @@ describe('ChainAccount', () => {
 			'increaseFieldBy',
 			'decreaseFieldBy',
 			'delegateBlocksRewards',
-			'syncDelegatesRank',
 		];
 
 		validOptions = {
@@ -509,7 +508,7 @@ describe('ChainAccount', () => {
 		it('should not throw error if no matching record found', async () => {
 			// Arrange
 			const filter = {
-				rank: -100,
+				producedBlocks: -100,
 			};
 			// Act & Assert
 			expect(() => {
@@ -735,11 +734,11 @@ describe('ChainAccount', () => {
 				new accountFixtures.Account(),
 				new accountFixtures.Account(),
 			];
-			accounts[0].rank = 1000;
-			accounts[1].rank = 1000;
+			accounts[0].producedBlocks = 1000;
+			accounts[1].producedBlocks = 1000;
 
 			const filter = {
-				rank: 1000,
+				producedBlocks: 1000,
 			};
 
 			await AccountEntity.create(accounts);
@@ -776,7 +775,7 @@ describe('ChainAccount', () => {
 		it('should not throw error if no matching record found', async () => {
 			// Arrange
 			const filter = {
-				rank: -100,
+				producedBlocks: -100,
 			};
 			// Act & Assert
 			expect(() => {
