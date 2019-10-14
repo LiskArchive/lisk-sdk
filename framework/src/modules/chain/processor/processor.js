@@ -348,8 +348,11 @@ class Processor {
 					tx,
 				});
 
+				const serializedBlock = await this.serialize(block);
+
 				await this.blocksModule.save({
 					block,
+					serializedBlock,
 					tx,
 					skipSave,
 				});

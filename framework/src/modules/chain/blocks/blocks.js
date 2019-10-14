@@ -166,7 +166,7 @@ class Blocks extends EventEmitter {
 			throw new Error('Failed to load last block');
 		}
 
-		this._lastBlock = this.serialize(storageLastBlock);
+		this._lastBlock = this.deserialize(storageLastBlock);
 	}
 
 	/**
