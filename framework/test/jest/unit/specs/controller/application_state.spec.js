@@ -23,15 +23,21 @@ jest.mock('os', () => ({
 describe('Application State', () => {
 	let applicationState;
 	const initialState = {
+		blockVersion: 0,
 		version: '1.0.0-beta.3',
 		wsPort: '3001',
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
 		nethash: 'test broadhash',
+		broadhash: 'test broadhash',
+		prevotedConfirmedUptoHeight: 0,
+		height: 1,
 		nonce: 'test nonce',
+		os: 'platformrelease',
 	};
 	const mockedState = {
+		blockVersion: 0,
 		os: 'platformrelease',
 		version: '1.0.0-beta.3',
 		wsPort: '3001',

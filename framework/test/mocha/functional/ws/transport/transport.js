@@ -194,8 +194,8 @@ describe('WS transport', () => {
 						data: {},
 					});
 				} catch (e) {
-					expect(e.message).to.equal(
-						"should have required property 'blockId': undefined",
+					expect(e[0].message).to.equal(
+						"should have required property 'blockId'",
 					);
 				}
 			});
@@ -207,7 +207,7 @@ describe('WS transport', () => {
 						data: { blockId: 'abcd1234' },
 					});
 				} catch (e) {
-					expect(e.message).to.equal('should match format "id": undefined');
+					expect(e[0].message).to.equal('should match format "id"');
 				}
 			});
 
@@ -218,8 +218,8 @@ describe('WS transport', () => {
 						data: { unwantedProperty: 1 },
 					});
 				} catch (e) {
-					expect(e.message).to.equal(
-						"should have required property 'blockId': undefined",
+					expect(e[0].message).to.equal(
+						"should have required property 'blockId'",
 					);
 				}
 			});

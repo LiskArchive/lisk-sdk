@@ -222,20 +222,17 @@ class Transport {
 	 * @return {Promise<Array<object>>}
 	 */
 	async getBlocksFromId(payload) {
-		const valid = validator.validate(
-			definitions.getBlocksFromIdRequest,
-			payload,
-		);
+		validator.validate(definitions.getBlocksFromIdRequest, payload);
 
-		if (!valid) {
+		if (validator.validator.errors) {
 			this.logger.debug(
 				{
-					err: validator.errors,
+					err: validator.validator.errors,
 					req: payload,
 				},
 				'getBlocksFromID request validation failed',
 			);
-			throw validator.errors;
+			throw validator.validator.errors;
 		}
 
 		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
