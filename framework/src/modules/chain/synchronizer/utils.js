@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { parseBlockToJson } = require('../blocks/chain');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
 
 /**
@@ -70,13 +69,17 @@ const restoreBlocksUponStartup = async (
 	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
 		prev.height < current.height ? prev : current,
 	);
-	const nextTempBlock = parseBlockToJson(blockLowestHeight.fullBlock);
+
+	const nextTempBlock = blockLowestHeight.fullBlock;
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
 
-	const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+	const inDifferentChain =
+		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+		blockLowestHeight.id === blocksModule.lastBlock.id;
+
 	if (inDifferentChain) {
 		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_block table
-		await restoreBlocks(blocksModule, processorModule);
+		await restoreBlocks(blocksModule, processorModule, {});
 	} else {
 		// Not different chain - Delete remaining blocks from temp_block table
 		await storageModule.entities.TempBlock.truncate();
