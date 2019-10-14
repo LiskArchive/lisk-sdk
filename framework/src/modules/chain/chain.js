@@ -451,6 +451,7 @@ module.exports = class Chain {
 			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			processorModule: this.processor,
+			interfaceAdapters: this.interfaceAdapters,
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({

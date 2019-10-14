@@ -143,14 +143,13 @@ const isTieBreak = ({ slots, lastAppliedBlock, receivedBlock }) =>
  */
 // eslint-disable-next-line class-methods-use-this
 const isDifferentChain = (lastBlock, currentBlock) => {
-	if (lastBlock.height === 1) return true;
+	const prevotedConfirmedUptoHeight =
+		lastBlock.prevotedConfirmedUptoHeight || 0;
 
 	return (
-		lastBlock.prevotedConfirmedUptoHeight <
-			currentBlock.prevotedConfirmedUptoHeight ||
+		prevotedConfirmedUptoHeight < currentBlock.prevotedConfirmedUptoHeight ||
 		(lastBlock.height < currentBlock.height &&
-			lastBlock.prevotedConfirmedUptoHeight ===
-				currentBlock.prevotedConfirmedUptoHeight)
+			prevotedConfirmedUptoHeight === currentBlock.prevotedConfirmedUptoHeight)
 	);
 };
 

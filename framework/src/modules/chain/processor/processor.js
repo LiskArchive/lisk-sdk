@@ -162,12 +162,12 @@ class Processor {
 		});
 	}
 
-	async forkStatus(receivedBlock, lastBlock = this.blocksModule.lastBlock) {
+	async forkStatus(receivedBlock, lastBlock) {
 		const blockProcessor = this._getBlockProcessor(receivedBlock);
 
 		return blockProcessor.forkStatus.run({
 			block: receivedBlock,
-			lastBlock,
+			lastBlock: lastBlock || this.blocksModule.lastBlock,
 		});
 	}
 
