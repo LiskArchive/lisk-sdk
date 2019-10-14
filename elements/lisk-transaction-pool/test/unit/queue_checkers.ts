@@ -134,7 +134,7 @@ describe('queueCheckers', () => {
 		});
 	});
 
-	describe('#checkTransactionForSenderIdWithRecipientIds', () => {
+	describe('#checkTransactionForSenderPublicKeyWithRecipientIds', () => {
 		beforeEach(() => {
 			return sandbox
 				.stub(queueCheckers, 'checkTransactionPropertyForValues')
@@ -143,19 +143,24 @@ describe('queueCheckers', () => {
 
 		it('should return a function', () => {
 			return expect(
-				queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
+				queueCheckers.checkTransactionForSenderPublicKeyWithRecipientIds(
+					transactions,
+				),
 			).to.be.a('function');
 		});
 
-		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderId property', () => {
-			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions);
-			const senderId: queueCheckers.TransactionFilterableKeys = 'senderId';
+		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderPublicKey property', () => {
+			queueCheckers.checkTransactionForSenderPublicKeyWithRecipientIds(
+				transactions,
+			);
+			const senderPublicKey: queueCheckers.TransactionFilterableKeys =
+				'senderPublicKey';
 			const transactionRecipientIds = transactions.map(
-				(transaction: Transaction) => transaction.recipientId,
+				(transaction: Transaction) => transaction.asset.recipientId,
 			);
 			return expect(
 				queueCheckers.checkTransactionPropertyForValues as SinonStub,
-			).to.be.calledWith(transactionRecipientIds, senderId);
+			).to.be.calledWith(transactionRecipientIds, senderPublicKey);
 		});
 	});
 
