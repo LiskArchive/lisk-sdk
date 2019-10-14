@@ -18,6 +18,9 @@
 const rewire = require('rewire');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
+const {
+	Synchronizer,
+} = require('../../../../../src/modules/chain/synchronizer/synchronizer');
 const { Processor } = require('../../../../../src/modules/chain/processor');
 const { BFT } = require('../../../../../src/modules/chain/bft');
 const {
@@ -35,6 +38,7 @@ describe('Chain', () => {
 		// Arrange
 
 		sinonSandbox.stub(Processor.prototype, 'init').resolves();
+		sinonSandbox.stub(Synchronizer.prototype, 'init').resolves();
 
 		/* Arranging Stubs start */
 		stubs.logger = {
