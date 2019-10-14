@@ -34,7 +34,6 @@ function delegateFormatter(totalSupply, delegate) {
 		'producedBlocks',
 		'missedBlocks',
 		'productivity',
-		'rank',
 	]);
 
 	result.account = {
@@ -44,8 +43,6 @@ function delegateFormatter(totalSupply, delegate) {
 	};
 
 	result.approval = calculateApproval(result.vote, totalSupply);
-
-	result.rank = parseInt(result.rank, 10);
 
 	return result;
 }
@@ -160,7 +157,7 @@ async function _aggregateBlocksReward(filter) {
 		});
 	} catch (err) {
 		if (err.code === 0) {
-			throw 'Account not found';
+			throw new Error('Account not found');
 		}
 	}
 
@@ -225,12 +222,12 @@ async function _getForgingStatistics(filters) {
 			});
 		} catch (err) {
 			if (err.code === 0) {
-				throw 'Account not found';
+				throw new Error('Account not found');
 			}
 		}
 
 		if (!account.isDelegate) {
-			throw 'Account is not a delegate';
+			throw new Error('Account is not a delegate');
 		}
 
 		account = _.pick(account, [
@@ -361,9 +358,15 @@ DelegatesController.getForgingStatistics = async (context, next) => {
 	try {
 		reward = await _getForgingStatistics(filters);
 	} catch (err) {
-		if (err === 'Account not found' || err === 'Account is not a delegate') {
+		if (
+			err.message === 'Account not found' ||
+			err.message === 'Account is not a delegate'
+		) {
 			return next(
-				swaggerHelper.generateParamsErrorObject([params.address], [err]),
+				swaggerHelper.generateParamsErrorObject(
+					[params.address],
+					[err.message],
+				),
 			);
 		}
 		return next(err);

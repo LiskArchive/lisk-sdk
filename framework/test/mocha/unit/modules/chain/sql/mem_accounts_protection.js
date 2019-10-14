@@ -31,7 +31,6 @@ let validAccount = {
 	secondPublicKey: null,
 	balance: '0',
 	vote: '10000000000000000',
-	rank: '1',
 	delegates: null,
 	multisignatures: null,
 	multimin: 0,

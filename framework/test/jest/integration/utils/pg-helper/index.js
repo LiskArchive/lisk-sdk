@@ -149,7 +149,6 @@ class PgHelper {
 			"nameexist" as "nameExist",
 			"missedBlocks",
 			"producedBlocks",
-			"rank",
 			"fees",
 			"rewards",
 			"vote",

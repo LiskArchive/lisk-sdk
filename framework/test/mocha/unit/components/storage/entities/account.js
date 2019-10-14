@@ -69,7 +69,6 @@ describe('Account', () => {
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'rank',
 			'vote',
 			'voteWeight',
 			'votedDelegatesPublicKeys',
@@ -90,7 +89,6 @@ describe('Account', () => {
 			'nameExist',
 			'missedBlocks',
 			'producedBlocks',
-			'rank',
 			'fees',
 			'rewards',
 			'vote',
@@ -186,7 +184,6 @@ describe('Account', () => {
 			'missedBlocks_lt',
 			'missedBlocks_lte',
 			'missedBlocks_in',
-			'rank',
 			'rank_eql',
 			'rank_ne',
 			'rank_gt',
@@ -495,11 +492,6 @@ describe('Account', () => {
 			it('should return "secondSignature" as "boolean"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].secondSignature).to.be.a('boolean');
-			});
-
-			it('should return "rank" as null', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].rank).to.be.eql(null);
 			});
 
 			it('should return "fees" as "bigint"', async () => {

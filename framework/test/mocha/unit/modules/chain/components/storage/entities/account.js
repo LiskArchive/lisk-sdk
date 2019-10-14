@@ -35,7 +35,6 @@ const defaultCreateValues = {
 	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
-	rank: null,
 	fees: '0',
 	rewards: '0',
 	vote: '0',
@@ -271,7 +270,6 @@ describe('ChainAccount', () => {
 				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
-				rank: null,
 				fees: '0',
 				rewards: '0',
 				vote: '0',
@@ -1117,25 +1115,5 @@ describe('ChainAccount', () => {
 
 			expect(updatedAccount.balance).to.eql('14000');
 		});
-	});
-
-	describe('syncDelegatesRanks', () => {
-		it('should use the correct SQL', async () => {
-			// Arrange
-			sinonSandbox.spy(adapter, 'executeFile');
-			// Act
-			await AccountEntity.syncDelegatesRanks();
-			// Assert
-			expect(adapter.executeFile).to.be.calledOnce;
-			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
-				SQLs.syncDelegatesRank,
-			);
-		});
-
-		it(
-			'should sync rank attribute of all delegates based on their vote value and public key',
-		);
-
-		it('should not throw error if there is no delegate available');
 	});
 });

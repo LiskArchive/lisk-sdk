@@ -247,7 +247,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.null;
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.be.null;
 					expect(account.rewards).to.equal('0');
 					expect(account.vote).to.equal('0');
 				});
@@ -274,7 +273,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.equal(testAccount.username);
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.equal(null);
 					expect(account.rewards).to.equal('0');
 					expect(account.vote).to.equal('0');
 				});
@@ -298,7 +296,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.null;
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.be.null;
 					expect(account.rewards).to.equal('0');
 					expect(account.vote).to.equal('0');
 				});
@@ -321,7 +318,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.equal(null);
 					expect(account.rewards).to.equal('0');
 					expect(account.vote).to.equal('0');
 				});

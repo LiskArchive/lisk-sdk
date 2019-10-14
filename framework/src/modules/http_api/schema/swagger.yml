@@ -578,15 +578,13 @@ paths:
           enum:
             - username:asc
             - username:desc
-            - rank:asc
-            - rank:desc
             - productivity:asc
             - productivity:desc
             - missedBlocks:asc
             - missedBlocks:desc
             - producedBlocks:asc
             - producedBlocks:desc
-          default: rank:asc
+          default: username:asc
       responses:
         200:
           description: Search results matching criteria
@@ -2619,12 +2617,6 @@ definitions:
         description: |
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
-      rank:
-        format: integerOrNull
-        example: 70
-        description: |
-          Rank of the delegate.
-          The rank is defined by the voters weight/ approval of a delegates, in relation to all other delegates.
 
   DelegateWithAccount:
     type: object
@@ -2670,12 +2662,6 @@ definitions:
         description: |
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
-      rank:
-        format: integerOrNull
-        example: 70
-        description: |
-          Rank of the delegate.
-          The rank is defined by the voters weight/ approval of a delegates, in relation to all other delegates.
       account:
         $ref: '#/definitions/Account'
 
