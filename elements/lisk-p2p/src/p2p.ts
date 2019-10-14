@@ -369,9 +369,10 @@ export class P2P extends EventEmitter {
 				}
 
 				const updatedPeerInfo = {
-					...peerInfo,
-					ipAddress: error.peerInfo.ipAddress,
-					wsPort: error.peerInfo.wsPort,
+					...error,
+					sharedState: peerInfo.sharedState
+						? { ...peerInfo.sharedState }
+						: error.sharedState,
 				};
 				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 				if (isUpdated) {
@@ -456,15 +457,19 @@ export class P2P extends EventEmitter {
 						throw error;
 					}
 
-					const updatedPeerInfo = {
-						...detailedPeerInfo,
-						ipAddress: error.peerInfo.ipAddress,
-						wsPort: error.peerInfo.wsPort,
-					};
-					const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
-					if (isUpdated) {
-						// If found and updated successfully then upgrade the peer
-						this._peerBook.upgradePeer(updatedPeerInfo);
+					// Don't update peerInfo when we already have connection with that peer
+					if (!this._peerPool.getPeer(error.peerId)) {
+						const updatedPeerInfo = {
+							...detailedPeerInfo,
+							sharedState: detailedPeerInfo.sharedState
+								? { ...detailedPeerInfo.sharedState }
+								: error.sharedState,
+						};
+						const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
+						if (isUpdated) {
+							// If found and updated successfully then upgrade the peer
+							this._peerBook.upgradePeer(updatedPeerInfo);
+						}
 					}
 				}
 			}
@@ -560,7 +565,7 @@ export class P2P extends EventEmitter {
 			...peer.sharedState,
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
-			peerId: peer.wsPort,
+			peerId: peer.peerId,
 		}));
 	}
 	// Make sure you always share shared peer state to a user
@@ -570,7 +575,7 @@ export class P2P extends EventEmitter {
 			...peer.sharedState,
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
-			peerId: peer.wsPort,
+			peerId: peer.peerId,
 		}));
 	}
 	// Make sure you always share shared peer state to a user
@@ -592,7 +597,7 @@ export class P2P extends EventEmitter {
 			...peer.sharedState,
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
-			peerId: peer.wsPort,
+			peerId: peer.peerId,
 		}));
 	}
 
