@@ -24,6 +24,7 @@ import {
 } from '../../../src/constants';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
+import { ExistingPeerError } from '../../../src/errors';
 
 describe('peerBook', () => {
 	const peerBookConfig: PeerBookConfig = {
@@ -162,20 +163,22 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 		});
 
-		describe('when peer exists in the tried peers list', () => {
-			it('should throw error', () => {
-				expect(() => peerBook.addPeer(samplePeers[0])).to.throw(
-					'Peer already exists',
-				);
+		describe('when peer exists in the new peers list', () => {
+			it('should throw ExistingPeerError', () => {
+				expect(() => peerBook.addPeer(samplePeers[0]))
+					.to.throw(ExistingPeerError, 'Peer already exists')
+					.and.have.property('peerInfo', samplePeers[0]);
 			});
 		});
 
 		describe('when peer exists in the tried peers list', () => {
-			it('should throw error', () => {
+			it('should throw ExistingPeerError', () => {
 				expect(() => {
 					peerBook.upgradePeer(samplePeers[0]);
 					peerBook.addPeer(samplePeers[0]);
-				}).to.throw('Peer already exists');
+				})
+					.to.throw(ExistingPeerError, 'Peer already exists')
+					.and.have.property('peerInfo', samplePeers[0]);
 			});
 		});
 

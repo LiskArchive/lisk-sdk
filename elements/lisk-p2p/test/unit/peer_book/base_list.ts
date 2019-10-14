@@ -23,6 +23,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
 import { getBucketId } from '../../../src/utils';
+import { ExistingPeerError } from '../../../src';
 
 describe('Peers base list', () => {
 	const peerListConfig = {
@@ -149,10 +150,10 @@ describe('Peers base list', () => {
 			expect(peerListObj.getPeer(samplePeers[0])).eql(samplePeers[0]);
 		});
 
-		it('should not add the incoming peer if it exists', () => {
-			expect(() => peerListObj.addPeer(samplePeers[0])).to.throw(
-				'Peer already exists',
-			);
+		it('should throw error if peer already exists', () => {
+			expect(() => peerListObj.addPeer(samplePeers[0]))
+				.to.throw(ExistingPeerError, 'Peer already exists')
+				.and.have.property('peerInfo', samplePeers[0]);
 		});
 
 		it('should call makeSpace method with the ip address of the peer to add', () => {

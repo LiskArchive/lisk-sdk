@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { ExistingPeerError } from '../errors';
 import { P2PPeerInfo } from '../p2p_types';
 import {
 	constructPeerIdFromPeerInfo,
@@ -100,7 +101,7 @@ export class BaseList {
 
 	public addPeer(peerInfo: P2PPeerInfo): CustomPeerInfo | undefined {
 		if (this.getPeer(peerInfo)) {
-			throw new Error('Peer already exists');
+			throw new ExistingPeerError(peerInfo);
 		}
 		const bucket = this.getBucket(peerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);

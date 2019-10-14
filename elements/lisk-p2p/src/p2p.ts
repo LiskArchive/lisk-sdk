@@ -51,7 +51,7 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from './constants';
-import { PeerInboundHandshakeError } from './errors';
+import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -276,19 +276,21 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PDiscoveredPeerInfo) => {
-			const foundTriedPeer = this._peerBook.getPeer(peerInfo);
-
-			if (foundTriedPeer) {
-				const updatedPeerInfo = {
-					...peerInfo,
-					ipAddress: foundTriedPeer.ipAddress,
-					wsPort: foundTriedPeer.wsPort,
-				};
-				this._peerBook.upgradePeer(updatedPeerInfo);
-			} else {
+			try {
 				this._peerBook.addPeer(peerInfo);
 				// Should be added to newPeer list first and since it is connected so we will upgrade it
 				this._peerBook.upgradePeer(peerInfo);
+			} catch (e) {
+				if (!(e instanceof ExistingPeerError)) {
+					throw e;
+				}
+
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: e.peerInfo.ipAddress,
+					wsPort: e.peerInfo.wsPort,
+				};
+				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -327,23 +329,25 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
-			const foundPeer = this._peerBook.getPeer(peerInfo);
+			try {
+				this._peerBook.addPeer(peerInfo);
+				// Since the connection is tried already hence upgrade the peer
+				this._peerBook.upgradePeer(peerInfo);
+			} catch (e) {
+				if (!(e instanceof ExistingPeerError)) {
+					throw e;
+				}
 
-			if (foundPeer) {
 				const updatedPeerInfo = {
 					...peerInfo,
-					ipAddress: foundPeer.ipAddress,
-					wsPort: foundPeer.wsPort,
+					ipAddress: e.peerInfo.ipAddress,
+					wsPort: e.peerInfo.wsPort,
 				};
 				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 				if (isUpdated) {
 					// If found and updated successfully then upgrade the peer
 					this._peerBook.upgradePeer(updatedPeerInfo);
 				}
-			} else {
-				this._peerBook.addPeer(peerInfo);
-				// Since the connection is tried already hence upgrade the peer
-				this._peerBook.upgradePeer(peerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
@@ -402,24 +406,26 @@ export class P2P extends EventEmitter {
 			);
 
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
-				const foundPeer = this._peerBook.getPeer(detailedPeerInfo);
+				try {
+					this._peerBook.addPeer(detailedPeerInfo);
+					// Re-emit the message to allow it to bubble up the class hierarchy.
+					// Only emit event when a peer is discovered for the first time.
+					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
+				} catch (e) {
+					if (!(e instanceof ExistingPeerError)) {
+						throw e;
+					}
 
-				if (foundPeer) {
 					const updatedPeerInfo = {
 						...detailedPeerInfo,
-						ipAddress: foundPeer.ipAddress,
-						wsPort: foundPeer.wsPort,
+						ipAddress: e.peerInfo.ipAddress,
+						wsPort: e.peerInfo.wsPort,
 					};
 					const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 					if (isUpdated) {
 						// If found and updated successfully then upgrade the peer
 						this._peerBook.upgradePeer(updatedPeerInfo);
 					}
-				} else {
-					this._peerBook.addPeer(detailedPeerInfo);
-					// Re-emit the message to allow it to bubble up the class hierarchy.
-					// Only emit event when a peer is discovered for the first time.
-					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 				}
 			}
 		};
@@ -454,11 +460,15 @@ export class P2P extends EventEmitter {
 		// Add peers to tried peers if want to re-use previously tried peers
 		if (this._sanitizedPeerLists.previousPeers) {
 			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
-				if (!this._peerBook.getPeer(peerInfo)) {
+				try {
 					this._peerBook.addPeer(peerInfo);
 					this._peerBook.upgradePeer(peerInfo);
-				} else {
-					this._peerBook.upgradePeer(peerInfo);
+				} catch (e) {
+					if (!(e instanceof ExistingPeerError)) {
+						throw e;
+					}
+
+					this._peerBook.upgradePeer(e.peerInfo);
 				}
 			});
 		}
@@ -713,8 +723,12 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 				}
 
-				if (!this._peerBook.getPeer(incomingPeerInfo)) {
+				try {
 					this._peerBook.addPeer(incomingPeerInfo);
+				} catch (e) {
+					if (!(e instanceof ExistingPeerError)) {
+						throw e;
+					}
 				}
 			},
 		);
@@ -858,8 +872,12 @@ export class P2P extends EventEmitter {
 			this._sanitizedPeerLists.whitelisted,
 		);
 		newPeersToAdd.forEach(newPeerInfo => {
-			if (!this._peerBook.getPeer(newPeerInfo)) {
+			try {
 				this._peerBook.addPeer(newPeerInfo);
+			} catch (e) {
+				if (!(e instanceof ExistingPeerError)) {
+					throw e;
+				}
 			}
 		});
 

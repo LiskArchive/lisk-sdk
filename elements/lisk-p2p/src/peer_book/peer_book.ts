@@ -18,6 +18,7 @@ import {
 	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
 } from '../constants';
+import { ExistingPeerError } from '../errors';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
 import { NewList, NewListConfig } from './new_list';
@@ -81,11 +82,8 @@ export class PeerBook {
 	}
 
 	public addPeer(peerInfo: P2PPeerInfo): void {
-		if (
-			this._triedPeers.getPeer(peerInfo) ||
-			this._newPeers.getPeer(peerInfo)
-		) {
-			throw new Error('Peer already exists');
+		if (this._triedPeers.getPeer(peerInfo)) {
+			throw new ExistingPeerError(peerInfo);
 		}
 
 		this._newPeers.addPeer(peerInfo);
