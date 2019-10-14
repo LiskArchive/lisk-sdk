@@ -63,5 +63,7 @@
 		"tslint-immutable": "5.1.2",
 		"typescript": "3.3.1"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"@liskhq/lisk-cryptography": "^2.3.0"
+	}
 }
