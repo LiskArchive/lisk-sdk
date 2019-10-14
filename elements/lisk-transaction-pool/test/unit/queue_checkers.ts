@@ -153,14 +153,13 @@ describe('queueCheckers', () => {
 			queueCheckers.checkTransactionForSenderPublicKeyWithRecipientIds(
 				transactions,
 			);
-			const senderPublicKey: queueCheckers.TransactionFilterableKeys =
-				'senderPublicKey';
-			const transactionRecipientIds = transactions.map(
-				(transaction: Transaction) => transaction.asset.recipientId,
-			);
+			const senderId: queueCheckers.TransactionFilterableKeys = 'senderId';
+			const transactionRecipientIds = transactions
+				.map((transaction: Transaction) => transaction.asset.recipientId)
+				.filter(id => id !== undefined);
 			return expect(
 				queueCheckers.checkTransactionPropertyForValues as SinonStub,
-			).to.be.calledWith(transactionRecipientIds, senderPublicKey);
+			).to.be.calledWith(transactionRecipientIds, senderId);
 		});
 	});
 

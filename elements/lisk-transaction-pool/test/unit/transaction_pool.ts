@@ -40,35 +40,38 @@ describe('transaction pool', () => {
 		// Stubbing start function so the jobs do not start in the background.
 		sandbox.stub(Job.prototype, 'start');
 		checkerStubs = {
-			returnTrueUntilLimit: sandbox.stub(queueCheckers, 'returnTrueUntilLimit'),
+			returnTrueUntilLimit: sandbox.stub(
+				queueCheckers as any,
+				'returnTrueUntilLimit',
+			),
 			checkTransactionPropertyForValues: sandbox.stub(
-				queueCheckers,
+				queueCheckers as any,
 				'checkTransactionPropertyForValues',
 			),
 			checkTransactionForSenderPublicKey: sandbox.stub(
-				queueCheckers,
+				queueCheckers as any,
 				'checkTransactionForSenderPublicKey',
 			),
 			checkTransactionForId: sandbox.stub(
-				queueCheckers,
+				queueCheckers as any,
 				'checkTransactionForId',
 			),
 			checkTransactionForRecipientId: sandbox.stub(
-				queueCheckers,
+				queueCheckers as any,
 				'checkTransactionForSenderPublicKeyWithRecipientIds',
 			),
 			checkTransactionForExpiry: sandbox.stub(
-				queueCheckers,
+				queueCheckers as any,
 				'checkTransactionForExpiry',
 			),
 		};
 
 		checkTransactionsWithPassAndFailStub = sandbox.stub(
-			checkTransactions,
+			checkTransactions as any,
 			'checkTransactionsWithPassAndFail',
 		);
 		checkTransactionsWithPassFailAndPendingStub = sandbox.stub(
-			checkTransactions,
+			checkTransactions as any,
 			'checkTransactionsWithPassFailAndPending',
 		);
 		validateTransactionsStub = sandbox.stub();
@@ -108,7 +111,7 @@ describe('transaction pool', () => {
 
 		beforeEach(async () => {
 			existsInPoolStub = sandbox.stub(
-				transactionPool,
+				transactionPool as any,
 				'existsInTransactionPool',
 			);
 			receviedQueueSizeStub = transactionPool.queues.received

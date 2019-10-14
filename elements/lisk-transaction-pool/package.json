@@ -64,6 +64,6 @@
 		"typescript": "3.3.1"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^2.2.0"
+		"@liskhq/lisk-cryptography": "2.3.0"
 	}
 }
