@@ -20,16 +20,25 @@ const { DelegatesList } = require('./delegates_list');
 const { DelegatesInfo } = require('./delegates_info');
 
 module.exports = class Dpos {
-	constructor({ storage, slots, activeDelegates, logger, exceptions = {} }) {
+	constructor({
+		storage,
+		slots,
+		activeDelegates,
+		delegateListRoundOffset = 0,
+		logger,
+		exceptions = {},
+	}) {
 		this.events = new EventEmitter();
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
+		this.delegateListRoundOffset = delegateListRoundOffset;
 
 		this.delegatesList = new DelegatesList({
 			storage,
 			logger,
 			slots,
 			activeDelegates,
+			delegateListRoundOffset,
 			exceptions,
 		});
 
@@ -61,17 +70,15 @@ module.exports = class Dpos {
 	}
 
 	async onRoundFinish() {
-		// TODO use the configuration variable to set the value of this variable
-		const delegateListOffsetForRound = 2;
 		const disposableDelegateList =
-			this.finalizedBlockRound - delegateListOffsetForRound;
+			this.finalizedBlockRound - this.delegateListRoundOffset;
 		await this.delegatesList.deleteDelegateListUntilRound(
 			disposableDelegateList,
 		);
 	}
 
-	async verifyBlockForger(block, roundOffset = 0) {
-		return this.delegatesList.verifyBlockForger(block, roundOffset);
+	async verifyBlockForger(block) {
+		return this.delegatesList.verifyBlockForger(block);
 	}
 
 	async apply({ block, tx }) {

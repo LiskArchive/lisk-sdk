@@ -26,6 +26,7 @@ const {
 const { validator } = require('@liskhq/lisk-validator');
 const { BaseBlockProcessor } = require('./processor');
 const { baseBlockSchema } = require('./blocks');
+const { Slots, Dpos } = require('./dpos');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -108,13 +109,26 @@ const validateSchema = ({ block }) => {
 };
 
 class BlockProcessorV0 extends BaseBlockProcessor {
-	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
+	constructor({ blocksModule, storage, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;
-		this.dposModule = dposModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
+
+		this.slots = new Slots({
+			epochTime: constants.EPOCH_TIME,
+			interval: constants.BLOCK_TIME,
+			blocksPerRound: constants.ACTIVE_DELEGATES,
+		});
+
+		this.dposModule = new Dpos({
+			storage,
+			logger,
+			slots: this.slots,
+			activeDelegates: constants.ACTIVE_DELEGATES,
+			exceptions,
+		});
 
 		this.validate.pipe([
 			data => this._validateVersion(data),

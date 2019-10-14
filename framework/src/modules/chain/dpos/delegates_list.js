@@ -37,10 +37,17 @@ const shuffleDelegateListForRound = (round, list) => {
 };
 
 class DelegatesList {
-	constructor({ storage, activeDelegates, slots, exceptions }) {
+	constructor({
+		storage,
+		activeDelegates,
+		delegateListRoundOffset,
+		slots,
+		exceptions,
+	}) {
 		this.storage = storage;
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
+		this.delegateListRoundOffset = delegateListRoundOffset;
 		this.exceptions = exceptions;
 	}
 
@@ -49,12 +56,15 @@ class DelegatesList {
 	 * @param {number} round
 	 */
 	async getForgerPublicKeysForRound(round) {
+		const roundWithOffset = Math.max(round - this.delegateListRoundOffset, 1);
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
-			round,
+			roundWithOffset,
 		);
 
 		if (!delegatePublicKeys.length) {
-			throw new Error(`No delegate list found for round: ${round}`);
+			throw new Error(
+				`No delegate list found. Round: ${round}. Round with offset: ${roundWithOffset}.`,
+			);
 		}
 
 		return shuffleDelegateListForRound(round, delegatePublicKeys);
@@ -124,18 +134,14 @@ class DelegatesList {
 	 * Validates if block was forged by correct delegate
 	 *
 	 * @param {Object} block
-	 * @param {Number} roundOffset - use delegate list generated at the end of `roundOffset` before the current round
 	 * @return {Boolean} - `true`
 	 * @throw {Error} Failed to verify slot
 	 */
-	async verifyBlockForger(block, roundOffset) {
+	async verifyBlockForger(block) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.slots.calcRound(block.height);
 
-		// Delegate list is generated from round 1 hence `roundToVerify` can't be less than 1
-		const roundToVerify = Math.max(currentRound - roundOffset, 1);
-
-		const delegateList = await this.getForgerPublicKeysForRound(roundToVerify);
+		const delegateList = await this.getForgerPublicKeysForRound(currentRound);
 
 		if (!delegateList.length) {
 			throw new Error(
@@ -160,7 +166,7 @@ class DelegatesList {
 			 * Should be tackled by https://github.com/LiskHQ/lisk-sdk/issues/4194
 			 */
 			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
-			if (ignoreDelegateListCacheForRounds.includes(roundToVerify)) {
+			if (ignoreDelegateListCacheForRounds.includes(currentRound)) {
 				return true;
 			}
 
