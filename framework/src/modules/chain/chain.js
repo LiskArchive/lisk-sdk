@@ -465,7 +465,7 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 			blocks: this.blocks,
-			dpos: {},
+			dposModule: this.dpos,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 
