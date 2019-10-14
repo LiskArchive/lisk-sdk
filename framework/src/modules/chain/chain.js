@@ -257,6 +257,9 @@ module.exports = class Chain {
 					},
 				);
 			}
+
+			// Check if blocks are left in temp_block table
+			await this.synchronizer.init();
 		} catch (error) {
 			this.logger.fatal(
 				{
@@ -469,7 +472,9 @@ module.exports = class Chain {
 
 		this.synchronizer = new Synchronizer({
 			logger: this.logger,
+			blocksModule: this.blocks,
 			processorModule: this.processor,
+			storageModule: this.storage,
 		});
 
 		this.synchronizer.register(blockSyncMechanism);

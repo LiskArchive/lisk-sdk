@@ -14,6 +14,8 @@
 
 'use strict';
 
+const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
+
 /**
  * Restore blocks from temp table and re-apply to chain
  * Steps:
@@ -40,6 +42,47 @@ const restoreBlocks = async (blocksModule, processorModule, tx) => {
 	}
 
 	return true;
+};
+
+/**
+ * Allows to restore blocks if there are blocks left upon startup in temp_block table (e.g. node crashed)
+ * Depends upon fork choice rule if blocks will be applied
+ *
+ * 1. Gets all blocks from temp_block table
+ * 2. Sort blocks according to height as we want to lowest height (the next block to be applied)
+ * 3. Uses next block with fork choice rule - if fork status indicates we should switch to different chain
+ * we continue applying blocks using the `restoreBlocks` function.
+ * Otherwise we truncate the temp_block table.
+ *
+ * @param {Object} blocksModule - injection of blocks module object
+ * @param {Object} processorModule - injection of processor module object
+ * @param {Object} storageModule - injection of storage module object
+ * @return {Promise<void>}
+ */
+const restoreBlocksUponStartup = async (
+	blocksModule,
+	processorModule,
+	storageModule,
+) => {
+	// Get all blocks and find lowest height (next one to be applied)
+	const tempBlocks = await storageModule.entities.TempBlock.get({}, {}, {});
+	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
+		prev.height < current.height ? prev : current,
+	);
+
+	const nextTempBlock = blockLowestHeight.fullBlock;
+	const forkStatus = await processorModule.forkStatus(nextTempBlock);
+	const inDifferentChain =
+		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+		blockLowestHeight.id === blocksModule.lastBlock.id;
+
+	if (inDifferentChain) {
+		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_block table
+		await restoreBlocks(blocksModule, processorModule, {});
+	} else {
+		// Not different chain - Delete remaining blocks from temp_block table
+		await storageModule.entities.TempBlock.truncate();
+	}
 };
 
 /**
@@ -89,6 +132,7 @@ const computeBlockHeightsList = async (listSizeLimit, currentRound) => {
 
 module.exports = {
 	restoreBlocks,
+	restoreBlocksUponStartup,
 	deleteBlocksAfterHeightAndBackup,
 	computeBlockHeightsList,
 };

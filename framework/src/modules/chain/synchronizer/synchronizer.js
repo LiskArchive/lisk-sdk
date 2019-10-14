@@ -16,13 +16,33 @@
 
 const util = require('util');
 const assert = require('assert');
+const utils = require('./utils');
 
 class Synchronizer {
-	constructor({ logger, processorModule }) {
+	constructor({ logger, blocksModule, processorModule, storageModule }) {
 		this.logger = logger;
+		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
+		this.storageModule = storageModule;
 
 		this.mechanisms = [];
+	}
+
+	/**
+	 * Verify if blocks are left in temp_block table
+	 * If blocks are left, we want to attempt to restore those
+	 *
+	 * @return {Promise<void>}
+	 */
+	async init() {
+		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
+		if (!isEmpty) {
+			await utils.restoreBlocksUponStartup(
+				this.blocksModule,
+				this.processorModule,
+				this.storageModule,
+			);
+		}
 	}
 
 	/**
