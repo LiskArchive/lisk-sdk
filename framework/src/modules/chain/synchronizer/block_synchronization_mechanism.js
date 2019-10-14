@@ -441,7 +441,7 @@ class BlockSynchronizationMechanism {
 		const currentBlockSlot = this.slots.getSlotNumber();
 		const threeRounds = this.constants.activeDelegates * 3;
 
-		return finalizedBlockSlot < currentBlockSlot - threeRounds;
+		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
 
 	/**
