@@ -426,7 +426,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			slots: this.slots,
 			exceptions: this.options.exceptions,
-			dposModule: this.dpos,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,

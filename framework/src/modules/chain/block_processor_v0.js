@@ -149,11 +149,20 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.verify.pipe([data => this.blocksModule.verify(data)]);
 
-		this.apply.pipe([data => this.blocksModule.apply(data)]);
+		this.apply.pipe([
+			data => this.blocksModule.apply(data),
+			data => this.dposModule.apply(data),
+		]);
 
-		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
+		this.applyGenesis.pipe([
+			data => this.blocksModule.applyGenesis(data),
+			data => this.dposModule.apply(data),
+		]);
 
-		this.undo.pipe([data => this.blocksModule.undo(data)]);
+		this.undo.pipe([
+			data => this.blocksModule.undo(data),
+			data => this.dposModule.undo(data),
+		]);
 
 		this.create.pipe([data => this._create(data)]);
 	}

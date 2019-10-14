@@ -74,11 +74,11 @@ module.exports = class Dpos {
 		return this.delegatesList.verifyBlockForger(block, roundOffset);
 	}
 
-	async apply(block, tx) {
+	async apply({ block, tx }) {
 		return this.delegatesInfo.apply(block, tx);
 	}
 
-	async undo(block, tx) {
+	async undo({ block, tx }) {
 		return this.delegatesInfo.undo(block, tx);
 	}
 };

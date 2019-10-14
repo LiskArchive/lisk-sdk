@@ -36,9 +36,8 @@ const {
 	deleteLastBlock,
 	deleteFromBlockId,
 	undoConfirmedStep,
-	saveBlockStep,
 	parseBlockToJson,
-	undoBlockStep,
+	saveBlock,
 } = require('./chain');
 const {
 	calculateSupply,
@@ -70,7 +69,6 @@ class Blocks extends EventEmitter {
 		slots,
 		exceptions,
 		// Modules
-		dposModule,
 		interfaceAdapters,
 		// constants
 		blockReceiptTimeout, // set default
@@ -101,7 +99,6 @@ class Blocks extends EventEmitter {
 
 		this.logger = logger;
 		this.storage = storage;
-		this.dposModule = dposModule;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
@@ -284,6 +281,13 @@ class Blocks extends EventEmitter {
 		);
 	}
 
+	async save({ block, tx, skipSave }) {
+		if (!skipSave) {
+			await saveBlock(this.storage, block, tx);
+		}
+		this._lastBlock = block;
+	}
+
 	async undo({ block, tx }) {
 		await undoConfirmedStep(
 			this.storage,
@@ -292,13 +296,6 @@ class Blocks extends EventEmitter {
 			this.exceptions,
 			tx,
 		);
-
-		await undoBlockStep(this.dposModule, block, tx);
-	}
-
-	async save({ block, tx, skipSave }) {
-		await saveBlockStep(this.storage, this.dposModule, block, skipSave, tx);
-		this._lastBlock = block;
 	}
 
 	async remove({ block, tx }, saveTempBlock = false) {
