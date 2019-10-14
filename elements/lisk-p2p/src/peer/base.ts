@@ -185,8 +185,8 @@ export class Peer extends EventEmitter {
 			let rawRequest;
 			try {
 				rawRequest = validateRPCRequest(packet);
-			} catch (err) {
-				respond(err);
+			} catch (error) {
+				respond(error);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -231,7 +231,7 @@ export class Peer extends EventEmitter {
 			let message;
 			try {
 				message = validateProtocolMessage(packet);
-			} catch (err) {
+			} catch (error) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -409,9 +409,9 @@ export class Peer extends EventEmitter {
 						procedure: packet.procedure,
 						data: packet.data,
 					},
-					(err: Error | undefined, responseData: unknown) => {
-						if (err) {
-							reject(err);
+					(error: Error | undefined, responseData: unknown) => {
+						if (error) {
+							reject(error);
 
 							return;
 						}

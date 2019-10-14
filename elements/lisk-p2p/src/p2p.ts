@@ -280,15 +280,15 @@ export class P2P extends EventEmitter {
 				this._peerBook.addPeer(peerInfo);
 				// Should be added to newPeer list first and since it is connected so we will upgrade it
 				this._peerBook.upgradePeer(peerInfo);
-			} catch (e) {
-				if (!(e instanceof ExistingPeerError)) {
-					throw e;
+			} catch (error) {
+				if (!(error instanceof ExistingPeerError)) {
+					throw error;
 				}
 
 				const updatedPeerInfo = {
 					...peerInfo,
-					ipAddress: e.peerInfo.ipAddress,
-					wsPort: e.peerInfo.wsPort,
+					ipAddress: error.peerInfo.ipAddress,
+					wsPort: error.peerInfo.wsPort,
 				};
 				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
@@ -333,15 +333,15 @@ export class P2P extends EventEmitter {
 				this._peerBook.addPeer(peerInfo);
 				// Since the connection is tried already hence upgrade the peer
 				this._peerBook.upgradePeer(peerInfo);
-			} catch (e) {
-				if (!(e instanceof ExistingPeerError)) {
-					throw e;
+			} catch (error) {
+				if (!(error instanceof ExistingPeerError)) {
+					throw error;
 				}
 
 				const updatedPeerInfo = {
 					...peerInfo,
-					ipAddress: e.peerInfo.ipAddress,
-					wsPort: e.peerInfo.wsPort,
+					ipAddress: error.peerInfo.ipAddress,
+					wsPort: error.peerInfo.wsPort,
 				};
 				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 				if (isUpdated) {
@@ -411,15 +411,15 @@ export class P2P extends EventEmitter {
 					// Re-emit the message to allow it to bubble up the class hierarchy.
 					// Only emit event when a peer is discovered for the first time.
 					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-				} catch (e) {
-					if (!(e instanceof ExistingPeerError)) {
-						throw e;
+				} catch (error) {
+					if (!(error instanceof ExistingPeerError)) {
+						throw error;
 					}
 
 					const updatedPeerInfo = {
 						...detailedPeerInfo,
-						ipAddress: e.peerInfo.ipAddress,
-						wsPort: e.peerInfo.wsPort,
+						ipAddress: error.peerInfo.ipAddress,
+						wsPort: error.peerInfo.wsPort,
 					};
 					const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 					if (isUpdated) {
@@ -463,12 +463,12 @@ export class P2P extends EventEmitter {
 				try {
 					this._peerBook.addPeer(peerInfo);
 					this._peerBook.upgradePeer(peerInfo);
-				} catch (e) {
-					if (!(e instanceof ExistingPeerError)) {
-						throw e;
+				} catch (error) {
+					if (!(error instanceof ExistingPeerError)) {
+						throw error;
 					}
 
-					this._peerBook.upgradePeer(e.peerInfo);
+					this._peerBook.upgradePeer(error.peerInfo);
 				}
 			});
 		}
@@ -725,9 +725,9 @@ export class P2P extends EventEmitter {
 
 				try {
 					this._peerBook.addPeer(incomingPeerInfo);
-				} catch (e) {
-					if (!(e instanceof ExistingPeerError)) {
-						throw e;
+				} catch (error) {
+					if (!(error instanceof ExistingPeerError)) {
+						throw error;
 					}
 				}
 			},
@@ -874,9 +874,9 @@ export class P2P extends EventEmitter {
 		newPeersToAdd.forEach(newPeerInfo => {
 			try {
 				this._peerBook.addPeer(newPeerInfo);
-			} catch (e) {
-				if (!(e instanceof ExistingPeerError)) {
-					throw e;
+			} catch (error) {
+				if (!(error instanceof ExistingPeerError)) {
+					throw error;
 				}
 			}
 		});

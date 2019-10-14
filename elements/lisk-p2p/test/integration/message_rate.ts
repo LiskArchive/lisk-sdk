@@ -106,7 +106,7 @@ describe('Message rate limit', () => {
 						},
 						targetPeerId,
 					);
-				} catch (e) {}
+				} catch (error) {}
 			}
 
 			await wait(50);
