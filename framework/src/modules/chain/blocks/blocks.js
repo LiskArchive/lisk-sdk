@@ -25,7 +25,6 @@ const {
 	validateTransactions,
 } = require('../transactions');
 const blocksUtils = require('./utils');
-const blocksLogic = require('./block');
 const {
 	BlocksVerify,
 	verifyBlockNotExists,
@@ -159,13 +158,15 @@ class Blocks extends EventEmitter {
 		// check if the round related information is in valid state
 		await this.blocksVerify.reloadRequired();
 
-		this._lastBlock = await blocksLogic.loadLastBlock(
-			this.storage,
-			this.interfaceAdapters,
-			this.genesisBlock,
+		const [storageLastBlock] = await this.storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1, extended: true },
 		);
+		if (!storageLastBlock) {
+			throw new Error('Failed to load last block');
+		}
 
-		// Remove initializing _lastNBlockIds variable since it's unnecessary
+		this._lastBlock = this.serialize(storageLastBlock);
 	}
 
 	/**
@@ -358,11 +359,7 @@ class Blocks extends EventEmitter {
 
 	async remove({ block, serializedBlock, tx }, saveTempBlock = false) {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
-		const [secondLastBlock] = blocksLogic.readStorageRows(
-			[storageRowOfBlock],
-			this.interfaceAdapters,
-			this.genesisBlock,
-		);
+		const secondLastBlock = this.deserialize(storageRowOfBlock);
 
 		if (saveTempBlock) {
 			const blockTempEntry = {
@@ -403,6 +400,25 @@ class Blocks extends EventEmitter {
 
 	async deleteAfter(block) {
 		return deleteFromBlockId(this.storage, block.id);
+	}
+
+	async getBlocksJSONWithLimitAndOffset(limit, offset = 0) {
+		// Calculate toHeight
+		const toHeight = offset + limit;
+
+		const filters = {
+			height_gte: offset,
+			height_lt: toHeight,
+		};
+
+		const options = {
+			limit: null,
+			sort: ['height:asc', 'rowId:asc'],
+			extended: true,
+		};
+
+		// Loads extended blocks from storage
+		return this.storage.entities.Block.get(filters, options);
 	}
 
 	// TODO: Unit tests written in mocha, which should be migrated to jest.

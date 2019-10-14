@@ -17,7 +17,6 @@
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const { storageRead } = require('./blocks');
 const { validateTransactions } = require('./transactions');
 const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
@@ -292,8 +291,7 @@ class Loader {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
 		for (const block of blocks) {
-			// TODO: Fix with #4131 define serialization and deserialization
-			const parsedBlock = storageRead(block);
+			const parsedBlock = await this.processorModule.deserialize(block);
 			await this.processorModule.validate(parsedBlock);
 			await this.processorModule.processValidated(parsedBlock);
 			lastValidBlock = parsedBlock;

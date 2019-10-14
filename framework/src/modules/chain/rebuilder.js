@@ -14,8 +14,6 @@
 
 'use strict';
 
-const { loadBlocksWithOffset } = require('./blocks');
-
 /**
  * Rebuild a blockchain
  * deletes and recalculates all the states from the blocks up to the specified round
@@ -95,19 +93,15 @@ class Rebuilder {
 				break;
 			}
 			// if rebuildUptoRound is undefined, use the highest height
-			// eslint-disable-next-line no-await-in-loop
-			const blocks = await loadBlocksWithOffset(
-				this.storage,
-				this.interfaceAdapters,
-				this.genesisBlock,
+			const blocksJSON = await this.blocksModule.getBlocksJSONWithLimitAndOffset(
 				limit,
 				currentHeight,
 			);
-			// eslint-disable-next-line no-restricted-syntax
-			for (const block of blocks) {
-				if (this.isCleaning || block.height > targetHeight) {
+			for (const blockJSON of blocksJSON) {
+				if (this.isCleaning || blockJSON.height > targetHeight) {
 					break;
 				}
+				const block = await this.processorModule.deserialize(blockJSON);
 				if (block.id === this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
 					await this.processorModule.applyGenesisBlock(block);
