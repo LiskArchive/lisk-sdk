@@ -63,6 +63,7 @@ describe('processor', () => {
 			info: jest.fn(),
 			warn: jest.fn(),
 			error: jest.fn(),
+			trace: jest.fn(),
 		};
 		blocksModuleStub = {
 			init: jest.fn(),

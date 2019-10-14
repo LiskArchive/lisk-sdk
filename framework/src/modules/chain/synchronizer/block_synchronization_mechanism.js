@@ -14,12 +14,16 @@
 
 'use strict';
 
-const { maxBy, groupBy } = require('lodash');
+const { maxBy, groupBy, cloneDeep } = require('lodash');
 const {
 	deleteBlocksAfterHeightAndBackup,
 	computeBlockHeightsList,
 } = require('./utils');
-const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
+const {
+	FORK_STATUS_DIFFERENT_CHAIN,
+	addBlockProperties,
+} = require('../blocks');
+const { ApplyPenaltyAndRestartError, RestartError } = require('./errors');
 
 const PEER_STATE_CONNECTED = 2;
 
@@ -33,6 +37,7 @@ class BlockSynchronizationMechanism {
 		blocks,
 		activeDelegates,
 		processorModule,
+		interfaceAdapters,
 	}) {
 		this.storage = storage;
 		this.logger = logger;
@@ -44,26 +49,164 @@ class BlockSynchronizationMechanism {
 		this.constants = {
 			activeDelegates,
 		};
+		this.interfaceAdapters = interfaceAdapters;
 		this.active = false;
 	}
 
+	// eslint-disable-next-line consistent-return
 	async run(receivedBlock) {
 		this.active = true;
 		try {
-			const peers = await this.channel.invoke('network:getPeers', {
-				state: PEER_STATE_CONNECTED,
-			});
-
-			if (!peers.length) {
-				throw new Error('Connected peers list is empty');
+			const bestPeer = await this._computeBestPeer();
+			await this._requestAndValidateLastBlock(bestPeer.id);
+			const lastCommonBlock = await this._revertToLastCommonBlock(bestPeer.id);
+			await this._requestAndApplyBlocksToCurrentChain(
+				receivedBlock,
+				lastCommonBlock,
+				bestPeer.id,
+			);
+		} catch (error) {
+			if (error instanceof ApplyPenaltyAndRestartError) {
+				return this._applyPenaltyAndRestartSync(
+					error.peerId,
+					receivedBlock,
+					error.reason,
+				);
 			}
 
-			const bestPeer = await this._computeBestPeer(peers);
-			await this._requestAndValidateLastBlock(receivedBlock, bestPeer);
-			await this._revertToLastCommonBlock(receivedBlock, bestPeer);
+			if (error instanceof RestartError) {
+				return this.channel.publish('chain:processor:sync', {
+					block: receivedBlock,
+				});
+			}
+			throw error; // If the error is none of the mentioned above, throw.
 		} finally {
 			this.active = false;
 		}
+	}
+
+	/**
+	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer`
+	 *
+	 * @param {object} peerId - The ID of the peer to target
+	 * @param {string} fromId - The starting block ID to fetch from
+	 * @param {string} toId - The ending block ID
+	 * @return {Promise<Array<object>>}
+	 * @private
+	 */
+	async _requestBlocksWithinIDs(peerId, fromId, toId) {
+		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
+		const blocks = [];
+		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
+		let lastFetchedID = fromId;
+
+		while (failedAttempts < maxFailedAttempts) {
+			const { data } = await this.channel.invoke('network:requestFromPeer', {
+				procedure: 'getBlocksFromId',
+				peerId,
+				data: {
+					blockId: lastFetchedID,
+				},
+			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+
+			if (data) {
+				blocks.push(...data); // `data` is an array of blocks.
+				lastFetchedID = data.slice(-1).pop().id;
+				const index = blocks.findIndex(block => block.id === toId);
+				if (index > -1) {
+					return blocks.splice(0, index + 1); // Removes unwanted extra blocks
+				}
+			} else {
+				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
+			}
+		}
+
+		return blocks;
+	}
+
+	/**
+	 * Requests blocks from startingBlockID to an specific peer until endingBlockID
+	 * is met and applies them on top of the current chain.
+	 *
+	 * @param receivedBlock
+	 * @param lastCommonBlock
+	 * @param {Object} peerId - The ID of the peer to target
+	 * @return {Promise<void | boolean>}
+	 * @private
+	 */
+	async _requestAndApplyBlocksToCurrentChain(
+		receivedBlock,
+		lastCommonBlock,
+		peerId,
+	) {
+		this.logger.debug(
+			{
+				peerId,
+				fromBlockId: lastCommonBlock.id,
+				toBlockId: receivedBlock.id,
+			},
+			'Requesting blocks within ID range from peer',
+		);
+
+		const listOfFullBlocks = await this._requestBlocksWithinIDs(
+			peerId,
+			lastCommonBlock.id,
+			receivedBlock.id,
+		);
+		const tipBeforeApplying = cloneDeep(this.blocks.lastBlock);
+
+		if (!listOfFullBlocks.length) {
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				"Peer didn't return any block after requesting blocks",
+			);
+		}
+
+		this.logger.debug('Applying obtained blocks from peer');
+
+		try {
+			for (const block of listOfFullBlocks) {
+				await this.processorModule.process(addBlockProperties(block));
+			}
+			this.logger.debug(
+				'Successfully applied blocks obtained from peer to chain',
+			);
+		} catch (err) {
+			this.logger.debug({ err }, 'Failed to apply obtained blocks from peer');
+		}
+
+		// If the list of blocks has not been fully applied
+		if (!this.blocks.lastBlock.id === receivedBlock.id) {
+			// Check if the new tip has priority over the last tip we had before applying
+			const forkStatus = await this.processorModule.forkStatus(
+				this.blocks.lastBlock, // New tip of the chain
+				tipBeforeApplying, // Previous tip of the chain
+			);
+
+			const isDifferentChain =
+				forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+				this.blocks.lastBlock.id === tipBeforeApplying.id;
+
+			if (!isDifferentChain) {
+				throw new ApplyPenaltyAndRestartError(
+					peerId,
+					'New tip of the chain has no preference over the previous tip before synchronizing',
+				);
+			}
+
+			this.logger.info('Restarting block synchronization');
+
+			throw new RestartError(
+				'The list of blocks has not been fully applied. Trying again',
+			);
+		}
+
+		this.logger.debug(
+			{ peerId },
+			'Successfully requested and applied blocks from peer',
+		);
+
+		return true;
 	}
 
 	/**
@@ -71,59 +214,75 @@ class BlockSynchronizationMechanism {
 	 * 1. applying a penalty to a peer.
 	 * 2. restarting sync.
 	 * 3. throwing the reason.
-	 * @param {object} peer - The object that contains the peer ID to target
+	 *
+	 * @param {object} peerId - The peer ID to target
 	 * @param receivedBlock
-	 * @param {Error } error - An error object containing the reason for applying
+	 * @param reason
 	 * a penalty and restarting sync
 	 * @private
 	 */
-	async _applyPenaltyAndRestartSync(peer, receivedBlock, error) {
+	async _applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
+		this.logger.info(
+			{ peerId, reason },
+			'Applying penalty to peer and restarting synchronizer',
+		);
 		await this.channel.invoke('network:applyPenalty', {
-			peerId: peer.id,
+			peerId,
 			penalty: 100,
 		});
 		await this.channel.publish('chain:processor:sync', {
 			block: receivedBlock,
 		});
-		throw error;
 	}
 
 	/**
 	 * Reverts the current chain so the new tip of the chain corresponds to the
 	 * last common block.
-	 * @param receivedBlock
-	 * @param {Object} peer - The selected peer to target.
-	 * @return {Promise<object>}
+	 *
+	 * @param {Object} peerId - The ID of the selected peer to target.
+	 * @return {Promise<object>} - Returns the last common block
 	 * @private
 	 */
-	async _revertToLastCommonBlock(receivedBlock, peer) {
-		const lastCommonBlock = await this._requestLastCommonBlock(peer);
+	async _revertToLastCommonBlock(peerId) {
+		this.logger.debug(
+			{ peerId },
+			'Reverting chain to the last common block with peer',
+		);
+
+		this.logger.debug({ peerId }, 'Requesting the last common block from peer');
+		const lastCommonBlock = await this._requestLastCommonBlock(peerId);
 
 		if (!lastCommonBlock) {
-			return this._applyPenaltyAndRestartSync(
-				peer,
-				receivedBlock,
-				new Error(
-					`No common block has been found between the system chain and the targeted peer ${
-						peer.id
-					}`,
-				),
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				'No common block has been found between the chain and the targeted peer',
 			);
 		}
+
+		this.logger.debug({ blockId: lastCommonBlock.id }, 'Found common block');
 
 		if (lastCommonBlock.height < this.bft.finalizedHeight) {
-			return this._applyPenaltyAndRestartSync(
-				peer,
-				new Error(
-					'The last common block height is less than the finalized height of the current chain',
-				),
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				'The last common block height is less than the finalized height of the current chain',
 			);
 		}
 
+		this.logger.debug(
+			{ blockId: lastCommonBlock.id, height: lastCommonBlock.height },
+			'Deleting blocks after common block',
+		);
+
 		await deleteBlocksAfterHeightAndBackup(
+			this.logger,
 			this.processorModule,
 			this.blocks,
 			lastCommonBlock.height,
+		);
+
+		this.logger.debug(
+			{ lastBlockId: this.blocks.lastBlock.id },
+			'Successfully deleted blocks',
 		);
 
 		return lastCommonBlock;
@@ -132,12 +291,13 @@ class BlockSynchronizationMechanism {
 	/**
 	 * Requests the last common block in common with the targeted peer.
 	 * In order to do that, sends a set of network calls which include a set of block ids
-	 * corresponding to the first block of descendent consecutive rounds (starting from the last one)
-	 * @param peer - The peer to target.
+	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
+	 *
+	 * @param peerId - The ID of the peer to target.
 	 * @return {Promise<Object | undefined>}
 	 * @private
 	 */
-	async _requestLastCommonBlock(peer) {
+	async _requestLastCommonBlock(peerId) {
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 
@@ -154,6 +314,8 @@ class BlockSynchronizationMechanism {
 			const blockIds = (await this.storage.entities.Block.get(
 				{
 					height_in: computeBlockHeightsList(
+						this.bft.finalizedHeight,
+						this.constants.activeDelegates,
 						blocksPerRequestLimit,
 						currentRound,
 					),
@@ -167,8 +329,10 @@ class BlockSynchronizationMechanism {
 			// to the given peer
 			const { data } = await this.channel.invoke('network:requestFromPeer', {
 				procedure: 'getHighestCommonBlock',
-				peerId: peer.id,
-				data: blockIds,
+				peerId,
+				data: {
+					ids: blockIds,
+				},
 			});
 
 			highestCommonBlock = data; // If no common block, data is undefined.
@@ -189,41 +353,62 @@ class BlockSynchronizationMechanism {
 	 *
 	 * This behavior is defined in section `2. Step: Obtain tip of chain` in LIP-0014
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
-	 * @param {Object} receivedBlock - The block received from the network that
-	 * triggered this syncing mechanism.
-	 * @param {Object } peer - Peer object containing a peer id, necessary to target
+	 * @param {Object } peerId - Peer ID, used to target an specific peer
 	 * the peer specifically to request its last block of its chain.
 	 * @return {Promise<Object>}
 	 * @private
 	 */
-	async _requestAndValidateLastBlock(receivedBlock, peer) {
+	async _requestAndValidateLastBlock(peerId) {
+		this.logger.debug({ peerId }, 'Requesting tip of the chain from peer');
+
 		const { data: networkLastBlock } = await this.channel.invoke(
 			'network:requestFromPeer',
 			{
 				procedure: 'getLastBlock',
-				peerId: peer.id,
+				peerId,
 			},
 		);
 
-		const { valid: validBlock, err } = await this._blockDetachedStatus(
+		addBlockProperties(networkLastBlock);
+
+		networkLastBlock.transactions = networkLastBlock.transactions.map(
+			transaction => this.interfaceAdapters.transactions.fromJson(transaction),
+		);
+
+		this.logger.debug(
+			{ peerId, blockId: networkLastBlock.id },
+			'Received tip of the chain from peer',
+		);
+
+		const { valid: validBlock } = await this._blockDetachedStatus(
 			networkLastBlock,
 		);
 
 		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
 
-		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
-
+		const inDifferentChain =
+			forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+			networkLastBlock.id === this.blocks.lastBlock.id;
 		if (!validBlock || !inDifferentChain) {
-			await this._applyPenaltyAndRestartSync(peer, receivedBlock, err);
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				'The tip of the chain of the peer is not valid or is not in a different chain',
+			);
 		}
 	}
 
-	// This wrappers allows us to check using an if
-	// instead of forcing us to use a try/catch block
-	// for branching code execution.
-	// The original method works well in the context
-	// of the Pipeline but not in other cases
-	// that's why we wrap it here.
+	/**
+	 * This wrappers allows us to check using an if
+	 * instead of forcing us to use a try/catch block
+	 * for branching code execution.
+	 * The original method works well in the context
+	 * of the Pipeline but not in other cases
+	 * that's why we wrap it here.
+	 *
+	 * @param networkLastBlock
+	 * @return {Promise<{valid: boolean, err: null}|{valid: boolean, err: *}>}
+	 * @private
+	 */
 	async _blockDetachedStatus(networkLastBlock) {
 		try {
 			await this.processorModule.validateDetached(networkLastBlock);
@@ -248,7 +433,7 @@ class BlockSynchronizationMechanism {
 	async isValidFor(receivedBlock) {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
 		const finalizedBlock = await this.storage.entities.Block.getOne({
-			height_eq: this.bft.finalizedHeight,
+			height_eql: this.bft.finalizedHeight,
 		});
 		const finalizedBlockSlot = this.slots.getSlotNumber(
 			finalizedBlock.timestamp,
@@ -256,21 +441,49 @@ class BlockSynchronizationMechanism {
 		const currentBlockSlot = this.slots.getSlotNumber();
 		const threeRounds = this.constants.activeDelegates * 3;
 
-		return finalizedBlockSlot < currentBlockSlot - threeRounds;
+		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
 
 	/**
-	 * From an input list of peers, computes the best peer to continue working with
-	 * according to the set of rules defined in Step 1. of Block Synchroniztion Mechanism
+	 * Computes the best peer to continue working with
+	 * according to the set of rules defined in Step 1. of Block Synchronization Mechanism
+	 *
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
-	 * @param peers
 	 * @return {Array<Object>}
 	 * @private
 	 */
-	async _computeBestPeer(peers) {
+	async _computeBestPeer() {
+		const peers = await this.channel.invoke('network:getPeers', {
+			state: PEER_STATE_CONNECTED,
+		});
+
+		this.logger.trace(
+			{ peers: peers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			'List of connected peers',
+		);
+
+		// TODO: Move this to validator
+		const requiredProps = [
+			'blockVersion',
+			'prevotedConfirmedUptoHeight',
+			'height',
+		];
+		const compatiblePeers = peers.filter(p =>
+			requiredProps.every(prop => Object.keys(p).includes(prop)),
+		);
+
+		if (!compatiblePeers.length) {
+			throw new Error('Connected compatible peers list is empty');
+		}
+
+		this.logger.trace(
+			{ peers: compatiblePeers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			'List of compatible peers connected peers',
+		);
+		this.logger.debug('Computing the best peer to synchronize from');
 		// Largest subset of peers with largest prevotedConfirmedUptoHeight
 		const largestSubsetByPrevotedConfirmedUptoHeight = this._computeLargestSubsetMaxBy(
-			peers,
+			compatiblePeers,
 			peer => peer.prevotedConfirmedUptoHeight,
 		);
 		// Largest subset of peers with largest height
@@ -305,10 +518,13 @@ class BlockSynchronizationMechanism {
 			}
 		}
 
+		// Pick random peer from list
+		const randomPeerIndex = Math.floor(Math.random() * selectedPeers.length);
 		const peersTip = {
-			prevotedConfirmedUptoHeight: peers[0].prevotedConfirmedUptoHeight,
-			height: peers[0].height,
-			version: peers[0].version,
+			prevotedConfirmedUptoHeight:
+				selectedPeers[randomPeerIndex].prevotedConfirmedUptoHeight,
+			height: selectedPeers[randomPeerIndex].height,
+			version: selectedPeers[randomPeerIndex].blockVersion,
 		};
 
 		const forkStatus = await this.processorModule.forkStatus(peersTip);
@@ -322,6 +538,12 @@ class BlockSynchronizationMechanism {
 		const bestPeer =
 			selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
 		bestPeer.id = `${bestPeer.ip}:${bestPeer.wsPort}`;
+
+		this.logger.debug(
+			{ peer: bestPeer },
+			'Successfully computed the best peer',
+		);
+
 		return bestPeer;
 	}
 

@@ -216,7 +216,7 @@ class BFT extends EventEmitter {
 			parseInt(
 				await this.chainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT),
 				10,
-			) || 0;
+			) || 1;
 
 		// Check BFT migration height
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility

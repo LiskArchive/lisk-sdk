@@ -887,10 +887,15 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height, // This way, none of the conditions are met
 			};
 
+			const lastBlock = {
+				...defaults.lastBlock,
+				height: 2,
+			};
+
 			expect(
 				blocksInstance.forkChoice({
 					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
+					lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
 		});

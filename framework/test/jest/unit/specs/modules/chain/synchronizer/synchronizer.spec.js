@@ -233,7 +233,7 @@ describe('Synchronizer', () => {
 			syncMechanism1.isActive = true;
 
 			await expect(synchronizer.run()).rejects.toThrow(
-				'Blocks Sychronizer with Object is already running',
+				'Synchronizer: Object is already running',
 			);
 		});
 
@@ -250,7 +250,9 @@ describe('Synchronizer', () => {
 			const validationError = new Error('Block verifyError');
 			processorMock.validateDetached.mockRejectedValue(validationError);
 
-			await expect(synchronizer.run()).rejects.toThrow(validationError);
+			await expect(synchronizer.run({ id: '1234' })).rejects.toThrow(
+				validationError,
+			);
 		});
 
 		it('should determine the sync mechanism for received block', async () => {
@@ -265,10 +267,11 @@ describe('Synchronizer', () => {
 		it('should log message if unable to determine sync mechanism', async () => {
 			await synchronizer.run(receivedBlock);
 
-			expect(loggerMock.info).toHaveBeenCalledTimes(1);
-			expect(loggerMock.info).toHaveBeenCalledWith(
-				'Sync mechanism could not be determined for the given block',
-				receivedBlock,
+			expect(loggerMock.info).toHaveBeenCalledTimes(2);
+			expect(loggerMock.info).toHaveBeenNthCalledWith(
+				2,
+				{ blockId: receivedBlock.id },
+				'Syncing mechanism could not be determined for the given block',
 			);
 		});
 
@@ -280,16 +283,6 @@ describe('Synchronizer', () => {
 
 			expect(syncMechanism.run).toHaveBeenCalledTimes(1);
 			expect(syncMechanism.run).toHaveBeenCalledWith(receivedBlock);
-		});
-
-		it('should return the run function from determined mechanism', async () => {
-			const run = jest.fn().mockReturnValue('sync run return');
-			const syncMechanism = { run };
-			synchronizer._determineSyncMechanism.mockReturnValue(syncMechanism);
-
-			const result = await synchronizer.run(receivedBlock);
-
-			expect(result).toBe('sync run return');
 		});
 	});
 });
