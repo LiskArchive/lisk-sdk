@@ -113,18 +113,13 @@ describe('p2p_request', () => {
 				.to.have.property('wasResponseSent')
 				.which.equals(true));
 
-		it('should throw error when sending another request', () => {
-			try {
-				request.end('hello');
-			} catch (e) {
-				expect(e).to.be.an.instanceOf(RPCResponseAlreadySentError);
-				expect(e.message).to.be.eql(
-					`A response has already been sent for the request procedure <<${
-						requestOptions.procedure
-					}>>`,
-				);
-			}
-		});
+		it('should throw error when sending another request', () =>
+			expect(() => request.end('hello')).to.throw(
+				RPCResponseAlreadySentError,
+				`A response has already been sent for the request procedure <<${
+					requestOptions.procedure
+				}>>`,
+			));
 	});
 
 	describe('#error', () => {

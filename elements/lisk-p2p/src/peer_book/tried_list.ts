@@ -16,7 +16,7 @@ import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
 
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo } from '../utils';
-import { CustomPeerInfo, PeerList, PeerListConfig } from './peer_list';
+import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {
 	readonly maxReconnectTries?: number;
@@ -29,7 +29,7 @@ interface TriedListInfo extends CustomPeerInfo {
 
 type TriedListMap = Map<number, Map<string, TriedListInfo>>;
 
-export class TriedList extends PeerList {
+export class TriedList extends BaseList {
 	private readonly _maxReconnectTries: number;
 
 	public constructor({
@@ -50,19 +50,25 @@ export class TriedList extends PeerList {
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 
-		this.initializePeerList(this.peerMap as TriedListMap);
+		this.initPeerList(this.peerMap as TriedListMap);
 	}
 
-	public initializePeerList(
-		peerMap: Map<number, Map<string, TriedListInfo>>,
-	): void {
-		// Initialize the Map with all the buckets
+	// Override init peer list
+	public initPeerList(peerMap: Map<number, Map<string, TriedListInfo>>): void {
+		// Init the Map with all the buckets
 		for (const bucketId of [
 			...new Array(this.peerListConfig.peerBucketCount).keys(),
 		]) {
 			peerMap.set(bucketId, new Map<string, TriedListInfo>());
 		}
 	}
+
+	// Override init peer info
+	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
+		peerInfo,
+		numOfConnectionFailures: 0,
+		dateAdded: new Date(),
+	});
 
 	public get triedPeerConfig(): TriedListConfig {
 		return {
@@ -71,24 +77,11 @@ export class TriedList extends PeerList {
 		};
 	}
 
-	// Extend to add custom TriedPeerInfo
-	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
-		peerInfo,
-		numOfConnectionFailures: 0,
-		dateAdded: new Date(),
-	});
-
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.selectBucketId(incomingPeerInfo.ipAddress);
-		const bucket = this.peerMap.get(bucketId);
+		const bucket = this.getBucket(incomingPeerInfo.ipAddress);
 		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
-
-		if (!bucket) {
-			return false;
-		}
 		const foundPeer = bucket.get(incomingPeerId);
-
 		if (!foundPeer) {
 			return false;
 		}

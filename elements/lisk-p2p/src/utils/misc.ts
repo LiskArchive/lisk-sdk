@@ -15,12 +15,13 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { CustomPeerInfo } from '../peer_book/base_list';
 
-const SECRET_BUFFER_LENGTH = 4;
-const NETWORK_BUFFER_LENGTH = 1;
-const PREFIX_BUFFER_LENGTH = 1;
 const BYTES_4 = 4;
 const BYTES_16 = 16;
+export const SECRET_BUFFER_LENGTH = 4;
+export const NETWORK_BUFFER_LENGTH = 1;
+const PREFIX_BUFFER_LENGTH = 1;
 
 interface AddressBytes {
 	readonly aBytes: Buffer;
@@ -119,6 +120,63 @@ export const getNetgroup = (address: string, secret: number): number => {
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
+export const getUniquePeersbyIp = (
+	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
+
+	for (const peer of peerList) {
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			if (peer.height > tempPeer.height) {
+				peerMap.set(peer.ipAddress, peer);
+			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	}
+
+	return [...peerMap.values()];
+};
+
+export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+
+export const getByteSize = (object: any): number =>
+	Buffer.byteLength(JSON.stringify(object));
+
+export const evictPeerRandomlyFromBucket = (
+	bucket: Map<string, CustomPeerInfo>,
+): CustomPeerInfo | undefined => {
+	const bucketPeerIds = Array.from(bucket.keys());
+	const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
+	const randomPeerId = bucketPeerIds[randomPeerIndex];
+	const evictedPeer = bucket.get(randomPeerId);
+	bucket.delete(randomPeerId);
+
+	return evictedPeer;
+};
+
+export const expirePeerFromBucket = (
+	bucket: Map<string, CustomPeerInfo>,
+	thresholdTime: number,
+): CustomPeerInfo | undefined => {
+	// First eviction strategy: eviction by time of residence
+	for (const [peerId, peer] of bucket) {
+		const timeDifference = Math.round(
+			Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+		);
+
+		if (timeDifference >= thresholdTime) {
+			bucket.delete(peerId);
+
+			return peer;
+		}
+	}
+
+	return undefined;
+};
+
 // TODO: Source address to be included in hash for later version
 export const getBucketId = (options: {
 	readonly secret: number;
@@ -194,28 +252,3 @@ export const getBucketId = (options: {
 
 	return hash(bucketBytes).readUInt32BE(0) % bucketCount;
 };
-
-export const getUniquePeersbyIp = (
-	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
-
-	for (const peer of peerList) {
-		const tempPeer = peerMap.get(peer.ipAddress);
-		if (tempPeer) {
-			if (peer.height > tempPeer.height) {
-				peerMap.set(peer.ipAddress, peer);
-			}
-		} else {
-			peerMap.set(peer.ipAddress, peer);
-		}
-	}
-
-	return [...peerMap.values()];
-};
-
-export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
-
-export const getByteSize = (object: any): number =>
-	Buffer.byteLength(JSON.stringify(object));

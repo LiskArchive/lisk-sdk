@@ -51,7 +51,7 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from './constants';
-import { PeerInboundHandshakeError } from './errors';
+import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -91,7 +91,7 @@ import {
 	P2PResponsePacket,
 	PeerLists,
 } from './p2p_types';
-import { PeerBook } from './peer_directory';
+import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerIdFromPeerInfo,
@@ -276,19 +276,21 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PDiscoveredPeerInfo) => {
-			const foundTriedPeer = this._peerBook.getPeer(peerInfo);
-
-			if (foundTriedPeer) {
-				const updatedPeerInfo = {
-					...peerInfo,
-					ipAddress: foundTriedPeer.ipAddress,
-					wsPort: foundTriedPeer.wsPort,
-				};
-				this._peerBook.upgradePeer(updatedPeerInfo);
-			} else {
+			try {
 				this._peerBook.addPeer(peerInfo);
 				// Should be added to newPeer list first and since it is connected so we will upgrade it
 				this._peerBook.upgradePeer(peerInfo);
+			} catch (error) {
+				if (!(error instanceof ExistingPeerError)) {
+					throw error;
+				}
+
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: error.peerInfo.ipAddress,
+					wsPort: error.peerInfo.wsPort,
+				};
+				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -327,23 +329,25 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
-			const foundPeer = this._peerBook.getPeer(peerInfo);
+			try {
+				this._peerBook.addPeer(peerInfo);
+				// Since the connection is tried already hence upgrade the peer
+				this._peerBook.upgradePeer(peerInfo);
+			} catch (error) {
+				if (!(error instanceof ExistingPeerError)) {
+					throw error;
+				}
 
-			if (foundPeer) {
 				const updatedPeerInfo = {
 					...peerInfo,
-					ipAddress: foundPeer.ipAddress,
-					wsPort: foundPeer.wsPort,
+					ipAddress: error.peerInfo.ipAddress,
+					wsPort: error.peerInfo.wsPort,
 				};
 				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 				if (isUpdated) {
 					// If found and updated successfully then upgrade the peer
 					this._peerBook.upgradePeer(updatedPeerInfo);
 				}
-			} else {
-				this._peerBook.addPeer(peerInfo);
-				// Since the connection is tried already hence upgrade the peer
-				this._peerBook.upgradePeer(peerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
@@ -402,24 +406,26 @@ export class P2P extends EventEmitter {
 			);
 
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
-				const foundPeer = this._peerBook.getPeer(detailedPeerInfo);
+				try {
+					this._peerBook.addPeer(detailedPeerInfo);
+					// Re-emit the message to allow it to bubble up the class hierarchy.
+					// Only emit event when a peer is discovered for the first time.
+					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
+				} catch (error) {
+					if (!(error instanceof ExistingPeerError)) {
+						throw error;
+					}
 
-				if (foundPeer) {
 					const updatedPeerInfo = {
 						...detailedPeerInfo,
-						ipAddress: foundPeer.ipAddress,
-						wsPort: foundPeer.wsPort,
+						ipAddress: error.peerInfo.ipAddress,
+						wsPort: error.peerInfo.wsPort,
 					};
 					const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 					if (isUpdated) {
 						// If found and updated successfully then upgrade the peer
 						this._peerBook.upgradePeer(updatedPeerInfo);
 					}
-				} else {
-					this._peerBook.addPeer(detailedPeerInfo);
-					// Re-emit the message to allow it to bubble up the class hierarchy.
-					// Only emit event when a peer is discovered for the first time.
-					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 				}
 			}
 		};
@@ -454,11 +460,15 @@ export class P2P extends EventEmitter {
 		// Add peers to tried peers if want to re-use previously tried peers
 		if (this._sanitizedPeerLists.previousPeers) {
 			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
-				if (!this._peerBook.getPeer(peerInfo)) {
+				try {
 					this._peerBook.addPeer(peerInfo);
 					this._peerBook.upgradePeer(peerInfo);
-				} else {
-					this._peerBook.upgradePeer(peerInfo);
+				} catch (error) {
+					if (!(error instanceof ExistingPeerError)) {
+						throw error;
+					}
+
+					this._peerBook.upgradePeer(error.peerInfo);
 				}
 			});
 		}
@@ -515,7 +525,7 @@ export class P2P extends EventEmitter {
 	}
 
 	public getDisconnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const allPeers = this._peerBook.getAllPeers();
+		const allPeers = this._peerBook.allPeers;
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
@@ -713,8 +723,12 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 				}
 
-				if (!this._peerBook.getPeer(incomingPeerInfo)) {
+				try {
 					this._peerBook.addPeer(incomingPeerInfo);
+				} catch (error) {
+					if (!(error instanceof ExistingPeerError)) {
+						throw error;
+					}
 				}
 			},
 		);
@@ -801,7 +815,7 @@ export class P2P extends EventEmitter {
 			? this._config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 
-		const knownPeers = this._peerBook.getAllPeers();
+		const knownPeers = this._peerBook.allPeers;
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
 			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.25),
@@ -858,8 +872,12 @@ export class P2P extends EventEmitter {
 			this._sanitizedPeerLists.whitelisted,
 		);
 		newPeersToAdd.forEach(newPeerInfo => {
-			if (!this._peerBook.getPeer(newPeerInfo)) {
+			try {
 				this._peerBook.addPeer(newPeerInfo);
+			} catch (error) {
+				if (!(error instanceof ExistingPeerError)) {
+					throw error;
+				}
 			}
 		});
 

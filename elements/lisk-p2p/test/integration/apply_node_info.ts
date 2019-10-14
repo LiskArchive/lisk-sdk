@@ -119,7 +119,7 @@ describe('P2P.applyNodeInfo', () => {
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
 
-			const allPeersList = p2pNode['_peerBook'].getAllPeers();
+			const allPeersList = p2pNode['_peerBook'].allPeers;
 
 			const firstNodeInAllPeersList = allPeersList.find(
 				peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,

@@ -20,9 +20,7 @@ import {
 import { Peer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
-export const initializePeerInfoList = (): ReadonlyArray<
-	P2PDiscoveredPeerInfo
-> => {
+export const initPeerInfoList = (): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 	const peerOption1: P2PDiscoveredPeerInfo = {
 		ipAddress: '204.120.0.15',
 		wsPort: 5001,
@@ -71,7 +69,7 @@ export const initializePeerInfoList = (): ReadonlyArray<
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];
 };
 
-export const initializePeerInfoListWithSuffix = (
+export const initPeerInfoListWithSuffix = (
 	ipSuffix: string,
 	qty: number,
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
@@ -90,8 +88,8 @@ export const initializePeerInfoListWithSuffix = (
 	return peerInfos;
 };
 
-export const initializePeerList = (): ReadonlyArray<Peer> =>
-	initializePeerInfoList().map(
+export const initPeerList = (): ReadonlyArray<Peer> =>
+	initPeerInfoList().map(
 		(peerInfo: P2PDiscoveredPeerInfo) =>
 			new Peer(peerInfo, {
 				rateCalculationInterval: 1000,

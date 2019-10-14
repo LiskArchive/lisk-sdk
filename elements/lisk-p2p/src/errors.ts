@@ -1,3 +1,5 @@
+import { P2PPeerInfo } from './p2p_types';
+
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -53,6 +55,16 @@ export class RPCResponseAlreadySentError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'ResponseAlreadySentError';
+	}
+}
+
+export class ExistingPeerError extends Error {
+	public peerInfo: P2PPeerInfo;
+
+	public constructor(peerInfo: P2PPeerInfo) {
+		super('Peer already exists');
+		this.name = 'ExistingPeerError';
+		this.peerInfo = peerInfo;
 	}
 }
 

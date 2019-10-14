@@ -25,8 +25,13 @@ import {
 	selectPeersForSend,
 } from '../../src/utils';
 // For stubbing
+import {
+	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
+	P2PNodeInfo,
+} from '../../src/p2p_types';
+import { initPeerList, initPeerInfoList } from '../utils/peers';
 import { Peer, ConnectionState, InboundPeer } from '../../src/peer';
-import { initializePeerList, initializePeerInfoList } from '../utils/peers';
 import {
 	DEFAULT_CONNECT_TIMEOUT,
 	DEFAULT_ACK_TIMEOUT,
@@ -42,14 +47,8 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	INTENTIONAL_DISCONNECT_CODE,
 } from '../../src/constants';
-import {
-	RequestFailError,
-	P2PNodeInfo,
-	P2PDiscoveredPeerInfo,
-	P2PPeerInfo,
-	SendFailError,
-} from '../../src';
 import { constructPeerIdFromPeerInfo } from '../../src/utils';
+import { RequestFailError, SendFailError } from '../../src';
 
 describe('peerPool', () => {
 	const peerPoolConfig = {
@@ -550,7 +549,7 @@ describe('peerPool', () => {
 	});
 
 	describe('#getUniqueOutboundConnectedPeers', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		describe('when two peers have same peer infos', () => {
 			let uniqueOutboundConnectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
@@ -627,7 +626,7 @@ describe('peerPool', () => {
 
 	describe('#getAllConnectedPeerInfos', () => {
 		describe('when there are some active peers in inbound and outbound', () => {
-			const peerList: ReadonlyArray<Peer> = initializePeerList();
+			const peerList: ReadonlyArray<Peer> = initPeerList();
 			let activePeersInfoList: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
@@ -651,7 +650,7 @@ describe('peerPool', () => {
 		});
 
 		describe('when there are some active peers in inbound only', () => {
-			const peerList: ReadonlyArray<Peer> = initializePeerList();
+			const peerList: ReadonlyArray<Peer> = initPeerList();
 			let activePeersInfoList: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
@@ -675,7 +674,7 @@ describe('peerPool', () => {
 		});
 
 		describe('when there are some active peers in outbound only', () => {
-			const peerList: ReadonlyArray<Peer> = initializePeerList();
+			const peerList: ReadonlyArray<Peer> = initPeerList();
 			let activePeersInfoList: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
@@ -699,7 +698,7 @@ describe('peerPool', () => {
 		});
 
 		describe('when there are no active peers', () => {
-			const peerList: ReadonlyArray<Peer> = initializePeerList();
+			const peerList: ReadonlyArray<Peer> = initPeerList();
 
 			beforeEach(async () => {
 				peerList.forEach(peer =>
@@ -721,7 +720,7 @@ describe('peerPool', () => {
 
 	describe('#getConnectedPeers', () => {
 		describe('when there are some active peers in inbound and outbound', () => {
-			const peerList: ReadonlyArray<Peer> = initializePeerList();
+			const peerList: ReadonlyArray<Peer> = initPeerList();
 			let activePeersInfoList: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
@@ -747,7 +746,7 @@ describe('peerPool', () => {
 		});
 
 		describe('when there are no active peers', () => {
-			const peerList: ReadonlyArray<Peer> = initializePeerList();
+			const peerList: ReadonlyArray<Peer> = initPeerList();
 
 			beforeEach(async () => {
 				peerList.forEach(peer => {
