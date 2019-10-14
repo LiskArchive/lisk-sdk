@@ -78,7 +78,7 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InvalidPeer', () => {
+	describe('#InvalidPeerError', () => {
 		const defaultMessage = 'Invalid peer ip or port';
 		let invalidPeer: InvalidPeerError;
 
@@ -90,7 +90,7 @@ describe('errors', () => {
 			expect(invalidPeer).to.be.instanceof(InvalidPeerError);
 		});
 
-		it('should set error name to `InvalidPeer`', async () => {
+		it('should set error name to `InvalidPeerError`', async () => {
 			expect(invalidPeer.name).to.eql('InvalidPeerError');
 		});
 
@@ -128,7 +128,7 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InvalidRPCResponse', () => {
+	describe('#InvalidRPCResponseError', () => {
 		const defaultMessage = 'Invalid response type';
 		let invalidRPCResponse: InvalidRPCResponseError;
 
