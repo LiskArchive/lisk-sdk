@@ -108,7 +108,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					recipientId: account.address,
 				},
 			});
-
 			transaction.sign(accountFixtures.genesis.passphrase);
 
 			return sendTransactionPromise(
