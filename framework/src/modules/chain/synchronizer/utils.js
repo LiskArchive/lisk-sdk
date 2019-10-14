@@ -65,15 +65,13 @@ const restoreBlocksUponStartup = async (
 	storageModule,
 ) => {
 	// Get all blocks and find lowest height (next one to be applied)
-	const tempBlocks = await storageModule.entities.TempBlock.get();
-	const blockLowestHeight = tempBlocks.reduce(
-		(prev, current) => (prev.height < current.height ? prev : current),
-		{ height: 0 },
+	const tempBlocks = await storageModule.entities.TempBlock.get({}, {}, {});
+	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
+		prev.height < current.height ? prev : current,
 	);
 
 	const nextTempBlock = blockLowestHeight.fullBlock;
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
-
 	const inDifferentChain =
 		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
 		blockLowestHeight.id === blocksModule.lastBlock.id;

@@ -138,7 +138,7 @@ describe('#synchronizer/utils', () => {
 			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 		});
 
-		it('should restore blocks if temp_block.id = lastBlock.id', async () => {
+		it.only('should restore blocks if temp_block.id = lastBlock.id', async () => {
 			// Arrange
 			processorMock.forkStatus.mockResolvedValue(
 				ForkChoiceRule.FORK_STATUS_VALID_BLOCK,

@@ -17,7 +17,6 @@
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const { restoreBlocksUponStartup } = require('./synchronizer/utils');
 const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
@@ -256,14 +255,7 @@ module.exports = class Chain {
 			}
 
 			// Check if blocks are left in temp_block table
-			const isEmpty = await this.storage.entities.TempBlock.isEmpty();
-			if (!isEmpty) {
-				await restoreBlocksUponStartup(
-					this.blocks,
-					this.processor,
-					this.storage,
-				);
-			}
+			await this.synchronizer.init();
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
 				message: error.message,
@@ -467,7 +459,9 @@ module.exports = class Chain {
 
 		this.synchronizer = new Synchronizer({
 			logger: this.logger,
+			blocksModule: this.blocks,
 			processorModule: this.processor,
+			storageModule: this.storage,
 		});
 
 		this.synchronizer.register(blockSyncMechanism);

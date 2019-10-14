@@ -27,7 +27,9 @@ describe('Synchronizer', () => {
 	let syncMechanism1;
 	let syncMechanism2;
 	let loggerMock;
+	let blocksMock;
 	let processorMock;
+	let storageMock;
 	let syncParameters;
 
 	beforeEach(async () => {
@@ -37,11 +39,29 @@ describe('Synchronizer', () => {
 
 		processorMock = {
 			validateDetached: jest.fn(),
+			processValidated: jest.fn(),
+			forkStatus: jest.fn(),
+		};
+
+		blocksMock = {
+			getTempBlocks: jest.fn(),
+			lastBlock: jest.fn(),
+		};
+
+		storageMock = {
+			entities: {
+				TempBlock: {
+					get: jest.fn(),
+					truncate: jest.fn(),
+				},
+			},
 		};
 
 		syncParameters = {
 			logger: loggerMock,
 			processorModule: processorMock,
+			blocksModule: blocksMock,
+			storageModule: storageMock,
 		};
 		syncMechanism1 = {
 			isActive: false,
