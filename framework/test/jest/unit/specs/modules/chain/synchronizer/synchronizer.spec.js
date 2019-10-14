@@ -98,7 +98,7 @@ describe('Synchronizer', () => {
 		it('should call restoreBlocksUponStartup if temp_block table is not empty', async () => {
 			// Arrange
 			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(false);
-			utils.restoreBlocksUponStartup.mockResolvedValue(true);
+
 			// Act
 			await synchronizer.init();
 
