@@ -1,9 +1,11 @@
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Transaction } from './transaction_pool';
 
 export type TransactionFilterableKeys =
 	| 'id'
 	| 'recipientId'
 	| 'senderPublicKey'
+	| 'senderId'
 	| 'type';
 
 export const checkTransactionPropertyForValues = (
@@ -15,6 +17,12 @@ export const checkTransactionPropertyForValues = (
 			typeof transaction.asset.recipientId === 'string'
 			? values.includes(transaction.asset.recipientId)
 			: false;
+	}
+
+	if (propertyName === 'senderId') {
+		return values.includes(
+			getAddressFromPublicKey(transaction.senderPublicKey),
+		);
 	}
 
 	return values.includes(transaction[propertyName]);
@@ -62,12 +70,12 @@ export const checkTransactionForSenderPublicKeyWithRecipientIds = (
 	transactions: ReadonlyArray<Transaction>,
 ): ((transaction: Transaction) => boolean) => {
 	const recipientProperty: TransactionFilterableKeys = 'recipientId';
-	const senderPublicKey: TransactionFilterableKeys = 'senderPublicKey';
+	const senderIdProperty: TransactionFilterableKeys = 'senderId';
 	const recipients = transactions
 		.map(transaction => transaction.asset[recipientProperty])
 		.filter(id => id !== undefined) as ReadonlyArray<string>;
 
-	return checkTransactionPropertyForValues(recipients, senderPublicKey);
+	return checkTransactionPropertyForValues(recipients, senderIdProperty);
 };
 
 export const checkTransactionForTypes = (
