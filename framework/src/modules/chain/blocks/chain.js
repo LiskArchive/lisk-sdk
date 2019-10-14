@@ -14,38 +14,10 @@
 
 'use strict';
 
-const { cloneDeep } = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionsModule = require('../transactions');
 
 const TRANSACTION_TYPES_VOTE = 3;
-
-/**
- * Parse the JS object of block into a json object
- * @param {Object} block - Full block
- * @param {Object} jsonBlock - Full normalized block
- */
-const parseBlockToJson = block => {
-	// Parse block data to json
-	const parsedBlock = cloneDeep(block);
-
-	parsedBlock.reward = block.reward.toString();
-	parsedBlock.totalAmount = block.totalAmount.toString();
-	parsedBlock.totalFee = block.totalFee.toString();
-	parsedBlock.previousBlockId = block.previousBlock;
-	delete parsedBlock.previousBlock;
-
-	parsedBlock.transactions = block.transactions.map(transaction =>
-		transaction.toJSON(),
-	);
-
-	parsedBlock.transactions.forEach(transaction => {
-		transaction.blockId = block.id;
-		return transaction;
-	});
-
-	return parsedBlock;
-};
 
 const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 	const promises = [
@@ -74,13 +46,11 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
  * @returns {string} cb.err - Error if occurred
  */
 const saveBlock = async (storage, block, tx) => {
-	const parsedBlock = parseBlockToJson(block);
-
 	if (!tx) {
 		throw new Error('Block should only be saved in a database tx');
 	}
 	// If there is already a running transaction use it
-	return saveBlockBatch(storage, parsedBlock, tx);
+	return saveBlockBatch(storage, block, tx);
 };
 
 /**
@@ -286,5 +256,4 @@ module.exports = {
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
 	undoConfirmedStep,
-	parseBlockToJson,
 };

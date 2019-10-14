@@ -16,6 +16,7 @@
 
 const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
+const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	applyTransactions,
@@ -37,7 +38,6 @@ const {
 	deleteFromBlockId,
 	undoConfirmedStep,
 	saveBlockStep,
-	parseBlockToJson,
 	undoBlockStep,
 } = require('./chain');
 const {
@@ -168,6 +168,55 @@ class Blocks extends EventEmitter {
 		// Remove initializing _lastNBlockIds variable since it's unnecessary
 	}
 
+	/**
+	 * Serialize common properties to the JSON format
+	 * @param {*} blockInstance Instance of the block
+	 * @returns JSON format of the block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	serialize(blockInstance) {
+		const blockJSON = {
+			...blockInstance,
+			previousBlockId: blockInstance.previousBlock,
+			totalAmount: blockInstance.totalAmount.toString(),
+			totalFee: blockInstance.totalFee.toString(),
+			reward: blockInstance.reward.toString(),
+			transactions: blockInstance.transactions.map(tx => ({
+				...tx.toJSON(),
+				blockId: blockInstance.id,
+			})),
+		};
+		delete blockJSON.previousBlock;
+		return blockJSON;
+	}
+
+	/**
+	 * Deserialize common properties to instance format
+	 * @param {*} blockJSON JSON format of the block
+	 */
+	deserialize(blockJSON) {
+		const transactions = (blockJSON.transactions || []).map(transaction =>
+			this.interfaceAdapters.transactions.fromJson(transaction),
+		);
+		return {
+			...blockJSON,
+			totalAmount: new BigNum(blockJSON.totalAmount || 0),
+			totalFee: new BigNum(blockJSON.totalFee || 0),
+			reward: new BigNum(blockJSON.reward || 0),
+			version:
+				blockJSON.version === undefined || blockJSON.version === null
+					? 0
+					: blockJSON.version,
+			numberOfTransactions: transactions.length,
+			payloadLength:
+				blockJSON.payloadLength === undefined ||
+				blockJSON.payloadLength === null
+					? 0
+					: blockJSON.payloadLength,
+			transactions,
+		};
+	}
+
 	async validateDetached({ block, blockBytes }) {
 		return this._validateDetached({ block, blockBytes });
 	}
@@ -296,12 +345,18 @@ class Blocks extends EventEmitter {
 		await undoBlockStep(this.dposModule, block, tx);
 	}
 
-	async save({ block, tx, skipSave }) {
-		await saveBlockStep(this.storage, this.dposModule, block, skipSave, tx);
+	async save({ block, serializedBlock, tx, skipSave }) {
+		await saveBlockStep(
+			this.storage,
+			this.dposModule,
+			serializedBlock,
+			skipSave,
+			tx,
+		);
 		this._lastBlock = block;
 	}
 
-	async remove({ block, tx }, saveTempBlock = false) {
+	async remove({ block, serializedBlock, tx }, saveTempBlock = false) {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
 		const [secondLastBlock] = blocksLogic.readStorageRows(
 			[storageRowOfBlock],
@@ -310,11 +365,10 @@ class Blocks extends EventEmitter {
 		);
 
 		if (saveTempBlock) {
-			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
-				id: parsedDeletedBlock.id,
-				height: parsedDeletedBlock.height,
-				fullBlock: parsedDeletedBlock,
+				id: serializedBlock.id,
+				height: serializedBlock.height,
+				fullBlock: serializedBlock,
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}

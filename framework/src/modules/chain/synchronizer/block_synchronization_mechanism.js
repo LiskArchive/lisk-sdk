@@ -19,10 +19,7 @@ const {
 	deleteBlocksAfterHeightAndBackup,
 	computeBlockHeightsList,
 } = require('./utils');
-const {
-	FORK_STATUS_DIFFERENT_CHAIN,
-	addBlockProperties,
-} = require('../blocks');
+const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
 const { ApplyPenaltyAndRestartError, RestartError } = require('./errors');
 
 const PEER_STATE_CONNECTED = 2;
@@ -166,7 +163,8 @@ class BlockSynchronizationMechanism {
 
 		try {
 			for (const block of listOfFullBlocks) {
-				await this.processorModule.process(addBlockProperties(block));
+				const deserializedBlock = await this.processorModule.deserialize(block);
+				await this.processorModule.process(deserializedBlock);
 			}
 			this.logger.debug(
 				'Successfully applied blocks obtained from peer to chain',
@@ -361,19 +359,12 @@ class BlockSynchronizationMechanism {
 	async _requestAndValidateLastBlock(peerId) {
 		this.logger.debug({ peerId }, 'Requesting tip of the chain from peer');
 
-		const { data: networkLastBlock } = await this.channel.invoke(
-			'network:requestFromPeer',
-			{
-				procedure: 'getLastBlock',
-				peerId,
-			},
-		);
+		const { data } = await this.channel.invoke('network:requestFromPeer', {
+			procedure: 'getLastBlock',
+			peerId,
+		});
 
-		addBlockProperties(networkLastBlock);
-
-		networkLastBlock.transactions = networkLastBlock.transactions.map(
-			transaction => this.interfaceAdapters.transactions.fromJson(transaction),
-		);
+		const networkLastBlock = await this.processorModule.deserialize(data);
 
 		this.logger.debug(
 			{ peerId, blockId: networkLastBlock.id },

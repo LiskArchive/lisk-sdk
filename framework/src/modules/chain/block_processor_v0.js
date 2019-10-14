@@ -116,6 +116,12 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		this.constants = constants;
 		this.exceptions = exceptions;
 
+		this.deserialize.pipe([
+			({ block }) => this.blocksModule.deserialize(block),
+		]);
+
+		this.serialize.pipe([({ block }) => this.blocksModule.serialize(block)]);
+
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),

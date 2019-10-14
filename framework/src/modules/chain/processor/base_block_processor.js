@@ -25,6 +25,18 @@ class BaseBlockProcessor {
 		this.init = new Pipeline();
 
 		/**
+		 * serialize a block to the JSON format
+		 * @return valid block
+		 */
+		this.serialize = new Pipeline();
+
+		/**
+		 * deserialize a block to the instance format
+		 * @return valid block
+		 */
+		this.deserialize = new Pipeline();
+
+		/**
 		 * create is called for forging a block
 		 * @return valid block
 		 */
