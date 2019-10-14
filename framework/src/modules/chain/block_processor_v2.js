@@ -113,7 +113,7 @@ const getBytes = block => {
 	);
 
 	const payloadLengthBuffer = intToBuffer(
-		block.payloadLength.toString(),
+		block.payloadLength,
 		SIZE_INT32,
 		LITTLE_ENDIAN,
 	);

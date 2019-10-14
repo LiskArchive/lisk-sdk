@@ -183,7 +183,11 @@ class BlockSynchronizationMechanism {
 				tipBeforeApplying, // Previous tip of the chain
 			);
 
-			if (!forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
+			const isDifferentChain =
+				forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+				this.blocks.lastBlock.id === tipBeforeApplying.id;
+
+			if (!isDifferentChain) {
 				throw new ApplyPenaltyAndRestartError(
 					peerId,
 					'New tip of the chain has no preference over the previous tip before synchronizing',
@@ -382,7 +386,9 @@ class BlockSynchronizationMechanism {
 
 		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
 
-		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+		const inDifferentChain =
+			forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+			networkLastBlock.id === this.blocks.lastBlock.id;
 		if (!validBlock || !inDifferentChain) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
@@ -457,9 +463,13 @@ class BlockSynchronizationMechanism {
 		);
 
 		// TODO: Move this to validator
-		const requiredProps = ['blockVersion', 'prevotedConfirmedUptoHeight'];
+		const requiredProps = [
+			'blockVersion',
+			'prevotedConfirmedUptoHeight',
+			'height',
+		];
 		const compatiblePeers = peers.filter(p =>
-			Object.keys(p).every(k => k.includes(requiredProps)),
+			requiredProps.every(prop => Object.keys(p).includes(prop)),
 		);
 
 		if (!compatiblePeers.length) {
