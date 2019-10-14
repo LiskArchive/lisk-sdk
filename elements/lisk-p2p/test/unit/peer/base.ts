@@ -416,17 +416,17 @@ describe('peer/base', () => {
 				const peers = [
 					{
 						peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+						ip: '1.1.1.1',
+						wsPort: 1111,
 						sharedState: {
-							ip: '1.1.1.1',
-							wsPort: 1111,
 							version: '1.1.1',
 						},
 					},
 					{
 						peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+						ip: '2.2.2.2',
+						wsPort: 2222,
 						sharedState: {
-							ip: '2.2.2.2',
-							wsPort: 2222,
 							version: '2.2.2',
 						},
 					},
@@ -434,9 +434,9 @@ describe('peer/base', () => {
 				const sanitizedPeers = [
 					{
 						peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+						ipAddress: '1.1.1.1',
+						wsPort: 1111,
 						sharedState: {
-							ipAddress: '1.1.1.1',
-							wsPort: 1111,
 							version: '1.1.1',
 							height: 0,
 							protocolVersion: undefined,
@@ -445,9 +445,9 @@ describe('peer/base', () => {
 					},
 					{
 						peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+						ipAddress: '2.2.2.2',
+						wsPort: 2222,
 						sharedState: {
-							ipAddress: '2.2.2.2',
-							wsPort: 2222,
 							version: '2.2.2',
 							height: 0,
 							protocolVersion: undefined,
@@ -457,7 +457,11 @@ describe('peer/base', () => {
 				];
 				sandbox.stub(defaultPeer, 'request').resolves({
 					data: {
-						peers: peers.map(peer => peer.sharedState),
+						peers: peers.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ip,
+							wsPort: peer.wsPort,
+						})),
 						success: true,
 					},
 				});
@@ -601,10 +605,10 @@ describe('peer/base', () => {
 							defaultPeerInfo.ipAddress,
 							defaultPeerInfo.wsPort,
 						),
+						ipAddress: defaultPeerInfo.ipAddress,
+						wsPort: defaultPeerInfo.wsPort,
 						sharedState: {
-							wsPort: defaultPeerInfo.wsPort,
 							version: peer.version,
-							ipAddress: defaultPeerInfo.ipAddress,
 							height: 0,
 							protocolVersion: undefined,
 							os: '',

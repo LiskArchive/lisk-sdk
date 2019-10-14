@@ -129,15 +129,17 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
+	const ipAddress = protocolPeer.ip || protocolPeer.ipAddress;
+
 	if (
-		!protocolPeer.ip ||
+		!ipAddress ||
 		!protocolPeer.wsPort ||
-		!validatePeerAddress(protocolPeer.ip, protocolPeer.wsPort)
+		!validatePeerAddress(ipAddress, protocolPeer.wsPort)
 	) {
 		throw new InvalidPeerError(
-			`Invalid peer ip or port for peer with ip: ${
-				protocolPeer.ip
-			} and wsPort ${protocolPeer.wsPort}`,
+			`Invalid peer ip or port for peer with ip: ${ipAddress} and wsPort ${
+				protocolPeer.wsPort
+			}`,
 		);
 	}
 
@@ -151,6 +153,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 
 	const {
 		ip,
+		ipAddress: protocolIPAddress,
 		version,
 		protocolVersion,
 		height,
@@ -161,8 +164,8 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	} = protocolPeer;
 
 	const peerInfo: P2PPeerInfo = {
-		peerId: constructPeerIdFromPeerInfo(protocolPeer.ip, protocolPeer.wsPort),
-		ipAddress: ip,
+		peerId: constructPeerIdFromPeerInfo(ipAddress, protocolPeer.wsPort),
+		ipAddress,
 		wsPort: +wsPort,
 		sharedState: {
 			version,
