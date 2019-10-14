@@ -66,8 +66,9 @@ const restoreBlocksUponStartup = async (
 ) => {
 	// Get all blocks and find lowest height (next one to be applied)
 	const tempBlocks = await storageModule.entities.TempBlock.get();
-	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
-		prev.height < current.height ? prev : current,
+	const blockLowestHeight = tempBlocks.reduce(
+		(prev, current) => (prev.height < current.height ? prev : current),
+		{ height: 0 },
 	);
 
 	const nextTempBlock = blockLowestHeight.fullBlock;
