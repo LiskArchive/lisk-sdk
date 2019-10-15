@@ -149,13 +149,6 @@ export class TransferTransaction extends BaseTransaction {
 		]);
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
-	protected verifyAgainstTransactions(
-		_: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		return [];
-	}
-
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
 		validator.validate(transferAssetFormatSchema, asset);

@@ -112,7 +112,7 @@ describe('block_synchronization_mechanism', () => {
 
 				expect(storageMock.entities.Block.getOne).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.getOne).toHaveBeenCalledWith({
-					height_eq: finalizedBlockHeight,
+					height_eql: finalizedBlockHeight,
 				});
 			});
 

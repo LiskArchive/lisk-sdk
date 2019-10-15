@@ -747,14 +747,14 @@ describe('transport', () => {
 
 				describe('getBlocksFromId', () => {
 					describe('when query is undefined', () => {
-						it('should send back empty blocks', async () => {
+						it('should throw a validation error', async () => {
 							query = {};
 
 							try {
 								await transportModule.getBlocksFromId(query);
 							} catch (e) {
-								expect(e.message).to.equal(
-									"should have required property 'blockId': undefined",
+								expect(e[0].message).to.equal(
+									"should have required property 'blockId'",
 								);
 							}
 						});

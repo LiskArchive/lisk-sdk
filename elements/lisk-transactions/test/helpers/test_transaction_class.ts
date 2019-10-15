@@ -52,10 +52,6 @@ export class TestTransaction extends BaseTransaction {
 
 		return [];
 	}
-
-	public assetFromSync(raw: any) {
-		return { data: raw };
-	}
 }
 
 export class TestTransactionBasicImpl extends BaseTransaction {
@@ -71,17 +67,5 @@ export class TestTransactionBasicImpl extends BaseTransaction {
 
 	public undoAsset() {
 		return [];
-	}
-
-	public verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		transactions.forEach(() => true);
-
-		return [];
-	}
-
-	public assetFromSync(raw: any) {
-		return { data: raw };
 	}
 }

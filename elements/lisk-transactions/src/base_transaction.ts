@@ -124,9 +124,6 @@ export abstract class BaseTransaction {
 	protected abstract undoAsset(
 		store: StateStore,
 	): ReadonlyArray<TransactionError>;
-	protected abstract verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError>;
 
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
@@ -268,6 +265,13 @@ export abstract class BaseTransaction {
 		}
 
 		return createResponse(this.id, errors);
+	}
+
+	// tslint:disable-next-line prefer-function-over-method
+	protected verifyAgainstTransactions(
+		_: ReadonlyArray<TransactionJSON>,
+	): ReadonlyArray<TransactionError> {
+		return [];
 	}
 
 	public verifyAgainstOtherTransactions(

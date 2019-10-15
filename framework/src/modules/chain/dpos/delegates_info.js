@@ -15,6 +15,7 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
+const { EVENT_ROUND_CHANGED } = require('./constants');
 
 const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
 	delegatePublicKeys
@@ -53,6 +54,7 @@ class DelegatesInfo {
 		slots,
 		activeDelegates,
 		logger,
+		events,
 		delegatesList,
 		exceptions,
 	}) {
@@ -60,6 +62,7 @@ class DelegatesInfo {
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
 		this.logger = logger;
+		this.events = events;
 		this.delegatesList = delegatesList;
 		this.exceptions = exceptions;
 	}
@@ -109,6 +112,12 @@ class DelegatesInfo {
 			]);
 
 			if (undo) {
+				const previousRound = round + 1;
+				this.events.emit(EVENT_ROUND_CHANGED, {
+					oldRound: previousRound,
+					newRound: round,
+				});
+
 				/**
 				 * If we are reverting the block, new transactions
 				 * can change vote weight of delegates, so we need to
@@ -116,8 +125,13 @@ class DelegatesInfo {
 				 */
 				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
 			} else {
-				// Create round delegate list
 				const nextRound = round + 1;
+				this.events.emit(EVENT_ROUND_CHANGED, {
+					oldRound: round,
+					newRound: nextRound,
+				});
+
+				// Create round delegate list
 				await this.delegatesList.createRoundDelegateList(nextRound, tx);
 			}
 		}
@@ -340,4 +354,4 @@ class DelegatesInfo {
 	}
 }
 
-module.exports = { DelegatesInfo };
+module.exports = { DelegatesInfo, EVENT_ROUND_CHANGED };

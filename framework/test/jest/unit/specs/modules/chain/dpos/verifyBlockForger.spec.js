@@ -47,6 +47,11 @@ describe('dpos.verifyBlockForger()', () => {
 			error: jest.fn(),
 		};
 
+		stubs.channel = {
+			subscribe: jest.fn(),
+			publish: jest.fn(),
+		};
+
 		slots = new Slots({
 			epochTime: constants.EPOCH_TIME,
 			interval: constants.BLOCK_TIME,
@@ -87,7 +92,11 @@ describe('dpos.verifyBlockForger()', () => {
 		const expectedSlot = slots.getSlotNumber(block.timestamp);
 
 		// Act && Assert
-		const error = new Error(`Failed to verify slot: ${expectedSlot}`);
+		const error = new Error(
+			`Failed to verify slot: ${expectedSlot}. Block ID: ${
+				block.id
+			}. Block Height: ${block.height}`,
+		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
 	});
 
