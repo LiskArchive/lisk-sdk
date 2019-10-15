@@ -15,10 +15,7 @@
 'use strict';
 
 const { maxBy, groupBy, cloneDeep } = require('lodash');
-const {
-	deleteBlocksAfterHeightAndBackup,
-	computeBlockHeightsList,
-} = require('./utils');
+const { deleteBlocksAfterHeight, computeBlockHeightsList } = require('./utils');
 const {
 	FORK_STATUS_DIFFERENT_CHAIN,
 	addBlockProperties,
@@ -273,11 +270,11 @@ class BlockSynchronizationMechanism {
 			'Deleting blocks after common block',
 		);
 
-		await deleteBlocksAfterHeightAndBackup(
-			this.logger,
+		await deleteBlocksAfterHeight(
 			this.processorModule,
 			this.blocks,
 			lastCommonBlock.height,
+			true,
 		);
 
 		this.logger.debug(

@@ -86,23 +86,24 @@ const restoreBlocksUponStartup = async (
 };
 
 /**
- * Deletes blocks of the current chain after the desired height exclusive and
+ * Deletes blocks of the current chain after the desired height exclusive and optionally
  * backs them up in temp_block database table.
  * @param {Object} processorModule
  * @param {Object} blocksModule
  * @param {Number} desiredHeight - The height desired to delete blocks after.
+ * @param backup
  * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
  */
-const deleteBlocksAfterHeightAndBackup = async (
-	logger,
+const deleteBlocksAfterHeight = async (
 	processorModule,
 	blocksModule,
 	desiredHeight,
+	backup = false,
 ) => {
 	let { height: currentHeight } = blocksModule.lastBlock;
 	while (desiredHeight > currentHeight) {
 		const lastBlock = await processorModule.deleteLastBlock({
-			saveTempBlock: true,
+			saveTempBlock: backup,
 		});
 		currentHeight = lastBlock.height;
 	}
@@ -141,6 +142,6 @@ const computeBlockHeightsList = (
 module.exports = {
 	restoreBlocks,
 	restoreBlocksUponStartup,
-	deleteBlocksAfterHeightAndBackup,
+	deleteBlocksAfterHeight,
 	computeBlockHeightsList,
 };
