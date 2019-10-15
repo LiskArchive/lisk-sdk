@@ -349,14 +349,14 @@ describe('GET /api/transactions', () => {
 						expect(transaction.id).to.be.equal(transactionInCheck.id);
 						expect(transaction.type).to.be.equal(TRANSACTION_TYPES.VOTE);
 						expect(transaction.type).to.be.equal(transactionInCheck.type);
-						expect(transaction.amount).to.be.equal(
-							transactionInCheck.amount.toString(),
+						expect(transaction.asset.amount).to.be.equal(
+							transactionInCheck.asset.amount.toString(),
 						);
 						expect(transaction.fee).to.be.equal(
 							transactionInCheck.fee.toString(),
 						);
-						expect(transaction.recipientId).to.be.equal(
-							transactionInCheck.recipientId,
+						expect(transaction.asset.recipientId).to.be.equal(
+							transactionInCheck.asset.recipientId,
 						);
 						expect(transaction.senderId).to.be.equal(
 							transactionInCheck.senderId,
@@ -393,7 +393,7 @@ describe('GET /api/transactions', () => {
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction =>
-						expect(Object.keys(transaction.asset).length).to.be.below(2),
+						expect(Object.keys(transaction.asset).length).to.be.greaterThan(1),
 					);
 				});
 
@@ -405,7 +405,7 @@ describe('GET /api/transactions', () => {
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction =>
-						expect(transaction.asset.signature.publicKey).to.be.a('string'),
+						expect(transaction.asset.publicKey).to.be.a('string'),
 					);
 				});
 
@@ -417,11 +417,9 @@ describe('GET /api/transactions', () => {
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction => {
-						expect(transaction.asset.delegate).to.have.property('publicKey');
-						expect(transaction.asset.delegate).to.have.property('username');
-						return expect(transaction.asset.delegate).to.have.property(
-							'address',
-						);
+						expect(transaction.asset).to.have.property('publicKey');
+						expect(transaction.asset).to.have.property('username');
+						return expect(transaction.asset).to.have.property('address');
 					});
 				});
 
@@ -434,11 +432,12 @@ describe('GET /api/transactions', () => {
 					expect(res.body.data).to.not.empty;
 					// Skip Genesis vote transaction - exception as it contains 101 votes
 					const transactionsType3 = res.body.data.filter(
-						transaction => transaction.recipientId !== '16313739661670634666L',
+						transaction =>
+							transaction.asset.recipientId !== '16313739661670634666L',
 					);
 					expect(transactionsType3.length).to.be.above(0);
 					transactionsType3.map(transaction => {
-						expect(Object.keys(transaction.asset).length).to.equal(1);
+						expect(Object.keys(transaction.asset).length).to.equal(3);
 						return expect(transaction.asset.votes.length).to.be.within(1, 33);
 					});
 				});
@@ -467,17 +466,11 @@ describe('GET /api/transactions', () => {
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction => {
-						expect(Object.keys(transaction.asset).length).to.equal(1);
-						expect(transaction.asset.multisignature.min).to.be.within(1, 15); // Exception: Should be 2 for multisig
-						expect(transaction.asset.multisignature.lifetime).to.be.within(
-							1,
-							72,
-						);
-						expect(transaction.asset.multisignature.keysgroup).to.be.an(
-							'array',
-						);
-						return expect(transaction.asset.multisignature.keysgroup).to.not
-							.empty;
+						expect(Object.keys(transaction.asset).length).to.equal(3);
+						expect(transaction.asset.min).to.be.within(1, 15); // Exception: Should be 2 for multisig
+						expect(transaction.asset.lifetime).to.be.within(1, 72);
+						expect(transaction.asset.keysgroup).to.be.an('array');
+						return expect(transaction.asset.keysgroup).to.not.empty;
 					});
 				});
 				// eslint-disable-next-line
@@ -598,7 +591,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							return expect(transaction.recipientId).to.be.equal(
+							return expect(transaction.asset.recipientId).to.be.equal(
 								accountFixtures.genesis.address,
 							);
 						});
@@ -647,50 +640,7 @@ describe('GET /api/transactions', () => {
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data[0].senderId).to.be.eql(accountId);
-						expect(res.body.data[1].recipientId).to.be.eql(accountId);
-					});
-			});
-		});
-
-		describe('recipientPublicKey', () => {
-			it('using invalid recipientPublicKey should fail', async () => {
-				return transactionsEndpoint
-					.makeRequest({ recipientPublicKey: '' }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'recipientPublicKey');
-					});
-			});
-
-			it('using one recipientPublicKey should return transactions', async () => {
-				return transactionsEndpoint
-					.makeRequest(
-						{ recipientPublicKey: accountFixtures.genesis.publicKey },
-						200,
-					)
-					.then(res => {
-						expect(res.body.data).to.not.empty;
-
-						res.body.data.map(transaction => {
-							return expect(transaction.recipientPublicKey).to.be.equal(
-								accountFixtures.genesis.publicKey,
-							);
-						});
-					});
-			});
-
-			it('using multiple recipientPublicKey should fail', async () => {
-				return transactionsEndpoint
-					.makeRequest(
-						{
-							recipientPublicKey: [
-								accountFixtures.genesis.publicKey,
-								accountFixtures.existingDelegate.publicKey,
-							],
-						},
-						400,
-					)
-					.then(res => {
-						expectSwaggerParamError(res, 'recipientPublicKey');
+						expect(res.body.data[1].asset.recipientId).to.be.eql(accountId);
 					});
 			});
 		});
@@ -753,9 +703,9 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ minAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							return expect(parseInt(transaction.amount, 10)).to.be.at.least(
-								minAmount,
-							);
+							return expect(
+								parseInt(transaction.asset.amount, 10),
+							).to.be.at.least(minAmount);
 						});
 					});
 			});
@@ -767,9 +717,9 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ maxAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							return expect(parseInt(transaction.amount, 10)).to.be.at.most(
-								maxAmount,
-							);
+							return expect(
+								parseInt(transaction.asset.amount || 0, 10),
+							).to.be.at.most(maxAmount);
 						});
 					});
 			});
@@ -1125,7 +1075,7 @@ describe('GET /api/transactions', () => {
 						200,
 					)
 					.then(res => {
-						const values = _.map(res.body.data, 'amount').map(value => {
+						const values = _.map(res.body.data.asset, 'amount').map(value => {
 							return parseInt(value, 10);
 						});
 
@@ -1162,7 +1112,7 @@ describe('GET /api/transactions', () => {
 							expect(transaction.senderId).to.be.eql(
 								accountFixtures.genesis.address,
 							);
-							expect(transaction.recipientId).to.be.eql(account.address);
+							expect(transaction.asset.recipientId).to.be.eql(account.address);
 						});
 					});
 			});
@@ -1185,8 +1135,7 @@ describe('GET /api/transactions', () => {
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
-							expect(transaction.asset).to.have.key('delegate');
-							return expect(transaction.asset.delegate).to.have.all.keys(
+							return expect(transaction.asset).to.have.all.keys(
 								'username',
 								'publicKey',
 								'address',

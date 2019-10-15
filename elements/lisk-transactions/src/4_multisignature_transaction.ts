@@ -94,10 +94,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset || { multisignature: {} }) as MultiSignatureAsset;
+		this.asset = (tx.asset || {}) as MultiSignatureAsset;
 		// Overwrite fee as it is different from the static fee
 		this.fee = new BigNum(MultisignatureTransaction.FEE).mul(
-			this.asset.keysgroup.length + 1,
+			(this.asset.keysgroup && this.asset.keysgroup.length
+				? this.asset.keysgroup.length
+				: 0) + 1,
 		);
 	}
 

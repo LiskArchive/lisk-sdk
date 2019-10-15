@@ -29,7 +29,6 @@ import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import {
 	isValidNumber,
-	validateAddress,
 	validateTransferAmount,
 	validator,
 	verifyAmountBalance,
@@ -181,20 +180,7 @@ export class TransferTransaction extends BaseTransaction {
 				new TransactionError(
 					'`recipientId` must be provided.',
 					this.id,
-					'.recipientId',
-				),
-			);
-		}
-
-		try {
-			validateAddress(this.asset.recipientId);
-		} catch (error) {
-			errors.push(
-				new TransactionError(
-					error.message,
-					this.id,
-					'.recipientId',
-					this.asset.recipientId,
+					'.asset.recipientId',
 				),
 			);
 		}

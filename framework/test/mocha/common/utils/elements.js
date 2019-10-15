@@ -14,7 +14,11 @@
 
 'use strict';
 
-const { utils: transactionUtils } = require('@liskhq/lisk-transactions');
+const {
+	utils: transactionUtils,
+	VoteTransaction,
+	MultisignatureTransaction,
+} = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 
 const redoSignature = (transaction, passphrase) => {
@@ -33,6 +37,31 @@ const redoSignature = (transaction, passphrase) => {
 	};
 };
 
+const redoVoteTransactionSignature = (voteTransactionJSON, passphrase) => {
+	const {
+		signature: discarded,
+		...transactionWithoutSignature
+	} = voteTransactionJSON;
+	const tx = new VoteTransaction(transactionWithoutSignature);
+	tx.sign(passphrase);
+
+	return tx.toJSON();
+};
+
+const redoMultisignatureTransactionSignature = (
+	multiTransactionJSON,
+	passphrase,
+) => {
+	const {
+		signature: discarded,
+		...transactionWithoutSignature
+	} = multiTransactionJSON;
+	const tx = new MultisignatureTransaction(transactionWithoutSignature);
+	tx.sign(passphrase);
+
+	return tx.toJSON();
+};
+
 const createInvalidRegisterMultisignatureTransaction = ({
 	keysgroup,
 	lifetime,
@@ -40,26 +69,25 @@ const createInvalidRegisterMultisignatureTransaction = ({
 	passphrase,
 	secondPassphrase,
 	baseFee,
-}) =>
-	transactionUtils.signRawTransaction({
-		transaction: {
-			type: 4,
-			amount: '0',
-			fee: new BigNum(baseFee).times(keysgroup.length + 1).toString(),
-			asset: {
-				multisignature: {
-					keysgroup: keysgroup.map(key => `+${key}`),
-					lifetime,
-					min: minimum,
-				},
-			},
+}) => {
+	const tx = new MultisignatureTransaction({
+		type: 4,
+		amount: '0',
+		fee: new BigNum(baseFee).times(keysgroup.length + 1).toString(),
+		asset: {
+			keysgroup: keysgroup.map(key => `+${key}`),
+			lifetime,
+			min: minimum,
 		},
-		passphrase,
-		secondPassphrase,
 	});
+	tx.sign(passphrase, secondPassphrase);
+	return tx.toJSON();
+};
 
 // Exports
 module.exports = {
 	redoSignature,
+	redoVoteTransactionSignature,
+	redoMultisignatureTransactionSignature,
 	createInvalidRegisterMultisignatureTransaction,
 };

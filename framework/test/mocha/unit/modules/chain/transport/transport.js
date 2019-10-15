@@ -469,7 +469,7 @@ describe('transport', () => {
 				beforeEach(async () => {
 					invalidTransaction = {
 						...transaction,
-						amount: '0',
+						asset: {},
 					};
 
 					try {

@@ -60,7 +60,7 @@ const getRecipientAddress = (stateStore, transaction) => {
 		transaction.type === TRANSACTION_TYPES_OUT_TRANSFER ||
 		transaction.type === TRANSACTION_TYPES_VOTE
 	) {
-		return transaction.recipientId;
+		return transaction.asset.recipientId;
 	}
 
 	return null;
@@ -101,7 +101,9 @@ const updateRecipientDelegateVotes = (
 		return false;
 	}
 
-	const { amount } = transaction;
+	const {
+		asset: { amount },
+	} = transaction;
 	const account = stateStore.account.get(address);
 	const method = undo ? 'sub' : 'add';
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
@@ -121,7 +123,8 @@ const updateSenderDelegateVotes = (
 	exceptions,
 	undo = false,
 ) => {
-	const amount = transaction.fee.plus(transaction.amount);
+	// use the ammount or default to zero as LIP-0012 removes the 'amount' property from all transactions but transfer
+	const amount = transaction.fee.plus(transaction.asset.amount || '0');
 	const method = undo ? 'add' : 'sub';
 	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
 	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];

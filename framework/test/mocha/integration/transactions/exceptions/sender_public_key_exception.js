@@ -41,13 +41,14 @@ describe('exceptions for senderPublicKey transactions', () => {
 		recipientPublicKey:
 			'cbf4ed7dbc6054b70e3744ce0150be4151e2cd99955cbffa19e3158b91739652',
 		senderId: '13555181540209512417L',
-		recipientId: '11365448450154403172L',
-		amount: '2000000000',
 		fee: '10000000',
 		signature:
 			'ef026f7f48bd9e593b72e7718636142cca3343f12bbfbef41635add2c825d5df29d137c5410d20ab9f24da59a55f4926494bc575013ea5a51708d86a08232a0f',
 		signatures: [],
-		asset: {},
+		asset: {
+			recipientId: '11365448450154403172L',
+			amount: '2000000000',
+		},
 	};
 
 	const transactionWithSenderPublicKeyException = {
@@ -61,13 +62,14 @@ describe('exceptions for senderPublicKey transactions', () => {
 		recipientPublicKey:
 			'cbf4ed7dbc6054b70e3744ce0150be4151e2cd99955cbffa19e3158b91739652',
 		senderId: '13555181540209512417L',
-		recipientId: '11365448450154403172L',
-		amount: '1200000000',
 		fee: '10000000',
 		signature:
 			'dbcf37b12203395d190ccd63352bd97b3899ecc6b33fc937199155ac98e5537a8841dde12775c3c011750b6dc517315eafcdeba194bd5dbc4ec6e94e3e9c660e',
 		signatures: [],
-		asset: {},
+		asset: {
+			recipientId: '11365448450154403172L',
+			amount: '1200000000',
+		},
 		confirmations: 7349561,
 	};
 

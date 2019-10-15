@@ -237,7 +237,9 @@ function addTransaction(library, transaction, cb) {
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
 		transaction,
 	);
-	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
+	const amountNormalized = !transaction.asset.amount
+		? 0
+		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
 	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
 	__testContext.debug(
 		`Enqueue transaction ID: ${

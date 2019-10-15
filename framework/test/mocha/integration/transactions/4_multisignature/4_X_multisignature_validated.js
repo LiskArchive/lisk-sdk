@@ -17,7 +17,7 @@
 const {
 	transfer,
 	registerMultisignature,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const randomUtil = require('../../../common/utils/random');
 const Scenarios = require('../../../common/scenarios');
@@ -44,11 +44,13 @@ describe('integration test (type 4) - checking registered multisignature transac
 	scenarios.regular.multiSigTransaction.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		const signature = transactionUtils.multiSignTransaction(
+		const sigObject = createSignatureObject(
 			scenarios.regular.multiSigTransaction,
 			member.passphrase,
 		);
-		return scenarios.regular.multiSigTransaction.signatures.push(signature);
+		return scenarios.regular.multiSigTransaction.signatures.push(
+			sigObject.signature,
+		);
 	});
 
 	localCommon.beforeBlock('4_X_multisig_validated', lib => {

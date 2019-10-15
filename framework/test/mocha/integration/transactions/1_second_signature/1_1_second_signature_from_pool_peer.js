@@ -96,7 +96,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
 							account.mem_accounts.secondPublicKey.toString('hex'),
-						).to.equal(signatureTransaction.asset.signature.publicKey);
+						).to.equal(signatureTransaction.asset.publicKey);
 					});
 				});
 			});
@@ -128,7 +128,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
 							account.mem_accounts.secondPublicKey.toString('hex'),
-						).to.equal(signatureTransaction2.asset.signature.publicKey);
+						).to.equal(signatureTransaction2.asset.publicKey);
 					});
 				});
 			});
