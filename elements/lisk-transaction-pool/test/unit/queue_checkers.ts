@@ -96,7 +96,7 @@ describe('queueCheckers', () => {
 			).to.be.a('function');
 		});
 
-		it('should call checkTransactionPropertyForValues with transactions senderPublicKeys values and senderPublicKey property', () => {
+		it('should call checkTransactionPropertyForValues with transactions senderPublicKeys values and senderId property', () => {
 			queueCheckers.checkTransactionForSenderPublicKey(transactions);
 			const senderProperty: queueCheckers.TransactionFilterableKeys =
 				'senderPublicKey';
