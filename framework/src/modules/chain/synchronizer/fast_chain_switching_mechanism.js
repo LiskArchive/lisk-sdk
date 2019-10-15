@@ -105,6 +105,14 @@ class FastChainSwitchingMechanism {
 		});
 	}
 
+	/**
+	 * Queries the blocks from the selected peer.
+	 * @param receivedBlock
+	 * @param highestCommonBlock
+	 * @param peerId
+	 * @return {Promise<Array<Object>>}
+	 * @private
+	 */
 	async _queryBlocks(receivedBlock, highestCommonBlock, peerId) {
 		if (
 			!highestCommonBlock ||
@@ -135,6 +143,12 @@ class FastChainSwitchingMechanism {
 		return blocks;
 	}
 
+	/**
+	 * Validates a set of blocks
+	 * @param blocks
+	 * @return {Promise<void>}
+	 * @private
+	 */
 	async _validateBlocks(blocks) {
 		try {
 			for (const block of blocks) {
@@ -146,6 +160,13 @@ class FastChainSwitchingMechanism {
 		}
 	}
 
+	/**
+	 * Switches to desired chain
+	 * @param highestCommonBlock
+	 * @param blocksToApply
+	 * @return {Promise<void>}
+	 * @private
+	 */
 	async _switchChain(highestCommonBlock, blocksToApply) {
 		await deleteBlocksAfterHeight(
 			this.processor,
@@ -208,6 +229,11 @@ class FastChainSwitchingMechanism {
 		return blocks;
 	}
 
+	/**
+	 * Computes the height values for the last two rounds
+	 * @return {Promise<string>}
+	 * @private
+	 */
 	async _computeLastTwoRoundsHeights() {
 		new Array(this.constants.activeDelegates * 2)
 			.fill(0)
