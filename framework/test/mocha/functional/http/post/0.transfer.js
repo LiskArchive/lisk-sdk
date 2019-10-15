@@ -173,7 +173,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			const signedTransactionFromGenesis = {
 				senderPublicKey:
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-				requesterPublicKey: null,
 				timestamp: 24259352,
 				type: 0,
 				asset: {

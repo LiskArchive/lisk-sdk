@@ -30,8 +30,6 @@ const BaseEntity = require('./base_entity');
  * @property {Integer} type
  * @property {Number} timestamp
  * @property {string} senderPublicKey
- * @property {string} [recipientPublicKey]
- * @property {string} requesterPublicKey
  * @property {string} senderId
  * @property {string} recipientId
  * @property {string} amount
@@ -154,16 +152,6 @@ const BaseEntity = require('./base_entity');
  * @property {string} [senderPublicKey_ne]
  * @property {Array.<string>} [senderPublicKey_in]
  * @property {string} [senderPublicKey_like]
- * @property {string} [recipientPublicKey]
- * @property {string} [recipientPublicKey_eql]
- * @property {string} [recipientPublicKey_ne]
- * @property {Array.<string>} [recipientPublicKey_in]
- * @property {string} [recipientPublicKey_like]
- * @property {string} [requesterPublicKey]
- * @property {string} [requesterPublicKey_eql]
- * @property {string} [requesterPublicKey_ne]
- * @property {Array.<string>} [requesterPublicKey_in]
- * @property {string} [requesterPublicKey_like]
  * @property {string} [senderId]
  * @property {string} [senderId_eql]
  * @property {string} [senderId_ne]
@@ -242,27 +230,6 @@ class Transaction extends BaseEntity {
 
 		this.addField(
 			'senderPublicKey',
-			'string',
-			{
-				filter: filterTypes.TEXT,
-				format: 'publicKey',
-			},
-			stringToByte,
-		);
-
-		this.addField(
-			'recipientPublicKey',
-			'string',
-			{
-				filter: filterTypes.TEXT,
-				format: 'publicKey',
-				fieldName: 'm.publicKey',
-			},
-			stringToByte,
-		);
-
-		this.addField(
-			'requesterPublicKey',
 			'string',
 			{
 				filter: filterTypes.TEXT,

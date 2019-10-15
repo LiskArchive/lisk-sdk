@@ -40,7 +40,6 @@ const expectValidTransaction = (result, transaction, extended = true) => {
 	// So the recipientPublicKey for the account is not updated
 	// expect(result.recipientPublicKey).to.be.eql(transaction.recipientPublicKey);
 
-	expect(result.requesterPublicKey).to.be.eql(transaction.requesterPublicKey);
 	expect(result.signature).to.be.eql(transaction.signature);
 	expect(result.signatures).to.be.eql(transaction.signatures);
 	expect(result.amount).to.be.eql(transaction.amount);
@@ -121,11 +120,6 @@ describe('Transaction', () => {
 			'recipientPublicKey_ne',
 			'recipientPublicKey_in',
 			'recipientPublicKey_like',
-			'requesterPublicKey',
-			'requesterPublicKey_eql',
-			'requesterPublicKey_ne',
-			'requesterPublicKey_in',
-			'requesterPublicKey_like',
 			'senderId',
 			'senderId_eql',
 			'senderId_ne',
@@ -170,7 +164,6 @@ describe('Transaction', () => {
 			'signatures',
 			'senderPublicKey',
 			'recipientPublicKey',
-			'requesterPublicKey',
 			'confirmations',
 			'asset',
 		];
@@ -189,7 +182,6 @@ describe('Transaction', () => {
 			'signatures',
 			'senderPublicKey',
 			'recipientPublicKey',
-			'requesterPublicKey',
 			'confirmations',
 		];
 

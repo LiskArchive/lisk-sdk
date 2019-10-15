@@ -45,10 +45,7 @@ function TransactionsController(scope) {
 }
 
 function transactionFormatter(transaction) {
-	const result = _.omit(transaction, [
-		'requesterPublicKey',
-		'recipientPublicKey',
-	]);
+	const result = transaction;
 	result.senderId = result.senderId || '';
 	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];

@@ -500,7 +500,6 @@ paths:
           default: verified
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
-        - $ref: '#/parameters/recipientPublicKey'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
         - $ref: '#/parameters/transactionType'
@@ -919,7 +918,6 @@ paths:
       parameters:
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
-        - $ref: '#/parameters/recipientPublicKey'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
         - $ref: '#/parameters/senderIdOrRecipientId'
@@ -1142,13 +1140,6 @@ parameters:
     format: address
     minLength: 1
     maxLength: 22
-  recipientPublicKey:
-    name: recipientPublicKey
-    in: query
-    description: Recipient public key
-    type: string
-    format: publicKey
-    minLength: 1
   senderId:
     name: senderId
     in: query

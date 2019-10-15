@@ -35,7 +35,6 @@ const expectValidTransactionRow = (row, transaction) => {
 	expect(row.type).to.be.eql(transaction.type);
 	expect(row.timestamp).to.be.eql(transaction.timestamp);
 	expect(row.senderPublicKey).to.be.eql(transaction.senderPublicKey);
-	expect(row.requesterPublicKey).to.be.eql(transaction.requesterPublicKey);
 	expect(row.senderId).to.be.eql(transaction.senderId);
 	expect(row.asset.recipientId).to.be.eql(transaction.asset.recipientId);
 	expect(row.asset.amount).to.be.eql(transaction.asset.amount);

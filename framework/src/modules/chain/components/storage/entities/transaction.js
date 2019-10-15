@@ -30,8 +30,6 @@ const {
  * @property {Integer} type
  * @property {Number} timestamp
  * @property {string} senderPublicKey
- * @property {string} [recipientPublicKey]
- * @property {string} requesterPublicKey
  * @property {string} senderId
  * @property {string} recipientId
  * @property {string} amount
@@ -127,7 +125,6 @@ const trsCreateFields = [
 	'type',
 	'timestamp',
 	'senderPublicKey',
-	'requesterPublicKey',
 	'senderId',
 	'recipientId',
 	'amount',
