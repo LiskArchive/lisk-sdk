@@ -46,6 +46,7 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
+	ConnectionKind,
 	P2PClosePacket,
 	P2PMessagePacket,
 	P2PNodeInfo,
@@ -325,7 +326,16 @@ export class PeerPool extends EventEmitter {
 	public send(message: P2PMessagePacket): void {
 		const listOfPeerInfo: ReadonlyArray<P2PPeerInfo> = [
 			...this._peerMap.values(),
-		].map(peer => peer.peerInfo);
+		].map(peer => ({
+			...peer.peerInfo,
+			internalState: {
+				...peer.peerInfo.internalState,
+				connectionKind:
+					peer instanceof OutboundPeer
+						? ConnectionKind.OUTBOUND
+						: ConnectionKind.INBOUND,
+			},
+		}));
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,

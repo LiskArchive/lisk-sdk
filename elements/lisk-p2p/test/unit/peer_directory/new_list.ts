@@ -294,7 +294,6 @@ describe('newPeer', () => {
 			expect(evictionResult.evictedPeer).to.not.be.undefined;
 			expect(evictionResult.evictedPeer)
 				.is.an('object')
-				.has.property('sharedState')
 				.ownProperty('ipAddress')
 				.to.be.eql(oldPeer.peerInfo.ipAddress);
 		});

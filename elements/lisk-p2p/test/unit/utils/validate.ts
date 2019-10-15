@@ -59,9 +59,9 @@ describe('utils/validate', () => {
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
+						ipAddress: '12.23.54.3',
+						wsPort: 5393,
 						sharedState: {
-							ipAddress: '12.23.54.3',
-							wsPort: 5393,
 							height: 23232,
 							os: 'darwin',
 							version: '1.1.2',
@@ -78,9 +78,9 @@ describe('utils/validate', () => {
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
+						ipAddress: '12.23.54.3',
+						wsPort: 5393,
 						sharedState: {
-							ipAddress: '12.23.54.3',
-							wsPort: 5393,
 							height: 0,
 							os: '778',
 							version: '3.4.5-alpha.9',

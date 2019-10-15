@@ -34,7 +34,7 @@ export const sanitizeIncomingPeerInfo = (
 		ipAddress: ip || ipAddress,
 		wsPort,
 		sharedState: {
-			height: restOfPeerInfo.height ? (restOfPeerInfo.height as number) : 0,
+			height: height ? height : 0,
 			protocolVersion: restOfPeerInfo.protocolVersion
 				? restOfPeerInfo.protocolVersion
 				: '',

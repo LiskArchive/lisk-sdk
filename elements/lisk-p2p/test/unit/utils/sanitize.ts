@@ -25,11 +25,12 @@ describe('utils/sanitize', () => {
 	describe('#sanitizeIncomingPeerInfo', () => {
 		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
 			const samplePeers = initPeerInfoList();
-			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
+			const { ipAddress, wsPort, sharedState } = samplePeers[0];
 			const protocolPeerInfo = {
 				ip: ipAddress,
 				ipAddress,
-				...restOfPeerInfo,
+				wsPort,
+				...sharedState,
 			};
 
 			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).eql(samplePeers[0]);
@@ -39,11 +40,12 @@ describe('utils/sanitize', () => {
 	describe('#sanitizeOutgoingPeerInfo', () => {
 		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
 			const samplePeers = initPeerInfoList();
-			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
+			const { ipAddress, wsPort, sharedState } = samplePeers[0];
 			const protocolPeerInfo = {
 				ip: ipAddress,
 				ipAddress,
-				...restOfPeerInfo,
+				wsPort,
+				...sharedState,
 			};
 
 			expect(sanitizeOutgoingPeerInfo(samplePeers[0])).eql(protocolPeerInfo);
