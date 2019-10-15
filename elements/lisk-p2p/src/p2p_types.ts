@@ -59,9 +59,9 @@ export enum PeerType {
 	NONE = 'NONE',
 }
 export interface P2PInternalState {
-	readonly dateAdded: Date;
-	readonly peerType: PeerType;
-	readonly isBanned: boolean;
+	readonly dateAdded?: Date;
+	readonly peerType?: PeerType;
+	readonly isBanned?: boolean;
 	readonly productivity?: number;
 	readonly reputation?: number;
 	readonly connectionKind?: ConnectionKind;
