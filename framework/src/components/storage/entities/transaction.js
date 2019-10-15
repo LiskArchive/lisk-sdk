@@ -39,53 +39,47 @@ const BaseEntity = require('./base_entity');
  * @property {string} signature
  * @property {string} signSignature
  * @property {Array.<string>} signatures
- * @property {json} asset
+ * * @property {Object} asset
  */
 
 /**
  * Transfer Transaction
  * @typedef {BasicTransaction} TransferTransaction
- * @property {Object} asset
  * @property {string} asset.data
+ * @property {string} asset.amount
+ * @property {string} asset.recipientId
  */
 
 /**
  * Second Passphrase Transaction
  * @typedef {BasicTransaction} SecondPassphraseTransaction
- * @property {Object} asset
- * @property {Object} asset.signature
- * @property {string} asset.signature.publicKey
+ * @property {string} asset.publicKey
  */
 
 /**
  * Delegate Transaction
  * @typedef {BasicTransaction} DelegateTransaction
  * @property {Object} asset
- * @property {Object} asset.delegate
- * @property {string} asset.delegate.username
+ * @property {string} asset.username
  */
 
 /**
  * Vote Transaction
  * @typedef {BasicTransaction} VoteTransaction
- * @property {Object} asset
  * @property {Array.<string>} asset.votes
  */
 
 /**
  * Multisig Registration Transaction
  * @typedef {BasicTransaction} MultisigRegistrationTransaction
- * @property {Object} asset
- * @property {Object} asset.multisignature
- * @property {Integer} asset.multisignature.min
- * @property {Integer} asset.multisignature.lifetime
- * @property {Array.<string>} asset.multisignature.keysgroup
+ * @property {Integer} asset.min
+ * @property {Integer} asset.lifetime
+ * @property {Array.<string>} asset.keysgroup
  */
 
 /**
  * Dapp Registration Transaction
  * @typedef {BasicTransaction} DappRegistrationTransaction
- * @property {Object} asset
  * @property {Object} asset.dapp
  * @property {Integer} asset.dapp.type
  * @property {string} asset.dapp.name
