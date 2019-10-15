@@ -37,7 +37,7 @@ const BaseEntity = require('./base_entity');
  * @property {string} signature
  * @property {string} signSignature
  * @property {Array.<string>} signatures
- * * @property {Object} asset
+ * @property {Object} asset
  */
 
 /**
