@@ -233,7 +233,7 @@ module.exports = class Chain {
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe(
 					'network:event',
-					async ({ data: { event, data } }) => {
+					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactions') {
 								await this.transport.postTransactions(data);
@@ -244,7 +244,7 @@ module.exports = class Chain {
 								return;
 							}
 							if (event === 'postBlock') {
-								await this.transport.postBlock(data);
+								await this.transport.postBlock(data, peerId);
 								return;
 							}
 						} catch (err) {
@@ -683,11 +683,14 @@ module.exports = class Chain {
 			},
 		);
 
-		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
-			this.synchronizer.run(block).catch(err => {
-				this.logger.error({ err }, 'Error occurred during synchronization.');
-			});
-		});
+		this.channel.subscribe(
+			'chain:processor:sync',
+			({ data: { block, peerId } }) => {
+				this.synchronizer.run(block, peerId).catch(err => {
+					this.logger.error({ err }, 'Error occurred during synchronization.');
+				});
+			},
+		);
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
 			this.logger.trace(

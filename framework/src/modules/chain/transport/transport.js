@@ -245,7 +245,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}) {
+	async postBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -277,7 +277,7 @@ class Transport {
 
 		const block = blocksUtils.addBlockProperties(query.block);
 
-		return this.processorModule.process(block);
+		return this.processorModule.process(block, { peerId });
 	}
 
 	/**

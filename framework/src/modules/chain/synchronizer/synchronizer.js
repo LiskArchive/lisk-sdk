@@ -81,7 +81,7 @@ class Synchronizer {
 	 * @param {Object} receivedBlock - The block you received from network, used to choose sync mechanism
 	 * @return {*}
 	 */
-	async run(receivedBlock) {
+	async run(receivedBlock, peerId) {
 		if (this.activeMechanism) {
 			throw new Error(
 				`Synchronizer: ${
@@ -111,7 +111,7 @@ class Synchronizer {
 
 		this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
 
-		await validMechanism.run(receivedBlock);
+		await validMechanism.run(receivedBlock, peerId);
 
 		return this.logger.info('Synchronization finished successfully');
 	}
