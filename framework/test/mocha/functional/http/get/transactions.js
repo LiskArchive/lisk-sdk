@@ -21,6 +21,7 @@ const {
 	registerSecondPassphrase,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
@@ -352,14 +353,12 @@ describe('GET /api/transactions', () => {
 						expect(transaction.asset.amount).to.be.equal(
 							transactionInCheck.asset.amount.toString(),
 						);
-						expect(transaction.fee).to.be.equal(
-							transactionInCheck.fee.toString(),
-						);
+						expect(transaction.fee).to.be.equal('0');
 						expect(transaction.asset.recipientId).to.be.equal(
 							transactionInCheck.asset.recipientId,
 						);
 						expect(transaction.senderId).to.be.equal(
-							transactionInCheck.senderId,
+							getAddressFromPublicKey(transactionInCheck.senderPublicKey),
 						);
 						expect(transaction.asset).to.be.eql(transactionInCheck.asset);
 					});

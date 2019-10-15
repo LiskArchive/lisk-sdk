@@ -15,6 +15,7 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const application = require('../common/application');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const accountsFixtures = require('../fixtures/accounts');
@@ -130,7 +131,9 @@ describe('app', () => {
 								});
 								expect(found).to.be.an('object');
 								expect(delegate.username).to.equal(found.asset.username);
-								expect(delegate.address).to.equal(found.senderId);
+								expect(delegate.address).to.equal(
+									getAddressFromPublicKey(found.senderPublicKey),
+								);
 								expect(delegate.publicKey.toString('hex')).to.equal(
 									found.senderPublicKey,
 								);
@@ -159,12 +162,18 @@ describe('app', () => {
 									const balance = _.reduce(
 										library.genesisBlock.block.transactions,
 										(reduceBalance, acc) => {
-											if (acc.asset.recipientId === voter.senderId) {
+											if (
+												acc.asset.recipientId ===
+												getAddressFromPublicKey(voter.senderPublicKey)
+											) {
 												return new BigNum(reduceBalance)
 													.plus(acc.asset.amount)
 													.toString();
 											}
-											if (acc.senderId === voter.senderId) {
+											if (
+												getAddressFromPublicKey(acc.senderPublicKey) ===
+												getAddressFromPublicKey(voter.senderPublicKey)
+											) {
 												return new BigNum(reduceBalance)
 													.minus(acc.amount)
 													.toString();
@@ -196,11 +205,15 @@ describe('app', () => {
 
 				before(() => {
 					// Get genesis accounts address - should be senderId from first transaction
-					genesisAddress = library.genesisBlock.block.transactions[0].senderId;
+					genesisAddress = getAddressFromPublicKey(
+						library.genesisBlock.block.transactions[0].senderPublicKey,
+					);
 
 					// Get unique accounts from genesis block
 					genesisAccounts = _.union(
-						library.genesisBlock.block.transactions.map(a => a.senderId),
+						library.genesisBlock.block.transactions.map(a =>
+							getAddressFromPublicKey(a.senderPublicKey),
+						),
 						library.genesisBlock.block.transactions.map(a => a.recipientId),
 					).filter(a => a); // We call filter here to remove null values
 
@@ -254,14 +267,19 @@ describe('app', () => {
 
 							it('fields address, balance, publicKey should match genesis block transaction', done => {
 								expect(genesisAccount.address).to.equal(
-									genesisAccountTransaction.senderId,
+									getAddressFromPublicKey(
+										genesisAccountTransaction.senderPublicKey,
+									),
 								);
 
 								// Sum all outgoing transactions from genesis account
 								const balance = _.reduce(
 									library.genesisBlock.block.transactions,
 									(reduceBalance, acc) => {
-										if (acc.senderId === genesisAccount.address) {
+										if (
+											getAddressFromPublicKey(acc.senderPublicKey) ===
+											genesisAccount.address
+										) {
 											return new BigNum(reduceBalance)
 												.minus(acc.asset.amount)
 												.toString();

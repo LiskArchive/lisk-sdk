@@ -467,8 +467,9 @@ describe('rounds', () => {
 				),
 				(_accounts, _delegates, _delegatesList) => {
 					// Get genesis accounts address - should be senderId from first transaction
-					const genesisAddress =
-						library.genesisBlock.block.transactions[0].senderId;
+					const genesisAddress = getAddressFromPublicKey(
+						library.genesisBlock.block.transactions[0].senderPublicKey,
+					);
 					// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
 					const genesisPublicKey = _accounts[genesisAddress].publicKey.toString(
 						'hex',
@@ -588,8 +589,9 @@ describe('rounds', () => {
 						const delegates = {};
 
 						// Get genesis accounts address - should be senderId from first transaction
-						const genesisAddress =
-							library.genesisBlock.block.transactions[0].senderId;
+						const genesisAddress = getAddressFromPublicKey(
+							library.genesisBlock.block.transactions[0].senderPublicKey,
+						);
 						// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
 						const genesisPublicKey = _accounts[
 							genesisAddress
