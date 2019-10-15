@@ -66,7 +66,7 @@ export const checkTransactionForId = (
 	return checkTransactionPropertyForValues(ids, idProperty);
 };
 
-export const checkTransactionForSenderPublicKeyWithRecipientIds = (
+export const checkTransactionForSenderIdWithRecipientIds = (
 	transactions: ReadonlyArray<Transaction>,
 ): ((transaction: Transaction) => boolean) => {
 	const recipientProperty: TransactionFilterableKeys = 'recipientId';

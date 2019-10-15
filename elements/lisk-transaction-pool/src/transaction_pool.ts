@@ -257,9 +257,7 @@ export class TransactionPool extends EventEmitter {
 		// Move transactions from the validated queue to the received queue where account was a receipient in the verified removed transactions
 		// Rationale is explained in issue #963
 		const removedTransactionsByRecipientIdFromValidatedQueue = this._queues.validated.removeFor(
-			queueCheckers.checkTransactionForSenderPublicKeyWithRecipientIds(
-				transactions,
-			),
+			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
 		);
 
 		this._queues.received.enqueueMany(
@@ -269,9 +267,7 @@ export class TransactionPool extends EventEmitter {
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
 		const removedTransactionsByRecipientIdFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForSenderPublicKeyWithRecipientIds(
-				transactions,
-			),
+			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
 		);
 
 		this._queues.validated.enqueueMany(
