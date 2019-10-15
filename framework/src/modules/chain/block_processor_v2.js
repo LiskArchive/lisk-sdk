@@ -26,7 +26,6 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const { baseBlockSchema } = require('./blocks');
 const { BaseBlockProcessor } = require('./processor');
-const { Slots, Dpos } = require('./dpos');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -169,33 +168,19 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 	constructor({
 		blocksModule,
 		bftModule,
-		storage,
+		dposModule,
 		logger,
 		constants,
 		exceptions,
 	}) {
 		super();
-		const delegateListRoundOffset = 2;
+		const verifyBlockForgerOffset = 2;
 		this.blocksModule = blocksModule;
 		this.bftModule = bftModule;
+		this.dposModule = dposModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
-
-		this.slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
-		});
-
-		this.dposModule = new Dpos({
-			storage,
-			logger,
-			slots: this.slots,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset,
-			exceptions,
-		});
 
 		this.init.pipe([() => this.bftModule.init()]);
 
@@ -209,7 +194,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					blockBytes,
 				}), // validate common block header
 			data => this.blocksModule.verifyInMemory(data),
-			({ block }) => this.dposModule.verifyBlockForger(block),
+			({ block }) =>
+				this.dposModule.verifyBlockForger(block, verifyBlockForgerOffset),
 			({ block }) => this.bftModule.validateBlock(block),
 		]);
 

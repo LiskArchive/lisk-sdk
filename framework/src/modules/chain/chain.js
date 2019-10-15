@@ -160,7 +160,7 @@ module.exports = class Chain {
 			const processorDependencies = {
 				blocksModule: this.blocks,
 				bftModule: this.bft,
-				storage: this.storage,
+				dposModule: this.dpos,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
@@ -407,14 +407,11 @@ module.exports = class Chain {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
-
-		const delegateListRoundOffset = 2;
 		this.dpos = new Dpos({
 			storage: this.storage,
 			logger: this.logger,
 			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset,
 			exceptions: this.options.exceptions,
 		});
 
