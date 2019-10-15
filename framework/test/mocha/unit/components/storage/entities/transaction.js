@@ -115,11 +115,6 @@ describe('Transaction', () => {
 			'senderPublicKey_ne',
 			'senderPublicKey_in',
 			'senderPublicKey_like',
-			'recipientPublicKey',
-			'recipientPublicKey_eql',
-			'recipientPublicKey_ne',
-			'recipientPublicKey_in',
-			'recipientPublicKey_like',
 			'senderId',
 			'senderId_eql',
 			'senderId_ne',
@@ -163,7 +158,6 @@ describe('Transaction', () => {
 			'signSignature',
 			'signatures',
 			'senderPublicKey',
-			'recipientPublicKey',
 			'confirmations',
 			'asset',
 		];
@@ -181,7 +175,6 @@ describe('Transaction', () => {
 			'signSignature',
 			'signatures',
 			'senderPublicKey',
-			'recipientPublicKey',
 			'confirmations',
 		];
 
