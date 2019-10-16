@@ -199,11 +199,12 @@ class Blocks extends EventEmitter {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
 			this.interfaceAdapters.transactions.fromJson(transaction),
 		);
-		return {
+		const blockInstance = {
 			...blockJSON,
 			totalAmount: new BigNum(blockJSON.totalAmount || 0),
 			totalFee: new BigNum(blockJSON.totalFee || 0),
 			reward: new BigNum(blockJSON.reward || 0),
+			previousBlock: blockJSON.previousBlockId,
 			version:
 				blockJSON.version === undefined || blockJSON.version === null
 					? 0
@@ -216,6 +217,8 @@ class Blocks extends EventEmitter {
 					: blockJSON.payloadLength,
 			transactions,
 		};
+		delete blockInstance.previousBlockId;
+		return blockInstance;
 	}
 
 	async validateDetached({ block, blockBytes }) {

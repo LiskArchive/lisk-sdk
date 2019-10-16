@@ -417,7 +417,7 @@ describe('blocks', () => {
 		});
 	});
 
-	describe.only('serialize', () => {
+	describe('serialize', () => {
 		const transaction = new TransferTransaction(randomUtils.transaction());
 		const block = newBlock({ transactions: [transaction] });
 
@@ -427,9 +427,15 @@ describe('blocks', () => {
 			expect(blockInstance.totalFee).toBe(block.totalFee.toString());
 			expect(blockInstance.totalAmount).toBe(block.totalAmount.toString());
 		});
+
+		it('should have only previousBlockId property', () => {
+			const blockInstance = blocksInstance.serialize(block);
+			expect(blockInstance.previousBlockId).toBeString();
+			expect(blockInstance.previousBlock).toBe(undefined);
+		});
 	});
 
-	describe.only('deserialize', () => {
+	describe('deserialize', () => {
 		const blockJSON = {
 			totalFee: '10000000',
 			totalAmount: '1',
@@ -477,6 +483,12 @@ describe('blocks', () => {
 		it('should convert transaction to be a class', () => {
 			const blockInstance = blocksInstance.deserialize(blockJSON);
 			expect(blockInstance.transactions[0]).toBeInstanceOf(TransferTransaction);
+		});
+
+		it('should have only previousBlock property', () => {
+			const blockInstance = blocksInstance.deserialize(blockJSON);
+			expect(blockInstance.previousBlock).toBeString();
+			expect(blockInstance.previousBlockId).toBe(undefined);
 		});
 	});
 
