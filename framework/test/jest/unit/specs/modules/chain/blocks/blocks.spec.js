@@ -98,10 +98,6 @@ describe('blocks', () => {
 				log: jest.fn(),
 				error: jest.fn(),
 			},
-			dposModule: {
-				apply: jest.fn(),
-				undo: jest.fn(),
-			},
 		};
 
 		slots = new Slots({
@@ -1256,7 +1252,6 @@ describe('blocks', () => {
 	describe('save', () => {
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
-			stubs.dependencies.dposModule.apply = jest.fn().mockResolvedValue();
 		});
 
 		describe('when skipSave is set to true', () => {
@@ -1278,12 +1273,12 @@ describe('blocks', () => {
 				).not.toHaveBeenCalled();
 			});
 
-			it('should resolve when dpos module successfully performs apply', async () => {
+			it('should resolve when blocks module successfully performs save', async () => {
 				// Arrange
 				const block = newBlock();
 
 				// Act & Assert
-				expect.assertions(2);
+				expect.assertions(1);
 
 				await expect(
 					blocksInstance.save({
@@ -1292,34 +1287,6 @@ describe('blocks', () => {
 						tx: stubs.tx,
 					}),
 				).resolves.toEqual();
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
-
-			it('should throw error with error from Dpos module failed to apply', async () => {
-				// Arrange
-				const block = newBlock();
-				const roundsError = new Error('dpos.apply error');
-				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
-
-				// Act & Assert
-				expect.assertions(2);
-
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(roundsError);
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
 			});
 		});
 
@@ -1361,30 +1328,6 @@ describe('blocks', () => {
 						tx: stubs.tx,
 					}),
 				).rejects.toEqual(transactionCreateError);
-			});
-
-			it('should not perform Dpos apply when save block fails', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				const transactionCreateError = 'transaction create error';
-				stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
-					transactionCreateError,
-				);
-				expect.assertions(2);
-
-				try {
-					// Act
-					await blocksInstance.save({
-						block,
-						skipSave: false,
-						tx: stubs.tx,
-					});
-				} catch (error) {
-					// Assert
-					expect(error).toEqual(transactionCreateError);
-					expect(stubs.dependencies.dposModule.apply).not.toHaveBeenCalled();
-				}
 			});
 
 			it('should call Block.create with correct parameters', async () => {
@@ -1454,12 +1397,12 @@ describe('blocks', () => {
 				).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
 			});
 
-			it('should resolve when dpos module successfully performs apply', async () => {
+			it('should resolve when blocks module successfully performs save', async () => {
 				// Arrange
 				const block = newBlock();
 
 				// Act & Assert
-				expect.assertions(2);
+				expect.assertions(1);
 
 				await expect(
 					blocksInstance.save({
@@ -1468,34 +1411,22 @@ describe('blocks', () => {
 						tx: stubs.tx,
 					}),
 				).resolves.toEqual();
-
-				return expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
 			});
 
-			it('should throw error with error from dpos module failed to apply', async () => {
+			it('should throw error when storage create fails', async () => {
 				// Arrange
 				const block = newBlock();
-				const roundsError = new Error('dpos.apply error');
-				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
+				const blockCreateError = 'block create error';
+				stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
+					blockCreateError,
+				);
 
-				expect.assertions(2);
+				expect.assertions(1);
 
 				// Act & Assert
 				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(roundsError);
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
+					blocksInstance.save({ block, skipSave: false, tx: stubs.tx }),
+				).rejects.toBe(blockCreateError);
 			});
 		});
 	});
