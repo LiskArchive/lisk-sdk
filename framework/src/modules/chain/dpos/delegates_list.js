@@ -48,9 +48,11 @@ class DelegatesList {
 	 * Get shuffled list of active delegate public keys for a specific round -> forger public keys
 	 * @param {number} round
 	 */
-	async getForgerPublicKeysForRound(round) {
+	async getForgerPublicKeysForRound(round, roundOffset) {
+		// Delegate list is generated from round 1 hence `roundToVerify` can't be less than 1
+		const roundToVerify = Math.max(round - roundOffset, 1);
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
-			round,
+			roundToVerify,
 		);
 
 		if (!delegatePublicKeys.length) {
@@ -132,10 +134,10 @@ class DelegatesList {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.slots.calcRound(block.height);
 
-		// Delegate list is generated from round 1 hence `roundToVerify` can't be less than 1
-		const roundToVerify = Math.max(currentRound - roundOffset, 1);
-
-		const delegateList = await this.getForgerPublicKeysForRound(roundToVerify);
+		const delegateList = await this.getForgerPublicKeysForRound(
+			currentRound,
+			roundOffset,
+		);
 
 		if (!delegateList.length) {
 			throw new Error(
@@ -160,7 +162,7 @@ class DelegatesList {
 			 * Should be tackled by https://github.com/LiskHQ/lisk-sdk/issues/4194
 			 */
 			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
-			if (ignoreDelegateListCacheForRounds.includes(roundToVerify)) {
+			if (ignoreDelegateListCacheForRounds.includes(currentRound)) {
 				return true;
 			}
 

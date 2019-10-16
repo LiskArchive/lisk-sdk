@@ -52,8 +52,11 @@ module.exports = class Dpos {
 		});
 	}
 
-	async getForgerPublicKeysForRound(round) {
-		return this.delegatesList.getForgerPublicKeysForRound(round);
+	async getForgerPublicKeysForRound(round, delegateListRoundOffset = 0) {
+		return this.delegatesList.getForgerPublicKeysForRound(
+			round,
+			delegateListRoundOffset,
+		);
 	}
 
 	async onBlockFinalized({ height }) {
@@ -62,9 +65,9 @@ module.exports = class Dpos {
 
 	async onRoundFinish() {
 		// TODO use the configuration variable to set the value of this variable
-		const delegateListOffsetForRound = 2;
+		const delegateListRoundOffset = 2;
 		const disposableDelegateList =
-			this.finalizedBlockRound - delegateListOffsetForRound;
+			this.finalizedBlockRound - delegateListRoundOffset;
 		await this.delegatesList.deleteDelegateListUntilRound(
 			disposableDelegateList,
 		);
@@ -74,11 +77,11 @@ module.exports = class Dpos {
 		return this.delegatesList.verifyBlockForger(block, roundOffset);
 	}
 
-	async apply({ block, tx }) {
-		return this.delegatesInfo.apply(block, tx);
+	async apply(block, delegateListRoundOffset = 0, tx = undefined) {
+		return this.delegatesInfo.apply(block, delegateListRoundOffset, tx);
 	}
 
-	async undo({ block, tx }) {
-		return this.delegatesInfo.undo(block, tx);
+	async undo(block, delegateListRoundOffset = 0, tx = undefined) {
+		return this.delegatesInfo.undo(block, delegateListRoundOffset, tx);
 	}
 };

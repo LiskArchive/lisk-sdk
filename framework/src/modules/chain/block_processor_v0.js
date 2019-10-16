@@ -110,6 +110,7 @@ const validateSchema = ({ block }) => {
 class BlockProcessorV0 extends BaseBlockProcessor {
 	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
 		super();
+		const delegateListRoundOffset = 0;
 		this.blocksModule = blocksModule;
 		this.dposModule = dposModule;
 		this.logger = logger;
@@ -151,17 +152,20 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.apply.pipe([
 			data => this.blocksModule.apply(data),
-			data => this.dposModule.apply(data),
+			({ block, tx }) =>
+				this.dposModule.apply(block, delegateListRoundOffset, tx),
 		]);
 
 		this.applyGenesis.pipe([
 			data => this.blocksModule.applyGenesis(data),
-			data => this.dposModule.apply(data),
+			({ block, tx }) =>
+				this.dposModule.apply(block, delegateListRoundOffset, tx),
 		]);
 
 		this.undo.pipe([
 			data => this.blocksModule.undo(data),
-			data => this.dposModule.undo(data),
+			({ block, tx }) =>
+				this.dposModule.undo(block, delegateListRoundOffset, tx),
 		]);
 
 		this.create.pipe([data => this._create(data)]);

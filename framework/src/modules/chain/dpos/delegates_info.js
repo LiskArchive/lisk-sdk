@@ -67,7 +67,7 @@ class DelegatesInfo {
 		this.exceptions = exceptions;
 	}
 
-	async apply(block, tx) {
+	async apply(block, delegateListRoundOffset, tx) {
 		const undo = false;
 
 		/**
@@ -80,30 +80,34 @@ class DelegatesInfo {
 			return false;
 		}
 
-		return this._update(block, undo, tx);
+		return this._update(block, undo, delegateListRoundOffset, tx);
 	}
 
-	async undo(block, tx) {
+	async undo(block, delegateListRoundOffset, tx) {
 		const undo = true;
 
 		// Never undo genesis block
 		if (_isGenesisBlock(block)) {
 			throw new Error('Cannot undo genesis block');
 		}
-		return this._update(block, undo, tx);
+		return this._update(block, undo, delegateListRoundOffset, tx);
 	}
 
 	/**
 	 * @param {Block} block
 	 */
-	async _update(block, undo, tx) {
+	async _update(block, undo, delegateListRoundOffset, tx) {
 		await this._updateProducedBlocks(block, undo, tx);
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {
 			const round = this.slots.calcRound(block.height);
 
-			const roundSummary = await this._summarizeRound(block, tx);
+			const roundSummary = await this._summarizeRound(
+				block,
+				delegateListRoundOffset,
+				tx,
+			);
 
 			await Promise.all([
 				this._updateMissedBlocks(roundSummary, undo, tx),
@@ -239,7 +243,7 @@ class DelegatesInfo {
 	 * @returns {Object} { earnings: { fee, reward } }
 	 * @returns {Object} { delegateAccount: AccountEntity }
 	 */
-	async _summarizeRound(block, tx) {
+	async _summarizeRound(block, delegateListRoundOffset, tx) {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
@@ -293,6 +297,7 @@ class DelegatesInfo {
 
 			return {
 				round,
+				delegateListRoundOffset,
 				totalFee,
 				uniqForgersInfo,
 			};
@@ -302,9 +307,14 @@ class DelegatesInfo {
 		}
 	}
 
-	async _getMissedBlocksDelegatePublicKeys({ round, uniqForgersInfo }) {
+	async _getMissedBlocksDelegatePublicKeys({
+		round,
+		delegateListRoundOffset,
+		uniqForgersInfo,
+	}) {
 		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
 			round,
+			delegateListRoundOffset,
 		);
 
 		return expectedForgingPublicKeys.filter(
