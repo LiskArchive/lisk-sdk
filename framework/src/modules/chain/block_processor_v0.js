@@ -127,7 +127,8 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 					blockBytes,
 				}), // validate common block header
 			data => this.blocksModule.verifyInMemory(data),
-			({ block }) => this.dposModule.verifyBlockForger(block),
+			({ block }) =>
+				this.dposModule.verifyBlockForger(block, delegateListRoundOffset),
 		]);
 
 		this.validateDetached.pipe([
@@ -153,19 +154,19 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		this.apply.pipe([
 			data => this.blocksModule.apply(data),
 			({ block, tx }) =>
-				this.dposModule.apply(block, delegateListRoundOffset, tx),
+				this.dposModule.apply(block, tx, delegateListRoundOffset),
 		]);
 
 		this.applyGenesis.pipe([
 			data => this.blocksModule.applyGenesis(data),
 			({ block, tx }) =>
-				this.dposModule.apply(block, delegateListRoundOffset, tx),
+				this.dposModule.apply(block, tx, delegateListRoundOffset),
 		]);
 
 		this.undo.pipe([
 			data => this.blocksModule.undo(data),
 			({ block, tx }) =>
-				this.dposModule.undo(block, delegateListRoundOffset, tx),
+				this.dposModule.undo(block, tx, delegateListRoundOffset),
 		]);
 
 		this.create.pipe([data => this._create(data)]);

@@ -67,7 +67,7 @@ class DelegatesInfo {
 		this.exceptions = exceptions;
 	}
 
-	async apply(block, delegateListRoundOffset, tx) {
+	async apply(block, tx, delegateListRoundOffset) {
 		const undo = false;
 
 		/**
@@ -80,23 +80,23 @@ class DelegatesInfo {
 			return false;
 		}
 
-		return this._update(block, undo, delegateListRoundOffset, tx);
+		return this._update(block, undo, tx, delegateListRoundOffset);
 	}
 
-	async undo(block, delegateListRoundOffset, tx) {
+	async undo(block, tx, delegateListRoundOffset) {
 		const undo = true;
 
 		// Never undo genesis block
 		if (_isGenesisBlock(block)) {
 			throw new Error('Cannot undo genesis block');
 		}
-		return this._update(block, undo, delegateListRoundOffset, tx);
+		return this._update(block, undo, tx, delegateListRoundOffset);
 	}
 
 	/**
 	 * @param {Block} block
 	 */
-	async _update(block, undo, delegateListRoundOffset, tx) {
+	async _update(block, undo, tx, delegateListRoundOffset) {
 		await this._updateProducedBlocks(block, undo, tx);
 
 		// Perform updates that only happens in the end of the round
@@ -105,8 +105,8 @@ class DelegatesInfo {
 
 			const roundSummary = await this._summarizeRound(
 				block,
-				delegateListRoundOffset,
 				tx,
+				delegateListRoundOffset,
 			);
 
 			await Promise.all([
@@ -243,7 +243,7 @@ class DelegatesInfo {
 	 * @returns {Object} { earnings: { fee, reward } }
 	 * @returns {Object} { delegateAccount: AccountEntity }
 	 */
-	async _summarizeRound(block, delegateListRoundOffset, tx) {
+	async _summarizeRound(block, tx, delegateListRoundOffset) {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 

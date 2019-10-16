@@ -91,17 +91,17 @@ module.exports = class Dpos {
 
 	async apply(
 		block,
+		tx,
 		delegateListRoundOffset = this.delegateListRoundOffset,
-		tx = undefined,
 	) {
-		return this.delegatesInfo.apply(block, delegateListRoundOffset, tx);
+		return this.delegatesInfo.apply(block, tx, delegateListRoundOffset);
 	}
 
 	async undo(
 		block,
+		tx,
 		delegateListRoundOffset = this.delegateListRoundOffset,
-		tx = undefined,
 	) {
-		return this.delegatesInfo.undo(block, delegateListRoundOffset, tx);
+		return this.delegatesInfo.undo(block, tx, delegateListRoundOffset);
 	}
 };

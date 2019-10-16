@@ -48,9 +48,9 @@ class DelegatesList {
 	 * Get shuffled list of active delegate public keys for a specific round -> forger public keys
 	 * @param {number} round
 	 */
-	async getForgerPublicKeysForRound(round, roundOffset) {
+	async getForgerPublicKeysForRound(round, delegateListRoundOffset) {
 		// Delegate list is generated from round 1 hence `roundToVerify` can't be less than 1
-		const roundToVerify = Math.max(round - roundOffset, 1);
+		const roundToVerify = Math.max(round - delegateListRoundOffset, 1);
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
 			roundToVerify,
 		);
@@ -126,17 +126,17 @@ class DelegatesList {
 	 * Validates if block was forged by correct delegate
 	 *
 	 * @param {Object} block
-	 * @param {Number} roundOffset - use delegate list generated at the end of `roundOffset` before the current round
+	 * @param {Number} delegateListRoundOffset - use delegate list generated at the end of `delegateListRoundOffset` before the current round
 	 * @return {Boolean} - `true`
 	 * @throw {Error} Failed to verify slot
 	 */
-	async verifyBlockForger(block, roundOffset) {
+	async verifyBlockForger(block, delegateListRoundOffset) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.slots.calcRound(block.height);
 
 		const delegateList = await this.getForgerPublicKeysForRound(
 			currentRound,
-			roundOffset,
+			delegateListRoundOffset,
 		);
 
 		if (!delegateList.length) {
