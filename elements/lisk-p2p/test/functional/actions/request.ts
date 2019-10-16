@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_REQUEST_RECEIVED,
@@ -21,8 +20,6 @@ import {
 } from '../../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 import { constructPeerIdFromPeerInfo } from '../../../src/utils';
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 const REQ_PROCEDURE = 'foo';
 const REQ_DATA = 'bar';
@@ -32,9 +29,10 @@ describe('Request', () => {
 	const collectedEvents = new Map();
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork();
+		p2pNodeList = await createNetwork({ networkSize: 2 });
 
 		const firstP2PNode = p2pNodeList[0];
+		const secondP2PNode = p2pNodeList[1];
 
 		firstP2PNode.on(EVENT_REQUEST_RECEIVED, request => {
 			if (!request.wasResponseSent) {
@@ -48,7 +46,13 @@ describe('Request', () => {
 		});
 
 		firstP2PNode.on(EVENT_INVALID_REQUEST_RECEIVED, req => {
+			console.log('Listener 1:', req);
 			collectedEvents.set(EVENT_INVALID_REQUEST_RECEIVED, req);
+		});
+
+		secondP2PNode.on(EVENT_INVALID_REQUEST_RECEIVED, req => {
+			console.log('Listener 2:', req);
+			collectedEvents.set(EVENT_INVALID_REQUEST_RECEIVED + 2, req);
 		});
 	});
 

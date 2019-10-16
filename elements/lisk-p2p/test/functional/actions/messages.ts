@@ -16,6 +16,7 @@ import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_MESSAGE_RECEIVED,
+	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_INVALID_MESSAGE_RECEIVED,
 } from '../../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
@@ -30,12 +31,16 @@ describe('Message', () => {
 	const collectedEvents = new Map();
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork();
+		p2pNodeList = await createNetwork({ networkSize: 2 });
 
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.on(EVENT_MESSAGE_RECEIVED, msg => {
 			collectedEvents.set(EVENT_MESSAGE_RECEIVED, msg);
+		});
+
+		firstP2PNode.on(EVENT_FAILED_TO_SEND_MESSAGE, resp => {
+			collectedEvents.set(EVENT_FAILED_TO_SEND_MESSAGE, resp);
 		});
 
 		firstP2PNode.on(EVENT_INVALID_MESSAGE_RECEIVED, resp => {
