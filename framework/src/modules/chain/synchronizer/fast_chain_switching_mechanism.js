@@ -16,7 +16,11 @@
 
 const { BaseSynchronizer } = require('./base_synchronizer');
 const { addBlockProperties } = require('../blocks');
-const { restoreBlocks, deleteBlocksAfterHeight } = require('./utils');
+const {
+	clearBlocksTempTable,
+	restoreBlocks,
+	deleteBlocksAfterHeight,
+} = require('./utils');
 const {
 	ApplyPenaltyAndAbortError,
 	ApplyPenaltyAndRestartError,
@@ -106,10 +110,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return true;
 	}
 
-	get isActive() {
-		return this.active;
-	}
-
 	/**
 	 * Check if this sync mechanism is valid for the received block
 	 *
@@ -167,7 +167,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			);
 		}
 
-		const blocks = this.requestBlocksWithinIDs(
+		const blocks = await this.requestBlocksWithinIDs(
 			peerId,
 			highestCommonBlock.id,
 			receivedBlock.id,
@@ -197,7 +197,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		try {
 			for (const block of blocks) {
 				addBlockProperties(block);
-				await this.processor.validate(block);
+				await this.processor.validateDetached(block);
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');
@@ -224,6 +224,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				addBlockProperties(block);
 				await this.processor.processValidated(block);
 			}
+
+			await clearBlocksTempTable(this.storage);
 		} catch (err) {
 			await deleteBlocksAfterHeight(
 				this.processor,
@@ -236,11 +238,11 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	/**
 	 * Computes the height values for the last two rounds
-	 * @return {Promise<Array<number>>}
+	 * @return {Array<number>}
 	 * @private
 	 */
-	async _computeLastTwoRoundsHeights() {
-		new Array(this.constants.activeDelegates * 2)
+	_computeLastTwoRoundsHeights() {
+		return new Array(this.constants.activeDelegates * 2)
 			.fill(0)
 			.map((_, index) => this.blocks.lastBlock.height - index);
 	}
@@ -258,10 +260,12 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
 
+		const heightList = this._computeLastTwoRoundsHeights();
+
 		while (numberOfRequests < requestLimit) {
 			const blockIds = (await this.storage.entities.Block.get(
 				{
-					height_in: this._computeLastTwoRoundsHeights(),
+					height_in: heightList,
 				},
 				{
 					sort: 'height:asc',

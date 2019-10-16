@@ -85,10 +85,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 	}
 
-	get isActive() {
-		return this.active;
-	}
-
 	/**
 	 * Check if this sync mechanism is valid for the received block
 	 *

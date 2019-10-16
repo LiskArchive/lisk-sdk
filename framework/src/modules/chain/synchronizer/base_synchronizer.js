@@ -83,7 +83,7 @@ class BaseSynchronizer {
 				},
 			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
-			if (data) {
+			if (data && data.length) {
 				blocks.push(...data); // `data` is an array of blocks.
 				lastFetchedID = data.slice(-1).pop().id;
 				const index = blocks.findIndex(block => block.id === toId);

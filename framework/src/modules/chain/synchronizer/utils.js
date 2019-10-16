@@ -15,7 +15,10 @@
 'use strict';
 
 const { maxBy } = require('lodash');
-const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
+const {
+	FORK_STATUS_DIFFERENT_CHAIN,
+	addBlockProperties,
+} = require('../blocks');
 
 /**
  * Restore blocks from temp table and re-apply to chain
@@ -29,21 +32,33 @@ const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
  * @param {Object} tx - database transaction
  * @return {Promise<Boolean>} - returns true when successfully restoring blocks, returns false if no blocks were found
  */
-const restoreBlocks = async (blocksModule, processorModule, tx) => {
+const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	const tempBlocks = await blocksModule.getTempBlocks(tx);
 
 	if (tempBlocks.length === 0) {
 		return false;
 	}
 
-	for (const block of tempBlocks) {
-		await processorModule.processValidated(block, {
+	for (const tempBlockEntry of tempBlocks) {
+		addBlockProperties(tempBlockEntry.fullBlock);
+		// TODO: Remove this code when serializing PR is merged
+		tempBlockEntry.fullBlock.previousBlock =
+			tempBlockEntry.fullBlock.previousBlockId;
+		await processorModule.processValidated(tempBlockEntry.fullBlock, {
 			removeFromTempTable: true,
 		});
 	}
 
 	return true;
 };
+
+/**
+ * Clear the content of the blocks temporary table
+ * @param {object} storageModule
+ * @return {Promise<void>}
+ */
+const clearBlocksTempTable = storageModule =>
+	storageModule.entities.TempBlock.truncate();
 
 /**
  * Allows to restore blocks if there are blocks left upon startup in temp_block table (e.g. node crashed)
@@ -66,7 +81,7 @@ const restoreBlocksUponStartup = async (
 	storageModule,
 ) => {
 	// Get all blocks and find lowest height (next one to be applied)
-	const tempBlocks = await storageModule.entities.TempBlock.get({}, {}, {});
+	const tempBlocks = await storageModule.entities.TempBlock.get();
 	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
 		prev.height < current.height ? prev : current,
 	);
@@ -79,10 +94,10 @@ const restoreBlocksUponStartup = async (
 
 	if (inDifferentChain) {
 		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_block table
-		await restoreBlocks(blocksModule, processorModule, {});
+		await restoreBlocks(blocksModule, processorModule);
 	} else {
 		// Not different chain - Delete remaining blocks from temp_block table
-		await storageModule.entities.TempBlock.truncate();
+		await clearBlocksTempTable(storageModule);
 	}
 };
 
@@ -102,7 +117,7 @@ const deleteBlocksAfterHeight = async (
 	backup = false,
 ) => {
 	let { height: currentHeight } = blocksModule.lastBlock;
-	while (desiredHeight > currentHeight) {
+	while (desiredHeight < currentHeight) {
 		const lastBlock = await processorModule.deleteLastBlock({
 			saveTempBlock: backup,
 		});
@@ -176,4 +191,5 @@ module.exports = {
 	deleteBlocksAfterHeight,
 	restoreBlocksUponStartup,
 	restoreBlocks,
+	clearBlocksTempTable,
 };

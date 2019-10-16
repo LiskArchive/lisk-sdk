@@ -351,7 +351,7 @@ class Processor {
 				block,
 				tx,
 			});
-			await this.blocksModule.remove({ block, tx, saveTempBlock });
+			await this.blocksModule.remove({ block, tx }, saveTempBlock);
 			this.channel.publish('chain:processor:deleteBlock', {
 				block: cloneDeep(block),
 			});

@@ -37,11 +37,18 @@ class Synchronizer {
 	async init() {
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
-			await utils.restoreBlocksUponStartup(
-				this.blocksModule,
-				this.processorModule,
-				this.storageModule,
-			);
+			try {
+				await utils.restoreBlocksUponStartup(
+					this.blocksModule,
+					this.processorModule,
+					this.storageModule,
+				);
+			} catch (err) {
+				this.logger.error(
+					{ err },
+					'Failed to restore blocks from temp table upon startup',
+				);
+			}
 		}
 	}
 

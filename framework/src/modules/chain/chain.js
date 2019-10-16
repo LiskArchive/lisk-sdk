@@ -469,9 +469,12 @@ module.exports = class Chain {
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
 			storage: this.storage,
 			logger: this.logger,
+			channel: this.channel,
 			slots: this.slots,
 			blocks: this.blocks,
-			dpos: {},
+			bft: this.bft,
+			dpos: this.dpos,
+			processor: this.processor,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 
@@ -636,21 +639,24 @@ module.exports = class Chain {
 			},
 		);
 
-		this.channel.subscribe('chain:processor:deleteBlock', ({ block }) => {
-			if (block.transactions.length) {
-				const transactions = block.transactions.reverse();
-				this.transactionPool.onDeletedTransactions(transactions);
-				this.channel.publish(
-					'chain:transactions:confirmed:change',
-					block.transactions,
+		this.channel.subscribe(
+			'chain:processor:deleteBlock',
+			({ data: { block } }) => {
+				if (block.transactions.length) {
+					const transactions = block.transactions.reverse();
+					this.transactionPool.onDeletedTransactions(transactions);
+					this.channel.publish(
+						'chain:transactions:confirmed:change',
+						block.transactions,
+					);
+				}
+				this.logger.info(
+					{ id: block.id, height: block.height },
+					'Deleted a block from the chain',
 				);
-			}
-			this.logger.info(
-				{ id: block.id, height: block.height },
-				'Deleted a block from the chain',
-			);
-			this.channel.publish('chain:blocks:change', block);
-		});
+				this.channel.publish('chain:blocks:change', block);
+			},
+		);
 
 		this.channel.subscribe(
 			'chain:processor:newBlock',
