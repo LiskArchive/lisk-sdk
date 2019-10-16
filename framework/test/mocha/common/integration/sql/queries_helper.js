@@ -57,7 +57,7 @@ class Queries {
 
 	getDelegates() {
 		return self.storage.adapter.db.query(
-			"SELECT m.*, t.id as \"transactionId\" FROM mem_accounts m LEFT JOIN trs t ON t.asset->'delegate'->>'username' = m.username WHERE t.type = 2",
+			'SELECT m.*, t.id as "transactionId" FROM mem_accounts m LEFT JOIN trs t ON t.asset->>\'username\' = m.username WHERE t.type = 2',
 		);
 	}
 

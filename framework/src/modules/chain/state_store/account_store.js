@@ -25,7 +25,6 @@ const defaultAccount = {
 	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
-	rank: null,
 	fees: '0',
 	rewards: '0',
 	vote: '0',

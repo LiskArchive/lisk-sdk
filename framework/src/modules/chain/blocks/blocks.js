@@ -229,13 +229,6 @@ class Blocks extends EventEmitter {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes);
 		validateReward(block, this.blockReward, this.exceptions);
-		validatePayload(
-			block,
-			this.constants.maxTransactionsPerBlock,
-			this.constants.maxPayloadLength,
-		);
-		// Update id
-		block.id = blocksUtils.getId(blockBytes);
 
 		// validate transactions
 		const { transactionsResponses } = validateTransactions(this.exceptions)(
@@ -245,9 +238,17 @@ class Blocks extends EventEmitter {
 			transactionResponse =>
 				transactionResponse.status !== TransactionStatus.OK,
 		);
+
 		if (invalidTransactionResponse) {
 			throw invalidTransactionResponse.errors;
 		}
+		validatePayload(
+			block,
+			this.constants.maxTransactionsPerBlock,
+			this.constants.maxPayloadLength,
+		);
+		// Update id
+		block.id = blocksUtils.getId(blockBytes);
 	}
 
 	async verifyInMemory({ block, lastBlock }) {

@@ -1,4 +1,5 @@
 /*
+ * LiskHQ/lisk-commander
  * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
@@ -10,21 +11,18 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
+export const removeUndefinedValues = (obj: {
+	readonly [key: string]: unknown;
+}) =>
+	Object.entries(obj).reduce((prev, [key, val]) => {
+		if (val !== undefined) {
+			return {
+				...prev,
+				[key]: val,
+			};
+		}
 
-
-/*
-  DESCRIPTION: Update ranks of all delegates.
-
-  PARAMETERS: none
-*/
-
-UPDATE mem_accounts
-SET rank = new.rank
-FROM (
-	SELECT row_number() OVER (
-	ORDER BY vote DESC, "publicKey" ASC) AS rank, "publicKey"
-	FROM mem_accounts
-	WHERE "isDelegate" = 1
-) new
-WHERE mem_accounts."publicKey" = new."publicKey" AND mem_accounts."isDelegate" = 1;
+		return prev;
+	}, {});

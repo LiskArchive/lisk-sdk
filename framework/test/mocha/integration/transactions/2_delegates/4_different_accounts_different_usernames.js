@@ -143,10 +143,10 @@ describe('integration test (type 2) - double delegate registrations', () => {
 							const expectedErrors = [
 								`Transaction: ${
 									transaction3.id
-								} failed at .asset.delegate.username: Username is not unique.`,
+								} failed at .asset.username: Username is not unique.`,
 								`Transaction: ${
 									transaction3.id
-								} failed at .asset.delegate.username: Account is already a delegate`,
+								} failed at .asset.username: Account is already a delegate`,
 							];
 							expect(err).to.equal(expectedErrors.join(','));
 							done();

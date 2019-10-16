@@ -88,11 +88,9 @@ export const registerMultisignature = (
 		type: 4,
 		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		asset: {
-			multisignature: {
-				min: minimum,
-				lifetime,
-				keysgroup: plusPrependedKeysgroup,
-			},
+			min: minimum,
+			lifetime,
+			keysgroup: plusPrependedKeysgroup,
 		},
 	};
 

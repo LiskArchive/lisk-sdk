@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
 import { VoteTransaction } from './3_vote_transaction';
-import { VOTE_FEE } from './constants';
 import { TransactionJSON } from './transaction_types';
 import {
 	createBaseTransaction,
@@ -64,8 +64,9 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 3,
-		fee: VOTE_FEE.toString(),
 		asset: {
+			// TODO: Remove this after hardfork change. Amount is kept as asset property for exceptions
+			amount: '0',
 			votes: allVotes,
 		},
 	};
@@ -74,13 +75,15 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 		return transaction;
 	}
 
+	const recipientId = getAddressFromPassphrase(passphrase);
 	const transactionWithSenderInfo = {
 		...transaction,
 		// SenderId and SenderPublicKey are expected to be exist from base transaction
-		senderId: transaction.senderId as string,
 		senderPublicKey: transaction.senderPublicKey as string,
-		recipientId: transaction.senderId as string,
-		recipientPublicKey: transaction.senderPublicKey,
+		asset: {
+			...transaction.asset,
+			recipientId,
+		},
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);

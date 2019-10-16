@@ -35,7 +35,6 @@ const defaultCreateValues = {
 	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
-	rank: null,
 	fees: '0',
 	rewards: '0',
 	vote: '0',
@@ -74,7 +73,6 @@ describe('ChainAccount', () => {
 			'increaseFieldBy',
 			'decreaseFieldBy',
 			'delegateBlocksRewards',
-			'syncDelegatesRank',
 		];
 
 		validOptions = {
@@ -271,7 +269,6 @@ describe('ChainAccount', () => {
 				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
-				rank: null,
 				fees: '0',
 				rewards: '0',
 				vote: '0',
@@ -511,7 +508,7 @@ describe('ChainAccount', () => {
 		it('should not throw error if no matching record found', async () => {
 			// Arrange
 			const filter = {
-				rank: -100,
+				producedBlocks: -100,
 			};
 			// Act & Assert
 			expect(() => {
@@ -737,11 +734,11 @@ describe('ChainAccount', () => {
 				new accountFixtures.Account(),
 				new accountFixtures.Account(),
 			];
-			accounts[0].rank = 1000;
-			accounts[1].rank = 1000;
+			accounts[0].producedBlocks = 1000;
+			accounts[1].producedBlocks = 1000;
 
 			const filter = {
-				rank: 1000,
+				producedBlocks: 1000,
 			};
 
 			await AccountEntity.create(accounts);
@@ -778,7 +775,7 @@ describe('ChainAccount', () => {
 		it('should not throw error if no matching record found', async () => {
 			// Arrange
 			const filter = {
-				rank: -100,
+				producedBlocks: -100,
 			};
 			// Act & Assert
 			expect(() => {
@@ -1117,25 +1114,5 @@ describe('ChainAccount', () => {
 
 			expect(updatedAccount.balance).to.eql('14000');
 		});
-	});
-
-	describe('syncDelegatesRanks', () => {
-		it('should use the correct SQL', async () => {
-			// Arrange
-			sinonSandbox.spy(adapter, 'executeFile');
-			// Act
-			await AccountEntity.syncDelegatesRanks();
-			// Assert
-			expect(adapter.executeFile).to.be.calledOnce;
-			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
-				SQLs.syncDelegatesRank,
-			);
-		});
-
-		it(
-			'should sync rank attribute of all delegates based on their vote value and public key',
-		);
-
-		it('should not throw error if there is no delegate available');
 	});
 });

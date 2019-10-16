@@ -55,14 +55,8 @@ function accountFormatter(totalSupply, account) {
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'rank',
 			'productivity',
 		]);
-
-		formattedAccount.delegate.rank = parseInt(
-			formattedAccount.delegate.rank,
-			10,
-		);
 
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(

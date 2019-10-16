@@ -260,7 +260,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				0,
 				-1,
 			)}`;
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
 				delegateAccount.passphrase,
 			);
@@ -288,7 +288,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			transaction.asset.votes[0] = `+1${
 				accountFixtures.existingDelegate.publicKey
 			}`;
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
 				delegateAccount.passphrase,
 			);
@@ -314,7 +314,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
 			transaction.asset.votes[0] = transaction.asset.votes[0].replace('+', 'x');
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
 				delegateAccount.passphrase,
 			);
@@ -340,7 +340,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
 			transaction.asset.votes[0] = transaction.asset.votes[0].replace('+', '');
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
 				delegateAccount.passphrase,
 			);
@@ -366,7 +366,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
 			transaction.asset.votes[0] = null;
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
 				delegateAccount.passphrase,
 			);

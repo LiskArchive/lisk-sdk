@@ -59,7 +59,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "2.0.3",
+		"@liskhq/lisk-api-client": "3.0.0-alpha.0",
 		"@liskhq/lisk-constants": "1.2.3",
 		"@liskhq/lisk-cryptography": "2.3.0",
 		"@liskhq/lisk-passphrase": "2.0.3",

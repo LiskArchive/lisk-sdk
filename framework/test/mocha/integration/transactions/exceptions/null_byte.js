@@ -37,14 +37,14 @@ describe('exceptions for null byte transaction', () => {
 			'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 		recipientPublicKey: '',
 		senderId: '8273455169423958419L',
-		recipientId: '1L',
-		amount: '1',
 		fee: '10000000',
 		signature:
 			'0d44bf74a5f55d0316dfbf3a9cf5359ce3c34c783022f0ca4f26958f80267b485e6fffccc4c46130e001458616e34a5ac2b0d700216549ad3b293a7f201c0f07',
 		signatures: [],
 		asset: {
 			data: '\u0000hey:)',
+			recipientId: '1L',
+			amount: '1',
 		},
 	};
 
@@ -129,7 +129,7 @@ describe('exceptions for null byte transaction', () => {
 					it('should deduct balance from the sender account', async () => {
 						return expect(senderMemAccountAfter.balance).to.equal(
 							new BigNum(senderMemAccountBefore.balance)
-								.minus(transactionWithNullByte.amount)
+								.minus(transactionWithNullByte.asset.amount)
 								.minus(transactionWithNullByte.fee)
 								.toString(),
 						);
