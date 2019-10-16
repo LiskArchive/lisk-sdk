@@ -22,7 +22,7 @@ const {
 	castVotes,
 	registerMultisignature,
 	createDapp,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -420,11 +420,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						lifetime: 1,
 						minimum: 1,
 					});
-					const signature = transactionUtils.multiSignTransaction(
+					const signatureObject = createSignatureObject(
 						multisigTransaction,
 						accountFixtures.existingDelegate.passphrase,
 					);
-					multisigTransaction.signatures = [signature];
+					multisigTransaction.signatures = [signatureObject.signature];
 					multisigTransaction.ready = true;
 
 					localCommon.addTransactionsAndForge(

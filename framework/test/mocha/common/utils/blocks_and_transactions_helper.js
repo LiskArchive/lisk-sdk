@@ -73,7 +73,7 @@ const EXPECT = {
 
 const formatTransaction = t => ({
 	id: t.id,
-	amount: new BigNum(t.amount).toFixed(),
+	amount: new BigNum(t.asset.amount).toFixed(),
 	senderId: t.senderId,
 	recipientId: t.recipientId,
 });
@@ -232,7 +232,7 @@ class BlocksTransactionsHelper {
 		const totalSpending = this._transactions
 			.filter(t => t.type === TYPE.SPEND)
 			.reduce((total, t) => {
-				return total.plus(t.data.amount).plus(t.data.fee);
+				return total.plus(t.data.asset.amount).plus(t.data.fee);
 			}, new BigNum(0));
 		return totalSpending.toFixed();
 	}

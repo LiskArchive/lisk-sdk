@@ -31,6 +31,5 @@ export {
 	isValidNumber,
 	isValidTransferData,
 } from './validation';
-export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';
 export { transactionInterface } from './schema';

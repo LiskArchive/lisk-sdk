@@ -30,8 +30,6 @@ const {
  * @property {Integer} type
  * @property {Number} timestamp
  * @property {string} senderPublicKey
- * @property {string} [recipientPublicKey]
- * @property {string} requesterPublicKey
  * @property {string} senderId
  * @property {string} recipientId
  * @property {string} amount
@@ -39,52 +37,47 @@ const {
  * @property {string} signature
  * @property {string} signSignature
  * @property {Array.<string>} signatures
+ * @property {Object} asset
  */
 
 /**
  * Transfer Transaction
  * @typedef {BasicTransaction} TransferTransaction
- * @property {Object} asset
  * @property {string} asset.data
+ * @property {string} asset.amount
+ * @property {string} asset.recipientId
  */
 
 /**
  * Second Passphrase Transaction
  * @typedef {BasicTransaction} SecondPassphraseTransaction
- * @property {Object} asset
- * @property {Object} asset.signature
- * @property {string} asset.signature.publicKey
+ * @property {string} asset.publicKey
  */
 
 /**
  * Delegate Transaction
  * @typedef {BasicTransaction} DelegateTransaction
  * @property {Object} asset
- * @property {Object} asset.delegate
- * @property {string} asset.delegate.username
+ * @property {string} asset.username
  */
 
 /**
  * Vote Transaction
  * @typedef {BasicTransaction} VoteTransaction
- * @property {Object} asset
  * @property {Array.<string>} asset.votes
  */
 
 /**
  * Multisig Registration Transaction
  * @typedef {BasicTransaction} MultisigRegistrationTransaction
- * @property {Object} asset
- * @property {Object} asset.multisignature
- * @property {Integer} asset.multisignature.min
- * @property {Integer} asset.multisignature.lifetime
- * @property {Array.<string>} asset.multisignature.keysgroup
+ * @property {Integer} asset.min
+ * @property {Integer} asset.lifetime
+ * @property {Array.<string>} asset.keysgroup
  */
 
 /**
  * Dapp Registration Transaction
  * @typedef {BasicTransaction} DappRegistrationTransaction
- * @property {Object} asset
  * @property {Object} asset.dapp
  * @property {Integer} asset.dapp.type
  * @property {string} asset.dapp.name
@@ -132,7 +125,6 @@ const trsCreateFields = [
 	'type',
 	'timestamp',
 	'senderPublicKey',
-	'requesterPublicKey',
 	'senderId',
 	'recipientId',
 	'amount',
@@ -188,9 +180,16 @@ class ChainTransaction extends TransactionEntity {
 			transaction.signatures = transaction.signatures
 				? transaction.signatures.join()
 				: null;
-			transaction.amount = transaction.amount.toString();
+
+			if (transaction.type === 0 || transaction.type === 3) {
+				transaction.amount = transaction.asset.amount.toString();
+				transaction.recipientId = transaction.asset.recipientId;
+			} else {
+				transaction.recipientId = null;
+				transaction.amount = 0;
+			}
+
 			transaction.fee = transaction.fee.toString();
-			transaction.recipientId = transaction.recipientId || null;
 			transaction.transferData = null;
 
 			// Transfer data is bytea and can not be included as json when null byte is present

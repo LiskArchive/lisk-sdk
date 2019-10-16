@@ -13,17 +13,22 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	bigNumberToBuffer,
+	hexToBuffer,
+	intToBuffer,
+	stringToBuffer,
+} from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { MAX_TRANSACTION_AMOUNT, VOTE_FEE } from './constants';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT, VOTE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput, verifyAmountBalance } from './utils';
-import { validateAddress, validator } from './utils/validation';
+import { isValidNumber, validator } from './utils/validation';
 
 const PREFIX_UPVOTE = '+';
 const PREFIX_UNVOTE = '-';
@@ -32,6 +37,12 @@ const MIN_VOTE_PER_TX = 1;
 const MAX_VOTE_PER_TX = 33;
 
 export interface VoteAsset {
+	// RecipientId is required to be the same as senderId as protocol
+	// tslint:disable-next-line readonly-keyword
+	recipientId: string;
+	// Amount is kept for handling exception
+	// For exceptions.votes 15449731671927352923
+	readonly amount: BigNum;
 	readonly votes: ReadonlyArray<string>;
 }
 
@@ -46,6 +57,14 @@ export const voteAssetFormatSchema = {
 	type: 'object',
 	required: ['votes'],
 	properties: {
+		recipientId: {
+			type: 'string',
+			format: 'address',
+		},
+		amount: {
+			type: 'string',
+			format: 'amount',
+		},
 		votes: {
 			type: 'array',
 			minItems: MIN_VOTE_PER_TX,
@@ -59,6 +78,12 @@ export const voteAssetFormatSchema = {
 	},
 };
 
+interface RawAsset {
+	readonly recipientId: string;
+	readonly amount: string | number;
+	readonly votes: ReadonlyArray<string>;
+}
+
 export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
@@ -70,12 +95,67 @@ export class VoteTransaction extends BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset || {}) as VoteAsset;
+		if (tx.asset) {
+			const rawAsset = tx.asset as RawAsset;
+			this.asset = {
+				votes: rawAsset.votes,
+				recipientId: rawAsset.recipientId || this.senderId,
+				amount: new BigNum(
+					isValidNumber(rawAsset.amount) ? rawAsset.amount : '0',
+				),
+			};
+		} else {
+			// tslint:disable-next-line no-object-literal-type-assertion
+			this.asset = {} as VoteAsset;
+		}
 		this.containsUniqueData = true;
 	}
 
-	protected assetToBytes(): Buffer {
-		return Buffer.from(this.asset.votes.join(''), 'utf8');
+	public assetToJSON(): object {
+		return {
+			votes: this.asset.votes,
+			amount: this.asset.amount.toString(),
+			recipientId: this.asset.recipientId,
+		};
+	}
+
+	public sign(passphrase: string, secondPassphrase?: string): void {
+		super.sign(passphrase, secondPassphrase);
+		this.asset.recipientId = this.senderId;
+	}
+
+	// Function getBasicBytes is overriden to maintain the bytes order
+	// TODO: remove after hardfork implementation
+	protected getBasicBytes(): Buffer {
+		const transactionType = intToBuffer(this.type, BYTESIZES.TYPE);
+		const transactionTimestamp = intToBuffer(
+			this.timestamp,
+			BYTESIZES.TIMESTAMP,
+			'little',
+		);
+		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+
+		// TODO: Remove on the hard fork change
+		const transactionRecipientID = intToBuffer(
+			this.asset.recipientId.slice(0, -1),
+			BYTESIZES.RECIPIENT_ID,
+		).slice(0, BYTESIZES.RECIPIENT_ID);
+		const transactionAmount = bigNumberToBuffer(
+			this.asset.amount.toString(),
+			BYTESIZES.AMOUNT,
+			'little',
+		);
+
+		const votesBuffer = stringToBuffer(this.asset.votes.join(''));
+
+		return Buffer.concat([
+			transactionType,
+			transactionTimestamp,
+			transactionSenderPublicKey,
+			transactionRecipientID,
+			transactionAmount,
+			votesBuffer,
+		]);
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -130,49 +210,12 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(voteAssetFormatSchema, this.asset);
+		const asset = this.assetToJSON();
+		validator.validate(voteAssetFormatSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
-
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for vote transaction',
-					this.id,
-					'.amount',
-					this.amount.toString(),
-					'0',
-				),
-			);
-		}
-
-		try {
-			validateAddress(this.recipientId);
-		} catch (err) {
-			errors.push(
-				new TransactionError(
-					'RecipientId must be set for vote transaction',
-					this.id,
-					'.recipientId',
-					this.recipientId,
-				),
-			);
-		}
-
-		if (
-			this.recipientPublicKey &&
-			this.recipientId !== getAddressFromPublicKey(this.recipientPublicKey)
-		) {
-			errors.push(
-				new TransactionError(
-					'recipientId does not match recipientPublicKey.',
-					this.id,
-					'.recipientId',
-				),
-			);
-		}
 
 		return errors;
 	}
@@ -185,13 +228,15 @@ export class VoteTransaction extends BaseTransaction {
 		const balanceError = verifyAmountBalance(
 			this.id,
 			sender,
-			this.amount,
+			this.asset.amount,
 			this.fee,
 		);
 		if (balanceError) {
 			errors.push(balanceError);
 		}
-		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
+		const updatedSenderBalance = new BigNum(sender.balance).sub(
+			this.asset.amount,
+		);
 
 		this.asset.votes.forEach(actionVotes => {
 			const vote = actionVotes.substring(1);
@@ -275,7 +320,9 @@ export class VoteTransaction extends BaseTransaction {
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors = [];
 		const sender = store.account.get(this.senderId);
-		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
+		const updatedSenderBalance = new BigNum(sender.balance).add(
+			this.asset.amount,
+		);
 
 		// Deduct amount from sender in case of exceptions
 		// See issue: https://github.com/LiskHQ/lisk-elements/issues/1215
@@ -285,7 +332,7 @@ export class VoteTransaction extends BaseTransaction {
 					'Invalid amount',
 					this.id,
 					'.amount',
-					this.amount.toString(),
+					this.asset.amount.toString(),
 				),
 			);
 		}

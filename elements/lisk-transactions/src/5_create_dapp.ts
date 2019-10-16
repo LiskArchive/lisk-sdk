@@ -13,7 +13,6 @@
  *
  */
 import { DappTransaction } from './5_dapp_transaction';
-import { DAPP_FEE } from './constants';
 import { TransactionJSON } from './transaction_types';
 import { createBaseTransaction, isValidInteger } from './utils';
 
@@ -73,7 +72,6 @@ export const createDapp = (inputs: DappInputs): Partial<TransactionJSON> => {
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 5,
-		fee: DAPP_FEE.toString(),
 		asset: {
 			dapp: options,
 		},
@@ -85,7 +83,6 @@ export const createDapp = (inputs: DappInputs): Partial<TransactionJSON> => {
 
 	const transactionWithSenderInfo = {
 		...transaction,
-		senderId: transaction.senderId as string,
 		senderPublicKey: transaction.senderPublicKey as string,
 	};
 

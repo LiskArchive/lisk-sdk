@@ -21,17 +21,14 @@ import { TransactionJSON } from '../src/transaction_types';
 
 describe('#createSignatureObject', () => {
 	const transaction = {
-		amount: '10',
-		recipientId: '8050281191221330746L',
-		senderId: '1050281191221330746L',
 		senderPublicKey:
 			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
 		timestamp: 59353522,
 		type: 0,
-		fee: '10000000',
-		recipientPublicKey:
-			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
-		asset: {},
+		asset: {
+			recipientId: '8050281191221330746L',
+			amount: '10',
+		},
 		signature:
 			'b84b95087c381ad25b5701096e2d9366ffd04037dcc941cd0747bfb0cf93111834a6c662f149018be4587e6fc4c9f5ba47aa5bbbd3dd836988f153aa8258e604',
 		id: '3694188453012384790',

@@ -213,17 +213,6 @@ describe('Dapp transaction class', () => {
 			expect(errors).to.be.empty;
 		});
 
-		it('should return error when amount is not zero', async () => {
-			const invalidTransaction = {
-				...defaultValidDappTransaction,
-				amount: '100',
-			};
-			const transaction = new DappTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.equal('.amount');
-		});
-
 		it('should return error when link is in invalid suffix', async () => {
 			const invalidTransaction = {
 				...defaultValidDappTransaction,

@@ -707,7 +707,7 @@ describe.skip('blocks/verify', () => {
 			const bytes = transaction.getBytes(transaction);
 
 			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.amount);
+			totalAmount = totalAmount.plus(transaction.asset.amount);
 
 			payloadHash.update(bytes);
 		}

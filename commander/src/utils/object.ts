@@ -1,4 +1,5 @@
 /*
+ * LiskHQ/lisk-commander
  * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
@@ -12,13 +13,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
-import { TransactionJSON } from '../transaction_types';
-import { getTransactionBytes } from './get_transaction_bytes';
+export const removeUndefinedValues = (obj: {
+	readonly [key: string]: unknown;
+}) =>
+	Object.entries(obj).reduce((prev, [key, val]) => {
+		if (val !== undefined) {
+			return {
+				...prev,
+				[key]: val,
+			};
+		}
 
-// FIXME: Deprecated
-export const getTransactionHash = (transaction: TransactionJSON): Buffer => {
-	const bytes = getTransactionBytes(transaction);
-
-	return cryptography.hash(bytes);
-};
+		return prev;
+	}, {});

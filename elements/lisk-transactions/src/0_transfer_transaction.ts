@@ -13,17 +13,22 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	bigNumberToBuffer,
+	hexToBuffer,
+	intToBuffer,
+	stringToBuffer,
+} from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import {
-	validateAddress,
+	isValidNumber,
 	validateTransferAmount,
 	validator,
 	verifyAmountBalance,
@@ -31,12 +36,23 @@ import {
 } from './utils';
 
 export interface TransferAsset {
-	readonly data: string;
+	readonly data?: string;
+	readonly recipientId: string;
+	readonly amount: BigNum;
 }
 
 export const transferAssetFormatSchema = {
 	type: 'object',
+	required: ['recipientId', 'amount'],
 	properties: {
+		recipientId: {
+			type: 'string',
+			format: 'address',
+		},
+		amount: {
+			type: 'string',
+			format: 'amount',
+		},
 		data: {
 			type: 'string',
 			format: 'transferData',
@@ -44,6 +60,12 @@ export const transferAssetFormatSchema = {
 		},
 	},
 };
+
+interface RawAsset {
+	readonly data?: string;
+	readonly recipientId: string;
+	readonly amount: number | string;
+}
 
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
@@ -56,13 +78,64 @@ export class TransferTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		// Initializes to empty object if it doesn't exist
-		this.asset = (tx.asset || {}) as TransferAsset;
+		if (tx.asset) {
+			const rawAsset = tx.asset as RawAsset;
+			this.asset = {
+				data: rawAsset.data,
+				recipientId: rawAsset.recipientId,
+				amount: new BigNum(
+					isValidNumber(rawAsset.amount) ? rawAsset.amount : '0',
+				),
+			};
+		} else {
+			// tslint:disable-next-line no-object-literal-type-assertion
+			this.asset = {} as TransferAsset;
+		}
 	}
 
-	protected assetToBytes(): Buffer {
-		const { data } = this.asset;
+	// Function getBasicBytes is overriden to maintain the bytes order
+	// TODO: remove after hardfork implementation
+	protected getBasicBytes(): Buffer {
+		const transactionType = intToBuffer(this.type, BYTESIZES.TYPE);
+		const transactionTimestamp = intToBuffer(
+			this.timestamp,
+			BYTESIZES.TIMESTAMP,
+			'little',
+		);
 
-		return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
+		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+
+		const transactionRecipientID = intToBuffer(
+			this.asset.recipientId.slice(0, -1),
+			BYTESIZES.RECIPIENT_ID,
+		).slice(0, BYTESIZES.RECIPIENT_ID);
+
+		const transactionAmount = bigNumberToBuffer(
+			this.asset.amount.toString(),
+			BYTESIZES.AMOUNT,
+			'little',
+		);
+
+		const dataBuffer = this.asset.data
+			? stringToBuffer(this.asset.data)
+			: Buffer.alloc(0);
+
+		return Buffer.concat([
+			transactionType,
+			transactionTimestamp,
+			transactionSenderPublicKey,
+			transactionRecipientID,
+			transactionAmount,
+			dataBuffer,
+		]);
+	}
+
+	public assetToJSON(): object {
+		return {
+			data: this.asset.data,
+			amount: this.asset.amount.toString(),
+			recipientId: this.asset.recipientId,
+		};
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -71,67 +144,38 @@ export class TransferTransaction extends BaseTransaction {
 				address: this.senderId,
 			},
 			{
-				address: this.recipientId,
+				address: this.asset.recipientId,
 			},
 		]);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(transferAssetFormatSchema, this.asset);
+		const asset = this.assetToJSON();
+		validator.validate(transferAssetFormatSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
 
-		if (!validateTransferAmount(this.amount.toString())) {
+		if (!validateTransferAmount(this.asset.amount.toString())) {
 			errors.push(
 				new TransactionError(
 					'Amount must be a valid number in string format.',
 					this.id,
 					'.amount',
-					this.amount.toString(),
+					this.asset.amount.toString(),
 				),
 			);
 		}
 
-		if (!this.recipientId) {
+		if (!this.asset.recipientId) {
 			errors.push(
 				new TransactionError(
 					'`recipientId` must be provided.',
 					this.id,
-					'.recipientId',
+					'.asset.recipientId',
 				),
 			);
-		}
-
-		try {
-			validateAddress(this.recipientId);
-		} catch (error) {
-			errors.push(
-				new TransactionError(
-					error.message,
-					this.id,
-					'.recipientId',
-					this.recipientId,
-				),
-			);
-		}
-
-		if (this.recipientPublicKey) {
-			const calculatedAddress = getAddressFromPublicKey(
-				this.recipientPublicKey,
-			);
-			if (this.recipientId !== calculatedAddress) {
-				errors.push(
-					new TransactionError(
-						'recipientId does not match recipientPublicKey.',
-						this.id,
-						'.recipientId',
-						this.recipientId,
-						calculatedAddress,
-					),
-				);
-			}
 		}
 
 		return errors;
@@ -144,24 +188,26 @@ export class TransferTransaction extends BaseTransaction {
 		const balanceError = verifyAmountBalance(
 			this.id,
 			sender,
-			this.amount,
+			this.asset.amount,
 			this.fee,
 		);
 		if (balanceError) {
 			errors.push(balanceError);
 		}
 
-		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
+		const updatedSenderBalance = new BigNum(sender.balance).sub(
+			this.asset.amount,
+		);
 
 		const updatedSender = {
 			...sender,
 			balance: updatedSenderBalance.toString(),
 		};
 		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.recipientId);
+		const recipient = store.account.getOrDefault(this.asset.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
-			this.amount,
+			this.asset.amount,
 		);
 
 		if (updatedRecipientBalance.gt(MAX_TRANSACTION_AMOUNT)) {
@@ -170,7 +216,7 @@ export class TransferTransaction extends BaseTransaction {
 					'Invalid amount',
 					this.id,
 					'.amount',
-					this.amount.toString(),
+					this.asset.amount.toString(),
 				),
 			);
 		}
@@ -187,7 +233,9 @@ export class TransferTransaction extends BaseTransaction {
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
+		const updatedSenderBalance = new BigNum(sender.balance).add(
+			this.asset.amount,
+		);
 
 		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
@@ -195,7 +243,7 @@ export class TransferTransaction extends BaseTransaction {
 					'Invalid amount',
 					this.id,
 					'.amount',
-					this.amount.toString(),
+					this.asset.amount.toString(),
 				),
 			);
 		}
@@ -205,16 +253,16 @@ export class TransferTransaction extends BaseTransaction {
 			balance: updatedSenderBalance.toString(),
 		};
 		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.recipientId);
+		const recipient = store.account.getOrDefault(this.asset.recipientId);
 
-		const balanceError = verifyBalance(this.id, recipient, this.amount);
+		const balanceError = verifyBalance(this.id, recipient, this.asset.amount);
 
 		if (balanceError) {
 			errors.push(balanceError);
 		}
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
-			this.amount,
+			this.asset.amount,
 		);
 
 		const updatedRecipient = {

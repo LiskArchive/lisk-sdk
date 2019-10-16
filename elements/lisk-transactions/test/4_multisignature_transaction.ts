@@ -77,7 +77,7 @@ describe('Multisignature transaction class', () => {
 			expect(validTestTransaction.fee.toString()).to.eql(
 				(
 					MULTISIGNATURE_FEE *
-					(validTestTransaction.asset.multisignature.keysgroup.length + 1)
+					(validTestTransaction.asset.keysgroup.length + 1)
 				).toString(),
 			);
 		});
@@ -90,10 +90,8 @@ describe('Multisignature transaction class', () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
 				asset: {
-					multisignature: {
-						...validMultisignatureTransaction.asset.multisignature,
-						min: '2',
-					},
+					...validMultisignatureTransaction.asset,
+					min: '2',
 				},
 			};
 			expect(
@@ -106,10 +104,8 @@ describe('Multisignature transaction class', () => {
 			const invalidMultisignatureTransactionData = {
 				...validMultisignatureTransaction,
 				asset: {
-					multisignature: {
-						...validMultisignatureTransaction.asset.multisignature,
-						lifetime: '1',
-					},
+					...validMultisignatureTransaction.asset,
+					lifetime: '1',
 				},
 			};
 			expect(
@@ -178,7 +174,7 @@ describe('Multisignature transaction class', () => {
 		it('should call state store with correct params', async () => {
 			await validTestTransaction.prepare(store);
 			// Derive addresses from public keys
-			const membersAddresses = validTestTransaction.asset.multisignature.keysgroup
+			const membersAddresses = validTestTransaction.asset.keysgroup
 				.map(key => key.substring(1))
 				.map(aKey => ({ address: getAddressFromPublicKey(aKey) }));
 			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
@@ -198,10 +194,8 @@ describe('Multisignature transaction class', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
-					multisignature: {
-						...validMultisignatureTransaction.asset.multisignature,
-						min: 18,
-					},
+					...validMultisignatureTransaction.asset,
+					min: 18,
 				},
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
@@ -213,10 +207,8 @@ describe('Multisignature transaction class', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
-					multisignature: {
-						...validMultisignatureTransaction.asset.multisignature,
-						lifetime: 0,
-					},
+					...validMultisignatureTransaction.asset,
+					lifetime: 0,
 				},
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
@@ -228,12 +220,10 @@ describe('Multisignature transaction class', () => {
 			const invalidTransaction = {
 				...validMultisignatureTransaction,
 				asset: {
-					multisignature: {
-						...validMultisignatureTransaction.asset.multisignature,
-						keysgroup: validMultisignatureTransaction.asset.multisignature.keysgroup.map(
-							(key: string) => key.replace('+', ''),
-						),
-					},
+					...validMultisignatureTransaction.asset,
+					keysgroup: validMultisignatureTransaction.asset.keysgroup.map(
+						(key: string) => key.replace('+', ''),
+					),
 				},
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
@@ -246,50 +236,26 @@ describe('Multisignature transaction class', () => {
 			const invalidTransaction = {
 				...validMultisignatureTransaction,
 				asset: {
-					multisignature: {
-						...validMultisignatureTransaction.asset.multisignature,
-						keysgroup: [
-							'+40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
-							'+d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
-							'+542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
-							'+30af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
-							'+a042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
-							'+442fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
-							'+10af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
-							'+z042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
-							'+x42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
-							'+c0af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
-							'+v042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
-							'+b42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
-							'+80af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
-							'+n042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
-							'+042fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
-							'+k42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
-						],
-					},
+					...validMultisignatureTransaction.asset,
+					keysgroup: [
+						'+40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+						'+d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+						'+542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+						'+30af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+						'+a042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+						'+442fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+						'+10af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+						'+z042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+						'+x42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+						'+c0af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+						'+v042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+						'+b42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+						'+80af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
+						'+n042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
+						'+042fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+						'+k42fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
+					],
 				},
-			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
-
-			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
-		});
-
-		it('should return error when recipientId is not empty', async () => {
-			const invalidTransaction = {
-				...validMultisignatureTransaction,
-				recipientId: '1L',
-			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-
-			expect(errors).not.to.be.empty;
-		});
-
-		it('should return error when recipientPublicKey is not empty', async () => {
-			const invalidTransaction = {
-				...validMultisignatureTransaction,
-				recipientPublicKey: '123',
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 
