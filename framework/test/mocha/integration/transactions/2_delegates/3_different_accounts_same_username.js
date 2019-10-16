@@ -138,7 +138,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 							expect(err).to.equal(
 								`Transaction: ${
 									transaction2.id
-								} failed at .asset.delegate.username: Username is not unique.`,
+								} failed at .asset.username: Username is not unique.`,
 							);
 							done();
 						});
@@ -154,7 +154,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 							expect(err).to.equal(
 								`Transaction: ${
 									transaction3.id
-								} failed at .asset.delegate.username: Account is already a delegate`,
+								} failed at .asset.username: Account is already a delegate`,
 							);
 							done();
 						});

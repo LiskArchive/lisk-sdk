@@ -10,15 +10,12 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
-import { TransactionJSON } from '../transaction_types';
-import { getTransactionBytes } from './get_transaction_bytes';
 
-// FIXME: Deprecated
-export const getTransactionHash = (transaction: TransactionJSON): Buffer => {
-	const bytes = getTransactionBytes(transaction);
 
-	return cryptography.hash(bytes);
-};
+ /*
+  DESCRIPTION: Remove rank column from mem accounts
+  PARAMETERS: None
+*/
+
+ALTER TABLE mem_accounts DROP COLUMN "rank"

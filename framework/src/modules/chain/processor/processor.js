@@ -58,7 +58,7 @@ class Processor {
 	async init(genesisBlock) {
 		this.logger.debug(
 			{ id: genesisBlock.id, payloadHash: genesisBlock.payloadHash },
-			'initializing processor',
+			'Initializing processor',
 		);
 		// do init check for block state. We need to load the blockchain
 		const blockProcessor = this._getBlockProcessor(genesisBlock);
@@ -72,10 +72,25 @@ class Processor {
 		this.logger.info('Blockchain ready');
 	}
 
+	// Serialize a block instance to a JSON format of the block
+	async serialize(blockInstance) {
+		const blockProcessor = this._getBlockProcessor(blockInstance);
+		return blockProcessor.serialize.run({ block: blockInstance });
+	}
+
+	// DeSerialize a block instance to a JSON format of the block
+	async deserialize(blockJSON) {
+		const blockProcessor = this._getBlockProcessor(blockJSON);
+		return blockProcessor.deserialize.run({ block: blockJSON });
+	}
+
 	// process is for standard processing of block, especially when received from network
 	async process(block) {
 		return this.sequence.add(async () => {
-			this.logger.debug({ id: block.id }, 'starting to process block');
+			this.logger.debug(
+				{ id: block.id, height: block.height },
+				'Starting to process block',
+			);
 			const blockProcessor = this._getBlockProcessor(block);
 			const { lastBlock } = this.blocksModule;
 
@@ -85,16 +100,26 @@ class Processor {
 			});
 
 			if (!forkStatusList.includes(forkStatus)) {
+				this.logger.debug(
+					{ status: forkStatus, blockId: block.id },
+					'Unknown fork status',
+				);
 				throw new Error('Unknown fork status');
 			}
 
 			// Discarding block
-			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
-				this.logger.debug({ id: block.id }, 'Block already processed');
+			if (forkStatus === FORK_STATUS_DISCARD) {
+				this.logger.debug(
+					{ id: block.id, height: block.height },
+					'Discarding block',
+				);
 				return;
 			}
-			if (forkStatus === FORK_STATUS_DISCARD) {
-				this.logger.debug({ id: block.id }, 'Discarding block');
+			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
+				this.logger.debug(
+					{ id: block.id, height: block.height },
+					'Block already processed',
+				);
 				return;
 			}
 			if (forkStatus === FORK_STATUS_DOUBLE_FORGING) {
@@ -106,13 +131,19 @@ class Processor {
 			}
 			// Discard block and move to different chain
 			if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
-				this.logger.debug({ id: block.id }, 'Detected different chain to sync');
+				this.logger.debug(
+					{ id: block.id, height: block.height },
+					'Detected different chain to sync',
+				);
 				this.channel.publish('chain:processor:sync', { block });
 				return;
 			}
 			// Replacing a block
 			if (forkStatus === FORK_STATUS_TIE_BREAK) {
-				this.logger.info({ id: lastBlock.id }, 'Received tie breaking block');
+				this.logger.info(
+					{ id: lastBlock.id, height: lastBlock.height },
+					'Received tie breaking block',
+				);
 				await blockProcessor.validateNew.run({
 					block,
 					lastBlock,
@@ -126,9 +157,9 @@ class Processor {
 				const newLastBlock = this.blocksModule.lastBlock;
 				try {
 					await this._processValidated(block, newLastBlock, blockProcessor);
-				} catch (error) {
+				} catch (err) {
 					this.logger.error(
-						{ id: block.id, previousBlockId: previousLastBlock.id, error },
+						{ id: block.id, previousBlockId: previousLastBlock.id, err },
 						'Failed to apply newly received block. restoring previous block.',
 					);
 					await this._processValidated(
@@ -158,18 +189,17 @@ class Processor {
 		});
 	}
 
-	async forkStatus(receivedBlock) {
+	async forkStatus(receivedBlock, lastBlock) {
 		const blockProcessor = this._getBlockProcessor(receivedBlock);
-		const { lastBlock } = this.blocksModule;
 
 		return blockProcessor.forkStatus.run({
 			block: receivedBlock,
-			lastBlock,
+			lastBlock: lastBlock || this.blocksModule.lastBlock,
 		});
 	}
 
 	async create(values) {
-		this.logger.debug({ data: values }, 'creating block');
+		this.logger.trace({ data: values }, 'Creating block');
 		const highestVersion = Math.max.apply(null, Object.keys(this.processors));
 		const processor = this.processors[highestVersion];
 		return processor.create.run(values);
@@ -179,7 +209,7 @@ class Processor {
 	async validate(block, { lastBlock } = this.blocksModule) {
 		this.logger.debug(
 			{ id: block.id, height: block.height },
-			'validating block',
+			'Validating block',
 		);
 		const blockProcessor = this._getBlockProcessor(block);
 		await blockProcessor.validate.run({
@@ -189,7 +219,10 @@ class Processor {
 	}
 
 	async validateDetached(block) {
-		this.logger.debug({ id: block.id }, 'validating detached block');
+		this.logger.debug(
+			{ id: block.id, height: block.height },
+			'Validating detached block',
+		);
 		const blockProcessor = this._getBlockProcessor(block);
 		await blockProcessor.validateDetached.run({
 			block,
@@ -201,7 +234,7 @@ class Processor {
 		return this.sequence.add(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },
-				'processing validated block',
+				'Processing validated block',
 			);
 			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
@@ -217,7 +250,7 @@ class Processor {
 		return this.sequence.add(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },
-				'applying block',
+				'Applying block',
 			);
 			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
@@ -233,7 +266,7 @@ class Processor {
 			const { lastBlock } = this.blocksModule;
 			this.logger.debug(
 				{ id: lastBlock.id, height: lastBlock.height },
-				'deleting last block',
+				'Deleting last block',
 			);
 			const blockProcessor = this._getBlockProcessor(lastBlock);
 			await this._deleteBlock(lastBlock, blockProcessor, saveTempBlock);
@@ -242,7 +275,7 @@ class Processor {
 	}
 
 	async applyGenesisBlock(block) {
-		this.logger.info({ id: block.id }, 'applying genesis block');
+		this.logger.info({ id: block.id }, 'Applying genesis block');
 		const blockProcessor = this._getBlockProcessor(block);
 		return this._processGenesis(block, blockProcessor, { skipSave: true });
 	}
@@ -271,8 +304,10 @@ class Processor {
 				skipExistingCheck: skipSave,
 				tx,
 			});
+
+			const blockJSON = await this.serialize(block);
 			// TODO: move save to inside below condition after moving tick to the block_processor
-			await this.blocksModule.save({ block, tx, skipSave });
+			await this.blocksModule.save({ block, blockJSON, tx, skipSave });
 			if (!skipSave) {
 				this.channel.publish('chain:processor:newBlock', {
 					block: cloneDeep(block),
@@ -281,7 +316,10 @@ class Processor {
 			if (removeFromTempTable) {
 				// Remove block from temp_block table
 				await this.blocksModule.removeBlockFromTempTable(block.id, tx);
-				this.logger.debug('Removed block from temp_block table', block);
+				this.logger.debug(
+					{ id: block.id, height: block.height },
+					'Removed block from temp_block table',
+				);
 			}
 			return block;
 		});
@@ -310,8 +348,11 @@ class Processor {
 					tx,
 				});
 
+				const blockJSON = await this.serialize(block);
+
 				await this.blocksModule.save({
 					block,
+					blockJSON,
 					tx,
 					skipSave,
 				});
@@ -327,7 +368,13 @@ class Processor {
 				block,
 				tx,
 			});
-			await this.blocksModule.remove({ block, tx, saveTempBlock });
+			const blockJSON = await this.serialize(block);
+			await this.blocksModule.remove({
+				block,
+				blockJSON,
+				tx,
+				saveTempBlock,
+			});
 			this.channel.publish('chain:processor:deleteBlock', {
 				block: cloneDeep(block),
 			});

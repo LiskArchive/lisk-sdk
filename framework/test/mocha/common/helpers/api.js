@@ -17,7 +17,7 @@
 const {
 	transfer,
 	registerDelegate: createRegisterDelegate,
-	utils: transactionUtils,
+	createSignatureObject: createSignatureObjectElements,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../fixtures/accounts');
@@ -333,10 +333,8 @@ function createSignatureObject(transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: transactionUtils.multiSignTransaction(
-			transaction,
-			signer.passphrase,
-		),
+		signature: createSignatureObjectElements(transaction, signer.passphrase)
+			.signature,
 	};
 }
 

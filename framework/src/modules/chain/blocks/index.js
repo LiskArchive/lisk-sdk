@@ -15,7 +15,6 @@
 'use strict';
 
 const { addBlockProperties } = require('./utils');
-const { objectNormalize, storageRead } = require('./block');
 const {
 	calculateMilestone,
 	calculateReward,
@@ -41,7 +40,6 @@ const {
 	FORK_STATUS_DISCARD,
 } = require('./fork_choice_rule');
 const { baseBlockSchema } = require('./schema');
-const { loadBlocksWithOffset } = require('./block');
 
 module.exports = {
 	Blocks,
@@ -63,8 +61,5 @@ module.exports = {
 	BLOCKCHAIN_STATUS_REBUILD,
 	BLOCKCHAIN_STATUS_RECOVERY,
 	BLOCKCHAIN_STATUS_READY,
-	loadBlocksWithOffset,
-	objectNormalize,
 	addBlockProperties,
-	storageRead,
 };

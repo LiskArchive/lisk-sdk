@@ -418,7 +418,9 @@ describe('blocks/verify', () => {
 				try {
 					await library.modules.processor.process(block2);
 				} catch (err) {
-					expect(err.message).equal('Invalid payload hash');
+					expect(err[0].message).equal(
+						"'' should have required property 'timestamp'",
+					);
 					block2.transactions[0].timestamp = transactionTimestamp;
 				}
 			});

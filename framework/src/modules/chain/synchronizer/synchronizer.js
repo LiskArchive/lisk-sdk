@@ -16,13 +16,33 @@
 
 const util = require('util');
 const assert = require('assert');
+const utils = require('./utils');
 
 class Synchronizer {
-	constructor({ logger, processorModule }) {
+	constructor({ logger, blocksModule, processorModule, storageModule }) {
 		this.logger = logger;
+		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
+		this.storageModule = storageModule;
 
 		this.mechanisms = [];
+	}
+
+	/**
+	 * Verify if blocks are left in temp_block table
+	 * If blocks are left, we want to attempt to restore those
+	 *
+	 * @return {Promise<void>}
+	 */
+	async init() {
+		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
+		if (!isEmpty) {
+			await utils.restoreBlocksUponStartup(
+				this.blocksModule,
+				this.processorModule,
+				this.storageModule,
+			);
+		}
 	}
 
 	/**
@@ -64,11 +84,16 @@ class Synchronizer {
 	async run(receivedBlock) {
 		if (this.activeMechanism) {
 			throw new Error(
-				`Blocks Sychronizer with ${
+				`Synchronizer: ${
 					this.activeMechanism.constructor.name
 				} is already running`,
 			);
 		}
+
+		this.logger.info(
+			{ blockId: receivedBlock.id, height: receivedBlock.height },
+			'Starting synchronizer',
+		);
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
@@ -79,12 +104,16 @@ class Synchronizer {
 
 		if (!validMechanism) {
 			return this.logger.info(
-				'Sync mechanism could not be determined for the given block',
-				receivedBlock,
+				{ blockId: receivedBlock.id },
+				'Syncing mechanism could not be determined for the given block',
 			);
 		}
 
-		return validMechanism.run(receivedBlock);
+		this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
+
+		await validMechanism.run(receivedBlock);
+
+		return this.logger.info('Synchronization finished successfully');
 	}
 
 	/**

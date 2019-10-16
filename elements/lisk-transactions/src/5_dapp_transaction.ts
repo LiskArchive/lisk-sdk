@@ -209,28 +209,6 @@ export class DappTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for dapp transaction',
-					this.id,
-					'.amount',
-					this.amount.toString(),
-					'0',
-				),
-			);
-		}
-
-		if (this.recipientId) {
-			errors.push(
-				new TransactionError(
-					`RecipientId is expected to be undefined`,
-					this.id,
-					'.recipientId',
-				),
-			);
-		}
-
 		const validLinkSuffix = ['.zip'];
 
 		if (errors.length > 0) {

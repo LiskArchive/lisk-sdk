@@ -17,6 +17,7 @@
 const {
 	Synchronizer,
 } = require('../../../../../../../src/modules/chain/synchronizer/synchronizer');
+const utils = require('../../../../../../../src/modules/chain/synchronizer/utils');
 
 const {
 	Block: blockFixture,
@@ -27,21 +28,43 @@ describe('Synchronizer', () => {
 	let syncMechanism1;
 	let syncMechanism2;
 	let loggerMock;
+	let blocksMock;
 	let processorMock;
+	let storageMock;
 	let syncParameters;
 
 	beforeEach(async () => {
+		utils.restoreBlocksUponStartup = jest.fn();
 		loggerMock = {
 			info: jest.fn(),
 		};
 
 		processorMock = {
 			validateDetached: jest.fn(),
+			processValidated: jest.fn(),
+			forkStatus: jest.fn(),
+		};
+
+		blocksMock = {
+			getTempBlocks: jest.fn(),
+			lastBlock: jest.fn(),
+		};
+
+		storageMock = {
+			entities: {
+				TempBlock: {
+					get: jest.fn(),
+					truncate: jest.fn(),
+					isEmpty: jest.fn(),
+				},
+			},
 		};
 
 		syncParameters = {
 			logger: loggerMock,
 			processorModule: processorMock,
+			blocksModule: blocksMock,
+			storageModule: storageMock,
 		};
 		syncMechanism1 = {
 			isActive: false,
@@ -68,6 +91,30 @@ describe('Synchronizer', () => {
 			expect(synchronizer.logger).toBe(syncParameters.logger);
 			expect(synchronizer.processorModule).toBe(syncParameters.processorModule);
 			expect(synchronizer.mechanisms).toEqual([syncMechanism1, syncMechanism2]);
+		});
+	});
+
+	describe('init()', () => {
+		it('should call restoreBlocksUponStartup if temp_block table is not empty', async () => {
+			// Arrange
+			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(false);
+
+			// Act
+			await synchronizer.init();
+
+			// Assert
+			expect(utils.restoreBlocksUponStartup).toHaveBeenCalled();
+		});
+
+		it('should NOT call restoreBlocksUponStartup if temp_block table is empty', async () => {
+			// Arrange
+			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(true);
+
+			// Act
+			await synchronizer.init();
+
+			// Assert
+			expect(utils.restoreBlocksUponStartup).not.toHaveBeenCalled();
 		});
 	});
 
@@ -186,7 +233,7 @@ describe('Synchronizer', () => {
 			syncMechanism1.isActive = true;
 
 			await expect(synchronizer.run()).rejects.toThrow(
-				'Blocks Sychronizer with Object is already running',
+				'Synchronizer: Object is already running',
 			);
 		});
 
@@ -203,7 +250,9 @@ describe('Synchronizer', () => {
 			const validationError = new Error('Block verifyError');
 			processorMock.validateDetached.mockRejectedValue(validationError);
 
-			await expect(synchronizer.run()).rejects.toThrow(validationError);
+			await expect(synchronizer.run({ id: '1234' })).rejects.toThrow(
+				validationError,
+			);
 		});
 
 		it('should determine the sync mechanism for received block', async () => {
@@ -218,10 +267,11 @@ describe('Synchronizer', () => {
 		it('should log message if unable to determine sync mechanism', async () => {
 			await synchronizer.run(receivedBlock);
 
-			expect(loggerMock.info).toHaveBeenCalledTimes(1);
-			expect(loggerMock.info).toHaveBeenCalledWith(
-				'Sync mechanism could not be determined for the given block',
-				receivedBlock,
+			expect(loggerMock.info).toHaveBeenCalledTimes(2);
+			expect(loggerMock.info).toHaveBeenNthCalledWith(
+				2,
+				{ blockId: receivedBlock.id },
+				'Syncing mechanism could not be determined for the given block',
 			);
 		});
 
@@ -233,16 +283,6 @@ describe('Synchronizer', () => {
 
 			expect(syncMechanism.run).toHaveBeenCalledTimes(1);
 			expect(syncMechanism.run).toHaveBeenCalledWith(receivedBlock);
-		});
-
-		it('should return the run function from determined mechanism', async () => {
-			const run = jest.fn().mockReturnValue('sync run return');
-			const syncMechanism = { run };
-			synchronizer._determineSyncMechanism.mockReturnValue(syncMechanism);
-
-			const result = await synchronizer.run(receivedBlock);
-
-			expect(result).toBe('sync run return');
 		});
 	});
 });

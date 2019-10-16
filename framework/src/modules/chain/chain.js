@@ -51,7 +51,6 @@ const { BlockProcessorV0 } = require('./block_processor_v0.js');
 const { BlockProcessorV1 } = require('./block_processor_v1.js');
 const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
-const syncInterval = 10000;
 const forgeInterval = 1000;
 
 /**
@@ -192,6 +191,11 @@ module.exports = class Chain {
 
 			this.processor.register(new BlockProcessorV2(processorDependencies));
 
+			// Deserialize genesis block and overwrite the options
+			this.options.genesisBlock = await this.processor.deserialize(
+				this.options.genesisBlock,
+			);
+
 			// Deactivate broadcast and syncing during snapshotting process
 			if (this.options.loading.rebuildUpToRound) {
 				this.options.broadcasts.active = false;
@@ -257,6 +261,9 @@ module.exports = class Chain {
 					},
 				);
 			}
+
+			// Check if blocks are left in temp_block table
+			await this.synchronizer.init();
 		} catch (error) {
 			this.logger.fatal(
 				{
@@ -313,7 +320,12 @@ module.exports = class Chain {
 				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
 			}),
-			getLastBlock: async () => this.blocks.lastBlock,
+			getLastBlock: async () => ({
+				...this.blocks.lastBlock,
+				reward: this.blocks.lastBlock.reward.toString(),
+				totalAmount: this.blocks.lastBlock.totalAmount.toString(),
+				totalFee: this.blocks.lastBlock.totalFee.toString(),
+			}),
 			getBlocksFromId: async action =>
 				this.transport.getBlocksFromId(action.params || {}),
 			getHighestCommonBlock: async action => {
@@ -385,14 +397,6 @@ module.exports = class Chain {
 		};
 
 		// Deserialize genesis block
-		const transactionInstances = this.options.genesisBlock.transactions.map(
-			transaction => this.interfaceAdapters.transactions.fromJson(transaction),
-		);
-		const blockWithTransactionInstances = {
-			...this.options.genesisBlock,
-			transactions: transactionInstances,
-		};
-		this.options.genesisBlock = blockWithTransactionInstances;
 
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		this.slots = new Slots({
@@ -457,6 +461,7 @@ module.exports = class Chain {
 			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			processorModule: this.processor,
+			interfaceAdapters: this.interfaceAdapters,
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
@@ -470,7 +475,9 @@ module.exports = class Chain {
 
 		this.synchronizer = new Synchronizer({
 			logger: this.logger,
+			blocksModule: this.blocks,
 			processorModule: this.processor,
+			storageModule: this.storage,
 		});
 
 		this.synchronizer.register(blockSyncMechanism);
@@ -569,32 +576,8 @@ module.exports = class Chain {
 		this.scope.modules.synchronizer = this.synchronizer;
 	}
 
-	async _syncTask() {
-		this.logger.debug(
-			{
-				syncing: this.loader.syncing(),
-				lastReceipt: this.blocks.lastReceipt,
-			},
-			'Sync timer triggered',
-		);
-		// TODO: Do we need further checks here, removing blocks.isStale()
-		if (!this.loader.syncing()) {
-			await this.scope.sequence.add(async () => {
-				try {
-					await this.loader.sync();
-				} catch (err) {
-					this.logger.error({ err }, 'Sync trigger failed');
-				}
-			});
-		}
-	}
-
 	_startLoader() {
 		this.loader.loadUnconfirmedTransactions();
-		if (!this.options.syncing.active) {
-			return;
-		}
-		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
 	}
 
 	_calculateConsensus() {
@@ -694,28 +677,16 @@ module.exports = class Chain {
 						height: block.height,
 						lastBlockId: block.id,
 						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+						blockVersion: block.version,
 					});
 				}
 			},
 		);
 
 		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
-			this.logger.info(
-				{
-					id: block.id,
-					height: block.height,
-					numberOfTransactions: block.transactions.length,
-				},
-				'New block added to the chain',
-			);
-			this.synchronizer
-				.run(block)
-				.then(() => {
-					this.logger.info('Synchronization finished.');
-				})
-				.catch(error => {
-					this.logger.error('Error occurred during synchronization.', error);
-				});
+			this.synchronizer.run(block).catch(err => {
+				this.logger.error({ err }, 'Error occurred during synchronization.');
+			});
 		});
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {

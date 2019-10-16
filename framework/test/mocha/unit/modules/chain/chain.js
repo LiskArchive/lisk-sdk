@@ -18,6 +18,9 @@
 const rewire = require('rewire');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
+const {
+	Synchronizer,
+} = require('../../../../../src/modules/chain/synchronizer/synchronizer');
 const { Processor } = require('../../../../../src/modules/chain/processor');
 const { BFT } = require('../../../../../src/modules/chain/bft');
 const {
@@ -35,6 +38,7 @@ describe('Chain', () => {
 		// Arrange
 
 		sinonSandbox.stub(Processor.prototype, 'init').resolves();
+		sinonSandbox.stub(Synchronizer.prototype, 'init').resolves();
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -471,73 +475,6 @@ describe('Chain', () => {
 		});
 	});
 
-	describe('#_syncTask', () => {
-		beforeEach(async () => {
-			await chain.bootstrap();
-			sinonSandbox.stub(chain.loader, 'sync').resolves();
-			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
-			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
-				await fn();
-			});
-		});
-
-		it('should info log every time this task is triggered', async () => {
-			// Arrange
-			chain.loader.syncing.returns(true); // To avoid triggering extra logic irrelevant for this scenario
-
-			// Act
-			await chain._syncTask();
-
-			// Assert
-			expect(stubs.logger.debug).to.be.calledWith(
-				{
-					syncing: chain.loader.syncing(),
-					lastReceipt: chain.blocks.lastReceipt,
-				},
-				'Sync timer triggered',
-			);
-		});
-
-		it('should use the Sequence the node is not syncing', async () => {
-			// Arrange
-			chain.loader.syncing.returns(false);
-
-			// Act
-			await chain._syncTask();
-
-			// Assert
-			expect(chain.scope.sequence.add).to.be.called;
-		});
-
-		describe('in sequence', () => {
-			beforeEach(async () => {
-				chain.loader.syncing.returns(false);
-			});
-
-			it('should call loader.sync', async () => {
-				await chain._syncTask();
-				expect(chain.loader.sync).to.be.called;
-			});
-
-			it('should catch and log the error if the above fails', async () => {
-				// Arrange
-				const expectedError = new Error('an error, Sync trigger failed');
-				chain.loader.sync.rejects(expectedError);
-
-				// Act
-				await chain._syncTask();
-
-				// Assert
-				expect(stubs.logger.error).to.be.calledWith(
-					{
-						err: expectedError,
-					},
-					'Sync trigger failed',
-				);
-			});
-		});
-	});
-
 	describe('#_startLoader', () => {
 		beforeEach(async () => {
 			await chain.bootstrap();
@@ -558,21 +495,6 @@ describe('Chain', () => {
 		it('should load transactions and signatures', async () => {
 			chain._startLoader();
 			expect(chain.loader.loadUnconfirmedTransactions).to.be.called;
-		});
-
-		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
-			// Arrange
-			chain.options.syncing.active = true;
-
-			// Act
-			chain._startLoader();
-
-			// Assert
-			expect(stubs.jobsQueue.register).to.be.calledWith(
-				'nextSync',
-				sinonSandbox.match.func,
-				Chain.__get__('syncInterval'),
-			);
 		});
 	});
 

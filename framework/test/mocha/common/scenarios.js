@@ -17,7 +17,7 @@
 const {
 	transfer,
 	registerSecondPassphrase,
-	utils: transactionUtils,
+	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../fixtures/accounts');
@@ -50,45 +50,43 @@ function Multisig(options) {
 	this.amount = options.amount || 100000000000;
 
 	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-	this.multiSigTransaction = transactionUtils.signRawTransaction({
-		transaction: {
-			type: 4,
-			amount: '0',
-			fee: new BigNum(FEES.MULTISIGNATURE)
-				.times(this.keysgroup.length + 1)
-				.toString(),
-			asset: {
-				multisignature: {
-					keysgroup: this.keysgroup.map(key => `+${key}`),
-					lifetime: this.lifetime,
-					min: this.minimum,
-				},
-			},
+	const multisigTrs = new MultisignatureTransaction({
+		type: 4,
+		amount: '0',
+		fee: new BigNum(FEES.MULTISIGNATURE)
+			.times(this.keysgroup.length + 1)
+			.toString(),
+		asset: {
+			keysgroup: this.keysgroup.map(key => `+${key}`),
+			lifetime: this.lifetime,
+			min: this.minimum,
 		},
-		passphrase: this.account.passphrase,
 	});
 
+	multisigTrs.sign(this.account.passphrase);
+
+	this.multiSigTransaction = multisigTrs.toJSON();
+
 	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-	this.multiSigSecondSignatureTransaction = transactionUtils.signRawTransaction(
-		{
-			transaction: {
-				type: 4,
-				amount: '0',
-				fee: new BigNum(FEES.MULTISIGNATURE)
-					.times(this.keysgroup.length + 1)
-					.toString(),
-				asset: {
-					multisignature: {
-						keysgroup: this.keysgroup.map(key => `+${key}`),
-						lifetime: this.lifetime,
-						min: this.minimum,
-					},
-				},
-			},
-			passphrase: this.account.passphrase,
-			secondPassphrase: this.account.secondPassphrase,
+	const multisigSecondSignatureTrs = new MultisignatureTransaction({
+		type: 4,
+		amount: '0',
+		fee: new BigNum(FEES.MULTISIGNATURE)
+			.times(this.keysgroup.length + 1)
+			.toString(),
+		asset: {
+			keysgroup: this.keysgroup.map(key => `+${key}`),
+			lifetime: this.lifetime,
+			min: this.minimum,
 		},
+	});
+
+	multisigSecondSignatureTrs.sign(
+		this.account.passphrase,
+		this.account.secondPassphrase,
 	);
+
+	this.multiSigSecondSignatureTransaction = multisigTrs.toJSON();
 
 	this.creditTransaction = transfer({
 		amount: this.amount.toString(),

@@ -45,15 +45,13 @@ function TransactionsController(scope) {
 }
 
 function transactionFormatter(transaction) {
-	const result = _.omit(transaction, ['requesterPublicKey']);
+	const result = transaction;
 	result.senderId = result.senderId || '';
-	result.recipientId = result.recipientId || '';
-	result.recipientPublicKey = result.recipientPublicKey || '';
 	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
 	if (transaction.type === TRANSACTION_TYPES.DELEGATE) {
-		result.asset.delegate.publicKey = result.senderPublicKey;
-		result.asset.delegate.address = result.senderId;
+		result.asset.publicKey = result.senderPublicKey;
+		result.asset.address = result.senderId;
 	}
 
 	return result;
@@ -79,7 +77,6 @@ TransactionsController.getTransactions = async function(context, next) {
 		id: params.id.value,
 		blockId: params.blockId.value,
 		recipientId: params.recipientId.value,
-		recipientPublicKey: params.recipientPublicKey.value,
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,

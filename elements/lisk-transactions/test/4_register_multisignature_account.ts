@@ -32,7 +32,6 @@ describe('#registerMultisignature transaction', () => {
 	};
 	const timeWithOffset = 38350076;
 	const fee = (15 * fixedPoint).toString();
-	const amount = '0';
 	const lifetime = 5;
 	const minimum = 2;
 
@@ -109,24 +108,11 @@ describe('#registerMultisignature transaction', () => {
 					.and.equal(transactionType);
 			});
 
-			it('should have amount string equal to 0', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('amount')
-					.and.be.a('string')
-					.and.equal(amount);
-			});
-
 			it('should have fee string equal to 15 LSK', () => {
 				return expect(registerMultisignatureTransaction)
 					.to.have.property('fee')
 					.and.be.a('string')
 					.and.equal(fee);
-			});
-
-			it('should have recipientId string equal to empty string', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('recipientId')
-					.and.equal('');
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -160,30 +146,18 @@ describe('#registerMultisignature transaction', () => {
 			});
 
 			describe('multisignature asset', () => {
-				it('should be object', () => {
-					return expect(registerMultisignatureTransaction.asset)
-						.to.have.property('multisignature')
-						.and.be.an('object');
-				});
-
 				it('should have a min number equal to provided minimum', () => {
 					const {
-						multisignature,
+						min,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(multisignature)
-						.to.have.property('min')
-						.and.be.a('number')
-						.and.be.equal(minimum);
+					return expect(min).to.equal(minimum);
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
 					const {
-						multisignature,
+						lifetime,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(multisignature)
-						.to.have.property('lifetime')
-						.and.be.a('number')
-						.and.be.equal(lifetime);
+					return expect(lifetime).to.equal(lifetime);
 				});
 
 				it('should have a keysgroup array with plus prepended', () => {
@@ -192,11 +166,9 @@ describe('#registerMultisignature transaction', () => {
 						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					];
 					const {
-						multisignature,
+						keysgroup,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(multisignature)
-						.to.have.property('keysgroup')
-						.and.be.eql(expectedArray);
+					return expect(keysgroup).to.eql(expectedArray);
 				});
 			});
 		});
@@ -435,22 +407,10 @@ describe('#registerMultisignature transaction', () => {
 					.equal(transactionType);
 			});
 
-			it('should have the amount', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('amount')
-					.equal(amount);
-			});
-
 			it('should have the fee', () => {
 				return expect(registerMultisignatureTransaction)
 					.to.have.property('fee')
 					.equal(fee);
-			});
-
-			it('should have the recipient id', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('recipientId')
-					.equal('');
 			});
 
 			it('should have the sender public key', () => {
@@ -467,7 +427,7 @@ describe('#registerMultisignature transaction', () => {
 
 			it('should have the asset with the multisignature with the minimum, lifetime and keysgroup', () => {
 				return expect(registerMultisignatureTransaction)
-					.to.have.nested.property('asset.multisignature')
+					.to.have.nested.property('asset')
 					.with.all.keys('min', 'lifetime', 'keysgroup');
 			});
 

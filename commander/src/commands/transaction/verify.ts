@@ -13,12 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as transactions from '@liskhq/lisk-transactions';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { getData, getStdIn } from '../../utils/input/utils';
-import { parseTransactionString } from '../../utils/transactions';
+import {
+	instantiateTransaction,
+	parseTransactionString,
+} from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;
@@ -84,14 +87,34 @@ export default class VerifyCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
+		const {
+			signSignature,
+			...transactionObjectWithoutSignSignature
+		} = transactionObject;
+
+		const txInstance = instantiateTransaction(
+			transactionObjectWithoutSignSignature,
+		);
+
 		const secondPublicKey = secondPublicKeySource
 			? await processSecondPublicKey(secondPublicKeySource)
 			: undefined;
 
-		const verified = transactions.utils.verifyTransaction(
-			transactionObject,
+		if (!secondPublicKey) {
+			const { errors } = txInstance.validate();
+			this.print({
+				verified: errors.length === 0,
+			});
+
+			return;
+		}
+
+		const verified = cryptography.verifyData(
+			txInstance.getBytes(),
+			signSignature,
 			secondPublicKey,
 		);
+
 		this.print({ verified });
 	}
 }

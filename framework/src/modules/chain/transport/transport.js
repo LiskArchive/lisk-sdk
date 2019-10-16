@@ -19,7 +19,6 @@ const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const definitions = require('../schema/definitions');
-const blocksUtils = require('../blocks');
 const transactionsModule = require('../transactions');
 
 function incrementRelays(packet) {
@@ -219,25 +218,20 @@ class Transport {
 	 * the current tip of the chain.
 	 * @param {object} payload
 	 * @param {string} payload.blockId - The ID of the starting block
-	 * @return {Promise<*|Promise<*>>}
+	 * @return {Promise<Array<object>>}
 	 */
 	async getBlocksFromId(payload) {
-		const validationResult = validator.validate(
-			definitions.getBlocksFromIdRequest,
-			payload,
-		);
+		validator.validate(definitions.getBlocksFromIdRequest, payload);
 
-		if (validationResult.length) {
-			const err = validationResult;
-			const error = `${err[0].message}: ${err[0].path}`;
+		if (validator.validator.errors) {
 			this.logger.debug(
 				{
-					err: error,
+					err: validator.validator.errors,
 					req: payload,
 				},
 				'getBlocksFromID request validation failed',
 			);
-			throw new Error(error);
+			throw validator.validator.errors;
 		}
 
 		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
@@ -257,6 +251,14 @@ class Transport {
 			);
 		}
 
+		// TODO: endpoint should be protected before
+		if (this.loaderModule.syncing()) {
+			return this.logger.debug(
+				"Client is syncing. Can't receive block at the moment.",
+				query.block.id,
+			);
+		}
+
 		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
 
 		if (errors.length) {
@@ -272,17 +274,7 @@ class Transport {
 			throw errors;
 		}
 
-		const block = blocksUtils.addBlockProperties(query.block);
-
-		await this.processorModule.validate(block);
-
-		// TODO: endpoint should be protected before
-		if (this.loaderModule.syncing()) {
-			return this.logger.debug(
-				"Client is syncing. Can't receive block at the moment.",
-				block.id,
-			);
-		}
+		const block = await this.processorModule.deserialize(query.block);
 
 		return this.processorModule.process(block);
 	}

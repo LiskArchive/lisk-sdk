@@ -142,12 +142,16 @@ const isTieBreak = ({ slots, lastAppliedBlock, receivedBlock }) =>
  * @return {boolean}
  */
 // eslint-disable-next-line class-methods-use-this
-const isDifferentChain = (lastBlock, currentBlock) =>
-	lastBlock.prevotedConfirmedUptoHeight <
-		currentBlock.prevotedConfirmedUptoHeight ||
-	(lastBlock.height < currentBlock.height &&
-		lastBlock.prevotedConfirmedUptoHeight ===
-			currentBlock.prevotedConfirmedUptoHeight);
+const isDifferentChain = (lastBlock, currentBlock) => {
+	const prevotedConfirmedUptoHeight =
+		lastBlock.prevotedConfirmedUptoHeight || 0;
+
+	return (
+		prevotedConfirmedUptoHeight < currentBlock.prevotedConfirmedUptoHeight ||
+		(lastBlock.height < currentBlock.height &&
+			prevotedConfirmedUptoHeight === currentBlock.prevotedConfirmedUptoHeight)
+	);
+};
 
 module.exports = {
 	FORK_STATUS_IDENTICAL_BLOCK,

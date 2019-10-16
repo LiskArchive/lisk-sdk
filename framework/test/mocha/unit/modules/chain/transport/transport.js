@@ -37,7 +37,6 @@ const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');
 const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
-const blocksUtils = require('../../../../../../src/modules/chain/blocks');
 
 const expect = chai.expect;
 
@@ -178,6 +177,7 @@ describe('transport', () => {
 			processorModule: {
 				validate: sinonSandbox.stub(),
 				process: sinonSandbox.stub(),
+				deserialize: sinonSandbox.stub(),
 			},
 			loaderModule: {
 				syncing: sinonSandbox.stub().returns(false),
@@ -469,7 +469,7 @@ describe('transport', () => {
 				beforeEach(async () => {
 					invalidTransaction = {
 						...transaction,
-						amount: '0',
+						asset: {},
 					};
 
 					try {
@@ -747,14 +747,14 @@ describe('transport', () => {
 
 				describe('getBlocksFromId', () => {
 					describe('when query is undefined', () => {
-						it('should send back empty blocks', async () => {
+						it('should throw a validation error', async () => {
 							query = {};
 
 							try {
 								await transportModule.getBlocksFromId(query);
 							} catch (e) {
-								expect(e.message).to.equal(
-									"should have required property 'blockId': undefined",
+								expect(e[0].message).to.equal(
+									"should have required property 'blockId'",
 								);
 							}
 						});
@@ -843,26 +843,23 @@ describe('transport', () => {
 							const genesisBlock = new GenesisBlock();
 							genesisBlock.previousBlockId = genesisBlock.id; // So validations pass
 
-							beforeEach(async () => {
-								sinonSandbox
-									.stub(blocksModule, 'objectNormalize')
-									.returns(genesisBlock);
-							});
-
 							describe('when query.block is defined', () => {
 								it('should call modules.blocks.addBlockProperties with query.block', async () => {
 									await transportModule.postBlock({
 										block: genesisBlock,
 									});
 									expect(
-										blocksModule.addBlockProperties.calledWith(genesisBlock),
+										transportModule.processorModule.deserialize.calledWith(
+											genesisBlock,
+										),
 									).to.be.true;
 								});
 							});
 
 							it('should call transportModule.processorModule.process with block', async () => {
-								const blockWithProperties = blocksUtils.addBlockProperties(
-									genesisBlock,
+								const blockWithProperties = {};
+								transportModule.processorModule.deserialize.resolves(
+									blockWithProperties,
 								);
 								await transportModule.postBlock({
 									block: genesisBlock,

@@ -80,7 +80,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	});
 
 	describe('schema validations', () => {
-		common.invalidAssets('signature', badTransactions);
+		common.invalidAssets('publicKey', badTransactions);
 	});
 
 	describe('transactions processing', () => {
