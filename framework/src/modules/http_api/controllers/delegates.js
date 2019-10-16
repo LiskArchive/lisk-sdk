@@ -29,7 +29,7 @@ const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
 		'username',
-		'vote',
+		'voteWeight',
 		'rewards',
 		'producedBlocks',
 		'missedBlocks',
@@ -42,7 +42,7 @@ function delegateFormatter(totalSupply, delegate) {
 		secondPublicKey: delegate.secondPublicKey || '',
 	};
 
-	result.approval = calculateApproval(result.vote, totalSupply);
+	result.approval = calculateApproval(result.voteWeight, totalSupply);
 
 	return result;
 }

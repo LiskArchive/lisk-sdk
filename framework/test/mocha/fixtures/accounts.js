@@ -49,7 +49,6 @@ accounts.mem_accountsFields = [
 	'publicKey',
 	'secondPublicKey',
 	'balance',
-	'vote',
 	'voteWeight',
 	'delegates',
 	'multisignatures',
@@ -74,7 +73,6 @@ const Account = stampit({
 		publicKey: '',
 		secondPublicKey: null,
 		balance: '0',
-		vote: '',
 		voteWeight: '',
 		multiMin: 0,
 		multiLifetime: 0,
@@ -110,8 +108,10 @@ const Account = stampit({
 				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
 		this.secondPublicKey = secondPublicKey || null;
-		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
-		this.voteWeight = this.vote;
+		this.voteWeight = randomstring.generate({
+			charset: '123456789',
+			length: 5,
+		});
 		this.producedBlocks = producedBlocks || 0;
 		this.missedBlocks = missedBlocks || 0;
 		this.productivity =
@@ -141,7 +141,6 @@ const dbAccount = stampit({
 		secondPublicKey: null,
 		secondSignature: 0,
 		username: null,
-		vote: '0',
 		voteWeight: '0',
 		asset: {},
 		votedDelegatesPublicKeys: null,
