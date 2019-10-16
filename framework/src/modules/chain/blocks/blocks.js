@@ -347,7 +347,14 @@ class Blocks extends EventEmitter {
 	}
 
 	async save({ block, blockJSON, tx, skipSave }) {
-		await saveBlockStep(this.storage, this.dposModule, blockJSON, skipSave, tx);
+		await saveBlockStep(
+			this.storage,
+			this.dposModule,
+			block,
+			blockJSON,
+			skipSave,
+			tx,
+		);
 		this._lastBlock = block;
 	}
 

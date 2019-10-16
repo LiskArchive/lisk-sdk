@@ -195,9 +195,16 @@ const applyConfirmedGenesisStep = async (
  * @param {function} tx - Database transaction for atomic operations
  * @returns {Promise<reject|resolve>}
  */
-const saveBlockStep = async (storage, dposModule, block, skipSave, tx) => {
+const saveBlockStep = async (
+	storage,
+	dposModule,
+	block,
+	blockJSON,
+	skipSave,
+	tx,
+) => {
 	if (!skipSave) {
-		await saveBlock(storage, block, tx);
+		await saveBlock(storage, blockJSON, tx);
 	}
 
 	await dposModule.apply(block, tx);

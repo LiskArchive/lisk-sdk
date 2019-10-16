@@ -27,6 +27,12 @@ const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fo
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+const {
+	registeredTransactions,
+} = require('../../../../../utils/registered_transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../../../src/modules/chain/interface_adapters');
 
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('events');
@@ -64,9 +70,7 @@ describe('blocks', () => {
 		// Arrange
 		stubs.dependencies = {
 			interfaceAdapters: {
-				transactions: {
-					fromBlock: jest.fn(),
-				},
+				transactions: new TransactionInterfaceAdapter(registeredTransactions),
 			},
 			storage: {
 				entities: {
@@ -1271,6 +1275,7 @@ describe('blocks', () => {
 				// Act
 				await blocksInstance.save({
 					block,
+					blockJSON: blocksInstance.serialize(block),
 					skipSave: true,
 					tx: stubs.tx,
 				});
@@ -1293,6 +1298,7 @@ describe('blocks', () => {
 				await expect(
 					blocksInstance.save({
 						block,
+						blockJSON: blocksInstance.serialize(block),
 						skipSave: true,
 						tx: stubs.tx,
 					}),
@@ -1342,6 +1348,7 @@ describe('blocks', () => {
 				await expect(
 					blocksInstance.save({
 						block,
+						blockJSON: blocksInstance.serialize(block),
 						skipSave: false,
 						tx: stubs.tx,
 					}),
@@ -1362,6 +1369,7 @@ describe('blocks', () => {
 				await expect(
 					blocksInstance.save({
 						block,
+						blockJSON: blocksInstance.serialize(block),
 						skipSave: false,
 						tx: stubs.tx,
 					}),
@@ -1382,6 +1390,7 @@ describe('blocks', () => {
 					// Act
 					await blocksInstance.save({
 						block,
+						blockJSON: blocksInstance.serialize(block),
 						skipSave: false,
 						tx: stubs.tx,
 					});
@@ -1399,19 +1408,13 @@ describe('blocks', () => {
 					totolAmount: new BigNum('0'),
 					totalFee: new BigNum('0'),
 				});
-				const blockJson = {
-					...block,
-					reward: '0',
-					totalAmount: '0',
-					totalFee: '0',
-					previousBlockId: block.previousBlock,
-				};
-				delete blockJson.previousBlock;
+				const blockJSON = blocksInstance.serialize(block);
 				expect.assertions(1);
 
 				// Act
 				await blocksInstance.save({
 					block,
+					blockJSON,
 					skipSave: false,
 					tx: stubs.tx,
 				});
@@ -1419,7 +1422,7 @@ describe('blocks', () => {
 				// Assert
 				expect(
 					stubs.dependencies.storage.entities.Block.create,
-				).toHaveBeenCalledWith(blockJson, {}, stubs.tx);
+				).toHaveBeenCalledWith(blockJSON, {}, stubs.tx);
 			});
 
 			it('should not call Transaction.create with if block has no transactions', async () => {
@@ -1429,6 +1432,7 @@ describe('blocks', () => {
 				// Act
 				await blocksInstance.save({
 					block,
+					blockJSON: blocksInstance.serialize(block),
 					skipSave: false,
 					tx: stubs.tx,
 				});
@@ -1449,6 +1453,7 @@ describe('blocks', () => {
 				// Act
 				await blocksInstance.save({
 					block,
+					blockJSON: blocksInstance.serialize(block),
 					skipSave: false,
 					tx: stubs.tx,
 				});
@@ -1492,6 +1497,7 @@ describe('blocks', () => {
 				await expect(
 					blocksInstance.save({
 						block,
+						blockJSON: blocksInstance.serialize(block),
 						skipSave: true,
 						tx: stubs.tx,
 					}),
@@ -1517,7 +1523,8 @@ describe('blocks', () => {
 			// Act & Assert
 			await expect(
 				blocksInstance.remove({
-					block: genesisBlock,
+					block: blocksInstance.deserialize(genesisBlock),
+					blockJSON: genesisBlock,
 					tx: stubs.tx,
 				}),
 			).rejects.toThrow('Cannot delete genesis block');
@@ -1531,6 +1538,7 @@ describe('blocks', () => {
 			await expect(
 				blocksInstance.remove({
 					block,
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
 				}),
 			).rejects.toThrow('PreviousBlock is null');
@@ -1550,6 +1558,7 @@ describe('blocks', () => {
 			await expect(
 				blocksInstance.remove({
 					block,
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
 				}),
 			).rejects.toEqual(deleteBlockError);
@@ -1561,6 +1570,7 @@ describe('blocks', () => {
 			// Act
 			await blocksInstance.remove({
 				block,
+				blockJSON: blocksInstance.serialize(block),
 				tx: stubs.tx,
 			});
 			// Assert
@@ -1589,6 +1599,7 @@ describe('blocks', () => {
 					blocksInstance.remove(
 						{
 							block,
+							blockJSON: blocksInstance.serialize(block),
 							tx: stubs.tx,
 						},
 						true,
@@ -1601,20 +1612,12 @@ describe('blocks', () => {
 				const transaction = new TransferTransaction(randomUtils.transaction());
 				const block = newBlock({ transactions: [transaction] });
 				transaction.blockId = block.id;
-				const transactionJson = transaction.toJSON();
-				const blockJson = {
-					...block,
-					reward: '0',
-					totalAmount: '1',
-					totalFee: '10000000',
-					previousBlockId: block.previousBlock,
-					transactions: [transactionJson],
-				};
-				delete blockJson.previousBlock;
+				const blockJSON = blocksInstance.serialize(block);
 				// Act
 				await blocksInstance.remove(
 					{
 						block,
+						blockJSON,
 						tx: stubs.tx,
 					},
 					true,
@@ -1624,9 +1627,9 @@ describe('blocks', () => {
 					stubs.dependencies.storage.entities.TempBlock.create,
 				).toHaveBeenCalledWith(
 					{
-						id: blockJson.id,
-						height: blockJson.height,
-						fullBlock: blockJson,
+						id: blockJSON.id,
+						height: blockJSON.height,
+						fullBlock: blockJSON,
 					},
 					{},
 					stubs.tx,
