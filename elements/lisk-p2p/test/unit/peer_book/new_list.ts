@@ -25,7 +25,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_EVICTION_THRESHOLD_TIME,
 } from '../../../src/constants';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { P2PPeerInfo } from '../../../src';
 
 describe('New Peers List', () => {
 	let newPeerConfig: NewListConfig;
@@ -75,7 +75,7 @@ describe('New Peers List', () => {
 	});
 
 	describe('#makeSpace', () => {
-		let samplePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+		let samplePeers: ReadonlyArray<P2PPeerInfo>;
 		let clock: sinon.SinonFakeTimers;
 
 		beforeEach(() => {

@@ -186,13 +186,17 @@ describe('utils/misc', () => {
 			beforeEach(async () => {
 				const peer1 = {
 					...samplePeers[0],
-					height: samplePeers[0].height,
+					height: samplePeers[0].sharedState
+						? samplePeers[0].sharedState.height
+						: 0,
 					wsPort: samplePeers[0].wsPort + 1,
 				};
 
 				const peer2 = {
 					...samplePeers[1],
-					height: samplePeers[1].height,
+					height: samplePeers[1].sharedState
+						? samplePeers[1].sharedState.height
+						: 0,
 					wsPort: samplePeers[1].wsPort + 1,
 				};
 

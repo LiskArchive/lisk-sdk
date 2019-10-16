@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import { BaseList, CustomPeerInfo } from '../../../src/peer_book/base_list';
 import { initPeerInfoList } from '../../utils/peers';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
 import {
 	DEFAULT_NEW_BUCKET_SIZE,
@@ -23,7 +22,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
 import { getBucketId } from '../../../src/utils';
-import { ExistingPeerError } from '../../../src';
+import { ExistingPeerError, P2PPeerInfo } from '../../../src';
 
 describe('Peers base list', () => {
 	const peerListConfig = {
@@ -33,7 +32,7 @@ describe('Peers base list', () => {
 		peerType: PEER_TYPE.TRIED_PEER,
 	};
 	let peerListObj: BaseList;
-	let samplePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	let samplePeers: ReadonlyArray<P2PPeerInfo>;
 
 	describe('#constructor', () => {
 		beforeEach(() => {
@@ -71,7 +70,7 @@ describe('Peers base list', () => {
 	});
 
 	describe('#peerList', () => {
-		let triedPeersArray: ReadonlyArray<P2PDiscoveredPeerInfo>;
+		let triedPeersArray: ReadonlyArray<P2PPeerInfo>;
 
 		before(() => {
 			samplePeers = initPeerInfoList();
@@ -79,9 +78,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
-			triedPeersArray = peerListObj.peersList as ReadonlyArray<
-				P2PDiscoveredPeerInfo
-			>;
+			triedPeersArray = peerListObj.peersList as ReadonlyArray<P2PPeerInfo>;
 		});
 
 		it('should return tried peers list', () => {

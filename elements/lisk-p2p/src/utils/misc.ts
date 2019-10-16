@@ -14,12 +14,8 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
-<<<<<<< HEAD
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
-import { CustomPeerInfo } from '../peer_book/base_list';
-=======
 import { P2PPeerInfo } from '../p2p_types';
->>>>>>> Update all the utils func to use P2PPeerInfo
+import { CustomPeerInfo } from '../peer_book/base_list';
 
 const BYTES_4 = 4;
 const BYTES_16 = 16;
@@ -125,26 +121,32 @@ export const getNetgroup = (address: string, secret: number): number => {
 };
 
 export const getUniquePeersbyIp = (
-	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
+	peerList: ReadonlyArray<P2PPeerInfo>,
+): ReadonlyArray<P2PPeerInfo> => {
+	const peerMap = new Map<string, P2PPeerInfo>();
 
 	for (const peer of peerList) {
-		const tempPeer = peerMap.get(peer.sharedState.ipAddress);
+		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
-			if (peer.sharedState.height > tempPeer.sharedState.height) {
-				peerMap.set(peer.sharedState.ipAddress, peer);
+			if (
+				peer.sharedState &&
+				tempPeer.sharedState &&
+				peer.sharedState.height > tempPeer.sharedState.height
+			) {
+				peerMap.set(peer.ipAddress, peer);
 			}
 		} else {
-			peerMap.set(peer.sharedState.ipAddress, peer);
+			peerMap.set(peer.ipAddress, peer);
 		}
 	}
 
 	return [...peerMap.values()];
 };
 
-export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.sharedState.ipAddress}:${peerInfo.sharedState.wsPort}`;
+export const constructPeerIdFromPeerInfo = (
+	ipAddress: string,
+	wsPort: number,
+): string => `${ipAddress}:${wsPort}`;
 
 export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));

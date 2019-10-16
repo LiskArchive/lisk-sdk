@@ -178,7 +178,9 @@ describe('peer selector', () => {
 
 			let peerKindCounts = selectedPeers.reduce(
 				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
-					const kind = peerInfo.kind as string;
+					const kind = peerInfo.internalState
+						? (peerInfo.internalState.connectionKind as string)
+						: '';
 					if (!peerKindTracker[kind]) {
 						peerKindTracker[kind] = 0;
 					}

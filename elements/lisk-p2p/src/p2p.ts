@@ -304,7 +304,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
-		this._handleOutboundPeerConnect = (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
 			try {
 				this._peerBook.addPeer(peerInfo);
 				// Should be added to newPeer list first and since it is connected so we will upgrade it
@@ -315,11 +315,11 @@ export class P2P extends EventEmitter {
 				}
 
 				const updatedPeerInfo = {
-					internalState: error.internalState,
-					sharedState: error.sharedState,
-					peerId: error.peerId,
-					ipAddress: error.ipAddress,
-					wsPort: error.wsPort,
+					internalState: error.peerInfo.internalState,
+					sharedState: peerInfo.sharedState,
+					peerId: peerInfo.peerId,
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
 				};
 				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
@@ -358,7 +358,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_REMOVE_PEER, peerId);
 		};
 
-		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
 			try {
 				this._peerBook.addPeer(peerInfo);
 				// Since the connection is tried already hence upgrade the peer
@@ -369,10 +369,10 @@ export class P2P extends EventEmitter {
 				}
 
 				const updatedPeerInfo = {
-					...error,
+					...error.peerInfo,
 					sharedState: peerInfo.sharedState
 						? { ...peerInfo.sharedState }
-						: error.sharedState,
+						: error.peerInfo.sharedState,
 				};
 				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 				if (isUpdated) {
@@ -458,12 +458,12 @@ export class P2P extends EventEmitter {
 					}
 
 					// Don't update peerInfo when we already have connection with that peer
-					if (!this._peerPool.getPeer(error.peerId)) {
+					if (!this._peerPool.getPeer(error.peerInfo.peerId)) {
 						const updatedPeerInfo = {
 							...detailedPeerInfo,
 							sharedState: detailedPeerInfo.sharedState
 								? { ...detailedPeerInfo.sharedState }
-								: error.sharedState,
+								: error.peerInfo.sharedState,
 						};
 						const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 						if (isUpdated) {
@@ -580,7 +580,7 @@ export class P2P extends EventEmitter {
 	}
 	// Make sure you always share shared peer state to a user
 	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
-		const allPeers = this._peerBook.getAllPeers();
+		const allPeers = this._peerBook.allPeers;
 		const connectedPeers = this._peerPool.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
@@ -1007,4 +1007,5 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
 		peerPool.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 	}
+	// tslint:disable-next-line:max-file-line-count
 }

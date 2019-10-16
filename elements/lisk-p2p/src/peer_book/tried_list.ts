@@ -15,7 +15,6 @@
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
 
 import { P2PPeerInfo } from '../p2p_types';
-import { constructPeerIdFromPeerInfo } from '../utils';
 import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {
@@ -80,7 +79,7 @@ export class TriedList extends BaseList {
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
 		const bucket = this.getBucket(incomingPeerInfo.ipAddress);
-		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
+		const incomingPeerId = incomingPeerInfo.peerId;
 		const foundPeer = bucket.get(incomingPeerId);
 		if (!foundPeer) {
 			return false;
