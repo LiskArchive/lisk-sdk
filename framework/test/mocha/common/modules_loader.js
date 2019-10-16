@@ -184,7 +184,7 @@ const modulesLoader = new function() {
 					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
-			[{ block: require('../../../src/modules/chain/blocks/block') }],
+			[],
 			scope || {},
 			cb,
 		);
