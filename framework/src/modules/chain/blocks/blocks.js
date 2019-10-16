@@ -346,26 +346,20 @@ class Blocks extends EventEmitter {
 		await undoBlockStep(this.dposModule, block, tx);
 	}
 
-	async save({ block, serializedBlock, tx, skipSave }) {
-		await saveBlockStep(
-			this.storage,
-			this.dposModule,
-			serializedBlock,
-			skipSave,
-			tx,
-		);
+	async save({ block, blockJSON, tx, skipSave }) {
+		await saveBlockStep(this.storage, this.dposModule, blockJSON, skipSave, tx);
 		this._lastBlock = block;
 	}
 
-	async remove({ block, serializedBlock, tx }, saveTempBlock = false) {
+	async remove({ block, blockJSON, tx }, saveTempBlock = false) {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
 		const secondLastBlock = this.deserialize(storageRowOfBlock);
 
 		if (saveTempBlock) {
 			const blockTempEntry = {
-				id: serializedBlock.id,
-				height: serializedBlock.height,
-				fullBlock: serializedBlock,
+				id: blockJSON.id,
+				height: blockJSON.height,
+				fullBlock: blockJSON,
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
@@ -402,7 +396,7 @@ class Blocks extends EventEmitter {
 		return deleteFromBlockId(this.storage, block.id);
 	}
 
-	async getBlocksJSONWithLimitAndOffset(limit, offset = 0) {
+	async getJSONBlocksWithLimitAndOffset(limit, offset = 0) {
 		// Calculate toHeight
 		const toHeight = offset + limit;
 

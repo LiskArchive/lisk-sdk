@@ -305,9 +305,9 @@ class Processor {
 				tx,
 			});
 
-			const serializedBlock = await this.serialize(block);
+			const blockJSON = await this.serialize(block);
 			// TODO: move save to inside below condition after moving tick to the block_processor
-			await this.blocksModule.save({ block, serializedBlock, tx, skipSave });
+			await this.blocksModule.save({ block, blockJSON, tx, skipSave });
 			if (!skipSave) {
 				this.channel.publish('chain:processor:newBlock', {
 					block: cloneDeep(block),
@@ -348,11 +348,11 @@ class Processor {
 					tx,
 				});
 
-				const serializedBlock = await this.serialize(block);
+				const blockJSON = await this.serialize(block);
 
 				await this.blocksModule.save({
 					block,
-					serializedBlock,
+					blockJSON,
 					tx,
 					skipSave,
 				});
@@ -368,10 +368,10 @@ class Processor {
 				block,
 				tx,
 			});
-			const serializedBlock = await this.serialize(block);
+			const blockJSON = await this.serialize(block);
 			await this.blocksModule.remove({
 				block,
-				serializedBlock,
+				blockJSON,
 				tx,
 				saveTempBlock,
 			});

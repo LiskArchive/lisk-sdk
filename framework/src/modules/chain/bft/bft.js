@@ -93,6 +93,11 @@ class BFT extends EventEmitter {
 		});
 	}
 
+	/**
+	 * Serialize common properties to the JSON format
+	 * @param {*} blockInstance Instance of the block
+	 * @returns JSON format of the block
+	 */
 	// eslint-disable-next-line class-methods-use-this
 	serialize(blockInstance) {
 		return {
@@ -103,6 +108,10 @@ class BFT extends EventEmitter {
 		};
 	}
 
+	/**
+	 * Deserialize common properties to instance format
+	 * @param {*} blockJSON JSON format of the block
+	 */
 	// eslint-disable-next-line class-methods-use-this
 	deserialize(blockJSON) {
 		return {
