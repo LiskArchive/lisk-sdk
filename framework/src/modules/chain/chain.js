@@ -412,6 +412,8 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: this.options.constants
+				.DELEGATE_LIST_ROUND_OFFSET,
 			exceptions: this.options.exceptions,
 		});
 
