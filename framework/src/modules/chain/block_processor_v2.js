@@ -220,18 +220,18 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.apply.pipe([
 			data => this.blocksModule.verify(data),
 			data => this.blocksModule.apply(data),
-			({ block, tx }) => this.dposModule.apply(block, tx),
+			({ block, tx }) => this.dposModule.apply(block, { tx }),
 			({ block, tx }) => this.bftModule.addNewBlock(block, tx),
 		]);
 
 		this.applyGenesis.pipe([
 			data => this.blocksModule.applyGenesis(data),
-			({ block, tx }) => this.dposModule.apply(block, tx),
+			({ block, tx }) => this.dposModule.apply(block, { tx }),
 		]);
 
 		this.undo.pipe([
 			data => this.blocksModule.undo(data),
-			({ block, tx }) => this.dposModule.undo(block, tx),
+			({ block, tx }) => this.dposModule.undo(block, { tx }),
 			({ block }) => this.bftModule.deleteBlocks([block]),
 		]);
 

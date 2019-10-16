@@ -84,24 +84,22 @@ module.exports = class Dpos {
 
 	async verifyBlockForger(
 		block,
-		delegateListRoundOffset = this.delegateListRoundOffset,
+		{ delegateListRoundOffset = this.delegateListRoundOffset } = {},
 	) {
 		return this.delegatesList.verifyBlockForger(block, delegateListRoundOffset);
 	}
 
 	async apply(
 		block,
-		tx,
-		delegateListRoundOffset = this.delegateListRoundOffset,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
 	) {
-		return this.delegatesInfo.apply(block, tx, delegateListRoundOffset);
+		return this.delegatesInfo.apply(block, { tx, delegateListRoundOffset });
 	}
 
 	async undo(
 		block,
-		tx,
-		delegateListRoundOffset = this.delegateListRoundOffset,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
 	) {
-		return this.delegatesInfo.undo(block, tx, delegateListRoundOffset);
+		return this.delegatesInfo.undo(block, { tx, delegateListRoundOffset });
 	}
 };
