@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { maxBy } = require('lodash');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
 
 /**
@@ -91,7 +92,7 @@ const restoreBlocksUponStartup = async (
  * @param {Object} processorModule
  * @param {Object} blocksModule
  * @param {Number} desiredHeight - The height desired to delete blocks after.
- * @param backup
+ * @param {boolean} backup - If true, backs the blocks up in a temporary table
  * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
  */
 const deleteBlocksAfterHeight = async (
@@ -139,9 +140,40 @@ const computeBlockHeightsList = (
 		: heightListAfterFinalized;
 };
 
+/**
+ * Computes the largest subset of an array of object literals by the maximum
+ * value of the property returned in `condition` function
+ *
+ * @param {Array<Object>} arrayOfObjects
+ * @param {Function} propertySelectorFunc
+ * @return {Array<Object>}
+ * @private
+ *
+ * @example
+ *
+ * const input = [{id: 1, height: 2}, {id: 2, height: 3}, {id: 3, height: 3}]
+ * const output = _computeLargestSubsetMaxBy(input, item => item.height);
+ *
+ * `output` equals to: [{id: 2, height: 3}, {id: 3, height: 3}]
+ */
+// eslint-disable-next-line class-methods-use-this
+const computeLargestSubsetMaxBy = (arrayOfObjects, propertySelectorFunc) => {
+	const maximumBy = maxBy(arrayOfObjects, propertySelectorFunc);
+	const absoluteMax = propertySelectorFunc(maximumBy);
+	const largestSubset = [];
+	// eslint-disable-next-line no-restricted-syntax
+	for (const item of arrayOfObjects) {
+		if (propertySelectorFunc(item) === absoluteMax) {
+			largestSubset.push(item);
+		}
+	}
+	return largestSubset;
+};
+
 module.exports = {
-	restoreBlocks,
-	restoreBlocksUponStartup,
-	deleteBlocksAfterHeight,
 	computeBlockHeightsList,
+	computeLargestSubsetMaxBy,
+	deleteBlocksAfterHeight,
+	restoreBlocksUponStartup,
+	restoreBlocks,
 };

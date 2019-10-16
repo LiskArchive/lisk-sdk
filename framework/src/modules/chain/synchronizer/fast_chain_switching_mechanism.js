@@ -106,12 +106,42 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return true;
 	}
 
+	get isActive() {
+		return this.active;
+	}
+
+	/**
+	 * Check if this sync mechanism is valid for the received block
+	 *
+	 * @param {Object} receivedBlock - The blocked received from the network
+	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
+	 * @throws {Error} - In case want to abort the sync pipeline
+	 */
+	async isValidFor(receivedBlock) {
+		const { lastBlock } = this.blocks;
+
+		// 3. Step: Check whether B justifies fast chain switching mechanism
+		const twoRounds = this.constants.activeDelegates * 2;
+		if (Math.abs(receivedBlock.height - lastBlock.height) > twoRounds) {
+			return false;
+		}
+
+		const blockRound = this.slots.calcRound(receivedBlock.height);
+		const delegateList = await this.dpos.getForgerPublicKeysForRound(
+			blockRound,
+		);
+
+		return delegateList.includes(receivedBlock.generatorPublicKey);
+	}
+
 	/**
 	 * Queries the blocks from the selected peer.
-	 * @param receivedBlock
-	 * @param highestCommonBlock
-	 * @param peerId
+	 * @param {Object} receivedBlock
+	 * @param {Object} highestCommonBlock
+	 * @param {string} peerId
 	 * @return {Promise<Array<Object>>}
+	 * @throws {ApplyPenaltyAndRestartError} - In case peer didn't return highest common block or its height is lower than the finalized height
+	 * @throws {AbortError} - If the height difference between both chains is higher than ACTIVE_DELEGATES * 2
 	 * @private
 	 */
 	async _queryBlocks(receivedBlock, highestCommonBlock, peerId) {
@@ -157,9 +187,10 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	/**
 	 * Validates a set of blocks
-	 * @param {Array<object>} blocks - The array of blocks to validate
+	 * @param {Array<Object>} blocks - The array of blocks to validate
 	 * @param {string} peerId
 	 * @return {Promise<void>}
+	 * @throws {ApplyPenaltyAndAbortError} - In case any of the blocks fails to validate
 	 * @private
 	 */
 	async _validateBlocks(blocks, peerId) {
@@ -175,8 +206,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	/**
 	 * Switches to desired chain
-	 * @param highestCommonBlock
-	 * @param blocksToApply
+	 * @param {Object} highestCommonBlock
+	 * @param {Array<Object>} blocksToApply
 	 * @return {Promise<void>}
 	 * @private
 	 */
@@ -205,7 +236,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	/**
 	 * Computes the height values for the last two rounds
-	 * @return {Promise<string>}
+	 * @return {Promise<Array<number>>}
 	 * @private
 	 */
 	async _computeLastTwoRoundsHeights() {
@@ -219,7 +250,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 *
-	 * @param peerId - The ID of the peer to target.
+	 * @param {string} peerId - The ID of the peer to target.
 	 * @return {Promise<Object | undefined>}
 	 * @private
 	 */
@@ -257,34 +288,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 
 		return undefined;
-	}
-
-	get isActive() {
-		return this.active;
-	}
-
-	/**
-	 * Check if this sync mechanism is valid for the received block
-	 *
-	 * @param {object} receivedBlock - The blocked received from the network
-	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
-	 * @throws {Error} - In case want to abort the sync pipeline
-	 */
-	async isValidFor(receivedBlock) {
-		const { lastBlock } = this.blocks;
-
-		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const twoRounds = this.constants.activeDelegates * 2;
-		if (Math.abs(receivedBlock.height - lastBlock.height) > twoRounds) {
-			return false;
-		}
-
-		const blockRound = this.slots.calcRound(receivedBlock.height);
-		const delegateList = await this.dpos.getForgerPublicKeysForRound(
-			blockRound,
-		);
-
-		return delegateList.includes(receivedBlock.generatorPublicKey);
 	}
 }
 

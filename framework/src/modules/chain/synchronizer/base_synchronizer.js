@@ -42,8 +42,8 @@ class BaseSynchronizer {
 	 * 3. throwing the reason.
 	 *
 	 * @param {object} peerId - The peer ID to target
-	 * @param receivedBlock
-	 * @param reason
+	 * @param {object} receivedBlock
+	 * @param {string} reason
 	 * a penalty and restarting sync
 	 */
 	async applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
