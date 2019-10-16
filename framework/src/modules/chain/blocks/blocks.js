@@ -204,7 +204,8 @@ class Blocks extends EventEmitter {
 			totalAmount: new BigNum(blockJSON.totalAmount || 0),
 			totalFee: new BigNum(blockJSON.totalFee || 0),
 			reward: new BigNum(blockJSON.reward || 0),
-			previousBlock: blockJSON.previousBlockId,
+			// Remove this inconsistency after #4295
+			previousBlock: blockJSON.previousBlock || blockJSON.previousBlockId,
 			version:
 				blockJSON.version === undefined || blockJSON.version === null
 					? 0
