@@ -184,6 +184,16 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.init.pipe([() => this.bftModule.init()]);
 
+		this.deserialize.pipe([
+			({ block }) => this.blocksModule.deserialize(block),
+			(_, updatedBlock) => this.bftModule.deserialize(updatedBlock),
+		]);
+
+		this.serialize.pipe([
+			({ block }) => this.blocksModule.serialize(block),
+			(_, updatedBlock) => this.bftModule.serialize(updatedBlock),
+		]);
+
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),

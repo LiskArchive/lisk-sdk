@@ -191,6 +191,11 @@ module.exports = class Chain {
 
 			this.processor.register(new BlockProcessorV2(processorDependencies));
 
+			// Deserialize genesis block and overwrite the options
+			this.options.genesisBlock = await this.processor.deserialize(
+				this.options.genesisBlock,
+			);
+
 			// Deactivate broadcast and syncing during snapshotting process
 			if (this.options.loading.rebuildUpToRound) {
 				this.options.broadcasts.active = false;
@@ -392,14 +397,6 @@ module.exports = class Chain {
 		};
 
 		// Deserialize genesis block
-		const transactionInstances = this.options.genesisBlock.transactions.map(
-			transaction => this.interfaceAdapters.transactions.fromJson(transaction),
-		);
-		const blockWithTransactionInstances = {
-			...this.options.genesisBlock,
-			transactions: transactionInstances,
-		};
-		this.options.genesisBlock = blockWithTransactionInstances;
 
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		this.slots = new Slots({

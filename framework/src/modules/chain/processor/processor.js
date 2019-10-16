@@ -72,6 +72,18 @@ class Processor {
 		this.logger.info('Blockchain ready');
 	}
 
+	// Serialize a block instance to a JSON format of the block
+	async serialize(blockInstance) {
+		const blockProcessor = this._getBlockProcessor(blockInstance);
+		return blockProcessor.serialize.run({ block: blockInstance });
+	}
+
+	// DeSerialize a block instance to a JSON format of the block
+	async deserialize(blockJSON) {
+		const blockProcessor = this._getBlockProcessor(blockJSON);
+		return blockProcessor.deserialize.run({ block: blockJSON });
+	}
+
 	// process is for standard processing of block, especially when received from network
 	async process(block) {
 		return this.sequence.add(async () => {
@@ -292,8 +304,10 @@ class Processor {
 				skipExistingCheck: skipSave,
 				tx,
 			});
+
+			const blockJSON = await this.serialize(block);
 			// TODO: move save to inside below condition after moving tick to the block_processor
-			await this.blocksModule.save({ block, tx, skipSave });
+			await this.blocksModule.save({ block, blockJSON, tx, skipSave });
 			if (!skipSave) {
 				this.channel.publish('chain:processor:newBlock', {
 					block: cloneDeep(block),
@@ -334,8 +348,11 @@ class Processor {
 					tx,
 				});
 
+				const blockJSON = await this.serialize(block);
+
 				await this.blocksModule.save({
 					block,
+					blockJSON,
 					tx,
 					skipSave,
 				});
@@ -351,7 +368,13 @@ class Processor {
 				block,
 				tx,
 			});
-			await this.blocksModule.remove({ block, tx, saveTempBlock });
+			const blockJSON = await this.serialize(block);
+			await this.blocksModule.remove({
+				block,
+				blockJSON,
+				tx,
+				saveTempBlock,
+			});
 			this.channel.publish('chain:processor:deleteBlock', {
 				block: cloneDeep(block),
 			});

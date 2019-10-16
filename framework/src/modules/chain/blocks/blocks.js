@@ -16,6 +16,7 @@
 
 const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
+const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	applyTransactions,
@@ -24,7 +25,6 @@ const {
 	validateTransactions,
 } = require('../transactions');
 const blocksUtils = require('./utils');
-const blocksLogic = require('./block');
 const {
 	BlocksVerify,
 	verifyBlockNotExists,
@@ -37,7 +37,6 @@ const {
 	deleteFromBlockId,
 	undoConfirmedStep,
 	saveBlockStep,
-	parseBlockToJson,
 	undoBlockStep,
 } = require('./chain');
 const {
@@ -159,13 +158,68 @@ class Blocks extends EventEmitter {
 		// check if the round related information is in valid state
 		await this.blocksVerify.reloadRequired();
 
-		this._lastBlock = await blocksLogic.loadLastBlock(
-			this.storage,
-			this.interfaceAdapters,
-			this.genesisBlock,
+		const [storageLastBlock] = await this.storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1, extended: true },
 		);
+		if (!storageLastBlock) {
+			throw new Error('Failed to load last block');
+		}
 
-		// Remove initializing _lastNBlockIds variable since it's unnecessary
+		this._lastBlock = this.deserialize(storageLastBlock);
+	}
+
+	/**
+	 * Serialize common properties to the JSON format
+	 * @param {*} blockInstance Instance of the block
+	 * @returns JSON format of the block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	serialize(blockInstance) {
+		const blockJSON = {
+			...blockInstance,
+			previousBlockId: blockInstance.previousBlock,
+			totalAmount: blockInstance.totalAmount.toString(),
+			totalFee: blockInstance.totalFee.toString(),
+			reward: blockInstance.reward.toString(),
+			transactions: blockInstance.transactions.map(tx => ({
+				...tx.toJSON(),
+				blockId: blockInstance.id,
+			})),
+		};
+		delete blockJSON.previousBlock;
+		return blockJSON;
+	}
+
+	/**
+	 * Deserialize common properties to instance format
+	 * @param {*} blockJSON JSON format of the block
+	 */
+	deserialize(blockJSON) {
+		const transactions = (blockJSON.transactions || []).map(transaction =>
+			this.interfaceAdapters.transactions.fromJson(transaction),
+		);
+		const blockInstance = {
+			...blockJSON,
+			totalAmount: new BigNum(blockJSON.totalAmount || 0),
+			totalFee: new BigNum(blockJSON.totalFee || 0),
+			reward: new BigNum(blockJSON.reward || 0),
+			// Remove this inconsistency after #4295
+			previousBlock: blockJSON.previousBlock || blockJSON.previousBlockId,
+			version:
+				blockJSON.version === undefined || blockJSON.version === null
+					? 0
+					: blockJSON.version,
+			numberOfTransactions: transactions.length,
+			payloadLength:
+				blockJSON.payloadLength === undefined ||
+				blockJSON.payloadLength === null
+					? 0
+					: blockJSON.payloadLength,
+			transactions,
+		};
+		delete blockInstance.previousBlockId;
+		return blockInstance;
 	}
 
 	async validateDetached({ block, blockBytes }) {
@@ -297,25 +351,27 @@ class Blocks extends EventEmitter {
 		await undoBlockStep(this.dposModule, block, tx);
 	}
 
-	async save({ block, tx, skipSave }) {
-		await saveBlockStep(this.storage, this.dposModule, block, skipSave, tx);
+	async save({ block, blockJSON, tx, skipSave }) {
+		await saveBlockStep(
+			this.storage,
+			this.dposModule,
+			block,
+			blockJSON,
+			skipSave,
+			tx,
+		);
 		this._lastBlock = block;
 	}
 
-	async remove({ block, tx }, saveTempBlock = false) {
+	async remove({ block, blockJSON, tx }, saveTempBlock = false) {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
-		const [secondLastBlock] = blocksLogic.readStorageRows(
-			[storageRowOfBlock],
-			this.interfaceAdapters,
-			this.genesisBlock,
-		);
+		const secondLastBlock = this.deserialize(storageRowOfBlock);
 
 		if (saveTempBlock) {
-			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
-				id: parsedDeletedBlock.id,
-				height: parsedDeletedBlock.height,
-				fullBlock: parsedDeletedBlock,
+				id: blockJSON.id,
+				height: blockJSON.height,
+				fullBlock: blockJSON,
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
@@ -350,6 +406,25 @@ class Blocks extends EventEmitter {
 
 	async deleteAfter(block) {
 		return deleteFromBlockId(this.storage, block.id);
+	}
+
+	async getJSONBlocksWithLimitAndOffset(limit, offset = 0) {
+		// Calculate toHeight
+		const toHeight = offset + limit;
+
+		const filters = {
+			height_gte: offset,
+			height_lt: toHeight,
+		};
+
+		const options = {
+			limit: null,
+			sort: ['height:asc', 'rowId:asc'],
+			extended: true,
+		};
+
+		// Loads extended blocks from storage
+		return this.storage.entities.Block.get(filters, options);
 	}
 
 	// TODO: Unit tests written in mocha, which should be migrated to jest.

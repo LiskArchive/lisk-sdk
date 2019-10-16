@@ -94,6 +94,34 @@ class BFT extends EventEmitter {
 	}
 
 	/**
+	 * Serialize common properties to the JSON format
+	 * @param {*} blockInstance Instance of the block
+	 * @returns JSON format of the block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	serialize(blockInstance) {
+		return {
+			...blockInstance,
+			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
+			prevotedConfirmedUptoHeight:
+				blockInstance.prevotedConfirmedUptoHeight || 0,
+		};
+	}
+
+	/**
+	 * Deserialize common properties to instance format
+	 * @param {*} blockJSON JSON format of the block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	deserialize(blockJSON) {
+		return {
+			...blockJSON,
+			maxHeightPreviouslyForged: blockJSON.maxHeightPreviouslyForged || 0,
+			prevotedConfirmedUptoHeight: blockJSON.prevotedConfirmedUptoHeight || 0,
+		};
+	}
+
+	/**
 	 * When blocks deleted send those to BFT to update BFT state
 	 *
 	 * @param {Array.<Object>} blocks - List of all blocks
