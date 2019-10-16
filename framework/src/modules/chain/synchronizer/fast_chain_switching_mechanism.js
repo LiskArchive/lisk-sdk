@@ -16,7 +16,12 @@
 
 const { addBlockProperties } = require('../blocks');
 const { restoreBlocks, deleteBlocksAfterHeight } = require('./utils');
-const { ApplyPenaltyAndRestartError, RestartError } = require('./errors');
+const {
+	ApplyPenaltyAndAbortError,
+	ApplyPenaltyAndRestartError,
+	AbortError,
+	RestartError,
+} = require('./errors');
 
 class FastChainSwitchingMechanism {
 	constructor({
@@ -55,23 +60,46 @@ class FastChainSwitchingMechanism {
 				highestCommonBlock,
 				peerId,
 			);
-			await this._validateBlocks(blocks);
+			await this._validateBlocks(blocks, peerId);
 			await this._switchChain(highestCommonBlock, blocks);
-		} catch (error) {
-			if (error instanceof ApplyPenaltyAndRestartError) {
+		} catch (err) {
+			if (err instanceof ApplyPenaltyAndRestartError) {
 				return this._applyPenaltyAndRestartSync(
-					error.peerId,
+					err.peerId,
 					receivedBlock,
-					error.reason,
+					err.reason,
 				);
 			}
 
-			if (error instanceof RestartError) {
+			if (err instanceof ApplyPenaltyAndAbortError) {
+				this.logger.info(
+					{ err, peerId, reason: err.reason },
+					'Applying penalty to peer and aborting synchronization mechanism',
+				);
+				return this.channel.invoke('network:applyPenalty', {
+					peerId,
+					penalty: 100,
+				});
+			}
+
+			if (err instanceof RestartError) {
+				this.logger.info(
+					{ err, reason: err.reason },
+					`Restarting synchronization mechanism with reason: ${err.reason}`,
+				);
 				return this.channel.publish('chain:processor:sync', {
 					block: receivedBlock,
 				});
 			}
-			throw error; // If the error is none of the mentioned above, throw.
+
+			if (err instanceof AbortError) {
+				return this.logger.info(
+					{ err, reason: err.reason },
+					`Aborting synchronization mechanism with reason: ${err.reason}`,
+				);
+			}
+
+			throw err;
 		} finally {
 			this.active = false;
 		}
@@ -118,7 +146,10 @@ class FastChainSwitchingMechanism {
 			!highestCommonBlock ||
 			highestCommonBlock.height < this.bft.finalizedHeight
 		) {
-			// TODO: Ban the peer
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				"Peer didn't return a common block or its height is lower than the finalized height of the chain",
+			);
 		}
 
 		if (
@@ -127,7 +158,10 @@ class FastChainSwitchingMechanism {
 			receivedBlock.height - highestCommonBlock.height >
 				this.constants.activeDelegates * 2
 		) {
-			throw new Error('Aborting the process'); // TODO: Use errors
+			throw new AbortError(
+				`Height difference between both chains is higher than ${this.constants
+					.activeDelegates * 2}`,
+			);
 		}
 
 		const blocks = this._requestBlocksWithinIDs(
@@ -137,7 +171,12 @@ class FastChainSwitchingMechanism {
 		);
 
 		if (!blocks || !blocks.length) {
-			// TODO: Check what to do
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				`Peer didn't return any requested block within IDs ${
+					highestCommonBlock.id
+				} and ${receivedBlock.id}`,
+			);
 		}
 
 		return blocks;
@@ -149,14 +188,14 @@ class FastChainSwitchingMechanism {
 	 * @return {Promise<void>}
 	 * @private
 	 */
-	async _validateBlocks(blocks) {
+	async _validateBlocks(blocks, peerId) {
 		try {
 			for (const block of blocks) {
 				addBlockProperties(block);
 				await this.processor.validate(block);
 			}
 		} catch (err) {
-			throw new Error('Abort here'); // TODO: Use errors
+			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation faiiled');
 		}
 	}
 
