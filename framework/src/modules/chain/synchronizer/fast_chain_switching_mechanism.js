@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { BaseSynchronizer } = require('./base_synchronizer');
 const { addBlockProperties } = require('../blocks');
 const { restoreBlocks, deleteBlocksAfterHeight } = require('./utils');
 const {
@@ -23,25 +24,23 @@ const {
 	RestartError,
 } = require('./errors');
 
-class FastChainSwitchingMechanism {
+class FastChainSwitchingMechanism extends BaseSynchronizer {
 	constructor({
 		storage,
 		logger,
 		channel,
-		blocks,
-		processor,
-		bft,
 		slots,
+		blocks,
+		bft,
+		processor,
 		dpos,
 		activeDelegates,
 	}) {
-		this.storage = storage;
-		this.logger = logger;
+		super(storage, logger, channel);
 		this.slots = slots;
 		this.dpos = dpos;
 		this.blocks = blocks;
 		this.bft = bft;
-		this.channel = channel;
 		this.processor = processor;
 		this.constants = {
 			activeDelegates,
@@ -64,7 +63,7 @@ class FastChainSwitchingMechanism {
 			await this._switchChain(highestCommonBlock, blocks);
 		} catch (err) {
 			if (err instanceof ApplyPenaltyAndRestartError) {
-				return this._applyPenaltyAndRestartSync(
+				return this.applyPenaltyAndRestartSync(
 					err.peerId,
 					receivedBlock,
 					err.reason,
@@ -108,32 +107,6 @@ class FastChainSwitchingMechanism {
 	}
 
 	/**
-	 * Helper function that encapsulates:
-	 * 1. applying a penalty to a peer.
-	 * 2. restarting sync.
-	 * 3. throwing the reason.
-	 *
-	 * @param {object} peerId - The peer ID to target
-	 * @param receivedBlock
-	 * @param reason
-	 * a penalty and restarting sync
-	 * @private
-	 */
-	async _applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
-		this.logger.info(
-			{ peerId, reason },
-			'Applying penalty to peer and restarting synchronizer',
-		);
-		await this.channel.invoke('network:applyPenalty', {
-			peerId,
-			penalty: 100,
-		});
-		await this.channel.publish('chain:processor:sync', {
-			block: receivedBlock,
-		});
-	}
-
-	/**
 	 * Queries the blocks from the selected peer.
 	 * @param receivedBlock
 	 * @param highestCommonBlock
@@ -164,7 +137,7 @@ class FastChainSwitchingMechanism {
 			);
 		}
 
-		const blocks = this._requestBlocksWithinIDs(
+		const blocks = this.requestBlocksWithinIDs(
 			peerId,
 			highestCommonBlock.id,
 			receivedBlock.id,
@@ -184,7 +157,8 @@ class FastChainSwitchingMechanism {
 
 	/**
 	 * Validates a set of blocks
-	 * @param blocks
+	 * @param {Array<object>} blocks - The array of blocks to validate
+	 * @param {string} peerId
 	 * @return {Promise<void>}
 	 * @private
 	 */
@@ -195,7 +169,7 @@ class FastChainSwitchingMechanism {
 				await this.processor.validate(block);
 			}
 		} catch (err) {
-			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation faiiled');
+			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');
 		}
 	}
 
@@ -227,45 +201,6 @@ class FastChainSwitchingMechanism {
 			);
 			await restoreBlocks(this.blocks, this.processor);
 		}
-	}
-
-	/**
-	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer`
-	 * //TODO: Generalize and extract to common logic
-	 * @param {object} peerId - The ID of the peer to target
-	 * @param {string} fromId - The starting block ID to fetch from
-	 * @param {string} toId - The ending block ID
-	 * @return {Promise<Array<object>>}
-	 * @private
-	 */
-	async _requestBlocksWithinIDs(peerId, fromId, toId) {
-		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
-		const blocks = [];
-		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
-		let lastFetchedID = fromId;
-
-		while (failedAttempts < maxFailedAttempts) {
-			const { data } = await this.channel.invoke('network:requestFromPeer', {
-				procedure: 'getBlocksFromId',
-				peerId,
-				data: {
-					blockId: lastFetchedID,
-				},
-			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
-
-			if (data) {
-				blocks.push(...data); // `data` is an array of blocks.
-				lastFetchedID = data.slice(-1).pop().id;
-				const index = blocks.findIndex(block => block.id === toId);
-				if (index > -1) {
-					return blocks.splice(0, index + 1); // Removes unwanted extra blocks
-				}
-			} else {
-				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
-			}
-		}
-
-		return blocks;
 	}
 
 	/**

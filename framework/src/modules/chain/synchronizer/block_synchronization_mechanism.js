@@ -15,6 +15,7 @@
 'use strict';
 
 const { maxBy, groupBy, cloneDeep } = require('lodash');
+const { BaseSynchronizer } = require('./base_synchronizer');
 const { deleteBlocksAfterHeight, computeBlockHeightsList } = require('./utils');
 const {
 	FORK_STATUS_DIFFERENT_CHAIN,
@@ -24,23 +25,21 @@ const { ApplyPenaltyAndRestartError, RestartError } = require('./errors');
 
 const PEER_STATE_CONNECTED = 2;
 
-class BlockSynchronizationMechanism {
+class BlockSynchronizationMechanism extends BaseSynchronizer {
 	constructor({
 		storage,
 		logger,
-		bft,
-		slots,
 		channel,
-		blocks,
-		activeDelegates,
-		processorModule,
+		slots,
 		interfaceAdapters,
+		bft,
+		blocks,
+		processorModule,
+		activeDelegates,
 	}) {
-		this.storage = storage;
-		this.logger = logger;
+		super(storage, logger, channel);
 		this.bft = bft;
 		this.slots = slots;
-		this.channel = channel;
 		this.blocks = blocks;
 		this.processorModule = processorModule;
 		this.constants = {
