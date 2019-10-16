@@ -13,18 +13,9 @@
  */
 
 
-/*
-  DESCRIPTION: Update ranks of all delegates.
-
-  PARAMETERS: none
+ /*
+  DESCRIPTION: Remove rank column from mem accounts
+  PARAMETERS: None
 */
 
-UPDATE mem_accounts
-SET rank = new.rank
-FROM (
-	SELECT row_number() OVER (
-	ORDER BY vote DESC, "publicKey" ASC) AS rank, "publicKey"
-	FROM mem_accounts
-	WHERE "isDelegate" = 1
-) new
-WHERE mem_accounts."publicKey" = new."publicKey" AND mem_accounts."isDelegate" = 1;
+ALTER TABLE mem_accounts DROP COLUMN "rank"
