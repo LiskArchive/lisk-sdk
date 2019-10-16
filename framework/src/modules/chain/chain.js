@@ -537,6 +537,8 @@ module.exports = class Chain {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
+			delegateListRoundOffset: this.options.constants
+				.DELEGATE_LIST_ROUND_OFFSET,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,
 			forgingDefaultPassword: this.options.forging.defaultPassword,

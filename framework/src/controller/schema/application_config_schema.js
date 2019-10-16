@@ -87,6 +87,7 @@ module.exports = {
 						'EPOCH_TIME',
 						'BLOCK_TIME',
 						'MAX_TRANSACTIONS_PER_BLOCK',
+						'DELEGATE_LIST_ROUND_OFFSET',
 						'REWARDS',
 					],
 					properties: {
@@ -110,6 +111,12 @@ module.exports = {
 							minimum: 1,
 							maximum: 150,
 							description: 'Maximum number of transactions allowed per block',
+						},
+						DELEGATE_LIST_ROUND_OFFSET: {
+							type: 'number',
+							minimum: 0,
+							description:
+								'Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round `r` will be taken from the list generated in the end of round `r - DELEGATE_LIST_ROUND_OFFSET`',
 						},
 						REWARDS: {
 							id: 'rewards',
@@ -186,6 +193,7 @@ module.exports = {
 				EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 				BLOCK_TIME: 10,
 				MAX_TRANSACTIONS_PER_BLOCK: 25,
+				DELEGATE_LIST_ROUND_OFFSET: 2,
 				REWARDS: {
 					MILESTONES: [
 						'500000000', // Initial Reward

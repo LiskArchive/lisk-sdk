@@ -174,7 +174,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		exceptions,
 	}) {
 		super();
-		const delegateListRoundOffset = 2;
+		const delegateListRoundOffset = constants.DELEGATE_LIST_ROUND_OFFSET;
 		this.blocksModule = blocksModule;
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
