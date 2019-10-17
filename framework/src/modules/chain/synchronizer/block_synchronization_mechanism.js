@@ -161,16 +161,19 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		// If the list of blocks has not been fully applied
-		if (!this.blocks.lastBlock.id === receivedBlock.id) {
+		if (this.blocks.lastBlock.id !== receivedBlock.id) {
 			const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
 				{},
 				{ sort: 'height:asc', limit: 1, extended: true },
 			);
 
+			const tipBeforeApplyingInstance = await this.processorModule.deserialize(
+				tipBeforeApplying.fullBlock,
+			);
 			// Check if the new tip has priority over the last tip we had before applying
 			const forkStatus = await this.processorModule.forkStatus(
 				this.blocks.lastBlock, // New tip of the chain
-				tipBeforeApplying, // Previous tip of the chain
+				tipBeforeApplyingInstance, // Previous tip of the chain
 			);
 
 			const isDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;

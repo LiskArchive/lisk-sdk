@@ -223,8 +223,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				const blockInstance = await this.processor.deserialize(block);
 				await this.processor.processValidated(blockInstance);
 			}
-
-			await clearBlocksTempTable(this.storage);
 		} catch (err) {
 			await deleteBlocksAfterHeight(
 				this.processor,
@@ -232,6 +230,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				highestCommonBlock.height,
 			);
 			await restoreBlocks(this.blocks, this.processor);
+		} finally {
+			await clearBlocksTempTable(this.storage);
 		}
 	}
 
