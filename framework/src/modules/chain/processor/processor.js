@@ -298,12 +298,6 @@ class Processor {
 					block: cloneDeep(block),
 				});
 			}
-			await processor.apply.run({
-				block,
-				lastBlock,
-				skipExistingCheck: skipSave,
-				tx,
-			});
 
 			const blockJSON = await this.serialize(block);
 			// TODO: move save to inside below condition after moving tick to the block_processor
@@ -313,6 +307,14 @@ class Processor {
 					block: cloneDeep(block),
 				});
 			}
+
+			await processor.apply.run({
+				block,
+				lastBlock,
+				skipExistingCheck: skipSave,
+				tx,
+			});
+
 			if (removeFromTempTable) {
 				// Remove block from temp_block table
 				await this.blocksModule.removeBlockFromTempTable(block.id, tx);

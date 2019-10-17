@@ -324,6 +324,8 @@ class Blocks extends EventEmitter {
 			this.exceptions,
 			tx,
 		);
+
+		this._lastBlock = block;
 	}
 
 	async applyGenesis({ block, tx }) {
@@ -334,13 +336,14 @@ class Blocks extends EventEmitter {
 			this.exceptions,
 			tx,
 		);
+
+		this._lastBlock = block;
 	}
 
-	async save({ block, blockJSON, tx, skipSave }) {
+	async save({ blockJSON, tx, skipSave }) {
 		if (!skipSave) {
 			await saveBlock(this.storage, blockJSON, tx);
 		}
-		this._lastBlock = block;
 	}
 
 	async undo({ block, tx }) {
