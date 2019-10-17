@@ -584,7 +584,9 @@ export class P2P extends EventEmitter {
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
-				connectedPeers.find(connectedPeer => peer.peerId === connectedPeer.id)
+				connectedPeers.find(
+					connectedPeer => peer.peerId === connectedPeer.peerId,
+				)
 			) {
 				return false;
 			}
