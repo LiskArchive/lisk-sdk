@@ -51,7 +51,7 @@ function accountFormatter(totalSupply, account) {
 	if (account.isDelegate) {
 		formattedAccount.delegate = _.pick(account, [
 			'username',
-			'vote',
+			'voteWeight',
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
@@ -60,7 +60,7 @@ function accountFormatter(totalSupply, account) {
 
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(
-			formattedAccount.delegate.vote,
+			formattedAccount.delegate.voteWeight,
 			totalSupply,
 		);
 	}

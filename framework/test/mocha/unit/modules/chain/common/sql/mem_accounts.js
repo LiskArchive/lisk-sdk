@@ -32,7 +32,7 @@ const MemAccounts = {
 		'"publicKey",' +
 		'"secondPublicKey",' +
 		'"balance",' +
-		'"vote",' +
+		'"voteWeight",' +
 		'"delegates",' +
 		'"multisignatures",' +
 		'"multimin",' +
@@ -50,7 +50,7 @@ const MemAccounts = {
 		'${publicKey}, ' +
 		'${secondPublicKey}, ' +
 		'${balance}, ' +
-		'${vote}, ' +
+		'${voteWeight}, ' +
 		'${delegates}, ' +
 		'${multisignatures}, ' +
 		'${multimin}, ' +

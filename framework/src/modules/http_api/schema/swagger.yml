@@ -2531,7 +2531,7 @@ definitions:
     type: object
     required:
       - username
-      - vote
+      - voteWeight
     properties:
       username:
         type: string
@@ -2541,7 +2541,7 @@ definitions:
           The delegates' username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
-      vote:
+      voteWeight:
         type: string
         example: 1081560729258
         description: |
@@ -2575,7 +2575,7 @@ definitions:
     type: object
     required:
       - username
-      - vote
+      - voteWeight
       - account
     properties:
       username:
@@ -2586,7 +2586,7 @@ definitions:
           The delegates' username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
-      vote:
+      voteWeight:
         type: string
         example: 1081560729258
         description: |

@@ -55,11 +55,11 @@ describe('delegates/api', () => {
 		dummyDelegates = [
 			{
 				username: 'genesis_100',
-				vote: '9997431613722222',
+				voteWeight: '9997431613722222',
 			},
 			{
 				username: 'genesis_51',
-				vote: '9997428613722222',
+				voteWeight: '9997428613722222',
 			},
 		];
 

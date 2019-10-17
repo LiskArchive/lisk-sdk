@@ -69,7 +69,6 @@ describe('Account', () => {
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'vote',
 			'voteWeight',
 			'votedDelegatesPublicKeys',
 			'membersPublicKeys',
@@ -91,7 +90,6 @@ describe('Account', () => {
 			'producedBlocks',
 			'fees',
 			'rewards',
-			'vote',
 			'voteWeight',
 			'productivity',
 			'votedDelegatesPublicKeys',
@@ -184,14 +182,6 @@ describe('Account', () => {
 			'missedBlocks_lt',
 			'missedBlocks_lte',
 			'missedBlocks_in',
-			'vote',
-			'vote_eql',
-			'vote_ne',
-			'vote_gt',
-			'vote_gte',
-			'vote_lt',
-			'vote_lte',
-			'vote_in',
 			'voteWeight',
 			'voteWeight_eql',
 			'voteWeight_ne',
@@ -497,9 +487,9 @@ describe('Account', () => {
 				expect(data[0].rewards).to.be.a('string');
 			});
 
-			it('should return "vote" as "bigint"', async () => {
+			it('should return "voteWeight" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
-				expect(data[0].vote).to.be.a('string');
+				expect(data[0].voteWeight).to.be.a('string');
 			});
 
 			it('should return "producedBlocks" as "number"', async () => {

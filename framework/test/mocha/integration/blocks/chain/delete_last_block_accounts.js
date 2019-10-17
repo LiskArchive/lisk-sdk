@@ -248,7 +248,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should forge a block', done => {
@@ -274,7 +274,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should delete last block', async () => {
@@ -297,7 +297,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should forge a block with pool transaction', done => {
@@ -319,7 +319,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 			});
 

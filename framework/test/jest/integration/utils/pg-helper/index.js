@@ -151,7 +151,6 @@ class PgHelper {
 			"producedBlocks",
 			"fees",
 			"rewards",
-			"vote",
 			"voteWeight",
 			case
 			when
