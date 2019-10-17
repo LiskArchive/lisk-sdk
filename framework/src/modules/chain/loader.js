@@ -251,9 +251,7 @@ class Loader {
 			throw new Error('Received an invalid blocks response from the network');
 		}
 		// Check for strict equality for backwards compatibility reasons.
-		// The misspelled data.sucess is required to support v1 nodes.
-		// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
-		if (data.success === false || data.sucess === false) {
+		if (data.success === false) {
 			throw new CommonBlockError(
 				'Peer did not have a matching lastBlockId.',
 				lastBlock.id,
