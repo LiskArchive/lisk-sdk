@@ -299,10 +299,9 @@ class Processor {
 				});
 			}
 
-			const blockJSON = await this.serialize(block);
-			// TODO: move save to inside below condition after moving tick to the block_processor
-			await this.blocksModule.save({ block, blockJSON, tx, skipSave });
 			if (!skipSave) {
+				const blockJSON = await this.serialize(block);
+				await this.blocksModule.save({ blockJSON, tx });
 				this.channel.publish('chain:processor:newBlock', {
 					block: cloneDeep(block),
 				});
@@ -350,14 +349,13 @@ class Processor {
 					tx,
 				});
 
-				const blockJSON = await this.serialize(block);
-
-				await this.blocksModule.save({
-					block,
-					blockJSON,
-					tx,
-					skipSave,
-				});
+				if (!skipSave) {
+					const blockJSON = await this.serialize(block);
+					await this.blocksModule.save({
+						blockJSON,
+						tx,
+					});
+				}
 
 				return block;
 			},

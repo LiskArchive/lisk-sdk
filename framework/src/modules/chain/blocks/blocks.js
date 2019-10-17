@@ -340,10 +340,8 @@ class Blocks extends EventEmitter {
 		this._lastBlock = block;
 	}
 
-	async save({ blockJSON, tx, skipSave }) {
-		if (!skipSave) {
-			await saveBlock(this.storage, blockJSON, tx);
-		}
+	async save({ blockJSON, tx }) {
+		await saveBlock(this.storage, blockJSON, tx);
 	}
 
 	async undo({ block, tx }) {
