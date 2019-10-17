@@ -25,7 +25,7 @@ import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
 const SOCKET_HUNG_UP_CODE = 1006;
 
-describe(`Events Connection Close`, () => {
+describe(`Events on Connection Close`, () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();
 

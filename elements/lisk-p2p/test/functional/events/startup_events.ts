@@ -17,7 +17,7 @@ import { P2P, EVENT_NETWORK_READY } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
-describe(`Event ${EVENT_NETWORK_READY}`, () => {
+describe(`Event on ${EVENT_NETWORK_READY}`, () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();
 
@@ -31,7 +31,7 @@ describe(`Event ${EVENT_NETWORK_READY}`, () => {
 		const secondNode = p2pNodeList[1];
 
 		secondNode.on(EVENT_NETWORK_READY, () => {
-			collectedEvents.set('EVENT_NETWORK_READY', true);
+			collectedEvents.set(EVENT_NETWORK_READY, true);
 		});
 		await wait(1000);
 	});
@@ -41,6 +41,6 @@ describe(`Event ${EVENT_NETWORK_READY}`, () => {
 	});
 
 	it(`should fire ${EVENT_NETWORK_READY} event`, async () => {
-		expect(collectedEvents.get('EVENT_NETWORK_READY')).to.exist;
+		expect(collectedEvents.get(EVENT_NETWORK_READY)).to.exist;
 	});
 });
