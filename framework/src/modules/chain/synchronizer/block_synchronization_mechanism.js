@@ -14,12 +14,14 @@
 
 'use strict';
 
-const { groupBy, cloneDeep } = require('lodash');
+const { groupBy } = require('lodash');
 const { BaseSynchronizer } = require('./base_synchronizer');
 const {
 	computeLargestSubsetMaxBy,
 	computeBlockHeightsList,
 	deleteBlocksAfterHeight,
+	restoreBlocks,
+	clearBlocksTempTable,
 } = require('./utils');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
 const { ApplyPenaltyAndRestartError, RestartError } = require('./errors');
@@ -136,7 +138,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			lastCommonBlock.id,
 			receivedBlock.id,
 		);
-		const tipBeforeApplying = cloneDeep(this.blocks.lastBlock);
 
 		if (!listOfFullBlocks.length) {
 			throw new ApplyPenaltyAndRestartError(
@@ -161,17 +162,34 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		// If the list of blocks has not been fully applied
 		if (!this.blocks.lastBlock.id === receivedBlock.id) {
+			const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
+				{},
+				{ sort: 'height:asc', limit: 1, extended: true },
+			);
+
 			// Check if the new tip has priority over the last tip we had before applying
 			const forkStatus = await this.processorModule.forkStatus(
 				this.blocks.lastBlock, // New tip of the chain
 				tipBeforeApplying, // Previous tip of the chain
 			);
 
-			const isDifferentChain =
-				forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
-				this.blocks.lastBlock.id === tipBeforeApplying.id;
+			const isDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
 			if (!isDifferentChain) {
+				try {
+					await deleteBlocksAfterHeight(
+						this.processorModule,
+						this.blocks,
+						lastCommonBlock.height,
+					);
+					await restoreBlocks(this.blocks, this.processorModule);
+					await clearBlocksTempTable(this.storage);
+				} catch (err) {
+					this.logger.error(
+						{ err },
+						'Failed to restore blocks from blocks temp table',
+					);
+				}
 				throw new ApplyPenaltyAndRestartError(
 					peerId,
 					'New tip of the chain has no preference over the previous tip before synchronizing',
