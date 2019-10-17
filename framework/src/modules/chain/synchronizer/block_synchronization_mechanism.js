@@ -196,12 +196,16 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				);
 			}
 
+			await clearBlocksTempTable(this.storage);
+
 			this.logger.info('Restarting block synchronization');
 
 			throw new RestartError(
 				'The list of blocks has not been fully applied. Trying again',
 			);
 		}
+
+		await clearBlocksTempTable(this.storage);
 
 		this.logger.debug(
 			{ peerId },

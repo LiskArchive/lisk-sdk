@@ -257,7 +257,7 @@ class Blocks extends EventEmitter {
 		validateBlockSlot(block, lastBlock, this.slots);
 	}
 
-	forkChoice({ block, lastBlock }) {
+	forkChoice({ lastBlock, block }) {
 		// Current time since Lisk Epoch
 		block.receivedAt = this.slots.getEpochTime();
 		// Cases are numbered following LIP-0014 Fork choice rule.

@@ -97,30 +97,35 @@ class Synchronizer {
 			);
 		}
 
+		this.active = true;
 		this.logger.info(
 			{ blockId: receivedBlock.id, height: receivedBlock.height },
 			'Starting synchronizer',
 		);
 
-		// Moving to a Different Chain
-		// 1. Step: Validate new tip of chain
-		await this.processorModule.validateDetached(receivedBlock);
+		try {
+			// Moving to a Different Chain
+			// 1. Step: Validate new tip of chain
+			await this.processorModule.validateDetached(receivedBlock);
 
-		// Choose the right mechanism to sync
-		const validMechanism = await this._determineSyncMechanism(receivedBlock);
+			// Choose the right mechanism to sync
+			const validMechanism = await this._determineSyncMechanism(receivedBlock);
 
-		if (!validMechanism) {
-			return this.logger.info(
-				{ blockId: receivedBlock.id },
-				'Syncing mechanism could not be determined for the given block',
-			);
+			if (!validMechanism) {
+				return this.logger.info(
+					{ blockId: receivedBlock.id },
+					'Syncing mechanism could not be determined for the given block',
+				);
+			}
+
+			this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
+
+			await validMechanism.run(receivedBlock, peerId);
+		} finally {
+			this.active = false;
 		}
 
-		this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
-
-		await validMechanism.run(receivedBlock, peerId);
-
-		return this.logger.info('Synchronization finished successfully');
+		return this.logger.info('Synchronization finished');
 	}
 
 	/**
@@ -128,7 +133,7 @@ class Synchronizer {
 	 * @return {*|never|boolean}
 	 */
 	get isActive() {
-		return this.activeMechanism ? this.activeMechanism.isActive : false;
+		return this.active;
 	}
 
 	/**
