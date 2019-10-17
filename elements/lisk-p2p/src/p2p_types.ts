@@ -72,17 +72,40 @@ export interface P2PPeersCount {
 
 // P2PPeerInfo and P2PNodeInfo are related.
 // P2PNodeInfo is the outbound info from our node.
-export interface P2PNodeInfo {
+export interface P2PNodeInfo extends P2PSharedState {
 	readonly os: string;
-	readonly version: string;
-	readonly protocolVersion: string;
 	readonly nethash: string;
 	readonly wsPort: number;
-	readonly height: number;
+}
+
+// This is a representation of the inbound peer object according to the current protocol.
+// TODO later: Switch to LIP protocol format.
+// TODO: Include peerId as field
+export interface ProtocolPeerInfo {
+	// To support the existing protocol
+	readonly ip?: string;
+	readonly ipAddress: string;
+	readonly wsPort: number;
+	readonly broadhash?: string;
+	readonly height?: number;
+	readonly nonce?: string;
+	readonly os?: string;
+	readonly version?: string;
+	readonly protocolVersion?: string;
+	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
 
+// TODO later: Switch to LIP protocol format.
+// This is a representation of the outbound peer object according to the current protocol.
+export interface ProtocolNodeInfo extends P2PSharedState {
+	readonly broadhash: string;
+	readonly nethash: string;
+	readonly nonce: string;
+	readonly wsPort: number;
+	readonly httpPort: number;
+}
 export interface P2PClosePacket {
 	readonly peerInfo: P2PPeerInfo;
 	readonly code: number;
@@ -124,21 +147,6 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
-}
-
-// TODO later: Switch to LIP protocol format.
-// This is a representation of the outbound peer object according to the current protocol.
-export interface ProtocolNodeInfo {
-	readonly broadhash: string;
-	readonly nethash: string;
-	readonly height: number;
-	readonly nonce: string;
-	readonly os?: string;
-	readonly version: string;
-	readonly wsPort: number;
-	readonly httpPort: number;
-	// tslint:disable-next-line:no-mixed-interface
-	readonly [key: string]: unknown;
 }
 
 export interface P2PPeerSelectionForSendInput {
@@ -183,25 +191,6 @@ export type P2PCheckPeerCompatibility = (
 	headers: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ) => P2PCompatibilityCheckReturnType;
-
-// This is a representation of the inbound peer object according to the current protocol.
-// TODO later: Switch to LIP protocol format.
-// TODO: Include peerId as field
-export interface ProtocolPeerInfo {
-	// To support the existing protocol
-	readonly ip?: string;
-	readonly ipAddress: string;
-	readonly wsPort: number;
-	readonly broadhash?: string;
-	readonly height?: number;
-	readonly nonce?: string;
-	readonly os?: string;
-	readonly version?: string;
-	readonly protocolVersion?: string;
-	readonly httpPort?: number;
-	// tslint:disable-next-line: no-mixed-interface
-	readonly [key: string]: unknown;
-}
 
 // This is a representation of the peer list according to the current protocol.
 // TODO later: Switch to LIP protocol format.
