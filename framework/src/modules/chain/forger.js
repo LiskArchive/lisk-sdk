@@ -37,13 +37,9 @@ const getDelegateKeypairForCurrentSlot = async (
 	keypairs,
 	currentSlot,
 	round,
-	delegateListRoundOffset,
 	numOfActiveDelegates,
 ) => {
-	const activeDelegates = await dposModule.getForgerPublicKeysForRound(
-		round,
-		delegateListRoundOffset,
-	);
+	const activeDelegates = await dposModule.getForgerPublicKeysForRound(round);
 
 	const currentSlotIndex = currentSlot % numOfActiveDelegates;
 	const currentSlotDelegate = activeDelegates[currentSlotIndex];
@@ -84,7 +80,6 @@ class Forger {
 		// constants
 		activeDelegates,
 		maxTransactionsPerBlock,
-		delegateListRoundOffset,
 		forgingDelegates,
 		forgingForce,
 		forgingDefaultPassword,
@@ -106,7 +101,6 @@ class Forger {
 		this.constants = {
 			activeDelegates,
 			maxTransactionsPerBlock,
-			delegateListRoundOffset,
 		};
 
 		this.processorModule = processorModule;
@@ -325,7 +319,6 @@ class Forger {
 				this.keypairs,
 				currentSlot,
 				round,
-				this.constants.delegateListRoundOffset,
 				this.constants.activeDelegates,
 			);
 		} catch (err) {
