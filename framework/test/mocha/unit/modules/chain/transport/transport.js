@@ -646,12 +646,6 @@ describe('transport', () => {
 							invoke: sinonSandbox.stub(),
 							publish: sinonSandbox.stub(),
 						};
-						transportModule.channel.invoke
-							.withArgs('lisk:getApplicationState')
-							.returns({
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-							});
 						transportModule.onUnconfirmedTransaction(transaction, true);
 					});
 
@@ -697,10 +691,6 @@ describe('transport', () => {
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
-						transportModule.applicationState = {
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						};
 						return transportModule.onBroadcastBlock(block, true);
 					});
 
@@ -708,18 +698,12 @@ describe('transport', () => {
 						expect(transportModule.broadcaster.broadcast.calledOnce).to.be.true;
 						return expect(
 							transportModule.broadcaster.broadcast,
-						).to.be.calledWith(
-							{
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+						).to.be.calledWith({
+							api: 'postBlock',
+							data: {
+								block,
 							},
-							{
-								api: 'postBlock',
-								data: {
-									block,
-								},
-							},
-						);
+						});
 					});
 
 					describe('when modules.loader.syncing = true', () => {

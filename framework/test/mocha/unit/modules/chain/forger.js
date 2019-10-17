@@ -856,25 +856,6 @@ describe('forge', () => {
 				);
 			});
 
-			it('should log message and return if there is poor consensus', async () => {
-				const lastConsensus = 10;
-
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.resolves(testDelegate);
-				forgeModule.peersModule.isPoorConsensus.resolves(true);
-				forgeModule.peersModule.getLastConsensus.returns(lastConsensus);
-
-				const data = await forgeModule.forge();
-
-				expect(data).to.be.undefined;
-				expect(mockLogger.error).to.be.calledOnce;
-				expect(mockLogger.error).to.be.calledWithExactly(
-					{ consensus: lastConsensus },
-					'Inadequate broadhash consensus before forging a block',
-				);
-			});
-
 			it('should wait for threshold time if last block not received', async () => {
 				sinonSandbox
 					.stub(forger, 'getDelegateKeypairForCurrentSlot')

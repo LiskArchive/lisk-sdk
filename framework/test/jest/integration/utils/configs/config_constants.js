@@ -46,7 +46,6 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	MAX_PAYLOAD_LENGTH: 1024 * 1024,
 	MAX_SHARED_TRANSACTIONS: 100,
 	MAX_VOTES_PER_ACCOUNT: 101,
-	MIN_BROADHASH_CONSENSUS: 51,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	TOTAL_AMOUNT: '10000000000000000',
 	TRANSACTION_TYPES: {

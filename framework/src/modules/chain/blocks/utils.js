@@ -138,33 +138,6 @@ const getIdSequence = async (
 };
 
 /**
- * Calculate broadhash getting the last 5 blocks from the database
- *
- * @returns {height, broadhash} broadhash and height
- *
- */
-const calculateNewBroadhash = async (storage, nethash, height) => {
-	const blocks = await storage.entities.Block.get(
-		{},
-		{
-			limit: 5,
-			sort: 'height:desc',
-		},
-	);
-
-	if (blocks.length <= 1) {
-		return {
-			broadhash: nethash,
-			height,
-		};
-	}
-	const seed = blocks.map(row => row.id).join('');
-	const broadhash = hash(seed, 'utf8').toString('hex');
-	const blockHeight = blocks[0].height;
-	return { broadhash, height: blockHeight };
-};
-
-/**
  * Adds default properties to block.
  *
  * @param {Object} block - Block object reduced
@@ -299,7 +272,6 @@ module.exports = {
 	getIdSequence,
 	loadBlocksFromLastBlockId,
 	loadMemTables,
-	calculateNewBroadhash,
 	setHeight,
 	addBlockProperties,
 	deleteBlockProperties,

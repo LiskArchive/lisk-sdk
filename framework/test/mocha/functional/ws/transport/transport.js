@@ -122,7 +122,7 @@ describe('WS transport', () => {
 		};
 
 		describe('blocks', () => {
-			it('should return height and broadhash', async () => {
+			it('should return height', async () => {
 				const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 				const blockRes = await blocksEndpoint.makeRequest({ height: 2 }, 200);
 				const blockId = blockRes.body.data[0].id;

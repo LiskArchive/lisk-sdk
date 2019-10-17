@@ -23,7 +23,6 @@ const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
-const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const {
 	TransactionPool,
@@ -36,7 +35,7 @@ const {
 	constants: { EVENT_ROUND_CHANGED },
 } = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
-const { Blocks, EVENT_NEW_BROADHASH } = require('./blocks');
+const { Blocks } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
@@ -133,7 +132,6 @@ module.exports = class Chain {
 			const self = this;
 			this.scope = {
 				config: self.options,
-				peers: this.peers,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
 				sequence: new Sequence({
@@ -226,7 +224,6 @@ module.exports = class Chain {
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
-				this._calculateConsensus();
 				await this._startForging();
 			});
 
@@ -313,7 +310,6 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				consensus: await this.peers.getLastConsensus(this.blocks.broadhash),
 				loaded: true,
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
@@ -500,13 +496,6 @@ module.exports = class Chain {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.scope.modules.transactionPool = this.transactionPool;
-		// TODO: Remove - Temporal write to modules for blocks circular dependency
-		this.peers = new Peers({
-			channel: this.channel,
-			forgingForce: this.options.forging.force,
-			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
-		});
-		this.scope.modules.peers = this.peers;
 		this.loader = new Loader({
 			channel: this.channel,
 			logger: this.logger,
@@ -515,7 +504,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
-			peersModule: this.peers,
 			processorModule: this.processor,
 			interfaceAdapters: this.interfaceAdapters,
 			loadPerIteration: this.options.loading.loadPerIteration,
@@ -542,7 +530,6 @@ module.exports = class Chain {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			blocksModule: this.blocks,
-			peersModule: this.peers,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
@@ -576,22 +563,6 @@ module.exports = class Chain {
 
 	_startLoader() {
 		this.loader.loadUnconfirmedTransactions();
-	}
-
-	_calculateConsensus() {
-		jobQueue.register(
-			'calculateConsensus',
-			async () => {
-				const consensus = await this.peers.calculateConsensus(
-					this.blocks.broadhash,
-				);
-				return this.logger.debug(
-					{ consensus },
-					'Broadhash consensus calculation timer triggered',
-				);
-			},
-			this.peers.broadhashConsensusCalculationInterval,
-		);
 	}
 
 	async _forgingTask() {
@@ -660,6 +631,9 @@ module.exports = class Chain {
 						block.transactions,
 					);
 				}
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+				});
 				this.logger.info(
 					{
 						id: block.id,
@@ -695,15 +669,6 @@ module.exports = class Chain {
 			this.transport.onUnconfirmedTransaction(transaction, true);
 		});
 
-		// TODO: Remove this event
-		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
-			this.channel.invoke('app:updateApplicationState', { broadhash, height });
-			this.logger.debug(
-				{ broadhash, height, event: EVENT_NEW_BROADHASH },
-				'Updating the application state',
-			);
-		});
-
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
 			this.dpos.onBlockFinalized({ height });
 		});
@@ -719,7 +684,6 @@ module.exports = class Chain {
 
 	_unsubscribeToEvents() {
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
-		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
 		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
