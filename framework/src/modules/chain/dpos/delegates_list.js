@@ -45,14 +45,16 @@ class DelegatesList {
 	}
 
 	/**
-	 * Get shuffled list of active delegate public keys for a specific round -> forger public keys
+	 * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
+	 * The list of delegates used is the one computed at the end of the round `r - delegateListRoundOffset`
 	 * @param {number} round
+	 * @param {number} delegateListRoundOffset
 	 */
 	async getForgerPublicKeysForRound(round, delegateListRoundOffset) {
-		// Delegate list is generated from round 1 hence `roundToVerify` can't be less than 1
-		const roundToVerify = Math.max(round - delegateListRoundOffset, 1);
+		// Delegate list is generated from round 1 hence `roundWithOffset` can't be less than 1
+		const roundWithOffset = Math.max(round - delegateListRoundOffset, 1);
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
-			roundToVerify,
+			roundWithOffset,
 		);
 
 		if (!delegatePublicKeys.length) {
