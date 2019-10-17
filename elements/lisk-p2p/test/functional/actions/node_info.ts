@@ -13,13 +13,14 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, EVENT_REQUEST_RECEIVED } from '../../../src/index';
+import { P2P, EVENT_UPDATED_PEER_INFO } from '../../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
 	nodeInfoConstants,
 	NETWORK_START_PORT,
 } from '../../utils/network_setup';
+import { wait } from 'utils/helpers';
 
 const NEW_OS = 'TestOS';
 const NEW_NETHASH =
@@ -36,20 +37,16 @@ const NEW_NONCE = `abcdefghijklmnop`;
 
 describe('NodeInfo actions', () => {
 	let p2pNodeList: P2P[] = [];
-	let collectedMessages: Array<any> = [];
+	const collectedEvents = new Map();
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork();
+		p2pNodeList = await createNetwork({ networkSize: 2 });
 
-		collectedMessages = [];
-		for (let p2p of p2pNodeList) {
-			p2p.on(EVENT_REQUEST_RECEIVED, request => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					request,
-				});
-			});
-		}
+		const secondP2PNode = p2pNodeList[1];
+
+		secondP2PNode.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
+			collectedEvents.set(EVENT_UPDATED_PEER_INFO, peerInfo);
+		});
 	});
 
 	afterEach(async () => {
@@ -133,6 +130,53 @@ describe('NodeInfo actions', () => {
 			.to.have.property('options')
 			.which.equals(NEW_OPTIONS);
 		expect(firstP2PNode.nodeInfo)
+			.to.have.property('nonce')
+			.which.equals(NEW_NONCE);
+	});
+
+	it(`should fire ${EVENT_UPDATED_PEER_INFO} for connected peers`, async () => {
+		const firstP2PNode = p2pNodeList[0];
+
+		firstP2PNode.applyNodeInfo({
+			os: NEW_OS,
+			nethash: NEW_NETHASH,
+			broadhash: NEW_BROADHASH,
+			version: NEW_VERSION,
+			protocolVersion: NEW_PROTOCOLVERSION,
+			minVersion: NEW_MIN_VERSION,
+			wsPort: NETWORK_START_PORT,
+			height: NEW_HEIGHT,
+			options: NEW_OPTIONS,
+			nonce: NEW_NONCE,
+		});
+
+		await wait(300);
+
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('os')
+			.which.equals(NEW_OS);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('nethash')
+			.which.equals(NEW_NETHASH);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('broadhash')
+			.which.equals(NEW_BROADHASH);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('version')
+			.which.equals(NEW_VERSION);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('protocolVersion')
+			.which.equals(NEW_PROTOCOLVERSION);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('minVersion')
+			.which.equals(NEW_MIN_VERSION);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('wsPort')
+			.which.equals(NETWORK_START_PORT);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('height')
+			.which.equals(NEW_HEIGHT);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
 			.to.have.property('nonce')
 			.which.equals(NEW_NONCE);
 	});
