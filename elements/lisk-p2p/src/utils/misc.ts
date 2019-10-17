@@ -126,13 +126,15 @@ export const getUniquePeersbyIp = (
 	const peerMap = new Map<string, P2PPeerInfo>();
 
 	for (const peer of peerList) {
+		const { sharedState } = peer;
+		const peerHeight = sharedState ? (sharedState.height as number) : 0;
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
-			if (
-				peer.sharedState &&
-				tempPeer.sharedState &&
-				peer.sharedState.height > tempPeer.sharedState.height
-			) {
+			const { sharedState: tempSharedState } = tempPeer;
+			const tempPeerHeight = tempSharedState
+				? (tempSharedState.height as number)
+				: 0;
+			if (peerHeight > tempPeerHeight) {
 				peerMap.set(peer.ipAddress, peer);
 			}
 		} else {

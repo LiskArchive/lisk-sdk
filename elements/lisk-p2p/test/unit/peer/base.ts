@@ -138,14 +138,6 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#height', () =>
-		it('should get height property', () =>
-			expect(defaultPeer.height).to.be.eql(
-				defaultPeerInfo.sharedState
-					? defaultPeerInfo.sharedState.height
-					: undefined,
-			)));
-
 	describe('#id', () =>
 		it('should get id property', () =>
 			expect(defaultPeer.id).to.be.eql(defaultPeerInfo.peerId)));

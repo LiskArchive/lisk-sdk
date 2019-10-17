@@ -1,5 +1,3 @@
-import { ConnectionKind, PeerKind } from './constants';
-
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -14,6 +12,7 @@ import { ConnectionKind, PeerKind } from './constants';
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { ConnectionKind, PeerKind } from './constants';
 export interface P2PPacket {
 	readonly data?: unknown;
 }
@@ -38,9 +37,6 @@ export interface P2PPenalty {
 }
 
 export interface P2PSharedState {
-	readonly height: number;
-	readonly updatedAt?: Date;
-	readonly os?: string;
 	readonly version: string;
 	readonly protocolVersion: string;
 	// tslint:disable-next-line: no-mixed-interface

@@ -56,10 +56,12 @@ describe('Custom peer selection', () => {
 		});
 
 		const filteredPeers = peersList.filter(peer => {
+			const { sharedState } = peer;
+			const peerHeight = sharedState ? (sharedState.height as number) : 0;
 			if (
 				nodeInfo &&
 				peer.sharedState &&
-				nodeInfo.height <= peer.sharedState.height
+				(nodeInfo.height as number) <= peerHeight
 			) {
 				const nodesModules = nodeInfo.modules
 					? (nodeInfo.modules as ReadonlyArray<string>)
@@ -88,7 +90,8 @@ describe('Custom peer selection', () => {
 			return peersList.filter(
 				peer =>
 					peer.sharedState &&
-					peer.sharedState.height >= (nodeInfo ? nodeInfo.height : 0),
+					(peer.sharedState.height as number) >=
+						(nodeInfo ? (nodeInfo.height as number) : 0),
 			);
 		}
 

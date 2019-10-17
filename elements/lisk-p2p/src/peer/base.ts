@@ -103,7 +103,6 @@ export class Peer extends EventEmitter {
 	private readonly _id: string;
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
-	private readonly _height: number;
 	protected _reputation: number;
 	protected _netgroup: number;
 	protected _latency: number;
@@ -150,7 +149,6 @@ export class Peer extends EventEmitter {
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = peerInfo.peerId;
-		this._height = peerInfo.sharedState ? peerInfo.sharedState.height : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
 		this._latency = 0;
@@ -268,10 +266,6 @@ export class Peer extends EventEmitter {
 				data,
 			});
 		};
-	}
-
-	public get height(): number {
-		return this._height;
 	}
 
 	public get id(): string {
