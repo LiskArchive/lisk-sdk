@@ -69,6 +69,7 @@
 		"sodium-native": "2.4.6"
 	},
 	"devDependencies": {
+		"@types/chai": "4.1.7",
 		"@types/jquery": "3.3.29",
 		"@types/mocha": "5.2.5",
 		"benchmark": "2.1.4",
