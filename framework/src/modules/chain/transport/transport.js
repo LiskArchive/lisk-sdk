@@ -188,7 +188,10 @@ class Transport {
 		}
 
 		// Perform actual broadcast operation
-		return this.broadcaster.broadcast({ api: 'postBlock', data: { block } });
+		return this.broadcaster.broadcast(
+			{},
+			{ api: 'postBlock', data: { block } },
+		);
 	}
 
 	/**
