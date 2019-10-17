@@ -152,10 +152,8 @@ export const getUniquePeersbyIp = (
 	return [...peerMap.values()];
 };
 
-export const constructPeerIdFromPeerInfo = (
-	ipAddress: string,
-	wsPort: number,
-): string => `${ipAddress}:${wsPort}`;
+export const constructPeerId = (ipAddress: string, wsPort: number): string =>
+	`${ipAddress}:${wsPort}`;
 
 export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));

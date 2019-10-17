@@ -94,7 +94,7 @@ import {
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
-	constructPeerIdFromPeerInfo,
+	constructPeerId,
 	sanitizeOutgoingPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
@@ -229,28 +229,28 @@ export class P2P extends EventEmitter {
 			{
 				seedPeers: config.seedPeers
 					? config.seedPeers.map(peer => ({
-							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
 					: [],
 				blacklistedPeers: config.blacklistedPeers
 					? config.blacklistedPeers.map(peer => ({
-							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
 					: [],
 				fixedPeers: config.fixedPeers
 					? config.fixedPeers.map(peer => ({
-							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
 					: [],
 				whitelisted: config.whitelistedPeers
 					? config.whitelistedPeers.map(peer => ({
-							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
@@ -258,12 +258,12 @@ export class P2P extends EventEmitter {
 				previousPeers: config.previousPeers
 					? config.previousPeers.map(peer => ({
 							...peer,
-							peerId: constructPeerIdFromPeerInfo(peer.ipAddress, peer.wsPort),
+							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 					  }))
 					: [],
 			},
 			{
-				peerId: constructPeerIdFromPeerInfo(
+				peerId: constructPeerId(
 					config.hostIp || DEFAULT_NODE_HOST_IP,
 					config.nodeInfo.wsPort,
 				),
@@ -683,10 +683,7 @@ export class P2P extends EventEmitter {
 
 					// Delete you peerinfo from both the lists
 					this._peerBook.removePeer({
-						peerId: constructPeerIdFromPeerInfo(
-							socket.remoteAddress,
-							selfWSPort,
-						),
+						peerId: constructPeerId(socket.remoteAddress, selfWSPort),
 						ipAddress: socket.remoteAddress,
 						wsPort: selfWSPort,
 					});
@@ -712,10 +709,7 @@ export class P2P extends EventEmitter {
 					queryObject.wsPort,
 					BASE_10_RADIX,
 				);
-				const peerId = constructPeerIdFromPeerInfo(
-					socket.remoteAddress,
-					remoteWSPort,
-				);
+				const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
 
 				// tslint:disable-next-line no-let
 				let queryOptions;
@@ -754,10 +748,7 @@ export class P2P extends EventEmitter {
 						height: queryObject.height ? +queryObject.height : 0,
 						version: queryObject.version,
 					},
-					peerId: constructPeerIdFromPeerInfo(
-						socket.remoteAddress,
-						remoteWSPort,
-					),
+					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
 				};

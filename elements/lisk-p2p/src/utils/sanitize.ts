@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { constructPeerIdFromPeerInfo } from '.';
+import { constructPeerId } from '.';
 import {
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -27,10 +27,7 @@ export const sanitizeIncomingPeerInfo = (
 	const { ip, ipAddress, wsPort, height, ...restOfPeerInfo } = peerInfo;
 
 	return {
-		peerId: constructPeerIdFromPeerInfo(
-			peerInfo.ip || peerInfo.ipAddress,
-			peerInfo.wsPort,
-		),
+		peerId: constructPeerId(peerInfo.ip || peerInfo.ipAddress, peerInfo.wsPort),
 		ipAddress: ip || ipAddress,
 		wsPort,
 		sharedState: {

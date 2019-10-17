@@ -43,7 +43,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	INTENTIONAL_DISCONNECT_CODE,
 } from '../../src/constants';
-import { constructPeerIdFromPeerInfo } from '../../src/utils';
+import { constructPeerId } from '../../src/utils';
 import { RequestFailError, SendFailError } from '../../src';
 
 describe('peerPool', () => {
@@ -93,7 +93,7 @@ describe('peerPool', () => {
 		peerInfo = {
 			ipAddress: '127.0.0.1',
 			wsPort: 5000,
-			peerId: constructPeerIdFromPeerInfo('127.0.0.1', 5000),
+			peerId: constructPeerId('127.0.0.1', 5000),
 			sharedState: {
 				height: 1,
 				updatedAt: new Date(),
@@ -313,7 +313,7 @@ describe('peerPool', () => {
 
 			expect(sendToPeer).to.be.calledOnceWithExactly(
 				messagePacket,
-				constructPeerIdFromPeerInfo(peerInfo.ipAddress, peerInfo.wsPort),
+				constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
 			);
 		});
 

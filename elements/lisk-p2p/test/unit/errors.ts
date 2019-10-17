@@ -25,7 +25,7 @@ import {
 	ExistingPeerError,
 } from '../../src/errors';
 import { P2PPeerInfo } from '../../src';
-import { constructPeerIdFromPeerInfo } from '../../src/utils';
+import { constructPeerId } from '../../src/utils';
 
 describe('errors', () => {
 	describe('#PeerInboundHandshakeError', () => {
@@ -105,7 +105,7 @@ describe('errors', () => {
 		const peerInfo: P2PPeerInfo = {
 			ipAddress: '0.0.0.0',
 			wsPort: 5000,
-			peerId: constructPeerIdFromPeerInfo('0.0.0.0', 5000),
+			peerId: constructPeerId('0.0.0.0', 5000),
 		};
 		let existingPeer: ExistingPeerError;
 

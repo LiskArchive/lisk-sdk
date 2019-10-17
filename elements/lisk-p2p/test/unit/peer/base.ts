@@ -38,7 +38,7 @@ import { SCServerSocket } from 'socketcluster-server';
 import {
 	sanitizeNodeInfoToLegacyFormat,
 	getNetgroup,
-	constructPeerIdFromPeerInfo,
+	constructPeerId,
 } from '../../../src/utils';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src';
 
@@ -53,7 +53,7 @@ describe('peer/base', () => {
 	beforeEach(() => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
-			peerId: constructPeerIdFromPeerInfo('12.12.12.12', 5001),
+			peerId: constructPeerId('12.12.12.12', 5001),
 			ipAddress: '12.12.12.12',
 			wsPort: 5001,
 			sharedState: {
@@ -80,7 +80,7 @@ describe('peer/base', () => {
 			height: 100,
 		};
 		p2pDiscoveredPeerInfo = {
-			peerId: constructPeerIdFromPeerInfo(
+			peerId: constructPeerId(
 				defaultPeerInfo.ipAddress,
 				defaultPeerInfo.wsPort,
 			),
@@ -407,7 +407,7 @@ describe('peer/base', () => {
 			it('should return a sanitized peer list', async () => {
 				const peers = [
 					{
-						peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+						peerId: constructPeerId('1.1.1.1', 1111),
 						ip: '1.1.1.1',
 						wsPort: 1111,
 						sharedState: {
@@ -415,7 +415,7 @@ describe('peer/base', () => {
 						},
 					},
 					{
-						peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+						peerId: constructPeerId('2.2.2.2', 2222),
 						ip: '2.2.2.2',
 						wsPort: 2222,
 						sharedState: {
@@ -425,7 +425,7 @@ describe('peer/base', () => {
 				];
 				const sanitizedPeers = [
 					{
-						peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
 						wsPort: 1111,
 						sharedState: {
@@ -436,7 +436,7 @@ describe('peer/base', () => {
 						},
 					},
 					{
-						peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						wsPort: 2222,
 						sharedState: {
@@ -469,7 +469,7 @@ describe('peer/base', () => {
 		beforeEach(() => {
 			discoveredPeers = [
 				{
-					peerId: constructPeerIdFromPeerInfo('1.1.1.1', 1111),
+					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
 					wsPort: 1111,
 					sharedState: {
@@ -480,7 +480,7 @@ describe('peer/base', () => {
 					},
 				},
 				{
-					peerId: constructPeerIdFromPeerInfo('2.2.2.2', 2222),
+					peerId: constructPeerId('2.2.2.2', 2222),
 					ipAddress: '2.2.2.2',
 					wsPort: 2222,
 					sharedState: {
@@ -593,7 +593,7 @@ describe('peer/base', () => {
 
 				it(`should call updatePeerInfo()`, async () => {
 					const newPeer = {
-						peerId: constructPeerIdFromPeerInfo(
+						peerId: constructPeerId(
 							defaultPeerInfo.ipAddress,
 							defaultPeerInfo.wsPort,
 						),

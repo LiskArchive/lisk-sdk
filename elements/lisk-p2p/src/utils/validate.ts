@@ -33,7 +33,7 @@ import {
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from '../p2p_types';
-import { constructPeerIdFromPeerInfo } from './misc';
+import { constructPeerId } from './misc';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -164,7 +164,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	} = protocolPeer;
 
 	const peerInfo: P2PPeerInfo = {
-		peerId: constructPeerIdFromPeerInfo(ipAddress, protocolPeer.wsPort),
+		peerId: constructPeerId(ipAddress, protocolPeer.wsPort),
 		ipAddress,
 		wsPort: +wsPort,
 		sharedState: {
