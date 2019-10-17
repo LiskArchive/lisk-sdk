@@ -92,3 +92,18 @@ export const FORBIDDEN_CONNECTION_REASON = 'Peer is not allowed to connect';
 export const EVICTED_PEER_CODE = 4418;
 export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
+
+// Peer connection Kind
+export enum ConnectionKind {
+	OUTBOUND = 'outbound',
+	INBOUND = 'inbound',
+	NONE = 'none',
+}
+
+export enum PeerKind {
+	FIXED_PEER = 'fixedPeer',
+	WHITELISTED_PEER = 'whitelistedPeer',
+	SEED_PEER = 'seedPeer',
+	BLACKLISTED_PEER = 'blacklistedPeer',
+	NONE = 'NONE',
+}

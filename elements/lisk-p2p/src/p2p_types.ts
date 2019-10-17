@@ -1,3 +1,5 @@
+import { ConnectionKind, PeerKind } from './constants';
+
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -45,22 +47,9 @@ export interface P2PSharedState {
 	readonly [key: string]: unknown;
 }
 
-export enum ConnectionKind {
-	OUTBOUND = 'outbound',
-	INBOUND = 'inbound',
-	NONE = 'none',
-}
-
-export enum PeerType {
-	FIXED_PEER = 'fixedPeer',
-	WHITELISTED_PEER = 'whitelistedPeer',
-	SEED_PEER = 'seedPeer',
-	BLACKLISTED_PEER = 'blacklistedPeer',
-	NONE = 'NONE',
-}
 export interface P2PInternalState {
 	readonly dateAdded?: Date;
-	readonly peerType?: PeerType;
+	readonly peerKind?: PeerKind;
 	readonly isBanned?: boolean;
 	readonly productivity?: number;
 	readonly reputation?: number;
