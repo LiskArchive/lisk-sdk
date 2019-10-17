@@ -144,7 +144,7 @@ describe('NodeInfo actions', () => {
 			version: NEW_VERSION,
 			protocolVersion: NEW_PROTOCOLVERSION,
 			minVersion: NEW_MIN_VERSION,
-			wsPort: NETWORK_START_PORT,
+			wsPort: NEW_WSPORT,
 			height: NEW_HEIGHT,
 			options: NEW_OPTIONS,
 			nonce: NEW_NONCE,
