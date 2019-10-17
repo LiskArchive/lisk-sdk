@@ -120,6 +120,7 @@ export const getNetgroup = (address: string, secret: number): number => {
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
+// TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
 export const getUniquePeersbyIp = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
 ): ReadonlyArray<P2PPeerInfo> => {
@@ -127,12 +128,18 @@ export const getUniquePeersbyIp = (
 
 	for (const peer of peerList) {
 		const { sharedState } = peer;
-		const peerHeight = sharedState ? (sharedState.height as number) : 0;
+		const peerHeight = sharedState
+			? sharedState.height
+				? (sharedState.height as number)
+				: 0
+			: 0;
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
 			const { sharedState: tempSharedState } = tempPeer;
 			const tempPeerHeight = tempSharedState
-				? (tempSharedState.height as number)
+				? tempSharedState.height
+					? (tempSharedState.height as number)
+					: 0
 				: 0;
 			if (peerHeight > tempPeerHeight) {
 				peerMap.set(peer.ipAddress, peer);
