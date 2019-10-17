@@ -34,6 +34,8 @@ describe('#registerMultisignature transaction', () => {
 	const fee = (15 * fixedPoint).toString();
 	const lifetime = 5;
 	const minimum = 2;
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let tooShortPublicKeyKeysgroup: Array<string>;
 	let plusPrependedPublicKeyKeysgroup: Array<string>;
@@ -61,6 +63,7 @@ describe('#registerMultisignature transaction', () => {
 	describe('with first passphrase', () => {
 		beforeEach(() => {
 			registerMultisignatureTransaction = registerMultisignature({
+				networkIdentifier,
 				passphrase,
 				keysgroup,
 				lifetime,
@@ -80,6 +83,7 @@ describe('#registerMultisignature transaction', () => {
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			registerMultisignature({
+				networkIdentifier,
 				passphrase,
 				keysgroup,
 				lifetime,
@@ -177,6 +181,7 @@ describe('#registerMultisignature transaction', () => {
 	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			registerMultisignatureTransaction = registerMultisignature({
+				networkIdentifier,
 				passphrase,
 				secondPassphrase,
 				keysgroup,
@@ -197,6 +202,7 @@ describe('#registerMultisignature transaction', () => {
 		it('should throw an error', () => {
 			return expect(
 				registerMultisignature.bind(null, {
+					networkIdentifier,
 					passphrase,
 					secondPassphrase,
 					keysgroup: tooShortPublicKeyKeysgroup,
@@ -213,6 +219,7 @@ describe('#registerMultisignature transaction', () => {
 		it('should throw an error', () => {
 			return expect(
 				registerMultisignature.bind(null, {
+					networkIdentifier,
 					passphrase,
 					secondPassphrase,
 					keysgroup: plusPrependedPublicKeyKeysgroup,
@@ -227,6 +234,7 @@ describe('#registerMultisignature transaction', () => {
 		it('should throw an error', () => {
 			return expect(
 				registerMultisignature.bind(null, {
+					networkIdentifier,
 					passphrase,
 					secondPassphrase,
 					keysgroup: [],
@@ -254,6 +262,7 @@ describe('#registerMultisignature transaction', () => {
 		it('should throw an error', () => {
 			return expect(
 				registerMultisignature.bind(null, {
+					networkIdentifier,
 					passphrase,
 					secondPassphrase,
 					keysgroup,
@@ -273,6 +282,7 @@ describe('#registerMultisignature transaction', () => {
 		it('should throw an error', () => {
 			return expect(
 				registerMultisignature.bind(null, {
+					networkIdentifier,
 					passphrase,
 					secondPassphrase,
 					keysgroup,
@@ -289,6 +299,7 @@ describe('#registerMultisignature transaction', () => {
 		describe('when the register multisignature transaction is created without a passphrase', () => {
 			beforeEach(() => {
 				registerMultisignatureTransaction = registerMultisignature({
+					networkIdentifier,
 					keysgroup,
 					lifetime,
 					minimum,
@@ -363,6 +374,7 @@ describe('#registerMultisignature transaction', () => {
 				it('is float', () => {
 					return expect(
 						registerMultisignature.bind(null, {
+							networkIdentifier,
 							keysgroup,
 							lifetime,
 							minimum: 1.45,
@@ -383,6 +395,7 @@ describe('#registerMultisignature transaction', () => {
 				it('was more than expected', () => {
 					return expect(
 						registerMultisignature.bind(null, {
+							networkIdentifier,
 							keysgroup,
 							lifetime,
 							minimum: 16,
@@ -393,6 +406,7 @@ describe('#registerMultisignature transaction', () => {
 				it('was less than expected', () => {
 					return expect(
 						registerMultisignature.bind(null, {
+							networkIdentifier,
 							keysgroup,
 							lifetime,
 							minimum: -1,

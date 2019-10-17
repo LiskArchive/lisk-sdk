@@ -119,8 +119,12 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
-	public sign(passphrase: string, secondPassphrase?: string): void {
-		super.sign(passphrase, secondPassphrase);
+	public sign(
+		networkIdentifier: string,
+		passphrase: string,
+		secondPassphrase?: string,
+	): void {
+		super.sign(networkIdentifier, passphrase, secondPassphrase);
 		this.asset.recipientId = this.senderId;
 	}
 

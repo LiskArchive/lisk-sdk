@@ -229,12 +229,18 @@ export abstract class BaseTransaction {
 		return transactionBytes;
 	}
 
-	public validate(): TransactionResponse {
+	public validate(networkIdentifier: string): TransactionResponse {
 		const errors = [...this._validateSchema(), ...this.validateAsset()];
 		if (errors.length > 0) {
 			return createResponse(this.id, errors);
 		}
+
 		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
 		this._id = getId(this.getBytes());
 
@@ -244,7 +250,7 @@ export abstract class BaseTransaction {
 		} = validateSignature(
 			this.senderPublicKey,
 			this.signature,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 
@@ -464,7 +470,11 @@ export abstract class BaseTransaction {
 		return timeElapsed > timeOut;
 	}
 
-	public sign(passphrase: string, secondPassphrase?: string): void {
+	public sign(
+		networkIdentifier: string,
+		passphrase: string,
+		secondPassphrase?: string,
+	): void {
 		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
@@ -477,10 +487,24 @@ export abstract class BaseTransaction {
 
 		this._signature = undefined;
 		this._signSignature = undefined;
-		this._signature = signData(hash(this.getBytes()), passphrase);
+
+		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBytes(),
+		]);
+
+		this._signature = signData(
+			hash(transactionWithNetworkIdentifierBytes),
+			passphrase,
+		);
 		if (secondPassphrase) {
-			this._signSignature = signData(hash(this.getBytes()), secondPassphrase);
+			this._signSignature = signData(
+				hash(transactionWithNetworkIdentifierBytes),
+				secondPassphrase,
+			);
 		}
+
 		this._id = getId(this.getBytes());
 	}
 

@@ -19,12 +19,14 @@ import { TransactionJSON } from './transaction_types';
 import {
 	createBaseTransaction,
 	validateAddress,
+	validateNetworkIdentifier,
 	validatePublicKey,
 	validateTransferAmount,
 } from './utils';
 
 export interface TransferInputs {
 	readonly amount: string;
+	readonly networkIdentifier: string;
 	readonly data?: string;
 	readonly passphrase?: string;
 	readonly recipientId?: string;
@@ -38,6 +40,7 @@ const validateInputs = ({
 	recipientId,
 	recipientPublicKey,
 	data,
+	networkIdentifier,
 }: TransferInputs): void => {
 	if (!validateTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
@@ -75,6 +78,10 @@ const validateInputs = ({
 			throw new Error('Transaction data field cannot exceed 64 bytes.');
 		}
 	}
+
+	if (!validateNetworkIdentifier(networkIdentifier)) {
+		throw Error('Invalid network identifier length.');
+	}
 };
 
 export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
@@ -83,6 +90,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		data,
 		amount,
 		recipientPublicKey,
+		networkIdentifier,
 		passphrase,
 		secondPassphrase,
 	} = inputs;
@@ -120,7 +128,8 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	const transferTransaction = new TransferTransaction(
 		transactionWithSenderInfo,
 	);
-	transferTransaction.sign(passphrase, secondPassphrase);
+
+	transferTransaction.sign(networkIdentifier, passphrase, secondPassphrase);
 
 	return transferTransaction.toJSON();
 };

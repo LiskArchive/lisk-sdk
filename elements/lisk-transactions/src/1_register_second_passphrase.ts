@@ -15,21 +15,28 @@
 import { getKeys } from '@liskhq/lisk-cryptography';
 import { SecondSignatureTransaction } from './1_second_signature_transaction';
 import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction } from './utils';
+import { createBaseTransaction, validateNetworkIdentifier } from './utils';
 
 export interface SecondPassphraseInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase: string;
 	readonly timeOffset?: number;
+	readonly networkIdentifier: string;
 }
 
 const validateInputs = ({
 	secondPassphrase,
+	networkIdentifier,
 }: {
 	readonly secondPassphrase: string;
+	readonly networkIdentifier: string;
 }): void => {
 	if (typeof secondPassphrase !== 'string') {
 		throw new Error('Please provide a secondPassphrase. Expected string.');
+	}
+
+	if (!validateNetworkIdentifier(networkIdentifier)) {
+		throw Error('Invalid network identifier length.');
 	}
 };
 

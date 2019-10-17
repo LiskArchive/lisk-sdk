@@ -19,10 +19,12 @@ import {
 	createBaseTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
+	validateNetworkIdentifier,
 	validatePublicKeys,
 } from './utils';
 
 export interface CastVoteInputs {
+	readonly networkIdentifier: string;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
@@ -33,9 +35,14 @@ export interface CastVoteInputs {
 interface VotesObject {
 	readonly unvotes?: ReadonlyArray<string>;
 	readonly votes?: ReadonlyArray<string>;
+	readonly networkIdentifier: string;
 }
 
-const validateInputs = ({ votes = [], unvotes = [] }: VotesObject): void => {
+const validateInputs = ({
+	votes = [],
+	unvotes = [],
+	networkIdentifier,
+}: VotesObject): void => {
 	if (!Array.isArray(votes)) {
 		throw new Error(
 			'Please provide a valid votes value. Expected an array if present.',
@@ -48,11 +55,21 @@ const validateInputs = ({ votes = [], unvotes = [] }: VotesObject): void => {
 	}
 
 	validatePublicKeys([...votes, ...unvotes]);
+
+	if (!validateNetworkIdentifier(networkIdentifier)) {
+		throw Error('Invalid network identifier length.');
+	}
 };
 
 export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase, votes = [], unvotes = [] } = inputs;
+	const {
+		networkIdentifier,
+		passphrase,
+		secondPassphrase,
+		votes = [],
+		unvotes = [],
+	} = inputs;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
@@ -87,7 +104,7 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
-	voteTransaction.sign(passphrase, secondPassphrase);
+	voteTransaction.sign(networkIdentifier, passphrase, secondPassphrase);
 
 	return voteTransaction.toJSON();
 };

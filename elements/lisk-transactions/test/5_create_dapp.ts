@@ -46,6 +46,8 @@ describe('#createDapp transaction', () => {
 		'Dapp description must be a string if provided.';
 	const tagsStringError = 'Dapp tags must be a string if provided.';
 	const iconStringError = 'Dapp icon must be a string if provided.';
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let options: DappOptions;
@@ -63,7 +65,11 @@ describe('#createDapp transaction', () => {
 
 	describe('with first passphrase', () => {
 		beforeEach(() => {
-			createDappTransaction = createDapp({ passphrase, options });
+			createDappTransaction = createDapp({
+				networkIdentifier,
+				passphrase,
+				options,
+			});
 			return Promise.resolve();
 		});
 
@@ -80,7 +86,11 @@ describe('#createDapp transaction', () => {
 		it('should throw an error if no category is provided', () => {
 			const { category, ...invalidOptions } = options;
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(categoryIntegerError);
 		});
 
@@ -90,14 +100,22 @@ describe('#createDapp transaction', () => {
 				category: 'not an integer',
 			};
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if no name is provided', () => {
 			const { name, ...invalidOptions } = options;
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(nameStringError);
 		});
 
@@ -107,14 +125,22 @@ describe('#createDapp transaction', () => {
 				name: 123,
 			};
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(nameStringError);
 		});
 
 		it('should throw an error if no type is provided', () => {
 			const { type, ...invalidOptions } = options;
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(typeIntegerError);
 		});
 
@@ -124,14 +150,22 @@ describe('#createDapp transaction', () => {
 				type: 'not an integer',
 			};
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(typeIntegerError);
 		});
 
 		it('should throw an error if no link is provided', () => {
 			const { link, ...invalidOptions } = options;
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(linkStringError);
 		});
 
@@ -141,7 +175,11 @@ describe('#createDapp transaction', () => {
 				link: 123,
 			};
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(linkStringError);
 		});
 
@@ -151,7 +189,11 @@ describe('#createDapp transaction', () => {
 				description: 123,
 			};
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(descriptionStringError);
 		});
 
@@ -161,7 +203,11 @@ describe('#createDapp transaction', () => {
 				tags: 123,
 			};
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(tagsStringError);
 		});
 
@@ -171,14 +217,22 @@ describe('#createDapp transaction', () => {
 				icon: 123,
 			};
 			return expect(
-				createDapp.bind(null, { passphrase, options: invalidOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: invalidOptions as any,
+				}),
 			).to.throw(iconStringError);
 		});
 
 		it('should not require description, tags, or icon', () => {
 			const { description, tags, icon, ...validOptions } = options;
 			return expect(
-				createDapp.bind(null, { passphrase, options: validOptions as any }),
+				createDapp.bind(null, {
+					networkIdentifier,
+					passphrase,
+					options: validOptions as any,
+				}),
 			).not.to.throw();
 		});
 
@@ -188,7 +242,12 @@ describe('#createDapp transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			createDapp({ passphrase, options, timeOffset: offset });
+			createDapp({
+				networkIdentifier,
+				passphrase,
+				options,
+				timeOffset: offset,
+			});
 
 			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
 		});
@@ -313,6 +372,7 @@ describe('#createDapp transaction', () => {
 	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			createDappTransaction = createDapp({
+				networkIdentifier,
 				passphrase,
 				secondPassphrase,
 				options,
@@ -330,6 +390,7 @@ describe('#createDapp transaction', () => {
 		describe('when the create dapp transaction is created without a passphrase', () => {
 			beforeEach(() => {
 				createDappTransaction = createDapp({
+					networkIdentifier,
 					options,
 				});
 				return Promise.resolve();

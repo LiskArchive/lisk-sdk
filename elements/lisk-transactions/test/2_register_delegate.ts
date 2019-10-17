@@ -28,6 +28,8 @@ describe('#registerDelegate transaction', () => {
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let registerDelegateTransaction: Partial<TransactionJSON>;
@@ -44,6 +46,7 @@ describe('#registerDelegate transaction', () => {
 			registerDelegateTransaction = registerDelegate({
 				passphrase,
 				username,
+				networkIdentifier,
 			});
 			return Promise.resolve();
 		});
@@ -58,7 +61,12 @@ describe('#registerDelegate transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			registerDelegate({ passphrase, username, timeOffset: offset });
+			registerDelegate({
+				networkIdentifier,
+				passphrase,
+				username,
+				timeOffset: offset,
+			});
 
 			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
 		});
@@ -133,6 +141,7 @@ describe('#registerDelegate transaction', () => {
 	describe('with first and second passphrase', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({
+				networkIdentifier,
 				passphrase,
 				username,
 				secondPassphrase,
@@ -151,6 +160,7 @@ describe('#registerDelegate transaction', () => {
 		describe('when the register delegate transaction is created without a passphrase', () => {
 			beforeEach(() => {
 				registerDelegateTransaction = registerDelegate({
+					networkIdentifier,
 					username,
 				});
 				return Promise.resolve();
@@ -163,14 +173,17 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should throw error when username is empty string', () => {
-				return expect(registerDelegate.bind(null, { username: '' })).to.throw(
-					'Please provide a username. Expected string.',
-				);
+				return expect(
+					registerDelegate.bind(null, { networkIdentifier, username: '' }),
+				).to.throw('Please provide a username. Expected string.');
 			});
 
 			it('should throw error when invalid username was provided', () => {
 				return expect(
-					registerDelegate.bind(null, { username: '12345678901234567890a' }),
+					registerDelegate.bind(null, {
+						networkIdentifier,
+						username: '12345678901234567890a',
+					}),
 				).to.throw(
 					'Username length does not match requirements. Expected to be no more than 20 characters.',
 				);

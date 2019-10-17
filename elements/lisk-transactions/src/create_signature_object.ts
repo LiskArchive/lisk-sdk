@@ -36,12 +36,14 @@ const transactionMap: { readonly [key: number]: any } = {
 	4: MultisignatureTransaction,
 };
 
-export const createSignatureObject = (
-	transaction: TransactionJSON,
-	passphrase: string,
-): SignatureObject => {
+export const createSignatureObject = (options: {
+	readonly transaction: TransactionJSON;
+	readonly passphrase: string;
+	readonly networkIdentifier: string;
+}): SignatureObject => {
+	const { transaction, passphrase, networkIdentifier } = options;
 	if (transaction.type === undefined || transaction.type === null) {
-		throw new Error('Invalid transaction.');
+		throw new Error('Transaction type is required.');
 	}
 
 	// tslint:disable-next-line no-magic-numbers
@@ -57,7 +59,7 @@ export const createSignatureObject = (
 	const TransactionClass = transactionMap[transaction.type];
 	const tx = new TransactionClass(transaction) as BaseTransaction;
 
-	const validStatus = tx.validate();
+	const validStatus = tx.validate(networkIdentifier);
 	if (validStatus.errors.length > 0) {
 		throw new Error('Invalid transaction.');
 	}

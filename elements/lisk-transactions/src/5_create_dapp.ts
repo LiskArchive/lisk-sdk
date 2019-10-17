@@ -14,7 +14,11 @@
  */
 import { DappTransaction } from './5_dapp_transaction';
 import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction, isValidInteger } from './utils';
+import {
+	createBaseTransaction,
+	isValidInteger,
+	validateNetworkIdentifier,
+} from './utils';
 
 export interface DappOptions {
 	readonly category: number;
@@ -31,12 +35,14 @@ export interface DappInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
+	readonly networkIdentifier: string;
 }
 
-const validateInputs = ({ options }: DappInputs): void => {
+const validateInputs = ({ networkIdentifier, options }: DappInputs): void => {
 	if (typeof options !== 'object') {
 		throw new Error('Options must be an object.');
 	}
+
 	const { category, name, type, link, description, tags, icon } = options;
 
 	if (!isValidInteger(category)) {
@@ -63,11 +69,15 @@ const validateInputs = ({ options }: DappInputs): void => {
 	if (typeof icon !== 'undefined' && typeof icon !== 'string') {
 		throw new Error('Dapp icon must be a string if provided.');
 	}
+
+	if (!validateNetworkIdentifier(networkIdentifier)) {
+		throw Error('Invalid network identifier length.');
+	}
 };
 
 export const createDapp = (inputs: DappInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase, options } = inputs;
+	const { networkIdentifier, passphrase, secondPassphrase, options } = inputs;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
@@ -87,7 +97,7 @@ export const createDapp = (inputs: DappInputs): Partial<TransactionJSON> => {
 	};
 
 	const dappTransaction = new DappTransaction(transactionWithSenderInfo);
-	dappTransaction.sign(passphrase, secondPassphrase);
+	dappTransaction.sign(networkIdentifier, passphrase, secondPassphrase);
 
 	return dappTransaction.toJSON();
 };
