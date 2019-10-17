@@ -14,7 +14,12 @@
  */
 import { expect } from 'chai';
 import { P2P, EVENT_REQUEST_RECEIVED } from '../../../src/index';
-import { createNetwork, destroyNetwork } from '../../utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	nodeInfoConstants,
+	NETWORK_START_PORT,
+} from '../../utils/network_setup';
 
 const NEW_OS = 'TestOS';
 const NEW_NETHASH =
@@ -29,7 +34,7 @@ const NEW_HEIGHT = 10;
 const NEW_OPTIONS = { testOption: 'foo' };
 const NEW_NONCE = `abcdefghijklmnop`;
 
-describe('ApplyNodeInfo', () => {
+describe('NodeInfo actions', () => {
 	let p2pNodeList: P2P[] = [];
 	let collectedMessages: Array<any> = [];
 
@@ -49,6 +54,39 @@ describe('ApplyNodeInfo', () => {
 
 	afterEach(async () => {
 		await destroyNetwork(p2pNodeList);
+	});
+
+	it('should create correct Nodeinfo at P2P construct()', async () => {
+		const firstP2PNode = p2pNodeList[0];
+
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('os')
+			.which.equals(nodeInfoConstants.os);
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('nethash')
+			.which.equals(nodeInfoConstants.nethash);
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('broadhash')
+			.which.equals(nodeInfoConstants.broadhash);
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('version')
+			.which.equals(nodeInfoConstants.version);
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('protocolVersion')
+			.which.equals(nodeInfoConstants.protocolVersion);
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('minVersion')
+			.which.equals(nodeInfoConstants.minVersion);
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('wsPort')
+			.which.equals(NETWORK_START_PORT);
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('height')
+			.which.equals(nodeInfoConstants.height);
+		expect(firstP2PNode.nodeInfo).to.not.have.property('options');
+		expect(firstP2PNode.nodeInfo)
+			.to.have.property('nonce')
+			.which.equals(`${nodeInfoConstants.nonce}${NETWORK_START_PORT}`);
 	});
 
 	it('should update every node info field itself', async () => {
