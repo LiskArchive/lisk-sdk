@@ -166,6 +166,15 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			);
 		}
 
+		this.logger.debug(
+			{
+				peerId,
+				fromBlockId: highestCommonBlock.id,
+				toBlockId: receivedBlock.id,
+			},
+			'Requesting blocks within ID range from peer',
+		);
+
 		const blocks = await this.requestBlocksWithinIDs(
 			peerId,
 			highestCommonBlock.id,
@@ -193,14 +202,28 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * @private
 	 */
 	async _validateBlocks(blocks, peerId) {
+		this.logger.debug(
+			{
+				blocks: blocks.map(block => ({
+					blockId: block.id,
+					height: block.height,
+				})),
+			},
+			'Validating blocks',
+		);
 		try {
 			for (const block of blocks) {
+				this.logger.trace(
+					{ blockId: block.id, height: block.height },
+					'Validating block',
+				);
 				const blockInstance = await this.processor.deserialize(block);
 				await this.processor.validateDetached(blockInstance);
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');
 		}
+		this.logger.debug('Successfully validated blocks');
 	}
 
 	/**
@@ -211,6 +234,12 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * @private
 	 */
 	async _switchChain(highestCommonBlock, blocksToApply) {
+		this.logger.info('Switching chain');
+		this.logger.debug(
+			{ height: highestCommonBlock.height },
+			`Deleting blocks after height ${highestCommonBlock.height}`,
+		);
+
 		await deleteBlocksAfterHeight(
 			this.processor,
 			this.blocks,
@@ -219,20 +248,42 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		);
 
 		try {
+			this.logger.debug(
+				{
+					blocks: blocksToApply.map(block => ({
+						blockId: block.id,
+						height: block.height,
+					})),
+				},
+				'Applying blocks',
+			);
 			for (const block of blocksToApply) {
+				this.logger.trace(
+					{ blockId: block.id, height: block.height },
+					'Applying blocks',
+				);
 				const blockInstance = await this.processor.deserialize(block);
 				await this.processor.processValidated(blockInstance);
 			}
 		} catch (err) {
+			this.logger.error({ err }, 'Error while processing blocks');
+			this.logger.debug(
+				{ height: highestCommonBlock.height },
+				'Deleting blocks after height',
+			);
 			await deleteBlocksAfterHeight(
 				this.processor,
 				this.blocks,
 				highestCommonBlock.height,
 			);
+			this.logger.debug('Restoring blocks from temporary table');
 			await restoreBlocks(this.blocks, this.processor);
 		} finally {
+			this.logger.debug('Cleaning blocks temp table');
 			await clearBlocksTempTable(this.storage);
 		}
+
+		this.logger.info('Successfully switched chains. Node is now up to date');
 	}
 
 	/**
@@ -256,6 +307,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * @private
 	 */
 	async _requestLastCommonBlock(peerId) {
+		this.logger.debug({ peerId }, 'Requesting the last common block with peer');
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
 
@@ -283,6 +335,10 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				});
 
 				if (data) {
+					this.logger.debug(
+						{ blockId: data.id, height: data.height },
+						'Common block found',
+					);
 					return data;
 				}
 			} finally {

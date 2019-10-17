@@ -139,7 +139,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			receivedBlock.id,
 		);
 
-		if (!listOfFullBlocks.length) {
+		if (!listOfFullBlocks || !listOfFullBlocks.length) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
 				"Peer didn't return any block after requesting blocks",
@@ -179,13 +179,27 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			const isDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
 			if (!isDifferentChain) {
+				this.logger.debug(
+					{
+						currentTip: this.blocks.lastBlock.id,
+						previousTip: tipBeforeApplyingInstance.id,
+					},
+					'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
+				);
 				try {
+					this.logger.debug(
+						{ height: lastCommonBlock.height },
+						'Deleting blocks after height',
+					);
 					await deleteBlocksAfterHeight(
 						this.processorModule,
 						this.blocks,
 						lastCommonBlock.height,
 					);
+					this.logger.debug('Restoring blocks from temporary table');
 					await restoreBlocks(this.blocks, this.processorModule);
+
+					this.logger.debug('Cleaning blocks temp table');
 					await clearBlocksTempTable(this.storage);
 				} catch (err) {
 					this.logger.error(
@@ -199,6 +213,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				);
 			}
 
+			this.logger.debug('Cleaning blocks temporary table');
 			await clearBlocksTempTable(this.storage);
 
 			this.logger.info('Restarting block synchronization');
@@ -208,6 +223,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		}
 
+		this.logger.debug('Cleaning blocks temporary table');
 		await clearBlocksTempTable(this.storage);
 
 		this.logger.debug(
