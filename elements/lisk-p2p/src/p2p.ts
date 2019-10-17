@@ -198,9 +198,7 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
-	private readonly _handleDiscoveredPeer: (
-		discoveredPeerInfo: P2PPeerInfo,
-	) => void;
+	private readonly _handleDiscoveredPeer: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToSendMessage: (error: Error) => void;
 	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
@@ -458,7 +456,7 @@ export class P2P extends EventEmitter {
 					}
 
 					// Don't update peerInfo when we already have connection with that peer
-					if (!this._peerPool.getPeer(error.peerInfo.peerId)) {
+					if (!this._peerPool.hasPeer(error.peerInfo.peerId)) {
 						const updatedPeerInfo = {
 							...detailedPeerInfo,
 							sharedState: detailedPeerInfo.sharedState
