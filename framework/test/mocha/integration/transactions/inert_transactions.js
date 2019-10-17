@@ -211,7 +211,6 @@ describe('inert transactions', () => {
 
 			describe('when forging block with inert type 2 transaction', () => {
 				const inertTransaction = delegateInertTransaction;
-
 				before(done => {
 					localCommon.addTransactionsAndForge(
 						library,

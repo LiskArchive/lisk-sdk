@@ -116,7 +116,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId,
+						fundTrsForAccount1.asset.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
 						transferAmount.toString(),
@@ -161,7 +161,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId,
+						fundTrsForAccount1.asset.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
 						transferAmount.toString(),
@@ -222,7 +222,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				await library.modules.processor.deleteLastBlock();
 				const account = await localCommon.getAccountFromDb(
 					library,
-					fundTrsForAccount1.recipientId,
+					fundTrsForAccount1.asset.recipientId,
 				);
 				expect(account.mem_accounts.balance).to.equal('0');
 			});

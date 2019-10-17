@@ -30,7 +30,6 @@ const defaultCreateValues = {
 	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
-	rank: null,
 	fees: '0',
 	rewards: '0',
 	vote: '0',
@@ -54,7 +53,6 @@ const sqlFiles = {
 	increaseFieldBy: 'accounts/increase_field_by.sql',
 	decreaseFieldBy: 'accounts/decrease_field_by.sql',
 	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
-	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
 };
 
 class ChainAccount extends AccountEntity {
@@ -320,16 +318,6 @@ class ChainAccount extends AccountEntity {
 	 */
 	decreaseFieldBy(filters, field, value, tx) {
 		return this._updateField(filters, field, value, 'decrease', tx);
-	}
-
-	/**
-	 * Sync rank for all delegates.
-	 *
-	 * @param {Object} [tx] - Database transaction object
-	 * @returns {Promise}
-	 */
-	syncDelegatesRanks(tx) {
-		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
 	}
 
 	/**

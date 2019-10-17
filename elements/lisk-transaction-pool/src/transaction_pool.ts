@@ -29,11 +29,12 @@ import * as queueCheckers from './queue_checkers';
 export interface TransactionObject {
 	readonly id: string;
 	receivedAt?: Date;
-	readonly recipientId: string;
+	readonly asset: {
+		[key: string]: string | number | ReadonlyArray<string> | undefined;
+	};
 	readonly senderPublicKey: string;
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
-	readonly senderId: string;
 	containsUniqueData?: boolean;
 	verifiedOnce?: boolean;
 }

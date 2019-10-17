@@ -84,7 +84,7 @@ The invert of `applyAsset`. Roll-back all of the changes to the accounts done in
 
 #### Additional methods
 
-To increase your application's performance, you should override the following functions: `verifyAgainstTransactions`, `assetFromSync`, `fromSync`.
+To increase your application's performance, you can override the following function: `verifyAgainstTransactions`.
 
 The BaseTransaction provides the default implementation of the methods revolving around the signatures. As your application matures you can provide the custom ways of how your a transaction's signature is derived: `sign`, `getBytes`, `assetToBytes`.
 

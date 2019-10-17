@@ -31,8 +31,6 @@ describe('#registerSecondPassphrase transaction', () => {
 		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 	const secondPassphraseFee = (5 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
-	const fee = (5 * fixedPoint).toString();
-	const amount = '0';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let registerSecondPassphraseTransaction: Partial<TransactionJSON>;
@@ -85,24 +83,11 @@ describe('#registerSecondPassphrase transaction', () => {
 				.and.equal(transactionType);
 		});
 
-		it('should have amount string equal to 0', () => {
-			return expect(registerSecondPassphraseTransaction)
-				.to.have.property('amount')
-				.and.be.a('string')
-				.and.equal(amount);
-		});
-
 		it('should have fee string equal to second passphrase fee', () => {
 			return expect(registerSecondPassphraseTransaction)
 				.to.have.property('fee')
 				.and.be.a('string')
 				.and.equal(secondPassphraseFee);
-		});
-
-		it('should have recipientId equal to empty string', () => {
-			return expect(registerSecondPassphraseTransaction)
-				.to.have.property('recipientId')
-				.and.equal('');
 		});
 
 		it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -136,28 +121,19 @@ describe('#registerSecondPassphrase transaction', () => {
 		});
 
 		describe('signature asset', () => {
-			it('should be an object', () => {
-				return expect(registerSecondPassphraseTransaction.asset)
-					.to.have.property('signature')
-					.and.be.an('object').and.not.be.empty;
-			});
-
 			it('should have a 32-byte publicKey hex string', () => {
-				expect(registerSecondPassphraseTransaction.asset)
-					.to.have.property('signature')
-					.with.property('publicKey').and.be.hexString;
+				expect(registerSecondPassphraseTransaction.asset).to.have.property(
+					'publicKey',
+				).and.be.hexString;
 				const {
-					signature,
+					publicKey,
 				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(Buffer.from(signature.publicKey, 'hex')).to.have.length(
-					32,
-				);
+				return expect(Buffer.from(publicKey, 'hex')).to.have.length(32);
 			});
 
 			it('should have a publicKey equal to the public key for the provided second passphrase', () => {
 				return expect(registerSecondPassphraseTransaction.asset)
-					.to.have.property('signature')
-					.with.property('publicKey')
+					.to.have.property('publicKey')
 					.and.equal(secondPublicKey);
 			});
 
@@ -167,9 +143,9 @@ describe('#registerSecondPassphrase transaction', () => {
 					secondPassphrase: '',
 				});
 				const {
-					signature,
+					publicKey,
 				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(signature.publicKey).to.be.equal(emptyStringPublicKey);
+				return expect(publicKey).to.be.equal(emptyStringPublicKey);
 			});
 		});
 	});
@@ -201,24 +177,6 @@ describe('#registerSecondPassphrase transaction', () => {
 					.equal(transactionType);
 			});
 
-			it('should have the amount', () => {
-				return expect(registerSecondPassphraseTransaction)
-					.to.have.property('amount')
-					.equal(amount);
-			});
-
-			it('should have the fee', () => {
-				return expect(registerSecondPassphraseTransaction)
-					.to.have.property('fee')
-					.equal(fee);
-			});
-
-			it('should have the recipient', () => {
-				return expect(registerSecondPassphraseTransaction)
-					.to.have.property('recipientId')
-					.equal('');
-			});
-
 			it('should have the sender public key', () => {
 				return expect(registerSecondPassphraseTransaction)
 					.to.have.property('senderPublicKey')
@@ -234,7 +192,6 @@ describe('#registerSecondPassphrase transaction', () => {
 			it('should have the asset with the signature with the public key', () => {
 				return expect(registerSecondPassphraseTransaction)
 					.to.have.property('asset')
-					.with.property('signature')
 					.with.property('publicKey')
 					.of.a('string');
 			});

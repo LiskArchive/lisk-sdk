@@ -15,7 +15,6 @@
 'use strict';
 
 const { BaseSynchronizer } = require('./base_synchronizer');
-const { addBlockProperties } = require('../blocks');
 const {
 	clearBlocksTempTable,
 	restoreBlocks,
@@ -196,8 +195,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	async _validateBlocks(blocks, peerId) {
 		try {
 			for (const block of blocks) {
-				addBlockProperties(block);
-				await this.processor.validateDetached(block);
+				const blockInstance = await this.processor.deserialize(block);
+				await this.processor.validateDetached(blockInstance);
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');
@@ -221,8 +220,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 		try {
 			for (const block of blocksToApply) {
-				addBlockProperties(block);
-				await this.processor.processValidated(block);
+				const blockInstance = await this.processor.deserialize(block);
+				await this.processor.processValidated(blockInstance);
 			}
 
 			await clearBlocksTempTable(this.storage);

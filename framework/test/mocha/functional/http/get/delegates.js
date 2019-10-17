@@ -415,28 +415,6 @@ describe('GET /delegates', () => {
 				});
 			});
 
-			it('using sort="rank:asc" should sort results in ascending order', async () => {
-				return delegatesEndpoint
-					.makeRequest({ sort: 'rank:asc' }, 200)
-					.then(res => {
-						expect(_.map(res.data, 'rank').sort()).to.eql(
-							_.map(res.data, 'rank'),
-						);
-					});
-			});
-
-			it('using sort="rank:desc" should sort results in descending order', async () => {
-				return delegatesEndpoint
-					.makeRequest({ sort: 'rank:asc' }, 200)
-					.then(res => {
-						expect(
-							_.map(res.data, 'rank')
-								.sort()
-								.reverse(),
-						).to.eql(_.map(res.data, 'rank'));
-					});
-			});
-
 			it('using sort="username:asc" should sort results in ascending order', async () => {
 				return delegatesEndpoint
 					.makeRequest({ sort: 'username:asc' }, 200)
@@ -529,7 +507,6 @@ describe('GET /delegates', () => {
 
 			it('using sort with any of sort fields should not place NULLs first', async () => {
 				const delegatesSortFields = [
-					'rank',
 					'username',
 					'missedBlocks',
 					'productivity',

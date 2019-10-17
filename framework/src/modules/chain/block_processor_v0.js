@@ -116,6 +116,12 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		this.constants = constants;
 		this.exceptions = exceptions;
 
+		this.deserialize.pipe([
+			({ block }) => this.blocksModule.deserialize(block),
+		]);
+
+		this.serialize.pipe([({ block }) => this.blocksModule.serialize(block)]);
+
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
@@ -185,7 +191,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			size += transactionBytes.length;
 
 			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.amount);
+			totalAmount = totalAmount.plus(transaction.asset.amount || 0);
 
 			blockTransactions.push(transaction);
 			transactionsBytesArray.push(transactionBytes);

@@ -94,7 +94,7 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should have amount string equal to provided amount', () => {
-				return expect(transferTransaction)
+				return expect(transferTransaction.asset)
 					.to.have.property('amount')
 					.and.be.a('string')
 					.and.equal(amount);
@@ -108,7 +108,7 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should have recipientId string equal to provided recipient id', () => {
-				return expect(transferTransaction)
+				return expect(transferTransaction.asset)
 					.to.have.property('recipientId')
 					.and.be.a('string')
 					.and.equal(recipientId);
@@ -130,12 +130,6 @@ describe('#transfer transaction', () => {
 			it('should have signature hex string', () => {
 				return expect(transferTransaction).to.have.property('signature').and.be
 					.hexString;
-			});
-
-			it('should have an empty asset object', () => {
-				return expect(transferTransaction)
-					.to.have.property('asset')
-					.and.be.an('object').and.be.empty;
 			});
 
 			it('second signature property should be undefined', () => {
@@ -278,7 +272,7 @@ describe('#transfer transaction', () => {
 					passphrase,
 					recipientPublicKey: publicKey,
 				});
-				return expect(tx)
+				return expect(tx.asset)
 					.to.have.property('recipientId')
 					.and.be.a('string')
 					.to.equal(cryptography.getAddressFromPublicKey(publicKey));
@@ -301,19 +295,13 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should have the amount', () => {
-				return expect(transferTransaction)
+				return expect(transferTransaction.asset)
 					.to.have.property('amount')
 					.equal(amount);
 			});
 
-			it('should have the fee', () => {
-				return expect(transferTransaction)
-					.to.have.property('fee')
-					.equal(fee);
-			});
-
 			it('should have the recipient', () => {
-				return expect(transferTransaction)
+				return expect(transferTransaction.asset)
 					.to.have.property('recipientId')
 					.equal(recipientId);
 			});

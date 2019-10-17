@@ -10,18 +10,12 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
 
-export const getId = (transactionBytes: Buffer): string => {
-	const transactionHash = cryptography.hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const transactionId = cryptography.bufferToIntAsString(
-		bufferFromFirstEntriesReversed,
-	);
 
-	return transactionId;
-};
+ /*
+  DESCRIPTION: requesterPublicKey field in trs was not being used so it's being removed.
+*/
+
+
+ALTER TABLE trs DROP COLUMN IF EXISTS "requesterPublicKey";

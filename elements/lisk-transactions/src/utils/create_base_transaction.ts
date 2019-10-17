@@ -26,15 +26,12 @@ export const createBaseTransaction = ({
 	passphrase,
 	timeOffset,
 }: CreateBaseTransactionInput) => {
-	const { address: senderId, publicKey: senderPublicKey } = passphrase
+	const { publicKey: senderPublicKey } = passphrase
 		? getAddressAndPublicKeyFromPassphrase(passphrase)
-		: { address: undefined, publicKey: undefined };
+		: { publicKey: undefined };
 	const timestamp = getTimeWithOffset(timeOffset);
 
 	return {
-		amount: '0',
-		recipientId: '',
-		senderId,
 		senderPublicKey,
 		timestamp,
 	};

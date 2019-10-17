@@ -26,7 +26,6 @@ SELECT
 	"nameexist"::int::boolean as "nameExist",
 	"missedBlocks",
 	"producedBlocks",
-	"rank",
 	"fees",
 	"rewards",
 	"vote",

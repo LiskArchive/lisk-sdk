@@ -17,7 +17,7 @@
 const {
 	transfer,
 	registerMultisignature,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -56,16 +56,17 @@ describe('integration test (type 4) - effect of multisignature registration on m
 				lifetime: 4,
 				minimum: 2,
 			});
-			const sign1 = transactionUtils.multiSignTransaction(
+
+			const sign1 = createSignatureObject(
 				multisigTransaction,
 				signer1.passphrase,
 			);
-			const sign2 = transactionUtils.multiSignTransaction(
+			const sign2 = createSignatureObject(
 				multisigTransaction,
 				signer2.passphrase,
 			);
 
-			multisigTransaction.signatures = [sign1, sign2];
+			multisigTransaction.signatures = [sign1.signature, sign2.signature];
 			multisigTransaction.ready = true;
 			localCommon.addTransactionsAndForge(library, [multisigTransaction], done);
 		});
@@ -90,13 +91,13 @@ describe('integration test (type 4) - effect of multisignature registration on m
 
 			it('should set multimin field set on mem_accounts', async () => {
 				return expect(accountRow.multimin).to.eql(
-					multisigTransaction.asset.multisignature.min,
+					multisigTransaction.asset.min,
 				);
 			});
 
 			it('should set multilifetime field set on mem_accounts', async () => {
 				return expect(accountRow.multilifetime).to.eql(
-					multisigTransaction.asset.multisignature.lifetime,
+					multisigTransaction.asset.lifetime,
 				);
 			});
 		});
@@ -119,14 +120,12 @@ describe('integration test (type 4) - effect of multisignature registration on m
 			});
 
 			it('should have multimin field set on account', async () => {
-				return expect(account.multiMin).to.eql(
-					multisigTransaction.asset.multisignature.min,
-				);
+				return expect(account.multiMin).to.eql(multisigTransaction.asset.min);
 			});
 
 			it('should have multilifetime field set on account', async () => {
 				return expect(account.multiLifetime).to.eql(
-					multisigTransaction.asset.multisignature.lifetime,
+					multisigTransaction.asset.lifetime,
 				);
 			});
 		});

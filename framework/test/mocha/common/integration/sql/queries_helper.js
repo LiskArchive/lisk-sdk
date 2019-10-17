@@ -17,7 +17,6 @@
 const path = require('path');
 const QueryFile = require('pg-promise').QueryFile;
 const BigNum = require('@liskhq/bignum');
-const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -58,7 +57,7 @@ class Queries {
 
 	getDelegates() {
 		return self.storage.adapter.db.query(
-			"SELECT m.*, t.id as \"transactionId\" FROM mem_accounts m LEFT JOIN trs t ON t.asset->'delegate'->>'username' = m.username WHERE t.type = 2",
+			'SELECT m.*, t.id as "transactionId" FROM mem_accounts m LEFT JOIN trs t ON t.asset->>\'username\' = m.username WHERE t.type = 2',
 		);
 	}
 
@@ -76,7 +75,7 @@ class Queries {
 		return self.storage.entities.Block.get(
 			{},
 			{ extended: true, limit: null },
-		).then(blocks => blocks.map(blocksLogic.storageRead));
+		).then(blocks => blocks.map(this.library.blocks.deserialize));
 	}
 
 	getBlocks(round) {
@@ -137,7 +136,7 @@ class Queries {
 
 	getVoters() {
 		return self.storage.adapter.db.query(
-			`SELECT 
+			`SELECT
 			jsonb_array_elements("votedDelegatesPublicKeys") as "dependentId",
 			ARRAY_AGG(address) FROM mem_accounts WHERE "votedDelegatesPublicKeys" IS NOT NULL
 			GROUP BY address

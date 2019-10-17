@@ -18,7 +18,7 @@ const async = require('async');
 const {
 	transfer,
 	registerMultisignature,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -58,16 +58,16 @@ describe('integration test - multi signature edge cases', () => {
 						lifetime: 4,
 						minimum: 2,
 					});
-					const sign1 = transactionUtils.multiSignTransaction(
+					const sign1 = createSignatureObject(
 						multisigTransaction,
 						signer1.passphrase,
 					);
-					const sign2 = transactionUtils.multiSignTransaction(
+					const sign2 = createSignatureObject(
 						multisigTransaction,
 						signer2.passphrase,
 					);
 
-					multisigTransaction.signatures = [sign1, sign2];
+					multisigTransaction.signatures = [sign1.signature, sign2.signature];
 					multisigTransaction.ready = true;
 					localCommon.addTransactionsAndForge(
 						library,

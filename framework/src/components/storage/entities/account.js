@@ -41,7 +41,6 @@ const sqlFiles = {
  * @property {Boolean} nameExist
  * @property {number} missedBlocks
  * @property {number} producedBlocks
- * @property {string} rank
  * @property {string} fees
  * @property {string} rewards
  * @property {string} vote
@@ -143,14 +142,6 @@ const sqlFiles = {
  * @property {string} [missedBlocks_lt]
  * @property {string} [missedBlocks_lte]
  * @property {Array.<string>} [missedBlocks_in]
- * @property {string} [rank]
- * @property {string} [rank_eql]
- * @property {string} [rank_ne]
- * @property {string} [rank_gt]
- * @property {string} [rank_gte]
- * @property {string} [rank_lt]
- * @property {string} [rank_lte]
- * @property {string} [rank_in]
  * @property {string} [vote]
  * @property {string} [vote_eql]
  * @property {string} [vote_ne]
@@ -232,7 +223,6 @@ class Account extends BaseEntity {
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
 		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');

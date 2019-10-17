@@ -19,7 +19,6 @@ const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const definitions = require('../schema/definitions');
-const blocksUtils = require('../blocks');
 const transactionsModule = require('../transactions');
 
 function incrementRelays(packet) {
@@ -275,7 +274,7 @@ class Transport {
 			throw errors;
 		}
 
-		const block = blocksUtils.addBlockProperties(query.block);
+		const block = await this.processorModule.deserialize(query.block);
 
 		return this.processorModule.process(block, { peerId });
 	}
