@@ -53,10 +53,10 @@ class Transport {
 		applicationState,
 		exceptions,
 		// Modules
+		synchronizer,
 		transactionPoolModule,
 		blocksModule,
 		processorModule,
-		loaderModule,
 		interfaceAdapters,
 		// Constants
 		nonce,
@@ -68,6 +68,7 @@ class Transport {
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
+		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
 
@@ -80,7 +81,6 @@ class Transport {
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
-		this.loaderModule = loaderModule;
 		this.interfaceAdapters = interfaceAdapters;
 
 		this.broadcaster = new Broadcaster(
@@ -162,7 +162,7 @@ class Transport {
 		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
 		incrementRelays(block);
 
-		if (this.loaderModule.syncing()) {
+		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
@@ -253,7 +253,7 @@ class Transport {
 		}
 
 		// TODO: endpoint should be protected before
-		if (this.loaderModule.syncing()) {
+		if (this.synchronizer.isActive) {
 			return this.logger.debug(
 				"Client is syncing. Can't receive block at the moment.",
 				query.block.id,

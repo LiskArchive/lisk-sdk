@@ -89,7 +89,7 @@ class Synchronizer {
 	 * @return {*}
 	 */
 	async run(receivedBlock, peerId) {
-		if (this.activeMechanism) {
+		if (this.isActive) {
 			throw new Error(
 				`Synchronizer: ${
 					this.activeMechanism.constructor.name

@@ -560,6 +560,7 @@ module.exports = class Chain {
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
+			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
