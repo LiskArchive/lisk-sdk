@@ -581,7 +581,7 @@ export class P2P extends EventEmitter {
 	// Make sure you always share shared peer state to a user
 	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		const allPeers = this._peerBook.allPeers;
-		const connectedPeers = this._peerPool.getConnectedPeers();
+		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
 				connectedPeers.find(connectedPeer => peer.peerId === connectedPeer.id)
