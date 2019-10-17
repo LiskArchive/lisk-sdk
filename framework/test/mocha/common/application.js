@@ -72,6 +72,8 @@ const initStepsForTest = {
 			channel: scope.channel,
 			storage: scope.components.storage,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset:
+				__testContext.config.constants.DELEGATE_LIST_ROUND_OFFSET,
 			exceptions: __testContext.config.modules.chain.exceptions,
 		});
 
@@ -85,7 +87,6 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			slots: scope.slots,
 			exceptions: __testContext.config.modules.chain.exceptions,
-			dposModule: modules.dpos,
 			interfaceAdapters: modules.interfaceAdapters,
 			blockReceiptTimeout: __testContext.config.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,

@@ -665,6 +665,7 @@ describe('dpos.apply()', () => {
 					slots,
 					...stubs,
 					activeDelegates: constants.ACTIVE_DELEGATES,
+					delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,
 				});
 			});

@@ -73,6 +73,7 @@ describe('dpos.undo()', () => {
 			slots,
 			...stubs,
 			activeDelegates: constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
@@ -503,6 +504,7 @@ describe('dpos.undo()', () => {
 					slots,
 					...stubs,
 					activeDelegates: constants.ACTIVE_DELEGATES,
+					delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,
 				});
 			});
