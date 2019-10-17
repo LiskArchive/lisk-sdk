@@ -14,7 +14,7 @@
  */
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
-import { PEER_KIND_INBOUND, PEER_KIND_OUTBOUND } from '../constants';
+import { ConnectionKind } from '../constants';
 import {
 	P2PPeerInfo,
 	P2PPeerSelectionForConnectionInput,
@@ -49,13 +49,13 @@ export const selectPeersForSend = (
 
 	const outboundPeers = shuffledPeers.filter((peerInfo: P2PPeerInfo) =>
 		peerInfo.internalState
-			? peerInfo.internalState.connectionKind === PEER_KIND_OUTBOUND
+			? peerInfo.internalState.connectionKind === ConnectionKind.OUTBOUND
 			: false,
 	);
 
 	const inboundPeers = shuffledPeers.filter((peerInfo: P2PPeerInfo) =>
 		peerInfo.internalState
-			? peerInfo.internalState.connectionKind === PEER_KIND_INBOUND
+			? peerInfo.internalState.connectionKind === ConnectionKind.INBOUND
 			: false,
 	);
 

@@ -21,7 +21,11 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
-import { EVICTED_PEER_CODE, INTENTIONAL_DISCONNECT_CODE } from './constants';
+import {
+	ConnectionKind,
+	EVICTED_PEER_CODE,
+	INTENTIONAL_DISCONNECT_CODE,
+} from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
 	EVENT_BAN_PEER,
@@ -46,7 +50,6 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
-	ConnectionKind,
 	P2PClosePacket,
 	P2PMessagePacket,
 	P2PNodeInfo,

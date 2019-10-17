@@ -40,10 +40,6 @@ export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
 
-// Peer pool constants
-export const PEER_KIND_OUTBOUND = 'outbound';
-export const PEER_KIND_INBOUND = 'inbound';
-
 // Peer base constants
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
@@ -93,7 +89,7 @@ export const EVICTED_PEER_CODE = 4418;
 export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
 
-// Peer connection Kind
+// Peer info constants
 export enum ConnectionKind {
 	OUTBOUND = 'outbound',
 	INBOUND = 'inbound',
