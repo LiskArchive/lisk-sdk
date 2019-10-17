@@ -89,15 +89,11 @@ export interface P2PClosePacket {
 	readonly reason?: string;
 }
 
-export interface P2PConfigPeerInfo {
-	readonly ipAddress: string;
-	readonly wsPort: number;
-}
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
-	readonly seedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
-	readonly fixedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
-	readonly whitelistedPeers?: ReadonlyArray<P2PConfigPeerInfo>;
+	readonly blacklistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly fixedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly whitelistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
