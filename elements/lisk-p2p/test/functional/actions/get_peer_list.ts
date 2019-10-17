@@ -15,6 +15,7 @@
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import { wait } from '../../utils/helpers';
+//import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 import {
 	createNetwork,
 	destroyNetwork,
@@ -106,6 +107,57 @@ describe('PeerPool actions', () => {
 				'127.0.0.11',
 				'127.0.0.12',
 			]);
+		});
+	});
+
+	describe('Get Disconnected Peers', () => {
+		let p2pNodeList: ReadonlyArray<P2P> = [];
+		const LIMITED_CONNECTIONS = 3;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 50;
+
+		beforeEach(async () => {
+			const customSeedPeers = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => [
+				{
+					ipAddress: '127.0.0.1',
+					wsPort: startPort + ((index + 1) % networkSize),
+				},
+			];
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				populatorInterlatencyProtectionRatio: 0,
+				productivityProtectionRatio: 0,
+				longevityProtectionRatio: 0,
+				maxOutboundConnections: LIMITED_CONNECTIONS,
+				maxInboundConnections: LIMITED_CONNECTIONS,
+				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+			});
+
+			p2pNodeList = await createNetwork({
+				customConfig,
+			});
+		});
+
+		afterEach(async () => {
+			await destroyNetwork(p2pNodeList);
+		});
+
+		it('should have disjoint connected and disconnected peers', async () => {
+			for (let p2p of p2pNodeList) {
+				const connectedPeers = p2p.getConnectedPeers();
+				const disconnectedPeers = p2p.getDisconnectedPeers();
+
+				for (const connectedPeer of connectedPeers) {
+					expect(disconnectedPeers).to.not.deep.include(connectedPeer);
+				}
+			}
 		});
 	});
 });
