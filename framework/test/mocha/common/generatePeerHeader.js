@@ -52,7 +52,7 @@ const generatePeerHeader = function(headers = {}) {
 				wsPort: v.wsPort,
 			})),
 			blacklist: [{ ipAddress: '127.1.0.1', wsPort: nodeInfo.wsPort }],
-			whitelistedPeers: [],
+			whitelist: [],
 			fixedlist: [],
 			previousPeers: [],
 		},

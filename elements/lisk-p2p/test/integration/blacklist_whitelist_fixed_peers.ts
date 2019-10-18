@@ -96,7 +96,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					seeds: customSeedPeers(index, startPort, networkSize),
 					blacklist,
 					fixedlist: blacklist,
-					whitelistedPeers: blacklist,
+					whitelist: blacklist,
 					previousPeers: previousPeersBlacklisted,
 				},
 			});
@@ -239,7 +239,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	describe('whitelisting', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 
-		const whitelistedPeers = [
+		const whitelist = [
 			{
 				ipAddress: '127.0.0.10',
 				wsPort: NETWORK_START_PORT,
@@ -268,7 +268,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				maxInboundConnections: FIVE_CONNECTIONS,
 				peerLists: {
 					seeds: customSeedPeers(index, startPort, networkSize),
-					whitelistedPeers,
+					whitelist,
 					previousPeers,
 					blacklist: [],
 					fixedlist: [],
@@ -301,16 +301,14 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(triedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					expect(triedPeersIPWS).to.deep.include.members(whitelist);
 				}
 			});
 		});
 
 		it('should not be possible to ban them', async () => {
 			const peerPenalty = {
-				peerId: `${whitelistedPeers[0].ipAddress}:${
-					whitelistedPeers[0].wsPort
-				}`,
+				peerId: `${whitelist[0].ipAddress}:${whitelist[0].wsPort}`,
 				penalty: 100,
 			};
 
@@ -323,7 +321,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					expect(connectedPeersIPWS).to.deep.include.members(whitelist);
 				}
 			});
 		});

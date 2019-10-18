@@ -112,7 +112,7 @@ export interface PeerLists {
 	readonly blacklist: ReadonlyArray<P2PPeerInfo>;
 	readonly seeds: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedlist: ReadonlyArray<P2PPeerInfo>;
-	readonly whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelist: ReadonlyArray<P2PPeerInfo>;
 	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;
 }
 

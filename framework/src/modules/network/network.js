@@ -121,7 +121,7 @@ module.exports = class Network {
 			  }))
 			: [];
 
-		const whitelistedPeers = this.options.whitelistedPeers
+		const whitelist = this.options.whitelistedPeers
 			? this.options.whitelistedPeers.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
@@ -134,7 +134,7 @@ module.exports = class Network {
 			peerLists: {
 				blacklist,
 				fixedlist,
-				whitelistedPeers,
+				whitelist,
 				seeds: seeds.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,

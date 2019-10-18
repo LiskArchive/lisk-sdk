@@ -91,7 +91,7 @@ export const createNetwork = async ({
 			peerLists: {
 				seeds: defaultSeedPeers,
 				blacklist: [],
-				whitelistedPeers: [],
+				whitelist: [],
 				fixedlist: [],
 				previousPeers: [],
 			},

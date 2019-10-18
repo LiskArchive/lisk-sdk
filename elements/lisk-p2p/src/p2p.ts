@@ -248,8 +248,8 @@ export class P2P extends EventEmitter {
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				whitelistedPeers: config.peerLists.whitelistedPeers
-					? config.peerLists.whitelistedPeers.map(peer => ({
+				whitelist: config.peerLists.whitelist
+					? config.peerLists.whitelist.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
@@ -330,7 +330,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			const isWhitelisted = this._sanitizedPeerLists.whitelistedPeers.find(
+			const isWhitelisted = this._sanitizedPeerLists.whitelist.find(
 				peer => peer.peerId === peerInfo.peerId,
 			);
 			if (this._peerBook.getPeer(peerInfo) && !isWhitelisted) {
@@ -404,7 +404,7 @@ export class P2P extends EventEmitter {
 
 		this._handleBanPeer = (peerId: string) => {
 			this._bannedPeers.add(peerId.split(':')[0]);
-			const isWhitelisted = this._sanitizedPeerLists.whitelistedPeers.find(
+			const isWhitelisted = this._sanitizedPeerLists.whitelist.find(
 				peer => peer.peerId === peerId,
 			);
 
@@ -910,7 +910,7 @@ export class P2P extends EventEmitter {
 			seedPeer => peerId === seedPeer.peerId,
 		);
 
-		const isWhitelisted = this._sanitizedPeerLists.whitelistedPeers.find(
+		const isWhitelisted = this._sanitizedPeerLists.whitelist.find(
 			peer => peer.peerId === peerId,
 		);
 
@@ -927,7 +927,7 @@ export class P2P extends EventEmitter {
 		}
 
 		const newPeersToAdd = this._sanitizedPeerLists.seeds.concat(
-			this._sanitizedPeerLists.whitelistedPeers,
+			this._sanitizedPeerLists.whitelist,
 		);
 		newPeersToAdd.forEach(newPeerInfo => {
 			try {
@@ -940,7 +940,7 @@ export class P2P extends EventEmitter {
 		});
 
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
-		this._sanitizedPeerLists.whitelistedPeers.forEach(whitelistPeer =>
+		this._sanitizedPeerLists.whitelist.forEach(whitelistPeer =>
 			this._peerBook.upgradePeer(whitelistPeer),
 		);
 		await this._startPeerServer();
