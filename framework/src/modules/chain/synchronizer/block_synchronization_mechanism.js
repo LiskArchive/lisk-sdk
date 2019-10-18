@@ -164,7 +164,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		if (this.blocks.lastBlock.id !== receivedBlock.id) {
 			const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
 				{},
-				{ sort: 'height:asc', limit: 1, extended: true },
+				{ sort: 'height:desc', limit: 1, extended: true },
 			);
 
 			const tipBeforeApplyingInstance = await this.processorModule.deserialize(

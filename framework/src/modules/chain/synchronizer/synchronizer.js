@@ -38,11 +38,13 @@ class Synchronizer {
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
 			try {
+				this.logger.info('Restoring blocks from temporary table');
 				await utils.restoreBlocksUponStartup(
 					this.blocksModule,
 					this.processorModule,
 					this.storageModule,
 				);
+				this.logger.info('Chain successfully restored');
 			} catch (err) {
 				this.logger.error(
 					{ err },

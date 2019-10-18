@@ -17,7 +17,7 @@
 const { maxBy } = require('lodash');
 const {
 	FORK_STATUS_DIFFERENT_CHAIN,
-	addBlockProperties,
+	FORK_STATUS_VALID_BLOCK,
 } = require('../blocks');
 
 /**
@@ -33,18 +33,21 @@ const {
  * @return {Promise<Boolean>} - returns true when successfully restoring blocks, returns false if no blocks were found
  */
 const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
-	const tempBlocks = await blocksModule.getTempBlocks(tx);
+	const tempBlocks = await blocksModule.getTempBlocks(
+		{},
+		{ sort: 'height:asc' },
+		tx,
+	);
 
 	if (tempBlocks.length === 0) {
 		return false;
 	}
 
 	for (const tempBlockEntry of tempBlocks) {
-		addBlockProperties(tempBlockEntry.fullBlock);
-		// TODO: Remove this code when serializing PR is merged
-		tempBlockEntry.fullBlock.previousBlock =
-			tempBlockEntry.fullBlock.previousBlockId;
-		await processorModule.processValidated(tempBlockEntry.fullBlock, {
+		const tempBlockInstance = await processorModule.deserialize(
+			tempBlockEntry.fullBlock,
+		);
+		await processorModule.processValidated(tempBlockInstance, {
 			removeFromTempTable: true,
 		});
 	}
@@ -106,18 +109,20 @@ const restoreBlocksUponStartup = async (
 ) => {
 	// Get all blocks and find lowest height (next one to be applied)
 	const tempBlocks = await storageModule.entities.TempBlock.get();
-	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
-		prev.height < current.height ? prev : current,
+	const blockHighestHeight = tempBlocks.reduce((prev, current) =>
+		prev.height > current.height ? prev : current,
 	);
 
 	const nextTempBlock = await processorModule.deserialize(
-		blockLowestHeight.fullBlock,
+		blockHighestHeight.fullBlock,
 	);
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
-	const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+	const blockHashPriority =
+		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+		forkStatus === FORK_STATUS_VALID_BLOCK;
 
 	// Block in the temp table has preference over current tip of the chain
-	if (inDifferentChain) {
+	if (blockHashPriority) {
 		await deleteBlocksAfterHeight(
 			processorModule,
 			blocksModule,
