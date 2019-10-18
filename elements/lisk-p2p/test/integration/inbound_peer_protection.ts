@@ -42,7 +42,7 @@ describe('Peer inbound eviction for connection time', () => {
 			longevityProtectionRatio: 0.5,
 			maxInboundConnections: 3,
 			populatorInterval: 100,
-			seedPeers: customSeedPeers(index, networkStartPort, networkSize),
+			seeds: customSeedPeers(index, networkStartPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });

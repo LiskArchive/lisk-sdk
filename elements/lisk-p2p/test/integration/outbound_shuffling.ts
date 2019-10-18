@@ -45,7 +45,7 @@ describe('Outbound peer shuffling', () => {
 			populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
 			outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
 			peerLists: {
-				seedPeers: customSeedPeers(_index, _startPort, networkSize),
+				seeds: customSeedPeers(_index, _startPort, networkSize),
 			},
 		});
 

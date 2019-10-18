@@ -93,7 +93,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				peerLists: {
-					seedPeers: customSeedPeers(index, startPort, networkSize),
+					seeds: customSeedPeers(index, startPort, networkSize),
 					blacklist,
 					fixedPeers: blacklist,
 					whitelistedPeers: blacklist,
@@ -197,7 +197,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				peerLists: {
-					seedPeers: customSeedPeers(index, startPort, networkSize),
+					seeds: customSeedPeers(index, startPort, networkSize),
 					fixedPeers,
 					previousPeers,
 					whitelisted: [],
@@ -267,7 +267,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				peerLists: {
-					seedPeers: customSeedPeers(index, startPort, networkSize),
+					seeds: customSeedPeers(index, startPort, networkSize),
 					whitelistedPeers,
 					previousPeers,
 					blacklist: [],

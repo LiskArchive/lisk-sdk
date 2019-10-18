@@ -19,7 +19,7 @@ describe('p2p', () => {
 	describe('#constructor', () => {
 		const lisk = new P2P({
 			peerLists: {
-				seedPeers: [],
+				seeds: [],
 				blacklist: [],
 				fixedPeers: [],
 				whitelistedPeers: [],

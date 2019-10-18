@@ -89,7 +89,7 @@ export const createNetwork = async ({
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			peerLists: {
-				seedPeers: defaultSeedPeers,
+				seeds: defaultSeedPeers,
 				blacklist: [],
 				whitelistedPeers: [],
 				fixedPeers: [],

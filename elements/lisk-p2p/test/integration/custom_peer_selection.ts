@@ -132,7 +132,7 @@ describe('Custom peer selection', () => {
 			maxOutboundConnections: 5,
 			maxInboundConnections: 5,
 			nodeInfo: customNodeInfo(index),
-			seedPeers: customSeedPeers(index, startPort, networkSize),
+			seeds: customSeedPeers(index, startPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({

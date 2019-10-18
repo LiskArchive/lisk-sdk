@@ -52,7 +52,7 @@ describe('Limited number of outbound/inbound connections', () => {
 			maxOutboundConnections: LIMITED_CONNECTIONS,
 			maxInboundConnections: LIMITED_CONNECTIONS,
 			val: POPULATOR_INTERVAL_WITH_LIMIT,
-			seedPeers: customSeedPeers(index, startPort, networkSize),
+			seeds: customSeedPeers(index, startPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({

@@ -47,7 +47,7 @@ const generatePeerHeader = function(headers = {}) {
 
 	return {
 		peerLists: {
-			seedPeers: testConfig.modules.network.seedPeers.map(v => ({
+			seeds: testConfig.modules.network.seedPeers.map(v => ({
 				ipAddress: v.ip,
 				wsPort: v.wsPort,
 			})),

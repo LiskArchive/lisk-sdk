@@ -110,7 +110,7 @@ export interface P2PClosePacket {
 
 export interface PeerLists {
 	readonly blacklist: ReadonlyArray<P2PPeerInfo>;
-	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly seeds: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;

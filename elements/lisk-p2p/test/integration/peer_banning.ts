@@ -48,7 +48,7 @@ describe('Peer banning mechanism', () => {
 			populatorInterval: POPULATOR_INTERVAL,
 			peerBanTime: PEER_BAN_TIME,
 			peerLists: {
-				seedPeers: customSeedPeers(index, startPort, networkSize),
+				seeds: customSeedPeers(index, startPort, networkSize),
 			},
 		});
 

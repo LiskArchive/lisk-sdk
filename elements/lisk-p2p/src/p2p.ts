@@ -227,8 +227,8 @@ export class P2P extends EventEmitter {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
-				seedPeers: config.peerLists.seedPeers
-					? config.peerLists.seedPeers.map(peer => ({
+				seeds: config.peerLists.seeds
+					? config.peerLists.seeds.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
@@ -906,7 +906,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {
-		const isSeed = this._sanitizedPeerLists.seedPeers.find(
+		const isSeed = this._sanitizedPeerLists.seeds.find(
 			seedPeer => peerId === seedPeer.peerId,
 		);
 
@@ -926,7 +926,7 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		const newPeersToAdd = this._sanitizedPeerLists.seedPeers.concat(
+		const newPeersToAdd = this._sanitizedPeerLists.seeds.concat(
 			this._sanitizedPeerLists.whitelistedPeers,
 		);
 		newPeersToAdd.forEach(newPeerInfo => {

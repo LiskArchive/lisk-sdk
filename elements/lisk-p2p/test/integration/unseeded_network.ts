@@ -17,7 +17,7 @@ import { expect } from 'chai';
 import { P2P, RequestFailError } from '../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
-describe('Unseeded network: Each node has an empty seedPeers list', () => {
+describe('Unseeded network: Each node has an empty seeds list', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
