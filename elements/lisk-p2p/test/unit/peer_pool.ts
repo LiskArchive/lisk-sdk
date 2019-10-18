@@ -74,7 +74,7 @@ describe('peerPool', () => {
 			fixedPeers: [],
 			previousPeers: [],
 			seedPeers: [],
-			whitelisted: [],
+			whitelistedPeers: [],
 		},
 	};
 	let peerPool: PeerPool;

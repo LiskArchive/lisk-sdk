@@ -108,12 +108,16 @@ export interface P2PClosePacket {
 	readonly reason?: string;
 }
 
+export interface PeerLists {
+	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;
+}
+
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly fixedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly whitelistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly peerLists: PeerLists;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
@@ -211,12 +215,4 @@ export interface ProtocolRPCRequestPacket {
 export interface ProtocolMessagePacket {
 	readonly data: unknown;
 	readonly event: string;
-}
-
-export interface PeerLists {
-	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
-	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;
 }

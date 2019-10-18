@@ -227,36 +227,36 @@ export class P2P extends EventEmitter {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
-				seedPeers: config.seedPeers
-					? config.seedPeers.map(peer => ({
+				seedPeers: config.peerLists.seedPeers
+					? config.peerLists.seedPeers.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers.map(peer => ({
+				blacklistedPeers: config.peerLists.blacklistedPeers
+					? config.peerLists.blacklistedPeers.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				fixedPeers: config.fixedPeers
-					? config.fixedPeers.map(peer => ({
+				fixedPeers: config.peerLists.fixedPeers
+					? config.peerLists.fixedPeers.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				whitelisted: config.whitelistedPeers
-					? config.whitelistedPeers.map(peer => ({
+				whitelistedPeers: config.peerLists.whitelistedPeers
+					? config.peerLists.whitelistedPeers.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				previousPeers: config.previousPeers
-					? config.previousPeers.map(peer => ({
+				previousPeers: config.peerLists.previousPeers
+					? config.peerLists.previousPeers.map(peer => ({
 							...peer,
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 					  }))
@@ -330,7 +330,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
+			const isWhitelisted = this._sanitizedPeerLists.whitelistedPeers.find(
 				peer => peer.peerId === peerInfo.peerId,
 			);
 			if (this._peerBook.getPeer(peerInfo) && !isWhitelisted) {
@@ -404,7 +404,7 @@ export class P2P extends EventEmitter {
 
 		this._handleBanPeer = (peerId: string) => {
 			this._bannedPeers.add(peerId.split(':')[0]);
-			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
+			const isWhitelisted = this._sanitizedPeerLists.whitelistedPeers.find(
 				peer => peer.peerId === peerId,
 			);
 
@@ -910,7 +910,7 @@ export class P2P extends EventEmitter {
 			seedPeer => peerId === seedPeer.peerId,
 		);
 
-		const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
+		const isWhitelisted = this._sanitizedPeerLists.whitelistedPeers.find(
 			peer => peer.peerId === peerId,
 		);
 
@@ -927,7 +927,7 @@ export class P2P extends EventEmitter {
 		}
 
 		const newPeersToAdd = this._sanitizedPeerLists.seedPeers.concat(
-			this._sanitizedPeerLists.whitelisted,
+			this._sanitizedPeerLists.whitelistedPeers,
 		);
 		newPeersToAdd.forEach(newPeerInfo => {
 			try {
@@ -940,7 +940,7 @@ export class P2P extends EventEmitter {
 		});
 
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
-		this._sanitizedPeerLists.whitelisted.forEach(whitelistPeer =>
+		this._sanitizedPeerLists.whitelistedPeers.forEach(whitelistPeer =>
 			this._peerBook.upgradePeer(whitelistPeer),
 		);
 		await this._startPeerServer();

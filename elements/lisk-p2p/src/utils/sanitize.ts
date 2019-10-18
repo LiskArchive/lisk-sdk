@@ -92,7 +92,7 @@ export const sanitizePeerLists = (
 		return true;
 	});
 
-	const whitelisted = lists.whitelisted.filter(peerInfo => {
+	const whitelistedPeers = lists.whitelistedPeers.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
@@ -128,7 +128,7 @@ export const sanitizePeerLists = (
 		blacklistedPeers,
 		seedPeers,
 		fixedPeers,
-		whitelisted,
+		whitelistedPeers,
 		previousPeers,
 	};
 };
