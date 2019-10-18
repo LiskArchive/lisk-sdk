@@ -19,6 +19,7 @@ import {
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 } from '../../src';
+import { constructPeerId } from '../../src/utils';
 export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
 export const POPULATOR_INTERVAL = 50;
@@ -68,6 +69,10 @@ export const createNetwork = async ({
 				? []
 				: [
 						{
+							peerId: constructPeerId(
+								SEED_PEER_IP,
+								NETWORK_START_PORT + index - 1,
+							),
 							ipAddress: SEED_PEER_IP,
 							wsPort: NETWORK_START_PORT + index - 1,
 						},
@@ -83,15 +88,13 @@ export const createNetwork = async ({
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
-			peerLists: customConfigObject.peerLists
-				? customConfigObject.peerLists
-				: {
-						seedPeers: defaultSeedPeers,
-						blacklistedPeers: [],
-						whitelistedPeers: [],
-						fixedPeers: [],
-						previousPeers: [],
-				  },
+			peerLists: {
+				seedPeers: defaultSeedPeers,
+				blacklistedPeers: [],
+				whitelistedPeers: [],
+				fixedPeers: [],
+				previousPeers: [],
+			},
 			wsEngine: WEB_SOCKET_ENGINE,
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
