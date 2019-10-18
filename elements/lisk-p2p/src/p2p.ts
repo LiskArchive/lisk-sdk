@@ -255,8 +255,8 @@ export class P2P extends EventEmitter {
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				previousPeers: config.peerLists.previousPeers
-					? config.peerLists.previousPeers.map(peer => ({
+				previouslist: config.peerLists.previouslist
+					? config.peerLists.previouslist.map(peer => ({
 							...peer,
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 					  }))
@@ -501,8 +501,8 @@ export class P2P extends EventEmitter {
 
 		this._bindHandlersToPeerPool(this._peerPool);
 		// Add peers to tried peers if want to re-use previously tried peers
-		if (this._sanitizedPeerLists.previousPeers) {
-			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
+		if (this._sanitizedPeerLists.previouslist) {
+			this._sanitizedPeerLists.previouslist.forEach(peerInfo => {
 				try {
 					this._peerBook.addPeer(peerInfo);
 					this._peerBook.upgradePeer(peerInfo);

@@ -23,7 +23,7 @@ describe('p2p', () => {
 				blacklist: [],
 				fixedlist: [],
 				whitelist: [],
-				previousPeers: [],
+				previouslist: [],
 			},
 			connectTimeout: 5000,
 			wsEngine: 'ws',

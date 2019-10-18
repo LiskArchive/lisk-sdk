@@ -112,7 +112,7 @@ export const sanitizePeerLists = (
 		return true;
 	});
 
-	const previousPeers = lists.previousPeers.filter(peerInfo => {
+	const previouslist = lists.previouslist.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
@@ -129,7 +129,7 @@ export const sanitizePeerLists = (
 		seeds,
 		fixedlist,
 		whitelist,
-		previousPeers,
+		previouslist,
 	};
 };
 

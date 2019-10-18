@@ -113,7 +113,7 @@ export interface PeerLists {
 	readonly seeds: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedlist: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelist: ReadonlyArray<P2PPeerInfo>;
-	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly previouslist: ReadonlyArray<P2PPeerInfo>;
 }
 
 export interface P2PConfig {

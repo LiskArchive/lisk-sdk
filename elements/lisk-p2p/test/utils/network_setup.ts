@@ -93,7 +93,7 @@ export const createNetwork = async ({
 				blacklist: [],
 				whitelist: [],
 				fixedlist: [],
-				previousPeers: [],
+				previouslist: [],
 			},
 			wsEngine: WEB_SOCKET_ENGINE,
 			populatorInterval: POPULATOR_INTERVAL,

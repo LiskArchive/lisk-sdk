@@ -24,7 +24,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
 	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 	const NETWORK_START_PORT = 5000;
-	const previousPeers = [
+	const previouslist = [
 		{
 			ipAddress: '127.0.0.15',
 			wsPort: NETWORK_START_PORT + 5,
@@ -97,7 +97,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					blacklist,
 					fixedlist: blacklist,
 					whitelist: blacklist,
-					previousPeers: previousPeersBlacklisted,
+					previouslist: previousPeersBlacklisted,
 				},
 			});
 
@@ -199,7 +199,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				peerLists: {
 					seeds: customSeedPeers(index, startPort, networkSize),
 					fixedlist,
-					previousPeers,
+					previouslist,
 					whitelisted: [],
 					blacklist: [],
 				},
@@ -269,7 +269,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				peerLists: {
 					seeds: customSeedPeers(index, startPort, networkSize),
 					whitelist,
-					previousPeers,
+					previouslist,
 					blacklist: [],
 					fixedlist: [],
 				},

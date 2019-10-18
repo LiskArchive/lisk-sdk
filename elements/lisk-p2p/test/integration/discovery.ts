@@ -173,7 +173,7 @@ describe('Peer discovery', () => {
 				blacklist: [],
 				whitelist: [],
 				fixedlist: [],
-				previousPeers: [],
+				previouslist: [],
 			},
 			wsEngine: 'ws',
 			populatorInterval: POPULATOR_INTERVAL,

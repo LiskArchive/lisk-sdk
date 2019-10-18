@@ -72,7 +72,7 @@ describe('peerPool', () => {
 		peerLists: {
 			blacklist: [],
 			fixedlist: [],
-			previousPeers: [],
+			previouslist: [],
 			seeds: [],
 			whitelist: [],
 		},
