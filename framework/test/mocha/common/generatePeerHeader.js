@@ -46,11 +46,16 @@ const generatePeerHeader = function(headers = {}) {
 	};
 
 	return {
-		blacklistedPeers: [{ ipAddress: '127.1.0.1', wsPort: nodeInfo.wsPort }],
-		seedPeers: testConfig.modules.network.seedPeers.map(v => ({
-			ipAddress: v.ip,
-			wsPort: v.wsPort,
-		})),
+		peerLists: {
+			seedPeers: testConfig.modules.network.seedPeers.map(v => ({
+				ipAddress: v.ip,
+				wsPort: v.wsPort,
+			})),
+			blacklistedPeers: [{ ipAddress: '127.1.0.1', wsPort: nodeInfo.wsPort }],
+			whitelistedPeers: [],
+			fixedPeers: [],
+			previousPeers: [],
+		},
 		ackTimeout: 20000,
 		nodeInfo,
 	};

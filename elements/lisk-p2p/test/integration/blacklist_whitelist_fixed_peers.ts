@@ -92,11 +92,13 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
-				seedPeers: customSeedPeers(index, startPort, networkSize),
-				blacklistedPeers,
-				fixedPeers: blacklistedPeers,
-				whitelistedPeers: blacklistedPeers,
-				previousPeers: previousPeersBlacklisted,
+				peerLists: {
+					seedPeers: customSeedPeers(index, startPort, networkSize),
+					blacklistedPeers,
+					fixedPeers: blacklistedPeers,
+					whitelistedPeers: blacklistedPeers,
+					previousPeers: previousPeersBlacklisted,
+				},
 			});
 
 			p2pNodeList = await createNetwork({ customConfig });
@@ -196,9 +198,13 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
-				seedPeers: customSeedPeers(index, startPort, networkSize),
-				fixedPeers,
-				previousPeers,
+				peerLists: {
+					seedPeers: customSeedPeers(index, startPort, networkSize),
+					fixedPeers,
+					previousPeers,
+					whitelisted: [],
+					blacklistedPeers: [],
+				},
 			});
 
 			p2pNodeList = await createNetwork({ customConfig });
@@ -262,9 +268,13 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
-				seedPeers: customSeedPeers(index, startPort, networkSize),
-				whitelistedPeers,
-				previousPeers,
+				peerLists: {
+					seedPeers: customSeedPeers(index, startPort, networkSize),
+					whitelistedPeers,
+					previousPeers,
+					blacklistedPeers: [],
+					fixedPeers: [],
+				},
 			});
 
 			p2pNodeList = await createNetwork({ customConfig });

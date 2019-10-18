@@ -83,7 +83,15 @@ export const createNetwork = async ({
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
-			seedPeers: defaultSeedPeers,
+			peerLists: customConfigObject.peerLists
+				? customConfigObject.peerLists
+				: {
+						seedPeers: defaultSeedPeers,
+						blacklistedPeers: [],
+						whitelistedPeers: [],
+						fixedPeers: [],
+						previousPeers: [],
+				  },
 			wsEngine: WEB_SOCKET_ENGINE,
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,

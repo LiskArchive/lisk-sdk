@@ -131,22 +131,24 @@ module.exports = class Network {
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
 			hostAddress: this.options.address,
-			blacklistedPeers,
-			fixedPeers,
-			whitelistedPeers,
-			seedPeers: seedPeers.map(peer => ({
-				ipAddress: peer.ip,
-				wsPort: peer.wsPort,
-			})),
-			previousPeers: previousPeers.map(peer => {
-				// Remove the id field coming from the database.
-				const { ip, id, ...strippedPeer } = peer;
+			peerLists: {
+				blacklistedPeers,
+				fixedPeers,
+				whitelistedPeers,
+				seedPeers: seedPeers.map(peer => ({
+					ipAddress: peer.ip,
+					wsPort: peer.wsPort,
+				})),
+				previousPeers: previousPeers.map(peer => {
+					// Remove the id field coming from the database.
+					const { ip, id, ...strippedPeer } = peer;
 
-				return {
-					ipAddress: ip,
-					...strippedPeer,
-				};
-			}),
+					return {
+						ipAddress: ip,
+						...strippedPeer,
+					};
+				}),
+			},
 			discoveryInterval: this.options.discoveryInterval,
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,

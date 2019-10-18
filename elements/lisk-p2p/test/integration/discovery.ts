@@ -32,6 +32,7 @@ import {
 	NETWORK_PEER_COUNT,
 	POPULATOR_INTERVAL,
 } from '../utils/network_setup';
+import { constructPeerId } from '../../src/utils';
 
 describe('Peer discovery', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -161,12 +162,19 @@ describe('Peer discovery', () => {
 		disconnectedNode = new P2P({
 			connectTimeout: 100,
 			ackTimeout: 200,
-			seedPeers: [
-				{
-					ipAddress: '127.0.0.1',
-					wsPort: 5000,
-				},
-			],
+			peerLists: {
+				seedPeers: [
+					{
+						peerId: constructPeerId('127.0.0.1', 5000),
+						ipAddress: '127.0.0.1',
+						wsPort: 5000,
+					},
+				],
+				blacklistedPeers: [],
+				whitelistedPeers: [],
+				fixedPeers: [],
+				previousPeers: [],
+			},
 			wsEngine: 'ws',
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: 1,

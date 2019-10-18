@@ -44,7 +44,9 @@ describe('Outbound peer shuffling', () => {
 			maxInboundConnections: Math.round(networkSize / 2),
 			populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
 			outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
-			seedPeers: customSeedPeers(_index, _startPort, networkSize),
+			peerLists: {
+				seedPeers: customSeedPeers(_index, _startPort, networkSize),
+			},
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });

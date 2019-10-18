@@ -47,7 +47,9 @@ describe('Peer banning mechanism', () => {
 		) => ({
 			populatorInterval: POPULATOR_INTERVAL,
 			peerBanTime: PEER_BAN_TIME,
-			seedPeers: customSeedPeers(index, startPort, networkSize),
+			peerLists: {
+				seedPeers: customSeedPeers(index, startPort, networkSize),
+			},
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });
