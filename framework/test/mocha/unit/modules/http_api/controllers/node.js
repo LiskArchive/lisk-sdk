@@ -115,7 +115,6 @@ describe('node/api', () => {
 
 	describe('getStatus', () => {
 		const status = {
-			consensus: 100,
 			secondsSinceEpoch: 89742345,
 			lastBlock: {
 				height: 1187,
@@ -179,11 +178,9 @@ describe('node/api', () => {
 
 			beforeEach(async () => {
 				statusWithoutSomeParameters = _.cloneDeep(status);
-				statusWithoutSomeParameters.consensus = undefined;
 				statusWithoutSomeParameters.lastBlock.height = undefined;
 				statusWithoutSomeParameters.networkHeight = undefined;
 				expectedStatusWithoutSomeParameters = _.cloneDeep(expectedStatus);
-				expectedStatusWithoutSomeParameters.consensus = 0;
 				expectedStatusWithoutSomeParameters.height = 0;
 				channelStub.invoke
 					.withArgs('chain:getNodeStatus')

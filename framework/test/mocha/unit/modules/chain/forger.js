@@ -872,10 +872,6 @@ describe('forge', () => {
 
 				await forgeModule.forge();
 				expect(forgeModule.processorModule.create).to.not.been.called;
-				expect(mockLogger.info).to.be.calledTwice;
-				expect(mockLogger.info.secondCall.args).to.be.eql([
-					'Skipping forging to wait for last block',
-				]);
 				expect(mockLogger.debug).to.be.calledWithExactly('Slot information', {
 					currentSlot,
 					lastBlockSlot: changedLastBlockSlot,

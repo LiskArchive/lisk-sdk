@@ -698,12 +698,15 @@ describe('transport', () => {
 						expect(transportModule.broadcaster.broadcast.calledOnce).to.be.true;
 						return expect(
 							transportModule.broadcaster.broadcast,
-						).to.be.calledWith({
-							api: 'postBlock',
-							data: {
-								block,
+						).to.be.calledWith(
+							{},
+							{
+								api: 'postBlock',
+								data: {
+									block,
+								},
 							},
-						});
+						);
 					});
 
 					describe('when modules.loader.syncing = true', () => {
