@@ -14,7 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../p2p_types';
 import { CustomPeerInfo } from '../peer_book/base_list';
 
 const BYTES_4 = 4;
@@ -120,15 +120,28 @@ export const getNetgroup = (address: string, secret: number): number => {
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
+// TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
 export const getUniquePeersbyIp = (
-	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
+	peerList: ReadonlyArray<P2PPeerInfo>,
+): ReadonlyArray<P2PPeerInfo> => {
+	const peerMap = new Map<string, P2PPeerInfo>();
 
 	for (const peer of peerList) {
+		const { sharedState } = peer;
+		const peerHeight = sharedState
+			? sharedState.height
+				? (sharedState.height as number)
+				: 0
+			: 0;
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
-			if (peer.height > tempPeer.height) {
+			const { sharedState: tempSharedState } = tempPeer;
+			const tempPeerHeight = tempSharedState
+				? tempSharedState.height
+					? (tempSharedState.height as number)
+					: 0
+				: 0;
+			if (peerHeight > tempPeerHeight) {
 				peerMap.set(peer.ipAddress, peer);
 			}
 		} else {
@@ -139,8 +152,8 @@ export const getUniquePeersbyIp = (
 	return [...peerMap.values()];
 };
 
-export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
+export const constructPeerId = (ipAddress: string, wsPort: number): string =>
+	`${ipAddress}:${wsPort}`;
 
 export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));

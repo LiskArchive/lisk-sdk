@@ -79,6 +79,7 @@ describe('Maximum payload', () => {
 
 	it('should disconnect the peer which has sent the message', async () => {
 		const firstP2PNode = p2pNodeList[0];
+
 		firstP2PNode.send({
 			event: 'maxPayload',
 			data: dataLargerThanMaxPayload,

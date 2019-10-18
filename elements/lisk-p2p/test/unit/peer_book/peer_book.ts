@@ -22,7 +22,7 @@ import {
 	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
 } from '../../../src/constants';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { P2PPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
 import { ExistingPeerError } from '../../../src/errors';
 
@@ -31,7 +31,7 @@ describe('peerBook', () => {
 		secret: DEFAULT_RANDOM_SECRET,
 	};
 	let peerBook: PeerBook;
-	let samplePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	let samplePeers: ReadonlyArray<P2PPeerInfo>;
 
 	describe('#constructor', () => {
 		it('should intialize blank peer lists and set the secret', () => {

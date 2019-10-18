@@ -19,7 +19,7 @@ import {
 	DEFAULT_TRIED_BUCKET_SIZE,
 } from '../constants';
 import { ExistingPeerError } from '../errors';
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
 import { NewList, NewListConfig } from './new_list';
 import { TriedList, TriedListConfig } from './tried_list';
@@ -64,8 +64,8 @@ export class PeerBook {
 		return this._newPeers.peersList;
 	}
 
-	public get triedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._triedPeers.peersList as ReadonlyArray<P2PDiscoveredPeerInfo>;
+	public get triedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._triedPeers.peersList;
 	}
 
 	public get allPeers(): ReadonlyArray<P2PPeerInfo> {
@@ -91,7 +91,7 @@ export class PeerBook {
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
 		if (this._triedPeers.getPeer(peerInfo)) {
-			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
+			return this._triedPeers.updatePeer(peerInfo);
 		}
 
 		if (this._newPeers.getPeer(peerInfo)) {
@@ -121,7 +121,7 @@ export class PeerBook {
 
 		if (this._newPeers.getPeer(peerInfo)) {
 			this._newPeers.removePeer(peerInfo);
-			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
+			this._triedPeers.addPeer(peerInfo);
 
 			return true;
 		}
