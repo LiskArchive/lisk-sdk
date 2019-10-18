@@ -54,7 +54,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 	describe('blacklisting', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
-		const blacklistedPeers = [
+		const blacklist = [
 			{
 				ipAddress: '127.0.0.15',
 				wsPort: NETWORK_START_PORT + 5,
@@ -94,9 +94,9 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				maxInboundConnections: FIVE_CONNECTIONS,
 				peerLists: {
 					seedPeers: customSeedPeers(index, startPort, networkSize),
-					blacklistedPeers,
-					fixedPeers: blacklistedPeers,
-					whitelistedPeers: blacklistedPeers,
+					blacklist,
+					fixedPeers: blacklist,
+					whitelistedPeers: blacklist,
 					previousPeers: previousPeersBlacklisted,
 				},
 			});
@@ -124,7 +124,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				expect(newPeersIPWS).not.to.deep.include.members(blacklist);
 			}
 		});
 
@@ -137,7 +137,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				expect(triedPeersIPWS).not.to.deep.include.members(blacklist);
 			}
 		});
 
@@ -149,17 +149,15 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(connectedPeersIPWS).not.to.deep.include.members(
-					blacklistedPeers,
-				);
+				expect(connectedPeersIPWS).not.to.deep.include.members(blacklist);
 			}
 		});
 
 		it('should isolate the blacklisted peer', async () => {
 			for (let p2p of p2pNodeList) {
 				if (
-					(p2p as any)._nodeInfo.wsPort === blacklistedPeers[0].wsPort &&
-					(p2p as any)._config.hostIp === blacklistedPeers[0].ipAddress
+					(p2p as any)._nodeInfo.wsPort === blacklist[0].wsPort &&
+					(p2p as any)._config.hostIp === blacklist[0].ipAddress
 				) {
 					const connectedPeers = (p2p as any)._peerPool.getConnectedPeers();
 					expect(connectedPeers.length).to.equal(0);
@@ -203,7 +201,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					fixedPeers,
 					previousPeers,
 					whitelisted: [],
-					blacklistedPeers: [],
+					blacklist: [],
 				},
 			});
 
@@ -272,7 +270,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					seedPeers: customSeedPeers(index, startPort, networkSize),
 					whitelistedPeers,
 					previousPeers,
-					blacklistedPeers: [],
+					blacklist: [],
 					fixedPeers: [],
 				},
 			});

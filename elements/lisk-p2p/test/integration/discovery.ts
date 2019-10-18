@@ -170,7 +170,7 @@ describe('Peer discovery', () => {
 						wsPort: 5000,
 					},
 				],
-				blacklistedPeers: [],
+				blacklist: [],
 				whitelistedPeers: [],
 				fixedPeers: [],
 				previousPeers: [],

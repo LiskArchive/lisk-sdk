@@ -90,7 +90,7 @@ export const createNetwork = async ({
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			peerLists: {
 				seedPeers: defaultSeedPeers,
-				blacklistedPeers: [],
+				blacklist: [],
 				whitelistedPeers: [],
 				fixedPeers: [],
 				previousPeers: [],

@@ -234,8 +234,8 @@ export class P2P extends EventEmitter {
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				blacklistedPeers: config.peerLists.blacklistedPeers
-					? config.peerLists.blacklistedPeers.map(peer => ({
+				blacklist: config.peerLists.blacklist
+					? config.peerLists.blacklist.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
@@ -440,7 +440,7 @@ export class P2P extends EventEmitter {
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			// Check blacklist to avoid incoming connections from backlisted ips
-			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
+			const isBlacklisted = this._sanitizedPeerLists.blacklist.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
 
@@ -644,8 +644,8 @@ export class P2P extends EventEmitter {
 			'connection',
 			(socket: SCServerSocket): void => {
 				// Check blacklist to avoid incoming connections from backlisted ips
-				if (this._sanitizedPeerLists.blacklistedPeers) {
-					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
+				if (this._sanitizedPeerLists.blacklist) {
+					const blacklist = this._sanitizedPeerLists.blacklist.map(
 						peer => peer.ipAddress,
 					);
 					if (blacklist.includes(socket.remoteAddress)) {
