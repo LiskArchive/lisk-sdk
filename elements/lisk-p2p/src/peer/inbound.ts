@@ -24,7 +24,7 @@ import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
-import { P2PDiscoveredPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../p2p_types';
 import {
 	Peer,
 	PeerConfig,
@@ -46,7 +46,7 @@ export class InboundPeer extends Peer {
 	private _pingTimeoutId: NodeJS.Timer;
 
 	public constructor(
-		peerInfo: P2PDiscoveredPeerInfo,
+		peerInfo: P2PPeerInfo,
 		peerSocket: SCServerSocket,
 		peerConfig: PeerConfig,
 	) {

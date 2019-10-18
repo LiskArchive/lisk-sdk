@@ -22,7 +22,10 @@ import {
 	InvalidRPCRequestError,
 	RPCResponseAlreadySentError,
 	RequestFailError,
+	ExistingPeerError,
 } from '../../src/errors';
+import { P2PPeerInfo } from '../../src';
+import { constructPeerId } from '../../src/utils';
 
 describe('errors', () => {
 	describe('#PeerInboundHandshakeError', () => {
@@ -76,7 +79,7 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InvalidPeer', () => {
+	describe('#InvalidPeerError', () => {
 		const defaultMessage = 'Invalid peer ip or port';
 		let invalidPeer: InvalidPeerError;
 
@@ -88,7 +91,7 @@ describe('errors', () => {
 			expect(invalidPeer).to.be.instanceof(InvalidPeerError);
 		});
 
-		it('should set error name to `InvalidPeer`', async () => {
+		it('should set error name to `InvalidPeerError`', async () => {
 			expect(invalidPeer.name).to.eql('InvalidPeerError');
 		});
 
@@ -97,7 +100,37 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InvalidRPCResponse', () => {
+	describe('#ExistingPeerError', () => {
+		const existingPeerErrorMessagge = 'Peer already exists';
+		const peerInfo: P2PPeerInfo = {
+			ipAddress: '0.0.0.0',
+			wsPort: 5000,
+			peerId: constructPeerId('0.0.0.0', 5000),
+		};
+		let existingPeer: ExistingPeerError;
+
+		beforeEach(async () => {
+			existingPeer = new ExistingPeerError(peerInfo);
+		});
+
+		it('should create a new instance of ExistingPeerError', async () => {
+			expect(existingPeer).to.be.instanceof(ExistingPeerError);
+		});
+
+		it('should set error name to `ExistingPeerError`', async () => {
+			expect(existingPeer.name).to.eql('ExistingPeerError');
+		});
+
+		it(`should set error message to ${existingPeerErrorMessagge}`, async () => {
+			expect(existingPeer.message).to.eql(existingPeerErrorMessagge);
+		});
+
+		it(`should set peerInfo parameter when passing an argument`, async () => {
+			expect(existingPeer.peerInfo).to.eql(peerInfo);
+		});
+	});
+
+	describe('#InvalidRPCResponseError', () => {
 		const defaultMessage = 'Invalid response type';
 		let invalidRPCResponse: InvalidRPCResponseError;
 

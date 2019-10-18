@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { ConnectionKind, PeerKind } from './constants';
 export interface P2PPacket {
 	readonly data?: unknown;
 }
@@ -35,11 +36,29 @@ export interface P2PPenalty {
 	readonly penalty: number;
 }
 
-export interface P2PPeerInfo {
-	readonly ipAddress: string;
-	readonly wsPort: number;
+export interface P2PSharedState {
+	readonly version: string;
+	readonly protocolVersion: string;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
+}
+
+export interface P2PInternalState {
+	readonly dateAdded?: Date;
+	readonly peerKind?: PeerKind;
+	readonly isBanned?: boolean;
+	readonly productivity?: number;
+	readonly reputation?: number;
+	readonly connectionKind?: ConnectionKind;
+}
+
+export interface P2PPeerInfo {
+	// String to uniquely identify each peer
+	readonly peerId: string;
+	readonly ipAddress: string;
+	readonly wsPort: number;
+	readonly sharedState?: P2PSharedState;
+	readonly internalState?: P2PInternalState;
 }
 
 export interface P2PPeersCount {
@@ -47,39 +66,54 @@ export interface P2PPeersCount {
 	readonly inboundCount: number;
 }
 
-export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
-	readonly height: number;
-	readonly updatedAt?: Date;
-	readonly os?: string;
-	readonly version: string;
-	readonly protocolVersion: string;
-}
-
 // P2PPeerInfo and P2PNodeInfo are related.
 // P2PNodeInfo is the outbound info from our node.
-export interface P2PNodeInfo {
+export interface P2PNodeInfo extends P2PSharedState {
 	readonly os: string;
-	readonly version: string;
-	readonly protocolVersion: string;
 	readonly nethash: string;
 	readonly wsPort: number;
-	readonly height: number;
+}
+
+// This is a representation of the inbound peer object according to the current protocol.
+// TODO later: Switch to LIP protocol format.
+// TODO: Include peerId as field
+export interface ProtocolPeerInfo {
+	// To support the existing protocol
+	readonly ip?: string;
+	readonly ipAddress: string;
+	readonly wsPort: number;
+	readonly broadhash?: string;
+	readonly height?: number;
+	readonly nonce?: string;
+	readonly os?: string;
+	readonly version?: string;
+	readonly protocolVersion?: string;
+	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
 
+// TODO later: Switch to LIP protocol format.
+// This is a representation of the outbound peer object according to the current protocol.
+export interface ProtocolNodeInfo extends P2PSharedState {
+	readonly broadhash: string;
+	readonly nethash: string;
+	readonly nonce: string;
+	readonly wsPort: number;
+	readonly httpPort: number;
+}
 export interface P2PClosePacket {
-	readonly peerInfo: P2PDiscoveredPeerInfo;
+	readonly peerInfo: P2PPeerInfo;
 	readonly code: number;
 	readonly reason?: string;
 }
 
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly previousPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly blacklistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly fixedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly whitelistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
@@ -111,23 +145,8 @@ export interface P2PConfig {
 	readonly secret?: number;
 }
 
-// TODO later: Switch to LIP protocol format.
-// This is a representation of the outbound peer object according to the current protocol.
-export interface ProtocolNodeInfo {
-	readonly broadhash: string;
-	readonly nethash: string;
-	readonly height: number;
-	readonly nonce: string;
-	readonly os?: string;
-	readonly version: string;
-	readonly wsPort: number;
-	readonly httpPort: number;
-	// tslint:disable-next-line:no-mixed-interface
-	readonly [key: string]: unknown;
-}
-
 export interface P2PPeerSelectionForSendInput {
-	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly nodeInfo?: P2PNodeInfo;
 	readonly peerLimit?: number;
 	readonly messagePacket?: P2PMessagePacket;
@@ -135,10 +154,10 @@ export interface P2PPeerSelectionForSendInput {
 
 export type P2PPeerSelectionForSendFunction = (
 	input: P2PPeerSelectionForSendInput,
-) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+) => ReadonlyArray<P2PPeerInfo>;
 
 export interface P2PPeerSelectionForRequestInput {
-	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly nodeInfo?: P2PNodeInfo;
 	readonly peerLimit?: number;
 	readonly requestPacket?: P2PRequestPacket;
@@ -146,7 +165,7 @@ export interface P2PPeerSelectionForRequestInput {
 
 export type P2PPeerSelectionForRequestFunction = (
 	input: P2PPeerSelectionForRequestInput,
-) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+) => ReadonlyArray<P2PPeerInfo>;
 
 export interface P2PPeerSelectionForConnectionInput {
 	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
@@ -165,25 +184,9 @@ export interface P2PCompatibilityCheckReturnType {
 }
 
 export type P2PCheckPeerCompatibility = (
-	headers: P2PDiscoveredPeerInfo,
+	headers: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ) => P2PCompatibilityCheckReturnType;
-
-// This is a representation of the inbound peer object according to the current protocol.
-// TODO later: Switch to LIP protocol format.
-export interface ProtocolPeerInfo {
-	readonly ip: string;
-	readonly wsPort: number;
-	readonly broadhash?: string;
-	readonly height?: number;
-	readonly nonce?: string;
-	readonly os?: string;
-	readonly version?: string;
-	readonly protocolVersion?: string;
-	readonly httpPort?: number;
-	// tslint:disable-next-line: no-mixed-interface
-	readonly [key: string]: unknown;
-}
 
 // This is a representation of the peer list according to the current protocol.
 // TODO later: Switch to LIP protocol format.
@@ -215,5 +218,5 @@ export interface PeerLists {
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
-	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;
 }

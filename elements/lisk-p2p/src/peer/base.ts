@@ -42,7 +42,6 @@ import {
 } from '../events';
 import { P2PRequest } from '../p2p_request';
 import {
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -51,7 +50,6 @@ import {
 	ProtocolMessagePacket,
 } from '../p2p_types';
 import {
-	constructPeerIdFromPeerInfo,
 	getNetgroup,
 	sanitizeNodeInfoToLegacyFormat,
 	validatePeerInfo,
@@ -105,7 +103,6 @@ export class Peer extends EventEmitter {
 	private readonly _id: string;
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
-	private readonly _height: number;
 	protected _reputation: number;
 	protected _netgroup: number;
 	protected _latency: number;
@@ -151,11 +148,7 @@ export class Peer extends EventEmitter {
 		this._peerConfig = peerConfig;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
-		this._id = constructPeerIdFromPeerInfo({
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
-		});
-		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
+		this._id = peerInfo.peerId;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
 		this._latency = 0;
@@ -185,8 +178,8 @@ export class Peer extends EventEmitter {
 			let rawRequest;
 			try {
 				rawRequest = validateRPCRequest(packet);
-			} catch (err) {
-				respond(err);
+			} catch (error) {
+				respond(error);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -231,7 +224,7 @@ export class Peer extends EventEmitter {
 			let message;
 			try {
 				message = validateProtocolMessage(packet);
-			} catch (err) {
+			} catch (error) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -273,10 +266,6 @@ export class Peer extends EventEmitter {
 				data,
 			});
 		};
-	}
-
-	public get height(): number {
-		return this._height;
 	}
 
 	public get id(): string {
@@ -337,12 +326,14 @@ export class Peer extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
+	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
-			...newPeerInfo,
+			sharedState: newPeerInfo.sharedState,
+			internalState: this._peerInfo.internalState,
 			ipAddress: this._ipAddress,
 			wsPort: this._wsPort,
+			peerId: this._peerInfo.peerId,
 		};
 	}
 
@@ -409,9 +400,9 @@ export class Peer extends EventEmitter {
 						procedure: packet.procedure,
 						data: packet.data,
 					},
-					(err: Error | undefined, responseData: unknown) => {
-						if (err) {
-							reject(err);
+					(error: Error | undefined, responseData: unknown) => {
+						if (error) {
+							reject(error);
 
 							return;
 						}
@@ -544,11 +535,15 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
+		const protocolPeerInfo = {
+			...rawPeerInfo,
+			ip: this._ipAddress,
+			wsPort: this._wsPort,
+		};
 		const newPeerInfo = validatePeerInfo(
 			protocolPeerInfo,
 			this._peerConfig.maxPeerInfoSize,
-		) as P2PDiscoveredPeerInfo;
+		);
 		this.updatePeerInfo(newPeerInfo);
 	}
 
