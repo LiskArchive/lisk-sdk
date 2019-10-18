@@ -47,7 +47,6 @@ class Loader {
 		processorModule,
 		transactionPoolModule,
 		blocksModule,
-		peersModule,
 		interfaceAdapters,
 		// Constants
 		loadPerIteration,
@@ -75,7 +74,6 @@ class Loader {
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
-		this.peersModule = peersModule;
 		this.interfaceAdapters = interfaceAdapters;
 	}
 

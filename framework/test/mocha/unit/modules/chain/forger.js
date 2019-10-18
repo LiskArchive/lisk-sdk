@@ -78,10 +78,6 @@ describe('forge', () => {
 				blocksModule: {
 					filterReadyTransactions: sinonSandbox.stub().returns([]),
 				},
-				peersModule: {
-					isPoorConsensus: sinonSandbox.stub(),
-					getLastConsensus: sinonSandbox.stub(),
-				},
 				processorModule: {
 					create: sinonSandbox.stub(),
 					process: sinonSandbox.stub(),
@@ -797,7 +793,6 @@ describe('forge', () => {
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
-				forgeModule.peersModule.isPoorConsensus.resolves(false);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
 					'utf8',

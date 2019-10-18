@@ -147,26 +147,11 @@ describe('Loader', () => {
 					id: 'blockID',
 				},
 			};
-			const peersModuleStub = {
-				isPoorConsensus: jest.fn().mockReturnValue(true),
-			};
 			loader = new Loader({
 				logger: loggerStub,
 				channel: channelStub,
 				blocksModule: blocksModuleStub,
-				peersModule: peersModuleStub,
 				interfaceAdapters,
-			});
-		});
-
-		describe('when blocks endpoint returns success false', () => {
-			beforeEach(async () => {
-				channelStub.invoke.mockReturnValue({ data: { success: false } });
-			});
-
-			it('should call recoverChain of blocks module', async () => {
-				await loader._loadBlocksFromNetwork();
-				expect(blocksModuleStub.recoverChain).toHaveBeenCalledTimes(5);
 			});
 		});
 
