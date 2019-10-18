@@ -306,6 +306,7 @@ class Processor {
 			}
 
 			// Apply should always be executed after save as it performs database calculations
+			// i.e. Dpos.apply expects to have this processing block in the database
 			await processor.apply.run({
 				block,
 				lastBlock,

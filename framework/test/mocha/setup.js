@@ -56,6 +56,8 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 
 testContext.config = config;
 testContext.config.constants = _.cloneDeep(app.constants);
+// Set DELEGATE_LIST_ROUND_OFFSET to 0 because the mocha tests were written before this implementation
+// and expect no offset for delegate list
 testContext.config.constants.DELEGATE_LIST_ROUND_OFFSET = 0;
 testContext.config.NORMALIZER = '100000000';
 testContext.config.ADDITIONAL_DATA = {
