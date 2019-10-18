@@ -66,7 +66,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
-				return this.applyPenaltyAndRestartSync(
+				return this._applyPenaltyAndRestartSync(
 					error.peerId,
 					receivedBlock,
 					error.reason,
@@ -133,7 +133,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Requesting blocks within ID range from peer',
 		);
 
-		const listOfFullBlocks = await this.requestBlocksWithinIDs(
+		const listOfFullBlocks = await this._requestBlocksWithinIDs(
 			peerId,
 			lastCommonBlock.id,
 			receivedBlock.id,
@@ -232,32 +232,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 
 		return true;
-	}
-
-	/**
-	 * Helper function that encapsulates:
-	 * 1. applying a penalty to a peer.
-	 * 2. restarting sync.
-	 * 3. throwing the reason.
-	 *
-	 * @param {Object} peerId - The peer ID to target
-	 * @param {Object} receivedBlock
-	 * @param {string} reason
-	 * a penalty and restarting sync
-	 * @private
-	 */
-	async _applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
-		this.logger.info(
-			{ peerId, reason },
-			'Applying penalty to peer and restarting synchronizer',
-		);
-		await this.channel.invoke('network:applyPenalty', {
-			peerId,
-			penalty: 100,
-		});
-		await this.channel.publish('chain:processor:sync', {
-			block: receivedBlock,
-		});
 	}
 
 	/**

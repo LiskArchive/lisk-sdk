@@ -61,6 +61,30 @@ const clearBlocksTempTable = storageModule =>
 	storageModule.entities.TempBlock.truncate();
 
 /**
+ * Deletes blocks of the current chain after the desired height exclusive and optionally
+ * backs them up in temp_block database table.
+ * @param {Object} processorModule
+ * @param {Object} blocksModule
+ * @param {Number} desiredHeight - The height desired to delete blocks after.
+ * @param {boolean} backup - If true, backs the blocks up in a temporary table
+ * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
+ */
+const deleteBlocksAfterHeight = async (
+	processorModule,
+	blocksModule,
+	desiredHeight,
+	backup = false,
+) => {
+	let { height: currentHeight } = blocksModule.lastBlock;
+	while (desiredHeight < currentHeight) {
+		const lastBlock = await processorModule.deleteLastBlock({
+			saveTempBlock: backup,
+		});
+		currentHeight = lastBlock.height;
+	}
+};
+
+/**
  * Allows to restore blocks if there are blocks left upon startup in temp_block table (e.g. node crashed)
  * Depends upon fork choice rule if blocks will be applied
  *
@@ -86,42 +110,25 @@ const restoreBlocksUponStartup = async (
 		prev.height < current.height ? prev : current,
 	);
 
-	const nextTempBlock = blockLowestHeight.fullBlock;
+	const nextTempBlock = await processorModule.deserialize(
+		blockLowestHeight.fullBlock,
+	);
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
-	const inDifferentChain =
-		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
-		blockLowestHeight.id === blocksModule.lastBlock.id;
+	const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
+	// Block in the temp table has preference over current tip of the chain
 	if (inDifferentChain) {
+		await deleteBlocksAfterHeight(
+			processorModule,
+			blocksModule,
+			nextTempBlock.height - 1,
+			false,
+		);
 		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_block table
 		await restoreBlocks(blocksModule, processorModule);
 	} else {
 		// Not different chain - Delete remaining blocks from temp_block table
 		await clearBlocksTempTable(storageModule);
-	}
-};
-
-/**
- * Deletes blocks of the current chain after the desired height exclusive and optionally
- * backs them up in temp_block database table.
- * @param {Object} processorModule
- * @param {Object} blocksModule
- * @param {Number} desiredHeight - The height desired to delete blocks after.
- * @param {boolean} backup - If true, backs the blocks up in a temporary table
- * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
- */
-const deleteBlocksAfterHeight = async (
-	processorModule,
-	blocksModule,
-	desiredHeight,
-	backup = false,
-) => {
-	let { height: currentHeight } = blocksModule.lastBlock;
-	while (desiredHeight < currentHeight) {
-		const lastBlock = await processorModule.deleteLastBlock({
-			saveTempBlock: backup,
-		});
-		currentHeight = lastBlock.height;
 	}
 };
 

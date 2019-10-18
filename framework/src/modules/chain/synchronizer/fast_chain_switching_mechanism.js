@@ -62,11 +62,11 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				highestCommonBlock,
 				peerId,
 			);
-			await this._validateBlocks(blocks, peerId);
+			await this._validateBlocks(blocks, highestCommonBlock, peerId);
 			await this._switchChain(highestCommonBlock, blocks);
 		} catch (err) {
 			if (err instanceof ApplyPenaltyAndRestartError) {
-				return this.applyPenaltyAndRestartSync(
+				return this._applyPenaltyAndRestartSync(
 					err.peerId,
 					receivedBlock,
 					err.reason,
@@ -175,7 +175,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			'Requesting blocks within ID range from peer',
 		);
 
-		const blocks = await this.requestBlocksWithinIDs(
+		const blocks = await this._requestBlocksWithinIDs(
 			peerId,
 			highestCommonBlock.id,
 			receivedBlock.id,
@@ -196,12 +196,13 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	/**
 	 * Validates a set of blocks
 	 * @param {Array<Object>} blocks - The array of blocks to validate
+	 * @param {object} commonBlock
 	 * @param {string} peerId
 	 * @return {Promise<void>}
 	 * @throws {ApplyPenaltyAndAbortError} - In case any of the blocks fails to validate
 	 * @private
 	 */
-	async _validateBlocks(blocks, peerId) {
+	async _validateBlocks(blocks, commonBlock, peerId) {
 		this.logger.debug(
 			{
 				blocks: blocks.map(block => ({
@@ -212,13 +213,23 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			'Validating blocks',
 		);
 		try {
+			const commonFullBlock = await this.storage.entities.Block.getOne(
+				{
+					id_eql: commonBlock.id,
+				},
+				{ extended: true },
+			);
+			let previousBlock = await this.processor.deserialize(commonFullBlock);
 			for (const block of blocks) {
 				this.logger.trace(
 					{ blockId: block.id, height: block.height },
 					'Validating block',
 				);
 				const blockInstance = await this.processor.deserialize(block);
-				await this.processor.validateDetached(blockInstance);
+				await this.processor.validate(blockInstance, {
+					lastBlock: previousBlock,
+				});
+				previousBlock = blockInstance;
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');

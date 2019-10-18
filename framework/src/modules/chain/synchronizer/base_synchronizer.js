@@ -46,7 +46,7 @@ class BaseSynchronizer {
 	 * @param {string} reason
 	 * a penalty and restarting sync
 	 */
-	async applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
+	async _applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
 		this.logger.info(
 			{ peerId, reason },
 			'Applying penalty to peer and restarting synchronizer',
@@ -68,7 +68,7 @@ class BaseSynchronizer {
 	 * @param {string} toId - The ending block ID
 	 * @return {Promise<Array<object>>}
 	 */
-	async requestBlocksWithinIDs(peerId, fromId, toId) {
+	async _requestBlocksWithinIDs(peerId, fromId, toId) {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		const blocks = [];
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
