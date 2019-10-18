@@ -293,6 +293,7 @@ class Processor {
 				skipExistingCheck: skipSave,
 				tx,
 			});
+
 			if (!skipBroadcast) {
 				this.channel.publish('chain:processor:broadcast', {
 					block: cloneDeep(block),
@@ -302,11 +303,9 @@ class Processor {
 			if (!skipSave) {
 				const blockJSON = await this.serialize(block);
 				await this.blocksModule.save({ blockJSON, tx });
-				this.channel.publish('chain:processor:newBlock', {
-					block: cloneDeep(block),
-				});
 			}
 
+			// Apply should always be executed after save as it performs database calculations
 			await processor.apply.run({
 				block,
 				lastBlock,
@@ -315,13 +314,20 @@ class Processor {
 			});
 
 			if (removeFromTempTable) {
-				// Remove block from temp_block table
 				await this.blocksModule.removeBlockFromTempTable(block.id, tx);
 				this.logger.debug(
 					{ id: block.id, height: block.height },
 					'Removed block from temp_block table',
 				);
 			}
+
+			// Should only publish 'chain:processor:newBlock' if saved AND applied successfully
+			if (!skipSave) {
+				this.channel.publish('chain:processor:newBlock', {
+					block: cloneDeep(block),
+				});
+			}
+
 			return block;
 		});
 	}
