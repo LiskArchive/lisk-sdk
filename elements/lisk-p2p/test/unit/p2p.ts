@@ -21,7 +21,7 @@ describe('p2p', () => {
 			peerLists: {
 				seeds: [],
 				blacklist: [],
-				fixedPeers: [],
+				fixedlist: [],
 				whitelistedPeers: [],
 				previousPeers: [],
 			},

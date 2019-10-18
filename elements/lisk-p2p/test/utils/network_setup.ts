@@ -92,7 +92,7 @@ export const createNetwork = async ({
 				seeds: defaultSeedPeers,
 				blacklist: [],
 				whitelistedPeers: [],
-				fixedPeers: [],
+				fixedlist: [],
 				previousPeers: [],
 			},
 			wsEngine: WEB_SOCKET_ENGINE,

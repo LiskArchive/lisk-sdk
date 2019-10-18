@@ -241,8 +241,8 @@ export class P2P extends EventEmitter {
 							wsPort: peer.wsPort,
 					  }))
 					: [],
-				fixedPeers: config.peerLists.fixedPeers
-					? config.peerLists.fixedPeers.map(peer => ({
+				fixedlist: config.peerLists.fixedlist
+					? config.peerLists.fixedlist.map(peer => ({
 							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
@@ -843,13 +843,13 @@ export class P2P extends EventEmitter {
 			this._peerPool.triggerNewConnections(
 				this._peerBook.newPeers,
 				this._peerBook.triedPeers,
-				this._sanitizedPeerLists.fixedPeers || [],
+				this._sanitizedPeerLists.fixedlist || [],
 			);
 		}, this._populatorInterval);
 		this._peerPool.triggerNewConnections(
 			this._peerBook.newPeers,
 			this._peerBook.triedPeers,
-			this._sanitizedPeerLists.fixedPeers || [],
+			this._sanitizedPeerLists.fixedlist || [],
 		);
 	}
 
@@ -914,7 +914,7 @@ export class P2P extends EventEmitter {
 			peer => peer.peerId === peerId,
 		);
 
-		const isFixed = this._sanitizedPeerLists.fixedPeers.find(
+		const isFixed = this._sanitizedPeerLists.fixedlist.find(
 			peer => peer.peerId === peerId,
 		);
 

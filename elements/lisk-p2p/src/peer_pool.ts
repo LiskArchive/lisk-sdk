@@ -384,25 +384,25 @@ export class PeerPool extends EventEmitter {
 	public triggerNewConnections(
 		newPeers: ReadonlyArray<P2PPeerInfo>,
 		triedPeers: ReadonlyArray<P2PPeerInfo>,
-		fixedPeers: ReadonlyArray<P2PPeerInfo>,
+		fixedlist: ReadonlyArray<P2PPeerInfo>,
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
 			newPeer =>
 				!this._peerMap.has(newPeer.peerId) ||
-				!fixedPeers
+				!fixedlist
 					.map(fixedPeer => fixedPeer.ipAddress)
 					.includes(newPeer.ipAddress),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
 			triedPeer =>
 				!this._peerMap.has(triedPeer.peerId) ||
-				!fixedPeers
+				!fixedlist
 					.map(fixedPeer => fixedPeer.ipAddress)
 					.includes(triedPeer.ipAddress),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
-		const disconnectedFixedPeers = fixedPeers
+		const disconnectedFixedPeers = fixedlist
 			.filter(peer => !this._peerMap.get(peer.peerId))
 			.map(peer2Convert => peer2Convert);
 
@@ -652,7 +652,7 @@ export class PeerPool extends EventEmitter {
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
 				peers.filter(peer =>
-					this._peerLists.fixedPeers.every(p => p.peerId !== peer.id),
+					this._peerLists.fixedlist.every(p => p.peerId !== peer.id),
 				),
 			)[0];
 			if (selectedPeer) {

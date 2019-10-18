@@ -172,7 +172,7 @@ describe('Peer discovery', () => {
 				],
 				blacklist: [],
 				whitelistedPeers: [],
-				fixedPeers: [],
+				fixedlist: [],
 				previousPeers: [],
 			},
 			wsEngine: 'ws',

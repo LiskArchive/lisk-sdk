@@ -71,7 +71,7 @@ describe('peerPool', () => {
 		secret: DEFAULT_RANDOM_SECRET,
 		peerLists: {
 			blacklist: [],
-			fixedPeers: [],
+			fixedlist: [],
 			previousPeers: [],
 			seeds: [],
 			whitelistedPeers: [],

@@ -80,7 +80,7 @@ export const sanitizePeerLists = (
 		return true;
 	});
 
-	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
+	const fixedlist = lists.fixedlist.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
@@ -101,7 +101,7 @@ export const sanitizePeerLists = (
 			return false;
 		}
 
-		if (fixedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+		if (fixedlist.map(peer => peer.peerId).includes(peerInfo.peerId)) {
 			return false;
 		}
 
@@ -127,7 +127,7 @@ export const sanitizePeerLists = (
 	return {
 		blacklist,
 		seeds,
-		fixedPeers,
+		fixedlist,
 		whitelistedPeers,
 		previousPeers,
 	};

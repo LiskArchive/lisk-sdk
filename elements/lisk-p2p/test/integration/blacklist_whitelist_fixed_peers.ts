@@ -95,7 +95,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				peerLists: {
 					seeds: customSeedPeers(index, startPort, networkSize),
 					blacklist,
-					fixedPeers: blacklist,
+					fixedlist: blacklist,
 					whitelistedPeers: blacklist,
 					previousPeers: previousPeersBlacklisted,
 				},
@@ -169,7 +169,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	describe('fixed', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 
-		const fixedPeers = [
+		const fixedlist = [
 			{
 				ipAddress: '127.0.0.10',
 				wsPort: NETWORK_START_PORT,
@@ -198,7 +198,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				maxInboundConnections: FIVE_CONNECTIONS,
 				peerLists: {
 					seeds: customSeedPeers(index, startPort, networkSize),
-					fixedPeers,
+					fixedlist,
 					previousPeers,
 					whitelisted: [],
 					blacklist: [],
@@ -230,7 +230,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
+					expect(connectedPeersIPWS).to.deep.include.members(fixedlist);
 				}
 			});
 		});
@@ -271,7 +271,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					whitelistedPeers,
 					previousPeers,
 					blacklist: [],
-					fixedPeers: [],
+					fixedlist: [],
 				},
 			});
 
