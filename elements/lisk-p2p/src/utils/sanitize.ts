@@ -137,11 +137,10 @@ export const sanitizePeerLists = (
 export const sanitizeNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
 ): ProtocolNodeInfo => {
-	const { httpPort, nonce, broadhash } = nodeInfo;
+	const { httpPort, nonce } = nodeInfo;
 
 	return {
 		...nodeInfo,
-		broadhash: broadhash ? (broadhash as string) : '',
 		nonce: nonce ? (nonce as string) : '',
 		httpPort: httpPort ? (httpPort as number) : 0,
 	};

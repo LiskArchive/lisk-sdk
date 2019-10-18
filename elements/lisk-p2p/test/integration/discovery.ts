@@ -179,7 +179,6 @@ describe('Peer discovery', () => {
 				minVersion: '9.9.9',
 				os: platform(),
 				height: 10000,
-				broadhash: '404',
 				nonce: `404`,
 			},
 		});
