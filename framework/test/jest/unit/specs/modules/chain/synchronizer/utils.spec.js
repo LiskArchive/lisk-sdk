@@ -35,6 +35,8 @@ describe('#synchronizer/utils', () => {
 		processorMock = {
 			processValidated: jest.fn(),
 			forkStatus: jest.fn(),
+			deserialize: jest.fn(),
+			deleteLastBlock: jest.fn(),
 		};
 
 		storageMock = {
@@ -59,19 +61,26 @@ describe('#synchronizer/utils', () => {
 			const result = await restoreBlocks(blocksMock, processorMock, stubs.tx);
 
 			// Assert
-			expect(result).toBeTrue();
+			expect(result).toBeTruthy();
 		});
 
 		it('should pass block to processValidated with right flags', async () => {
 			// Arrange
 			const blocks = [{ id: 'block1' }, { id: 'block2' }];
+			processorMock.deserialize
+				.mockResolvedValueOnce(blocks[0])
+				.mockResolvedValueOnce(blocks[1]);
 			blocksMock.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
 			await restoreBlocks(blocksMock, processorMock, stubs.tx);
 
 			// Assert
-			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(stubs.tx);
+			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(
+				{},
+				{ sort: 'height:asc' },
+				stubs.tx,
+			);
 			expect(processorMock.processValidated).toHaveBeenCalledTimes(2);
 			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
 				1,
@@ -94,7 +103,11 @@ describe('#synchronizer/utils', () => {
 
 			// Assert
 			expect(result).toBeFalsy();
-			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(stubs.tx);
+			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(
+				{},
+				{ sort: 'height:asc' },
+				stubs.tx,
+			);
 			expect(processorMock.processValidated).not.toHaveBeenCalled();
 		});
 	});
@@ -130,6 +143,8 @@ describe('#synchronizer/utils', () => {
 				ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
 			);
 
+			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
+
 			// Act
 			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);
 
@@ -138,33 +153,35 @@ describe('#synchronizer/utils', () => {
 			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 		});
 
-		it('should restore blocks if temp_block.id = lastBlock.id', async () => {
+		it('should restore blocks if fork status = FORK_STATUS_VALID_BLOCK', async () => {
 			// Arrange
 			processorMock.forkStatus.mockResolvedValue(
 				ForkChoiceRule.FORK_STATUS_VALID_BLOCK,
 			);
 
-			blocksMock.lastBlock = {
-				id: tempBlocks[0].id, // Same ID
-			};
+			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
 			// Act
 			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);
 
 			// Assert
-			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 			expect(blocksMock.getTempBlocks).toHaveBeenCalled();
+			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 		});
 
-		it('should truncate temp_block table if fork status != FORK_STATUS_DIFFERENT_CHAIN & temp_block.id != lastBlock.id', async () => {
+		it('should truncate temp_block table if fork status != FORK_STATUS_DIFFERENT_CHAIN || != FORK_STATUS_VALID_BLOCK', async () => {
 			// Arrange
 			processorMock.forkStatus.mockResolvedValue(
-				ForkChoiceRule.FORK_STATUS_VALID_BLOCK,
+				ForkChoiceRule.FORK_STATUS_DISCARD,
 			);
+			processorMock.deleteLastBlock.mockResolvedValue({ height: 0 });
 
 			blocksMock.lastBlock = {
 				id: 999999,
+				height: 1,
 			};
+
+			processorMock.deserialize.mockResolvedValue(blocksMock.lastBlock);
 
 			// Act
 			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);
@@ -179,6 +196,8 @@ describe('#synchronizer/utils', () => {
 			processorMock.forkStatus.mockResolvedValue(
 				ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
 			);
+
+			processorMock.deserialize.mockResolvedValue(tempBlocks[0].fullBlock);
 
 			// Act
 			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);

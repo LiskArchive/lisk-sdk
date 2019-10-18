@@ -163,41 +163,14 @@ describe('Synchronizer', () => {
 	});
 
 	describe('get isActive()', () => {
-		it('should return false if there is no active mechanism', async () => {
-			jest
-				.spyOn(synchronizer, 'activeMechanism', 'get')
-				.mockReturnValue(undefined);
+		it('should return false if the synchronizer is not running', async () => {
+			synchronizer.active = false;
 			expect(synchronizer.isActive).toBeFalsy();
 		});
 
-		it('should return false if activeMechanism.isActive = false', async () => {
-			jest
-				.spyOn(synchronizer, 'activeMechanism', 'get')
-				.mockReturnValue({ isActive: false });
-
-			expect(synchronizer.isActive).toBeFalsy();
-		});
-
-		it('should return true if activeMechanism.isActive = true', async () => {
-			jest
-				.spyOn(synchronizer, 'activeMechanism', 'get')
-				.mockReturnValue({ isActive: true });
-
+		it('should return true if the synchronizer is running', async () => {
+			synchronizer.active = true;
 			expect(synchronizer.isActive).toBeTruthy();
-		});
-	});
-
-	describe('get activeMechanism()', () => {
-		it('should return syncMechanism1 if syncMechanism1.isActive=true', async () => {
-			syncMechanism1.isActive = true;
-
-			expect(synchronizer.activeMechanism).toBe(syncMechanism1);
-		});
-
-		it('should return syncMechanism2 if syncMechanism2.isActive=true', async () => {
-			syncMechanism2.isActive = true;
-
-			expect(synchronizer.activeMechanism).toBe(syncMechanism2);
 		});
 	});
 
@@ -229,11 +202,9 @@ describe('Synchronizer', () => {
 		});
 
 		it('should reject with error if there is already an active mechanism', async () => {
-			// Make the syncMechanism1 as active
-			syncMechanism1.isActive = true;
-
-			await expect(synchronizer.run()).rejects.toThrow(
-				'Synchronizer: Object is already running',
+			synchronizer.active = true;
+			await expect(synchronizer.run({ id: 'a blockId' })).rejects.toThrow(
+				'Synchronizer is already running',
 			);
 		});
 
@@ -279,10 +250,10 @@ describe('Synchronizer', () => {
 			const syncMechanism = { run: jest.fn() };
 			synchronizer._determineSyncMechanism.mockReturnValue(syncMechanism);
 
-			await synchronizer.run(receivedBlock);
+			await synchronizer.run(receivedBlock, 'aPeerId');
 
 			expect(syncMechanism.run).toHaveBeenCalledTimes(1);
-			expect(syncMechanism.run).toHaveBeenCalledWith(receivedBlock);
+			expect(syncMechanism.run).toHaveBeenCalledWith(receivedBlock, 'aPeerId');
 		});
 	});
 });

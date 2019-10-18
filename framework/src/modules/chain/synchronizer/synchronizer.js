@@ -92,11 +92,7 @@ class Synchronizer {
 	 */
 	async run(receivedBlock, peerId) {
 		if (this.isActive) {
-			throw new Error(
-				`Synchronizer: ${
-					this.activeMechanism.constructor.name
-				} is already running`,
-			);
+			throw new Error('Synchronizer is already running');
 		}
 
 		this.active = true;
@@ -136,14 +132,6 @@ class Synchronizer {
 	 */
 	get isActive() {
 		return this.active;
-	}
-
-	/**
-	 * Return active mechanism
-	 * @return {Object}
-	 */
-	get activeMechanism() {
-		return this.mechanisms.find(mechanism => mechanism.isActive);
 	}
 
 	/**
