@@ -81,8 +81,6 @@ class Blocks extends EventEmitter {
 		blockSlotWindow,
 	}) {
 		super();
-
-		this._broadhash = genesisBlock.payloadHash;
 		this._lastBlock = {};
 
 		/**
