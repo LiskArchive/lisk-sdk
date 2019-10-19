@@ -55,7 +55,7 @@ describe('fast_chain_switching_mechanism', () => {
 			blocks: blocksMock,
 			storage: storageMock,
 			slots: slotsMock,
-			dpos: dposMock,
+			dposModule: dposMock,
 			activeDelegates,
 		};
 
@@ -75,7 +75,7 @@ describe('fast_chain_switching_mechanism', () => {
 				expect(syncMechanism.logger).toBe(syncParams.logger);
 				expect(syncMechanism.slots).toBe(syncParams.slots);
 				expect(syncMechanism.blocks).toBe(syncParams.blocks);
-				expect(syncMechanism.dpos).toBe(syncParams.dpos);
+				expect(syncMechanism.dposModule).toBe(syncParams.dposModule);
 				expect(syncMechanism.constants).toEqual({
 					activeDelegates,
 				});

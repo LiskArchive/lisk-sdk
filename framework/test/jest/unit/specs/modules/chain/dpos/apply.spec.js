@@ -76,6 +76,7 @@ describe('dpos.apply()', () => {
 			slots,
 			...stubs,
 			activeDelegates: constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
@@ -102,7 +103,7 @@ describe('dpos.apply()', () => {
 
 		it('should save round 1 active delegates list in round_delegates table by using delegate accounts', async () => {
 			// Act
-			await dpos.apply(genesisBlock, stubs.tx);
+			await dpos.apply(genesisBlock, { tx: stubs.tx });
 
 			// Assert
 			expect(stubs.storage.entities.Account.get).toHaveBeenCalledWith(
@@ -135,7 +136,7 @@ describe('dpos.apply()', () => {
 
 		it('should resolve with "false"', async () => {
 			// Act
-			const result = await dpos.apply(genesisBlock, stubs.tx);
+			const result = await dpos.apply(genesisBlock, { tx: stubs.tx });
 
 			// Assert
 			expect(result).toBeFalse();
@@ -143,7 +144,7 @@ describe('dpos.apply()', () => {
 
 		it('should NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
 			// Act
-			await dpos.apply(genesisBlock, stubs.tx);
+			await dpos.apply(genesisBlock, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -163,7 +164,7 @@ describe('dpos.apply()', () => {
 			};
 
 			// Act
-			await dpos.apply(block, stubs.tx);
+			await dpos.apply(block, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -186,7 +187,7 @@ describe('dpos.apply()', () => {
 			};
 
 			// Act
-			await dpos.apply(block, stubs.tx);
+			await dpos.apply(block, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -218,7 +219,7 @@ describe('dpos.apply()', () => {
 			};
 
 			// Act
-			await dpos.apply(block, stubs.tx);
+			await dpos.apply(block, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -294,7 +295,7 @@ describe('dpos.apply()', () => {
 
 		it('should increase "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -313,7 +314,7 @@ describe('dpos.apply()', () => {
 
 		it('should distribute rewards and fees ONLY to the delegates who forged', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(constants.ACTIVE_DELEGATES);
@@ -340,7 +341,7 @@ describe('dpos.apply()', () => {
 
 		it('should distribute reward and fee for delegate who forged once but missed once', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(delegatesWhoForgedOnceMissedOnce.length);
@@ -360,7 +361,7 @@ describe('dpos.apply()', () => {
 
 		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length);
@@ -396,7 +397,7 @@ describe('dpos.apply()', () => {
 			]);
 
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged);
@@ -441,7 +442,7 @@ describe('dpos.apply()', () => {
 
 		it('should update vote weight of accounts that delegates who forged voted for', async () => {
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length);
@@ -468,7 +469,7 @@ describe('dpos.apply()', () => {
 			const nextRound = slots.calcRound(lastBlockOfTheRoundNine.height + 1);
 
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			// make sure we calculate round number correctly
@@ -502,7 +503,7 @@ describe('dpos.apply()', () => {
 			dpos.finalizedBlockRound = finalizedBlockRoundStub;
 
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
@@ -521,7 +522,7 @@ describe('dpos.apply()', () => {
 			dpos.events.on(EVENT_ROUND_CHANGED, eventCallback);
 
 			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect(eventCallback).toHaveBeenCalledWith({
@@ -552,7 +553,7 @@ describe('dpos.apply()', () => {
 					.mockResolvedValue(delegateAccounts);
 
 				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+				await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				expect(
 					stubs.storage.entities.Account.increaseFieldBy,
@@ -570,7 +571,7 @@ describe('dpos.apply()', () => {
 
 				// Act && Assert
 				await expect(
-					dpos.apply(lastBlockOfTheRoundNine, stubs.tx),
+					dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx }),
 				).rejects.toBe(err);
 
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
@@ -621,7 +622,7 @@ describe('dpos.apply()', () => {
 
 			it('should update vote weight of accounts that delegates with correct balance', async () => {
 				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+				await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				// Assert
 				expect.assertions(uniqueDelegatesWhoForged.length);
@@ -664,13 +665,14 @@ describe('dpos.apply()', () => {
 					slots,
 					...stubs,
 					activeDelegates: constants.ACTIVE_DELEGATES,
+					delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,
 				});
 			});
 
 			it('should multiply delegate reward with "rewards_factor"', async () => {
 				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+				await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				// Assert
 				expect.assertions(uniqueDelegatesWhoForged.length);
@@ -695,7 +697,7 @@ describe('dpos.apply()', () => {
 
 			it('should multiply "totalFee" with "fee_factor" and add "fee_bonus"', async () => {
 				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stubs.tx);
+				await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				uniqueDelegatesWhoForged.forEach(account => {
 					const blockCount = delegatesWhoForged.filter(

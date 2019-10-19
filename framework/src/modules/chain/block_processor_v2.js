@@ -174,7 +174,6 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		exceptions,
 	}) {
 		super();
-		const verifyBlockForgerOffset = 2;
 		this.blocksModule = blocksModule;
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
@@ -204,8 +203,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					blockBytes,
 				}), // validate common block header
 			data => this.blocksModule.verifyInMemory(data),
-			({ block }) =>
-				this.dposModule.verifyBlockForger(block, verifyBlockForgerOffset),
+			({ block }) => this.dposModule.verifyBlockForger(block),
 			({ block }) => this.bftModule.validateBlock(block),
 		]);
 
@@ -232,13 +230,18 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.apply.pipe([
 			data => this.blocksModule.verify(data),
 			data => this.blocksModule.apply(data),
+			({ block, tx }) => this.dposModule.apply(block, { tx }),
 			({ block, tx }) => this.bftModule.addNewBlock(block, tx),
 		]);
 
-		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
+		this.applyGenesis.pipe([
+			data => this.blocksModule.applyGenesis(data),
+			({ block, tx }) => this.dposModule.apply(block, { tx }),
+		]);
 
 		this.undo.pipe([
 			data => this.blocksModule.undo(data),
+			({ block, tx }) => this.dposModule.undo(block, { tx }),
 			({ block }) => this.bftModule.deleteBlocks([block]),
 		]);
 

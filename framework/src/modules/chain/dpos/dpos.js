@@ -20,8 +20,16 @@ const { DelegatesList } = require('./delegates_list');
 const { DelegatesInfo } = require('./delegates_info');
 
 module.exports = class Dpos {
-	constructor({ storage, slots, activeDelegates, logger, exceptions = {} }) {
+	constructor({
+		storage,
+		slots,
+		activeDelegates,
+		delegateListRoundOffset,
+		logger,
+		exceptions = {},
+	}) {
 		this.events = new EventEmitter();
+		this.delegateListRoundOffset = delegateListRoundOffset;
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
 
@@ -52,8 +60,14 @@ module.exports = class Dpos {
 		});
 	}
 
-	async getForgerPublicKeysForRound(round) {
-		return this.delegatesList.getForgerPublicKeysForRound(round);
+	async getForgerPublicKeysForRound(
+		round,
+		delegateListRoundOffset = this.delegateListRoundOffset,
+	) {
+		return this.delegatesList.getForgerPublicKeysForRound(
+			round,
+			delegateListRoundOffset,
+		);
 	}
 
 	async onBlockFinalized({ height }) {
@@ -61,24 +75,31 @@ module.exports = class Dpos {
 	}
 
 	async onRoundFinish() {
-		// TODO use the configuration variable to set the value of this variable
-		const delegateListOffsetForRound = 2;
 		const disposableDelegateList =
-			this.finalizedBlockRound - delegateListOffsetForRound;
+			this.finalizedBlockRound - this.delegateListRoundOffset;
 		await this.delegatesList.deleteDelegateListUntilRound(
 			disposableDelegateList,
 		);
 	}
 
-	async verifyBlockForger(block, roundOffset = 0) {
-		return this.delegatesList.verifyBlockForger(block, roundOffset);
+	async verifyBlockForger(
+		block,
+		{ delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		return this.delegatesList.verifyBlockForger(block, delegateListRoundOffset);
 	}
 
-	async apply(block, tx) {
-		return this.delegatesInfo.apply(block, tx);
+	async apply(
+		block,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		return this.delegatesInfo.apply(block, { tx, delegateListRoundOffset });
 	}
 
-	async undo(block, tx) {
-		return this.delegatesInfo.undo(block, tx);
+	async undo(
+		block,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		return this.delegatesInfo.undo(block, { tx, delegateListRoundOffset });
 	}
 };

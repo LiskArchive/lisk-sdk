@@ -102,10 +102,6 @@ describe('blocks', () => {
 				log: jest.fn(),
 				error: jest.fn(),
 			},
-			dposModule: {
-				apply: jest.fn(),
-				undo: jest.fn(),
-			},
 		};
 
 		slots = new Slots({
@@ -1340,249 +1336,134 @@ describe('blocks', () => {
 	describe('save', () => {
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
-			stubs.dependencies.dposModule.apply = jest.fn().mockResolvedValue();
 		});
 
-		describe('when skipSave is set to true', () => {
-			it('should not save the block in the database when skipSave is set to true', async () => {
-				// Arrange
-				const block = newBlock();
-				// Act
-				await blocksInstance.save({
-					block,
+		it('should throw error when block create fails', async () => {
+			// Arrange
+			const block = newBlock();
+			const blockCreateError = 'block create error';
+			stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
+				blockCreateError,
+			);
+			expect.assertions(1);
+
+			// Act & Assert
+			await expect(
+				blocksInstance.save({
 					blockJSON: blocksInstance.serialize(block),
-					skipSave: true,
 					tx: stubs.tx,
-				});
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Block.create,
-				).not.toHaveBeenCalled();
-				expect(
-					stubs.dependencies.storage.entities.Transaction.create,
-				).not.toHaveBeenCalled();
-			});
-
-			it('should resolve when dpos module successfully performs apply', async () => {
-				// Arrange
-				const block = newBlock();
-
-				// Act & Assert
-				expect.assertions(2);
-
-				await expect(
-					blocksInstance.save({
-						block,
-						blockJSON: blocksInstance.serialize(block),
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).resolves.toEqual();
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
-
-			it('should throw error with error from Dpos module failed to apply', async () => {
-				// Arrange
-				const block = newBlock();
-				const roundsError = new Error('dpos.apply error');
-				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
-
-				// Act & Assert
-				expect.assertions(2);
-
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(roundsError);
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
+				}),
+			).rejects.toEqual(blockCreateError);
 		});
 
-		describe('when skipSave is set to false', () => {
-			it('should throw error when block create fails', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockCreateError = 'block create error';
-				stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
-					blockCreateError,
-				);
-				expect.assertions(1);
+		it('should throw error when transaction create fails', async () => {
+			// Arrange
+			const transaction = new TransferTransaction(randomUtils.transaction());
+			const block = newBlock({ transactions: [transaction] });
+			const transactionCreateError = 'transaction create error';
+			stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
+				transactionCreateError,
+			);
+			expect.assertions(1);
 
-				// Act & Assert
-				await expect(
-					blocksInstance.save({
-						block,
-						blockJSON: blocksInstance.serialize(block),
-						skipSave: false,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(blockCreateError);
-			});
-
-			it('should throw error when transaction create fails', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				const transactionCreateError = 'transaction create error';
-				stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
-					transactionCreateError,
-				);
-				expect.assertions(1);
-
-				// Act & Assert
-				await expect(
-					blocksInstance.save({
-						block,
-						blockJSON: blocksInstance.serialize(block),
-						skipSave: false,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(transactionCreateError);
-			});
-
-			it('should not perform Dpos apply when save block fails', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				const transactionCreateError = 'transaction create error';
-				stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
-					transactionCreateError,
-				);
-				expect.assertions(2);
-
-				try {
-					// Act
-					await blocksInstance.save({
-						block,
-						blockJSON: blocksInstance.serialize(block),
-						skipSave: false,
-						tx: stubs.tx,
-					});
-				} catch (error) {
-					// Assert
-					expect(error).toEqual(transactionCreateError);
-					expect(stubs.dependencies.dposModule.apply).not.toHaveBeenCalled();
-				}
-			});
-
-			it('should call Block.create with correct parameters', async () => {
-				// Arrange
-				const block = newBlock({
-					reward: new BigNum('0'),
-					totolAmount: new BigNum('0'),
-					totalFee: new BigNum('0'),
-				});
-				const blockJSON = blocksInstance.serialize(block);
-				expect.assertions(1);
-
-				// Act
-				await blocksInstance.save({
-					block,
-					blockJSON,
-					skipSave: false,
-					tx: stubs.tx,
-				});
-
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Block.create,
-				).toHaveBeenCalledWith(blockJSON, {}, stubs.tx);
-			});
-
-			it('should not call Transaction.create with if block has no transactions', async () => {
-				// Arrange
-				const block = newBlock();
-
-				// Act
-				await blocksInstance.save({
-					block,
+			// Act & Assert
+			await expect(
+				blocksInstance.save({
 					blockJSON: blocksInstance.serialize(block),
-					skipSave: false,
 					tx: stubs.tx,
-				});
+				}),
+			).rejects.toEqual(transactionCreateError);
+		});
 
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Transaction.create,
-				).not.toHaveBeenCalled();
+		it('should call Block.create with correct parameters', async () => {
+			// Arrange
+			const block = newBlock({
+				reward: new BigNum('0'),
+				totolAmount: new BigNum('0'),
+				totalFee: new BigNum('0'),
+			});
+			const blockJSON = blocksInstance.serialize(block);
+			expect.assertions(1);
+
+			// Act
+			await blocksInstance.save({
+				blockJSON,
+				tx: stubs.tx,
 			});
 
-			it('should call Transaction.create with correct parameters', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				transaction.blockId = block.id;
-				const transactionJSON = transaction.toJSON();
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.Block.create,
+			).toHaveBeenCalledWith(blockJSON, {}, stubs.tx);
+		});
 
-				// Act
-				await blocksInstance.save({
-					block,
+		it('should not call Transaction.create with if block has no transactions', async () => {
+			// Arrange
+			const block = newBlock();
+
+			// Act
+			await blocksInstance.save({
+				blockJSON: blocksInstance.serialize(block),
+				tx: stubs.tx,
+			});
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.Transaction.create,
+			).not.toHaveBeenCalled();
+		});
+
+		it('should call Transaction.create with correct parameters', async () => {
+			// Arrange
+			const transaction = new TransferTransaction(randomUtils.transaction());
+			const block = newBlock({ transactions: [transaction] });
+			transaction.blockId = block.id;
+			const transactionJSON = transaction.toJSON();
+
+			// Act
+			await blocksInstance.save({
+				blockJSON: blocksInstance.serialize(block),
+				tx: stubs.tx,
+			});
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.Transaction.create,
+			).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
+		});
+
+		it('should resolve when blocks module successfully performs save', async () => {
+			// Arrange
+			const block = newBlock();
+
+			// Act & Assert
+			expect.assertions(1);
+
+			await expect(
+				blocksInstance.save({
 					blockJSON: blocksInstance.serialize(block),
-					skipSave: false,
 					tx: stubs.tx,
-				});
+				}),
+			).resolves.toEqual();
+		});
 
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Transaction.create,
-				).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
-			});
+		it('should throw error when storage create fails', async () => {
+			// Arrange
+			const block = newBlock();
+			const blockCreateError = 'block create error';
+			stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
+				blockCreateError,
+			);
 
-			it('should resolve when dpos module successfully performs apply', async () => {
-				// Arrange
-				const block = newBlock();
+			expect.assertions(1);
 
-				// Act & Assert
-				expect.assertions(2);
-
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).resolves.toEqual();
-
-				return expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
-
-			it('should throw error with error from dpos module failed to apply', async () => {
-				// Arrange
-				const block = newBlock();
-				const roundsError = new Error('dpos.apply error');
-				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
-
-				expect.assertions(2);
-
-				// Act & Assert
-				await expect(
-					blocksInstance.save({
-						block,
-						blockJSON: blocksInstance.serialize(block),
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(roundsError);
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
+			// Act & Assert
+			await expect(
+				blocksInstance.save({
+					blockJSON: blocksInstance.serialize(block),
+					tx: stubs.tx,
+				}),
+			).rejects.toBe(blockCreateError);
 		});
 	});
 

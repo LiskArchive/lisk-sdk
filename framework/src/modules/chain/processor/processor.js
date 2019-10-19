@@ -293,11 +293,20 @@ class Processor {
 				skipExistingCheck: skipSave,
 				tx,
 			});
+
 			if (!skipBroadcast) {
 				this.channel.publish('chain:processor:broadcast', {
 					block: cloneDeep(block),
 				});
 			}
+
+			if (!skipSave) {
+				const blockJSON = await this.serialize(block);
+				await this.blocksModule.save({ blockJSON, tx });
+			}
+
+			// Apply should always be executed after save as it performs database calculations
+			// i.e. Dpos.apply expects to have this processing block in the database
 			await processor.apply.run({
 				block,
 				lastBlock,
@@ -305,22 +314,21 @@ class Processor {
 				tx,
 			});
 
-			const blockJSON = await this.serialize(block);
-			// TODO: move save to inside below condition after moving tick to the block_processor
-			await this.blocksModule.save({ block, blockJSON, tx, skipSave });
-			if (!skipSave) {
-				this.channel.publish('chain:processor:newBlock', {
-					block: cloneDeep(block),
-				});
-			}
 			if (removeFromTempTable) {
-				// Remove block from temp_block table
 				await this.blocksModule.removeBlockFromTempTable(block.id, tx);
 				this.logger.debug(
 					{ id: block.id, height: block.height },
 					'Removed block from temp_block table',
 				);
 			}
+
+			// Should only publish 'chain:processor:newBlock' if saved AND applied successfully
+			if (!skipSave) {
+				this.channel.publish('chain:processor:newBlock', {
+					block: cloneDeep(block),
+				});
+			}
+
 			return block;
 		});
 	}
@@ -348,14 +356,13 @@ class Processor {
 					tx,
 				});
 
-				const blockJSON = await this.serialize(block);
-
-				await this.blocksModule.save({
-					block,
-					blockJSON,
-					tx,
-					skipSave,
-				});
+				if (!skipSave) {
+					const blockJSON = await this.serialize(block);
+					await this.blocksModule.save({
+						blockJSON,
+						tx,
+					});
+				}
 
 				return block;
 			},

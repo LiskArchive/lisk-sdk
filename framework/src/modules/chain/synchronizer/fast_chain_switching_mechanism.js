@@ -15,11 +15,11 @@
 'use strict';
 
 class FastChainSwitchingMechanism {
-	constructor({ storage, logger, blocks, slots, dpos, activeDelegates }) {
+	constructor({ storage, logger, blocks, slots, dposModule, activeDelegates }) {
 		this.storage = storage;
 		this.logger = logger;
 		this.slots = slots;
-		this.dpos = dpos;
+		this.dposModule = dposModule;
 		this.blocks = blocks;
 		this.constants = {
 			activeDelegates,
@@ -51,7 +51,7 @@ class FastChainSwitchingMechanism {
 		}
 
 		const blockRound = this.slots.calcRound(receivedBlock.height);
-		const delegateList = await this.dpos.getForgerPublicKeysForRound(
+		const delegateList = await this.dposModule.getForgerPublicKeysForRound(
 			blockRound,
 		);
 

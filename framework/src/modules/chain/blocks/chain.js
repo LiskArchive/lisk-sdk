@@ -185,32 +185,6 @@ const applyConfirmedGenesisStep = async (
 };
 
 /**
- * Calls saveBlock for the block and performs round tick
- *
- * @private
- * @param {Object} storage - Storage component with write methods
- * @param {Object} dposModule - Dpos module class
- * @param {Object} block - Block object
- * @param {boolean} skipSave - Flag to save block into database
- * @param {function} tx - Database transaction for atomic operations
- * @returns {Promise<reject|resolve>}
- */
-const saveBlockStep = async (
-	storage,
-	dposModule,
-	block,
-	blockJSON,
-	skipSave,
-	tx,
-) => {
-	if (!skipSave) {
-		await saveBlock(storage, blockJSON, tx);
-	}
-
-	await dposModule.apply(block, tx);
-};
-
-/**
  * Reverts confirmed transactions due to block deletion
  * @param {Object} block - secondLastBlock
  * @param {Object} tx - database transaction
@@ -245,21 +219,11 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 	await stateStore.account.finalize();
 };
 
-/**
- * Revert given block
- * @param {Object} block - block to be undone
- * @param {Object} tx - database transaction
- */
-const undoBlockStep = async (dposModule, block, tx) =>
-	dposModule.undo(block, tx);
-
 module.exports = {
 	saveBlock,
-	undoBlockStep,
 	saveBlockBatch,
 	deleteLastBlock,
 	deleteFromBlockId,
-	saveBlockStep,
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
 	undoConfirmedStep,

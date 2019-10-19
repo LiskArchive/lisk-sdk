@@ -416,6 +416,8 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: this.options.constants
+				.DELEGATE_LIST_ROUND_OFFSET,
 			exceptions: this.options.exceptions,
 		});
 
@@ -430,7 +432,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			slots: this.slots,
 			exceptions: this.options.exceptions,
-			dposModule: this.dpos,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
@@ -468,7 +469,7 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 			blocks: this.blocks,
-			dpos: {},
+			dposModule: this.dpos,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 
