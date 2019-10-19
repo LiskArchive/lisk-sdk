@@ -14,6 +14,7 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const EventEmitter = require('events');
 const _ = require('lodash');
 const pool = require('@liskhq/lisk-transaction-pool');
@@ -502,7 +503,11 @@ class TransactionPool extends EventEmitter {
 				if (sortAttribute.sortField === 'fee') {
 					return a.fee.minus(b.fee) * sortOrder;
 				}
-				return (a.asset.amount || 0).minus(b.asset.amount || 0) * sortOrder;
+				return (
+					(a.asset.amount || new BigNum(0))
+						.minus(b.asset.amount || new BigNum(0))
+						.toNumber() * sortOrder
+				);
 			});
 		} else {
 			toSend = _.orderBy(
