@@ -85,7 +85,7 @@ class BaseSynchronizer {
 
 			if (data && data.length) {
 				blocks.push(...data); // `data` is an array of blocks.
-				lastFetchedID = data.slice(-1).pop().id;
+				[{ id: lastFetchedID }] = data.slice(-1);
 				const index = blocks.findIndex(block => block.id === toId);
 				if (index > -1) {
 					return blocks.splice(0, index + 1); // Removes unwanted extra blocks

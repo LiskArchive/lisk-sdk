@@ -24,8 +24,9 @@ class Synchronizer {
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
 		this.storageModule = storageModule;
-
 		this.mechanisms = [];
+
+		this.active = false;
 	}
 
 	/**
