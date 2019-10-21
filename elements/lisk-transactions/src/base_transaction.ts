@@ -288,12 +288,18 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public apply(store: StateStore): TransactionResponse {
+	public apply(
+		networkIdentifier: string,
+		store: StateStore,
+	): TransactionResponse {
 		const sender = store.account.getOrDefault(this.senderId);
 		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
-		const { errors: multiSigError } = this.processMultisignatures(store);
+		const { errors: multiSigError } = this.processMultisignatures(
+			networkIdentifier,
+			store,
+		);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
@@ -359,6 +365,7 @@ export abstract class BaseTransaction {
 	}
 
 	public addMultisignature(
+		networkIdentifier: string,
 		store: StateStore,
 		signatureObject: SignatureObject,
 	): TransactionResponse {
@@ -391,18 +398,25 @@ export abstract class BaseTransaction {
 			]);
 		}
 
+		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
+
 		// Validate the signature using the signature sender and transaction details
 		const { valid } = validateSignature(
 			signatureObject.publicKey,
 			signatureObject.signature,
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 		// If the signature is valid for the sender push it to the signatures array
 		if (valid) {
 			this.signatures.push(signatureObject.signature);
 
-			return this.processMultisignatures(store);
+			return this.processMultisignatures(networkIdentifier, store);
 		}
 		// Else populate errors
 		const errors = valid
@@ -430,15 +444,23 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public processMultisignatures(store: StateStore): TransactionResponse {
+	public processMultisignatures(
+		networkIdentifier: string,
+		store: StateStore,
+	): TransactionResponse {
 		const sender = store.account.get(this.senderId);
 		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
 		const { status, errors } = verifyMultiSignatures(
 			this.id,
 			sender,
 			this.signatures,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 		);
 		this._multisignatureStatus = status;
 		if (this._multisignatureStatus === MultisignatureStatus.PENDING) {

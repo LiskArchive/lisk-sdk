@@ -170,15 +170,23 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	public processMultisignatures(_: StateStore): TransactionResponse {
+	public processMultisignatures(
+		networkIdentifier: string,
+		__: StateStore,
+	): TransactionResponse {
 		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
 		const { valid, errors } = validateMultisignatures(
 			this.asset.keysgroup.map(signedPublicKey => signedPublicKey.substring(1)),
 			this.signatures,
 			// Required to get signature from all of keysgroup
 			this.asset.keysgroup.length,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 		if (valid) {
@@ -260,6 +268,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public addMultisignature(
+		networkIdentifier: string,
 		store: StateStore,
 		signatureObject: SignatureObject,
 	): TransactionResponse {
@@ -285,18 +294,25 @@ export class MultisignatureTransaction extends BaseTransaction {
 			]);
 		}
 
+		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
+
 		// Check if signature is valid at all
 		const { valid } = validateSignature(
 			signatureObject.publicKey,
 			signatureObject.signature,
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 
 		if (valid) {
 			this.signatures.push(signatureObject.signature);
 
-			return this.processMultisignatures(store);
+			return this.processMultisignatures(networkIdentifier, store);
 		}
 
 		// Else populate errors
