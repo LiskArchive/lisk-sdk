@@ -20,10 +20,12 @@ export interface P2PRequestPacket {
 }
 
 export interface P2PResponsePacket {
+	readonly peerId?: string;
 	readonly data: unknown;
 }
 
 export interface P2PMessagePacket {
+	readonly peerId?: string;
 	readonly data?: unknown;
 	readonly event: string;
 }

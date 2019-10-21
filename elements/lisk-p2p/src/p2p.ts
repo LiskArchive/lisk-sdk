@@ -197,10 +197,7 @@ export class P2P extends EventEmitter {
 	private readonly _scServer: SCServerUpdated;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
-	private readonly _handlePeerPoolMessage: (
-		message: P2PMessagePacket,
-		peerId: string,
-	) => void;
+	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
 	private readonly _handleDiscoveredPeer: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToSendMessage: (error: Error) => void;
@@ -300,12 +297,9 @@ export class P2P extends EventEmitter {
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handlePeerPoolMessage = (
-			message: P2PMessagePacket,
-			peerId: string,
-		) => {
+		this._handlePeerPoolMessage = (message: P2PMessagePacket) => {
 			// Re-emit the message for external use.
-			this.emit(EVENT_MESSAGE_RECEIVED, message, peerId);
+			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {

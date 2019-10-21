@@ -98,7 +98,7 @@ describe('P2P.send', () => {
 		expect(collectedMessages[0].message)
 			.to.have.property('data')
 			.which.is.equal('test');
-		expect(collectedMessages[0])
+		expect(collectedMessages[0].message)
 			.to.have.property('peerId')
 			.which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
 	});
