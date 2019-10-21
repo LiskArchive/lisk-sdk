@@ -20,7 +20,6 @@ import {
 	EVENT_INVALID_MESSAGE_RECEIVED,
 } from '../../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
-import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 import { wait } from 'utils/helpers';
 
 const MSG_EVENT = 'foo';
@@ -79,8 +78,8 @@ describe('Message', () => {
 	it('should send a message to a given peer', async () => {
 		const secondP2PNode = p2pNodeList[1];
 
-		const PeerList = secondP2PNode.getConnectedPeers();
-		const PeerId = constructPeerIdFromPeerInfo(PeerList[0]);
+		const FirstPeer = secondP2PNode.getConnectedPeers()[0];
+		const PeerId = `${FirstPeer.ipAddress}:${FirstPeer.wsPort}`;
 
 		secondP2PNode.sendToPeer(
 			{

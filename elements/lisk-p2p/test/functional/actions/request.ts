@@ -19,7 +19,6 @@ import {
 	EVENT_INVALID_REQUEST_RECEIVED,
 } from '../../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
-import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 
 const REQ_PROCEDURE = 'foo';
 const REQ_DATA = 'bar';
@@ -88,8 +87,8 @@ describe('Request', () => {
 		const firstP2PNode = p2pNodeList[0];
 		const secondP2PNode = p2pNodeList[1];
 
-		const PeerList = secondP2PNode.getConnectedPeers();
-		const PeerId = constructPeerIdFromPeerInfo(PeerList[0]);
+		const FirstPeer = secondP2PNode.getConnectedPeers()[0];
+		const PeerId = `${FirstPeer.ipAddress}:${FirstPeer.wsPort}`;
 
 		const response = await secondP2PNode.requestFromPeer(
 			{

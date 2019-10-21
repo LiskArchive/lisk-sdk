@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import { wait } from '../../utils/helpers';
-//import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 import {
 	createNetwork,
 	destroyNetwork,

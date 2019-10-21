@@ -19,6 +19,7 @@ import {
 	destroyNetwork,
 	nodeInfoConstants,
 	NETWORK_START_PORT,
+	SEED_PEER_IP,
 } from '../../utils/network_setup';
 import { wait } from 'utils/helpers';
 
@@ -152,32 +153,50 @@ describe('NodeInfo actions', () => {
 
 		await wait(300);
 
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		console.log(collectedEvents.get(EVENT_UPDATED_PEER_INFO));
+
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO)).to.have.property(
+			'sharedState',
+		);
+
+		const sharedState = collectedEvents.get(EVENT_UPDATED_PEER_INFO)
+			.sharedState;
+
+		expect(sharedState)
 			.to.have.property('os')
 			.which.equals(NEW_OS);
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		expect(sharedState)
 			.to.have.property('nethash')
 			.which.equals(NEW_NETHASH);
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		expect(sharedState)
 			.to.have.property('broadhash')
 			.which.equals(NEW_BROADHASH);
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		expect(sharedState)
 			.to.have.property('version')
 			.which.equals(NEW_VERSION);
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		expect(sharedState)
 			.to.have.property('protocolVersion')
 			.which.equals(NEW_PROTOCOLVERSION);
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		expect(sharedState)
 			.to.have.property('minVersion')
 			.which.equals(NEW_MIN_VERSION);
 		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
 			.to.have.property('wsPort')
 			.which.equals(NETWORK_START_PORT);
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		expect(sharedState)
 			.to.have.property('height')
 			.which.equals(NEW_HEIGHT);
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+		expect(sharedState)
 			.to.have.property('nonce')
 			.which.equals(NEW_NONCE);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('internalState')
+			.which.equals(undefined);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('ipAddress')
+			.which.equals(SEED_PEER_IP);
+		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO))
+			.to.have.property('peerId')
+			.which.equals(`${SEED_PEER_IP}:${NETWORK_START_PORT}`);
 	});
 });

@@ -13,10 +13,9 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, P2PDiscoveredPeerInfo } from '../../../src/index';
+import { P2P, ProtocolPeerInfo } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
-import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 import {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
@@ -63,7 +62,7 @@ describe('Peer banning mechanism', () => {
 			const firstP2PNode = p2pNodeList[0];
 			const badPeer = firstP2PNode.getConnectedPeers()[1];
 			const peerPenalty = {
-				peerId: constructPeerIdFromPeerInfo(badPeer),
+				peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
 				penalty: 10,
 			};
 			firstP2PNode.applyPenalty(peerPenalty);
@@ -75,7 +74,7 @@ describe('Peer banning mechanism', () => {
 	});
 
 	describe('when penalty is 100 or more', () => {
-		let badPeer: P2PDiscoveredPeerInfo;
+		let badPeer: ProtocolPeerInfo;
 
 		beforeEach(async () => {
 			const firstNode = p2pNodeList[0];
@@ -90,7 +89,7 @@ describe('Peer banning mechanism', () => {
 			});
 			badPeer = firstNode.getConnectedPeers()[2];
 			const peerPenalty = {
-				peerId: constructPeerIdFromPeerInfo(badPeer),
+				peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
 				penalty: 100,
 			};
 			firstNode.applyPenalty(peerPenalty);
@@ -101,6 +100,10 @@ describe('Peer banning mechanism', () => {
 			expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.not.include(
 				badPeer.wsPort,
 			);
+		});
+
+		it(`should fire ${EVENT_BAN_PEER} event`, async () => {
+			expect(collectedEvents.get('EVENT_BAN_PEER')).to.exist;
 		});
 
 		it(`should fire ${EVENT_BAN_PEER} event with peerId`, async () => {
