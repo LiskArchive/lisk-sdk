@@ -32,11 +32,10 @@ describe('P2P.send', () => {
 
 		collectedMessages = [];
 		for (let p2p of p2pNodeList) {
-			p2p.on(EVENT_MESSAGE_RECEIVED, (message, peerId) => {
+			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
 					nodePort: p2p.nodeInfo.wsPort,
 					message,
-					peerId,
 				});
 			});
 		}
