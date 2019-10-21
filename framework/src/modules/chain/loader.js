@@ -80,15 +80,6 @@ class Loader {
 	}
 
 	/**
-	 * Checks if private constant syncIntervalId has value.
-	 *
-	 * @returns {boolean} True if syncIntervalId has value
-	 */
-	syncing() {
-		return !!this.isActive;
-	}
-
-	/**
 	 * Pulls Transactions
 	 */
 	async loadUnconfirmedTransactions() {
@@ -107,56 +98,6 @@ class Loader {
 				},
 			);
 		});
-	}
-
-	/**
-	 * Performs sync operation:
-	 * - Undoes unconfirmed transactions.
-	 * - Establishes broadhash consensus before sync.
-	 * - Performs sync operation: loads blocks from network.
-	 * - Update headers: broadhash and height
-	 * - Notify remote peers about our new headers
-	 * - Establishes broadhash consensus after sync.
-	 * - Applies unconfirmed transactions.
-	 *
-	 * @private
-	 * @param {function} cb
-	 * @todo Check err actions
-	 * @todo Add description for the params
-	 */
-	async sync() {
-		this.logger.info('Starting sync');
-		if (this.cache.ready) {
-			this.cache.disable();
-		}
-
-		this.isActive = true;
-
-		const consensusBefore = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash,
-		);
-
-		this.logger.debug(
-			`Establishing broadhash consensus before sync: ${consensusBefore} %`,
-		);
-
-		await this._loadBlocksFromNetwork();
-
-		const consensusAfter = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash,
-		);
-
-		this.logger.debug(
-			`Establishing broadhash consensus after sync: ${consensusAfter} %`,
-		);
-		this.isActive = false;
-		this.blocksToSync = 0;
-
-		this.logger.info('Finished sync');
-
-		if (this.cache.ready) {
-			this.cache.enable();
-		}
 	}
 
 	/**
@@ -251,9 +192,7 @@ class Loader {
 			throw new Error('Received an invalid blocks response from the network');
 		}
 		// Check for strict equality for backwards compatibility reasons.
-		// The misspelled data.sucess is required to support v1 nodes.
-		// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
-		if (data.success === false || data.sucess === false) {
+		if (data.success === false) {
 			throw new CommonBlockError(
 				'Peer did not have a matching lastBlockId.',
 				lastBlock.id,

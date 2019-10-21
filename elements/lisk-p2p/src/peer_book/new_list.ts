@@ -13,14 +13,14 @@
  *
  */
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
-
-import { CustomPeerInfo, PeerList, PeerListConfig } from './peer_list';
+import { evictPeerRandomlyFromBucket, expirePeerFromBucket } from '../utils';
+import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
 }
 
-export class NewList extends PeerList {
+export class NewList extends BaseList {
 	private readonly _evictionThresholdTime: number;
 
 	public constructor({
@@ -49,43 +49,22 @@ export class NewList extends PeerList {
 		};
 	}
 
-	// Extend eviction of NewPeers
-	protected evictPeerFromBucket(bucketId: number): CustomPeerInfo | undefined {
-		const bucket = this.peerMap.get(bucketId);
-		if (!bucket) {
-			return undefined;
-		}
+	// Override make space method from base list
+	public makeSpace(ipAddress: string): CustomPeerInfo | undefined {
+		const bucket = this.getBucket(ipAddress);
 
-		// First eviction strategy
-		const evictedPeerBasedOnTime = this._evictPeerBasedOnTimeInBucket(bucketId);
-
-		if (evictedPeerBasedOnTime) {
-			return evictedPeerBasedOnTime;
-		}
-
-		// Second eviction strategy: Default eviction based on base class
-		return this.evictRandomlyFromBucket(bucketId);
-	}
-
-	// Evict a peer when a bucket is full based on the time of residence in a bucket
-	private _evictPeerBasedOnTimeInBucket(
-		bucketId: number,
-	): CustomPeerInfo | undefined {
-		const bucket = this.peerMap.get(bucketId);
-		if (!bucket) {
-			return undefined;
-		}
-
-		for (const [peerId, peer] of bucket) {
-			const timeDifference = Math.round(
-				Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
+			// First eviction strategy: eviction by time of residence
+			const evictedPeer = expirePeerFromBucket(
+				bucket,
+				this._evictionThresholdTime,
 			);
-
-			if (timeDifference >= this._evictionThresholdTime) {
-				bucket.delete(peerId);
-
-				return peer;
+			if (evictedPeer) {
+				return evictedPeer;
 			}
+
+			// Second eviction strategy: Default eviction based on base class
+			return evictPeerRandomlyFromBucket(bucket);
 		}
 
 		return undefined;

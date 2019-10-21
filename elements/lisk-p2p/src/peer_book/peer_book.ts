@@ -18,10 +18,10 @@ import {
 	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
 } from '../constants';
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { ExistingPeerError } from '../errors';
+import { P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
 import { NewList, NewListConfig } from './new_list';
-import { AddPeerOutcome } from './peer_list';
 import { TriedList, TriedListConfig } from './tried_list';
 
 export interface PeerBookConfig {
@@ -61,14 +61,14 @@ export class PeerBook {
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
-		return this._newPeers.peersList();
+		return this._newPeers.peersList;
 	}
 
-	public get triedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._triedPeers.peersList() as ReadonlyArray<P2PDiscoveredPeerInfo>;
+	public get triedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._triedPeers.peersList;
 	}
 
-	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {
+	public get allPeers(): ReadonlyArray<P2PPeerInfo> {
 		return [...this.newPeers, ...this.triedPeers];
 	}
 
@@ -81,9 +81,17 @@ export class PeerBook {
 		return this._newPeers.getPeer(peerInfo);
 	}
 
+	public addPeer(peerInfo: P2PPeerInfo): void {
+		if (this._triedPeers.getPeer(peerInfo)) {
+			throw new ExistingPeerError(peerInfo);
+		}
+
+		this._newPeers.addPeer(peerInfo);
+	}
+
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
 		if (this._triedPeers.getPeer(peerInfo)) {
-			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
+			return this._triedPeers.updatePeer(peerInfo);
 		}
 
 		if (this._newPeers.getPeer(peerInfo)) {
@@ -91,18 +99,6 @@ export class PeerBook {
 		}
 
 		return false;
-	}
-
-	// It will return evicted peer in the case a peer is removed from a peer list based on eviction strategy.
-	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
-		if (
-			this._triedPeers.getPeer(peerInfo) ||
-			this._newPeers.getPeer(peerInfo)
-		) {
-			throw new Error('Peer already exists');
-		}
-
-		return this._newPeers.addPeer(peerInfo);
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
@@ -125,7 +121,7 @@ export class PeerBook {
 
 		if (this._newPeers.getPeer(peerInfo)) {
 			this._newPeers.removePeer(peerInfo);
-			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
+			this._triedPeers.addPeer(peerInfo);
 
 			return true;
 		}

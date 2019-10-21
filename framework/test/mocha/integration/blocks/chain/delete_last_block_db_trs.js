@@ -83,7 +83,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when dpos.undo fails', () => {
 				beforeEach(async () => {
 					sinonSandbox
-						.stub(library.modules.blocks.dposModule, 'undo')
+						.stub(library.modules.dpos, 'undo')
 						.throws(new Error('dposModule.undo err'));
 				});
 
@@ -104,7 +104,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error).to.exist;
-						expect(library.modules.blocks.dposModule.undo).to.be.calledOnce;
+						expect(library.modules.dpos.undo).to.be.calledOnce;
 					}
 				});
 

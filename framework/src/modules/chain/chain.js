@@ -315,7 +315,7 @@ module.exports = class Chain {
 			getNodeStatus: async () => ({
 				consensus: await this.peers.getLastConsensus(this.blocks.broadhash),
 				loaded: true,
-				syncing: this.loader.syncing(),
+				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
@@ -416,6 +416,8 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: this.options.constants
+				.DELEGATE_LIST_ROUND_OFFSET,
 			exceptions: this.options.exceptions,
 		});
 
@@ -430,7 +432,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			slots: this.slots,
 			exceptions: this.options.exceptions,
-			dposModule: this.dpos,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
@@ -605,7 +606,7 @@ module.exports = class Chain {
 					this.logger.debug('No delegates are enabled');
 					return;
 				}
-				if (this.loader.syncing()) {
+				if (this.synchronizer.isActive) {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
@@ -676,7 +677,7 @@ module.exports = class Chain {
 				);
 				this.channel.publish('chain:blocks:change', block);
 
-				if (!this.loader.syncing()) {
+				if (!this.synchronizer.isActive) {
 					this.channel.invoke('app:updateApplicationState', {
 						height: block.height,
 						lastBlockId: block.id,

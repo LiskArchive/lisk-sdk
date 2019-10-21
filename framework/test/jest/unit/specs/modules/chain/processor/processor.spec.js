@@ -198,10 +198,10 @@ describe('processor', () => {
 			});
 
 			it('should save the genesis block', async () => {
+				const blockJSON = await processor.serialize(genesisBlock);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: genesisBlock,
+					blockJSON,
 					tx: txStub,
-					skipSave: false,
 				});
 			});
 		});
@@ -499,8 +499,9 @@ describe('processor', () => {
 			});
 
 			it('should save the block', async () => {
+				const blockJSON = await processor.serialize(blockV0);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: blockV0,
+					blockJSON,
 					tx: txStub,
 				});
 			});
@@ -615,8 +616,9 @@ describe('processor', () => {
 
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should save the last block', async () => {
+				const blockJSON = await processor.serialize(defaultLastBlock);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: defaultLastBlock,
+					blockJSON,
 					tx: txStub,
 				});
 			});
@@ -983,9 +985,9 @@ describe('processor', () => {
 				});
 			});
 
-			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
-			});
+			it.todo(
+				'should not save the block (figure out how to test if database tx was rolled back)',
+			);
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
@@ -1028,14 +1030,7 @@ describe('processor', () => {
 
 			it('should apply the block', async () => {
 				applySteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: blockV0,
-							lastBlock: defaultLastBlock,
-							tx: txStub,
-						},
-						undefined,
-					);
+					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
@@ -1103,8 +1098,9 @@ describe('processor', () => {
 			});
 
 			it('should save the block', async () => {
+				const blockJSON = await processor.serialize(blockV0);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: blockV0,
+					blockJSON,
 					tx: txStub,
 				});
 			});
@@ -1247,9 +1243,9 @@ describe('processor', () => {
 				});
 			});
 
-			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
-			});
+			it.todo(
+				'should not save the block (figure out how to test if database tx was rolled back)',
+			);
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
@@ -1355,11 +1351,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: blockV0,
-					tx: txStub,
-					skipSave: true,
-				});
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should not broadcast the block', async () => {
@@ -1542,12 +1534,8 @@ describe('processor', () => {
 				});
 			});
 
-			it('should save genesis block with skipSave', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: genesisBlock,
-					tx: txStub,
-					skipSave: true,
-				});
+			it('should not save the block', async () => {
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 

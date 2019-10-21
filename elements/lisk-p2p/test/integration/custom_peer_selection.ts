@@ -23,7 +23,7 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
-import { PEER_KIND_OUTBOUND, PEER_KIND_INBOUND } from '../../src/constants';
+import { ConnectionKind } from '../../src/constants';
 
 import {
 	POPULATOR_INTERVAL,
@@ -45,20 +45,29 @@ describe('Custom peer selection', () => {
 
 		peersList.forEach(peerInfo => {
 			if (
-				peerInfo.kind !== PEER_KIND_INBOUND &&
-				peerInfo.kind !== PEER_KIND_OUTBOUND
+				peerInfo.internalState &&
+				peerInfo.internalState.connectionKind !== ConnectionKind.INBOUND &&
+				peerInfo.internalState.connectionKind !== ConnectionKind.OUTBOUND
 			) {
-				throw new Error(`Invalid peer kind: ${peerInfo.kind}`);
+				throw new Error(
+					`Invalid peer kind: ${peerInfo.internalState.connectionKind}`,
+				);
 			}
 		});
 
 		const filteredPeers = peersList.filter(peer => {
-			if (nodeInfo && nodeInfo.height <= peer.height) {
+			const { sharedState } = peer;
+			const peerHeight = sharedState ? (sharedState.height as number) : 0;
+			if (
+				nodeInfo &&
+				peer.sharedState &&
+				(nodeInfo.height as number) <= peerHeight
+			) {
 				const nodesModules = nodeInfo.modules
 					? (nodeInfo.modules as ReadonlyArray<string>)
 					: undefined;
-				const peerModules = peer.modules
-					? (peer.modules as ReadonlyArray<string>)
+				const peerModules = peer.sharedState.modules
+					? (peer.sharedState.modules as ReadonlyArray<string>)
 					: undefined;
 
 				if (
@@ -79,7 +88,10 @@ describe('Custom peer selection', () => {
 			(filteredPeers.length / peersList.length) * 100 < 30
 		) {
 			return peersList.filter(
-				peer => peer.height >= (nodeInfo ? nodeInfo.height : 0),
+				peer =>
+					peer.sharedState &&
+					(peer.sharedState.height as number) >=
+						(nodeInfo ? (nodeInfo.height as number) : 0),
 			);
 		}
 

@@ -43,7 +43,6 @@ const sqlFiles = {
  * @property {number} producedBlocks
  * @property {string} fees
  * @property {string} rewards
- * @property {string} vote
  * @property {string} voteWeight
  * @property {number} productivity
  */
@@ -142,14 +141,6 @@ const sqlFiles = {
  * @property {string} [missedBlocks_lt]
  * @property {string} [missedBlocks_lte]
  * @property {Array.<string>} [missedBlocks_in]
- * @property {string} [vote]
- * @property {string} [vote_eql]
- * @property {string} [vote_ne]
- * @property {string} [vote_gt]
- * @property {string} [vote_gte]
- * @property {string} [vote_lt]
- * @property {string} [vote_lte]
- * @property {string} [vote_in]
  * @property {string} [voteWeight]
  * @property {string} [voteWeight_eql]
  * @property {string} [voteWeight_ne]
@@ -223,7 +214,6 @@ class Account extends BaseEntity {
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('vote', 'string', { filter: ft.NUMBER });
 		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');
 		this.addField('votedDelegatesPublicKeys', 'string');

@@ -30,7 +30,7 @@ let validAccount = {
 	publicKey: randomstring.generate({ charset: '0123456789ABCDE', length: 32 }),
 	secondPublicKey: null,
 	balance: '0',
-	vote: '10000000000000000',
+	voteWeight: '10000000000000000',
 	delegates: null,
 	multisignatures: null,
 	multimin: 0,

@@ -110,6 +110,7 @@ const validateSchema = ({ block }) => {
 class BlockProcessorV0 extends BaseBlockProcessor {
 	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
 		super();
+		const delegateListRoundOffset = 0;
 		this.blocksModule = blocksModule;
 		this.dposModule = dposModule;
 		this.logger = logger;
@@ -132,7 +133,8 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 					blockBytes,
 				}), // validate common block header
 			data => this.blocksModule.verifyInMemory(data),
-			({ block }) => this.dposModule.verifyBlockForger(block),
+			({ block }) =>
+				this.dposModule.verifyBlockForger(block, { delegateListRoundOffset }),
 		]);
 
 		this.validateDetached.pipe([
@@ -155,11 +157,23 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.verify.pipe([data => this.blocksModule.verify(data)]);
 
-		this.apply.pipe([data => this.blocksModule.apply(data)]);
+		this.apply.pipe([
+			data => this.blocksModule.apply(data),
+			({ block, tx }) =>
+				this.dposModule.apply(block, { tx, delegateListRoundOffset }),
+		]);
 
-		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
+		this.applyGenesis.pipe([
+			data => this.blocksModule.applyGenesis(data),
+			({ block, tx }) =>
+				this.dposModule.apply(block, { tx, delegateListRoundOffset }),
+		]);
 
-		this.undo.pipe([data => this.blocksModule.undo(data)]);
+		this.undo.pipe([
+			data => this.blocksModule.undo(data),
+			({ block, tx }) =>
+				this.dposModule.undo(block, { tx, delegateListRoundOffset }),
+		]);
 
 		this.create.pipe([data => this._create(data)]);
 	}

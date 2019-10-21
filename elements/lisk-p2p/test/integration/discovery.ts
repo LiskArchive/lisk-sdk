@@ -123,7 +123,7 @@ describe('Peer discovery', () => {
 
 	it('should not contain itself in any of its peer list', async () => {
 		for (let p2p of p2pNodeList) {
-			const allPeers = p2p['_peerBook'].getAllPeers();
+			const allPeers = p2p['_peerBook'].allPeers;
 
 			const allPeersPorts = allPeers.map(peerInfo => peerInfo.wsPort).sort();
 			const connectedPeerPorts = p2p

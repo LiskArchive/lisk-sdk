@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, P2PDiscoveredPeerInfo } from '../../src/index';
+import { P2P, ProtocolPeerInfo } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 import {
@@ -74,7 +74,7 @@ describe('Peer banning mechanism', () => {
 	});
 
 	describe('when penalty is 100 or more', () => {
-		let badPeer: P2PDiscoveredPeerInfo;
+		let badPeer: ProtocolPeerInfo;
 
 		beforeEach(async () => {
 			const firstNode = p2pNodeList[0];

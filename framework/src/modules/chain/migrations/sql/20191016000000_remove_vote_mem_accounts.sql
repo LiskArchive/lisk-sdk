@@ -11,5 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export * from './peer_book';
-export { AddPeerOutcome } from './peer_list';
+
+
+ /*
+  DESCRIPTION: vote field in mem_accounts was not being used so it's being removed.
+*/
+
+
+ALTER TABLE mem_accounts DROP COLUMN IF EXISTS "vote";
