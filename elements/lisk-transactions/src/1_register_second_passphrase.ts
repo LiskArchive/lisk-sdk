@@ -35,9 +35,7 @@ const validateInputs = ({
 		throw new Error('Please provide a secondPassphrase. Expected string.');
 	}
 
-	if (!validateNetworkIdentifier(networkIdentifier)) {
-		throw Error('Invalid network identifier length.');
-	}
+	validateNetworkIdentifier(networkIdentifier);
 };
 
 export const registerSecondPassphrase = (

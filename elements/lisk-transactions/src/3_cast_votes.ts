@@ -56,9 +56,7 @@ const validateInputs = ({
 
 	validatePublicKeys([...votes, ...unvotes]);
 
-	if (!validateNetworkIdentifier(networkIdentifier)) {
-		throw Error('Invalid network identifier length.');
-	}
+	validateNetworkIdentifier(networkIdentifier);
 };
 
 export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {

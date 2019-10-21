@@ -39,9 +39,7 @@ const validateInputs = ({
 		);
 	}
 
-	if (!validateNetworkIdentifier(networkIdentifier)) {
-		throw Error('Invalid network identifier length.');
-	}
+	validateNetworkIdentifier(networkIdentifier);
 };
 
 export const registerDelegate = (
