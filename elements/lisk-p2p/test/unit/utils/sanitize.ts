@@ -57,7 +57,7 @@ describe('utils/sanitize', () => {
 	});
 
 	describe('#sanitizeNodeInfoToLegacyFormat', () => {
-		describe('when node info has broadhash, nonce and httpPort', () => {
+		describe('when node info has nonce and httpPort', () => {
 			const nodeInfo = {
 				os: 'os',
 				version: '1.2.0',
@@ -65,16 +65,9 @@ describe('utils/sanitize', () => {
 				nethash: 'nethash',
 				wsPort: 6001,
 				height: 100,
-				broadhash: 'myBroadhash',
 				nonce: 'myNonce',
 				httpPort: 8888,
 			} as P2PNodeInfo;
-
-			it('should return object containing broadhash property as a non-empty string', async () => {
-				expect(sanitizeNodeInfoToLegacyFormat(nodeInfo))
-					.to.haveOwnProperty('broadhash')
-					.to.eql(nodeInfo.broadhash as string);
-			});
 
 			it('should return object containing nonce property as a non-empty string', async () => {
 				expect(sanitizeNodeInfoToLegacyFormat(nodeInfo))
@@ -89,7 +82,7 @@ describe('utils/sanitize', () => {
 			});
 		});
 
-		describe('when node info has neither broadhash, nor nonce, nor httpPort', () => {
+		describe('when node info has neither nonce, nor httpPort', () => {
 			const nodeInfo = {
 				os: 'os',
 				version: '1.2.0',
@@ -98,12 +91,6 @@ describe('utils/sanitize', () => {
 				wsPort: 6001,
 				height: 100,
 			} as P2PNodeInfo;
-
-			it('should return object containing broadhash property as an empty string', async () => {
-				expect(sanitizeNodeInfoToLegacyFormat(nodeInfo)).to.haveOwnProperty(
-					'broadhash',
-				).to.be.empty;
-			});
 
 			it('should return object containing nonce property as an empty string', async () => {
 				expect(sanitizeNodeInfoToLegacyFormat(nodeInfo)).to.haveOwnProperty(

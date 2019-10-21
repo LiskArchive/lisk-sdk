@@ -47,7 +47,6 @@ class Loader {
 		processorModule,
 		transactionPoolModule,
 		blocksModule,
-		peersModule,
 		interfaceAdapters,
 		// Constants
 		loadPerIteration,
@@ -75,7 +74,6 @@ class Loader {
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
-		this.peersModule = peersModule;
 		this.interfaceAdapters = interfaceAdapters;
 	}
 
@@ -269,21 +267,12 @@ class Loader {
 		}
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	async _handleCommonBlockError(error) {
 		if (!(error instanceof CommonBlockError)) {
 			return;
 		}
-		if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
-			this.logger.debug('Perform chain recovery due to poor consensus');
-			try {
-				await this.blocksModule.recoverChain();
-			} catch (err) {
-				this.logger.error(
-					{ err },
-					'Chain recovery failed after failing to load blocks while network consensus was low.',
-				);
-			}
-		}
+		throw error;
 	}
 }
 

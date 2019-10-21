@@ -78,10 +78,6 @@ describe('forge', () => {
 				blocksModule: {
 					filterReadyTransactions: sinonSandbox.stub().returns([]),
 				},
-				peersModule: {
-					isPoorConsensus: sinonSandbox.stub(),
-					getLastConsensus: sinonSandbox.stub(),
-				},
 				processorModule: {
 					create: sinonSandbox.stub(),
 					process: sinonSandbox.stub(),
@@ -797,7 +793,6 @@ describe('forge', () => {
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
-				forgeModule.peersModule.isPoorConsensus.resolves(false);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
 					'utf8',
@@ -856,25 +851,6 @@ describe('forge', () => {
 				);
 			});
 
-			it('should log message and return if there is poor consensus', async () => {
-				const lastConsensus = 10;
-
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.resolves(testDelegate);
-				forgeModule.peersModule.isPoorConsensus.resolves(true);
-				forgeModule.peersModule.getLastConsensus.returns(lastConsensus);
-
-				const data = await forgeModule.forge();
-
-				expect(data).to.be.undefined;
-				expect(mockLogger.error).to.be.calledOnce;
-				expect(mockLogger.error).to.be.calledWithExactly(
-					{ consensus: lastConsensus },
-					'Inadequate broadhash consensus before forging a block',
-				);
-			});
-
 			it('should wait for threshold time if last block not received', async () => {
 				sinonSandbox
 					.stub(forger, 'getDelegateKeypairForCurrentSlot')
@@ -896,10 +872,6 @@ describe('forge', () => {
 
 				await forgeModule.forge();
 				expect(forgeModule.processorModule.create).to.not.been.called;
-				expect(mockLogger.info).to.be.calledTwice;
-				expect(mockLogger.info.secondCall.args).to.be.eql([
-					'Skipping forging to wait for last block',
-				]);
 				expect(mockLogger.debug).to.be.calledWithExactly('Slot information', {
 					currentSlot,
 					lastBlockSlot: changedLastBlockSlot,

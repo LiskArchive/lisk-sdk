@@ -82,7 +82,6 @@ export interface ProtocolPeerInfo {
 	readonly ip?: string;
 	readonly ipAddress: string;
 	readonly wsPort: number;
-	readonly broadhash?: string;
 	readonly height?: number;
 	readonly nonce?: string;
 	readonly os?: string;
@@ -96,7 +95,6 @@ export interface ProtocolPeerInfo {
 // TODO later: Switch to LIP protocol format.
 // This is a representation of the outbound peer object according to the current protocol.
 export interface ProtocolNodeInfo extends P2PSharedState {
-	readonly broadhash: string;
 	readonly nethash: string;
 	readonly nonce: string;
 	readonly wsPort: number;

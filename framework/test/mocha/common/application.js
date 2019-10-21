@@ -118,13 +118,6 @@ const initStepsForTest = {
 		});
 		modules.processor.register(new BlockProcessorV1(processorDependency));
 		scope.modules = modules;
-		const { Peers } = rewire('../../../src/modules/chain/peers');
-		scope.peers = new Peers({
-			channel: scope.channel,
-			minBroadhashConsensus:
-				__testContext.config.constants.MIN_BROADHASH_CONSENSUS,
-			forgingForce: __testContext.config.modules.chain.forging.force,
-		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool',
 		);
@@ -160,7 +153,6 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
-			peersModule: modules.peers,
 			interfaceAdapters: modules.interfaceAdapters,
 			loadPerIteration:
 				__testContext.config.modules.chain.loading.loadPerIteration,
@@ -180,7 +172,6 @@ const initStepsForTest = {
 			dposModule: modules.dpos,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
-			peersModule: modules.peers,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock:
 				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,

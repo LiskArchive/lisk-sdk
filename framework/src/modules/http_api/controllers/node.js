@@ -182,7 +182,6 @@ NodeController.getConstants = async (context, next) => {
 NodeController.getStatus = async (context, next) => {
 	try {
 		const {
-			consensus,
 			secondsSinceEpoch,
 			loaded,
 			syncing,
@@ -192,8 +191,6 @@ NodeController.getStatus = async (context, next) => {
 		const networkHeight = await _getNetworkHeight();
 
 		const data = {
-			broadhash: library.applicationState.broadhash,
-			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,

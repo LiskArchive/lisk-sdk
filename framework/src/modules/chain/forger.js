@@ -76,7 +76,6 @@ class Forger {
 		dposModule,
 		transactionPoolModule,
 		blocksModule,
-		peersModule,
 		// constants
 		activeDelegates,
 		maxTransactionsPerBlock,
@@ -105,7 +104,6 @@ class Forger {
 
 		this.processorModule = processorModule;
 		this.dposModule = dposModule;
-		this.peersModule = peersModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 	}
@@ -283,7 +281,7 @@ class Forger {
 	}
 
 	/**
-	 * Gets peers, checks consensus and generates new block, once delegates
+	 * Generates new block, once delegates
 	 * are enabled, client is ready to forge and is the correct slot.
 	 *
 	 * @returns {Promise}
@@ -333,27 +331,6 @@ class Forger {
 			);
 			return;
 		}
-		const isPoorConsensus = await this.peersModule.isPoorConsensus(
-			this.blocksModule.broadhash,
-		);
-		if (isPoorConsensus) {
-			const consensus = await this.peersModule.getLastConsensus(
-				this.blocksModule.broadhash,
-			);
-			this.logger.error(
-				{ consensus },
-				'Inadequate broadhash consensus before forging a block',
-			);
-			return;
-		}
-
-		const consensus = await this.peersModule.getLastConsensus(
-			this.blocksModule.broadhash,
-		);
-		this.logger.info(
-			{ consensus },
-			'Broadhash consensus before forging a block',
-		);
 
 		// If last block slot is way back than one block
 		// and still time left as per threshold specified

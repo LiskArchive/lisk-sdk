@@ -187,13 +187,9 @@ class Transport {
 			);
 		}
 
-		const { broadhash } = this.applicationState;
-
 		// Perform actual broadcast operation
 		return this.broadcaster.broadcast(
-			{
-				broadhash,
-			},
+			{},
 			{ api: 'postBlock', data: { block } },
 		);
 	}
