@@ -107,6 +107,66 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	}
 
 	/**
+	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer` and applieis them
+	 *
+	 * @param {object} peerId - The ID of the peer to target
+	 * @param {string} fromId - The starting block ID to fetch from
+	 * @param {string} toId - The ending block ID
+	 * @throws {ApplyPenaltyAndRestartError} - In case the peer hasn't returned any block
+	 * @return {Promise<Array<object>>}
+	 */
+	async _requestAndApplyBlocksWithinIDs(peerId, fromId, toId) {
+		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
+		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
+		let lastFetchedID = fromId;
+		let finished = false;
+
+		while (!finished && failedAttempts < maxFailedAttempts) {
+			const { data: blocks } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getBlocksFromId',
+					peerId,
+					data: {
+						blockId: lastFetchedID,
+					},
+				},
+			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+
+			if (blocks && blocks.length) {
+				[{ id: lastFetchedID }] = blocks.slice(-1);
+				const index = blocks.findIndex(block => block.id === toId);
+				if (index > -1) {
+					blocks.splice(0, index + 1); // Removes unwanted extra blocks
+				}
+
+				this.logger.debug(
+					{ fromId: blocks[0].id, toId: blocks[1].id },
+					'Applying obtained blocks from peer',
+				);
+
+				for (const block of blocks) {
+					const deserializedBlock = await this.processorModule.deserialize(
+						block,
+					);
+					await this.processorModule.process(deserializedBlock);
+				}
+
+				finished = this.blocks.lastBlock.id === toId || false;
+			} else {
+				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
+			}
+		}
+
+		if (failedAttempts === maxFailedAttempts) {
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				"Peer didn't return any block after requesting blocks",
+			);
+		}
+	}
+
+	/**
 	 * Requests blocks from startingBlockID to an specific peer until endingBlockID
 	 * is met and applies them on top of the current chain.
 	 *
@@ -133,35 +193,15 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Requesting blocks within ID range from peer',
 		);
 
-		const listOfFullBlocks = await this._requestBlocksWithinIDs(
+		await this._requestAndApplyBlocksWithinIDs(
 			peerId,
 			lastCommonBlock.id,
 			receivedBlock.id,
 		);
 
-		if (!listOfFullBlocks || !listOfFullBlocks.length) {
-			throw new ApplyPenaltyAndRestartError(
-				peerId,
-				"Peer didn't return any block after requesting blocks",
-			);
-		}
-
-		this.logger.debug('Applying obtained blocks from peer');
-
-		try {
-			for (const block of listOfFullBlocks) {
-				const deserializedBlock = await this.processorModule.deserialize(block);
-				await this.processorModule.process(deserializedBlock);
-			}
-			this.logger.debug(
-				'Successfully applied blocks obtained from peer to chain',
-			);
-		} catch (err) {
-			this.logger.debug({ err }, 'Failed to apply obtained blocks from peer');
-		}
-
 		// If the list of blocks has not been fully applied
 		if (this.blocks.lastBlock.id !== receivedBlock.id) {
+			this.logger.debug('Failed to apply obtained blocks from peer');
 			const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
 				{},
 				{ sort: 'height:desc', limit: 1, extended: true },
@@ -223,7 +263,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		}
 
-		this.logger.debug('Cleaning blocks temporary table');
+		this.logger.debug('Cleaning up blocks temporary table');
 		await clearBlocksTempTable(this.storage);
 
 		this.logger.debug(
