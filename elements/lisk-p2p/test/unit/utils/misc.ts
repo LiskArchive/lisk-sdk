@@ -21,10 +21,10 @@ import {
 	getNetwork,
 	getIPBytes,
 	getNetgroup,
-	getUniquePeersbyIp,
 	NETWORK,
 	getBucketId,
 	PEER_TYPE,
+	getBestPeersbyHeight,
 } from '../../../src/utils';
 import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/p2p_types';
@@ -139,7 +139,7 @@ describe('utils/misc', () => {
 		});
 	});
 
-	describe('#getUniquePeersbyIp', () => {
+	describe('#getBestPeersbyHeight', () => {
 		const samplePeers = initPeerInfoList();
 
 		describe('when two peers have same peer infos', () => {
@@ -147,7 +147,7 @@ describe('utils/misc', () => {
 
 			beforeEach(async () => {
 				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+				uniquePeerListByIp = getBestPeersbyHeight(duplicatesList);
 			});
 
 			it('should remove the duplicate peers with the same ips', async () => {
@@ -172,7 +172,7 @@ describe('utils/misc', () => {
 				};
 
 				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+				uniquePeerListByIp = getBestPeersbyHeight(duplicatesList);
 			});
 
 			it('should remove the duplicate ip and choose the one with higher height', async () => {
@@ -201,7 +201,7 @@ describe('utils/misc', () => {
 				};
 
 				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+				uniquePeerListByIp = getBestPeersbyHeight(duplicatesList);
 			});
 
 			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {

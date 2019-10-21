@@ -70,6 +70,7 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
+import { comparePeerListsByHeight, getBestPeersbyHeight } from './utils/misc';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -424,18 +425,30 @@ export class PeerPool extends EventEmitter {
 			disconnectedFixedPeers.length -
 			outboundCount;
 
+		const bestPeersbyHeight = getBestPeersbyHeight([
+			...disconnectedNewPeers,
+			...disconnectedTriedPeers,
+			...disconnectedFixedPeers,
+		]);
+
 		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
-			newPeers: disconnectedNewPeers,
-			triedPeers: disconnectedTriedPeers,
+			newPeers: comparePeerListsByHeight(
+				disconnectedNewPeers,
+				bestPeersbyHeight,
+			),
+			triedPeers: comparePeerListsByHeight(
+				disconnectedTriedPeers,
+				bestPeersbyHeight,
+			),
 			nodeInfo: this._nodeInfo,
 			peerLimit,
 		});
 
-		[...peersToConnect, ...disconnectedFixedPeers].forEach(
-			(peerInfo: P2PPeerInfo) =>
-				this.addOutboundPeer(peerInfo.peerId, peerInfo),
-		);
+		comparePeerListsByHeight(
+			[...peersToConnect, ...disconnectedFixedPeers],
+			bestPeersbyHeight,
+		).forEach((peerInfo: P2PPeerInfo) => this.addOutboundPeer(peerInfo));
 	}
 
 	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
@@ -461,8 +474,8 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public addOutboundPeer(peerId: string, peerInfo: P2PPeerInfo): Peer {
-		const existingPeer = this.getPeer(peerId);
+	public addOutboundPeer(peerInfo: P2PPeerInfo): Peer {
+		const existingPeer = this.getPeer(peerInfo.peerId);
 		if (existingPeer) {
 			return existingPeer;
 		}
@@ -474,7 +487,9 @@ export class PeerPool extends EventEmitter {
 
 		if (connectedPeersFromIP !== 0) {
 			throw new Error(
-				`Peer ${peerId} has too many outbound connections: ${connectedPeersFromIP}`,
+				`Peer ${
+					peerInfo.peerId
+				} has too many outbound connections: ${connectedPeersFromIP}`,
 			);
 		}
 
