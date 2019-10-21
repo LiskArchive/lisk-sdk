@@ -31,6 +31,25 @@ export interface P2PMessagePacket extends P2PPacket {
 	readonly event: string;
 }
 
+export interface P2PClosePacket {
+	readonly peerInfo: P2PPeerInfo;
+	readonly code: number;
+	readonly reason?: string;
+}
+
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolRPCRequestPacket {
+	readonly data: unknown;
+	readonly procedure: string;
+	readonly type: string;
+}
+
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolMessagePacket {
+	readonly data: unknown;
+	readonly event: string;
+}
+
 export interface P2PPenalty {
 	readonly peerId: string;
 	readonly penalty: number;
@@ -101,11 +120,6 @@ export interface ProtocolNodeInfo extends P2PSharedState {
 	readonly nonce: string;
 	readonly wsPort: number;
 	readonly httpPort: number;
-}
-export interface P2PClosePacket {
-	readonly peerInfo: P2PPeerInfo;
-	readonly code: number;
-	readonly reason?: string;
 }
 
 export interface P2PConfig {
@@ -198,19 +212,6 @@ export interface ProtocolPeerInfoList {
 export interface P2PBasicPeerInfoList {
 	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly success: boolean;
-}
-
-// TODO later: Switch to LIP protocol format.
-export interface ProtocolRPCRequestPacket {
-	readonly data: unknown;
-	readonly procedure: string;
-	readonly type: string;
-}
-
-// TODO later: Switch to LIP protocol format.
-export interface ProtocolMessagePacket {
-	readonly data: unknown;
-	readonly event: string;
 }
 
 export interface PeerLists {
