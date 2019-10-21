@@ -27,7 +27,12 @@ import {
 // For stubbing
 import { P2PPeerInfo, P2PNodeInfo } from '../../src/p2p_types';
 import { initPeerList, initPeerInfoList } from '../utils/peers';
-import { Peer, ConnectionState, InboundPeer } from '../../src/peer';
+import {
+	Peer,
+	ConnectionState,
+	InboundPeer,
+	OutboundPeer,
+} from '../../src/peer';
 import {
 	DEFAULT_CONNECT_TIMEOUT,
 	DEFAULT_ACK_TIMEOUT,
@@ -624,6 +629,64 @@ describe('peerPool', () => {
 
 			it('should remove the duplicate ip and choose one of the peer in sequence', async () => {
 				expect(uniqueOutboundConnectedPeers).eql(samplePeers);
+			});
+		});
+	});
+
+	describe('#getConnectedPeersByIP', () => {
+		const samplePeers = initPeerInfoList();
+
+		describe('when we request how many connections we have to a give IP address', () => {
+			let OutboundConnections: number[] = [];
+			let InboundConnections: number[] = [];
+
+			beforeEach(async () => {
+				const peer1 = {
+					...samplePeers[0],
+					height: 1212,
+					wsPort: samplePeers[0].wsPort + 1,
+				};
+
+				const peer2 = {
+					...samplePeers[1],
+					height: 1200,
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const peer3 = {
+					...samplePeers[1],
+					height: 1200,
+					ipAddress: '127.0.0.30',
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const duplicatesList = [...samplePeers, peer1, peer2];
+				sandbox
+					.stub(peerPool, 'getAllConnectedPeerInfos')
+					.returns(duplicatesList);
+
+				OutboundConnections.push(
+					peerPool.getConnectedPeersByIP(peer1, OutboundPeer),
+				);
+				OutboundConnections.push(
+					peerPool.getConnectedPeersByIP(peer3, OutboundPeer),
+				);
+
+				InboundConnections.push(
+					peerPool.getConnectedPeersByIP(peer1, InboundPeer),
+				);
+				InboundConnections.push(
+					peerPool.getConnectedPeersByIP(peer3, InboundPeer),
+				);
+			});
+
+			it('should return how many Outbound connections we have from the give IP', async () => {
+				expect(OutboundConnections[0]).eql(2);
+				expect(OutboundConnections[1]).eql(0);
+			});
+			it('should return how many Inbound connections we have from the give IP', async () => {
+				expect(InboundConnections[0]).eql(2);
+				expect(InboundConnections[1]).eql(0);
 			});
 		});
 	});
