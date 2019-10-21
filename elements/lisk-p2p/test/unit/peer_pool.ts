@@ -246,19 +246,19 @@ describe('peerPool', () => {
 	});
 
 	describe('#request', () => {
-		it('should call getUniqueOutboundConnectedPeers', async () => {
+		it('should call getAllConnectedPeerInfos(OutboundPeer)', async () => {
 			sandbox.stub(peerPool, 'requestFromPeer').resolves();
-			const getUniqueOutboundConnectedPeersStub = sandbox
-				.stub(peerPool, 'getUniqueOutboundConnectedPeers')
+			const getAllConnectedPeerInfosStub = sandbox
+				.stub(peerPool, 'getAllConnectedPeerInfos')
 				.returns([peerInfo]);
 			await peerPool.request(requestPacket);
 
-			expect(getUniqueOutboundConnectedPeersStub).to.be.calledOnce;
+			expect(getAllConnectedPeerInfosStub).to.be.calledOnce;
 		});
 
 		it('should call _peerSelectForRequest', async () => {
 			sandbox.stub(peerPool, 'requestFromPeer').resolves();
-			const peers = peerPool.getUniqueOutboundConnectedPeers();
+			const peers = peerPool.getAllConnectedPeerInfos(OutboundPeer);
 			const _peerSelectForRequestStub = sandbox
 				.stub(peerPool as any, '_peerSelectForRequest')
 				.returns([peerInfo]);
@@ -550,86 +550,6 @@ describe('peerPool', () => {
 			const inboundPeers = peerPool.getPeers(Object as any);
 
 			expect(inboundPeers).to.have.length(1);
-		});
-	});
-
-	describe('#getUniqueOutboundConnectedPeers', () => {
-		const samplePeers = initPeerInfoList();
-
-		describe('when two peers have same peer infos', () => {
-			let uniqueOutboundConnectedPeers: ReadonlyArray<P2PPeerInfo>;
-
-			beforeEach(async () => {
-				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
-				sandbox
-					.stub(peerPool, 'getAllConnectedPeerInfos')
-					.returns(duplicatesList);
-				uniqueOutboundConnectedPeers = peerPool.getUniqueOutboundConnectedPeers();
-			});
-
-			it('should remove the duplicate peers with the same ips', async () => {
-				expect(uniqueOutboundConnectedPeers).eql(samplePeers);
-			});
-		});
-
-		describe('when two peers have same IP and different wsPort and height', () => {
-			let uniqueOutboundConnectedPeers: ReadonlyArray<P2PPeerInfo>;
-
-			beforeEach(async () => {
-				const peer1 = {
-					...samplePeers[0],
-					height: 1212,
-					wsPort: samplePeers[0].wsPort + 1,
-				};
-
-				const peer2 = {
-					...samplePeers[1],
-					height: 1200,
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				sandbox
-					.stub(peerPool, 'getAllConnectedPeerInfos')
-					.returns(duplicatesList);
-				uniqueOutboundConnectedPeers = peerPool.getUniqueOutboundConnectedPeers();
-			});
-
-			it('should remove the duplicate ip and choose the one with higher height', async () => {
-				expect(uniqueOutboundConnectedPeers).eql(samplePeers);
-			});
-		});
-
-		describe('when two peers have same IP and different wsPort but same height', () => {
-			let uniqueOutboundConnectedPeers: ReadonlyArray<P2PPeerInfo>;
-
-			beforeEach(async () => {
-				const peer1 = {
-					...samplePeers[0],
-					height: samplePeers[0].sharedState
-						? samplePeers[0].sharedState.height
-						: 0,
-					wsPort: samplePeers[0].wsPort + 1,
-				};
-
-				const peer2 = {
-					...samplePeers[1],
-					height: samplePeers[1].sharedState
-						? samplePeers[1].sharedState.height
-						: 0,
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				sandbox
-					.stub(peerPool, 'getAllConnectedPeerInfos')
-					.returns(duplicatesList);
-				uniqueOutboundConnectedPeers = peerPool.getUniqueOutboundConnectedPeers();
-			});
-
-			it('should remove the duplicate ip and choose one of the peer in sequence', async () => {
-				expect(uniqueOutboundConnectedPeers).eql(samplePeers);
-			});
 		});
 	});
 

@@ -70,7 +70,6 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
-import { getUniquePeersbyIp } from './utils';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -306,7 +305,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers();
+		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
 			peers: outboundPeerInfos,
@@ -434,13 +433,8 @@ export class PeerPool extends EventEmitter {
 		});
 
 		[...peersToConnect, ...disconnectedFixedPeers].forEach(
-			(peerInfo: P2PPeerInfo) => {
-				const existingPeer = this.getPeer(peerInfo.peerId);
-
-				return existingPeer
-					? existingPeer
-					: this.addOutboundPeer(peerInfo.peerId, peerInfo);
-			},
+			(peerInfo: P2PPeerInfo) =>
+				this.addOutboundPeer(peerInfo.peerId, peerInfo),
 		);
 	}
 
@@ -549,10 +543,6 @@ export class PeerPool extends EventEmitter {
 
 		return connectedPeers.filter(peer => peer.ipAddress === peerInfo.ipAddress)
 			.length;
-	}
-
-	public getUniqueOutboundConnectedPeers(): ReadonlyArray<P2PPeerInfo> {
-		return getUniquePeersbyIp(this.getAllConnectedPeerInfos(OutboundPeer));
 	}
 
 	public getAllConnectedPeerInfos(
