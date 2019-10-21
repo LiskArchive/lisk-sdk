@@ -25,6 +25,12 @@ class RestartError extends SynchronizerError {
 	}
 }
 
+class AbortError extends SynchronizerError {
+	constructor(reason) {
+		super(`Abort synchronization mechanism with reason: ${reason}`);
+	}
+}
+
 class ApplyPenaltyAndRestartError extends SynchronizerError {
 	constructor(peerId, reason) {
 		super(
@@ -35,7 +41,19 @@ class ApplyPenaltyAndRestartError extends SynchronizerError {
 	}
 }
 
+class ApplyPenaltyAndAbortError extends SynchronizerError {
+	constructor(peerId, reason) {
+		super(
+			`Apply penalty and abort synchronization mechanism with reason: ${reason}`,
+		);
+		this.reason = reason;
+		this.peerId = peerId;
+	}
+}
+
 module.exports = {
 	RestartError,
+	AbortError,
+	ApplyPenaltyAndAbortError,
 	ApplyPenaltyAndRestartError,
 };

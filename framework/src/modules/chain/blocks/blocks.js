@@ -251,7 +251,7 @@ class Blocks extends EventEmitter {
 		validateBlockSlot(block, lastBlock, this.slots);
 	}
 
-	forkChoice({ block, lastBlock }) {
+	forkChoice({ lastBlock, block }) {
 		// Current time since Lisk Epoch
 		block.receivedAt = this.slots.getEpochTime();
 		// Cases are numbered following LIP-0014 Fork choice rule.
@@ -379,8 +379,8 @@ class Blocks extends EventEmitter {
 	 * Get all blocks from temp_block table
 	 * @param {Object} tx - database transaction
 	 */
-	async getTempBlocks(tx) {
-		return this.storage.entities.TempBlock.get({}, {}, tx);
+	async getTempBlocks(filter = {}, options = {}, tx) {
+		return this.storage.entities.TempBlock.get(filter, options, tx);
 	}
 
 	async exists(block) {

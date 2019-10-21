@@ -78,15 +78,6 @@ class Loader {
 	}
 
 	/**
-	 * Checks if private constant syncIntervalId has value.
-	 *
-	 * @returns {boolean} True if syncIntervalId has value
-	 */
-	syncing() {
-		return !!this.isActive;
-	}
-
-	/**
 	 * Pulls Transactions
 	 */
 	async loadUnconfirmedTransactions() {
@@ -105,35 +96,6 @@ class Loader {
 				},
 			);
 		});
-	}
-
-	/**
-	 * Performs sync operation:
-	 * - Undoes unconfirmed transactions.
-	 * - Performs sync operation: loads blocks from network.
-	 * - Notify remote peers about our new headers
-	 * - Applies unconfirmed transactions.
-	 *
-	 * @private
-	 * @param {function} cb
-	 * @todo Check err actions
-	 * @todo Add description for the params
-	 */
-	async sync() {
-		this.logger.info('Starting sync');
-		if (this.cache.ready) {
-			this.cache.disable();
-		}
-
-		this.isActive = true;
-		this.isActive = false;
-		this.blocksToSync = 0;
-
-		this.logger.info('Finished sync');
-
-		if (this.cache.ready) {
-			this.cache.enable();
-		}
 	}
 
 	/**

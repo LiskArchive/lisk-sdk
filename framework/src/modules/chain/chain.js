@@ -235,7 +235,7 @@ module.exports = class Chain {
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe(
 					'network:event',
-					async ({ data: { event, data } }) => {
+					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactions') {
 								await this.transport.postTransactions(data);
@@ -246,7 +246,7 @@ module.exports = class Chain {
 								return;
 							}
 							if (event === 'postBlock') {
-								await this.transport.postBlock(data);
+								await this.transport.postBlock(data, peerId);
 								return;
 							}
 						} catch (err) {
@@ -311,7 +311,7 @@ module.exports = class Chain {
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				loaded: true,
-				syncing: this.loader.syncing(),
+				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
@@ -463,9 +463,12 @@ module.exports = class Chain {
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
 			storage: this.storage,
 			logger: this.logger,
+			channel: this.channel,
 			slots: this.slots,
 			blocks: this.blocks,
-			dposModule: this.dpos,
+			bft: this.bft,
+			dpos: this.dpos,
+			processor: this.processor,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 
@@ -542,6 +545,7 @@ module.exports = class Chain {
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
+			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
@@ -573,7 +577,7 @@ module.exports = class Chain {
 					this.logger.debug('No delegates are enabled');
 					return;
 				}
-				if (this.loader.syncing()) {
+				if (this.synchronizer.isActive) {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
@@ -605,21 +609,24 @@ module.exports = class Chain {
 			},
 		);
 
-		this.channel.subscribe('chain:processor:deleteBlock', ({ block }) => {
-			if (block.transactions.length) {
-				const transactions = block.transactions.reverse();
-				this.transactionPool.onDeletedTransactions(transactions);
-				this.channel.publish(
-					'chain:transactions:confirmed:change',
-					block.transactions,
+		this.channel.subscribe(
+			'chain:processor:deleteBlock',
+			({ data: { block } }) => {
+				if (block.transactions.length) {
+					const transactions = block.transactions.reverse();
+					this.transactionPool.onDeletedTransactions(transactions);
+					this.channel.publish(
+						'chain:transactions:confirmed:change',
+						block.transactions,
+					);
+				}
+				this.logger.info(
+					{ id: block.id, height: block.height },
+					'Deleted a block from the chain',
 				);
-			}
-			this.logger.info(
-				{ id: block.id, height: block.height },
-				'Deleted a block from the chain',
-			);
-			this.channel.publish('chain:blocks:change', block);
-		});
+				this.channel.publish('chain:blocks:change', block);
+			},
+		);
 
 		this.channel.subscribe(
 			'chain:processor:newBlock',
@@ -644,7 +651,7 @@ module.exports = class Chain {
 				);
 				this.channel.publish('chain:blocks:change', block);
 
-				if (!this.loader.syncing()) {
+				if (!this.synchronizer.isActive) {
 					this.channel.invoke('app:updateApplicationState', {
 						height: block.height,
 						lastBlockId: block.id,
@@ -655,11 +662,14 @@ module.exports = class Chain {
 			},
 		);
 
-		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
-			this.synchronizer.run(block).catch(err => {
-				this.logger.error({ err }, 'Error occurred during synchronization.');
-			});
-		});
+		this.channel.subscribe(
+			'chain:processor:sync',
+			({ data: { block, peerId } }) => {
+				this.synchronizer.run(block, peerId).catch(err => {
+					this.logger.error({ err }, 'Error occurred during synchronization.');
+				});
+			},
+		);
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
 			this.logger.trace(

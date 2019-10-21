@@ -456,11 +456,13 @@ describe('processor', () => {
 						undefined,
 					);
 				});
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
-					block: defaultLastBlock,
-					tx: txStub,
-					saveTempBlock: false,
-				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+					{
+						block: defaultLastBlock,
+						tx: txStub,
+					},
+					false,
+				);
 			});
 
 			it('should emit deleteBlock event for the last block', async () => {
@@ -560,11 +562,13 @@ describe('processor', () => {
 						undefined,
 					);
 				});
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
-					block: defaultLastBlock,
-					tx: txStub,
-					saveTempBlock: false,
-				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+					{
+						block: defaultLastBlock,
+						tx: txStub,
+					},
+					false,
+				);
 			});
 
 			it('should emit deleteBlock event for the last block', async () => {
@@ -1446,11 +1450,13 @@ describe('processor', () => {
 			});
 
 			it('should call remove from blocksModule', async () => {
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
-					block: defaultLastBlock,
-					tx: txStub,
-					saveTempBlock: false,
-				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+					{
+						block: defaultLastBlock,
+						tx: txStub,
+					},
+					false,
+				);
 			});
 
 			it('should publish event deleteBlock', async () => {

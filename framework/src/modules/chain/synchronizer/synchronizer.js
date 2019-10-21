@@ -24,8 +24,9 @@ class Synchronizer {
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
 		this.storageModule = storageModule;
-
 		this.mechanisms = [];
+
+		this.active = false;
 	}
 
 	/**
@@ -37,11 +38,20 @@ class Synchronizer {
 	async init() {
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
-			await utils.restoreBlocksUponStartup(
-				this.blocksModule,
-				this.processorModule,
-				this.storageModule,
-			);
+			try {
+				this.logger.info('Restoring blocks from temporary table');
+				await utils.restoreBlocksUponStartup(
+					this.blocksModule,
+					this.processorModule,
+					this.storageModule,
+				);
+				this.logger.info('Chain successfully restored');
+			} catch (err) {
+				this.logger.error(
+					{ err },
+					'Failed to restore blocks from temp table upon startup',
+				);
+			}
 		}
 	}
 
@@ -81,39 +91,40 @@ class Synchronizer {
 	 * @param {Object} receivedBlock - The block you received from network, used to choose sync mechanism
 	 * @return {*}
 	 */
-	async run(receivedBlock) {
-		if (this.activeMechanism) {
-			throw new Error(
-				`Synchronizer: ${
-					this.activeMechanism.constructor.name
-				} is already running`,
-			);
+	async run(receivedBlock, peerId) {
+		if (this.isActive) {
+			throw new Error('Synchronizer is already running');
 		}
 
+		this.active = true;
 		this.logger.info(
 			{ blockId: receivedBlock.id, height: receivedBlock.height },
 			'Starting synchronizer',
 		);
 
-		// Moving to a Different Chain
-		// 1. Step: Validate new tip of chain
-		await this.processorModule.validateDetached(receivedBlock);
+		try {
+			// Moving to a Different Chain
+			// 1. Step: Validate new tip of chain
+			await this.processorModule.validateDetached(receivedBlock);
 
-		// Choose the right mechanism to sync
-		const validMechanism = await this._determineSyncMechanism(receivedBlock);
+			// Choose the right mechanism to sync
+			const validMechanism = await this._determineSyncMechanism(receivedBlock);
 
-		if (!validMechanism) {
-			return this.logger.info(
-				{ blockId: receivedBlock.id },
-				'Syncing mechanism could not be determined for the given block',
-			);
+			if (!validMechanism) {
+				return this.logger.info(
+					{ blockId: receivedBlock.id },
+					'Syncing mechanism could not be determined for the given block',
+				);
+			}
+
+			this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
+
+			await validMechanism.run(receivedBlock, peerId);
+		} finally {
+			this.active = false;
 		}
 
-		this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
-
-		await validMechanism.run(receivedBlock);
-
-		return this.logger.info('Synchronization finished successfully');
+		return this.logger.info('Synchronization finished');
 	}
 
 	/**
@@ -121,15 +132,7 @@ class Synchronizer {
 	 * @return {*|never|boolean}
 	 */
 	get isActive() {
-		return this.activeMechanism ? this.activeMechanism.isActive : false;
-	}
-
-	/**
-	 * Return active mechanism
-	 * @return {Object}
-	 */
-	get activeMechanism() {
-		return this.mechanisms.find(mechanism => mechanism.isActive);
+		return this.active;
 	}
 
 	/**
