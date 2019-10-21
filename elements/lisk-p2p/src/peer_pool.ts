@@ -139,7 +139,10 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
 	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
-	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
+	private readonly _handlePeerMessage: (
+		message: P2PMessagePacket,
+		peerId: string,
+	) => void;
 	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleDiscoverPeer: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleOutboundPeerConnectAbort: (
@@ -205,9 +208,9 @@ export class PeerPool extends EventEmitter {
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handlePeerMessage = (message: P2PMessagePacket) => {
+		this._handlePeerMessage = (message: P2PMessagePacket, peerId: string) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_MESSAGE_RECEIVED, message);
+			this.emit(EVENT_MESSAGE_RECEIVED, message, peerId);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.

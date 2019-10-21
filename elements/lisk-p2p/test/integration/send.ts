@@ -32,10 +32,11 @@ describe('P2P.send', () => {
 
 		collectedMessages = [];
 		for (let p2p of p2pNodeList) {
-			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
+			p2p.on(EVENT_MESSAGE_RECEIVED, (message, peerId) => {
 				collectedMessages.push({
 					nodePort: p2p.nodeInfo.wsPort,
 					message,
+					peerId,
 				});
 			});
 		}
@@ -97,7 +98,7 @@ describe('P2P.send', () => {
 		expect(collectedMessages[0].message)
 			.to.have.property('data')
 			.which.is.equal('test');
-		expect(collectedMessages[0].message)
+		expect(collectedMessages[0])
 			.to.have.property('peerId')
 			.which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
 	});

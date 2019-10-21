@@ -295,9 +295,9 @@ module.exports = class Network {
 			}
 		});
 
-		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
+		this.p2p.on(EVENT_MESSAGE_RECEIVED, async (packet, peerId) => {
 			this.logger.trace(
-				`EVENT_MESSAGE_RECEIVED: Received inbound message for event ${
+				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${peerId} for event ${
 					packet.event
 				}`,
 			);
