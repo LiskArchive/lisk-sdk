@@ -85,7 +85,7 @@ class Processor {
 	}
 
 	// process is for standard processing of block, especially when received from network
-	async process(block) {
+	async process(block, { peerId } = {}) {
 		return this.sequence.add(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },
@@ -135,7 +135,7 @@ class Processor {
 					{ id: block.id, height: block.height },
 					'Detected different chain to sync',
 				);
-				this.channel.publish('chain:processor:sync', { block });
+				this.channel.publish('chain:processor:sync', { block, peerId });
 				return;
 			}
 			// Replacing a block
@@ -376,12 +376,14 @@ class Processor {
 				tx,
 			});
 			const blockJSON = await this.serialize(block);
-			await this.blocksModule.remove({
-				block,
-				blockJSON,
-				tx,
+			await this.blocksModule.remove(
+				{
+					block,
+					blockJSON,
+					tx,
+				},
 				saveTempBlock,
-			});
+			);
 			this.channel.publish('chain:processor:deleteBlock', {
 				block: cloneDeep(block),
 			});

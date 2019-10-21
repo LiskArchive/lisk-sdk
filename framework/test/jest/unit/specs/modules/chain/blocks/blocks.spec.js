@@ -1612,7 +1612,7 @@ describe('blocks', () => {
 	describe('getTempBlocks()', () => {
 		it('should retrieve all blocks from temp_block table', async () => {
 			// Act
-			await blocksInstance.getTempBlocks(stubs.tx);
+			await blocksInstance.getTempBlocks({}, {}, stubs.tx);
 
 			// Assert
 			expect(

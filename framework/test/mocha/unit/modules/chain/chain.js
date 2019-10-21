@@ -503,10 +503,10 @@ describe('Chain', () => {
 			await chain.bootstrap();
 			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
 			sinonSandbox.stub(chain.forger, 'forge');
-			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
 			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
+			sinonSandbox.stub(chain.synchronizer, 'isActive').get(() => false);
 		});
 
 		it('should halt if no delegates are enabled', async () => {
@@ -526,7 +526,7 @@ describe('Chain', () => {
 
 		it('should halt if the client is not ready to forge (is syncing)', async () => {
 			// Arrange
-			chain.loader.syncing.returns(true);
+			sinonSandbox.stub(chain.synchronizer, 'isActive').get(() => true);
 
 			// Act
 			await chain._forgingTask();
