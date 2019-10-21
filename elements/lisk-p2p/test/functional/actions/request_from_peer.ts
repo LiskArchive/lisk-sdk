@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import { P2P } from '../../../src/index';
 import {
 	createNetwork,
 	NETWORK_START_PORT,

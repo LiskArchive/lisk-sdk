@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, EVENT_MESSAGE_RECEIVED } from '../../src/index';
-import { wait } from '../utils/helpers';
+import { P2P, EVENT_MESSAGE_RECEIVED } from '../../../src/index';
+import { wait } from '../../utils/helpers';
 import { platform } from 'os';
 import {
 	createNetwork,
@@ -120,6 +120,7 @@ describe('P2P.send', () => {
 			}
 		});
 
+		// // TODO: #3389 Improve network test to be fast and stable
 		it('should send messages to peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
 			const nodePortToMessagesMap: any = {};
