@@ -13,28 +13,19 @@
  *
  */
 import { ConnectionKind, PeerKind } from './constants';
-export interface P2PPacket {
-	readonly data?: unknown;
-}
 
-export interface P2PRequestPacket extends P2PPacket {
+export interface P2PRequestPacket {
 	readonly data?: unknown;
 	readonly procedure: string;
 }
 
-export interface P2PResponsePacket extends P2PPacket {
+export interface P2PResponsePacket {
 	readonly data: unknown;
 }
 
-export interface P2PMessagePacket extends P2PPacket {
+export interface P2PMessagePacket {
 	readonly data?: unknown;
 	readonly event: string;
-}
-
-export interface P2PClosePacket {
-	readonly peerInfo: P2PPeerInfo;
-	readonly code: number;
-	readonly reason?: string;
 }
 
 // TODO later: Switch to LIP protocol format.
@@ -48,6 +39,12 @@ export interface ProtocolRPCRequestPacket {
 export interface ProtocolMessagePacket {
 	readonly data: unknown;
 	readonly event: string;
+}
+
+export interface P2PClosePacket {
+	readonly peerInfo: P2PPeerInfo;
+	readonly code: number;
+	readonly reason?: string;
 }
 
 export interface P2PPenalty {
