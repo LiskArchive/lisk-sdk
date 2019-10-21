@@ -140,7 +140,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				}
 
 				this.logger.debug(
-					{ fromId: blocks[0].id, toId: blocks[1].id },
+					{ fromId: blocks[0].id, toId: blocks[blocks.length - 1].id },
 					'Applying obtained blocks from peer',
 				);
 
