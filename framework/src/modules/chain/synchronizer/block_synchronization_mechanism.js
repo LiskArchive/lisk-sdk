@@ -107,13 +107,12 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	}
 
 	/**
-	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer` and applieis them
+	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer` and applies them
 	 *
 	 * @param {object} peerId - The ID of the peer to target
 	 * @param {string} fromId - The starting block ID to fetch from
 	 * @param {string} toId - The ending block ID
 	 * @throws {ApplyPenaltyAndRestartError} - In case the peer hasn't returned any block
-	 * @return {Promise<Array<object>>}
 	 */
 	async _requestAndApplyBlocksWithinIDs(peerId, fromId, toId) {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
