@@ -281,7 +281,7 @@ class Forger {
 	}
 
 	/**
-	 * Gets peers, checks consensus and generates new block, once delegates
+	 * Generates new block, once delegates
 	 * are enabled, client is ready to forge and is the correct slot.
 	 *
 	 * @returns {Promise}
