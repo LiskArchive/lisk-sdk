@@ -33,15 +33,18 @@ const updateDelegateVote = (
 	stateStore,
 	{ delegatePublicKey, amount, method },
 ) => {
-	const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
-	const delegateAccount = stateStore.account.get(delegateAddress);
-	const voteBigNum = new BigNum(delegateAccount.voteWeight || '0');
+	// FIXME: This hash potentially runs 101 * number of transactions now, so it should be searched by publickey
+	const delegateAccount = stateStore.account.find(
+		a => a.publicKey === delegatePublicKey,
+	);
+	if (!delegateAccount) {
+		throw new Error('Delegate account is not prepared');
+	}
+	const voteBigNum = new BigNum(delegateAccount.voteWeight);
 	const voteWeight = voteBigNum[method](amount).toString();
-	const updatedDelegateAccount = {
-		...delegateAccount,
-		voteWeight,
-	};
-	stateStore.account.set(delegateAddress, updatedDelegateAccount);
+	// FIXME: immutable operation are too slow because this will be called 101 * number of transactions now
+	delegateAccount.voteWeight = voteWeight;
+	stateStore.account.set(delegateAccount.address, delegateAccount);
 };
 
 const getRecipientAddress = (stateStore, transaction) => {
@@ -108,13 +111,14 @@ const updateRecipientDelegateVotes = (
 	const method = undo ? 'sub' : 'add';
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
 
-	return votedDelegatesPublicKeys
-		.map(delegatePublicKey => ({
+	for (const delegatePublicKey of votedDelegatesPublicKeys) {
+		updateDelegateVote(stateStore, {
 			delegatePublicKey,
 			amount,
 			method,
-		}))
-		.forEach(data => updateDelegateVote(stateStore, data));
+		});
+	}
+	return true;
 };
 
 const updateSenderDelegateVotes = (
@@ -157,13 +161,13 @@ const updateSenderDelegateVotes = (
 		);
 	}
 
-	return votedDelegatesPublicKeys
-		.map(delegatePublicKey => ({
+	for (const delegatePublicKey of votedDelegatesPublicKeys) {
+		updateDelegateVote(stateStore, {
 			delegatePublicKey,
 			amount,
 			method,
-		}))
-		.forEach(data => updateDelegateVote(stateStore, data));
+		});
+	}
 };
 
 const updateDelegateVotes = (stateStore, transaction, undo = false) => {
@@ -178,21 +182,19 @@ const updateDelegateVotes = (stateStore, transaction, undo = false) => {
 		? revertVotes(transaction.asset.votes)
 		: transaction.asset.votes;
 
-	return votes
-		.map(vote => {
-			const method = vote[0] === '+' ? 'add' : 'sub';
-			const delegatePublicKey = vote.slice(1);
+	for (const vote of votes) {
+		const method = vote[0] === '+' ? 'add' : 'sub';
+		const delegatePublicKey = vote.slice(1);
 
-			const senderAccount = stateStore.account.get(transaction.senderId);
-			const amount = new BigNum(senderAccount.balance).toString();
-
-			return {
-				delegatePublicKey,
-				amount,
-				method,
-			};
-		})
-		.forEach(data => updateDelegateVote(stateStore, data));
+		const senderAccount = stateStore.account.get(transaction.senderId);
+		const amount = new BigNum(senderAccount.balance).toString();
+		updateDelegateVote(stateStore, {
+			delegatePublicKey,
+			amount,
+			method,
+		});
+	}
+	return true;
 };
 
 const apply = (stateStore, transaction, exceptions = {}) => {
@@ -207,24 +209,39 @@ const undo = (stateStore, transaction, exceptions = {}) => {
 	updateDelegateVotes(stateStore, transaction, true);
 };
 
-const prepare = async (stateStore, transaction) => {
-	// Get delegate public keys whom sender voted for
-	const senderVotedPublicKeys =
-		stateStore.account.getOrDefault(transaction.senderId)
-			.votedDelegatesPublicKeys || [];
+const prepare = async (stateStore, transactions) => {
+	const publicKeys = transactions.map(transaction => {
+		// Get delegate public keys whom sender voted for
+		const senderVotedPublicKeys =
+			stateStore.account.getOrDefault(transaction.senderId)
+				.votedDelegatesPublicKeys || [];
 
-	const recipientId = getRecipientAddress(stateStore, transaction);
+		const recipientId = getRecipientAddress(stateStore, transaction);
 
-	// Get delegate public keys whom recipient voted for
-	const recipientVotedPublicKeys =
-		(recipientId &&
-			stateStore.account.getOrDefault(recipientId).votedDelegatesPublicKeys) ||
-		[];
+		// Get delegate public keys whom recipient voted for
+		const recipientVotedPublicKeys =
+			(recipientId &&
+				stateStore.account.getOrDefault(recipientId)
+					.votedDelegatesPublicKeys) ||
+			[];
+		return {
+			senderVotedPublicKeys,
+			recipientVotedPublicKeys,
+		};
+	});
+
+	const publicKeySet = new Set();
+	for (const publicKey of publicKeys) {
+		for (const pk of publicKey.senderVotedPublicKeys) {
+			publicKeySet.add(pk);
+		}
+		for (const pk of publicKey.recipientVotedPublicKeys) {
+			publicKeySet.add(pk);
+		}
+	}
 
 	// Get unique public key list from merged arrays
-	const senderRecipientVotedPublicKeys = [
-		...new Set([...senderVotedPublicKeys, ...recipientVotedPublicKeys]),
-	];
+	const senderRecipientVotedPublicKeys = Array.from(publicKeySet);
 
 	if (senderRecipientVotedPublicKeys.length === 0) {
 		return true;

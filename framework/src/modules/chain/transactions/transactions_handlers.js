@@ -121,11 +121,7 @@ const applyGenesisTransactions = storage => async (
 		await transaction.prepare(stateStore);
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
-	for (const transaction of transactions) {
-		// eslint-disable-next-line no-await-in-loop
-		await votesWeight.prepare(stateStore, transaction);
-	}
+	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {
 		// Fee is handled by Elements now so we set it to zero here. LIP-0012
@@ -154,7 +150,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-	await Promise.all(transactions.map(t => votesWeight.prepare(stateStore, t)));
+	await votesWeight.prepare(stateStore, transactions);
 
 	// Verify total spending of per account accumulative
 	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
@@ -171,6 +167,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 
 	const transactionsResponses = transactionsWithoutSpendingErrors.map(
 		transaction => {
+			// FIXME: optimize this since this takes more than 1ms per iteration
 			stateStore.account.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			if (transactionResponse.status !== TransactionStatus.OK) {
@@ -183,6 +180,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 			}
 
 			if (transactionResponse.status === TransactionStatus.OK) {
+				// FIXME: optimize this since this takes more than 1ms per iteration
 				votesWeight.apply(stateStore, transaction, exceptions);
 				stateStore.transaction.add(transaction);
 			}
@@ -279,7 +277,7 @@ const undoTransactions = (storage, exceptions) => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-	await Promise.all(transactions.map(t => votesWeight.prepare(stateStore, t)));
+	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
