@@ -502,6 +502,7 @@ describe('dpos.apply()', () => {
 			const finalizedBlockRoundStub = 5;
 			const bftRoundOffset = 2; // TODO: get from BFT constants
 			const expectedRound = finalizedBlockRoundStub - bftRoundOffset;
+			const expectedTx = undefined;
 			dpos.finalizedBlockRound = finalizedBlockRoundStub;
 
 			// Act
@@ -512,7 +513,8 @@ describe('dpos.apply()', () => {
 				{
 					round_lt: expectedRound,
 				},
-				undefined,
+				{},
+				expectedTx,
 			);
 		});
 
