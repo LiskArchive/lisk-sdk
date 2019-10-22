@@ -97,10 +97,9 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 				.mockResolvedValue(delegatePublicKeys);
 
 			// Act
-			const list = await dpos.getForgerPublicKeysForRound(
-				round,
+			const list = await dpos.getForgerPublicKeysForRound(round, {
 				delegateListRoundOffset,
-			);
+			});
 
 			// Assert
 			expect(list).toEqual(shuffledDelegatePublicKeys);
@@ -115,7 +114,7 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 			// Act && Assert
 			return expect(
-				dpos.getForgerPublicKeysForRound(round, delegateListRoundOffset),
+				dpos.getForgerPublicKeysForRound(round, { delegateListRoundOffset }),
 			).rejects.toThrow(`No delegate list found for round: ${round}`);
 		});
 	});

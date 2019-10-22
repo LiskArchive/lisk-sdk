@@ -108,11 +108,10 @@ class DelegatesInfo {
 				delegateListRoundOffset,
 			});
 
-			await Promise.all([
-				this._updateMissedBlocks(roundSummary, undo, tx),
-				this._updateBalanceRewardsAndFees(roundSummary, undo, tx),
-				this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx),
-			]);
+			// Can NOT execute in parallel as _updateVotedDelegatesVoteWeight uses data updated on _updateBalanceRewardsAndFees
+			await this._updateMissedBlocks(roundSummary, undo, tx);
+			await this._updateBalanceRewardsAndFees(roundSummary, undo, tx);
+			await this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx);
 
 			if (undo) {
 				const previousRound = round + 1;
@@ -154,6 +153,7 @@ class DelegatesInfo {
 	async _updateMissedBlocks(roundSummary, undo, tx) {
 		const missedBlocksDelegatePublicKeys = await this._getMissedBlocksDelegatePublicKeys(
 			roundSummary,
+			tx,
 		);
 
 		if (!missedBlocksDelegatePublicKeys.length) {
@@ -310,10 +310,12 @@ class DelegatesInfo {
 		round,
 		delegateListRoundOffset,
 		uniqForgersInfo,
+		tx,
 	}) {
 		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
 			round,
 			delegateListRoundOffset,
+			tx,
 		);
 
 		return expectedForgingPublicKeys.filter(
