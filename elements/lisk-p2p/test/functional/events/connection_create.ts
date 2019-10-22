@@ -32,7 +32,7 @@ import {
 	NETWORK_START_PORT,
 } from '../../utils/network_setup';
 
-describe.only(`Connection Create`, () => {
+describe(`Connection Create`, () => {
 	describe(`Events`, () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
