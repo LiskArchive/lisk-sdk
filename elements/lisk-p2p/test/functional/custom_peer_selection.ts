@@ -28,8 +28,8 @@ import { ConnectionKind } from '../../src/constants';
 import {
 	POPULATOR_INTERVAL,
 	createNetwork,
-	SEED_PEER_IP,
 	destroyNetwork,
+	BASE_PEER_IP,
 } from '../utils/network_setup';
 
 describe('Custom peer selection', () => {
@@ -115,8 +115,8 @@ describe('Custom peer selection', () => {
 		) =>
 			[...new Array(networkSize / 2).keys()]
 				.map(index => ({
-					ipAddress: SEED_PEER_IP,
-					wsPort: startPort + ((index + 2) % networkSize),
+					ipAddress: BASE_PEER_IP + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
 				}))
 				.filter(seedPeer => seedPeer.wsPort !== startPort + index);
 

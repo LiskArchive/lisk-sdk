@@ -17,7 +17,7 @@ import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
-describe.only('Blacklisted/fixed/whitelisted peers', () => {
+describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
 	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 	const NETWORK_START_PORT = 5000;
