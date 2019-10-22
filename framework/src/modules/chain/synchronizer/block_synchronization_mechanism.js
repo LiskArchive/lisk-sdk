@@ -151,7 +151,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 					await this.processorModule.process(deserializedBlock);
 				}
 
-				finished = this.blocks.lastBlock.id === toId || false;
+				finished = this.blocks.lastBlock.id === toId;
 			} else {
 				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
 			}
