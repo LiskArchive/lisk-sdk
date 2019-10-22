@@ -27,6 +27,7 @@ export const DEFAULT_ACK_TIMEOUT = 500;
 export const RATE_CALCULATION_INTERVAL = 10000;
 export const WEB_SOCKET_ENGINE = 'ws';
 export const SEED_PEER_IP = '127.0.0.1';
+export const BASE_PEER_IP = '127.0.0.';
 export const NETWORK_CREATION_WAIT_TIME = 1000;
 export const NETWORK_DESTROY_WAIT_TIME = 1000;
 
@@ -67,7 +68,7 @@ export const createNetwork = async ({
 				? []
 				: [
 						{
-							ipAddress: SEED_PEER_IP,
+							ipAddress: BASE_PEER_IP + index,
 							wsPort: NETWORK_START_PORT + index - 1,
 						},
 				  ];
@@ -87,6 +88,7 @@ export const createNetwork = async ({
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
+			hostIp: BASE_PEER_IP + (index + 1),
 			nodeInfo: {
 				wsPort: nodePort,
 				nethash: nodeInfoConstants.nethash,
