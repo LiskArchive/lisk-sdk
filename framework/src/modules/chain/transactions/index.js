@@ -26,6 +26,7 @@ const {
 	processSignature,
 	applyGenesisTransactions,
 } = require('./transactions_handlers');
+const { sortTransactions } = require('./sort');
 
 module.exports = {
 	composeTransactionSteps,
@@ -38,4 +39,5 @@ module.exports = {
 	undoTransactions,
 	verifyTransactions,
 	processSignature,
+	sortTransactions,
 };

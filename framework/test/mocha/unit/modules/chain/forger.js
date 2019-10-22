@@ -17,13 +17,12 @@
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const {
-	Forger,
-	getDelegateKeypairForCurrentSlot,
-} = require('../../../../../src/modules/chain/forger');
+const forger = require('../../../../../src/modules/chain/forger');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../../fixtures/accounts');
+
+const { Forger, getDelegateKeypairForCurrentSlot } = forger;
 
 describe('forge', () => {
 	const mockChannel = {
@@ -44,11 +43,15 @@ describe('forge', () => {
 	};
 	const testDelegate = genesisDelegates.delegates[0];
 	const numOfActiveDelegates = 101;
+	const forgingWaitThreshold = 2;
 
 	let forgeModule;
 	let defaultPassword;
 
-	afterEach(() => sinonSandbox.restore());
+	afterEach(async () => {
+		sinonSandbox.reset();
+		sinonSandbox.restore();
+	});
 
 	describe('Forger', () => {
 		beforeEach(async () => {
@@ -59,10 +62,26 @@ describe('forge', () => {
 				forgingDelegates: genesisDelegates.delegates,
 				forgingForce: false,
 				forgingDefaultPassword: testDelegate.password,
-				roundsModule: {},
-				transactionPoolModule: {},
-				blocksModule: {},
-				peersModule: {},
+				forgingWaitThreshold,
+				slots: {
+					getSlotNumber: sinonSandbox.stub(),
+					getSlotTime: sinonSandbox.stub(),
+					calcRound: sinonSandbox.stub(),
+					getRealTime: sinonSandbox.stub(),
+				},
+				dposModule: {
+					getForgerPublicKeysForRound: sinonSandbox.stub(),
+				},
+				transactionPoolModule: {
+					getUnconfirmedTransactionList: sinonSandbox.stub(),
+				},
+				blocksModule: {
+					filterReadyTransactions: sinonSandbox.stub().returns([]),
+				},
+				processorModule: {
+					create: sinonSandbox.stub(),
+					process: sinonSandbox.stub(),
+				},
 			});
 		});
 
@@ -750,174 +769,323 @@ describe('forge', () => {
 			});
 		});
 
-		describe('getDelegateKeypairForCurrentSlot', () => {
-			const genesis1 = {
-				passphrase:
-					'robust swift grocery peasant forget share enable convince deputy road keep cheap',
-				publicKey:
-					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-			};
+		describe('forge', () => {
+			let getSlotNumberStub;
 
-			const genesis2 = {
-				passphrase:
-					'weapon van trap again sustain write useless great pottery urge month nominee',
-				publicKey:
-					'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+			const lastBlock = {
+				id: '6846255774763267134',
+				height: 9187702,
+				timestamp: 93716450,
 			};
-
-			const genesis3 = {
-				passphrase:
-					'course genuine appear elite library fabric armed chat pipe scissors mask novel',
-				publicKey:
-					'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+			const currentSlot = 5;
+			const lastBlockSlot = 4;
+			const forgedBlock = {
+				height: 1,
+				id: '1',
+				timestamp: Date.now(),
+				reward: 1,
 			};
-
-			let genesis1Keypair;
-			let genesis2Keypair;
-			let genesis3Keypair;
-			let delegatesModuleStub;
 
 			beforeEach(async () => {
-				const genesis1KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-					genesis1.passphrase,
-				);
-				genesis1Keypair = {
-					publicKey: genesis1KeypairBuffer.publicKeyBytes,
-					privateKey: genesis1KeypairBuffer.privateKeyBytes,
-				};
-				const genesis2KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-					genesis2.passphrase,
-				);
-				genesis2Keypair = {
-					publicKey: genesis2KeypairBuffer.publicKeyBytes,
-					privateKey: genesis2KeypairBuffer.privateKeyBytes,
-				};
-				const genesis3KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-					genesis3.passphrase,
-				);
-				genesis3Keypair = {
-					publicKey: genesis3KeypairBuffer.publicKeyBytes,
-					privateKey: genesis3KeypairBuffer.privateKeyBytes,
-				};
+				forgeModule.blocksModule.lastBlock = lastBlock;
+				forgeModule.processorModule.create.resolves(forgedBlock);
+				getSlotNumberStub = forgeModule.slots.getSlotNumber;
 
-				forgeModule.keypairs[genesis1.publicKey] = genesis1Keypair;
-				forgeModule.keypairs[genesis2.publicKey] = genesis2Keypair;
-				forgeModule.keypairs[genesis3.publicKey] = genesis3Keypair;
+				getSlotNumberStub.withArgs().returns(currentSlot);
+				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
+				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
+					'privateKey',
+					'utf8',
+				);
 
-				delegatesModuleStub = {
-					generateDelegateList: sinonSandbox.stub(),
-				};
+				// TODO: Check why its not reset through sandbox.reset in after each of previous tests
+				mockLogger.error.reset();
+				mockLogger.debug.reset();
+				mockLogger.info.reset();
 			});
 
-			it('should return genesis_1 keypair for slot N where (N % 101 === 35) in the first round', async () => {
-				// For round 1, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 35, 53 and 16 respectively.
-				const currentSlot = 35;
-				const round = 1;
+			it('should log message and return if current block slot is same as last block slot', async () => {
+				getSlotNumberStub.withArgs().returns(currentSlot);
+				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(currentSlot);
 
-				delegatesModuleStub.generateDelegateList
-					.withArgs(round)
-					.resolves(delegatesRoundsList[round]);
+				const data = await forgeModule.forge();
 
-				const {
-					publicKey,
-					privateKey,
-				} = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
-					currentSlot,
-					round,
-					numOfActiveDelegates,
+				expect(data).to.be.undefined;
+				expect(mockLogger.debug).to.be.calledOnce;
+				expect(mockLogger.debug).to.be.calledWith(
+					{ slot: 5 },
+					'Block already forged for the current slot',
 				);
-				expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
-				expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
 			});
 
-			it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', async () => {
-				// For round 2, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 50, 73 and 100 respectively.
-				const currentSlot = 578;
-				const round = 2;
-
-				delegatesModuleStub.generateDelegateList.resolves(
-					delegatesRoundsList[round],
-				);
-
-				const {
-					publicKey,
-					privateKey,
-				} = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
-					currentSlot,
-					round,
-					numOfActiveDelegates,
-				);
-				expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
-				expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
-			});
-
-			it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', async () => {
-				// For round 3, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 12, 16 and 41 respectively.
-				const currentSlot = 1051;
-				const round = 3;
-
-				delegatesModuleStub.generateDelegateList.resolves(
-					delegatesRoundsList[round],
-				);
-
-				const {
-					publicKey,
-					privateKey,
-				} = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
-					currentSlot,
-					round,
-					numOfActiveDelegates,
-				);
-				expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
-				expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
-			});
-
-			it('should return null when the slot does not belong to a public key set in keypairs', async () => {
-				// For round 4, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 93, 68 and 87 respectively.
-				// Any other slot should return null as genesis_1, genesis_2 and genesis_3 are the only one forging delegates set for this test
-				const currentSlot = 1;
-				const round = 4;
-
-				delegatesModuleStub.generateDelegateList.resolves(
-					delegatesRoundsList[round],
-				);
-
-				const keyPair = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
-					currentSlot,
-					round,
-					numOfActiveDelegates,
-				);
-				expect(keyPair).to.be.null;
-			});
-
-			it('should return error when `generateDelegateList` fails', async () => {
-				const currentSlot = 1;
-				const round = 4;
-
-				const expectedError = new Error('generateDelegateList error');
-
-				delegatesModuleStub.generateDelegateList.rejects(expectedError);
+			it('should log message and return if getDelegateKeypairForCurrentSlot failed', async () => {
+				const rejectionError = new Error('CustomKeypairForCurrentError');
+				sinonSandbox
+					.stub(forger, 'getDelegateKeypairForCurrentSlot')
+					.rejects(rejectionError);
+				let data;
 
 				try {
-					await getDelegateKeypairForCurrentSlot(
-						delegatesModuleStub,
-						forgeModule.keypairs,
-						currentSlot,
-						round,
-						numOfActiveDelegates,
+					data = await forgeModule.forge();
+				} catch (e) {
+					expect(data).to.be.undefined;
+					expect(mockLogger.error).to.be.calledOnce;
+					expect(mockLogger.error).to.be.calledWithExactly(
+						{ err: rejectionError },
+						'Skipping delegate slot',
 					);
-				} catch (error) {
-					expect(error).to.equal(expectedError);
 				}
 			});
+
+			it('should log message and return if getDelegateKeypairForCurrentSlot return no result', async () => {
+				sinonSandbox
+					.stub(forger, 'getDelegateKeypairForCurrentSlot')
+					.resolves(null);
+
+				const data = await forgeModule.forge();
+				expect(data).to.be.undefined;
+				expect(mockLogger.debug).to.be.calledOnce;
+				expect(mockLogger.debug).to.be.calledWith(
+					{ currentSlot: 5 },
+					'Waiting for delegate slot',
+				);
+			});
+
+			it('should wait for threshold time if last block not received', async () => {
+				sinonSandbox
+					.stub(forger, 'getDelegateKeypairForCurrentSlot')
+					.resolves(testDelegate);
+				const waitThresholdMs = forgingWaitThreshold * 1000;
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 2).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
+
+				forgeModule.slots.getRealTime.returns(currentSlotTime);
+
+				const changedLastBlockSlot = currentSlot - 2;
+				getSlotNumberStub
+					.withArgs(lastBlock.timestamp)
+					.returns(changedLastBlockSlot);
+
+				await forgeModule.forge();
+				expect(forgeModule.processorModule.create).to.not.been.called;
+				expect(mockLogger.debug).to.be.calledWithExactly('Slot information', {
+					currentSlot,
+					lastBlockSlot: changedLastBlockSlot,
+					waitThreshold: waitThresholdMs,
+				});
+
+				clock.restore();
+			});
+
+			it('should not wait if threshold time passed and last block not received', async () => {
+				sinonSandbox
+					.stub(forger, 'getDelegateKeypairForCurrentSlot')
+					.resolves(testDelegate);
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 3).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
+
+				const changedLastBlockSlot = currentSlot - 2;
+
+				forgeModule.slots.getRealTime.returns(currentSlotTime);
+				getSlotNumberStub
+					.withArgs(lastBlock.timestamp)
+					.returns(changedLastBlockSlot);
+
+				await forgeModule.forge();
+				expect(forgeModule.processorModule.create).to.be.calledOnce;
+				clock.restore();
+			});
+
+			it('should not wait if threshold remaining but last block already received', async () => {
+				sinonSandbox
+					.stub(forger, 'getDelegateKeypairForCurrentSlot')
+					.resolves(testDelegate);
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 1).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
+
+				const lastBlockSlotChanged = currentSlot - 1;
+				forgeModule.slots.getRealTime.returns(currentSlotTime);
+				getSlotNumberStub
+					.withArgs(lastBlock.timestamp)
+					.returns(lastBlockSlotChanged);
+
+				await forgeModule.forge();
+				expect(forgeModule.processorModule.create).to.be.calledOnce;
+				clock.restore();
+			});
+		});
+	});
+
+	describe('getDelegateKeypairForCurrentSlot', () => {
+		const genesis1 = {
+			passphrase:
+				'robust swift grocery peasant forget share enable convince deputy road keep cheap',
+			publicKey:
+				'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+		};
+
+		const genesis2 = {
+			passphrase:
+				'weapon van trap again sustain write useless great pottery urge month nominee',
+			publicKey:
+				'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+		};
+
+		const genesis3 = {
+			passphrase:
+				'course genuine appear elite library fabric armed chat pipe scissors mask novel',
+			publicKey:
+				'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+		};
+
+		let genesis1Keypair;
+		let genesis2Keypair;
+		let genesis3Keypair;
+		let dposModuleStub;
+
+		beforeEach(async () => {
+			const genesis1KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis1.passphrase,
+			);
+			genesis1Keypair = {
+				publicKey: genesis1KeypairBuffer.publicKeyBytes,
+				privateKey: genesis1KeypairBuffer.privateKeyBytes,
+			};
+			const genesis2KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis2.passphrase,
+			);
+			genesis2Keypair = {
+				publicKey: genesis2KeypairBuffer.publicKeyBytes,
+				privateKey: genesis2KeypairBuffer.privateKeyBytes,
+			};
+			const genesis3KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
+				genesis3.passphrase,
+			);
+			genesis3Keypair = {
+				publicKey: genesis3KeypairBuffer.publicKeyBytes,
+				privateKey: genesis3KeypairBuffer.privateKeyBytes,
+			};
+
+			forgeModule.keypairs[genesis1.publicKey] = genesis1Keypair;
+			forgeModule.keypairs[genesis2.publicKey] = genesis2Keypair;
+			forgeModule.keypairs[genesis3.publicKey] = genesis3Keypair;
+
+			dposModuleStub = {
+				getForgerPublicKeysForRound: sinonSandbox.stub(),
+			};
+		});
+
+		it('should return genesis_1 keypair for slot N where (N % 101 === 35) in the first round', async () => {
+			// For round 1, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 35, 53 and 16 respectively.
+			const currentSlot = 35;
+			const round = 1;
+
+			dposModuleStub.getForgerPublicKeysForRound
+				.withArgs(round)
+				.resolves(delegatesRoundsList[round]);
+
+			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
+				dposModuleStub,
+				forgeModule.keypairs,
+				currentSlot,
+				round,
+				numOfActiveDelegates,
+			);
+			expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
+			expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
+		});
+
+		it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', async () => {
+			// For round 2, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 50, 73 and 100 respectively.
+			const currentSlot = 578;
+			const round = 2;
+
+			dposModuleStub.getForgerPublicKeysForRound.resolves(
+				delegatesRoundsList[round],
+			);
+
+			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
+				dposModuleStub,
+				forgeModule.keypairs,
+				currentSlot,
+				round,
+				numOfActiveDelegates,
+			);
+			expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
+			expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
+		});
+
+		it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', async () => {
+			// For round 3, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 12, 16 and 41 respectively.
+			const currentSlot = 1051;
+			const round = 3;
+
+			dposModuleStub.getForgerPublicKeysForRound.resolves(
+				delegatesRoundsList[round],
+			);
+
+			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
+				dposModuleStub,
+				forgeModule.keypairs,
+				currentSlot,
+				round,
+				numOfActiveDelegates,
+			);
+			expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
+			expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
+		});
+
+		it('should return null when the slot does not belong to a public key set in keypairs', async () => {
+			// For round 4, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 93, 68 and 87 respectively.
+			// Any other slot should return null as genesis_1, genesis_2 and genesis_3 are the only one forging delegates set for this test
+			const currentSlot = 1;
+			const round = 4;
+
+			dposModuleStub.getForgerPublicKeysForRound.resolves(
+				delegatesRoundsList[round],
+			);
+
+			const keyPair = await getDelegateKeypairForCurrentSlot(
+				dposModuleStub,
+				forgeModule.keypairs,
+				currentSlot,
+				round,
+				numOfActiveDelegates,
+			);
+			expect(keyPair).to.be.null;
+		});
+
+		it('should return error when `getForgerPublicKeysForRound` fails', async () => {
+			const currentSlot = 1;
+			const round = 4;
+
+			const expectedError = new Error('getForgerPublicKeysForRound error');
+
+			dposModuleStub.getForgerPublicKeysForRound.rejects(expectedError);
+
+			try {
+				await getDelegateKeypairForCurrentSlot(
+					dposModuleStub,
+					forgeModule.keypairs,
+					currentSlot,
+					round,
+					numOfActiveDelegates,
+				);
+			} catch (error) {
+				expect(error).to.equal(expectedError);
+			}
 		});
 	});
 });

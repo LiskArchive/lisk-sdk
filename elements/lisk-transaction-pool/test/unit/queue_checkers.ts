@@ -96,7 +96,7 @@ describe('queueCheckers', () => {
 			).to.be.a('function');
 		});
 
-		it('should call checkTransactionPropertyForValues with transactions senderPublicKeys values and senderPublicKey property', () => {
+		it('should call checkTransactionPropertyForValues with transactions senderPublicKeys values and senderId property', () => {
 			queueCheckers.checkTransactionForSenderPublicKey(transactions);
 			const senderProperty: queueCheckers.TransactionFilterableKeys =
 				'senderPublicKey';
@@ -147,12 +147,12 @@ describe('queueCheckers', () => {
 			).to.be.a('function');
 		});
 
-		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderId property', () => {
+		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderPublicKey property', () => {
 			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions);
 			const senderId: queueCheckers.TransactionFilterableKeys = 'senderId';
-			const transactionRecipientIds = transactions.map(
-				(transaction: Transaction) => transaction.recipientId,
-			);
+			const transactionRecipientIds = transactions
+				.map((transaction: Transaction) => transaction.asset.recipientId)
+				.filter(id => id !== undefined);
 			return expect(
 				queueCheckers.checkTransactionPropertyForValues as SinonStub,
 			).to.be.calledWith(transactionRecipientIds, senderId);

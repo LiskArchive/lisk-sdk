@@ -20,10 +20,10 @@ const {
 } = require('../../../../../../src/modules/chain/interface_adapters');
 const {
 	registeredTransactions,
-} = require('../../../utils/registered_transactions');
+} = require('../../../../utils/registered_transactions');
 
 describe('Loader', () => {
-	describe('#_getTransactionsFromNetwork', () => {
+	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
 		let loader;
 		let channelStub;
 		let transactionPoolModuleStub;
@@ -89,7 +89,7 @@ describe('Loader', () => {
 			it('should not throw an error', async () => {
 				let error;
 				try {
-					await loader._getTransactionsFromNetwork();
+					await loader._getUnconfirmedTransactionsFromNetwork();
 				} catch (err) {
 					error = err;
 				}
@@ -97,7 +97,7 @@ describe('Loader', () => {
 			});
 
 			it('should process the transaction with transactionPoolModule', async () => {
-				await loader._getTransactionsFromNetwork();
+				await loader._getUnconfirmedTransactionsFromNetwork();
 				expect(
 					transactionPoolModuleStub.processUnconfirmedTransaction,
 				).toHaveBeenCalledTimes(1);
@@ -113,7 +113,7 @@ describe('Loader', () => {
 			it('should throw an error', async () => {
 				let error;
 				try {
-					await loader._getTransactionsFromNetwork();
+					await loader._getUnconfirmedTransactionsFromNetwork();
 				} catch (err) {
 					error = err;
 				}
@@ -147,26 +147,11 @@ describe('Loader', () => {
 					id: 'blockID',
 				},
 			};
-			const peersModuleStub = {
-				isPoorConsensus: jest.fn().mockReturnValue(true),
-			};
 			loader = new Loader({
 				logger: loggerStub,
 				channel: channelStub,
 				blocksModule: blocksModuleStub,
-				peersModule: peersModuleStub,
 				interfaceAdapters,
-			});
-		});
-
-		describe('when blocks endpoint returns success false', () => {
-			beforeEach(async () => {
-				channelStub.invoke.mockReturnValue({ data: { success: false } });
-			});
-
-			it('should call recoverChain of blocks module', async () => {
-				await loader._loadBlocksFromNetwork();
-				expect(blocksModuleStub.recoverChain).toHaveBeenCalledTimes(5);
 			});
 		});
 

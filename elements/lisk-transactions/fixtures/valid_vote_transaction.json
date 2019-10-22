@@ -4,14 +4,11 @@
 		"type": 3,
 		"timestamp": 1657012,
 		"senderPublicKey": "961d1a1057a09f865291873e9ba3d0af7b2a3a1e971bb7576a2aab1c526acbcd",
-		"senderId": "10773624498522558426L",
-		"recipientId": "10773624498522558426L",
-		"recipientPublicKey": "961d1a1057a09f865291873e9ba3d0af7b2a3a1e971bb7576a2aab1c526acbcd",
-		"amount": "0",
-		"fee": "100000000",
 		"signature": "8ac892e223db5cc6695563ffbbb13e86d099d62d41f86e8131f8a03082c51a3b868830a5ca4a60cdb10a63dc0605bf217798dfb00f599e37491b5e701f856704",
 		"signatures": [],
 		"asset": {
+			"amount": "0",
+			"recipientId": "10773624498522558426L",
 			"votes": [
 				"+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b",
 				"+633698916662935403780f04fd01119f32f9cd180a3b104b67c5ae5ebb6d5593",
@@ -54,14 +51,11 @@
 		"type": 3,
 		"timestamp": 47247576,
 		"senderPublicKey": "30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483",
-		"senderId": "8004805717140184627L",
-		"recipientId": "8004805717140184627L",
-		"recipientPublicKey": "30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483",
-		"amount": "0",
-		"fee": "100000000",
 		"signature": "1728b2c6c86309f81354d131bfd980494ae3a80568958b234ef4701e28de46bed7a6f40aecec0abcc3d094eb2e1d72185329a357297ab77a126983a570d4570a",
 		"signatures": [],
 		"asset": {
+			"amount": "0",
+			"recipientId": "8004805717140184627L",
 			"votes": [
 				"+633698916662935403780f04fd01119f32f9cd180a3b104b67c5ae5ebb6d5593",
 				"+b59c6580a05ae00896f03dd66205ac141a22599674cbf0db6654a0908b73e5e5",
@@ -104,14 +98,11 @@
 		"type": 3,
 		"timestamp": 60639370,
 		"senderPublicKey": "30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483",
-		"senderId": "8004805717140184627L",
-		"recipientId": "8004805717140184627L",
-		"recipientPublicKey": "30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483",
-		"amount": "0",
-		"fee": "100000000",
 		"signature": "1238a258f019b74f6fd86c489d26f1898ccf6ffb0445586108aa60f6a9f8e07818b261e7471b829986b836b17608be051cbc1eac46305856e61045c5fb76c303",
 		"signatures": [],
 		"asset": {
+			"amount": "0",
+			"recipientId": "8004805717140184627L",
 			"votes": [
 				"+473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c"
 			]

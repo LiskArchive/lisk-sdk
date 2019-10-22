@@ -27,7 +27,6 @@ const generatePeerHeader = function(headers = {}) {
 	const httpPort = headers.httpPort || random.number(1025, 65536);
 
 	const defaults = {
-		broadhash: testConfig.app.nethash,
 		nethash: testConfig.app.nethash,
 		state: 2,
 		height: 1,

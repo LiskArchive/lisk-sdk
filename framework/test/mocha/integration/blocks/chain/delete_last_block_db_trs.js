@@ -35,7 +35,6 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 		await storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 				storage.adapter.db.none('UPDATE mem_accounts SET "producedBlocks" = 0'),
 			]);
 		});
@@ -61,8 +60,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				return resolve(b);
 			});
 		});
-		await library.modules.blocks.blocksChain.applyBlock(block, true);
-		library.modules.blocks._lastBlock = block;
+		await library.modules.processor.process(block);
 	});
 
 	describe('popLastBlock', () => {
@@ -75,23 +73,18 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should fail with proper error', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('PreviousBlock is null');
 					}
 				});
 			});
 
-			describe('when backwardTickStep fails', () => {
+			describe('when dpos.undo fails', () => {
 				beforeEach(async () => {
 					sinonSandbox
-						.stub(library.modules.blocks.roundsModule, 'backwardTick')
-						.callThrough()
-						.withArgs(block, sinonSandbox.match.any)
-						.callsArgWith(2, 'err');
+						.stub(library.modules.dpos, 'undo')
+						.throws(new Error('dposModule.undo err'));
 				});
 
 				afterEach(async () => {
@@ -100,40 +93,30 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should fail with proper error message', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
-						expect(error).to.eql('err');
+						expect(error.message).to.eql('dposModule.undo err');
 					}
 				});
 
-				it('modules.rounds.backwardTick stub should be called once', async () => {
+				it('modules.dpos.undo stub should be called once', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error).to.exist;
-						expect(library.modules.blocks.roundsModule.backwardTick).to.be
-							.calledOnce;
+						expect(library.modules.dpos.undo).to.be.calledOnce;
 					}
 				});
 
 				it('should not change balance in mem_accounts table', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error).to.exist;
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId,
+						fundTrsForAccount1.asset.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
 						transferAmount.toString(),
@@ -144,10 +127,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when deleteBlockStep fails', () => {
 				beforeEach(async () => {
 					sinonSandbox
-						.stub(
-							library.modules.blocks.blocksChain.storage.entities.Block,
-							'delete',
-						)
+						.stub(library.modules.blocks.storage.entities.Block, 'delete')
 						.rejects(new Error('err'));
 				});
 
@@ -157,10 +137,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('should fail with proper error message', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
@@ -168,42 +145,32 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 				it('modules.blocks.chain.deleteBlock should be called once', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
-					expect(
-						library.modules.blocks.blocksChain.storage.entities.Block.delete,
-					).to.be.calledOnce;
+					expect(library.modules.blocks.storage.entities.Block.delete).to.be
+						.calledOnce;
 				});
 
 				it('should not change balance in mem_accounts table', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId,
+						fundTrsForAccount1.asset.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
 						transferAmount.toString(),
 					);
 				});
 
-				it('should not perform backwardTick', async () => {
+				it('should not perform dpos.undo', async () => {
 					try {
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
@@ -218,17 +185,11 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 		describe('when deleteLastBlock succeeds', () => {
 			it('should not return an error', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 			});
 
 			it('should delete block', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 				const ids = await new Promise((resolve, reject) => {
 					localCommon.getBlocks(library, (getBlocksErr, blockIds) => {
 						if (getBlocksErr) {
@@ -241,10 +202,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			});
 
 			it('should delete all transactions of block', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 				const transactions = await new Promise((resolve, reject) => {
 					localCommon.getTransactionFromModule(
 						library,
@@ -261,22 +219,16 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			});
 
 			it('should revert balance for accounts in block', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+				await library.modules.processor.deleteLastBlock();
 				const account = await localCommon.getAccountFromDb(
 					library,
-					fundTrsForAccount1.recipientId,
+					fundTrsForAccount1.asset.recipientId,
 				);
 				expect(account.mem_accounts.balance).to.equal('0');
 			});
 
-			it('should perform backwardTick', async () => {
-				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock,
-				);
-				library.modules.blocks._lastBlock = newLastBlock;
+			it('should perform dpos.undo', async () => {
+				await library.modules.processor.deleteLastBlock();
 				const account = await localCommon.getAccountFromDb(
 					library,
 					getAddressFromPublicKey(block.generatorPublicKey),

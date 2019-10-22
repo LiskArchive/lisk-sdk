@@ -22,7 +22,7 @@ const {
 	castVotes,
 	registerMultisignature,
 	createDapp,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -42,11 +42,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 		describe('errors', () => {
 			it('should fail when trying to delete genesis block', async () => {
 				try {
-					await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock,
-					);
+					await library.modules.processor.deleteLastBlock();
 				} catch (err) {
-					expect(err.message).to.equal('Cannot delete genesis block');
+					expect(err.message).to.equal('Cannot undo genesis block');
 				}
 			});
 		});
@@ -113,10 +111,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
-					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock,
-					);
-					library.modules.blocks._lastBlock = newLastBlock;
+					await library.modules.processor.deleteLastBlock();
+					const newLastBlock = library.modules.blocks.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -198,10 +194,10 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
-					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+					await library.modules.processor.deleteLastBlock(
 						library.modules.blocks.lastBlock,
 					);
-					library.modules.blocks._lastBlock = newLastBlock;
+					const newLastBlock = library.modules.blocks.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -251,9 +247,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.null;
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.be.null;
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should forge a block', done => {
@@ -278,17 +273,14 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.equal(testAccount.username);
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.equal(null);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
-					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock,
-					);
-					library.modules.blocks._lastBlock = newLastBlock;
+					await library.modules.processor.deleteLastBlock();
+					const newLastBlock = library.modules.blocks.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -304,9 +296,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.null;
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.be.null;
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should forge a block with pool transaction', done => {
@@ -327,9 +318,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.equal(null);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 			});
 
@@ -370,10 +360,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
-					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock,
-					);
-					library.modules.blocks._lastBlock = newLastBlock;
+					await library.modules.processor.deleteLastBlock();
+					const newLastBlock = library.modules.blocks.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -386,7 +374,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.votedDelegatesPublicKeys).to.be.null;
+					expect(account.votedDelegatesPublicKeys).to.eql([]);
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -432,11 +420,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						lifetime: 1,
 						minimum: 1,
 					});
-					const signature = transactionUtils.multiSignTransaction(
+					const signatureObject = createSignatureObject(
 						multisigTransaction,
 						accountFixtures.existingDelegate.passphrase,
 					);
-					multisigTransaction.signatures = [signature];
+					multisigTransaction.signatures = [signatureObject.signature];
 					multisigTransaction.ready = true;
 
 					localCommon.addTransactionsAndForge(
@@ -462,10 +450,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
-					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock,
-					);
-					library.modules.blocks._lastBlock = newLastBlock;
+					await library.modules.processor.deleteLastBlock();
+					const newLastBlock = library.modules.blocks.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -480,7 +466,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.be.null;
+					expect(account.membersPublicKeys).to.eql([]);
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -544,10 +530,10 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should delete last block', async () => {
 						const transactions = library.modules.blocks.lastBlock.transactions;
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						await library.modules.processor.deleteLastBlock(
 							library.modules.blocks.lastBlock,
 						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						const newLastBlock = library.modules.blocks.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);
@@ -609,10 +595,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should delete last block', async () => {
 						const transactions = library.modules.blocks.lastBlock.transactions;
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						await library.modules.processor.deleteLastBlock();
+						const newLastBlock = library.modules.blocks.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);
@@ -678,10 +662,10 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should delete last block', async () => {
 						const transactions = library.modules.blocks.lastBlock.transactions;
-						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						await library.modules.processor.deleteLastBlock(
 							library.modules.blocks.lastBlock,
 						);
-						library.modules.blocks._lastBlock = newLastBlock;
+						const newLastBlock = library.modules.blocks.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);

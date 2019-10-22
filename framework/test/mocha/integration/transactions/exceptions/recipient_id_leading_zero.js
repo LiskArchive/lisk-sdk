@@ -42,18 +42,19 @@ describe('exceptions for senderPublicKey transactions', () => {
 			'99f1d6d200ce1d45783e1e5d01f3c392d9e7cb6750226bbf3ec2956745f86543',
 		recipientPublicKey: '',
 		senderId: '12530546017554603584L',
-		recipientId: '000123L',
-		amount: '312200000',
 		fee: '10000000',
 		signature:
 			'37e06997d11a8ee98d36edc154fd1e9cca963fecedf87d6cbeee678f0bbd16f8992a3c4f0277e9c041b9fc04bb572f7188aa35670afa6ced4831ca1f561b0c09',
 		signatures: [],
-		asset: {},
+		asset: {
+			amount: '312200000',
+			recipientId: '000123L',
+		},
 	};
 
 	localCommon.beforeBlock('system_exceptions_recipientId_leading_zero', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			recipientLeadingZero: {
 				'12710869213547423905': '000123L',
@@ -82,7 +83,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -109,7 +110,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 						},
 					);
 				});
-				await library.modules.blocks.blocksProcess.processBlock(
+				await library.modules.processor.process(
 					newBlock,
 					library.modules.blocks.lastBlock,
 				);
@@ -127,7 +128,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 				it('should add balance to the recipient account', async () => {
 					return expect(recipientMemAccountAfter.balance).to.equal(
-						transactionWithLeadingZeroRecipientId.amount.toString(),
+						transactionWithLeadingZeroRecipientId.asset.amount.toString(),
 					);
 				});
 			});

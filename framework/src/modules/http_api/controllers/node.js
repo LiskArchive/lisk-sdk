@@ -89,29 +89,6 @@ async function _getNetworkHeight() {
 }
 
 /**
- * Parse transaction instance to raw data
- *
- * @returns Object
- * @private
- */
-function _normalizeTransactionOutput(transaction) {
-	return {
-		id: transaction.id,
-		type: transaction.type,
-		amount: transaction.amount.toString(),
-		fee: transaction.fee.toString(),
-		timestamp: transaction.timestamp,
-		senderPublicKey: transaction.senderPublicKey,
-		senderId: transaction.senderId || '',
-		signature: transaction.signature,
-		signatures: transaction.signatures,
-		recipientPublicKey: transaction.recipientPublicKey || '',
-		recipientId: transaction.recipientId || '',
-		asset: transaction.asset,
-	};
-}
-
-/**
  * Description of the function.
  *
  * @class
@@ -205,7 +182,6 @@ NodeController.getConstants = async (context, next) => {
 NodeController.getStatus = async (context, next) => {
 	try {
 		const {
-			consensus,
 			secondsSinceEpoch,
 			loaded,
 			syncing,
@@ -215,8 +191,6 @@ NodeController.getStatus = async (context, next) => {
 		const networkHeight = await _getNetworkHeight();
 
 		const data = {
-			broadhash: library.applicationState.broadhash,
-			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
@@ -308,7 +282,6 @@ NodeController.getPooledTransactions = async function(context, next) {
 	let filters = {
 		id: params.id.value,
 		recipientId: params.recipientId.value,
-		recipientPublicKey: params.recipientPublicKey.value,
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
@@ -326,7 +299,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 			filters: _.clone(filters),
 		});
 
-		const transactions = data.transactions.map(_normalizeTransactionOutput);
+		const transactions = data.transactions.map(tx => tx.toJSON());
 
 		return next(null, {
 			data: transactions,

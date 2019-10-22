@@ -56,7 +56,7 @@ export const registerDelegate = (
 		...createBaseTransaction(inputs),
 		type: 2,
 		fee: DELEGATE_FEE.toString(),
-		asset: { delegate: { username } },
+		asset: { username },
 	};
 
 	if (!passphrase) {

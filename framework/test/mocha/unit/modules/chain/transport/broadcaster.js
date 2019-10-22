@@ -22,7 +22,7 @@ const Broadcaster = rewire(
 
 describe('Broadcaster', () => {
 	const nonce = 'sYHEDBKcScaAAAYg';
-	const params = { limit: 10, broadhash: '123' };
+	const params = { limit: 10 };
 	const options = {
 		data: { peer: {}, block: {} },
 		api: 'blocks',

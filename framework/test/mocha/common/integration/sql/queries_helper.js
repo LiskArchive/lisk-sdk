@@ -16,7 +16,7 @@
 
 const path = require('path');
 const QueryFile = require('pg-promise').QueryFile;
-const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
+const BigNum = require('@liskhq/bignum');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -57,13 +57,13 @@ class Queries {
 
 	getDelegates() {
 		return self.storage.adapter.db.query(
-			"SELECT m.*, t.id as \"transactionId\" FROM mem_accounts m LEFT JOIN trs t ON t.asset->'delegate'->>'username' = m.username WHERE t.type = 2",
+			'SELECT m.*, t.id as "transactionId" FROM mem_accounts m LEFT JOIN trs t ON t.asset->>\'username\' = m.username WHERE t.type = 2',
 		);
 	}
 
-	getDelegatesOrderedByVote() {
+	getDelegatesOrderedByVoteWeight() {
 		return self.storage.adapter.db.query(
-			`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`,
+			`SELECT "publicKey", "voteWeight" FROM mem_accounts ORDER BY "voteWeight" DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`,
 		);
 	}
 
@@ -75,7 +75,7 @@ class Queries {
 		return self.storage.entities.Block.get(
 			{},
 			{ extended: true, limit: null },
-		).then(blocks => blocks.map(blocksLogic.storageRead));
+		).then(blocks => blocks.map(this.library.blocks.deserialize));
 	}
 
 	getBlocks(round) {
@@ -85,28 +85,62 @@ class Queries {
 		);
 	}
 
-	getRoundRewards(round) {
+	getRoundRewards(round, numberOfDelegates) {
 		return self.storage.adapter.db
 			.query(
-				'SELECT ENCODE("publicKey", \'hex\') AS "publicKey", SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = ${round} GROUP BY "publicKey"',
-				{ round },
+				'SELECT sum(r.fee)::bigint AS fees, array_agg(r.reward) AS rewards, array_agg(r.pk) AS delegates FROM (SELECT b."totalFee" AS fee, b.reward, encode(b."generatorPublicKey", \'hex\') AS pk FROM blocks b WHERE ceil(b.height / ${numberOfDelegates}::float)::int = ${round} ORDER BY b.height ASC) r',
+				{ round, numberOfDelegates },
 			)
-			.then(rows => {
-				const rewards = {};
-				_.each(rows, row => {
-					rewards[row.publicKey] = {
-						publicKey: row.publicKey,
-						fees: row.fees,
-						rewards: row.rewards,
-					};
-				});
-				return rewards;
+			.then(resp => {
+				const { delegates, rewards, fees = 0 } = resp[0];
+				const feesPerDelegate = new BigNum(fees)
+					.dividedBy(numberOfDelegates)
+					.floor();
+
+				const feesRemaining = new BigNum(fees).minus(
+					feesPerDelegate.times(numberOfDelegates),
+				);
+
+				return delegates.reduce((respObj, publicKey, index) => {
+					if (respObj[publicKey]) {
+						respObj[publicKey].fees = respObj[publicKey].fees.plus(
+							feesPerDelegate,
+						);
+						respObj[publicKey].rewards = respObj[publicKey].rewards.plus(
+							rewards[index],
+						);
+					} else {
+						respObj[publicKey] = {
+							publicKey,
+							fees: new BigNum(feesPerDelegate),
+							rewards: new BigNum(rewards[index]),
+						};
+					}
+
+					if (index === rewards.length - 1) {
+						// Apply remaining fees to last delegate
+						respObj[publicKey].fees = respObj[publicKey].fees.plus(
+							feesRemaining,
+						);
+					}
+
+					Object.keys(respObj).forEach(key => {
+						respObj[key].fees = respObj[key].fees.toString();
+						respObj[key].rewards = respObj[key].rewards.toString();
+					});
+
+					return respObj;
+				}, {});
 			});
 	}
 
 	getVoters() {
 		return self.storage.adapter.db.query(
-			'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"',
+			`SELECT
+			jsonb_array_elements("votedDelegatesPublicKeys") as "dependentId",
+			ARRAY_AGG(address) FROM mem_accounts WHERE "votedDelegatesPublicKeys" IS NOT NULL
+			GROUP BY address
+			ORDER BY "dependentId"`,
 		);
 	}
 	/* eslint-enable class-methods-use-this */

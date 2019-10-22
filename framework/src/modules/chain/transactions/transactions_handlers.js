@@ -19,7 +19,7 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const votes = require('./votes');
+const votesWeight = require('./votes_weight');
 const exceptionsHandlers = require('./exceptions_handlers');
 const StateStore = require('../state_store');
 
@@ -80,7 +80,7 @@ const verifyTotalSpending = (transactions, stateStore) => {
 
 		senderTransactions[senderId].forEach(transaction => {
 			const senderTotalSpending = senderSpending[senderId]
-				.plus(transaction.amount)
+				.plus(transaction.asset.amount || 0)
 				.plus(transaction.fee);
 
 			if (senderBalance.lt(senderTotalSpending)) {
@@ -114,12 +114,25 @@ const applyGenesisTransactions = storage => async (
 		tx,
 	});
 
-	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await transaction.prepare(stateStore);
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await votesWeight.prepare(stateStore, transaction);
+	}
 
 	const transactionsResponses = transactions.map(transaction => {
+		// Fee is handled by Elements now so we set it to zero here. LIP-0012
+		transaction.fee = new BigNum(0);
 		const transactionResponse = transaction.apply(stateStore);
 
-		votes.apply(stateStore, transaction);
+		votesWeight.apply(stateStore, transaction);
 		stateStore.transaction.add(transaction);
 
 		// We are overriding the status of transaction because it's from genesis block
@@ -140,7 +153,18 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 		tx,
 	});
 
-	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await transaction.prepare(stateStore);
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await votesWeight.prepare(stateStore, transaction);
+	}
 
 	// Verify total spending of per account accumulative
 	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
@@ -167,8 +191,9 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 					exceptions,
 				);
 			}
+
 			if (transactionResponse.status === TransactionStatus.OK) {
-				votes.apply(stateStore, transaction, exceptions);
+				votesWeight.apply(stateStore, transaction, exceptions);
 				stateStore.transaction.add(transaction);
 			}
 
@@ -263,11 +288,22 @@ const undoTransactions = (storage, exceptions) => async (
 		tx,
 	});
 
-	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await transaction.prepare(stateStore);
+	}
+
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		// eslint-disable-next-line no-await-in-loop
+		await votesWeight.prepare(stateStore, transaction);
+	}
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
-		votes.undo(stateStore, transaction, this.exceptions);
+		votesWeight.undo(stateStore, transaction, this.exceptions);
 		return transactionResponse;
 	});
 

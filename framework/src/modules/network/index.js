@@ -70,6 +70,16 @@ module.exports = class NetworkModule extends BaseModule {
 				handler: action =>
 					this.network.actions.getUniqueOutboundConnectedPeersCount(action),
 			},
+			requestFromPeer: {
+				handler: action => this.network.actions.requestFromPeer(action),
+			},
+			applyPenalty: {
+				handler: action => this.network.actions.applyPenalty(action),
+			},
+			getUniqueOutboundConnectedPeers: {
+				handler: action =>
+					this.network.actions.getUniqueOutboundConnectedPeers(action),
+			},
 		};
 	}
 

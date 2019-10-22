@@ -67,6 +67,11 @@ class ChainModule extends BaseModule {
 			'delegates:fork',
 			'loader:sync',
 			'dapps:change',
+			'rebuild',
+			'processor:sync',
+			'processor:deleteBlock',
+			'processor:broadcast',
+			'processor:newBlock',
 		];
 	}
 
@@ -81,8 +86,9 @@ class ChainModule extends BaseModule {
 			calculateReward: {
 				handler: action => this.chain.actions.calculateReward(action),
 			},
-			generateDelegateList: {
-				handler: action => this.chain.actions.generateDelegateList(action),
+			getForgerPublicKeysForRound: {
+				handler: action =>
+					this.chain.actions.getForgerPublicKeysForRound(action),
 			},
 			updateForgingStatus: {
 				handler: async action => this.chain.actions.updateForgingStatus(action),
@@ -124,13 +130,15 @@ class ChainModule extends BaseModule {
 			},
 			getLastBlock: {
 				handler: async () => this.chain.actions.getLastBlock(),
-			},
-			blocks: {
-				handler: async action => this.chain.actions.blocks(action),
 				isPublic: true,
 			},
-			blocksCommon: {
-				handler: async action => this.chain.actions.blocksCommon(action),
+			getBlocksFromId: {
+				handler: async action => this.chain.actions.getBlocksFromId(action),
+				isPublic: true,
+			},
+			getHighestCommonBlock: {
+				handler: async action =>
+					this.chain.actions.getHighestCommonBlock(action),
 				isPublic: true,
 			},
 		};

@@ -23,7 +23,7 @@ const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const accountFixtures = require('../../../../fixtures/accounts');
-const Block = require('../../../../fixtures/blocks').Block;
+const { Block, GenesisBlock } = require('../../../../fixtures/blocks');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
@@ -48,6 +48,7 @@ describe('transport', () => {
 
 	let storageStub;
 	let loggerStub;
+	let synchronizerStub;
 	let channelStub;
 	let transportModule;
 	let transaction;
@@ -133,17 +134,24 @@ describe('transport', () => {
 
 		storageStub = {
 			query: sinonSandbox.spy(),
+			get: sinonSandbox.stub(),
+			entities: {
+				Block: {
+					get: sinonSandbox.stub().resolves(),
+				},
+			},
+		};
+
+		synchronizerStub = {
+			isActive: false,
 		};
 
 		loggerStub = {
 			debug: sinonSandbox.spy(),
-			error: sinonSandbox.spy(),
+			error: sinonSandbox.stub(),
 			info: sinonSandbox.spy(),
 			trace: sinonSandbox.spy(),
 		};
-
-		validator.validate = sinonSandbox.stub().returns(true);
-		validator.errors = [];
 
 		channelStub = {
 			publish: sinonSandbox.stub(),
@@ -158,6 +166,7 @@ describe('transport', () => {
 			storage: storageStub,
 			applicationState: {},
 			exceptions: __testContext.config.modules.chain.exceptions,
+			synchronizer: synchronizerStub,
 			transactionPoolModule: {
 				getMultisignatureTransactionList: sinonSandbox.stub(),
 				getMergedTransactionList: sinonSandbox.stub(),
@@ -169,7 +178,12 @@ describe('transport', () => {
 					.stub()
 					.returns({ height: 1, version: 1, timestamp: 1 }),
 				receiveBlockFromNetwork: sinonSandbox.stub(),
-				loadBlocksDataWS: sinonSandbox.stub(),
+				loadBlocksFromLastBlockId: sinonSandbox.stub(),
+			},
+			processorModule: {
+				validate: sinonSandbox.stub(),
+				process: sinonSandbox.stub(),
+				deserialize: sinonSandbox.stub(),
 			},
 			loaderModule: {
 				syncing: sinonSandbox.stub().returns(false),
@@ -267,6 +281,7 @@ describe('transport', () => {
 		describe('receiveSignature', () => {
 			beforeEach(async () => {
 				transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
+				sinonSandbox.spy(validator, 'validate');
 			});
 
 			describe('when validator.validate succeeds', () => {
@@ -313,13 +328,11 @@ describe('transport', () => {
 
 			describe('when validator.validate fails', () => {
 				it('should reject with error = "Invalid signature body"', async () => {
-					const validateErr = new Error('Signature did not match schema');
-					validateErr.code = 'INVALID_FORMAT';
-					validator.validate = sinonSandbox.stub().returns([validateErr]);
-
-					return expect(
-						transportModule._receiveSignature(SAMPLE_SIGNATURE_1),
-					).to.be.rejectedWith([validateErr]);
+					try {
+						await transportModule._receiveSignature(SAMPLE_SIGNATURE_1);
+					} catch (e) {
+						expect(e.message).to.equal('Invalid signture body');
+					}
 				});
 			});
 		});
@@ -462,7 +475,7 @@ describe('transport', () => {
 				beforeEach(async () => {
 					invalidTransaction = {
 						...transaction,
-						amount: '0',
+						asset: {},
 					};
 
 					try {
@@ -639,12 +652,6 @@ describe('transport', () => {
 							invoke: sinonSandbox.stub(),
 							publish: sinonSandbox.stub(),
 						};
-						transportModule.channel.invoke
-							.withArgs('lisk:getApplicationState')
-							.returns({
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-							});
 						transportModule.onUnconfirmedTransaction(transaction, true);
 					});
 
@@ -690,10 +697,6 @@ describe('transport', () => {
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
-						transportModule.applicationState = {
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						};
 						return transportModule.onBroadcastBlock(block, true);
 					});
 
@@ -702,10 +705,7 @@ describe('transport', () => {
 						return expect(
 							transportModule.broadcaster.broadcast,
 						).to.be.calledWith(
-							{
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-							},
+							{},
 							{
 								api: 'postBlock',
 								data: {
@@ -715,11 +715,9 @@ describe('transport', () => {
 						);
 					});
 
-					describe('when modules.loader.syncing = true', () => {
+					describe('when modules.synchronizer.isActive = true', () => {
 						beforeEach(async () => {
-							transportModule.loaderModule.syncing = sinonSandbox
-								.stub()
-								.returns(true);
+							transportModule.synchronizer.isActive = true;
 							transportModule.onBroadcastBlock(block, true);
 						});
 
@@ -736,128 +734,54 @@ describe('transport', () => {
 
 			describe('Transport.prototype.shared', () => {
 				let result;
-				let query;
+				let query = { ids: ['1', '2', '3'] };
 
-				describe('blocksCommon', () => {
-					let validateErr;
-
+				describe('getBlocksFromId', () => {
 					describe('when query is undefined', () => {
-						it('should send back error due to schema validation failure', () => {
-							query = undefined;
-							validateErr = new Error('Query did not match schema');
-							validateErr.code = 'INVALID_FORMAT';
-							validator.validate = sinonSandbox.stub().returns([validateErr]);
-
-							return expect(
-								transportModule.blocksCommon(query),
-							).to.be.rejectedWith('Query did not match schema: undefined');
-						});
-					});
-
-					describe('when query is specified', () => {
-						it('should call validator.validate with query and schema.commonBlock', async () => {
-							query = { ids: '"1","2","3"' };
+						it('should throw a validation error', async () => {
+							query = {};
 
 							try {
-								await transportModule.blocksCommon(query);
-							} catch (err) {
-								// This err is expected
-							}
-
-							expect(validator.validate.calledOnce).to.be.true;
-							return expect(
-								validator.validate.calledWith(
-									definitions.WSBlocksCommonRequest,
-									query,
-								),
-							).to.be.true;
-						});
-
-						describe('when validator.validate fails', () => {
-							it('should call transportModule.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', async () => {
-								validateErr = new Error('Query did not match schema');
-								validateErr.code = 'INVALID_FORMAT';
-								validator.validate = sinonSandbox.stub().returns([validateErr]);
-
-								expect(transportModule.blocksCommon(query)).to.be.rejectedWith(
-									'Query did not match schema',
+								await transportModule.getBlocksFromId(query);
+							} catch (e) {
+								expect(e[0].message).to.equal(
+									"should have required property 'blockId'",
 								);
-								expect(transportModule.logger.debug.calledOnce).to.be.true;
-								return expect(
-									transportModule.logger.debug.calledWith(
-										{ err: `${validateErr.message}: undefined`, req: query },
-										'Common block request validation failed',
-									),
-								).to.be.true;
-							});
-						});
-
-						describe('when validator.validate succeeds', () => {
-							describe('when escapedIds.length = 0', () => {
-								it('should call transportModule.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', async () => {
-									query = { ids: '"abc","def","ghi"' };
-									validator.validate = sinonSandbox.stub().returns([]);
-
-									expect(
-										transportModule.blocksCommon(query),
-									).to.be.rejectedWith('Invalid block id sequence');
-									expect(transportModule.logger.debug.calledOnce).to.be.true;
-									return expect(
-										transportModule.logger.debug.calledWith(
-											{ err: 'ESCAPE', req: query.ids },
-											'Common block request validation failed',
-										),
-									).to.be.true;
-								});
-							});
-						});
-					});
-				});
-
-				describe('blocks', () => {
-					describe('when query is undefined', () => {
-						it('should send back empty blocks', async () => {
-							query = undefined;
-
-							const response = await transportModule.blocks(query);
-							return expect(response).to.eql({
-								success: false,
-								message: 'Invalid lastBlockId requested',
-							});
+							}
 						});
 					});
 
 					describe('when query is defined', () => {
-						it('should call modules.blocks.utils.loadBlocksDataWS with { limit: 34, lastId: query.lastBlockId }', async () => {
+						it('should call modules.blocks.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
 							query = {
-								lastBlockId: '6258354802676165798',
+								blockId: '6258354802676165798',
 							};
 
-							await transportModule.blocks(query);
+							await transportModule.getBlocksFromId(query);
 							return expect(
-								transportModule.blocksModule.loadBlocksDataWS,
-							).to.be.calledWith({
-								limit: 34,
-								lastId: query.lastBlockId,
-							});
+								transportModule.blocksModule.loadBlocksFromLastBlockId,
+							).to.be.calledWith(query.blockId, 34);
 						});
 					});
 
-					describe('when modules.blocks.utils.loadBlocksDataWS fails', () => {
-						it('should resolve with result = { blocks: [] }', async () => {
+					describe('when modules.blocks.loadBlocksFromLastBlockId fails', () => {
+						it('should throw an error', async () => {
 							query = {
-								lastBlockId: '6258354802676165798',
+								blockId: '6258354802676165798',
 							};
 
-							const loadBlockFailed = new Error('Failed to load blocks...');
-							transportModule.blocksModule.loadBlocksDataWS.rejects(
+							const errorMessage = 'Failed to load blocks...';
+							const loadBlockFailed = new Error(errorMessage);
+
+							transportModule.blocksModule.loadBlocksFromLastBlockId.rejects(
 								loadBlockFailed,
 							);
 
-							const response = await transportModule.blocks(query);
-							return expect(response)
-								.to.have.property('blocks')
-								.which.is.an('array').that.is.empty;
+							try {
+								await transportModule.getBlocksFromId(query);
+							} catch (e) {
+								expect(e.message).to.equal(errorMessage);
+							}
 						});
 					});
 				});
@@ -869,12 +793,13 @@ describe('transport', () => {
 						postBlockQuery = {
 							block: blockMock,
 						};
+						sinonSandbox.spy(validator, 'validate');
 					});
 
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							transportModule.postBlock(postBlockQuery);
+							await transportModule.postBlock(postBlockQuery);
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -891,52 +816,53 @@ describe('transport', () => {
 					describe('when query is specified', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = true;
-							transportModule.postBlock(postBlockQuery);
 						});
 
 						describe('when it throws', () => {
-							const blockValidationError = 'Failed to validate block schema';
-
-							beforeEach(async () => {
-								sinonSandbox
-									.stub(blocksModule, 'objectNormalize')
-									.throws(new Error(blockValidationError));
-							});
+							const blockValidationError = 'should match format "id"';
 
 							it('should throw an error', async () => {
 								try {
 									await transportModule.postBlock(postBlockQuery);
 								} catch (err) {
-									expect(err.message).to.equal(blockValidationError);
+									expect(err[0].message).to.equal(blockValidationError);
 								}
 							});
 						});
 
 						describe('when it does not throw', () => {
-							beforeEach(async () => {
-								sinonSandbox
-									.stub(blocksModule, 'objectNormalize')
-									.returns(blockMock);
-								transportModule.postBlock(postBlockQuery);
-							});
+							const genesisBlock = new GenesisBlock();
+							genesisBlock.previousBlockId = genesisBlock.id; // So validations pass
 
 							describe('when query.block is defined', () => {
-								it('should call modules.blocks.verify.addBlockProperties with query.block', async () =>
+								it('should call modules.blocks.addBlockProperties with query.block', async () => {
+									await transportModule.postBlock({
+										block: genesisBlock,
+									});
 									expect(
-										blocksModule.addBlockProperties.calledWith(
-											postBlockQuery.block,
+										transportModule.processorModule.deserialize.calledWith(
+											genesisBlock,
 										),
-									).to.be.true);
+									).to.be.true;
+								});
 							});
 
-							it('should call transportModule.block.objectNormalize with block', async () =>
-								expect(blocksModule.objectNormalize.calledWith(blockMock)).to.be
-									.true);
-
-							it('should call block.process.receiveBlockFromNetwork with block', async () => {
+							it('should call transportModule.processorModule.process with block', async () => {
+								const blockWithProperties = {};
+								transportModule.processorModule.deserialize.resolves(
+									blockWithProperties,
+								);
+								await transportModule.postBlock(
+									{
+										block: genesisBlock,
+									},
+									'127.0.0.1:5000',
+								);
 								expect(
-									transportModule.blocksModule.receiveBlockFromNetwork,
-								).to.be.calledWithExactly(blockMock);
+									transportModule.processorModule.process,
+								).to.be.calledWithExactly(blockWithProperties, {
+									peerId: '127.0.0.1:5000',
+								});
 							});
 						});
 					});
@@ -991,6 +917,7 @@ describe('transport', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
 							transportModule.postSignatures(query);
+							sinonSandbox.spy(validator, 'validate');
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -1007,7 +934,7 @@ describe('transport', () => {
 					describe('when validator.validate succeeds', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = true;
-							transportModule.postSignatures(query);
+							return transportModule.postSignatures(query);
 						});
 
 						it('should call transportModule._receiveSignatures with query.signatures as argument', async () =>
@@ -1207,18 +1134,21 @@ describe('transport', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							return transportModule.postTransactions(query);
 						});
 
-						it('should call transportModule.logger.debug', async () =>
+						it('should call transportModule.logger.debug', async () => {
+							await transportModule.postTransactions(query);
 							expect(
 								transportModule.logger.debug.calledWith(
 									'Receiving transactions disabled by user through config.json',
 								),
-							).to.be.true);
+							).to.be.true;
+						});
 
-						it('should not call validator.validate; function should return before', async () =>
-							expect(validator.validate.called).to.be.false);
+						it('should not call validator.validate; function should return before', async () => {
+							await transportModule.postTransactions(query);
+							expect(validator.validate).to.be.called;
+						});
 					});
 
 					describe('when validator.validate succeeds', () => {
@@ -1228,15 +1158,17 @@ describe('transport', () => {
 							};
 							transportModule.constants.broadcasts.active = true;
 							transportModule._receiveTransactions = sinonSandbox.stub();
-							return transportModule.postTransactions(query);
 						});
 
-						it('should call transportModule._receiveTransactions with query.transaction as argument', async () =>
+						it('should call transportModule._receiveTransactions with query.transaction as argument', async () => {
+							validator.validate.returns(true);
+							await transportModule.postTransactions(query);
 							expect(
 								transportModule._receiveTransactions.calledWith(
 									query.transactions,
 								),
-							).to.be.true);
+							).to.be.true;
+						});
 					});
 
 					describe('when validator.validate fails', () => {

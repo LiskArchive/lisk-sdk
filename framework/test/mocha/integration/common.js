@@ -24,13 +24,13 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const { sortTransactions } = require('../../../src/modules/chain/transactions');
+const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const blocksLogic = require('../../../src/modules/chain/blocks/block');
 
-const slots = new BlockSlots({
+const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -45,8 +45,8 @@ function getDelegateForSlot(library, slot, cb) {
 	library.modules.forger
 		.loadDelegates()
 		.then(() => {
-			library.modules.rounds
-				.generateDelegateList(round)
+			library.modules.dpos
+				.getForgerPublicKeysForRound(round)
 				.then(list => {
 					const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 					return cb(null, delegatePublicKey);
@@ -65,28 +65,27 @@ function blockToJSON(block) {
 	return block;
 }
 
-function createBlock(
+async function createBlock(
 	library,
 	transactions,
 	timestamp,
 	keypair,
 	previousBlock,
-	exceptions,
 ) {
 	transactions = transactions.map(transaction =>
 		library.modules.interfaceAdapters.transactions.fromJson(transaction),
 	);
-	const block = blocksLogic.create({
+	// TODO Remove hardcoded values and use from BFT class
+	const block = await library.modules.processor.create({
 		blockReward: library.modules.blocks.blockReward,
 		keypair,
 		timestamp,
 		previousBlock,
 		transactions,
-		maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
-		exceptions,
+		maxHeightPreviouslyForged: 1,
+		prevotedConfirmedUptoHeight: 1,
 	});
 
-	block.id = blocksLogic.getId(block);
 	block.height = previousBlock.height + 1;
 	return block;
 }
@@ -103,15 +102,18 @@ function createValidBlockWithSlotOffset(
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		cb = typeof exceptions === 'object' ? cb : exceptions;
-		const block = createBlock(
+		createBlock(
 			library,
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
 			typeof exceptions === 'object' ? exceptions : undefined,
-		);
-		cb(err, block);
+		)
+			.then(block => {
+				cb(null, block);
+			})
+			.catch(error => cb(error));
 	});
 }
 
@@ -120,14 +122,15 @@ function createValidBlock(library, transactions, cb) {
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
-		const block = createBlock(
+		createBlock(
 			library,
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
-		);
-		cb(err, block);
+		)
+			.then(block => cb(null, block))
+			.catch(error => cb(error));
 	});
 }
 
@@ -190,8 +193,15 @@ function forge(library, cb) {
 						false,
 						25,
 					) || [];
-				library.modules.blocks
-					.generateBlock(keypair, slots.getSlotTime(slot), transactions)
+				const sortedTransactions = sortTransactions(transactions);
+				library.modules.processor
+					.create({
+						keypair,
+						timestamp: slots.getSlotTime(slot),
+						transactions: sortedTransactions,
+						previousBlock: last_block,
+					})
+					.then(block => library.modules.processor.process(block))
 					.then(() => {
 						last_block = library.modules.blocks.lastBlock;
 						library.modules.transactionPool.resetPool();
@@ -214,12 +224,9 @@ function forge(library, cb) {
 }
 
 function deleteLastBlock(library, cb) {
-	library.modules.blocks.blocksChain
-		.deleteLastBlock(library.modules.blocks.lastBlock)
-		.then(newLastBlock => {
-			library.modules.blocks._lastBlock = newLastBlock;
-			cb();
-		})
+	library.modules.processor
+		.deleteLastBlock()
+		.then(() => cb())
 		.catch(err => cb(err));
 }
 
@@ -230,7 +237,9 @@ function addTransaction(library, transaction, cb) {
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
 		transaction,
 	);
-	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
+	const amountNormalized = !transaction.asset.amount
+		? 0
+		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
 	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
 	__testContext.debug(
 		`Enqueue transaction ID: ${
@@ -292,20 +301,13 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 }
 
 function getAccountFromDb(library, address) {
-	return Promise.all([
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts where address = '${address}'`,
-		),
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`,
-		),
-	]).then(res => {
-		return {
-			// Get the first row if resultant array is not empty
-			mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
-			mem_accounts2multisignatures: res[1],
-		};
-	});
+	return library.components.storage.adapter
+		.execute(`SELECT * FROM mem_accounts where address = '${address}'`)
+		.then(res => {
+			return {
+				mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
+			};
+		});
 }
 
 function getTransactionFromModule(library, filter, cb) {

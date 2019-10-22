@@ -31,7 +31,7 @@ describe('inert transactions', () => {
 
 	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
-		library.modules.blocks.blocksChain.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			inertTransactions: [
 				transferInertTransaction.id,
@@ -211,7 +211,6 @@ describe('inert transactions', () => {
 
 			describe('when forging block with inert type 2 transaction', () => {
 				const inertTransaction = delegateInertTransaction;
-
 				before(done => {
 					localCommon.addTransactionsAndForge(
 						library,

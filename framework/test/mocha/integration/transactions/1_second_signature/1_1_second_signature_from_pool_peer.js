@@ -41,7 +41,6 @@ describe('integration test (type 1) - second signature transactions from pool an
 		storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(() => {
 			library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
@@ -82,7 +81,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 					const block = await createValidBlockPromisified(library, [
 						signatureTransaction,
 					]);
-					return library.modules.blocks.receiveBlockFromNetwork(block);
+					return library.modules.processor.process(block);
 				});
 
 				describe('confirmed state', () => {
@@ -97,7 +96,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
 							account.mem_accounts.secondPublicKey.toString('hex'),
-						).to.equal(signatureTransaction.asset.signature.publicKey);
+						).to.equal(signatureTransaction.asset.publicKey);
 					});
 				});
 			});
@@ -114,7 +113,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 					const block = await createValidBlockPromisified(library, [
 						signatureTransaction2,
 					]);
-					return library.modules.blocks.receiveBlockFromNetwork(block);
+					return library.modules.processor.process(block);
 				});
 
 				describe('confirmed state', () => {
@@ -129,7 +128,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
 							account.mem_accounts.secondPublicKey.toString('hex'),
-						).to.equal(signatureTransaction2.asset.signature.publicKey);
+						).to.equal(signatureTransaction2.asset.publicKey);
 					});
 				});
 			});
@@ -155,7 +154,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						signatureTransaction4,
 					]);
 					try {
-						await library.modules.blocks.receiveBlockFromNetwork(block);
+						await library.modules.processor.process(block);
 					} catch (err) {
 						// expected error
 					}

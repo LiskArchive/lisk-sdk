@@ -20,6 +20,7 @@ const {
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
+const { sortTransactions } = require('./transactions');
 
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.
@@ -32,13 +33,13 @@ const {
  * @todo Add description for the params
  */
 const getDelegateKeypairForCurrentSlot = async (
-	rounds,
+	dposModule,
 	keypairs,
 	currentSlot,
 	round,
 	numOfActiveDelegates,
 ) => {
-	const activeDelegates = await rounds.generateDelegateList(round);
+	const activeDelegates = await dposModule.getForgerPublicKeysForRound(round);
 
 	const currentSlotIndex = currentSlot % numOfActiveDelegates;
 	const currentSlotDelegate = activeDelegates[currentSlotIndex];
@@ -71,16 +72,17 @@ class Forger {
 		// Unique requirements
 		slots,
 		// Modules
-		roundsModule,
+		processorModule,
+		dposModule,
 		transactionPoolModule,
 		blocksModule,
-		peersModule,
 		// constants
 		activeDelegates,
 		maxTransactionsPerBlock,
 		forgingDelegates,
 		forgingForce,
 		forgingDefaultPassword,
+		forgingWaitThreshold,
 	}) {
 		this.keypairs = {};
 		this.channel = channel;
@@ -92,6 +94,7 @@ class Forger {
 				delegates: forgingDelegates,
 				force: forgingForce,
 				defaultPassword: forgingDefaultPassword,
+				waitThreshold: forgingWaitThreshold,
 			},
 		};
 		this.constants = {
@@ -99,8 +102,8 @@ class Forger {
 			maxTransactionsPerBlock,
 		};
 
-		this.roundsModule = roundsModule;
-		this.peersModule = peersModule;
+		this.processorModule = processorModule;
+		this.dposModule = dposModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 	}
@@ -165,11 +168,7 @@ class Forger {
 			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 		};
 
-		const options = {
-			extended: true,
-		};
-
-		const [account] = await this.storage.entities.Account.get(filters, options);
+		const [account] = await this.storage.entities.Account.get(filters);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -249,14 +248,7 @@ class Forger {
 				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 			};
 
-			const options = {
-				extended: true,
-			};
-
-			const [account] = await this.storage.entities.Account.get(
-				filters,
-				options,
-			);
+			const [account] = await this.storage.entities.Account.get(filters);
 			if (!account) {
 				throw new Error(
 					`Account with public key: ${keypair.publicKey.toString(
@@ -289,7 +281,7 @@ class Forger {
 	}
 
 	/**
-	 * Gets peers, checks consensus and generates new block, once delegates
+	 * Generates new block, once delegates
 	 * are enabled, client is ready to forge and is the correct slot.
 	 *
 	 * @returns {Promise}
@@ -298,11 +290,15 @@ class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	async forge() {
 		const currentSlot = this.slots.getSlotNumber();
+		const currentSlotTime = this.slots.getRealTime(
+			this.slots.getSlotTime(currentSlot),
+		);
+		const currentTime = new Date().getTime();
+		const waitThreshold = this.config.forging.waitThreshold * 1000;
+		const { lastBlock } = this.blocksModule;
+		const lastBlockSlot = this.slots.getSlotNumber(lastBlock.timestamp);
 
-		if (
-			currentSlot ===
-			this.slots.getSlotNumber(this.blocksModule.lastBlock.timestamp)
-		) {
+		if (currentSlot === lastBlockSlot) {
 			this.logger.debug(
 				{ slot: currentSlot },
 				'Block already forged for the current slot',
@@ -315,8 +311,9 @@ class Forger {
 
 		let delegateKeypair;
 		try {
-			delegateKeypair = await getDelegateKeypairForCurrentSlot(
-				this.roundsModule,
+			// eslint-disable-next-line no-use-before-define
+			delegateKeypair = await exportedInterfaces.getDelegateKeypairForCurrentSlot(
+				this.dposModule,
 				this.keypairs,
 				currentSlot,
 				round,
@@ -334,27 +331,21 @@ class Forger {
 			);
 			return;
 		}
-		const isPoorConsensus = await this.peersModule.isPoorConsensus(
-			this.blocksModule.broadhash,
-		);
-		if (isPoorConsensus) {
-			const consensus = await this.peersModule.getLastConsensus(
-				this.blocksModule.broadhash,
-			);
-			this.logger.error(
-				{ consensus },
-				'Inadequate broadhash consensus before forging a block',
-			);
+
+		// If last block slot is way back than one block
+		// and still time left as per threshold specified
+		if (
+			lastBlockSlot < currentSlot - 1 &&
+			currentTime <= currentSlotTime + waitThreshold
+		) {
+			this.logger.info('Skipping forging to wait for last block');
+			this.logger.debug('Slot information', {
+				currentSlot,
+				lastBlockSlot,
+				waitThreshold,
+			});
 			return;
 		}
-
-		const consensus = await this.peersModule.getLastConsensus(
-			this.blocksModule.broadhash,
-		);
-		this.logger.info(
-			{ consensus },
-			'Broadhash consensus before forging a block',
-		);
 
 		const transactions =
 			this.transactionPoolModule.getUnconfirmedTransactionList(
@@ -362,11 +353,26 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
-		const forgedBlock = await this.blocksModule.generateBlock(
-			delegateKeypair,
-			this.slots.getSlotTime(currentSlot),
+		const timestamp = this.slots.getSlotTime(currentSlot);
+		const previousBlock = this.blocksModule.lastBlock;
+
+		const context = {
+			blockTimestamp: timestamp,
+		};
+		const readyTransactions = await this.blocksModule.filterReadyTransactions(
 			transactions,
+			context,
 		);
+
+		const sortedTransactions = sortTransactions(readyTransactions);
+
+		const forgedBlock = await this.processorModule.create({
+			keypair: delegateKeypair,
+			timestamp,
+			transactions: sortedTransactions,
+			previousBlock,
+		});
+		await this.processorModule.process(forgedBlock);
 		this.logger.info(
 			{
 				id: forgedBlock.id,
@@ -408,5 +414,7 @@ class Forger {
 	}
 }
 
+const exportedInterfaces = { Forger, getDelegateKeypairForCurrentSlot };
+
 // Export
-module.exports = { Forger, getDelegateKeypairForCurrentSlot };
+module.exports = exportedInterfaces;

@@ -29,7 +29,7 @@ const { defaultInput } = require('../utils/input_serializers');
 class BaseEntity {
 	/**
 	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
+	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
 	 * @param {Object} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {

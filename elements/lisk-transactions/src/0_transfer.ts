@@ -14,7 +14,7 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { TransferTransaction } from './0_transfer_transaction';
-import { BYTESIZES, TRANSFER_FEE } from './constants';
+import { BYTESIZES } from './constants';
 import { TransactionJSON } from './transaction_types';
 import {
 	createBaseTransaction,
@@ -96,11 +96,11 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		asset: data ? { data } : {},
-		amount,
-		fee: TRANSFER_FEE.toString(),
-		recipientId: recipientId as string,
-		recipientPublicKey,
+		asset: {
+			amount,
+			recipientId: recipientId as string,
+			data,
+		},
 		type: 0,
 	};
 
@@ -110,9 +110,11 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 
 	const transactionWithSenderInfo = {
 		...transaction,
-		recipientId: recipientId as string,
-		senderId: transaction.senderId as string,
 		senderPublicKey: transaction.senderPublicKey as string,
+		asset: {
+			...transaction.asset,
+			recipientId: recipientId as string,
+		},
 	};
 
 	const transferTransaction = new TransferTransaction(

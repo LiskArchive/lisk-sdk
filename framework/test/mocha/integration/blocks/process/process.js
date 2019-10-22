@@ -15,8 +15,6 @@
 'use strict';
 
 const async = require('async');
-const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
-const blocksUtils = require('../../../../../src/modules/chain/blocks/utils');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
@@ -30,20 +28,15 @@ describe('integration test (blocks) - process', () => {
 	let blocks;
 	let storage;
 	let originalBlockRewardsOffset;
-	let interfaceAdapters;
 
 	before(done => {
 		// Force rewards start at 150-th block
 		originalBlockRewardsOffset = REWARDS.OFFSET;
 		REWARDS.OFFSET = 150;
 
-		// Set current block version to 0
-		blockVersion.currentBlockVersion = 0;
-
 		application.init(
 			{ sandbox: { name: 'blocks_process' } },
 			(err, scopeInit) => {
-				interfaceAdapters = scopeInit.modules.interfaceAdapters;
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;
 				storage = scopeInit.components.storage;
@@ -66,7 +59,6 @@ describe('integration test (blocks) - process', () => {
 							'blocks WHERE height > 1',
 							'trs WHERE "blockId" != \'6524861224470851795\'',
 							"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
-							'forks_stat',
 						],
 						(table, everyCb) => {
 							clearDatabaseTable(
@@ -132,26 +124,14 @@ describe('integration test (blocks) - process', () => {
 
 	describe('loadBlocksWithOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', async () => {
-			const loadedBlocks = await blocksUtils.loadBlocksWithOffset(
-				storage,
-				interfaceAdapters,
-				__testContext.config.genesisBlock,
-				1,
-				2,
-			);
+			const loadedBlocks = await blocks.getJSONBlocksWithLimitAndOffset(1, 2);
 
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(2);
 		});
 
 		it('should load block 3 from db: block with transactions', async () => {
-			const loadedBlocks = await blocksUtils.loadBlocksWithOffset(
-				storage,
-				interfaceAdapters,
-				__testContext.config.genesisBlock,
-				1,
-				3,
-			);
+			const loadedBlocks = await blocks.getJSONBlocksWithLimitAndOffset(1, 3);
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(3);
 		});
