@@ -362,6 +362,11 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
+			broadcast: action =>
+				this.p2p.broadcast({
+					event: action.params.event,
+					data: action.params.data,
+				}),
 			getPeers: action => {
 				const peers = consolidatePeers({
 					connectedPeers: this.p2p.getConnectedPeers(),
