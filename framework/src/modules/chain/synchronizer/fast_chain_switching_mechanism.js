@@ -148,17 +148,20 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		let lastFetchedID = fromId;
 
 		while (failedAttempts < maxFailedAttempts) {
-			const { data } = await this.channel.invoke('network:requestFromPeer', {
-				procedure: 'getBlocksFromId',
-				peerId,
-				data: {
-					blockId: lastFetchedID,
+			const { data: chunkOfBlocks } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getBlocksFromId',
+					peerId,
+					data: {
+						blockId: lastFetchedID,
+					},
 				},
-			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
-			if (data && data.length) {
-				blocks.push(...data); // `data` is an array of blocks.
-				[{ id: lastFetchedID }] = data.slice(-1);
+			if (chunkOfBlocks && chunkOfBlocks.length) {
+				blocks.push(...chunkOfBlocks);
+				[{ id: lastFetchedID }] = chunkOfBlocks.slice(-1);
 				const index = blocks.findIndex(block => block.id === toId);
 				if (index > -1) {
 					return blocks.splice(0, index + 1); // Removes unwanted extra blocks
