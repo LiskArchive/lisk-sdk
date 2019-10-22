@@ -48,6 +48,7 @@ describe('transport', () => {
 
 	let storageStub;
 	let loggerStub;
+	let synchronizerStub;
 	let channelStub;
 	let transportModule;
 	let transaction;
@@ -141,6 +142,10 @@ describe('transport', () => {
 			},
 		};
 
+		synchronizerStub = {
+			isActive: false,
+		};
+
 		loggerStub = {
 			debug: sinonSandbox.spy(),
 			error: sinonSandbox.stub(),
@@ -161,6 +166,7 @@ describe('transport', () => {
 			storage: storageStub,
 			applicationState: {},
 			exceptions: __testContext.config.modules.chain.exceptions,
+			synchronizer: synchronizerStub,
 			transactionPoolModule: {
 				getMultisignatureTransactionList: sinonSandbox.stub(),
 				getMergedTransactionList: sinonSandbox.stub(),
@@ -646,12 +652,6 @@ describe('transport', () => {
 							invoke: sinonSandbox.stub(),
 							publish: sinonSandbox.stub(),
 						};
-						transportModule.channel.invoke
-							.withArgs('lisk:getApplicationState')
-							.returns({
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-							});
 						transportModule.onUnconfirmedTransaction(transaction, true);
 					});
 
@@ -697,10 +697,6 @@ describe('transport', () => {
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
-						transportModule.applicationState = {
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						};
 						return transportModule.onBroadcastBlock(block, true);
 					});
 
@@ -709,10 +705,7 @@ describe('transport', () => {
 						return expect(
 							transportModule.broadcaster.broadcast,
 						).to.be.calledWith(
-							{
-								broadhash:
-									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-							},
+							{},
 							{
 								api: 'postBlock',
 								data: {
@@ -722,11 +715,9 @@ describe('transport', () => {
 						);
 					});
 
-					describe('when modules.loader.syncing = true', () => {
+					describe('when modules.synchronizer.isActive = true', () => {
 						beforeEach(async () => {
-							transportModule.loaderModule.syncing = sinonSandbox
-								.stub()
-								.returns(true);
+							transportModule.synchronizer.isActive = true;
 							transportModule.onBroadcastBlock(block, true);
 						});
 
@@ -861,12 +852,17 @@ describe('transport', () => {
 								transportModule.processorModule.deserialize.resolves(
 									blockWithProperties,
 								);
-								await transportModule.postBlock({
-									block: genesisBlock,
-								});
+								await transportModule.postBlock(
+									{
+										block: genesisBlock,
+									},
+									'127.0.0.1:5000',
+								);
 								expect(
 									transportModule.processorModule.process,
-								).to.be.calledWithExactly(blockWithProperties);
+								).to.be.calledWithExactly(blockWithProperties, {
+									peerId: '127.0.0.1:5000',
+								});
 							});
 						});
 					});

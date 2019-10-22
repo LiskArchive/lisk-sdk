@@ -12,18 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT
-	"id",
-	"ip",
-	"wsPort",
-	"state",
-	"os",
-	"version",
-	"protocolVersion",
-	"height"
-FROM
-	peers
 
-${parsedFilters:raw}
+/*
+   DESCRIPTION: Add asset field for mem_accounts column
+   PARAMETERS: None
+*/
 
-LIMIT ${limit} OFFSET ${offset}
+DROP INDEX "peers_broadhash";
+
+ALTER TABLE "peers" DROP COLUMN "broadhash";

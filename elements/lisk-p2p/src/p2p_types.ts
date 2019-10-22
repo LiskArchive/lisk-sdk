@@ -13,22 +13,40 @@
  *
  */
 import { ConnectionKind, PeerKind } from './constants';
-export interface P2PPacket {
-	readonly data?: unknown;
-}
 
-export interface P2PRequestPacket extends P2PPacket {
+export interface P2PRequestPacket {
 	readonly data?: unknown;
 	readonly procedure: string;
 }
 
-export interface P2PResponsePacket extends P2PPacket {
+export interface P2PResponsePacket {
+	readonly peerId?: string;
 	readonly data: unknown;
 }
 
-export interface P2PMessagePacket extends P2PPacket {
+export interface P2PMessagePacket {
+	readonly peerId?: string;
 	readonly data?: unknown;
 	readonly event: string;
+}
+
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolRPCRequestPacket {
+	readonly data: unknown;
+	readonly procedure: string;
+	readonly type: string;
+}
+
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolMessagePacket {
+	readonly data: unknown;
+	readonly event: string;
+}
+
+export interface P2PClosePacket {
+	readonly peerInfo: P2PPeerInfo;
+	readonly code: number;
+	readonly reason?: string;
 }
 
 export interface P2PPenalty {
@@ -82,7 +100,6 @@ export interface ProtocolPeerInfo {
 	readonly ip?: string;
 	readonly ipAddress: string;
 	readonly wsPort: number;
-	readonly broadhash?: string;
 	readonly height?: number;
 	readonly nonce?: string;
 	readonly os?: string;
@@ -96,16 +113,10 @@ export interface ProtocolPeerInfo {
 // TODO later: Switch to LIP protocol format.
 // This is a representation of the outbound peer object according to the current protocol.
 export interface ProtocolNodeInfo extends P2PSharedState {
-	readonly broadhash: string;
 	readonly nethash: string;
 	readonly nonce: string;
 	readonly wsPort: number;
 	readonly httpPort: number;
-}
-export interface P2PClosePacket {
-	readonly peerInfo: P2PPeerInfo;
-	readonly code: number;
-	readonly reason?: string;
 }
 
 export interface P2PConfig {
@@ -198,19 +209,6 @@ export interface ProtocolPeerInfoList {
 export interface P2PBasicPeerInfoList {
 	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly success: boolean;
-}
-
-// TODO later: Switch to LIP protocol format.
-export interface ProtocolRPCRequestPacket {
-	readonly data: unknown;
-	readonly procedure: string;
-	readonly type: string;
-}
-
-// TODO later: Switch to LIP protocol format.
-export interface ProtocolMessagePacket {
-	readonly data: unknown;
-	readonly event: string;
 }
 
 export interface PeerLists {

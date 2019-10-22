@@ -47,7 +47,6 @@ class Loader {
 		processorModule,
 		transactionPoolModule,
 		blocksModule,
-		peersModule,
 		interfaceAdapters,
 		// Constants
 		loadPerIteration,
@@ -75,17 +74,7 @@ class Loader {
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
-		this.peersModule = peersModule;
 		this.interfaceAdapters = interfaceAdapters;
-	}
-
-	/**
-	 * Checks if private constant syncIntervalId has value.
-	 *
-	 * @returns {boolean} True if syncIntervalId has value
-	 */
-	syncing() {
-		return !!this.isActive;
 	}
 
 	/**
@@ -107,56 +96,6 @@ class Loader {
 				},
 			);
 		});
-	}
-
-	/**
-	 * Performs sync operation:
-	 * - Undoes unconfirmed transactions.
-	 * - Establishes broadhash consensus before sync.
-	 * - Performs sync operation: loads blocks from network.
-	 * - Update headers: broadhash and height
-	 * - Notify remote peers about our new headers
-	 * - Establishes broadhash consensus after sync.
-	 * - Applies unconfirmed transactions.
-	 *
-	 * @private
-	 * @param {function} cb
-	 * @todo Check err actions
-	 * @todo Add description for the params
-	 */
-	async sync() {
-		this.logger.info('Starting sync');
-		if (this.cache.ready) {
-			this.cache.disable();
-		}
-
-		this.isActive = true;
-
-		const consensusBefore = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash,
-		);
-
-		this.logger.debug(
-			`Establishing broadhash consensus before sync: ${consensusBefore} %`,
-		);
-
-		await this._loadBlocksFromNetwork();
-
-		const consensusAfter = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash,
-		);
-
-		this.logger.debug(
-			`Establishing broadhash consensus after sync: ${consensusAfter} %`,
-		);
-		this.isActive = false;
-		this.blocksToSync = 0;
-
-		this.logger.info('Finished sync');
-
-		if (this.cache.ready) {
-			this.cache.enable();
-		}
 	}
 
 	/**
@@ -328,21 +267,12 @@ class Loader {
 		}
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	async _handleCommonBlockError(error) {
 		if (!(error instanceof CommonBlockError)) {
 			return;
 		}
-		if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
-			this.logger.debug('Perform chain recovery due to poor consensus');
-			try {
-				await this.blocksModule.recoverChain();
-			} catch (err) {
-				this.logger.error(
-					{ err },
-					'Chain recovery failed after failing to load blocks while network consensus was low.',
-				);
-			}
-		}
+		throw error;
 	}
 }
 

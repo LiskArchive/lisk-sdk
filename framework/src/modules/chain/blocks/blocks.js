@@ -55,7 +55,6 @@ const {
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
-const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
 const EVENT_PRIORITY_CHAIN_DETECTED = 'EVENT_PRIORITY_CHAIN_DETECTED';
 
 class Blocks extends EventEmitter {
@@ -82,8 +81,6 @@ class Blocks extends EventEmitter {
 		blockSlotWindow,
 	}) {
 		super();
-
-		this._broadhash = genesisBlock.payloadHash;
 		this._lastBlock = {};
 
 		/**
@@ -254,7 +251,7 @@ class Blocks extends EventEmitter {
 		validateBlockSlot(block, lastBlock, this.slots);
 	}
 
-	forkChoice({ block, lastBlock }) {
+	forkChoice({ lastBlock, block }) {
 		// Current time since Lisk Epoch
 		block.receivedAt = this.slots.getEpochTime();
 		// Cases are numbered following LIP-0014 Fork choice rule.
@@ -382,8 +379,8 @@ class Blocks extends EventEmitter {
 	 * Get all blocks from temp_block table
 	 * @param {Object} tx - database transaction
 	 */
-	async getTempBlocks(tx) {
-		return this.storage.entities.TempBlock.get({}, {}, tx);
+	async getTempBlocks(filter = {}, options = {}, tx) {
+		return this.storage.entities.TempBlock.get(filter, options, tx);
 	}
 
 	async exists(block) {
@@ -511,17 +508,6 @@ class Blocks extends EventEmitter {
 			throw new Error(errMessage);
 		}
 	}
-
-	// TODO: Remove it later
-	async _updateBroadhash() {
-		const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
-			this.storage,
-			this._broadhash,
-			this._lastBlock.height,
-		);
-		this._broadhash = broadhash;
-		this.emit(EVENT_NEW_BROADHASH, { broadhash, height });
-	}
 }
 
 module.exports = {
@@ -529,6 +515,5 @@ module.exports = {
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
-	EVENT_NEW_BROADHASH,
 	EVENT_PRIORITY_CHAIN_DETECTED,
 };

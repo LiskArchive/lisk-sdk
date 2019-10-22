@@ -79,6 +79,7 @@ describe('dpos.verifyBlockForger()', () => {
 	it('should use round 1 delegate list when block round is equal to 1', async () => {
 		// Arrange
 		const expectedRound = 1;
+		const expectedTx = undefined;
 		const block = {
 			height: 99,
 			timestamp: 23450,
@@ -92,12 +93,13 @@ describe('dpos.verifyBlockForger()', () => {
 		// Assert
 		expect(
 			stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-		).toHaveBeenCalledWith(expectedRound);
+		).toHaveBeenCalledWith(expectedRound, expectedTx);
 	});
 
 	it('should use round 1 delegate list when block round is equal to 2', async () => {
 		// Arrange
 		const expectedRound = 1;
+		const expectedTx = undefined;
 		const block = {
 			height: 104,
 			timestamp: 23450,
@@ -111,12 +113,13 @@ describe('dpos.verifyBlockForger()', () => {
 		// Assert
 		expect(
 			stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-		).toHaveBeenCalledWith(expectedRound);
+		).toHaveBeenCalledWith(expectedRound, expectedTx);
 	});
 
 	it('should use round 1 delegate list when block round is equal to 3', async () => {
 		// Arrange
 		const expectedRound = 1;
+		const expectedTx = undefined;
 		const block = {
 			height: 222,
 			timestamp: 23450,
@@ -130,11 +133,12 @@ describe('dpos.verifyBlockForger()', () => {
 		// Assert
 		expect(
 			stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-		).toHaveBeenCalledWith(expectedRound);
+		).toHaveBeenCalledWith(expectedRound, expectedTx);
 	});
 
 	it('should use (round - delegateListRoundOffset) delegate list when block round is greater than 3', async () => {
 		// Arrange
+		const expectedTx = undefined;
 		const block = {
 			height: 321,
 			timestamp: 23450,
@@ -149,7 +153,10 @@ describe('dpos.verifyBlockForger()', () => {
 		// Assert
 		expect(
 			stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-		).toHaveBeenCalledWith(round - constants.DELEGATE_LIST_ROUND_OFFSET);
+		).toHaveBeenCalledWith(
+			round - constants.DELEGATE_LIST_ROUND_OFFSET,
+			expectedTx,
+		);
 	});
 
 	it('should throw error if block is forged by incorrect delegate', async () => {
@@ -198,6 +205,7 @@ describe('dpos.verifyBlockForger()', () => {
 		it('should use round 1 delegate list when block round is equal to 1', async () => {
 			// Arrange
 			const expectedRound = 1;
+			const expectedTx = undefined;
 			const block = {
 				height: 99,
 				timestamp: 23450,
@@ -211,12 +219,13 @@ describe('dpos.verifyBlockForger()', () => {
 			// Assert
 			expect(
 				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-			).toHaveBeenCalledWith(expectedRound);
+			).toHaveBeenCalledWith(expectedRound, expectedTx);
 		});
 
 		it('should use round 2 delegate list when block round is equal to 2', async () => {
 			// Arrange
 			const expectedRound = 2;
+			const expectedTx = undefined;
 			const block = {
 				height: 104,
 				timestamp: 23450,
@@ -230,12 +239,13 @@ describe('dpos.verifyBlockForger()', () => {
 			// Assert
 			expect(
 				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-			).toHaveBeenCalledWith(expectedRound);
+			).toHaveBeenCalledWith(expectedRound, expectedTx);
 		});
 
 		it('should use round 3 delegate list when block round is equal to 3', async () => {
 			// Arrange
 			const expectedRound = 3;
+			const expectedTx = undefined;
 			const block = {
 				height: 222,
 				timestamp: 23450,
@@ -249,12 +259,13 @@ describe('dpos.verifyBlockForger()', () => {
 			// Assert
 			expect(
 				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-			).toHaveBeenCalledWith(expectedRound);
+			).toHaveBeenCalledWith(expectedRound, expectedTx);
 		});
 
 		it('should use round 4 delegate list when block round is equal to 4', async () => {
 			// Arrange
 			const expectedRound = 4;
+			const expectedTx = undefined;
 			const block = {
 				height: 333,
 				timestamp: 23450,
@@ -268,7 +279,7 @@ describe('dpos.verifyBlockForger()', () => {
 			// Assert
 			expect(
 				stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-			).toHaveBeenCalledWith(expectedRound);
+			).toHaveBeenCalledWith(expectedRound, expectedTx);
 		});
 	});
 });

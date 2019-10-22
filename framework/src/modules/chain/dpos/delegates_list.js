@@ -50,11 +50,12 @@ class DelegatesList {
 	 * @param {number} round
 	 * @param {number} delegateListRoundOffset
 	 */
-	async getForgerPublicKeysForRound(round, delegateListRoundOffset) {
+	async getForgerPublicKeysForRound(round, delegateListRoundOffset, tx) {
 		// Delegate list is generated from round 1 hence `roundWithOffset` can't be less than 1
 		const roundWithOffset = Math.max(round - delegateListRoundOffset, 1);
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
 			roundWithOffset,
+			tx,
 		);
 
 		if (!delegatePublicKeys.length) {
@@ -94,6 +95,7 @@ class DelegatesList {
 			{
 				round,
 			},
+			{},
 			tx,
 		);
 		await this.storage.entities.RoundDelegates.create(
@@ -111,6 +113,7 @@ class DelegatesList {
 			{
 				round_lt: round,
 			},
+			{},
 			tx,
 		);
 	}
@@ -120,6 +123,7 @@ class DelegatesList {
 			{
 				round_gt: round,
 			},
+			{},
 			tx,
 		);
 	}
@@ -132,13 +136,14 @@ class DelegatesList {
 	 * @return {Boolean} - `true`
 	 * @throw {Error} Failed to verify slot
 	 */
-	async verifyBlockForger(block, delegateListRoundOffset) {
+	async verifyBlockForger(block, { tx, delegateListRoundOffset }) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.slots.calcRound(block.height);
 
 		const delegateList = await this.getForgerPublicKeysForRound(
 			currentRound,
 			delegateListRoundOffset,
+			tx,
 		);
 
 		if (!delegateList.length) {

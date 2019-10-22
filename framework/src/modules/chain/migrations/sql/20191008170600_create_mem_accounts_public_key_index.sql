@@ -12,18 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT
-	"id",
-	"ip",
-	"wsPort",
-	"state",
-	"os",
-	"version",
-	"protocolVersion",
-	"height"
-FROM
-	peers
 
-${parsedFilters:raw}
+ /*
+  DESCRIPTION: Create index for mem_accounts.publicKey
+  PARAMETERS: None
+*/
 
-LIMIT ${limit} OFFSET ${offset}
+CREATE INDEX IF NOT EXISTS "mem_accounts_public_key" ON "mem_accounts" (ENCODE("publicKey", 'hex'));

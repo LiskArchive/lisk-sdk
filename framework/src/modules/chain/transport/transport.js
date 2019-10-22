@@ -52,10 +52,10 @@ class Transport {
 		applicationState,
 		exceptions,
 		// Modules
+		synchronizer,
 		transactionPoolModule,
 		blocksModule,
 		processorModule,
-		loaderModule,
 		interfaceAdapters,
 		// Constants
 		nonce,
@@ -67,6 +67,7 @@ class Transport {
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
+		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
 
@@ -79,7 +80,6 @@ class Transport {
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
-		this.loaderModule = loaderModule;
 		this.interfaceAdapters = interfaceAdapters;
 
 		this.broadcaster = new Broadcaster(
@@ -161,7 +161,7 @@ class Transport {
 		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
 		incrementRelays(block);
 
-		if (this.loaderModule.syncing()) {
+		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
@@ -187,13 +187,9 @@ class Transport {
 			);
 		}
 
-		const { broadhash } = this.applicationState;
-
 		// Perform actual broadcast operation
 		return this.broadcaster.broadcast(
-			{
-				broadhash,
-			},
+			{},
 			{ api: 'postBlock', data: { block } },
 		);
 	}
@@ -244,18 +240,18 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}) {
+	async postBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
 			);
 		}
 
-		// TODO: endpoint should be protected before
-		if (this.loaderModule.syncing()) {
+		// Should ignore received block if syncing
+		if (this.synchronizer.isActive) {
 			return this.logger.debug(
-				"Client is syncing. Can't receive block at the moment.",
-				query.block.id,
+				{ blockId: query.block.id, height: query.block.height },
+				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
 
@@ -276,7 +272,7 @@ class Transport {
 
 		const block = await this.processorModule.deserialize(query.block);
 
-		return this.processorModule.process(block);
+		return this.processorModule.process(block, { peerId });
 	}
 
 	/**

@@ -36,7 +36,6 @@ describe('utils/validate', () => {
 				height: 23232,
 				version: '1.1.2',
 				protocolVersion: '1.1',
-				broadhash: '92hdbcwsdjcosi',
 				nonce: '89wsufhucsdociuds',
 				httpPort: 2000,
 			};
@@ -49,7 +48,6 @@ describe('utils/validate', () => {
 				height: '2323wqdqd2',
 				version: '3.4.5-alpha.9',
 				protocolVersion: '1.1',
-				broadhash: '92hdbcwsdjcosi',
 				nonce: '89wsufhucsdociuds',
 				httpPort: 2000,
 			};
@@ -66,7 +64,6 @@ describe('utils/validate', () => {
 							os: 'darwin',
 							version: '1.1.2',
 							protocolVersion: '1.1',
-							broadhash: '92hdbcwsdjcosi',
 							httpPort: 2000,
 							nonce: '89wsufhucsdociuds',
 						},
@@ -85,7 +82,6 @@ describe('utils/validate', () => {
 							os: '778',
 							version: '3.4.5-alpha.9',
 							protocolVersion: '1.1',
-							broadhash: '92hdbcwsdjcosi',
 							httpPort: 2000,
 							nonce: '89wsufhucsdociuds',
 						},
@@ -111,7 +107,6 @@ describe('utils/validate', () => {
 					height: 23232,
 					version: '1.1.2',
 					protocolVersion: '1.1',
-					broadhash: '92hdbcwsdjcosi',
 					nonce: '89wsufhucsdociuds',
 					httpPort: 2000,
 				};

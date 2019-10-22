@@ -12,18 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT
-	"id",
-	"ip",
-	"wsPort",
-	"state",
-	"os",
-	"version",
-	"protocolVersion",
-	"height"
-FROM
-	peers
 
-${parsedFilters:raw}
+ /*
+  DESCRIPTION: Re-create mem_accounts_get_delegates index using voteWeight column instead of vote column
+  PARAMETERS: None
+*/
 
-LIMIT ${limit} OFFSET ${offset}
+DROP INDEX IF EXISTS "mem_accounts_get_delegates";
+
+CREATE INDEX IF NOT EXISTS "mem_accounts_get_delegates" ON "mem_accounts" ("voteWeight" DESC, ENCODE("publicKey", 'hex') ASC) WHERE "isDelegate" = 1;

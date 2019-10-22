@@ -290,7 +290,6 @@ paths:
         - $ref: '#/parameters/protocolVersion'
         - $ref: '#/parameters/state'
         - $ref: '#/parameters/height'
-        - $ref: '#/parameters/broadhash'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - in: query
@@ -353,7 +352,7 @@ paths:
         - Node
       summary: Requests status data
       operationId: getStatus
-      description: Returns all current status data of the node, e.g. height and broadhash.
+      description: Returns all current status data of the node, e.g. height.
       produces:
         - application/json
       responses:
@@ -1062,12 +1061,6 @@ parameters:
     type: integer
     format: int32
     minimum: 1
-  broadhash:
-    name: broadhash
-    in: query
-    description: Broadhash of the network
-    type: string
-    format: hex
   limit:
     in: query
     name: limit
@@ -2076,13 +2069,6 @@ definitions:
         description: |
           Network height on the peer node.
           Represents the current number of blocks in the chain on the peer node.
-      broadhash:
-        type: string
-        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
-        format: hex
-        description: |
-          Broadhash on the peer node.
-          Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
       nonce:
         type: string
         example: sYHEDBKcScaAAAYg
@@ -2205,8 +2191,6 @@ definitions:
   NodeStatus:
     type: object
     required:
-      - broadhash
-      - consensus
       - currentTime
       - height
       - loaded
@@ -2214,21 +2198,6 @@ definitions:
       - secondsSinceEpoch
       - syncing
     properties:
-      broadhash:
-        type: string
-        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
-        minLength: 64
-        maxLength: 64
-        description: |
-          Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
-          Broadhash consensus serves a vital function for the Lisk network in order to prevent forks.
-          It ensures that a majority of available peers agree that it is acceptable to forge.
-      consensus:
-        type: integer
-        example: 95
-        minimum: 0
-        maximum: 100
-        description: Percentage of the connected peers, that have the same broadhash as the querying node.
       currentTime:
         type: integer
         example: 1533558858128
