@@ -15,7 +15,6 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	bigNumberToBuffer,
-	hexToBuffer,
 	intToBuffer,
 	stringToBuffer,
 } from '@liskhq/lisk-cryptography';
@@ -93,39 +92,25 @@ export class TransferTransaction extends BaseTransaction {
 		}
 	}
 
-	// Function getBasicBytes is overriden to maintain the bytes order
-	// TODO: remove after hardfork implementation
-	protected getBasicBytes(): Buffer {
-		const transactionType = intToBuffer(this.type, BYTESIZES.TYPE);
-		const transactionTimestamp = intToBuffer(
-			this.timestamp,
-			BYTESIZES.TIMESTAMP,
-			'little',
+	protected assetToBytes(): Buffer {
+		const transactionAmount = bigNumberToBuffer(
+			this.asset.amount.toString(),
+			BYTESIZES.AMOUNT,
+			'big',
 		);
-
-		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = intToBuffer(
 			this.asset.recipientId.slice(0, -1),
 			BYTESIZES.RECIPIENT_ID,
 		).slice(0, BYTESIZES.RECIPIENT_ID);
 
-		const transactionAmount = bigNumberToBuffer(
-			this.asset.amount.toString(),
-			BYTESIZES.AMOUNT,
-			'little',
-		);
-
 		const dataBuffer = this.asset.data
 			? stringToBuffer(this.asset.data)
 			: Buffer.alloc(0);
 
 		return Buffer.concat([
-			transactionType,
-			transactionTimestamp,
-			transactionSenderPublicKey,
-			transactionRecipientID,
 			transactionAmount,
+			transactionRecipientID,
 			dataBuffer,
 		]);
 	}

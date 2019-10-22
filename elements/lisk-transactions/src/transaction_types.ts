@@ -48,6 +48,7 @@ export interface TransactionJSON {
 	readonly type: number;
 	readonly receivedAt?: string;
 	readonly relays?: number;
+	readonly networkIdentifier?: string;
 }
 
 export interface IsValidResponse {

@@ -41,7 +41,7 @@ export const createSignatureObject = (options: {
 	readonly passphrase: string;
 	readonly networkIdentifier: string;
 }): SignatureObject => {
-	const { transaction, passphrase, networkIdentifier } = options;
+	const { transaction, passphrase } = options;
 	if (transaction.type === undefined || transaction.type === null) {
 		throw new Error('Transaction type is required.');
 	}
@@ -59,7 +59,7 @@ export const createSignatureObject = (options: {
 	const TransactionClass = transactionMap[transaction.type];
 	const tx = new TransactionClass(transaction) as BaseTransaction;
 
-	const validStatus = tx.validate(networkIdentifier);
+	const validStatus = tx.validate();
 	if (validStatus.errors.length > 0) {
 		throw new Error('Invalid transaction.');
 	}

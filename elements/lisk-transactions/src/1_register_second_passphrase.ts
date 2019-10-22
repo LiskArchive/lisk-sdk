@@ -42,13 +42,14 @@ export const registerSecondPassphrase = (
 	inputs: SecondPassphraseInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase } = inputs;
+	const { passphrase, secondPassphrase, networkIdentifier } = inputs;
 	const { publicKey } = getKeys(secondPassphrase);
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 1,
 		asset: { publicKey },
+		networkIdentifier,
 	};
 
 	if (!passphrase) {

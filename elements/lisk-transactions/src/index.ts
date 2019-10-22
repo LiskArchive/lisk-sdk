@@ -23,7 +23,6 @@ import { castVotes } from './3_cast_votes';
 import { VoteTransaction } from './3_vote_transaction';
 import { MultisignatureTransaction } from './4_multisignature_transaction';
 import { registerMultisignature } from './4_register_multisignature_account';
-import { createDapp } from './5_create_dapp';
 import { DappTransaction } from './5_dapp_transaction';
 import {
 	BaseTransaction,
@@ -86,7 +85,6 @@ export {
 	MultisignatureTransaction,
 	registerMultisignature,
 	DappTransaction,
-	createDapp,
 	createSignatureObject,
 	Status,
 	TransactionResponse,

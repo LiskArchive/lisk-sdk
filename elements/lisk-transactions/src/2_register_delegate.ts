@@ -63,6 +63,7 @@ export const registerDelegate = (
 		type: 2,
 		fee: DELEGATE_FEE.toString(),
 		asset: { username },
+		networkIdentifier,
 	};
 
 	if (!passphrase) {
@@ -72,7 +73,7 @@ export const registerDelegate = (
 	const delegateTransaction = new DelegateTransaction(
 		transaction as TransactionJSON,
 	);
-	delegateTransaction.sign(networkIdentifier, passphrase, secondPassphrase);
+	delegateTransaction.sign(passphrase, secondPassphrase);
 
 	return delegateTransaction.toJSON();
 };

@@ -116,6 +116,7 @@ export abstract class BaseTransaction {
 	protected _signSignature?: string;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
+	protected _networkIdentifier: string;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -131,7 +132,6 @@ export abstract class BaseTransaction {
 			: {}) as Partial<TransactionJSON>;
 
 		this.fee = new BigNum((this.constructor as typeof BaseTransaction).FEE);
-
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
@@ -143,6 +143,8 @@ export abstract class BaseTransaction {
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
+		this._networkIdentifier = tx.networkIdentifier || '';
+
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
 
 		// Additional data not related to the protocol
@@ -229,14 +231,14 @@ export abstract class BaseTransaction {
 		return transactionBytes;
 	}
 
-	public validate(networkIdentifier: string): TransactionResponse {
+	public validate(): TransactionResponse {
 		const errors = [...this._validateSchema(), ...this.validateAsset()];
 		if (errors.length > 0) {
 			return createResponse(this.id, errors);
 		}
 
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -288,18 +290,12 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public apply(
-		networkIdentifier: string,
-		store: StateStore,
-	): TransactionResponse {
+	public apply(store: StateStore): TransactionResponse {
 		const sender = store.account.getOrDefault(this.senderId);
 		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
-		const { errors: multiSigError } = this.processMultisignatures(
-			networkIdentifier,
-			store,
-		);
+		const { errors: multiSigError } = this.processMultisignatures(store);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
@@ -365,7 +361,6 @@ export abstract class BaseTransaction {
 	}
 
 	public addMultisignature(
-		networkIdentifier: string,
 		store: StateStore,
 		signatureObject: SignatureObject,
 	): TransactionResponse {
@@ -399,7 +394,7 @@ export abstract class BaseTransaction {
 		}
 
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -416,7 +411,7 @@ export abstract class BaseTransaction {
 		if (valid) {
 			this.signatures.push(signatureObject.signature);
 
-			return this.processMultisignatures(networkIdentifier, store);
+			return this.processMultisignatures(store);
 		}
 		// Else populate errors
 		const errors = valid
@@ -444,13 +439,10 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public processMultisignatures(
-		networkIdentifier: string,
-		store: StateStore,
-	): TransactionResponse {
+	public processMultisignatures(store: StateStore): TransactionResponse {
 		const sender = store.account.get(this.senderId);
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -492,11 +484,7 @@ export abstract class BaseTransaction {
 		return timeElapsed > timeOut;
 	}
 
-	public sign(
-		networkIdentifier: string,
-		passphrase: string,
-		secondPassphrase?: string,
-	): void {
+	public sign(passphrase: string, secondPassphrase?: string): void {
 		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
@@ -510,7 +498,7 @@ export abstract class BaseTransaction {
 		this._signature = undefined;
 		this._signSignature = undefined;
 
-		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			this.getBytes(),
@@ -520,6 +508,7 @@ export abstract class BaseTransaction {
 			hash(transactionWithNetworkIdentifierBytes),
 			passphrase,
 		);
+
 		if (secondPassphrase) {
 			this._signSignature = signData(
 				hash(transactionWithNetworkIdentifierBytes),
@@ -537,21 +526,10 @@ export abstract class BaseTransaction {
 
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
-		// TODO: Remove on the hard fork change
-		const transactionRecipientID = Buffer.alloc(BYTESIZES.RECIPIENT_ID);
-
-		// TODO: Remove on the hard fork change
-		const transactionAmount = new BigNum(0).toBuffer({
-			endian: 'little',
-			size: BYTESIZES.AMOUNT,
-		});
-
 		return Buffer.concat([
 			transactionType,
 			transactionTimestamp,
 			transactionSenderPublicKey,
-			transactionRecipientID,
-			transactionAmount,
 			this.assetToBytes(),
 		]);
 	}
@@ -572,8 +550,14 @@ export abstract class BaseTransaction {
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
+		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 		const secondSignatureTxBytes = Buffer.concat([
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			hexToBuffer(this.signature),
 		]);
 

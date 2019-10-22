@@ -58,7 +58,7 @@ describe('Base transaction class', () => {
 	let storeAccountGetOrDefaultStub: sinon.SinonStub;
 
 	beforeEach(async () => {
-		validTestTransaction = new TestTransaction(defaultTransaction);
+		validTestTransaction = new TransferTransaction(defaultTransaction);
 		transactionWithDefaultValues = new TestTransaction({});
 		transactionWithBasicImpl = new TestTransactionBasicImpl({});
 		validSecondSignatureTestTransaction = new TestTransaction(
@@ -172,6 +172,12 @@ describe('Base transaction class', () => {
 				.and.be.a('number');
 		});
 
+		it('should have _networkIdentifier string', async () => {
+			expect(validTestTransaction)
+				.to.have.property('_networkIdentifier')
+				.and.be.a('string');
+		});
+
 		it('should not throw with undefined input', async () => {
 			expect(() => new TestTransaction(undefined as any)).not.to.throw();
 		});
@@ -221,11 +227,14 @@ describe('Base transaction class', () => {
 
 		it('should return transaction json', async () => {
 			const transactionJSON = validTestTransaction.toJSON();
-
+			const {
+				networkIdentifier,
+				...transactionWithoutNetworkIdentifier
+			} = defaultTransaction;
 			expect(transactionJSON).to.be.eql({
-				...defaultTransaction,
+				...transactionWithoutNetworkIdentifier,
 				fee: '10000000',
-				senderId: '18278674964748191682L',
+				senderId: '18160565574430594874L',
 			});
 		});
 	});
@@ -252,7 +261,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return true on verification of non-multisignature transaction', async () => {
-			validTestTransaction.apply(networkIdentifier, store);
+			validTestTransaction.apply(store);
 			expect(validTestTransaction.isReady()).to.be.true;
 		});
 
@@ -262,7 +271,7 @@ describe('Base transaction class', () => {
 				...defaultMultisignatureTransaction,
 				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
 			});
-			multisignaturesTransaction.apply(networkIdentifier, store);
+			multisignaturesTransaction.apply(store);
 
 			expect(validMultisignatureTestTransaction.isReady()).to.be.false;
 		});
@@ -278,8 +287,8 @@ describe('Base transaction class', () => {
 						'hex',
 					),
 				);
-			(validTestTransaction as any).getBasicBytes();
 
+			(validTestTransaction as any).getBasicBytes();
 			expect(cryptographyHexToBufferStub).to.be.calledWithExactly(
 				defaultTransaction.senderPublicKey,
 			);
@@ -288,14 +297,14 @@ describe('Base transaction class', () => {
 		it('should call assetToBytes for transaction with asset', async () => {
 			const transactionWithAsset = {
 				...defaultTransaction,
-				asset: { data: 'data' },
+				asset: { amount: '1000', data: 'data', recipientId: '1L' },
 			};
 			const testTransactionWithAsset = new TestTransaction(
 				transactionWithAsset,
 			);
 			const assetToBytesStub = sandbox
 				.stub(testTransactionWithAsset, 'assetToBytes')
-				.returns(Buffer.from('data'));
+				.callThrough();
 			(testTransactionWithAsset as any).getBasicBytes();
 
 			expect(assetToBytesStub).to.be.calledOnce;
@@ -303,7 +312,7 @@ describe('Base transaction class', () => {
 
 		it('should return a buffer without signatures bytes', async () => {
 			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
+				'00000000005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000271000000000000000016461726b2061726d79',
 				'hex',
 			);
 
@@ -362,7 +371,7 @@ describe('Base transaction class', () => {
 
 		it('should return a buffer with signature bytes', async () => {
 			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243000000000000000000000000000000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+				'00000000005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000271000000000000000016461726b2061726d79fd8b1931b63c95285eac83d21fc280b0c064e03187934ec3548499ab277334b0be7689c6d14c587abb43e990c9af1553d3b0476489ebed067bacb324b682c80b',
 				'hex',
 			);
 
@@ -371,32 +380,12 @@ describe('Base transaction class', () => {
 
 		it('should return a buffer with signSignature bytes', async () => {
 			const expectedBuffer = Buffer.from(
-				'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8000000000000000000000000000000003357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e0111f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
+				'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e83357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e0111f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
 				'hex',
 			);
 
 			expect(validSecondSignatureTestTransaction.getBytes()).to.eql(
 				expectedBuffer,
-			);
-		});
-
-		it('should take first 8 bytes when recipientId exceeds 8 bytes buffer', async () => {
-			const rawTransaction = {
-				id: '393955899193580559',
-				type: 0,
-				timestamp: 33817764,
-				senderPublicKey:
-					'fe8f1a47180e7f318cb162b06470fbe259bc1d9d5359a8792cda3f087e49f72b',
-				fee: '10000000',
-				signature:
-					'02a806771711ecb9ffa676d8f6c85c5ffb87398cddbd0d55ae6c1e83f0e8e74c50490979e85633715b66d42090e9b37af918b1f823d706e900f5e2b72f876408',
-				signatures: [],
-				asset: {},
-			};
-			const tx = new TestTransaction(rawTransaction);
-			// 37 Bytes from 45 bytes corresponds to recipientId
-			expect(tx.getBytes().slice(37, 45)).to.eql(
-				new BigNum('0').toBuffer({ size: 8, endian: 'big' }),
 			);
 		});
 	});
@@ -448,10 +437,8 @@ describe('Base transaction class', () => {
 	describe('#validate', () => {
 		// TODO: undo skip, as this test transaction is no longer valid signature
 		// It does not include the amount and recipient
-		it.skip('should return a successful transaction response with a valid transaction', async () => {
-			const { id, status, errors } = validTestTransaction.validate(
-				networkIdentifier,
-			);
+		it('should return a successful transaction response with a valid transaction', async () => {
+			const { id, status, errors } = validTestTransaction.validate();
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(errors).to.be.empty;
@@ -459,10 +446,8 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a successful transaction response with a valid transaction with basic impl', async () => {
-			transactionWithBasicImpl.sign(networkIdentifier, 'passphrase');
-			const { id, status, errors } = transactionWithBasicImpl.validate(
-				networkIdentifier,
-			);
+			transactionWithBasicImpl.sign('passphrase');
+			const { id, status, errors } = transactionWithBasicImpl.validate();
 
 			expect(id).to.be.eql(transactionWithBasicImpl.id);
 			expect(errors).to.be.empty;
@@ -478,24 +463,21 @@ describe('Base transaction class', () => {
 						'hex',
 					),
 				);
-			validTestTransaction.validate(networkIdentifier);
+			validTestTransaction.validate();
 
 			expect(getBasicBytesStub).to.be.calledTwice;
 		});
 
 		it('should call validateSignature', async () => {
 			sandbox.stub(utils, 'validateSignature').returns({ valid: true });
-			validTestTransaction.validate(networkIdentifier);
+			validTestTransaction.validate();
 
 			expect(utils.validateSignature).to.be.calledWithExactly(
 				validTestTransaction.senderPublicKey,
 				validTestTransaction.signature,
 				Buffer.concat([
 					Buffer.from(networkIdentifier, 'hex'),
-					Buffer.from(
-						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
-						'hex',
-					),
+					(validTestTransaction as any).getBasicBytes(),
 				]),
 				validTestTransaction.id,
 			);
@@ -513,9 +495,7 @@ describe('Base transaction class', () => {
 			sandbox
 				.stub(invalidSignatureTestTransaction as any, '_validateSchema')
 				.returns([]);
-			const { id, status, errors } = invalidSignatureTestTransaction.validate(
-				networkIdentifier,
-			);
+			const { id, status, errors } = invalidSignatureTestTransaction.validate();
 
 			expect(id).to.be.eql(invalidSignatureTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -538,9 +518,11 @@ describe('Base transaction class', () => {
 			const invalidSignaturesTestTransaction = new TestTransaction(
 				invalidSignaturesTransaction as any,
 			);
-			const { id, status, errors } = invalidSignaturesTestTransaction.validate(
-				networkIdentifier,
-			);
+			const {
+				id,
+				status,
+				errors,
+			} = invalidSignaturesTestTransaction.validate();
 
 			expect(id).to.be.eql(invalidSignaturesTestTransaction.id);
 			expect((errors as ReadonlyArray<TransactionError>)[0])
@@ -576,10 +558,7 @@ describe('Base transaction class', () => {
 				id,
 				status,
 				errors,
-			} = validMultisignatureTestTransaction.processMultisignatures(
-				networkIdentifier,
-				store,
-			);
+			} = validMultisignatureTestTransaction.processMultisignatures(store);
 
 			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
 			expect(errors).to.be.eql([]);
@@ -602,10 +581,7 @@ describe('Base transaction class', () => {
 				id,
 				status,
 				errors,
-			} = validMultisignatureTestTransaction.processMultisignatures(
-				networkIdentifier,
-				store,
-			);
+			} = validMultisignatureTestTransaction.processMultisignatures(store);
 
 			expect(id).to.be.eql(validMultisignatureTestTransaction.id);
 			expect(errors).to.be.eql(pendingErrors);
@@ -668,7 +644,6 @@ describe('Base transaction class', () => {
 				status,
 				errors,
 			} = transferFromMultiSigAccountTrs.addMultisignature(
-				networkIdentifier,
 				store,
 				multisigMember,
 			);
@@ -684,7 +659,6 @@ describe('Base transaction class', () => {
 			const {
 				status: arrangeStatus,
 			} = transferFromMultiSigAccountTrs.addMultisignature(
-				networkIdentifier,
 				store,
 				multisigMember,
 			);
@@ -695,7 +669,6 @@ describe('Base transaction class', () => {
 				status,
 				errors,
 			} = transferFromMultiSigAccountTrs.addMultisignature(
-				networkIdentifier,
 				store,
 				multisigMember,
 			);
@@ -725,7 +698,6 @@ describe('Base transaction class', () => {
 				status,
 				errors,
 			} = transferFromMultiSigAccountTrs.addMultisignature(
-				networkIdentifier,
 				store,
 				multisigMember,
 			);
@@ -754,7 +726,6 @@ describe('Base transaction class', () => {
 				status,
 				errors,
 			} = transferFromMultiSigAccountTrs.addMultisignature(
-				networkIdentifier,
 				store,
 				multisigMember,
 			);
@@ -771,10 +742,7 @@ describe('Base transaction class', () => {
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
 			store.account.getOrDefault = () => defaultSenderAccount;
-			const { id, status, errors } = validTestTransaction.apply(
-				networkIdentifier,
-				store,
-			);
+			const { id, status, errors } = validTestTransaction.apply(store);
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.OK);
 			expect(errors).to.be.empty;
@@ -785,10 +753,7 @@ describe('Base transaction class', () => {
 				...defaultSenderAccount,
 				balance: '0',
 			});
-			const { id, status, errors } = validTestTransaction.apply(
-				networkIdentifier,
-				store,
-			);
+			const { id, status, errors } = validTestTransaction.apply(store);
 
 			expect(id).to.be.eql(validTestTransaction.id);
 			expect(status).to.eql(Status.FAIL);
@@ -857,13 +822,13 @@ describe('Base transaction class', () => {
 		const senderPublicKey =
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 		const signature =
-			'68fa86a45787bf3df4025b35ad989bc573adca0fd9da1e0a0cbd84ec6ab14c7a1ea14a4e14922b4b1da39b3b1d1a4da6e0a2bf5f6b790f92ff0fbe74a81a8303';
+			'28d3e35555a983c5fd3d590da139e46b79ecaa0d0e4181b6c3508ee4687b7c4cdd46c489056663ed5a7d7156aa3e93094bcd8e89bf102fd4e3963a1dee668109';
 		const secondSignature =
-			'c1f014a901d71e7330fbfaa2e069212f7488b7bdd39802aee3bb5278b40447deaea77c246223b7f9107fdd769ed85a1cb8f9266cbc531f641423b3c5ebfb4400';
+			'97d2a6299a4fc96770ab0ee72d9941e82f01cf1330566f4473196204b7f880e10c53cb766182d8a8ebe8dae22a14e533a7f41767e8f77e96975b0d8c1096e402';
 
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
 			const newTransaction = new TestTransaction({});
-			newTransaction.sign(networkIdentifier, passphrase);
+			newTransaction.sign(passphrase);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
@@ -875,7 +840,7 @@ describe('Base transaction class', () => {
 
 		it('should return correct senderId/senderPublicKey when sign with passphrase and secondPassphrase', () => {
 			const newTransaction = new TestTransaction({});
-			newTransaction.sign(networkIdentifier, passphrase, secondPassphrase);
+			newTransaction.sign(passphrase, secondPassphrase);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
@@ -923,7 +888,7 @@ describe('Base transaction class', () => {
 
 		describe('when sign is called with passphrase', () => {
 			beforeEach(async () => {
-				transactionWithDefaultValues.sign(networkIdentifier, defaultPassphrase);
+				transactionWithDefaultValues.sign(defaultPassphrase);
 			});
 
 			it('should set signature property', async () => {
@@ -959,7 +924,6 @@ describe('Base transaction class', () => {
 		describe('when sign is called with passphrase and second passphrase', () => {
 			beforeEach(async () => {
 				transactionWithDefaultValues.sign(
-					networkIdentifier,
 					defaultPassphrase,
 					defaultSecondPassphrase,
 				);

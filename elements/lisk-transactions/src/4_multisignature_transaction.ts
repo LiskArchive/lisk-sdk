@@ -170,12 +170,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	public processMultisignatures(
-		networkIdentifier: string,
-		__: StateStore,
-	): TransactionResponse {
+	public processMultisignatures(_: StateStore): TransactionResponse {
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -189,6 +186,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
+
 		if (valid) {
 			this._multisignatureStatus = MultisignatureStatus.READY;
 
@@ -268,7 +266,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public addMultisignature(
-		networkIdentifier: string,
 		store: StateStore,
 		signatureObject: SignatureObject,
 	): TransactionResponse {
@@ -295,7 +292,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -312,7 +309,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		if (valid) {
 			this.signatures.push(signatureObject.signature);
 
-			return this.processMultisignatures(networkIdentifier, store);
+			return this.processMultisignatures(store);
 		}
 
 		// Else populate errors

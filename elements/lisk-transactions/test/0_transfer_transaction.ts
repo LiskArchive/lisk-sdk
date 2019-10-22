@@ -88,11 +88,11 @@ describe('Transfer transaction class', () => {
 	});
 
 	describe('#getBasicBytes', () => {
-		// generated using TransferTransaction@2.0.2
 		const expectedBytes =
-			'00c40068049becd3e545be91f85270d8a796ae3b9e8ec01a8cb479fef46a298b4efd943a0f65b7848a47afca70010000000000000061';
+			'00c40068049becd3e545be91f85270d8a796ae3b9e8ec01a8cb479fef46a298b4efd943a0f000000000000000165b7848a47afca7061';
 		it('should return a buffer', async () => {
 			const basicBytes = (validSelfTransferTestTransaction as any).getBasicBytes();
+
 			expect(basicBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
 		});
 	});

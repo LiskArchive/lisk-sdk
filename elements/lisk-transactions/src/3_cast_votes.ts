@@ -99,10 +99,11 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 			...transaction.asset,
 			recipientId,
 		},
+		networkIdentifier,
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
-	voteTransaction.sign(networkIdentifier, passphrase, secondPassphrase);
+	voteTransaction.sign(passphrase, secondPassphrase);
 
 	return voteTransaction.toJSON();
 };

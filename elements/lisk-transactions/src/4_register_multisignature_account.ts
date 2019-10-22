@@ -101,6 +101,7 @@ export const registerMultisignature = (
 			lifetime,
 			keysgroup: plusPrependedKeysgroup,
 		},
+		networkIdentifier,
 	};
 
 	if (!passphrase) {
@@ -110,11 +111,7 @@ export const registerMultisignature = (
 	const multisignatureTransaction = new MultisignatureTransaction(
 		transaction as TransactionJSON,
 	);
-	multisignatureTransaction.sign(
-		networkIdentifier,
-		passphrase,
-		secondPassphrase,
-	);
+	multisignatureTransaction.sign(passphrase, secondPassphrase);
 
 	return multisignatureTransaction.toJSON();
 };

@@ -15,18 +15,19 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { addTransactionFields } from '../helpers';
+import { TransferTransaction } from '../../src';
 import { getId } from '../../src/utils';
 import { validTransaction } from '../../fixtures';
 
 describe('#getId', () => {
 	const defaultTransaction = addTransactionFields(validTransaction);
-	const defaultTransactionBytes =
-		'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309';
+	const validTestTransaction = new TransferTransaction(defaultTransaction);
+	// Create tx id by validating
+	validTestTransaction.validate();
+	const defaultTransactionBytes = (validTestTransaction as any).getBytes();
 
 	it('should return a valid id', async () => {
-		expect(getId(Buffer.from(defaultTransactionBytes, 'hex'))).to.be.eql(
-			defaultTransaction.id,
-		);
+		expect(getId(defaultTransactionBytes)).to.be.eql(validTestTransaction.id);
 	});
 
 	it('should call cryptography hash', async () => {

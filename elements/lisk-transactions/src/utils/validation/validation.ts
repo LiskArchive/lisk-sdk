@@ -16,13 +16,13 @@ import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	MAX_ADDRESS_NUMBER,
-	MAX_NETWORK_IDENTIFIER_LENGTH,
 	MAX_PUBLIC_KEY_LENGTH,
 	MAX_TRANSACTION_AMOUNT,
 	MAX_TRANSACTION_ID,
 	MAX_TRANSFER_ASSET_DATA_LENGTH,
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
+	NETWORK_IDENTIFIER_LENGTH,
 } from '../../constants';
 
 export const validatePublicKey = (publicKey: string) => {
@@ -38,7 +38,7 @@ export const validatePublicKey = (publicKey: string) => {
 
 export const validateNetworkIdentifier = (networkIdentifier: string) => {
 	const networkIdentifierBuffer = cryptography.hexToBuffer(networkIdentifier);
-	if (networkIdentifierBuffer.length !== MAX_NETWORK_IDENTIFIER_LENGTH) {
+	if (networkIdentifierBuffer.length !== NETWORK_IDENTIFIER_LENGTH) {
 		throw new Error(`Invalid network identifier length: ${networkIdentifier}`);
 	}
 
