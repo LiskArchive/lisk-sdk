@@ -53,7 +53,7 @@ describe('transaction:verify', () => {
 			.stub(
 				config,
 				'getConfig',
-				sandbox.stub().returns({ api: { network: 'main' } }),
+				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(
 				inputUtils,

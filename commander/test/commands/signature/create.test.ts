@@ -20,7 +20,7 @@ import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
 import * as inputUtilsModule from '../../../src/utils/input';
 
-describe.only('signature:create', () => {
+describe('signature:create', () => {
 	const defaultTransaction = {
 		senderPublicKey:
 			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
@@ -38,6 +38,8 @@ describe.only('signature:create', () => {
 	const defaultInputs = {
 		passphrase: '123',
 	};
+	const testnetNetworkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	const defaultSignatureObject = {
 		transactionId: '3694188453012384790',
@@ -54,7 +56,7 @@ describe.only('signature:create', () => {
 			.stub(
 				config,
 				'getConfig',
-				sandbox.stub().returns({ api: { network: 'main' } }),
+				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(
 				transactions,
@@ -113,10 +115,11 @@ describe.only('signature:create', () => {
 						repeatPrompt: true,
 					},
 				});
-				expect(transactions.createSignatureObject).to.be.calledWithExactly(
-					defaultTransaction,
-					defaultInputs.passphrase,
-				);
+				expect(transactions.createSignatureObject).to.be.calledWithExactly({
+					transaction: defaultTransaction,
+					passphrase: defaultInputs.passphrase,
+					networkIdentifier: testnetNetworkIdentifier,
+				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignatureObject,
 				);
@@ -141,10 +144,11 @@ describe.only('signature:create', () => {
 							},
 						},
 					);
-					expect(transactions.createSignatureObject).to.be.calledWithExactly(
-						defaultTransaction,
-						defaultInputs.passphrase,
-					);
+					expect(transactions.createSignatureObject).to.be.calledWithExactly({
+						transaction: defaultTransaction,
+						passphrase: defaultInputs.passphrase,
+						networkIdentifier: testnetNetworkIdentifier,
+					});
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignatureObject,
 					);
@@ -193,10 +197,11 @@ describe.only('signature:create', () => {
 							},
 						},
 					);
-					expect(transactions.createSignatureObject).to.be.calledWithExactly(
-						defaultTransaction,
-						defaultInputs.passphrase,
-					);
+					expect(transactions.createSignatureObject).to.be.calledWithExactly({
+						transaction: defaultTransaction,
+						passphrase: defaultInputs.passphrase,
+						networkIdentifier: testnetNetworkIdentifier,
+					});
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignatureObject,
 					);
@@ -223,10 +228,11 @@ describe.only('signature:create', () => {
 							},
 						},
 					);
-					expect(transactions.createSignatureObject).to.be.calledWithExactly(
-						defaultTransaction,
-						defaultInputs.passphrase,
-					);
+					expect(transactions.createSignatureObject).to.be.calledWithExactly({
+						transaction: defaultTransaction,
+						passphrase: defaultInputs.passphrase,
+						networkIdentifier: testnetNetworkIdentifier,
+					});
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignatureObject,
 					);

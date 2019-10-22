@@ -30,7 +30,7 @@ describe('transaction:create', () => {
 			.stub(
 				config,
 				'getConfig',
-				sandbox.stub().returns({ api: { network: 'main' } }),
+				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(TransferCommand, 'run', sandbox.stub())
 			.stub(SecondPassphraseCommand, 'run', sandbox.stub())

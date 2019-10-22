@@ -35,8 +35,8 @@ describe('transaction:create:delegate', () => {
 		recipientPublicKey: null,
 		asset: {},
 	};
-	const mainnetNetworkIdentifier =
-		'9ee11e9df416b18bf69dbd1a920442e08c6ca319e69926bc843a561782ca17ee';
+	const testnetNetworkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	const printMethodStub = sandbox.stub();
 
@@ -46,7 +46,7 @@ describe('transaction:create:delegate', () => {
 			.stub(
 				config,
 				'getConfig',
-				sandbox.stub().returns({ api: { network: 'main' } }),
+				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(
 				transactions,
@@ -81,7 +81,7 @@ describe('transaction:create:delegate', () => {
 					secondPassphrase: undefined,
 				});
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
-					networkIdentifier: mainnetNetworkIdentifier,
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					username: defaultUsername,
@@ -110,7 +110,7 @@ describe('transaction:create:delegate', () => {
 						secondPassphrase: undefined,
 					});
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
-						networkIdentifier: mainnetNetworkIdentifier,
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						username: defaultUsername,
@@ -144,7 +144,7 @@ describe('transaction:create:delegate', () => {
 						},
 					});
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
-						networkIdentifier: mainnetNetworkIdentifier,
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						username: defaultUsername,
@@ -165,7 +165,7 @@ describe('transaction:create:delegate', () => {
 			])
 			.it('create a transaction with the username without signature', () => {
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
-					networkIdentifier: mainnetNetworkIdentifier,
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: undefined,
 					secondPassphrase: undefined,
 					username: defaultUsername,

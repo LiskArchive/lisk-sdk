@@ -32,8 +32,8 @@ describe('transaction:sign', () => {
 		},
 		id: '14814738582865173524',
 	};
-	const mainnetNetworkIdentifier =
-		'9ee11e9df416b18bf69dbd1a920442e08c6ca319e69926bc843a561782ca17ee';
+	const testnetNetworkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	const invalidTransaction = 'invalid transaction';
 	const defaultInputs = {
@@ -68,7 +68,7 @@ describe('transaction:sign', () => {
 			.stub(
 				config,
 				'getConfig',
-				sandbox.stub().returns({ api: { network: 'main' } }),
+				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(
 				inputUtils,
