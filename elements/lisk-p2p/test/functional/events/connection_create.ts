@@ -32,136 +32,138 @@ import {
 	NETWORK_START_PORT,
 } from '../../utils/network_setup';
 
-describe(`Events on Connection Create`, () => {
-	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const collectedEvents = new Map();
+describe.only(`Connection Create`, () => {
+	describe(`Events`, () => {
+		let p2pNodeList: ReadonlyArray<P2P> = [];
+		const collectedEvents = new Map();
 
-	beforeEach(async () => {
-		// To capture all the initial events set network creation time to minimum 1 ms
-		p2pNodeList = await createNetwork({
-			networkSize: 2,
-			networkDiscoveryWaitTime: 1,
-		});
-		const firstNode = p2pNodeList[0];
-		const secondNode = p2pNodeList[1];
+		beforeEach(async () => {
+			// To capture all the initial events set network creation time to minimum 1 ms
+			p2pNodeList = await createNetwork({
+				networkSize: 2,
+				networkDiscoveryWaitTime: 1,
+			});
+			const firstNode = p2pNodeList[0];
+			const secondNode = p2pNodeList[1];
 
-		firstNode.on(EVENT_NEW_INBOUND_PEER, res => {
-			collectedEvents.set(EVENT_NEW_INBOUND_PEER, res);
+			firstNode.on(EVENT_NEW_INBOUND_PEER, res => {
+				collectedEvents.set(EVENT_NEW_INBOUND_PEER, res);
+			});
+
+			secondNode.on(EVENT_CONNECT_OUTBOUND, res => {
+				collectedEvents.set(EVENT_CONNECT_OUTBOUND, res);
+			});
+			secondNode.on(EVENT_DISCOVERED_PEER, res => {
+				collectedEvents.set(EVENT_DISCOVERED_PEER, res);
+			});
+
+			secondNode.on(EVENT_UPDATED_PEER_INFO, res => {
+				collectedEvents.set(EVENT_UPDATED_PEER_INFO, res);
+			});
+
+			await wait(1000);
 		});
 
-		secondNode.on(EVENT_CONNECT_OUTBOUND, res => {
-			collectedEvents.set(EVENT_CONNECT_OUTBOUND, res);
-		});
-		secondNode.on(EVENT_DISCOVERED_PEER, res => {
-			collectedEvents.set(EVENT_DISCOVERED_PEER, res);
+		afterEach(async () => {
+			await destroyNetwork(p2pNodeList);
 		});
 
-		secondNode.on(EVENT_UPDATED_PEER_INFO, res => {
-			collectedEvents.set(EVENT_UPDATED_PEER_INFO, res);
+		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, async () => {
+			const secondNode = p2pNodeList[1];
+			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
+
+			expect(payload)
+				.to.have.property('wsPort')
+				.which.equals(secondNode.nodeInfo.wsPort);
+			expect(payload).to.have.property('sharedState');
 		});
 
-		await wait(1000);
+		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
+			const firstNode = p2pNodeList[0];
+			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
+
+			expect(payload)
+				.to.have.property('wsPort')
+				.which.equals(firstNode.nodeInfo.wsPort);
+			expect(payload).to.have.property('sharedState');
+		});
+
+		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
+			const firstNode = p2pNodeList[0];
+			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
+
+			expect(payload)
+				.to.have.property('wsPort')
+				.which.equals(firstNode.nodeInfo.wsPort);
+			expect(payload).to.have.property('sharedState');
+
+			expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO)).to.exist;
+		});
+
+		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
+			const secondNode = p2pNodeList[1];
+			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
+
+			expect(payload)
+				.to.have.property('wsPort')
+				.which.equals(secondNode.nodeInfo.wsPort);
+			expect(payload).to.have.property('sharedState');
+		});
 	});
 
-	afterEach(async () => {
-		await destroyNetwork(p2pNodeList);
-	});
+	describe(`Errors`, () => {
+		let p2pNodeList: ReadonlyArray<P2P> = [];
+		const collectedErrors: Array<any> = [];
 
-	it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, async () => {
-		const secondNode = p2pNodeList[1];
-		const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
+		beforeEach(async () => {
+			const customSeedPeers = (index: number) => ({
+				nethash:
+					index === 1
+						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
+						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				version: '1.0.1',
+				protocolVersion: index === 2 ? '1.1' : 'BAD',
+				minVersion: '1.0.0',
+				os: 'darwin',
+				height: 0,
+				httpPort: 0,
+				broadhash:
+					'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+				nonce: `O2wTkjqplHII500${index}`,
+			});
 
-		expect(payload)
-			.to.have.property('wsPort')
-			.which.equals(secondNode.nodeInfo.wsPort);
-		expect(payload).to.have.property('sharedState');
-	});
+			const customConfig = (index: number) => ({
+				nodeInfo: customSeedPeers(index),
+				seedPeers: [
+					{
+						ipAddress: SEED_PEER_IP,
+						wsPort: NETWORK_START_PORT,
+					},
+				],
+			});
 
-	it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
-		const firstNode = p2pNodeList[0];
-		const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
+			p2pNodeList = await createNetwork({
+				networkSize: 3,
+				networkDiscoveryWaitTime: 1,
+				customConfig,
+			});
 
-		expect(payload)
-			.to.have.property('wsPort')
-			.which.equals(firstNode.nodeInfo.wsPort);
-		expect(payload).to.have.property('sharedState');
-	});
+			const firstNode = p2pNodeList[0];
 
-	it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
-		const firstNode = p2pNodeList[0];
-		const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
+			firstNode.on(EVENT_FAILED_TO_ADD_INBOUND_PEER, res => {
+				collectedErrors.push(res.message);
+			});
 
-		expect(payload)
-			.to.have.property('wsPort')
-			.which.equals(firstNode.nodeInfo.wsPort);
-		expect(payload).to.have.property('sharedState');
-
-		expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO)).to.exist;
-	});
-
-	it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
-		const secondNode = p2pNodeList[1];
-		const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
-
-		expect(payload)
-			.to.have.property('wsPort')
-			.which.equals(secondNode.nodeInfo.wsPort);
-		expect(payload).to.have.property('sharedState');
-	});
-});
-
-describe(`Events on Connection Error`, () => {
-	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const collectedErrors: Array<any> = [];
-
-	beforeEach(async () => {
-		const customSeedPeers = (index: number) => ({
-			nethash:
-				index === 1
-					? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
-					: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: '1.0.1',
-			protocolVersion: index === 2 ? '1.1' : 'BAD',
-			minVersion: '1.0.0',
-			os: 'darwin',
-			height: 0,
-			httpPort: 0,
-			broadhash:
-				'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-			nonce: `O2wTkjqplHII500${index}`,
+			await wait(1000);
+		});
+		afterEach(async () => {
+			await destroyNetwork(p2pNodeList);
 		});
 
-		const customConfig = (index: number) => ({
-			nodeInfo: customSeedPeers(index),
-			seedPeers: [
-				{
-					ipAddress: SEED_PEER_IP,
-					wsPort: NETWORK_START_PORT,
-				},
-			],
+		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, async () => {
+			expect(collectedErrors).to.include(INVALID_CONNECTION_SELF_REASON);
+			expect(collectedErrors).to.include(INCOMPATIBLE_NETWORK_REASON);
+			expect(collectedErrors).to.include(INCOMPATIBLE_PROTOCOL_VERSION_REASON);
 		});
-
-		p2pNodeList = await createNetwork({
-			networkSize: 3,
-			networkDiscoveryWaitTime: 1,
-			customConfig,
-		});
-
-		const firstNode = p2pNodeList[0];
-
-		firstNode.on(EVENT_FAILED_TO_ADD_INBOUND_PEER, res => {
-			collectedErrors.push(res.message);
-		});
-
-		await wait(1000);
-	});
-	afterEach(async () => {
-		await destroyNetwork(p2pNodeList);
-	});
-
-	it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, async () => {
-		expect(collectedErrors).to.include(INVALID_CONNECTION_SELF_REASON);
-		expect(collectedErrors).to.include(INCOMPATIBLE_NETWORK_REASON);
-		expect(collectedErrors).to.include(INCOMPATIBLE_PROTOCOL_VERSION_REASON);
 	});
 });
