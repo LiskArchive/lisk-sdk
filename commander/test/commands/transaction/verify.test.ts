@@ -50,7 +50,11 @@ describe('transaction:verify', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'main' } }),
+			)
 			.stub(
 				inputUtils,
 				'getData',

@@ -40,6 +40,8 @@ describe('transaction:create:multisignature', () => {
 		recipientPublicKey: null,
 		asset: {},
 	};
+	const mainnetNetworkIdentifier =
+		'9ee11e9df416b18bf69dbd1a920442e08c6ca319e69926bc843a561782ca17ee';
 
 	const printMethodStub = sandbox.stub();
 	const transactionUtilStub = {
@@ -49,7 +51,11 @@ describe('transaction:create:multisignature', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'main' } }),
+			)
 			.stub(
 				transactions,
 				'registerMultisignature',
@@ -140,6 +146,7 @@ describe('transaction:create:multisignature', () => {
 					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					networkIdentifier: mainnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
@@ -173,6 +180,7 @@ describe('transaction:create:multisignature', () => {
 					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					networkIdentifier: mainnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
@@ -212,6 +220,7 @@ describe('transaction:create:multisignature', () => {
 						},
 					});
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
+						networkIdentifier: mainnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						keysgroup: defaultKeysgroup,
@@ -242,6 +251,7 @@ describe('transaction:create:multisignature', () => {
 					).to.be.calledWithExactly(defaultKeysgroup);
 					expect(inputUtils.getInputsFromSources).not.to.be.called;
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
+						networkIdentifier: mainnetNetworkIdentifier,
 						passphrase: undefined,
 						secondPassphrase: undefined,
 						keysgroup: defaultKeysgroup,

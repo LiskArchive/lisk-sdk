@@ -20,7 +20,7 @@ import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
 import * as inputUtilsModule from '../../../src/utils/input';
 
-describe('signature:create', () => {
+describe.only('signature:create', () => {
 	const defaultTransaction = {
 		senderPublicKey:
 			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
@@ -51,7 +51,11 @@ describe('signature:create', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'main' } }),
+			)
 			.stub(
 				transactions,
 				'createSignatureObject',

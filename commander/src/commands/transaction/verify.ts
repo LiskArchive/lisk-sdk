@@ -17,7 +17,9 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
+import { flags as commonFlags } from '../../utils/flags';
 import { getData, getStdIn } from '../../utils/input/utils';
+import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
 import {
 	instantiateTransaction,
 	parseTransactionString,
@@ -71,6 +73,7 @@ export default class VerifyCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.passphrase),
 		'second-public-key': flagParser.string({
 			name: 'Second public key',
 			description: secondPublicKeyDescription,
@@ -80,7 +83,10 @@ export default class VerifyCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const {
 			args,
-			flags: { 'second-public-key': secondPublicKeySource },
+			flags: {
+				'second-public-key': secondPublicKeySource,
+				networkIdentifier: networkIdentifierSource,
+			},
 		} = this.parse(VerifyCommand);
 
 		const { transaction }: Args = args;
@@ -100,8 +106,12 @@ export default class VerifyCommand extends BaseCommand {
 			? await processSecondPublicKey(secondPublicKeySource)
 			: undefined;
 
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
 		if (!secondPublicKey) {
-			const { errors } = txInstance.validate();
+			const { errors } = txInstance.validate(networkIdentifier);
 			this.print({
 				verified: errors.length === 0,
 			});

@@ -27,7 +27,11 @@ describe('transaction:create', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'main' } }),
+			)
 			.stub(TransferCommand, 'run', sandbox.stub())
 			.stub(SecondPassphraseCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())

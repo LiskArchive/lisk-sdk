@@ -19,6 +19,7 @@ import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
 import { getInputsFromSources } from '../../utils/input';
 import { getStdIn } from '../../utils/input/utils';
+import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
 import { removeUndefinedValues } from '../../utils/object';
 import {
 	instantiateTransaction,
@@ -60,6 +61,7 @@ export default class SignCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 	};
@@ -68,6 +70,7 @@ export default class SignCommand extends BaseCommand {
 		const {
 			args,
 			flags: {
+				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 			},
@@ -94,10 +97,17 @@ export default class SignCommand extends BaseCommand {
 			throw new Error('Passphrase is required to sign the transaction');
 		}
 
-		const txInstance = instantiateTransaction(transactionObject);
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
+		const txInstance = instantiateTransaction({
+			...transactionObject,
+			networkIdentifier,
+		});
 		txInstance.sign(passphrase, secondPassphrase);
 
-		const { errors } = txInstance.validate();
+		const { errors } = txInstance.validate(networkIdentifier);
 
 		if (errors.length !== 0) {
 			throw errors;
