@@ -326,7 +326,7 @@ export class PeerPool extends EventEmitter {
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
-	public send(message: P2PMessagePacket): void {
+	public send(message: P2PMessagePacket, broadcast: boolean): void {
 		const listOfPeerInfo: ReadonlyArray<P2PPeerInfo> = [
 			...this._peerMap.values(),
 		].map(peer => ({
@@ -339,11 +339,12 @@ export class PeerPool extends EventEmitter {
 						: ConnectionKind.INBOUND,
 			},
 		}));
+
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
 			nodeInfo: this._nodeInfo,
-			peerLimit: this._sendPeerLimit,
+			peerLimit: broadcast ? listOfPeerInfo.length : this._sendPeerLimit,
 			messagePacket: message,
 		});
 
