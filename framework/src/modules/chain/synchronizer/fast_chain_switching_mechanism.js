@@ -134,6 +134,47 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}
 
 	/**
+	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer`
+	 *
+	 * @param {object} peerId - The ID of the peer to target
+	 * @param {string} fromId - The starting block ID to fetch from
+	 * @param {string} toId - The ending block ID
+	 * @return {Promise<Array<object>>}
+	 */
+	async _requestBlocksWithinIDs(peerId, fromId, toId) {
+		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
+		const blocks = [];
+		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
+		let lastFetchedID = fromId;
+
+		while (failedAttempts < maxFailedAttempts) {
+			const { data: chunkOfBlocks } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getBlocksFromId',
+					peerId,
+					data: {
+						blockId: lastFetchedID,
+					},
+				},
+			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+
+			if (chunkOfBlocks && chunkOfBlocks.length) {
+				blocks.push(...chunkOfBlocks);
+				[{ id: lastFetchedID }] = chunkOfBlocks.slice(-1);
+				const index = blocks.findIndex(block => block.id === toId);
+				if (index > -1) {
+					return blocks.splice(0, index + 1); // Removes unwanted extra blocks
+				}
+			} else {
+				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
+			}
+		}
+
+		return blocks;
+	}
+
+	/**
 	 * Queries the blocks from the selected peer.
 	 * @param {Object} receivedBlock
 	 * @param {Object} highestCommonBlock
