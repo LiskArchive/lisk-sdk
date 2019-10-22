@@ -237,7 +237,7 @@ export class Peer extends EventEmitter {
 			const rate = this._getMessageRate(message);
 			const messageWithRateInfo = {
 				...message,
-				peerId: this.id,
+				peerId: this._id,
 				rate,
 			};
 
