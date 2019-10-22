@@ -248,9 +248,9 @@ class Transport {
 		}
 
 		// Should ignore received block if syncing
-		if (this.synchronizer.isActive()) {
+		if (this.synchronizer.isActive) {
 			return this.logger.debug(
-				{ id: query.block.id, height: query.block.height },
+				{ blockId: query.block.id, height: query.block.height },
 				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
