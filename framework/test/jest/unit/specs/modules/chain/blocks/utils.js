@@ -15,97 +15,16 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
-const {
-	BIG_ENDIAN,
-	hash,
-	signDataWithPrivateKey,
-	hexToBuffer,
-	intToBuffer,
-	LITTLE_ENDIAN,
-} = require('@liskhq/lisk-cryptography');
+const { hash, signDataWithPrivateKey } = require('@liskhq/lisk-cryptography');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 // TODO: Move it out of mocha and put it in test main directory
 const randomUtil = require('../../../../../../mocha/common/utils/random.js');
+const {
+	getBytes,
+} = require('../../../../../../../src/modules/chain/block_processor_v2');
 
 const sortTransactions = transactions =>
 	transactions.sort((a, b) => a.type > b.type || a.id > b.id);
-
-const SIZE_INT32 = 4;
-const SIZE_INT64 = 8;
-
-const getBytes = block => {
-	const blockVersionBuffer = intToBuffer(
-		block.version,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const timestampBuffer = intToBuffer(
-		block.timestamp,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const previousBlockBuffer = block.previousBlock
-		? intToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
-		: Buffer.alloc(SIZE_INT64);
-
-	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
-
-	const numTransactionsBuffer = intToBuffer(
-		block.numberOfTransactions,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const totalAmountBuffer = intToBuffer(
-		block.totalAmount.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const totalFeeBuffer = intToBuffer(
-		block.totalFee.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const rewardBuffer = intToBuffer(
-		block.reward.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const payloadLengthBuffer = intToBuffer(
-		block.payloadLength,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const payloadHashBuffer = hexToBuffer(block.payloadHash);
-
-	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
-
-	const blockSignatureBuffer = block.blockSignature
-		? hexToBuffer(block.blockSignature)
-		: Buffer.alloc(0);
-
-	const bufferArray = Buffer.concat([
-		blockVersionBuffer,
-		timestampBuffer,
-		previousBlockBuffer,
-		heightBuffer,
-		numTransactionsBuffer,
-		totalAmountBuffer,
-		totalFeeBuffer,
-		rewardBuffer,
-		payloadLengthBuffer,
-		payloadHashBuffer,
-		generatorPublicKeyBuffer,
-		blockSignatureBuffer,
-	]);
-	return bufferArray;
-};
 
 const calculateTransactionsInfo = block => {
 	const sortedTransactions = sortTransactions(block.transactions);
@@ -146,6 +65,8 @@ const newBlock = block => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
+		maxHeightPreviouslyForged: 0,
+		prevotedConfirmedUptoHeight: 0,
 		previousBlock: genesisBlock.id,
 		keypair: randomUtil.account().keypair,
 		transactions: [],
@@ -166,12 +87,15 @@ const newBlock = block => {
 		),
 	};
 
+	const { keypair } = blockWithCalculatedProperties;
+	delete blockWithCalculatedProperties.keypair;
+
 	// eslint-disable-next-line new-cap
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
 			hash(getBytes(blockWithCalculatedProperties)),
-			Buffer.from(blockWithCalculatedProperties.keypair.privateKey, 'hex'),
+			Buffer.from(keypair.privateKey, 'hex'),
 		),
 	};
 	const hashedBlockBytes = hash(getBytes(blockWithSignature));
