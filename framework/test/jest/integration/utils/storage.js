@@ -21,7 +21,7 @@ const { Storage } = require('../../../../src/components/storage');
 const {
 	Account,
 	Block,
-	Round,
+	RoundDelegates,
 	Transaction,
 } = require('../../../../src/modules/chain/components/storage/entities');
 
@@ -80,7 +80,7 @@ class StorageSandbox extends Storage {
 		// Custom entitties
 		this.registerEntity('Migration', Migration);
 		this.registerEntity('Peer', Peer);
-		this.registerEntity('Round', Round);
+		this.registerEntity('RoundDelegates', RoundDelegates);
 
 		await this._createSchema();
 		return true;

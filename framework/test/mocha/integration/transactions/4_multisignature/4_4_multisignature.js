@@ -16,7 +16,7 @@
 
 const {
 	registerMultisignature,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
@@ -42,16 +42,20 @@ describe('integration test (type 4) - double multisignature registrations', () =
 	transactionToBeNotConfirmed.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		const signatureToBeNotconfirmed = transactionUtils.multiSignTransaction(
+		const signatureToBeNotconfirmed = createSignatureObject(
 			transactionToBeNotConfirmed,
 			member.passphrase,
 		);
-		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
-		const signature = transactionUtils.multiSignTransaction(
+		transactionToBeNotConfirmed.signatures.push(
+			signatureToBeNotconfirmed.signature,
+		);
+		const signatureObject = createSignatureObject(
 			scenarios.regular.multiSigTransaction,
 			member.passphrase,
 		);
-		return scenarios.regular.multiSigTransaction.signatures.push(signature);
+		return scenarios.regular.multiSigTransaction.signatures.push(
+			signatureObject.signature,
+		);
 	});
 
 	localCommon.beforeBlock('4_4_multisig', lib => {

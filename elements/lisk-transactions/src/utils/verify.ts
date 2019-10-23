@@ -37,21 +37,6 @@ export const verifySenderPublicKey = (
 		  )
 		: undefined;
 
-export const verifySenderId = (
-	id: string,
-	sender: Account,
-	address: string,
-): TransactionError | undefined =>
-	sender.address.toUpperCase() !== address.toUpperCase()
-		? new TransactionError(
-				'Invalid sender address',
-				id,
-				'.senderId',
-				address.toUpperCase(),
-				sender.address.toUpperCase(),
-		  )
-		: undefined;
-
 export const verifyBalance = (
 	id: string,
 	account: Account,

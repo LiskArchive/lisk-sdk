@@ -16,7 +16,7 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionHandlers = require('../../../../../../src/modules/chain/transactions/transactions_handlers');
-const voteHandlers = require('../../../../../../src/modules/chain/transactions/votes');
+const votesWeightHandler = require('../../../../../../src/modules/chain/transactions/votes_weight');
 const exceptionHandlers = require('../../../../../../src/modules/chain/transactions/exceptions_handlers');
 const StateStore = require('../../../../../../src/modules/chain/state_store');
 const {
@@ -63,6 +63,9 @@ describe('transactions', () => {
 			entities: {
 				Transaction: {
 					get: sinonSandbox.stub(),
+				},
+				Account: {
+					get: sinonSandbox.stub().returns([]),
 				},
 			},
 		};
@@ -337,7 +340,8 @@ describe('transactions', () => {
 		beforeEach(async () => {
 			trs1.apply.returns(trs1Response);
 			trs2.apply.returns(trs2Response);
-			sinonSandbox.stub(voteHandlers, 'apply');
+			sinonSandbox.stub(votesWeightHandler, 'prepare');
+			sinonSandbox.stub(votesWeightHandler, 'apply');
 		});
 
 		it('should prepare all transactions', async () => {
@@ -366,7 +370,7 @@ describe('transactions', () => {
 				trs2,
 			]);
 
-			expect(voteHandlers.apply).to.be.calledTwice;
+			expect(votesWeightHandler.apply).to.be.calledTwice;
 		});
 
 		it('should add transaction to state store', async () => {
@@ -434,7 +438,8 @@ describe('transactions', () => {
 			trs1.apply.returns(trs1Response);
 			trs2.apply.returns(trs2Response);
 
-			sinonSandbox.stub(voteHandlers, 'apply');
+			sinonSandbox.stub(votesWeightHandler, 'prepare');
+			sinonSandbox.stub(votesWeightHandler, 'apply');
 			sinonSandbox
 				.stub(transactionHandlers, 'verifyTotalSpending')
 				.returns([trs1Response, trs2Response]);
@@ -534,11 +539,7 @@ describe('transactions', () => {
 			it('should add to roundInformation if transaction response is OK', async () => {
 				await transactionHandlers.applyTransactions(storageMock)([trs1, trs2]);
 
-				expect(voteHandlers.apply).to.be.calledOnce;
-				expect(voteHandlers.apply).to.be.calledWithExactly(
-					stateStoreMock,
-					trs1,
-				);
+				expect(votesWeightHandler.apply).to.be.calledOnce;
 			});
 
 			it('should not add to roundInformation if transaction response is not OK', async () => {
@@ -547,7 +548,7 @@ describe('transactions', () => {
 
 				await transactionHandlers.applyTransactions(storageMock)([trs1, trs2]);
 
-				expect(voteHandlers.apply).to.not.be.called;
+				expect(votesWeightHandler.apply).to.not.be.called;
 			});
 
 			it('should add to state store if transaction response is OK', async () => {
@@ -601,7 +602,7 @@ describe('transactions', () => {
 			trs1.undo.returns(trs1Response);
 			trs2.undo.returns(trs2Response);
 
-			sinonSandbox.stub(voteHandlers, 'undo');
+			sinonSandbox.stub(votesWeightHandler, 'undo');
 			sinonSandbox.stub(
 				exceptionHandlers,
 				'updateTransactionResponseForExceptionTransactions',
@@ -635,7 +636,7 @@ describe('transactions', () => {
 		it('should undo round information for every transaction', async () => {
 			await transactionHandlers.undoTransactions(storageMock)([trs1, trs2]);
 
-			expect(voteHandlers.undo).to.be.calledTwice;
+			expect(votesWeightHandler.undo).to.be.calledTwice;
 		});
 
 		it('should update exceptions for responses which are not OK', async () => {
@@ -857,17 +858,17 @@ describe('transactions', () => {
 
 			const validTransaction = transactionFixture();
 			validTransaction.senderId = account.address;
-			validTransaction.amount = '3';
+			validTransaction.asset.amount = '3';
 			validTransaction.fee = '2';
 
 			const inValidTransaction1 = transactionFixture();
 			inValidTransaction1.senderId = account.address;
-			inValidTransaction1.amount = '3';
+			inValidTransaction1.asset.amount = '3';
 			inValidTransaction1.fee = '2';
 
 			const inValidTransaction2 = transactionFixture();
 			inValidTransaction2.senderId = account.address;
-			inValidTransaction2.amount = '1';
+			inValidTransaction2.asset.amount = '1';
 			inValidTransaction2.fee = '1';
 
 			// First transaction is valid, while second and third exceed the balance
@@ -905,12 +906,12 @@ describe('transactions', () => {
 
 			const validTransaction1 = transactionFixture();
 			validTransaction1.senderId = account.address;
-			validTransaction1.amount = '2';
+			validTransaction1.asset.amount = '2';
 			validTransaction1.fee = '2';
 
 			const validTransaction2 = transactionFixture();
 			validTransaction2.senderId = account.address;
-			validTransaction2.amount = '2';
+			validTransaction2.asset.amount = '2';
 			validTransaction2.fee = '2';
 
 			const transactions = [
@@ -933,12 +934,12 @@ describe('transactions', () => {
 
 			const validTransaction1 = transactionFixture();
 			validTransaction1.senderId = account.address;
-			validTransaction1.amount = '2';
+			validTransaction1.asset.amount = '2';
 			validTransaction1.fee = '2';
 
 			const validTransaction2 = transactionFixture();
 			validTransaction2.senderId = account.address;
-			validTransaction2.amount = '2';
+			validTransaction2.asset.amount = '2';
 			validTransaction2.fee = '2';
 
 			const transactions = [

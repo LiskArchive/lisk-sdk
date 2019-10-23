@@ -16,11 +16,10 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const BigNum = require('@liskhq/bignum');
 const {
 	transfer,
 	registerDelegate,
-	utils: transactionUtils,
+	DelegateTransaction,
 } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -98,7 +97,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	});
 
 	describe('schema validations', () => {
-		common.invalidAssets('delegate', badTransactions);
+		common.invalidAssets('username', badTransactions);
 	});
 
 	describe('transactions processing', () => {
@@ -138,20 +137,13 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using blank username should fail', async () => {
-			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-			transaction = transactionUtils.signRawTransaction({
-				transaction: {
-					type: 2,
-					amount: '0',
-					fee: new BigNum(FEES.DELEGATE).toString(),
-					asset: {
-						delegate: {
-							username: '',
-						},
-					},
+			const tx = new DelegateTransaction({
+				asset: {
+					username: '',
 				},
-				passphrase: account.passphrase,
 			});
+			tx.sign(account.passphrase);
+			transaction = tx.toJSON();
 
 			return sendTransactionPromise(
 				transaction,
@@ -162,7 +154,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					"'.delegate.username' should NOT be shorter than 1 characters",
+					"'.username' should NOT be shorter than 1 characters",
 				);
 				badTransactions.push(transaction);
 			});
@@ -184,7 +176,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.delegate.username\' should match format "username"',
+					'\'.username\' should match format "username"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -206,7 +198,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.delegate.username\' should match format "username"',
+					'\'.username\' should match format "username"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -228,7 +220,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.delegate.username\' should match format "username"',
+					'\'.username\' should match format "username"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -250,7 +242,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.delegate.username\' should match format "username"',
+					'\'.username\' should match format "username"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -272,7 +264,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.delegate.username\' should match format "username"',
+					'\'.username\' should match format "username"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -294,7 +286,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.delegate.username\' should match format "username"',
+					'\'.username\' should match format "username"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -302,20 +294,13 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using username longer than 20 characters should fail', () => {
 			const delegateName = `${randomUtil.delegateName()}x`;
-			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-			transaction = transactionUtils.signRawTransaction({
-				transaction: {
-					type: 2,
-					amount: '0',
-					fee: new BigNum(FEES.DELEGATE).toString(),
-					asset: {
-						delegate: {
-							username: delegateName,
-						},
-					},
+			const tx = new DelegateTransaction({
+				asset: {
+					username: delegateName,
 				},
-				passphrase: account.passphrase,
 			});
+			tx.sign(account.passphrase);
+			transaction = tx.toJSON();
 
 			return sendTransactionPromise(
 				transaction,
@@ -326,7 +311,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					"'.delegate.username' should NOT be longer than 20 characters",
+					"'.username' should NOT be longer than 20 characters",
 				);
 				badTransactions.push(transaction);
 			});
@@ -347,7 +332,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.delegate.username\' should match format "username"',
+					'\'.username\' should match format "username"',
 				);
 				badTransactions.push(transaction);
 			});

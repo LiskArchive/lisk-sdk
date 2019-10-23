@@ -14,6 +14,7 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const EventEmitter = require('events');
 const _ = require('lodash');
 const pool = require('@liskhq/lisk-transaction-pool');
@@ -21,7 +22,6 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { sortBy } = require('./sort');
 const transactionsModule = require('../transactions');
 
@@ -458,24 +458,29 @@ class TransactionPool extends EventEmitter {
 		const transactions = this[typeMap[type]](true);
 		let toSend = [];
 
-		if (filters.recipientPublicKey) {
-			filters.recipientId = getAddressFromPublicKey(filters.recipientPublicKey);
-			delete filters.recipientPublicKey;
-		}
-
 		// Filter transactions
 		if (
 			filters.id ||
-			filters.recipientId ||
-			filters.recipientPublicKey ||
 			filters.senderId ||
+			filters.recipientId ||
 			filters.senderPublicKey ||
-			Object.prototype.hasOwnProperty.call(filters, 'type')
+			typeof filters.type === 'number'
 		) {
-			toSend = _.filter(
-				transactions,
-				_.omit(filters, ['limit', 'offset', 'sort']),
-			);
+			const omittedFilters = _.omit(filters, ['limit', 'offset', 'sort']);
+			toSend = transactions.filter(tx => {
+				if (omittedFilters.recipientId) {
+					return (
+						tx.asset && tx.asset.recipientId === omittedFilters.recipientId
+					);
+				}
+
+				return Object.keys(omittedFilters).every(key => {
+					if (key === 'type') {
+						return tx.type === omittedFilters[key];
+					}
+					return tx[key] && tx[key] === omittedFilters[key];
+				});
+			});
 		} else {
 			toSend = _.cloneDeep(transactions);
 		}
@@ -498,7 +503,11 @@ class TransactionPool extends EventEmitter {
 				if (sortAttribute.sortField === 'fee') {
 					return a.fee.minus(b.fee) * sortOrder;
 				}
-				return a.amount.minus(b.amount) * sortOrder;
+				return (
+					(a.asset.amount || new BigNum(0))
+						.minus(b.asset.amount || new BigNum(0))
+						.toNumber() * sortOrder
+				);
 			});
 		} else {
 			toSend = _.orderBy(

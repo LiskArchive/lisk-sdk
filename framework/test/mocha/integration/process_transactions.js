@@ -26,7 +26,6 @@ const transactionsModule = require('../../../src/modules/chain/transactions');
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../src/modules/chain/interface_adapters');
-const votes = require('../../../src/modules/chain/transactions/votes');
 
 const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
@@ -35,10 +34,10 @@ const genesisBlock = __testContext.config.genesisBlock;
 const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const { Slots } = require('../../../src/modules/chain/dpos');
 
 describe('processTransactions', () => {
-	const slots = new BlockSlots({
+	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -346,16 +345,6 @@ describe('processTransactions', () => {
 							transactionStatus.PENDING,
 						);
 					});
-				});
-
-				it('should call votes.apply with correct params', async () => {
-					sinonSandbox.spy(votes, 'apply');
-					const { stateStore } = await applyTransactions(appliableTransactions);
-					expect(votes.apply.firstCall.args).to.be.eql([
-						stateStore,
-						appliableTransactions[0],
-						exceptions,
-					]);
 				});
 			});
 		});

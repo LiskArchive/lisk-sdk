@@ -87,6 +87,7 @@ describe('p2p_request', () => {
 		it('should send data back to callback in correct format', () =>
 			expect(respondCallback).to.be.calledOnceWith(undefined, {
 				data: 'hello',
+				peerId: requestOptions.id,
 			}));
 
 		it('should increment the productivity.responseCounter by 1', () =>

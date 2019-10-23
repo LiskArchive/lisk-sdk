@@ -28,7 +28,7 @@ class TransactionStore {
 	async cache(filter) {
 		const result = await this.transaction.get(
 			filter,
-			{ extended: true },
+			{ extended: true, limit: null },
 			this.tx,
 		);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);

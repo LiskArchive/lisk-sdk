@@ -21,8 +21,7 @@ const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 const sqlFiles = {
-	selectSimple: 'accounts/get.sql',
-	selectFull: 'accounts/get_extended.sql',
+	get: 'accounts/get.sql',
 	count: 'accounts/count.sql',
 	isPersisted: 'accounts/is_persisted.sql',
 };
@@ -42,10 +41,9 @@ const sqlFiles = {
  * @property {Boolean} nameExist
  * @property {number} missedBlocks
  * @property {number} producedBlocks
- * @property {string} rank
  * @property {string} fees
  * @property {string} rewards
- * @property {string} vote
+ * @property {string} voteWeight
  * @property {number} productivity
  */
 
@@ -143,16 +141,14 @@ const sqlFiles = {
  * @property {string} [missedBlocks_lt]
  * @property {string} [missedBlocks_lte]
  * @property {Array.<string>} [missedBlocks_in]
- * @property {string} [rank]
- * @property {string} [rank_eql]
- * @property {string} [rank_ne]
- * @property {string} [rank_gt]
- * @property {string} [rank_gte]
- * @property {string} [rank_lt]
- * @property {string} [rank_lte]
- * @property {Array.<string>} [rank_in]
- * @property {string} [votes]
- * @property {Array.<string>} [votes_in]
+ * @property {string} [voteWeight]
+ * @property {string} [voteWeight_eql]
+ * @property {string} [voteWeight_ne]
+ * @property {string} [voteWeight_gt]
+ * @property {string} [voteWeight_gte]
+ * @property {string} [voteWeight_lt]
+ * @property {string} [voteWeight_lte]
+ * @property {string} [voteWeight_in]
  */
 
 class Account extends BaseEntity {
@@ -218,20 +214,21 @@ class Account extends BaseEntity {
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('rank', 'string', { filter: ft.NUMBER });
-		this.addField('vote', 'string', { filter: ft.NUMBER });
+		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');
+		this.addField('votedDelegatesPublicKeys', 'string');
+		this.addField('membersPublicKeys', 'string');
 
-		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
+		this.addFilter('votedDelegatesPublicKeys', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
+				'mem_accounts."votedDelegatesPublicKeys" @> ${votedDelegatesPublicKeys}',
 		});
 
-		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
+		this.addFilter('membersPublicKeys', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${membersPublicKeys_in:csv}))',
+				'mem_accounts."membersPublicKeys" @> ${membersPublicKeys}',
 		});
 
 		this.addFilter('asset_contains', ft.CUSTOM, {
@@ -362,7 +359,6 @@ class Account extends BaseEntity {
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
@@ -400,7 +396,7 @@ class Account extends BaseEntity {
 		};
 
 		return this.adapter.executeFile(
-			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
+			this.SQLs.get,
 			params,
 			{ expectedResultCount },
 			tx,

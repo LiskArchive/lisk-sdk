@@ -45,17 +45,14 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should set the delegate asset', async () => {
-			expect(validTestTransaction.asset.delegate).to.be.an('object');
-			expect(validTestTransaction.asset.delegate.username).to.eql('0x0');
+			expect(validTestTransaction.asset.username).to.eql('0x0');
 		});
 
 		it('should not throw when asset is not valid string', async () => {
 			const invalidDelegateTransactionData = {
 				...validDelegateTransaction,
 				asset: {
-					delegate: {
-						username: 123,
-					},
+					username: 123,
 				},
 			};
 			expect(
@@ -68,7 +65,7 @@ describe('Delegate registration transaction class', () => {
 		it('should return valid buffer', async () => {
 			const assetBytes = (validTestTransaction as any).assetToBytes();
 			expect(assetBytes).to.eql(
-				Buffer.from(validDelegateTransaction.asset.delegate.username, 'utf8'),
+				Buffer.from(validDelegateTransaction.asset.username, 'utf8'),
 			);
 		});
 	});
@@ -98,7 +95,7 @@ describe('Delegate registration transaction class', () => {
 		it('should return an object of type transfer asset', async () => {
 			expect(validTestTransaction.assetToJSON())
 				.to.be.an('object')
-				.and.to.have.property('delegate');
+				.and.to.have.property('username');
 		});
 	});
 
@@ -107,7 +104,7 @@ describe('Delegate registration transaction class', () => {
 			await validTestTransaction.prepare(store);
 			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validTestTransaction.senderId },
-				{ username: validTestTransaction.asset.delegate.username },
+				{ username: validTestTransaction.asset.username },
 			]);
 		});
 	});
@@ -122,9 +119,7 @@ describe('Delegate registration transaction class', () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
-					delegate: {
-						username: '%invalid%username*',
-					},
+					username: '%invalid%username*',
 				},
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
@@ -136,9 +131,7 @@ describe('Delegate registration transaction class', () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
-					delegate: {
-						username: 'InValIdUsErNAmE',
-					},
+					username: 'InValIdUsErNAmE',
 				},
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
@@ -150,40 +143,13 @@ describe('Delegate registration transaction class', () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
-					delegate: {
-						username: '1L',
-					},
+					username: '1L',
 				},
 			};
 			const transaction = new DelegateTransaction(invalidTransaction);
 
 			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
-		});
-
-		it('should return error when recipientId is not empty', async () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				recipientId: '1L',
-				id: '17277443568874824891',
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-
-			const errors = (transaction as any).validateAsset();
-
-			expect(errors).not.to.be.empty;
-		});
-
-		it('should return error when recipientPublicKey is not empty', async () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				recipientPublicKey: '123',
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-
-			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.recipientPublicKey');
 		});
 	});
 
@@ -198,7 +164,7 @@ describe('Delegate registration transaction class', () => {
 				...sender,
 				isDelegate: 1,
 				vote: 0,
-				username: validTestTransaction.asset.delegate.username,
+				username: validTestTransaction.asset.username,
 			});
 		});
 
@@ -214,14 +180,14 @@ describe('Delegate registration transaction class', () => {
 			storeAccountFindStub.returns(true);
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
+			expect(errors[0].dataPath).to.be.equal('.asset.username');
 		});
 
 		it('should return an error when account is already delegate', async () => {
 			const errors = (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.asset.delegate.username');
+			expect(errors[0].dataPath).to.be.equal('.asset.username');
 		});
 	});
 

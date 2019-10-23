@@ -95,7 +95,7 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should have amount string equal to 0', () => {
-				return expect(castVotesTransaction)
+				return expect(castVotesTransaction.asset)
 					.to.have.property('amount')
 					.and.be.a('string')
 					.and.equal(amount);
@@ -109,7 +109,7 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should have recipientId string equal to address', () => {
-				return expect(castVotesTransaction)
+				return expect(castVotesTransaction.asset)
 					.to.have.property('recipientId')
 					.and.be.a('string')
 					.and.equal(address);
@@ -364,21 +364,15 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should have the amount', () => {
-				return expect(castVotesTransaction)
+				return expect(castVotesTransaction.asset)
 					.to.have.property('amount')
 					.equal(amount);
 			});
 
-			it('should have the fee', () => {
-				return expect(castVotesTransaction)
-					.to.have.property('fee')
-					.equal(fee);
-			});
-
-			it('should have the recipient id', () => {
-				return expect(castVotesTransaction)
-					.to.have.property('recipientId')
-					.equal('');
+			it('should not have the recipient id', () => {
+				return expect(castVotesTransaction.asset).not.to.have.property(
+					'recipientId',
+				);
 			});
 
 			it('should have the sender public key', () => {

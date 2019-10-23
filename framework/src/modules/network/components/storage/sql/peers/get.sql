@@ -20,7 +20,6 @@ SELECT
 	"os",
 	"version",
 	"protocolVersion",
-	ENCODE("broadhash", 'hex') as "broadhash",
 	"height"
 FROM
 	peers

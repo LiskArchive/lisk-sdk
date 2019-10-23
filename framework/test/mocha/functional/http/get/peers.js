@@ -73,11 +73,6 @@ describe('GET /peers', () => {
 			invalid: ['9999.9999', '-1.-1', 'a.b'],
 			checkResponse: true,
 		},
-		broadhash: {
-			valid: [__testContext.config.app.nethash],
-			invalid: ['invalid'],
-			checkResponse: true,
-		},
 		limit: {
 			valid: [1, 100],
 			invalid: [-1, 0],
@@ -168,16 +163,6 @@ describe('GET /peers', () => {
 				});
 		});
 
-		it(`using valid broadhash = "${
-			validHeaders.broadhash
-		}" should return the result`, async () => {
-			return peersEndpoint
-				.makeRequest({ broadhash: validHeaders.broadhash }, 200)
-				.then(res => {
-					expect(res.body.data[0].broadhash).to.be.eql(validHeaders.broadhash);
-				});
-		});
-
 		it('using sort = "version:asc" should return results in ascending order by version', async () => {
 			return peersEndpoint
 				.makeRequest({ sort: 'version:asc' }, 200)
@@ -228,7 +213,7 @@ describe('GET /peers', () => {
 			return peersEndpoint
 				.makeRequest(
 					{
-						whatever: validHeaders.broadhash,
+						whatever: 'whatever',
 					},
 					400,
 				)
@@ -241,7 +226,7 @@ describe('GET /peers', () => {
 			return peersEndpoint
 				.makeRequest(
 					{
-						broadhash: '',
+						version: '',
 					},
 					200,
 				)

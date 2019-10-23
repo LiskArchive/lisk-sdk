@@ -456,7 +456,7 @@ describe('GET /accounts', () => {
 			] = await Promise.all(promises);
 
 			const calculatedApproval = apiHelpers.calculateApproval(
-				delegate.vote,
+				delegate.voteWeight,
 				constansts.supply,
 			);
 

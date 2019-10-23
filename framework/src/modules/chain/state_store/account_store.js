@@ -25,10 +25,9 @@ const defaultAccount = {
 	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
-	rank: null,
 	fees: '0',
 	rewards: '0',
-	vote: '0',
+	voteWeight: '0',
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
@@ -49,7 +48,7 @@ class AccountStore {
 	}
 
 	async cache(filter) {
-		const result = await this.account.get(filter, { extended: true }, this.tx);
+		const result = await this.account.get(filter, { limit: null }, this.tx);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
 		return _.cloneDeep(result);
 	}

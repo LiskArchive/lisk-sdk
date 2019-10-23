@@ -18,16 +18,17 @@
 /* eslint-disable no-console */
 
 const fs = require('fs');
-const { join: pathJoin } = require('path');
+const { join: pathJoin, extname } = require('path');
 const { execSync } = require('child_process');
 
 const generators = fs.readdirSync('./generators');
 
 // eslint-disable-next-line no-restricted-syntax
 for (const aGenerator of generators) {
-	if (aGenerator !== 'base_generator.js') {
-		console.log(`Running generator '${aGenerator}'`);
-		const path = pathJoin(__dirname, 'generators', aGenerator, 'index.js');
+	// if its a directory, there is a base_generator.js file as well
+	if (!extname(aGenerator)) {
+		const path = pathJoin(__dirname, './generators', aGenerator, 'index.js');
+		console.log(`Executing generator '${aGenerator}' in path '${path}'`);
 		execSync(`node ${path}`);
 	}
 }

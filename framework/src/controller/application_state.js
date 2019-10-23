@@ -32,7 +32,7 @@ const __private = {
  * - protocolVersion
  * - height
  * - nethash
- * - broadhash
+ * - prevotedConfirmedUptoHeight
  * - nonce
  *
  * @class
@@ -63,8 +63,9 @@ class ApplicationState {
 			minVersion,
 			protocolVersion,
 			height: 1,
+			blockVersion: 0,
+			prevotedConfirmedUptoHeight: 0,
 			nethash,
-			broadhash: nethash,
 			nonce,
 		});
 	}
@@ -78,20 +79,28 @@ class ApplicationState {
 	}
 
 	/**
-	 * Updates broadhash and height values.
+	 * Updates the application state.
 	 *
-	 * @param {broadhash, height} parameters - broadhash and height to update
-	 *
-	 * @returns {Promise.<boolean, Error>}
+	 * @param height
+	 * @param prevotedConfirmedUptoHeight
+	 * @param lastBlockId
+	 * @param blockVersion
+	 * @return {Promise<boolean, Error>}
 	 * @throws assert.AssertionError
 	 */
-	async update({ broadhash, height }) {
-		assert(broadhash, 'broadhash is required to update application state.');
+	async update({
+		height,
+		prevotedConfirmedUptoHeight = this.state.prevotedConfirmedUptoHeight,
+		lastBlockId = this.state.lastBlockId,
+		blockVersion = this.state.blockVersion,
+	}) {
 		assert(height, 'height is required to update application state.');
 		try {
 			const newState = this.state;
-			newState.broadhash = broadhash;
+			newState.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight;
+			newState.lastBlockId = lastBlockId;
 			newState.height = height;
+			newState.blockVersion = blockVersion;
 			__private.state.set(this, newState);
 			this.logger.debug(this.state, 'Update application state');
 			await this.stateChannel.publish('app:state:updated', this.state);

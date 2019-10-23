@@ -134,7 +134,6 @@ const filterByParams = (peers, filters) => {
 		'os',
 		'version',
 		'protocolVersion',
-		'broadhash',
 		'height',
 		'nonce',
 	];
@@ -198,10 +197,7 @@ const filterByParams = (peers, filters) => {
  * @param {Object}
  * @todo Add description for the params
  */
-const consolidatePeers = ({
-	connectedPeers = [],
-	disconnectedPeers = [],
-}) => {
+const consolidatePeers = ({ connectedPeers = [], disconnectedPeers = [] }) => {
 	// Assign state 2 to the connected peers
 	const connectedList = connectedPeers.map(peer => {
 		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;

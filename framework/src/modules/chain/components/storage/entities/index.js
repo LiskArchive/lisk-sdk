@@ -16,12 +16,16 @@
 
 const Account = require('./account');
 const Block = require('./block');
-const Round = require('./round');
+const ChainMeta = require('./chain_meta');
+const RoundDelegates = require('./round_delegates');
+const TempBlock = require('./temp_block.js');
 const Transaction = require('./transaction');
 
 module.exports = {
 	Account,
 	Block,
-	Round,
+	ChainMeta,
+	RoundDelegates,
+	TempBlock,
 	Transaction,
 };

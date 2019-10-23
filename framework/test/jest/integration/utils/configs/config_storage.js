@@ -20,8 +20,10 @@ const storageConfig = (overriddenConfigProperties = {}) => ({
 	database: 'lisk_dev',
 	user: 'lisk',
 	password: 'password',
-	min: 10,
-	max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
+	min: 1,
+	// genesis_block.spec.js is using 2 Storage instance,
+	// That's why max can't be less than 2
+	max: 2,
 	poolIdleTimeout: 30000,
 	reapIntervalMillis: 1000,
 	logEvents: ['error'],

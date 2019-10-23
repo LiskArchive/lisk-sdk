@@ -5,6 +5,7 @@ Object {
   "app": Object {
     "genesisConfig": Object {
       "BLOCK_TIME": 10,
+      "DELEGATE_LIST_ROUND_OFFSET": 2,
       "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
       "MAX_TRANSACTIONS_PER_BLOCK": 25,
       "REWARDS": Object {
@@ -495,6 +496,7 @@ Object {
           },
         ],
         "force": true,
+        "waitThreshold": 2,
       },
       "loading": Object {
         "loadPerIteration": 5000,

@@ -42,18 +42,19 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 			'fe8f1a47180e7f318cb162b06470fbe259bc1d9d5359a8792cda3f087e49f72b',
 		recipientPublicKey: '',
 		senderId: '9961131544040416558L',
-		recipientId: '19961131544040416558L',
-		amount: '100000000',
 		fee: '10000000',
 		signature:
 			'02a806771711ecb9ffa676d8f6c85c5ffb87398cddbd0d55ae6c1e83f0e8e74c50490979e85633715b66d42090e9b37af918b1f823d706e900f5e2b72f876408',
 		signatures: [],
-		asset: {},
+		asset: {
+			recipientId: '19961131544040416558L',
+			amount: '100000000',
+		},
 	};
 
 	localCommon.beforeBlock('system_exceptions_recipientId_uint_64', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			recipientExceedingUint64: {
 				'393955899193580559': '19961131544040416558L',
@@ -82,7 +83,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -109,7 +110,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 						},
 					);
 				});
-				await library.modules.blocks.blocksProcess.processBlock(
+				await library.modules.processor.process(
 					newBlock,
 					library.modules.blocks.lastBlock,
 				);
@@ -128,7 +129,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 
 				it('should add balance to the recipient account', async () => {
 					return expect(recipientMemAccountAfter.balance).to.equal(
-						transactionWithExceedingUint64Recipient.amount.toString(),
+						transactionWithExceedingUint64Recipient.asset.amount.toString(),
 					);
 				});
 			});

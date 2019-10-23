@@ -217,29 +217,6 @@ describe('GET /api/node', () => {
 				});
 			});
 
-			describe('recipientPublicKey', () => {
-				it('using invalid recipientPublicKey should fail', async () => {
-					return ReadyEndpoint.makeRequest(
-						{ recipientPublicKey: '79fjdfd' },
-						400,
-					).then(res => {
-						expectSwaggerParamError(res, 'recipientPublicKey');
-					});
-				});
-
-				it('using valid but unknown recipientPublicKey should be ok', async () => {
-					return ReadyEndpoint.makeRequest(
-						{
-							recipientPublicKey:
-								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-						},
-						200,
-					).then(res => {
-						expect(res.body.data).to.be.empty;
-					});
-				});
-			});
-
 			describe('limit', () => {
 				it('using limit < 0 should fail', async () => {
 					return ReadyEndpoint.makeRequest({ limit: -1 }, 400).then(res => {

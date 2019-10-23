@@ -209,28 +209,6 @@ export class DappTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (!this.amount.eq(0)) {
-			errors.push(
-				new TransactionError(
-					'Amount must be zero for dapp transaction',
-					this.id,
-					'.amount',
-					this.amount.toString(),
-					'0',
-				),
-			);
-		}
-
-		if (this.recipientId) {
-			errors.push(
-				new TransactionError(
-					`RecipientId is expected to be undefined`,
-					this.id,
-					'.recipientId',
-				),
-			);
-		}
-
 		const validLinkSuffix = ['.zip'];
 
 		if (errors.length > 0) {
@@ -330,23 +308,5 @@ export class DappTransaction extends BaseTransaction {
 	// tslint:disable-next-line prefer-function-over-method
 	protected undoAsset(_: StateStore): ReadonlyArray<TransactionError> {
 		return [];
-	}
-
-	// tslint:disable:next-line: prefer-function-over-method no-any
-	protected assetFromSync(raw: any): object | undefined {
-		if (!raw.dapp_name) {
-			return undefined;
-		}
-		const dapp = {
-			name: raw.dapp_name,
-			description: raw.dapp_description,
-			tags: raw.dapp_tags,
-			type: raw.dapp_type,
-			link: raw.dapp_link,
-			category: raw.dapp_category,
-			icon: raw.dapp_icon,
-		};
-
-		return { dapp };
 	}
 }

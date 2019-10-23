@@ -53,7 +53,7 @@ describe('Second signature registration transaction class', () => {
 		});
 
 		it('should set the second signature asset', async () => {
-			expect(validTestTransaction.asset.signature)
+			expect(validTestTransaction.asset)
 				.to.be.an('object')
 				.and.to.have.property('publicKey');
 		});
@@ -75,9 +75,7 @@ describe('Second signature registration transaction class', () => {
 		it('should return valid buffer', async () => {
 			const assetBytes = (validTestTransaction as any).assetToBytes();
 			expect(assetBytes).to.eql(
-				hexToBuffer(
-					validRegisterSecondSignatureTransaction.asset.signature.publicKey,
-				),
+				hexToBuffer(validRegisterSecondSignatureTransaction.asset.publicKey),
 			);
 		});
 	});
@@ -125,7 +123,7 @@ describe('Second signature registration transaction class', () => {
 		it('should return an object of type transfer asset', async () => {
 			expect(validTestTransaction.assetToJSON())
 				.to.be.an('object')
-				.and.to.have.property('signature');
+				.and.to.have.property('publicKey');
 		});
 	});
 
@@ -145,24 +143,11 @@ describe('Second signature registration transaction class', () => {
 			expect(errors).to.be.empty;
 		});
 
-		it('should return error when amount is non-zero', async () => {
-			const invalidTransaction = {
-				...validRegisterSecondSignatureTransaction,
-				amount: '100',
-			};
-			const transaction = new SecondSignatureTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-
-			expect(errors).not.to.be.empty;
-		});
-
 		it('should return error when asset includes invalid publicKey', async () => {
 			const invalidTransaction = {
 				...validRegisterSecondSignatureTransaction,
 				asset: {
-					signature: {
-						publicKey: '1234',
-					},
+					publicKey: '1234',
 				},
 			};
 			const transaction = new SecondSignatureTransaction(invalidTransaction);
@@ -180,7 +165,7 @@ describe('Second signature registration transaction class', () => {
 			);
 			expect(storeAccountSetStub).to.be.calledWithExactly(sender.address, {
 				...sender,
-				secondPublicKey: validTestTransaction.asset.signature.publicKey,
+				secondPublicKey: validTestTransaction.asset.publicKey,
 				secondSignature: 1,
 			});
 		});

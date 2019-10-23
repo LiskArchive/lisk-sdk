@@ -38,7 +38,6 @@ describe('Account', () => {
 	let validOptions;
 	let invalidOptions;
 	let validFilters;
-	let validExtendedObjectFields;
 	let validSimpleObjectFields;
 
 	before(async () => {
@@ -53,7 +52,7 @@ describe('Account', () => {
 		AccountEntity = storage.entities.Account;
 		SQLs = AccountEntity.SQLs;
 
-		validAccountSQLs = ['selectSimple', 'selectFull', 'count', 'isPersisted'];
+		validAccountSQLs = ['get', 'count', 'isPersisted'];
 
 		validAccountFields = [
 			'address',
@@ -70,31 +69,9 @@ describe('Account', () => {
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'rank',
-			'vote',
-		];
-
-		validExtendedObjectFields = [
-			'address',
-			'publicKey',
-			'secondPublicKey',
-			'username',
-			'isDelegate',
-			'secondSignature',
-			'balance',
-			'multiMin',
-			'multiLifetime',
-			'nameExist',
-			'missedBlocks',
-			'producedBlocks',
-			'rank',
-			'fees',
-			'rewards',
-			'vote',
-			'productivity',
+			'voteWeight',
 			'votedDelegatesPublicKeys',
 			'membersPublicKeys',
-			'asset',
 		];
 
 		validSimpleObjectFields = [
@@ -111,11 +88,12 @@ describe('Account', () => {
 			'nameExist',
 			'missedBlocks',
 			'producedBlocks',
-			'rank',
 			'fees',
 			'rewards',
-			'vote',
+			'voteWeight',
 			'productivity',
+			'votedDelegatesPublicKeys',
+			'membersPublicKeys',
 		];
 
 		validFilters = [
@@ -204,24 +182,16 @@ describe('Account', () => {
 			'missedBlocks_lt',
 			'missedBlocks_lte',
 			'missedBlocks_in',
-			'rank',
-			'rank_eql',
-			'rank_ne',
-			'rank_gt',
-			'rank_gte',
-			'rank_lt',
-			'rank_lte',
-			'rank_in',
-			'vote',
-			'vote_eql',
-			'vote_ne',
-			'vote_gt',
-			'vote_gte',
-			'vote_lt',
-			'vote_lte',
-			'vote_in',
-			'votedDelegatesPublicKeys_in',
-			'membersPublicKeys_in',
+			'voteWeight',
+			'voteWeight_eql',
+			'voteWeight_ne',
+			'voteWeight_gt',
+			'voteWeight_gte',
+			'voteWeight_lt',
+			'voteWeight_lte',
+			'voteWeight_in',
+			'votedDelegatesPublicKeys',
+			'membersPublicKeys',
 			'asset_contains',
 			'asset_exists',
 		];
@@ -370,16 +340,6 @@ describe('Account', () => {
 			expect(results).to.have.all.keys(validSimpleObjectFields);
 		});
 
-		it('should resolve with one object matching specification of type definition of full object', async () => {
-			const anAccount = new accountFixtures.Account();
-			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.getOne(
-				{ address: anAccount.address },
-				{ extended: true },
-			);
-			expect(results).to.have.all.keys(validExtendedObjectFields);
-		});
-
 		it('should reject with error if matched with multiple records for provided filters', async () => {
 			return expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
 				'Multiple rows were not expected.',
@@ -445,49 +405,9 @@ describe('Account', () => {
 			expect(results[0]).to.have.all.keys(validSimpleObjectFields);
 		});
 
-		it('should resolve with one object matching specification of type definition of full object', async () => {
-			const anAccount = new accountFixtures.Account();
-			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.get(
-				{ address: anAccount.address },
-				{ extended: true },
-			);
-			expect(results[0]).to.have.all.keys(validExtendedObjectFields);
-		});
-
 		it('should not change any of the provided parameter');
 
 		describe('dynamic fields', () => {
-			it('should fetch "votedDelegatesPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2delegates WHERE "accountId" = '${
-								account.address
-							}'`,
-						);
-						expect(account.votedDelegatesPublicKeys).to.be.eql(keys[0].keys);
-					}),
-				);
-			});
-
-			it('should fetch "membersPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2multisignatures WHERE "accountId" = '${
-								account.address
-							}'`,
-						);
-						expect(account.membersPublicKeys).to.be.eql(keys[0].keys);
-					}),
-				);
-			});
-
 			it('should fetch "productivity" with two decimal places when value is not integer', async () => {
 				const producedBlocks = 50;
 				const missedBlocks = 25;
@@ -557,11 +477,6 @@ describe('Account', () => {
 				expect(data[0].secondSignature).to.be.a('boolean');
 			});
 
-			it('should return "rank" as null', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].rank).to.be.eql(null);
-			});
-
 			it('should return "fees" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].fees).to.be.a('string');
@@ -572,9 +487,9 @@ describe('Account', () => {
 				expect(data[0].rewards).to.be.a('string');
 			});
 
-			it('should return "vote" as "bigint"', async () => {
+			it('should return "voteWeight" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
-				expect(data[0].vote).to.be.a('string');
+				expect(data[0].voteWeight).to.be.a('string');
 			});
 
 			it('should return "producedBlocks" as "number"', async () => {

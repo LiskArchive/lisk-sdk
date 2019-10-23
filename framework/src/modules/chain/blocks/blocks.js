@@ -16,33 +16,57 @@
 
 const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
+const BigNum = require('@liskhq/bignum');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	applyTransactions,
+	checkPersistedTransactions,
+	checkAllowedTransactions,
+	validateTransactions,
+} = require('../transactions');
 const blocksUtils = require('./utils');
-const { BlocksProcess } = require('./process');
-const { BlocksVerify } = require('./verify');
-const { BlocksChain } = require('./chain');
+const {
+	BlocksVerify,
+	verifyBlockNotExists,
+	verifyPreviousBlockId,
+} = require('./verify');
+const {
+	applyConfirmedStep,
+	applyConfirmedGenesisStep,
+	deleteLastBlock,
+	deleteFromBlockId,
+	undoConfirmedStep,
+	saveBlock,
+} = require('./chain');
 const {
 	calculateSupply,
 	calculateReward,
 	calculateMilestone,
 } = require('./block_reward');
+const forkChoiceRule = require('./fork_choice_rule');
+const {
+	validateSignature,
+	validatePreviousBlockProperty,
+	validateReward,
+	validatePayload,
+	validateBlockSlot,
+} = require('./validate');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
-const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
+const EVENT_PRIORITY_CHAIN_DETECTED = 'EVENT_PRIORITY_CHAIN_DETECTED';
 
 class Blocks extends EventEmitter {
 	constructor({
 		// components
 		logger,
 		storage,
-		sequence,
 		// Unique requirements
 		genesisBlock,
 		slots,
 		exceptions,
 		// Modules
-		roundsModule,
 		interfaceAdapters,
 		// constants
 		blockReceiptTimeout, // set default
@@ -57,22 +81,24 @@ class Blocks extends EventEmitter {
 		blockSlotWindow,
 	}) {
 		super();
-
-		this._broadhash = genesisBlock.payloadHash;
-		this._lastNBlockIds = [];
 		this._lastBlock = {};
-		this._isActive = false;
-		this._lastReceipt = null;
+
+		/**
+		 * Represents the receipt time of the last block that was received
+		 * from the network.
+		 * TODO: Remove after fork.
+		 * @type {number}
+		 * @private
+		 */
+
 		this._cleaning = false;
 
 		this.logger = logger;
 		this.storage = storage;
-		this.roundsModule = roundsModule;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
-		this.sequence = sequence;
 		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
@@ -94,80 +120,326 @@ class Blocks extends EventEmitter {
 			blockSlotWindow,
 		};
 
-		this.blocksChain = new BlocksChain({
-			storage: this.storage,
-			interfaceAdapters: this.interfaceAdapters,
-			roundsModule: this.roundsModule,
-			slots: this.slots,
-			exceptions: this.exceptions,
-			genesisBlock: this.genesisBlock,
-		});
 		this.blocksVerify = new BlocksVerify({
 			storage: this.storage,
 			exceptions: this.exceptions,
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
-			roundsModule: this.roundsModule,
-			blockReward: this.blockReward,
-			constants: this.constants,
-			interfaceAdapters: this.interfaceAdapters,
 		});
-		this.blocksProcess = new BlocksProcess({
-			blocksChain: this.blocksChain,
-			blocksVerify: this.blocksVerify,
-			storage: this.storage,
-			exceptions: this.exceptions,
-			slots: this.slots,
-			interfaceAdapters: this.interfaceAdapters,
-			genesisBlock: this.genesisBlock,
-			blockReward: this.blockReward,
-			constants: this.constants,
-		});
+
+		this.blocksUtils = blocksUtils;
 	}
 
 	get lastBlock() {
-		return this._lastBlock;
-	}
-
-	get isActive() {
-		return this._isActive;
-	}
-
-	get lastReceipt() {
-		return this._lastReceipt;
-	}
-
-	get broadhash() {
-		return this._broadhash;
-	}
-
-	/**
-	 * Returns status of last receipt - if it stale or not.
-	 *
-	 * @returns {boolean} Stale status of last receipt
-	 */
-	isStale() {
-		if (!this._lastReceipt) {
-			return true;
-		}
-		// Current time in seconds - lastReceipt (seconds)
-		const secondsAgo = Math.floor(Date.now() / 1000) - this._lastReceipt;
-		return secondsAgo > this.constants.blockReceiptTimeout;
+		// Remove receivedAt property..
+		const { receivedAt, ...block } = this._lastBlock;
+		return block;
 	}
 
 	async init() {
-		try {
-			const rows = await this.storage.entities.Block.get(
-				{},
-				{ limit: this.constants.blockSlotWindow, sort: 'height:desc' },
-			);
-			this._lastNBlockIds = rows.map(row => row.id);
-		} catch (err) {
-			this.logger.error(
-				{ err },
-				`Unable to load last ${this.constants.blockSlotWindow} block ids`,
-			);
+		// check mem tables
+		const { genesisBlock } = await this.storage.entities.Block.begin(
+			'loader:checkMemTables',
+			async tx => blocksUtils.loadMemTables(this.storage, tx),
+		);
+
+		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
+
+		if (!genesisBlockMatch) {
+			throw new Error('Genesis block does not match');
 		}
+
+		// check if the round related information is in valid state
+		await this.blocksVerify.reloadRequired();
+
+		const [storageLastBlock] = await this.storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1, extended: true },
+		);
+		if (!storageLastBlock) {
+			throw new Error('Failed to load last block');
+		}
+
+		this._lastBlock = this.deserialize(storageLastBlock);
+	}
+
+	/**
+	 * Serialize common properties to the JSON format
+	 * @param {*} blockInstance Instance of the block
+	 * @returns JSON format of the block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	serialize(blockInstance) {
+		const blockJSON = {
+			...blockInstance,
+			previousBlockId: blockInstance.previousBlock,
+			totalAmount: blockInstance.totalAmount.toString(),
+			totalFee: blockInstance.totalFee.toString(),
+			reward: blockInstance.reward.toString(),
+			transactions: blockInstance.transactions.map(tx => ({
+				...tx.toJSON(),
+				blockId: blockInstance.id,
+			})),
+		};
+		delete blockJSON.previousBlock;
+		return blockJSON;
+	}
+
+	/**
+	 * Deserialize common properties to instance format
+	 * @param {*} blockJSON JSON format of the block
+	 */
+	deserialize(blockJSON) {
+		const transactions = (blockJSON.transactions || []).map(transaction =>
+			this.interfaceAdapters.transactions.fromJson(transaction),
+		);
+		const blockInstance = {
+			...blockJSON,
+			totalAmount: new BigNum(blockJSON.totalAmount || 0),
+			totalFee: new BigNum(blockJSON.totalFee || 0),
+			reward: new BigNum(blockJSON.reward || 0),
+			// Remove this inconsistency after #4295
+			previousBlock: blockJSON.previousBlock || blockJSON.previousBlockId,
+			version:
+				blockJSON.version === undefined || blockJSON.version === null
+					? 0
+					: blockJSON.version,
+			numberOfTransactions: transactions.length,
+			payloadLength:
+				blockJSON.payloadLength === undefined ||
+				blockJSON.payloadLength === null
+					? 0
+					: blockJSON.payloadLength,
+			transactions,
+		};
+		delete blockInstance.previousBlockId;
+		return blockInstance;
+	}
+
+	async validateDetached({ block, blockBytes }) {
+		return this._validateDetached({ block, blockBytes });
+	}
+
+	async _validateDetached({ block, blockBytes }) {
+		validatePreviousBlockProperty(block, this.genesisBlock);
+		validateSignature(block, blockBytes);
+		validateReward(block, this.blockReward, this.exceptions);
+
+		// validate transactions
+		const { transactionsResponses } = validateTransactions(this.exceptions)(
+			block.transactions,
+		);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse =>
+				transactionResponse.status !== TransactionStatus.OK,
+		);
+
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
+		}
+		validatePayload(
+			block,
+			this.constants.maxTransactionsPerBlock,
+			this.constants.maxPayloadLength,
+		);
+		// Update id
+		block.id = blocksUtils.getId(blockBytes);
+	}
+
+	async verifyInMemory({ block, lastBlock }) {
+		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
+		validateBlockSlot(block, lastBlock, this.slots);
+	}
+
+	forkChoice({ lastBlock, block }) {
+		// Current time since Lisk Epoch
+		block.receivedAt = this.slots.getEpochTime();
+		// Cases are numbered following LIP-0014 Fork choice rule.
+		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
+		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
+
+		if (forkChoiceRule.isValidBlock(lastBlock, block)) {
+			// Case 2: correct block received
+			return forkChoiceRule.FORK_STATUS_VALID_BLOCK;
+		}
+
+		if (forkChoiceRule.isIdenticalBlock(lastBlock, block)) {
+			// Case 1: same block received twice
+			return forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK;
+		}
+
+		if (forkChoiceRule.isDoubleForging(lastBlock, block)) {
+			// Delegates are the same
+			// Case 3: double forging different blocks in the same slot.
+			// Last Block stands.
+			return forkChoiceRule.FORK_STATUS_DOUBLE_FORGING;
+		}
+
+		if (
+			forkChoiceRule.isTieBreak({
+				slots: this.slots,
+				lastAppliedBlock: lastBlock,
+				receivedBlock: block,
+			})
+		) {
+			// Two competing blocks by different delegates at the same height.
+			// Case 4: Tie break
+			return forkChoiceRule.FORK_STATUS_TIE_BREAK;
+		}
+
+		if (forkChoiceRule.isDifferentChain(lastBlock, block)) {
+			// Case 5: received block has priority. Move to a different chain.
+			return forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN;
+		}
+
+		// Discard newly received block
+		return forkChoiceRule.FORK_STATUS_DISCARD;
+	}
+
+	async verify({ block, skipExistingCheck }) {
+		if (skipExistingCheck !== true) {
+			await verifyBlockNotExists(this.storage, block);
+			const {
+				transactionsResponses: persistedResponse,
+			} = await checkPersistedTransactions(this.storage)(block.transactions);
+			const invalidPersistedResponse = persistedResponse.find(
+				transactionResponse =>
+					transactionResponse.status !== TransactionStatus.OK,
+			);
+			if (invalidPersistedResponse) {
+				throw invalidPersistedResponse.errors;
+			}
+		}
+		await this.blocksVerify.checkTransactions(block);
+	}
+
+	async apply({ block, tx }) {
+		await applyConfirmedStep(
+			this.storage,
+			this.slots,
+			block,
+			this.exceptions,
+			tx,
+		);
+
+		this._lastBlock = block;
+	}
+
+	async applyGenesis({ block, tx }) {
+		await applyConfirmedGenesisStep(
+			this.storage,
+			this.slots,
+			block,
+			this.exceptions,
+			tx,
+		);
+
+		this._lastBlock = block;
+	}
+
+	async save({ blockJSON, tx }) {
+		await saveBlock(this.storage, blockJSON, tx);
+	}
+
+	async undo({ block, tx }) {
+		await undoConfirmedStep(
+			this.storage,
+			this.slots,
+			block,
+			this.exceptions,
+			tx,
+		);
+	}
+
+	async remove({ block, blockJSON, tx }, saveTempBlock = false) {
+		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
+		const secondLastBlock = this.deserialize(storageRowOfBlock);
+
+		if (saveTempBlock) {
+			const blockTempEntry = {
+				id: blockJSON.id,
+				height: blockJSON.height,
+				fullBlock: blockJSON,
+			};
+			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
+		}
+		this._lastBlock = secondLastBlock;
+	}
+
+	/**
+	 * Remove one block from temp_block table
+	 * @param {string} blockId
+	 * @param {Object} tx - database transaction
+	 */
+	async removeBlockFromTempTable(blockId, tx) {
+		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
+	}
+
+	/**
+	 * Get all blocks from temp_block table
+	 * @param {Object} tx - database transaction
+	 */
+	async getTempBlocks(filter = {}, options = {}, tx) {
+		return this.storage.entities.TempBlock.get(filter, options, tx);
+	}
+
+	async exists(block) {
+		try {
+			await verifyBlockNotExists(this.storage, block);
+			return false;
+		} catch (err) {
+			return true;
+		}
+	}
+
+	async deleteAfter(block) {
+		return deleteFromBlockId(this.storage, block.id);
+	}
+
+	async getJSONBlocksWithLimitAndOffset(limit, offset = 0) {
+		// Calculate toHeight
+		const toHeight = offset + limit;
+
+		const filters = {
+			height_gte: offset,
+			height_lt: toHeight,
+		};
+
+		const options = {
+			limit: null,
+			sort: ['height:asc', 'rowId:asc'],
+			extended: true,
+		};
+
+		// Loads extended blocks from storage
+		return this.storage.entities.Block.get(filters, options);
+	}
+
+	// TODO: Unit tests written in mocha, which should be migrated to jest.
+	async filterReadyTransactions(transactions, context) {
+		const allowedTransactionsIds = checkAllowedTransactions(context)(
+			transactions,
+		)
+			.transactionsResponses.filter(
+				transactionResponse =>
+					transactionResponse.status === TransactionStatus.OK,
+			)
+			.map(transactionReponse => transactionReponse.id);
+
+		const allowedTransactions = transactions.filter(transaction =>
+			allowedTransactionsIds.includes(transaction.id),
+		);
+		const { transactionsResponses: responses } = await applyTransactions(
+			this.storage,
+			this.slots,
+		)(allowedTransactions);
+		const readyTransactions = allowedTransactions.filter(transaction =>
+			responses
+				.filter(response => response.status === TransactionStatus.OK)
+				.map(response => response.id)
+				.includes(transaction.id),
+		);
+		return readyTransactions;
 	}
 
 	broadcast(block) {
@@ -207,382 +479,34 @@ class Blocks extends EventEmitter {
 		await nextWatch();
 	}
 
-	/**
-	 * Loads blockchain upon application start:
-	 * 1. Checks mem tables:
-	 * - count blocks from `blocks` table
-	 * - get genesis block from `blocks` table
-	 * - count accounts from `mem_accounts` table by block id
-	 * - get rounds from `mem_round`
-	 * 2. Matches genesis block with database.
-	 * 3. Verifies rebuild mode.
-	 * 4. Recreates memory tables when neccesary:
-	 *  - Calls block to load block. When blockchain ready emits a bus message.
-	 * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
-	 * 6. Loads last block and emits a bus message blockchain is ready.
-	 *
-	 * @todo Add @returns tag
-	 */
-	async loadBlockChain(rebuildUpToRound) {
-		this._shouldNotBeActive();
-		this._isActive = true;
-		await this.blocksChain.saveGenesisBlock();
-		// check mem tables
-		const { blocksCount, genesisBlock, memRounds } = await new Promise(
-			(resolve, reject) => {
-				this.storage.entities.Block.begin('loader:checkMemTables', async tx => {
-					try {
-						const result = await blocksUtils.loadMemTables(this.storage, tx);
-						resolve(result);
-					} catch (error) {
-						reject(error);
-					}
-				});
-			},
-		);
-		if (blocksCount === 1) {
-			this.logger.info('Applying genesis block...');
-			this._lastBlock = await this._reload(blocksCount);
-			this._isActive = false;
-			return;
-		}
-		// check genesisBlock
-		this.blocksVerify.matchGenesisBlock(genesisBlock);
-		// rebuild accounts if it's rebuild
-		if (rebuildUpToRound !== null && rebuildUpToRound !== undefined) {
-			try {
-				await this._rebuildMode(rebuildUpToRound, blocksCount);
-				this._isActive = false;
-			} catch (errors) {
-				this._isActive = false;
-				throw errors;
-			}
-			return;
-		}
-		// check reload condition, true then reload
-		try {
-			await this.blocksVerify.reloadRequired(blocksCount, memRounds);
-		} catch (err) {
-			this.logger.error({ err }, 'Failed to reload blocks');
-			this._lastBlock = await this._reload(blocksCount);
-			this._isActive = false;
-			return;
-		}
-		try {
-			this._lastBlock = await blocksUtils.loadLastBlock(
-				this.storage,
-				this.interfaceAdapters,
-				this.genesisBlock,
-			);
-		} catch (err) {
-			this.logger.error({ err }, 'Failed to load last block');
-			// This is last attempt
-			this._lastBlock = await this._reload(blocksCount);
-			this._isActive = false;
-			return;
-		}
-		const recoverRequired = await this.blocksVerify.requireBlockRewind(
-			this._lastBlock,
-		);
-
-		if (recoverRequired) {
-			this.logger.error('Invalid own blockchain');
-			this._lastBlock = await this.blocksProcess.recoverInvalidOwnChain(
-				this._lastBlock,
-				(lastBlock, newLastBlock) => {
-					this.logger.info({ lastBlock, newLastBlock }, 'Deleted block');
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: cloneDeep(lastBlock),
-						newLastBlock: cloneDeep(newLastBlock),
-					});
-				},
-			);
-		}
-		this._isActive = false;
-		this.logger.info('Blockchain ready');
-	}
-
-	async recoverChain() {
-		const originalLastBlock = cloneDeep(this._lastBlock);
-		this._lastBlock = await this.blocksChain.deleteLastBlock(this._lastBlock);
-		this.emit(EVENT_DELETE_BLOCK, {
-			block: originalLastBlock,
-			newLastBlock: cloneDeep(this._lastBlock),
-		});
-		return this._lastBlock;
-	}
-
-	async loadBlocksDataWS(filter, tx) {
-		return blocksUtils.loadBlocksDataWS(this.storage, filter, tx);
-	}
-
-	// Process a block from the P2P
-	async receiveBlockFromNetwork(block) {
-		return this.sequence.add(async () => {
-			this._shouldNotBeActive();
-			this._isActive = true;
-			// set active to true
-			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
-				this._updateLastReceipt();
-				try {
-					const newBlock = await this.blocksProcess.processBlock(
-						block,
-						this._lastBlock,
-						validBlock => this.broadcast(validBlock),
-					);
-					await this._updateBroadhash();
-					this._lastBlock = newBlock;
-					this._isActive = false;
-					this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
-				} catch (error) {
-					this._isActive = false;
-					this.logger.error(error);
-				}
-				return;
-			}
-			if (this.blocksVerify.isForkOne(block, this._lastBlock)) {
-				this.roundsModule.fork(block, 1);
-				if (this.blocksVerify.shouldDiscardForkOne(block, this._lastBlock)) {
-					this.logger.info('Last block stands');
-					this._isActive = false;
-					return;
-				}
-				try {
-					const {
-						verified,
-						errors,
-					} = await this.blocksVerify.normalizeAndVerify(
-						block,
-						this._lastBlock,
-						this._lastNBlockIds,
-					);
-					if (!verified) {
-						throw errors;
-					}
-					const originalLastBlock = cloneDeep(this._lastBlock);
-					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock,
-					);
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: originalLastBlock,
-						newLastBlock: cloneDeep(this._lastBlock),
-					});
-					// emit event
-					const secondLastBlock = cloneDeep(this._lastBlock);
-					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock,
-					);
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: secondLastBlock,
-						newLastBlock: cloneDeep(this._lastBlock),
-					});
-					this._isActive = false;
-				} catch (error) {
-					this._isActive = false;
-					this.logger.error(error);
-				}
-				return;
-			}
-			if (this.blocksVerify.isForkFive(block, this._lastBlock)) {
-				this.roundsModule.fork(block, 5);
-				if (this.blocksVerify.isDoubleForge(block, this._lastBlock)) {
-					this.logger.warn(
-						{ generatorPublicKey: block.generatorPublicKey },
-						'Delegate forging on multiple nodes',
-					);
-				}
-				if (this.blocksVerify.shouldDiscardForkFive(block, this._lastBlock)) {
-					this.logger.info('Last block stands');
-					this._isActive = false;
-					return;
-				}
-				this._updateLastReceipt();
-				try {
-					const {
-						verified,
-						errors,
-					} = await this.blocksVerify.normalizeAndVerify(
-						block,
-						this._lastBlock,
-						this._lastNBlockIds,
-					);
-					if (!verified) {
-						throw errors;
-					}
-					const deletingBlock = cloneDeep(this._lastBlock);
-					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock,
-					);
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: deletingBlock,
-						newLastBlock: cloneDeep(this._lastBlock),
-					});
-					// emit event
-					this._lastBlock = await this.blocksProcess.processBlock(
-						block,
-						this._lastBlock,
-						validBlock => this.broadcast(validBlock),
-					);
-					await this._updateBroadhash();
-					this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
-					this._isActive = false;
-				} catch (error) {
-					this.logger.error(error);
-					this._isActive = false;
-				}
-				return;
-			}
-			if (block.id === this._lastBlock.id) {
-				this.logger.debug({ blockId: block.id }, 'Block already processed');
-			} else {
-				this.logger.warn(
-					{
-						blockId: block.id,
-						height: block.height,
-						round: this.slots.calcRound(block.height),
-						generatorPublicKey: block.generatorPublicKey,
-						slot: this.slots.getSlotNumber(block.timestamp),
-					},
-					'Discarded block that does not match with current chain',
-				);
-			}
-			// Discard received block
-			this._isActive = false;
-		});
-	}
-
-	// Process a block from syncing
-	async loadBlocksFromNetwork(blocks) {
-		this._shouldNotBeActive();
-		this._isActive = true;
-
-		try {
-			const normalizedBlocks = blocksUtils.readDbRows(
-				blocks,
-				this.interfaceAdapters,
-				this.genesisBlock,
-			);
-			for (const block of normalizedBlocks) {
-				// check if it's cleaning
-				if (this._cleaning) {
-					break;
-				}
-				this._lastBlock = await this.blocksProcess.processBlock(
-					block,
-					this._lastBlock,
-				);
-				// emit event
-				this._updateLastNBlocks(block);
-				this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
-			}
-			this._isActive = false;
-			return this._lastBlock;
-		} catch (error) {
-			this._isActive = false;
-			throw error;
-		}
-	}
-
-	// Generate a block for forging
-	async generateBlock(keypair, timestamp, transactions = []) {
-		this._shouldNotBeActive();
-		this._isActive = true;
-		try {
-			const block = await this.blocksProcess.generateBlock(
-				this._lastBlock,
-				keypair,
-				timestamp,
-				transactions,
-			);
-			this._lastBlock = await this.blocksProcess.processBlock(
-				block,
-				this._lastBlock,
-				validBlock => this.broadcast(validBlock),
-			);
-		} catch (error) {
-			this._isActive = false;
-			throw error;
-		}
-		await this._updateBroadhash();
-		this._updateLastReceipt();
-		this._updateLastNBlocks(this._lastBlock);
-		this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
-		this._isActive = false;
-		return this._lastBlock;
-	}
-
-	async _rebuildMode(rebuildUpToRound, blocksCount) {
-		this.logger.info(
-			{ rebuildUpToRound, blocksCount },
-			'Rebuild process started',
-		);
-		if (blocksCount < this.constants.activeDelegates) {
-			throw new Error(
-				'Unable to rebuild, blockchain should contain at least one round of blocks',
-			);
-		}
-		if (
-			Number.isNaN(parseInt(rebuildUpToRound, 10)) ||
-			parseInt(rebuildUpToRound, 10) < 0
-		) {
-			throw new Error(
-				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
-			);
-		}
-		const totalRounds = Math.floor(
-			blocksCount / this.constants.activeDelegates,
-		);
-		const targetRound =
-			parseInt(rebuildUpToRound, 10) === 0
-				? totalRounds
-				: Math.min(totalRounds, parseInt(rebuildUpToRound, 10));
-		const targetHeight = targetRound * this.constants.activeDelegates;
-		this._lastBlock = await this._reload(targetHeight);
-		// Remove remaining
-		await this.storage.entities.Block.delete({ height_gt: targetHeight });
-		this.logger.info({ targetHeight, totalRounds }, 'Rebuilding finished');
-	}
-
-	_updateLastNBlocks(block) {
-		this._lastNBlockIds.push(block.id);
-		if (this._lastNBlockIds.length > this.constants.blockSlotWindow) {
-			this._lastNBlockIds.shift();
-		}
-	}
-
-	_updateLastReceipt() {
-		this._lastReceipt = Math.floor(Date.now() / 1000);
-		return this._lastReceipt;
-	}
-
-	async _updateBroadhash() {
-		const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
+	async loadBlocksFromLastBlockId(lastBlockId, limit = 1) {
+		return blocksUtils.loadBlocksFromLastBlockId(
 			this.storage,
-			this._broadhash,
-			this._lastBlock.height,
+			lastBlockId,
+			limit,
 		);
-		this._broadhash = broadhash;
-		this.emit(EVENT_NEW_BROADHASH, { broadhash, height });
 	}
 
-	_shouldNotBeActive() {
-		if (this._isActive) {
-			throw new Error('Block process cannot be executed in parallel');
+	/**
+	 * Returns the highest common block between ids and the database blocks table
+	 * @param {Array<String>} ids - An array of block ids
+	 * @return {Promise<BasicBlock|undefined>}
+	 */
+	// TODO: Unit tests written in mocha, which should be migrated to jest.
+	async getHighestCommonBlock(ids) {
+		try {
+			const [block] = await this.storage.entities.Block.get(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 },
+			);
+			return block;
+		} catch (e) {
+			const errMessage = 'Failed to access storage layer';
+			this.logger.error({ err: e }, errMessage);
+			throw new Error(errMessage);
 		}
-	}
-
-	async _reload(blocksCount) {
-		return this.blocksProcess.reload(
-			blocksCount,
-			() => this._cleaning,
-			block => {
-				this._lastBlock = block;
-				this.logger.info(
-					{ blockId: block.id, height: block.height },
-					'Reloaded block',
-				);
-			},
-		);
 	}
 }
 
@@ -591,5 +515,5 @@ module.exports = {
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
-	EVENT_NEW_BROADHASH,
+	EVENT_PRIORITY_CHAIN_DETECTED,
 };

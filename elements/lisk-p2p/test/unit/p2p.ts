@@ -35,10 +35,7 @@ describe('p2p', () => {
 				protocolVersion: '1.1',
 				os: 'darwin',
 				height: 0,
-				options: {
-					broadhash:
-						'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-				},
+				options: {},
 			},
 		});
 

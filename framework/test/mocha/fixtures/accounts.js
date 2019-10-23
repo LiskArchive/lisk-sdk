@@ -49,8 +49,7 @@ accounts.mem_accountsFields = [
 	'publicKey',
 	'secondPublicKey',
 	'balance',
-	'vote',
-	'rank',
+	'voteWeight',
 	'delegates',
 	'multisignatures',
 	'multimin',
@@ -61,6 +60,8 @@ accounts.mem_accountsFields = [
 	'fees',
 	'rewards',
 	'asset',
+	'membersPublicKeys',
+	'votedDelegatesPublicKeys',
 ];
 
 const Account = stampit({
@@ -72,8 +73,7 @@ const Account = stampit({
 		publicKey: '',
 		secondPublicKey: null,
 		balance: '0',
-		vote: '',
-		rank: null,
+		voteWeight: '',
 		multiMin: 0,
 		multiLifetime: 0,
 		nameExist: false,
@@ -108,13 +108,18 @@ const Account = stampit({
 				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
 		this.secondPublicKey = secondPublicKey || null;
-		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
+		this.voteWeight = randomstring.generate({
+			charset: '123456789',
+			length: 5,
+		});
 		this.producedBlocks = producedBlocks || 0;
 		this.missedBlocks = missedBlocks || 0;
 		this.productivity =
 			this.producedBlocks / (this.producedBlocks + this.missedBlocks) || 0;
 		this.balance = balance || '0';
 		this.asset = asset || {};
+		this.votedDelegatesPublicKeys = null;
+		this.membersPublicKeys = null;
 	},
 });
 
@@ -132,13 +137,14 @@ const dbAccount = stampit({
 		nameExist: 0,
 		producedBlocks: 0,
 		publicKey: null,
-		rank: null,
 		rewards: '0',
 		secondPublicKey: null,
 		secondSignature: 0,
 		username: null,
-		vote: '0',
+		voteWeight: '0',
 		asset: {},
+		votedDelegatesPublicKeys: null,
+		membersPublicKeys: null,
 	},
 	init({ address, balance }) {
 		this.address = address || this.address;

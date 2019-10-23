@@ -16,11 +16,9 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const _ = require('lodash');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const definitions = require('../schema/definitions');
-const blocksUtils = require('../blocks');
 const transactionsModule = require('../transactions');
 
 function incrementRelays(packet) {
@@ -54,9 +52,10 @@ class Transport {
 		applicationState,
 		exceptions,
 		// Modules
+		synchronizer,
 		transactionPoolModule,
 		blocksModule,
-		loaderModule,
+		processorModule,
 		interfaceAdapters,
 		// Constants
 		nonce,
@@ -68,6 +67,7 @@ class Transport {
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
+		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
 
@@ -79,7 +79,7 @@ class Transport {
 
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
-		this.loaderModule = loaderModule;
+		this.processorModule = processorModule;
 		this.interfaceAdapters = interfaceAdapters;
 
 		this.broadcaster = new Broadcaster(
@@ -161,7 +161,7 @@ class Transport {
 		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
 		incrementRelays(block);
 
-		if (this.loaderModule.syncing()) {
+		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
@@ -187,19 +187,14 @@ class Transport {
 			);
 		}
 
-		const { broadhash } = this.applicationState;
-
 		// Perform actual broadcast operation
 		return this.broadcaster.broadcast(
-			{
-				broadhash,
-			},
+			{},
 			{ api: 'postBlock', data: { block } },
 		);
 	}
 
 	/**
-	 * @property {function} blocksCommon
 	 * @property {function} blocks
 	 * @property {function} postBlock
 	 * @property {function} list
@@ -213,134 +208,29 @@ class Transport {
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
 	 */
-	/**
-	 * Description of blocksCommon.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	async blocksCommon(query) {
-		query = query || {};
-
-		if (query.ids && query.ids.split(',').length > 1000) {
-			throw new Error('ids property contains more than 1000 values');
-		}
-
-		const errors = validator.validate(definitions.WSBlocksCommonRequest, query);
-
-		if (errors.length) {
-			const error = `${errors[0].message}: ${errors[0].path}`;
-			this.logger.debug(
-				{
-					err: error.toString(),
-					req: query,
-				},
-				'Common block request validation failed',
-			);
-			throw new Error(error);
-		}
-
-		const escapedIds = query.ids
-			// Remove quotes
-			.replace(/['"]+/g, '')
-			// Separate by comma into an array
-			.split(',')
-			// Reject any non-numeric values
-			.filter(id => /^[0-9]+$/.test(id));
-
-		if (!escapedIds.length) {
-			this.logger.debug(
-				{
-					err: 'ESCAPE',
-					req: query.ids,
-				},
-				'Common block request validation failed',
-			);
-
-			throw new Error('Invalid block id sequence');
-		}
-
-		try {
-			const row = await this.storage.entities.Block.get({
-				id: escapedIds[0],
-			});
-
-			if (!row.length > 0) {
-				return {
-					success: true,
-					common: null,
-				};
-			}
-
-			const { height, id, previousBlockId: previousBlock, timestamp } = row[0];
-
-			const parsedRow = {
-				id,
-				height,
-				previousBlock,
-				timestamp,
-			};
-
-			return {
-				success: true,
-				common: parsedRow,
-			};
-		} catch (error) {
-			this.logger.error(error.stack);
-			throw new Error('Failed to get common block');
-		}
-	}
 
 	/**
-	 * Description of blocks.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add description of the function
+	 * Returns a set of full blocks starting from the ID defined in the payload up to
+	 * the current tip of the chain.
+	 * @param {object} payload
+	 * @param {string} payload.blockId - The ID of the starting block
+	 * @return {Promise<Array<object>>}
 	 */
-	// eslint-disable-next-line consistent-return
-	async blocks(query) {
-		// Get 34 blocks with all data (joins) from provided block id
-		// According to maxium payload of 58150 bytes per block with every transaction being a vote
-		// Discounting maxium compression setting used in middleware
-		// Maximum transport payload = 2000000 bytes
-		if (!query || !query.lastBlockId) {
-			return {
-				success: false,
-				message: 'Invalid lastBlockId requested',
-			};
+	async getBlocksFromId(payload) {
+		validator.validate(definitions.getBlocksFromIdRequest, payload);
+
+		if (validator.validator.errors) {
+			this.logger.debug(
+				{
+					err: validator.validator.errors,
+					req: payload,
+				},
+				'getBlocksFromID request validation failed',
+			);
+			throw validator.validator.errors;
 		}
 
-		try {
-			const data = await this.blocksModule.loadBlocksDataWS({
-				limit: 34, // 1977100 bytes
-				lastId: query.lastBlockId,
-			});
-
-			_.each(data, block => {
-				if (block.tf_data) {
-					try {
-						block.tf_data = block.tf_data.toString('utf8');
-					} catch (e) {
-						this.logger.error(
-							{
-								block,
-								error: e,
-							},
-							'Transport->blocks: Failed to convert data field to UTF-8',
-						);
-					}
-				}
-			});
-
-			return { blocks: data, success: true };
-		} catch (err) {
-			return {
-				blocks: [],
-				message: err,
-				success: false,
-			};
-		}
+		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
 	}
 
 	/**
@@ -350,10 +240,18 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}) {
+	async postBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
+			);
+		}
+
+		// Should ignore received block if syncing
+		if (this.synchronizer.isActive) {
+			return this.logger.debug(
+				{ blockId: query.block.id, height: query.block.height },
+				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
 
@@ -372,20 +270,9 @@ class Transport {
 			throw errors;
 		}
 
-		let block = blocksUtils.addBlockProperties(query.block);
+		const block = await this.processorModule.deserialize(query.block);
 
-		// Instantiate transaction classes
-		block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
-
-		block = blocksUtils.objectNormalize(block);
-		// TODO: endpoint should be protected before
-		if (this.loaderModule.syncing()) {
-			return this.logger.debug(
-				"Client is syncing. Can't receive block at the moment.",
-				block.id,
-			);
-		}
-		return this.blocksModule.receiveBlockFromNetwork(block);
+		return this.processorModule.process(block, { peerId });
 	}
 
 	/**

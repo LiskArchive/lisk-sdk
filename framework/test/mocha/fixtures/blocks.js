@@ -17,8 +17,7 @@
 const randomstring = require('randomstring');
 const stampit = require('stampit');
 const faker = require('faker');
-
-const genesisBlock = __testContext.config.genesisBlock;
+const genesisBlock = require('../../fixtures/config/devnet/genesis_block.json');
 
 const Block = stampit({
 	props: {
@@ -38,7 +37,15 @@ const Block = stampit({
 		totalFee: '0',
 		version: 0,
 	},
-	init({ id, previousBlockId, generatorPublicKey, height }) {
+	init({
+		id,
+		previousBlockId,
+		generatorPublicKey,
+		height,
+		version,
+		maxHeightPreviouslyForged,
+		prevotedConfirmedUptoHeight,
+	}) {
 		// Must to provide
 		this.previousBlockId = previousBlockId;
 
@@ -46,7 +53,7 @@ const Block = stampit({
 		this.generatorPublicKey =
 			generatorPublicKey ||
 			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 32 })
+				.generate({ charset: '0123456789ABCDE', length: 64 })
 				.toLowerCase();
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
 
@@ -55,6 +62,12 @@ const Block = stampit({
 		this.totalAmount = faker.random
 			.number({ min: 1000, max: 10000 })
 			.toString();
+		this.version = version || 0;
+
+		if (this.version === '2') {
+			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
+			this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
+		}
 	},
 });
 
@@ -74,7 +87,39 @@ const GenesisBlock = stampit(Block, {
 	},
 });
 
+const BlockHeader = stampit({
+	props: {
+		blockId: '',
+		height: 0,
+		maxHeightPreviouslyForged: 0,
+		prevotedConfirmedUptoHeight: 0,
+		activeSinceRound: 3,
+		delegatePublicKey: '',
+	},
+	init({
+		height,
+		blockId,
+		delegatePublicKey,
+		activeSinceRound,
+		maxHeightPreviouslyForged,
+		prevotedConfirmedUptoHeight,
+	}) {
+		this.blockId =
+			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
+		this.height = height || Math.floor(Math.random() * Math.floor(5000));
+		this.delegatePublicKey =
+			delegatePublicKey ||
+			randomstring
+				.generate({ charset: '0123456789ABCDE', length: 64 })
+				.toLowerCase();
+		this.activeSinceRound = activeSinceRound || 1;
+		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
+		this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
+	},
+});
+
 module.exports = {
 	Block,
 	GenesisBlock,
+	BlockHeader,
 };
