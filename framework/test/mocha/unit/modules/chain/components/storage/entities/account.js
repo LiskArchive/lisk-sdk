@@ -855,14 +855,6 @@ describe('ChainAccount', () => {
 			);
 			expect(result[0].count).to.equal(0);
 		});
-
-		it('should empty the table "rounds_rewards"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM rounds_rewards',
-			);
-			expect(result[0].count).to.equal(0);
-		});
 	});
 
 	describe('increaseFieldBy()', () => {

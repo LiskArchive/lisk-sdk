@@ -20,4 +20,3 @@
 */
 
 DELETE FROM mem_accounts;
-DELETE FROM rounds_rewards;

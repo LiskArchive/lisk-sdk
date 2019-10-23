@@ -251,7 +251,6 @@ class ChainAccount extends AccountEntity {
 	/**
 	 * Clear data in memory tables:
 	 * - mem_accounts
-	 * - rounds_rewards
 	 * - mem_round
 	 *
 	 * @param {Object} tx - DB transaction object

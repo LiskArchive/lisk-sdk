@@ -13,15 +13,10 @@
  */
 
 
-/*
-  DESCRIPTION: Get forging statistics within the specified timespan for an existing delegate address
-  PARAMETERS: generatorPublicKey, fromTimestamp (optional), toTimestamp (optional)
+ /*
+  DESCRIPTION: Remove table `rounds_rewards`. The `blocks` table is now used instead to provide the same data.
+  See: https://github.com/LiskHQ/lisk-sdk/issues/4267
 */
 
-SELECT COUNT(*) count, SUM("totalFee") fees, SUM("reward") rewards
-FROM blocks
-WHERE "generatorPublicKey" = DECODE(${generatorPublicKey}, 'hex')
-  AND (${fromTimestamp} IS NULL
-    OR "timestamp" >= ${fromTimestamp})
-  AND (${toTimestamp} IS NULL
-    OR "timestamp" <= ${toTimestamp})
+
+DROP TABLE IF EXISTS rounds_rewards;
