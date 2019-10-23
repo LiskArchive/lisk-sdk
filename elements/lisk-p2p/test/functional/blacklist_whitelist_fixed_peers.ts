@@ -23,8 +23,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	const NETWORK_START_PORT = 5000;
 	const previousPeers = [
 		{
-			ipAddress: '127.0.0.15',
-			wsPort: NETWORK_START_PORT + 5,
+			ipAddress: '127.0.0.5',
+			wsPort: NETWORK_START_PORT + 4,
 			height: 10,
 			version: '1.0',
 			protocolVersion: '1.0',
@@ -36,14 +36,14 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const blacklistedPeers = [
 			{
-				ipAddress: '127.0.0.15',
-				wsPort: NETWORK_START_PORT + 5,
+				ipAddress: '127.0.0.5',
+				wsPort: NETWORK_START_PORT + 4,
 			},
 		];
 		const previousPeersBlacklisted = [
 			{
-				ipAddress: '127.0.0.15',
-				wsPort: NETWORK_START_PORT + 5,
+				ipAddress: '127.0.0.5',
+				wsPort: NETWORK_START_PORT + 4,
 				height: 10,
 				version: '1.0',
 				protocolVersion: '1.0',
@@ -134,7 +134,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		const fixedPeers = [
 			{
-				ipAddress: '127.0.0.10',
+				ipAddress: '127.0.0.1',
 				wsPort: NETWORK_START_PORT,
 			},
 		];
@@ -183,7 +183,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		const whitelistedPeers = [
 			{
-				ipAddress: '127.0.0.10',
+				ipAddress: '127.0.0.1',
 				wsPort: NETWORK_START_PORT,
 			},
 		];

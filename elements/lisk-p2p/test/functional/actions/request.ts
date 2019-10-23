@@ -51,6 +51,7 @@ describe('P2P.request', () => {
 			procedure: 'foo',
 			data: 'bar',
 		});
+
 		expect(response).to.have.property('data');
 		expect(response.data)
 			.to.have.property('nodePort')
@@ -63,15 +64,13 @@ describe('P2P.request', () => {
 			.which.is.equal('bar');
 		expect(response.data)
 			.to.have.property('requestPeerId')
-			.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
+			.which.is.equal(`127.0.0.2:${secondP2PNode.nodeInfo.wsPort}`);
 	});
 
 	// Check for even distribution of requests across the network. Account for an error margin.
-	// TODO: Skipping this test as of now because we are removing duplicate IPs so this scenario will not work locally
-	// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
-	it.skip('requests made to the network should be distributed randomly', async () => {
+	it('requests made to the network should be distributed randomly', async () => {
 		const TOTAL_REQUESTS = 1000;
-		const firstP2PNode = p2pNodeList[0];
+		const secondP2PNode = p2pNodeList[1];
 		const nodePortToResponsesMap: any = {};
 
 		const expectedAverageRequestsPerNode = TOTAL_REQUESTS / NETWORK_PEER_COUNT;
@@ -79,7 +78,7 @@ describe('P2P.request', () => {
 		const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
 
 		for (let i = 0; i < TOTAL_REQUESTS; i++) {
-			const response = await firstP2PNode.request({
+			const response = await secondP2PNode.request({
 				procedure: 'foo',
 				data: i,
 			});
@@ -97,5 +96,5 @@ describe('P2P.request', () => {
 			);
 			expect(requestsHandled.length).to.be.lessThan(expectedRequestsUpperBound);
 		}
-	});
+	}).timeout(5000);
 });

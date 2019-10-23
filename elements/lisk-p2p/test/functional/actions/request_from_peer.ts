@@ -19,6 +19,7 @@ import {
 	NETWORK_START_PORT,
 	destroyNetwork,
 } from 'utils/network_setup';
+import { wait } from 'utils/helpers';
 
 describe('P2P.requestFromPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -52,8 +53,10 @@ describe('P2P.requestFromPeer', () => {
 	it('should send request to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
+		await wait(300);
+
 		const targetPeerPort = NETWORK_START_PORT + 4;
-		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+		const targetPeerId = `127.0.0.5:${targetPeerPort}`;
 
 		await firstP2PNode.requestFromPeer(
 			{
@@ -73,7 +76,7 @@ describe('P2P.requestFromPeer', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		const targetPeerPort = NETWORK_START_PORT + 2;
-		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+		const targetPeerId = `127.0.0.3:${targetPeerPort}`;
 
 		const response = await firstP2PNode.requestFromPeer(
 			{

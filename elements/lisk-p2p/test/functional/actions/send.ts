@@ -85,7 +85,7 @@ describe('P2P.send', () => {
 		const firstP2PNode = p2pNodeList[0];
 		firstP2PNode.send({ event: 'bar', data: 'test' });
 
-		await wait(100);
+		await wait(300);
 
 		expect(collectedMessages).to.be.an('array');
 		expect(collectedMessages.length).to.be.eql(9);

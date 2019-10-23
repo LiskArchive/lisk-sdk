@@ -46,7 +46,9 @@ describe('P2P.sendToPeer', () => {
 	it('should send message to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
 		const targetPeerPort = NETWORK_START_PORT + 3;
-		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+		const targetPeerId = `127.0.0.4:${targetPeerPort}`;
+
+		await wait(100);
 
 		firstP2PNode.sendToPeer(
 			{
@@ -55,8 +57,6 @@ describe('P2P.sendToPeer', () => {
 			},
 			targetPeerId,
 		);
-
-		await wait(100);
 
 		expect(collectedMessages.length).to.equal(1);
 		expect(collectedMessages[0])

@@ -47,9 +47,8 @@ describe('Cleanup unresponsive peers', () => {
 		);
 
 		await p2pNodeList[0].stop();
-		await wait(100);
 		await p2pNodeList[1].stop();
-		await wait(100);
+		await wait(300);
 
 		const peerPortsAfterPeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
