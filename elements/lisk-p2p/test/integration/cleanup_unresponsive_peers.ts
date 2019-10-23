@@ -50,6 +50,11 @@ describe('Cleanup unresponsive peers', () => {
 			ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 		);
 
+		const peerPortsbeforePeerCrash = p2pNodeList[2]
+			.getConnectedPeers()
+			.map(peerInfo => peerInfo.wsPort)
+			.sort();
+
 		await p2pNodeList[0].stop();
 		await wait(100);
 		await p2pNodeList[1].stop();
@@ -60,13 +65,15 @@ describe('Cleanup unresponsive peers', () => {
 			.map(peerInfo => peerInfo.wsPort)
 			.sort();
 
-		const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
-			return (
-				port !== p2pNodeList[0].nodeInfo.wsPort &&
-				port !== p2pNodeList[1].nodeInfo.wsPort &&
-				port !== p2pNodeList[2].nodeInfo.wsPort
-			);
-		});
+		const expectedPeerPortsAfterPeerCrash = peerPortsbeforePeerCrash.filter(
+			port => {
+				return (
+					port !== p2pNodeList[0].nodeInfo.wsPort &&
+					port !== p2pNodeList[1].nodeInfo.wsPort &&
+					port !== p2pNodeList[2].nodeInfo.wsPort
+				);
+			},
+		);
 
 		expect(peerPortsAfterPeerCrash).to.be.eql(expectedPeerPortsAfterPeerCrash);
 	});
