@@ -21,7 +21,7 @@ import {
 	BASE_PEER_IP,
 } from 'utils/network_setup';
 
-describe.only('Outbound peer shuffling', () => {
+describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const POPULATOR_INTERVAL_SHUFFLING = 3000;
 	const OUTBOUND_SHUFFLE_INTERVAL = 500;

@@ -15,11 +15,7 @@
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import { wait } from '../../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_START_PORT,
-} from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('P2P.sendToPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -45,23 +41,23 @@ describe('P2P.sendToPeer', () => {
 
 	it('should send message to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
-		const targetPeerPort = NETWORK_START_PORT + 3;
-		const targetPeerId = `127.0.0.4:${targetPeerPort}`;
 
-		await wait(100);
+		const targetPeer = firstP2PNode.getConnectedPeers()[1];
 
 		firstP2PNode.sendToPeer(
 			{
 				event: 'foo',
 				data: 123,
 			},
-			targetPeerId,
+			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
+
+		await wait(300);
 
 		expect(collectedMessages.length).to.equal(1);
 		expect(collectedMessages[0])
 			.to.have.property('nodePort')
-			.which.is.equal(targetPeerPort);
+			.which.is.equal(targetPeer.wsPort);
 		expect(collectedMessages[0]).to.have.property('message');
 		expect(collectedMessages[0].message)
 			.to.have.property('event')

@@ -25,29 +25,11 @@ import {
 describe('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();
-	const POPULATOR_INTERVAL = 100;
 	const PEER_BAN_TIME = 100;
 
 	beforeEach(async () => {
-		const customSeedPeers = (
-			index: number,
-			startPort: number,
-			networkSize: number,
-		) => [
-			{
-				ipAddress: '127.0.0.1',
-				wsPort: startPort + ((index + 1) % networkSize),
-			},
-		];
-
-		const customConfig = (
-			index: number,
-			startPort: number,
-			networkSize: number,
-		) => ({
-			populatorInterval: POPULATOR_INTERVAL,
+		const customConfig = () => ({
 			peerBanTime: PEER_BAN_TIME,
-			seedPeers: customSeedPeers(index, startPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });
@@ -107,7 +89,9 @@ describe('Peer banning mechanism', () => {
 		});
 
 		it(`should fire ${EVENT_BAN_PEER} event with peerId`, async () => {
-			expect(collectedEvents.get('EVENT_BAN_PEER')).to.eql('127.0.0.1:5002');
+			expect(collectedEvents.get('EVENT_BAN_PEER')).to.eql(
+				`${badPeer.ipAddress}:${badPeer.wsPort}`,
+			);
 		});
 
 		it(`should fire ${EVENT_CLOSE_INBOUND} event`, async () => {

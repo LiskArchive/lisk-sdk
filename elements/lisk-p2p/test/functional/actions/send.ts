@@ -83,12 +83,15 @@ describe('P2P.send', () => {
 
 	it('should receive a message in the correct format', async () => {
 		const firstP2PNode = p2pNodeList[0];
+
+		const connectedPeers = firstP2PNode.getConnectedPeers().length;
+
 		firstP2PNode.send({ event: 'bar', data: 'test' });
 
 		await wait(300);
 
 		expect(collectedMessages).to.be.an('array');
-		expect(collectedMessages.length).to.be.eql(9);
+		expect(collectedMessages.length).to.be.eql(connectedPeers);
 		expect(collectedMessages[0]).to.have.property('message');
 		expect(collectedMessages[0].message)
 			.to.have.property('event')

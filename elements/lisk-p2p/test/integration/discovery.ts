@@ -81,6 +81,8 @@ describe('Peer discovery', () => {
 	});
 
 	it('should discover all peers and add them to the connectedPeers list within each node', async () => {
+		await wait(100);
+
 		for (let p2p of p2pNodeList) {
 			const peerPorts = p2p
 				.getConnectedPeers()

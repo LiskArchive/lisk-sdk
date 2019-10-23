@@ -14,11 +14,7 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
-import {
-	createNetwork,
-	NETWORK_START_PORT,
-	destroyNetwork,
-} from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from 'utils/network_setup';
 import { wait } from 'utils/helpers';
 
 describe('P2P.requestFromPeer', () => {
@@ -29,12 +25,16 @@ describe('P2P.requestFromPeer', () => {
 		p2pNodeList = await createNetwork();
 
 		collectedMessages = [];
+
 		for (let p2p of p2pNodeList) {
 			p2p.on('requestReceived', request => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					request,
-				});
+				if (request.procedure === 'proc') {
+					collectedMessages.push({
+						nodePort: p2p.nodeInfo.wsPort,
+						request,
+					});
+				}
+
 				if (request.procedure === 'getGreeting') {
 					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`);
 				} else {
@@ -53,17 +53,16 @@ describe('P2P.requestFromPeer', () => {
 	it('should send request to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
-		await wait(300);
+		const targetPeer = firstP2PNode.getConnectedPeers()[1];
 
-		const targetPeerPort = NETWORK_START_PORT + 4;
-		const targetPeerId = `127.0.0.5:${targetPeerPort}`;
+		await wait(300);
 
 		await firstP2PNode.requestFromPeer(
 			{
 				procedure: 'proc',
 				data: 123456,
 			},
-			targetPeerId,
+			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
 
 		expect(collectedMessages.length).to.equal(1);
@@ -75,18 +74,21 @@ describe('P2P.requestFromPeer', () => {
 	it('should receive response from a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
-		const targetPeerPort = NETWORK_START_PORT + 2;
-		const targetPeerId = `127.0.0.3:${targetPeerPort}`;
+		const targetPeer = firstP2PNode.getConnectedPeers()[1];
+
+		await wait(300);
 
 		const response = await firstP2PNode.requestFromPeer(
 			{
 				procedure: 'getGreeting',
 				data: 'world',
 			},
-			targetPeerId,
+			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
 
 		expect(response).to.have.property('data');
-		expect(response.data).to.equal(`Hello world from peer ${targetPeerPort}`);
+		expect(response.data).to.equal(
+			`Hello world from peer ${targetPeer.wsPort}`,
+		);
 	});
 });

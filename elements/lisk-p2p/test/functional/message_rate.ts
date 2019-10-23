@@ -36,6 +36,7 @@ describe('Message rate limit', () => {
 			// For the third node, make the message rate limit higher.
 			wsMaxMessageRate: index == 2 ? 100000 : 110,
 			rateCalculationInterval: 100,
+			populatorInterval: 10,
 		});
 		p2pNodeList = await createNetwork({ customConfig });
 
@@ -92,6 +93,8 @@ describe('Message rate limit', () => {
 			const firstP2PNode = p2pNodeList[0];
 			const ratePerSecondLowerBound = 70;
 			const ratePerSecondUpperBound = 130;
+
+			await 300;
 
 			const targetPeerPort = NETWORK_START_PORT + 3;
 			const targetPeerId = `127.0.0.4:${targetPeerPort}`;
