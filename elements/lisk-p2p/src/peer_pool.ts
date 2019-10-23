@@ -474,10 +474,10 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public addOutboundPeer(peerInfo: P2PPeerInfo): Peer {
+	public addOutboundPeer(peerInfo: P2PPeerInfo): P2PPeerInfo {
 		const existingPeer = this.getPeer(peerInfo.peerId);
 		if (existingPeer) {
-			return existingPeer;
+			return peerInfo;
 		}
 
 		const connectedPeersFromIP = this.getConnectedPeersByIP(
@@ -486,11 +486,7 @@ export class PeerPool extends EventEmitter {
 		);
 
 		if (connectedPeersFromIP !== 0) {
-			throw new Error(
-				`Peer ${
-					peerInfo.peerId
-				} has too many outbound connections: ${connectedPeersFromIP}`,
-			);
+			return peerInfo;
 		}
 
 		const peer = new OutboundPeer(peerInfo, { ...this._peerConfig });
@@ -501,7 +497,7 @@ export class PeerPool extends EventEmitter {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 
-		return peer;
+		return peerInfo;
 	}
 
 	public getPeersCountPerKind(): P2PPeersCount {

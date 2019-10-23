@@ -39,8 +39,6 @@ describe('Cleanup unresponsive peers', () => {
 	});
 
 	it('should remove crashed nodes from network status of other nodes', async () => {
-		await wait(300);
-
 		const initialPeerPorts = p2pNodeList[0]
 			.getConnectedPeers()
 			.map(peerInfo => peerInfo.wsPort)
@@ -56,7 +54,6 @@ describe('Cleanup unresponsive peers', () => {
 			.sort();
 
 		await p2pNodeList[0].stop();
-		await wait(100);
 		await p2pNodeList[1].stop();
 		await wait(100);
 
