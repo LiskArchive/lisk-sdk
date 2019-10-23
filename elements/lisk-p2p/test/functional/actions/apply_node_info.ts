@@ -59,8 +59,10 @@ describe('P2P.applyNodeInfo', () => {
 		const firstP2PNode = p2pNodeList[0];
 		const nodePortToMessagesMap: any = {};
 
+		const connectedPeerCount = firstP2PNode.getConnectedPeers().length;
+
 		// Each peer of firstP2PNode should receive a message.
-		expect(collectedMessages.length).to.equal(9);
+		expect(collectedMessages.length).to.equal(connectedPeerCount);
 
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {

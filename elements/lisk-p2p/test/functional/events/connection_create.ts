@@ -20,7 +20,6 @@ import {
 	EVENT_DISCOVERED_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_TO_ADD_INBOUND_PEER,
-	INVALID_CONNECTION_SELF_REASON,
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
 } from '../../../src/index';
@@ -173,7 +172,6 @@ describe(`Connection Create`, () => {
 		});
 
 		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, async () => {
-			expect(collectedErrors).to.include(INVALID_CONNECTION_SELF_REASON);
 			expect(collectedErrors).to.include(INCOMPATIBLE_NETWORK_REASON);
 			expect(collectedErrors).to.include(INCOMPATIBLE_PROTOCOL_VERSION_REASON);
 		});

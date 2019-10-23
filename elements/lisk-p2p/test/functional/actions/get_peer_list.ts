@@ -80,7 +80,10 @@ describe('PeerPool actions', () => {
 				.getUniqueOutboundConnectedPeers()
 				.map(peer => peer.ipAddress);
 
-			expect(UniqueOutboundPeersIpAddress).to.have.members(['127.0.0.1']);
+			expect(UniqueOutboundPeersIpAddress).to.have.members([
+				'127.0.0.1',
+				'127.0.0.3',
+			]);
 		});
 
 		afterEach(async () => {
