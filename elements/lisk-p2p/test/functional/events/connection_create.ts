@@ -96,8 +96,6 @@ describe(`Connection Create`, () => {
 				.to.have.property('wsPort')
 				.which.equals(firstNode.nodeInfo.wsPort);
 			expect(payload).to.have.property('sharedState');
-
-			expect(collectedEvents.get(EVENT_UPDATED_PEER_INFO)).to.exist;
 		});
 
 		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
@@ -109,6 +107,20 @@ describe(`Connection Create`, () => {
 				.which.equals(secondNode.nodeInfo.wsPort);
 			expect(payload).to.have.property('sharedState');
 		});
+
+		it(`should update peerBook with connected peer`, async () => {
+			const firstNode = p2pNodeList[0];
+			const secondNode = p2pNodeList[1];
+
+			const connectedPeer = firstNode.getConnectedPeers()[0];
+			const disconnectedPeers = firstNode.getDisconnectedPeers();
+
+			expect(connectedPeer)
+				.to.have.property('nonce')
+				.which.is.equal(secondNode.nodeInfo.nonce);
+
+			expect(disconnectedPeers).to.be.empty;
+		});
 	});
 
 	describe(`Errors`, () => {
@@ -116,7 +128,7 @@ describe(`Connection Create`, () => {
 		const collectedErrors: Array<any> = [];
 
 		beforeEach(async () => {
-			const customSeedPeers = (index: number) => ({
+			const customNodeInfo = (index: number) => ({
 				nethash:
 					index === 1
 						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
@@ -133,7 +145,7 @@ describe(`Connection Create`, () => {
 			});
 
 			const customConfig = (index: number) => ({
-				nodeInfo: customSeedPeers(index),
+				nodeInfo: customNodeInfo(index),
 				seedPeers: [
 					{
 						ipAddress: SEED_PEER_IP,

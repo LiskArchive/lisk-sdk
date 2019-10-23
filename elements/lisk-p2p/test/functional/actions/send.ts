@@ -120,7 +120,7 @@ describe('P2P.send', () => {
 			}
 		});
 
-		// // TODO: #3389 Improve network test to be fast and stable
+		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send messages to peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
 			const nodePortToMessagesMap: any = {};

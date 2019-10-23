@@ -61,30 +61,9 @@ describe('PeerPool actions', () => {
 
 	describe('getUniqueOutboundConnectedPeers', () => {
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
-				{
-					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
-					wsPort: startPort + ((index + 1) % networkSize),
-				},
-			];
-
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
-				hostIp: '127.0.0.' + (index + 10),
-				seedPeers: customSeedPeers(index, startPort, networkSize),
-			});
-
 			p2pNodeList = await createNetwork({
 				networkSize: 3,
 				networkDiscoveryWaitTime: 1,
-				customConfig,
 			});
 
 			await wait(1000);
@@ -95,16 +74,13 @@ describe('PeerPool actions', () => {
 		});
 
 		it('should discover all peers from unique IP address and give them back', async () => {
-			const firstNode = p2pNodeList[0];
+			const secondNode = p2pNodeList[1];
 
-			const UniqueOutboundPeersIpAddress = firstNode
+			const UniqueOutboundPeersIpAddress = secondNode
 				.getUniqueOutboundConnectedPeers()
 				.map(peer => peer.ipAddress);
 
-			expect(UniqueOutboundPeersIpAddress).to.have.members([
-				'127.0.0.11',
-				'127.0.0.12',
-			]);
+			expect(UniqueOutboundPeersIpAddress).to.have.members(['127.0.0.1']);
 		});
 
 		afterEach(async () => {

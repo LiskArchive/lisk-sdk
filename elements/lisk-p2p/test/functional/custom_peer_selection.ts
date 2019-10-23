@@ -175,7 +175,6 @@ describe('Custom peer selection', () => {
 			}
 		});
 
-		// TODO: #3389 Improve network test to be fast and stable
 		it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
 			const secondP2PNode = p2pNodeList[1];
 			const response = await secondP2PNode.request({
@@ -211,7 +210,7 @@ describe('Custom peer selection', () => {
 			}
 		});
 
-		// TODO: #3389 Improve network test to be fast and stable
+		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send a message to peers; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
 			const firstP2PNode = p2pNodeList[0];
