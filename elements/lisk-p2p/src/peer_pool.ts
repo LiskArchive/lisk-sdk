@@ -326,7 +326,18 @@ export class PeerPool extends EventEmitter {
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
-	public send(message: P2PMessagePacket, broadcast: boolean): void {
+	public broadcast(message: P2PMessagePacket): void {
+		[...this._peerMap.values()].map(peer => {
+			const selectedPeerId = peer.peerInfo.peerId;
+			try {
+				this.sendToPeer(message, selectedPeerId);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
+			}
+		});
+	}
+
+	public send(message: P2PMessagePacket): void {
 		const listOfPeerInfo: ReadonlyArray<P2PPeerInfo> = [
 			...this._peerMap.values(),
 		].map(peer => ({
@@ -344,7 +355,7 @@ export class PeerPool extends EventEmitter {
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
 			nodeInfo: this._nodeInfo,
-			peerLimit: broadcast ? listOfPeerInfo.length : this._sendPeerLimit,
+			peerLimit: this._sendPeerLimit,
 			messagePacket: message,
 		});
 

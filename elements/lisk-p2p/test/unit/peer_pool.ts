@@ -303,13 +303,13 @@ describe('peerPool', () => {
 		});
 
 		it('should call _peerSelectForSend', async () => {
-			await peerPool.send(messagePacket, false);
+			await peerPool.send(messagePacket);
 
 			expect(_peerSelectForSendStub).to.be.calledOnce;
 		});
 
 		it('should call sendToPeer for each selected peer', async () => {
-			await peerPool.send(messagePacket, false);
+			await peerPool.send(messagePacket);
 
 			expect(sendToPeer).to.be.calledOnceWithExactly(
 				messagePacket,
@@ -319,7 +319,7 @@ describe('peerPool', () => {
 
 		it(`should emit event if sendToPeer fails`, async () => {
 			sendToPeer.throws();
-			await peerPool.send(1 as any, false);
+			await peerPool.send(1 as any);
 
 			expect(peerPool.emit).to.be.calledOnce;
 		});
