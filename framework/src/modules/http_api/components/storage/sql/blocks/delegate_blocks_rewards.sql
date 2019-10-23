@@ -15,33 +15,13 @@
 
 /*
   DESCRIPTION: ?
-
   PARAMETERS: ?
 */
 
-WITH delegate AS
-  (SELECT 1
-   FROM mem_accounts m
-   WHERE m."isDelegate" = 1
-     AND m."publicKey" = decode(${generatorPublicKey}, 'hex')
-   LIMIT 1),
-     rewards AS
-  (SELECT count(*), sum(reward) AS rewards, sum(fees) AS fees
-   FROM rounds_rewards
-   WHERE "publicKey" = decode(${generatorPublicKey}, 'hex')
-     AND (${fromTimestamp} IS NULL
-          OR "timestamp" >= ${fromTimestamp})
-     AND (${toTimestamp} IS NULL
-          OR "timestamp" <= ${toTimestamp}) )
-SELECT
-  (SELECT *
-   FROM delegate) AS delegate,
-
-  (SELECT count
-   FROM rewards) AS count,
-
-  (SELECT fees
-   FROM rewards) AS fees,
-
-  (SELECT rewards
-   FROM rewards) AS rewards
+SELECT COUNT(*) count, SUM("totalFee") fees, SUM("reward") rewards
+FROM blocks
+WHERE "generatorPublicKey" = DECODE(${generatorPublicKey}, 'hex')
+  AND (${fromTimestamp} IS NULL
+    OR "timestamp" >= ${fromTimestamp})
+  AND (${toTimestamp} IS NULL
+    OR "timestamp" <= ${toTimestamp})
