@@ -641,6 +641,20 @@ export class P2P extends EventEmitter {
 
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
+			'handshake',
+			(socket: SCServerSocket): void => {
+				if (this._bannedPeers.has(socket.remoteAddress)) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						FORBIDDEN_CONNECTION,
+						FORBIDDEN_CONNECTION_REASON,
+					);
+
+					return;
+				}
+			},
+		);
+		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
 				// Check blacklist to avoid incoming connections from backlisted ips
