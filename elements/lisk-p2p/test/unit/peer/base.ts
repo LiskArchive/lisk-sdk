@@ -358,7 +358,7 @@ describe('peer/base', () => {
 				const peers = [
 					{
 						peerId: constructPeerId('1.1.1.1', 1111),
-						ip: '1.1.1.1',
+						ipAddress: '1.1.1.1',
 						wsPort: 1111,
 						sharedState: {
 							version: '1.1.1',
@@ -366,7 +366,7 @@ describe('peer/base', () => {
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
-						ip: '2.2.2.2',
+						ipAddress: '2.2.2.2',
 						wsPort: 2222,
 						sharedState: {
 							version: '2.2.2',
@@ -401,7 +401,7 @@ describe('peer/base', () => {
 					data: {
 						peers: peers.map(peer => ({
 							...peer.sharedState,
-							ipAddress: peer.ip,
+							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 						})),
 						success: true,
@@ -413,8 +413,8 @@ describe('peer/base', () => {
 
 			it('should throw apply penalty on malformed Peer list', async () => {
 				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
-					peerId: constructPeerId('1.1.1.1', 1 + index),
-					ip: '1.1.1.1',
+					peerId: `'1.1.1.1:${1 + index}`,
+					ipAddress: '1.1.1.1',
 					wsPort: 1 + index,
 					sharedState: {
 						version: '1.1.1',
@@ -425,7 +425,7 @@ describe('peer/base', () => {
 					data: {
 						peers: malformedPeerList.map(peer => ({
 							...peer.sharedState,
-							ipAddress: peer.ip,
+							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 						})),
 						success: true,
@@ -439,8 +439,8 @@ describe('peer/base', () => {
 			it('should throw apply penalty on malformed Peer', async () => {
 				const malformedPeerList = [
 					{
-						peerId: constructPeerId('1.1.1.1', 1111),
-						ip: '1.1.1.1',
+						peerId: `'1.1.1.1:5000`,
+						ipAddress: '1.1.1.1',
 						wsPort: 1111,
 						sharedState: {
 							version: '1.1.1',
@@ -453,7 +453,7 @@ describe('peer/base', () => {
 					data: {
 						peers: malformedPeerList.map(peer => ({
 							...peer.sharedState,
-							ipAddress: peer.ip,
+							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 						})),
 						success: true,
