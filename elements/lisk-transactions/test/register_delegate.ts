@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { registerDelegate } from '../src/2_register_delegate';
-import { DelegateAsset } from '../src/2_delegate_transaction';
+import { registerDelegate } from '../src/register_delegate';
+import { DelegateAsset } from '../src/10_delegate_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 

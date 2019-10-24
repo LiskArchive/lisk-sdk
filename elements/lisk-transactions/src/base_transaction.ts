@@ -238,6 +238,14 @@ export abstract class BaseTransaction {
 		}
 
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
 		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
@@ -394,6 +402,14 @@ export abstract class BaseTransaction {
 		}
 
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
 		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
@@ -442,6 +458,14 @@ export abstract class BaseTransaction {
 	public processMultisignatures(store: StateStore): TransactionResponse {
 		const sender = store.account.get(this.senderId);
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
 		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
@@ -498,6 +522,13 @@ export abstract class BaseTransaction {
 		this._signature = undefined;
 		this._signSignature = undefined;
 
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error('Network identifier is required to sign a transaction ');
+		}
+
 		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
@@ -551,6 +582,14 @@ export abstract class BaseTransaction {
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to verify a transaction ',
+			);
+		}
 		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,

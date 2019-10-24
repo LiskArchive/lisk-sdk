@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { castVotes } from '../src/3_cast_votes';
-import { VoteAsset } from '../src/3_vote_transaction';
+import { castVotes } from '../src/cast_votes';
+import { VoteAsset } from '../src/11_vote_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 

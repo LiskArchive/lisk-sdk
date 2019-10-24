@@ -40,7 +40,7 @@ export const secondSignatureAssetFormatSchema = {
 
 export class SecondSignatureTransaction extends BaseTransaction {
 	public readonly asset: SecondSignatureAsset;
-	public static TYPE = 1;
+	public static TYPE = 9;
 	public static FEE = SIGNATURE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {

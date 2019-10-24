@@ -15,7 +15,7 @@
 import * as BigNum from '@liskhq/bignum';
 import { expect } from 'chai';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../src/constants';
-import { TransferTransaction } from '../src/0_transfer_transaction';
+import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { TransactionError } from '../src/errors';

@@ -68,7 +68,7 @@ interface RawAsset {
 
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
-	public static TYPE = 0;
+	public static TYPE = 8;
 	public static FEE = TRANSFER_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {

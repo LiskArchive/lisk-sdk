@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
-import { SecondSignatureAsset } from '../src/1_second_signature_transaction';
+import { registerSecondPassphrase } from '../src/register_second_passphrase';
+import { SecondSignatureAsset } from '../src/9_second_signature_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 

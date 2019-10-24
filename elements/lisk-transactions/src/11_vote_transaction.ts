@@ -87,7 +87,7 @@ interface RawAsset {
 export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
-	public static TYPE = 3;
+	public static TYPE = 11;
 	public static FEE = VOTE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {

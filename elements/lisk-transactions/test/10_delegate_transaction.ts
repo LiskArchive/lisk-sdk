@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
-import { DelegateTransaction } from '../src/2_delegate_transaction';
+import { DelegateTransaction } from '../src/10_delegate_transaction';
 import {
 	validDelegateAccount,
 	validDelegateTransaction,

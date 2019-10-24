@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { MULTISIGNATURE_FEE } from '../src/constants';
 import { SignatureObject } from '../src/create_signature_object';
-import { MultisignatureTransaction } from '../src/4_multisignature_transaction';
+import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
 import { Account, TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { MockStateStore as store } from './helpers';

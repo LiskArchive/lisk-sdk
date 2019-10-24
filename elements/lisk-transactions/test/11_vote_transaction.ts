@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
-import { VoteTransaction } from '../src/3_vote_transaction';
+import { VoteTransaction } from '../src/11_vote_transaction';
 import { validVoteTransactions } from '../fixtures';
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';

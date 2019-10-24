@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { transfer } from '../src/0_transfer';
+import { transfer } from '../src/transfer';
 import * as time from '../src/utils/time';
 import { TransactionJSON } from '../src/transaction_types';
 

@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
-import { SecondSignatureTransaction } from '../src/1_second_signature_transaction';
+import { SecondSignatureTransaction } from '../src/9_second_signature_transaction';
 import {
 	validRegisterSecondSignatureTransaction,
 	validTransaction,
