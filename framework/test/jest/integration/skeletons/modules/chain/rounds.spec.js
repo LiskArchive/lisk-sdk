@@ -84,7 +84,7 @@ describe('rounds', () => {
 			);
 
 			it.todo(
-				'should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)',
+				'should calculate rewards for round 1 correctly - all should be the same (calculated, mem_accounts)',
 			);
 
 			it.todo(
@@ -95,10 +95,6 @@ describe('rounds', () => {
 		describe('when last block of round 1 is deleted and block contains 1 TRANSFER transaction', () => {
 			it.todo(
 				'should add back transactions from deleted block to the transaction pool',
-			);
-
-			it.todo(
-				'should have empty round rewards (rewards for round 1 deleted from rounds_rewards table)',
 			);
 
 			it.todo(
@@ -355,7 +351,7 @@ describe('rounds', () => {
 
 			describe('after finish round', () => {
 				it.todo(
-					'should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)',
+					'should calculate rewards for round 2 correctly - all should be the same (native)',
 				);
 			});
 		});

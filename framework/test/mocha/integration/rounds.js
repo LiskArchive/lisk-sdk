@@ -579,7 +579,7 @@ describe('rounds', () => {
 				return expect(lastBlock.height).to.be.equal(ACTIVE_DELEGATES);
 			});
 
-			it('should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)', async () => {
+			it('should calculate rewards for round 1 correctly - all should be the same (calculated, mem_accounts)', async () => {
 				return Promise.join(
 					getMemAccounts(),
 					Queries.getBlocks(round.current),
@@ -1101,14 +1101,14 @@ describe('rounds', () => {
 			});
 
 			describe('after finish round', () => {
-				it('should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)', async () => {
+				it('should calculate rewards for round 2 correctly - all should be the same (native)', async () => {
 					return Promise.join(
 						Queries.getBlocks(2),
 						Queries.getRoundRewards(2, ACTIVE_DELEGATES),
 						(_blocks, _rewards) => {
 							// Get expected rewards for round (native)
 							const expectedRewards = getExpectedRoundRewards(_blocks);
-							// Rewards from database table rounds_rewards should match native rewards
+							// Should match data in `blocks` table
 							expect(_rewards).to.deep.equal(expectedRewards);
 						},
 					);
