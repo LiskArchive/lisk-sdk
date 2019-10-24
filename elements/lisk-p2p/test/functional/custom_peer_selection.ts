@@ -210,6 +210,7 @@ describe('Custom peer selection', () => {
 			}
 		});
 
+		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send a message to peers; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
 			const firstP2PNode = p2pNodeList[0];
