@@ -15,7 +15,11 @@
 import { expect } from 'chai';
 import { P2P, EVENT_MESSAGE_RECEIVED } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	NETWORK_PEER_COUNT,
+} from 'utils/network_setup';
 
 describe('P2P.broadcast', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -71,7 +75,7 @@ describe('P2P.broadcast', () => {
 		await wait(100);
 
 		expect(collectedMessages).to.be.an('array');
-		expect(collectedMessages.length).to.be.eql(9);
+		expect(collectedMessages.length).to.be.eql(NETWORK_PEER_COUNT - 1);
 		expect(collectedMessages[0]).to.have.property('message');
 		expect(collectedMessages[0].message)
 			.to.have.property('event')
