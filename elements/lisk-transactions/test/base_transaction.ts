@@ -35,10 +35,10 @@ import {
 	validSecondSignatureTransaction,
 } from '../fixtures';
 import * as utils from '../src/utils';
-import { TransferTransaction } from '../src';
+import { TransferTransaction } from '../src/8_transfer_transaction';
 import { SignatureObject } from '../src/create_signature_object';
 
-describe('Base transaction class', () => {
+describe.only('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(validTransaction);
 	const defaultSecondSignatureTransaction = addTransactionFields(
 		validSecondSignatureTransaction,
@@ -58,15 +58,22 @@ describe('Base transaction class', () => {
 	let storeAccountGetOrDefaultStub: sinon.SinonStub;
 
 	beforeEach(async () => {
-		validTestTransaction = new TransferTransaction(defaultTransaction);
-		transactionWithDefaultValues = new TestTransaction({});
-		transactionWithBasicImpl = new TestTransactionBasicImpl({});
-		validSecondSignatureTestTransaction = new TestTransaction(
-			defaultSecondSignatureTransaction,
-		);
-		validMultisignatureTestTransaction = new TestTransaction(
-			defaultMultisignatureTransaction,
-		);
+		validTestTransaction = new TransferTransaction({
+			...defaultTransaction,
+			networkIdentifier,
+		});
+		transactionWithDefaultValues = new TestTransaction({ networkIdentifier });
+		transactionWithBasicImpl = new TestTransactionBasicImpl({
+			networkIdentifier,
+		});
+		validSecondSignatureTestTransaction = new TestTransaction({
+			...defaultSecondSignatureTransaction,
+			networkIdentifier,
+		});
+		validMultisignatureTestTransaction = new TestTransaction({
+			...defaultMultisignatureTransaction,
+			networkIdentifier,
+		});
 		storeAccountGetStub = sandbox
 			.stub(store.account, 'get')
 			.returns(defaultSenderAccount);
@@ -269,6 +276,7 @@ describe('Base transaction class', () => {
 			storeAccountGetStub.returns(defaultMultisignatureAccount);
 			const multisignaturesTransaction = new TestTransaction({
 				...defaultMultisignatureTransaction,
+				networkIdentifier,
 				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
 			});
 			multisignaturesTransaction.apply(store);
@@ -629,7 +637,10 @@ describe('Base transaction class', () => {
 		beforeEach(async () => {
 			storeAccountGetStub.returns(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction;
-			transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
+			transferFromMultiSigAccountTrs = new TransferTransaction({
+				...rawTrs,
+				networkIdentifier,
+			});
 			multisigMember = {
 				transactionId: transferFromMultiSigAccountTrs.id,
 				publicKey:
@@ -685,7 +696,10 @@ describe('Base transaction class', () => {
 		it('should fail to add invalid signature to transaction from multisig account', () => {
 			storeAccountGetStub.returns(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction;
-			const transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
+			const transferFromMultiSigAccountTrs = new TransferTransaction({
+				...rawTrs,
+				networkIdentifier,
+			});
 			const multisigMember = {
 				transactionId: transferFromMultiSigAccountTrs.id,
 				publicKey:
@@ -713,7 +727,10 @@ describe('Base transaction class', () => {
 		it('should fail with signature not part of the group', () => {
 			storeAccountGetStub.returns(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction;
-			const transferFromMultiSigAccountTrs = new TransferTransaction(rawTrs);
+			const transferFromMultiSigAccountTrs = new TransferTransaction({
+				...rawTrs,
+				networkIdentifier,
+			});
 			const multisigMember = {
 				transactionId: transferFromMultiSigAccountTrs.id,
 				publicKey:
@@ -827,7 +844,7 @@ describe('Base transaction class', () => {
 			'97d2a6299a4fc96770ab0ee72d9941e82f01cf1330566f4473196204b7f880e10c53cb766182d8a8ebe8dae22a14e533a7f41767e8f77e96975b0d8c1096e402';
 
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
-			const newTransaction = new TestTransaction({});
+			const newTransaction = new TestTransaction({ networkIdentifier });
 			newTransaction.sign(passphrase);
 
 			const stringifiedTransaction = newTransaction.stringify();
@@ -839,7 +856,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return correct senderId/senderPublicKey when sign with passphrase and secondPassphrase', () => {
-			const newTransaction = new TestTransaction({});
+			const newTransaction = new TestTransaction({ networkIdentifier });
 			newTransaction.sign(passphrase, secondPassphrase);
 
 			const stringifiedTransaction = newTransaction.stringify();
