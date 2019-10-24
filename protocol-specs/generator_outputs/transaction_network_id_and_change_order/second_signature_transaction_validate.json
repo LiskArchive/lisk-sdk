@@ -1,0 +1,36 @@
+{
+	"title": "Valid second signature transaction",
+	"summary": "A valid second signature transaction",
+	"config": "devnet",
+	"runner": "transaction_network_id_and_change_order",
+	"handler": "second_signature_transaction_validate",
+	"testCases": {
+		"input": {
+			"account": {
+				"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",
+				"privateKey": "8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"publicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"address": "2129300327344985743L"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"transaction": {
+				"type": 9,
+				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"timestamp": 54316325,
+				"asset": {
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe"
+				}
+			}
+		},
+		"output": {
+			"type": 9,
+			"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+			"timestamp": 54316325,
+			"asset": {
+				"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe"
+			},
+			"signature": "34ecf17fdaf1085416d3816e0fdbe85fc73e6a7b82d2a1462dc01a254e8d5bd1a6d22c2cf2003b66b00c951039334ef0e557acdf08e79d34ba86670e7a444903",
+			"id": "18344388355496925563"
+		}
+	}
+}
