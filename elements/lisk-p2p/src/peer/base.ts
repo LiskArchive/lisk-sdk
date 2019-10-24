@@ -130,7 +130,7 @@ export class Peer extends EventEmitter {
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
-	protected _badMessageCount: number;
+	protected _invalidMessageCount: number;
 	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
@@ -165,7 +165,7 @@ export class Peer extends EventEmitter {
 		this._messageRates = new Map();
 		this._wsMessageCount = 0;
 		this._wsMessageRate = 0;
-		this._badMessageCount = 0;
+		this._invalidMessageCount = 0;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
 			this._resetCounters();
@@ -222,9 +222,9 @@ export class Peer extends EventEmitter {
 
 		this._handleWSMessage = (message: any) => {
 			if (message === SOCKET_PING_MESSAGE || message === SOCKET_PONG_MESSAGE) {
-				this._badMessageCount += 1;
+				this._invalidMessageCount += 1;
 				// TODO: Determine the right number of exptected messages used in socket cluster for heartbeat
-				if (this._badMessageCount > 1) {
+				if (this._invalidMessageCount >= 1) {
 					if (this._socket) {
 						this._socket.destroy(
 							INVALID_MESSAGE_RECEIVED_CODE,
@@ -525,7 +525,7 @@ export class Peer extends EventEmitter {
 		this._wsMessageRate =
 			(this._wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
 		this._wsMessageCount = 0;
-		this._badMessageCount = 0;
+		this._invalidMessageCount = 0;
 
 		if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
 			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
