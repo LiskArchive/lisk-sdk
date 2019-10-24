@@ -68,6 +68,7 @@ describe('peer/base', () => {
 			rateCalculationInterval: 1000,
 			wsMaxMessageRate: 1000,
 			wsMaxMessageRatePenalty: 10,
+			invalidPeerListPenalty: 10,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
@@ -350,6 +351,9 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
+			beforeEach(() => {
+				sandbox.stub(defaultPeer, 'applyPenalty');
+			});
 			it('should return a sanitized peer list', async () => {
 				const peers = [
 					{
@@ -405,6 +409,59 @@ describe('peer/base', () => {
 				});
 				const response = await defaultPeer.fetchPeers();
 				expect(response).to.be.eql(sanitizedPeers);
+			});
+
+			it('should throw apply penalty on malformed Peer list', async () => {
+				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
+					peerId: constructPeerId('1.1.1.1', 1 + index),
+					ip: '1.1.1.1',
+					wsPort: 1 + index,
+					sharedState: {
+						version: '1.1.1',
+					},
+				}));
+
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers: malformedPeerList.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ip,
+							wsPort: peer.wsPort,
+						})),
+						success: true,
+					},
+				});
+
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(10);
+			});
+
+			it('should throw apply penalty on malformed Peer', async () => {
+				const malformedPeerList = [
+					{
+						peerId: constructPeerId('1.1.1.1', 1111),
+						ip: '1.1.1.1',
+						wsPort: 1111,
+						sharedState: {
+							version: '1.1.1',
+							junkData: [...new Array(10000).keys()].map(() => 'a'),
+						},
+					},
+				];
+
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers: malformedPeerList.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ip,
+							wsPort: peer.wsPort,
+						})),
+						success: true,
+					},
+				});
+
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(10);
 			});
 		});
 	});

@@ -131,6 +131,7 @@ export interface P2PConfig {
 	readonly peerDiscoveryResponseLength?: number;
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
+	readonly invalidPeerListPenalty?: number;
 	readonly secret?: number;
 }
 

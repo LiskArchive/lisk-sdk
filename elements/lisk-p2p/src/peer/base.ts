@@ -22,7 +22,11 @@ import {
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 } from '../constants';
-import { RPCResponseError } from '../errors';
+import {
+	InvalidPeerError,
+	InvalidPeerListError,
+	RPCResponseError,
+} from '../errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_DISCOVERED_PEER,
@@ -94,6 +98,7 @@ export interface PeerConfig {
 	readonly wsMaxPayload?: number;
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
+	readonly invalidPeerListPenalty: number;
 	readonly secret: number;
 }
 
@@ -396,6 +401,13 @@ export class Peer extends EventEmitter {
 				this._peerConfig.maxPeerInfoSize,
 			);
 		} catch (error) {
+			if (
+				error instanceof InvalidPeerError ||
+				error instanceof InvalidPeerListError
+			) {
+				this.applyPenalty(this._peerConfig.invalidPeerListPenalty);
+			}
+
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
 			throw new RPCResponseError(

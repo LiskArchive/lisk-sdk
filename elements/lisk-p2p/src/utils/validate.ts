@@ -18,12 +18,14 @@ import { getByteSize } from '.';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+	INVALID_PEER_INFO_LIST,
+	PEER_INFO_TOO_LONG,
 } from '../constants';
 import {
 	InvalidPeerError,
+	InvalidPeerListError,
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
-	InvalidRPCResponseError,
 } from '../errors';
 import {
 	P2PCompatibilityCheckReturnType,
@@ -185,7 +187,7 @@ export const validatePeerInfo = (
 ): P2PPeerInfo => {
 	const byteSize = getByteSize(rawPeerInfo);
 	if (byteSize > maxByteSize) {
-		throw new InvalidRPCResponseError(
+		throw new InvalidPeerError(
 			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
@@ -199,24 +201,25 @@ export const validatePeersInfoList = (
 	maxPeerInfoByteSize: number,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
-		throw new InvalidRPCResponseError('Invalid response type');
+		throw new InvalidPeerListError(INVALID_PEER_INFO_LIST);
 	}
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		if (peers.length > maxPeerInfoListLength) {
-			throw new InvalidRPCResponseError('PeerInfo list was too long');
+		if (peers.length === 0) {
+			return [];
 		}
-		const cleanPeerList = peers.filter(
-			peerInfo => getByteSize(peerInfo) < maxPeerInfoByteSize,
-		);
-		const sanitizedPeerList = cleanPeerList.map<P2PPeerInfo>(
-			validatePeerInfoSchema,
+		if (peers.length > maxPeerInfoListLength) {
+			throw new InvalidPeerListError(PEER_INFO_TOO_LONG);
+		}
+
+		const sanitizedPeerList = peers.map<P2PPeerInfo>(peerInfo =>
+			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
 		);
 
 		return sanitizedPeerList;
 	} else {
-		throw new InvalidRPCResponseError('Invalid response type');
+		throw new InvalidPeerListError(INVALID_PEER_INFO_LIST);
 	}
 };
 

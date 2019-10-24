@@ -75,6 +75,13 @@ export class InvalidPeerError extends Error {
 	}
 }
 
+export class InvalidPeerListError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidPeerListError';
+	}
+}
+
 export class RequestFailError extends Error {
 	public peerId: string;
 	public peerVersion: string;

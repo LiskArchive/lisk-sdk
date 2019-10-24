@@ -21,6 +21,7 @@ import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import {
 	DEFAULT_BAN_TIME,
+	DEFAULT_INVALID_PEER_LIST_PENALTY,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -111,6 +112,7 @@ interface SCServerUpdated extends SCServer {
 
 const BASE_10_RADIX = 10;
 
+// tslint:disable-next-line: cyclomatic-complexity
 const createPeerPoolConfig = (
 	config: P2PConfig,
 	peerLists: PeerLists,
@@ -149,6 +151,10 @@ const createPeerPoolConfig = (
 	maxPeerInfoSize: config.maxPeerInfoSize
 		? config.maxPeerInfoSize
 		: DEFAULT_MAX_PEER_INFO_SIZE,
+	invalidPeerListPenalty:
+		typeof config.invalidPeerListPenalty === 'number'
+			? config.invalidPeerListPenalty
+			: DEFAULT_INVALID_PEER_LIST_PENALTY,
 	outboundShuffleInterval: config.outboundShuffleInterval
 		? config.outboundShuffleInterval
 		: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,

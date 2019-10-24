@@ -41,6 +41,7 @@ export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
+export const DEFAULT_INVALID_PEER_LIST_PENALTY = 10;
 
 // Peer base constants
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
@@ -92,6 +93,8 @@ export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
 
 // Peer info constants
+export const INVALID_PEER_INFO_LIST = 'PeerInfo list had invalid value';
+export const PEER_INFO_TOO_LONG = 'PeerInfo list was too long';
 export enum ConnectionKind {
 	OUTBOUND = 'outbound',
 	INBOUND = 'inbound',
