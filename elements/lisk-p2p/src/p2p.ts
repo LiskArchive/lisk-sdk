@@ -652,6 +652,21 @@ export class P2P extends EventEmitter {
 
 					return;
 				}
+				// Check blacklist to avoid incoming connections from backlisted ips
+				if (this._sanitizedPeerLists.blacklistedPeers) {
+					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
+						peer => peer.ipAddress,
+					);
+					if (blacklist.includes(socket.remoteAddress)) {
+						this._disconnectSocketDueToFailedHandshake(
+							socket,
+							FORBIDDEN_CONNECTION,
+							FORBIDDEN_CONNECTION_REASON,
+						);
+
+						return;
+					}
+				}
 			},
 		);
 		this._scServer.on(

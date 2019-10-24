@@ -70,7 +70,7 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
 export const INVALID_MESSAGE_RECEIVED_CODE = 4009;
 export const INVALID_MESSAGE_RECEIVED_REASON =
-	'Peer should not send bad or internal messages';
+	'Peer should not send invalid or internal messages';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';
