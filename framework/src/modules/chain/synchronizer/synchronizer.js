@@ -87,26 +87,24 @@ class Synchronizer {
 	 * @return {*}
 	 */
 	async run(receivedBlock, peerId) {
-		assert(
-			receivedBlock,
-			'A block must be provided to the Synchronizer in order to run',
-		);
-		assert(
-			peerId,
-			'A peer ID from the peer sending the block must be provided to the Synchronizer in order to run',
-		);
-
 		if (this.isActive) {
 			throw new Error('Synchronizer is already running');
 		}
-
-		this.active = true;
-		this.logger.info(
-			{ blockId: receivedBlock.id, height: receivedBlock.height },
-			'Starting synchronizer',
-		);
-
 		try {
+			this.active = true;
+			assert(
+				receivedBlock,
+				'A block must be provided to the Synchronizer in order to run',
+			);
+			assert(
+				peerId,
+				'A peer ID from the peer sending the block must be provided to the Synchronizer in order to run',
+			);
+
+			this.logger.info(
+				{ blockId: receivedBlock.id, height: receivedBlock.height },
+				'Starting synchronizer',
+			);
 			const receivedBlockInstance = await this.processorModule.deserialize(
 				receivedBlock,
 			);

@@ -15,25 +15,26 @@
 'use strict';
 
 const { when } = require('jest-when');
-const {
-	Synchronizer,
-} = require('../../../../../../../src/modules/chain/synchronizer/synchronizer');
-const {
-	Processor,
-} = require('../../../../../../../src/modules/chain/processor');
+const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
+const { BFT } = require('../../../../../../../src/modules/chain/bft');
 const {
 	BlockProcessorV2,
 } = require('../../../../../../../src/modules/chain/block_processor_v2');
-const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
-const { BFT } = require('../../../../../../../src/modules/chain/bft');
+const {
+	Synchronizer,
+} = require('../../../../../../../src/modules/chain/synchronizer/synchronizer');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { constants } = require('../../../../../utils');
-const { newBlock } = require('../../chain/blocks/utils');
 const {
 	Sequence,
 } = require('../../../../../../../src/modules/chain/utils/sequence');
-const genesisBlockDevnet = require('../../../../../../fixtures/config/devnet/genesis_block');
+const {
+	Processor,
+} = require('../../../../../../../src/modules/chain/processor');
+const { constants } = require('../../../../../utils');
+const { newBlock } = require('../../chain/blocks/utils');
 const synchronizerUtils = require('../../../../../../../src/modules/chain/synchronizer/utils');
+
+const genesisBlockDevnet = require('../../../../../../fixtures/config/devnet/genesis_block');
 
 const ChannelMock = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -130,7 +131,6 @@ describe('Synchronizer', () => {
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
-
 		processorModule.register(blockProcessorV2);
 
 		syncParameters = {
@@ -365,6 +365,7 @@ describe('Synchronizer', () => {
 			// Act
 			await synchronizer.init();
 
+			// Assert
 			expect(loggerMock.error).toHaveBeenCalledWith(
 				{ err: error },
 				'Failed to restore blocks from temp table upon startup',
@@ -373,7 +374,7 @@ describe('Synchronizer', () => {
 	});
 
 	describe('register()', () => {
-		it('should register sync mechanisms', async () => {
+		it('should register syncing mechanisms', async () => {
 			const syncMechanism = {
 				isValidFor: async () => {},
 				run: async () => {},
@@ -386,6 +387,38 @@ describe('Synchronizer', () => {
 				syncMechanism2,
 				syncMechanism,
 			]);
+		});
+
+		it('should throw an error if the mechanism doesnt implement isValidFor method', () => {
+			const syncMechanism = {
+				run: async () => {},
+				isActive: false,
+			};
+
+			expect(() => synchronizer.register(syncMechanism)).toThrow(
+				'Sync mechanism must have "isValidFor" interface',
+			);
+		});
+
+		it('should throw an error if the mechanism doesnt implement run method', () => {
+			const syncMechanism = {
+				isValidFor: async () => {},
+				isActive: false,
+			};
+
+			expect(() => synchronizer.register(syncMechanism)).toThrow(
+				'Sync mechanism must have "run" interface',
+			);
+		});
+
+		it('should throw an error if the mechanism doesnt implement isActive getter', () => {
+			const syncMechanism = {
+				isValidFor: async () => {},
+				run: async () => {},
+			};
+			expect(() => synchronizer.register(syncMechanism)).toThrow(
+				'Sync mechanism must have "isActive" interface',
+			);
 		});
 	});
 
@@ -401,66 +434,42 @@ describe('Synchronizer', () => {
 		});
 	});
 
-	describe('async _determineSyncMechanism()', () => {
-		it('should return syncMechanism1 if syncMechanism1.isValidFor return true', async () => {
-			jest.spyOn(syncMechanism1, 'isValidFor').mockReturnValue(true);
-			jest.spyOn(syncMechanism2, 'isValidFor').mockReturnValue(false);
-
-			expect(await synchronizer._determineSyncMechanism()).toBe(syncMechanism1);
-		});
-
-		it('should return syncMechanism2 if syncMechanism2.isValidFor return true', async () => {
-			jest.spyOn(syncMechanism1, 'isValidFor').mockReturnValue(false);
-			jest.spyOn(syncMechanism2, 'isValidFor').mockReturnValue(true);
-
-			expect(await synchronizer._determineSyncMechanism()).toBe(syncMechanism2);
-		});
-	});
-
-	describe.only('async run()', () => {
-		let receivedBlock;
+	describe('async run()', () => {
+		const aPeerId = '127.0.0.1:5000';
+		let aReceivedBlock;
 
 		beforeEach(async () => {
-			receivedBlock = {
-				id: 'anId',
-				height: 3,
-				version: 2,
-			};
-
-			jest
-				.spyOn(synchronizer, '_determineSyncMechanism')
-				.mockReturnValue(undefined);
+			aReceivedBlock = await processorModule.serialize(newBlock()); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
 		});
 
 		it('should reject with error if there is already an active mechanism', async () => {
 			synchronizer.active = true;
-			await expect(
-				synchronizer.run({ id: 'a blockId' }, '127.0.0.1:4000'),
-			).rejects.toThrow('Synchronizer is already running');
+			await expect(synchronizer.run(aReceivedBlock, aPeerId)).rejects.toThrow(
+				'Synchronizer is already running',
+			);
 		});
 
 		it('should reject with error if required properties are missing (block)', async () => {
-			synchronizer.active = true;
 			await expect(synchronizer.run()).rejects.toThrow(
 				'A block must be provided to the Synchronizer in order to run',
 			);
+			expect(synchronizer.active).toBeFalsy();
 		});
 
 		it('should reject with error if required properties are missing (peerId)', async () => {
-			synchronizer.active = true;
 			await expect(synchronizer.run({ height: 1 })).rejects.toThrow(
 				'A peer ID from the peer sending the block must be provided to the Synchronizer in order to run',
 			);
+			expect(synchronizer.active).toBeFalsy();
 		});
 
 		it('should validate the block before sync', async () => {
 			jest.spyOn(processorModule, 'validateDetached');
-			const aBlock = newBlock();
 
-			await synchronizer.run(aBlock, '127.0.0.1:4000');
+			await synchronizer.run(aReceivedBlock, aPeerId);
 
 			expect(processorModule.validateDetached).toHaveBeenCalledWith(
-				await processorModule.deserialize(aBlock),
+				await processorModule.deserialize(aReceivedBlock),
 			);
 		});
 
@@ -468,26 +477,33 @@ describe('Synchronizer', () => {
 			try {
 				await synchronizer.run(
 					{
-						...newBlock(),
+						...aReceivedBlock,
 						blockSignature: '12312334534536645656',
 					},
-					'127.0.0.1:4000',
+					aPeerId,
 				);
 			} catch (error) {
 				expect(error[0].message).toEqual('should match format "signature"');
+				expect(synchronizer.active).toBeFalsy();
 			}
 		});
 
-		it('should determine the sync mechanism for received block', async () => {
+		it('should determine the sync mechanism for received block and run it', async () => {
 			syncMechanism1.isValidFor.mockResolvedValue(true);
 			syncMechanism2.isValidFor.mockResolvedValue(false);
 
-			await synchronizer.run(newBlock(), '127.0.0.1:4000');
+			await synchronizer.run(aReceivedBlock, aPeerId);
 
 			expect(syncMechanism1.isValidFor).toHaveBeenCalledTimes(1);
 			expect(syncMechanism2.isValidFor).toHaveBeenCalledTimes(1);
-			expect(syncMechanism1.run).toHaveBeenCalled();
+			expect(syncMechanism1.run).toHaveBeenCalledWith(
+				await processorModule.deserialize(aReceivedBlock),
+				aPeerId,
+			);
 			expect(syncMechanism2.run).not.toHaveBeenCalled();
+			expect(loggerMock.info).nthCalledWith(2, 'Triggering: Object');
+			expect(loggerMock.info).nthCalledWith(3, 'Synchronization finished');
+			expect(synchronizer.active).toBeFalsy();
 		});
 
 		it('should throw an error if two mechanisms are conflicting (both are valid)', async () => {
@@ -495,31 +511,27 @@ describe('Synchronizer', () => {
 			syncMechanism2.isValidFor.mockResolvedValue(true);
 
 			try {
-				await synchronizer.run(newBlock(), '127.0.0.1:4000');
+				await synchronizer.run(aReceivedBlock, aPeerId);
 			} catch (error) {
 				expect(error.message).toEqual('Mechanisms are conflicting');
+				expect(synchronizer.active).toBeFalsy();
 			}
 		});
 
-		it('should log message if unable to determine sync mechanism', async () => {
-			await synchronizer.run(newBlock(), '127.0.0.1:4000');
+		it('should log message if unable to determine syncing mechanism', async () => {
+			syncMechanism1.isValidFor.mockResolvedValue(false);
+			syncMechanism2.isValidFor.mockResolvedValue(false);
+			await synchronizer.run(aReceivedBlock, aPeerId);
 
 			expect(loggerMock.info).toHaveBeenCalledTimes(2);
 			expect(loggerMock.info).toHaveBeenNthCalledWith(
 				2,
-				{ blockId: receivedBlock.id },
+				{ blockId: aReceivedBlock.id },
 				'Syncing mechanism could not be determined for the given block',
 			);
-		});
-
-		it('should run the determined mechanism', async () => {
-			const syncMechanism = { run: jest.fn() };
-			synchronizer._determineSyncMechanism.mockReturnValue(syncMechanism);
-
-			await synchronizer.run(receivedBlock, 'aPeerId');
-
-			expect(syncMechanism.run).toHaveBeenCalledTimes(1);
-			expect(syncMechanism.run).toHaveBeenCalledWith(receivedBlock, 'aPeerId');
+			expect(synchronizer.active).toBeFalsy();
+			expect(syncMechanism1.run).not.toHaveBeenCalled();
+			expect(syncMechanism2.run).not.toHaveBeenCalled();
 		});
 	});
 });
