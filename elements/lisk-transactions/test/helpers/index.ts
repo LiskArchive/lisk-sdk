@@ -16,6 +16,8 @@ import { addTransactionFields } from './add_transaction_fields';
 import {
 	TestTransaction,
 	TestTransactionBasicImpl,
+	LegacyTestTransaction,
+	LegacyTestTransactionBasicImpl,
 } from './test_transaction_class';
 import { MockStateStore } from './state_store';
 export {
@@ -23,4 +25,6 @@ export {
 	MockStateStore,
 	TestTransaction,
 	TestTransactionBasicImpl,
+	LegacyTestTransaction,
+	LegacyTestTransactionBasicImpl,
 };

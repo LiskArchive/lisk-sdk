@@ -16,10 +16,10 @@ import { expect } from 'chai';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { MULTISIGNATURE_FEE } from '../src/constants';
 import { SignatureObject } from '../src/create_signature_object';
-import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
+import { MultisignatureTransaction } from '../src/4_multisignature_transaction';
 import { Account, TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
-import { MockStateStore as store } from './helpers';
+import { addTransactionFields, MockStateStore as store } from './helpers';
 import {
 	validMultisignatureAccount,
 	validMultisignatureRegistrationTransaction,
@@ -28,32 +28,27 @@ import {
 } from '../fixtures';
 
 describe('Multisignature transaction class', () => {
-	const validMultisignatureTransaction = validMultisignatureRegistrationTransaction;
+	const validMultisignatureTransaction = addTransactionFields(
+		validMultisignatureRegistrationTransaction,
+	);
 	const {
 		membersPublicKeys,
 		multiLifetime,
 		multiMin,
 		...nonMultisignatureAccount
 	} = validMultisignatureAccount;
-	const networkIdentifier =
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	let validTestTransaction: MultisignatureTransaction;
 	let nonMultisignatureSender: Account;
 	let multisignatureSender: Account;
 	let storeAccountCacheStub: sinon.SinonStub;
 	let storeAccountGetStub: sinon.SinonStub;
 	let storeAccountSetStub: sinon.SinonStub;
-	let multisigTx: any;
+
 	beforeEach(async () => {
-		validTestTransaction = new MultisignatureTransaction({
-			...validMultisignatureTransaction,
-			networkIdentifier,
-		});
-		nonMultisignatureSender = {
-			address:
-				'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-			...nonMultisignatureAccount,
-		};
+		validTestTransaction = new MultisignatureTransaction(
+			validMultisignatureTransaction,
+		);
+		nonMultisignatureSender = nonMultisignatureAccount;
 		multisignatureSender = validMultisignatureAccount;
 		storeAccountGetStub = sandbox
 			.stub(store.account, 'getOrDefault')
@@ -151,7 +146,7 @@ describe('Multisignature transaction class', () => {
 			const conflictTransaction = {
 				...validTransaction,
 				senderPublicKey:
-					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+					validMultisignatureRegistrationTransaction.senderPublicKey,
 				type: 4,
 			};
 			const {
@@ -271,9 +266,9 @@ describe('Multisignature transaction class', () => {
 
 	describe('#processMultisignatures', () => {
 		it('should return status ok if all signatures are present', async () => {
-			storeAccountGetStub.returns('18160565574430594874L');
+			storeAccountGetStub.returns(nonMultisignatureSender);
 			const invalidTransaction = {
-				...multisigTx,
+				...validMultisignatureTransaction,
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 
