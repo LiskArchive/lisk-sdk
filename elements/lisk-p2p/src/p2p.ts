@@ -672,22 +672,6 @@ export class P2P extends EventEmitter {
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
-				// Check blacklist to avoid incoming connections from backlisted ips
-				if (this._sanitizedPeerLists.blacklistedPeers) {
-					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
-						peer => peer.ipAddress,
-					);
-					if (blacklist.includes(socket.remoteAddress)) {
-						this._disconnectSocketDueToFailedHandshake(
-							socket,
-							FORBIDDEN_CONNECTION,
-							FORBIDDEN_CONNECTION_REASON,
-						);
-
-						return;
-					}
-				}
-
 				if (!socket.request.url) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
@@ -753,16 +737,6 @@ export class P2P extends EventEmitter {
 						socket,
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
-					);
-
-					return;
-				}
-
-				if (this._bannedPeers.has(socket.remoteAddress)) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						FORBIDDEN_CONNECTION,
-						FORBIDDEN_CONNECTION_REASON,
 					);
 
 					return;
