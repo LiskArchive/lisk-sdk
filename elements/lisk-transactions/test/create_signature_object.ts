@@ -19,20 +19,23 @@ import {
 } from '../src/create_signature_object';
 import { TransactionJSON } from '../src/transaction_types';
 
-describe.skip('#createSignatureObject', () => {
+describe('#createSignatureObject', () => {
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	const transaction = {
 		senderPublicKey:
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		timestamp: 0,
-		type: 0,
+		type: 8,
 		asset: {
 			recipientId: '1L',
 			amount: '10000',
 			data: 'dark army',
 		},
 		signature:
-			'fd8b1931b63c95285eac83d21fc280b0c064e03187934ec3548499ab277334b0be7689c6d14c587abb43e990c9af1553d3b0476489ebed067bacb324b682c80b',
-		id: '5746965060498095971',
+			'd64e6d56062f8d843c0d50deb57bdedb2c4ef1d1b50b60f672da75723f6c327437fce4e73e11ecb92604d91bc1cc381a9a04e5cbcfe69c0e9ea1b15f1c13170f',
+		id: '6598914296310405261',
+		networkIdentifier,
 	};
 	const account = {
 		passphrase: 'secret',
@@ -40,9 +43,7 @@ describe.skip('#createSignatureObject', () => {
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 	};
 	const generatedSignature =
-		'05a501135814de3e10126580597cfa25f9a40d89acf0fea206549e47ba7b961d8be3fe94e339b26b5e986c0b86ee9a5c6c27706c1446e8ca1a4e254a036d4503';
-	const networkIdentifier =
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+		'd64e6d56062f8d843c0d50deb57bdedb2c4ef1d1b50b60f672da75723f6c327437fce4e73e11ecb92604d91bc1cc381a9a04e5cbcfe69c0e9ea1b15f1c13170f';
 
 	describe('when invalid transaction is used', () => {
 		it("should throw an Error when id doesn't exist", () => {
@@ -55,6 +56,7 @@ describe.skip('#createSignatureObject', () => {
 				}),
 			).to.throw('Transaction ID is required to create a signature object.');
 		});
+
 		it('should throw an Error when sender public key is mutated', () => {
 			const mutatedTransaction = {
 				...transaction,
@@ -103,13 +105,12 @@ describe.skip('#createSignatureObject', () => {
 
 	describe('when valid transaction and passphrase is used', () => {
 		let signatureObject: SignatureObject;
-		beforeEach(() => {
+		beforeEach(async () => {
 			signatureObject = createSignatureObject({
 				transaction: transaction as TransactionJSON,
 				passphrase: account.passphrase,
 				networkIdentifier,
 			});
-			return Promise.resolve();
 		});
 
 		it('should have the same transaction id as the input', () => {

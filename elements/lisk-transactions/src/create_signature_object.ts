@@ -47,7 +47,7 @@ export const createSignatureObject = (options: {
 	}
 
 	// tslint:disable-next-line no-magic-numbers
-	if (transaction.type < 0 || transaction.type > 4) {
+	if (!Object.keys(transactionMap).includes(String(transaction.type))) {
 		throw new Error('Invalid transaction type.');
 	}
 

@@ -639,7 +639,7 @@ describe('Base transaction class', () => {
 			};
 		});
 
-		it.skip('should add signature to transaction from multisig account', async () => {
+		it('should add signature to transaction from multisig account', async () => {
 			const {
 				status,
 				errors,
@@ -655,7 +655,7 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it.skip('should fail when valid signature already present and sent again', async () => {
+		it('should fail when valid signature already present and sent again', async () => {
 			const {
 				status: arrangeStatus,
 			} = transferFromMultiSigAccountTrs.addMultisignature(
