@@ -341,7 +341,7 @@ module.exports = class Network {
 					procedure: action.params.procedure,
 					data: action.params.data,
 				}),
-			emit: action =>
+			send: action =>
 				this.p2p.send({
 					event: action.params.event,
 					data: action.params.data,
@@ -354,7 +354,7 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
-			emitToPeer: action =>
+			sendToPeer: action =>
 				this.p2p.sendToPeer(
 					{
 						event: action.params.event,

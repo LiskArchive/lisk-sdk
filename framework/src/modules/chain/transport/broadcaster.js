@@ -86,7 +86,7 @@ class Broadcaster {
 			...data,
 			nonce: this.nonce,
 		};
-		await this.channel.invoke('network:emit', {
+		await this.channel.invoke('network:send', {
 			event,
 			data: wrappedData,
 		});
