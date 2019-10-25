@@ -45,6 +45,8 @@ describe('PeerPool actions', () => {
 		it('should discover all peers and add them to the connectedPeers list within each node', async () => {
 			const firstNode = p2pNodeList[0];
 
+			await wait(300);
+
 			const peerPorts = firstNode
 				.getConnectedPeers()
 				.map(peerInfo => peerInfo.wsPort)

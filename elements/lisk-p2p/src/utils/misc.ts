@@ -121,7 +121,7 @@ export const getNetgroup = (address: string, secret: number): number => {
 };
 
 // TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
-export const getBestPeersbyHeight = (
+export const getUniquePeersByIP = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
 ): ReadonlyArray<P2PPeerInfo> => {
 	const peerMap = new Map<string, P2PPeerInfo>();
@@ -152,7 +152,7 @@ export const getBestPeersbyHeight = (
 	return [...peerMap.values()];
 };
 
-export const comparePeerListsByHeight = (
+export const removeCommonIPsFromLists = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
 	controlPeerList: ReadonlyArray<P2PPeerInfo>,
 ): ReadonlyArray<P2PPeerInfo> => {

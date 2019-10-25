@@ -553,12 +553,12 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe('#getConnectedPeersByIP', () => {
+	describe('#getIsConnectedPeersByIP', () => {
 		const samplePeers = initPeerInfoList();
 
-		describe('when we request how many connections we have to a give IP address', () => {
-			let OutboundConnections: number[] = [];
-			let InboundConnections: number[] = [];
+		describe('when we request do we have connection to given IP address', () => {
+			let OutboundConnections: boolean[] = [];
+			let InboundConnections: boolean[] = [];
 
 			beforeEach(async () => {
 				const peer1 = {
@@ -586,27 +586,27 @@ describe('peerPool', () => {
 					.returns(duplicatesList);
 
 				OutboundConnections.push(
-					peerPool.getConnectedPeersByIP(peer1, OutboundPeer),
+					peerPool.getIsConnectedPeersByIP(peer1, OutboundPeer),
 				);
 				OutboundConnections.push(
-					peerPool.getConnectedPeersByIP(peer3, OutboundPeer),
+					peerPool.getIsConnectedPeersByIP(peer3, OutboundPeer),
 				);
 
 				InboundConnections.push(
-					peerPool.getConnectedPeersByIP(peer1, InboundPeer),
+					peerPool.getIsConnectedPeersByIP(peer1, InboundPeer),
 				);
 				InboundConnections.push(
-					peerPool.getConnectedPeersByIP(peer3, InboundPeer),
+					peerPool.getIsConnectedPeersByIP(peer3, InboundPeer),
 				);
 			});
 
-			it('should return how many Outbound connections we have from the give IP', async () => {
-				expect(OutboundConnections[0]).eql(2);
-				expect(OutboundConnections[1]).eql(0);
+			it('should return do we have Outbound connection or not', async () => {
+				expect(OutboundConnections[0]).eql(true);
+				expect(OutboundConnections[1]).eql(false);
 			});
-			it('should return how many Inbound connections we have from the give IP', async () => {
-				expect(InboundConnections[0]).eql(2);
-				expect(InboundConnections[1]).eql(0);
+			it('should return do we have Inbound connection or not', async () => {
+				expect(InboundConnections[0]).eql(true);
+				expect(InboundConnections[1]).eql(false);
 			});
 		});
 	});

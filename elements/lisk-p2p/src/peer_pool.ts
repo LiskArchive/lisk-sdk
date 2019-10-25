@@ -70,7 +70,7 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
-import { comparePeerListsByHeight, getBestPeersbyHeight } from './utils/misc';
+import { getUniquePeersByIP, removeCommonIPsFromLists } from './utils/misc';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -425,7 +425,7 @@ export class PeerPool extends EventEmitter {
 			disconnectedFixedPeers.length -
 			outboundCount;
 
-		const bestPeersbyHeight = getBestPeersbyHeight([
+		const uniquePeersByIP = getUniquePeersByIP([
 			...disconnectedNewPeers,
 			...disconnectedTriedPeers,
 			...disconnectedFixedPeers,
@@ -433,21 +433,15 @@ export class PeerPool extends EventEmitter {
 
 		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
-			newPeers: comparePeerListsByHeight(
-				disconnectedNewPeers,
-				bestPeersbyHeight,
-			),
-			triedPeers: comparePeerListsByHeight(
-				disconnectedTriedPeers,
-				bestPeersbyHeight,
-			),
+			newPeers: disconnectedNewPeers,
+			triedPeers: disconnectedTriedPeers,
 			nodeInfo: this._nodeInfo,
 			peerLimit,
 		});
 
-		comparePeerListsByHeight(
+		removeCommonIPsFromLists(
 			[...peersToConnect, ...disconnectedFixedPeers],
-			bestPeersbyHeight,
+			uniquePeersByIP,
 		).forEach((peerInfo: P2PPeerInfo) => this.addOutboundPeer(peerInfo));
 	}
 
@@ -474,19 +468,15 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public addOutboundPeer(peerInfo: P2PPeerInfo): P2PPeerInfo {
+	public addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
 		const existingPeer = this.getPeer(peerInfo.peerId);
 		if (existingPeer) {
-			return peerInfo;
+			return false;
 		}
 
-		const connectedPeersFromIP = this.getConnectedPeersByIP(
-			peerInfo,
-			OutboundPeer,
-		);
-
-		if (connectedPeersFromIP !== 0) {
-			return peerInfo;
+		// Check if we got already Outbound connection into the IP address of the Peer
+		if (this.getIsConnectedPeersByIP(peerInfo, OutboundPeer)) {
+			return false;
 		}
 
 		const peer = new OutboundPeer(peerInfo, { ...this._peerConfig });
@@ -497,7 +487,7 @@ export class PeerPool extends EventEmitter {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 
-		return peerInfo;
+		return true;
 	}
 
 	public getPeersCountPerKind(): P2PPeersCount {
@@ -546,14 +536,16 @@ export class PeerPool extends EventEmitter {
 		return peers;
 	}
 
-	public getConnectedPeersByIP(
+	public getIsConnectedPeerByIP(
 		peerInfo: P2PPeerInfo,
 		kind: typeof OutboundPeer | typeof InboundPeer,
-	): number {
+	): boolean {
 		const connectedPeers = this.getAllConnectedPeerInfos(kind);
 
 		return connectedPeers.filter(peer => peer.ipAddress === peerInfo.ipAddress)
-			.length;
+			.length > 0
+			? true
+			: false;
 	}
 
 	public getAllConnectedPeerInfos(
