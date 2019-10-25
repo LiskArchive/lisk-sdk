@@ -39,11 +39,9 @@ describe('Penalty malformed Peer List', () => {
 				});
 			});
 
-			for (let p2p of p2pNodeList) {
-				p2p.on(EVENT_BAN_PEER, peerId => {
-					collectedEvents.set(EVENT_BAN_PEER, peerId);
-				});
-			}
+			p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
+				collectedEvents.set(EVENT_BAN_PEER, peerId);
+			});
 
 			await wait(1000);
 		});
@@ -80,11 +78,9 @@ describe('Penalty malformed Peer List', () => {
 				},
 			});
 
-			for (let p2p of p2pNodeList) {
-				p2p.on(EVENT_BAN_PEER, peerId => {
-					collectedEvents.set(EVENT_BAN_PEER, peerId);
-				});
-			}
+			p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
+				collectedEvents.set(EVENT_BAN_PEER, peerId);
+			});
 
 			await wait(1000);
 		});
