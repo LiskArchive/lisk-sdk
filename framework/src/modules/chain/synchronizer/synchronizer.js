@@ -83,7 +83,7 @@ class Synchronizer {
 	/**
 	 * Start the syncing mechanism
 	 * @param {Object} receivedBlock - The block you received from network, used to choose sync mechanism
-	 * @param {string} peerId
+	 * @param {string} peerId - The ID of the peer that is sending the block
 	 * @return {*}
 	 */
 	async run(receivedBlock, peerId) {

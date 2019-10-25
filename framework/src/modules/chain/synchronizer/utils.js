@@ -121,12 +121,12 @@ const restoreBlocksUponStartup = async (
 		blockHighestHeight.fullBlock,
 	);
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
-	const blockHashPriority =
+	const blockHasPriority =
 		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
 		forkStatus === FORK_STATUS_VALID_BLOCK;
 
 	// Block in the temp table has preference over current tip of the chain
-	if (blockHashPriority) {
+	if (blockHasPriority) {
 		logger.info('Restoring blocks from temporary table');
 		await deleteBlocksAfterHeight(
 			processorModule,
