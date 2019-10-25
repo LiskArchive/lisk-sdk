@@ -133,26 +133,26 @@ describe('Synchronizer', () => {
 		processorModule.deleteLastBlock = jest.fn();
 		processorModule.register(blockProcessorV2);
 
+		syncMechanism1 = {
+			isActive: () => false,
+			run: jest.fn().mockResolvedValue({}),
+			isValidFor: jest.fn().mockResolvedValue(false),
+		};
+		syncMechanism2 = {
+			isActive: () => false,
+			run: jest.fn().mockResolvedValue({}),
+			isValidFor: jest.fn().mockResolvedValue(false),
+		};
+
 		syncParameters = {
 			logger: loggerMock,
 			processorModule,
 			blocksModule,
 			storageModule: storageMock,
-		};
-		syncMechanism1 = {
-			isActive: false,
-			run: jest.fn().mockResolvedValue({}),
-			isValidFor: jest.fn().mockResolvedValue(false),
-		};
-		syncMechanism2 = {
-			isActive: false,
-			run: jest.fn().mockResolvedValue({}),
-			isValidFor: jest.fn().mockResolvedValue(false),
+			mechanisms: [syncMechanism1, syncMechanism2],
 		};
 
 		synchronizer = new Synchronizer(syncParameters);
-		synchronizer.register(syncMechanism1);
-		synchronizer.register(syncMechanism2);
 	});
 
 	describe('init()', () => {
@@ -373,52 +373,79 @@ describe('Synchronizer', () => {
 		});
 	});
 
-	describe('register()', () => {
-		it('should register syncing mechanisms', async () => {
-			const syncMechanism = {
-				isValidFor: async () => {},
-				run: async () => {},
-				isActive: false,
+	describe.only('constructor', () => {
+		it('should assign passed mechanisms', () => {
+			const aSyncingMechanism = {
+				isActive: () => false,
+				run: jest.fn().mockResolvedValue({}),
+				isValidFor: jest.fn().mockResolvedValue(false),
 			};
-			synchronizer.register(syncMechanism);
+			const anotherSyncingMechanism = {
+				isActive: () => false,
+				run: jest.fn().mockResolvedValue({}),
+				isValidFor: jest.fn().mockResolvedValue(false),
+			};
 
-			expect(synchronizer.mechanisms).toEqual([
-				syncMechanism1,
-				syncMechanism2,
-				syncMechanism,
-			]);
+			const aSynchronizer = new Synchronizer({
+				mechanisms: [aSyncingMechanism, anotherSyncingMechanism],
+			});
+
+			expect(aSynchronizer.mechanisms).toInclude(aSyncingMechanism);
+			expect(aSynchronizer.mechanisms).toInclude(anotherSyncingMechanism);
 		});
 
-		it('should throw an error if the mechanism doesnt implement isValidFor method', () => {
-			const syncMechanism = {
-				run: async () => {},
-				isActive: false,
+		it('should enforce mandatory interfaces for passed mechanisms (isValidFor)', () => {
+			const aSyncingMechanism = {
+				isActive: () => false,
+				run: jest.fn().mockResolvedValue({}),
 			};
 
-			expect(() => synchronizer.register(syncMechanism)).toThrow(
-				'Sync mechanism must have "isValidFor" interface',
-			);
+			try {
+				// eslint-disable-next-line no-unused-vars
+				const aSynchronizer = new Synchronizer({
+					mechanisms: [aSyncingMechanism],
+				});
+			} catch (error) {
+				expect(error.message).toEqual(
+					'Mechanism Object should implement "isValidFor" method',
+				);
+			}
 		});
 
-		it('should throw an error if the mechanism doesnt implement run method', () => {
-			const syncMechanism = {
-				isValidFor: async () => {},
-				isActive: false,
+		it('should enforce mandatory interfaces for passed mechanisms (isActive)', () => {
+			const aSyncingMechanism = {
+				run: jest.fn().mockResolvedValue({}),
+				isValidFor: jest.fn().mockResolvedValue(false),
 			};
 
-			expect(() => synchronizer.register(syncMechanism)).toThrow(
-				'Sync mechanism must have "run" interface',
-			);
+			try {
+				// eslint-disable-next-line no-unused-vars
+				const aSynchronizer = new Synchronizer({
+					mechanisms: [aSyncingMechanism],
+				});
+			} catch (error) {
+				expect(error.message).toEqual(
+					'Mechanism Object should implement "isActive" getter',
+				);
+			}
 		});
 
-		it('should throw an error if the mechanism doesnt implement isActive getter', () => {
-			const syncMechanism = {
-				isValidFor: async () => {},
-				run: async () => {},
+		it('should enforce mandatory interfaces for passed mechanisms (isActive)', () => {
+			const aSyncingMechanism = {
+				isActive: () => false,
+				isValidFor: jest.fn().mockResolvedValue(false),
 			};
-			expect(() => synchronizer.register(syncMechanism)).toThrow(
-				'Sync mechanism must have "isActive" interface',
-			);
+
+			try {
+				// eslint-disable-next-line no-unused-vars
+				const aSynchronizer = new Synchronizer({
+					mechanisms: [aSyncingMechanism],
+				});
+			} catch (error) {
+				expect(error.message).toEqual(
+					'Mechanism Object should implement "run" method',
+				);
+			}
 		});
 	});
 

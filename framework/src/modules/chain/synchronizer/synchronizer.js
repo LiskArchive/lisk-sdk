@@ -18,13 +18,50 @@ const assert = require('assert');
 const utils = require('./utils');
 
 class Synchronizer {
-	constructor({ logger, blocksModule, processorModule, storageModule }) {
+	constructor({
+		logger,
+		blocksModule,
+		processorModule,
+		storageModule,
+		mechanisms = [],
+	}) {
+		assert(
+			Array.isArray(mechanisms),
+			'mechanisms should be an array of mechanisms',
+		);
+		this.mechanisms = mechanisms;
 		this.logger = logger;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
 		this.storageModule = storageModule;
-		this.mechanisms = [];
 		this.active = false;
+
+		this._checkMechanismsInterfaces();
+	}
+
+	/**
+	 * Checks whether the registered mechanisms implement mandatory interfaces
+	 * @private
+	 */
+	_checkMechanismsInterfaces() {
+		for (const mechanism of this.mechanisms) {
+			assert(
+				typeof mechanism.isValidFor === 'function',
+				`Mechanism ${
+					mechanism.constructor.name
+				} should implement "isValidFor" method`,
+			);
+			assert(
+				typeof mechanism.run === 'function',
+				`Mechanism ${mechanism.constructor.name} should implement "run" method`,
+			);
+			assert(
+				typeof mechanism.isActive === 'function',
+				`Mechanism ${
+					mechanism.constructor.name
+				} should implement "isActive" getter`,
+			);
+		}
 	}
 
 	/**
@@ -50,34 +87,6 @@ class Synchronizer {
 				);
 			}
 		}
-	}
-
-	/**
-	 * Register a sync mechanism with synchronizer
-	 * It must have "isValidFor" and "run" interface to call upon
-	 *
-	 * "isValidFor" must return true/false to match the sync mechanism
-	 * "isValidFor" can throw error to abort the synchronization
-	 *
-	 * "run" must initiate the synchronization
-	 * "run" must keep track of its state internally
-	 *
-	 * @param {Object} mechanism - Mechanism to register
-	 */
-	register(mechanism) {
-		assert(
-			mechanism.isValidFor,
-			'Sync mechanism must have "isValidFor" interface',
-		);
-		assert(mechanism.run, 'Sync mechanism must have "run" interface');
-
-		// Check the property isActive, it can be own property or a getter
-		assert(
-			mechanism.isActive !== undefined,
-			'Sync mechanism must have "isActive" interface',
-		);
-
-		this.mechanisms.push(mechanism);
 	}
 
 	/**
