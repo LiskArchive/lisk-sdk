@@ -309,6 +309,10 @@ describe('fast_chain_switching_mechanism', () => {
 				.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
 		});
 
+		afterEach(() => {
+			jest.clearAllMocks();
+		});
+
 		function checkApplyPenaltyAndRestartIsCalled(
 			receivedBlock,
 			peerId,
@@ -399,7 +403,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 				await fastChainSwitchingMechanism.run(aBlock, aPeer);
 
-				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(10);
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
 				expect(channelMock.invoke).toHaveBeenCalledTimes(10);
 				checkApplyPenaltyAndRestartIsCalled(
 					aBlock,
@@ -410,7 +414,7 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 
 			describe('given that the highest common block is found', () => {
-				it('should abort the syncing mechanism if the difference in height between the common block and last block height or between the common block and the received block is > ACTIVE_DELEGATES*2 ', async () => {
+				it('should abort the syncing mechanism if the difference in height between the common block and the received block is > ACTIVE_DELEGATES*2 ', async () => {
 					const storageReturnValue = [
 						{
 							id: genesisBlockDevnet.id,
@@ -420,7 +424,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					];
 					const highestCommonBlock = newBlock({
-						height: blocksModule.lastBlock.height + 202,
+						height: blocksModule.lastBlock.height,
 					});
 					when(storageMock.entities.Block.get)
 						.calledWith(
@@ -442,7 +446,72 @@ describe('fast_chain_switching_mechanism', () => {
 						})
 						.mockResolvedValue({ data: highestCommonBlock });
 
-					await fastChainSwitchingMechanism.run(aBlock, aPeer);
+					await fastChainSwitchingMechanism.run(
+						newBlock({ height: highestCommonBlock.height + 203 }),
+						aPeer,
+					);
+
+					checkIfAbortIsCalled(
+						new Errors.AbortError(
+							`Height difference between both chains is higher than ${constants.ACTIVE_DELEGATES *
+								2}`,
+						),
+					);
+				});
+
+				it.only('should abort the syncing mechanism if the difference in height between the common block and the last block is > ACTIVE_DELEGATES*2 ', async () => {
+					// blocksModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
+					// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
+					const highestCommonBlock = newBlock({
+						height: 2,
+					});
+					const lastBlock = newBlock({
+						height: highestCommonBlock.height + 203,
+					});
+					when(storageMock.entities.Block.get)
+						.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
+						.mockResolvedValue([lastBlock]);
+
+					await blocksModule.init(); // Loads last block
+					await bftModule.init();
+
+					const heightList = new Array(
+						Math.min(
+							constants.ACTIVE_DELEGATES * 2,
+							blocksModule.lastBlock.height,
+						),
+					)
+						.fill(0)
+						.map((_, index) => blocksModule.lastBlock.height - index);
+
+					const storageReturnValue = heightList.map(height =>
+						newBlock({ height }),
+					);
+
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{
+								height_in: heightList,
+							},
+							{
+								sort: 'height:asc',
+							},
+						)
+						.mockResolvedValue(storageReturnValue);
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getHighestCommonBlock',
+							peerId: aPeer,
+							data: {
+								ids: storageReturnValue.map(blocks => blocks.id),
+							},
+						})
+						.mockResolvedValue({ data: highestCommonBlock });
+
+					await fastChainSwitchingMechanism.run(
+						newBlock({ height: highestCommonBlock.height + 203 }),
+						aPeer,
+					);
 
 					checkIfAbortIsCalled(
 						new Errors.AbortError(
