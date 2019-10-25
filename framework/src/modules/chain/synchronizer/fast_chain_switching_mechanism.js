@@ -366,7 +366,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	async _requestLastCommonBlock(peerId) {
 		this.logger.debug({ peerId }, 'Requesting the last common block with peer');
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
-		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
+		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 
 		const heightList = this._computeLastTwoRoundsHeights();
 
