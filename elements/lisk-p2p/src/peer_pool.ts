@@ -585,14 +585,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
-		// tslint:disable-next-line no-floating-promises
-		(async () => {
-			try {
-				await peer.applyNodeInfo(nodeInfo);
-			} catch (error) {
-				this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
-			}
-		})();
+		try {
+			peer.applyNodeInfo(nodeInfo);
+		} catch (error) {
+			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+		}
 	}
 
 	private _selectPeersForEviction(): Peer[] {
