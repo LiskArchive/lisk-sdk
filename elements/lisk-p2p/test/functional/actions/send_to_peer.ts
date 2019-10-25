@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
-import { wait } from '../utils/helpers';
+import { P2P } from '../../../src/index';
+import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,

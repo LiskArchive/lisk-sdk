@@ -14,9 +14,14 @@
 
 
 /*
-  DESCRIPTION: ?
-
-  PARAMETERS: None
+  DESCRIPTION: Get forging statistics within the specified timespan for an existing delegate address
+  PARAMETERS: generatorPublicKey, fromTimestamp (optional), toTimestamp (optional)
 */
 
-DELETE FROM mem_accounts;
+SELECT COUNT(*) count, SUM("totalFee") fees, SUM("reward") rewards
+FROM blocks
+WHERE "generatorPublicKey" = DECODE(${generatorPublicKey}, 'hex')
+  AND (${fromTimestamp} IS NULL
+    OR "timestamp" >= ${fromTimestamp})
+  AND (${toTimestamp} IS NULL
+    OR "timestamp" <= ${toTimestamp})

@@ -297,9 +297,9 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
 			this.logger.trace(
-				`EVENT_MESSAGE_RECEIVED: Received inbound message for event ${
-					packet.event
-				}`,
+				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${
+					packet.peerId
+				} for event ${packet.event}`,
 			);
 			this.channel.publish('network:event', packet);
 		});
@@ -341,7 +341,7 @@ module.exports = class Network {
 					procedure: action.params.procedure,
 					data: action.params.data,
 				}),
-			emit: action =>
+			send: action =>
 				this.p2p.send({
 					event: action.params.event,
 					data: action.params.data,
@@ -354,7 +354,7 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
-			emitToPeer: action =>
+			sendToPeer: action =>
 				this.p2p.sendToPeer(
 					{
 						event: action.params.event,
@@ -362,6 +362,11 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
+			broadcast: action =>
+				this.p2p.broadcast({
+					event: action.params.event,
+					data: action.params.data,
+				}),
 			getPeers: action => {
 				const peers = consolidatePeers({
 					connectedPeers: this.p2p.getConnectedPeers(),

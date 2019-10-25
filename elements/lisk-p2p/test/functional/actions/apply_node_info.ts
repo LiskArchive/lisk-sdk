@@ -13,10 +13,10 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, EVENT_REQUEST_RECEIVED } from '../../src/index';
-import { wait } from '../utils/helpers';
+import { P2P, EVENT_REQUEST_RECEIVED } from '../../../src/index';
+import { wait } from '../../utils/helpers';
 import { platform } from 'os';
-import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
 describe('P2P.applyNodeInfo', () => {
 	let p2pNodeList: P2P[] = [];
@@ -34,15 +34,8 @@ describe('P2P.applyNodeInfo', () => {
 				});
 			});
 		}
-	});
 
-	afterEach(async () => {
-		await destroyNetwork(p2pNodeList);
-	});
-
-	it('should send the node info to peers', async () => {
 		const firstP2PNode = p2pNodeList[0];
-		const nodePortToMessagesMap: any = {};
 
 		firstP2PNode.applyNodeInfo({
 			os: platform(),
@@ -56,6 +49,15 @@ describe('P2P.applyNodeInfo', () => {
 		});
 
 		await wait(200);
+	});
+
+	afterEach(async () => {
+		await destroyNetwork(p2pNodeList);
+	});
+
+	it('should send the node info to peers', async () => {
+		const firstP2PNode = p2pNodeList[0];
+		const nodePortToMessagesMap: any = {};
 
 		// Each peer of firstP2PNode should receive a message.
 		expect(collectedMessages.length).to.equal(9);
@@ -99,19 +101,6 @@ describe('P2P.applyNodeInfo', () => {
 
 	it('should update itself and reflect new node info', async () => {
 		const firstP2PNode = p2pNodeList[0];
-
-		firstP2PNode.applyNodeInfo({
-			os: platform(),
-			nethash:
-				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: firstP2PNode.nodeInfo.version,
-			protocolVersion: '1.1',
-			wsPort: firstP2PNode.nodeInfo.wsPort,
-			height: 10,
-			options: firstP2PNode.nodeInfo.options,
-		});
-
-		await wait(200);
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
 		for (let p2pNode of p2pNodeList.slice(1)) {

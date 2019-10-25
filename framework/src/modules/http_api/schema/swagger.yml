@@ -1709,9 +1709,6 @@ definitions:
         type: string
         format: 'date-time'
         description: The timestamp of the moment, where a node discovered a transaction for the first time.
-      relays:
-        type: integer
-        description: Number of times, a single transaction object has been broadcasted to another peer.
       ready:
         type: boolean
         example: false

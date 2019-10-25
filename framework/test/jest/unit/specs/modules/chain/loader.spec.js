@@ -58,7 +58,6 @@ describe('Loader', () => {
 						height: undefined,
 						confirmations: undefined,
 						receivedAt: undefined,
-						relays: undefined,
 						type: 3,
 						timestamp: 1724154,
 						senderPublicKey:

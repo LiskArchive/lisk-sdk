@@ -13,10 +13,9 @@
  */
 
 
-/*
-  DESCRIPTION: ?
-
+ /*
+  DESCRIPTION: Create index for mem_accounts.publicKey
   PARAMETERS: None
 */
 
-DELETE FROM mem_accounts;
+CREATE INDEX IF NOT EXISTS "mem_accounts_public_key" ON "mem_accounts" (ENCODE("publicKey", 'hex'));

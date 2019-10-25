@@ -13,10 +13,11 @@
  */
 
 
-/*
-  DESCRIPTION: ?
-
+ /*
+  DESCRIPTION: Re-create mem_accounts_get_delegates index using voteWeight column instead of vote column
   PARAMETERS: None
 */
 
-DELETE FROM mem_accounts;
+DROP INDEX IF EXISTS "mem_accounts_get_delegates";
+
+CREATE INDEX IF NOT EXISTS "mem_accounts_get_delegates" ON "mem_accounts" ("voteWeight" DESC, ENCODE("publicKey", 'hex') ASC) WHERE "isDelegate" = 1;
