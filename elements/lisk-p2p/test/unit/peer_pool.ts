@@ -26,7 +26,7 @@ import {
 } from '../../src/utils';
 // For stubbing
 import { P2PPeerInfo, P2PNodeInfo } from '../../src/p2p_types';
-import { initPeerList, initPeerInfoList } from '../utils/peers';
+import { initPeerList } from '../utils/peers';
 import {
 	Peer,
 	ConnectionState,
@@ -455,18 +455,30 @@ describe('peerPool', () => {
 
 	describe('#addOutboundPeer', () => {
 		let getPeerStub: any;
+		let getAllConnectedPeerInfosStub: any;
 		let _bindHandlersToPeerStub: any;
 
 		beforeEach(async () => {
 			getPeerStub = sandbox
 				.stub(peerPool, 'getPeer')
 				.returns(peerObject as Peer);
+
+			getAllConnectedPeerInfosStub = sandbox
+				.stub(peerPool, 'getAllConnectedPeerInfos')
+				.returns([] as P2PPeerInfo[]);
 		});
 
 		it('should call getPeer with peerId', async () => {
 			peerPool.addOutboundPeer(peerObject as any);
 
 			expect(getPeerStub).to.be.calledWithExactly(peerId);
+		});
+
+		it('should call getAllConnectedPeerInfos with OutboundPeer', async () => {
+			getPeerStub.returns(undefined);
+			peerPool.addOutboundPeer(peerObject as any);
+
+			expect(getAllConnectedPeerInfosStub).to.be.calledOnce;
 		});
 
 		it('should add peer to peerMap', async () => {
@@ -478,6 +490,7 @@ describe('peerPool', () => {
 
 		it('should call _bindHandlersToPeer', async () => {
 			getPeerStub.returns(undefined);
+			getAllConnectedPeerInfosStub.returns([]);
 			_bindHandlersToPeerStub = sandbox.stub(
 				peerPool as any,
 				'_bindHandlersToPeer',
@@ -489,6 +502,7 @@ describe('peerPool', () => {
 
 		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
 			getPeerStub.returns(undefined);
+			getAllConnectedPeerInfosStub.returns([]);
 			(peerPool as any)._nodeInfo = {
 				os: 'darwin',
 				protocolVersion: '1.0.1',
@@ -550,64 +564,6 @@ describe('peerPool', () => {
 			const inboundPeers = peerPool.getPeers(Object as any);
 
 			expect(inboundPeers).to.have.length(1);
-		});
-	});
-
-	describe('#getIsConnectedPeersByIP', () => {
-		const samplePeers = initPeerInfoList();
-
-		describe('when we request do we have connection to given IP address', () => {
-			let OutboundConnections: boolean[] = [];
-			let InboundConnections: boolean[] = [];
-
-			beforeEach(async () => {
-				const peer1 = {
-					...samplePeers[0],
-					height: 1212,
-					wsPort: samplePeers[0].wsPort + 1,
-				};
-
-				const peer2 = {
-					...samplePeers[1],
-					height: 1200,
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const peer3 = {
-					...samplePeers[1],
-					height: 1200,
-					ipAddress: '127.0.0.30',
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				sandbox
-					.stub(peerPool, 'getAllConnectedPeerInfos')
-					.returns(duplicatesList);
-
-				OutboundConnections.push(
-					peerPool.getIsConnectedPeersByIP(peer1, OutboundPeer),
-				);
-				OutboundConnections.push(
-					peerPool.getIsConnectedPeersByIP(peer3, OutboundPeer),
-				);
-
-				InboundConnections.push(
-					peerPool.getIsConnectedPeersByIP(peer1, InboundPeer),
-				);
-				InboundConnections.push(
-					peerPool.getIsConnectedPeersByIP(peer3, InboundPeer),
-				);
-			});
-
-			it('should return do we have Outbound connection or not', async () => {
-				expect(OutboundConnections[0]).eql(true);
-				expect(OutboundConnections[1]).eql(false);
-			});
-			it('should return do we have Inbound connection or not', async () => {
-				expect(InboundConnections[0]).eql(true);
-				expect(InboundConnections[1]).eql(false);
-			});
 		});
 	});
 

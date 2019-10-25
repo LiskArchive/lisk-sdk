@@ -475,7 +475,10 @@ export class PeerPool extends EventEmitter {
 		}
 
 		// Check if we got already Outbound connection into the IP address of the Peer
-		if (this.getIsConnectedPeersByIP(peerInfo, OutboundPeer)) {
+		const connectedPeer = this.getAllConnectedPeerInfos(OutboundPeer).find(
+			e => e.ipAddress === peerInfo.ipAddress,
+		);
+		if (connectedPeer) {
 			return false;
 		}
 
@@ -534,18 +537,6 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return peers;
-	}
-
-	public getIsConnectedPeerByIP(
-		peerInfo: P2PPeerInfo,
-		kind: typeof OutboundPeer | typeof InboundPeer,
-	): boolean {
-		const connectedPeers = this.getAllConnectedPeerInfos(kind);
-
-		return connectedPeers.filter(peer => peer.ipAddress === peerInfo.ipAddress)
-			.length > 0
-			? true
-			: false;
 	}
 
 	public getAllConnectedPeerInfos(
