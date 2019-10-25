@@ -164,7 +164,7 @@ class Synchronizer {
 		for (const mechanism of this.mechanisms) {
 			if (await mechanism.isValidFor(receivedBlock)) {
 				if (selectedMechanism) {
-					throw new Error('Mechanisms are conflicting'); // TODO: Add better message
+					throw new Error('Two mechanisms cannot be valid at the same time');
 				}
 				selectedMechanism = mechanism;
 			}

@@ -157,6 +157,7 @@ describe('Synchronizer', () => {
 
 	describe('init()', () => {
 		beforeEach(() => {
+			// Arrange
 			when(storageMock.entities.Block.begin)
 				.calledWith('loader:checkMemTables')
 				.mockResolvedValue({ genesisBlock: genesisBlockDevnet });
@@ -167,8 +168,8 @@ describe('Synchronizer', () => {
 
 		describe('given that the blocks temporary table is not empty', () => {
 			beforeEach(() => {
+				// Simulate blocks temporary table to be empty
 				storageMock.entities.TempBlock.isEmpty.mockResolvedValue(false);
-				// To make storage genesisBlock and config genesisBlock match
 			});
 
 			it('should restore blocks from blocks temporary table into blocks table if tip of temp table chain has preference over current tip (FORK_STATUS_DIFFERENT_CHAIN)', async () => {
@@ -219,6 +220,7 @@ describe('Synchronizer', () => {
 				);
 
 				// Assert whether temp blocks are being restored to main table
+				expect.assertions(blocksTempTableEntries.length + 5);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
 					expect(processorModule.processValidated).nthCalledWith(
@@ -276,6 +278,7 @@ describe('Synchronizer', () => {
 				);
 
 				// Assert whether temp blocks are being restored to main table
+				expect.assertions(blocksTempTableEntries.length + 4);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
 					expect(processorModule.processValidated).nthCalledWith(
@@ -373,7 +376,7 @@ describe('Synchronizer', () => {
 		});
 	});
 
-	describe.only('constructor', () => {
+	describe('constructor', () => {
 		it('should assign passed mechanisms', () => {
 			const aSyncingMechanism = {
 				isActive: () => false,
@@ -540,7 +543,9 @@ describe('Synchronizer', () => {
 			try {
 				await synchronizer.run(aReceivedBlock, aPeerId);
 			} catch (error) {
-				expect(error.message).toEqual('Mechanisms are conflicting');
+				expect(error.message).toEqual(
+					'Two mechanisms cannot be valid at the same time',
+				);
 				expect(synchronizer.active).toBeFalsy();
 			}
 		});
