@@ -31,7 +31,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+	REMOTE_EVENT_RPC_POST_NODE_INFO,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
@@ -230,7 +230,7 @@ describe('peer/base', () => {
 			await defaultPeer.applyNodeInfo(nodeInfo);
 
 			expect(defaultPeer.request).to.be.calledOnceWithExactly({
-				procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+				procedure: REMOTE_EVENT_RPC_POST_NODE_INFO,
 				data: sanitizeNodeInfoToLegacyFormat(nodeInfo),
 			});
 		});
