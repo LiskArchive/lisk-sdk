@@ -184,11 +184,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			data => this._validateVersion(data),
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }, blockBytes) =>
+				this.blocksModule.validateSignature({ block, blockBytes }),
+			({ block }) => this.blocksModule.validatePreviousBlockProperty(block),
+			({ block }) => this.blocksModule.validateReward(block),
+			({ block }) => this.blocksModule.validateTransactions(block),
+			({ block }) => this.blocksModule.validatePayload(block),
 			data => this.blocksModule.verifyInMemory(data),
 			({ block }) => this.dposModule.verifyBlockForger(block),
 			({ block }) => this.bftModule.validateBlock(block),
@@ -198,11 +199,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			data => this._validateVersion(data),
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }, blockBytes) =>
+				this.blocksModule.validateSignature({ block, blockBytes }),
+			({ block }) => this.blocksModule.validatePreviousBlockProperty(block),
+			({ block }) => this.blocksModule.validateReward(block),
+			({ block }) => this.blocksModule.validateTransactions(block),
+			({ block }) => this.blocksModule.validatePayload(block),
 		]);
 
 		this.forkStatus.pipe([
