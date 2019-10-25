@@ -36,7 +36,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
-	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+	REMOTE_EVENT_RPC_POST_NODE_INFO,
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
@@ -204,7 +204,7 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_UPDATE_PEER_INFO) {
+			if (rawRequest.procedure === REMOTE_EVENT_RPC_POST_NODE_INFO) {
 				this._handleUpdatePeerInfo(request);
 			} else if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
 				this._handleGetNodeInfo(request);
@@ -347,7 +347,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = sanitizeNodeInfoToLegacyFormat(this._nodeInfo);
 		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
 		await this.request({
-			procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+			procedure: REMOTE_EVENT_RPC_POST_NODE_INFO,
 			data: legacyNodeInfo,
 		});
 	}
