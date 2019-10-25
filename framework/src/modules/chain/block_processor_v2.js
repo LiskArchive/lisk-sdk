@@ -151,19 +151,6 @@ const validateSchema = ({ block }) => {
 	}
 };
 
-// const validateAndVerifyBFTproperties = ({ block }) => {
-// 	const blockHeader = extractBFTBlockHeaderFromBlock(block);
-//
-// 	// Check heightPrevoted correctness.
-// 	utils.validateBlockHeader(blockHeader);
-//
-// 	// Check for header contradictions against current chain
-// 	bft.verifyBlockHeaders(blockHeader);
-//
-// 	// Check reward has correct value.
-// 	// TODO: Find out how to do this.
-// };
-
 class BlockProcessorV2 extends BaseBlockProcessor {
 	constructor({
 		blocksModule,
