@@ -204,9 +204,7 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_POST_NODE_INFO) {
-				this._handleUpdatePeerInfo(request);
-			} else if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
 				this._handleGetNodeInfo(request);
 			}
 
@@ -240,6 +238,10 @@ export class Peer extends EventEmitter {
 				peerId: this._id,
 				rate,
 			};
+
+			if (message.event === REMOTE_EVENT_RPC_POST_NODE_INFO) {
+				this._handleUpdatePeerInfo(message);
+			}
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
 		};
@@ -339,16 +341,12 @@ export class Peer extends EventEmitter {
 
 	/**
 	 * This is not a declared as a setter because this method will need
-	 * invoke an async RPC on the socket to pass it the new node status.
+	 * invoke an event on the socket to pass it the new node status.
 	 */
-	public async applyNodeInfo(nodeInfo: P2PNodeInfo): Promise<void> {
-		this._nodeInfo = nodeInfo;
-		// TODO later: This conversion step will not be needed after switching to the new LIP protocol version.
-		const legacyNodeInfo = sanitizeNodeInfoToLegacyFormat(this._nodeInfo);
-		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
-		await this.request({
-			procedure: REMOTE_EVENT_RPC_POST_NODE_INFO,
-			data: legacyNodeInfo,
+	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+		this.send({
+			event: REMOTE_EVENT_RPC_POST_NODE_INFO,
+			data: nodeInfo,
 		});
 	}
 
@@ -547,17 +545,15 @@ export class Peer extends EventEmitter {
 		this.updatePeerInfo(newPeerInfo);
 	}
 
-	private _handleUpdatePeerInfo(request: P2PRequest): void {
+	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			this._updateFromProtocolPeerInfo(request.data);
+			this._updateFromProtocolPeerInfo(message.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
-			request.error(error);
 
 			return;
 		}
-		request.end();
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 	}
 
