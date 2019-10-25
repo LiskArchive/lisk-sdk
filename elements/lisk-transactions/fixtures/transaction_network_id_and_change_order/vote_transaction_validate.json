@@ -1,0 +1,44 @@
+{
+	"title": "Valid vote transaction",
+	"summary": "A valid vote transaction",
+	"config": "devnet",
+	"runner": "transaction_network_id_and_change_order",
+	"handler": "vote_transaction_validate",
+	"testCases": {
+		"input": {
+			"account": {
+				"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",
+				"privateKey": "8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"publicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"address": "2129300327344985743L"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"transaction": {
+				"type": 11,
+				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"timestamp": 54316326,
+				"asset": {
+					"votes": [
+						"+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+						"+6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8",
+						"-1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972"
+					]
+				}
+			}
+		},
+		"output": {
+			"type": 11,
+			"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+			"timestamp": 54316326,
+			"asset": {
+				"votes": [
+					"+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"+6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8",
+					"-1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972"
+				]
+			},
+			"signature": "ae589409ecf76ca456bef0c56db17ee0766ef2db00210ccecfcf94294331392823758f25aa55e8b1f6656f2791f7d081ae3aeb9cf9cacb57a67e228445c89f0a",
+			"id": "17637915433304629522"
+		}
+	}
+}
