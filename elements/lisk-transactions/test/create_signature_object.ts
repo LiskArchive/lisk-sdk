@@ -19,7 +19,7 @@ import {
 } from '../src/create_signature_object';
 import { TransactionJSON } from '../src/transaction_types';
 
-describe.only('#createSignatureObject', () => {
+describe('#createSignatureObject', () => {
 	// TODO: later use fixtures from proto spec
 	const testSuite = {
 		title: 'Valid transfer transaction with multi signature',
