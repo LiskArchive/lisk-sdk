@@ -20,8 +20,8 @@ WITH balances AS (
 	(SELECT UPPER("recipientId") AS address, SUM(amount) AS amount FROM trs WHERE "recipientId" IS NOT NULL GROUP BY UPPER("recipientId"))
 		UNION ALL
 	-- Sum total rewards (fee split + block reward) from all rounds, for all delegates accounts
-	(SELECT a.address, r.amount FROM
-		(SELECT r."publicKey", SUM(r.fees) + SUM(r.reward) AS amount FROM rounds_rewards r GROUP BY r."publicKey") r LEFT JOIN mem_accounts a ON r."publicKey" = a."publicKey"
+	(SELECT a.address, b.amount FROM
+		(SELECT b."generatorPublicKey", SUM(b."totalFee") + SUM(b.reward) AS amount FROM blocks b GROUP BY b."generatorPublicKey") b LEFT JOIN mem_accounts a ON b."generatorPublicKey" = a."publicKey"
 	)
 ),
 -- Sum all calculated accounts balances

@@ -611,6 +611,10 @@ export class P2P extends EventEmitter {
 		this._peerPool.send(message);
 	}
 
+	public broadcast(message: P2PMessagePacket): void {
+		this._peerPool.broadcast(message);
+	}
+
 	public async requestFromPeer(
 		packet: P2PRequestPacket,
 		peerId: string,

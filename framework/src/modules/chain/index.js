@@ -115,10 +115,6 @@ class ChainModule extends BaseModule {
 			postTransaction: {
 				handler: async action => this.chain.actions.postTransaction(action),
 			},
-			getDelegateBlocksRewards: {
-				handler: async action =>
-					this.chain.actions.getDelegateBlocksRewards(action),
-			},
 			getSlotNumber: {
 				handler: async action => this.chain.actions.getSlotNumber(action),
 			},
