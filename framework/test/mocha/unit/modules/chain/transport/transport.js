@@ -1194,6 +1194,43 @@ describe('transport', () => {
 						});
 					});
 				});
+
+				describe('checkTransactionsIDs', () => {
+					describe('when validator.validate succeeds', () => {
+						beforeEach(async () => {
+							query = {
+								transactions: transactionsList,
+							};
+							transportModule.transactionPoolModule.transactionInPool = sinonSandbox.stub();
+						});
+
+						it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+							validator.validate.returns(true);
+							await transportModule.checkTransactionsIDs(query);
+							for (const transactionToCheck of transactionsList) {
+								expect(
+									transportModule.transactionPoolModule.transactionInPool.calledWith(
+										transactionToCheck.id,
+									),
+								).to.be.true;
+							}
+						});
+					});
+
+					describe('when validator.validate fails', () => {
+						it('should resolve with error = null and result = {success: false, message: message}', async () => {
+							const validateErr = new Error(
+								'Transaction query did not match schema',
+							);
+							validateErr.code = 'INVALID_FORMAT';
+							validator.validate = sinonSandbox.stub().returns([validateErr]);
+
+							return expect(
+								transportModule.checkTransactionsIDs(query),
+							).to.be.rejectedWith([validateErr]);
+						});
+					});
+				});
 			});
 		});
 	});

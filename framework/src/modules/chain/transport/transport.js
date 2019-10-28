@@ -415,6 +415,37 @@ class Transport {
 	}
 
 	/**
+	 * Description of checkTransactionsIDs.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async checkTransactionsIDs(query) {
+		const errors = validator.validate(definitions.WSTransactionsRequest, query);
+
+		if (errors.length) {
+			this.logger.debug({ err: errors }, 'Invalid transactions body');
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			throw errors;
+		}
+
+		const unknownTransactions = [];
+
+		// Check if any transaction is in the queues.
+		for (const transaction of query.transactions) {
+			if (this.transactionPoolModule.transactionInPool(transaction.id)) {
+				unknownTransactions.push(transaction.id);
+			}
+		}
+
+		// TODO: Check if any transaction exists in the database.
+
+		// Send request of those transactions we are not aware of.
+		return unknownTransactions;
+	}
+
+	/**
 	 * Validates signatures body and for each signature calls receiveSignature.
 	 *
 	 * @private
