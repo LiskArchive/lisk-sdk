@@ -70,7 +70,7 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
-import { getUniquePeersByIP, removeCommonIPsFromLists } from './utils/misc';
+import { removeCommonIPsFromLists } from './utils/misc';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -425,11 +425,11 @@ export class PeerPool extends EventEmitter {
 			disconnectedFixedPeers.length -
 			outboundCount;
 
-		const uniquePeersByIP = getUniquePeersByIP([
+		const disconnectedPeers = [
 			...disconnectedNewPeers,
 			...disconnectedTriedPeers,
 			...disconnectedFixedPeers,
-		]);
+		];
 
 		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
@@ -441,7 +441,7 @@ export class PeerPool extends EventEmitter {
 
 		removeCommonIPsFromLists(
 			[...peersToConnect, ...disconnectedFixedPeers],
-			uniquePeersByIP,
+			disconnectedPeers,
 		).forEach((peerInfo: P2PPeerInfo) => this.addOutboundPeer(peerInfo));
 	}
 

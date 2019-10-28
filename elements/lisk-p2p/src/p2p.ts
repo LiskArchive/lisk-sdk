@@ -568,7 +568,7 @@ export class P2P extends EventEmitter {
 		}));
 	}
 	// Make sure you always share shared peer state to a user
-	public getUniqueOutboundConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+	public getOutboundConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		// Only share the shared state to the user
 		return this._peerPool.getAllConnectedPeerInfos(OutboundPeer).map(peer => ({
 			...peer.sharedState,

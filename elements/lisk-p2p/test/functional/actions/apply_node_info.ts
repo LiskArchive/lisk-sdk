@@ -37,6 +37,8 @@ describe('P2P.applyNodeInfo', () => {
 
 		const firstP2PNode = p2pNodeList[0];
 
+		await wait(200);
+
 		firstP2PNode.applyNodeInfo({
 			os: platform(),
 			nethash:

@@ -24,7 +24,7 @@ import {
 	NETWORK,
 	getBucketId,
 	PEER_TYPE,
-	getUniquePeersByIP,
+	removeCommonIPsFromLists,
 } from '../../../src/utils';
 import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/p2p_types';
@@ -139,7 +139,7 @@ describe('utils/misc', () => {
 		});
 	});
 
-	describe('#getUniquePeersByIP', () => {
+	describe('#removeCommonIPsFromLists', () => {
 		const samplePeers = initPeerInfoList();
 
 		describe('when two peers have same peer infos', () => {
@@ -147,7 +147,10 @@ describe('utils/misc', () => {
 
 			beforeEach(async () => {
 				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
-				uniquePeerListByIp = getUniquePeersByIP(duplicatesList);
+				uniquePeerListByIp = removeCommonIPsFromLists(
+					duplicatesList,
+					duplicatesList,
+				);
 			});
 
 			it('should remove the duplicate peers with the same ips', async () => {
@@ -159,20 +162,33 @@ describe('utils/misc', () => {
 			let uniquePeerListByIp: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
-				const peer1 = {
+				const badPeer1: P2PPeerInfo = {
 					...samplePeers[0],
-					height: 1212,
 					wsPort: samplePeers[0].wsPort + 1,
+					sharedState: {
+						height: 1000,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
 				};
 
-				const peer2 = {
+				const badPeer2: P2PPeerInfo = {
 					...samplePeers[1],
-					height: 1200,
 					wsPort: samplePeers[1].wsPort + 1,
+					sharedState: {
+						height: 1200,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
 				};
 
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersByIP(duplicatesList);
+				const duplicatesList = [...samplePeers, badPeer1, badPeer2];
+				uniquePeerListByIp = removeCommonIPsFromLists(
+					duplicatesList,
+					duplicatesList,
+				);
 			});
 
 			it('should remove the duplicate ip and choose the one with higher height', async () => {
@@ -201,7 +217,10 @@ describe('utils/misc', () => {
 				};
 
 				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersByIP(duplicatesList);
+				uniquePeerListByIp = removeCommonIPsFromLists(
+					duplicatesList,
+					duplicatesList,
+				);
 			});
 
 			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
