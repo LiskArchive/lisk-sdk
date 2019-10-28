@@ -544,7 +544,7 @@ describe('Synchronizer', () => {
 				await synchronizer.run(aReceivedBlock, aPeerId);
 			} catch (error) {
 				expect(error.message).toEqual(
-					'Two mechanisms cannot be valid at the same time',
+					'Multiple mechanisms cannot be valid at the same time',
 				);
 				expect(synchronizer.active).toBeFalsy();
 			}
