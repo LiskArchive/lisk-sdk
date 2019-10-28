@@ -472,10 +472,8 @@ module.exports = class Chain {
 			blocksModule: this.blocks,
 			processorModule: this.processor,
 			storageModule: this.storage,
+			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
-
-		this.synchronizer.register(blockSyncMechanism);
-		this.synchronizer.register(fastChainSwitchMechanism);
 
 		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({

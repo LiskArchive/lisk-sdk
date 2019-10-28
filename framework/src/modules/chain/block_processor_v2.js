@@ -337,4 +337,5 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 module.exports = {
 	BlockProcessorV2,
+	getBytes,
 };
