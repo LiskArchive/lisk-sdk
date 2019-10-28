@@ -299,7 +299,7 @@ class BFT extends EventEmitter {
 		);
 
 		rows.forEach(row => {
-			if (row.version !== '2') return;
+			if (row.height !== 1 && row.version !== 2) return;
 
 			this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(row));
 		});

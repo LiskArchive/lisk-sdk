@@ -31,7 +31,7 @@ const generateBlocks = ({ startHeight, numberOfBlocks }) =>
 	new Array(numberOfBlocks)
 		.fill(0)
 		.map((_v, index) =>
-			blockFixture({ height: startHeight + index, version: '2' }),
+			blockFixture({ height: startHeight + index, version: 2 }),
 		);
 
 describe('bft', () => {
@@ -364,7 +364,7 @@ describe('bft', () => {
 		});
 
 		describe('#addNewBlock', () => {
-			const block1 = blockFixture({ height: 1, version: '2' });
+			const block1 = blockFixture({ height: 1, version: 2 });
 			const lastFinalizedHeight = 5;
 
 			let bft;
@@ -423,9 +423,9 @@ describe('bft', () => {
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
 				await bft.init();
 				const blocks = [
-					blockFixture({ height: 4, version: '2' }),
-					blockFixture({ height: 5, version: '2' }),
-					blockFixture({ height: 6, version: '2' }),
+					blockFixture({ height: 4, version: 2 }),
+					blockFixture({ height: 5, version: 2 }),
+					blockFixture({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -440,8 +440,8 @@ describe('bft', () => {
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
 				await bft.init();
 				const blocks = [
-					blockFixture({ height: 5, version: '2' }),
-					blockFixture({ height: 6, version: '2' }),
+					blockFixture({ height: 5, version: 2 }),
+					blockFixture({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -452,10 +452,10 @@ describe('bft', () => {
 
 			it('should delete the block headers form list for all given blocks', async () => {
 				// Arrange
-				const block1 = blockFixture({ height: 1, version: '2' });
-				const block2 = blockFixture({ height: 2, version: '2' });
-				const block3 = blockFixture({ height: 3, version: '2' });
-				const block4 = blockFixture({ height: 4, version: '2' });
+				const block1 = blockFixture({ height: 1, version: 2 });
+				const block2 = blockFixture({ height: 2, version: 2 });
+				const block3 = blockFixture({ height: 3, version: 2 });
+				const block4 = blockFixture({ height: 4, version: 2 });
 				await bft.addNewBlock(block1);
 				await bft.addNewBlock(block2);
 				await bft.addNewBlock(block3);
@@ -708,8 +708,8 @@ describe('bft', () => {
 			// As BFT applies only to block version 2
 			it('should skip loading blocks with version !== 2', async () => {
 				// Arrange
-				const blockWithVersion1 = blockFixture({ version: '1' });
-				const blockWithVersion2 = blockFixture({ version: '2' });
+				const blockWithVersion1 = blockFixture({ version: 1 });
+				const blockWithVersion2 = blockFixture({ version: 2 });
 				storageMock.entities.Block.get.mockReturnValue([
 					blockWithVersion1,
 					blockWithVersion2,
@@ -727,7 +727,7 @@ describe('bft', () => {
 
 			it('should load block headers to finalityManager', async () => {
 				// Arrange
-				const block = blockFixture({ version: '2', height: 8 });
+				const block = blockFixture({ version: 2, height: 8 });
 				const blockHeader = extractBFTBlockHeaderFromBlock(block);
 				storageMock.entities.Block.get.mockReturnValue([block]);
 
