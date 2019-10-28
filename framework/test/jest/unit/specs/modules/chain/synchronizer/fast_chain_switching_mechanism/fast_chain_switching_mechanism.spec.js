@@ -232,6 +232,9 @@ describe('fast_chain_switching_mechanism', () => {
 			when(storageMock.entities.ChainMeta.getKey)
 				.calledWith('BFT.finalizedHeight')
 				.mockResolvedValue(0);
+			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks');
+			jest.spyOn(fastChainSwitchingMechanism, '_switchChain');
+			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks');
 			await blocksModule.init();
 			await bftModule.init();
 		});
@@ -263,6 +266,7 @@ describe('fast_chain_switching_mechanism', () => {
 					},
 				)
 				.mockResolvedValue(storageReturnValue);
+			// Simulate peer not sending back a common block
 			when(channelMock.invoke)
 				.calledWith('network:requestFromPeer', {
 					procedure: 'getHighestCommonBlock',
@@ -298,6 +302,7 @@ describe('fast_chain_switching_mechanism', () => {
 						id: blocksModule.lastBlock.id,
 					},
 				];
+				// height of the common block is smaller than the finalized height:
 				const highestCommonBlock = newBlock({
 					height: bftModule.finalizedHeight - 1,
 				});
@@ -330,6 +335,11 @@ describe('fast_chain_switching_mechanism', () => {
 					aPeer,
 					"Peer didn't return a common block or its height is lower than the finalized height of the chain",
 				);
+				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
+					aBlock,
+					highestCommonBlock,
+					aPeer,
+				);
 			});
 
 			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > ACTIVE_DELEGATES*2 ', async () => {
@@ -342,6 +352,7 @@ describe('fast_chain_switching_mechanism', () => {
 						id: blocksModule.lastBlock.id,
 					},
 				];
+				// Common block between system and peer corresponds to last block in system (To make things easier)
 				const highestCommonBlock = newBlock({
 					height: blocksModule.lastBlock.height,
 				});
@@ -366,10 +377,12 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue({ data: highestCommonBlock });
 
 				// Act
-				await fastChainSwitchingMechanism.run(
-					newBlock({ height: highestCommonBlock.height + 203 }),
-					aPeer,
-				);
+				// the difference in height between the common block and the received block is > ACTIVE_DELEGATES*2
+				const receivedBlock = newBlock({
+					height:
+						highestCommonBlock.height + constants.ACTIVE_DELEGATES * 2 + 1,
+				});
+				await fastChainSwitchingMechanism.run(receivedBlock, aPeer);
 
 				// Assert
 				checkIfAbortIsCalled(
@@ -378,6 +391,11 @@ describe('fast_chain_switching_mechanism', () => {
 							2}`,
 					),
 				);
+				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
+					receivedBlock,
+					highestCommonBlock,
+					aPeer,
+				);
 			});
 
 			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > ACTIVE_DELEGATES*2 ', async () => {
@@ -385,18 +403,19 @@ describe('fast_chain_switching_mechanism', () => {
 				const highestCommonBlock = newBlock({
 					height: 2,
 				});
+				// Difference in height between the common block and the last block is > ACTIVE_DELEGATES*2
 				const lastBlock = newBlock({
-					height: highestCommonBlock.height + 203,
+					height:
+						highestCommonBlock.height + constants.ACTIVE_DELEGATES * 2 + 1,
 				});
 				// blocksModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 				// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
-
 				when(storageMock.entities.Block.get)
 					.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 					.mockResolvedValue([lastBlock]);
 
-				await blocksModule.init(); // Loads last block
-				await bftModule.init();
+				await blocksModule.init(); // Loads last block among other checks
+				await bftModule.init(); // Loads block headers
 
 				const heightList = new Array(
 					Math.min(
@@ -432,10 +451,11 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue({ data: highestCommonBlock });
 
 				// Act
-				await fastChainSwitchingMechanism.run(
-					newBlock({ height: highestCommonBlock.height + 203 }),
-					aPeer,
-				);
+				const receivedBlock = newBlock({
+					height:
+						highestCommonBlock.height + constants.ACTIVE_DELEGATES * 2 + 1,
+				});
+				await fastChainSwitchingMechanism.run(receivedBlock, aPeer);
 
 				// Assert
 				checkIfAbortIsCalled(
@@ -443,6 +463,11 @@ describe('fast_chain_switching_mechanism', () => {
 						`Height difference between both chains is higher than ${constants.ACTIVE_DELEGATES *
 							2}`,
 					),
+				);
+				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
+					receivedBlock,
+					highestCommonBlock,
+					aPeer,
 				);
 			});
 		});
@@ -533,6 +558,9 @@ describe('fast_chain_switching_mechanism', () => {
 				expect(loggerMock.debug).toHaveBeenCalledWith(
 					'Successfully validated blocks',
 				);
+				expect(
+					fastChainSwitchingMechanism._validateBlocks,
+				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeer);
 			});
 
 			it('should apply penalty and abort if any of the blocks fail to validate', async () => {
@@ -606,6 +634,9 @@ describe('fast_chain_switching_mechanism', () => {
 						'Block validation failed',
 					),
 				);
+				expect(
+					fastChainSwitchingMechanism._validateBlocks,
+				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeer);
 			});
 		});
 
@@ -675,6 +706,10 @@ describe('fast_chain_switching_mechanism', () => {
 				await fastChainSwitchingMechanism.run(aBlock, aPeer);
 
 				// Assert
+				expect(fastChainSwitchingMechanism._switchChain).toHaveBeenCalledWith(
+					highestCommonBlock,
+					requestedBlocks,
+				);
 				expect(loggerMock.info).toHaveBeenCalledWith('Switching chain');
 				expect(loggerMock.debug).toHaveBeenCalledWith(
 					{ height: highestCommonBlock.height },
@@ -804,7 +839,11 @@ describe('fast_chain_switching_mechanism', () => {
 				// Act
 				await fastChainSwitchingMechanism.run(aBlock, aPeer);
 
-				//,Assert
+				// Assert
+				expect(fastChainSwitchingMechanism._switchChain).toHaveBeenCalledWith(
+					highestCommonBlock,
+					requestedBlocks,
+				);
 				expect(processorModule.processValidated).toHaveBeenCalled();
 				expect(loggerMock.error).toHaveBeenCalledWith(
 					{ err: validationError },
