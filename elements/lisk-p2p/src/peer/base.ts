@@ -21,6 +21,11 @@ import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	INVALID_MESSAGE_RECEIVED_CODE,
+	INVALID_MESSAGE_RECEIVED_REASON,
+	INVALID_PEER_LIST_PENALTY,
+	SOCKET_PING_MESSAGE,
+	SOCKET_PONG_MESSAGE,
 } from '../constants';
 import {
 	InvalidPeerError,
@@ -98,7 +103,6 @@ export interface PeerConfig {
 	readonly wsMaxPayload?: number;
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
-	readonly invalidPeerListPenalty: number;
 	readonly secret: number;
 }
 
@@ -405,7 +409,7 @@ export class Peer extends EventEmitter {
 				error instanceof InvalidPeerError ||
 				error instanceof InvalidPeerListError
 			) {
-				this.applyPenalty(this._peerConfig.invalidPeerListPenalty);
+				this.applyPenalty(INVALID_PEER_LIST_PENALTY);
 			}
 
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);

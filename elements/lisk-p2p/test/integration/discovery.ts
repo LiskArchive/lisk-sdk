@@ -45,9 +45,7 @@ describe('Peer discovery', () => {
 
 	beforeEach(async () => {
 		// To capture all the initial events set network creation time to minimum 1 ms
-		const customConfig = () => ({
-			invalidPeerListPenalty: 110,
-		});
+		const customConfig = () => ({});
 
 		p2pNodeList = await createNetwork({
 			networkDiscoveryWaitTime: 1,

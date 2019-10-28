@@ -26,9 +26,7 @@ describe('Penalty malformed Peer List', () => {
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
 				networkDiscoveryWaitTime: 1,
-				customConfig: () => ({
-					invalidPeerListPenalty: 101,
-				}),
+				customConfig: () => ({}),
 			});
 
 			[...new Array(1001).keys()].map(index => {
@@ -63,9 +61,7 @@ describe('Penalty malformed Peer List', () => {
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
 				networkDiscoveryWaitTime: 1,
-				customConfig: () => ({
-					invalidPeerListPenalty: 101,
-				}),
+				customConfig: () => ({}),
 			});
 
 			p2pNodeList[0]['_peerBook'].addPeer({

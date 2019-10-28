@@ -68,7 +68,6 @@ describe('peer/base', () => {
 			rateCalculationInterval: 1000,
 			wsMaxMessageRate: 1000,
 			wsMaxMessageRatePenalty: 10,
-			invalidPeerListPenalty: 10,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,

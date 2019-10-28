@@ -74,7 +74,6 @@ describe('peerPool', () => {
 		longevityProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
 		maxPeerInfoSize: 10000,
 		maxPeerDiscoveryResponseLength: 1000,
-		invalidPeerListPenalty: 10,
 		secret: DEFAULT_RANDOM_SECRET,
 		peerLists: {
 			blacklistedPeers: [],
@@ -169,7 +168,6 @@ describe('peerPool', () => {
 				rateCalculationInterval: peerPoolConfig.rateCalculationInterval,
 				wsMaxPayload: peerPoolConfig.wsMaxPayload,
 				maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
-				invalidPeerListPenalty: peerPoolConfig.invalidPeerListPenalty,
 				secret: peerPoolConfig.secret,
 			};
 

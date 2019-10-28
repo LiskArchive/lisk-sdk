@@ -41,7 +41,6 @@ export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
-export const DEFAULT_INVALID_PEER_LIST_PENALTY = 10;
 
 // Peer base constants
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
@@ -54,6 +53,9 @@ export const DEFAULT_PRODUCTIVITY = {
 	responseRate: 0,
 	lastResponded: 0,
 };
+
+// Penality constatns
+export const INVALID_PEER_LIST_PENALTY = 100;
 
 // Peer inbound constants
 export const DEFAULT_PING_INTERVAL_MAX = 60000;

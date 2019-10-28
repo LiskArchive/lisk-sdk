@@ -133,7 +133,6 @@ export interface PeerPoolConfig {
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
 	readonly peerLists: PeerLists;
-	readonly invalidPeerListPenalty: number;
 }
 
 export class PeerPool extends EventEmitter {
@@ -186,7 +185,6 @@ export class PeerPool extends EventEmitter {
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
-			invalidPeerListPenalty: this._peerPoolConfig.invalidPeerListPenalty,
 			secret: this._peerPoolConfig.secret,
 		};
 		this._peerLists = peerPoolConfig.peerLists;
