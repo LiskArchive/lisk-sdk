@@ -17,23 +17,38 @@ import { P2P, EVENT_BAN_PEER } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 import { wait } from 'utils/helpers';
 
-describe('Penalty sending malformed Peer List', () => {
+describe.only('Penalty sending malformed Peer List', () => {
 	describe('When Peer List is too long', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
 		beforeEach(async () => {
+			const customConfig = (index: number) => ({
+				peerDiscoveryResponseLength: index === 0 ? 10 : 100,
+				maxPeerDiscoveryResponseLength: index === 1 ? 10 : 100,
+			});
+
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
 				networkDiscoveryWaitTime: 1,
-				customConfig: () => ({}),
+				customConfig,
 			});
 
-			[...new Array(1001).keys()].map(index => {
+			[...new Array(1000).keys()].map(() => {
+				const generatedIP = `${Math.floor(Math.random() * 254) +
+					1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
+					Math.random() * 254,
+				) + 1}.${Math.floor(Math.random() * 254) + 1}`;
+
 				p2pNodeList[0]['_peerBook'].addPeer({
-					peerId: `'1.1.1.1:${1 + index}`,
-					ipAddress: '1.1.1.1',
+					peerId: `${generatedIP}:5000`,
+					ipAddress: generatedIP,
 					wsPort: 1000,
+					sharedState: {
+						height: 0,
+						protocolVersion: '1.1',
+						version: '1.1',
+					},
 				});
 			});
 
@@ -61,7 +76,6 @@ describe('Penalty sending malformed Peer List', () => {
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
 				networkDiscoveryWaitTime: 1,
-				customConfig: () => ({}),
 			});
 
 			p2pNodeList[0]['_peerBook'].addPeer({

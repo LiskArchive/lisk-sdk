@@ -294,6 +294,7 @@ export class P2P extends EventEmitter {
 			if (request.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
 				this._handleGetPeersRequest(request);
 			}
+
 			// Re-emit the request for external use.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
