@@ -158,7 +158,7 @@ describe('Broadcaster', () => {
 		describe('having one transaction broadcast in queue with immediate = true', () => {
 			beforeEach(async () => {
 				broadcaster.enqueue(params, {
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: { transaction: validTransaction },
 					immediate: true,
 				});
@@ -177,7 +177,7 @@ describe('Broadcaster', () => {
 		describe('having one transaction broadcast in queue of transaction = undefined', () => {
 			beforeEach(async () => {
 				broadcaster.enqueue(params, {
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: { transaction: undefined },
 					immediate: true,
 				});
@@ -212,15 +212,17 @@ describe('Broadcaster', () => {
 			let broadcast;
 			beforeEach(async () => {
 				broadcaster.enqueue(params, {
-					api: 'postTransactions',
-					data: { transaction: validTransaction },
+					api: 'postTransactionsAnnouncement',
+					data: { transaction: { id: validTransaction.id } },
 					immediate: false,
 				});
 				broadcast = {
 					params,
 					options: {
-						api: 'postTransactions',
-						data: { transaction: validTransaction },
+						api: 'postTransactionsAnnouncement',
+						data: {
+							transaction: { id: validTransaction.id },
+						},
 						immediate: false,
 					},
 				};
@@ -292,24 +294,24 @@ describe('Broadcaster', () => {
 			const auxBroadcasts = [];
 			beforeEach(async () => {
 				broadcaster.enqueue(params, {
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: { transaction: { id: 1 } },
 					immediate: false,
 				});
 				broadcaster.enqueue(params, {
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: { transaction: { id: 2 } },
 					immediate: false,
 				});
 				broadcaster.enqueue(params, {
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: { transaction: { id: 3 } },
 					immediate: false,
 				});
 				auxBroadcasts.push({
 					params,
 					options: {
-						api: 'postTransactions',
+						api: 'postTransactionsAnnouncement',
 						data: { transaction: { id: 1 } },
 						immediate: false,
 					},
@@ -317,7 +319,7 @@ describe('Broadcaster', () => {
 				auxBroadcasts.push({
 					params,
 					options: {
-						api: 'postTransactions',
+						api: 'postTransactionsAnnouncement',
 						data: { transaction: { id: 2 } },
 						immediate: false,
 					},
@@ -325,7 +327,7 @@ describe('Broadcaster', () => {
 				auxBroadcasts.push({
 					params,
 					options: {
-						api: 'postTransactions',
+						api: 'postTransactionsAnnouncement',
 						data: { transaction: { id: 3 } },
 						immediate: false,
 					},
@@ -395,14 +397,17 @@ describe('Broadcaster', () => {
 		it('should be able to squash the queue', async () => {
 			const auxBroadcasts = {
 				broadcast: {
-					options: { api: 'postTransactions', data: { peer: {}, block: {} } },
+					options: {
+						api: 'postTransactionsAnnouncement',
+						data: { transactions: {} },
+					},
 				},
 			};
 			return expect(broadcaster.squashQueue(auxBroadcasts)).to.eql([
 				{
 					immediate: false,
 					options: {
-						api: 'postTransactions',
+						api: 'postTransactionsAnnouncement',
 						data: {
 							transactions: [],
 						},

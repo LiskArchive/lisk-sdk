@@ -124,9 +124,9 @@ class Transport {
 			this.broadcaster.enqueue(
 				{},
 				{
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: {
-						transaction: transactionJSON,
+						transaction: { id: transaction.id },
 					},
 				},
 			);

@@ -664,14 +664,14 @@ describe('transport', () => {
 						transportModule.onUnconfirmedTransaction(transaction, true);
 					});
 
-					it('should call transportModule.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', async () => {
+					it('should call transportModule.broadcaster.enqueue with {} and {api: "postTransationsAnnouncement", data: {transaction}}', async () => {
 						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
 							transportModule.broadcaster.enqueue.calledWith(
 								{},
 								{
-									api: 'postTransactions',
-									data: { transaction: transaction.toJSON() },
+									api: 'postTransactionsAnnouncement',
+									data: { transaction: { id: transaction.id } },
 								},
 							),
 						).to.be.true;

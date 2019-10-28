@@ -38,10 +38,10 @@ describe('WS transport', () => {
 
 		function postTransaction(transactionToPost) {
 			return p2p.send({
-				event: 'postTransactions',
+				event: 'postTransactionsAnnouncement',
 				data: {
 					nonce: 'sYHEDBKcScaAAAYg',
-					transactions: [transactionToPost],
+					transactions: [transactionToPost.id],
 				},
 			});
 		}
