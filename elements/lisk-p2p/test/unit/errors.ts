@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import {
-	InvalidPeerError,
+	InvalidPeerInfoError,
 	PeerInboundHandshakeError,
 	RPCResponseError,
 	InvalidRPCResponseError,
@@ -79,20 +79,20 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InvalidPeerError', () => {
+	describe('#InvalidPeerInfoError', () => {
 		const defaultMessage = 'Invalid peer ip or port';
-		let invalidPeer: InvalidPeerError;
+		let invalidPeer: InvalidPeerInfoError;
 
 		beforeEach(async () => {
-			invalidPeer = new InvalidPeerError(defaultMessage);
+			invalidPeer = new InvalidPeerInfoError(defaultMessage);
 		});
 
-		it('should create a new instance of InvalidPeerError', async () => {
-			expect(invalidPeer).to.be.instanceof(InvalidPeerError);
+		it('should create a new instance of InvalidPeerInfoError', async () => {
+			expect(invalidPeer).to.be.instanceof(InvalidPeerInfoError);
 		});
 
-		it('should set error name to `InvalidPeerError`', async () => {
-			expect(invalidPeer.name).to.eql('InvalidPeerError');
+		it('should set error name to `InvalidPeerInfoError`', async () => {
+			expect(invalidPeer.name).to.eql('InvalidPeerInfoError');
 		});
 
 		it('should set error message when passed an argument', async () => {

@@ -18,12 +18,12 @@ import { getByteSize } from '.';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-	INVALID_PEER_INFO_LIST,
-	PEER_INFO_TOO_LONG,
+	INVALID_PEER_INFO_LIST_REASON,
+	PEER_INFO_LIST_TOO_LONG_REASON,
 } from '../constants';
 import {
-	InvalidPeerError,
-	InvalidPeerListError,
+	InvalidPeerInfoError,
+	InvalidPeerInfoListError,
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
 } from '../errors';
@@ -127,7 +127,7 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 
 export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
-		throw new InvalidPeerError(`Invalid peer object`);
+		throw new InvalidPeerInfoError(`Invalid peer object`);
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
@@ -138,7 +138,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		!protocolPeer.wsPort ||
 		!validatePeerAddress(ipAddress, protocolPeer.wsPort)
 	) {
-		throw new InvalidPeerError(
+		throw new InvalidPeerInfoError(
 			`Invalid peer ip or port for peer with ip: ${ipAddress} and wsPort ${
 				protocolPeer.wsPort
 			}`,
@@ -146,7 +146,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	}
 
 	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
-		throw new InvalidPeerError(
+		throw new InvalidPeerInfoError(
 			`Invalid peer version for peer with ip: ${protocolPeer.ip}, wsPort ${
 				protocolPeer.wsPort
 			} and version ${protocolPeer.version}`,
@@ -187,7 +187,7 @@ export const validatePeerInfo = (
 ): P2PPeerInfo => {
 	const byteSize = getByteSize(rawPeerInfo);
 	if (byteSize > maxByteSize) {
-		throw new InvalidPeerError(
+		throw new InvalidPeerInfoError(
 			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
@@ -201,7 +201,7 @@ export const validatePeersInfoList = (
 	maxPeerInfoByteSize: number,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
-		throw new InvalidPeerListError(INVALID_PEER_INFO_LIST);
+		throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
 	}
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
@@ -210,7 +210,7 @@ export const validatePeersInfoList = (
 			return [];
 		}
 		if (peers.length > maxPeerInfoListLength) {
-			throw new InvalidPeerListError(PEER_INFO_TOO_LONG);
+			throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
 		}
 
 		const sanitizedPeerList = peers.map<P2PPeerInfo>(peerInfo =>
@@ -219,7 +219,7 @@ export const validatePeersInfoList = (
 
 		return sanitizedPeerList;
 	} else {
-		throw new InvalidPeerListError(INVALID_PEER_INFO_LIST);
+		throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
 	}
 };
 

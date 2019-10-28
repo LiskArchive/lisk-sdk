@@ -29,8 +29,8 @@ import {
 	SOCKET_PONG_MESSAGE,
 } from '../constants';
 import {
-	InvalidPeerError,
-	InvalidPeerListError,
+	InvalidPeerInfoError,
+	InvalidPeerInfoListError,
 	RPCResponseError,
 } from '../errors';
 import {
@@ -407,8 +407,8 @@ export class Peer extends EventEmitter {
 			);
 		} catch (error) {
 			if (
-				error instanceof InvalidPeerError ||
-				error instanceof InvalidPeerListError
+				error instanceof InvalidPeerInfoError ||
+				error instanceof InvalidPeerInfoListError
 			) {
 				this.applyPenalty(INVALID_PEER_LIST_PENALTY);
 			}
@@ -452,7 +452,7 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			// Apply penalty for malformed PeerInfo
-			if (error instanceof InvalidPeerError) {
+			if (error instanceof InvalidPeerInfoError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
@@ -536,7 +536,7 @@ export class Peer extends EventEmitter {
 			this._updateFromProtocolPeerInfo(message.data);
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
-			if (error instanceof InvalidPeerError) {
+			if (error instanceof InvalidPeerInfoError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
