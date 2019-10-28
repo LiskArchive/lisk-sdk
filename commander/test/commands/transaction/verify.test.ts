@@ -20,26 +20,31 @@ import * as inputUtils from '../../../src/utils/input/utils';
 
 describe('transaction:verify', () => {
 	const defaultTransaction = {
+		type: 8,
 		senderPublicKey:
-			'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
-		timestamp: 66419917,
-		type: 0,
+			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+		timestamp: 54316325,
 		asset: {
-			recipientId: '123L',
-			amount: '10000000000',
+			recipientId: '18141291412139607230L',
+			amount: '1234567890',
+			data: 'random data',
 		},
+		fee: '10000000',
+		senderId: '2129300327344985743L',
+		signatures: [],
 		signature:
-			'96738e173a750998f4c2cdcdf7538b71854bcffd6c0dc72b3c28081ca6946322bea7ba5d8f8974fc97950014347ce379671a6eddc0d41ea6cdfb9bb7ff76be0a',
-		id: '1297455432474089551',
+			'b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d',
+		id: '3436168030012755419',
 	};
 
 	const defaultSecondSignedTransaction = {
 		...defaultTransaction,
+		id: '1856045075247127242',
 		signSignature:
-			'96738e173a750998f4c2cdcdf7538b71854bcffd6c0dc72b3c28081ca6946322bea7ba5d8f8974fc97950014347ce379671a6eddc0d41ea6cdfb9bb7ff76be0b',
+			'c4b0ca84aa4596401c3041a1638e670d6278e0e18949f027b3d7ede4f2f0a1685df7aec768b1a3c49acfe7ded9e7f5230998f06b0d58371bcba5a00695fb6901',
 	};
 	const defaultSecondPublicKey =
-		'790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951';
+		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
 	const invalidTransaction = 'invalid transaction';
 
 	const defaultVerifyTransactionResult = {
