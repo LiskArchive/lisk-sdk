@@ -23,6 +23,7 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	INVALID_MESSAGE_RECEIVED_CODE,
 	INVALID_MESSAGE_RECEIVED_REASON,
+	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
 	SOCKET_PING_MESSAGE,
 	SOCKET_PONG_MESSAGE,
@@ -450,6 +451,11 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
+			// Apply penalty for malformed PeerInfo
+			if (error instanceof InvalidPeerError) {
+				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
+			}
+
 			throw new RPCResponseError(
 				'Failed to update peer info of peer as part of fetch operation',
 				`${this.ipAddress}:${this.wsPort}`,
@@ -515,10 +521,12 @@ export class Peer extends EventEmitter {
 			ip: this._ipAddress,
 			wsPort: this._wsPort,
 		};
+
 		const newPeerInfo = validatePeerInfo(
 			protocolPeerInfo,
 			this._peerConfig.maxPeerInfoSize,
 		);
+
 		this.updatePeerInfo(newPeerInfo);
 	}
 
@@ -527,6 +535,11 @@ export class Peer extends EventEmitter {
 		try {
 			this._updateFromProtocolPeerInfo(message.data);
 		} catch (error) {
+			// Apply penalty for malformed PeerInfo update
+			if (error instanceof InvalidPeerError) {
+				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
+			}
+
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			return;

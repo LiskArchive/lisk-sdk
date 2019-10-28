@@ -17,7 +17,7 @@ import { P2P, EVENT_BAN_PEER } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 import { wait } from 'utils/helpers';
 
-describe('Penalty malformed Peer List', () => {
+describe('Penalty sending malformed Peer List', () => {
 	describe('When Peer List is too long', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
@@ -70,7 +70,7 @@ describe('Penalty malformed Peer List', () => {
 				wsPort: 1000,
 				sharedState: {
 					version: '1.1',
-					protocolVersion: '1.'.repeat(10000),
+					protocolVersion: '1.'.repeat(13000),
 				},
 			});
 

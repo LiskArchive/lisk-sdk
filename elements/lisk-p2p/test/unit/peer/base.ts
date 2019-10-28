@@ -432,7 +432,7 @@ describe('peer/base', () => {
 				});
 
 				await expect(defaultPeer.fetchPeers()).to.be.rejected;
-				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(10);
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(100);
 			});
 
 			it('should throw apply penalty on malformed Peer', async () => {
@@ -460,7 +460,7 @@ describe('peer/base', () => {
 				});
 
 				await expect(defaultPeer.fetchPeers()).to.be.rejected;
-				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(10);
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(100);
 			});
 		});
 	});
@@ -550,31 +550,21 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
-			describe('when _updateFromProtocolPeerInfo() fails', () => {
+			describe('when _updateFromProtocolPeerInfo() fails from malformed PeerInfo', () => {
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
 						data: {},
 					});
+					sandbox.stub(defaultPeer, 'applyPenalty');
 					sandbox.stub(defaultPeer, 'emit');
 				});
 
-				it(`should emit ${EVENT_FAILED_PEER_INFO_UPDATE} event with error`, async () => {
+				it(`should apply invalid PeerInfo penalty`, async () => {
 					await expect(defaultPeer.fetchStatus()).to.be.rejected;
 					expect(defaultPeer.emit).to.be.calledOnceWith(
 						EVENT_FAILED_PEER_INFO_UPDATE,
 					);
-				});
-
-				it('should throw error', async () => {
-					return expect(defaultPeer.fetchStatus())
-						.to.eventually.be.rejectedWith(
-							'Failed to update peer info of peer as part of fetch operation',
-						)
-						.and.be.an.instanceOf(RPCResponseError)
-						.and.have.property(
-							'peerId',
-							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
-						);
+					expect(defaultPeer.applyPenalty).to.be.calledOnceWithExactly(100);
 				});
 			});
 

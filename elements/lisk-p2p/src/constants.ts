@@ -56,6 +56,7 @@ export const DEFAULT_PRODUCTIVITY = {
 
 // Penality constatns
 export const INVALID_PEER_LIST_PENALTY = 100;
+export const INVALID_PEER_INFO_PENALTY = 100;
 
 // Peer inbound constants
 export const DEFAULT_PING_INTERVAL_MAX = 60000;
