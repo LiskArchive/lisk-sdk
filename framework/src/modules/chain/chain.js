@@ -299,11 +299,6 @@ module.exports = class Chain {
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
 				this.transport.postTransaction(action.params),
-			getDelegateBlocksRewards: async action =>
-				this.scope.components.storage.entities.Account.delegateBlocksRewards(
-					action.params.filters,
-					action.params.tx,
-				),
 			getSlotNumber: async action =>
 				action.params
 					? this.slots.getSlotNumber(action.params.epochTime)

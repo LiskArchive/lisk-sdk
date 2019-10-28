@@ -10,13 +10,9 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-
-/*
-  DESCRIPTION: ?
-
-  PARAMETERS: None
-*/
-
-DELETE FROM mem_accounts;
+beforeEach(() => {
+	sandbox.restore();
+});

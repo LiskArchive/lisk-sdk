@@ -13,10 +13,10 @@
  */
 
 
-/*
-  DESCRIPTION: ?
-
-  PARAMETERS: None
+ /*
+  DESCRIPTION: Remove table `rounds_rewards`. The `blocks` table is now used instead to provide the same data.
+  See: https://github.com/LiskHQ/lisk-sdk/issues/4267
 */
 
-DELETE FROM mem_accounts;
+
+DROP TABLE IF EXISTS rounds_rewards;

@@ -162,7 +162,6 @@ async function _aggregateBlocksReward(filter) {
 	}
 
 	params.generatorPublicKey = account.publicKey;
-	params.delegates = ACTIVE_DELEGATES;
 
 	if (filter.start !== undefined) {
 		params.fromTimestamp = Math.floor(
@@ -181,9 +180,8 @@ async function _aggregateBlocksReward(filter) {
 	let delegateBlocksRewards;
 
 	try {
-		delegateBlocksRewards = await channel.invoke(
-			'chain:getDelegateBlocksRewards',
-			{ filters: params },
+		delegateBlocksRewards = await storage.entities.Block.delegateBlocksRewards(
+			params,
 		);
 	} catch (err) {
 		logger.error(err.stack);

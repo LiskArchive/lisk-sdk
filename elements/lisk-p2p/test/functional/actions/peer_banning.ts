@@ -13,14 +13,14 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, ProtocolPeerInfo } from '../../src/index';
-import { wait } from '../utils/helpers';
+import { P2P, ProtocolPeerInfo } from '../../../src/index';
+import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 import {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
 	EVENT_CLOSE_INBOUND,
-} from '../../src/index';
+} from '../../../src/index';
 
 describe('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

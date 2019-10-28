@@ -31,6 +31,7 @@
 		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}{,/**/}/*.ts",
 		"test:unit": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/unit/{,/**/}/*.ts",
 		"test:integration": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/{,/**/}/*.ts",
+		"test:functional": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/functional/{,/**/}/*.ts",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check",

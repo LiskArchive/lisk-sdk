@@ -57,8 +57,11 @@ module.exports = class NetworkModule extends BaseModule {
 			request: {
 				handler: async action => this.network.actions.request(action),
 			},
-			emit: {
-				handler: action => this.network.actions.emit(action),
+			send: {
+				handler: action => this.network.actions.send(action),
+			},
+			broadcast: {
+				handler: action => this.network.actions.broadcast(action),
 			},
 			getPeers: {
 				handler: action => this.network.actions.getPeers(action),

@@ -21,6 +21,10 @@ import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	INVALID_MESSAGE_RECEIVED_CODE,
+	INVALID_MESSAGE_RECEIVED_REASON,
+	SOCKET_PING_MESSAGE,
+	SOCKET_PONG_MESSAGE,
 } from '../constants';
 import { RPCResponseError } from '../errors';
 import {
@@ -29,6 +33,7 @@ import {
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_INVALID_MESSAGE_RECEIVED,
 	EVENT_INVALID_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
@@ -125,6 +130,7 @@ export class Peer extends EventEmitter {
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
+	protected _invalidMessageCount: number;
 	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
@@ -159,6 +165,7 @@ export class Peer extends EventEmitter {
 		this._messageRates = new Map();
 		this._wsMessageCount = 0;
 		this._wsMessageRate = 0;
+		this._invalidMessageCount = 0;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
 			this._resetCounters();
@@ -213,7 +220,27 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
-		this._handleWSMessage = () => {
+		this._handleWSMessage = (message: any) => {
+			if (message === SOCKET_PING_MESSAGE || message === SOCKET_PONG_MESSAGE) {
+				this._invalidMessageCount += 1;
+				// TODO: Determine the right number of exptected messages used in socket cluster for heartbeat
+				if (this._invalidMessageCount >= 1) {
+					if (this._socket) {
+						this._socket.destroy(
+							INVALID_MESSAGE_RECEIVED_CODE,
+							INVALID_MESSAGE_RECEIVED_REASON,
+						);
+					}
+
+					this._banPeer();
+					this.emit(
+						EVENT_INBOUND_SOCKET_ERROR,
+						`Peer ${this.ipAddress}:${
+							this.wsPort
+						} was disconnected due to unwanted to messages`,
+					);
+				}
+			}
 			this._wsMessageCount += 1;
 		};
 
@@ -498,6 +525,7 @@ export class Peer extends EventEmitter {
 		this._wsMessageRate =
 			(this._wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
 		this._wsMessageCount = 0;
+		this._invalidMessageCount = 0;
 
 		if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
 			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
