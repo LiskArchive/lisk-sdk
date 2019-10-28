@@ -89,7 +89,7 @@ const generateValidTransferTransaction = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
@@ -135,7 +135,7 @@ const generateValidTransferTransactionWithSecondSignature = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
@@ -200,7 +200,7 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
@@ -259,7 +259,7 @@ const generateValidTransferTransactionWithSecondAndMultiSignature = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
@@ -335,7 +335,7 @@ const generateValidSecondSignatureTransaction = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
@@ -377,7 +377,7 @@ const generateValidDelegateTransaction = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
@@ -423,7 +423,7 @@ const generateValidVoteTransaction = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
@@ -471,7 +471,7 @@ const generateValidMultisignatureTransaction = () => {
 	};
 
 	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntLE(tx.timestamp, 0, 4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
