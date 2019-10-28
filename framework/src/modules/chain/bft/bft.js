@@ -320,8 +320,15 @@ class BFT extends EventEmitter {
 	isBFTProtocolCompliant(block) {
 		assert(block, 'No block was provided to be verified');
 
-		const roundsThreshold = this.constants.activeDelegates * 3;
+		const roundsThreshold = 3;
+		const heightThreshold = this.constants.activeDelegates * roundsThreshold;
 		const blockHeader = extractBFTBlockHeaderFromBlock(block);
+
+		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
+		if (blockHeader.maxHeightPreviouslyForged === 0) {
+			return true;
+		}
+
 		const bftHeaders = this.finalityManager.headers;
 
 		const maxHeightPreviouslyForgedBlock = bftHeaders.get(
@@ -332,7 +339,7 @@ class BFT extends EventEmitter {
 			!maxHeightPreviouslyForgedBlock ||
 			blockHeader.maxHeightPreviouslyForged >= blockHeader.height ||
 			(blockHeader.height - blockHeader.maxHeightPreviouslyForged <=
-				roundsThreshold &&
+				heightThreshold &&
 				blockHeader.delegatePublicKey !==
 					maxHeightPreviouslyForgedBlock.delegatePublicKey)
 		) {
