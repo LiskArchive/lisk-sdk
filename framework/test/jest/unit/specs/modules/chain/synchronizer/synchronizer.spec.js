@@ -134,12 +134,10 @@ describe('Synchronizer', () => {
 		processorModule.register(blockProcessorV2);
 
 		syncMechanism1 = {
-			isActive: () => false,
 			run: jest.fn().mockResolvedValue({}),
 			isValidFor: jest.fn().mockResolvedValue(false),
 		};
 		syncMechanism2 = {
-			isActive: () => false,
 			run: jest.fn().mockResolvedValue({}),
 			isValidFor: jest.fn().mockResolvedValue(false),
 		};
@@ -379,12 +377,10 @@ describe('Synchronizer', () => {
 	describe('constructor', () => {
 		it('should assign passed mechanisms', () => {
 			const aSyncingMechanism = {
-				isActive: () => false,
 				run: jest.fn().mockResolvedValue({}),
 				isValidFor: jest.fn().mockResolvedValue(false),
 			};
 			const anotherSyncingMechanism = {
-				isActive: () => false,
 				run: jest.fn().mockResolvedValue({}),
 				isValidFor: jest.fn().mockResolvedValue(false),
 			};
@@ -399,7 +395,6 @@ describe('Synchronizer', () => {
 
 		it('should enforce mandatory interfaces for passed mechanisms (isValidFor)', () => {
 			const aSyncingMechanism = {
-				isActive: () => false,
 				run: jest.fn().mockResolvedValue({}),
 			};
 
@@ -415,27 +410,8 @@ describe('Synchronizer', () => {
 			}
 		});
 
-		it('should enforce mandatory interfaces for passed mechanisms (isActive)', () => {
+		it('should enforce mandatory interfaces for passed mechanisms (run)', () => {
 			const aSyncingMechanism = {
-				run: jest.fn().mockResolvedValue({}),
-				isValidFor: jest.fn().mockResolvedValue(false),
-			};
-
-			try {
-				// eslint-disable-next-line no-unused-vars
-				const aSynchronizer = new Synchronizer({
-					mechanisms: [aSyncingMechanism],
-				});
-			} catch (error) {
-				expect(error.message).toEqual(
-					'Mechanism Object should implement "isActive" getter',
-				);
-			}
-		});
-
-		it('should enforce mandatory interfaces for passed mechanisms (isActive)', () => {
-			const aSyncingMechanism = {
-				isActive: () => false,
 				isValidFor: jest.fn().mockResolvedValue(false),
 			};
 

@@ -55,12 +55,6 @@ class Synchronizer {
 				typeof mechanism.run === 'function',
 				`Mechanism ${mechanism.constructor.name} should implement "run" method`,
 			);
-			assert(
-				typeof mechanism.isActive === 'function',
-				`Mechanism ${
-					mechanism.constructor.name
-				} should implement "isActive" getter`,
-			);
 		}
 	}
 
