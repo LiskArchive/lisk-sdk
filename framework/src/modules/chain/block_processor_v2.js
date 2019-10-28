@@ -183,9 +183,19 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			({ block }, blockBytes) =>
-				this.blocksModule.validateBlockHeader(block, blockBytes),
+			({ block }) => {
+				let expectedReward = this.blocksModule.blockReward.calculateReward(
+					block.height,
+				);
+				if (!this.bftModule.isBFTProtocolCompliant(block)) {
+					expectedReward *= 0.25;
+				}
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				);
+			},
 			data => this.blocksModule.verifyInMemory(data),
 			({ block }) => this.dposModule.verifyBlockForger(block),
 			({ block }) => this.bftModule.validateBlock(block),
@@ -194,9 +204,19 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			({ block }, blockBytes) =>
-				this.blocksModule.validateBlockHeader(block, blockBytes),
+			({ block }) => {
+				let expectedReward = this.blocksModule.blockReward.calculateReward(
+					block.height,
+				);
+				if (!this.bftModule.isBFTProtocolCompliant(block)) {
+					expectedReward *= 0.25;
+				}
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				);
+			},
 		]);
 
 		this.forkStatus.pipe([
@@ -305,6 +325,11 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			maxHeightPreviouslyForged,
 			prevotedConfirmedUptoHeight,
 		};
+
+		// Reduce reward based on BFT rules
+		if (!this.bftModule.isBFTProtocolCompliant(block)) {
+			block.reward = block.reward.times(0.25);
+		}
 
 		return {
 			...block,

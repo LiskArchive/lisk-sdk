@@ -68,11 +68,12 @@ const validatePreviousBlockProperty = (block, genesisBlock) => {
  *
  * @func validateReward
  * @param {Object} block - Target block
- * @param {Object} blockReward - block reward functions
+ * @param {Object} expectedReward - expected block reward
  * @param {Object} exceptions
  */
-const validateReward = (block, blockReward, exceptions) => {
-	const expectedReward = blockReward.calculateReward(block.height);
+const validateReward = (block, expectedReward, exceptions) => {
+	expectedReward = new BigNum(expectedReward);
+
 	if (
 		block.height !== 1 &&
 		!expectedReward.equals(block.reward) &&

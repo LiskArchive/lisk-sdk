@@ -310,6 +310,38 @@ class BFT extends EventEmitter {
 		validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
 	}
 
+	/**
+	 * Verify if block forger is following the BFT Protocol
+	 * See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#incentivizing-lisk-bft-protocol-participation
+	 *
+	 * @param {Block} block
+	 * @return {boolean}
+	 */
+	isBFTProtocolCompliant(block) {
+		assert(block, 'No block was provided to be verified');
+
+		const roundsThreshold = this.constants.activeDelegates * 3;
+		const blockHeader = extractBFTBlockHeaderFromBlock(block);
+		const bftHeaders = this.finalityManager.headers;
+
+		const maxHeightPreviouslyForgedBlock = bftHeaders.get(
+			blockHeader.maxHeightPreviouslyForged,
+		);
+
+		if (
+			!maxHeightPreviouslyForgedBlock ||
+			blockHeader.maxHeightPreviouslyForged >= blockHeader.height ||
+			(blockHeader.height - blockHeader.maxHeightPreviouslyForged <=
+				roundsThreshold &&
+				blockHeader.delegatePublicKey !==
+					maxHeightPreviouslyForgedBlock.delegatePublicKey)
+		) {
+			return false;
+		}
+
+		return true;
+	}
+
 	get finalizedHeight() {
 		return this.finalityManager.finalizedHeight;
 	}

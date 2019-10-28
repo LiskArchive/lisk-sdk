@@ -216,10 +216,10 @@ class Blocks extends EventEmitter {
 		return blockInstance;
 	}
 
-	async validateBlockHeader(block, blockBytes) {
+	async validateBlockHeader(block, blockBytes, expectedReward) {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes);
-		validateReward(block, this.blockReward, this.exceptions);
+		validateReward(block, expectedReward, this.exceptions);
 
 		// validate transactions
 		const { transactionsResponses } = validateTransactions(this.exceptions)(
