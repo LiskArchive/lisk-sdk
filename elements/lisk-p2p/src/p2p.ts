@@ -91,7 +91,6 @@ import {
 	PeerLists,
 	ProtocolPeerInfo,
 } from './p2p_types';
-import { OutboundPeer } from './peer';
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
@@ -561,16 +560,6 @@ export class P2P extends EventEmitter {
 	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		// Only share the shared state to the user
 		return this._peerPool.getAllConnectedPeerInfos().map(peer => ({
-			...peer.sharedState,
-			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
-			peerId: peer.peerId,
-		}));
-	}
-	// Make sure you always share shared peer state to a user
-	public getOutboundConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
-		// Only share the shared state to the user
-		return this._peerPool.getAllConnectedPeerInfos(OutboundPeer).map(peer => ({
 			...peer.sharedState,
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,

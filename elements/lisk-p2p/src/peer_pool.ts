@@ -468,17 +468,17 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
+	private addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
 		const existingPeer = this.getPeer(peerInfo.peerId);
 		if (existingPeer) {
 			return false;
 		}
 
 		// Check if we got already Outbound connection into the IP address of the Peer
-		const connectedPeer = this.getAllConnectedPeerInfos(OutboundPeer).find(
-			e => e.ipAddress === peerInfo.ipAddress,
-		);
-		if (connectedPeer) {
+		const outboundConnectedPeer = this.getAllConnectedPeerInfos(
+			OutboundPeer,
+		).find(e => e.ipAddress === peerInfo.ipAddress);
+		if (outboundConnectedPeer) {
 			return false;
 		}
 

@@ -61,37 +61,6 @@ describe('PeerPool actions', () => {
 		});
 	});
 
-	describe('getOutboundConnectedPeers', () => {
-		beforeEach(async () => {
-			p2pNodeList = await createNetwork({
-				networkSize: 3,
-			});
-		});
-
-		afterEach(async () => {
-			await destroyNetwork(p2pNodeList);
-		});
-
-		it('should discover all peers from unique IP address and give them back', async () => {
-			const secondNode = p2pNodeList[1];
-
-			await wait(300);
-
-			const OutboundPeersIpAddress = secondNode
-				.getOutboundConnectedPeers()
-				.map(peer => peer.ipAddress);
-
-			expect(OutboundPeersIpAddress).to.have.members([
-				'127.0.0.1',
-				'127.0.0.3',
-			]);
-		});
-
-		afterEach(async () => {
-			await destroyNetwork(p2pNodeList);
-		});
-	});
-
 	describe('getDisconnectedPeers', () => {
 		const LIMITED_CONNECTIONS = 3;
 		const POPULATOR_INTERVAL_WITH_LIMIT = 50;
