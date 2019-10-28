@@ -317,6 +317,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				const blockInstance = await this.processor.deserialize(block);
 				await this.processor.processValidated(blockInstance);
 			}
+			this.logger.info('Successfully switched chains. Node is now up to date');
 		} catch (err) {
 			this.logger.error({ err }, 'Error while processing blocks');
 			this.logger.debug(
@@ -334,8 +335,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			this.logger.debug('Cleaning blocks temp table');
 			await clearBlocksTempTable(this.storage);
 		}
-
-		this.logger.info('Successfully switched chains. Node is now up to date');
 	}
 
 	/**

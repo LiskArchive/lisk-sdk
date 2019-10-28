@@ -205,6 +205,7 @@ describe('fast_chain_switching_mechanism', () => {
 			info: jest.fn(),
 			debug: jest.fn(),
 			error: jest.fn(),
+			trace: jest.fn(),
 		};
 		storageMock = {
 			entities: {
@@ -215,6 +216,7 @@ describe('fast_chain_switching_mechanism', () => {
 				},
 				Block: {
 					get: jest.fn(),
+					getOne: jest.fn(),
 					begin: jest.fn(),
 				},
 				Account: {
@@ -277,6 +279,7 @@ describe('fast_chain_switching_mechanism', () => {
 			logger: loggerMock,
 		});
 		processorModule.processValidated = jest.fn();
+		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
 		processorModule.register(blockProcessorV2);
 
@@ -311,6 +314,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		afterEach(() => {
 			jest.clearAllMocks();
+			expect(fastChainSwitchingMechanism.active).toBeFalsy();
 		});
 
 		function checkApplyPenaltyAndRestartIsCalled(
@@ -328,6 +332,17 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
 				block: receivedBlock,
+			});
+		}
+
+		function checkApplyPenaltyAndAbortIsCalled(peerId, err) {
+			expect(loggerMock.info).toHaveBeenCalledWith(
+				{ err, peerId, reason: err.reason },
+				'Applying penalty to peer and aborting synchronization mechanism',
+			);
+			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
+				peerId,
+				penalty: 100,
 			});
 		}
 
@@ -414,6 +429,47 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 
 			describe('given that the highest common block is found', () => {
+				it('should apply penalty to the peer and restart syncing mechanisms if the height of the common block is smaller than the finalized height', async () => {
+					const storageReturnValue = [
+						{
+							id: genesisBlockDevnet.id,
+						},
+						{
+							id: blocksModule.lastBlock.id,
+						},
+					];
+					const highestCommonBlock = newBlock({
+						height: bftModule.finalizedHeight - 1,
+					});
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{
+								height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
+							},
+							{
+								sort: 'height:asc',
+							},
+						)
+						.mockResolvedValue(storageReturnValue);
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getHighestCommonBlock',
+							peerId: aPeer,
+							data: {
+								ids: storageReturnValue.map(blocks => blocks.id),
+							},
+						})
+						.mockResolvedValue({ data: highestCommonBlock });
+
+					await fastChainSwitchingMechanism.run(aBlock, aPeer);
+
+					checkApplyPenaltyAndRestartIsCalled(
+						aBlock,
+						aPeer,
+						"Peer didn't return a common block or its height is lower than the finalized height of the chain",
+					);
+				});
+
 				it('should abort the syncing mechanism if the difference in height between the common block and the received block is > ACTIVE_DELEGATES*2 ', async () => {
 					const storageReturnValue = [
 						{
@@ -459,7 +515,7 @@ describe('fast_chain_switching_mechanism', () => {
 					);
 				});
 
-				it.only('should abort the syncing mechanism if the difference in height between the common block and the last block is > ACTIVE_DELEGATES*2 ', async () => {
+				it('should abort the syncing mechanism if the difference in height between the common block and the last block is > ACTIVE_DELEGATES*2 ', async () => {
 					// blocksModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 					// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 					const highestCommonBlock = newBlock({
@@ -519,6 +575,369 @@ describe('fast_chain_switching_mechanism', () => {
 								2}`,
 						),
 					);
+				});
+
+				describe('request and validate blocks', () => {
+					it('should request blocks within a range of IDs [commonBlock.id <-> receivedBlock.id] and validate them', async () => {
+						const storageReturnValue = [
+							{
+								id: genesisBlockDevnet.id,
+							},
+							{
+								id: blocksModule.lastBlock.id,
+							},
+						];
+						const highestCommonBlock = newBlock({
+							height: genesisBlockDevnet.height,
+						});
+
+						const requestedBlocks = [
+							newBlock({
+								height: highestCommonBlock.height + 1,
+								previousBlock: highestCommonBlock.id,
+							}),
+							...new Array(34).fill(0).map(() => newBlock()),
+							aBlock,
+						];
+
+						fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
+							.fn()
+							.mockResolvedValue(requestedBlocks);
+
+						when(storageMock.entities.Block.get)
+							.calledWith(
+								{
+									height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
+								},
+								{
+									sort: 'height:asc',
+								},
+							)
+							.mockResolvedValue(storageReturnValue);
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId: aPeer,
+								data: {
+									ids: storageReturnValue.map(blocks => blocks.id),
+								},
+							})
+							.mockResolvedValue({ data: highestCommonBlock });
+						when(storageMock.entities.Block.getOne)
+							.calledWith(
+								{
+									id_eql: highestCommonBlock.id,
+								},
+								{
+									extended: true,
+								},
+							)
+							.mockResolvedValue(highestCommonBlock);
+						when(processorModule.deleteLastBlock)
+							.calledWith({
+								saveTempBlock: true,
+							})
+							.mockResolvedValue(genesisBlockDevnet);
+
+						await fastChainSwitchingMechanism.run(aBlock, aPeer);
+
+						let previousBlock = await processorModule.deserialize(
+							highestCommonBlock,
+						);
+
+						for (const block of requestedBlocks) {
+							const blockInstance = await processorModule.deserialize(block);
+							expect(processorModule.validate).toHaveBeenCalledWith(
+								blockInstance,
+								{
+									lastBlock: previousBlock,
+								},
+							);
+							expect(loggerMock.trace).toHaveBeenCalledWith(
+								{ blockId: block.id, height: block.height },
+								'Validating block',
+							);
+							previousBlock = blockInstance;
+						}
+
+						expect(loggerMock.debug).toHaveBeenCalledWith(
+							'Successfully validated blocks',
+						);
+					});
+
+					it('should apply penalty and abort if any of the blocks fail to validate', async () => {
+						const storageReturnValue = [
+							{
+								id: genesisBlockDevnet.id,
+							},
+							{
+								id: blocksModule.lastBlock.id,
+							},
+						];
+						const highestCommonBlock = newBlock({
+							height: genesisBlockDevnet.height,
+						});
+
+						const requestedBlocks = [
+							newBlock({
+								height: highestCommonBlock.height + 1,
+								previousBlock: highestCommonBlock.id,
+							}),
+							...new Array(34).fill(0).map(() => newBlock()),
+							aBlock,
+						];
+
+						fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
+							.fn()
+							.mockResolvedValue(requestedBlocks);
+
+						when(storageMock.entities.Block.get)
+							.calledWith(
+								{
+									height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
+								},
+								{
+									sort: 'height:asc',
+								},
+							)
+							.mockResolvedValue(storageReturnValue);
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId: aPeer,
+								data: {
+									ids: storageReturnValue.map(blocks => blocks.id),
+								},
+							})
+							.mockResolvedValue({ data: highestCommonBlock });
+						when(storageMock.entities.Block.getOne)
+							.calledWith(
+								{
+									id_eql: highestCommonBlock.id,
+								},
+								{
+									extended: true,
+								},
+							)
+							.mockResolvedValue(highestCommonBlock);
+						processorModule.validate.mockRejectedValue(
+							new Error('validation error'),
+						);
+
+						await fastChainSwitchingMechanism.run(aBlock, aPeer);
+
+						checkApplyPenaltyAndAbortIsCalled(
+							aPeer,
+							new Errors.ApplyPenaltyAndAbortError(
+								aPeer,
+								'Block validation failed',
+							),
+						);
+					});
+				});
+
+				describe.only('switch to a different chain', () => {
+					it('should switch to a different chain (apply list of blocks returned by the peer) and cleanup blocks temp table', async () => {
+						const storageReturnValue = [
+							{
+								id: genesisBlockDevnet.id,
+							},
+							{
+								id: blocksModule.lastBlock.id,
+							},
+						];
+						const highestCommonBlock = newBlock({
+							height: genesisBlockDevnet.height,
+						});
+						const requestedBlocks = [
+							newBlock({
+								height: highestCommonBlock.height + 1,
+								previousBlock: highestCommonBlock.id,
+							}),
+							...new Array(34).fill(0).map(() => newBlock()),
+							aBlock,
+						];
+
+						fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
+							.fn()
+							.mockResolvedValue(requestedBlocks);
+
+						when(storageMock.entities.Block.get)
+							.calledWith(
+								{
+									height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
+								},
+								{
+									sort: 'height:asc',
+								},
+							)
+							.mockResolvedValue(storageReturnValue);
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId: aPeer,
+								data: {
+									ids: storageReturnValue.map(blocks => blocks.id),
+								},
+							})
+							.mockResolvedValue({ data: highestCommonBlock });
+						when(storageMock.entities.Block.getOne)
+							.calledWith(
+								{
+									id_eql: highestCommonBlock.id,
+								},
+								{
+									extended: true,
+								},
+							)
+							.mockResolvedValue(highestCommonBlock);
+						when(processorModule.deleteLastBlock)
+							.calledWith({
+								saveTempBlock: true,
+							})
+							.mockResolvedValue(genesisBlockDevnet);
+
+						await fastChainSwitchingMechanism.run(aBlock, aPeer);
+
+						expect(loggerMock.info).toHaveBeenCalledWith('Switching chain');
+						expect(loggerMock.debug).toHaveBeenCalledWith(
+							{ height: highestCommonBlock.height },
+							`Deleting blocks after height ${highestCommonBlock.height}`,
+						);
+
+						expect(processorModule.deleteLastBlock).toHaveBeenCalledWith({
+							saveTempBlock: true,
+						});
+						expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(1);
+						expect(loggerMock.debug).toHaveBeenCalledWith(
+							{
+								blocks: requestedBlocks.map(block => ({
+									blockId: block.id,
+									height: block.height,
+								})),
+							},
+							'Applying blocks',
+						);
+
+						for (const block of requestedBlocks) {
+							expect(loggerMock.trace).toHaveBeenCalledWith(
+								{
+									blockId: block.id,
+									height: block.height,
+								},
+								'Applying blocks',
+							);
+							// expect(loggerMock.trace).toHaveBeenCalledTimes(
+							// 	requestedBlocks.length,
+							// );
+							expect(processorModule.processValidated).toHaveBeenCalledWith(
+								await processorModule.deserialize(block),
+							);
+							// expect(processorModule.processValidated).toHaveBeenCalledTimes(
+							// 	requestedBlocks.length,
+							// );
+
+							expect(loggerMock.debug).toHaveBeenCalledWith(
+								'Cleaning blocks temp table',
+							);
+							expect(
+								storageMock.entities.TempBlock.truncate,
+							).toHaveBeenCalled();
+							expect(loggerMock.info).toHaveBeenCalledWith(
+								'Successfully switched chains. Node is now up to date',
+							);
+						}
+					});
+
+					it('should delete blocks after highest common block height, restore blocks from temp table and cleanup temp table if any of the blocks returned by peer fails to apply', async () => {
+						const storageReturnValue = [
+							{
+								id: genesisBlockDevnet.id,
+							},
+							{
+								id: blocksModule.lastBlock.id,
+							},
+						];
+						const highestCommonBlock = newBlock({
+							height: genesisBlockDevnet.height,
+						});
+						const requestedBlocks = [
+							newBlock({
+								height: highestCommonBlock.height + 1,
+								previousBlock: highestCommonBlock.id,
+							}),
+							...new Array(34).fill(0).map(() => newBlock()),
+							aBlock,
+						];
+
+						fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
+							.fn()
+							.mockResolvedValue(requestedBlocks);
+
+						when(storageMock.entities.Block.get)
+							.calledWith(
+								{
+									height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
+								},
+								{
+									sort: 'height:asc',
+								},
+							)
+							.mockResolvedValue(storageReturnValue);
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId: aPeer,
+								data: {
+									ids: storageReturnValue.map(blocks => blocks.id),
+								},
+							})
+							.mockResolvedValue({ data: highestCommonBlock });
+						when(storageMock.entities.Block.getOne)
+							.calledWith(
+								{
+									id_eql: highestCommonBlock.id,
+								},
+								{
+									extended: true,
+								},
+							)
+							.mockResolvedValue(highestCommonBlock);
+						when(processorModule.deleteLastBlock)
+							.calledWith({
+								saveTempBlock: true,
+							})
+							.mockResolvedValue(genesisBlockDevnet);
+
+						const validationError = new Error('Error while processing block');
+						processorModule.processValidated.mockRejectedValue(validationError);
+
+						await fastChainSwitchingMechanism.run(aBlock, aPeer);
+
+						expect(processorModule.processValidated).toHaveBeenCalled();
+						expect(loggerMock.error).toHaveBeenCalledWith(
+							{ err: validationError },
+							'Error while processing blocks',
+						);
+						expect(loggerMock.debug).toHaveBeenCalledWith(
+							{
+								height: highestCommonBlock.height,
+							},
+							'Deleting blocks after height',
+						);
+
+						expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(1);
+						expect(processorModule.deleteLastBlock).toHaveBeenCalledWith({
+							saveTempBlock: false,
+						});
+						expect(loggerMock.debug).toHaveBeenCalledWith(
+							'Restoring blocks from temporary table',
+						);
+						expect(loggerMock.debug).toHaveBeenCalledWith(
+							'Cleaning blocks temp table',
+						);
+						expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
+					});
 				});
 			});
 		});
