@@ -98,20 +98,22 @@ export default class VerifyCommand extends BaseCommand {
 			...transactionObjectWithoutSignSignature
 		} = transactionObject;
 
-		const txInstance = instantiateTransaction(
-			transactionObjectWithoutSignSignature,
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
 		);
+
+		const txInstance = instantiateTransaction({
+			...transactionObjectWithoutSignSignature,
+			networkIdentifier,
+		});
 
 		const secondPublicKey = secondPublicKeySource
 			? await processSecondPublicKey(secondPublicKeySource)
 			: undefined;
 
-		const networkIdentifier = getNetworkIdentifierWithInput(
-			networkIdentifierSource,
-			this.userConfig.api.network,
-		);
 		if (!secondPublicKey) {
-			const { errors } = txInstance.validate(networkIdentifier);
+			const { errors } = txInstance.validate();
 			this.print({
 				verified: errors.length === 0,
 			});

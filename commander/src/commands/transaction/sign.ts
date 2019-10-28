@@ -107,7 +107,7 @@ export default class SignCommand extends BaseCommand {
 		});
 		txInstance.sign(passphrase, secondPassphrase);
 
-		const { errors } = txInstance.validate(networkIdentifier);
+		const { errors } = txInstance.validate();
 
 		if (errors.length !== 0) {
 			throw errors;

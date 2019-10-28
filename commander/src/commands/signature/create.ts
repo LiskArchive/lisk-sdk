@@ -88,7 +88,7 @@ export default class CreateCommand extends BaseCommand {
 			...transactionObject,
 			networkIdentifier,
 		});
-		const { errors } = txInstance.validate(networkIdentifier);
+		const { errors } = txInstance.validate();
 
 		if (errors.length !== 0) {
 			throw new Error('Provided transaction is invalid.');

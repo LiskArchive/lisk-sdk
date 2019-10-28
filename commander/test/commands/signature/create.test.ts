@@ -22,31 +22,33 @@ import * as inputUtilsModule from '../../../src/utils/input';
 
 describe('signature:create', () => {
 	const defaultTransaction = {
+		type: 8,
 		senderPublicKey:
-			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
-		timestamp: 59353522,
-		type: 0,
+			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+		timestamp: 54316325,
 		asset: {
-			recipientId: '8050281191221330746L',
-			amount: '10',
+			recipientId: '18141291412139607230L',
+			amount: '1234567890',
+			data: 'random data',
 		},
 		signature:
-			'b84b95087c381ad25b5701096e2d9366ffd04037dcc941cd0747bfb0cf93111834a6c662f149018be4587e6fc4c9f5ba47aa5bbbd3dd836988f153aa8258e604',
-		id: '3694188453012384790',
+			'b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d',
+		id: '3436168030012755419',
 	};
 	const invalidTransaction = 'invalid transaction';
 	const defaultInputs = {
-		passphrase: '123',
+		passphrase:
+			'better across runway mansion jar route valid crack panic favorite smooth sword',
 	};
 	const testnetNetworkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	const defaultSignatureObject = {
-		transactionId: '3694188453012384790',
+		transactionId: '3436168030012755419',
 		publicKey:
-			'6edfa4a73d7e2a71e61fbb80aaf6e578a9c7be779382c6d7fc99e086400c830f',
+			'6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
 		signature:
-			'ba8250a2192cb0b70283993d4fa6c6e625a422b16829b38a6c6c14b2ad82411e2e8523abac35162e1c28d8dd35bbe7821b2945640c8baab95b00fb2525bdb807',
+			'4424342c342093f80f52f919876fc0abada5385e98e8caf211add16d1c0f5453ef6e47fa58a454128a9640f3b6e2ade618e5ee5fa8eebc4d68460d19f042050f',
 	};
 
 	const printMethodStub = sandbox.stub();
