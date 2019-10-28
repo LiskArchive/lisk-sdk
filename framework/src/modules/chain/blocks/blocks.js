@@ -216,23 +216,12 @@ class Blocks extends EventEmitter {
 		return blockInstance;
 	}
 
-	async validatePreviousBlockProperty({ block }) {
+	async validateBlockHeader(block, blockBytes) {
 		validatePreviousBlockProperty(block, this.genesisBlock);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	async validateSignature({ block, blockBytes }) {
 		validateSignature(block, blockBytes);
-
-		// Update block ID if signature is valid
-		block.id = blocksUtils.getId(blockBytes);
-	}
-
-	async validateReward({ block }) {
 		validateReward(block, this.blockReward, this.exceptions);
-	}
 
-	async validateTransactions({ block }) {
+		// validate transactions
 		const { transactionsResponses } = validateTransactions(this.exceptions)(
 			block.transactions,
 		);
@@ -244,14 +233,15 @@ class Blocks extends EventEmitter {
 		if (invalidTransactionResponse) {
 			throw invalidTransactionResponse.errors;
 		}
-	}
 
-	async validatePayload({ block }) {
 		validatePayload(
 			block,
 			this.constants.maxTransactionsPerBlock,
 			this.constants.maxPayloadLength,
 		);
+
+		// Update id
+		block.id = blocksUtils.getId(blockBytes);
 	}
 
 	async verifyInMemory({ block, lastBlock }) {

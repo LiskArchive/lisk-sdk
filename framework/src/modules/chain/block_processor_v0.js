@@ -128,11 +128,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
 			({ block }, blockBytes) =>
-				this.blocksModule.validateSignature({ block, blockBytes }),
-			({ block }) => this.blocksModule.validatePreviousBlockProperty(block),
-			({ block }) => this.blocksModule.validateReward(block),
-			({ block }) => this.blocksModule.validateTransactions(block),
-			({ block }) => this.blocksModule.validatePayload(block),
+				this.blocksModule.validateBlockHeader(block, blockBytes),
 			data => this.blocksModule.verifyInMemory(data),
 			({ block }) =>
 				this.dposModule.verifyBlockForger(block, { delegateListRoundOffset }),
@@ -143,11 +139,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			data => validateSchema(data),
 			({ block }) => getBytes(block),
 			({ block }, blockBytes) =>
-				this.blocksModule.validateSignature({ block, blockBytes }),
-			({ block }) => this.blocksModule.validatePreviousBlockProperty(block),
-			({ block }) => this.blocksModule.validateReward(block),
-			({ block }) => this.blocksModule.validateTransactions(block),
-			({ block }) => this.blocksModule.validatePayload(block),
+				this.blocksModule.validateBlockHeader(block, blockBytes),
 		]);
 
 		this.forkStatus.pipe([
