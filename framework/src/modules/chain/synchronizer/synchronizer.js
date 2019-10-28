@@ -14,19 +14,48 @@
 
 'use strict';
 
-const util = require('util');
 const assert = require('assert');
 const utils = require('./utils');
 
 class Synchronizer {
-	constructor({ logger, blocksModule, processorModule, storageModule }) {
+	constructor({
+		logger,
+		blocksModule,
+		processorModule,
+		storageModule,
+		mechanisms = [],
+	}) {
+		assert(
+			Array.isArray(mechanisms),
+			'mechanisms should be an array of mechanisms',
+		);
+		this.mechanisms = mechanisms;
 		this.logger = logger;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
 		this.storageModule = storageModule;
-		this.mechanisms = [];
-
 		this.active = false;
+
+		this._checkMechanismsInterfaces();
+	}
+
+	/**
+	 * Checks whether the registered mechanisms implement mandatory interfaces
+	 * @private
+	 */
+	_checkMechanismsInterfaces() {
+		for (const mechanism of this.mechanisms) {
+			assert(
+				typeof mechanism.isValidFor === 'function',
+				`Mechanism ${
+					mechanism.constructor.name
+				} should implement "isValidFor" method`,
+			);
+			assert(
+				typeof mechanism.run === 'function',
+				`Mechanism ${mechanism.constructor.name} should implement "run" method`,
+			);
+		}
 	}
 
 	/**
@@ -39,13 +68,12 @@ class Synchronizer {
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
 			try {
-				this.logger.info('Restoring blocks from temporary table');
 				await utils.restoreBlocksUponStartup(
+					this.logger,
 					this.blocksModule,
 					this.processorModule,
 					this.storageModule,
 				);
-				this.logger.info('Chain successfully restored');
 			} catch (err) {
 				this.logger.error(
 					{ err },
@@ -56,70 +84,53 @@ class Synchronizer {
 	}
 
 	/**
-	 * Register a sync mechanism with synchronizer
-	 * It must have "isValidFor" and "run" interface to call upon
-	 *
-	 * "isValidFor" must return true/false to match the sync mechanism
-	 * "isValidFor" can throw error to abort the synchronization
-	 *
-	 * "run" must initiate the synchronization
-	 * "run" must keep track of its state internally
-	 *
-	 * @param {Object} mechanism - Mechanism to register
-	 */
-	register(mechanism) {
-		assert(
-			util.types.isAsyncFunction(mechanism.isValidFor),
-			'Sync mechanism must have "isValidFor" async interface',
-		);
-		assert(
-			util.types.isAsyncFunction(mechanism.run),
-			'Sync mechanism must have "run" async interface',
-		);
-
-		// Check the property isActive, it can be own property or a getter
-		assert(
-			mechanism.isActive !== undefined,
-			'Sync mechanism must have "isActive" interface',
-		);
-
-		this.mechanisms.push(mechanism);
-	}
-
-	/**
 	 * Start the syncing mechanism
 	 * @param {Object} receivedBlock - The block you received from network, used to choose sync mechanism
+	 * @param {string} peerId - The ID of the peer that is sending the block
 	 * @return {*}
 	 */
 	async run(receivedBlock, peerId) {
 		if (this.isActive) {
 			throw new Error('Synchronizer is already running');
 		}
-
-		this.active = true;
-		this.logger.info(
-			{ blockId: receivedBlock.id, height: receivedBlock.height },
-			'Starting synchronizer',
-		);
-
 		try {
+			this.active = true;
+			assert(
+				receivedBlock,
+				'A block must be provided to the Synchronizer in order to run',
+			);
+			assert(
+				peerId,
+				'A peer ID from the peer sending the block must be provided to the Synchronizer in order to run',
+			);
+
+			this.logger.info(
+				{ blockId: receivedBlock.id, height: receivedBlock.height },
+				'Starting synchronizer',
+			);
+			const receivedBlockInstance = await this.processorModule.deserialize(
+				receivedBlock,
+			);
+
 			// Moving to a Different Chain
 			// 1. Step: Validate new tip of chain
-			await this.processorModule.validateDetached(receivedBlock);
+			await this.processorModule.validateDetached(receivedBlockInstance);
 
 			// Choose the right mechanism to sync
-			const validMechanism = await this._determineSyncMechanism(receivedBlock);
+			const validMechanism = await this._determineSyncMechanism(
+				receivedBlockInstance,
+			);
 
 			if (!validMechanism) {
 				return this.logger.info(
-					{ blockId: receivedBlock.id },
+					{ blockId: receivedBlockInstance.id },
 					'Syncing mechanism could not be determined for the given block',
 				);
 			}
 
 			this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
 
-			await validMechanism.run(receivedBlock, peerId);
+			await validMechanism.run(receivedBlockInstance, peerId);
 		} finally {
 			this.active = false;
 		}
@@ -142,15 +153,20 @@ class Synchronizer {
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	async _determineSyncMechanism(receivedBlock) {
 		// Loop through to find first mechanism which return true for isValidFor(receivedBlock)
+		let selectedMechanism;
 
-		// eslint-disable-next-line no-restricted-syntax
-		for await (const mechanism of this.mechanisms) {
+		for (const mechanism of this.mechanisms) {
 			if (await mechanism.isValidFor(receivedBlock)) {
-				return mechanism;
+				if (selectedMechanism) {
+					throw new Error(
+						'Multiple mechanisms cannot be valid at the same time',
+					);
+				}
+				selectedMechanism = mechanism;
 			}
 		}
 
-		return undefined;
+		return selectedMechanism;
 	}
 }
 

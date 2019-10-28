@@ -20,11 +20,6 @@ class BaseSynchronizer {
 		this.storage = storage;
 		this.logger = logger;
 		this.channel = channel;
-		this.active = false;
-	}
-
-	get isActive() {
-		return this.active;
 	}
 
 	async run() {

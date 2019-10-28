@@ -103,6 +103,7 @@ const deleteBlocksAfterHeight = async (
  * @return {Promise<void>}
  */
 const restoreBlocksUponStartup = async (
+	logger,
 	blocksModule,
 	processorModule,
 	storageModule,
@@ -112,25 +113,30 @@ const restoreBlocksUponStartup = async (
 	const blockHighestHeight = tempBlocks.reduce((prev, current) =>
 		prev.height > current.height ? prev : current,
 	);
+	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
+		prev.height < current.height ? prev : current,
+	);
 
 	const nextTempBlock = await processorModule.deserialize(
 		blockHighestHeight.fullBlock,
 	);
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
-	const blockHashPriority =
+	const blockHasPriority =
 		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
 		forkStatus === FORK_STATUS_VALID_BLOCK;
 
 	// Block in the temp table has preference over current tip of the chain
-	if (blockHashPriority) {
+	if (blockHasPriority) {
+		logger.info('Restoring blocks from temporary table');
 		await deleteBlocksAfterHeight(
 			processorModule,
 			blocksModule,
-			nextTempBlock.height - 1,
+			blockLowestHeight.height - 1,
 			false,
 		);
 		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_block table
 		await restoreBlocks(blocksModule, processorModule);
+		logger.info('Chain successfully restored');
 	} else {
 		// Not different chain - Delete remaining blocks from temp_block table
 		await clearBlocksTempTable(storageModule);
