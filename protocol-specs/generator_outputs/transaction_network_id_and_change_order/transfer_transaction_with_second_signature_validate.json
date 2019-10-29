@@ -1,0 +1,42 @@
+{
+	"title": "Valid transfer transaction with second signature",
+	"summary": "A valid transfer transaction with second signature",
+	"config": "devnet",
+	"runner": "transaction_network_id_and_change_order",
+	"handler": "transfer_transaction_with_second_signature_validate",
+	"testCases": {
+		"input": {
+			"account": {
+				"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",
+				"privateKey": "8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"publicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"address": "2129300327344985743L"
+			},
+			"secondPassphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"transaction": {
+				"type": 8,
+				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"timestamp": 54316325,
+				"asset": {
+					"recipientId": "18141291412139607230L",
+					"amount": "1234567890",
+					"data": "random data"
+				}
+			}
+		},
+		"output": {
+			"type": 8,
+			"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+			"timestamp": 54316325,
+			"asset": {
+				"recipientId": "18141291412139607230L",
+				"amount": "1234567890",
+				"data": "random data"
+			},
+			"signature": "b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d",
+			"signSignature": "c4b0ca84aa4596401c3041a1638e670d6278e0e18949f027b3d7ede4f2f0a1685df7aec768b1a3c49acfe7ded9e7f5230998f06b0d58371bcba5a00695fb6901",
+			"id": "1856045075247127242"
+		}
+	}
+}
