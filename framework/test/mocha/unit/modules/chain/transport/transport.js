@@ -142,11 +142,12 @@ describe('transport', () => {
 		];
 
 		storageStub = {
-			query: sinonSandbox.spy(),
-			get: sinonSandbox.stub(),
 			entities: {
 				Block: {
 					get: sinonSandbox.stub().resolves(),
+				},
+				Transaction: {
+					isPersisted: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -1196,24 +1197,110 @@ describe('transport', () => {
 				});
 
 				describe('checkTransactionsIDs', () => {
+					let resultTransactionsIDsCheck;
+
 					describe('when validator.validate succeeds', () => {
 						beforeEach(async () => {
 							query = {
 								transactions: transactionsList,
 							};
-							transportModule.transactionPoolModule.transactionInPool = sinonSandbox.stub();
+							validator.validate.returns(true);
 						});
 
-						it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
-							validator.validate.returns(true);
-							await transportModule.checkTransactionsIDs(query);
-							for (const transactionToCheck of transactionsList) {
-								expect(
-									transportModule.transactionPoolModule.transactionInPool.calledWith(
-										transactionToCheck.id,
-									),
-								).to.be.true;
-							}
+						describe('when transaction is neither in the queues, nor in the database', () => {
+							beforeEach(async () => {
+								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
+									.stub()
+									.returns(false);
+								transportModule.storage.entities.Transaction.isPersisted = sinonSandbox
+									.stub()
+									.resolves(false);
+								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
+									query,
+								);
+							});
+
+							it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+								for (const transactionToCheck of transactionsList) {
+									expect(
+										transportModule.transactionPoolModule.transactionInPool,
+									).to.be.calledWith(transactionToCheck.id);
+								}
+							});
+
+							it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
+								for (const transactionToCheck of transactionsList) {
+									expect(
+										transportModule.storage.entities.Transaction.isPersisted,
+									).to.be.calledWith({ id: transactionToCheck.id });
+								}
+							});
+
+							it('should return array of transactions ids', async () =>
+								expect(resultTransactionsIDsCheck).to.include.members([
+									transactionsList[0].id,
+									transactionsList[1].id,
+								]));
+						});
+
+						describe('when transaction is in the queues', () => {
+							beforeEach(async () => {
+								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
+									.stub()
+									.returns(true);
+								transportModule.storage.entities.Transaction.isPersisted = sinonSandbox.stub();
+								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
+									query,
+								);
+							});
+
+							it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+								for (const transactionToCheck of transactionsList) {
+									expect(
+										transportModule.transactionPoolModule.transactionInPool,
+									).to.be.calledWith(transactionToCheck.id);
+								}
+							});
+
+							it('should not call storage.entities.Transaction.get', async () =>
+								expect(transportModule.storage.entities.Transaction.isPersisted)
+									.to.have.not.been.called);
+
+							it('should return empty array', async () =>
+								expect(resultTransactionsIDsCheck).to.be.an('array').empty);
+						});
+
+						describe('when transaction exists in the database', () => {
+							beforeEach(async () => {
+								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
+									.stub()
+									.returns(false);
+								transportModule.storage.entities.Transaction.isPersisted = sinonSandbox
+									.stub()
+									.resolves(true);
+								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
+									query,
+								);
+							});
+
+							it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+								for (const transactionToCheck of transactionsList) {
+									expect(
+										transportModule.transactionPoolModule.transactionInPool,
+									).to.be.calledWith(transactionToCheck.id);
+								}
+							});
+
+							it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
+								for (const transactionToCheck of transactionsList) {
+									expect(
+										transportModule.storage.entities.Transaction.isPersisted,
+									).to.be.calledWith({ id: transactionToCheck.id });
+								}
+							});
+
+							it('should return empty array', async () =>
+								expect(resultTransactionsIDsCheck).to.be.an('array').empty);
 						});
 					});
 

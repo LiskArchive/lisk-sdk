@@ -434,12 +434,16 @@ class Transport {
 
 		// Check if any transaction is in the queues.
 		for (const transaction of query.transactions) {
-			if (this.transactionPoolModule.transactionInPool(transaction.id)) {
-				unknownTransactions.push(transaction.id);
+			if (!this.transactionPoolModule.transactionInPool(transaction.id)) {
+				const isPersisted = await this.storage.entities.Transaction.isPersisted(
+					{ id: transaction.id },
+				);
+				if (!isPersisted) {
+					// Check if any transaction exists in the database.
+					unknownTransactions.push(transaction.id);
+				}
 			}
 		}
-
-		// TODO: Check if any transaction exists in the database.
 
 		// Send request of those transactions we are not aware of.
 		return unknownTransactions;
