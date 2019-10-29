@@ -88,7 +88,7 @@ describe('P2P.send', () => {
 
 		firstP2PNode.send({ event: 'bar', data: 'test' });
 
-		await wait(300);
+		await wait(100);
 
 		expect(collectedMessages).to.be.an('array');
 		expect(collectedMessages.length).to.be.eql(connectedPeers);

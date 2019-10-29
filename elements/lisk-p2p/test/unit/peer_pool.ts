@@ -454,31 +454,27 @@ describe('peerPool', () => {
 	});
 
 	describe('#_addOutboundPeer', () => {
-		let getPeerStub: any;
-		let getAllConnectedPeerInfosStub: any;
+		let hasPeerStub: any;
+		let getPeersStub: any;
 		let _bindHandlersToPeerStub: any;
 
 		beforeEach(async () => {
-			getPeerStub = sandbox
-				.stub(peerPool, 'getPeer')
-				.returns(peerObject as Peer);
+			hasPeerStub = sandbox.stub(peerPool, 'hasPeer').returns(true);
 
-			getAllConnectedPeerInfosStub = sandbox
-				.stub(peerPool, 'getAllConnectedPeerInfos')
-				.returns([] as P2PPeerInfo[]);
+			getPeersStub = sandbox.stub(peerPool, 'getPeers').returns([] as Peer[]);
 		});
 
-		it('should call getPeer with peerId', async () => {
+		it('should call hasPeer with peerId', async () => {
 			(peerPool as any)._addOutboundPeer(peerObject as any);
 
-			expect(getPeerStub).to.be.calledWithExactly(peerId);
+			expect(hasPeerStub).to.be.calledWithExactly(peerId);
 		});
 
 		it('should call getAllConnectedPeerInfos with OutboundPeer', async () => {
-			getPeerStub.returns(undefined);
+			hasPeerStub.returns(false);
 			(peerPool as any)._addOutboundPeer(peerObject as any);
 
-			expect(getAllConnectedPeerInfosStub).to.be.calledOnce;
+			expect(getPeersStub).to.be.calledOnce;
 		});
 
 		it('should add peer to peerMap', async () => {
@@ -489,8 +485,8 @@ describe('peerPool', () => {
 		});
 
 		it('should call _bindHandlersToPeer', async () => {
-			getPeerStub.returns(undefined);
-			getAllConnectedPeerInfosStub.returns([]);
+			hasPeerStub.returns(false);
+			getPeersStub.returns([]);
 			_bindHandlersToPeerStub = sandbox.stub(
 				peerPool as any,
 				'_bindHandlersToPeer',
@@ -501,8 +497,8 @@ describe('peerPool', () => {
 		});
 
 		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
-			getPeerStub.returns(undefined);
-			getAllConnectedPeerInfosStub.returns([]);
+			hasPeerStub.returns(false);
+			getPeersStub.returns([]);
 			(peerPool as any)._nodeInfo = {
 				os: 'darwin',
 				protocolVersion: '1.0.1',
