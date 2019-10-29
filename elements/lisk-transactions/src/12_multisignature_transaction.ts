@@ -192,6 +192,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 			return createResponse(this.id, errors);
 		}
+
 		if (
 			errors &&
 			errors.length === 1 &&

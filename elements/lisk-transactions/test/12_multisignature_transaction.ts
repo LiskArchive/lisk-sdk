@@ -20,15 +20,25 @@ import { MultisignatureTransaction } from '../src/12_multisignature_transaction'
 import { Account, TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { MockStateStore as store } from './helpers';
-import {
-	validMultisignatureAccount,
-	validMultisignatureRegistrationTransaction,
-	validMultisignatureRegistrationTransactionNoSigs,
-	validTransaction,
-} from '../fixtures';
+import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/multi_signature_transaction_validate.json';
+import { validTransaction } from '../fixtures';
 
 describe('Multisignature transaction class', () => {
-	const validMultisignatureTransaction = validMultisignatureRegistrationTransaction;
+	const validMultisignatureRegistrationTransaction =
+		multisignatureFixture.testCases.output;
+	const {
+		signatures,
+		...validMultisignatureRegistrationTransactionNoSigs
+	} = validMultisignatureRegistrationTransaction;
+	const validMultisignatureAccount = {
+		...multisignatureFixture.testCases.input.account,
+		membersPublicKeys: multisignatureFixture.testCases.input.coSigners.map(
+			account => account.publicKey,
+		),
+		balance: '94378900000',
+		multiMin: 2,
+		multiLifetime: 22,
+	};
 	const {
 		membersPublicKeys,
 		multiLifetime,
@@ -43,10 +53,9 @@ describe('Multisignature transaction class', () => {
 	let storeAccountCacheStub: sinon.SinonStub;
 	let storeAccountGetStub: sinon.SinonStub;
 	let storeAccountSetStub: sinon.SinonStub;
-	let multisigTx: any;
 	beforeEach(async () => {
 		validTestTransaction = new MultisignatureTransaction({
-			...validMultisignatureTransaction,
+			...validMultisignatureRegistrationTransaction,
 			networkIdentifier,
 		});
 		nonMultisignatureSender = {
@@ -93,9 +102,9 @@ describe('Multisignature transaction class', () => {
 
 		it('should throw TransactionMultiError when asset min is not a number', async () => {
 			const invalidMultisignatureTransactionData = {
-				...validMultisignatureTransaction,
+				...validMultisignatureRegistrationTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
+					...validMultisignatureRegistrationTransaction.asset,
 					min: '2',
 				},
 			};
@@ -107,9 +116,9 @@ describe('Multisignature transaction class', () => {
 
 		it('should not throw TransactionMultiError when asset lifetime is not a number', async () => {
 			const invalidMultisignatureTransactionData = {
-				...validMultisignatureTransaction,
+				...validMultisignatureRegistrationTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
+					...validMultisignatureRegistrationTransaction.asset,
 					lifetime: '1',
 				},
 			};
@@ -123,9 +132,10 @@ describe('Multisignature transaction class', () => {
 	describe('#assetToBytes', () => {
 		it('should return valid buffer', async () => {
 			const assetBytes = (validTestTransaction as any).assetToBytes();
+
 			expect(assetBytes).to.eql(
 				Buffer.from(
-					'02012b343061663634333236356137313838343466336461633536636531376165316437643437643061323461333561323737613061366362306261616131393339662b643034326164336631613562303432646463356161383063343236376235626664336234646461336136383264613061336566373236393430393334376164622b35343266646330303839363465616363353830303839323731333533323638643635356162356563323832393638376161646332373836353366616433336366',
+					'02162b306232313166636534623631353038333730316362386138633939343037653436346232663961613466333637303935333232646531623737653566636662652b363736366365323830656239396534356432636337643963386338353237323039343064616235643639663438306538303437376139376234323535643564382b31333837643865633633303638303766666436666532376561333434333938353736356331313537393238626230393930343330373935366634366139393732',
 					'hex',
 				),
 			);
@@ -151,8 +161,8 @@ describe('Multisignature transaction class', () => {
 			const conflictTransaction = {
 				...validTransaction,
 				senderPublicKey:
-					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				type: 4,
+					'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+				type: 12,
 			};
 			const {
 				errors,
@@ -199,7 +209,7 @@ describe('Multisignature transaction class', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
+					...validMultisignatureRegistrationTransaction.asset,
 					min: 18,
 				},
 			};
@@ -212,7 +222,7 @@ describe('Multisignature transaction class', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
+					...validMultisignatureRegistrationTransaction.asset,
 					lifetime: 0,
 				},
 			};
@@ -223,10 +233,10 @@ describe('Multisignature transaction class', () => {
 
 		it('should return error when keysgroup includes invalid keys', async () => {
 			const invalidTransaction = {
-				...validMultisignatureTransaction,
+				...validMultisignatureRegistrationTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
-					keysgroup: validMultisignatureTransaction.asset.keysgroup.map(
+					...validMultisignatureRegistrationTransaction.asset,
+					keysgroup: validMultisignatureRegistrationTransaction.asset.keysgroup.map(
 						(key: string) => key.replace('+', ''),
 					),
 				},
@@ -239,9 +249,9 @@ describe('Multisignature transaction class', () => {
 
 		it('should return error when keysgroup has too many keys', async () => {
 			const invalidTransaction = {
-				...validMultisignatureTransaction,
+				...validMultisignatureRegistrationTransaction,
 				asset: {
-					...validMultisignatureTransaction.asset,
+					...validMultisignatureRegistrationTransaction.asset,
 					keysgroup: [
 						'+40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f',
 						'+d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb',
@@ -271,13 +281,13 @@ describe('Multisignature transaction class', () => {
 
 	describe('#processMultisignatures', () => {
 		it('should return status ok if all signatures are present', async () => {
-			storeAccountGetStub.returns('18160565574430594874L');
-			const invalidTransaction = {
-				...multisigTx,
-			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
+			const transaction = new MultisignatureTransaction({
+				...validTestTransaction.toJSON(),
+				networkIdentifier,
+			});
 
 			const { status, errors } = transaction.processMultisignatures(store);
+
 			expect(status).to.equal(Status.OK);
 			expect(errors).to.be.empty;
 		});
@@ -285,8 +295,10 @@ describe('Multisignature transaction class', () => {
 		it('should return error with pending status when signatures does not include all keysgroup', async () => {
 			storeAccountGetStub.returns(nonMultisignatureSender);
 			const invalidTransaction = {
-				...validMultisignatureTransaction,
-				signatures: validMultisignatureTransaction.signatures.slice(1),
+				...validMultisignatureRegistrationTransaction,
+				signatures: validMultisignatureRegistrationTransaction.signatures.slice(
+					1,
+				),
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
 
@@ -299,7 +311,7 @@ describe('Multisignature transaction class', () => {
 		it('should return error with pending status when transaction signatures missing', async () => {
 			storeAccountGetStub.returns(nonMultisignatureSender);
 			const invalidTransaction = {
-				...validMultisignatureTransaction,
+				...validMultisignatureRegistrationTransaction,
 				signatures: [],
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
@@ -313,10 +325,10 @@ describe('Multisignature transaction class', () => {
 		it('should return error with fail status when transaction signatures are duplicated', async () => {
 			storeAccountGetStub.returns(nonMultisignatureSender);
 			const invalidTransaction = {
-				...validMultisignatureTransaction,
+				...validMultisignatureRegistrationTransaction,
 				signatures: [
-					...validMultisignatureTransaction.signatures,
-					...validMultisignatureTransaction.signatures.slice(0, 1),
+					...validMultisignatureRegistrationTransaction.signatures,
+					...validMultisignatureRegistrationTransaction.signatures.slice(0, 1),
 				],
 			};
 			const transaction = new MultisignatureTransaction(invalidTransaction);
@@ -396,24 +408,32 @@ describe('Multisignature transaction class', () => {
 		let multisigTrs: MultisignatureTransaction;
 
 		beforeEach(() => {
-			multisigTrs = new MultisignatureTransaction(
-				validMultisignatureRegistrationTransactionNoSigs,
-			);
+			multisigTrs = new MultisignatureTransaction({
+				...validMultisignatureRegistrationTransactionNoSigs,
+				networkIdentifier,
+			});
 
 			membersSignatures = [
 				{
+					transactionId: '13937567402168253247',
 					publicKey:
-						'142d1f24e17d3c90b0f2abdf49c2b14b02782e49b2ecfe85462ed12f654d60df',
+						'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 					signature:
-						'd1b78f5eb35b4e1de7f740d2f62f0e2acab24c5b446719cc70601319f4a3666fbcda7980e5d9c6ff3bfa8b54ee383eed5531723e0f1748d0c84b7a229759b000',
-					transactionId: multisigTrs.id,
+						'fd1bc70422631e936019eaa7be4f8bc886dacd6711992c62354bc27eb161648f1d454dc12d2c6c607d6d3c7f4290e8de575f4fabf46a3ea2c62c8a135b4f2304',
 				},
 				{
+					transactionId: '13937567402168253247',
 					publicKey:
-						'bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c',
+						'6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
 					signature:
-						'aa956854dae10792ba9006e4dddd0d7e370af4645df8708d1b10f088304320f0e7f2427d883755a997c07b53978c4d8cf56b95e0f740d8d50ed8c1f2dc85180f',
-					transactionId: multisigTrs.id,
+						'66f3ea07fca295241fa49b01ada88baf9c8f394363e1d0230d5adacfe75692fcc2e6f698f934e9509e44e88701e9faf7203f826064ab33f57683d3137de3310e',
+				},
+				{
+					transactionId: '13937567402168253247',
+					publicKey:
+						'1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
+					signature:
+						'3b9dbe7ad5ef2cd2dc915e7230456e9d40520492eec32f46a874cad1497d9e10c42859cbd95f6e671abd708a977c6c9ecdfe326a1e24eeaa56fb28801d0de70e',
 				},
 			];
 		});
@@ -456,8 +476,7 @@ describe('Multisignature transaction class', () => {
 			});
 
 			const expectedError =
-				'Failed to add signature eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c.';
-
+				"Public Key 'bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c' is not a member.";
 			expect(status).to.eql(Status.FAIL);
 			expect(errors[0].message).to.be.eql(expectedError);
 			expect(multisigTrs.signatures).to.be.empty;

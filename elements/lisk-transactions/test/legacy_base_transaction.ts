@@ -38,7 +38,7 @@ import {
 	validSecondSignatureTransaction,
 } from '../fixtures';
 import * as utils from '../src/utils';
-import { TransferTransaction } from '../src';
+import { TransferTransaction } from '../src/0_transfer_transaction';
 import { SignatureObject } from '../src/create_signature_object';
 
 describe('Base transaction class', () => {
@@ -224,11 +224,11 @@ describe('Base transaction class', () => {
 
 		it('should return transaction json', async () => {
 			const transactionJSON = validTestTransaction.toJSON();
-
+			const { networkIdentifier, ...txWithoutNid } = defaultTransaction;
 			expect(transactionJSON).to.be.eql({
-				...defaultTransaction,
+				...txWithoutNid,
 				fee: '10000000',
-				senderId: '18278674964748191682L',
+				senderId: validTestTransaction.senderId,
 			});
 		});
 	});
@@ -306,7 +306,7 @@ describe('Base transaction class', () => {
 
 		it('should return a buffer without signatures bytes', async () => {
 			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
+				'00000000005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900000000000000000000000000000000',
 				'hex',
 			);
 
@@ -322,7 +322,7 @@ describe('Base transaction class', () => {
 				.stub(validTestTransaction as any, 'getBasicBytes')
 				.returns(
 					Buffer.from(
-						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
+						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000fd8b1931b63c95285eac83d21fc280b0c064e03187934ec3548499ab277334b0be7689c6d14c587abb43e990c9af1553d3b0476489ebed067bacb324b682c80b',
 						'hex',
 					),
 				);
@@ -365,7 +365,7 @@ describe('Base transaction class', () => {
 
 		it('should return a buffer with signature bytes', async () => {
 			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243000000000000000000000000000000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+				'00000000005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900000000000000000000000000000000fd8b1931b63c95285eac83d21fc280b0c064e03187934ec3548499ab277334b0be7689c6d14c587abb43e990c9af1553d3b0476489ebed067bacb324b682c80b',
 				'hex',
 			);
 
@@ -490,7 +490,7 @@ describe('Base transaction class', () => {
 				validTestTransaction.senderPublicKey,
 				validTestTransaction.signature,
 				Buffer.from(
-					'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
+					'00000000005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900000000000000000000000000000000',
 					'hex',
 				),
 				validTestTransaction.id,
