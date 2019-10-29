@@ -123,33 +123,29 @@ export const getNetgroup = (address: string, secret: number): number => {
 // TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
 export const removeCommonIPsFromLists = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
-	controlPeerList: ReadonlyArray<P2PPeerInfo>,
 ): ReadonlyArray<P2PPeerInfo> => {
 	const peerMap = new Map<string, P2PPeerInfo>();
 
-	for (const controlPeer of controlPeerList) {
-		for (const peer of peerList) {
-			if (peer.ipAddress === controlPeer.ipAddress) {
-				const { sharedState: tempSharedState } = controlPeer;
-				const { sharedState } = peer;
-				const controlPeerHeight = tempSharedState
-					? tempSharedState.height
-						? (tempSharedState.height as number)
-						: 0
-					: 0;
-				const peerHeight = sharedState
-					? sharedState.height
-						? (sharedState.height as number)
-						: 0
-					: 0;
-
-				if (peerHeight > controlPeerHeight) {
-					peerMap.set(peer.ipAddress, peer);
-				}
-				if (!peerMap.get(peer.ipAddress)) {
-					peerMap.set(peer.ipAddress, controlPeer);
-				}
+	for (const peer of peerList) {
+		const { sharedState } = peer;
+		const peerHeight = sharedState
+			? sharedState.height
+				? (sharedState.height as number)
+				: 0
+			: 0;
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			const { sharedState: tempSharedState } = tempPeer;
+			const tempPeerHeight = tempSharedState
+				? tempSharedState.height
+					? (tempSharedState.height as number)
+					: 0
+				: 0;
+			if (peerHeight > tempPeerHeight) {
+				peerMap.set(peer.ipAddress, peer);
 			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
 		}
 	}
 

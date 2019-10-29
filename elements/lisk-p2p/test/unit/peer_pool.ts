@@ -453,7 +453,7 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe('#addOutboundPeer', () => {
+	describe('#_addOutboundPeer', () => {
 		let getPeerStub: any;
 		let getAllConnectedPeerInfosStub: any;
 		let _bindHandlersToPeerStub: any;
@@ -469,21 +469,21 @@ describe('peerPool', () => {
 		});
 
 		it('should call getPeer with peerId', async () => {
-			(peerPool as any).addOutboundPeer(peerObject as any);
+			(peerPool as any)._addOutboundPeer(peerObject as any);
 
 			expect(getPeerStub).to.be.calledWithExactly(peerId);
 		});
 
 		it('should call getAllConnectedPeerInfos with OutboundPeer', async () => {
 			getPeerStub.returns(undefined);
-			(peerPool as any).addOutboundPeer(peerObject as any);
+			(peerPool as any)._addOutboundPeer(peerObject as any);
 
 			expect(getAllConnectedPeerInfosStub).to.be.calledOnce;
 		});
 
 		it('should add peer to peerMap', async () => {
 			(peerPool as any)._peerMap = new Map([]);
-			(peerPool as any).addOutboundPeer(peerObject as any);
+			(peerPool as any)._addOutboundPeer(peerObject as any);
 
 			expect((peerPool as any)._peerMap.has(peerId)).to.exist;
 		});
@@ -495,7 +495,7 @@ describe('peerPool', () => {
 				peerPool as any,
 				'_bindHandlersToPeer',
 			);
-			(peerPool as any).addOutboundPeer(peerObject as any);
+			(peerPool as any)._addOutboundPeer(peerObject as any);
 
 			expect(_bindHandlersToPeerStub).to.be.calledOnce;
 		});
@@ -512,7 +512,7 @@ describe('peerPool', () => {
 				peerPool as any,
 				'_applyNodeInfoOnPeer',
 			);
-			(peerPool as any).addOutboundPeer(peerObject as any);
+			(peerPool as any)._addOutboundPeer(peerObject as any);
 
 			expect(_applyNodeInfoOnPeerStub).to.have.been.calledOnce;
 		});
@@ -526,7 +526,7 @@ describe('peerPool', () => {
 
 	describe('#getPeersCountPerKind', () => {
 		beforeEach(async () => {
-			(peerPool as any).addOutboundPeer(peerObject as any);
+			(peerPool as any)._addOutboundPeer(peerObject as any);
 		});
 
 		it('should return an object with outboundCount and inboundCount', async () => {

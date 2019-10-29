@@ -137,9 +137,10 @@ export const destroyNetwork = async (
 	await Promise.all(
 		p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 	);
+
+	SCServerSocket.prototype = serverSocketPrototypeBackup;
+
 	await wait(
 		networkDestroyWaitTime ? networkDestroyWaitTime : NETWORK_DESTROY_WAIT_TIME,
 	);
-
-	SCServerSocket.prototype = serverSocketPrototypeBackup;
 };

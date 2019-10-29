@@ -70,7 +70,6 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
-import { removeCommonIPsFromLists } from './utils/misc';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -425,12 +424,6 @@ export class PeerPool extends EventEmitter {
 			disconnectedFixedPeers.length -
 			outboundCount;
 
-		const disconnectedPeers = [
-			...disconnectedNewPeers,
-			...disconnectedTriedPeers,
-			...disconnectedFixedPeers,
-		];
-
 		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
 			newPeers: disconnectedNewPeers,
@@ -439,10 +432,9 @@ export class PeerPool extends EventEmitter {
 			peerLimit,
 		});
 
-		removeCommonIPsFromLists(
-			[...peersToConnect, ...disconnectedFixedPeers],
-			disconnectedPeers,
-		).forEach((peerInfo: P2PPeerInfo) => this._addOutboundPeer(peerInfo));
+		[...peersToConnect, ...disconnectedFixedPeers].forEach(
+			(peerInfo: P2PPeerInfo) => this._addOutboundPeer(peerInfo),
+		);
 	}
 
 	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {

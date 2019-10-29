@@ -147,10 +147,7 @@ describe('utils/misc', () => {
 
 			beforeEach(async () => {
 				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
-				uniquePeerListByIp = removeCommonIPsFromLists(
-					duplicatesList,
-					duplicatesList,
-				);
+				uniquePeerListByIp = removeCommonIPsFromLists(duplicatesList);
 			});
 
 			it('should remove the duplicate peers with the same ips', async () => {
@@ -185,10 +182,7 @@ describe('utils/misc', () => {
 				};
 
 				const duplicatesList = [...samplePeers, badPeer1, badPeer2];
-				uniquePeerListByIp = removeCommonIPsFromLists(
-					duplicatesList,
-					duplicatesList,
-				);
+				uniquePeerListByIp = removeCommonIPsFromLists(duplicatesList);
 			});
 
 			it('should remove the duplicate ip and choose the one with higher height', async () => {
@@ -217,10 +211,7 @@ describe('utils/misc', () => {
 				};
 
 				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = removeCommonIPsFromLists(
-					duplicatesList,
-					duplicatesList,
-				);
+				uniquePeerListByIp = removeCommonIPsFromLists(duplicatesList);
 			});
 
 			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
