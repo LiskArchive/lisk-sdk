@@ -251,7 +251,7 @@ module.exports = class Chain {
 									const { data: result } = await this.channel.invoke(
 										'network:requestFromPeer',
 										{
-											procedure: 'getTransactionsByIDs',
+											procedure: 'getTransactions',
 											data: unknownTransactions,
 										},
 										peerId,
