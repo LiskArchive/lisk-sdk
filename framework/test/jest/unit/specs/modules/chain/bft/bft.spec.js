@@ -583,6 +583,129 @@ describe('bft', () => {
 			});
 		});
 
+		describe('#isBFTProtocolCompliant', () => {
+			let bft;
+			let blocks;
+
+			beforeEach(async () => {
+				bft = new BFT(bftParams);
+				storageMock.entities.Block.get.mockReturnValue([]);
+				await bft.init();
+				storageMock.entities.Block.get.mockClear();
+
+				// Setup BFT module with blocks
+				const numberOfBlocks = 101;
+				blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+
+				for (const block of blocks) {
+					await bft.addNewBlock(block);
+				}
+			});
+
+			it('should THROW if block is not provided', async () => {
+				expect(() => bft.isBFTProtocolCompliant()).toThrow(
+					'No block was provided to be verified',
+				);
+			});
+
+			it('should return TRUE when B.maxHeightPreviouslyForged is equal to 0', async () => {
+				const block = {
+					height: 102,
+					generatorPublicKey: 'zxc',
+					maxHeightPreviouslyForged: 0,
+				};
+
+				expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+			});
+
+			it('should return FALSE when B.maxHeightPreviouslyForged is equal to B.height', async () => {
+				const block = {
+					height: 203,
+					maxHeightPreviouslyForged: 203,
+				};
+
+				expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+			});
+
+			it('should return FALSE when B.maxHeightPreviouslyForged is greater than B.height', async () => {
+				const block = {
+					height: 203,
+					maxHeightPreviouslyForged: 204,
+				};
+
+				expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+			});
+
+			describe('when B.height - B.maxHeightPreviouslyForged is less than 303', () => {
+				it('should return FALSE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					const block = {
+						height: 403,
+						generatorPublicKey: 'zxc',
+						maxHeightPreviouslyForged: 101,
+					};
+
+					expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					const block = {
+						height: 403,
+						generatorPublicKey: blocks[100].generatorPublicKey,
+						maxHeightPreviouslyForged: 101,
+					};
+
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
+			});
+
+			describe('when B.height - B.maxHeightPreviouslyForged is equal to 303', () => {
+				it('should return FALSE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					const block = {
+						height: 404,
+						generatorPublicKey: 'zxc',
+						maxHeightPreviouslyForged: 101,
+					};
+
+					expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					const block = {
+						height: 404,
+						generatorPublicKey: blocks[100].generatorPublicKey,
+						maxHeightPreviouslyForged: 101,
+					};
+
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
+			});
+
+			describe('when B.height - B.maxHeightPreviouslyForged is greater than 303', () => {
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					const block = {
+						height: 405,
+						generatorPublicKey: 'zxc',
+						maxHeightPreviouslyForged: 101,
+					};
+
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					const block = {
+						height: 405,
+						generatorPublicKey: blocks[100].generatorPublicKey,
+						maxHeightPreviouslyForged: 101,
+					};
+
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
+			});
+		});
+
 		// TODO: Remove tests for private methods
 		describe('#_initFinalityManager', () => {
 			it('should call ChainMetaEntity.getKey to get stored finalized height', async () => {
