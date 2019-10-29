@@ -88,7 +88,10 @@ export class TransferTransaction extends BaseTransaction {
 			};
 		} else {
 			// tslint:disable-next-line no-object-literal-type-assertion
-			this.asset = {} as TransferAsset;
+			this.asset = {
+				amount: new BigNum('0'),
+				recipientId: '',
+			} as TransferAsset;
 		}
 	}
 
@@ -98,11 +101,12 @@ export class TransferTransaction extends BaseTransaction {
 			BYTESIZES.AMOUNT,
 			'big',
 		);
-
-		const transactionRecipientID = intToBuffer(
-			this.asset.recipientId.slice(0, -1),
-			BYTESIZES.RECIPIENT_ID,
-		).slice(0, BYTESIZES.RECIPIENT_ID);
+		const transactionRecipientID = this.asset.recipientId
+			? intToBuffer(
+					this.asset.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  ).slice(0, BYTESIZES.RECIPIENT_ID)
+			: Buffer.alloc(0);
 
 		const dataBuffer = this.asset.data
 			? stringToBuffer(this.asset.data)

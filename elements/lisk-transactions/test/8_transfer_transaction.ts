@@ -19,18 +19,13 @@ import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { TransactionError } from '../src/errors';
-import { addTransactionFields, MockStateStore as store } from './helpers';
-import { validTransferAccount, validTransferTransactions } from '../fixtures';
+import { MockStateStore as store } from './helpers';
+import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 
 describe('Transfer transaction class', () => {
-	const validTransferTransaction = addTransactionFields(
-		validTransferTransactions[0],
-	);
-	const validSelfTransferTransaction = addTransactionFields(
-		validTransferTransactions[1],
-	);
+	const validTransferTransaction = fixture.testCases.output;
+	const validTransferAccount = fixture.testCases.input.account;
 	let validTransferTestTransaction: TransferTransaction;
-	let validSelfTransferTestTransaction: TransferTransaction;
 	let sender: Account;
 	let recipient: Account;
 	let storeAccountCacheStub: sinon.SinonStub;
@@ -42,11 +37,8 @@ describe('Transfer transaction class', () => {
 		validTransferTestTransaction = new TransferTransaction(
 			validTransferTransaction,
 		);
-		validSelfTransferTestTransaction = new TransferTransaction(
-			validSelfTransferTransaction,
-		);
-		sender = validTransferAccount[0];
-		recipient = validTransferAccount[1];
+		sender = { ...validTransferAccount, balance: '10000000000' };
+		recipient = { ...validTransferAccount, balance: '10000000000' };
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
 		storeAccountGetOrDefaultStub = sandbox
@@ -57,31 +49,31 @@ describe('Transfer transaction class', () => {
 
 	describe('#constructor', () => {
 		it('should create instance of TransferTransaction', async () => {
-			expect(validSelfTransferTestTransaction)
+			expect(validTransferTestTransaction)
 				.to.be.an('object')
 				.and.be.instanceof(TransferTransaction);
 		});
 
 		it('should set transfer asset data', async () => {
-			expect(validSelfTransferTestTransaction.asset.data).to.eql(
-				validSelfTransferTestTransaction.asset.data,
+			expect(validTransferTestTransaction.asset.data).to.eql(
+				validTransferTestTransaction.asset.data,
 			);
 		});
 
 		it('should set transfer asset amount', async () => {
-			expect(validSelfTransferTestTransaction.asset.amount.toString()).to.eql(
-				validSelfTransferTransaction.asset.amount,
+			expect(validTransferTestTransaction.asset.amount.toString()).to.eql(
+				validTransferTransaction.asset.amount,
 			);
 		});
 
 		it('should set transfer asset recipientId', async () => {
-			expect(validSelfTransferTestTransaction.asset.recipientId).to.eql(
-				validSelfTransferTransaction.asset.recipientId,
+			expect(validTransferTestTransaction.asset.recipientId).to.eql(
+				validTransferTransaction.asset.recipientId,
 			);
 		});
 
 		it('should set fee to transfer transaction fee amount', async () => {
-			expect(validSelfTransferTestTransaction.fee.toString()).to.eql(
+			expect(validTransferTestTransaction.fee.toString()).to.eql(
 				TRANSFER_FEE.toString(),
 			);
 		});
@@ -89,9 +81,9 @@ describe('Transfer transaction class', () => {
 
 	describe('#getBasicBytes', () => {
 		const expectedBytes =
-			'00c40068049becd3e545be91f85270d8a796ae3b9e8ec01a8cb479fef46a298b4efd943a0f000000000000000165b7848a47afca7061';
+			'0824cd3c03efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d00000000499602d2fbc2d06c336d04be72616e646f6d2064617461';
 		it('should return a buffer', async () => {
-			const basicBytes = (validSelfTransferTestTransaction as any).getBasicBytes();
+			const basicBytes = (validTransferTestTransaction as any).getBasicBytes();
 
 			expect(basicBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
 		});
@@ -112,7 +104,7 @@ describe('Transfer transaction class', () => {
 
 	describe('#assetToJSON', async () => {
 		it('should return an object of type transfer asset', async () => {
-			expect(validSelfTransferTestTransaction.assetToJSON())
+			expect(validTransferTestTransaction.assetToJSON())
 				.to.be.an('object')
 				.and.to.have.property('data')
 				.that.is.a('string');
@@ -121,10 +113,10 @@ describe('Transfer transaction class', () => {
 
 	describe('#prepare', async () => {
 		it('should call state store', async () => {
-			await validSelfTransferTestTransaction.prepare(store);
+			await validTransferTestTransaction.prepare(store);
 			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
-				{ address: validSelfTransferTestTransaction.senderId },
-				{ address: validSelfTransferTestTransaction.asset.recipientId },
+				{ address: validTransferTestTransaction.senderId },
+				{ address: validTransferTestTransaction.asset.recipientId },
 			]);
 		});
 	});
@@ -204,6 +196,7 @@ describe('Transfer transaction class', () => {
 	describe('#applyAsset', () => {
 		it('should return no errors', async () => {
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
+
 			expect(errors).to.be.empty;
 		});
 

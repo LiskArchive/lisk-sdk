@@ -429,6 +429,7 @@ export abstract class BaseTransaction {
 
 			return this.processMultisignatures(store);
 		}
+
 		// Else populate errors
 		const errors = valid
 			? []
@@ -553,8 +554,7 @@ export abstract class BaseTransaction {
 	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
-
+		transactionTimestamp.writeIntBE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		return Buffer.concat([
@@ -577,6 +577,7 @@ export abstract class BaseTransaction {
 		 * We are currently conducting a research to specify an optimal generic way of changing asset to bytes.
 		 * You can expect this enhanced implementation to be included in the next releases.
 		 */
+
 		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
 	}
 
