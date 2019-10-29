@@ -53,7 +53,7 @@ describe('peerPool', () => {
 		peerSelectionForConnection: selectPeersForConnection,
 		peerSelectionForRequest: selectPeersForRequest,
 		peerSelectionForSend: selectPeersForSend,
-		sendPeerLimit: 24,
+		sendPeerLimit: 16,
 		wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD,
 		wsMaxMessageRate: 100,
 		wsMaxMessageRatePenalty: 10,

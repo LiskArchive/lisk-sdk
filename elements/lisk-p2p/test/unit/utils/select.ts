@@ -174,7 +174,7 @@ describe('peer selector', () => {
 			const selectedPeers = selectPeersForSend({
 				peers: peerList,
 				nodeInfo,
-				peerLimit: 24,
+				peerLimit: 16,
 				messagePacket: { event: 'foo', data: {} },
 			});
 
@@ -194,7 +194,7 @@ describe('peer selector', () => {
 
 			expect(peerKindCounts.inbound)
 				.to.equal(peerKindCounts.outbound)
-				.to.equal(12);
+				.to.equal(8);
 		});
 	});
 

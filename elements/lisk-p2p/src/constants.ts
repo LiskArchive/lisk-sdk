@@ -18,7 +18,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
-export const DEFAULT_SEND_PEER_LIMIT = 24;
+export const DEFAULT_SEND_PEER_LIMIT = 16;
 // Max rate of WebSocket messages per second per peer.
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
