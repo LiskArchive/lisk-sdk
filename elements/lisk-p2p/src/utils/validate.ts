@@ -29,9 +29,9 @@ import {
 	P2PCompatibilityCheckReturnType,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PRequestPacket,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
-	ProtocolRPCRequestPacket,
 } from '../p2p_types';
 import { constructPeerId } from './misc';
 
@@ -220,14 +220,12 @@ export const validatePeersInfoList = (
 	}
 };
 
-export const validateRPCRequest = (
-	request: unknown,
-): ProtocolRPCRequestPacket => {
+export const validateRPCRequest = (request: unknown): P2PRequestPacket => {
 	if (!request) {
 		throw new InvalidRPCRequestError('Invalid request');
 	}
 
-	const rpcRequest = request as ProtocolRPCRequestPacket;
+	const rpcRequest = request as P2PRequestPacket;
 	if (typeof rpcRequest.procedure !== 'string') {
 		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}

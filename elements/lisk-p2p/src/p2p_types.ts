@@ -31,13 +31,6 @@ export interface P2PMessagePacket {
 }
 
 // TODO later: Switch to LIP protocol format.
-export interface ProtocolRPCRequestPacket {
-	readonly data: unknown;
-	readonly procedure: string;
-	readonly type: string;
-}
-
-// TODO later: Switch to LIP protocol format.
 export interface ProtocolMessagePacket {
 	readonly data: unknown;
 	readonly event: string;

@@ -21,7 +21,7 @@ import {
 } from '../../../src/utils';
 import {
 	ProtocolPeerInfo,
-	ProtocolRPCRequestPacket,
+	P2PRequestPacket,
 	ProtocolMessagePacket,
 } from '../../../src/p2p_types';
 
@@ -199,7 +199,7 @@ describe('utils/validate', () => {
 			procedure: 'list',
 			type: '',
 		};
-		let validatedRPCRequest: ProtocolRPCRequestPacket;
+		let validatedRPCRequest: P2PRequestPacket;
 
 		beforeEach(async () => {
 			validatedRPCRequest = validateRPCRequest(validRPCRequest);
