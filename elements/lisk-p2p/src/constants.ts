@@ -55,8 +55,6 @@ export const DEFAULT_PRODUCTIVITY = {
 // Peer inbound constants
 export const DEFAULT_PING_INTERVAL_MAX = 60000;
 export const DEFAULT_PING_INTERVAL_MIN = 20000;
-export const SOCKET_PING_MESSAGE = '#1';
-export const SOCKET_PONG_MESSAGE = '#2';
 
 // Peer directory constants
 export const DEFAULT_NEW_BUCKET_COUNT = 128;
@@ -68,9 +66,6 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
-export const INVALID_MESSAGE_RECEIVED_CODE = 4009;
-export const INVALID_MESSAGE_RECEIVED_REASON =
-	'Peer should not send invalid or internal messages';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';
