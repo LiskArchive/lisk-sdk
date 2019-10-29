@@ -23,6 +23,7 @@ import {
 	selectPeersForSend,
 } from '../../../src/utils/select';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
+import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
 	describe('#selectPeersForRequest', () => {
@@ -174,7 +175,7 @@ describe('peer selector', () => {
 			const selectedPeers = selectPeersForSend({
 				peers: peerList,
 				nodeInfo,
-				peerLimit: 16,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
 				messagePacket: { event: 'foo', data: {} },
 			});
 
@@ -194,7 +195,7 @@ describe('peer selector', () => {
 
 			expect(peerKindCounts.inbound)
 				.to.equal(peerKindCounts.outbound)
-				.to.equal(8);
+				.to.equal(DEFAULT_SEND_PEER_LIMIT / 2);
 		});
 	});
 

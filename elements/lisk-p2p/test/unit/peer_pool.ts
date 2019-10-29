@@ -42,6 +42,7 @@ import {
 	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
 	DEFAULT_RANDOM_SECRET,
 	INTENTIONAL_DISCONNECT_CODE,
+	DEFAULT_SEND_PEER_LIMIT,
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
 import { RequestFailError, SendFailError } from '../../src';
@@ -53,7 +54,7 @@ describe('peerPool', () => {
 		peerSelectionForConnection: selectPeersForConnection,
 		peerSelectionForRequest: selectPeersForRequest,
 		peerSelectionForSend: selectPeersForSend,
-		sendPeerLimit: 16,
+		sendPeerLimit: DEFAULT_SEND_PEER_LIMIT,
 		wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD,
 		wsMaxMessageRate: 100,
 		wsMaxMessageRatePenalty: 10,
