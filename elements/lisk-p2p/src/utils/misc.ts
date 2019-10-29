@@ -128,19 +128,17 @@ export const removeCommonIPsFromLists = (
 
 	for (const peer of peerList) {
 		const { sharedState } = peer;
-		const peerHeight = sharedState
-			? sharedState.height
-				? (sharedState.height as number)
-				: 0
-			: 0;
+		const peerHeight =
+			sharedState && sharedState.height ? (sharedState.height as number) : 0;
+
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
 			const { sharedState: tempSharedState } = tempPeer;
-			const tempPeerHeight = tempSharedState
-				? tempSharedState.height
+			const tempPeerHeight =
+				tempSharedState && tempSharedState.height
 					? (tempSharedState.height as number)
-					: 0
-				: 0;
+					: 0;
+
 			if (peerHeight > tempPeerHeight) {
 				peerMap.set(peer.ipAddress, peer);
 			}
