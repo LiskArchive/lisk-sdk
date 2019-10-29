@@ -123,17 +123,6 @@ class BlocksVerify {
 			block.blockSignature.toString('hex') === this.genesisBlock.blockSignature
 		);
 	}
-
-	async reloadRequired() {
-		const accounts = await this.storage.entities.Account.get(
-			{ isDelegate: true },
-			{ limit: null },
-		);
-		const delegatesPublicKeys = accounts.map(account => account.publicKey);
-		if (delegatesPublicKeys.length === 0) {
-			throw new Error('No delegates found');
-		}
-	}
 }
 
 module.exports = {
