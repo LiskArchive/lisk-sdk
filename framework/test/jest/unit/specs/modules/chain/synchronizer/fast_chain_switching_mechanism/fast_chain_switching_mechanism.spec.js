@@ -158,11 +158,11 @@ describe('fast_chain_switching_mechanism', () => {
 		const aPeer = '127.0.0.1:5000';
 		let aBlock;
 
-		function checkApplyPenaltyAndRestartIsCalled(
+		const checkApplyPenaltyAndRestartIsCalled = (
 			receivedBlock,
 			peerId,
 			reason,
-		) {
+		) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				{ peerId, reason },
 				'Applying penalty to peer and restarting synchronizer',
@@ -174,9 +174,9 @@ describe('fast_chain_switching_mechanism', () => {
 			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
 				block: receivedBlock,
 			});
-		}
+		};
 
-		function checkApplyPenaltyAndAbortIsCalled(peerId, err) {
+		const checkApplyPenaltyAndAbortIsCalled = (peerId, err) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				{ err, peerId, reason: err.reason },
 				'Applying penalty to peer and aborting synchronization mechanism',
@@ -185,9 +185,9 @@ describe('fast_chain_switching_mechanism', () => {
 				peerId,
 				penalty: 100,
 			});
-		}
+		};
 
-		function checkIfAbortIsCalled(error) {
+		const checkIfAbortIsCalled = error => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				{
 					err: error,
@@ -195,7 +195,7 @@ describe('fast_chain_switching_mechanism', () => {
 				},
 				`Aborting synchronization mechanism with reason: ${error.reason}`,
 			);
-		}
+		};
 
 		beforeEach(async () => {
 			aBlock = newBlock();
@@ -246,49 +246,51 @@ describe('fast_chain_switching_mechanism', () => {
 			expect(fastChainSwitchingMechanism.active).toBeFalsy();
 		});
 
-		it('should request the common block and try 10 times before giving up. If given up, it should apply a penalty to the peer and restart the mechanism', async () => {
-			// Arrange
-			const storageReturnValue = [
-				{
-					id: genesisBlockDevnet.id,
-				},
-				{
-					id: blocksModule.lastBlock.id,
-				},
-			];
-			when(storageMock.entities.Block.get)
-				.calledWith(
+		describe('when fail to request the common block', () => {
+			it('should give up after trying 10 times, apply penalty and restart the mechanism', async () => {
+				// Arrange
+				const storageReturnValue = [
 					{
-						height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
+						id: genesisBlockDevnet.id,
 					},
 					{
-						sort: 'height:asc',
+						id: blocksModule.lastBlock.id,
 					},
-				)
-				.mockResolvedValue(storageReturnValue);
-			// Simulate peer not sending back a common block
-			when(channelMock.invoke)
-				.calledWith('network:requestFromPeer', {
-					procedure: 'getHighestCommonBlock',
-					peerId: aPeer,
-					data: {
-						ids: storageReturnValue.map(blocks => blocks.id),
-					},
-				})
-				.mockResolvedValue({ data: undefined });
+				];
+				when(storageMock.entities.Block.get)
+					.calledWith(
+						{
+							height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
+						},
+						{
+							sort: 'height:asc',
+						},
+					)
+					.mockResolvedValue(storageReturnValue);
+				// Simulate peer not sending back a common block
+				when(channelMock.invoke)
+					.calledWith('network:requestFromPeer', {
+						procedure: 'getHighestCommonBlock',
+						peerId: aPeer,
+						data: {
+							ids: storageReturnValue.map(blocks => blocks.id),
+						},
+					})
+					.mockResolvedValue({ data: undefined });
 
-			// Act
-			await fastChainSwitchingMechanism.run(aBlock, aPeer);
+				// Act
+				await fastChainSwitchingMechanism.run(aBlock, aPeer);
 
-			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
-			expect(channelMock.invoke).toHaveBeenCalledTimes(10);
-			checkApplyPenaltyAndRestartIsCalled(
-				aBlock,
-				aPeer,
-				"Peer didn't return a common block or its height is lower than the finalized height of the chain",
-			);
-			expect(fastChainSwitchingMechanism.active).toBeFalsy();
+				// Assert
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
+				expect(channelMock.invoke).toHaveBeenCalledTimes(10);
+				checkApplyPenaltyAndRestartIsCalled(
+					aBlock,
+					aPeer,
+					"Peer didn't return a common block or its height is lower than the finalized height of the chain",
+				);
+				expect(fastChainSwitchingMechanism.active).toBeFalsy();
+			});
 		});
 
 		describe('given that the highest common block is found', () => {
