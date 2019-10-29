@@ -97,15 +97,6 @@ export interface ProtocolPeerInfo {
 	readonly [key: string]: unknown;
 }
 
-// TODO later: Switch to LIP protocol format.
-// This is a representation of the outbound peer object according to the current protocol.
-export interface ProtocolNodeInfo extends P2PSharedState {
-	readonly nethash: string;
-	readonly nonce: string;
-	readonly wsPort: number;
-	readonly httpPort: number;
-}
-
 export interface P2PConfig {
 	readonly blacklistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
@@ -185,18 +176,6 @@ export type P2PCheckPeerCompatibility = (
 	headers: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ) => P2PCompatibilityCheckReturnType;
-
-// This is a representation of the peer list according to the current protocol.
-// TODO later: Switch to LIP protocol format.
-export interface ProtocolPeerInfoList {
-	readonly peers: ReadonlyArray<ProtocolPeerInfo>;
-	readonly success: boolean;
-}
-
-export interface P2PBasicPeerInfoList {
-	readonly peers: ReadonlyArray<P2PPeerInfo>;
-	readonly success: boolean;
-}
 
 export interface PeerLists {
 	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
