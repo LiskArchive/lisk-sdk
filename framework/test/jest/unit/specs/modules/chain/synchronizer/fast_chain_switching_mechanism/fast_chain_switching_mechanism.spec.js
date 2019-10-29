@@ -744,6 +744,7 @@ describe('fast_chain_switching_mechanism', () => {
 					expect(processorModule.processValidated).toHaveBeenCalledWith(
 						await processorModule.deserialize(block),
 					);
+					// TODO: Figure out why call count is not resetting
 					// expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					// 	requestedBlocks.length,
 					// );
@@ -753,6 +754,10 @@ describe('fast_chain_switching_mechanism', () => {
 					);
 					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
 					expect(loggerMock.info).toHaveBeenCalledWith(
+						{
+							currentHeight: blocksModule.lastBlock.height,
+							highestCommonBlockHeight: highestCommonBlock.height,
+						},
 						'Successfully switched chains. Node is now up to date',
 					);
 				}
