@@ -125,21 +125,6 @@ describe('P2P.send', () => {
 			const TOTAL_SENDS = 100;
 			const nodePortToMessagesMap: any = {};
 
-			for (let p2p of p2pNodeList) {
-				p2p.applyNodeInfo({
-					os: platform(),
-					nethash:
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					version: p2p.nodeInfo.version,
-					protocolVersion: '1.1',
-					wsPort: p2p.nodeInfo.wsPort,
-					height: 1000 + (p2p.nodeInfo.wsPort % NETWORK_START_PORT),
-					options: p2p.nodeInfo.options,
-				});
-			}
-
-			await wait(200);
-
 			const expectedAverageMessagesPerNode = TOTAL_SENDS;
 			const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
 			const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
