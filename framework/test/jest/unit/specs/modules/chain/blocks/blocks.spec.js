@@ -339,7 +339,11 @@ describe('blocks', () => {
 
 			it("should not throw when previous block property doesn't exist and block height = 1", async () => {
 				// Arrange
-				const block = cloneDeep(blocksInstance.genesisBlock);
+				const block = {
+					...cloneDeep(blocksInstance.genesisBlock),
+					maxHeightPreviouslyForged: 0,
+					prevotedConfirmedUptoHeight: 0,
+				};
 				const blockBytes = getBytes(block);
 				block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
 

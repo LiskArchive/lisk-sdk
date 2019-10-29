@@ -1,0 +1,73 @@
+{
+	"title": "Valid multi signature transaction",
+	"summary": "A valid multi signature transaction",
+	"config": "devnet",
+	"runner": "transaction_network_id_and_change_order",
+	"handler": "multi_signature_transaction_validate",
+	"testCases": {
+		"input": {
+			"account": {
+				"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",
+				"privateKey": "8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"publicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"address": "2129300327344985743L"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"coSigners": [
+				{
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "18141291412139607230L"
+				},
+				{
+					"passphrase": "better across runway mansion jar route valid crack panic favorite smooth sword",
+					"privateKey": "de1520f8589408e76a97643ba7d27f20009b06899816c8af20f9b03f4a4bd8a66766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8",
+					"publicKey": "6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8",
+					"address": "13191770412077040757L"
+				},
+				{
+					"passphrase": "mirror swap middle hunt angle furnace maid scheme amazing box bachelor debris",
+					"privateKey": "ad7462eb8f682b0c3424213ead044381ba0007bb65ce26287fc308027c871d951387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972",
+					"publicKey": "1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972",
+					"address": "2443122499609067441L"
+				}
+			],
+			"transaction": {
+				"type": 12,
+				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"timestamp": 44316326,
+				"asset": {
+					"min": 2,
+					"lifetime": 22,
+					"keysgroup": [
+						"+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+						"+6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8",
+						"+1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972"
+					]
+				}
+			}
+		},
+		"output": {
+			"type": 12,
+			"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+			"timestamp": 44316326,
+			"asset": {
+				"min": 2,
+				"lifetime": 22,
+				"keysgroup": [
+					"+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"+6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8",
+					"+1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972"
+				]
+			},
+			"signature": "b61560c6fa4bd20e0d561208911c89f6a9e2dc14f287886953e3f538473722759b42c5378f199e654fcea935088dd3c2b3f75d87c9f7c112ce8967ff15b3e60e",
+			"signatures": [
+				"fd1bc70422631e936019eaa7be4f8bc886dacd6711992c62354bc27eb161648f1d454dc12d2c6c607d6d3c7f4290e8de575f4fabf46a3ea2c62c8a135b4f2304",
+				"66f3ea07fca295241fa49b01ada88baf9c8f394363e1d0230d5adacfe75692fcc2e6f698f934e9509e44e88701e9faf7203f826064ab33f57683d3137de3310e",
+				"3b9dbe7ad5ef2cd2dc915e7230456e9d40520492eec32f46a874cad1497d9e10c42859cbd95f6e671abd708a977c6c9ecdfe326a1e24eeaa56fb28801d0de70e"
+			],
+			"id": "13937567402168253247"
+		}
+	}
+}

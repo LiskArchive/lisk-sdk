@@ -24,12 +24,19 @@ describe('#synchronizer/utils', () => {
 	let blocksMock;
 	let processorMock;
 	let storageMock;
+	let loggerMock;
 	const stubs = {};
 
 	beforeEach(async () => {
 		blocksMock = {
 			getTempBlocks: jest.fn(),
 			lastBlock: jest.fn(),
+		};
+
+		loggerMock = {
+			info: jest.fn(),
+			debug: jest.fn(),
+			error: jest.fn(),
 		};
 
 		processorMock = {
@@ -146,7 +153,12 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
 			// Act
-			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);
+			await restoreBlocksUponStartup(
+				loggerMock,
+				blocksMock,
+				processorMock,
+				storageMock,
+			);
 
 			// Assert
 			expect(blocksMock.getTempBlocks).toHaveBeenCalled();
@@ -162,7 +174,12 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
 			// Act
-			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);
+			await restoreBlocksUponStartup(
+				loggerMock,
+				blocksMock,
+				processorMock,
+				storageMock,
+			);
 
 			// Assert
 			expect(blocksMock.getTempBlocks).toHaveBeenCalled();
@@ -184,7 +201,12 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(blocksMock.lastBlock);
 
 			// Act
-			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);
+			await restoreBlocksUponStartup(
+				loggerMock,
+				blocksMock,
+				processorMock,
+				storageMock,
+			);
 
 			// Assert
 			expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
@@ -200,7 +222,12 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(tempBlocks[0].fullBlock);
 
 			// Act
-			await restoreBlocksUponStartup(blocksMock, processorMock, storageMock);
+			await restoreBlocksUponStartup(
+				loggerMock,
+				blocksMock,
+				processorMock,
+				storageMock,
+			);
 
 			// Assert
 			expect(processorMock.forkStatus).toHaveBeenCalledWith(
