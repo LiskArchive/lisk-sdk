@@ -442,7 +442,7 @@ export class PeerPool extends EventEmitter {
 		removeCommonIPsFromLists(
 			[...peersToConnect, ...disconnectedFixedPeers],
 			disconnectedPeers,
-		).forEach((peerInfo: P2PPeerInfo) => this.addOutboundPeer(peerInfo));
+		).forEach((peerInfo: P2PPeerInfo) => this._addOutboundPeer(peerInfo));
 	}
 
 	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
@@ -468,7 +468,7 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	private addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
+	private _addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
 		const existingPeer = this.getPeer(peerInfo.peerId);
 		if (existingPeer) {
 			return false;
