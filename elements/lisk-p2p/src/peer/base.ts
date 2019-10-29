@@ -52,7 +52,6 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolMessagePacket,
 } from '../p2p_types';
 import {
 	getNetgroup,
@@ -564,13 +563,13 @@ export class Peer extends EventEmitter {
 		return rate * RATE_NORMALIZATION_FACTOR;
 	}
 
-	private _updateMessageCounter(packet: ProtocolMessagePacket): void {
+	private _updateMessageCounter(packet: P2PMessagePacket): void {
 		const key = packet.event;
 		const count = (this._messageCounter.get(key) || 0) + 1;
 		this._messageCounter.set(key, count);
 	}
 
-	private _getMessageRate(packet: ProtocolMessagePacket): number {
+	private _getMessageRate(packet: P2PMessagePacket): number {
 		const rate = this._messageRates.get(packet.event) || 0;
 
 		return rate * RATE_NORMALIZATION_FACTOR;

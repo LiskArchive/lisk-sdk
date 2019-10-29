@@ -22,7 +22,7 @@ import {
 import {
 	ProtocolPeerInfo,
 	P2PRequestPacket,
-	ProtocolMessagePacket,
+	P2PMessagePacket,
 } from '../../../src/p2p_types';
 
 describe('utils/validate', () => {
@@ -246,7 +246,7 @@ describe('utils/validate', () => {
 			data: {},
 			event: 'newPeer',
 		};
-		let returnedValidatedMessage: ProtocolMessagePacket;
+		let returnedValidatedMessage: P2PMessagePacket;
 
 		beforeEach(async () => {
 			returnedValidatedMessage = validateProtocolMessage(validProtocolMessage);

@@ -27,10 +27,10 @@ import {
 } from '../errors';
 import {
 	P2PCompatibilityCheckReturnType,
+	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
-	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 } from '../p2p_types';
 import { constructPeerId } from './misc';
@@ -233,14 +233,12 @@ export const validateRPCRequest = (request: unknown): P2PRequestPacket => {
 	return rpcRequest;
 };
 
-export const validateProtocolMessage = (
-	message: unknown,
-): ProtocolMessagePacket => {
+export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
 	if (!message) {
 		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
-	const protocolMessage = message as ProtocolMessagePacket;
+	const protocolMessage = message as P2PMessagePacket;
 	if (typeof protocolMessage.event !== 'string') {
 		throw new InvalidProtocolMessageError('Protocol message is not a string');
 	}

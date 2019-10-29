@@ -30,12 +30,6 @@ export interface P2PMessagePacket {
 	readonly event: string;
 }
 
-// TODO later: Switch to LIP protocol format.
-export interface ProtocolMessagePacket {
-	readonly data: unknown;
-	readonly event: string;
-}
-
 export interface P2PClosePacket {
 	readonly peerInfo: P2PPeerInfo;
 	readonly code: number;
