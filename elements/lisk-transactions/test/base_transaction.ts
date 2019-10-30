@@ -29,6 +29,7 @@ import {
 } from './helpers';
 import { validSecondSignatureTransaction } from '../fixtures';
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import * as transferSecondSignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_second_signature_validate.json';
 import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_multi_signature_validate.json';
 import * as utils from '../src/utils';
 import { TransferTransaction } from '../src/8_transfer_transaction';
@@ -843,39 +844,50 @@ describe('Base transaction class', () => {
 	});
 
 	describe('create, sign and stringify transaction', () => {
-		const passphrase = 'secret';
-		const secondPassphrase = 'second secret';
-		const senderId = '18160565574430594874L';
-		const senderPublicKey =
-			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-		const signature =
-			'470f5e81589ed431cf15fb98e9659ebc04f78bd0eb418773cd6dd95ed7c8c2ee872143b46307ba730a67b8b1b80910f2108abf28ae47a84e98e6b239f3e16d01';
-		const secondSignature =
-			'377393e81deab7173c872d2d7bf0ad7982aea8c94f62ddfcae496dedfc425b9be294300e857bf3c057640274a315b9a9f5782b640c10b3ad4fc4dc231808d303';
-
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
-			const newTransaction = new TestTransaction({ networkIdentifier });
-			newTransaction.sign(passphrase);
+			const newTransaction = new TransferTransaction({
+				...transferSecondSignatureFixture.testCases.input.transaction,
+				networkIdentifier:
+					transferSecondSignatureFixture.testCases.input.networkIdentifier,
+			});
+			newTransaction.sign(
+				transferSecondSignatureFixture.testCases.input.account.passphrase,
+			);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
-			expect(parsedResponse.senderId).to.be.eql(senderId);
-			expect(parsedResponse.senderPublicKey).to.be.eql(senderPublicKey);
-			expect(parsedResponse.signature).to.be.eql(signature);
+			expect(parsedResponse.senderPublicKey).to.be.eql(
+				transferSecondSignatureFixture.testCases.output.senderPublicKey,
+			);
+			expect(parsedResponse.signature).to.be.eql(
+				transferSecondSignatureFixture.testCases.output.signature,
+			);
 		});
 
 		it('should return correct senderId/senderPublicKey when sign with passphrase and secondPassphrase', () => {
-			const newTransaction = new TestTransaction({ networkIdentifier });
-			newTransaction.sign(passphrase, secondPassphrase);
+			const newTransaction = new TransferTransaction({
+				...transferSecondSignatureFixture.testCases.input.transaction,
+				networkIdentifier:
+					transferSecondSignatureFixture.testCases.input.networkIdentifier,
+			});
+			newTransaction.sign(
+				transferSecondSignatureFixture.testCases.input.account.passphrase,
+				transferSecondSignatureFixture.testCases.input.secondPassphrase,
+			);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
-			expect(parsedResponse.senderId).to.be.eql(senderId);
-			expect(parsedResponse.senderPublicKey).to.be.eql(senderPublicKey);
-			expect(parsedResponse.signature).to.be.eql(signature);
-			expect(parsedResponse.signSignature).to.be.eql(secondSignature);
+			expect(parsedResponse.senderPublicKey).to.be.eql(
+				transferSecondSignatureFixture.testCases.output.senderPublicKey,
+			);
+			expect(parsedResponse.signature).to.be.eql(
+				transferSecondSignatureFixture.testCases.output.signature,
+			);
+			expect(parsedResponse.signSignature).to.be.eql(
+				transferSecondSignatureFixture.testCases.output.signSignature,
+			);
 		});
 	});
 
