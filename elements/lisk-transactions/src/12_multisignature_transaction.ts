@@ -13,7 +13,16 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
+import {
+	BaseTransaction,
+	MultisignatureStatus,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
 import { MULTISIGNATURE_FEE } from './constants';
 import { SignatureObject } from './create_signature_object';
 import {
@@ -21,12 +30,6 @@ import {
 	TransactionError,
 	TransactionPendingError,
 } from './errors';
-import {
-	BaseTransaction,
-	MultisignatureStatus,
-	StateStore,
-	StateStorePrepare,
-} from './legacy_base_transaction';
 import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import { validateMultisignatures, validateSignature, validator } from './utils';
@@ -84,7 +87,7 @@ export interface MultiSignatureAsset {
 
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
-	public static TYPE = 4;
+	public static TYPE = 12;
 	public static FEE = MULTISIGNATURE_FEE.toString();
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
@@ -172,20 +175,27 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	public processMultisignatures(_: StateStore): TransactionResponse {
 		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
 		const { valid, errors } = validateMultisignatures(
 			this.asset.keysgroup.map(signedPublicKey => signedPublicKey.substring(1)),
 			this.signatures,
 			// Required to get signature from all of keysgroup
 			this.asset.keysgroup.length,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
+
 		if (valid) {
 			this._multisignatureStatus = MultisignatureStatus.READY;
 
 			return createResponse(this.id, errors);
 		}
+
 		if (
 			errors &&
 			errors.length === 1 &&
@@ -285,11 +295,18 @@ export class MultisignatureTransaction extends BaseTransaction {
 			]);
 		}
 
+		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
+
 		// Check if signature is valid at all
 		const { valid } = validateSignature(
 			signatureObject.publicKey,
 			signatureObject.signature,
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 

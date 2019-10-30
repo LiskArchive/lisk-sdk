@@ -13,18 +13,20 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { TransferTransaction } from './0_transfer_transaction';
+import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
 import { TransactionJSON } from './transaction_types';
 import {
 	createBaseTransaction,
 	validateAddress,
+	validateNetworkIdentifier,
 	validatePublicKey,
 	validateTransferAmount,
 } from './utils';
 
 export interface TransferInputs {
 	readonly amount: string;
+	readonly networkIdentifier: string;
 	readonly data?: string;
 	readonly passphrase?: string;
 	readonly recipientId?: string;
@@ -38,6 +40,7 @@ const validateInputs = ({
 	recipientId,
 	recipientPublicKey,
 	data,
+	networkIdentifier,
 }: TransferInputs): void => {
 	if (!validateTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
@@ -75,6 +78,8 @@ const validateInputs = ({
 			throw new Error('Transaction data field cannot exceed 64 bytes.');
 		}
 	}
+
+	validateNetworkIdentifier(networkIdentifier);
 };
 
 export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
@@ -85,6 +90,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		recipientPublicKey,
 		passphrase,
 		secondPassphrase,
+		networkIdentifier,
 	} = inputs;
 
 	const recipientIdFromPublicKey = recipientPublicKey
@@ -110,6 +116,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 
 	const transactionWithSenderInfo = {
 		...transaction,
+		networkIdentifier,
 		senderPublicKey: transaction.senderPublicKey as string,
 		asset: {
 			...transaction.asset,
@@ -120,6 +127,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	const transferTransaction = new TransferTransaction(
 		transactionWithSenderInfo,
 	);
+
 	transferTransaction.sign(passphrase, secondPassphrase);
 
 	return transferTransaction.toJSON();

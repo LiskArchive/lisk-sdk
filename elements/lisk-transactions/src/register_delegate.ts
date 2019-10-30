@@ -12,19 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DelegateTransaction } from './2_delegate_transaction';
+import { DelegateTransaction } from './10_delegate_transaction';
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction } from './utils';
+import { createBaseTransaction, validateNetworkIdentifier } from './utils';
 
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
 	readonly username: string;
+	readonly networkIdentifier: string;
 }
 
-const validateInputs = ({ username }: { readonly username: string }): void => {
+const validateInputs = ({
+	username,
+	networkIdentifier,
+}: RegisterDelegateInputs): void => {
 	if (!username || typeof username !== 'string') {
 		throw new Error('Please provide a username. Expected string.');
 	}
@@ -34,13 +38,15 @@ const validateInputs = ({ username }: { readonly username: string }): void => {
 			`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
 		);
 	}
+
+	validateNetworkIdentifier(networkIdentifier);
 };
 
 export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { username, passphrase, secondPassphrase } = inputs;
+	const { username, passphrase, secondPassphrase, networkIdentifier } = inputs;
 
 	if (!username || typeof username !== 'string') {
 		throw new Error('Please provide a username. Expected string.');
@@ -57,6 +63,7 @@ export const registerDelegate = (
 		type: 2,
 		fee: DELEGATE_FEE.toString(),
 		asset: { username },
+		networkIdentifier,
 	};
 
 	if (!passphrase) {

@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DELEGATE_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
-} from './legacy_base_transaction';
+} from './base_transaction';
+import { DELEGATE_FEE } from './constants';
+import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
 import { validator } from './utils';
 
@@ -42,7 +42,7 @@ export const delegateAssetFormatSchema = {
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData: boolean;
-	public static TYPE = 2;
+	public static TYPE = 10;
 	public static FEE = DELEGATE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {

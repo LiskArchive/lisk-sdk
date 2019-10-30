@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
-import { SecondSignatureAsset } from '../src/1_second_signature_transaction';
+import { registerSecondPassphrase } from '../src/register_second_passphrase';
+import { SecondSignatureAsset } from '../src/9_second_signature_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
@@ -31,6 +31,8 @@ describe('#registerSecondPassphrase transaction', () => {
 		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 	const secondPassphraseFee = (5 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let registerSecondPassphraseTransaction: Partial<TransactionJSON>;
@@ -40,6 +42,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		registerSecondPassphraseTransaction = registerSecondPassphrase({
+			networkIdentifier,
 			passphrase,
 			secondPassphrase,
 		});
@@ -57,6 +60,7 @@ describe('#registerSecondPassphrase transaction', () => {
 	it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 		const offset = -10;
 		registerSecondPassphrase({
+			networkIdentifier,
 			passphrase,
 			secondPassphrase,
 			timeOffset: offset,
@@ -139,6 +143,7 @@ describe('#registerSecondPassphrase transaction', () => {
 
 			it('should have the correct publicKey if the provided second passphrase is an empty string', () => {
 				registerSecondPassphraseTransaction = registerSecondPassphrase({
+					networkIdentifier,
 					passphrase,
 					secondPassphrase: '',
 				});
@@ -154,6 +159,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		describe('when the register second passphrase transaction is created without a passphrase', () => {
 			beforeEach(() => {
 				registerSecondPassphraseTransaction = registerSecondPassphrase({
+					networkIdentifier,
 					secondPassphrase,
 				});
 				return Promise.resolve();
@@ -167,7 +173,10 @@ describe('#registerSecondPassphrase transaction', () => {
 
 			it('should not throw error when secondPassphrase is empty string', () => {
 				return expect(
-					registerSecondPassphrase.bind(null, { secondPassphrase: '' }),
+					registerSecondPassphrase.bind(null, {
+						networkIdentifier,
+						secondPassphrase: '',
+					}),
 				).to.not.throw();
 			});
 

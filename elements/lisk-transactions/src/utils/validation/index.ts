@@ -18,6 +18,7 @@ export {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
+	validateNetworkIdentifier,
 	validateNonTransferAmount,
 	validateTransferAmount,
 	validateUsername,

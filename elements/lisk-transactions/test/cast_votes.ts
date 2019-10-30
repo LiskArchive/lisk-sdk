@@ -13,8 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { castVotes } from '../src/3_cast_votes';
-import { VoteAsset } from '../src/3_vote_transaction';
+import { castVotes } from '../src/cast_votes';
+import { VoteAsset } from '../src/11_vote_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
@@ -37,10 +37,11 @@ describe('#castVotes transaction', () => {
 		'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const votePublicKeys = [firstPublicKey, secondPublicKey];
 	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
-	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
 	const amount = '0';
 	const fee = (1 * fixedPoint).toString();
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let castVotesTransaction: Partial<TransactionJSON>;
@@ -57,6 +58,7 @@ describe('#castVotes transaction', () => {
 			castVotesTransaction = castVotes({
 				passphrase,
 				votes: votePublicKeys,
+				networkIdentifier,
 			});
 			return Promise.resolve();
 		});
@@ -71,7 +73,12 @@ describe('#castVotes transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			castVotes({ passphrase, votes: votePublicKeys, timeOffset: offset });
+			castVotes({
+				passphrase,
+				votes: votePublicKeys,
+				timeOffset: offset,
+				networkIdentifier,
+			});
 
 			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
 		});
@@ -94,25 +101,11 @@ describe('#castVotes transaction', () => {
 					.and.equal(transactionType);
 			});
 
-			it('should have amount string equal to 0', () => {
-				return expect(castVotesTransaction.asset)
-					.to.have.property('amount')
-					.and.be.a('string')
-					.and.equal(amount);
-			});
-
 			it('should have fee string equal to 100000000', () => {
 				return expect(castVotesTransaction)
 					.to.have.property('fee')
 					.and.be.a('string')
 					.and.equal(fee);
-			});
-
-			it('should have recipientId string equal to address', () => {
-				return expect(castVotesTransaction.asset)
-					.to.have.property('recipientId')
-					.and.be.a('string')
-					.and.equal(address);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -169,6 +162,7 @@ describe('#castVotes transaction', () => {
 				passphrase,
 				votes: [firstPublicKey],
 				secondPassphrase,
+				networkIdentifier,
 			});
 			return Promise.resolve();
 		});
@@ -185,6 +179,7 @@ describe('#castVotes transaction', () => {
 				passphrase,
 				votes: votePublicKeys,
 				unvotes: unvotePublicKeys,
+				networkIdentifier,
 			});
 			return Promise.resolve();
 		});
@@ -213,6 +208,7 @@ describe('#castVotes transaction', () => {
 				castVotes.bind(null, {
 					passphrase,
 					votes: null as any,
+					networkIdentifier,
 				}),
 			).to.throw(
 				'Please provide a valid votes value. Expected an array if present.',
@@ -224,6 +220,7 @@ describe('#castVotes transaction', () => {
 				castVotes.bind(null, {
 					passphrase,
 					votes: `+${firstPublicKey}` as any,
+					networkIdentifier,
 				}),
 			).to.throw(
 				'Please provide a valid votes value. Expected an array if present.',
@@ -235,6 +232,7 @@ describe('#castVotes transaction', () => {
 				castVotes.bind(null, {
 					passphrase,
 					unvotes: null as any,
+					networkIdentifier,
 				}),
 			).to.throw(
 				'Please provide a valid unvotes value. Expected an array if present.',
@@ -246,6 +244,7 @@ describe('#castVotes transaction', () => {
 				castVotes.bind(null, {
 					passphrase,
 					unvotes: `-${firstPublicKey}` as any,
+					networkIdentifier,
 				}),
 			).to.throw(
 				'Please provide a valid unvotes value. Expected an array if present.',
@@ -258,6 +257,7 @@ describe('#castVotes transaction', () => {
 			castVotesTransaction = castVotes({
 				passphrase,
 				unvotes: unvotePublicKeys,
+				networkIdentifier,
 			});
 			return Promise.resolve();
 		});
@@ -282,6 +282,7 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					unvotes: unvotePublicKeys,
 					votes: [tooShortPublicKey],
+					networkIdentifier,
 				}),
 			).to.throw(
 				'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
@@ -296,6 +297,7 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					unvotes: unvotePublicKeys,
 					votes: [plusPrependedPublicKey],
+					networkIdentifier,
 				}),
 			).to.throw('Argument must be a valid hex string.');
 		});
@@ -311,6 +313,7 @@ describe('#castVotes transaction', () => {
 						passphrase,
 						unvotes,
 						votes,
+						networkIdentifier,
 					}),
 				).to.throw(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
@@ -325,6 +328,7 @@ describe('#castVotes transaction', () => {
 					castVotes.bind(null, {
 						passphrase,
 						votes,
+						networkIdentifier,
 					}),
 				).to.throw(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
@@ -339,6 +343,7 @@ describe('#castVotes transaction', () => {
 					castVotes.bind(null, {
 						passphrase,
 						unvotes,
+						networkIdentifier,
 					}),
 				).to.throw(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
@@ -353,6 +358,7 @@ describe('#castVotes transaction', () => {
 				castVotesTransaction = castVotes({
 					votes: votePublicKeys,
 					unvotes: unvotePublicKeys,
+					networkIdentifier,
 				});
 				return Promise.resolve();
 			});

@@ -15,17 +15,16 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	bigNumberToBuffer,
-	hexToBuffer,
 	intToBuffer,
 	stringToBuffer,
 } from '@liskhq/lisk-cryptography';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
-} from './legacy_base_transaction';
+} from './base_transaction';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import {
 	isValidNumber,
@@ -69,7 +68,7 @@ interface RawAsset {
 
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
-	public static TYPE = 0;
+	public static TYPE = 8;
 	public static FEE = TRANSFER_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
@@ -89,43 +88,33 @@ export class TransferTransaction extends BaseTransaction {
 			};
 		} else {
 			// tslint:disable-next-line no-object-literal-type-assertion
-			this.asset = {} as TransferAsset;
+			this.asset = {
+				amount: new BigNum('0'),
+				recipientId: '',
+			} as TransferAsset;
 		}
 	}
 
-	// Function getBasicBytes is overriden to maintain the bytes order
-	// TODO: remove after hardfork implementation
-	protected getBasicBytes(): Buffer {
-		const transactionType = intToBuffer(this.type, BYTESIZES.TYPE);
-		const transactionTimestamp = intToBuffer(
-			this.timestamp,
-			BYTESIZES.TIMESTAMP,
-			'little',
-		);
-
-		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
-
-		const transactionRecipientID = intToBuffer(
-			this.asset.recipientId.slice(0, -1),
-			BYTESIZES.RECIPIENT_ID,
-		).slice(0, BYTESIZES.RECIPIENT_ID);
-
+	protected assetToBytes(): Buffer {
 		const transactionAmount = bigNumberToBuffer(
 			this.asset.amount.toString(),
 			BYTESIZES.AMOUNT,
-			'little',
+			'big',
 		);
+		const transactionRecipientID = this.asset.recipientId
+			? intToBuffer(
+					this.asset.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  ).slice(0, BYTESIZES.RECIPIENT_ID)
+			: Buffer.alloc(0);
 
 		const dataBuffer = this.asset.data
 			? stringToBuffer(this.asset.data)
 			: Buffer.alloc(0);
 
 		return Buffer.concat([
-			transactionType,
-			transactionTimestamp,
-			transactionSenderPublicKey,
-			transactionRecipientID,
 			transactionAmount,
+			transactionRecipientID,
 			dataBuffer,
 		]);
 	}
