@@ -298,7 +298,8 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging,
 				),
-			getTransactions: async () => this.transport.getTransactions(),
+			getTransactions: async ({ params }) =>
+				this.transport.getTransactions(params.filters),
 			getSignatures: async () => this.transport.getSignatures(),
 			postSignature: async action =>
 				this.transport.postSignature(action.params),

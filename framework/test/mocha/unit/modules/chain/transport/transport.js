@@ -148,6 +148,7 @@ describe('transport', () => {
 				},
 				Transaction: {
 					isPersisted: sinonSandbox.stub(),
+					get: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -182,6 +183,7 @@ describe('transport', () => {
 				getMergedTransactionList: sinonSandbox.stub(),
 				getTransactionAndProcessSignature: sinonSandbox.stub(),
 				processUnconfirmedTransaction: sinonSandbox.stub(),
+				getPooledTransactions: sinonSandbox.stub(),
 			},
 			blocksModule: {
 				lastBlock: sinonSandbox
@@ -1039,28 +1041,113 @@ describe('transport', () => {
 				});
 
 				describe('getTransactions', () => {
-					beforeEach(async () => {
-						transportModule.transactionPoolModule.getMergedTransactionList.returns(
-							multisignatureTransactionsList,
-						);
-						result = await transportModule.getTransactions();
+					describe('when is called without filters', () => {
+						beforeEach(async () => {
+							transportModule.transactionPoolModule.getMergedTransactionList.returns(
+								multisignatureTransactionsList,
+							);
+							result = await transportModule.getTransactions();
+						});
+
+						it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
+							expect(
+								transportModule.transactionPoolModule.getMergedTransactionList,
+							).calledWith(true, MAX_SHARED_TRANSACTIONS);
+						});
+
+						it('should resolve with result = {success: true, transactions: transactions}', async () => {
+							expect(result)
+								.to.have.property('success')
+								.which.is.equal(true);
+							return expect(result)
+								.to.have.property('transactions')
+								.which.is.an('array')
+								.that.has.property('length')
+								.which.equals(2);
+						});
 					});
 
-					it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
-						expect(
-							transportModule.transactionPoolModule.getMergedTransactionList,
-						).calledWith(true, MAX_SHARED_TRANSACTIONS);
-					});
+					describe('when is called with ids filter', () => {
+						describe('when any id is in the queues', () => {
+							beforeEach(async () => {
+								transportModule.transactionPoolModule.getPooledTransactions.returns(
+									{
+										count: 1,
+										transactions: [transaction],
+									},
+								);
+								result = await transportModule.getTransactions({
+									ids: [transaction.id],
+								});
+							});
 
-					it('should resolve with result = {success: true, transactions: transactions}', async () => {
-						expect(result)
-							.to.have.property('success')
-							.which.is.equal(true);
-						return expect(result)
-							.to.have.property('transactions')
-							.which.is.an('array')
-							.that.has.property('length')
-							.which.equals(2);
+							it('should not call modules.transactionPool.getMergedTransactionList', async () => {
+								expect(
+									transportModule.transactionPoolModule
+										.getMergedTransactionList,
+								).to.be.not.called;
+							});
+
+							it('should call transportModule.transactionPoolModule.getPooledTransactions', async () => {
+								expect(
+									transportModule.transactionPoolModule.getPooledTransactions,
+								).to.be.calledWith(null, { id: transaction.id });
+							});
+
+							it('should resolve with result = {success: true, transactions: transactions}', async () => {
+								expect(result)
+									.to.have.property('success')
+									.which.is.equal(true);
+								return expect(result)
+									.to.have.property('transactions')
+									.which.is.an('array')
+									.contains(transaction);
+							});
+						});
+
+						describe('when any id exists in the database', () => {
+							beforeEach(async () => {
+								transportModule.transactionPoolModule.getPooledTransactions.returns(
+									{
+										count: 0,
+										transactions: [],
+									},
+								);
+								storageStub.entities.Transaction.get.resolves([transaction]);
+								result = await transportModule.getTransactions({
+									ids: [transaction.id],
+								});
+							});
+
+							it('should not call modules.transactionPool.getMergedTransactionList', async () => {
+								expect(
+									transportModule.transactionPoolModule
+										.getMergedTransactionList,
+								).to.be.not.called;
+							});
+
+							it('should call transportModule.transactionPoolModule.getPooledTransactions', async () => {
+								expect(
+									transportModule.transactionPoolModule.getPooledTransactions,
+								).to.be.calledWith(null, { id: transaction.id });
+							});
+
+							it('should call storageStub.entities.Transaction.get', async () => {
+								expect(storageStub.entities.Transaction.get).to.be.calledWith({
+									id: transaction.id,
+								});
+							});
+
+							it('should resolve with result = {success: true, transactions: transactions}', async () => {
+								expect(result)
+									.to.have.property('success')
+									.which.is.equal(true);
+								return expect(result)
+									.to.have.property('transactions')
+									.which.is.an('array')
+									.contains(transaction);
+							});
+						});
 					});
 				});
 

@@ -355,15 +355,37 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions() {
-		const transactions = this.transactionPoolModule.getMergedTransactionList(
-			true,
-			this.constants.maxSharedTransactions,
-		);
+	async getTransactions(filters) {
+		if (filters && filters.ids) {
+			const transactions = [];
+			for (const id of filters.ids) {
+				// Check if any transaction is in the queues.
+				const transactionInPool = this.transactionPoolModule.getPooledTransactions(
+					null,
+					{ id },
+				);
+				if (transactionInPool.count) {
+					transactions.push(transactionInPool.transactions[0]);
+				} else {
+					const result = await this.storage.entities.Transaction.get({ id });
+					if (result) {
+						// Check if any transaction exists in the database.
+						transactions.push(result[0]);
+					}
+				}
+			}
 
+			return {
+				success: true,
+				transactions,
+			};
+		}
 		return {
 			success: true,
-			transactions,
+			transactions: this.transactionPoolModule.getMergedTransactionList(
+				true,
+				this.constants.maxSharedTransactions,
+			),
 		};
 	}
 
