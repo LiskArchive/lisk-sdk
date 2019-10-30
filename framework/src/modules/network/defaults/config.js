@@ -159,7 +159,7 @@ const defaultConfig = {
 		wsEngine: 'ws',
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
-		emitPeerLimit: 25,
+		emitPeerLimit: 16,
 		peerDiscoveryResponseLength: 1000,
 		maxPeerDiscoveryResponseLength: 1000,
 		maxPeerInfoSize: 20480,
