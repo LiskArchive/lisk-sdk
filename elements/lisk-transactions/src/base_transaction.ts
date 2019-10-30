@@ -97,7 +97,6 @@ export const ENTITY_TRANSACTION = 'transaction';
 export abstract class BaseTransaction {
 	public readonly blockId?: string;
 	public readonly height?: number;
-	public readonly relays?: number;
 	public readonly confirmations?: number;
 	public readonly signatures: string[];
 	public readonly timestamp: number;
@@ -152,7 +151,6 @@ export abstract class BaseTransaction {
 		this.blockId = tx.blockId;
 		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
-		this.relays = typeof tx.relays === 'number' ? tx.relays : undefined;
 		this.asset = tx.asset || {};
 	}
 
@@ -193,7 +191,6 @@ export abstract class BaseTransaction {
 			id: this.id,
 			blockId: this.blockId,
 			height: this.height,
-			relays: this.relays,
 			confirmations: this.confirmations,
 			type: this.type,
 			timestamp: this.timestamp,
