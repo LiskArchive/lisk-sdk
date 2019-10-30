@@ -20,6 +20,7 @@ import {
 	destroyNetwork,
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
+	DEFAULT_CONNECTION_TIMEOUT,
 } from '../utils/network_setup';
 
 describe('Cleanup unresponsive peers', () => {
@@ -29,9 +30,7 @@ describe('Cleanup unresponsive peers', () => {
 	].map(index => NETWORK_START_PORT + index);
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork({
-			customConfig: () => ({ populatorInterval: 10 }),
-		});
+		p2pNodeList = await createNetwork();
 	});
 
 	afterEach(async () => {
@@ -55,7 +54,7 @@ describe('Cleanup unresponsive peers', () => {
 
 		await p2pNodeList[0].stop();
 		await p2pNodeList[1].stop();
-		await wait(100);
+		await wait(DEFAULT_CONNECTION_TIMEOUT);
 
 		const peerPortsAfterPeerCrash = p2pNodeList[2]
 			.getConnectedPeers()

@@ -15,12 +15,15 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	NETWORK_START_PORT,
+} from 'utils/network_setup';
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
 	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
-	const NETWORK_START_PORT = 5000;
 	const previousPeers = [
 		{
 			ipAddress: '127.0.0.5',

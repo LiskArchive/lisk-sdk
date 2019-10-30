@@ -22,9 +22,9 @@ import {
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-export const NETWORK_START_PORT = 5000;
+export const NETWORK_START_PORT = 5001;
 export const NETWORK_PEER_COUNT = 10;
-export const POPULATOR_INTERVAL = 25;
+export const POPULATOR_INTERVAL = 50;
 export const DEFAULT_CONNECTION_TIMEOUT = 500;
 export const DEFAULT_ACK_TIMEOUT = 500;
 export const RATE_CALCULATION_INTERVAL = 10000;

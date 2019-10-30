@@ -31,11 +31,7 @@ describe('PeerPool actions', () => {
 		].map(index => NETWORK_START_PORT + index);
 
 		beforeEach(async () => {
-			p2pNodeList = await createNetwork({
-				networkDiscoveryWaitTime: 1,
-			});
-
-			await wait(1000);
+			p2pNodeList = await createNetwork({});
 		});
 
 		afterEach(async () => {
@@ -44,9 +40,7 @@ describe('PeerPool actions', () => {
 
 		it('should discover all peers and add them to the connectedPeers list within each node', async () => {
 			const firstNode = p2pNodeList[0];
-
 			await wait(300);
-
 			const peerPorts = firstNode
 				.getConnectedPeers()
 				.map(peerInfo => peerInfo.wsPort)

@@ -32,6 +32,7 @@ import {
 	NETWORK_PEER_COUNT,
 	POPULATOR_INTERVAL,
 } from '../utils/network_setup';
+import { constructPeerId } from '../../src/utils';
 
 describe('Peer discovery', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -127,14 +128,14 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const allPeers = p2p['_peerBook'].allPeers;
 
-			const allPeersPorts = allPeers.map(peerInfo => peerInfo.wsPort).sort();
+			const allPeersPorts = allPeers.map(peerInfo => peerInfo.peerId).sort();
 			const connectedPeerPorts = p2p
 				.getConnectedPeers()
-				.map(peerInfo => peerInfo.wsPort)
+				.map(peerInfo => constructPeerId(peerInfo.ipAddress, peerInfo.wsPort))
 				.sort();
 
 			expect([...allPeersPorts, ...connectedPeerPorts]).to.not.contain.members([
-				p2p.nodeInfo.wsPort,
+				p2p.nodeInfo.peerId,
 			]);
 		}
 	});
@@ -166,7 +167,7 @@ describe('Peer discovery', () => {
 			seedPeers: [
 				{
 					ipAddress: '127.0.0.1',
-					wsPort: 5000,
+					wsPort: 5001,
 				},
 			],
 			wsEngine: 'ws',
