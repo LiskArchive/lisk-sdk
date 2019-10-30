@@ -98,7 +98,7 @@ async function _getForgers(filters) {
 	const activeDelegates = await channel.invoke(
 		'chain:getForgerPublicKeysForRound',
 		{
-			round: currentRound,
+			round: currentRound - 2,
 		},
 	);
 
