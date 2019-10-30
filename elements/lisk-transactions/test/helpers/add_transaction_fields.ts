@@ -18,7 +18,6 @@ export const addTransactionFields = (transaction: any) => {
 		blockId: '13115894772963772254',
 		confirmations: 123,
 		height: 2,
-		relays: undefined,
 		signSignature: transaction.signSignature
 			? transaction.signSignature
 			: undefined,
