@@ -17,7 +17,7 @@
 
 const {
 	BaseTransaction: Base,
-	DappTransaction,
+	SecondSignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
@@ -49,7 +49,7 @@ jest.mock('@liskhq/lisk-validator', () => ({
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
-	const frameworkTxTypes = ['0', '1', '2', '3', '4'];
+	const frameworkTxTypes = ['8', '9', '10', '11', '12'];
 
 	afterEach(() => {
 		// So we can start a fresh schema each time Application is instantiated
@@ -219,7 +219,7 @@ describe('Application', () => {
 
 			const TransactionWithoutBase = {
 				prototype: {},
-				...DappTransaction,
+				...SecondSignatureTransaction,
 			};
 
 			// Act && Assert
@@ -269,11 +269,11 @@ describe('Application', () => {
 			const app = new Application(genesisBlock, config);
 
 			class Sample extends Base {}
-			Sample.TYPE = 1;
+			Sample.TYPE = 9;
 
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow(
-				'A transaction type "1" is already registered.',
+				'A transaction type "9" is already registered.',
 			);
 		});
 
@@ -282,10 +282,12 @@ describe('Application', () => {
 			const app = new Application(genesisBlock, config);
 
 			// Act
-			app.registerTransaction(DappTransaction);
+			class Sample extends Base {}
+			Sample.TYPE = 15;
+			app.registerTransaction(Sample);
 
 			// Assert
-			expect(app.getTransaction(5)).toBe(DappTransaction);
+			expect(app.getTransaction(15)).toBe(Sample);
 		});
 	});
 });

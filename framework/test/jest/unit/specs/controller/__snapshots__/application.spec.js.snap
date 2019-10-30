@@ -503,11 +503,11 @@ Object {
         "rebuildUpToRound": null,
       },
       "registeredTransactions": Object {
-        "0": [Function],
-        "1": [Function],
-        "2": [Function],
-        "3": [Function],
-        "4": [Function],
+        "10": [Function],
+        "11": [Function],
+        "12": [Function],
+        "8": [Function],
+        "9": [Function],
       },
       "syncing": Object {
         "active": true,
