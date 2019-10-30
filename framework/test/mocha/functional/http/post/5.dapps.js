@@ -25,6 +25,11 @@ const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -51,11 +56,13 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 	// Crediting accounts
 	before(() => {
 		const transaction1 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		const transaction2 = transfer({
+			networkIdentifier,
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
