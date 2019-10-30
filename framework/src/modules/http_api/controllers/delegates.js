@@ -24,6 +24,8 @@ const { calculateApproval } = require('../helpers/utils');
 let storage;
 let logger;
 let channel;
+let config;
+
 const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 
 function delegateFormatter(totalSupply, delegate) {
@@ -98,7 +100,7 @@ async function _getForgers(filters) {
 	const activeDelegates = await channel.invoke(
 		'chain:getForgerPublicKeysForRound',
 		{
-			round: currentRound - 2,
+			round: currentRound - config.constants.DELEGATE_LIST_ROUND_OFFSET,
 		},
 	);
 
@@ -265,6 +267,7 @@ function DelegatesController(scope) {
 	({
 		components: { storage, logger },
 		channel,
+		config,
 	} = scope);
 }
 
