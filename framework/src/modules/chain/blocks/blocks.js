@@ -149,9 +149,6 @@ class Blocks extends EventEmitter {
 			throw new Error('Genesis block does not match');
 		}
 
-		// check if the round related information is in valid state
-		await this.blocksVerify.reloadRequired();
-
 		const [storageLastBlock] = await this.storage.entities.Block.get(
 			{},
 			{ sort: 'height:desc', limit: 1, extended: true },

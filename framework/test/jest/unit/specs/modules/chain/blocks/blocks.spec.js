@@ -267,11 +267,6 @@ describe('blocks', () => {
 			});
 		});
 
-		describe('reloadRequired', () => {
-			// TODO: Add tests or remove the code after the discussion on https://github.com/LiskHQ/lisk-sdk/issues/4130
-			it.todo('confirm if it needs tests here');
-		});
-
 		describe('loadLastBlock', () => {
 			it('should throw an error when Block.get throws error', async () => {
 				// Arrange
