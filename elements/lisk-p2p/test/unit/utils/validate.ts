@@ -23,7 +23,10 @@ import {
 	ProtocolPeerInfo,
 	P2PRequestPacket,
 	P2PMessagePacket,
+	P2PNodeInfo,
 } from '../../../src/p2p_types';
+import { validateNodeInfo } from '../../../src/errors';
+import { DEFAULT_MAX_PEER_INFO_SIZE } from '../../../src/constants';
 
 describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
@@ -139,6 +142,38 @@ describe('utils/validate', () => {
 				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
 					'Invalid peer version',
 				);
+			});
+		});
+	});
+
+	describe('#validateNodeInfo', () => {
+		describe('for valid values', () => {
+			const NodeInfo: P2PNodeInfo = {
+				os: '12.23.54.3',
+				nethash: '12.23.54.3',
+				wsPort: 5393,
+				version: '1.1.2',
+				protocolVersion: '1.1',
+				options: {
+					foo: 'bar',
+					fizz: 'buzz',
+				},
+			};
+
+			it('it should return NodeInfo', async () => {
+				expect(validateNodeInfo(NodeInfo, DEFAULT_MAX_PEER_INFO_SIZE))
+					.to.be.an('object')
+					.eql({
+						os: '12.23.54.3',
+						nethash: '12.23.54.3',
+						wsPort: 5393,
+						version: '1.1.2',
+						protocolVersion: '1.1',
+						options: {
+							foo: 'bar',
+							fizz: 'buzz',
+						},
+					});
 			});
 		});
 	});

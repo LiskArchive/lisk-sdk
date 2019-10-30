@@ -14,6 +14,7 @@
  */
 import { expect } from 'chai';
 import { P2P, EVENT_MESSAGE_RECEIVED } from '../../../src/index';
+import { InvalidNodeInfoError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
 import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
@@ -54,6 +55,26 @@ describe('P2P.applyNodeInfo', () => {
 
 	afterEach(async () => {
 		await destroyNetwork(p2pNodeList);
+	});
+
+	it('should throw error when applying invalid NodeInfo', async () => {
+		const firstP2PNode = p2pNodeList[0];
+
+		expect(() =>
+			firstP2PNode.applyNodeInfo({
+				os: platform(),
+				nethash:
+					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				version: firstP2PNode.nodeInfo.version,
+				protocolVersion: '1.1',
+				wsPort: firstP2PNode.nodeInfo.wsPort,
+				options: firstP2PNode.nodeInfo.options,
+				junk: '1.'.repeat(13000),
+			}),
+		).to.throw(
+			InvalidNodeInfoError,
+			'NodeInfo was larger than the maximum allowed 20480 bytes',
+		);
 	});
 
 	it('should send the node info to peers', async () => {

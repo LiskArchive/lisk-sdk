@@ -53,7 +53,11 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from './constants';
-import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
+import {
+	ExistingPeerError,
+	InvalidNodeInfoError,
+	PeerInboundHandshakeError,
+} from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -549,19 +553,17 @@ export class P2P extends EventEmitter {
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		try {
-			this._nodeInfo = {
-				...nodeInfo,
-			};
-
 			const maxPeerInfoSize = this._config.maxPeerInfoSize
 				? this._config.maxPeerInfoSize
 				: DEFAULT_MAX_PEER_INFO_SIZE;
 
-			validateNodeInfo(this._nodeInfo, maxPeerInfoSize);
+			this._nodeInfo = {
+				...validateNodeInfo(nodeInfo, maxPeerInfoSize),
+			};
 
 			this._peerPool.applyNodeInfo(this._nodeInfo);
-		} catch (err) {
-			throw new Error(`${err} Invalid NodeInfo cannot be applied`);
+		} catch (error) {
+			throw error as InvalidNodeInfoError;
 		}
 	}
 
