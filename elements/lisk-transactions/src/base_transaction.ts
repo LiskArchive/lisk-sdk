@@ -246,7 +246,7 @@ export abstract class BaseTransaction {
 				'Network identifier is required to validate a transaction ',
 			);
 		}
-		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -410,7 +410,7 @@ export abstract class BaseTransaction {
 				'Network identifier is required to validate a transaction ',
 			);
 		}
-		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -467,7 +467,7 @@ export abstract class BaseTransaction {
 				'Network identifier is required to validate a transaction ',
 			);
 		}
-		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -530,7 +530,7 @@ export abstract class BaseTransaction {
 			throw new Error('Network identifier is required to sign a transaction ');
 		}
 
-		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			this.getBytes(),
@@ -591,7 +591,7 @@ export abstract class BaseTransaction {
 				'Network identifier is required to verify a transaction ',
 			);
 		}
-		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,

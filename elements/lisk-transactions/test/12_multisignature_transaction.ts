@@ -300,7 +300,10 @@ describe('Multisignature transaction class', () => {
 					1,
 				),
 			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
+			const transaction = new MultisignatureTransaction({
+				...invalidTransaction,
+				networkIdentifier,
+			});
 
 			const { status, errors } = transaction.processMultisignatures(store);
 			expect(status).to.equal(Status.PENDING);
@@ -314,7 +317,10 @@ describe('Multisignature transaction class', () => {
 				...validMultisignatureRegistrationTransaction,
 				signatures: [],
 			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
+			const transaction = new MultisignatureTransaction({
+				...invalidTransaction,
+				networkIdentifier,
+			});
 
 			const { status, errors } = transaction.processMultisignatures(store);
 			expect(status).to.equal(Status.PENDING);
@@ -331,7 +337,10 @@ describe('Multisignature transaction class', () => {
 					...validMultisignatureRegistrationTransaction.signatures.slice(0, 1),
 				],
 			};
-			const transaction = new MultisignatureTransaction(invalidTransaction);
+			const transaction = new MultisignatureTransaction({
+				...invalidTransaction,
+				networkIdentifier,
+			});
 
 			const { status, errors } = transaction.processMultisignatures(store);
 			expect(status).to.equal(Status.FAIL);

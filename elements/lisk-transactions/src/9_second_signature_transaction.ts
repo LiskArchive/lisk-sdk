@@ -134,7 +134,15 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	public sign(passphrase: string): void {
 		this._signature = undefined;
 		this._signSignature = undefined;
-		this._signature = signData(hash(this.getBytes()), passphrase);
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBytes(),
+		]);
+		this._signature = signData(
+			hash(transactionWithNetworkIdentifierBytes),
+			passphrase,
+		);
 		this._id = getId(this.getBytes());
 	}
 }

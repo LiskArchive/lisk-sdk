@@ -57,7 +57,10 @@ export const createSignatureObject = (options: {
 
 	// tslint:disable-next-line variable-name
 	const TransactionClass = transactionMap[transaction.type];
-	const tx = new TransactionClass(transaction) as BaseTransaction;
+	const tx = new TransactionClass({
+		...transaction,
+		networkIdentifier,
+	}) as BaseTransaction;
 
 	const validStatus = tx.validate();
 	if (validStatus.errors.length > 0) {

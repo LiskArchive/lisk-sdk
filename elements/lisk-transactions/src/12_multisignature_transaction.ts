@@ -13,7 +13,10 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	MultisignatureStatus,
@@ -172,7 +175,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	public processMultisignatures(_: StateStore): TransactionResponse {
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -293,7 +296,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = Buffer.from(this._networkIdentifier, 'hex');
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,

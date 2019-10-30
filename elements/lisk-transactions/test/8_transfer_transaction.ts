@@ -81,7 +81,7 @@ describe('Transfer transaction class', () => {
 
 	describe('#getBasicBytes', () => {
 		const expectedBytes =
-			'0824cd3c03efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d00000000499602d2fbc2d06c336d04be72616e646f6d2064617461';
+			'08033ccd24efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d00000000499602d2fbc2d06c336d04be72616e646f6d2064617461';
 		it('should return a buffer', async () => {
 			const basicBytes = (validTransferTestTransaction as any).getBasicBytes();
 
