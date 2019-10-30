@@ -57,7 +57,7 @@ class Queries {
 
 	getDelegates() {
 		return self.storage.adapter.db.query(
-			'SELECT m.*, t.id as "transactionId" FROM mem_accounts m LEFT JOIN trs t ON t.asset->>\'username\' = m.username WHERE t.type = 2',
+			'SELECT m.*, t.id as "transactionId" FROM mem_accounts m LEFT JOIN trs t ON t.asset->>\'username\' = m.username WHERE t.type = 10',
 		);
 	}
 
@@ -72,10 +72,7 @@ class Queries {
 	}
 
 	getAllBlocks() {
-		return self.storage.entities.Block.get(
-			{},
-			{ extended: true, limit: null },
-		).then(blocks => blocks.map(this.library.blocks.deserialize));
+		return self.storage.entities.Block.get({}, { extended: true, limit: null });
 	}
 
 	getBlocks(round) {

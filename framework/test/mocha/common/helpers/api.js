@@ -25,6 +25,11 @@ const {
 	calculateApproval,
 } = require('../../../../src/modules/http_api/helpers/utils');
 const SwaggerSpec = require('../swagger_spec');
+const { getNetworkIdentifier } = require('../network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const http = {
 	abstractRequest(options, done) {
@@ -225,6 +230,7 @@ function sendSignature(signature, cb) {
 
 function creditAccount(address, amount, cb) {
 	const transaction = transfer({
+		networkIdentifier,
 		amount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: address,
@@ -333,8 +339,11 @@ function createSignatureObject(transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: createSignatureObjectElements(transaction, signer.passphrase)
-			.signature,
+		signature: createSignatureObjectElements({
+			transaction,
+			passphrase: signer.passphrase,
+			networkIdentifier,
+		}).signature,
 	};
 }
 
