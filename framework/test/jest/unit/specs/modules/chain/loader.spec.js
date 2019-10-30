@@ -21,11 +21,11 @@ const {
 const {
 	registeredTransactions,
 } = require('../../../../utils/registered_transactions');
-const {
-	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../utils/network_identifier');
 
 describe('Loader', () => {
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
 	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
 		let loader;
 		let channelStub;
@@ -72,8 +72,8 @@ describe('Loader', () => {
 							],
 						},
 						signature:
-							'ddbc1bc638e1fbac3b99bb99901d0347d5abd523a30d413353c949abd4a19295d52ceb20f7ef950d307db98fb89bec8f0ea3a3b740937e4915647754f14ec601',
-						id: '17637915433304629522',
+							'b534786e208c570022ac7ebdb19915d8772998bab2fa7bdfb5fe219c2103a0517209301974c772596c46dd95b2d32b3b1f38172295801ff8c3968654a7bde406',
+						id: '16951860278597630982',
 					},
 				],
 			};
@@ -146,26 +146,11 @@ describe('Loader', () => {
 					id: 'blockID',
 				},
 			};
-			const peersModuleStub = {
-				isPoorConsensus: jest.fn().mockReturnValue(true),
-			};
 			loader = new Loader({
 				logger: loggerStub,
 				channel: channelStub,
 				blocksModule: blocksModuleStub,
-				peersModule: peersModuleStub,
 				interfaceAdapters,
-			});
-		});
-
-		describe('when blocks endpoint returns success false', () => {
-			beforeEach(async () => {
-				channelStub.invoke.mockReturnValue({ data: { success: false } });
-			});
-
-			it('should call recoverChain of blocks module', async () => {
-				await loader._loadBlocksFromNetwork();
-				expect(blocksModuleStub.recoverChain).toHaveBeenCalledTimes(5);
 			});
 		});
 
