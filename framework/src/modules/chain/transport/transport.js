@@ -189,7 +189,8 @@ class Transport {
 	 * @property {function} postSignatures
 	 * @property {function} getSignatures
 	 * @property {function} getTransactions
-	 * @property {function} postTransactions
+	 * @property {function} postTransactionsAnnouncement
+	 * @property {function} checkTransactionsIDs
 	 * @todo Add description for the functions
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
@@ -390,20 +391,20 @@ class Transport {
 	}
 
 	/**
-	 * Description of postTransactions.
+	 * Description of postTransactionsAnnouncement.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransactions(query) {
+	async postTransactionsAnnouncement({ data, peerId }) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',
 			);
 		}
 
-		const errors = validator.validate(definitions.WSTransactionsRequest, query);
+		const errors = validator.validate(definitions.WSTransactionsRequest, data);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid transactions body');
@@ -411,7 +412,20 @@ class Transport {
 			throw errors;
 		}
 
-		return this._receiveTransactions(query.transactions);
+		const unknownTransactions = await this.checkTransactionsIDs(data);
+		if (unknownTransactions.length > 0) {
+			const { data: result } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getTransactions',
+					data: unknownTransactions,
+				},
+				peerId,
+			);
+			return this._receiveTransactions(result);
+		}
+
+		return null;
 	}
 
 	/**
@@ -421,8 +435,8 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async checkTransactionsIDs(query) {
-		const errors = validator.validate(definitions.WSTransactionsRequest, query);
+	async checkTransactionsIDs(data) {
+		const errors = validator.validate(definitions.WSTransactionsRequest, data);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid transactions body');
@@ -433,7 +447,7 @@ class Transport {
 		const unknownTransactions = [];
 
 		// Check if any transaction is in the queues.
-		for (const transaction of query.transactions) {
+		for (const transaction of data.transactions) {
 			if (!this.transactionPoolModule.transactionInPool(transaction.id)) {
 				const isPersisted = await this.storage.entities.Transaction.isPersisted(
 					{ id: transaction.id },

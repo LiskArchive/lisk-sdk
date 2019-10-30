@@ -1140,14 +1140,14 @@ describe('transport', () => {
 					});
 				});
 
-				describe('postTransactions', () => {
+				describe('postTransactionsAnnouncement', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
 						});
 
 						it('should call transportModule.logger.debug', async () => {
-							await transportModule.postTransactions(query);
+							await transportModule.postTransactionsAnnouncement(query);
 							expect(
 								transportModule.logger.debug.calledWith(
 									'Receiving transactions disabled by user through config.json',
@@ -1156,28 +1156,81 @@ describe('transport', () => {
 						});
 
 						it('should not call validator.validate; function should return before', async () => {
-							await transportModule.postTransactions(query);
+							await transportModule.postTransactionsAnnouncement(query);
 							expect(validator.validate).to.be.called;
 						});
 					});
 
 					describe('when validator.validate succeeds', () => {
-						beforeEach(async () => {
-							query = {
-								transactions: transactionsList,
-							};
-							transportModule.constants.broadcasts.active = true;
-							transportModule._receiveTransactions = sinonSandbox.stub();
+						describe('when any of the transaction ids is unknown', () => {
+							beforeEach(async () => {
+								query = {
+									data: {
+										transactions: transactionsList,
+									},
+									peerId: '127.0.0.1:5001',
+								};
+								transportModule.constants.broadcasts.active = true;
+								transportModule.checkTransactionsIDs = sinonSandbox
+									.stub()
+									.resolves([transaction.id]);
+								transportModule.channel.invoke = sinonSandbox
+									.stub()
+									.resolves({ data: [transaction] });
+								transportModule._receiveTransactions = sinonSandbox.stub();
+								validator.validate.returns(true);
+								await transportModule.postTransactionsAnnouncement(query);
+							});
+
+							it('should call transportModule.checkTransactionsIDs with query.data', async () =>
+								expect(transportModule.checkTransactionsIDs).to.be.calledWith(
+									query.data,
+								));
+
+							it('should invoke network:requestFromPeer event', async () =>
+								expect(transportModule.channel.invoke).to.be.calledWith(
+									'network:requestFromPeer',
+									{
+										procedure: 'getTransactions',
+										data: [transaction.id],
+									},
+									query.peerId,
+								));
+
+							it('should call transportModule._receiveTransactions with query.transaction as argument', async () =>
+								expect(transportModule._receiveTransactions).to.be.calledWith([
+									transaction,
+								]));
 						});
 
-						it('should call transportModule._receiveTransactions with query.transaction as argument', async () => {
-							validator.validate.returns(true);
-							await transportModule.postTransactions(query);
-							expect(
-								transportModule._receiveTransactions.calledWith(
-									query.transactions,
-								),
-							).to.be.true;
+						describe('when none of the transactions ids are unknonw ', () => {
+							beforeEach(async () => {
+								query = {
+									data: {
+										transactions: transactionsList,
+									},
+									peerId: '127.0.0.1:5001',
+								};
+								transportModule.constants.broadcasts.active = true;
+								transportModule.checkTransactionsIDs = sinonSandbox
+									.stub()
+									.resolves([]);
+								transportModule.channel.invoke = sinonSandbox.stub();
+								transportModule._receiveTransactions = sinonSandbox.stub();
+								validator.validate.returns(true);
+								await transportModule.postTransactionsAnnouncement(query);
+							});
+
+							it('should call transportModule.checkTransactionsIDs with query.data', async () =>
+								expect(transportModule.checkTransactionsIDs).to.be.calledWith(
+									query.data,
+								));
+
+							it('should not invoke any network event', async () =>
+								expect(transportModule.channel.invoke).to.be.not.called);
+
+							it('should not call transportModule._receiveTransactions', async () =>
+								expect(transportModule._receiveTransactions).to.be.not.called);
 						});
 					});
 
@@ -1189,8 +1242,8 @@ describe('transport', () => {
 							validateErr.code = 'INVALID_FORMAT';
 							validator.validate = sinonSandbox.stub().returns([validateErr]);
 
-							return expect(
-								transportModule.postTransactions(query),
+							expect(
+								transportModule.postTransactionsAnnouncement(query),
 							).to.be.rejectedWith([validateErr]);
 						});
 					});

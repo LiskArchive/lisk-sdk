@@ -244,20 +244,10 @@ module.exports = class Chain {
 					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactionsAnnouncement') {
-								const unknownTransactions = await this.transport.checkTransactionsIDs(
+								await this.transport.postTransactionsAnnouncement({
 									data,
-								);
-								if (unknownTransactions.length > 0) {
-									const { data: result } = await this.channel.invoke(
-										'network:requestFromPeer',
-										{
-											procedure: 'getTransactions',
-											data: unknownTransactions,
-										},
-										peerId,
-									);
-									await this.transport.postTransactions(result);
-								}
+									peerId,
+								});
 								return;
 							}
 							if (event === 'postSignatures') {
