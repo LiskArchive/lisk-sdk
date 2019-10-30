@@ -47,8 +47,14 @@ describe('Vote transaction class', () => {
 		},
 	];
 
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
 	beforeEach(async () => {
-		validTestTransaction = new VoteTransaction(validVoteTransactions[2]);
+		validTestTransaction = new VoteTransaction({
+			...validVoteTransactions[2],
+			networkIdentifier,
+		});
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox
 			.stub(store.account, 'get')
@@ -82,11 +88,11 @@ describe('Vote transaction class', () => {
 	});
 
 	describe('#getBasicBytes', () => {
-		// generated using lisk-transactions/2.0.2
 		const expectedBytes =
-			'038a489d0330c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f4836f16c86372281e3300000000000000002b34373363333534636466363237623832653931313365303261333337343836646433616663353631356562373166666433313163356130626564613337623863';
+			'03039d488a30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f4832b34373363333534636466363237623832653931313365303261333337343836646433616663353631356562373166666433313163356130626564613337623863';
 		it('should return valid buffer', async () => {
 			const getBasicBytes = (validTestTransaction as any).getBasicBytes();
+
 			expect(getBasicBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
 		});
 	});
@@ -278,19 +284,6 @@ describe('Vote transaction class', () => {
 			const errors = (transaction as any).validateAsset();
 			expect(errors).not.to.be.empty;
 			expect(errors[0].dataPath).to.be.equal('.votes');
-		});
-
-		it('should return error when recipientId is empty', async () => {
-			const invalidTransaction = {
-				...validVoteTransactions[2],
-				id: '17277443568874824891',
-			};
-			const transaction = new VoteTransaction(invalidTransaction);
-			transaction.asset.recipientId = '';
-
-			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.recipientId');
 		});
 	});
 

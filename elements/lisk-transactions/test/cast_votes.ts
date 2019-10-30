@@ -37,7 +37,6 @@ describe('#castVotes transaction', () => {
 		'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const votePublicKeys = [firstPublicKey, secondPublicKey];
 	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
-	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
 	const amount = '0';
 	const fee = (1 * fixedPoint).toString();
@@ -102,25 +101,11 @@ describe('#castVotes transaction', () => {
 					.and.equal(transactionType);
 			});
 
-			it('should have amount string equal to 0', () => {
-				return expect(castVotesTransaction.asset)
-					.to.have.property('amount')
-					.and.be.a('string')
-					.and.equal(amount);
-			});
-
 			it('should have fee string equal to 100000000', () => {
 				return expect(castVotesTransaction)
 					.to.have.property('fee')
 					.and.be.a('string')
 					.and.equal(fee);
-			});
-
-			it('should have recipientId string equal to address', () => {
-				return expect(castVotesTransaction.asset)
-					.to.have.property('recipientId')
-					.and.be.a('string')
-					.and.equal(address);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
