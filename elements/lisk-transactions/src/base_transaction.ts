@@ -543,7 +543,12 @@ export abstract class BaseTransaction {
 
 		if (secondPassphrase) {
 			this._signSignature = signData(
-				hash(transactionWithNetworkIdentifierBytes),
+				hash(
+					Buffer.concat([
+						transactionWithNetworkIdentifierBytes,
+						hexToBuffer(this._signature),
+					]),
+				),
 				secondPassphrase,
 			);
 		}
