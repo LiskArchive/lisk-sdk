@@ -176,12 +176,14 @@ class ChainTransaction extends TransactionEntity {
 			? _.cloneDeep(data)
 			: [_.cloneDeep(data)];
 
+		const recipientTransactionTypes = [0, 3, 8];
+
 		transactions.forEach(transaction => {
 			transaction.signatures = transaction.signatures
 				? transaction.signatures.join()
 				: null;
 
-			if (transaction.type === 0 || transaction.type === 3) {
+			if (recipientTransactionTypes.includes(transaction.type)) {
 				transaction.amount = transaction.asset.amount.toString();
 				transaction.recipientId = transaction.asset.recipientId;
 			} else {
@@ -193,8 +195,9 @@ class ChainTransaction extends TransactionEntity {
 			transaction.transferData = null;
 
 			// Transfer data is bytea and can not be included as json when null byte is present
+			const dataTransactionType = [0, 8];
 			if (
-				transaction.type === 0 &&
+				dataTransactionType.includes(transaction.type) &&
 				transaction.asset &&
 				transaction.asset.data
 			) {

@@ -19,7 +19,7 @@ const swaggerHelper = require('../helpers/swagger');
 const ApiError = require('../api_error');
 const apiCodes = require('../api_codes');
 
-const { TRANSACTION_TYPES } = global.constants;
+const TRANSACTION_TYPES_DELEGATE = [2, 10];
 
 // Private Fields
 let storage;
@@ -49,7 +49,7 @@ function transactionFormatter(transaction) {
 	result.senderId = result.senderId || '';
 	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
-	if (transaction.type === TRANSACTION_TYPES.DELEGATE) {
+	if (TRANSACTION_TYPES_DELEGATE.includes(transaction.type)) {
 		result.asset.publicKey = result.senderPublicKey;
 		result.asset.address = result.senderId;
 	}
