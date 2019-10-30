@@ -68,6 +68,13 @@ export class ExistingPeerError extends Error {
 	}
 }
 
+export class InvalidNodeInfoError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidNodeInfoError';
+	}
+}
+
 export class InvalidPeerInfoError extends Error {
 	public constructor(message: string) {
 		super(message);

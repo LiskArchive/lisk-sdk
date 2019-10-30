@@ -23,7 +23,11 @@ describe('Penalty sending malformed peerInfo', () => {
 	const collectedEvents = new Map();
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork({ networkSize: 2 });
+		p2pNodeList = await createNetwork({
+			networkSize: 2,
+			customConfig: (index: number) =>
+				index === 0 ? { maxPeerInfoSize: 30248 } : {},
+		});
 
 		p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
 			collectedEvents.set(EVENT_BAN_PEER, peerId);
@@ -41,7 +45,7 @@ describe('Penalty sending malformed peerInfo', () => {
 			options: p2pNodeList[0].nodeInfo.options,
 		});
 
-		await wait(200);
+		await wait(100);
 	});
 
 	afterEach(async () => {

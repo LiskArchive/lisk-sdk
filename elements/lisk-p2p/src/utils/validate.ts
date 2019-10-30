@@ -22,6 +22,7 @@ import {
 	PEER_INFO_LIST_TOO_LONG_REASON,
 } from '../constants';
 import {
+	InvalidNodeInfoError,
 	InvalidPeerInfoError,
 	InvalidPeerInfoListError,
 	InvalidProtocolMessageError,
@@ -193,6 +194,27 @@ export const validatePeerInfo = (
 	}
 
 	return validatePeerInfoSchema(rawPeerInfo);
+};
+
+export const validateNodeInfo = (
+	nodeInfo: P2PNodeInfo,
+	maxByteSize: number,
+): P2PNodeInfo => {
+	const byteSize = getByteSize(nodeInfo);
+
+	if (byteSize > maxByteSize) {
+		throw new InvalidNodeInfoError(
+			`NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+		);
+	}
+
+	if (!nodeInfo.version || !isValidVersion(nodeInfo.version)) {
+		throw new InvalidNodeInfoError(
+			`Invalid NodeInfo version ${nodeInfo.version}`,
+		);
+	}
+
+	return nodeInfo;
 };
 
 export const validatePeersInfoList = (
