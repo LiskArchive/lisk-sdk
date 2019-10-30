@@ -18,6 +18,11 @@ const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -38,6 +43,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			let transaction2;
 			const differentDelegateName = randomUtil.delegateName();
 			const transaction = transfer({
+				networkIdentifier,
 				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -57,6 +63,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			describe('with same account using different usernames', () => {
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = registerDelegate({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						username: differentDelegateName,
 					});
@@ -68,6 +75,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration from same account and different name should be ok', done => {
 					transaction2 = registerDelegate({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						username: account.username,
 					});
@@ -125,6 +133,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 					it('adding to pool delegate registration from same account should fail', done => {
 						transaction2 = registerDelegate({
+							networkIdentifier,
 							passphrase: account.passphrase,
 							username: randomUtil.delegateName(),
 						});

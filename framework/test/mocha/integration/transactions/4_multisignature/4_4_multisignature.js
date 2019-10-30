@@ -20,6 +20,11 @@ const {
 } = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('integration test (type 4) - double multisignature registrations', () => {
 	let library;
@@ -29,6 +34,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 	};
 
 	const transactionToBeNotConfirmed = registerMultisignature({
+		networkIdentifier,
 		passphrase: scenarios.regular.account.passphrase,
 		keysgroup: scenarios.regular.keysgroup,
 		lifetime: scenarios.regular.lifetime,
@@ -42,17 +48,19 @@ describe('integration test (type 4) - double multisignature registrations', () =
 	transactionToBeNotConfirmed.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		const signatureToBeNotconfirmed = createSignatureObject(
-			transactionToBeNotConfirmed,
-			member.passphrase,
-		);
+		const signatureToBeNotconfirmed = createSignatureObject({
+			transaction: transactionToBeNotConfirmed,
+			passphrase: member.passphrase,
+			networkIdentifier,
+		});
 		transactionToBeNotConfirmed.signatures.push(
 			signatureToBeNotconfirmed.signature,
 		);
-		const signatureObject = createSignatureObject(
-			scenarios.regular.multiSigTransaction,
-			member.passphrase,
-		);
+		const signatureObject = createSignatureObject({
+			transaction: scenarios.regular.multiSigTransaction,
+			passphrase: member.passphrase,
+			networkIdentifier,
+		});
 		return scenarios.regular.multiSigTransaction.signatures.push(
 			signatureObject.signature,
 		);
@@ -136,6 +144,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 
 		it('adding to pool multisignature registration for same account should fail', done => {
 			const multiSignatureToSameAccount = registerMultisignature({
+				networkIdentifier,
 				passphrase: scenarios.regular.account.passphrase,
 				keysgroup: scenarios.regular.keysgroup,
 				lifetime: scenarios.regular.lifetime,

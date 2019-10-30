@@ -35,12 +35,20 @@ const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const { Slots } = require('../../../../../src/modules/chain/dpos');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
 const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+	transactions: new TransactionInterfaceAdapter(
+		networkIdentifier,
+		registeredTransactions,
+	),
 };
 
 const slots = new Slots({
@@ -362,6 +370,7 @@ describe('blocks/verify', () => {
 			beforeEach(async () => {
 				const account = random.account();
 				const transaction = transfer({
+					networkIdentifier,
 					amount: new BigNum(NORMALIZER).times(1000).toString(),
 					recipientId: accountFixtures.genesis.address,
 					passphrase: account.passphrase,
@@ -446,6 +455,7 @@ describe('blocks/verify', () => {
 
 					const account = random.account();
 					const transferTransaction = transfer({
+						networkIdentifier,
 						amount: new BigNum(NORMALIZER).times(1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
@@ -478,6 +488,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is invalid', async () => {
 					const account = random.account();
 					const transaction = transfer({
+						networkIdentifier,
 						amount: new BigNum(NORMALIZER).times(1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
@@ -525,6 +536,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', async () => {
 					const account = random.account();
 					const transaction = transfer({
+						networkIdentifier,
 						amount: new BigNum(NORMALIZER).times(1000).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,

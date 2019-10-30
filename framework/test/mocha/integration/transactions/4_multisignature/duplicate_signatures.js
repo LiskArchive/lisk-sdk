@@ -24,6 +24,11 @@ const {
 const accountsFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('duplicate_signatures', () => {
 	let library;
@@ -60,6 +65,7 @@ describe('duplicate_signatures', () => {
 
 		// Create transfer transaction (fund new account)
 		let transaction = transfer({
+			networkIdentifier,
 			recipientId: accounts.multisignature.address,
 			amount: '5000000000',
 			passphrase: accountsFixtures.genesis.passphrase,
@@ -68,6 +74,7 @@ describe('duplicate_signatures', () => {
 
 		// Create multisignature registration transaction
 		transaction = registerMultisignature({
+			networkIdentifier,
 			passphrase: accounts.multisignature.passphrase,
 			keysgroup: [
 				accounts.multisignatureMembers[0].publicKey,
@@ -80,16 +87,18 @@ describe('duplicate_signatures', () => {
 
 		// Create signatures (object)
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[0].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[0].passphrase,
+				networkIdentifier,
+			}),
 		);
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[1].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[1].passphrase,
+				networkIdentifier,
+			}),
 		);
 
 		return [transactions, signatures, accounts];
@@ -104,6 +113,7 @@ describe('duplicate_signatures', () => {
 
 		// Create transfer transaction (fund new account)
 		const transaction = transfer({
+			networkIdentifier,
 			recipientId: accounts.random.address,
 			amount: '100000000',
 			passphrase: accounts.multisignature.passphrase,
@@ -112,16 +122,18 @@ describe('duplicate_signatures', () => {
 
 		// Create signatures (object)
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[0].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[0].passphrase,
+				networkIdentifier,
+			}),
 		);
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[1].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[1].passphrase,
+				networkIdentifier,
+			}),
 		);
 
 		return [transactions, signatures];

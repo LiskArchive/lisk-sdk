@@ -27,6 +27,11 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 // FIXME: this function was used from transactions library, but it doesn't exist
 const transferIntoDapp = () => {};
@@ -59,6 +64,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 			function createAccountWithFunds(done) {
 				testAccount = randomUtil.account();
 				const sendTransaction = transfer({
+					networkIdentifier,
 					amount: (100000000 * 100).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: testAccount.address,
@@ -82,6 +88,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should create a transaction and forge a block', done => {
 					testReceipt = randomUtil.account();
 					const transferTransaction = transfer({
+						networkIdentifier,
 						amount: '100000000',
 						passphrase: testAccount.passphrase,
 						recipientId: testReceipt.address,
@@ -172,6 +179,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					const signatureTransaction = registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						secondPassphrase: testAccount.secondPassphrase,
 					});
@@ -253,6 +261,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					const delegateTransaction = registerDelegate({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						username: testAccount.username,
 					});
@@ -340,6 +349,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					const voteTransaction = castVotes({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						votes: [accountFixtures.existingDelegate.publicKey],
 					});
@@ -415,15 +425,17 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					const multisigTransaction = registerMultisignature({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						keysgroup: [accountFixtures.existingDelegate.publicKey],
 						lifetime: 1,
 						minimum: 1,
 					});
-					const signatureObject = createSignatureObject(
-						multisigTransaction,
-						accountFixtures.existingDelegate.passphrase,
-					);
+					const signatureObject = createSignatureObject({
+						networkIdentifier,
+						transaction: multisigTransaction,
+						passphrase: accountFixtures.existingDelegate.passphrase,
+					});
 					multisigTransaction.signatures = [signatureObject.signature];
 					multisigTransaction.ready = true;
 

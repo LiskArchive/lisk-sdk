@@ -31,6 +31,11 @@ const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
+const { getNetworkIdentifier } = require('../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -120,13 +125,13 @@ describe('rounds', () => {
 				}
 
 				// Apply register delegate transaction
-				if (transaction.type === 2) {
+				if (transaction.type === 10) {
 					accounts[address].username = transaction.asset.username;
 					accounts[address].isDelegate = 1;
 				}
 
 				// After merging mem_accounts depdentent tables the returned account has more fields so we need to account for this
-				if (transaction.type === 3) {
+				if (transaction.type === 11) {
 					const upvotes = transaction.asset.votes
 						.filter(vote => vote.charAt(0) === '+')
 						.map(vote => vote.substring(1));
@@ -489,6 +494,7 @@ describe('rounds', () => {
 
 			before(done => {
 				const transaction = transfer({
+					networkIdentifier,
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000).toString(),
 					passphrase: accountsFixtures.genesis.passphrase,
@@ -508,6 +514,7 @@ describe('rounds', () => {
 
 				for (let i = transactionsPerBlock - 1; i >= 0; i--) {
 					const transaction = transfer({
+						networkIdentifier,
 						recipientId: randomUtil.account().address,
 						amount: randomUtil.number(100000000, 1000000000).toString(),
 						passphrase: accountsFixtures.genesis.passphrase,
@@ -532,6 +539,7 @@ describe('rounds', () => {
 					const transactions = [];
 					for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 						const transaction = transfer({
+							networkIdentifier,
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountsFixtures.genesis.passphrase,
@@ -559,6 +567,7 @@ describe('rounds', () => {
 
 			before(() => {
 				const transaction = transfer({
+					networkIdentifier,
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000).toString(),
 					passphrase: accountsFixtures.genesis.passphrase,
@@ -579,7 +588,7 @@ describe('rounds', () => {
 				return expect(lastBlock.height).to.be.equal(ACTIVE_DELEGATES);
 			});
 
-			it('should calculate rewards for round 1 correctly - all should be the same (calculated, mem_accounts)', async () => {
+			it('should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)', async () => {
 				return Promise.join(
 					getMemAccounts(),
 					Queries.getBlocks(round.current),
@@ -718,6 +727,7 @@ describe('rounds', () => {
 
 				// Create unvote transaction
 				const transaction = castVotes({
+					networkIdentifier,
 					passphrase: accountsFixtures.genesis.passphrase,
 					unvotes: [lastBlockForger],
 				});
@@ -843,6 +853,7 @@ describe('rounds', () => {
 
 					// Create transfer transaction (fund new account)
 					let transaction = transfer({
+						networkIdentifier,
 						recipientId: tmpAccount.address,
 						amount: '5000000000',
 						passphrase: accountsFixtures.genesis.passphrase,
@@ -851,12 +862,14 @@ describe('rounds', () => {
 
 					// Create register delegate transaction
 					transaction = registerDelegate({
+						networkIdentifier,
 						passphrase: tmpAccount.passphrase,
 						username: 'my_little_delegate',
 					});
 					transactions.delegate.push(transaction);
 
 					transaction = castVotes({
+						networkIdentifier,
 						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 						votes: [tmpAccount.publicKey],
@@ -1015,6 +1028,7 @@ describe('rounds', () => {
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 							const transaction = transfer({
+								networkIdentifier,
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000).toString(),
 								passphrase: accountsFixtures.genesis.passphrase,
@@ -1070,6 +1084,7 @@ describe('rounds', () => {
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 							const transaction = transfer({
+								networkIdentifier,
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000).toString(),
 								passphrase: accountsFixtures.genesis.passphrase,
@@ -1101,14 +1116,14 @@ describe('rounds', () => {
 			});
 
 			describe('after finish round', () => {
-				it('should calculate rewards for round 2 correctly - all should be the same (native)', async () => {
+				it('should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)', async () => {
 					return Promise.join(
 						Queries.getBlocks(2),
 						Queries.getRoundRewards(2, ACTIVE_DELEGATES),
 						(_blocks, _rewards) => {
 							// Get expected rewards for round (native)
 							const expectedRewards = getExpectedRoundRewards(_blocks);
-							// Should match data in `blocks` table
+							// Rewards from database table rounds_rewards should match native rewards
 							expect(_rewards).to.deep.equal(expectedRewards);
 						},
 					);

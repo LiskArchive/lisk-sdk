@@ -8,23 +8,31 @@ const {
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
 	const recipientAccount = randomUtil.account();
 	const transferInertTransaction = transfer({
+		networkIdentifier,
 		recipientId: recipientAccount.address,
 		amount: (1000000000 * 100).toString(),
 		passphrase: senderAccount.passphrase,
 	});
 
 	const voteInertTransaction = castVotes({
+		networkIdentifier,
 		passphrase: recipientAccount.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
 
 	const delegateInertTransaction = registerDelegate({
+		networkIdentifier,
 		passphrase: recipientAccount.passphrase,
 		username: recipientAccount.username,
 	});
@@ -44,6 +52,7 @@ describe('inert transactions', () => {
 	describe('send funds to account', () => {
 		before(done => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId: recipientAccount.address,
 				amount: (5000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
