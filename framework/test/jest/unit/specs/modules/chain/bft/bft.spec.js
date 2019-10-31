@@ -588,6 +588,7 @@ describe('bft', () => {
 			let blocks;
 
 			beforeEach(async () => {
+				// Arrange
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
 				await bft.init();
@@ -612,12 +613,14 @@ describe('bft', () => {
 			});
 
 			it('should return TRUE when B.maxHeightPreviouslyForged is equal to 0', async () => {
+				// Arrange
 				const block = {
 					height: 102,
 					generatorPublicKey: 'zxc',
 					maxHeightPreviouslyForged: 0,
 				};
 
+				// Act & Assert
 				expect(bft.isBFTProtocolCompliant(block)).toBe(true);
 			});
 
