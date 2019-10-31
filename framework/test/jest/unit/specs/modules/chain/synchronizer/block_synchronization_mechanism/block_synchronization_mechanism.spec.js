@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { cloneDeep } = require('lodash');
 const { when } = require('jest-when');
 const { Blocks } = require('../../../../../../../../src/modules/chain/blocks');
 const { BFT } = require('../../../../../../../../src/modules/chain/bft');
@@ -145,6 +146,7 @@ describe('block_synchronization_mechanism', () => {
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.validate = jest.fn();
+		processorModule.process = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
 		processorModule.register(blockProcessorV2);
 
@@ -252,7 +254,11 @@ describe('block_synchronization_mechanism', () => {
 			expect(blockSynchronizationMechanism.active).toBeFalsy();
 		});
 
-		describe('compute the best peer', () => {
+		describe.only('compute the best peer', () => {
+			beforeEach(() => {
+				jest.spyOn(Math, 'random').mockReturnValue(0);
+			});
+
 			it('should compute the best peer out of a list of connected peers and return it', async () => {
 				when(channelMock.invoke)
 					.calledWith('network:getPeers', {
@@ -276,7 +282,6 @@ describe('block_synchronization_mechanism', () => {
 				const blockIdsList = [blockList[0].id];
 
 				const highestCommonBlock = genesisBlockDevnet;
-
 				const requestedBlocks = [
 					...new Array(10)
 						.fill(0)
@@ -286,42 +291,42 @@ describe('block_synchronization_mechanism', () => {
 					aBlock,
 				];
 
-				for (const expectedPeer of peersList.expectedSelection) {
-					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
-							procedure: 'getHighestCommonBlock',
-							peerId,
-							data: {
-								ids: blockIdsList,
-							},
-						})
-						.mockResolvedValue({
-							data: highestCommonBlock,
-						});
+				const expectedPeer = peersList.expectedSelection[0];
+				const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
 
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
-							procedure: 'getLastBlock',
-							peerId,
-						})
-						.mockResolvedValue({
-							data: newBlock({
-								height: expectedPeer.height,
-								prevotedConfirmedUptoHeight:
-									expectedPeer.prevotedConfirmedUptoHeight,
-							}),
-						});
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
-							procedure: 'getBlocksFromId',
-							peerId,
-							data: {
-								blockId: highestCommonBlock.id,
-							},
-						})
-						.mockResolvedValue({ data: requestedBlocks });
-				}
+				when(channelMock.invoke)
+					.calledWith('network:requestFromPeer', {
+						procedure: 'getHighestCommonBlock',
+						peerId,
+						data: {
+							ids: blockIdsList,
+						},
+					})
+					.mockResolvedValue({
+						data: highestCommonBlock,
+					});
+
+				when(channelMock.invoke)
+					.calledWith('network:requestFromPeer', {
+						procedure: 'getLastBlock',
+						peerId,
+					})
+					.mockResolvedValue({
+						data: newBlock({
+							height: expectedPeer.height,
+							prevotedConfirmedUptoHeight:
+								expectedPeer.prevotedConfirmedUptoHeight,
+						}),
+					});
+				when(channelMock.invoke)
+					.calledWith('network:requestFromPeer', {
+						procedure: 'getBlocksFromId',
+						peerId,
+						data: {
+							blockId: highestCommonBlock.id,
+						},
+					})
+					.mockResolvedValue({ data: requestedBlocks });
 
 				when(storageMock.entities.Block.get)
 					.calledWith(
@@ -340,11 +345,15 @@ describe('block_synchronization_mechanism', () => {
 					})
 					.mockResolvedValueOnce(genesisBlockDevnet);
 
+				blocksModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
+
 				await blockSynchronizationMechanism.run(aBlock);
 
 				expect(loggerMock.trace).toHaveBeenCalledWith(
 					{
-						peers: peersList.map(peer => `${peer.ip}:${peer.wsPort}`),
+						peers: peersList.connectedPeers.map(
+							peer => `${peer.ip}:${peer.wsPort}`,
+						),
 					},
 					'List of connected peers',
 				);
@@ -352,18 +361,77 @@ describe('block_synchronization_mechanism', () => {
 					'Computing the best peer to synchronize from',
 				);
 				expect(loggerMock.debug).toHaveBeenCalledWith(
+					{
+						peer: {
+							...peersList.expectedSelection[0],
+							id: `${peersList.expectedSelection[0].ip}:${
+								peersList.expectedSelection[0].wsPort
+							}`,
+						},
+					},
 					'Successfully computed the best peer',
 				);
 				expect(
-					blockSynchronizationMechanism._requestAndApplyBlocksWithinIDs.calls[0].every(
-						peer => peersList.expectedSelection.includes(peer),
-					),
-				).toBeTruthy();
+					blockSynchronizationMechanism._requestAndValidateLastBlock,
+				).toHaveBeenCalledWith(
+					`${peersList.expectedSelection[0].ip}:${
+						peersList.expectedSelection[0].wsPort
+					}`,
+				);
 			});
 
-			it('should throw an error if there are no compatible peers', () => {});
+			it('should throw an error if there are no compatible peers', async () => {
+				// If has one of these properties missing, it is considered an incompatible peer
+				const requiredProps = [
+					'blockVersion',
+					'prevotedConfirmedUptoHeight',
+					'height',
+				];
 
-			it('should throw an error if the list of connected peers is empty', () => {});
+				for (const requiredProp of requiredProps) {
+					when(channelMock.invoke)
+						.calledWith('network:getPeers', {
+							state: PEER_STATE_CONNECTED,
+						})
+						.mockResolvedValueOnce(
+							peersList.connectedPeers.map(peer => {
+								const incompatiblePeer = cloneDeep(peer);
+								delete incompatiblePeer[requiredProp];
+								return incompatiblePeer;
+							}),
+						);
+					jest.spyOn(
+						blockSynchronizationMechanism,
+						'_requestAndValidateLastBlock',
+					);
+
+					try {
+						await blockSynchronizationMechanism.run(aBlock);
+					} catch (err) {
+						expect(err.message).toEqual(
+							'Connected compatible peers list is empty',
+						);
+					}
+				}
+			});
+
+			it('should throw an error if the list of connected peers is empty', async () => {
+				when(channelMock.invoke)
+					.calledWith('network:getPeers', {
+						state: PEER_STATE_CONNECTED,
+					})
+					.mockResolvedValueOnce([]);
+				jest.spyOn(
+					blockSynchronizationMechanism,
+					'_requestAndValidateLastBlock',
+				);
+
+				try {
+					await blockSynchronizationMechanism.run(aBlock);
+				} catch (err) {
+					expect(err.message).toEqual('List of connected peers is empty');
+				}
+			});
 
 			it('should throw an error if the peer tip does not have priority over current tip', () => {});
 		});

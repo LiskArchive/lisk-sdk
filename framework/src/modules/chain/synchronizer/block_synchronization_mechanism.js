@@ -91,7 +91,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	/**
 	 * Check if this sync mechanism is valid for the received block
 	 *
-	 * @param {Object} receivedBlock - The blocked received from the network
+	 * @param {ExtendedBlock} receivedBlock - The blocked received from the network
 	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
 	 * @throws {Error} - In case want to abort the sync pipeline
 	 */
@@ -174,7 +174,16 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 	}
 
-	async _handleBlockProcessingError(lastCommonBlock) {
+	/**
+	 * When there is a failure applying blocks received from the peer,
+	 * it's needede to check whether the tip of the temp block chain has
+	 * preference over the current tip. If so, the temporary chain is restored
+	 * on top of the current chain and the blocks temp table is cleaned up
+	 * @param {ExtendedBlock} lastCommonBlock
+	 * @return {Promise<void>}
+	 * @private
+	 */
+	async _handleBlockProcessingError(lastCommonBlock, peerId) {
 		// If the list of blocks has not been fully applied
 		this.logger.debug('Failed to apply obtained blocks from peer');
 		const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
@@ -242,8 +251,8 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * Requests blocks from startingBlockID to an specific peer until endingBlockID
 	 * is met and applies them on top of the current chain.
 	 *
-	 * @param {Object} receivedBlock
-	 * @param {Object} lastCommonBlock
+	 * @param {ExtendedBlock} receivedBlock
+	 * @param {ExtendedBlock} lastCommonBlock
 	 * @param {string} peerId - The ID of the peer to target
 	 * @return {Promise<void | boolean>}
 	 * @throws {ApplyPenaltyAndRestartError} - In case peer didn't return any blocks after a number of retries
@@ -275,7 +284,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			if (!(err instanceof BlockProcessingError)) {
 				throw err;
 			}
-			await this._handleBlockProcessingError(lastCommonBlock);
+			await this._handleBlockProcessingError(lastCommonBlock, peerId);
 		}
 
 		this.logger.debug('Cleaning up blocks temporary table');
@@ -294,7 +303,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * last common block.
 	 *
 	 * @param {string} peerId - The ID of the selected peer to target.
-	 * @return {Promise<object>} - Returns the last common block
+	 * @return {Promise<ExtendedBlock>} - Returns the last common block
 	 * @throws {ApplyPenaltyAndRestartError} - In case no common block has been found
 	 * @throws {ApplyPenaltyAndRestartError} - In case the common block height is lower than the finalized height
 	 * @private
@@ -350,7 +359,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 *
 	 * @param {string} peerId - The ID of the peer to target.
-	 * @return {Promise<Object | undefined>}
+	 * @return {Promise<ExtendedBlock | undefined>}
 	 * @private
 	 */
 	async _requestLastCommonBlock(peerId) {
@@ -411,7 +420,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 * @param {string} peerId - Peer ID, used to target an specific peer
 	 * the peer specifically to request its last block of its chain.
-	 * @return {Promise<Object>}
+	 * @return {Promise<void>}
 	 * @throws {ApplyPenaltyAndRestartError} - in case the tip of the chain of the peer is not valid or is not a different chain
 	 * @private
 	 */
@@ -455,7 +464,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * of the Pipeline but not in other cases
 	 * that's why we wrap it here.
 	 *
-	 * @param {Object} networkLastBlock
+	 * @param {ExtendedBlock} networkLastBlock
 	 * @return {Promise<{valid: boolean, err: null}|{valid: boolean, err: *}>}
 	 * @private
 	 */
@@ -480,6 +489,10 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const peers = await this.channel.invoke('network:getPeers', {
 			state: PEER_STATE_CONNECTED,
 		});
+
+		if (!peers || peers.length === 0) {
+			throw new Error('List of connected peers is empty');
+		}
 
 		this.logger.trace(
 			{ peers: peers.map(peer => `${peer.ip}:${peer.wsPort}`) },
