@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,389 +14,385 @@
 
 'use strict';
 
-const ForkChoiceRule = require('../../../../../../../../src/modules/chain/blocks/fork_choice_rule');
-
+const { when } = require('jest-when');
+const { Blocks } = require('../../../../../../../../src/modules/chain/blocks');
+const { BFT } = require('../../../../../../../../src/modules/chain/bft');
+const {
+	BlockProcessorV2,
+} = require('../../../../../../../../src/modules/chain/block_processor_v2');
 const {
 	BlockSynchronizationMechanism,
-} = require('../../../../../../../../src/modules/chain/synchronizer/block_synchronization_mechanism');
-const peersList = require('./peers');
+	Errors,
+} = require('../../../../../../../../src/modules/chain/synchronizer');
 const {
-	Block: blockFixture,
-} = require('../../../../../../../mocha/fixtures/blocks');
+	computeBlockHeightsList,
+} = require('../../../../../../../../src/modules/chain/synchronizer/utils');
+
+const { Slots } = require('../../../../../../../../src/modules/chain/dpos');
+const {
+	Sequence,
+} = require('../../../../../../../../src/modules/chain/utils/sequence');
+const {
+	Processor,
+} = require('../../../../../../../../src/modules/chain/processor');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../../../../src/modules/chain/interface_adapters');
+const { constants } = require('../../../../../../utils');
+const { newBlock } = require('../../../chain/blocks/utils');
+
+const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block');
+const peersList = require('./peers');
+
+const PEER_STATE_CONNECTED = 2;
+
+const ChannelMock = jest.genMockFromModule(
+	'../../../../../../../../src/controller/channels/in_memory_channel',
+);
 
 describe('block_synchronization_mechanism', () => {
-	afterEach(async () => {
-		jest.clearAllMocks();
-	});
+	let bftModule;
+	let blockProcessorV2;
+	let blocksModule;
+	let processorModule;
+	let blockSynchronizationMechanism;
+	let slots;
 
-	describe('BlockSynchronizationMechanism', () => {
-		const activeDelegates = 101;
-		const channelMock = {
-			invoke: jest.fn(),
-			publish: jest.fn(),
+	let channelMock;
+	let dposModuleMock;
+	let exceptions;
+	let loggerMock;
+	let storageMock;
+
+	beforeEach(() => {
+		loggerMock = {
+			info: jest.fn(),
+			debug: jest.fn(),
+			error: jest.fn(),
+			trace: jest.fn(),
 		};
-		const processorModuleMock = {
-			validateDetached: jest.fn(),
-			forkStatus: jest.fn(),
-		};
-
-		const lastBlockGetterMock = jest.fn();
-		const blocksMock = {};
-		Object.defineProperty(blocksMock, 'lastBlock', {
-			get: lastBlockGetterMock,
-		});
-
-		const storageMock = {
+		storageMock = {
 			entities: {
+				TempBlock: {
+					get: jest.fn(),
+					truncate: jest.fn(),
+					isEmpty: jest.fn(),
+				},
 				Block: {
+					get: jest.fn(),
 					getOne: jest.fn(),
+					begin: jest.fn(),
+				},
+				Account: {
+					get: jest.fn(),
+				},
+				ChainMeta: {
+					getKey: jest.fn(),
 				},
 			},
 		};
-		const bftMock = {
-			finalizedHeight: null,
-		};
-		const slotsMock = {
-			getSlotNumber: jest.fn(),
-		};
-		const syncParams = {
-			channel: channelMock,
-			blocks: blocksMock,
+		channelMock = new ChannelMock();
+
+		slots = new Slots({
+			epochTime: constants.EPOCH_TIME,
+			interval: constants.BLOCK_TIME,
+			blocksPerRound: constants.ACTIVE_DELEGATES,
+		});
+
+		bftModule = new BFT({
 			storage: storageMock,
-			slots: slotsMock,
-			bft: bftMock,
-			activeDelegates,
-			processorModule: processorModuleMock,
+			logger: loggerMock,
+			activeDelegates: constants.ACTIVE_DELEGATES,
+			startingHeight: 1,
+		});
+
+		blocksModule = new Blocks({
+			logger: loggerMock,
+			storage: storageMock,
+			slots,
+			genesisBlock: genesisBlockDevnet,
+			sequence: new Sequence(),
+			interfaceAdapters: {
+				transactions: new TransactionInterfaceAdapter(),
+			},
+			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
+			loadPerIteration: 1000,
+			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
+			maxTransactionsPerBlock: constants.MAX_TRANSACTIONS_PER_BLOCK,
+			activeDelegates: constants.ACTIVE_DELEGATES,
+			rewardDistance: constants.REWARDS.DISTANCE,
+			rewardOffset: constants.REWARDS.OFFSET,
+			rewardMileStones: constants.REWARDS.MILESTONES,
+			totalAmount: constants.TOTAL_AMOUNT,
+			blockSlotWindow: constants.BLOCK_SLOT_WINDOW,
+		});
+		blocksModule.getTempBlocks = jest.fn();
+
+		blockProcessorV2 = new BlockProcessorV2({
+			blocksModule,
+			bftModule,
+			dposModule: dposModuleMock,
+			logger: loggerMock,
+			constants,
+			exceptions,
+		});
+
+		processorModule = new Processor({
+			channel: channelMock,
+			storage: storageMock,
+			blocksModule,
+			logger: loggerMock,
+		});
+		processorModule.processValidated = jest.fn();
+		processorModule.validate = jest.fn();
+		processorModule.deleteLastBlock = jest.fn();
+		processorModule.register(blockProcessorV2);
+
+		blockSynchronizationMechanism = new BlockSynchronizationMechanism({
+			storage: storageMock,
+			logger: loggerMock,
+			channel: channelMock,
+			slots,
+			interfaceAdapters: {
+				transactions: new TransactionInterfaceAdapter(),
+			},
+			blocks: blocksModule,
+			bft: bftModule,
+			processorModule,
+			activeDelegates: constants.ACTIVE_DELEGATES,
+		});
+	});
+
+	describe('async run()', () => {
+		const aPeer = '127.0.0.1:5000';
+		let aBlock;
+
+		const checkApplyPenaltyAndRestartIsCalled = (
+			receivedBlock,
+			peerId,
+			reason,
+		) => {
+			expect(loggerMock.info).toHaveBeenCalledWith(
+				{ peerId, reason },
+				'Applying penalty to peer and restarting synchronizer',
+			);
+			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
+				block: receivedBlock,
+			});
 		};
 
-		let syncMechanism;
-
-		beforeEach(() => {
-			ForkChoiceRule.isDifferentChain = jest.fn();
-			syncMechanism = new BlockSynchronizationMechanism(syncParams);
-		});
-
-		describe('#constructor', () => {
-			it('should create instance of BlockSynchronizationMechanism', async () => {
-				expect(syncMechanism).toBeInstanceOf(BlockSynchronizationMechanism);
+		const checkApplyPenaltyAndAbortIsCalled = (peerId, err) => {
+			expect(loggerMock.info).toHaveBeenCalledWith(
+				{ err, peerId, reason: err.reason },
+				'Applying penalty to peer and aborting synchronization mechanism',
+			);
+			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
+				peerId,
+				penalty: 100,
 			});
+		};
 
-			it('should assign dependencies', async () => {
-				expect(syncMechanism.storage).toBe(syncParams.storage);
-				expect(syncMechanism.logger).toBe(syncParams.logger);
-				expect(syncMechanism.bft).toBe(syncParams.bft);
-				expect(syncMechanism.slots).toBe(syncParams.slots);
-				expect(syncMechanism.channel).toBe(syncParams.channel);
-				expect(syncMechanism.blocks).toBe(syncParams.blocks);
-				expect(syncMechanism.constants).toEqual({
-					activeDelegates,
-				});
-				expect(syncMechanism.active).toBeFalsy();
-			});
-		});
+		const checkIfAbortIsCalled = error => {
+			expect(loggerMock.info).toHaveBeenCalledWith(
+				{
+					err: error,
+					reason: error.reason,
+				},
+				`Aborting synchronization mechanism with reason: ${error.reason}`,
+			);
+		};
 
-		describe('async isValidFor()', () => {
-			const lastBlockHeight = 200;
-			const finalizedBlockHeight = 100;
-			const finalizedBlock = blockFixture({ height: finalizedBlockHeight });
-
-			beforeEach(async () => {
-				storageMock.entities.Block.getOne.mockReturnValue(finalizedBlock);
-				syncMechanism.bft.finalizedHeight = finalizedBlockHeight;
-			});
-
-			it('should get finalized block from storage', async () => {
-				const receivedBlock = blockFixture();
-
-				await syncMechanism.isValidFor(receivedBlock);
-
-				expect(storageMock.entities.Block.getOne).toHaveBeenCalledTimes(1);
-				expect(storageMock.entities.Block.getOne).toHaveBeenCalledWith({
-					height_eql: finalizedBlockHeight,
-				});
-			});
-
-			it('should get slot numbers for finalizedBlock and current slot', async () => {
-				const receivedBlock = blockFixture();
-
-				await syncMechanism.isValidFor(receivedBlock);
-
-				expect(slotsMock.getSlotNumber).toHaveBeenCalledTimes(2);
-				expect(slotsMock.getSlotNumber).toHaveBeenNthCalledWith(
-					1,
-					finalizedBlock.timestamp,
-				);
-				expect(slotsMock.getSlotNumber).toHaveBeenNthCalledWith(2);
-			});
-
-			it('should return true if is behind the three rounds', async () => {
-				const currentSlot = 5000;
-				const finalizedBlockSlot = 4000; // Behind more than 3 rounds
-				const receivedBlock = blockFixture({ height: lastBlockHeight + 1 });
-				slotsMock.getSlotNumber.mockImplementation(timestamp => {
-					if (timestamp === finalizedBlock.timestamp) {
-						return finalizedBlockSlot;
-					}
-
-					return currentSlot;
-				});
-
-				const result = await syncMechanism.isValidFor(receivedBlock);
-
-				expect(result).toBeTruthy();
-			});
-
-			it('should return false if is behind within three rounds', async () => {
-				const currentSlot = 5000;
-				const finalizedBlockSlot = 4700; // Behind more than 3 rounds
-				const receivedBlock = blockFixture({ height: lastBlockHeight + 1 });
-				slotsMock.getSlotNumber.mockImplementation(timestamp => {
-					if (timestamp === finalizedBlock.timestamp) {
-						return finalizedBlockSlot;
-					}
-
-					return currentSlot;
-				});
-
-				const result = await syncMechanism.isValidFor(receivedBlock);
-
-				expect(result).toBeFalsy();
-			});
-		});
-
-		// TODO: Include tests related to private methods inside tests for `run` public interface and remove them
-
-		describe.skip('#_computeBestPeer', () => {
-			beforeEach(() => {
-				processorModuleMock.forkStatus.mockResolvedValue(
-					ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
-				);
-			});
-
-			it('should accept an array of peers as input', () => {
-				expect(syncMechanism._computeBestPeer).toHaveLength(1);
-			});
-
-			it('should return a peer object', async () => {
-				lastBlockGetterMock.mockReturnValue({
-					height: 0,
-					prevotedConfirmedUptoHeight: 0,
-				});
-
-				const peers = [
+		beforeEach(async () => {
+			aBlock = newBlock();
+			// blocksModule.init will check whether the genesisBlock in storage matches the genesisBlock in
+			// memory. The following mock fakes this to be true
+			when(storageMock.entities.Block.begin)
+				.calledWith('loader:checkMemTables')
+				.mockResolvedValue({ genesisBlock: genesisBlockDevnet });
+			when(storageMock.entities.Account.get)
+				.calledWith({ isDelegate: true }, { limit: null })
+				.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
+			// blocksModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
+			// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
+			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
+			when(storageMock.entities.Block.get)
+				.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
+				.mockResolvedValue([lastBlock]);
+			// Same thing but for BFT module,as it doesn't use extended flag set to true
+			when(storageMock.entities.Block.get)
+				.calledWith({}, { sort: 'height:desc', limit: 1 })
+				.mockResolvedValue([lastBlock]);
+			// BFT loads blocks from storage and extracts their headers
+			when(storageMock.entities.Block.get)
+				.calledWith(
 					{
-						lastBlockId: '12343245',
-						prevotedConfirmedUptoHeight: 1,
-						height: 67,
-						ip: '127.0.0.1',
+						height_gte: genesisBlockDevnet.height,
+						height_lte: lastBlock.height,
 					},
+					{ limit: null, sort: 'height:asc' },
+				)
+				.mockResolvedValue([genesisBlockDevnet, lastBlock]);
+
+			// Simulate finalized height stored in ChainMeta table is 0
+			when(storageMock.entities.ChainMeta.getKey)
+				.calledWith('BFT.finalizedHeight')
+				.mockResolvedValue(0);
+			await blocksModule.init();
+			await bftModule.init();
+		});
+
+		afterEach(() => {
+			jest.clearAllMocks();
+			// Independently of the correct execution of the mechanisms, `active` property should be always
+			// set to false upon finishing the execution
+			expect(blockSynchronizationMechanism.active).toBeFalsy();
+		});
+
+		describe('compute the best peer', () => {
+			it('should compute the best peer out of a list of connected peers and return it', async () => {
+				when(channelMock.invoke)
+					.calledWith('network:getPeers', {
+						state: PEER_STATE_CONNECTED,
+					})
+					.mockResolvedValueOnce(peersList.connectedPeers);
+				jest.spyOn(
+					blockSynchronizationMechanism,
+					'_requestAndValidateLastBlock',
+				);
+
+				// Used in getHighestCommonBlock network action payload
+				const blockHeightsList = computeBlockHeightsList(
+					bftModule.finalizedHeight,
+					constants.ACTIVE_DELEGATES,
+					10,
+					slots.calcRound(blocksModule.lastBlock.height),
+				);
+
+				const blockList = [genesisBlockDevnet];
+				const blockIdsList = [blockList[0].id];
+
+				const highestCommonBlock = genesisBlockDevnet;
+
+				const requestedBlocks = [
+					...new Array(10)
+						.fill(0)
+						.map((_, index) =>
+							newBlock({ height: highestCommonBlock.height + 1 + index }),
+						),
+					aBlock,
 				];
 
-				expect(await syncMechanism._computeBestPeer(peers)).toEqual(peers[0]);
-			});
+				for (const expectedPeer of peersList.expectedSelection) {
+					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getHighestCommonBlock',
+							peerId,
+							data: {
+								ids: blockIdsList,
+							},
+						})
+						.mockResolvedValue({
+							data: highestCommonBlock,
+						});
 
-			describe('given a set of peers', () => {
-				/**
-				 * a) Among all peers, choose the subset of peers with largest T.prevotedConfirmedUptoHeight.
-				 * b) From the peers in a) choose those with largest T.height.
-				 * c) Form the peers in b) choose the largest set which has the same blockID.
-				 *    Ties are broken in favor of smaller blockID.
-				 *
-				 * This set is the set bestPeers and we define B to be the block at the
-				 * tip of the chain of this set of peers.
-				 *
-				 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
-				 */
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getLastBlock',
+							peerId,
+						})
+						.mockResolvedValue({
+							data: newBlock({
+								height: expectedPeer.height,
+								prevotedConfirmedUptoHeight:
+									expectedPeer.prevotedConfirmedUptoHeight,
+							}),
+						});
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getBlocksFromId',
+							peerId,
+							data: {
+								blockId: highestCommonBlock.id,
+							},
+						})
+						.mockResolvedValue({ data: requestedBlocks });
+				}
 
-				it('should successfully select the best peer according to the steps defined in LIP-0014', async () => {
-					lastBlockGetterMock.mockReturnValue({
-						height: 0,
-						prevotedConfirmedUptoHeight: 0,
-					}); // So ForkChoiceRule.isDifferentChain returns is TRUTHY
-
-					const selectedPeer = await syncMechanism._computeBestPeer(peersList);
-
-					// selectedPeers should be one of peers[3 - 5] ends included.
-
-					expect(selectedPeer.lastBlockId).toEqual('12343245');
-					expect(selectedPeer.prevotedConfirmedUptoHeight).toEqual(2);
-					expect(selectedPeer.height).toEqual(69);
-					expect([peersList[3].ip, peersList[4].ip, peersList[5].ip]).toContain(
-						selectedPeer.ip,
-					);
-				});
-
-				it('should throw an error if the ForkChoiceRule.isDifferentChain evaluates falsy', async () => {
-					processorModuleMock.forkStatus.mockResolvedValue(
-						ForkChoiceRule.FORK_STATUS_DISCARD,
-					);
-
-					lastBlockGetterMock.mockReturnValue({
-						height: 66,
-						prevotedConfirmedUptoHeight: 0,
-					}); // So ForkChoiceRule.isDifferentChain returns is TRUTHY
-
-					const peers = [
+				when(storageMock.entities.Block.get)
+					.calledWith(
 						{
-							lastBlockId: '12343245',
-							prevotedConfirmedUptoHeight: 0,
-							height: 66,
-							ip: '127.0.0.2',
+							height_in: blockHeightsList,
 						},
-					];
+						{
+							sort: 'height:asc',
+						},
+					)
+					.mockResolvedValueOnce(blockList);
 
-					try {
-						await syncMechanism._computeBestPeer(peers);
-					} catch (e) {
-						expect(e.message).toEqual('Violation of fork choice rule');
-					}
-				});
-			});
-		});
+				when(processorModule.deleteLastBlock)
+					.calledWith({
+						saveTempBlock: true,
+					})
+					.mockResolvedValueOnce(genesisBlockDevnet);
 
-		describe.skip('#_computeLargestSubsetMaxBy', () => {
-			/**
-			 * @example
-			 * Input: [{height: 1}, {height: 2}, {height: 2}]
-			 * Output: [{height: 2}, {height: 2}]
-			 */
-			it('should return the largest subset by maximum value of the given property', () => {
-				const input = [
-					{ height: 1, id: '1' },
-					{ height: 2, id: '2' },
-					{ height: 2, id: '3' },
-				];
+				await blockSynchronizationMechanism.run(aBlock);
 
+				expect(loggerMock.trace).toHaveBeenCalledWith(
+					{
+						peers: peersList.map(peer => `${peer.ip}:${peer.wsPort}`),
+					},
+					'List of connected peers',
+				);
+				expect(loggerMock.debug).toHaveBeenCalledWith(
+					'Computing the best peer to synchronize from',
+				);
+				expect(loggerMock.debug).toHaveBeenCalledWith(
+					'Successfully computed the best peer',
+				);
 				expect(
-					syncMechanism._computeLargestSubsetMaxBy(input, item => item.height),
-				).toEqual([input[1], input[2]]);
+					blockSynchronizationMechanism._requestAndApplyBlocksWithinIDs.calls[0].every(
+						peer => peersList.expectedSelection.includes(peer),
+					),
+				).toBeTruthy();
 			});
+
+			it('should throw an error if there are no compatible peers', () => {});
+
+			it('should throw an error if the list of connected peers is empty', () => {});
+
+			it('should throw an error if the peer tip does not have priority over current tip', () => {});
 		});
 
-		describe.skip('#run()', () => {
-			describe('when there are no errors', () => {
-				it('should not ban peer or restart sync', async () => {
-					const fakeLastBlock = { foo: 'bar' };
-					syncMechanism._computeBestPeer = jest.fn(() => ({
-						...peersList[0],
-						id: '127.0.0.1:30400',
-					}));
-					channelMock.invoke.mockImplementationOnce(() => peersList);
-					channelMock.invoke.mockImplementationOnce(() => ({
-						data: fakeLastBlock,
-					}));
-					processorModuleMock.validateDetached.mockImplementation(
-						() => fakeLastBlock,
-					);
+		describe('request and validate the last block of the peer', () => {
+			it('should request and validate the last block of the peer', () => {});
 
-					processorModuleMock.forkStatus.mockResolvedValue(
-						ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
-					);
+			it('should apply penalty and restart the mechanisms if the last block of the peer does not have preference over current tip', () => {});
+		});
 
-					await syncMechanism.run();
+		describe('request and revert to last common block from peer', () => {
+			describe('request the highest common block', () => {
+				it('should give up requesting the last common block after 10 tries, and then ban the peer and restart the mechanism', () => {});
 
-					expect(channelMock.invoke.mock.calls[0]).toMatchObject([
-						'network:getUniqueOutboundConnectedPeers',
-					]);
-					expect(channelMock.invoke.mock.calls[1]).toMatchObject([
-						'network:requestFromPeer',
-						{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
-					]);
-
-					expect(
-						processorModuleMock.validateDetached.mock.calls[0],
-					).toMatchObject([fakeLastBlock]);
-
-					expect(channelMock.invoke).toHaveBeenCalledTimes(2);
-				});
+				it('should ban the peer and restart the mechanism if the common block height is smaller than the finalized height', () => {});
 			});
 
-			describe('when peer returns invalid block', () => {
-				it('should be banned and re-publish action', async () => {
-					const receivedBlock = { id: 12323, transactions: [] };
-					const fakeLastBlock = { foo: 'bar' };
-					syncMechanism._computeBestPeer = jest.fn(() => ({
-						...peersList[0],
-						id: '127.0.0.1:30400',
-					}));
-					channelMock.invoke.mockImplementationOnce(() => ({
-						connectedPeers: peersList,
-					}));
-					channelMock.invoke.mockImplementationOnce(() => ({
-						data: fakeLastBlock,
-					}));
-					processorModuleMock.validateDetached.mockImplementation(() => {
-						throw new Error('Peer did not send valid block');
-					});
-					ForkChoiceRule.isDifferentChain.mockImplementation(() => true);
-
-					try {
-						await syncMechanism.run(receivedBlock);
-					} catch (err) {
-						expect(channelMock.invoke.mock.calls[0]).toMatchObject([
-							'network:getUniqueOutboundConnectedPeers',
-						]);
-
-						expect(channelMock.invoke.mock.calls[1]).toMatchObject([
-							'network:requestFromPeer',
-							{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
-						]);
-
-						expect(channelMock.invoke.mock.calls[2]).toMatchObject([
-							'network:applyPenalty',
-							{ peerId: '127.0.0.1:30400', penalty: 100 },
-						]);
-
-						expect(channelMock.publish.mock.calls[0]).toMatchObject([
-							'chain:processor:sync',
-							{ block: receivedBlock },
-						]);
-					}
-				});
+			describe('revert chain to highest common block ', () => {
+				it('should delete blocks after highest common block height and back them up to temp table', () => {});
 			});
 
-			describe('when peer returns invalid isDifferentChain block ', () => {
-				it('should be banned and re-publish action', async () => {
-					const receivedBlock = { id: 12323, transactions: [] };
-					const fakeLastBlock = { foo: 'bar' };
-					syncMechanism._computeBestPeer = jest.fn(() => ({
-						...peersList[0],
-						id: '127.0.0.1:30400',
-					}));
-					channelMock.invoke.mockImplementationOnce(() => ({
-						connectedPeers: peersList,
-					}));
-					channelMock.invoke.mockImplementationOnce(() => ({
-						data: fakeLastBlock,
-					}));
-					processorModuleMock.validateDetached.mockImplementation(
-						() => fakeLastBlock,
-					);
-					ForkChoiceRule.isDifferentChain.mockImplementation(() => false);
+			it('should return the common block', () => {});
+		});
 
-					try {
-						await syncMechanism.run(receivedBlock);
-					} catch (err) {
-						expect(channelMock.invoke.mock.calls[0]).toMatchObject([
-							'network:getUniqueOutboundConnectedPeers',
-						]);
+		describe('request and apply blocks to current chain', () => {
+			describe('when blocks are not fully applied', () => {
+				it('should delete blocks after common block, restore blocks from temp table and clean it if the tip of the temp blocks chain has preference over current tip (FORK_STATUS_DIFFERENT_CHAIN)', () => {});
 
-						expect(channelMock.invoke.mock.calls[1]).toMatchObject([
-							'network:requestFromPeer',
-							{ procedure: 'getLastBlock', peerId: '127.0.0.1:30400' },
-						]);
-
-						expect(channelMock.invoke.mock.calls[2]).toMatchObject([
-							'network:applyPenalty',
-							{ peerId: '127.0.0.1:30400', penalty: 100 },
-						]);
-
-						expect(channelMock.publish.mock.calls[0]).toMatchObject([
-							'chain:processor:sync',
-							{ block: receivedBlock },
-						]);
-					}
-				});
+				it('should ban the peer and restart the mechanism if the tip of temp table has no preference the tip of current chain ', () => {});
 			});
 		});
 	});

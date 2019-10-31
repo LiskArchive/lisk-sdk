@@ -174,6 +174,70 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 	}
 
+	async _handleBlockProcessingError(lastCommonBlock) {
+		// If the list of blocks has not been fully applied
+		this.logger.debug('Failed to apply obtained blocks from peer');
+		const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
+			{},
+			{ sort: 'height:desc', limit: 1, extended: true },
+		);
+
+		const tipBeforeApplyingInstance = await this.processorModule.deserialize(
+			tipBeforeApplying.fullBlock,
+		);
+		// Check if the new tip has priority over the last tip we had before applying
+		const forkStatus = await this.processorModule.forkStatus(
+			this.blocks.lastBlock, // New tip of the chain
+			tipBeforeApplyingInstance, // Previous tip of the chain
+		);
+
+		const newTipHasPreference = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+
+		if (!newTipHasPreference) {
+			this.logger.debug(
+				{
+					currentTip: this.blocks.lastBlock.id,
+					previousTip: tipBeforeApplyingInstance.id,
+				},
+				'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
+			);
+			try {
+				this.logger.debug(
+					{ height: lastCommonBlock.height },
+					'Deleting blocks after height',
+				);
+				await deleteBlocksAfterHeight(
+					this.processorModule,
+					this.blocks,
+					lastCommonBlock.height,
+				);
+				this.logger.debug('Restoring blocks from temporary table');
+				await restoreBlocks(this.blocks, this.processorModule);
+
+				this.logger.debug('Cleaning blocks temp table');
+				await clearBlocksTempTable(this.storage);
+			} catch (error) {
+				this.logger.error(
+					{ err: error },
+					'Failed to restore blocks from blocks temp table',
+				);
+			}
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				'New tip of the chain has no preference over the previous tip before synchronizing',
+			);
+		}
+
+		this.logger.debug('Cleaning blocks temporary table');
+		await clearBlocksTempTable(this.storage);
+
+		this.logger.info('Restarting block synchronization');
+
+		throw new RestartError(
+			'The list of blocks has not been fully applied. Trying again',
+		);
+	}
+
 	/**
 	 * Requests blocks from startingBlockID to an specific peer until endingBlockID
 	 * is met and applies them on top of the current chain.
@@ -211,71 +275,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			if (!(err instanceof BlockProcessingError)) {
 				throw err;
 			}
-
-			this.logger.debug('Failed to apply obtained blocks from peer');
-			const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
-				{},
-				{
-					sort: 'height:desc',
-					limit: 1,
-					extended: true,
-				},
-			);
-
-			const tipBeforeApplyingInstance = await this.processorModule.deserialize(
-				tipBeforeApplying.fullBlock,
-			);
-			// Check if the new tip has priority over the last tip we had before applying
-			const forkStatus = await this.processorModule.forkStatus(
-				this.blocks.lastBlock, // New tip of the chain
-				tipBeforeApplyingInstance, // Previous tip of the chain
-			);
-
-			const isDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
-
-			if (!isDifferentChain) {
-				this.logger.debug(
-					{
-						currentTip: this.blocks.lastBlock.id,
-						previousTip: tipBeforeApplyingInstance.id,
-					},
-					'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
-				);
-				try {
-					this.logger.debug(
-						{ height: lastCommonBlock.height },
-						'Deleting blocks after height',
-					);
-					await deleteBlocksAfterHeight(
-						this.processorModule,
-						this.blocks,
-						lastCommonBlock.height,
-					);
-					this.logger.debug('Restoring blocks from temporary table');
-					await restoreBlocks(this.blocks, this.processorModule);
-
-					this.logger.debug('Cleaning blocks temp table');
-					await clearBlocksTempTable(this.storage);
-				} catch (error) {
-					this.logger.error(
-						{ err: error },
-						'Failed to restore blocks from blocks temp table',
-					);
-				}
-				throw new ApplyPenaltyAndRestartError(
-					peerId,
-					'New tip of the chain has no preference over the previous tip before synchronizing',
-				);
-			}
-
-			this.logger.debug('Cleaning blocks temporary table');
-			await clearBlocksTempTable(this.storage);
-
-			this.logger.info('Restarting block synchronization');
-
-			throw new RestartError(
-				'The list of blocks has not been fully applied. Trying again',
-			);
+			await this._handleBlockProcessingError(lastCommonBlock);
 		}
 
 		this.logger.debug('Cleaning up blocks temporary table');
@@ -526,7 +526,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		let maxNumberOfPeersInSet = 0;
 		let selectedPeers = [];
 		let selectedBlockId = blockIds[0];
-		// Find the largest subset
+		// Find the largest subset with same block ID
 		// eslint-disable-next-line no-restricted-syntax
 		for (const blockId of blockIds) {
 			const peersByBlockId = peersGroupedByBlockId[blockId];
