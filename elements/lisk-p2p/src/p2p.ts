@@ -108,6 +108,7 @@ import {
 	selectPeersForSend,
 	validateNodeInfo,
 	validatePeerCompatibility,
+	validatePeerInfo,
 } from './utils';
 
 interface SCServerUpdated extends SCServer {
@@ -891,31 +892,44 @@ export class P2P extends EventEmitter {
 		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
 			? this._config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
+		const maxPeerInfoSize = this._config.maxPeerInfoSize
+			? this._config.maxPeerInfoSize
+			: DEFAULT_MAX_PEER_INFO_SIZE;
 
-		const knownPeers = this._peerBook.allPeers;
+		const knownFetchedPeers = this._peerBook.allFetchedPeers;
+
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
-			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.25),
+			Math.min(peerDiscoveryResponseLength, knownFetchedPeers.length * 0.25),
 		);
 		const max = Math.floor(
-			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.5),
+			Math.min(peerDiscoveryResponseLength, knownFetchedPeers.length * 0.5),
 		);
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
 		const randomPeerCount = Math.max(
 			random,
-			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
+			Math.min(minimumPeerDiscoveryThreshold, knownFetchedPeers.length),
 		);
 
-		const selectedPeers = shuffle(knownPeers)
-			.slice(0, randomPeerCount)
-			.map(
-				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
-			);
+		const selectedPeers = shuffle(knownFetchedPeers).slice(0, randomPeerCount);
+
+		const validatedPeerList: P2PPeerInfo[] = [];
+
+		selectedPeers.forEach(peer => {
+			try {
+				validatePeerInfo(peer, maxPeerInfoSize);
+
+				validatedPeerList.push(peer);
+			} catch (err) {
+				this._peerBook.removePeer(peer);
+			}
+		});
 
 		const peerInfoList = {
 			success: true,
-			peers: selectedPeers,
+			peers: validatedPeerList.map(sanitizeOutgoingPeerInfo),
 		};
+
 		request.end(peerInfoList);
 	}
 

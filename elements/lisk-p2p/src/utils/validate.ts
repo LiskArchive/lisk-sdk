@@ -126,9 +126,19 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	return true;
 };
 
-export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
+export const validatePeerInfo = (
+	rawPeerInfo: unknown,
+	maxByteSize: number,
+): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerInfoError(`Invalid peer object`);
+	}
+
+	const byteSize = getByteSize(rawPeerInfo);
+	if (byteSize > maxByteSize) {
+		throw new InvalidPeerInfoError(
+			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+		);
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
@@ -180,20 +190,6 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	};
 
 	return peerInfo;
-};
-
-export const validatePeerInfo = (
-	rawPeerInfo: unknown,
-	maxByteSize: number,
-): P2PPeerInfo => {
-	const byteSize = getByteSize(rawPeerInfo);
-	if (byteSize > maxByteSize) {
-		throw new InvalidPeerInfoError(
-			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
-		);
-	}
-
-	return validatePeerInfoSchema(rawPeerInfo);
 };
 
 export const validateNodeInfo = (

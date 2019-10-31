@@ -72,6 +72,13 @@ export class PeerBook {
 		return [...this.newPeers, ...this.triedPeers];
 	}
 
+	public get allFetchedPeers(): ReadonlyArray<P2PPeerInfo> {
+		const fetchedNewPeers = this._newPeers.fetchedPeerList;
+		const fetchedTriedPeers = this._triedPeers.fetchedPeerList;
+
+		return [...fetchedNewPeers, ...fetchedTriedPeers];
+	}
+
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		const triedPeer = this._triedPeers.getPeer(peerInfo);
 		if (this._triedPeers.getPeer(peerInfo)) {
