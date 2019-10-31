@@ -27,7 +27,13 @@ const buildVersion = '#buildVersion';
 const peerList = ['peerList'];
 
 const chainOptions = {
-	genesisBlock: { transactions: [], version: 0, height: 1 },
+	genesisBlock: {
+		transactions: [],
+		version: 0,
+		height: 1,
+		communityIdentifier: 'Lisk',
+		payloadHash: '',
+	},
 	loading: {},
 	syncing: {},
 	broadcasts: {},

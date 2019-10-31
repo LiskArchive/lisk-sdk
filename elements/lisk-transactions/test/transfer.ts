@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { transfer } from '../src/0_transfer';
+import { transfer } from '../src/transfer';
 import * as time from '../src/utils/time';
 import { TransactionJSON } from '../src/transaction_types';
 
@@ -23,7 +23,7 @@ describe('#transfer transaction', () => {
 	const testData = 'data';
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
-	const transactionType = 0;
+	const transactionType = 8;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const recipientId = '18160565574430594874L';
@@ -34,6 +34,8 @@ describe('#transfer transaction', () => {
 	const amount = '1000';
 	const fee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
 	let transferTransaction: Partial<TransactionJSON>;
@@ -51,6 +53,7 @@ describe('#transfer transaction', () => {
 				transferTransaction = transfer({
 					recipientId,
 					amount,
+					networkIdentifier,
 					passphrase,
 				});
 				return Promise.resolve();
@@ -69,6 +72,7 @@ describe('#transfer transaction', () => {
 				transfer({
 					recipientId,
 					amount,
+					networkIdentifier,
 					passphrase,
 					timeOffset: offset,
 				});
@@ -142,6 +146,7 @@ describe('#transfer transaction', () => {
 				transferTransaction = transfer({
 					recipientId,
 					amount,
+					networkIdentifier,
 					passphrase,
 					data: testData,
 				});
@@ -153,6 +158,7 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						recipientId,
 						amount,
+						networkIdentifier,
 						passphrase,
 						data: Buffer.from('hello') as any,
 					}),
@@ -184,6 +190,7 @@ describe('#transfer transaction', () => {
 			transferTransaction = transfer({
 				recipientId,
 				amount,
+				networkIdentifier,
 				passphrase,
 				secondPassphrase,
 			});
@@ -194,6 +201,7 @@ describe('#transfer transaction', () => {
 			transferTransaction = transfer({
 				recipientId,
 				amount,
+				networkIdentifier,
 				passphrase,
 				secondPassphrase,
 				data: testData,
@@ -214,6 +222,7 @@ describe('#transfer transaction', () => {
 				transferTransaction = transfer({
 					recipientId,
 					amount,
+					networkIdentifier,
 				});
 				return Promise.resolve();
 			});
@@ -222,6 +231,7 @@ describe('#transfer transaction', () => {
 				return expect(
 					transfer.bind(null, {
 						amount: '0',
+						networkIdentifier,
 					}),
 				).to.throw('Amount must be a valid number in string format.');
 			});
@@ -230,6 +240,7 @@ describe('#transfer transaction', () => {
 				return expect(
 					transfer.bind(null, {
 						amount: '18446744073709551616',
+						networkIdentifier,
 					}),
 				).to.throw('Amount must be a valid number in string format.');
 			});
@@ -238,6 +249,7 @@ describe('#transfer transaction', () => {
 				return expect(
 					transfer.bind(null, {
 						amount,
+						networkIdentifier,
 						recipientId,
 						recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
 					}),
@@ -248,6 +260,7 @@ describe('#transfer transaction', () => {
 				return expect(
 					transfer.bind(null, {
 						amount,
+						networkIdentifier,
 						recipientId,
 						recipientPublicKey,
 					}),
@@ -258,6 +271,7 @@ describe('#transfer transaction', () => {
 				return expect(
 					transfer.bind(null, {
 						amount,
+						networkIdentifier,
 						passphrase,
 						data: Buffer.from('hello') as any,
 					}),
@@ -269,6 +283,7 @@ describe('#transfer transaction', () => {
 			it('should set recipientId when recipientId was not provided but recipientPublicKey was provided', () => {
 				const tx = transfer({
 					amount,
+					networkIdentifier,
 					passphrase,
 					recipientPublicKey: publicKey,
 				});
@@ -283,6 +298,7 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						recipientId,
 						amount,
+						networkIdentifier,
 						data: new Array(65).fill('0').join(''),
 					}),
 				).to.throw('Transaction data field cannot exceed 64 bytes.');

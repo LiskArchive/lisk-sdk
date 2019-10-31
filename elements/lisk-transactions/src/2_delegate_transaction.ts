@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { DELEGATE_FEE } from './constants';
+import { convertToAssetError, TransactionError } from './errors';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
-} from './base_transaction';
-import { DELEGATE_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
+} from './legacy_base_transaction';
 import { Account, TransactionJSON } from './transaction_types';
 import { validator } from './utils';
 

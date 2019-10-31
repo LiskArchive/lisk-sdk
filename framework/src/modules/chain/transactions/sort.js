@@ -15,21 +15,22 @@
 'use strict';
 
 // TODO: remove type constraints
-const TRANSACTION_TYPES_MULTI = 4;
+const TRANSACTION_TYPES_MULTI = [4, 12];
+const TRANSACTION_TYPES_TRANSFER = [0, 8];
 
 const sortTransactions = transactions =>
 	transactions.sort((a, b) => {
 		// Place MULTI transaction after all other transaction types
 		if (
-			a.type === TRANSACTION_TYPES_MULTI &&
-			b.type !== TRANSACTION_TYPES_MULTI
+			TRANSACTION_TYPES_MULTI.includes(a.type) &&
+			!TRANSACTION_TYPES_MULTI.includes(b.type)
 		) {
 			return 1;
 		}
 		// Place all other transaction types before MULTI transaction
 		if (
-			a.type !== TRANSACTION_TYPES_MULTI &&
-			b.type === TRANSACTION_TYPES_MULTI
+			!TRANSACTION_TYPES_MULTI.includes(a.type) &&
+			TRANSACTION_TYPES_MULTI.includes(b.type)
 		) {
 			return -1;
 		}
@@ -41,10 +42,16 @@ const sortTransactions = transactions =>
 			return 1;
 		}
 		// Place depending on amount (lower first)
-		if (a.type === 0 && a.asset.amount.lt(b.asset.amount)) {
+		if (
+			TRANSACTION_TYPES_TRANSFER.includes(a.type) &&
+			a.asset.amount.lt(b.asset.amount)
+		) {
 			return -1;
 		}
-		if (a.type === 0 && a.asset.amount.gt(b.asset.amount)) {
+		if (
+			TRANSACTION_TYPES_TRANSFER.includes(a.type) &&
+			a.asset.amount.gt(b.asset.amount)
+		) {
 			return 1;
 		}
 		return 0;

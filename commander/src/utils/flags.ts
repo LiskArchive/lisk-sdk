@@ -74,6 +74,8 @@ const noSnapshotDescription =
 	'Install Lisk Core without a blockchain snapshot.';
 const liskVersionDescription = 'Lisk Core version.';
 const noStartDescription = 'Install Lisk Core without starting.';
+const networkIdentifierDescription =
+	'Network identifier defined for the network or main | test for the Lisk Network.';
 
 export type AlphabetLowercase =
 	| 'a'
@@ -135,6 +137,9 @@ export const flags: FlagMap = {
 	},
 	votes: {
 		description: votesDescription,
+	},
+	networkIdentifier: {
+		description: networkIdentifierDescription,
 	},
 	network: {
 		char: 'n',

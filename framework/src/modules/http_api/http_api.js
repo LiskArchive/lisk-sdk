@@ -32,6 +32,8 @@ const {
 	bootstrapCache,
 } = require('./init_steps');
 
+const TRANSACTION_TYPES_DELEGATE = [2, 10];
+
 module.exports = class HttpApi {
 	constructor(channel, options) {
 		options.root = __dirname; // TODO: See wy root comes defined for the chain module.
@@ -43,7 +45,6 @@ module.exports = class HttpApi {
 
 	async bootstrap() {
 		global.constants = this.options.constants;
-		const { TRANSACTION_TYPES } = global.constants;
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
@@ -125,7 +126,8 @@ module.exports = class HttpApi {
 				// If there was a delegate registration clear delegates cache too
 				const delegateTransaction = transactions.find(
 					transaction =>
-						!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE,
+						!!transaction &&
+						TRANSACTION_TYPES_DELEGATE.includes(transaction.type),
 				);
 				if (delegateTransaction) {
 					keysToClear.push(CACHE_KEYS_DELEGATES);

@@ -13,11 +13,11 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { TransferTransaction } from './0_transfer_transaction';
-import { SecondSignatureTransaction } from './1_second_signature_transaction';
-import { DelegateTransaction } from './2_delegate_transaction';
-import { VoteTransaction } from './3_vote_transaction';
-import { MultisignatureTransaction } from './4_multisignature_transaction';
+import { DelegateTransaction } from './10_delegate_transaction';
+import { VoteTransaction } from './11_vote_transaction';
+import { MultisignatureTransaction } from './12_multisignature_transaction';
+import { TransferTransaction } from './8_transfer_transaction';
+import { SecondSignatureTransaction } from './9_second_signature_transaction';
 import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
 
@@ -29,23 +29,25 @@ export interface SignatureObject {
 
 // tslint:disable-next-line no-any
 const transactionMap: { readonly [key: number]: any } = {
-	0: TransferTransaction,
-	1: SecondSignatureTransaction,
-	2: DelegateTransaction,
-	3: VoteTransaction,
-	4: MultisignatureTransaction,
+	8: TransferTransaction,
+	9: SecondSignatureTransaction,
+	10: DelegateTransaction,
+	11: VoteTransaction,
+	12: MultisignatureTransaction,
 };
 
-export const createSignatureObject = (
-	transaction: TransactionJSON,
-	passphrase: string,
-): SignatureObject => {
+export const createSignatureObject = (options: {
+	readonly transaction: TransactionJSON;
+	readonly passphrase: string;
+	readonly networkIdentifier: string;
+}): SignatureObject => {
+	const { transaction, passphrase, networkIdentifier } = options;
 	if (transaction.type === undefined || transaction.type === null) {
-		throw new Error('Invalid transaction.');
+		throw new Error('Transaction type is required.');
 	}
 
 	// tslint:disable-next-line no-magic-numbers
-	if (transaction.type < 0 || transaction.type > 4) {
+	if (!Object.keys(transactionMap).includes(String(transaction.type))) {
 		throw new Error('Invalid transaction type.');
 	}
 
@@ -55,7 +57,10 @@ export const createSignatureObject = (
 
 	// tslint:disable-next-line variable-name
 	const TransactionClass = transactionMap[transaction.type];
-	const tx = new TransactionClass(transaction) as BaseTransaction;
+	const tx = new TransactionClass({
+		...transaction,
+		networkIdentifier,
+	}) as BaseTransaction;
 
 	const validStatus = tx.validate();
 	if (validStatus.errors.length > 0) {
@@ -71,8 +76,14 @@ export const createSignatureObject = (
 	// tslint:disable-next-line no-any
 	(tx as any)._signSignature = undefined;
 
+	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+		networkIdentifierBytes,
+		tx.getBytes(),
+	]);
+
 	const multiSignature = cryptography.signData(
-		cryptography.hash(tx.getBytes()),
+		cryptography.hash(transactionWithNetworkIdentifierBytes),
 		passphrase,
 	);
 

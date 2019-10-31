@@ -1638,7 +1638,6 @@ definitions:
       type:
         type: integer
         minimum: 0
-        maximum: 7
         description: |
           Describes the Transaction type.
       height:

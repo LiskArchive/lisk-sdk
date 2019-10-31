@@ -29,8 +29,19 @@ const apiHelpers = require('../../../common/helpers/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const { Slots } = require('../../../../../src/modules/chain/dpos');
 const Scenarios = require('../../../common/scenarios');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-const { TRANSACTION_TYPES, FEES } = global.constants;
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+const TRANSACTION_TYPES_TRANSFER = 8;
+const TRANSACTION_TYPES_SIGNATURE = 9;
+const TRANSACTION_TYPES_DELEGATE = 10;
+const TRANSACTION_TYPES_VOTE = 11;
+const TRANSACTION_TYPES_MULTI = 12;
+
+const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
@@ -52,49 +63,58 @@ describe('GET /api/transactions', () => {
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
 	const transaction1 = transfer({
+		networkIdentifier,
 		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		data: 'transaction1',
 	});
 	const transaction2 = transfer({
+		networkIdentifier,
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 		data: 'transaction2 ฿',
 	});
 	const transaction3 = transfer({
+		networkIdentifier,
 		amount: (20 * NORMALIZER).toString(), // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
 		data: 'hey :)',
 	});
 	const transaction4 = transfer({
+		networkIdentifier,
 		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,
 		data: 'Tx4',
 	});
 	const transaction5 = transfer({
+		networkIdentifier,
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: accountSecondPass.address,
 		data: 'tx 5',
 	});
 	const transactionType3 = castVotes({
+		networkIdentifier,
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
 	const transactionType4 = new Scenarios.Multisig({
+		networkIdentifier,
 		amount: FEES.MULTISIGNATURE * 3,
 	});
 	const transactionType4Transfer = transfer({
+		networkIdentifier,
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: transactionType4.multiSigTransaction.senderId,
 		data: 'fund acc for multisig',
 	});
 	const transactionSecondPassphrase = registerSecondPassphrase({
+		networkIdentifier,
 		passphrase: accountSecondPass.passphrase,
 		secondPassphrase: accountSecondPass.secondPassphrase,
 	});
@@ -348,19 +368,15 @@ describe('GET /api/transactions', () => {
 						const transaction = res.body.data[0];
 
 						expect(transaction.id).to.be.equal(transactionInCheck.id);
-						expect(transaction.type).to.be.equal(TRANSACTION_TYPES.VOTE);
+						expect(transaction.type).to.be.equal(TRANSACTION_TYPES_VOTE);
 						expect(transaction.type).to.be.equal(transactionInCheck.type);
-						expect(transaction.asset.amount).to.be.equal(
-							transactionInCheck.asset.amount.toString(),
-						);
 						expect(transaction.fee).to.be.equal('0');
-						expect(transaction.asset.recipientId).to.be.equal(
-							transactionInCheck.asset.recipientId,
-						);
 						expect(transaction.senderId).to.be.equal(
 							getAddressFromPublicKey(transactionInCheck.senderPublicKey),
 						);
-						expect(transaction.asset).to.be.eql(transactionInCheck.asset);
+						expect(transaction.asset.votes).to.be.eql(
+							transactionInCheck.asset.votes,
+						);
 					});
 			});
 		});
@@ -373,20 +389,22 @@ describe('GET /api/transactions', () => {
 
 			it('using type should be ok', async () => {
 				const res = await transactionsEndpoint.makeRequest(
-					{ type: TRANSACTION_TYPES.SEND },
+					{ type: TRANSACTION_TYPES_TRANSFER },
 					200,
 				);
 
 				expect(res.body.data).to.not.empty;
 				res.body.data.map(transaction => {
-					return expect(transaction.type).to.be.equal(TRANSACTION_TYPES.SEND);
+					return expect(transaction.type).to.be.equal(
+						TRANSACTION_TYPES_TRANSFER,
+					);
 				});
 			});
 
 			describe('asset field', () => {
 				it('using type 0 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES.SEND },
+						{ type: TRANSACTION_TYPES_TRANSFER },
 						200,
 					);
 
@@ -398,7 +416,7 @@ describe('GET /api/transactions', () => {
 
 				it('using type 1 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES.SIGNATURE },
+						{ type: TRANSACTION_TYPES_SIGNATURE },
 						200,
 					);
 
@@ -410,7 +428,7 @@ describe('GET /api/transactions', () => {
 
 				it('using type 2 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES.DELEGATE },
+						{ type: TRANSACTION_TYPES_DELEGATE },
 						200,
 					);
 
@@ -424,19 +442,18 @@ describe('GET /api/transactions', () => {
 
 				it('using type 3 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES.VOTE },
+						{ type: TRANSACTION_TYPES_VOTE },
 						200,
 					);
 
 					expect(res.body.data).to.not.empty;
 					// Skip Genesis vote transaction - exception as it contains 101 votes
 					const transactionsType3 = res.body.data.filter(
-						transaction =>
-							transaction.asset.recipientId !== '16313739661670634666L',
+						transaction => transaction.id !== '9314232245035524467',
 					);
 					expect(transactionsType3.length).to.be.above(0);
 					transactionsType3.map(transaction => {
-						expect(Object.keys(transaction.asset).length).to.equal(3);
+						expect(Object.keys(transaction.asset).length).to.equal(1);
 						return expect(transaction.asset.votes.length).to.be.within(1, 33);
 					});
 				});
@@ -459,7 +476,7 @@ describe('GET /api/transactions', () => {
 					]);
 
 					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES.MULTI },
+						{ type: TRANSACTION_TYPES_MULTI },
 						200,
 					);
 
@@ -474,10 +491,7 @@ describe('GET /api/transactions', () => {
 				});
 				// eslint-disable-next-line
 				it.skip('using type 5 should return asset field with correct properties', async () => {
-					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES.DAPP },
-						200,
-					);
+					const res = await transactionsEndpoint.makeRequest({ type: 5 }, 200);
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction => {
@@ -1130,7 +1144,7 @@ describe('GET /api/transactions', () => {
 		describe('asset', () => {
 			it('assets for type 2 transactions should contain key username, publicKey and address', () => {
 				return transactionsEndpoint
-					.makeRequest({ type: TRANSACTION_TYPES.DELEGATE, limit: 1 }, 200)
+					.makeRequest({ type: TRANSACTION_TYPES_DELEGATE, limit: 1 }, 200)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
@@ -1151,7 +1165,7 @@ describe('GET /api/transactions', () => {
 					body: { data: transactions },
 				} = await transactionsEndpoint.makeRequest(
 					{
-						type: TRANSACTION_TYPES.SIGNATURE,
+						type: TRANSACTION_TYPES_SIGNATURE,
 						limit: 1,
 						senderPublicKey: accountSecondPass.senderId,
 						sort: 'timestamp:desc',
@@ -1165,6 +1179,7 @@ describe('GET /api/transactions', () => {
 			it('should show signSignature whem signing a transfer transaction with second passphrase', async () => {
 				// Prepare
 				const transaction = transfer({
+					networkIdentifier,
 					amount: '1',
 					passphrase: accountSecondPass.passphrase,
 					secondPassphrase: accountSecondPass.secondPassphrase,
@@ -1227,29 +1242,25 @@ describe('GET /api/transactions', () => {
 					});
 			});
 			it('assets for type 6 transactions should contain key dappId', async () => {
-				return transactionsEndpoint
-					.makeRequest({ type: TRANSACTION_TYPES.IN_TRANSFER }, 200)
-					.then(res => {
-						expect(res.body.data).to.not.empty;
-						res.body.data.map(transaction => {
-							expect(transaction.asset).to.have.key('inTransfer');
-							return expect(transaction.asset.inTransfer).to.have.key('dappId');
-						});
+				return transactionsEndpoint.makeRequest({ type: 6 }, 200).then(res => {
+					expect(res.body.data).to.not.empty;
+					res.body.data.map(transaction => {
+						expect(transaction.asset).to.have.key('inTransfer');
+						return expect(transaction.asset.inTransfer).to.have.key('dappId');
 					});
+				});
 			});
 			it('assets for type 7 transactions should contain key dappId and transactionId', async () => {
-				return transactionsEndpoint
-					.makeRequest({ type: TRANSACTION_TYPES.OUT_TRANSFER }, 200)
-					.then(res => {
-						expect(res.body.data).to.not.empty;
-						res.body.data.map(transaction => {
-							expect(transaction.asset).to.have.key('outTransfer');
-							return expect(transaction.asset.outTransfer).to.have.all.keys(
-								'dappId',
-								'transactionId',
-							);
-						});
+				return transactionsEndpoint.makeRequest({ type: 7 }, 200).then(res => {
+					expect(res.body.data).to.not.empty;
+					res.body.data.map(transaction => {
+						expect(transaction.asset).to.have.key('outTransfer');
+						return expect(transaction.asset.outTransfer).to.have.all.keys(
+							'dappId',
+							'transactionId',
+						);
 					});
+				});
 			});
 		});
 		/* eslint-enable mocha/no-skipped-tests */

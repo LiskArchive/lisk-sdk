@@ -21,7 +21,13 @@ const apiHelpers = require('../../../../common/helpers/api');
 const randomUtil = require('../../../../common/utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
+const {
+	getNetworkIdentifier,
+} = require('../../../../common/network_identifier');
 
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -44,6 +50,7 @@ describe('GET /api/node', () => {
 				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						transfer({
+							networkIdentifier,
 							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,

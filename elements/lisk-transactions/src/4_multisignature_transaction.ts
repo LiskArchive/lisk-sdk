@@ -14,12 +14,6 @@
  */
 import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import {
-	BaseTransaction,
-	MultisignatureStatus,
-	StateStore,
-	StateStorePrepare,
-} from './base_transaction';
 import { MULTISIGNATURE_FEE } from './constants';
 import { SignatureObject } from './create_signature_object';
 import {
@@ -27,6 +21,12 @@ import {
 	TransactionError,
 	TransactionPendingError,
 } from './errors';
+import {
+	BaseTransaction,
+	MultisignatureStatus,
+	StateStore,
+	StateStorePrepare,
+} from './legacy_base_transaction';
 import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import { validateMultisignatures, validateSignature, validator } from './utils';

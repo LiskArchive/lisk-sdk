@@ -18,8 +18,15 @@ const { expect } = require('chai');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-describe('exceptions for recipient transactions exceeding uint64', () => {
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+// TODO: Delete after #4433
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('exceptions for recipient transactions exceeding uint64', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
@@ -65,6 +72,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 	describe('send funds to account', () => {
 		before(async () => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId:
 					accountWhichCreatesTransactionWithExceedingUint64Recipient.address,
 				amount: (6000000000 * 100).toString(),

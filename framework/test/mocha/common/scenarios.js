@@ -22,6 +22,11 @@ const {
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('./utils/random');
+const { getNetworkIdentifier } = require('../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 
@@ -51,7 +56,8 @@ function Multisig(options) {
 
 	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
 	const multisigTrs = new MultisignatureTransaction({
-		type: 4,
+		networkIdentifier,
+		type: 12,
 		amount: '0',
 		fee: new BigNum(FEES.MULTISIGNATURE)
 			.times(this.keysgroup.length + 1)
@@ -69,7 +75,8 @@ function Multisig(options) {
 
 	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
 	const multisigSecondSignatureTrs = new MultisignatureTransaction({
-		type: 4,
+		networkIdentifier,
+		type: 12,
 		amount: '0',
 		fee: new BigNum(FEES.MULTISIGNATURE)
 			.times(this.keysgroup.length + 1)
@@ -89,11 +96,13 @@ function Multisig(options) {
 	this.multiSigSecondSignatureTransaction = multisigTrs.toJSON();
 
 	this.creditTransaction = transfer({
+		networkIdentifier,
 		amount: this.amount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: this.account.address,
 	});
 	this.secondSignatureTransaction = registerSecondPassphrase({
+		networkIdentifier,
 		passphrase: this.account.passphrase,
 		secondPassphrase: this.account.secondPassphrase,
 	});

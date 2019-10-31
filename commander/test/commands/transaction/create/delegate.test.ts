@@ -35,13 +35,19 @@ describe('transaction:create:delegate', () => {
 		recipientPublicKey: null,
 		asset: {},
 	};
+	const testnetNetworkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	const printMethodStub = sandbox.stub();
 
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'test' } }),
+			)
 			.stub(
 				transactions,
 				'registerDelegate',
@@ -75,6 +81,7 @@ describe('transaction:create:delegate', () => {
 					secondPassphrase: undefined,
 				});
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					username: defaultUsername,
@@ -103,6 +110,7 @@ describe('transaction:create:delegate', () => {
 						secondPassphrase: undefined,
 					});
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						username: defaultUsername,
@@ -136,6 +144,7 @@ describe('transaction:create:delegate', () => {
 						},
 					});
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						username: defaultUsername,
@@ -156,6 +165,7 @@ describe('transaction:create:delegate', () => {
 			])
 			.it('create a transaction with the username without signature', () => {
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: undefined,
 					secondPassphrase: undefined,
 					username: defaultUsername,

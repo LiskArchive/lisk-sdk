@@ -465,7 +465,9 @@ class Transaction extends BaseEntity {
 				const parseResponse = transaction => {
 					transaction.asset = transaction.asset ? transaction.asset : {};
 
-					if (transaction.type === 0 || transaction.type === 3) {
+					const recipientTransactionTypes = [0, 3, 8];
+
+					if (recipientTransactionTypes.includes(transaction.type)) {
 						transaction.asset.amount = transaction.amount;
 						transaction.asset.recipientId = transaction.recipientId;
 					}

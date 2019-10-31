@@ -19,6 +19,11 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 // eslint-disable-next-line
@@ -48,6 +53,7 @@ describe('delegate', () => {
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
 			const sendTransaction = transfer({
+				networkIdentifier,
 				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
@@ -63,6 +69,7 @@ describe('delegate', () => {
 				username = randomUtil.username().toLowerCase();
 
 				delegateTransaction = registerDelegate({
+					networkIdentifier,
 					passphrase: delegateAccount.passphrase,
 					username,
 				});
@@ -117,6 +124,7 @@ describe('delegate', () => {
 				beforeEach(async () => {
 					username2 = randomUtil.username().toLowerCase();
 					delegateTransaction2 = registerDelegate({
+						networkIdentifier,
 						passphrase: delegateAccount.passphrase,
 						username: username2,
 					});

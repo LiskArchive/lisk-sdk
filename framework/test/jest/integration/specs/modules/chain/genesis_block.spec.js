@@ -21,7 +21,7 @@ const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_bloc
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
-	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 2;
+	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 10;
 	let storage;
 	let chainModule;
 

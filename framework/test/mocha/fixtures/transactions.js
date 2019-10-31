@@ -45,18 +45,18 @@ const Transaction = stampit({
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 		this.asset = asset || { data: 'extra information' };
 
-		this.type = type || 0;
+		this.type = type || 8;
 
 		switch (this.type) {
 			// SEND
-			case 0:
+			case 8:
 				this.asset.data = randomstring.generate({ length: 64 });
 				this.asset.amount = '112340000';
 				this.asset.recipientId = '16313739661670634666L';
 				break;
 
 			// SIGNATURE
-			case 1:
+			case 9:
 				this.asset = {
 					publicKey: randomstring.generate({
 						charset: 'hex',
@@ -67,7 +67,7 @@ const Transaction = stampit({
 				break;
 
 			// DELEGATE
-			case 2:
+			case 10:
 				this.asset = {
 					username:
 						delegateName ||
@@ -76,7 +76,7 @@ const Transaction = stampit({
 				break;
 
 			// VOTE
-			case 3:
+			case 11:
 				this.asset.votes = votes || [
 					randomstring.generate({
 						charset: 'hex',
@@ -94,7 +94,7 @@ const Transaction = stampit({
 				break;
 
 			// MULTI
-			case 4:
+			case 12:
 				this.asset = {
 					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),

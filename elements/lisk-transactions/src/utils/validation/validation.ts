@@ -22,6 +22,7 @@ import {
 	MAX_TRANSFER_ASSET_DATA_LENGTH,
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
+	NETWORK_IDENTIFIER_LENGTH,
 } from '../../constants';
 
 export const validatePublicKey = (publicKey: string) => {
@@ -30,6 +31,15 @@ export const validatePublicKey = (publicKey: string) => {
 		throw new Error(
 			`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
 		);
+	}
+
+	return true;
+};
+
+export const validateNetworkIdentifier = (networkIdentifier: string) => {
+	const networkIdentifierBuffer = cryptography.hexToBuffer(networkIdentifier);
+	if (networkIdentifierBuffer.length !== NETWORK_IDENTIFIER_LENGTH) {
+		throw new Error(`Invalid network identifier length: ${networkIdentifier}`);
 	}
 
 	return true;

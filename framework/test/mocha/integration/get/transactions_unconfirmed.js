@@ -19,6 +19,11 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const localCommon = require('./../common');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -26,11 +31,13 @@ describe('integration test - get unconfirmed transactions', () => {
 	const account1 = randomUtil.account();
 	const account2 = randomUtil.account();
 	const transaction1 = transfer({
+		networkIdentifier,
 		amount: (1100 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account1.address,
 	});
 	const transaction2 = transfer({
+		networkIdentifier,
 		amount: (1100 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,

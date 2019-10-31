@@ -13,16 +13,18 @@
  *
  */
 import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
-import { VoteTransaction } from './3_vote_transaction';
+import { VoteTransaction } from './11_vote_transaction';
 import { TransactionJSON } from './transaction_types';
 import {
 	createBaseTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
+	validateNetworkIdentifier,
 	validatePublicKeys,
 } from './utils';
 
 export interface CastVoteInputs {
+	readonly networkIdentifier: string;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
@@ -33,9 +35,14 @@ export interface CastVoteInputs {
 interface VotesObject {
 	readonly unvotes?: ReadonlyArray<string>;
 	readonly votes?: ReadonlyArray<string>;
+	readonly networkIdentifier: string;
 }
 
-const validateInputs = ({ votes = [], unvotes = [] }: VotesObject): void => {
+const validateInputs = ({
+	votes = [],
+	unvotes = [],
+	networkIdentifier,
+}: VotesObject): void => {
 	if (!Array.isArray(votes)) {
 		throw new Error(
 			'Please provide a valid votes value. Expected an array if present.',
@@ -48,11 +55,19 @@ const validateInputs = ({ votes = [], unvotes = [] }: VotesObject): void => {
 	}
 
 	validatePublicKeys([...votes, ...unvotes]);
+
+	validateNetworkIdentifier(networkIdentifier);
 };
 
 export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase, votes = [], unvotes = [] } = inputs;
+	const {
+		networkIdentifier,
+		passphrase,
+		secondPassphrase,
+		votes = [],
+		unvotes = [],
+	} = inputs;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
@@ -63,7 +78,7 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 3,
+		type: 11,
 		asset: {
 			// TODO: Remove this after hardfork change. Amount is kept as asset property for exceptions
 			amount: '0',
@@ -84,6 +99,7 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 			...transaction.asset,
 			recipientId,
 		},
+		networkIdentifier,
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);

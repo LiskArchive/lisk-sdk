@@ -13,9 +13,47 @@
  *
  */
 import { BaseTransaction } from '../../src/base_transaction';
+import { BaseTransaction as LegacyBaseTransaction } from '../../src/legacy_base_transaction';
 import { TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
 import { TRANSFER_FEE } from '../../src/constants';
+
+export class LegacyTestTransaction extends LegacyBaseTransaction {
+	public static TYPE = 0;
+	public static FEE = TRANSFER_FEE.toString();
+
+	public assetToJSON(): object {
+		return this.asset;
+	}
+
+	public async prepare() {
+		return;
+	}
+
+	public assetToBytes(): Buffer {
+		return Buffer.alloc(0);
+	}
+
+	public validateAsset() {
+		return [];
+	}
+
+	public applyAsset() {
+		return [];
+	}
+
+	public undoAsset() {
+		return [];
+	}
+
+	public verifyAgainstTransactions(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): ReadonlyArray<TransactionError> {
+		transactions.forEach(() => true);
+
+		return [];
+	}
+}
 
 export class TestTransaction extends BaseTransaction {
 	public static TYPE = 0;
@@ -55,6 +93,22 @@ export class TestTransaction extends BaseTransaction {
 }
 
 export class TestTransactionBasicImpl extends BaseTransaction {
+	public static TYPE = 1;
+
+	public validateAsset() {
+		return [];
+	}
+
+	public applyAsset() {
+		return [];
+	}
+
+	public undoAsset() {
+		return [];
+	}
+}
+
+export class LegacyTestTransactionBasicImpl extends LegacyBaseTransaction {
 	public static TYPE = 1;
 
 	public validateAsset() {

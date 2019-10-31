@@ -22,6 +22,11 @@ const {
 const randomUtil = require('../../../common/utils/random');
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { TRANSACTION_TYPES } = global.constants;
 
@@ -34,6 +39,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 
 	scenarios.regular.dapp = randomUtil.application();
 	const dappTransaction = transfer({
+		networkIdentifier,
 		passphrase: scenarios.regular.account.passphrase,
 		amount: '1',
 		recipientId: '123L',
@@ -44,10 +50,11 @@ describe('integration test (type 4) - checking registered multisignature transac
 	scenarios.regular.multiSigTransaction.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		const sigObject = createSignatureObject(
-			scenarios.regular.multiSigTransaction,
-			member.passphrase,
-		);
+		const sigObject = createSignatureObject({
+			transaction: scenarios.regular.multiSigTransaction,
+			passphrase: member.passphrase,
+			networkIdentifier,
+		});
 		return scenarios.regular.multiSigTransaction.signatures.push(
 			sigObject.signature,
 		);
@@ -110,6 +117,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 
 		it('adding to pool multisignature registration for same account should fail', done => {
 			const multiSignatureToSameAccount = registerMultisignature({
+				networkIdentifier,
 				passphrase: scenarios.regular.account.passphrase,
 				keysgroup: scenarios.regular.keysgroup,
 				lifetime: scenarios.regular.lifetime,
