@@ -314,7 +314,7 @@ class BFT extends EventEmitter {
 	 * Verify if block forger is following the BFT Protocol
 	 * See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#incentivizing-lisk-bft-protocol-participation
 	 *
-	 * @param {Block} block
+	 * @param {ExtendedBlock} block
 	 * @return {boolean}
 	 */
 	isBFTProtocolCompliant(block) {
