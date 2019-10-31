@@ -49,6 +49,19 @@ describe('network identifier utils', () => {
 			});
 		});
 
+		describe('when input network identifier is not valid hex string', () => {
+			it('should throw error', async () => {
+				let error;
+				try {
+					getNetworkIdentifierWithInput('zzz', 'main');
+				} catch (err) {
+					error = err;
+				}
+
+				expect(error.message).to.eql('Network identifier must be hex string');
+			});
+		});
+
 		describe('when input is undefined and network config is main', () => {
 			it('should return mainnet network identifier', async () => {
 				const result = getNetworkIdentifierWithInput(undefined, 'main');

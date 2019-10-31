@@ -24,7 +24,11 @@ export const getNetworkIdentifierWithInput = (
 	if (input !== undefined && Object.keys(NETHASHES).includes(input)) {
 		return getNetworkIdentifier(NETHASHES[input], COMMUNITY_IDENTIFIER);
 	}
-	if (input !== undefined && isHexString(input)) {
+	if (input !== undefined) {
+		if (!isHexString(input)) {
+			throw new Error('Network identifier must be hex string');
+		}
+
 		return input;
 	}
 
