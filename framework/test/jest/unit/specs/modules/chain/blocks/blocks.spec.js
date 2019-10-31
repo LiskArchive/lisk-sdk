@@ -487,10 +487,12 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('validateDetached', () => {
+	describe('validateBlockHeader', () => {
 		let validateTransactionsFn;
+		let expectedReward;
 
 		beforeEach(async () => {
+			expectedReward = '0';
 			validateTransactionsFn = jest.fn().mockReturnValue({
 				transactionsResponses: [],
 			});
@@ -509,11 +511,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
+					await blocksInstance.validateBlockHeader(
 						block,
-						lastBlock: genesisBlock,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -528,11 +530,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).resolves.toBeUndefined();
 			});
 		});
@@ -550,11 +548,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
+					await blocksInstance.validateBlockHeader(
 						block,
-						lastBlock: genesisBlock,
-						blockBytes: mutatedBlockBytes,
-					});
+						mutatedBlockBytes,
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -573,11 +571,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
-						block: blockWithMutatedSignature,
-						lastBlock: genesisBlock,
+					await blocksInstance.validateBlockHeader(
+						blockWithMutatedSignature,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -596,11 +594,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
-						block: blockWithDifferentGeneratorPublicKey,
-						lastBlock: genesisBlock,
+					await blocksInstance.validateBlockHeader(
+						blockWithDifferentGeneratorPublicKey,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -618,11 +616,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow('Payload length is too long');
 			});
 
@@ -636,11 +630,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow(
 					'Included transactions do not match block transactions count',
 				);
@@ -656,11 +646,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow('Number of transactions exceeds maximum per block');
 			});
 
@@ -677,11 +663,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow(
 					'Included transactions do not match block transactions count',
 				);
@@ -698,11 +680,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentPayloadhash,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentPayloadhash,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid payload hash');
 			});
 
@@ -717,11 +699,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentTotalAmount,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentTotalAmount,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid total amount');
 			});
 
@@ -736,11 +718,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentTotalAmount,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentTotalAmount,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid total fee');
 			});
 		});
@@ -755,11 +737,11 @@ describe('blocks', () => {
 
 			expect.assertions(1);
 			// Act & Assert
-			await blocksInstance.validateDetached({
+			await blocksInstance.validateBlockHeader(
 				block,
-				lastBlock: genesisBlock,
 				blockBytes,
-			});
+				expectedReward,
+			);
 			expect(block.id).toEqual(originalId);
 		});
 
@@ -770,11 +752,11 @@ describe('blocks', () => {
 				const blockBytes = getBytes(block);
 				expect.assertions(2);
 				// Act
-				await blocksInstance.validateDetached({
+				await blocksInstance.validateBlockHeader(
 					block,
-					lastBlock: genesisBlock,
 					blockBytes,
-				});
+					expectedReward,
+				);
 				expect(transactionsModule.validateTransactions).toHaveBeenCalledWith(
 					exceptions,
 				);
@@ -799,11 +781,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toEqual(transactionErrors);
 			});
 
@@ -824,11 +802,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).resolves.toEqual();
 			});
 		});
