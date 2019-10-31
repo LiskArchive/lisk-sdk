@@ -78,7 +78,7 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 3,
+		type: 11,
 		asset: {
 			// TODO: Remove this after hardfork change. Amount is kept as asset property for exceptions
 			amount: '0',

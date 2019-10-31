@@ -23,7 +23,7 @@ describe('#registerMultisignature transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
-	const transactionType = 4;
+	const transactionType = 12;
 	const keys = {
 		publicKey:
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',

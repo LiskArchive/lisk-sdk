@@ -23,7 +23,7 @@ describe('#transfer transaction', () => {
 	const testData = 'data';
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
-	const transactionType = 0;
+	const transactionType = 8;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const recipientId = '18160565574430594874L';

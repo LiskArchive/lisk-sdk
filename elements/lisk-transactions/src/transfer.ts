@@ -102,12 +102,12 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 
 	const transaction = {
 		...createBaseTransaction(inputs),
+		type: 8,
 		asset: {
 			amount,
 			recipientId: recipientId as string,
 			data,
 		},
-		type: 0,
 	};
 
 	if (!passphrase) {

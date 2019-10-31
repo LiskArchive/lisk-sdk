@@ -94,7 +94,7 @@ export const registerMultisignature = (
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 4,
+		type: 12,
 		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		asset: {
 			min: minimum,
@@ -108,9 +108,7 @@ export const registerMultisignature = (
 		return transaction;
 	}
 
-	const multisignatureTransaction = new MultisignatureTransaction(
-		transaction as TransactionJSON,
-	);
+	const multisignatureTransaction = new MultisignatureTransaction(transaction);
 	multisignatureTransaction.sign(passphrase, secondPassphrase);
 
 	return multisignatureTransaction.toJSON();
