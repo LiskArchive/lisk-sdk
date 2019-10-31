@@ -29,11 +29,11 @@ interface TypeNumberMap {
 }
 
 const typeNumberMap: TypeNumberMap = {
-	'0': 'transfer',
-	'1': 'second-passphrase',
-	'2': 'delegate',
-	'3': 'vote',
-	'4': 'multisignature',
+	'8': 'transfer',
+	'9': 'second-passphrase',
+	'10': 'delegate',
+	'11': 'vote',
+	'12': 'multisignature',
 };
 
 const options = Object.entries(typeNumberMap).reduce(
@@ -99,6 +99,7 @@ export default class CreateCommand extends BaseCommand {
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 		votes: flagParser.string(commonFlags.votes),
 		unvotes: flagParser.string(commonFlags.unvotes),
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 	};
 
 	async run(): Promise<void> {

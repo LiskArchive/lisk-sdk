@@ -21,6 +21,11 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -29,6 +34,7 @@ describe('integration test (type 1) - double second signature registrations', ()
 
 	const account = randomUtil.account();
 	const transaction = transfer({
+		networkIdentifier,
 		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
@@ -48,6 +54,7 @@ describe('integration test (type 1) - double second signature registrations', ()
 
 	it('adding to pool second signature registration should be ok', done => {
 		transaction1 = registerSecondPassphrase({
+			networkIdentifier,
 			passphrase: account.passphrase,
 			secondPassphrase: account.secondPassphrase,
 			timeOffset: -10000,
@@ -60,6 +67,7 @@ describe('integration test (type 1) - double second signature registrations', ()
 
 	it('adding to pool same second signature registration with different timestamp should be ok', done => {
 		transaction2 = registerSecondPassphrase({
+			networkIdentifier,
 			passphrase: account.passphrase,
 			secondPassphrase: account.secondPassphrase,
 		});

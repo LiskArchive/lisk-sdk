@@ -37,12 +37,18 @@ const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');
 const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
+const {
+	devnetNetworkIdentifier: networkIdentifier,
+} = require('../../../../common/network_identifier');
 
 const expect = chai.expect;
 
 describe('transport', () => {
 	const interfaceAdapters = {
-		transactions: new TransactionInterfaceAdapter(registeredTransactions),
+		transactions: new TransactionInterfaceAdapter(
+			networkIdentifier,
+			registeredTransactions,
+		),
 	};
 	const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 
@@ -81,16 +87,19 @@ describe('transport', () => {
 		// stubs without affecting other test cases.
 
 		transaction = transfer({
+			networkIdentifier,
 			amount: '100',
 			recipientId: '12668885769632475474L',
 			passphrase: accountFixtures.genesis.passphrase,
 		});
 		const transactionOne = transfer({
+			networkIdentifier,
 			amount: '100',
 			recipientId: '12668885769632475474L',
 			passphrase: accountFixtures.genesis.passphrase,
 		});
 		const transactionTwo = transfer({
+			networkIdentifier,
 			amount: '100',
 			recipientId: '12668885769632475474L',
 			passphrase: accountFixtures.genesis.passphrase,

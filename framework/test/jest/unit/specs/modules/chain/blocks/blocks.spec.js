@@ -39,6 +39,9 @@ jest.mock('events');
 
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
+const {
+	devnetNetworkIdentifier: networkIdentifier,
+} = require('../../../../../../mocha/common/network_identifier');
 
 describe('blocks', () => {
 	const stubs = {};
@@ -70,7 +73,10 @@ describe('blocks', () => {
 		// Arrange
 		stubs.dependencies = {
 			interfaceAdapters: {
-				transactions: new TransactionInterfaceAdapter(registeredTransactions),
+				transactions: new TransactionInterfaceAdapter(
+					networkIdentifier,
+					registeredTransactions,
+				),
 			},
 			storage: {
 				entities: {
@@ -444,18 +450,18 @@ describe('blocks', () => {
 				{
 					id: '1065693148641117014',
 					blockId: '7360015088758644957',
-					amount: '1',
-					type: 0,
+					type: 8,
 					timestamp: 107102856,
 					senderPublicKey:
 						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-					senderId: '16313739661670634666L',
-					recipientId: '10361596175468657749L',
 					fee: '10000000',
 					signature:
 						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
 					signatures: [],
-					asset: {},
+					asset: {
+						amount: '1',
+						recipientId: '10361596175468657749L',
+					},
 				},
 			],
 			reward: '0',
@@ -487,10 +493,12 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('validateDetached', () => {
+	describe('validateBlockHeader', () => {
 		let validateTransactionsFn;
+		let expectedReward;
 
 		beforeEach(async () => {
+			expectedReward = '0';
 			validateTransactionsFn = jest.fn().mockReturnValue({
 				transactionsResponses: [],
 			});
@@ -509,11 +517,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
+					await blocksInstance.validateBlockHeader(
 						block,
-						lastBlock: genesisBlock,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -528,11 +536,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).resolves.toBeUndefined();
 			});
 		});
@@ -550,11 +554,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
+					await blocksInstance.validateBlockHeader(
 						block,
-						lastBlock: genesisBlock,
-						blockBytes: mutatedBlockBytes,
-					});
+						mutatedBlockBytes,
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -573,11 +577,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
-						block: blockWithMutatedSignature,
-						lastBlock: genesisBlock,
+					await blocksInstance.validateBlockHeader(
+						blockWithMutatedSignature,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -596,11 +600,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
-						block: blockWithDifferentGeneratorPublicKey,
-						lastBlock: genesisBlock,
+					await blocksInstance.validateBlockHeader(
+						blockWithDifferentGeneratorPublicKey,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -618,11 +622,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow('Payload length is too long');
 			});
 
@@ -636,11 +636,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow(
 					'Included transactions do not match block transactions count',
 				);
@@ -656,11 +652,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow('Number of transactions exceeds maximum per block');
 			});
 
@@ -677,11 +669,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow(
 					'Included transactions do not match block transactions count',
 				);
@@ -698,11 +686,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentPayloadhash,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentPayloadhash,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid payload hash');
 			});
 
@@ -717,11 +705,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentTotalAmount,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentTotalAmount,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid total amount');
 			});
 
@@ -736,11 +724,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentTotalAmount,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentTotalAmount,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid total fee');
 			});
 		});
@@ -755,11 +743,11 @@ describe('blocks', () => {
 
 			expect.assertions(1);
 			// Act & Assert
-			await blocksInstance.validateDetached({
+			await blocksInstance.validateBlockHeader(
 				block,
-				lastBlock: genesisBlock,
 				blockBytes,
-			});
+				expectedReward,
+			);
 			expect(block.id).toEqual(originalId);
 		});
 
@@ -770,11 +758,11 @@ describe('blocks', () => {
 				const blockBytes = getBytes(block);
 				expect.assertions(2);
 				// Act
-				await blocksInstance.validateDetached({
+				await blocksInstance.validateBlockHeader(
 					block,
-					lastBlock: genesisBlock,
 					blockBytes,
-				});
+					expectedReward,
+				);
 				expect(transactionsModule.validateTransactions).toHaveBeenCalledWith(
 					exceptions,
 				);
@@ -799,11 +787,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toEqual(transactionErrors);
 			});
 
@@ -824,11 +808,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).resolves.toEqual();
 			});
 		});

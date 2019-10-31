@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
@@ -128,6 +129,11 @@ module.exports = class Chain {
 
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
+
+			this.networkIdentifier = getNetworkIdentifier(
+				this.options.genesisBlock.payloadHash,
+				this.options.genesisBlock.communityIdentifier,
+			);
 
 			const self = this;
 			this.scope = {
@@ -383,6 +389,7 @@ module.exports = class Chain {
 		this.scope.modules = {};
 		this.interfaceAdapters = {
 			transactions: new TransactionInterfaceAdapter(
+				this.networkIdentifier,
 				this.options.registeredTransactions,
 			),
 		};

@@ -31,7 +31,7 @@ const generateBlocks = ({ startHeight, numberOfBlocks }) =>
 	new Array(numberOfBlocks)
 		.fill(0)
 		.map((_v, index) =>
-			blockFixture({ height: startHeight + index, version: '2' }),
+			blockFixture({ height: startHeight + index, version: 2 }),
 		);
 
 describe('bft', () => {
@@ -364,7 +364,7 @@ describe('bft', () => {
 		});
 
 		describe('#addNewBlock', () => {
-			const block1 = blockFixture({ height: 1, version: '2' });
+			const block1 = blockFixture({ height: 1, version: 2 });
 			const lastFinalizedHeight = 5;
 
 			let bft;
@@ -423,9 +423,9 @@ describe('bft', () => {
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
 				await bft.init();
 				const blocks = [
-					blockFixture({ height: 4, version: '2' }),
-					blockFixture({ height: 5, version: '2' }),
-					blockFixture({ height: 6, version: '2' }),
+					blockFixture({ height: 4, version: 2 }),
+					blockFixture({ height: 5, version: 2 }),
+					blockFixture({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -440,8 +440,8 @@ describe('bft', () => {
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
 				await bft.init();
 				const blocks = [
-					blockFixture({ height: 5, version: '2' }),
-					blockFixture({ height: 6, version: '2' }),
+					blockFixture({ height: 5, version: 2 }),
+					blockFixture({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -452,10 +452,10 @@ describe('bft', () => {
 
 			it('should delete the block headers form list for all given blocks', async () => {
 				// Arrange
-				const block1 = blockFixture({ height: 1, version: '2' });
-				const block2 = blockFixture({ height: 2, version: '2' });
-				const block3 = blockFixture({ height: 3, version: '2' });
-				const block4 = blockFixture({ height: 4, version: '2' });
+				const block1 = blockFixture({ height: 1, version: 2 });
+				const block2 = blockFixture({ height: 2, version: 2 });
+				const block3 = blockFixture({ height: 3, version: 2 });
+				const block4 = blockFixture({ height: 4, version: 2 });
 				await bft.addNewBlock(block1);
 				await bft.addNewBlock(block2);
 				await bft.addNewBlock(block3);
@@ -580,6 +580,148 @@ describe('bft', () => {
 					403 - activeDelegates * 2,
 				);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
+			});
+		});
+
+		describe('#isBFTProtocolCompliant', () => {
+			let bft;
+			let blocks;
+
+			beforeEach(async () => {
+				// Arrange
+				bft = new BFT(bftParams);
+				storageMock.entities.Block.get.mockReturnValue([]);
+				await bft.init();
+
+				// Setup BFT module with blocks
+				const numberOfBlocks = 101;
+				blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+
+				for (const block of blocks) {
+					await bft.addNewBlock(block);
+				}
+			});
+
+			it('should THROW if block is not provided', async () => {
+				// Act & Assert
+				expect(() => bft.isBFTProtocolCompliant()).toThrow(
+					'No block was provided to be verified',
+				);
+			});
+
+			it('should return TRUE when B.maxHeightPreviouslyForged is equal to 0', async () => {
+				// Arrange
+				const block = {
+					height: 102,
+					generatorPublicKey: 'zxc',
+					maxHeightPreviouslyForged: 0,
+				};
+
+				// Act & Assert
+				expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+			});
+
+			it('should return FALSE when B.maxHeightPreviouslyForged is equal to B.height', async () => {
+				// Arrange
+				const block = {
+					height: 203,
+					maxHeightPreviouslyForged: 203,
+				};
+
+				// Act & Assert
+				expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+			});
+
+			it('should return FALSE when B.maxHeightPreviouslyForged is greater than B.height', async () => {
+				// Arrange
+				const block = {
+					height: 203,
+					maxHeightPreviouslyForged: 204,
+				};
+
+				// Act & Assert
+				expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+			});
+
+			describe('when B.height - B.maxHeightPreviouslyForged is less than 303', () => {
+				it('should return FALSE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 403,
+						generatorPublicKey: 'zxc',
+						maxHeightPreviouslyForged: 101,
+					};
+
+					// Act & Assert
+					expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 403,
+						generatorPublicKey: blocks[100].generatorPublicKey,
+						maxHeightPreviouslyForged: 101,
+					};
+
+					// Act & Assert
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
+			});
+
+			describe('when B.height - B.maxHeightPreviouslyForged is equal to 303', () => {
+				it('should return FALSE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 404,
+						generatorPublicKey: 'zxc',
+						maxHeightPreviouslyForged: 101,
+					};
+
+					// Act & Assert
+					expect(bft.isBFTProtocolCompliant(block)).toBe(false);
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 404,
+						generatorPublicKey: blocks[100].generatorPublicKey,
+						maxHeightPreviouslyForged: 101,
+					};
+
+					// Act & Assert
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
+			});
+
+			describe('when B.height - B.maxHeightPreviouslyForged is greater than 303', () => {
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 405,
+						generatorPublicKey: 'zxc',
+						maxHeightPreviouslyForged: 101,
+					};
+
+					// Act & Assert
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 405,
+						generatorPublicKey: blocks[100].generatorPublicKey,
+						maxHeightPreviouslyForged: 101,
+					};
+
+					// Act & Assert
+					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
+				});
 			});
 		});
 
@@ -708,8 +850,8 @@ describe('bft', () => {
 			// As BFT applies only to block version 2
 			it('should skip loading blocks with version !== 2', async () => {
 				// Arrange
-				const blockWithVersion1 = blockFixture({ version: '1' });
-				const blockWithVersion2 = blockFixture({ version: '2' });
+				const blockWithVersion1 = blockFixture({ version: 1 });
+				const blockWithVersion2 = blockFixture({ version: 2 });
 				storageMock.entities.Block.get.mockReturnValue([
 					blockWithVersion1,
 					blockWithVersion2,
@@ -727,7 +869,7 @@ describe('bft', () => {
 
 			it('should load block headers to finalityManager', async () => {
 				// Arrange
-				const block = blockFixture({ version: '2', height: 8 });
+				const block = blockFixture({ version: 2, height: 8 });
 				const blockHeader = extractBFTBlockHeaderFromBlock(block);
 				storageMock.entities.Block.get.mockReturnValue([block]);
 

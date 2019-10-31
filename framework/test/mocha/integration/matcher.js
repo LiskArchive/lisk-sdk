@@ -19,6 +19,11 @@ const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const { Slots } = require('../../../src/modules/chain/dpos');
+const { getNetworkIdentifier } = require('../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
@@ -102,6 +107,7 @@ class CustomTransationClass extends BaseTransaction {
  */
 function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 	const aCustomTransation = new CustomTransationClass({
+		networkIdentifier,
 		type: 7,
 		senderId,
 		senderPublicKey,
@@ -334,6 +340,7 @@ describe('matcher', () => {
 					.fill()
 					.map((_, i) => {
 						const dummyTransferTransaction = transfer({
+							networkIdentifier,
 							amount: '1',
 							data: i.toString(),
 							passphrase: accountFixtures.genesis.passphrase,

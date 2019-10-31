@@ -29,6 +29,11 @@ const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
 const { Slots } = require('../../../../../src/modules/chain/dpos');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;
@@ -165,6 +170,7 @@ describe('GET /delegates', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
 			const creditTransaction = transfer({
+				networkIdentifier,
 				amount: new BigNum(FEES.SECOND_SIGNATURE)
 					.plus(FEES.DELEGATE)
 					.toString(),
@@ -172,10 +178,12 @@ describe('GET /delegates', () => {
 				recipientId: secondPassphraseAccount.address,
 			});
 			const signatureTransaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: secondPassphraseAccount.passphrase,
 				secondPassphrase: secondPassphraseAccount.secondPassphrase,
 			});
 			const delegateTransaction = registerDelegate({
+				networkIdentifier,
 				passphrase: secondPassphraseAccount.passphrase,
 				username: secondPassphraseAccount.username,
 			});

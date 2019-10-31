@@ -19,8 +19,15 @@ const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-describe('exceptions for duplicatedSignatures transactions', () => {
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+// TODO: Delete after #4433
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('exceptions for duplicatedSignatures transactions', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
@@ -124,6 +131,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 	describe('send funds to account', () => {
 		before(async () => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId:
 					accountWithTransactionWithSignaturesFromSamePublicKey.address,
 				amount: (5000000000 * 100).toString(),

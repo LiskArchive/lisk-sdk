@@ -16,21 +16,23 @@
 
 require('../../functional');
 
-const {
-	transfer,
-	createSignatureObject,
-} = require('@liskhq/lisk-transactions');
+const { transfer } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
 const randomUtil = require('../../../common/utils/random');
 const apiHelpers = require('../../../common/helpers/api');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 0) transfer from multisignature account', () => {
 	const scenarios = {
-		register_multisignature: new Scenarios.Multisig(),
+		register_multisignature: new Scenarios.Multisig({ networkIdentifier }),
 	};
 
 	let transactionsToWaitFor = [];
@@ -94,6 +96,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 		it('with no signatures present it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
 			const trs = transfer({
+				networkIdentifier,
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: '1',
@@ -108,12 +111,13 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 		it('with some signatures present it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
 			const trs = transfer({
+				networkIdentifier,
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: '1',
 			});
 			trs.signatures = [
-				createSignatureObject(trs, multiSigAccount.members[0].passphrase)
+				apiHelpers.createSignatureObject(trs, multiSigAccount.members[0])
 					.signature,
 			];
 
@@ -126,17 +130,14 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 		it('with all signatures present it should be confirmed', async () => {
 			const targetAccount = randomUtil.account();
 			const trs = transfer({
+				networkIdentifier,
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: '1',
 			});
 
-			const membersPassphrases = [
-				...multiSigAccount.members.map(anAccount => anAccount.passphrase),
-			];
-
-			trs.signatures = membersPassphrases.map(
-				aSigner => createSignatureObject(trs, aSigner).signature,
+			trs.signatures = multiSigAccount.members.map(
+				aSigner => apiHelpers.createSignatureObject(trs, aSigner).signature,
 			);
 
 			return sendTransactionPromise(trs).then(res => {
@@ -148,6 +149,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 		it('with no signatures present, ready set to true, it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
 			const trs = transfer({
+				networkIdentifier,
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: '1',
@@ -163,13 +165,14 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 		it('with some signatures present, ready set to true, it should remain pending', async () => {
 			const targetAccount = randomUtil.account();
 			const trs = transfer({
+				networkIdentifier,
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: '1',
 			});
 
 			trs.signatures = [
-				createSignatureObject(trs, multiSigAccount.members[0].passphrase)
+				apiHelpers.createSignatureObject(trs, multiSigAccount.members[0])
 					.signature,
 			];
 			trs.ready = true;
@@ -183,16 +186,14 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 		it('with all signatures present, ready set to false, it should be confirmed', async () => {
 			const targetAccount = randomUtil.account();
 			const trs = transfer({
+				networkIdentifier,
 				recipientId: targetAccount.address,
 				passphrase: multiSigAccount.account.passphrase,
 				amount: '1',
 			});
-			const membersPassphrases = [
-				...multiSigAccount.members.map(anAccount => anAccount.passphrase),
-			];
 
-			trs.signatures = membersPassphrases.map(
-				aSigner => createSignatureObject(trs, aSigner).signature,
+			trs.signatures = multiSigAccount.members.map(
+				aSigner => apiHelpers.createSignatureObject(trs, aSigner).signature,
 			);
 			trs.ready = false;
 

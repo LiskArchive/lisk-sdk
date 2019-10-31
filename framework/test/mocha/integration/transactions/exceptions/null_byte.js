@@ -19,8 +19,15 @@ const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-describe('exceptions for null byte transaction', () => {
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+// TODO: Delete after #4433
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('exceptions for null byte transaction', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
@@ -59,6 +66,7 @@ describe('exceptions for null byte transaction', () => {
 	describe('send funds to account', () => {
 		before(async () => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId: accountWhichCreatesTransactionNullByte.address,
 				amount: (6000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,

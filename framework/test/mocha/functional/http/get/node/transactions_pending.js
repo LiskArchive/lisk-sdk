@@ -26,6 +26,13 @@ const randomUtil = require('../../../../common/utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
 const waitFor = require('../../../../common/utils/wait_for');
+const {
+	getNetworkIdentifier,
+} = require('../../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -51,6 +58,7 @@ describe('GET /api/node', () => {
 			before(() => {
 				// Credit account with some funds
 				transaction = transfer({
+					networkIdentifier,
 					amount: (1000 * NORMALIZER).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: senderAccount.address,
@@ -67,6 +75,7 @@ describe('GET /api/node', () => {
 					.then(() => {
 						// Create Second Signature for sender account
 						transaction = registerSecondPassphrase({
+							networkIdentifier,
 							passphrase: senderAccount.passphrase,
 							secondPassphrase: senderAccount.secondPassphrase,
 						});
@@ -83,6 +92,7 @@ describe('GET /api/node', () => {
 					.then(() => {
 						// Convert account to multisig account
 						transaction = registerMultisignature({
+							networkIdentifier,
 							passphrase: senderAccount.passphrase,
 							secondPassphrase: senderAccount.secondPassphrase,
 							keysgroup: [`${randomMember.publicKey}`],
@@ -114,6 +124,7 @@ describe('GET /api/node', () => {
 						for (let i = 0; i < numOfTransactions; i++) {
 							transactionList.push(
 								transfer({
+									networkIdentifier,
 									amount: ((i + 1) * NORMALIZER).toString(),
 									passphrase: senderAccount.passphrase,
 									secondPassphrase: senderAccount.secondPassphrase,

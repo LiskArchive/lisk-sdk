@@ -21,6 +21,11 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { TRANSACTION_TYPES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -30,15 +35,18 @@ describe('integration test (type 1) - checking validated second signature regist
 
 	const account = randomUtil.account();
 	const creditTransaction = transfer({
+		networkIdentifier,
 		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	const transaction = registerSecondPassphrase({
+		networkIdentifier,
 		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
 	const randomTransfer = transfer({
+		networkIdentifier,
 		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: '123L',
@@ -95,6 +103,7 @@ describe('integration test (type 1) - checking validated second signature regist
 
 		it('adding to pool second signature registration for same account should fail', done => {
 			const auxTransaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});

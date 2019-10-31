@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MultisignatureTransaction } from './4_multisignature_transaction';
+import { MultisignatureTransaction } from './12_multisignature_transaction';
 import {
 	MULTISIGNATURE_FEE,
 	MULTISIGNATURE_MAX_KEYSGROUP,
@@ -26,6 +26,7 @@ import {
 	isValidInteger,
 	prependPlusToPublicKeys,
 	validateKeysgroup,
+	validateNetworkIdentifier,
 } from './utils';
 
 export interface RegisterMultisignatureInputs {
@@ -35,17 +36,15 @@ export interface RegisterMultisignatureInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
+	readonly networkIdentifier: string;
 }
 
 const validateInputs = ({
 	keysgroup,
 	lifetime,
 	minimum,
-}: {
-	readonly keysgroup: ReadonlyArray<string>;
-	readonly lifetime: number;
-	readonly minimum: number;
-}): void => {
+	networkIdentifier,
+}: RegisterMultisignatureInputs): void => {
 	if (
 		!isValidInteger(lifetime) ||
 		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
@@ -71,36 +70,45 @@ const validateInputs = ({
 			'Minimum number of signatures is larger than the number of keys in the keysgroup.',
 		);
 	}
+
 	validateKeysgroup(keysgroup);
+
+	validateNetworkIdentifier(networkIdentifier);
 };
 
 export const registerMultisignature = (
 	inputs: RegisterMultisignatureInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { keysgroup, lifetime, minimum, passphrase, secondPassphrase } = inputs;
+	const {
+		keysgroup,
+		lifetime,
+		minimum,
+		passphrase,
+		secondPassphrase,
+		networkIdentifier,
+	} = inputs;
 
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
 	const keygroupFees = plusPrependedKeysgroup.length + 1;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 4,
+		type: 12,
 		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		asset: {
 			min: minimum,
 			lifetime,
 			keysgroup: plusPrependedKeysgroup,
 		},
+		networkIdentifier,
 	};
 
 	if (!passphrase) {
 		return transaction;
 	}
 
-	const multisignatureTransaction = new MultisignatureTransaction(
-		transaction as TransactionJSON,
-	);
+	const multisignatureTransaction = new MultisignatureTransaction(transaction);
 	multisignatureTransaction.sign(passphrase, secondPassphrase);
 
 	return multisignatureTransaction.toJSON();

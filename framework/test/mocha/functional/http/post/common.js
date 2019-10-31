@@ -27,6 +27,11 @@ const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {
@@ -36,18 +41,21 @@ function invalidAssets(option, badTransactions) {
 			switch (option) {
 				case 'publicKey':
 					transaction = registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
 					break;
 				case 'username':
 					transaction = registerDelegate({
+						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						username: randomUtil.delegateName(),
 					});
 					break;
 				case 'votes':
 					transaction = castVotes({
+						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						votes: [],
 						unvotes: [],
@@ -56,6 +64,7 @@ function invalidAssets(option, badTransactions) {
 				case 'multisignature': {
 					// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
 					const tx = new MultisignatureTransaction({
+						networkIdentifier,
 						asset: {
 							keysgroup: [`+${accountFixtures.existingDelegate.publicKey}`],
 							lifetime: 1,

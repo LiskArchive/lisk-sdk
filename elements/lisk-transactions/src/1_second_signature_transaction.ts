@@ -13,13 +13,13 @@
  *
  */
 import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
+import { SIGNATURE_FEE } from './constants';
+import { convertToAssetError, TransactionError } from './errors';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
-} from './base_transaction';
-import { SIGNATURE_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
+} from './legacy_base_transaction';
 import { TransactionJSON } from './transaction_types';
 import { getId, validator } from './utils';
 

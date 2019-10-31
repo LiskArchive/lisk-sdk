@@ -20,6 +20,11 @@ const randomUtil = require('../common/utils/random');
 const accountsFixtures = require('../fixtures/accounts');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
+const { getNetworkIdentifier } = require('../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('rebuilding', () => {
 	let library;
@@ -61,6 +66,7 @@ describe('rebuilding', () => {
 					// Forge 1 block with transaction to reach height 101
 					.then(() => {
 						const transaction = transfer({
+							networkIdentifier,
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountsFixtures.genesis.passphrase,

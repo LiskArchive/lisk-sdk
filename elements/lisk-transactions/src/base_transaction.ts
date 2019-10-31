@@ -116,6 +116,7 @@ export abstract class BaseTransaction {
 	protected _signSignature?: string;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
+	protected _networkIdentifier: string;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -131,7 +132,6 @@ export abstract class BaseTransaction {
 			: {}) as Partial<TransactionJSON>;
 
 		this.fee = new BigNum((this.constructor as typeof BaseTransaction).FEE);
-
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
@@ -143,6 +143,8 @@ export abstract class BaseTransaction {
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
+		this._networkIdentifier = tx.networkIdentifier || '';
+
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
 
 		// Additional data not related to the protocol
@@ -234,7 +236,21 @@ export abstract class BaseTransaction {
 		if (errors.length > 0) {
 			return createResponse(this.id, errors);
 		}
+
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
 		this._id = getId(this.getBytes());
 
@@ -244,7 +260,7 @@ export abstract class BaseTransaction {
 		} = validateSignature(
 			this.senderPublicKey,
 			this.signature,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 
@@ -385,11 +401,26 @@ export abstract class BaseTransaction {
 			]);
 		}
 
+		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
+
 		// Validate the signature using the signature sender and transaction details
 		const { valid } = validateSignature(
 			signatureObject.publicKey,
 			signatureObject.signature,
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 		// If the signature is valid for the sender push it to the signatures array
@@ -398,6 +429,7 @@ export abstract class BaseTransaction {
 
 			return this.processMultisignatures(store);
 		}
+
 		// Else populate errors
 		const errors = valid
 			? []
@@ -427,12 +459,25 @@ export abstract class BaseTransaction {
 	public processMultisignatures(store: StateStore): TransactionResponse {
 		const sender = store.account.get(this.senderId);
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
 		const { status, errors } = verifyMultiSignatures(
 			this.id,
 			sender,
 			this.signatures,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 		);
 		this._multisignatureStatus = status;
 		if (this._multisignatureStatus === MultisignatureStatus.PENDING) {
@@ -477,35 +522,50 @@ export abstract class BaseTransaction {
 
 		this._signature = undefined;
 		this._signSignature = undefined;
-		this._signature = signData(hash(this.getBytes()), passphrase);
-		if (secondPassphrase) {
-			this._signSignature = signData(hash(this.getBytes()), secondPassphrase);
+
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error('Network identifier is required to sign a transaction ');
 		}
+
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBytes(),
+		]);
+
+		this._signature = signData(
+			hash(transactionWithNetworkIdentifierBytes),
+			passphrase,
+		);
+
+		if (secondPassphrase) {
+			this._signSignature = signData(
+				hash(
+					Buffer.concat([
+						transactionWithNetworkIdentifierBytes,
+						hexToBuffer(this._signature),
+					]),
+				),
+				secondPassphrase,
+			);
+		}
+
 		this._id = getId(this.getBytes());
 	}
 
 	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
-
+		transactionTimestamp.writeIntBE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
-
-		// TODO: Remove on the hard fork change
-		const transactionRecipientID = Buffer.alloc(BYTESIZES.RECIPIENT_ID);
-
-		// TODO: Remove on the hard fork change
-		const transactionAmount = new BigNum(0).toBuffer({
-			endian: 'little',
-			size: BYTESIZES.AMOUNT,
-		});
 
 		return Buffer.concat([
 			transactionType,
 			transactionTimestamp,
 			transactionSenderPublicKey,
-			transactionRecipientID,
-			transactionAmount,
 			this.assetToBytes(),
 		]);
 	}
@@ -522,12 +582,27 @@ export abstract class BaseTransaction {
 		 * We are currently conducting a research to specify an optimal generic way of changing asset to bytes.
 		 * You can expect this enhanced implementation to be included in the next releases.
 		 */
+
 		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
+		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to verify a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 		const secondSignatureTxBytes = Buffer.concat([
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			hexToBuffer(this.signature),
 		]);
 

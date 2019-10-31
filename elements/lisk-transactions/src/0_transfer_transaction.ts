@@ -19,13 +19,13 @@ import {
 	intToBuffer,
 	stringToBuffer,
 } from '@liskhq/lisk-cryptography';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
+import { convertToAssetError, TransactionError } from './errors';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
-} from './base_transaction';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
+} from './legacy_base_transaction';
 import { TransactionJSON } from './transaction_types';
 import {
 	isValidNumber,

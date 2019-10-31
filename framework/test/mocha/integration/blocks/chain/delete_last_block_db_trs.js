@@ -20,6 +20,11 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('integration test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
@@ -48,6 +53,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 	beforeEach('send funds to accounts', async () => {
 		blockAccount1 = randomUtil.account();
 		fundTrsForAccount1 = transfer({
+			networkIdentifier,
 			amount: transferAmount.toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,

@@ -107,15 +107,6 @@ export class InboundPeer extends Peer {
 		// Bind RPC and remote event handlers
 		inboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.on(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.on(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
 	}
 
 	// All event handlers for the inbound socket should be unbound in this method.
@@ -128,14 +119,5 @@ export class InboundPeer extends Peer {
 		// Unbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.off(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.off(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
 	}
 }

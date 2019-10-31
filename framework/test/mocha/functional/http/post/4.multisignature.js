@@ -29,6 +29,11 @@ const common = require('./common');
 const {
 	createInvalidRegisterMultisignatureTransaction,
 } = require('../../../common/utils/elements');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const { MULTISIG_CONSTRAINTS } = __testContext.config;
@@ -91,6 +96,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		describe('keysgroup', () => {
 			it('using empty array should fail', async () => {
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: 1,
@@ -99,6 +105,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.keysgroup = [];
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -125,6 +132,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -134,6 +142,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.keysgroup.push(null);
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -159,6 +168,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -187,6 +197,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -199,6 +210,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -224,6 +236,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -236,6 +249,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -262,6 +276,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -274,6 +289,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -299,6 +315,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -308,6 +325,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.keysgroup = ['+', '+'];
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -333,6 +351,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -346,6 +365,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -371,6 +391,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -384,6 +405,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -405,6 +427,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using more_than_max_members scenario(${MULTISIG_CONSTRAINTS.KEYSGROUP
 				.MAX_ITEMS + 2}, 2) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.more_than_max_members.account.passphrase,
 					keysgroup: scenarios.more_than_max_members.keysgroup,
 					lifetime: 1,
@@ -431,6 +454,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		describe('min', () => {
 			it('using bigger than keysgroup size plus 1 should fail', async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
@@ -457,6 +481,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.MIN.MAXIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.max_members_max_min.account.passphrase,
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
@@ -483,6 +508,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.MIN.MINIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.max_members.account.passphrase,
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
@@ -511,6 +537,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1,
@@ -537,6 +564,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1,
@@ -623,6 +651,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		it('using valid params regular_with_second_signature scenario should be ok', async () => {
 			const scenario = scenarios.regular_with_second_signature;
 			const multiSigSecondPassphraseTransaction = registerMultisignature({
+				networkIdentifier,
 				passphrase: scenario.account.passphrase,
 				secondPassphrase: scenario.account.secondPassphrase,
 				keysgroup: scenario.keysgroup,

@@ -25,7 +25,13 @@ const storageSandbox = require('../../../../../../common/storage_sandbox');
 const seeder = require('../../../../../../common/storage_seed');
 const transactionsFixtures = require('../../../../../../fixtures').transactions;
 
-const { TRANSACTION_TYPES } = global.constants;
+const TRANSACTION_TYPES = {
+	SEND: 8,
+	SIGNATURE: 9,
+	DELEGATE: 10,
+	VOTE: 11,
+	MULTI: 12,
+};
 
 const numSeedRecords = 5;
 
@@ -309,64 +315,6 @@ describe('Transaction', () => {
 			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
 			expect(result.map(t => t.asset.dapp)).to.be.eql(
 				transactions.map(t => t.asset.dapp),
-			);
-		});
-
-		it('should populate asset field with "intransfer" json for type 6 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: TRANSACTION_TYPES.IN_TRANSFER,
-					}),
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true },
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.inTransfer.transactionId)).to.be.eql(
-				transactions.map(t => t.asset.inTransfer.transactionId),
-			);
-			expect(result.map(r => r.asset.inTransfer.dappId)).to.be.eql(
-				transactions.map(t => t.asset.inTransfer.dappId),
-			);
-		});
-
-		it('should populate asset field with "outtransfer" json for type 7 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: TRANSACTION_TYPES.OUT_TRANSFER,
-					}),
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true },
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.outTransfer.transactionId)).to.be.eql(
-				transactions.map(t => t.asset.outTransfer.transactionId),
-			);
-			expect(result.map(r => r.asset.outTransfer.dappId)).to.be.eql(
-				transactions.map(t => t.asset.outTransfer.dappId),
 			);
 		});
 	});
