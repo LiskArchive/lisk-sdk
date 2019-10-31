@@ -39,6 +39,9 @@ jest.mock('events');
 
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
+const {
+	devnetNetworkIdentifier: networkIdentifier,
+} = require('../../../../../../mocha/common/network_identifier');
 
 describe('blocks', () => {
 	const stubs = {};
@@ -70,7 +73,10 @@ describe('blocks', () => {
 		// Arrange
 		stubs.dependencies = {
 			interfaceAdapters: {
-				transactions: new TransactionInterfaceAdapter(registeredTransactions),
+				transactions: new TransactionInterfaceAdapter(
+					networkIdentifier,
+					registeredTransactions,
+				),
 			},
 			storage: {
 				entities: {
@@ -444,18 +450,18 @@ describe('blocks', () => {
 				{
 					id: '1065693148641117014',
 					blockId: '7360015088758644957',
-					amount: '1',
-					type: 0,
+					type: 8,
 					timestamp: 107102856,
 					senderPublicKey:
 						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-					senderId: '16313739661670634666L',
-					recipientId: '10361596175468657749L',
 					fee: '10000000',
 					signature:
 						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
 					signatures: [],
-					asset: {},
+					asset: {
+						amount: '1',
+						recipientId: '10361596175468657749L',
+					},
 				},
 			],
 			reward: '0',

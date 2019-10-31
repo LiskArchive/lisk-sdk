@@ -17,7 +17,7 @@
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionsModule = require('../transactions');
 
-const TRANSACTION_TYPES_VOTE = 3;
+const TRANSACTION_TYPES_VOTE = [3, 11];
 
 const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 	const promises = [
@@ -169,7 +169,7 @@ const applyConfirmedGenesisStep = async (
 	tx,
 ) => {
 	const sortedTransactionInstances = block.transactions.sort(a => {
-		if (a.type === TRANSACTION_TYPES_VOTE) {
+		if (TRANSACTION_TYPES_VOTE.includes(a.type)) {
 			return 1;
 		}
 		return 0;

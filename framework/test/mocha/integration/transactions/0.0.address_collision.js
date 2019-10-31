@@ -22,6 +22,11 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../fixtures/accounts');
 const localCommon = require('../common');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -45,18 +50,21 @@ describe('integration test (type 0) - address collision', () => {
 	];
 
 	const firstTransaction = transfer({
+		networkIdentifier,
 		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	const secondTransaction = transfer({
+		networkIdentifier,
 		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	const firstTransactionWithData = transfer({
+		networkIdentifier,
 		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
@@ -64,6 +72,7 @@ describe('integration test (type 0) - address collision', () => {
 	});
 
 	const secondTransactionWithData = transfer({
+		networkIdentifier,
 		amount: (10 * NORMALIZER).toString(),
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
@@ -72,6 +81,7 @@ describe('integration test (type 0) - address collision', () => {
 
 	before(done => {
 		const creditTransaction = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,

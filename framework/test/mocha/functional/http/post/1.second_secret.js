@@ -27,6 +27,11 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -45,16 +50,19 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	// Crediting accounts
 	before(() => {
 		const transaction1 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		const transaction2 = transfer({
+			networkIdentifier,
 			amount: FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		const transaction3 = transfer({
+			networkIdentifier,
 			amount: FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountNoSecondPassphrase.address,
@@ -86,6 +94,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	describe('transactions processing', () => {
 		it('using second passphrase on a fresh account should fail', async () => {
 			transaction = transfer({
+				networkIdentifier,
 				amount: '1',
 				passphrase: accountNoSecondPassphrase.passphrase,
 				secondPassphrase: accountNoSecondPassphrase.secondPassphrase,
@@ -104,6 +113,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with no funds should fail', async () => {
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: accountNoFunds.passphrase,
 				secondPassphrase: accountNoFunds.secondPassphrase,
 			});
@@ -122,6 +132,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with minimal required amount of funds should be ok', async () => {
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: accountMinimalFunds.passphrase,
 				secondPassphrase: accountMinimalFunds.secondPassphrase,
 				timeOffset: -10000,
@@ -135,6 +146,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with valid params should be ok', async () => {
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});

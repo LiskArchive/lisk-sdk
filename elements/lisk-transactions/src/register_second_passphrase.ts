@@ -47,7 +47,7 @@ export const registerSecondPassphrase = (
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 1,
+		type: 9,
 		asset: { publicKey },
 		networkIdentifier,
 	};

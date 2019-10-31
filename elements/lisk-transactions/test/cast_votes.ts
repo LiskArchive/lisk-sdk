@@ -22,7 +22,7 @@ describe('#castVotes transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
-	const transactionType = 3;
+	const transactionType = 11;
 	const firstPublicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const secondPublicKey =

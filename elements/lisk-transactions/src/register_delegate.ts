@@ -60,7 +60,7 @@ export const registerDelegate = (
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 2,
+		type: 10,
 		fee: DELEGATE_FEE.toString(),
 		asset: { username },
 		networkIdentifier,
@@ -70,9 +70,7 @@ export const registerDelegate = (
 		return transaction;
 	}
 
-	const delegateTransaction = new DelegateTransaction(
-		transaction as TransactionJSON,
-	);
+	const delegateTransaction = new DelegateTransaction(transaction);
 	delegateTransaction.sign(passphrase, secondPassphrase);
 
 	return delegateTransaction.toJSON();

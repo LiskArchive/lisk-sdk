@@ -28,9 +28,17 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 const blocksChainModule = require('../../../../../src/modules/chain/blocks/chain');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+	transactions: new TransactionInterfaceAdapter(
+		networkIdentifier,
+		registeredTransactions,
+	),
 };
 
 describe('integration test (blocks) - chain/applyBlock', () => {
@@ -64,24 +72,28 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		poolAccount4 = randomUtil.account();
 
 		const fundTrsForAccount1 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
 
 		const fundTrsForAccount2 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount2.address,
 		});
 
 		const fundTrsForAccount3 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount3.address,
 		});
 
 		const fundTrsForAccount4 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount4.address,
@@ -109,10 +121,12 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 		beforeEach('create block', done => {
 			blockTransaction1 = registerDelegate({
+				networkIdentifier,
 				passphrase: blockAccount1.passphrase,
 				username: blockAccount1.username,
 			});
 			blockTransaction2 = registerDelegate({
+				networkIdentifier,
 				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});
@@ -240,10 +254,10 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					totalFee: 0,
 					transactions: [
 						{
-							type: 0,
+							type: 8,
 							fee: 0,
+							networkIdentifier,
 							timestamp: -3704634000,
-							senderId: '1085993630748340485L',
 							senderPublicKey:
 								'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 							signature:

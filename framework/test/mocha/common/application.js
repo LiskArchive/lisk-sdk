@@ -32,6 +32,7 @@ const {
 const {
 	BlockProcessorV1,
 } = require('../../../src/modules/chain/block_processor_v1');
+const { getNetworkIdentifier } = require('./network_identifier');
 
 let currentAppScope;
 
@@ -62,6 +63,7 @@ const initStepsForTest = {
 		});
 		modules.interfaceAdapters = {};
 		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
+			getNetworkIdentifier(__testContext.config.genesisBlock),
 			__testContext.config.modules.chain.registeredTransactions,
 		);
 

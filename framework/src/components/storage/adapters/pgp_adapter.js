@@ -87,7 +87,7 @@ class PgpAdapter extends BaseAdapter {
 		// Have to keep the same options object to make sure monitor works for the connection
 		Object.assign(pgpOptions, monitorOptions);
 		monitor.attach(pgpOptions, this.options.logEvents);
-		monitor.setLog(info => {
+		monitor.setLog((msg, info) => {
 			this.logger.debug({ event: info.event }, info.text);
 			info.display = false;
 		});

@@ -29,11 +29,11 @@ interface TypeNumberMap {
 }
 
 const typeNumberMap: TypeNumberMap = {
-	'0': 'transfer',
-	'1': 'second-passphrase',
-	'2': 'delegate',
-	'3': 'vote',
-	'4': 'multisignature',
+	'8': 'transfer',
+	'9': 'second-passphrase',
+	'10': 'delegate',
+	'11': 'vote',
+	'12': 'multisignature',
 };
 
 const options = Object.entries(typeNumberMap).reduce(

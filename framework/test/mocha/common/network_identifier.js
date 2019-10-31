@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,22 +14,16 @@
 
 'use strict';
 
-const {
-	TransferTransaction,
-	SecondSignatureTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	MultisignatureTransaction,
-} = require('@liskhq/lisk-transactions');
+const cryptography = require('@liskhq/lisk-cryptography');
 
-const defaultTransactions = () => ({
-	8: TransferTransaction,
-	9: SecondSignatureTransaction,
-	10: DelegateTransaction,
-	11: VoteTransaction,
-	12: MultisignatureTransaction,
-});
+const getNetworkIdentifier = genesisBlock =>
+	cryptography.getNetworkIdentifier(
+		genesisBlock.payloadHash,
+		genesisBlock.communityIdentifier,
+	);
 
 module.exports = {
-	defaultTransactions,
+	devnetNetworkIdentifier:
+		'a59352e01fa66bd4fa270af5d47a8f827c56b36b2d80528b04e1e8ba03134de9',
+	getNetworkIdentifier,
 };

@@ -37,12 +37,19 @@ const redoSignature = (transaction, passphrase) => {
 	};
 };
 
-const redoVoteTransactionSignature = (voteTransactionJSON, passphrase) => {
+const redoVoteTransactionSignature = (
+	voteTransactionJSON,
+	networkIdentifier,
+	passphrase,
+) => {
 	const {
 		signature: discarded,
 		...transactionWithoutSignature
 	} = voteTransactionJSON;
-	const tx = new VoteTransaction(transactionWithoutSignature);
+	const tx = new VoteTransaction({
+		...transactionWithoutSignature,
+		networkIdentifier,
+	});
 	tx.sign(passphrase);
 
 	return tx.toJSON();
@@ -50,19 +57,24 @@ const redoVoteTransactionSignature = (voteTransactionJSON, passphrase) => {
 
 const redoMultisignatureTransactionSignature = (
 	multiTransactionJSON,
+	networkIdentifier,
 	passphrase,
 ) => {
 	const {
 		signature: discarded,
 		...transactionWithoutSignature
 	} = multiTransactionJSON;
-	const tx = new MultisignatureTransaction(transactionWithoutSignature);
+	const tx = new MultisignatureTransaction({
+		...transactionWithoutSignature,
+		networkIdentifier,
+	});
 	tx.sign(passphrase);
 
 	return tx.toJSON();
 };
 
 const createInvalidRegisterMultisignatureTransaction = ({
+	networkIdentifier,
 	keysgroup,
 	lifetime,
 	minimum,
@@ -71,8 +83,8 @@ const createInvalidRegisterMultisignatureTransaction = ({
 	baseFee,
 }) => {
 	const tx = new MultisignatureTransaction({
-		type: 4,
-		amount: '0',
+		networkIdentifier,
+		type: 12,
 		fee: new BigNum(baseFee).times(keysgroup.length + 1).toString(),
 		asset: {
 			keysgroup: keysgroup.map(key => `+${key}`),

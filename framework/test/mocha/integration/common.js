@@ -29,6 +29,11 @@ const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
+const { getNetworkIdentifier } = require('../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
@@ -237,6 +242,7 @@ function addTransaction(library, transaction, cb) {
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
 		transaction,
 	);
+
 	const amountNormalized = !transaction.asset.amount
 		? 0
 		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
@@ -383,6 +389,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	switch (key) {
 		case 'SEND':
 			transaction = transfer({
+				networkIdentifier,
 				amount: '1',
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
@@ -391,12 +398,14 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'SIGNATURE':
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});
 			break;
 		case 'DELEGATE':
 			transaction = registerDelegate({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				username: accountCopy.username,
@@ -404,6 +413,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'VOTE':
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				votes: [accountFixtures.existingDelegate.publicKey],
@@ -411,6 +421,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'MULTI':
 			transaction = registerMultisignature({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				keysgroup: [accountFixtures.existingDelegate.publicKey],

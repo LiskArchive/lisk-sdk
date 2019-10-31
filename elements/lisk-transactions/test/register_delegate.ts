@@ -22,7 +22,7 @@ describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
-	const transactionType = 2;
+	const transactionType = 10;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const username = 'test_delegate_1@\\';

@@ -91,7 +91,7 @@ describe('app', () => {
 				before(() => {
 					// Filter register delegates transactions (type 2) from genesis block
 					delegateTransactions = _.filter(genesisBlock.transactions, {
-						type: 2,
+						type: 10,
 					});
 
 					// Get delegates from database
@@ -148,7 +148,7 @@ describe('app', () => {
 									library.genesisBlock.block.transactions,
 									transaction => {
 										return (
-											transaction.type === 3 &&
+											transaction.type === 11 &&
 											transaction.asset.votes.indexOf(
 												`+${delegate.publicKey.toString('hex')}`,
 											) !== -1
@@ -157,11 +157,15 @@ describe('app', () => {
 								);
 
 								// Calculate voters balance for current delegate
+								// This assumes fee is zero for genesis
 								let voters_balance = '0';
 								_.each(voters, voter => {
 									const balance = _.reduce(
 										library.genesisBlock.block.transactions,
 										(reduceBalance, acc) => {
+											if (acc.type !== 8) {
+												return reduceBalance;
+											}
 											if (
 												acc.asset.recipientId ===
 												getAddressFromPublicKey(voter.senderPublicKey)

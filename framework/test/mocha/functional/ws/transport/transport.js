@@ -22,6 +22,11 @@ const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const randomUtil = require('../../../common/utils/random');
 const phases = require('../../../common/phases');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('WS transport', () => {
 	describe('WS transport transactions', () => {
@@ -57,6 +62,7 @@ describe('WS transport', () => {
 		describe('transaction processing', () => {
 			it('when sender has no funds should broadcast transaction but not confirm', done => {
 				transaction = transfer({
+					networkIdentifier,
 					amount: '1',
 					passphrase: account.passphrase,
 					recipientId: '1L',

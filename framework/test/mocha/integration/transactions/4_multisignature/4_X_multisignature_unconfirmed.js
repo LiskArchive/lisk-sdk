@@ -17,6 +17,11 @@
 const { transfer } = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { TRANSACTION_TYPES } = global.constants;
 
@@ -28,6 +33,7 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 	};
 
 	const randomTransfer = transfer({
+		networkIdentifier,
 		amount: '1',
 		passphrase: scenarios.regular.account.passphrase,
 		recipientId: '123L',
