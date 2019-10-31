@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import { P2P, EVENT_MESSAGE_RECEIVED } from '../../../src/index';
 import { wait } from '../../utils/helpers';
-import { platform } from 'os';
 import {
 	createNetwork,
 	destroyNetwork,
@@ -124,21 +123,6 @@ describe('P2P.send', () => {
 		it('should send messages to peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
 			const nodePortToMessagesMap: any = {};
-
-			for (let p2p of p2pNodeList) {
-				p2p.applyNodeInfo({
-					os: platform(),
-					nethash:
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					version: p2p.nodeInfo.version,
-					protocolVersion: '1.1',
-					wsPort: p2p.nodeInfo.wsPort,
-					height: 1000 + (p2p.nodeInfo.wsPort % NETWORK_START_PORT),
-					options: p2p.nodeInfo.options,
-				});
-			}
-
-			await wait(200);
 
 			const expectedAverageMessagesPerNode = TOTAL_SENDS;
 			const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
