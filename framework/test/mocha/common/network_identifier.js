@@ -24,6 +24,6 @@ const getNetworkIdentifier = genesisBlock =>
 
 module.exports = {
 	devnetNetworkIdentifier:
-		'fcce549a208ed7e47c1e62d27ea6292464c575d72ec5cf979bea417994d7079b',
+		'a59352e01fa66bd4fa270af5d47a8f827c56b36b2d80528b04e1e8ba03134de9',
 	getNetworkIdentifier,
 };
