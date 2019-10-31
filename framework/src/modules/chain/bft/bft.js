@@ -299,7 +299,7 @@ class BFT extends EventEmitter {
 		);
 
 		rows.forEach(row => {
-			if (row.version !== '2') return;
+			if (row.height !== 1 && row.version !== 2) return;
 
 			this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(row));
 		});
@@ -308,6 +308,45 @@ class BFT extends EventEmitter {
 	// eslint-disable-next-line class-methods-use-this
 	validateBlock(block) {
 		validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
+	}
+
+	/**
+	 * Verify if block forger is following the BFT Protocol
+	 * See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#incentivizing-lisk-bft-protocol-participation
+	 *
+	 * @param {ExtendedBlock} block
+	 * @return {boolean}
+	 */
+	isBFTProtocolCompliant(block) {
+		assert(block, 'No block was provided to be verified');
+
+		const roundsThreshold = 3;
+		const heightThreshold = this.constants.activeDelegates * roundsThreshold;
+		const blockHeader = extractBFTBlockHeaderFromBlock(block);
+
+		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
+		if (blockHeader.maxHeightPreviouslyForged === 0) {
+			return true;
+		}
+
+		const bftHeaders = this.finalityManager.headers;
+
+		const maxHeightPreviouslyForgedBlock = bftHeaders.get(
+			blockHeader.maxHeightPreviouslyForged,
+		);
+
+		if (
+			!maxHeightPreviouslyForgedBlock ||
+			blockHeader.maxHeightPreviouslyForged >= blockHeader.height ||
+			(blockHeader.height - blockHeader.maxHeightPreviouslyForged <=
+				heightThreshold &&
+				blockHeader.delegatePublicKey !==
+					maxHeightPreviouslyForgedBlock.delegatePublicKey)
+		) {
+			return false;
+		}
+
+		return true;
 	}
 
 	get finalizedHeight() {

@@ -126,12 +126,14 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }) =>
+				this.blocksModule.blockReward.calculateReward(block.height),
+			({ block }, expectedReward) =>
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				),
 			data => this.blocksModule.verifyInMemory(data),
 			({ block }) =>
 				this.dposModule.verifyBlockForger(block, { delegateListRoundOffset }),
@@ -140,12 +142,14 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }) =>
+				this.blocksModule.blockReward.calculateReward(block.height),
+			({ block }, expectedReward) =>
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				),
 		]);
 
 		this.forkStatus.pipe([

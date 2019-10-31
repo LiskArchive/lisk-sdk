@@ -213,14 +213,10 @@ class Blocks extends EventEmitter {
 		return blockInstance;
 	}
 
-	async validateDetached({ block, blockBytes }) {
-		return this._validateDetached({ block, blockBytes });
-	}
-
-	async _validateDetached({ block, blockBytes }) {
+	async validateBlockHeader(block, blockBytes, expectedReward) {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes);
-		validateReward(block, this.blockReward, this.exceptions);
+		validateReward(block, expectedReward, this.exceptions);
 
 		// validate transactions
 		const { transactionsResponses } = validateTransactions(this.exceptions)(
@@ -234,11 +230,13 @@ class Blocks extends EventEmitter {
 		if (invalidTransactionResponse) {
 			throw invalidTransactionResponse.errors;
 		}
+
 		validatePayload(
 			block,
 			this.constants.maxTransactionsPerBlock,
 			this.constants.maxPayloadLength,
 		);
+
 		// Update id
 		block.id = blocksUtils.getId(blockBytes);
 	}
