@@ -21,49 +21,55 @@ import * as inputUtils from '../../../src/utils/input';
 
 describe('transaction:sign', () => {
 	const defaultTransaction = {
-		timestamp: 106582966,
-		type: 0,
+		type: 8,
 		senderPublicKey:
-			'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+		timestamp: 54316325,
 		asset: {
-			recipientId: '123L',
-			amount: '10000000000',
-			data: undefined,
+			recipientId: '18141291412139607230L',
+			amount: '1234567890',
+			data: 'random data',
 		},
-		id: '14814738582865173524',
 	};
 
 	const invalidTransaction = 'invalid transaction';
 	const defaultInputs = {
-		passphrase: '123',
+		passphrase:
+			'wear protect skill sentence lift enter wild sting lottery power floor neglect',
 	};
 
 	const defaultInputsWithSecondPassphrase = {
 		...defaultInputs,
-		secondPassphrase: '456',
+		secondPassphrase:
+			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
 	};
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
 		fee: '10000000',
-		senderId: '12475940823804898745L',
+		senderId: '2129300327344985743L',
 		signatures: [],
 		signature:
-			'bc7bbaef2cf4bb2a3b19c0958ac3b43e102cf611af1cba3928f03a6940d663976b60902a52cb29c5e01294fa873a551211bba6d9207fcd0df0fa93305cc4d503',
+			'b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d',
+		id: '3436168030012755419',
 	};
 
 	const defaultSecondSignedTransaction = {
 		...defaultSignedTransaction,
-		id: '11148343814295761202',
+		id: '1856045075247127242',
 		signSignature:
-			'3247d8dd5de5e1a5246148c05555281e0292ac04e8bfa1fdebb9ee7411a3d8a73629e88c20b1a18b88b391869bc78bfefe78cbbbbe8a0cf8a72f1f72234cd50f',
+			'c4b0ca84aa4596401c3041a1638e670d6278e0e18949f027b3d7ede4f2f0a1685df7aec768b1a3c49acfe7ded9e7f5230998f06b0d58371bcba5a00695fb6901',
 	};
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'test' } }),
+			)
 			.stub(
 				inputUtils,
 				'getInputsFromSources',
@@ -105,7 +111,7 @@ describe('transaction:sign', () => {
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Transaction: 2567924752873475295 failed at .amount',
+					'Transaction: 6662515125650388309 failed at .amount',
 				);
 			})
 			.it('should throw an error when transaction is invalid');
@@ -160,19 +166,23 @@ describe('transaction:sign', () => {
 			.command([
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
-				'--passphrase=pass:123',
-				'--second-passphrase=pass:456',
+				`--passphrase=pass:${defaultInputs.passphrase}`,
+				`--second-passphrase=pass:${
+					defaultInputsWithSecondPassphrase.secondPassphrase
+				}`,
 			])
 			.it(
 				'should take transaction from arg and passphrase and second passphrase from flag to sign',
 				() => {
 					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
-							source: 'pass:123',
+							source: `pass:${defaultInputs.passphrase}`,
 							repeatPrompt: true,
 						},
 						secondPassphrase: {
-							source: 'pass:456',
+							source: `pass:${
+								defaultInputsWithSecondPassphrase.secondPassphrase
+							}`,
 							repeatPrompt: true,
 						},
 					});

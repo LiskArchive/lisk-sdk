@@ -34,11 +34,11 @@ export const parseTransactionString = (transactionStr: string) => {
 
 // tslint:disable-next-line no-any
 const defaultTransactions: { readonly [key: number]: any } = {
-	0: TransferTransaction,
-	1: SecondSignatureTransaction,
-	2: DelegateTransaction,
-	3: VoteTransaction,
-	4: MultisignatureTransaction,
+	8: TransferTransaction,
+	9: SecondSignatureTransaction,
+	10: DelegateTransaction,
+	11: VoteTransaction,
+	12: MultisignatureTransaction,
 };
 
 export const instantiateTransaction = (

@@ -20,9 +20,12 @@ import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
 
 describe('transaction:create:transfer', () => {
+	const testnetNetworkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	const defaultAmount = '1';
 	const defaultAddress = '123L';
 	const defaultInputs = {
+		networkIdentifier: testnetNetworkIdentifier,
 		passphrase: '123',
 		secondPassphrase: '456',
 	};
@@ -46,7 +49,11 @@ describe('transaction:create:transfer', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'test' } }),
+			)
 			.stub(
 				transactions,
 				'transfer',

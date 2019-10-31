@@ -99,6 +99,7 @@ export default class CreateCommand extends BaseCommand {
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 		votes: flagParser.string(commonFlags.votes),
 		unvotes: flagParser.string(commonFlags.unvotes),
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 	};
 
 	async run(): Promise<void> {

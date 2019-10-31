@@ -33,6 +33,8 @@ describe('transaction:create:vote', () => {
 		'e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589',
 		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 	];
+	const testnetNetworkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	const defaultInputs = {
 		passphrase: '123',
 		secondPassphrase: '456',
@@ -56,7 +58,11 @@ describe('transaction:create:vote', () => {
 	const setupStub = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'test' } }),
+			)
 			.stub(
 				transactions,
 				'castVotes',
@@ -101,6 +107,7 @@ describe('transaction:create:vote', () => {
 					defaultVote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: defaultVote,
@@ -126,6 +133,7 @@ describe('transaction:create:vote', () => {
 					fileVotes,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: fileVotes,
@@ -155,6 +163,7 @@ describe('transaction:create:vote', () => {
 					defaultUnvote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: [],
@@ -180,6 +189,7 @@ describe('transaction:create:vote', () => {
 					fileVotes,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: [],
@@ -226,6 +236,7 @@ describe('transaction:create:vote', () => {
 					defaultUnvote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: defaultVote,
@@ -256,6 +267,7 @@ describe('transaction:create:vote', () => {
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultUnvote);
 					expect(transactions.castVotes).to.be.calledWithExactly({
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: undefined,
 						secondPassphrase: undefined,
 						votes: defaultVote,
@@ -293,6 +305,7 @@ describe('transaction:create:vote', () => {
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultUnvote);
 					expect(transactions.castVotes).to.be.calledWithExactly({
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						votes: defaultVote,
@@ -334,6 +347,7 @@ describe('transaction:create:vote', () => {
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultUnvote);
 					expect(transactions.castVotes).to.be.calledWithExactly({
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						votes: defaultVote,
