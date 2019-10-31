@@ -917,7 +917,7 @@ export class P2P extends EventEmitter {
 
 		selectedPeers.forEach(peer => {
 			try {
-				validatePeerInfo(peer, maxPeerInfoSize);
+				validatePeerInfo(sanitizeOutgoingPeerInfo(peer), maxPeerInfoSize);
 
 				validatedPeerList.push(peer);
 			} catch (err) {
