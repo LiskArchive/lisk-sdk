@@ -78,7 +78,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
-			triedPeersArray = peerListObj.peersList as ReadonlyArray<P2PPeerInfo>;
+			triedPeersArray = peerListObj.peerList as ReadonlyArray<P2PPeerInfo>;
 		});
 
 		it('should return tried peers list', () => {

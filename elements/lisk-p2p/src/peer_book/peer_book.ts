@@ -61,11 +61,11 @@ export class PeerBook {
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
-		return this._newPeers.peersList;
+		return this._newPeers.peerList;
 	}
 
 	public get triedPeers(): ReadonlyArray<P2PPeerInfo> {
-		return this._triedPeers.peersList;
+		return this._triedPeers.peerList;
 	}
 
 	public get allPeers(): ReadonlyArray<P2PPeerInfo> {
