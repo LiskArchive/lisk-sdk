@@ -355,20 +355,19 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions(filters) {
-		if (filters && filters.ids) {
+	async getTransactions(ids) {
+		if (ids) {
 			const transactions = [];
-			for (const id of filters.ids) {
+			for (const id of ids) {
 				// Check if any transaction is in the queues.
-				const transactionInPool = this.transactionPoolModule.getPooledTransactions(
-					null,
-					{ id },
+				const transactionInPool = this.transactionPoolModule.findInTransactionPool(
+					id,
 				);
-				if (transactionInPool.count) {
-					transactions.push(transactionInPool.transactions[0]);
+				if (transactionInPool) {
+					transactions.push(transactionInPool.toJSON());
 				} else {
 					const result = await this.storage.entities.Transaction.get({ id });
-					if (result) {
+					if (result.length) {
 						// Check if any transaction exists in the database.
 						transactions.push(result[0]);
 					}
