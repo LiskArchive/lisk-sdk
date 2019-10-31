@@ -18,7 +18,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
-export const DEFAULT_SEND_PEER_LIMIT = 24;
+export const DEFAULT_SEND_PEER_LIMIT = 16;
 // Max rate of WebSocket messages per second per peer.
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
@@ -55,8 +55,6 @@ export const DEFAULT_PRODUCTIVITY = {
 // Peer inbound constants
 export const DEFAULT_PING_INTERVAL_MAX = 60000;
 export const DEFAULT_PING_INTERVAL_MIN = 20000;
-export const SOCKET_PING_MESSAGE = '#1';
-export const SOCKET_PONG_MESSAGE = '#2';
 
 // Peer directory constants
 export const DEFAULT_NEW_BUCKET_COUNT = 128;
@@ -68,9 +66,6 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
-export const INVALID_MESSAGE_RECEIVED_CODE = 4009;
-export const INVALID_MESSAGE_RECEIVED_REASON =
-	'Peer should not send invalid or internal messages';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';

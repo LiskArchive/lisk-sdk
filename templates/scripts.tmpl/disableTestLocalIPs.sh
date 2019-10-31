@@ -15,10 +15,10 @@
 #
 #
 if [[ $(uname -s) != "Darwin" ]]; then
-  echo "Only Darwin is supported"
-  exit 1
+    echo "Only Darwin is supported"
+    exit 1
 fi
 
 for i in $( seq $1 $2 ); do
-  sudo ifconfig lo0 alias "127.0.0.$i"
+   sudo ifconfig lo0 -alias "127.0.0.$i"
 done

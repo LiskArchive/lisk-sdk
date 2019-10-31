@@ -149,9 +149,6 @@ class Blocks extends EventEmitter {
 			throw new Error('Genesis block does not match');
 		}
 
-		// check if the round related information is in valid state
-		await this.blocksVerify.reloadRequired();
-
 		const [storageLastBlock] = await this.storage.entities.Block.get(
 			{},
 			{ sort: 'height:desc', limit: 1, extended: true },
@@ -216,14 +213,10 @@ class Blocks extends EventEmitter {
 		return blockInstance;
 	}
 
-	async validateDetached({ block, blockBytes }) {
-		return this._validateDetached({ block, blockBytes });
-	}
-
-	async _validateDetached({ block, blockBytes }) {
+	async validateBlockHeader(block, blockBytes, expectedReward) {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes);
-		validateReward(block, this.blockReward, this.exceptions);
+		validateReward(block, expectedReward, this.exceptions);
 
 		// validate transactions
 		const { transactionsResponses } = validateTransactions(this.exceptions)(
@@ -237,11 +230,13 @@ class Blocks extends EventEmitter {
 		if (invalidTransactionResponse) {
 			throw invalidTransactionResponse.errors;
 		}
+
 		validatePayload(
 			block,
 			this.constants.maxTransactionsPerBlock,
 			this.constants.maxPayloadLength,
 		);
+
 		// Update id
 		block.id = blocksUtils.getId(blockBytes);
 	}

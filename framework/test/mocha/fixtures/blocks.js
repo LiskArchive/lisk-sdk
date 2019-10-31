@@ -64,7 +64,7 @@ const Block = stampit({
 			.toString();
 		this.version = version || 0;
 
-		if (this.version === '2') {
+		if (this.version === 2) {
 			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
 			this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
 		}

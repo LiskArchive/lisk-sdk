@@ -576,7 +576,7 @@ Object {
       "blacklistedPeers": Array [],
       "connectTimeout": 5000,
       "discoveryInterval": 30000,
-      "emitPeerLimit": 25,
+      "emitPeerLimit": 16,
       "fixedPeers": Array [],
       "maxInboundConnections": 100,
       "maxOutboundConnections": 20,
