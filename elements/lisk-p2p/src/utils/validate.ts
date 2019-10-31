@@ -27,11 +27,11 @@ import {
 } from '../errors';
 import {
 	P2PCompatibilityCheckReturnType,
+	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
-	ProtocolMessagePacket,
+	P2PRequestPacket,
 	ProtocolPeerInfo,
-	ProtocolRPCRequestPacket,
 } from '../p2p_types';
 import { constructPeerId } from './misc';
 
@@ -220,14 +220,12 @@ export const validatePeersInfoList = (
 	}
 };
 
-export const validateRPCRequest = (
-	request: unknown,
-): ProtocolRPCRequestPacket => {
+export const validateRPCRequest = (request: unknown): P2PRequestPacket => {
 	if (!request) {
 		throw new InvalidRPCRequestError('Invalid request');
 	}
 
-	const rpcRequest = request as ProtocolRPCRequestPacket;
+	const rpcRequest = request as P2PRequestPacket;
 	if (typeof rpcRequest.procedure !== 'string') {
 		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}
@@ -235,14 +233,12 @@ export const validateRPCRequest = (
 	return rpcRequest;
 };
 
-export const validateProtocolMessage = (
-	message: unknown,
-): ProtocolMessagePacket => {
+export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
 	if (!message) {
 		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
-	const protocolMessage = message as ProtocolMessagePacket;
+	const protocolMessage = message as P2PMessagePacket;
 	if (typeof protocolMessage.event !== 'string') {
 		throw new InvalidProtocolMessageError('Protocol message is not a string');
 	}

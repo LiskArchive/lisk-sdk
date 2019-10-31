@@ -32,7 +32,6 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
-import { sanitizeNodeInfoToLegacyFormat } from '../utils';
 import {
 	Peer,
 	PeerConfig,
@@ -98,10 +97,6 @@ export class OutboundPeer extends Peer {
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
-		const legacyNodeInfo = this._nodeInfo
-			? sanitizeNodeInfoToLegacyFormat(this._nodeInfo)
-			: undefined;
-
 		const connectTimeout = this._peerConfig.connectTimeout
 			? this._peerConfig.connectTimeout
 			: DEFAULT_CONNECT_TIMEOUT;
@@ -113,8 +108,8 @@ export class OutboundPeer extends Peer {
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: querystring.stringify({
-				...legacyNodeInfo,
-				options: JSON.stringify(legacyNodeInfo),
+				...this._nodeInfo,
+				options: JSON.stringify(this._nodeInfo),
 			}),
 			connectTimeout,
 			ackTimeout,
@@ -176,15 +171,6 @@ export class OutboundPeer extends Peer {
 		// Bind RPC and remote event handlers
 		outboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
-		outboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
-		outboundSocket.on(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		outboundSocket.on(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
 	}
 
 	// All event handlers for the outbound socket should be unbound in this method.
@@ -201,15 +187,6 @@ export class OutboundPeer extends Peer {
 		// Unbind RPC and remote event handlers
 		outboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
-		outboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
-		outboundSocket.off(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		outboundSocket.off(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
 		outboundSocket.off(REMOTE_EVENT_PING);
 	}
 }

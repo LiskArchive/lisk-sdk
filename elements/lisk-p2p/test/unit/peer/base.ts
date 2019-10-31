@@ -31,16 +31,17 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+	REMOTE_EVENT_POST_NODE_INFO,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
-import {
-	sanitizeNodeInfoToLegacyFormat,
-	getNetgroup,
-	constructPeerId,
-} from '../../../src/utils';
+import { getNetgroup, constructPeerId } from '../../../src/utils';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src';
+
+const createSocketStubInstance = () => <SCServerSocket>({
+		emit: sandbox.stub(),
+		destroy: sandbox.stub(),
+	} as any);
 
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
@@ -118,24 +119,6 @@ describe('peer/base', () => {
 		it('should have a function named _handleRawMessage', () => {
 			expect((defaultPeer as any)._handleRawMessage).to.be.a('function');
 		});
-
-		it('should have a function named _handleRawLegacyMessagePostBlock', () => {
-			expect((defaultPeer as any)._handleRawLegacyMessagePostBlock).to.be.a(
-				'function',
-			);
-		});
-
-		it('should have a function named _handleRawLegacyMessagePostTransactions', () => {
-			expect(
-				(defaultPeer as any)._handleRawLegacyMessagePostTransactions,
-			).to.be.a('function');
-		});
-
-		it('should have a function named _handleRawLegacyMessagePostSignatures', () => {
-			expect(
-				(defaultPeer as any)._handleRawLegacyMessagePostSignatures,
-			).to.be.a('function');
-		});
 	});
 
 	describe('#id', () =>
@@ -201,10 +184,16 @@ describe('peer/base', () => {
 			sandbox.stub(defaultPeer, 'request').resolves();
 		});
 
-		it('should get node info', async () => {
-			await defaultPeer.applyNodeInfo(nodeInfo);
+		it('should get node info', () => {
+			const socket = createSocketStubInstance();
+			(defaultPeer as any)._socket = socket;
+			defaultPeer.applyNodeInfo(nodeInfo);
 
-			expect(defaultPeer.nodeInfo).to.be.eql(nodeInfo);
+			expect(defaultPeer.nodeInfo).to.eql(nodeInfo);
+			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
+				event: REMOTE_EVENT_POST_NODE_INFO,
+				data: nodeInfo,
+			});
 		});
 	});
 
@@ -217,21 +206,17 @@ describe('peer/base', () => {
 
 	describe('#applyNodeInfo', async () => {
 		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'request').resolves();
+			sandbox.stub(defaultPeer, 'send').resolves();
 		});
 
 		it('should apply node info', async () => {
-			await defaultPeer.applyNodeInfo(nodeInfo);
+			const socket = createSocketStubInstance();
+			(defaultPeer as any)._socket = socket;
+			defaultPeer.applyNodeInfo(nodeInfo);
 
-			expect(defaultPeer.nodeInfo).to.be.eql(nodeInfo);
-		});
-
-		it('should call request with exact arguments', async () => {
-			await defaultPeer.applyNodeInfo(nodeInfo);
-
-			expect(defaultPeer.request).to.be.calledOnceWithExactly({
-				procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
-				data: sanitizeNodeInfoToLegacyFormat(nodeInfo),
+			expect(defaultPeer.send).to.be.calledOnceWithExactly({
+				event: REMOTE_EVENT_POST_NODE_INFO,
+				data: nodeInfo,
 			});
 		});
 	});
@@ -245,11 +230,7 @@ describe('peer/base', () => {
 		});
 
 		it('should not throw error if socket exists', () => {
-			const socket = <SCServerSocket>({
-				destroy: sandbox.stub(),
-			} as any);
-
-			(defaultPeer as any)._socket = socket;
+			(defaultPeer as any)._socket = createSocketStubInstance();
 			defaultPeer.connect();
 			expect((defaultPeer as any)._socket).to.be.not.undefined;
 		});
@@ -271,9 +252,7 @@ describe('peer/base', () => {
 		});
 
 		it('should destroy socket if it exists', () => {
-			const socket = <SCServerSocket>({
-				destroy: sandbox.stub(),
-			} as any);
+			const socket = createSocketStubInstance();
 			(defaultPeer as any)._socket = socket;
 			defaultPeer.disconnect();
 			expect(socket.destroy).to.be.calledOnceWithExactly(1000, undefined);
@@ -291,48 +270,17 @@ describe('peer/base', () => {
 			}).to.throw('Peer socket does not exist');
 		});
 
-		describe('when events are legacy', () => {
-			const legacyEvents = ['postBlock', 'postTransactions', 'postSignatures'];
-
-			legacyEvents.forEach(event => {
-				it(`should emit legacy remote events if '${event}' event`, () => {
-					const p2pPacket = {
-						data: 'myData',
-						event,
-					};
-					const socket = <SCServerSocket>({
-						emit: sandbox.stub(),
-						destroy: sandbox.stub(),
-					} as any);
-					(defaultPeer as any)._socket = socket;
-					defaultPeer.send(p2pPacket);
-					expect(socket.emit).to.be.calledOnceWithExactly(
-						p2pPacket.event,
-						p2pPacket.data,
-					);
-				});
-			});
-		});
-
-		describe('when events are not legacy', () => {
-			it(`should emit with ${REMOTE_SC_EVENT_MESSAGE} event`, () => {
-				const p2pPacket = {
-					data: 'myData',
-					event: 'myEvent',
-				};
-				const socket = <SCServerSocket>({
-					emit: sandbox.stub(),
-					destroy: sandbox.stub(),
-				} as any);
-				(defaultPeer as any)._socket = socket;
-				defaultPeer.send(p2pPacket);
-				expect(socket.emit).to.be.calledOnceWithExactly(
-					REMOTE_SC_EVENT_MESSAGE,
-					{
-						event: p2pPacket.event,
-						data: p2pPacket.data,
-					},
-				);
+		it(`should emit for event ${REMOTE_SC_EVENT_MESSAGE}`, () => {
+			const p2pPacket = {
+				data: 'myData',
+				event: 'myEvent',
+			};
+			const socket = createSocketStubInstance();
+			(defaultPeer as any)._socket = socket;
+			defaultPeer.send(p2pPacket);
+			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
+				event: p2pPacket.event,
+				data: p2pPacket.data,
 			});
 		});
 	});
@@ -354,10 +302,7 @@ describe('peer/base', () => {
 				data: 'myData',
 				procedure: 'myProcedure',
 			};
-			const socket = <SCServerSocket>({
-				emit: sandbox.stub(),
-				destroy: sandbox.stub(),
-			} as any);
+			const socket = createSocketStubInstance();
 			(defaultPeer as any)._socket = socket;
 			defaultPeer.request(p2pPacket);
 			expect(socket.emit).to.be.calledOnceWith(REMOTE_SC_EVENT_RPC_REQUEST, {
