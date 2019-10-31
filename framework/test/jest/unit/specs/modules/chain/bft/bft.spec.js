@@ -606,6 +606,7 @@ describe('bft', () => {
 			});
 
 			it('should THROW if block is not provided', async () => {
+				// Act & Assert
 				expect(() => bft.isBFTProtocolCompliant()).toThrow(
 					'No block was provided to be verified',
 				);
@@ -624,85 +625,101 @@ describe('bft', () => {
 			});
 
 			it('should return FALSE when B.maxHeightPreviouslyForged is equal to B.height', async () => {
+				// Arrange
 				const block = {
 					height: 203,
 					maxHeightPreviouslyForged: 203,
 				};
 
+				// Act & Assert
 				expect(bft.isBFTProtocolCompliant(block)).toBe(false);
 			});
 
 			it('should return FALSE when B.maxHeightPreviouslyForged is greater than B.height', async () => {
+				// Arrange
 				const block = {
 					height: 203,
 					maxHeightPreviouslyForged: 204,
 				};
 
+				// Act & Assert
 				expect(bft.isBFTProtocolCompliant(block)).toBe(false);
 			});
 
 			describe('when B.height - B.maxHeightPreviouslyForged is less than 303', () => {
 				it('should return FALSE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					// Arrange
 					const block = {
 						height: 403,
 						generatorPublicKey: 'zxc',
 						maxHeightPreviouslyForged: 101,
 					};
 
+					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(false);
 				});
 
 				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					// Arrange
 					const block = {
 						height: 403,
 						generatorPublicKey: blocks[100].generatorPublicKey,
 						maxHeightPreviouslyForged: 101,
 					};
 
+					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
 				});
 			});
 
 			describe('when B.height - B.maxHeightPreviouslyForged is equal to 303', () => {
 				it('should return FALSE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					// Arrange
 					const block = {
 						height: 404,
 						generatorPublicKey: 'zxc',
 						maxHeightPreviouslyForged: 101,
 					};
 
+					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(false);
 				});
 
 				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					// Arrange
 					const block = {
 						height: 404,
 						generatorPublicKey: blocks[100].generatorPublicKey,
 						maxHeightPreviouslyForged: 101,
 					};
 
+					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
 				});
 			});
 
 			describe('when B.height - B.maxHeightPreviouslyForged is greater than 303', () => {
 				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					// Arrange
 					const block = {
 						height: 405,
 						generatorPublicKey: 'zxc',
 						maxHeightPreviouslyForged: 101,
 					};
 
+					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
 				});
 
 				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					// Arrange
 					const block = {
 						height: 405,
 						generatorPublicKey: blocks[100].generatorPublicKey,
 						maxHeightPreviouslyForged: 101,
 					};
 
+					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
 				});
 			});
