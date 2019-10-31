@@ -246,7 +246,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					payloadHash:
 						'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
 					payloadLength: 494,
-					previousBlock: __testContext.config.genesisBlock.id,
+					previousBlockId: __testContext.config.genesisBlock.id,
 					height: 2,
 					reward: 0,
 					timestamp: 32578370,
@@ -300,7 +300,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					payloadHash:
 						'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
 					payloadLength: 494,
-					previousBlock: '123',
+					previousBlockId: '123',
 					height: 2,
 					reward: 0,
 					timestamp: 32578370,
