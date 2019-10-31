@@ -592,7 +592,6 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
 				await bft.init();
-				storageMock.entities.Block.get.mockClear();
 
 				// Setup BFT module with blocks
 				const numberOfBlocks = 101;
