@@ -182,8 +182,15 @@ const defaultConfig = {
 						disableDappTransaction: {
 							type: 'integer',
 						},
+						disableV1Transactions: {
+							type: 'integer',
+						},
 					},
-					required: ['disableDappTransfer', 'disableDappTransaction'],
+					required: [
+						'disableDappTransfer',
+						'disableDappTransaction',
+						'disableV1Transactions',
+					],
 				},
 				ignoreDelegateListCacheForRounds: {
 					type: 'array',
@@ -276,6 +283,7 @@ const defaultConfig = {
 			precedent: {
 				disableDappTransfer: 0,
 				disableDappTransaction: 0,
+				disableV1Transactions: 0,
 			},
 			ignoreDelegateListCacheForRounds: [],
 			blockVersions: {},
