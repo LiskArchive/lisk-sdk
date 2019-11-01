@@ -56,13 +56,11 @@ class StorageSeed {
 				block = new fixtures.blocks.Block({
 					id: account.blockId,
 					generatorPublicKey: account.publicKey,
-					previousBlock: block ? block.id : null,
+					previousBlockId: block ? block.id : null,
 					height: blocks.length + 1,
 				});
 			}
 
-			block.previousBlockId = block.previousBlock;
-			delete block.previousBlock;
 			delete block.transactions;
 
 			blocks.push(block);

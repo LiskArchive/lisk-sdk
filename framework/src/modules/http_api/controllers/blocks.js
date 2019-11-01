@@ -40,7 +40,7 @@ function parseBlockFromDatabase(raw) {
 		version: parseInt(raw.version, 10),
 		timestamp: parseInt(raw.timestamp, 10),
 		height: parseInt(raw.height, 10),
-		previousBlock: raw.previousBlockId,
+		previousBlockId: raw.previousBlockId,
 		numberOfTransactions: parseInt(raw.numberOfTransactions, 10),
 		totalAmount: new BigNum(raw.totalAmount).toFixed(),
 		totalFee: new BigNum(raw.totalFee).toFixed(),
@@ -70,7 +70,7 @@ function parseBlockFromDatabase(raw) {
  * @param {string} filter.id - Block id
  * @param {string} filter.generatorPublicKey - Public key of delegate who generates the block
  * @param {number} filter.numberOfTransactions - Number of transactions
- * @param {string} filter.previousBlock - Previous block ID
+ * @param {string} filter.previousBlockId - Previous block ID
  * @param {number} filter.height - Block height
  * @param {number} filter.totalAmount - Total amount of block's transactions
  * @param {number} filter.totalFee - Block total fees
@@ -89,7 +89,7 @@ function _list(params, cb) {
 		id: params.id,
 		generatorPublicKey: params.generatorPublicKey,
 		numberOfTransactions: params.numberOfTransactions,
-		previousBlockId: params.previousBlock,
+		previousBlockId: params.previousBlockId,
 		height: params.height,
 		timestamp_gte: params.fromTimestamp,
 		timestamp_lte: params.toTimestamp,
@@ -165,7 +165,7 @@ function BlocksController(scope) {
 		'id',
 		'timestamp',
 		'height',
-		'previousBlock',
+		'previousBlockId',
 		'totalAmount',
 		'totalFee',
 		'reward',
@@ -220,9 +220,8 @@ BlocksController.getBlocks = function(context, next) {
 			block.reward = block.reward.toString();
 			block.totalForged = block.totalForged.toString();
 			block.generatorAddress = block.generatorId;
-			block.previousBlockId = block.previousBlock || '';
+			block.previousBlockId = block.previousBlockId || '';
 
-			delete block.previousBlock;
 			delete block.generatorId;
 
 			return block;

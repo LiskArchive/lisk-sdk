@@ -162,8 +162,8 @@ describe('blocks/api', () => {
 					});
 				});
 
-				it('should query storage with previousBlockId param when filter.previousBlock exists', done => {
-					_list({ previousBlock: 12345 }, async () => {
+				it('should query storage with previousBlockId param when filter.previousBlockId exists', done => {
+					_list({ previousBlockId: 12345 }, async () => {
 						expect(
 							storageStub.entities.Block.get.args[0][0].previousBlockId,
 						).to.equal(12345);

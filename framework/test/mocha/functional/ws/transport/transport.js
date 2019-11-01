@@ -109,7 +109,7 @@ describe('WS transport', () => {
 			version: 0,
 			timestamp: 39997040,
 			height: 1258,
-			previousBlock: '3863141986505461614',
+			previousBlockId: '3863141986505461614',
 			numberOfTransactions: 0,
 			transactions: [],
 			totalAmount: 0,
@@ -162,7 +162,7 @@ describe('WS transport', () => {
 					expect(block)
 						.to.have.property('height')
 						.that.is.a('number');
-					expect(block).to.have.property('previousBlock');
+					expect(block).to.have.property('previousBlockId');
 					expect(block)
 						.to.have.property('numberOfTransactions')
 						.that.is.a('number');

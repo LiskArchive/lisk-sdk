@@ -219,7 +219,7 @@ class BlocksTransactionsHelper {
 		this._block = await this._library.modules.processor.create({
 			keypair,
 			timestamp,
-			previousBlock: lastBlock,
+			previousBlockId: lastBlock,
 			transactions: sortedTransactions,
 			maxHeightPreviouslyForged: 0,
 			prevotedConfirmedUptoHeight: 0,

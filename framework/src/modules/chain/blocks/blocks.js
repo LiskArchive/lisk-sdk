@@ -169,7 +169,6 @@ class Blocks extends EventEmitter {
 	serialize(blockInstance) {
 		const blockJSON = {
 			...blockInstance,
-			previousBlockId: blockInstance.previousBlock,
 			totalAmount: blockInstance.totalAmount.toString(),
 			totalFee: blockInstance.totalFee.toString(),
 			reward: blockInstance.reward.toString(),
@@ -178,7 +177,6 @@ class Blocks extends EventEmitter {
 				blockId: blockInstance.id,
 			})),
 		};
-		delete blockJSON.previousBlock;
 		return blockJSON;
 	}
 
@@ -190,13 +188,11 @@ class Blocks extends EventEmitter {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
 			this.interfaceAdapters.transactions.fromJson(transaction),
 		);
-		const blockInstance = {
+		return {
 			...blockJSON,
 			totalAmount: new BigNum(blockJSON.totalAmount || 0),
 			totalFee: new BigNum(blockJSON.totalFee || 0),
 			reward: new BigNum(blockJSON.reward || 0),
-			// Remove this inconsistency after #4295
-			previousBlock: blockJSON.previousBlock || blockJSON.previousBlockId,
 			version:
 				blockJSON.version === undefined || blockJSON.version === null
 					? 0
@@ -209,8 +205,6 @@ class Blocks extends EventEmitter {
 					: blockJSON.payloadLength,
 			transactions,
 		};
-		delete blockInstance.previousBlockId;
-		return blockInstance;
 	}
 
 	async validateBlockHeader(block, blockBytes, expectedReward) {

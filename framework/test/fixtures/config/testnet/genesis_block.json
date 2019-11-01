@@ -8,7 +8,7 @@
 	"timestamp": 0,
 	"numberOfTransactions": 103,
 	"payloadLength": 19619,
-	"previousBlock": null,
+	"previousBlockId": null,
 	"generatorPublicKey": "73ec4adbd8f99f0d46794aeda3c3d86b245bd9d27be2b282cdd38ad21988556b",
 	"transactions": [
 		{

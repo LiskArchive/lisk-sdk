@@ -24,14 +24,14 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isValidBlock', () => {
-		it('should return true if last.height + 1 === current.height && last.id === current.previousBlock', async () => {
+		it('should return true if last.height + 1 === current.height && last.id === current.previousBlockId', async () => {
 			const last = {
 				height: 1,
 				id: '1',
 			};
 			const current = {
 				height: last.height + 1,
-				previousBlock: last.id,
+				previousBlockId: last.id,
 			};
 
 			expect(isValidBlock(last, current)).toBeTruthy();
@@ -39,17 +39,17 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isDuplicateBlock', () => {
-		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlock === current.previousBlock', async () => {
+		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockId === current.previousBlockId', async () => {
 			const last = {
 				height: 1,
 				prevotedConfirmedUptoHeight: 0,
-				previousBlock: 0,
+				previousBlockId: 0,
 				id: '1',
 			};
 			const current = {
 				height: last.height,
 				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight,
-				previousBlock: last.previousBlock,
+				previousBlockId: last.previousBlockId,
 				id: '2',
 			};
 			expect(isDuplicateBlock(last, current)).toBeTruthy();
@@ -71,14 +71,14 @@ describe('Fork Choice Rule', () => {
 			const last = {
 				height: 1,
 				prevotedConfirmedUptoHeight: 0,
-				previousBlock: 0,
+				previousBlockId: 0,
 				id: '1',
 				generatorPublicKey: 'abc',
 			};
 			const current = {
 				height: last.height,
 				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight,
-				previousBlock: last.previousBlock,
+				previousBlockId: last.previousBlockId,
 				id: '2',
 				generatorPublicKey: last.generatorPublicKey,
 			};
@@ -118,7 +118,7 @@ describe('Fork Choice Rule', () => {
 			const lastAppliedBlock = {
 				height: 1,
 				prevotedConfirmedUptoHeight: 0,
-				previousBlock: 0,
+				previousBlockId: 0,
 				id: '1',
 				timestamp: lastReceivedAndAppliedBlock.receivedTime,
 				generatorPublicKey: 'abc',
@@ -147,7 +147,7 @@ describe('Fork Choice Rule', () => {
 			const last = {
 				height: 1,
 				prevotedConfirmedUptoHeight: 0,
-				previousBlock: 0,
+				previousBlockId: 0,
 				id: '1',
 				timestamp: Date.now(),
 				generatorPublicKey: 'abc',
@@ -155,7 +155,7 @@ describe('Fork Choice Rule', () => {
 			const current = {
 				height: last.height,
 				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight + 1,
-				previousBlock: last.previousBlock,
+				previousBlockId: last.previousBlockId,
 				id: '2',
 				timestamp: Date.now() + 1000,
 				generatorPublicKey: last.generatorPublicKey,
@@ -168,7 +168,7 @@ describe('Fork Choice Rule', () => {
 			const last = {
 				height: 1,
 				prevotedConfirmedUptoHeight: 0,
-				previousBlock: 0,
+				previousBlockId: 0,
 				id: '1',
 				timestamp: Date.now(),
 				generatorPublicKey: 'abc',
@@ -176,7 +176,7 @@ describe('Fork Choice Rule', () => {
 			const current = {
 				height: last.height + 1,
 				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight,
-				previousBlock: last.previousBlock,
+				previousBlockId: last.previousBlockId,
 				id: '2',
 				timestamp: Date.now() + 1000,
 				generatorPublicKey: last.generatorPublicKey,

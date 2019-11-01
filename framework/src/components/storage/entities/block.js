@@ -201,7 +201,6 @@ class Block extends BaseEntity {
 		});
 		this.addField('previousBlockId', 'string', {
 			filter: filterType.TEXT,
-			fieldName: 'previousBlock',
 		});
 		this.addField('timestamp', 'number', { filter: filterType.NUMBER });
 		this.addField('totalAmount', 'string', { filter: filterType.NUMBER });

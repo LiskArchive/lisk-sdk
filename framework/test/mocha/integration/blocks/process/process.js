@@ -160,7 +160,7 @@ describe('integration test (blocks) - process', () => {
 		);
 		// eslint-disable-next-line
 		it(
-			'TODO: BLOCKS REFACTOR - should load block 9 from db and return previousBlock error (fork:1)',
+			'TODO: BLOCKS REFACTOR - should load block 9 from db and return previousBlockId error (fork:1)',
 		);
 
 		// eslint-disable-next-line

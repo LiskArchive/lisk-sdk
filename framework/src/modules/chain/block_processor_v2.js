@@ -70,8 +70,8 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlock
-		? intToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
+	const previousBlockBuffer = block.previousBlockId
+		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
 		: Buffer.alloc(SIZE_INT64);
 
 	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
@@ -318,7 +318,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,
-			previousBlock: previousBlock.id,
+			previousBlockId: previousBlock.id,
 			generatorPublicKey: keypair.publicKey.toString('hex'),
 			transactions: blockTransactions,
 			height: nextHeight,

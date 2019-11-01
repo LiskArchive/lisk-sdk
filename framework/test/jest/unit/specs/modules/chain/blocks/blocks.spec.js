@@ -321,7 +321,7 @@ describe('blocks', () => {
 		describe('verifyPreviousBlockId', () => {
 			it("should throw when the block is not a genesis block and previous block id doesn't match the last block id", async () => {
 				// Arrange
-				const block = newBlock({ previousBlock: null });
+				const block = newBlock({ previousBlockId: null });
 				const blockBytes = getBytes(block);
 				const errorMessage = 'Invalid previous block';
 				expect.assertions(1);
@@ -401,7 +401,7 @@ describe('blocks', () => {
 				// Arrange
 				const lastBlock = newBlock({});
 				const block = newBlock({
-					previousBlock: lastBlock.id,
+					previousBlockId: lastBlock.id,
 					height: lastBlock.height + 1,
 				});
 				const blockBytes = getBytes(block);
@@ -432,7 +432,7 @@ describe('blocks', () => {
 		it('should have only previousBlockId property', () => {
 			const blockInstance = blocksInstance.serialize(block);
 			expect(blockInstance.previousBlockId).toBeString();
-			expect(blockInstance.previousBlock).toBe(undefined);
+			expect(blockInstance.previousBlockId).toBe(undefined);
 		});
 	});
 
@@ -486,9 +486,9 @@ describe('blocks', () => {
 			expect(blockInstance.transactions[0]).toBeInstanceOf(TransferTransaction);
 		});
 
-		it('should have only previousBlock property', () => {
+		it('should have only previousBlockId property', () => {
 			const blockInstance = blocksInstance.deserialize(blockJSON);
-			expect(blockInstance.previousBlock).toBeString();
+			expect(blockInstance.previousBlockId).toBeString();
 			expect(blockInstance.previousBlockId).toBe(undefined);
 		});
 	});
@@ -863,7 +863,7 @@ describe('blocks', () => {
 			const aNewBlock = {
 				...defaults.newBlock,
 				height: defaults.lastBlock.height + 1,
-				previousBlock: defaults.lastBlock.id,
+				previousBlockId: defaults.lastBlock.id,
 			};
 
 			expect(
@@ -880,7 +880,7 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height,
 				prevotedConfirmedUptoHeight:
 					defaults.lastBlock.prevotedConfirmedUptoHeight,
-				previousBlock: defaults.lastBlock.previousBlock,
+				previousBlockId: defaults.lastBlock.previousBlockId,
 				generatorPublicKey: defaults.lastBlock.generatorPublicKey,
 			};
 
@@ -898,7 +898,7 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height,
 				prevotedConfirmedUptoHeight:
 					defaults.lastBlock.prevotedConfirmedUptoHeight,
-				previousBlock: defaults.lastBlock.previousBlock,
+				previousBlockId: defaults.lastBlock.previousBlockId,
 				timestamp: defaults.lastBlock.timestamp + 1000,
 			};
 
@@ -1722,7 +1722,7 @@ describe('blocks', () => {
 				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
 			];
 			const validBlocks = [
-				{ height: 101, id: 'block-id-1', previousBlock: 'block-id' },
+				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
 			];
 
 			beforeEach(async () => {

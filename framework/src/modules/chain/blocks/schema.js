@@ -44,7 +44,7 @@ const baseBlockSchema = {
 		payloadLength: {
 			type: 'integer',
 		},
-		previousBlock: {
+		previousBlockId: {
 			type: 'string',
 			format: 'id',
 			minLength: 1,

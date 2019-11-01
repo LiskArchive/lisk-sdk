@@ -23,7 +23,7 @@ SELECT
 	"payloadLength",
 	"maxHeightPreviouslyForged",
 	"prevotedConfirmedUptoHeight",
-	"previousBlock" as "previousBlockId",
+	"previousBlockId",
 	"numberOfTransactions",
 	"totalAmount",
 	"timestamp",

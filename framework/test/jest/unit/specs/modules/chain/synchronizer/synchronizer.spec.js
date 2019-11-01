@@ -247,7 +247,7 @@ describe('Synchronizer', () => {
 							height: genesisBlockDevnet.height + 2,
 							id: '3',
 							version: 2,
-							previousBlock: initialLastBlock.id,
+							previousBlockId: initialLastBlock.id,
 						},
 					},
 				];
