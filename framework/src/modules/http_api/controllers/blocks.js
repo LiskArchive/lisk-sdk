@@ -40,18 +40,18 @@ function parseBlockFromDatabase(raw) {
 		version: parseInt(raw.version, 10),
 		timestamp: parseInt(raw.timestamp, 10),
 		height: parseInt(raw.height, 10),
-		previousBlock: raw.previousBlockId,
+		previousBlockId: raw.previousBlockId || '',
 		numberOfTransactions: parseInt(raw.numberOfTransactions, 10),
-		totalAmount: new BigNum(raw.totalAmount).toFixed(),
-		totalFee: new BigNum(raw.totalFee).toFixed(),
-		reward: new BigNum(raw.reward).toFixed(),
+		totalAmount: raw.totalAmount,
+		totalFee: raw.totalFee,
+		reward: raw.reward,
 		payloadLength: parseInt(raw.payloadLength, 10),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
-		generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
+		generatorAddress: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations, 10),
-		totalForged: new BigNum(raw.totalFee).plus(raw.reward).toFixed(),
+		totalForged: new BigNum(raw.totalFee).plus(raw.reward).toString(),
 	};
 
 	if (raw.transactions) {
@@ -211,22 +211,6 @@ BlocksController.getBlocks = function(context, next) {
 		if (err) {
 			return next(err);
 		}
-
-		data = _.cloneDeep(data);
-
-		data = _.map(data, block => {
-			block.totalAmount = block.totalAmount.toString();
-			block.totalFee = block.totalFee.toString();
-			block.reward = block.reward.toString();
-			block.totalForged = block.totalForged.toString();
-			block.generatorAddress = block.generatorId;
-			block.previousBlockId = block.previousBlock || '';
-
-			delete block.previousBlock;
-			delete block.generatorId;
-
-			return block;
-		});
 
 		return next(null, {
 			data,
