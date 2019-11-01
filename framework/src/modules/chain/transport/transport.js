@@ -355,24 +355,29 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions(ids) {
-		if (ids) {
-			const transactions = [];
-			for (const id of ids) {
+	async getTransactions(query) {
+		if (query.ids && Array.isArray(query.ids)) {
+			const transactionsFromQueues = [];
+			const idsNotInPool = [];
+			for (const id of query.ids) {
 				// Check if any transaction is in the queues.
 				const transactionInPool = this.transactionPoolModule.findInTransactionPool(
 					id,
 				);
-				if (transactionInPool) {
-					transactions.push(transactionInPool.toJSON());
+				if (transactionInPool.length) {
+					transactionsFromQueues.push(transactionInPool[0]);
 				} else {
-					const result = await this.storage.entities.Transaction.get({ id });
-					if (result.length) {
-						// Check if any transaction exists in the database.
-						transactions.push(result[0]);
-					}
+					idsNotInPool.push(id);
 				}
 			}
+
+			// Check if any transaction that was not in the queues, is in the database instead.
+			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
+				{ id_in: idsNotInPool },
+			);
+			const transactions = transactionsFromQueues.concat(
+				transactionsFromDatabase,
+			);
 
 			return {
 				success: true,

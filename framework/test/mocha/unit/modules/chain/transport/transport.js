@@ -183,7 +183,7 @@ describe('transport', () => {
 				getMergedTransactionList: sinonSandbox.stub(),
 				getTransactionAndProcessSignature: sinonSandbox.stub(),
 				processUnconfirmedTransaction: sinonSandbox.stub(),
-				getPooledTransactions: sinonSandbox.stub(),
+				findInTransactionPool: sinonSandbox.stub(),
 			},
 			blocksModule: {
 				lastBlock: sinonSandbox
@@ -1070,11 +1070,8 @@ describe('transport', () => {
 					describe('when is called with ids filter', () => {
 						describe('when any id is in the queues', () => {
 							beforeEach(async () => {
-								transportModule.transactionPoolModule.getPooledTransactions.returns(
-									{
-										count: 1,
-										transactions: [transaction],
-									},
+								transportModule.transactionPoolModule.findInTransactionPool.returns(
+									[transaction],
 								);
 								result = await transportModule.getTransactions({
 									ids: [transaction.id],
@@ -1088,17 +1085,17 @@ describe('transport', () => {
 								).to.be.not.called;
 							});
 
-							it('should call transportModule.transactionPoolModule.getPooledTransactions', async () => {
+							it('should call transportModule.transactionPoolModule.findInTransactionPool', async () => {
 								expect(
-									transportModule.transactionPoolModule.getPooledTransactions,
-								).to.be.calledWith(null, { id: transaction.id });
+									transportModule.transactionPoolModule.findInTransactionPool,
+								).to.be.calledWith(transaction.id);
 							});
 
 							it('should resolve with result = {success: true, transactions: transactions}', async () => {
 								expect(result)
 									.to.have.property('success')
 									.which.is.equal(true);
-								return expect(result)
+								expect(result)
 									.to.have.property('transactions')
 									.which.is.an('array')
 									.contains(transaction);
@@ -1107,11 +1104,8 @@ describe('transport', () => {
 
 						describe('when any id exists in the database', () => {
 							beforeEach(async () => {
-								transportModule.transactionPoolModule.getPooledTransactions.returns(
-									{
-										count: 0,
-										transactions: [],
-									},
+								transportModule.transactionPoolModule.findInTransactionPool.returns(
+									[],
 								);
 								storageStub.entities.Transaction.get.resolves([transaction]);
 								result = await transportModule.getTransactions({
@@ -1126,15 +1120,15 @@ describe('transport', () => {
 								).to.be.not.called;
 							});
 
-							it('should call transportModule.transactionPoolModule.getPooledTransactions', async () => {
+							it('should call transportModule.transactionPoolModule.findInTransactionPool', async () => {
 								expect(
-									transportModule.transactionPoolModule.getPooledTransactions,
-								).to.be.calledWith(null, { id: transaction.id });
+									transportModule.transactionPoolModule.findInTransactionPool,
+								).to.be.calledWith(transaction.id);
 							});
 
 							it('should call storageStub.entities.Transaction.get', async () => {
 								expect(storageStub.entities.Transaction.get).to.be.calledWith({
-									id: transaction.id,
+									id_in: [transaction.id],
 								});
 							});
 
@@ -1142,7 +1136,7 @@ describe('transport', () => {
 								expect(result)
 									.to.have.property('success')
 									.which.is.equal(true);
-								return expect(result)
+								expect(result)
 									.to.have.property('transactions')
 									.which.is.an('array')
 									.contains(transaction);
