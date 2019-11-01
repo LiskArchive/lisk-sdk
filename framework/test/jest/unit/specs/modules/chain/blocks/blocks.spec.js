@@ -432,7 +432,6 @@ describe('blocks', () => {
 		it('should have only previousBlockId property', () => {
 			const blockInstance = blocksInstance.serialize(block);
 			expect(blockInstance.previousBlockId).toBeString();
-			expect(blockInstance.previousBlockId).toBe(undefined);
 		});
 	});
 
@@ -489,7 +488,6 @@ describe('blocks', () => {
 		it('should have only previousBlockId property', () => {
 			const blockInstance = blocksInstance.deserialize(blockJSON);
 			expect(blockInstance.previousBlockId).toBeString();
-			expect(blockInstance.previousBlockId).toBe(undefined);
 		});
 	});
 
