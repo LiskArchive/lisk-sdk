@@ -76,6 +76,7 @@ Object {
         "precedent": Object {
           "disableDappTransaction": 0,
           "disableDappTransfer": 0,
+          "disableV1Transactions": 0,
         },
         "recipientExceedingUint64": Object {},
         "recipientLeadingZero": Object {},

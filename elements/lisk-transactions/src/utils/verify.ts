@@ -104,7 +104,7 @@ export const verifySecondSignature = (
 	return error;
 };
 
-interface VerifyMultiSignatureResult {
+export interface VerifyMultiSignatureResult {
 	readonly status: MultisignatureStatus;
 	readonly errors: ReadonlyArray<TransactionError>;
 }
