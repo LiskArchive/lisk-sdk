@@ -16,12 +16,22 @@
 
 require('../../functional');
 const { P2P } = require('@liskhq/lisk-p2p');
+const { transfer } = require('@liskhq/lisk-transactions');
 const { generatePeerHeader } = require('../../../common/generatePeerHeader');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
+const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../fixtures/accounts');
+const apiHelpers = require('../../../common/helpers/api');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('WS transport', () => {
 	let p2p;
+	let transaction;
 
 	before('establish client WS connection to server', async () => {
 		// Setup stub for blocks endpoints
@@ -163,14 +173,47 @@ describe('WS transport', () => {
 	});
 
 	describe('getTransactions', () => {
-		it('should return object containing an array of transactions', async () => {
-			const { data } = await p2p.request({
-				procedure: 'getTransactions',
-				data: ['id1', 'id2'],
+		describe('when any transaction is in the queues', () => {
+			// eslint-disable-next-line mocha/no-pending-tests
+			it('should return object containing an array of transactions');
+		});
+
+		describe('when any transaction exists in the database', () => {
+			beforeEach(async () => {
+				const accountAdditionalData = randomUtil.account();
+				transaction = transfer({
+					networkIdentifier,
+					amount: '1',
+					passphrase: accountFixtures.genesis.passphrase,
+					recipientId: accountAdditionalData.address,
+				});
+
+				await apiHelpers.sendTransactionPromise(transaction);
+				return waitFor.blocksPromise(1, null);
 			});
-			expect(data).to.have.property('success', true);
-			expect(data).to.have.property('transactions');
-			expect(data.transactions).to.be.an.empty('array');
+
+			it('should return object containing an array of transactions', async () => {
+				const { data } = await p2p.request({
+					procedure: 'getTransactions',
+					data: [transaction.id],
+				});
+				expect(data).to.have.property('success', true);
+				expect(data).to.have.property('transactions');
+				expect(data.transactions).to.be.an('array').not.empty;
+				expect(data.transactions[0]).to.eql(transaction);
+			});
+		});
+
+		describe('when all the transactions ids are unknown', () => {
+			it('should return object containing an array of empty transactions', async () => {
+				const { data } = await p2p.request({
+					procedure: 'getTransactions',
+					data: ['id1', 'id2'],
+				});
+				expect(data).to.have.property('success', true);
+				expect(data).to.have.property('transactions');
+				expect(data.transactions).to.be.an.empty('array');
+			});
 		});
 	});
 
@@ -279,9 +322,9 @@ describe('WS transport', () => {
 
 	describe('postBlock', () => {
 		it('should broadcast valid block', async () => {
-			testBlock.transactions.forEach(transaction => {
-				if (transaction.asset && transaction.asset.delegate) {
-					transaction.asset.delegate.publicKey = transaction.senderPublicKey;
+			testBlock.transactions.forEach(_transaction => {
+				if (_transaction.asset && _transaction.asset.delegate) {
+					_transaction.asset.delegate.publicKey = _transaction.senderPublicKey;
 				}
 			});
 			await p2p.send({ event: 'postBlock', data: { block: testBlock } });

@@ -355,16 +355,16 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions(query) {
-		if (query && query.ids && Array.isArray(query.ids)) {
+	async getTransactions(ids) {
+		if (ids && Array.isArray(ids) && ids.length) {
 			const transactionsFromQueues = [];
 			const idsNotInPool = [];
-			for (const id of query.ids) {
+			for (const id of ids) {
 				// Check if any transaction is in the queues.
 				const transactionInPool = this.transactionPoolModule.findInTransactionPool(
 					id,
 				);
-				if (transactionInPool.length) {
+				if (transactionInPool && transactionInPool.length) {
 					transactionsFromQueues.push(transactionInPool[0]);
 				} else {
 					idsNotInPool.push(id);
@@ -375,6 +375,7 @@ class Transport {
 			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
 				{ id_in: idsNotInPool },
 			);
+
 			const transactions = transactionsFromQueues.concat(
 				transactionsFromDatabase,
 			);
@@ -384,6 +385,7 @@ class Transport {
 				transactions,
 			};
 		}
+
 		return {
 			success: true,
 			transactions: this.transactionPoolModule.getMergedTransactionList(

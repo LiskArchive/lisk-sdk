@@ -1073,9 +1073,9 @@ describe('transport', () => {
 								transportModule.transactionPoolModule.findInTransactionPool.returns(
 									[transaction],
 								);
-								result = await transportModule.getTransactions({
-									ids: [transaction.id],
-								});
+								result = await transportModule.getTransactions([
+									transaction.id,
+								]);
 							});
 
 							it('should not call modules.transactionPool.getMergedTransactionList', async () => {
@@ -1108,9 +1108,9 @@ describe('transport', () => {
 									[],
 								);
 								storageStub.entities.Transaction.get.resolves([transaction]);
-								result = await transportModule.getTransactions({
-									ids: [transaction.id],
-								});
+								result = await transportModule.getTransactions([
+									transaction.id,
+								]);
 							});
 
 							it('should not call modules.transactionPool.getMergedTransactionList', async () => {
