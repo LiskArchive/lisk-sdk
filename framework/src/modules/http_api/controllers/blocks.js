@@ -52,6 +52,8 @@ function parseBlockFromDatabase(raw) {
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations, 10),
 		totalForged: new BigNum(raw.totalFee).plus(raw.reward).toString(),
+		maxHeightPrevoted: raw.prevotedConfirmedUptoHeight,
+		maxHeightPreviouslyForged: raw.maxHeightPreviouslyForged,
 	};
 
 	if (raw.transactions) {
