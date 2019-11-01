@@ -25,37 +25,56 @@ import {
 } from './base_transaction';
 import { castVotes } from './cast_votes';
 import * as constants from './constants';
-import { createSignatureObject } from './create_signature_object';
-import { convertToAssetError, TransactionError } from './errors';
+import {
+	createSignatureObject,
+	SignatureObject,
+} from './create_signature_object';
+import {
+	convertToAssetError,
+	convertToTransactionError,
+	TransactionError,
+	TransactionPendingError,
+} from './errors';
 import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
 import { registerSecondPassphrase } from './register_second_passphrase';
-import { Status, TransactionResponse } from './response';
-import { TransactionJSON } from './transaction_types';
+import { createResponse, Status, TransactionResponse } from './response';
+import { Account, TransactionJSON } from './transaction_types';
 import { transfer } from './transfer';
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
+	getId,
 	isValidInteger,
+	isValidNumber,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	stringEndsWith,
 	transactionInterface,
 	validateAddress,
 	validateKeysgroup,
+	validateMultisignatures,
 	validateNonTransferAmount,
 	validatePublicKey,
 	validatePublicKeys,
+	validateSenderIdAndPublicKey,
+	validateSignature,
 	validateTransferAmount,
 	validator,
 	verifyAmountBalance,
+	verifyBalance,
+	verifyMultiSignatures,
+	verifySecondSignature,
+	verifySenderPublicKey,
 } from './utils';
 
 const exposedUtils = {
 	BigNum,
 	convertBeddowsToLSK,
+	getId,
 	convertLSKToBeddows,
 	isValidInteger,
+	isValidNumber,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	stringEndsWith,
@@ -64,12 +83,20 @@ const exposedUtils = {
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
+	validateMultisignatures,
+	validateSignature,
 	verifyAmountBalance,
 	validateNonTransferAmount,
 	validateTransferAmount,
+	validateSenderIdAndPublicKey,
+	verifyBalance,
+	verifyMultiSignatures,
+	verifySecondSignature,
+	verifySenderPublicKey,
 };
 
 export {
+	Account,
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
@@ -82,14 +109,18 @@ export {
 	VoteTransaction,
 	castVotes,
 	MultisignatureTransaction,
+	createResponse,
 	registerMultisignature,
 	createSignatureObject,
+	SignatureObject,
 	Status,
 	TransactionResponse,
 	TransactionJSON,
 	TransactionError,
+	TransactionPendingError,
 	transactionInterface,
 	convertToAssetError,
+	convertToTransactionError,
 	constants,
 	exposedUtils as utils,
 };
