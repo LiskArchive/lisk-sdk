@@ -109,7 +109,7 @@ function BlocksController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-BlocksController.getBlocks = async (context, next) => {
+BlocksController.getBlocks = (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -131,22 +131,22 @@ BlocksController.getBlocks = async (context, next) => {
 	const filters = _parseFilters(parsedParams);
 	const options = _parseOptions(parsedParams);
 
-	try {
-		const blocks = await library.storage.entities.Block.get(filters, options);
-
-		return next(null, {
-			data: blocks.map(_parseBlock),
-			meta: {
-				offset: options.offset,
-				limit: options.limit,
-			},
+	return library.storage.entities.Block.get(filters, options)
+		.then(blocks =>
+			next(null, {
+				data: blocks.map(_parseBlock),
+				meta: {
+					offset: options.offset,
+					limit: options.limit,
+				},
+			}),
+		)
+		.catch(error => {
+			library.logger.error(error.stack);
+			return next(
+				new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR),
+			);
 		});
-	} catch (error) {
-		library.logger.error(error.stack);
-		return next(
-			new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR),
-		);
-	}
 };
 
 module.exports = BlocksController;
