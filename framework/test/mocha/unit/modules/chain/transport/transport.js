@@ -1346,9 +1346,9 @@ describe('transport', () => {
 								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 									.stub()
 									.returns(false);
-								transportModule.storage.entities.Transaction.isPersisted = sinonSandbox
+								transportModule.storage.entities.Transaction.get = sinonSandbox
 									.stub()
-									.resolves(false);
+									.resolves([]);
 								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
 									query,
 								);
@@ -1363,11 +1363,11 @@ describe('transport', () => {
 							});
 
 							it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
-								for (const transactionToCheck of transactionsList) {
-									expect(
-										transportModule.storage.entities.Transaction.isPersisted,
-									).to.be.calledWith({ id: transactionToCheck.id });
-								}
+								expect(
+									transportModule.storage.entities.Transaction.get,
+								).to.be.calledWith({
+									id_in: transactionsList.map(tx => tx.id),
+								});
 							});
 
 							it('should return array of transactions ids', async () =>
@@ -1382,7 +1382,7 @@ describe('transport', () => {
 								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 									.stub()
 									.returns(true);
-								transportModule.storage.entities.Transaction.isPersisted = sinonSandbox.stub();
+								transportModule.storage.entities.Transaction.get = sinonSandbox.stub();
 								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
 									query,
 								);
@@ -1397,8 +1397,8 @@ describe('transport', () => {
 							});
 
 							it('should not call storage.entities.Transaction.get', async () =>
-								expect(transportModule.storage.entities.Transaction.isPersisted)
-									.to.have.not.been.called);
+								expect(transportModule.storage.entities.Transaction.get).to.have
+									.not.been.called);
 
 							it('should return empty array', async () =>
 								expect(resultTransactionsIDsCheck).to.be.an('array').empty);
@@ -1409,9 +1409,9 @@ describe('transport', () => {
 								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 									.stub()
 									.returns(false);
-								transportModule.storage.entities.Transaction.isPersisted = sinonSandbox
+								transportModule.storage.entities.Transaction.get = sinonSandbox
 									.stub()
-									.resolves(true);
+									.resolves(transactionsList);
 								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
 									query,
 								);
@@ -1426,11 +1426,11 @@ describe('transport', () => {
 							});
 
 							it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
-								for (const transactionToCheck of transactionsList) {
-									expect(
-										transportModule.storage.entities.Transaction.isPersisted,
-									).to.be.calledWith({ id: transactionToCheck.id });
-								}
+								expect(
+									transportModule.storage.entities.Transaction.get,
+								).to.be.calledWith({
+									id_in: transactionsList.map(tx => tx.id),
+								});
 							});
 
 							it('should return empty array', async () =>

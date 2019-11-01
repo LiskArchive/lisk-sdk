@@ -477,23 +477,26 @@ class Transport {
 			throw errors;
 		}
 
-		const unknownTransactions = [];
-
 		// Check if any transaction is in the queues.
-		for (const transaction of data.transactions) {
-			if (!this.transactionPoolModule.transactionInPool(transaction.id)) {
-				const isPersisted = await this.storage.entities.Transaction.isPersisted(
-					{ id: transaction.id },
-				);
-				if (!isPersisted) {
-					// Check if any transaction exists in the database.
-					unknownTransactions.push(transaction.id);
-				}
-			}
+		const unknownTransactionsIDs = data.transactions
+			.map(transaction => transaction.id)
+			.filter(id => !this.transactionPoolModule.transactionInPool(id));
+
+		if (unknownTransactionsIDs.length) {
+			// Check if any transaction exists in the database.
+			const existingTransactions = await this.storage.entities.Transaction.get({
+				id_in: unknownTransactionsIDs,
+			});
+
+			return unknownTransactionsIDs.filter(
+				id =>
+					existingTransactions.find(
+						existingTransaction => existingTransaction.id === id,
+					) === undefined,
+			);
 		}
 
-		// Send request of those transactions we are not aware of.
-		return unknownTransactions;
+		return unknownTransactionsIDs;
 	}
 
 	/**
