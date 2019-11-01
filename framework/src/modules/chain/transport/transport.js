@@ -356,47 +356,47 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async getTransactions(ids) {
-		if (ids && Array.isArray(ids) && ids.length) {
-			const transactionsFromQueues = [];
-			const idsNotInPool = [];
+		if (!(ids && Array.isArray(ids) && ids.length)) {
+			return {
+				success: true,
+				transactions: this.transactionPoolModule.getMergedTransactionList(
+					true,
+					this.constants.maxSharedTransactions,
+				),
+			};
+		}
 
-			for (const id of ids) {
-				// Check if any transaction is in the queues.
-				const transactionInPool = this.transactionPoolModule.findInTransactionPool(
-					id,
-				);
+		const transactionsFromQueues = [];
+		const idsNotInPool = [];
 
-				if (transactionInPool) {
-					transactionsFromQueues.push(transactionInPool);
-				} else {
-					idsNotInPool.push(id);
-				}
+		for (const id of ids) {
+			// Check if any transaction is in the queues.
+			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
+				id,
+			);
+
+			if (transactionInPool) {
+				transactionsFromQueues.push(transactionInPool);
+			} else {
+				idsNotInPool.push(id);
 			}
+		}
 
-			if (idsNotInPool.length) {
-				// Check if any transaction that was not in the queues, is in the database instead.
-				const transactionsFromDatabase = await this.storage.entities.Transaction.get(
-					{ id_in: idsNotInPool },
-				);
-
-				return {
-					success: true,
-					transactions: transactionsFromQueues.concat(transactionsFromDatabase),
-				};
-			}
+		if (idsNotInPool.length) {
+			// Check if any transaction that was not in the queues, is in the database instead.
+			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
+				{ id_in: idsNotInPool },
+			);
 
 			return {
 				success: true,
-				transactions: transactionsFromQueues,
+				transactions: transactionsFromQueues.concat(transactionsFromDatabase),
 			};
 		}
 
 		return {
 			success: true,
-			transactions: this.transactionPoolModule.getMergedTransactionList(
-				true,
-				this.constants.maxSharedTransactions,
-			),
+			transactions: transactionsFromQueues,
 		};
 	}
 
