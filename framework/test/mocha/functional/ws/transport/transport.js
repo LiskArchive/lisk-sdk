@@ -25,6 +25,8 @@ const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
+const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
+
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
@@ -173,11 +175,6 @@ describe('WS transport', () => {
 	});
 
 	describe('getTransactions', () => {
-		describe('when any transaction is in the queues', () => {
-			// eslint-disable-next-line mocha/no-pending-tests
-			it('should return object containing an array of transactions');
-		});
-
 		describe('when any transaction exists in the database', () => {
 			beforeEach(async () => {
 				const accountAdditionalData = randomUtil.account();
@@ -200,7 +197,60 @@ describe('WS transport', () => {
 				expect(data).to.have.property('success', true);
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an('array').not.empty;
-				expect(data.transactions[0]).to.eql(transaction);
+				expect(data.transactions[0])
+					.to.have.property('id')
+					.equal(transaction.id);
+			});
+		});
+
+		describe('when any transaction is in the queues', () => {
+			let transactionInQueues;
+			before(async () => {
+				let accountAdditionalData;
+				transactionInQueues = [];
+				for (let i = 0; i < MAX_TRANSACTIONS_PER_BLOCK * 2; i++) {
+					accountAdditionalData = randomUtil.account();
+					transaction = transfer({
+						networkIdentifier,
+						amount: '1',
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+					});
+					transactionInQueues.push(transaction);
+					await apiHelpers.sendTransactionPromise(transaction);
+				}
+			});
+
+			it('should return object containing an array with one transaction', async () => {
+				const { data } = await p2p.request({
+					procedure: 'getTransactions',
+					data: [transactionInQueues[transactionInQueues.length - 1].id],
+				});
+				expect(data).to.have.property('success', true);
+				expect(data).to.have.property('transactions');
+				expect(data.transactions).to.be.an('array').not.empty;
+				expect(data.transactions[0])
+					.to.have.property('id')
+					.equal(transaction.id);
+			});
+
+			it('should return object containing an array with several transactions', async () => {
+				const { data } = await p2p.request({
+					procedure: 'getTransactions',
+					data: [
+						transactionInQueues[transactionInQueues.length - 1].id,
+						transactionInQueues[transactionInQueues.length - 2].id,
+					],
+				});
+				expect(data).to.have.property('success', true);
+				expect(data).to.have.property('transactions');
+				expect(data.transactions).to.have.length(2);
+				expect(data.transactions[0])
+					.to.have.property('id')
+					.equal(transactionInQueues[transactionInQueues.length - 1].id);
+				expect(data.transactions[1])
+					.to.have.property('id')
+					.equal(transactionInQueues[transactionInQueues.length - 2].id);
 			});
 		});
 

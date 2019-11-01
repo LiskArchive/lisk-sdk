@@ -1071,7 +1071,7 @@ describe('transport', () => {
 						describe('when any id is in the queues', () => {
 							beforeEach(async () => {
 								transportModule.transactionPoolModule.findInTransactionPool.returns(
-									[transaction],
+									transaction,
 								);
 								result = await transportModule.getTransactions([
 									transaction.id,
@@ -1105,7 +1105,7 @@ describe('transport', () => {
 						describe('when any id exists in the database', () => {
 							beforeEach(async () => {
 								transportModule.transactionPoolModule.findInTransactionPool.returns(
-									[],
+									undefined,
 								);
 								storageStub.entities.Transaction.get.resolves([transaction]);
 								result = await transportModule.getTransactions([

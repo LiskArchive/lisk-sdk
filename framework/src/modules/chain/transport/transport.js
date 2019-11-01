@@ -359,30 +359,35 @@ class Transport {
 		if (ids && Array.isArray(ids) && ids.length) {
 			const transactionsFromQueues = [];
 			const idsNotInPool = [];
+
 			for (const id of ids) {
 				// Check if any transaction is in the queues.
 				const transactionInPool = this.transactionPoolModule.findInTransactionPool(
 					id,
 				);
-				if (transactionInPool && transactionInPool.length) {
-					transactionsFromQueues.push(transactionInPool[0]);
+
+				if (transactionInPool) {
+					transactionsFromQueues.push(transactionInPool);
 				} else {
 					idsNotInPool.push(id);
 				}
 			}
 
-			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
-				{ id_in: idsNotInPool },
-			);
+			if (idsNotInPool.length) {
+				// Check if any transaction that was not in the queues, is in the database instead.
+				const transactionsFromDatabase = await this.storage.entities.Transaction.get(
+					{ id_in: idsNotInPool },
+				);
 
-			const transactions = transactionsFromQueues.concat(
-				transactionsFromDatabase,
-			);
+				return {
+					success: true,
+					transactions: transactionsFromQueues.concat(transactionsFromDatabase),
+				};
+			}
 
 			return {
 				success: true,
-				transactions,
+				transactions: transactionsFromQueues,
 			};
 		}
 
