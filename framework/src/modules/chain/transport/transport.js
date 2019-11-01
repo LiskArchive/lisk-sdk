@@ -356,7 +356,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async getTransactions(query) {
-		if (query.ids && Array.isArray(query.ids)) {
+		if (query && query.ids && Array.isArray(query.ids)) {
 			const transactionsFromQueues = [];
 			const idsNotInPool = [];
 			for (const id of query.ids) {
