@@ -501,7 +501,6 @@ describe('Synchronizer', () => {
 			await synchronizer.run(aReceivedBlock, aPeerId);
 
 			expect(syncMechanism1.isValidFor).toHaveBeenCalledTimes(1);
-			expect(syncMechanism2.isValidFor).toHaveBeenCalledTimes(1);
 			expect(syncMechanism1.run).toHaveBeenCalledWith(
 				await processorModule.deserialize(aReceivedBlock),
 				aPeerId,

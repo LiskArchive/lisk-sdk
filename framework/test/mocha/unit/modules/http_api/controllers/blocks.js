@@ -15,14 +15,14 @@
 'use strict';
 
 const rewire = require('rewire');
+const swaggerHelper = require('../../../../../../src/modules/http_api/helpers/swagger');
 
 const BlocksController = rewire(
 	'../../../../../../src/modules/http_api/controllers/blocks',
 );
 
 describe('blocks/api', () => {
-	let _list;
-	let parseBlockFromDatabase;
+	let blockRequest;
 	let library;
 	let loggerSpy;
 	let storageStub;
@@ -50,6 +50,23 @@ describe('blocks/api', () => {
 			confirmations: 37,
 		};
 
+		blockRequest = {
+			request: {
+				swagger: {
+					params: {
+						blockId: { value: undefined },
+						height: { value: undefined },
+						generatorPublicKey: { value: undefined },
+						fromTimestamp: { value: undefined },
+						toTimestamp: { value: undefined },
+						sort: { value: undefined },
+						limit: { value: undefined },
+						offset: { value: undefined },
+					},
+				},
+			},
+		};
+
 		storageStub = {
 			entities: {
 				Block: {
@@ -72,9 +89,9 @@ describe('blocks/api', () => {
 			components: { storage: storageStub, logger: loggerSpy },
 			channel: channelStub,
 		});
+
 		library = BlocksController.__get__('library');
-		_list = BlocksController.__get__('_list');
-		parseBlockFromDatabase = BlocksController.__get__('parseBlockFromDatabase');
+		swaggerHelper.invalidParams = sinonSandbox.stub().resolves([]);
 
 		done();
 	});
@@ -92,179 +109,171 @@ describe('blocks/api', () => {
 		});
 	});
 
-	describe('parseBlockFromDatabase', () => {
-		let formattedBlock;
-
+	describe('parseBlock', () => {
 		beforeEach(async () => {
-			formattedBlock = parseBlockFromDatabase(rawBlock);
+			storageStub.entities.Block.get = sinonSandbox.stub().resolves([rawBlock]);
 		});
 
-		it('should return a block properly formatted when transactions is undefined', async () => {
-			const rawBlockWithTransactions = _.cloneDeep(rawBlock);
-			formattedBlock = parseBlockFromDatabase(rawBlockWithTransactions);
-			expect(formattedBlock).deep.equal(formattedBlock);
-			expect(formattedBlock).to.not.have.property('transactions');
+		it('should return a block properly formatted when transactions is undefined', done => {
+			BlocksController.getBlocks(blockRequest, (errors, { data }) => {
+				expect(errors).to.eql(null);
+				const block = data[0];
+				expect(block).to.not.have.property('transactions');
+				expect(block).to.have.property('id');
+				expect(block).to.have.property('version');
+				expect(block).to.have.property('timestamp');
+				expect(block).to.have.property('height');
+				expect(block).to.have.property('previousBlockId');
+				expect(block).to.have.property('numberOfTransactions');
+				expect(block).to.have.property('totalAmount');
+				expect(block).to.have.property('totalFee');
+				expect(block).to.have.property('reward');
+				expect(block).to.have.property('payloadLength');
+				expect(block).to.have.property('payloadHash');
+				expect(block).to.have.property('generatorPublicKey');
+				expect(block).to.have.property('generatorAddress');
+				expect(block).to.have.property('blockSignature');
+				expect(block).to.have.property('confirmations');
+				expect(block).to.have.property('totalForged');
+				expect(block).to.have.property('maxHeightPrevoted');
+				expect(block).to.have.property('maxHeightPreviouslyForged');
+				done();
+			});
 		});
 
-		it('should return a block properly formatted when transactions is not undefined', async () => {
-			const rawBlockWithTransactions = _.cloneDeep(rawBlock);
-			rawBlockWithTransactions.transactions = [];
-			formattedBlock = parseBlockFromDatabase(rawBlockWithTransactions);
-			expect(formattedBlock).to.have.property('transactions');
-		});
-
-		it('should return null when no id is present for raw data', async () => {
-			const rawBlockWithoutID = _.cloneDeep(rawBlock);
-			delete rawBlockWithoutID.id;
-			formattedBlock = parseBlockFromDatabase(rawBlockWithoutID);
-			expect(formattedBlock).to.be.null;
+		it('should return a block  formatted when transactions is undefined', done => {
+			BlocksController.getBlocks(blockRequest, (errors, { meta }) => {
+				expect(errors).to.eql(null);
+				expect(meta).to.eql({ offset: 0, limit: 100 });
+				done();
+			});
 		});
 	});
 
-	describe('_list', () => {
-		describe('list', () => {
+	describe('getBlocks', () => {
+		describe('getBlocks', () => {
 			afterEach(done => {
 				storageStub.entities.Block.get = sinonSandbox.stub().resolves([]);
 				done();
 			});
 
-			describe('filters with where clauses', () => {
-				it('should query storage with id param when filter.id exists', done => {
-					_list({ id: 1 }, async () => {
-						expect(storageStub.entities.Block.get.args[0][0].id).to.equal(1);
+			describe('params with filters', () => {
+				it('should query storage with id filter when params.blockId exists', done => {
+					const blockId = 1;
+					blockRequest.request.swagger.params.blockId.value = blockId;
+					BlocksController.getBlocks(blockRequest, () => {
+						expect(storageStub.entities.Block.get.args[0][0].id).to.equal(
+							blockId,
+						);
 						done();
 					});
 				});
 
-				it('should query storage with generatorPublicKey param when filter.generatorPublicKey exists', done => {
-					_list(
-						{
-							generatorPublicKey:
-								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-						},
-						async () => {
-							expect(
-								storageStub.entities.Block.get.args[0][0].generatorPublicKey,
-							).to.equal(
-								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-							);
-							done();
-						},
-					);
-				});
-
-				it('should query storage with numberOfTransactions param when filter.numberOfTransactions exists', done => {
-					_list({ numberOfTransactions: 2 }, async () => {
-						expect(
-							storageStub.entities.Block.get.args[0][0].numberOfTransactions,
-						).to.equal(2);
-						done();
-					});
-				});
-
-				it('should query storage with previousBlockId param when filter.previousBlockId exists', done => {
-					_list({ previousBlockId: 12345 }, async () => {
-						expect(
-							storageStub.entities.Block.get.args[0][0].previousBlockId,
-						).to.equal(12345);
-						done();
-					});
-				});
-
-				it('should query storage with height param when filter.height >= 0', done => {
-					_list({ height: 3 }, async () => {
+				it('should query storage with height filter when params.height exists', done => {
+					const height = 3;
+					blockRequest.request.swagger.params.height.value = height;
+					BlocksController.getBlocks(blockRequest, () => {
 						expect(storageStub.entities.Block.get.args[0][0].height).to.equal(
-							3,
+							height,
 						);
 						done();
 					});
 				});
 
-				it('should query storage with totalAmount param when filter.totalAmount >= 0', done => {
-					_list({ totalAmount: 4 }, async () => {
+				it('should query storage with generatorPublicKey filter when params.generatorPublicKey exists', done => {
+					const generatorPublicKey =
+						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f';
+					blockRequest.request.swagger.params.generatorPublicKey.value = generatorPublicKey;
+					BlocksController.getBlocks(blockRequest, () => {
 						expect(
-							storageStub.entities.Block.get.args[0][0].totalAmount,
-						).to.equal(4);
+							storageStub.entities.Block.get.args[0][0].generatorPublicKey,
+						).to.equal(generatorPublicKey);
 						done();
 					});
 				});
 
-				it('should query storage with totalFee param when filter.totalFee >= 0', done => {
-					_list({ totalFee: 5 }, async () => {
-						expect(storageStub.entities.Block.get.args[0][0].totalFee).to.equal(
-							5,
-						);
+				it('should query storage with timestamp_gte filter when params.fromTimestamp exists', done => {
+					const fromTimestamp = 100;
+					blockRequest.request.swagger.params.fromTimestamp.value = fromTimestamp;
+					BlocksController.getBlocks(blockRequest, () => {
+						expect(
+							storageStub.entities.Block.get.args[0][0].timestamp_gte,
+						).to.equal(fromTimestamp);
 						done();
 					});
 				});
 
-				it('should query storage with reward param when filter.reward >= 0', done => {
-					_list({ reward: 6 }, async () => {
-						expect(storageStub.entities.Block.get.args[0][0].reward).to.equal(
-							6,
-						);
+				it('should query storage with timestamp_lte filter when params.totalAmount exists', done => {
+					const toTimestamp = 500;
+					blockRequest.request.swagger.params.toTimestamp.value = toTimestamp;
+					BlocksController.getBlocks(blockRequest, () => {
+						expect(
+							storageStub.entities.Block.get.args[0][0].timestamp_lte,
+						).to.equal(toTimestamp);
 						done();
 					});
 				});
 			});
 
-			describe('filters without where clauses', () => {
+			describe('params with options', () => {
 				describe('limit', () => {
-					it('should query storage with limit param when filter.limit exists and is number', done => {
-						_list({ limit: 1 }, async () => {
+					it('should query storage with limit option when params.limit exists and is a number', done => {
+						const limit = 25;
+						blockRequest.request.swagger.params.limit.value = limit;
+						BlocksController.getBlocks(blockRequest, () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
-								1,
+								limit,
 							);
 							done();
 						});
 					});
 
-					it('should query storage with limit NaN when filter.limit exists and is not a number', done => {
-						_list({ limit: 'test' }, async () => {
-							expect(storageStub.entities.Block.get.args[0][1].limit).to.be.NaN;
+					it('should query storage with limit NaN when params.limit exists and is not a number', done => {
+						const limit = 'abc';
+						blockRequest.request.swagger.params.limit.value = limit;
+						BlocksController.getBlocks(blockRequest, () => {
+							expect(storageStub.entities.Block.get.args[0][1].limit).to.NaN;
 							done();
 						});
 					});
 
-					it('should query storage with limit 100 when filter.limit does not exists', done => {
-						_list({}, async () => {
+					it('should query storage with limit 100 when params.limit does not exists', done => {
+						const limit = 100;
+						BlocksController.getBlocks(blockRequest, () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
-								100,
+								limit,
 							);
-							done();
-						});
-					});
-
-					it('should return error when filter.limit is greater than 100', done => {
-						_list({ limit: 101 }, err => {
-							expect(err.message).to.equal('Invalid limit. Maximum is 100');
 							done();
 						});
 					});
 				});
 
 				describe('offset', () => {
-					it('should query storage with offset param when filter.offset exists and is number', done => {
-						_list({ offset: 10 }, async () => {
+					it('should query storage with offset option when params.offset exists and is number', done => {
+						const offset = 25;
+						blockRequest.request.swagger.params.offset.value = offset;
+						BlocksController.getBlocks(blockRequest, () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
-								10,
+								offset,
 							);
 							done();
 						});
 					});
 
-					it('should query storage with offset NaN when filter.offset exists and is not a number', done => {
-						_list({ offset: 'test' }, async () => {
-							expect(storageStub.entities.Block.get.args[0][1].offset).to.be
-								.NaN;
+					it('should query storage with offset NaN when params.offset exists and is not a number', done => {
+						const offset = 'abc';
+						blockRequest.request.swagger.params.offset.value = offset;
+						BlocksController.getBlocks(blockRequest, () => {
+							expect(storageStub.entities.Block.get.args[0][1].offset).to.NaN;
 							done();
 						});
 					});
 
-					it('should query storage with offset 0 when filter.offset does not exist', done => {
-						_list({}, async () => {
+					it('should query storage with offset 0 when params.offset does not exist', done => {
+						const offset = 0;
+						BlocksController.getBlocks(blockRequest, () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
-								0,
+								offset,
 							);
 							done();
 						});
@@ -272,27 +281,23 @@ describe('blocks/api', () => {
 				});
 
 				describe('sort', () => {
-					it('should query storage with sort param when filter.sort exists', done => {
-						_list({ sort: 'numberOfTransactions:desc' }, async () => {
+					it('should query storage with sort option when params.sort exists', done => {
+						const sort = 'timestamp:asc';
+						blockRequest.request.swagger.params.sort.value = sort;
+						BlocksController.getBlocks(blockRequest, () => {
 							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
-								'numberOfTransactions:desc',
+								sort,
 							);
 							done();
 						});
 					});
 
-					it('should query storage with sort height:desc when filter.sort does not exist', done => {
-						_list({}, async () => {
+					it('should query storage with sort height:desc when params.sort does not exist', done => {
+						const sort = 'height:desc';
+						BlocksController.getBlocks(blockRequest, () => {
 							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
-								'height:desc',
+								sort,
 							);
-							done();
-						});
-					});
-
-					it('should return error when filter.sort is invalid', done => {
-						_list({ sort: 'invalidField:desc' }, err => {
-							expect(err.message).to.equal('Invalid sort field');
 							done();
 						});
 					});
@@ -302,7 +307,7 @@ describe('blocks/api', () => {
 			describe('when storageStub.entities.Block.get fails', () => {
 				it('should call callback with Blocks#list error', done => {
 					storageStub.entities.Block.get = sinonSandbox.stub().rejects();
-					_list({ limit: 1 }, err => {
+					BlocksController.getBlocks(blockRequest, err => {
 						expect(err.message).to.equal('Blocks#list error');
 						done();
 					});

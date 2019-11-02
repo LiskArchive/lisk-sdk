@@ -19,6 +19,8 @@ const { FrameworkError } = require('../../../errors');
 
 class SynchronizerError extends FrameworkError {}
 
+class BlockProcessingError extends SynchronizerError {}
+
 class RestartError extends SynchronizerError {
 	constructor(reason) {
 		super(`Restart synchronization mechanism with reason: ${reason}`);
@@ -52,6 +54,7 @@ class ApplyPenaltyAndAbortError extends SynchronizerError {
 }
 
 module.exports = {
+	BlockProcessingError,
 	RestartError,
 	AbortError,
 	ApplyPenaltyAndAbortError,
