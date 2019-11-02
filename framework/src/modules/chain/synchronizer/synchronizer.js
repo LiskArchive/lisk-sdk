@@ -152,21 +152,13 @@ class Synchronizer {
 	 */
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	async _determineSyncMechanism(receivedBlock) {
-		// Loop through to find first mechanism which return true for isValidFor(receivedBlock)
-		let selectedMechanism;
-
 		for (const mechanism of this.mechanisms) {
 			if (await mechanism.isValidFor(receivedBlock)) {
-				if (selectedMechanism) {
-					throw new Error(
-						'Multiple mechanisms cannot be valid at the same time',
-					);
-				}
-				selectedMechanism = mechanism;
+				return mechanism;
 			}
 		}
 
-		return selectedMechanism;
+		return undefined;
 	}
 }
 
