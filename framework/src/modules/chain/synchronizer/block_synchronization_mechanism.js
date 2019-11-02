@@ -24,7 +24,11 @@ const {
 	clearBlocksTempTable,
 } = require('./utils');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
-const { ApplyPenaltyAndRestartError, RestartError } = require('./errors');
+const {
+	ApplyPenaltyAndRestartError,
+	RestartError,
+	BlockProcessingError,
+} = require('./errors');
 
 const PEER_STATE_CONNECTED = 2;
 
@@ -136,7 +140,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				[{ id: lastFetchedID }] = blocks.slice(-1);
 				const index = blocks.findIndex(block => block.id === toId);
 				if (index > -1) {
-					blocks.splice(0, index + 1); // Removes unwanted extra blocks
+					blocks.splice(index + 1); // Removes unwanted extra blocks
 				}
 
 				this.logger.debug(
@@ -144,11 +148,16 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 					'Applying obtained blocks from peer',
 				);
 
-				for (const block of blocks) {
-					const deserializedBlock = await this.processorModule.deserialize(
-						block,
-					);
-					await this.processorModule.process(deserializedBlock);
+				try {
+					for (const block of blocks) {
+						const deserializedBlock = await this.processorModule.deserialize(
+							block,
+						);
+						await this.processorModule.process(deserializedBlock);
+					}
+				} catch (err) {
+					this.logger.error({ err }, 'Block processing failed');
+					throw new BlockProcessingError();
 				}
 
 				finished = this.blocks.lastBlock.id === toId;
@@ -192,18 +201,25 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Requesting blocks within ID range from peer',
 		);
 
-		await this._requestAndApplyBlocksWithinIDs(
-			peerId,
-			lastCommonBlock.id,
-			receivedBlock.id,
-		);
+		try {
+			await this._requestAndApplyBlocksWithinIDs(
+				peerId,
+				lastCommonBlock.id,
+				receivedBlock.id,
+			);
+		} catch (err) {
+			if (!(err instanceof BlockProcessingError)) {
+				throw err;
+			}
 
-		// If the list of blocks has not been fully applied
-		if (this.blocks.lastBlock.id !== receivedBlock.id) {
 			this.logger.debug('Failed to apply obtained blocks from peer');
 			const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
 				{},
-				{ sort: 'height:desc', limit: 1, extended: true },
+				{
+					sort: 'height:desc',
+					limit: 1,
+					extended: true,
+				},
 			);
 
 			const tipBeforeApplyingInstance = await this.processorModule.deserialize(
@@ -240,9 +256,9 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 					this.logger.debug('Cleaning blocks temp table');
 					await clearBlocksTempTable(this.storage);
-				} catch (err) {
+				} catch (error) {
 					this.logger.error(
-						{ err },
+						{ err: error },
 						'Failed to restore blocks from blocks temp table',
 					);
 				}
@@ -341,7 +357,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 
-		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
+		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
 		let currentRound = this.slots.calcRound(this.blocks.lastBlock.height); // Holds the current round number
 		let currentHeight = currentRound * this.constants.activeDelegates;

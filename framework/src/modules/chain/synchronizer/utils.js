@@ -39,7 +39,7 @@ const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 		tx,
 	);
 
-	if (tempBlocks.length === 0) {
+	if (!tempBlocks || tempBlocks.length === 0) {
 		return false;
 	}
 
