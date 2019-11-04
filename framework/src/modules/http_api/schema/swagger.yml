@@ -2083,13 +2083,6 @@ definitions:
         description: |
           Network height on the peer node.
           Represents the current number of blocks in the chain on the peer node.
-      nonce:
-        type: string
-        example: sYHEDBKcScaAAAYg
-        minLength: 1
-        description: |
-          Unique Identifier for the peer.
-          Random string.
 
   Fees:
     type: object
@@ -2135,7 +2128,6 @@ definitions:
       - milestone
       - nethash
       - reward
-      - nonce
       - supply
       - build
       - commit
@@ -2191,14 +2183,6 @@ definitions:
         description: |
           The reward a delegate will get for forging a block.
           Depends on the slot height.
-      nonce:
-        type: string
-        example: cJmXK66xxz644d67
-        minLength: 16
-        maxLength: 16
-        description: |
-          Unique identifier of the node.
-          Random string.
       fees:
         $ref: '#/definitions/Fees'
 
