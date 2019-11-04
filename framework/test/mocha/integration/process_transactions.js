@@ -22,6 +22,7 @@ const random = require('../common/utils/random');
 const localCommon = require('./common');
 const { registeredTransactions } = require('../common/registered_transactions');
 const transactionsModule = require('../../../src/modules/chain/transactions');
+const StateStore = require('../../../src/modules/chain/state_store');
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../src/modules/chain/interface_adapters');
@@ -226,10 +227,11 @@ describe('processTransactions', () => {
 
 			describe('verifyTransactions', () => {
 				let verifyTransactions;
+				let stateStore;
 
 				beforeEach(async () => {
+					stateStore = new StateStore(library.components.storage);
 					verifyTransactions = transactionsModule.verifyTransactions(
-						library.components.storage,
 						slots,
 						exceptions,
 					);
@@ -238,6 +240,7 @@ describe('processTransactions', () => {
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
 					const { transactionsResponses } = await verifyTransactions(
 						verifiableTransactions,
+						stateStore,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.OK);
@@ -247,6 +250,7 @@ describe('processTransactions', () => {
 				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
 					const { transactionsResponses } = await verifyTransactions(
 						nonVerifiableTransactions,
+						stateStore,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
@@ -256,6 +260,7 @@ describe('processTransactions', () => {
 				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
 					const { transactionsResponses } = await verifyTransactions(
 						pendingTransactions,
+						stateStore,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(
@@ -267,11 +272,11 @@ describe('processTransactions', () => {
 
 			describe('undoTransactions', () => {
 				let undoTransactions;
+				let stateStore;
+
 				beforeEach(done => {
-					undoTransactions = transactionsModule.undoTransactions(
-						library.components.storage,
-						exceptions,
-					);
+					stateStore = new StateStore(library.components.storage);
+					undoTransactions = transactionsModule.undoTransactions(exceptions);
 					localCommon.addTransactionsAndForge(
 						library,
 						appliableTransactions.map(appliableTransaction =>
@@ -282,14 +287,10 @@ describe('processTransactions', () => {
 					);
 				});
 
-				it('should return stateStore', async () => {
-					const { stateStore } = await undoTransactions(appliableTransactions);
-					expect(stateStore).to.exist;
-				});
-
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
 					const { transactionsResponses } = await undoTransactions(
 						appliableTransactions,
+						stateStore,
 					);
 
 					transactionsResponses.forEach(transactionResponse => {
@@ -304,16 +305,19 @@ describe('processTransactions', () => {
 					const sender = random.account();
 					const recipient = random.account();
 
-					const { transactionsResponses } = await undoTransactions([
-						interfaceAdapters.transactions.fromJson(
-							liskTransactions.transfer({
-								networkIdentifier,
-								amount: (NORMALIZER * 1000).toString(),
-								recipientId: recipient.address,
-								passphrase: sender.passphrase,
-							}),
-						),
-					]);
+					const { transactionsResponses } = await undoTransactions(
+						[
+							interfaceAdapters.transactions.fromJson(
+								liskTransactions.transfer({
+									networkIdentifier,
+									amount: (NORMALIZER * 1000).toString(),
+									recipientId: recipient.address,
+									passphrase: sender.passphrase,
+								}),
+							),
+						],
+						stateStore,
+					);
 
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
@@ -323,22 +327,20 @@ describe('processTransactions', () => {
 
 			describe('applyTransactions', () => {
 				let applyTransactions;
+				let stateStore;
+
 				beforeEach(async () => {
+					stateStore = new StateStore(library.components.storage);
 					applyTransactions = transactionsModule.applyTransactions(
 						library.components.storage,
 						exceptions,
 					);
 				});
 
-				it('should return stateStore', async () => {
-					const { stateStore } = await applyTransactions(appliableTransactions);
-
-					expect(stateStore).to.exist;
-				});
-
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
 					const { transactionsResponses } = await applyTransactions(
 						appliableTransactions,
+						stateStore,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.OK);
@@ -348,6 +350,7 @@ describe('processTransactions', () => {
 				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
 					const { transactionsResponses } = await applyTransactions(
 						nonVerifiableTransactions,
+						stateStore,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
@@ -357,6 +360,7 @@ describe('processTransactions', () => {
 				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
 					const { transactionsResponses } = await applyTransactions(
 						pendingTransactions,
+						stateStore,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(

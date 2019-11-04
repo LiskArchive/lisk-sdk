@@ -25,9 +25,7 @@ describe('system test - account store', () => {
 	beforeEach(async () => {
 		accountStore = new AccountStore(
 			library.components.storage.entities.Account,
-			{
-				mutate: true,
-			},
+			{},
 		);
 	});
 
@@ -142,17 +140,6 @@ describe('system test - account store', () => {
 			const newResult = newAccountStore.get(updatedAccount.address);
 
 			expect(newResult).to.deep.equal(updatedAccount);
-		});
-
-		it('should throw an error if mutate option is set to false', async () => {
-			const accountStoreWithoutMutation = new AccountStore(
-				library.components.storage.entities.Account,
-				{ mutate: false },
-			);
-
-			expect(
-				accountStore.finalize.bind(accountStoreWithoutMutation),
-			).to.throw();
 		});
 	});
 });

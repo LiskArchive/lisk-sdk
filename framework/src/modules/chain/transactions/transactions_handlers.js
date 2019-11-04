@@ -132,7 +132,6 @@ const applyGenesisTransactions = () => async (transactions, stateStore) => {
 
 	return {
 		transactionsResponses,
-		stateStore,
 	};
 };
 
@@ -194,7 +193,6 @@ const applyTransactions = exceptions => async (transactions, stateStore) => {
 			...transactionsResponses,
 			...transactionsResponseWithSpendingErrors,
 		],
-		stateStore,
 	};
 };
 
@@ -294,7 +292,6 @@ const undoTransactions = exceptions => async (transactions, stateStore) => {
 
 	return {
 		transactionsResponses,
-		stateStore,
 	};
 };
 
