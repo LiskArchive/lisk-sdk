@@ -184,6 +184,11 @@ export abstract class BaseTransaction {
 		return this._signSignature;
 	}
 
+	/**
+	 * This method is using private versions of _id, _senderPublicKey and _signature
+	 * as we should allow for it to be called at any stage of the transaction construction
+	 */
+
 	public toJSON(): TransactionJSON {
 		const transaction = {
 			id: this._id,
