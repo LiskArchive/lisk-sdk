@@ -18,6 +18,7 @@ import {
 	validatePeerInfo,
 	validateRPCRequest,
 	validateProtocolMessage,
+	validateNodeInfo,
 } from '../../../src/utils';
 import {
 	ProtocolPeerInfo,
@@ -25,7 +26,6 @@ import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 } from '../../../src/p2p_types';
-import { validateNodeInfo } from '../../../src/errors';
 import { DEFAULT_MAX_PEER_INFO_SIZE } from '../../../src/constants';
 
 describe('utils/validate', () => {

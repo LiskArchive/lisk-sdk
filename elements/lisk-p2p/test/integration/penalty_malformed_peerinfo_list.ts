@@ -63,12 +63,12 @@ describe('Penalty sending malformed Peer List', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should fire ${EVENT_BAN_PEER} event`, async () => {
-			expect(collectedEvents.get(EVENT_BAN_PEER)).to.be.equal('127.0.0.1:5000');
+		it(`should not send malformed peerInfo`, async () => {
+			expect(collectedEvents).to.be.empty;
 		});
 	});
 
-	describe('When Peer List contain malformed peerInfo', () => {
+	describe('When PeerBook contain malformed peerInfo', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
@@ -99,8 +99,8 @@ describe('Penalty sending malformed Peer List', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should fire ${EVENT_BAN_PEER} event`, async () => {
-			expect(collectedEvents.get(EVENT_BAN_PEER)).to.be.equal('127.0.0.1:5000');
+		it(`should not send malformed peerInfo`, async () => {
+			expect(collectedEvents).to.be.empty;
 		});
 	});
 });

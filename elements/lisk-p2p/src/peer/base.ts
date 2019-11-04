@@ -200,7 +200,6 @@ export class Peer extends EventEmitter {
 			);
 
 			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				this._nodeInfo = request.data as P2PNodeInfo;
 				request.end(this._nodeInfo);
 			}
 
