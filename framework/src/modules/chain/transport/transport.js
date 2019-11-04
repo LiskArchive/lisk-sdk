@@ -455,7 +455,7 @@ class Transport {
 				},
 				peerId,
 			);
-			return this._receiveTransactions(result);
+			return this._receiveTransactions(result.transactions);
 		}
 
 		return null;

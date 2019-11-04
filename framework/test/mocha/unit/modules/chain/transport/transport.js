@@ -1257,7 +1257,7 @@ describe('transport', () => {
 									.resolves([transaction.id]);
 								transportModule.channel.invoke = sinonSandbox
 									.stub()
-									.resolves({ data: [transaction] });
+									.resolves({ data: { transactions: [transaction] } });
 								transportModule._receiveTransactions = sinonSandbox.stub();
 								validator.validate.returns(true);
 								await transportModule.postTransactionsAnnouncement(query);
