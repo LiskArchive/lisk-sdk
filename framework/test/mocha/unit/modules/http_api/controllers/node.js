@@ -128,6 +128,7 @@ describe('node/api', () => {
 				validated: 0,
 				received: 0,
 			},
+			chainMaxHeightFinalized: 1010,
 		};
 		const now = Date.now();
 
@@ -138,6 +139,7 @@ describe('node/api', () => {
 			networkHeight: 456,
 			syncing: false,
 			currentTime: now,
+			chainMaxHeightFinalized: 1010,
 		};
 
 		const defaultPeers = [
