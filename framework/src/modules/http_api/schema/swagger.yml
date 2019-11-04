@@ -1190,7 +1190,7 @@ parameters:
     in: query
     description: Forging status to filter
     type: boolean
-    format: bool
+
 definitions:
   Meta:
     type: object
