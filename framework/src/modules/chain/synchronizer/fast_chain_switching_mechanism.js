@@ -344,7 +344,12 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * @private
 	 */
 	_computeLastTwoRoundsHeights() {
-		return new Array(this.constants.activeDelegates * 2)
+		return new Array(
+			Math.min(
+				this.constants.activeDelegates * 2,
+				this.blocks.lastBlock.height,
+			),
+		)
 			.fill(0)
 			.map((_, index) => this.blocks.lastBlock.height - index);
 	}

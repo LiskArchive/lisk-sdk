@@ -1843,6 +1843,18 @@ definitions:
         description: |
           Total amount of LSK that have been forged in this Block.
           Consists of fees and the reward.
+      maxHeightPreviouslyForged:
+        type: integer
+        example: 123
+        description: |
+          Largest height of any block previously forged by the generatorPublicKey as defined in the Lisk BFT Protocol.
+          See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md
+      maxHeightPrevoted:
+        type: integer
+        example: 123
+        description: |
+          Largest height of an ancestor block with at least 68 prevotes as defined in the Lisk BFT Protocol.
+          See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md
 
   ForgingStatus:
     type: object
