@@ -53,10 +53,14 @@ const validateSignature = (block, blockBytes) => {
  */
 const validatePreviousBlockProperty = (block, genesisBlock) => {
 	const isGenesisBlock =
-		block.id === genesisBlock.id && !block.previousBlock && block.height === 1;
+		block.id === genesisBlock.id &&
+		!block.previousBlockId &&
+		block.height === 1;
 	const propertyIsValid =
 		isGenesisBlock ||
-		(block.id !== genesisBlock.id && block.previousBlock && block.height !== 1);
+		(block.id !== genesisBlock.id &&
+			block.previousBlockId &&
+			block.height !== 1);
 
 	if (!propertyIsValid) {
 		throw new Error('Invalid previous block');

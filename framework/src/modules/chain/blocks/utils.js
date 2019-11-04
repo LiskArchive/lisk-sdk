@@ -55,20 +55,10 @@ const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 		height_lte: fetchUntilHeight,
 	};
 
-	const blocks = await storage.entities.Block.get(filter, {
+	return storage.entities.Block.get(filter, {
 		extended: true,
 		limit,
 		sort: ['height'],
-	});
-
-	// TODO: Remove this parse, after #4295
-	return blocks.map(block => {
-		const parsedBlock = {
-			...block,
-			previousBlock: block.previousBlockId ? block.previousBlockId : '',
-		};
-		delete parsedBlock.previousBlockId;
-		return parsedBlock;
 	});
 };
 

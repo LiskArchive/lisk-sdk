@@ -38,7 +38,7 @@ Object {
       "minimum": 0,
       "type": "integer",
     },
-    "previousBlock": Object {
+    "previousBlockId": Object {
       "format": "id",
       "maxLength": 20,
       "minLength": 1,

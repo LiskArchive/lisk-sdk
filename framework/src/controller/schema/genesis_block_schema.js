@@ -67,7 +67,7 @@ module.exports = {
 			type: 'integer',
 			minimum: 0,
 		},
-		previousBlock: {
+		previousBlockId: {
 			type: ['null', 'string'],
 			format: 'id',
 			minLength: 1,

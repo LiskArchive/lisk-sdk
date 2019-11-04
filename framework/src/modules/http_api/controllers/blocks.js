@@ -67,7 +67,7 @@ const _parseFilters = params => {
 		id: params.id,
 		generatorPublicKey: params.generatorPublicKey,
 		numberOfTransactions: params.numberOfTransactions,
-		previousBlockId: params.previousBlock,
+		previousBlockId: params.previousBlockId,
 		height: params.height,
 		timestamp_gte: params.fromTimestamp,
 		timestamp_lte: params.toTimestamp,

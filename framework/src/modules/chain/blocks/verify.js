@@ -28,11 +28,13 @@ const verifyBlockNotExists = async (storage, block) => {
 
 const verifyPreviousBlockId = (block, lastBlock, genesisBlock) => {
 	const isGenesisBlock =
-		block.id === genesisBlock.id && !block.previousBlock && block.height === 1;
+		block.id === genesisBlock.id &&
+		!block.previousBlockId &&
+		block.height === 1;
 
 	const isConsecutiveBlock =
 		lastBlock.height + 1 === block.height &&
-		block.previousBlock === lastBlock.id;
+		block.previousBlockId === lastBlock.id;
 
 	if (!isGenesisBlock && !isConsecutiveBlock) {
 		throw new Error('Invalid previous block');

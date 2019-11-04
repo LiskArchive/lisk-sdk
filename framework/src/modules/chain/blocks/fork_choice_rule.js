@@ -81,7 +81,7 @@ const isLastAppliedBlockReceivedWithinForgingSlot = (
 // eslint-disable-next-line class-methods-use-this
 const isValidBlock = (lastBlock, currentBlock) =>
 	lastBlock.height + 1 === currentBlock.height &&
-	lastBlock.id === currentBlock.previousBlock;
+	lastBlock.id === currentBlock.previousBlockId;
 
 /**
  * Determine if Case 1 fulfills
@@ -106,7 +106,7 @@ const isDuplicateBlock = (lastBlock, currentBlock) =>
 	lastBlock.height === currentBlock.height &&
 	lastBlock.prevotedConfirmedUptoHeight ===
 		currentBlock.prevotedConfirmedUptoHeight &&
-	lastBlock.previousBlock === currentBlock.previousBlock;
+	lastBlock.previousBlockId === currentBlock.previousBlockId;
 
 /**
  * Determine if Case 3 fulfills
