@@ -2207,9 +2207,10 @@ definitions:
     required:
       - currentTime
       - height
-      - loaded
       - networkHeight
+      - chainMaxHeightFinalized
       - secondsSinceEpoch
+      - loaded
       - syncing
     properties:
       currentTime:
@@ -2233,6 +2234,12 @@ definitions:
         description: |
           Current block height of the network.
           Represents the current number of blocks in the chain on the network.
+      chainMaxHeightFinalized:
+        type: integer
+        example: 123
+        description: |
+          The largest height with precommits by at least 68 delegates.
+          See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md
       secondsSinceEpoch:
         type: integer
         example: 1533558858
