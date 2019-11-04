@@ -1071,7 +1071,7 @@ describe('transport', () => {
 						describe('when any id is in the queues', () => {
 							beforeEach(async () => {
 								transportModule.transactionPoolModule.findInTransactionPool.returns(
-									transaction,
+									new TransferTransaction(transaction),
 								);
 								result = await transportModule.getTransactions([
 									transaction.id,
@@ -1098,7 +1098,7 @@ describe('transport', () => {
 								expect(result)
 									.to.have.property('transactions')
 									.which.is.an('array')
-									.contains(transaction);
+									.to.deep.include(transaction);
 							});
 						});
 

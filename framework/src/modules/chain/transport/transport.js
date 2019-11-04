@@ -376,7 +376,7 @@ class Transport {
 			);
 
 			if (transactionInPool) {
-				transactionsFromQueues.push(transactionInPool);
+				transactionsFromQueues.push(transactionInPool.toJSON());
 			} else {
 				idsNotInPool.push(id);
 			}
