@@ -103,7 +103,7 @@ const applyConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 
 	const { transactionsResponses } = await transactionsModule.applyTransactions(
 		exceptions,
-	)(nonInertTransactions, blockInstance);
+	)(nonInertTransactions, stateStore);
 
 	const unappliableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
