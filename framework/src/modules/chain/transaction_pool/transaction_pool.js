@@ -223,9 +223,12 @@ class TransactionPool extends EventEmitter {
 			throw [new TransactionError(message, '', '.signature')];
 		}
 
-		const transactionResponse = await transactionsModule.processSignature(
-			this.storage,
-		)(transaction, signature);
+		const stateStore = new StateStore(this.storage);
+		const transactionResponse = await transactionsModule.processSignature()(
+			transaction,
+			signature,
+			stateStore,
+		);
 		if (
 			transactionResponse.status === TransactionStatus.FAIL &&
 			transactionResponse.errors.length > 0

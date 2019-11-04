@@ -278,7 +278,7 @@ const undoTransactions = exceptions => async (transactions, stateStore) => {
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
-		votesWeight.undo(stateStore, transaction, this.exceptions);
+		votesWeight.undo(stateStore, transaction, exceptions);
 		return transactionResponse;
 	});
 
