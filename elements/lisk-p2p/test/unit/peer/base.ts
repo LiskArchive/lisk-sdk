@@ -79,6 +79,7 @@ describe('peer/base', () => {
 			nethash: 'nethash',
 			wsPort: 6001,
 			height: 100,
+			nonce: 'nonce',
 		};
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerId(
