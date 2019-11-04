@@ -24,6 +24,7 @@ const {
 	FORK_STATUS_DISCARD,
 } = require('../blocks');
 const { Sequence } = require('../utils/sequence');
+const StateStore = require('../state_store');
 
 const forkStatusList = [
 	FORK_STATUS_IDENTICAL_BLOCK,
@@ -287,10 +288,12 @@ class Processor {
 		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
 	) {
 		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
+			const stateStore = new StateStore(this.storage, { tx });
 			await processor.verify.run({
 				block,
 				lastBlock,
 				skipExistingCheck: skipSave,
+				stateStore,
 				tx,
 			});
 
@@ -302,7 +305,7 @@ class Processor {
 
 			if (!skipSave) {
 				const blockJSON = await this.serialize(block);
-				await this.blocksModule.save({ blockJSON, tx });
+				await this.blocksModule.save({ blockJSON, tx, stateStore });
 			}
 
 			// Apply should always be executed after save as it performs database calculations
@@ -311,6 +314,7 @@ class Processor {
 				block,
 				lastBlock,
 				skipExistingCheck: skipSave,
+				stateStore,
 				tx,
 			});
 

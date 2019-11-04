@@ -21,7 +21,6 @@ const {
 } = require('@liskhq/lisk-transactions');
 const votesWeight = require('./votes_weight');
 const exceptionsHandlers = require('./exceptions_handlers');
-const StateStore = require('../state_store');
 
 const validateTransactions = exceptions => transactions => {
 	const transactionsResponses = transactions.map(transaction =>
@@ -104,16 +103,7 @@ const verifyTotalSpending = (transactions, stateStore) => {
 	return spendingErrors;
 };
 
-const applyGenesisTransactions = storage => async (
-	transactions,
-	tx = undefined,
-) => {
-	// Get data required for verifying transactions
-	const stateStore = new StateStore(storage, {
-		mutate: true,
-		tx,
-	});
-
+const applyGenesisTransactions = () => async (transactions, stateStore) => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
@@ -146,13 +136,7 @@ const applyGenesisTransactions = storage => async (
 	};
 };
 
-const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
-	// Get data required for verifying transactions
-	const stateStore = new StateStore(storage, {
-		mutate: true,
-		tx,
-	});
-
+const applyTransactions = exceptions => async (transactions, stateStore) => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
@@ -278,16 +262,7 @@ const checkAllowedTransactions = contexter => transactions => ({
 	}),
 });
 
-const undoTransactions = (storage, exceptions) => async (
-	transactions,
-	tx = undefined,
-) => {
-	// Get data required for verifying transactions
-	const stateStore = new StateStore(storage, {
-		mutate: true,
-		tx,
-	});
-
+const undoTransactions = exceptions => async (transactions, stateStore) => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
@@ -323,16 +298,10 @@ const undoTransactions = (storage, exceptions) => async (
 	};
 };
 
-const verifyTransactions = (
-	storage,
-	slots,
-	exceptions,
-) => async transactions => {
-	// Get data required for verifying transactions
-	const stateStore = new StateStore(storage, {
-		mutate: false,
-	});
-
+const verifyTransactions = (slots, exceptions) => async (
+	transactions,
+	stateStore,
+) => {
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
 	const transactionsResponses = transactions.map(transaction => {
@@ -367,11 +336,7 @@ const verifyTransactions = (
 	};
 };
 
-const processSignature = storage => async (transaction, signature) => {
-	// Get data required for processing signature
-	const stateStore = new StateStore(storage, {
-		mutate: false,
-	});
+const processSignature = () => async (transaction, signature, stateStore) => {
 	await transaction.prepare(stateStore);
 	// Add multisignature to transaction and process
 	return transaction.addMultisignature(stateStore, signature);

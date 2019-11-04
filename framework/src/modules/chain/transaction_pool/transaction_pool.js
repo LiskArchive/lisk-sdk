@@ -24,6 +24,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { sortBy } = require('./sort');
 const transactionsModule = require('../transactions');
+const StateStore = require('../state_store');
 
 const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
 const EVENT_MULTISIGNATURE_SIGNATURE = 'EVENT_MULTISIGNATURE_SIGNATURE';
@@ -89,22 +90,28 @@ class TransactionPool extends EventEmitter {
 		this.validateTransactions = transactionsModule.validateTransactions(
 			this.exceptions,
 		);
-		this.verifyTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkAllowedTransactions(() => {
-				const { version, height, timestamp } = this.blocks.lastBlock;
-				return {
-					blockVersion: version,
-					blockHeight: height,
-					blockTimestamp: timestamp,
-				};
-			}), // TODO: probably wrong
-			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.verifyTransactions(storage, slots, exceptions),
-		);
-		this.processTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.applyTransactions(storage, exceptions),
-		);
+		this.verifyTransactions = transactions => {
+			const stateStore = new StateStore(this.storage);
+			return transactionsModule.composeTransactionSteps(
+				transactionsModule.checkAllowedTransactions(() => {
+					const { version, height, timestamp } = this.blocks.lastBlock;
+					return {
+						blockVersion: version,
+						blockHeight: height,
+						blockTimestamp: timestamp,
+					};
+				}), // TODO: probably wrong
+				transactionsModule.checkPersistedTransactions(storage),
+				transactionsModule.verifyTransactions(slots, exceptions),
+			)(transactions, stateStore);
+		};
+		this.processTransactions = transactions => {
+			const stateStore = new StateStore(this.storage);
+			return transactionsModule.composeTransactionSteps(
+				transactionsModule.checkPersistedTransactions(storage),
+				transactionsModule.applyTransactions(exceptions),
+			)(transactions, stateStore);
+		};
 
 		const poolConfig = {
 			expireTransactionsInterval: this.expireTransactionsInterval,
