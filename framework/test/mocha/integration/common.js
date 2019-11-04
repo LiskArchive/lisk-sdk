@@ -75,7 +75,7 @@ async function createBlock(
 	transactions,
 	timestamp,
 	keypair,
-	previousBlockId,
+	previousBlock,
 ) {
 	transactions = transactions.map(transaction =>
 		library.modules.interfaceAdapters.transactions.fromJson(transaction),
@@ -85,13 +85,13 @@ async function createBlock(
 		blockReward: library.modules.blocks.blockReward,
 		keypair,
 		timestamp,
-		previousBlockId,
+		previousBlock,
 		transactions,
 		maxHeightPreviouslyForged: 1,
 		prevotedConfirmedUptoHeight: 1,
 	});
 
-	block.height = previousBlockId.height + 1;
+	block.height = previousBlock.height + 1;
 	return block;
 }
 
@@ -204,7 +204,7 @@ function forge(library, cb) {
 						keypair,
 						timestamp: slots.getSlotTime(slot),
 						transactions: sortedTransactions,
-						previousBlockId: last_block,
+						previousBlock: last_block,
 					})
 					.then(block => library.modules.processor.process(block))
 					.then(() => {

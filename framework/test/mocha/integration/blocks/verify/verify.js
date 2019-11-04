@@ -79,7 +79,7 @@ async function createBlock(
 	const newBlock = await library.modules.processor.create({
 		keypair,
 		timestamp,
-		previousBlockId: library.modules.blocks.lastBlock,
+		previousBlock: library.modules.blocks.lastBlock,
 		transactions,
 		maxHeightPreviouslyForged: 1,
 		prevotedConfirmedUptoHeight: 1,

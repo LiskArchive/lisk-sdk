@@ -147,7 +147,7 @@ async function createRawBlock(library, rawTransactions) {
 		blockReward: library.modules.blocks.blockReward,
 		keypair: keypairs[delegateKey],
 		timestamp: slots.getSlotTime(slot),
-		previousBlockId: lastBlock,
+		previousBlock: lastBlock,
 		transactions,
 		maxTransactionPerBlock:
 			library.modules.blocks.constants.maxTransactionPerBlock,
