@@ -400,11 +400,16 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				},
 			});
 
+			if (!data) {
+				numberOfRequests += 1;
+				// eslint-disable-next-line no-continue
+				continue;
+			}
+
 			highestCommonBlock = data; // If no common block, data is undefined.
 
 			currentRound -= blocksPerRequestLimit;
 			currentHeight = currentRound * this.constants.activeDelegates;
-			numberOfRequests += 1;
 		}
 
 		return highestCommonBlock;

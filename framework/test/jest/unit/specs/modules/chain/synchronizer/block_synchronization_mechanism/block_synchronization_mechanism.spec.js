@@ -770,21 +770,426 @@ describe('block_synchronization_mechanism', () => {
 			});
 		});
 
-		describe('request and revert to last common block from peer', () => {
+		describe.only('request and revert to last common block from peer', () => {
 			describe('request the highest common block', () => {
-				it('should give up requesting the last common block after 10 tries, and then ban the peer and restart the mechanism', () => {});
+				it('should give up requesting the last common block after 10 tries, and then ban the peer and restart the mechanism', async () => {
+					when(channelMock.invoke)
+						.calledWith('network:getPeers', {
+							state: PEER_STATE_CONNECTED,
+						})
+						.mockResolvedValueOnce(peersList.connectedPeers);
 
-				it('should ban the peer and restart the mechanism if the common block height is smaller than the finalized height', () => {});
+					// Set last block to a high height
+					const lastBlock = newBlock({
+						height: genesisBlockDevnet.height + 2000,
+					});
+					// Used in getHighestCommonBlock network action payload
+					const blockHeightsList = computeBlockHeightsList(
+						bftModule.finalizedHeight,
+						constants.ACTIVE_DELEGATES,
+						10,
+						slots.calcRound(lastBlock.height),
+					);
+
+					const blockList = [genesisBlockDevnet];
+					const blockIdsList = [blockList[0].id];
+					const receivedBlock = newBlock({
+						height: lastBlock.height + 304,
+						reward: blocksModule.blockReward
+							.calculateReward(lastBlock.height + 304)
+							.toString(),
+					});
+
+					const highestCommonBlock = genesisBlockDevnet;
+					const requestedBlocks = [
+						...new Array(10)
+							.fill(0)
+							.map((_, index) =>
+								newBlock({ height: highestCommonBlock.height + 1 + index }),
+							),
+						aBlock,
+					];
+
+					for (const expectedPeer of peersList.expectedSelection) {
+						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId,
+								data: {
+									ids: blockIdsList,
+								},
+							})
+							.mockResolvedValue({ data: undefined });
+
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getLastBlock',
+								peerId,
+							})
+							.mockResolvedValue({
+								data: receivedBlock,
+							});
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getBlocksFromId',
+								peerId,
+								data: {
+									blockId: highestCommonBlock.id,
+								},
+							})
+							.mockResolvedValue({ data: requestedBlocks });
+					}
+
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{
+								height_in: blockHeightsList,
+							},
+							{
+								sort: 'height:asc',
+							},
+						)
+						.mockResolvedValue(blockList);
+
+					when(processorModule.deleteLastBlock)
+						.calledWith({
+							saveTempBlock: true,
+						})
+						.mockResolvedValueOnce(genesisBlockDevnet);
+
+					when(storageMock.entities.Block.get)
+						.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
+						.mockResolvedValue([lastBlock]);
+
+					await blocksModule.init();
+					await bftModule.init();
+
+					await blockSynchronizationMechanism.run(receivedBlock);
+
+					expect(channelMock.invoke).toHaveBeenCalledTimes(10 + 2);
+
+					expect(
+						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
+					).not.toHaveBeenCalled();
+
+					checkApplyPenaltyAndRestartIsCalled(
+						receivedBlock,
+						'No common block has been found between the chain and the targeted peer',
+					);
+				});
+
+				it('should ban the peer and restart the mechanism if the common block height is smaller than the finalized height', async () => {
+					when(channelMock.invoke)
+						.calledWith('network:getPeers', {
+							state: PEER_STATE_CONNECTED,
+						})
+						.mockResolvedValueOnce(peersList.connectedPeers);
+
+					// Used in getHighestCommonBlock network action payload
+					const blockHeightsList = computeBlockHeightsList(
+						bftModule.finalizedHeight,
+						constants.ACTIVE_DELEGATES,
+						10,
+						slots.calcRound(blocksModule.lastBlock.height),
+					);
+
+					const blockList = [genesisBlockDevnet];
+					const blockIdsList = [blockList[0].id];
+
+					const highestCommonBlock = newBlock({ height: 0 });
+					const requestedBlocks = [
+						...new Array(10)
+							.fill(0)
+							.map((_, index) =>
+								newBlock({ height: highestCommonBlock.height + 1 + index }),
+							),
+						aBlock,
+					];
+
+					for (const expectedPeer of peersList.expectedSelection) {
+						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId,
+								data: {
+									ids: blockIdsList,
+								},
+							})
+							.mockResolvedValue({
+								data: highestCommonBlock,
+							});
+
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getLastBlock',
+								peerId,
+							})
+							.mockResolvedValue({
+								data: aBlock,
+							});
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getBlocksFromId',
+								peerId,
+								data: {
+									blockId: highestCommonBlock.id,
+								},
+							})
+							.mockResolvedValue({ data: requestedBlocks });
+					}
+
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{
+								height_in: blockHeightsList,
+							},
+							{
+								sort: 'height:asc',
+							},
+						)
+						.mockResolvedValueOnce(blockList);
+
+					when(processorModule.deleteLastBlock)
+						.calledWith({
+							saveTempBlock: true,
+						})
+						.mockResolvedValueOnce(genesisBlockDevnet);
+
+					blocksModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
+
+					await blockSynchronizationMechanism.run(aBlock);
+
+					expect(
+						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
+					).not.toHaveBeenCalled();
+
+					checkApplyPenaltyAndRestartIsCalled(
+						aBlock,
+						'The last common block height is less than the finalized height of the current chain',
+					);
+				});
 			});
 
 			describe('revert chain to highest common block ', () => {
-				it('should delete blocks after highest common block height and back them up to temp table', () => {});
-			});
+				it('should delete blocks after highest common block height and back them up to temp table', async () => {
+					when(channelMock.invoke)
+						.calledWith('network:getPeers', {
+							state: PEER_STATE_CONNECTED,
+						})
+						.mockResolvedValueOnce(peersList.connectedPeers);
 
-			it('should return the common block', () => {});
+					// Used in getHighestCommonBlock network action payload
+					const blockHeightsList = computeBlockHeightsList(
+						bftModule.finalizedHeight,
+						constants.ACTIVE_DELEGATES,
+						10,
+						slots.calcRound(blocksModule.lastBlock.height),
+					);
+
+					const blockList = [genesisBlockDevnet];
+					const blockIdsList = [blockList[0].id];
+
+					const highestCommonBlock = genesisBlockDevnet;
+					const requestedBlocks = [
+						...new Array(10)
+							.fill(0)
+							.map((_, index) =>
+								newBlock({ height: highestCommonBlock.height + 1 + index }),
+							),
+						aBlock,
+					];
+
+					for (const expectedPeer of peersList.expectedSelection) {
+						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId,
+								data: {
+									ids: blockIdsList,
+								},
+							})
+							.mockResolvedValue({
+								data: highestCommonBlock,
+							});
+
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getLastBlock',
+								peerId,
+							})
+							.mockResolvedValue({
+								data: aBlock,
+							});
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getBlocksFromId',
+								peerId,
+								data: {
+									blockId: highestCommonBlock.id,
+								},
+							})
+							.mockResolvedValue({ data: requestedBlocks });
+					}
+
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{
+								height_in: blockHeightsList,
+							},
+							{
+								sort: 'height:asc',
+							},
+						)
+						.mockResolvedValueOnce(blockList);
+
+					when(processorModule.deleteLastBlock)
+						.calledWith({
+							saveTempBlock: true,
+						})
+						.mockResolvedValueOnce(genesisBlockDevnet);
+
+					when(processorModule.deleteLastBlock)
+						.calledWith({
+							saveTempBlock: true,
+						})
+						.mockResolvedValue(newBlock({ height: 1 }));
+
+					blocksModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
+
+					await blockSynchronizationMechanism.run(aBlock);
+
+					expect(
+						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
+					).toHaveBeenCalled();
+
+					expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(1);
+					expect(
+						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
+					).toHaveBeenCalledWith(
+						aBlock,
+						highestCommonBlock,
+						expect.any(String),
+					);
+				});
+			});
 		});
 
 		describe('request and apply blocks to current chain', () => {
+			it('should request blocks and apply them', async () => {
+				when(channelMock.invoke)
+					.calledWith('network:getPeers', {
+						state: PEER_STATE_CONNECTED,
+					})
+					.mockResolvedValueOnce(peersList.connectedPeers);
+
+				// Used in getHighestCommonBlock network action payload
+				const blockHeightsList = computeBlockHeightsList(
+					bftModule.finalizedHeight,
+					constants.ACTIVE_DELEGATES,
+					10,
+					slots.calcRound(blocksModule.lastBlock.height),
+				);
+
+				const blockList = [genesisBlockDevnet];
+				const blockIdsList = [blockList[0].id];
+
+				const highestCommonBlock = genesisBlockDevnet;
+				const requestedBlocks = [
+					...new Array(10)
+						.fill(0)
+						.map((_, index) =>
+							newBlock({ height: highestCommonBlock.height + 1 + index }),
+						),
+					aBlock,
+					...new Array(10)
+						.fill(0)
+						.map((_, index) => newBlock({ height: aBlock.height + 1 + index })),
+				];
+
+				for (const expectedPeer of peersList.expectedSelection) {
+					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getHighestCommonBlock',
+							peerId,
+							data: {
+								ids: blockIdsList,
+							},
+						})
+						.mockResolvedValue({
+							data: highestCommonBlock,
+						});
+
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getLastBlock',
+							peerId,
+						})
+						.mockResolvedValue({
+							data: aBlock,
+						});
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getBlocksFromId',
+							peerId,
+							data: {
+								blockId: highestCommonBlock.id,
+							},
+						})
+						.mockResolvedValue({ data: requestedBlocks });
+				}
+
+				when(storageMock.entities.Block.get)
+					.calledWith(
+						{
+							height_in: blockHeightsList,
+						},
+						{
+							sort: 'height:asc',
+						},
+					)
+					.mockResolvedValueOnce(blockList);
+
+				when(processorModule.deleteLastBlock)
+					.calledWith({
+						saveTempBlock: true,
+					})
+					.mockResolvedValueOnce(genesisBlockDevnet);
+
+				blocksModule._lastBlock = aBlock;
+
+				await blockSynchronizationMechanism.run(aBlock);
+
+				expect(channelMock.invoke).toHaveBeenCalledWith(
+					'network:requestFromPeer',
+					{
+						procedure: 'getBlocksFromId',
+						peerId: expect.any(String),
+						data: {
+							blockId: highestCommonBlock.id,
+						},
+					},
+				);
+
+				expect.assertions(requestedBlocks.length);
+				for (const requestedBlock of requestedBlocks) {
+					expect(processorModule.process).toHaveBeenCalledWith(
+						await processorModule.deserialize(requestedBlock),
+					);
+				}
+			});
+
+			describe('when applying a block fails', () => {
+				it('should restore blocks from temp table, ban peer and restart mechanism if new tip of the chain has no preference over previous tip', () => {});
+
+				it('should clean up the temporary table and restart the mechanism if the new tip has preference over the last tip', () => {});
+			});
+
+			it('should give up after trying 10 times to request blocks and apply penalty and restart the mechanism', () => {});
+
 			describe('when blocks are not fully applied', () => {
 				it('should delete blocks after common block, restore blocks from temp table and clean it if the tip of the temp blocks chain has preference over current tip (FORK_STATUS_DIFFERENT_CHAIN)', () => {});
 
