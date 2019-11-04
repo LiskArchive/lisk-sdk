@@ -157,11 +157,7 @@ export abstract class BaseTransaction {
 	}
 
 	public get id(): string {
-		if (!this._id) {
-			throw new Error('id is required to be set before use');
-		}
-
-		return this._id;
+		return this._id || '';
 	}
 
 	public get senderId(): string {
