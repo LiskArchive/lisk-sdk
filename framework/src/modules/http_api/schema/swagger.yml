@@ -2083,6 +2083,13 @@ definitions:
         description: |
           Network height on the peer node.
           Represents the current number of blocks in the chain on the peer node.
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 1
+        description: |
+          Unique Identifier for the peer.
+          Random string.
 
   Fees:
     type: object
