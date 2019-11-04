@@ -157,7 +157,7 @@ export abstract class BaseTransaction {
 	}
 
 	public get id(): string {
-		return this._id || '';
+		return this._id || 'incalculable-id';
 	}
 
 	public get senderId(): string {
@@ -186,17 +186,17 @@ export abstract class BaseTransaction {
 
 	public toJSON(): TransactionJSON {
 		const transaction = {
-			id: this.id,
+			id: this._id,
 			blockId: this.blockId,
 			height: this.height,
 			relays: this.relays,
 			confirmations: this.confirmations,
 			type: this.type,
 			timestamp: this.timestamp,
-			senderPublicKey: this.senderPublicKey,
-			senderId: this.senderId,
+			senderPublicKey: this._senderPublicKey || '',
+			senderId: this._senderPublicKey ? this.senderId : '',
 			fee: this.fee.toString(),
-			signature: this.signature,
+			signature: this._signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
