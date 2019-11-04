@@ -384,6 +384,7 @@ paths:
         - application/json
       parameters:
         - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/forging'
       responses:
         200:
           description: Search results matching criteria
@@ -1184,6 +1185,11 @@ parameters:
     description: Ending unix timestamp
     type: integer
     minimum: 1
+  forging:
+    name: forging
+    in: query
+    description: Forging status to filter
+    type: boolean
 
 definitions:
   Meta:

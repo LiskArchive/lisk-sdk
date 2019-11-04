@@ -221,10 +221,13 @@ NodeController.getForgingStatus = async (context, next) => {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
-	const publicKey = context.request.swagger.params.publicKey.value;
+	const { publicKey, forging } = context.request.swagger.params;
 
 	try {
-		const forgingStatus = await _getForgingStatus(publicKey);
+		const forgingStatus = await _getForgingStatus(publicKey.value);
+		if (forging && typeof forging.value === 'boolean') {
+			return next(null, forgingStatus.filter(f => f.forging === forging.value));
+		}
 		return next(null, forgingStatus);
 	} catch (err) {
 		return next(err);
