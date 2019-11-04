@@ -23,6 +23,7 @@ const {
 	checkAllowedTransactions,
 	validateTransactions,
 } = require('../transactions');
+const StateStore = require('../state_store');
 const blocksUtils = require('./utils');
 const {
 	BlocksVerify,
@@ -388,7 +389,8 @@ class Blocks extends EventEmitter {
 	}
 
 	// TODO: Unit tests written in mocha, which should be migrated to jest.
-	async filterReadyTransactions(transactions, stateStore, context) {
+	async filterReadyTransactions(transactions, context) {
+		const stateStore = new StateStore(this.storage);
 		const allowedTransactionsIds = checkAllowedTransactions(context)(
 			transactions,
 		)
