@@ -452,8 +452,8 @@ class Transport {
 				{
 					procedure: 'getTransactions',
 					data: unknownTransactions,
+					peerId,
 				},
-				peerId,
 			);
 			return this._receiveTransactions(result.transactions);
 		}

@@ -1274,8 +1274,8 @@ describe('transport', () => {
 									{
 										procedure: 'getTransactions',
 										data: [transaction.id],
+										peerId: query.peerId,
 									},
-									query.peerId,
 								));
 
 							it('should call transportModule._receiveTransactions with query.transaction as argument', async () =>
