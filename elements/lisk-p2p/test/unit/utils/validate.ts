@@ -36,7 +36,6 @@ describe('utils/validate', () => {
 				height: 23232,
 				version: '1.1.2',
 				protocolVersion: '1.1',
-				nonce: '89wsufhucsdociuds',
 				httpPort: 2000,
 			};
 
@@ -48,7 +47,6 @@ describe('utils/validate', () => {
 				height: '2323wqdqd2',
 				version: '3.4.5-alpha.9',
 				protocolVersion: '1.1',
-				nonce: '89wsufhucsdociuds',
 				httpPort: 2000,
 			};
 
@@ -65,7 +63,6 @@ describe('utils/validate', () => {
 							version: '1.1.2',
 							protocolVersion: '1.1',
 							httpPort: 2000,
-							nonce: '89wsufhucsdociuds',
 						},
 					});
 			});
@@ -83,7 +80,6 @@ describe('utils/validate', () => {
 							version: '3.4.5-alpha.9',
 							protocolVersion: '1.1',
 							httpPort: 2000,
-							nonce: '89wsufhucsdociuds',
 						},
 					});
 			});
@@ -107,7 +103,6 @@ describe('utils/validate', () => {
 					height: 23232,
 					version: '1.1.2',
 					protocolVersion: '1.1',
-					nonce: '89wsufhucsdociuds',
 					httpPort: 2000,
 				};
 

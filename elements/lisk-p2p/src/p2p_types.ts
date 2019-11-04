@@ -88,7 +88,6 @@ export interface ProtocolPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
 	readonly height?: number;
-	readonly nonce?: string;
 	readonly os?: string;
 	readonly version?: string;
 	readonly protocolVersion?: string;
