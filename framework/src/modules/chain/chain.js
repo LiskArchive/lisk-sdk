@@ -560,7 +560,6 @@ module.exports = class Chain {
 			blocksModule: this.blocks,
 			loaderModule: this.loader,
 			interfaceAdapters: this.interfaceAdapters,
-			nonce: this.options.nonce,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});

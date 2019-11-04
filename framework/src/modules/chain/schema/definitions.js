@@ -76,12 +76,6 @@ module.exports = {
 		type: 'object',
 		required: ['signatures'],
 		properties: {
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 16,
-				maxLength: 16,
-			},
 			signatures: {
 				type: 'array',
 				items: {
@@ -131,12 +125,6 @@ module.exports = {
 		type: 'object',
 		required: ['transactions'],
 		properties: {
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 16,
-				maxLength: 16,
-			},
 			transactions: {
 				type: 'array',
 				items: {
