@@ -110,7 +110,6 @@ describe('Base transaction class', () => {
 			expect(transactionWithDefaultValues.blockId).to.be.undefined;
 			expect(transactionWithDefaultValues.height).to.be.undefined;
 			expect(transactionWithDefaultValues.receivedAt).to.be.undefined;
-			expect(transactionWithDefaultValues.relays).to.be.undefined;
 			expect(transactionWithDefaultValues.signSignature).to.be.undefined;
 			expect(() => transactionWithDefaultValues.senderId).to.throw(
 				'senderPublicKey is required to be set before use',

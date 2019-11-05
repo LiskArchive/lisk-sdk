@@ -47,7 +47,7 @@ class Broadcaster {
 		// Broadcast routes
 		this.routes = [
 			{
-				path: 'postTransactions',
+				path: 'postTransactionsAnnouncement',
 				collection: 'transactions',
 				object: 'transaction',
 			},
@@ -86,7 +86,15 @@ class Broadcaster {
 			...data,
 			nonce: this.nonce,
 		};
-		await this.channel.invoke('network:send', {
+
+		if (event === 'postTransactionsAnnouncement') {
+			return this.channel.invoke('network:broadcast', {
+				event,
+				data: wrappedData,
+			});
+		}
+
+		return this.channel.invoke('network:send', {
 			event,
 			data: wrappedData,
 		});

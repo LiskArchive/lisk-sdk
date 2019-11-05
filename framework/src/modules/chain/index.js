@@ -105,7 +105,7 @@ class ChainModule extends BaseModule {
 					this.chain.actions.getTransactionsFromPool(action),
 			},
 			getTransactions: {
-				handler: async () => this.chain.actions.getTransactions(),
+				handler: async action => this.chain.actions.getTransactions(action),
 				isPublic: true,
 			},
 			getSignatures: {

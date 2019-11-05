@@ -535,6 +535,10 @@ class TransactionPool extends EventEmitter {
 			count: transactions.length,
 		};
 	}
+
+	findInTransactionPool(id) {
+		return this.pool.findInTransactionPool(id);
+	}
 }
 
 module.exports = {
