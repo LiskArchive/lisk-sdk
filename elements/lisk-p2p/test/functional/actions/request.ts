@@ -68,41 +68,33 @@ describe('P2P.request', () => {
 	});
 
 	// Check for even distribution of requests across the network. Account for an error margin.
-	it.skip(
-		'requests made to the network should be distributed randomly',
-		async () => {
-			const TOTAL_REQUESTS = 1000;
-			const secondP2PNode = p2pNodeList[1];
-			const nodePortToResponsesMap: any = {};
+	it('requests made to the network should be distributed randomly', async () => {
+		const TOTAL_REQUESTS = 1000;
+		const lastP2PNode = p2pNodeList[NETWORK_PEER_COUNT - 1];
+		const nodePortToResponsesMap: any = {};
 
-			const expectedAverageRequestsPerNode =
-				TOTAL_REQUESTS / NETWORK_PEER_COUNT;
-			const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
-			const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
+		const expectedAverageRequestsPerNode = TOTAL_REQUESTS / NETWORK_PEER_COUNT;
+		const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
+		const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
 
-			for (let i = 0; i < TOTAL_REQUESTS; i++) {
-				const response = await secondP2PNode.request({
-					procedure: 'foo',
-					data: i,
-				});
-				let resultData = response.data as any;
-				if (!nodePortToResponsesMap[resultData.nodePort]) {
-					nodePortToResponsesMap[resultData.nodePort] = [];
-				}
-				nodePortToResponsesMap[resultData.nodePort].push(resultData);
+		for (let i = 0; i < TOTAL_REQUESTS; i++) {
+			const response = await lastP2PNode.request({
+				procedure: 'foo',
+				data: i,
+			});
+			let resultData = response.data as any;
+			if (!nodePortToResponsesMap[resultData.nodePort]) {
+				nodePortToResponsesMap[resultData.nodePort] = [];
 			}
+			nodePortToResponsesMap[resultData.nodePort].push(resultData);
+		}
 
-			for (let requestsHandled of Object.values(
-				nodePortToResponsesMap,
-			) as any) {
-				expect(requestsHandled).to.be.an('array');
-				expect(requestsHandled.length).to.be.greaterThan(
-					expectedRequestsLowerBound,
-				);
-				expect(requestsHandled.length).to.be.lessThan(
-					expectedRequestsUpperBound,
-				);
-			}
-		},
-	).timeout(5000);
+		for (let requestsHandled of Object.values(nodePortToResponsesMap) as any) {
+			expect(requestsHandled).to.be.an('array');
+			expect(requestsHandled.length).to.be.greaterThan(
+				expectedRequestsLowerBound,
+			);
+			expect(requestsHandled.length).to.be.lessThan(expectedRequestsUpperBound);
+		}
+	}).timeout(5000);
 });

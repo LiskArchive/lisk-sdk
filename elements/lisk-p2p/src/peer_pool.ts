@@ -23,9 +23,9 @@ import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
 import {
 	ConnectionKind,
+	DEFAULT_LOCALHOST_IP,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
-	LOCALHOST_IP,
 } from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
@@ -460,7 +460,9 @@ export class PeerPool extends EventEmitter {
 
 		// Check if we got already Outbound connection into the IP address of the Peer
 		const outboundConnectedPeer = this.getPeers(OutboundPeer).find(
-			p => p.ipAddress === peerInfo.ipAddress && p.ipAddress !== LOCALHOST_IP,
+			p =>
+				p.ipAddress === peerInfo.ipAddress &&
+				p.ipAddress !== DEFAULT_LOCALHOST_IP,
 		);
 		if (outboundConnectedPeer) {
 			return false;
