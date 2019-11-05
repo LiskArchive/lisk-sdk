@@ -105,7 +105,7 @@ describe('WS transport', () => {
 				expect(block)
 					.to.have.property('height')
 					.that.is.a('number');
-				expect(block).to.have.property('previousBlock');
+				expect(block).to.have.property('previousBlockId');
 				expect(block)
 					.to.have.property('numberOfTransactions')
 					.that.is.a('number');
