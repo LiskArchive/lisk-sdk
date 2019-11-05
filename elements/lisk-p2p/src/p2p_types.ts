@@ -55,7 +55,7 @@ export interface P2PInternalState {
 	readonly productivity?: number;
 	readonly reputation?: number;
 	readonly connectionKind?: ConnectionKind;
-	readonly advertiseAddress?: boolean;
+	readonly advertiseAddress: boolean;
 }
 
 export interface P2PPeerInfo {

@@ -182,6 +182,14 @@ const createPeerPoolConfig = (
 	peerLists,
 });
 
+const filteradvertiseAddressPeer = (peer: P2PPeerInfo) => {
+	if (peer.internalState && !peer.internalState.advertiseAddress) {
+		return false;
+	}
+
+	return true;
+};
+
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _sanitizedPeerLists: PeerLists;
@@ -561,16 +569,13 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
+			.filter(filteradvertiseAddressPeer)
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
 				wsPort: peer.wsPort,
 				peerId: peer.peerId,
-				advertiseAddress: peer.internalState
-					? peer.internalState.advertiseAddress
-					: true,
-			}))
-			.filter(peer => peer.advertiseAddress);
+			}));
 	}
 	// Make sure you always share shared peer state to a user
 	public getUniqueOutboundConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
@@ -599,17 +604,12 @@ export class P2P extends EventEmitter {
 		});
 
 		// Only share the shared state to the user
-		return disconnectedPeers
-			.map(peer => ({
-				...peer.sharedState,
-				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
-				peerId: peer.peerId,
-				advertiseAddress: peer.internalState
-					? peer.internalState.advertiseAddress
-					: true,
-			}))
-			.filter(peer => peer.advertiseAddress);
+		return disconnectedPeers.filter(filteradvertiseAddressPeer).map(peer => ({
+			...peer.sharedState,
+			ipAddress: peer.ipAddress,
+			wsPort: peer.wsPort,
+			peerId: peer.peerId,
+		}));
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -909,10 +909,10 @@ export class P2P extends EventEmitter {
 
 		const selectedPeers = shuffle(knownPeers)
 			.slice(0, randomPeerCount)
+			.filter(filteradvertiseAddressPeer)
 			.map(
 				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
-			)
-			.filter(peer => peer.advertiseAddress);
+			);
 
 		const peerInfoList = {
 			success: true,
