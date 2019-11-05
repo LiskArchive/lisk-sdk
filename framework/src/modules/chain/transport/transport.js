@@ -274,7 +274,6 @@ class Transport {
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
 			return {
-				success: false,
 				code: 400,
 				errors: [error],
 			};
@@ -284,10 +283,9 @@ class Transport {
 			await this.transactionPoolModule.getTransactionAndProcessSignature(
 				query.signature,
 			);
-			return { success: true };
+			return {};
 		} catch (err) {
 			return {
-				success: false,
 				code: 409,
 				errors: err,
 			};
@@ -342,7 +340,6 @@ class Transport {
 			}));
 
 		return {
-			success: true,
 			signatures,
 		};
 	}
@@ -361,7 +358,6 @@ class Transport {
 		);
 
 		return {
-			success: true,
 			transactions,
 		};
 	}
@@ -377,12 +373,10 @@ class Transport {
 		try {
 			const id = await this._receiveTransaction(query.transaction);
 			return {
-				success: true,
 				transactionId: id,
 			};
 		} catch (err) {
 			return {
-				success: false,
 				message: err.message || 'Transaction was rejected with errors',
 				errors: err,
 			};
