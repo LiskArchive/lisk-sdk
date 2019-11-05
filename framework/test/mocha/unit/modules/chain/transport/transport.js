@@ -15,23 +15,12 @@
 'use strict';
 
 const chai = require('chai');
-const {
-	Status: TransactionStatus,
-	TransferTransaction,
-} = require('@liskhq/lisk-transactions');
+const { TransferTransaction } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const accountFixtures = require('../../../../fixtures/accounts');
 const { Block, GenesisBlock } = require('../../../../fixtures/blocks');
-const {
-	registeredTransactions,
-} = require('../../../../common/registered_transactions');
-const transactionsModule = require('../../../../../../src/modules/chain/transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../../src/modules/chain/interface_adapters');
-const blocksModule = require('../../../../../../src/modules/chain/blocks');
 const schemas = require('../../../../../../src/modules/chain/transport/schemas');
 const {
 	Transport: TransportModule,
@@ -44,12 +33,6 @@ const {
 const expect = chai.expect;
 
 describe('transport', () => {
-	const interfaceAdapters = {
-		transactions: new TransactionInterfaceAdapter(
-			networkIdentifier,
-			registeredTransactions,
-		),
-	};
 	const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 
 	let storageStub;
@@ -194,6 +177,16 @@ describe('transport', () => {
 					.returns({ height: 1, version: 1, timestamp: 1 }),
 				receiveBlockFromNetwork: sinonSandbox.stub(),
 				loadBlocksFromLastBlockId: sinonSandbox.stub(),
+				verifyTransactions: sinonSandbox
+					.stub()
+					.resolves({ transactionsResponses: [{ status: 1, errors: [] }] }),
+				validateTransactions: sinonSandbox
+					.stub()
+					.resolves({ transactionsResponses: [{ status: 1, errors: [] }] }),
+				processTransactions: sinonSandbox
+					.stub()
+					.resolves({ transactionsResponses: [{ status: 1, errors: [] }] }),
+				deserializeTransaction: sinonSandbox.stub().callsFake(val => val),
 			},
 			processorModule: {
 				validate: sinonSandbox.stub(),
@@ -203,7 +196,6 @@ describe('transport', () => {
 			loaderModule: {
 				syncing: sinonSandbox.stub().returns(false),
 			},
-			interfaceAdapters,
 			broadcasts: __testContext.config.modules.chain.broadcasts,
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
@@ -529,36 +521,17 @@ describe('transport', () => {
 
 			afterEach(() => sinonSandbox.restore());
 
-			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', async () => {
-				sinonSandbox.spy(transactionsModule, 'composeTransactionSteps');
+			it('should call validateTransactions', async () => {
 				await transportModule._receiveTransaction(transaction);
-				return expect(transactionsModule.composeTransactionSteps).to.be
+				return expect(transportModule.blocksModule.validateTransactions).to.be
 					.calledOnce;
 			});
 
-			it('should call composedTransactionsCheck an array of transactions', async () => {
-				const composedTransactionsCheck = sinonSandbox.stub().returns({
-					transactionsResponses: [
-						{
-							id: transaction.id,
-							status: TransactionStatus.OK,
-							errors: [],
-						},
-					],
-				});
-
-				const tranasactionInstance = interfaceAdapters.transactions.fromJson(
-					transaction,
-				);
-
-				sinonSandbox
-					.stub(transactionsModule, 'composeTransactionSteps')
-					.returns(composedTransactionsCheck);
-
+			it('should call validateTransactions with an array of transactions', async () => {
 				await transportModule._receiveTransaction(transaction);
-				return expect(composedTransactionsCheck).to.have.been.calledWith([
-					tranasactionInstance,
-				]);
+				return expect(
+					transportModule.blocksModule.validateTransactions,
+				).to.have.been.calledWith([transaction]);
 			});
 
 			it('should reject with error if transaction is not allowed', async () => {
@@ -566,9 +539,13 @@ describe('transport', () => {
 					'Transaction type 0 is currently not allowed.',
 				);
 
-				sinonSandbox
-					.stub(interfaceAdapters.transactions, 'fromJson')
-					.returns({ ...transaction, matcher: () => false });
+				transportModule.blocksModule.validateTransactions.resolves({
+					transactionsResponses: [
+						{
+							errors: [errorMessage],
+						},
+					],
+				});
 
 				return expect(
 					transportModule._receiveTransaction(transaction),
@@ -583,7 +560,7 @@ describe('transport', () => {
 				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						transportModule.transactionPoolModule.processUnconfirmedTransaction.calledWith(
-							interfaceAdapters.transactions.fromJson(transaction),
+							transaction,
 							true,
 						),
 					).to.be.true);
@@ -598,6 +575,14 @@ describe('transport', () => {
 						...transaction,
 						asset: {},
 					};
+					transportModule.blocksModule.validateTransactions.resolves({
+						transactionsResponses: [
+							{
+								status: 1,
+								errors: [new TransactionError('invalid transaction')],
+							},
+						],
+					});
 
 					try {
 						await transportModule._receiveTransaction(invalidTransaction);
@@ -607,9 +592,6 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					interfaceAdapters.transactions
-						.fromJson(invalidTransaction)
-						.validate();
 					expect(errorResult).to.be.an('array');
 					errorResult.forEach(anError => {
 						expect(anError).to.be.instanceOf(TransactionError);
@@ -647,9 +629,7 @@ describe('transport', () => {
 					it('should call transportModule.logger.debug with "Transaction" and transaction as arguments', async () => {
 						expect(transportModule.logger.debug).to.be.calledWith(
 							{
-								transaction: interfaceAdapters.transactions.fromJson(
-									transaction,
-								),
+								transaction,
 							},
 							'Transaction',
 						);
@@ -687,9 +667,6 @@ describe('transport', () => {
 					const auxBlock = new Block();
 					blocksList.push(auxBlock);
 				}
-				sinonSandbox
-					.stub(blocksModule, 'addBlockProperties')
-					.returns(blockMock);
 			});
 
 			describe('onSignature', () => {

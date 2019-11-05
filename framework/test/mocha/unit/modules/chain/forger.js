@@ -17,7 +17,7 @@
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const forger = require('../../../../../src/modules/chain/forger');
+const forger = require('../../../../../src/modules/chain/forger/forger');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../../fixtures/accounts');
