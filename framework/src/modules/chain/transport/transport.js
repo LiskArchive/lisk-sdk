@@ -18,7 +18,7 @@ const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
-const definitions = require('../schema/definitions');
+const schemas = require('./schemas');
 const transactionsModule = require('../transactions');
 
 /**
@@ -203,7 +203,7 @@ class Transport {
 	 * @return {Promise<Array<object>>}
 	 */
 	async handleRPCGetBlocksFromId(payload) {
-		validator.validate(definitions.getBlocksFromIdRequest, payload);
+		validator.validate(schemas.getBlocksFromIdRequest, payload);
 
 		if (validator.validator.errors) {
 			this.logger.debug(
@@ -241,7 +241,7 @@ class Transport {
 			);
 		}
 
-		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
+		const errors = validator.validate(schemas.blocksBroadcast, query);
 
 		if (errors.length) {
 			this.logger.debug(
@@ -269,7 +269,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleEventPostSignature(query) {
-		const errors = validator.validate(definitions.Signature, query.signature);
+		const errors = validator.validate(schemas.signature, query.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
@@ -308,7 +308,7 @@ class Transport {
 			);
 		}
 
-		const errors = validator.validate(definitions.WSSignaturesList, query);
+		const errors = validator.validate(schemas.signaturesList, query);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid signatures body');
@@ -403,7 +403,7 @@ class Transport {
 			);
 		}
 
-		const errors = validator.validate(definitions.WSTransactionsRequest, query);
+		const errors = validator.validate(schemas.transactionsRequest, query);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid transactions body');
@@ -442,7 +442,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	async _receiveSignature(signature) {
-		const errors = validator.validate(definitions.Signature, signature);
+		const errors = validator.validate(schemas.signature, signature);
 
 		if (errors.length) {
 			throw errors;
