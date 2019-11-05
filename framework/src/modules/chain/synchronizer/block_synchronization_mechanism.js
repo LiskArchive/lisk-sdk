@@ -237,6 +237,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		}
 
+		this.logger.debug(
+			{
+				currentTip: this.blocks.lastBlock.id,
+				previousTip: tipBeforeApplyingInstance.id,
+			},
+			'Current tip of the chain has preference over previous tip',
+		);
+
 		this.logger.debug('Cleaning blocks temporary table');
 		await clearBlocksTempTable(this.storage);
 
