@@ -53,11 +53,7 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from './constants';
-import {
-	ExistingPeerError,
-	InvalidNodeInfoError,
-	PeerInboundHandshakeError,
-} from './errors';
+import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -553,19 +549,16 @@ export class P2P extends EventEmitter {
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		try {
-			const maxPeerInfoSize = this._config.maxPeerInfoSize
-				? this._config.maxPeerInfoSize
-				: DEFAULT_MAX_PEER_INFO_SIZE;
+		const validatedNodeInfo = validateNodeInfo(
+			nodeInfo,
+			this._peerPool.peerConfig.maxPeerInfoSize,
+		);
 
-			this._nodeInfo = {
-				...validateNodeInfo(nodeInfo, maxPeerInfoSize),
-			};
+		this._nodeInfo = {
+			...validatedNodeInfo,
+		};
 
-			this._peerPool.applyNodeInfo(this._nodeInfo);
-		} catch (error) {
-			throw error as InvalidNodeInfoError;
-		}
+		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}
 
 	public get nodeInfo(): P2PNodeInfo {

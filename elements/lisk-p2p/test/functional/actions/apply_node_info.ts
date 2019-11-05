@@ -57,7 +57,7 @@ describe('P2P.applyNodeInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should throw error when applying invalid NodeInfo', async () => {
+	it('should throw error when applying too large NodeInfo', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		expect(() =>

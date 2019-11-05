@@ -23,6 +23,7 @@ import {
 	RPCResponseAlreadySentError,
 	RequestFailError,
 	ExistingPeerError,
+	InvalidNodeInfoError,
 } from '../../src/errors';
 import { P2PPeerInfo } from '../../src';
 import { constructPeerId } from '../../src/utils';
@@ -127,6 +128,27 @@ describe('errors', () => {
 
 		it(`should set peerInfo parameter when passing an argument`, async () => {
 			expect(existingPeer.peerInfo).to.eql(peerInfo);
+		});
+	});
+
+	describe('#InvalidNodeInfoError', () => {
+		const InvalidNodeInfoErrorMessagge = 'Invalid NodeInfo version';
+		let invalidNodeInfo: InvalidNodeInfoError;
+
+		beforeEach(async () => {
+			invalidNodeInfo = new InvalidNodeInfoError(InvalidNodeInfoErrorMessagge);
+		});
+
+		it('should create a new instance of InvalidNodeInfoError', async () => {
+			expect(invalidNodeInfo).to.be.instanceof(InvalidNodeInfoError);
+		});
+
+		it('should set error name to `InvalidNodeInfoError`', async () => {
+			expect(invalidNodeInfo.name).to.eql('InvalidNodeInfoError');
+		});
+
+		it(`should set error message to ${InvalidNodeInfoError}`, async () => {
+			expect(invalidNodeInfo.message).to.eql(InvalidNodeInfoErrorMessagge);
 		});
 	});
 

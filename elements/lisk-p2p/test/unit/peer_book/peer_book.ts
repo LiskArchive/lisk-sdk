@@ -128,6 +128,37 @@ describe('peerBook', () => {
 		});
 	});
 
+	describe('#allFetchedPeers', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerBook = new PeerBook(peerBookConfig);
+		});
+
+		it('should get all peers with existing sharedState', () => {
+			peerBook.addPeer(samplePeers[0]);
+			peerBook.upgradePeer(samplePeers[0]);
+			peerBook.addPeer(samplePeers[1]);
+
+			peerBook.addPeer({
+				peerId: '204.120.125.15:6000',
+				ipAddress: '204.120.125.15',
+				wsPort: 6000,
+			});
+
+			peerBook.addPeer({
+				peerId: '204.120.125.16:6001',
+				ipAddress: '204.120.125.16',
+				wsPort: 6001,
+				sharedState: undefined,
+			});
+
+			expect(peerBook.allFetchedPeers).to.be.eql([
+				samplePeers[1],
+				samplePeers[0],
+			]);
+		});
+	});
+
 	describe('#getPeer', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
