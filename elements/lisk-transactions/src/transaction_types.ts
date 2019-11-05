@@ -47,7 +47,6 @@ export interface TransactionJSON {
 	readonly timestamp: number;
 	readonly type: number;
 	readonly receivedAt?: string;
-	readonly relays?: number;
 	readonly networkIdentifier?: string;
 }
 
