@@ -189,6 +189,12 @@ describe('block_synchronization_mechanism', () => {
 			});
 		};
 
+		const checkRestartIsCalled = receivedBlock => {
+			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
+				block: receivedBlock,
+			});
+		};
+
 		const checkApplyPenaltyAndAbortIsCalled = (peerId, err) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				{ err, peerId, reason: err.reason },
@@ -1284,7 +1290,7 @@ describe('block_synchronization_mechanism', () => {
 				);
 			});
 
-			describe.only('when applying a block fails', () => {
+			describe('when applying a block fails', () => {
 				it('should restore blocks from temp table, ban peer and restart mechanism if new tip of the chain has no preference over previous tip', async () => {
 					when(channelMock.invoke)
 						.calledWith('network:getPeers', {
@@ -1464,7 +1470,7 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const tempTableBlock of tempTableBlocks) {
 						expect(processorModule.processValidated).toHaveBeenCalledWith(
-							processorModule.deserialize(tempTableBlock),
+							await processorModule.deserialize(tempTableBlock.fullBlock),
 							{
 								removeFromTempTable: true,
 							},
@@ -1483,15 +1489,147 @@ describe('block_synchronization_mechanism', () => {
 					);
 				});
 
-				it('should clean up the temporary table and restart the mechanism if the new tip has preference over the last tip', () => {});
-			});
+				it('should clean up the temporary table and restart the mechanism if the new tip has preference over the last tip', async () => {
+					when(channelMock.invoke)
+						.calledWith('network:getPeers', {
+							state: PEER_STATE_CONNECTED,
+						})
+						.mockResolvedValueOnce(peersList.connectedPeers);
 
-			it('should give up after trying 10 times to request blocks and apply penalty and restart the mechanism', () => {});
+					// Used in getHighestCommonBlock network action payload
+					const blockHeightsList = computeBlockHeightsList(
+						bftModule.finalizedHeight,
+						constants.ACTIVE_DELEGATES,
+						10,
+						slots.calcRound(blocksModule.lastBlock.height),
+					);
 
-			describe('when blocks are not fully applied', () => {
-				it('should delete blocks after common block, restore blocks from temp table and clean it if the tip of the temp blocks chain has preference over current tip (FORK_STATUS_DIFFERENT_CHAIN)', () => {});
+					const previousTip = newBlock({
+						height: aBlock.height - 1, // So it doesn't have preference over new tip (height >)
+						prevotedConfirmedUptoHeight: aBlock.prevotedConfirmedUptoHeight,
+					});
+					const blockList = [genesisBlockDevnet];
+					const blockIdsList = [blockList[0].id];
 
-				it('should ban the peer and restart the mechanism if the tip of temp table has no preference the tip of current chain ', () => {});
+					const highestCommonBlock = genesisBlockDevnet;
+					const requestedBlocks = [
+						...new Array(10)
+							.fill(0)
+							.map((_, index) =>
+								newBlock({ height: highestCommonBlock.height + 1 + index }),
+							),
+						aBlock,
+						...new Array(10)
+							.fill(0)
+							.map((_, index) =>
+								newBlock({ height: aBlock.height + 1 + index }),
+							),
+					];
+
+					for (const expectedPeer of peersList.expectedSelection) {
+						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getHighestCommonBlock',
+								peerId,
+								data: {
+									ids: blockIdsList,
+								},
+							})
+							.mockResolvedValue({
+								data: highestCommonBlock,
+							});
+
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getLastBlock',
+								peerId,
+							})
+							.mockResolvedValue({
+								data: aBlock,
+							});
+						when(channelMock.invoke)
+							.calledWith('network:requestFromPeer', {
+								procedure: 'getBlocksFromId',
+								peerId,
+								data: {
+									blockId: highestCommonBlock.id,
+								},
+							})
+							.mockResolvedValue({ data: requestedBlocks });
+					}
+
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{
+								height_in: blockHeightsList,
+							},
+							{
+								sort: 'height:asc',
+							},
+						)
+						.mockResolvedValueOnce(blockList);
+
+					when(processorModule.deleteLastBlock)
+						.calledWith({
+							saveTempBlock: true,
+						})
+						.mockResolvedValueOnce(genesisBlockDevnet);
+
+					when(storageMock.entities.TempBlock.get)
+						.calledWith(
+							{},
+							{
+								sort: 'height:desc',
+								limit: 1,
+								extended: true,
+							},
+						)
+						.mockResolvedValue([
+							{
+								fullBlock: previousTip,
+								height: previousTip.height,
+								version: previousTip.version,
+							},
+						]);
+
+					const processingError = new Error('Error processing blocks');
+					processorModule.process.mockRejectedValueOnce(processingError);
+
+					blocksModule._lastBlock = aBlock;
+
+					await blockSynchronizationMechanism.run(aBlock);
+
+					expect(loggerMock.error).toHaveBeenCalledWith(
+						{ err: processingError },
+						'Error while processing block',
+					);
+
+					expect(loggerMock.debug).toHaveBeenCalledWith(
+						'Failed to apply obtained blocks from peer',
+					);
+
+					expect(loggerMock.debug).nthCalledWith(
+						14,
+						{
+							currentTip: blocksModule.lastBlock.id,
+							previousTip: previousTip.id,
+						},
+						'Current tip of the chain has preference over previous tip',
+					);
+
+					expect(loggerMock.debug).nthCalledWith(
+						15,
+						'Cleaning blocks temporary table',
+					);
+					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
+
+					expect(loggerMock.info).toHaveBeenCalledWith(
+						'Restarting block synchronization',
+					);
+
+					checkRestartIsCalled(aBlock);
+				});
 			});
 		});
 	});
