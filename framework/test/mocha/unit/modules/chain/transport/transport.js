@@ -417,7 +417,7 @@ describe('transport', () => {
 						expect(validator.validate.calledOnce).to.be.true;
 						return expect(
 							validator.validate.calledWith(
-								schemas.signature,
+								schemas.signatureObject,
 								SAMPLE_SIGNATURE_1,
 							),
 						).to.be.true;

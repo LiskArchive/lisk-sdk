@@ -269,7 +269,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleEventPostSignature(query) {
-		const errors = validator.validate(schemas.signature, query.signature);
+		const errors = validator.validate(schemas.signatureObject, query.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
@@ -527,7 +527,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	async _receiveSignature(signature) {
-		const errors = validator.validate(schemas.signature, signature);
+		const errors = validator.validate(schemas.signatureObject, signature);
 
 		if (errors.length) {
 			throw errors;

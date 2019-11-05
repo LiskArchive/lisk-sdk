@@ -108,8 +108,8 @@ module.exports = {
 			},
 		},
 	},
-	signature: {
-		id: 'signature',
+	signatureObject: {
+		id: 'signatureObject',
 		type: 'object',
 		required: ['transactionId', 'publicKey', 'signature'],
 		properties: {
