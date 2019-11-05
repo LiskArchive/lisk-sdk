@@ -50,7 +50,7 @@ module.exports = {
 	CommonBlock: {
 		id: 'CommonBlock',
 		type: 'object',
-		required: ['id', 'height', 'previousBlock'],
+		required: ['id', 'height', 'previousBlockId'],
 		properties: {
 			id: {
 				type: 'string',
@@ -64,7 +64,7 @@ module.exports = {
 				example: 123,
 				minimum: 1,
 			},
-			previousBlock: {
+			previousBlockId: {
 				type: 'string',
 				format: 'id',
 				example: '15918760246746894806',

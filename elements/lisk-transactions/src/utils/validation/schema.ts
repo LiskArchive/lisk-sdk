@@ -70,14 +70,7 @@ export const transactionInterface = {
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: [
-		'id',
-		'type',
-		'senderPublicKey',
-		'timestamp',
-		'asset',
-		'signature',
-	],
+	required: ['type', 'senderPublicKey', 'timestamp', 'asset', 'signature'],
 	properties: {
 		id: {
 			type: 'string',

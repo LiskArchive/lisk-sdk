@@ -32,7 +32,7 @@ describe('blocks/verify', () => {
 		it.todo('should fail');
 	});
 
-	describe('when previousBlock property is missing and verifyPreviousBlock is called', () => {
+	describe('when previousBlockId property is missing and verifyPreviousBlock is called', () => {
 		it.todo('should fail');
 	});
 
@@ -89,11 +89,13 @@ describe('blocks/verify', () => {
 	});
 
 	describe('verifyForkOne', () => {
-		it.todo('should fail when previousBlock value is invalid');
+		it.todo('should fail when previousBlockId value is invalid');
 	});
 
 	describe('verifyBlockSlot', () => {
-		it.todo('should fail when block timestamp < than previousBlock timestamp');
+		it.todo(
+			'should fail when block timestamp < than previousBlockId timestamp',
+		);
 	});
 
 	describe('verifyBlockSlotWindow', () => {

@@ -322,6 +322,7 @@ module.exports = class Chain {
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
+				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
 			}),
 			getLastBlock: async () => ({
 				...this.blocks.lastBlock,

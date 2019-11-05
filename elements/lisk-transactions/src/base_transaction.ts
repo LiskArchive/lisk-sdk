@@ -155,11 +155,7 @@ export abstract class BaseTransaction {
 	}
 
 	public get id(): string {
-		if (!this._id) {
-			throw new Error('id is required to be set before use');
-		}
-
-		return this._id;
+		return this._id || 'incalculable-id';
 	}
 
 	public get senderId(): string {
@@ -186,18 +182,23 @@ export abstract class BaseTransaction {
 		return this._signSignature;
 	}
 
+	/**
+	 * This method is using private versions of _id, _senderPublicKey and _signature
+	 * as we should allow for it to be called at any stage of the transaction construction
+	 */
+
 	public toJSON(): TransactionJSON {
 		const transaction = {
-			id: this.id,
+			id: this._id,
 			blockId: this.blockId,
 			height: this.height,
 			confirmations: this.confirmations,
 			type: this.type,
 			timestamp: this.timestamp,
-			senderPublicKey: this.senderPublicKey,
-			senderId: this.senderId,
+			senderPublicKey: this._senderPublicKey || '',
+			senderId: this._senderPublicKey ? this.senderId : '',
 			fee: this.fee.toString(),
-			signature: this.signature,
+			signature: this._signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),

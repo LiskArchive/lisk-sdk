@@ -167,6 +167,23 @@ describe('GET /node', () => {
 					expect(res.body.data[0].forging).to.be.true;
 				});
 			});
+
+			it('using invalid forging value should fail', async () => {
+				return forgingEndpoint.makeRequest({ forging: null }, 400).then(res => {
+					expectSwaggerParamError(res, 'forging');
+				});
+			});
+
+			it('should return only forging delegates', async () => {
+				return forgingEndpoint.makeRequest({ forging: true }, 200).then(res => {
+					expect(res.body.data.length).to.be.eql(
+						__testContext.config.modules.chain.forging.delegates.length,
+					);
+					expect(
+						res.body.data.filter(d => d.forging === false).length,
+					).to.be.eql(0);
+				});
+			});
 		});
 	});
 });

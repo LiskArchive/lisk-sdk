@@ -111,9 +111,6 @@ describe('Base transaction class', () => {
 			expect(transactionWithDefaultValues.height).to.be.undefined;
 			expect(transactionWithDefaultValues.receivedAt).to.be.undefined;
 			expect(transactionWithDefaultValues.signSignature).to.be.undefined;
-			expect(() => transactionWithDefaultValues.id).to.throw(
-				'id is required to be set before use',
-			);
 			expect(() => transactionWithDefaultValues.senderId).to.throw(
 				'senderPublicKey is required to be set before use',
 			);

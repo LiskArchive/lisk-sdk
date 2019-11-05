@@ -186,6 +186,7 @@ NodeController.getStatus = async (context, next) => {
 			loaded,
 			syncing,
 			lastBlock,
+			chainMaxHeightFinalized,
 		} = await library.channel.invoke('chain:getNodeStatus');
 
 		const networkHeight = await _getNetworkHeight();
@@ -194,8 +195,9 @@ NodeController.getStatus = async (context, next) => {
 			currentTime: Date.now(),
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
-			loaded,
 			networkHeight,
+			chainMaxHeightFinalized,
+			loaded,
 			syncing,
 		};
 
@@ -219,10 +221,13 @@ NodeController.getForgingStatus = async (context, next) => {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
-	const publicKey = context.request.swagger.params.publicKey.value;
+	const { publicKey, forging } = context.request.swagger.params;
 
 	try {
-		const forgingStatus = await _getForgingStatus(publicKey);
+		const forgingStatus = await _getForgingStatus(publicKey.value);
+		if (forging && typeof forging.value === 'boolean') {
+			return next(null, forgingStatus.filter(f => f.forging === forging.value));
+		}
 		return next(null, forgingStatus);
 	} catch (err) {
 		return next(err);
