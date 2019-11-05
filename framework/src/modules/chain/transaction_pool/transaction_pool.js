@@ -100,7 +100,7 @@ class TransactionPool extends EventEmitter {
 						blockHeight: height,
 						blockTimestamp: timestamp,
 					};
-				}), // TODO: probably wrong
+				}),
 				transactionsModule.checkPersistedTransactions(storage),
 				transactionsModule.verifyTransactions(slots, exceptions),
 			)(transactions, stateStore);
