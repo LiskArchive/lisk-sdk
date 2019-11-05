@@ -14,6 +14,8 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionHandlers = require('../../../../../../src/modules/chain/transactions/transactions_handlers');
 const votesWeightHandler = require('../../../../../../src/modules/chain/transactions/votes_weight');
@@ -413,11 +415,9 @@ describe('transactions', () => {
 		});
 	});
 
-	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('#applyTransactions', () => {
+	describe('#applyTransactions', () => {
 		let trs1Response;
 		let trs2Response;
-		let updateTransactionResponseForExceptionTransactionsStub;
 
 		beforeEach(async () => {
 			trs1Response = {
@@ -454,35 +454,64 @@ describe('transactions', () => {
 			expect(trs2.prepare).to.be.calledOnce;
 		});
 
-		it('should verify total spending', async () => {
-			await transactionHandlers.applyTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
+		describe('when transactions have conflict on total spending', () => {
+			let trs3;
+			let trs4;
+			let trs5;
 
-			expect(transactionHandlers.verifyTotalSpending).to.be.calledOnce;
-			expect(transactionHandlers.verifyTotalSpending).to.be.calledWithExactly(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-		});
-
-		it('should return transaction responses', async () => {
-			const result = await transactionHandlers.applyTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(result.transactionsResponses).to.be.eql([
-				trs1Response,
-				trs2Response,
-			]);
-		});
-
-		describe('for every transaction which passes verify total spending step', () => {
 			beforeEach(async () => {
-				// Only trs1 passes verifyTotalSpending and trs2 failed
-				transactionHandlers.verifyTotalSpending.returns([trs2Response]);
+				const senderId = getAddressFromPublicKey(trs1.senderPublicKey);
+				trs3 = {
+					...trs1,
+				};
+				trs4 = {
+					...trs1,
+				};
+				trs5 = {
+					...trs1,
+					asset: {
+						...trs1.asset,
+						recipientId: senderId,
+						amount: '100000000000000',
+					},
+				};
+				stateStoreMock.account.get.withArgs(senderId).returns({
+					address: senderId,
+					balance: new BigNum(trs3.fee).add(trs4.fee).toString(),
+				});
+			});
+
+			it('should return transaction error with amount', async () => {
+				const {
+					transactionsResponses,
+				} = await transactionHandlers.applyTransactions()(
+					[trs3, trs4, trs5],
+					stateStoreMock,
+				);
+				expect(transactionsResponses[0].errors).not.to.be.empty;
+				expect(transactionsResponses[0].errors[0].dataPath).to.eql('.amount');
+			});
+		});
+
+		describe('when transactions have no conflict on total spending', () => {
+			beforeEach(async () => {
+				const senderId = getAddressFromPublicKey(trs1.senderPublicKey);
+				stateStoreMock.account.get.withArgs(senderId).returns({
+					address: senderId,
+					balance: '10000000000',
+				});
+			});
+
+			it('should return transaction responses', async () => {
+				const result = await transactionHandlers.applyTransactions()(
+					[trs1, trs2],
+					stateStoreMock,
+				);
+
+				expect(result.transactionsResponses).to.be.eql([
+					trs1Response,
+					trs2Response,
+				]);
 			});
 
 			it('should create snapshot before apply', async () => {
@@ -500,9 +529,10 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(trs2.apply).to.not.be.called;
 				expect(trs1.apply).to.be.calledOnce;
+				expect(trs2.apply).to.be.calledOnce;
 				expect(trs1.apply).to.be.calledWithExactly(stateStoreMock);
+				expect(trs2.apply).to.be.calledWithExactly(stateStoreMock);
 			});
 
 			it('should update response for exceptions if response is not OK', async () => {
@@ -514,11 +544,9 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(updateTransactionResponseForExceptionTransactionsStub).to.be
-					.calledOnce;
 				expect(
-					updateTransactionResponseForExceptionTransactionsStub,
-				).to.be.calledWithExactly([trs1Response], [trs1]);
+					exceptionHandlers.updateTransactionResponseForExceptionTransactions,
+				).to.be.calledOnce;
 			});
 
 			it('should not update response for exceptions if response is OK', async () => {
@@ -530,29 +558,9 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(updateTransactionResponseForExceptionTransactionsStub).to.not.be
-					.called;
-			});
-
-			it('should add to roundInformation if transaction response is OK', async () => {
-				await transactionHandlers.applyTransactions()(
-					[trs1, trs2],
-					stateStoreMock,
-				);
-
-				expect(votesWeightHandler.apply).to.be.calledOnce;
-			});
-
-			it('should not add to roundInformation if transaction response is not OK', async () => {
-				trs1Response.status = TransactionStatus.FAIL;
-				trs1.apply.returns(trs1Response);
-
-				await transactionHandlers.applyTransactions()(
-					[trs1, trs2],
-					stateStoreMock,
-				);
-
-				expect(votesWeightHandler.apply).to.not.be.called;
+				expect(
+					exceptionHandlers.updateTransactionResponseForExceptionTransactions,
+				).to.not.be.called;
 			});
 
 			it('should add to state store if transaction response is OK', async () => {
@@ -561,13 +569,16 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(stateStoreMock.transaction.add).to.be.calledOnce;
+				expect(stateStoreMock.transaction.add).to.be.calledTwice;
 				expect(stateStoreMock.transaction.add).to.be.calledWithExactly(trs1);
+				expect(stateStoreMock.transaction.add).to.be.calledWithExactly(trs2);
 			});
 
 			it('should not add to state store if transaction response is not OK', async () => {
 				trs1Response.status = TransactionStatus.FAIL;
 				trs1.apply.returns(trs1Response);
+				trs2Response.status = TransactionStatus.FAIL;
+				trs2.apply.returns(trs2Response);
 
 				await transactionHandlers.applyTransactions()(
 					[trs1, trs2],
