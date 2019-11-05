@@ -65,6 +65,7 @@
 		"@types/jsonwebtoken": "8.3.0",
 		"@types/lodash.clonedeep": "4.5.0",
 		"@types/lodash.shuffle": "4.2.6",
+		"@types/lodash.uniq": "4.5.0",
 		"@types/mocha": "5.2.5",
 		"@types/node": "10.12.21",
 		"@types/semver": "5.5.0",
