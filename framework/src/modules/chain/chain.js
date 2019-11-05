@@ -243,8 +243,11 @@ module.exports = class Chain {
 					'network:event',
 					async ({ data: { event, data, peerId } }) => {
 						try {
-							if (event === 'postTransactions') {
-								await this.transport.postTransactions(data);
+							if (event === 'postTransactionsAnnouncement') {
+								await this.transport.postTransactionsAnnouncement({
+									data,
+									peerId,
+								});
 								return;
 							}
 							if (event === 'postSignatures') {
@@ -295,7 +298,10 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging,
 				),
-			getTransactions: async () => this.transport.getTransactions(),
+			getTransactions: async action =>
+				action.params
+					? this.transport.getTransactions(action.params)
+					: this.transport.getTransactions(),
 			getSignatures: async () => this.transport.getSignatures(),
 			postSignature: async action =>
 				this.transport.postSignature(action.params),
