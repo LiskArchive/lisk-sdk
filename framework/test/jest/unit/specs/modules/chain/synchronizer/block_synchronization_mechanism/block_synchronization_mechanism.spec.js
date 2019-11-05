@@ -171,7 +171,7 @@ describe('block_synchronization_mechanism', () => {
 		let blockIdsList;
 		let blockList;
 
-		const checkApplyPenaltyAndRestartIsCalled = (receivedBlock, reason) => {
+		const expectApplyPenaltyAndRestartIsCalled = (receivedBlock, reason) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				expect.objectContaining({
 					peerId: expect.any(String),
@@ -191,7 +191,7 @@ describe('block_synchronization_mechanism', () => {
 			});
 		};
 
-		const checkRestartIsCalled = receivedBlock => {
+		const expectRestartIsCalled = receivedBlock => {
 			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
 				block: receivedBlock,
 			});
@@ -543,7 +543,7 @@ describe('block_synchronization_mechanism', () => {
 					blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
 				).not.toHaveBeenCalled();
 
-				checkApplyPenaltyAndRestartIsCalled(
+				expectApplyPenaltyAndRestartIsCalled(
 					receivedBlock,
 					'The tip of the chain of the peer is not valid or is not in a different chain',
 				);
@@ -629,7 +629,7 @@ describe('block_synchronization_mechanism', () => {
 						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
 					).not.toHaveBeenCalled();
 
-					checkApplyPenaltyAndRestartIsCalled(
+					expectApplyPenaltyAndRestartIsCalled(
 						receivedBlock,
 						'No common block has been found between the chain and the targeted peer',
 					);
@@ -709,7 +709,7 @@ describe('block_synchronization_mechanism', () => {
 						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
 					).not.toHaveBeenCalled();
 
-					checkApplyPenaltyAndRestartIsCalled(
+					expectApplyPenaltyAndRestartIsCalled(
 						aBlock,
 						'The last common block height is less than the finalized height of the current chain',
 					);
@@ -796,7 +796,7 @@ describe('block_synchronization_mechanism', () => {
 
 				expect(processorModule.process).not.toHaveBeenCalled();
 
-				checkApplyPenaltyAndRestartIsCalled(
+				expectApplyPenaltyAndRestartIsCalled(
 					aBlock,
 					"Peer didn't return any block after requesting blocks",
 				);
@@ -804,23 +804,12 @@ describe('block_synchronization_mechanism', () => {
 
 			describe('when applying a block fails', () => {
 				it('should restore blocks from temp table, ban peer and restart mechanism if new tip of the chain has no preference over previous tip', async () => {
-					// Used in getHighestCommonBlock network action payload
-					const blockHeightsList = computeBlockHeightsList(
-						bftModule.finalizedHeight,
-						constants.ACTIVE_DELEGATES,
-						10,
-						slots.calcRound(blocksModule.lastBlock.height),
-					);
-
 					const previousTip = newBlock({
 						height: genesisBlockDevnet.height + 140, // So it has preference over new tip (height <)
 						prevotedConfirmedUptoHeight: 0,
 					});
-					const blockList = [genesisBlockDevnet];
-					const blockIdsList = [blockList[0].id];
 
-					const highestCommonBlock = genesisBlockDevnet;
-					const requestedBlocks = [
+					requestedBlocks = [
 						...new Array(10)
 							.fill(0)
 							.map((_, index) =>
@@ -852,26 +841,6 @@ describe('block_synchronization_mechanism', () => {
 						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
 						when(channelMock.invoke)
 							.calledWith('network:requestFromPeer', {
-								procedure: 'getHighestCommonBlock',
-								peerId,
-								data: {
-									ids: blockIdsList,
-								},
-							})
-							.mockResolvedValue({
-								data: highestCommonBlock,
-							});
-
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
-								procedure: 'getLastBlock',
-								peerId,
-							})
-							.mockResolvedValue({
-								data: aBlock,
-							});
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
@@ -880,23 +849,6 @@ describe('block_synchronization_mechanism', () => {
 							})
 							.mockResolvedValue({ data: requestedBlocks });
 					}
-
-					when(storageMock.entities.Block.get)
-						.calledWith(
-							{
-								height_in: blockHeightsList,
-							},
-							{
-								sort: 'height:asc',
-							},
-						)
-						.mockResolvedValueOnce(blockList);
-
-					when(processorModule.deleteLastBlock)
-						.calledWith({
-							saveTempBlock: true,
-						})
-						.mockResolvedValueOnce(genesisBlockDevnet);
 
 					when(storageMock.entities.TempBlock.get)
 						.calledWith(
@@ -941,8 +893,6 @@ describe('block_synchronization_mechanism', () => {
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.process.mockRejectedValueOnce(processingError);
-
-					blocksModule._lastBlock = aBlock;
 
 					await blockSynchronizationMechanism.run(aBlock);
 
@@ -989,30 +939,19 @@ describe('block_synchronization_mechanism', () => {
 
 					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
 
-					checkApplyPenaltyAndRestartIsCalled(
+					expectApplyPenaltyAndRestartIsCalled(
 						aBlock,
 						'New tip of the chain has no preference over the previous tip before synchronizing',
 					);
 				});
 
 				it('should clean up the temporary table and restart the mechanism if the new tip has preference over the last tip', async () => {
-					// Used in getHighestCommonBlock network action payload
-					const blockHeightsList = computeBlockHeightsList(
-						bftModule.finalizedHeight,
-						constants.ACTIVE_DELEGATES,
-						10,
-						slots.calcRound(blocksModule.lastBlock.height),
-					);
-
 					const previousTip = newBlock({
 						height: aBlock.height - 1, // So it doesn't have preference over new tip (height >)
 						prevotedConfirmedUptoHeight: aBlock.prevotedConfirmedUptoHeight,
 					});
-					const blockList = [genesisBlockDevnet];
-					const blockIdsList = [blockList[0].id];
 
-					const highestCommonBlock = genesisBlockDevnet;
-					const requestedBlocks = [
+					requestedBlocks = [
 						...new Array(10)
 							.fill(0)
 							.map((_, index) =>
@@ -1028,26 +967,7 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const expectedPeer of peersList.expectedSelection) {
 						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
-								procedure: 'getHighestCommonBlock',
-								peerId,
-								data: {
-									ids: blockIdsList,
-								},
-							})
-							.mockResolvedValue({
-								data: highestCommonBlock,
-							});
 
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
-								procedure: 'getLastBlock',
-								peerId,
-							})
-							.mockResolvedValue({
-								data: aBlock,
-							});
 						when(channelMock.invoke)
 							.calledWith('network:requestFromPeer', {
 								procedure: 'getBlocksFromId',
@@ -1058,23 +978,6 @@ describe('block_synchronization_mechanism', () => {
 							})
 							.mockResolvedValue({ data: requestedBlocks });
 					}
-
-					when(storageMock.entities.Block.get)
-						.calledWith(
-							{
-								height_in: blockHeightsList,
-							},
-							{
-								sort: 'height:asc',
-							},
-						)
-						.mockResolvedValueOnce(blockList);
-
-					when(processorModule.deleteLastBlock)
-						.calledWith({
-							saveTempBlock: true,
-						})
-						.mockResolvedValueOnce(genesisBlockDevnet);
 
 					when(storageMock.entities.TempBlock.get)
 						.calledWith(
@@ -1128,7 +1031,7 @@ describe('block_synchronization_mechanism', () => {
 						'Restarting block synchronization',
 					);
 
-					checkRestartIsCalled(aBlock);
+					expectRestartIsCalled(aBlock);
 				});
 			});
 		});
