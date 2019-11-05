@@ -25,6 +25,7 @@ import {
 	ConnectionKind,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
+	LOCALHOST_IP,
 } from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
@@ -399,18 +400,10 @@ export class PeerPool extends EventEmitter {
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
-			newPeer =>
-				!this._peerMap.has(newPeer.peerId) ||
-				!fixedPeers
-					.map(fixedPeer => fixedPeer.ipAddress)
-					.includes(newPeer.ipAddress),
+			newPeer => !this._peerMap.has(newPeer.peerId),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
-			triedPeer =>
-				!this._peerMap.has(triedPeer.peerId) ||
-				!fixedPeers
-					.map(fixedPeer => fixedPeer.ipAddress)
-					.includes(triedPeer.ipAddress),
+			triedPeer => !this._peerMap.has(triedPeer.peerId),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
@@ -467,7 +460,7 @@ export class PeerPool extends EventEmitter {
 
 		// Check if we got already Outbound connection into the IP address of the Peer
 		const outboundConnectedPeer = this.getPeers(OutboundPeer).find(
-			e => e.ipAddress === peerInfo.ipAddress,
+			p => p.ipAddress === peerInfo.ipAddress && p.ipAddress !== LOCALHOST_IP,
 		);
 		if (outboundConnectedPeer) {
 			return false;

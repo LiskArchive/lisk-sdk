@@ -15,38 +15,55 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_START_PORT,
-} from 'utils/network_setup';
+import cloneDeep = require('lodash.clonedeep');
+import { SCServerSocket } from 'socketcluster-server';
+import * as url from 'url';
+import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
 	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
+	const NETWORK_START_PORT = 5000;
 	const previousPeers = [
 		{
-			ipAddress: '127.0.0.5',
-			wsPort: NETWORK_START_PORT + 4,
+			ipAddress: '127.0.0.15',
+			wsPort: NETWORK_START_PORT + 5,
 			height: 10,
 			version: '1.0',
 			protocolVersion: '1.0',
 			number: undefined,
 		},
 	];
+	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
+
+	before(async () => {
+		const serverSocketPrototype = SCServerSocket.prototype as any;
+		const realResetPongTimeoutFunction =
+			serverSocketPrototype._resetPongTimeout;
+		serverSocketPrototype._resetPongTimeout = function() {
+			const queryObject = url.parse(this.request.url, true).query as any;
+			let ipSuffix = queryObject.wsPort - 5000 + 10;
+			this.remoteAddress = `127.0.0.${ipSuffix}`;
+			return realResetPongTimeoutFunction.apply(this, arguments);
+		};
+	});
+
+	after(async () => {
+		SCServerSocket.prototype = serverSocketPrototypeBackup;
+	});
 
 	describe('blacklisting', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const blacklistedPeers = [
 			{
-				ipAddress: '127.0.0.5',
-				wsPort: NETWORK_START_PORT + 4,
+				ipAddress: '127.0.0.15',
+				wsPort: NETWORK_START_PORT + 5,
 			},
 		];
 		const previousPeersBlacklisted = [
 			{
-				ipAddress: '127.0.0.5',
-				wsPort: NETWORK_START_PORT + 4,
+				ipAddress: '127.0.0.15',
+				wsPort: NETWORK_START_PORT + 5,
 				height: 10,
 				version: '1.0',
 				protocolVersion: '1.0',
@@ -55,10 +72,27 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		];
 
 		beforeEach(async () => {
-			const customConfig = () => ({
+			const customSeedPeers = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => [
+				{
+					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
+				},
+			];
+
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
 				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
 				blacklistedPeers,
 				fixedPeers: blacklistedPeers,
 				whitelistedPeers: blacklistedPeers,
@@ -137,15 +171,32 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		const fixedPeers = [
 			{
-				ipAddress: '127.0.0.1',
+				ipAddress: '127.0.0.10',
 				wsPort: NETWORK_START_PORT,
 			},
 		];
 		beforeEach(async () => {
-			const customConfig = () => ({
+			const customSeedPeers = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => [
+				{
+					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
+				},
+			];
+
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
 				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
 				fixedPeers,
 				previousPeers,
 			});
@@ -186,15 +237,32 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		const whitelistedPeers = [
 			{
-				ipAddress: '127.0.0.1',
+				ipAddress: '127.0.0.10',
 				wsPort: NETWORK_START_PORT,
 			},
 		];
 		beforeEach(async () => {
-			const customConfig = () => ({
+			const customSeedPeers = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => [
+				{
+					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
+				},
+			];
+
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			) => ({
+				hostIp: '127.0.0.' + (index + 10),
 				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
+				seedPeers: customSeedPeers(index, startPort, networkSize),
 				whitelistedPeers,
 				previousPeers,
 			});

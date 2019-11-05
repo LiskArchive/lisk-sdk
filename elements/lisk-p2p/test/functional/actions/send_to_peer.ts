@@ -14,7 +14,11 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	SEED_PEER_IP,
+} from 'utils/network_setup';
 import { constructPeerId } from '../../../src/utils';
 
 describe('P2P.sendToPeer', () => {
@@ -45,10 +49,7 @@ describe('P2P.sendToPeer', () => {
 			expect(msg)
 				.to.have.property('peerId')
 				.which.is.equal(
-					constructPeerId(
-						firstP2PNode.config.hostIp as string,
-						firstP2PNode.nodeInfo.wsPort,
-					),
+					constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
 				);
 			expect(msg)
 				.to.have.property('event')

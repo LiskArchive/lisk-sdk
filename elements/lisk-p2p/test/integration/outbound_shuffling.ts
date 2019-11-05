@@ -15,11 +15,7 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	BASE_PEER_IP,
-} from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -34,7 +30,7 @@ describe('Outbound peer shuffling', () => {
 		) =>
 			[...new Array(networkSize / 2).keys()]
 				.map(index => ({
-					ipAddress: BASE_PEER_IP + (((index + 2) % networkSize) + 1),
+					ipAddress: '127.0.0.1',
 					wsPort: startPort + ((index + 2) % networkSize), // Choose alternate peers for connection so that a node has available peers to make outbound connections
 				}))
 				.filter(seedPeer => seedPeer.wsPort !== startPort + index); // Avoid adding yourself

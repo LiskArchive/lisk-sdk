@@ -21,7 +21,35 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForSendInput,
 } from '../p2p_types';
-import { removeCommonIPsFromLists } from './misc';
+
+const _removeCommonIPsFromLists = (
+	peerList: ReadonlyArray<P2PPeerInfo>,
+): ReadonlyArray<P2PPeerInfo> => {
+	const peerMap = new Map<string, P2PPeerInfo>();
+
+	for (const peer of peerList) {
+		const { sharedState } = peer;
+		const peerHeight =
+			sharedState && sharedState.height ? (sharedState.height as number) : 0;
+
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			const { sharedState: tempSharedState } = tempPeer;
+			const tempPeerHeight =
+				tempSharedState && tempSharedState.height
+					? (tempSharedState.height as number)
+					: 0;
+
+			if (peerHeight > tempPeerHeight) {
+				peerMap.set(peer.ipAddress, peer);
+			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	}
+
+	return [...peerMap.values()];
+};
 
 export const selectPeersForRequest = (
 	input: P2PPeerSelectionForRequestInput,
@@ -108,7 +136,7 @@ export const selectPeersForConnection = (
 	const shuffledNewPeers = shuffle(input.newPeers);
 
 	// TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
-	return removeCommonIPsFromLists(
+	return _removeCommonIPsFromLists(
 		[...Array(input.peerLimit)].map(() => {
 			if (shuffledTriedPeers.length !== 0) {
 				if (Math.random() < r) {

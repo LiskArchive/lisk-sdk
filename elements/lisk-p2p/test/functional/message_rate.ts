@@ -36,7 +36,6 @@ describe('Message rate limit', () => {
 			// For the third node, make the message rate limit higher.
 			wsMaxMessageRate: index == 2 ? 100000 : 110,
 			rateCalculationInterval: 100,
-			populatorInterval: 10,
 		});
 		p2pNodeList = await createNetwork({ customConfig });
 
@@ -94,10 +93,8 @@ describe('Message rate limit', () => {
 			const ratePerSecondLowerBound = 70;
 			const ratePerSecondUpperBound = 130;
 
-			await 300;
-
 			const targetPeerPort = NETWORK_START_PORT + 3;
-			const targetPeerId = `127.0.0.4:${targetPeerPort}`;
+			const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(10);
@@ -124,7 +121,7 @@ describe('Message rate limit', () => {
 			const TOTAL_SENDS = 300;
 			const firstP2PNode = p2pNodeList[0];
 			const secondP2PNode = p2pNodeList[1];
-			const targetPeerId = `127.0.0.2:${secondP2PNode.nodeInfo.wsPort}`;
+			const targetPeerId = `127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(1);
@@ -183,7 +180,7 @@ describe('Message rate limit', () => {
 			const ratePerSecondUpperBound = 130;
 
 			const targetPeerPort = NETWORK_START_PORT + 3;
-			const targetPeerId = `127.0.0.4:${targetPeerPort}`;
+			const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(10);
@@ -209,7 +206,7 @@ describe('Message rate limit', () => {
 			const firstP2PNode = p2pNodeList[0];
 			const thirdP2PNode = p2pNodeList[2];
 
-			const targetPeerId = `127.0.0.3:${thirdP2PNode.nodeInfo.wsPort}`;
+			const targetPeerId = `127.0.0.1:${thirdP2PNode.nodeInfo.wsPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(1);

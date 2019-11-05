@@ -19,10 +19,7 @@ import {
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 } from '../../src';
-import cloneDeep = require('lodash.clonedeep');
-import { SCServerSocket } from 'socketcluster-server';
-import * as url from 'url';
-export const NETWORK_START_PORT = 5001;
+export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
 export const POPULATOR_INTERVAL = 50;
 export const DEFAULT_CONNECTION_TIMEOUT = 500;
@@ -30,11 +27,8 @@ export const DEFAULT_ACK_TIMEOUT = 500;
 export const RATE_CALCULATION_INTERVAL = 10000;
 export const WEB_SOCKET_ENGINE = 'ws';
 export const SEED_PEER_IP = '127.0.0.1';
-export const BASE_PEER_IP = '127.0.0.';
 export const NETWORK_CREATION_WAIT_TIME = 1000;
 export const NETWORK_DESTROY_WAIT_TIME = 1000;
-
-const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 
 export const nodeInfoConstants = {
 	nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -63,15 +57,6 @@ export const createNetwork = async ({
 	networkDiscoveryWaitTime,
 	customConfig,
 }: TestNetworkConfig = {}) => {
-	const serverSocketPrototype = SCServerSocket.prototype as any;
-	const realResetPongTimeoutFunction = serverSocketPrototype._resetPongTimeout;
-	serverSocketPrototype._resetPongTimeout = function() {
-		const queryObject = url.parse(this.request.url, true).query as any;
-		let ipSuffix = queryObject.wsPort - NETWORK_START_PORT + 1;
-		this.remoteAddress = `${BASE_PEER_IP}${ipSuffix}`;
-		return realResetPongTimeoutFunction.apply(this, arguments);
-	};
-
 	const numberOfPeers = networkSize ? networkSize : NETWORK_PEER_COUNT;
 	const startPort = startNodePort ? startNodePort : NETWORK_START_PORT;
 
@@ -82,8 +67,8 @@ export const createNetwork = async ({
 				? []
 				: [
 						{
-							ipAddress: BASE_PEER_IP + (((index + 1) % numberOfPeers) + 1),
-							wsPort: startPort + ((index + 1) % numberOfPeers),
+							ipAddress: SEED_PEER_IP,
+							wsPort: NETWORK_START_PORT + index - 1,
 						},
 				  ];
 
@@ -102,7 +87,6 @@ export const createNetwork = async ({
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
-			hostIp: BASE_PEER_IP + (index + 1),
 			nodeInfo: {
 				wsPort: nodePort,
 				nethash: nodeInfoConstants.nethash,
@@ -137,9 +121,6 @@ export const destroyNetwork = async (
 	await Promise.all(
 		p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
 	);
-
-	SCServerSocket.prototype = serverSocketPrototypeBackup;
-
 	await wait(
 		networkDestroyWaitTime ? networkDestroyWaitTime : NETWORK_DESTROY_WAIT_TIME,
 	);
