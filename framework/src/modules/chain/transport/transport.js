@@ -365,6 +365,13 @@ class Transport {
 			};
 		}
 
+		if (ids.length > this.constants.maxSharedTransactions) {
+			return {
+				success: false,
+				transactions: [],
+			};
+		}
+
 		const transactionsFromQueues = [];
 		const idsNotInPool = [];
 
@@ -385,6 +392,7 @@ class Transport {
 			// Check if any transaction that was not in the queues, is in the database instead.
 			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
 				{ id_in: idsNotInPool },
+				{ limit: this.constants.maxSharedTransactions },
 			);
 
 			return {
@@ -444,15 +452,15 @@ class Transport {
 			throw errors;
 		}
 
-		const unknownTransactions = await this._obtainUnknownTransactionIDs(
+		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
 			data.transactions.map(transaction => transaction.id),
 		);
-		if (unknownTransactions.length > 0) {
+		if (unknownTransactionIDs.length > 0) {
 			const { data: result } = await this.channel.invoke(
 				'network:requestFromPeer',
 				{
 					procedure: 'getTransactions',
-					data: unknownTransactions,
+					data: unknownTransactionIDs,
 					peerId,
 				},
 			);
@@ -477,9 +485,14 @@ class Transport {
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
-			const existingTransactions = await this.storage.entities.Transaction.get({
-				id_in: unknownTransactionsIDs,
-			});
+			const existingTransactions = await this.storage.entities.Transaction.get(
+				{
+					id_in: unknownTransactionsIDs,
+				},
+				{
+					limit: this.constants.maxSharedTransactions,
+				},
+			);
 
 			return unknownTransactionsIDs.filter(
 				id =>
