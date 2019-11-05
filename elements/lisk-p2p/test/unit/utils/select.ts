@@ -356,5 +356,51 @@ describe('peer selector', () => {
 				expect(peerList).to.include.members(selectedPeers);
 			});
 		});
+
+		describe('when there are multiple peer from same IP with different height', () => {
+			it('should return only unique IPs', () => {
+				let uniqIpAddresses: Array<string> = [];
+
+				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${10001 + i}`,
+					ipAddress: '205.120.0.20',
+					wsPort: 10001 + i,
+					sharedState: {
+						height: 10001 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
+
+				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${5000 + i}`,
+					ipAddress: '205.120.0.20',
+					wsPort: 5000 + i,
+					sharedState: {
+						height: 5000 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
+
+				triedPeers.push(peerList[0]);
+				newPeers.push(peerList[2]);
+
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 5,
+				});
+
+				selectedPeers.map(peer => uniqIpAddresses.push(peer.ipAddress));
+
+				expect(selectedPeers).to.be.not.empty;
+				expect(selectedPeers.length).to.equal(
+					[...new Set(uniqIpAddresses)].length,
+				);
+			});
+		});
 	});
 });

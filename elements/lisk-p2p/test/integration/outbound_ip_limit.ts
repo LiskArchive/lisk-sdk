@@ -19,7 +19,6 @@ import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 import { OutboundPeer } from '../../src/peer';
-import { uniq } from 'lodash';
 
 describe('Outbound IP limit', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
@@ -53,6 +52,20 @@ describe('Outbound IP limit', () => {
 			seedPeers: customSeedPeers(index, startPort),
 		});
 
+		/*
+		Network setup:
+		IP  , Port , ConnectedPeers
+		127.0.0.1 5000 8 <-- Only Seed Peer for every Node
+		127.0.0.2 5001 5 
+		127.0.0.2 5002 5 
+		127.0.0.3 5003 5 
+		127.0.0.3 5004 5 
+		127.0.0.4 5005 5 
+		127.0.0.4 5006 5 
+		127.0.0.5 5007 5 
+		127.0.0.5 5008 5 
+		*/
+
 		p2pNodeList = await createNetwork({ networkSize: 9, customConfig });
 	});
 
@@ -62,11 +75,12 @@ describe('Outbound IP limit', () => {
 
 	it('should not have multiple Outbound connection for same IP addresses', async () => {
 		for (let p2p of p2pNodeList) {
-			const outboundIPs = p2p['_peerPool']
+			let uniqIpAddresses: Array<string> = [];
+			p2p['_peerPool']
 				.getPeers(OutboundPeer)
-				.map(peer => peer.ipAddress);
+				.map(peer => uniqIpAddresses.push(peer.ipAddress));
 
-			expect(uniq(outboundIPs).length).to.equal(
+			expect([...new Set(uniqIpAddresses)].length).to.equal(
 				p2p['_peerPool'].getPeers(OutboundPeer).length,
 			);
 		}

@@ -111,7 +111,10 @@ export const selectPeersForSend = (
 export const selectPeersForConnection = (
 	input: P2PPeerSelectionForConnectionInput,
 ): ReadonlyArray<P2PPeerInfo> => {
-	if (input.peerLimit && input.peerLimit < 0) {
+	if (
+		(input.peerLimit && input.peerLimit < 0) ||
+		(input.triedPeers.length === 0 && input.newPeers.length === 0)
+	) {
 		return [];
 	}
 
@@ -119,11 +122,7 @@ export const selectPeersForConnection = (
 		input.peerLimit === undefined ||
 		input.peerLimit >= input.triedPeers.length + input.newPeers.length
 	) {
-		return [...input.newPeers, ...input.triedPeers];
-	}
-
-	if (input.triedPeers.length === 0 && input.newPeers.length === 0) {
-		return [];
+		return _removeCommonIPsFromLists([...input.newPeers, ...input.triedPeers]);
 	}
 
 	// LIP004 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md#peer-discovery-and-selection
@@ -135,22 +134,22 @@ export const selectPeersForConnection = (
 	const shuffledTriedPeers = shuffle(input.triedPeers);
 	const shuffledNewPeers = shuffle(input.newPeers);
 
+	const peerList = [...Array(input.peerLimit)].map(() => {
+		if (shuffledTriedPeers.length !== 0) {
+			if (Math.random() < r) {
+				// With probability r
+				return shuffledTriedPeers.pop() as P2PPeerInfo;
+			}
+		}
+
+		if (shuffledNewPeers.length !== 0) {
+			// With probability 1-r
+			return shuffledNewPeers.pop() as P2PPeerInfo;
+		}
+
+		return shuffledTriedPeers.pop() as P2PPeerInfo;
+	});
+
 	// TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
-	return _removeCommonIPsFromLists(
-		[...Array(input.peerLimit)].map(() => {
-			if (shuffledTriedPeers.length !== 0) {
-				if (Math.random() < r) {
-					// With probability r
-					return shuffledTriedPeers.pop() as P2PPeerInfo;
-				}
-			}
-
-			if (shuffledNewPeers.length !== 0) {
-				// With probability 1-r
-				return shuffledNewPeers.pop() as P2PPeerInfo;
-			}
-
-			return shuffledTriedPeers.pop() as P2PPeerInfo;
-		}),
-	);
+	return _removeCommonIPsFromLists(peerList);
 };
