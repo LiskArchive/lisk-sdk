@@ -413,6 +413,7 @@ module.exports = class Chain {
 		this.bft = new BFT({
 			storage: this.storage,
 			logger: this.logger,
+			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
