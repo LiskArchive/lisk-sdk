@@ -38,6 +38,8 @@ describe('Maximum payload', () => {
 		});
 		p2pNodeList = await createNetwork({ customConfig });
 
+		collectedMessages = [];
+
 		p2pNodeList.forEach(p2p => {
 			p2p.on('messageReceived', message => {
 				if (message.event === 'maxPayload') {
@@ -72,7 +74,6 @@ describe('Maximum payload', () => {
 
 	it('should not send a package larger than the ws max payload', async () => {
 		const firstP2PNode = p2pNodeList[0];
-		collectedMessages = [];
 
 		firstP2PNode.send({
 			event: 'maxPayload',
@@ -85,7 +86,6 @@ describe('Maximum payload', () => {
 
 	it('should disconnect the peer which has sent the message', async () => {
 		const firstP2PNode = p2pNodeList[0];
-		collectedMessages = [];
 
 		firstP2PNode.send({
 			event: 'maxPayload',

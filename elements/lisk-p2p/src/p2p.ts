@@ -913,13 +913,15 @@ export class P2P extends EventEmitter {
 
 		const selectedPeers = shuffle(knownFetchedPeers).slice(0, randomPeerCount);
 
-		const validatedPeerList: P2PPeerInfo[] = [];
+		const validatedPeerList: ProtocolPeerInfo[] = [];
 
 		selectedPeers.forEach(peer => {
 			try {
-				validatePeerInfo(sanitizeOutgoingPeerInfo(peer), maxPeerInfoSize);
+				const sanitizedPeerInfo = sanitizeOutgoingPeerInfo(peer);
 
-				validatedPeerList.push(peer);
+				validatePeerInfo(sanitizedPeerInfo, maxPeerInfoSize);
+
+				validatedPeerList.push(sanitizedPeerInfo);
 			} catch (err) {
 				this._peerBook.removePeer(peer);
 			}
@@ -927,7 +929,7 @@ export class P2P extends EventEmitter {
 
 		const peerInfoList = {
 			success: true,
-			peers: validatedPeerList.map(sanitizeOutgoingPeerInfo),
+			peers: validatedPeerList,
 		};
 
 		request.end(peerInfoList);
