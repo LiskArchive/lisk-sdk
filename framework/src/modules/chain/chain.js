@@ -243,8 +243,11 @@ module.exports = class Chain {
 					'network:event',
 					async ({ data: { event, data, peerId } }) => {
 						try {
-							if (event === 'postTransactions') {
-								await this.transport.handleEventPostTransactions(data);
+							if (event === 'postTransactionsAnnouncement') {
+								await this.transport.handleEventPostTransactionsAnnouncement({
+									data,
+									peerId,
+								});
 								return;
 							}
 							if (event === 'postSignatures') {
@@ -295,7 +298,10 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging,
 				),
-			getTransactions: async () => this.transport.handleRPCGetTransactions(),
+			getTransactions: async action =>
+				action.params
+					? this.transport.handleRPCGetTransactions(action.params)
+					: this.transport.handleRPCGetTransactions(),
 			getSignatures: async () => this.transport.handleRPCGetSignatures(),
 			postSignature: async action =>
 				this.transport.handleEventPostSignature(action.params),

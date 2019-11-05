@@ -124,9 +124,9 @@ class Transport {
 			this.broadcaster.enqueue(
 				{},
 				{
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: {
-						transaction: transactionJSON,
+						transaction: { id: transaction.id },
 					},
 				},
 			);
@@ -189,7 +189,7 @@ class Transport {
 	 * @property {function} postSignatures
 	 * @property {function} getSignatures
 	 * @property {function} getTransactions
-	 * @property {function} postTransactions
+	 * @property {function} postTransactionsAnnouncement
 	 * @todo Add description for the functions
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
@@ -345,20 +345,60 @@ class Transport {
 	}
 
 	/**
-	 * Description of getTransactions.
+	 * Get default number of transactions or by ids.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleRPCGetTransactions() {
-		const transactions = this.transactionPoolModule.getMergedTransactionList(
-			true,
-			this.constants.maxSharedTransactions,
-		);
+	async handleRPCGetTransactions(ids) {
+		if (!(ids && Array.isArray(ids) && ids.length)) {
+			return {
+				success: true,
+				transactions: this.transactionPoolModule.getMergedTransactionList(
+					true,
+					this.constants.maxSharedTransactions,
+				),
+			};
+		}
+
+		if (ids.length > this.constants.maxSharedTransactions) {
+			// TODO: apply penalty to the requester #3672
+			return {
+				transactions: [],
+			};
+		}
+
+		const transactionsFromQueues = [];
+		const idsNotInPool = [];
+
+		for (const id of ids) {
+			// Check if any transaction is in the queues.
+			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
+				id,
+			);
+
+			if (transactionInPool) {
+				transactionsFromQueues.push(transactionInPool.toJSON());
+			} else {
+				idsNotInPool.push(id);
+			}
+		}
+
+		if (idsNotInPool.length) {
+			// Check if any transaction that was not in the queues, is in the database instead.
+			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
+				{ id_in: idsNotInPool },
+				{ limit: this.constants.maxSharedTransactions },
+			);
+
+			return {
+				transactions: transactionsFromQueues.concat(transactionsFromDatabase),
+			};
+		}
 
 		return {
-			transactions,
+			transactions: transactionsFromQueues,
 		};
 	}
 
@@ -384,20 +424,21 @@ class Transport {
 	}
 
 	/**
-	 * Description of postTransactions.
+	 * Process transactions IDs announcement. First validates, filter the known transactions
+	 * and finally ask to the emitter the ones that are unknown.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostTransactions(query) {
+	async handleEventPostTransactionsAnnouncement({ data, peerId }) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',
 			);
 		}
 
-		const errors = validator.validate(schemas.transactionsRequest, query);
+		const errors = validator.validate(schemas.transactionsRequest, data);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid transactions body');
@@ -405,7 +446,57 @@ class Transport {
 			throw errors;
 		}
 
-		return this._receiveTransactions(query.transactions);
+		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
+			data.transactions.map(transaction => transaction.id),
+		);
+		if (unknownTransactionIDs.length > 0) {
+			const { data: result } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getTransactions',
+					data: unknownTransactionIDs,
+					peerId,
+				},
+			);
+			return this._receiveTransactions(result.transactions);
+		}
+
+		return null;
+	}
+
+	/**
+	 * It filters the known transaction IDs because they are either in the queues or exist in the database.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async _obtainUnknownTransactionIDs(ids) {
+		// Check if any transaction is in the queues.
+		const unknownTransactionsIDs = ids.filter(
+			id => !this.transactionPoolModule.transactionInPool(id),
+		);
+
+		if (unknownTransactionsIDs.length) {
+			// Check if any transaction exists in the database.
+			const existingTransactions = await this.storage.entities.Transaction.get(
+				{
+					id_in: unknownTransactionsIDs,
+				},
+				{
+					limit: this.constants.maxSharedTransactions,
+				},
+			);
+
+			return unknownTransactionsIDs.filter(
+				id =>
+					existingTransactions.find(
+						existingTransaction => existingTransaction.id === id,
+					) === undefined,
+			);
+		}
+
+		return unknownTransactionsIDs;
 	}
 
 	/**
