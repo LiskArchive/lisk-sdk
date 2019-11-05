@@ -17,7 +17,7 @@
 const _ = require('lodash');
 
 class TransactionStore {
-	constructor(transactionEntity, { tx }) {
+	constructor(transactionEntity, { tx } = {}) {
 		this.transaction = transactionEntity;
 		this.data = [];
 		this.primaryKey = 'id';

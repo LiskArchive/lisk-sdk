@@ -196,7 +196,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					expectedReward,
 				);
 			},
-			data => this.blocksModule.verifyInMemory(data),
+			({ block, lastBlock }) =>
+				this.blocksModule.verifyInMemory(block, lastBlock),
 			({ block }) => this.dposModule.verifyBlockForger(block),
 			({ block }) => this.bftModule.validateBlock(block),
 		]);
@@ -220,28 +221,27 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		]);
 
 		this.forkStatus.pipe([
-			data => this.blocksModule.forkChoice(data), // validate common block header
+			({ block, lastBlock }) => this.blocksModule.forkChoice(block, lastBlock), // validate common block header
 		]);
-
-		// TODO: Remove validate new since it's no longer required
-		this.validateNew.pipe([() => Promise.resolve()]);
 
 		this.verify.pipe([({ block }) => this.bftModule.verifyNewBlock(block)]);
 
 		this.apply.pipe([
-			data => this.blocksModule.verify(data),
-			data => this.blocksModule.apply(data),
+			({ block, stateStore, skipExistingCheck }) =>
+				this.blocksModule.verify(block, stateStore, { skipExistingCheck }),
+			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
 			({ block, tx }) => this.dposModule.apply(block, { tx }),
 			({ block, tx }) => this.bftModule.addNewBlock(block, tx),
 		]);
 
 		this.applyGenesis.pipe([
-			data => this.blocksModule.applyGenesis(data),
+			({ block, stateStore }) =>
+				this.blocksModule.applyGenesis(block, stateStore),
 			({ block, tx }) => this.dposModule.apply(block, { tx }),
 		]);
 
 		this.undo.pipe([
-			data => this.blocksModule.undo(data),
+			({ block, stateStore }) => this.blocksModule.undo(block, stateStore),
 			({ block, tx }) => this.dposModule.undo(block, { tx }),
 			({ block }) => this.bftModule.deleteBlocks([block]),
 		]);

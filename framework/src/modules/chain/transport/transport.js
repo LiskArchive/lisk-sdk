@@ -590,9 +590,11 @@ class Transport {
 				transactionsModule.validateTransactions(this.exceptions),
 			);
 
-			const { transactionsResponses } = await composedTransactionsCheck([
-				transaction,
-			]);
+			// Composed transaction checks are all static, so it does not need state store
+			const { transactionsResponses } = await composedTransactionsCheck(
+				[transaction],
+				undefined,
+			);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;
