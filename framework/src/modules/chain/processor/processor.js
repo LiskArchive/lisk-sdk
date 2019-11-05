@@ -16,6 +16,7 @@
 
 const { cloneDeep } = require('lodash');
 const {
+	StateStore,
 	FORK_STATUS_IDENTICAL_BLOCK,
 	FORK_STATUS_VALID_BLOCK,
 	FORK_STATUS_DOUBLE_FORGING,
@@ -24,7 +25,6 @@ const {
 	FORK_STATUS_DISCARD,
 } = require('../blocks');
 const { Sequence } = require('../utils/sequence');
-const StateStore = require('../state_store');
 
 const forkStatusList = [
 	FORK_STATUS_IDENTICAL_BLOCK,

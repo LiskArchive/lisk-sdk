@@ -24,7 +24,6 @@ const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
-const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const {
 	TransactionPool,
 	EVENT_MULTISIGNATURE_SIGNATURE,
@@ -394,16 +393,6 @@ module.exports = class Chain {
 
 	async _initModules() {
 		this.scope.modules = {};
-		this.interfaceAdapters = {
-			transactions: new TransactionInterfaceAdapter(
-				this.networkIdentifier,
-				this.options.registeredTransactions,
-			),
-		};
-
-		// Deserialize genesis block
-
-		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		this.slots = new Slots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
@@ -435,9 +424,10 @@ module.exports = class Chain {
 			storage: this.storage,
 			sequence: this.scope.sequence,
 			genesisBlock: this.options.genesisBlock,
+			registeredTransactions: this.options.registeredTransactions,
+			networkIdentifier: this.networkIdentifier,
 			slots: this.slots,
 			exceptions: this.options.exceptions,
-			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
@@ -455,7 +445,6 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			blocksModule: this.blocks,
-			interfaceAdapters: this.interfaceAdapters,
 		});
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
@@ -466,7 +455,6 @@ module.exports = class Chain {
 			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			processorModule: this.processor,
-			interfaceAdapters: this.interfaceAdapters,
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
@@ -509,13 +497,9 @@ module.exports = class Chain {
 		this.loader = new Loader({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
-			cache: this.cache,
-			genesisBlock: this.options.genesisBlock,
+			processorModule: this.processor,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
-			processorModule: this.processor,
-			interfaceAdapters: this.interfaceAdapters,
 			loadPerIteration: this.options.loading.loadPerIteration,
 			syncingActive: this.options.syncing.active,
 		});
@@ -526,7 +510,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
-			interfaceAdapters: this.interfaceAdapters,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.modules.rebuilder = this.rebuilder;
@@ -534,7 +517,6 @@ module.exports = class Chain {
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
-			sequence: this.scope.sequence,
 			slots: this.slots,
 			dposModule: this.dpos,
 			transactionPoolModule: this.transactionPool,
@@ -559,7 +541,6 @@ module.exports = class Chain {
 			processorModule: this.processor,
 			blocksModule: this.blocks,
 			loaderModule: this.loader,
-			interfaceAdapters: this.interfaceAdapters,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});

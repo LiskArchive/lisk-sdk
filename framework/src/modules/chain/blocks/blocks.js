@@ -19,11 +19,17 @@ const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	applyTransactions,
+	composeTransactionSteps,
 	checkPersistedTransactions,
 	checkAllowedTransactions,
 	validateTransactions,
-} = require('../transactions');
-const StateStore = require('../state_store');
+	verifyTransactions,
+	processSignature,
+} = require('./transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('./transaction_interface_adapter');
+const { StateStore } = require('./state_store');
 const blocksUtils = require('./utils');
 const {
 	BlocksVerify,
@@ -62,8 +68,9 @@ class Blocks extends EventEmitter {
 		slots,
 		exceptions,
 		// Modules
-		interfaceAdapters,
+		registeredTransactions,
 		// constants
+		networkIdentifier,
 		blockReceiptTimeout, // set default
 		loadPerIteration,
 		maxPayloadLength,
@@ -77,22 +84,15 @@ class Blocks extends EventEmitter {
 	}) {
 		super();
 		this._lastBlock = {};
-
-		/**
-		 * Represents the receipt time of the last block that was received
-		 * from the network.
-		 * TODO: Remove after fork.
-		 * @type {number}
-		 * @private
-		 */
-
-		this._cleaning = false;
+		this._interfaceAdapter = new TransactionInterfaceAdapter(
+			networkIdentifier,
+			registeredTransactions,
+		);
 
 		this.logger = logger;
 		this.storage = storage;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
-		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
 		this.blockRewardArgs = {
 			distance: rewardDistance,
@@ -181,7 +181,7 @@ class Blocks extends EventEmitter {
 	 */
 	deserialize(blockJSON) {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
-			this.interfaceAdapters.transactions.fromJson(transaction),
+			this._interfaceAdapter.fromJSON(transaction),
 		);
 		return {
 			...blockJSON,
@@ -200,6 +200,10 @@ class Blocks extends EventEmitter {
 					: blockJSON.payloadLength,
 			transactions,
 		};
+	}
+
+	deserializeTransaction(transactionJSON) {
+		return this._interfaceAdapter.fromJSON(transactionJSON);
 	}
 
 	async validateBlockHeader(block, blockBytes, expectedReward) {
@@ -443,6 +447,43 @@ class Blocks extends EventEmitter {
 			this.logger.error({ err: e }, errMessage);
 			throw new Error(errMessage);
 		}
+	}
+
+	async validateTransactions(transactions) {
+		return composeTransactionSteps(
+			checkAllowedTransactions(this.lastBlock),
+			validateTransactions(this.exceptions),
+			// Composed transaction checks are all static, so it does not need state store
+		)(transactions, undefined);
+	}
+
+	async verifyTransactions(transactions) {
+		const stateStore = new StateStore(this.storage);
+		return composeTransactionSteps(
+			checkAllowedTransactions(() => {
+				const { version, height, timestamp } = this.blocks.lastBlock;
+				return {
+					blockVersion: version,
+					blockHeight: height,
+					blockTimestamp: timestamp,
+				};
+			}), // TODO: probably wrong
+			checkPersistedTransactions(this.storage),
+			verifyTransactions(this.slots, this.exceptions),
+		)(transactions, stateStore);
+	}
+
+	async processTransactions(transactions) {
+		const stateStore = new StateStore(this.storage);
+		return composeTransactionSteps(
+			checkPersistedTransactions(this.storage),
+			applyTransactions(this.exceptions),
+		)(transactions, stateStore);
+	}
+
+	async processSignature(transaction, signature) {
+		const stateStore = new StateStore(this.storage);
+		return processSignature()(transaction, signature, stateStore);
 	}
 }
 

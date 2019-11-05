@@ -20,7 +20,7 @@ const {
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const { sortTransactions } = require('./transactions');
+const { sortTransactions } = require('./sort');
 
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.

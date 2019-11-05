@@ -15,7 +15,7 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionsModule = require('../transactions');
+const transactionsModule = require('./transactions');
 
 const verifyBlockNotExists = async (storage, block) => {
 	const isPersisted = await storage.entities.Block.isPersisted({

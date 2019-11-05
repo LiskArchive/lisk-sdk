@@ -38,7 +38,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		logger,
 		channel,
 		slots,
-		interfaceAdapters,
 		bft,
 		blocks,
 		processorModule,
@@ -52,7 +51,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		this.constants = {
 			activeDelegates,
 		};
-		this.interfaceAdapters = interfaceAdapters;
 		this.active = false;
 	}
 
