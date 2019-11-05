@@ -26,13 +26,9 @@ const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
-const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
 const {
 	registeredTransactions,
 } = require('../../../../../utils/registered_transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../../../src/modules/chain/interface_adapters');
 
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('events');
@@ -72,12 +68,6 @@ describe('blocks', () => {
 	beforeEach(() => {
 		// Arrange
 		stubs.dependencies = {
-			interfaceAdapters: {
-				transactions: new TransactionInterfaceAdapter(
-					networkIdentifier,
-					registeredTransactions,
-				),
-			},
 			storage: {
 				entities: {
 					Account: {
@@ -127,6 +117,8 @@ describe('blocks', () => {
 		blocksInstance = new Blocks({
 			...stubs.dependencies,
 			genesisBlock,
+			networkIdentifier,
+			registeredTransactions,
 			slots,
 			exceptions,
 			...constants,

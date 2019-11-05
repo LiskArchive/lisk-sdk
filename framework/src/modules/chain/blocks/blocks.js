@@ -461,7 +461,7 @@ class Blocks extends EventEmitter {
 		const stateStore = new StateStore(this.storage);
 		return composeTransactionSteps(
 			checkAllowedTransactions(() => {
-				const { version, height, timestamp } = this.blocks.lastBlock;
+				const { version, height, timestamp } = this._lastBlock;
 				return {
 					blockVersion: version,
 					blockHeight: height,
