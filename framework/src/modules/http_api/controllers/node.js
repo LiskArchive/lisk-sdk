@@ -18,7 +18,6 @@ const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
-const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
@@ -87,70 +86,6 @@ async function _getNetworkHeight() {
 	);
 
 	return parseInt(networkHeight, 10);
-}
-
-/**
- * Get count of confirmedTransaction from cache
- *
- * @returns Number
- * @private
- */
-async function _getConfirmedTransactionCount() {
-	// if cache is ready, then get cache and return
-	if (library.components.cache.ready) {
-		try {
-			const data = await library.components.cache.getJsonForKey(
-				CACHE_KEYS_TRANSACTION_COUNT,
-			);
-			if (data && data.confirmed !== null && data.confirmed !== undefined) {
-				return data.confirmed;
-			}
-		} catch (error) {
-			library.components.logger.debug("Transaction count wasn't cached");
-		}
-	}
-	const confirmed = await library.components.storage.entities.Transaction.count();
-	// only update cache if ready
-	if (library.components.cache.ready) {
-		try {
-			await library.components.cache.setJsonForKey(
-				CACHE_KEYS_TRANSACTION_COUNT,
-				{
-					confirmed,
-				},
-			);
-		} catch (error) {
-			// Ignore error and just put warn
-			library.components.logger.debug(
-				error,
-				'Failed to cache Transaction count',
-			);
-		}
-	}
-	return confirmed;
-}
-
-/**
- * Parse transaction instance to raw data
- *
- * @returns Object
- * @private
- */
-function _normalizeTransactionOutput(transaction) {
-	return {
-		id: transaction.id,
-		type: transaction.type,
-		amount: transaction.amount.toString(),
-		fee: transaction.fee.toString(),
-		timestamp: transaction.timestamp,
-		senderPublicKey: transaction.senderPublicKey,
-		senderId: transaction.senderId || '',
-		signature: transaction.signature,
-		signatures: transaction.signatures,
-		recipientPublicKey: transaction.recipientPublicKey || '',
-		recipientId: transaction.recipientId || '',
-		asset: transaction.asset,
-	};
 }
 
 /**
@@ -247,41 +182,23 @@ NodeController.getConstants = async (context, next) => {
 NodeController.getStatus = async (context, next) => {
 	try {
 		const {
-			consensus,
 			secondsSinceEpoch,
 			loaded,
 			syncing,
-			unconfirmedTransactions,
 			lastBlock,
+			chainMaxHeightFinalized,
 		} = await library.channel.invoke('chain:getNodeStatus');
 
-		// get confirmed count from cache or chain
-
-		const [confirmed, networkHeight] = await Promise.all([
-			_getConfirmedTransactionCount(),
-			_getNetworkHeight(),
-		]);
-		const total =
-			confirmed +
-			Object.values(unconfirmedTransactions).reduce(
-				(prev, current) => prev + current,
-				0,
-			);
+		const networkHeight = await _getNetworkHeight();
 
 		const data = {
-			broadhash: library.applicationState.broadhash,
-			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
-			loaded,
 			networkHeight,
+			chainMaxHeightFinalized,
+			loaded,
 			syncing,
-			transactions: {
-				confirmed,
-				...unconfirmedTransactions,
-				total,
-			},
 		};
 
 		return next(null, data);
@@ -304,10 +221,13 @@ NodeController.getForgingStatus = async (context, next) => {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
 	}
-	const publicKey = context.request.swagger.params.publicKey.value;
+	const { publicKey, forging } = context.request.swagger.params;
 
 	try {
-		const forgingStatus = await _getForgingStatus(publicKey);
+		const forgingStatus = await _getForgingStatus(publicKey.value);
+		if (forging && typeof forging.value === 'boolean') {
+			return next(null, forgingStatus.filter(f => f.forging === forging.value));
+		}
 		return next(null, forgingStatus);
 	} catch (err) {
 		return next(err);
@@ -367,7 +287,6 @@ NodeController.getPooledTransactions = async function(context, next) {
 	let filters = {
 		id: params.id.value,
 		recipientId: params.recipientId.value,
-		recipientPublicKey: params.recipientPublicKey.value,
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
@@ -385,7 +304,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 			filters: _.clone(filters),
 		});
 
-		const transactions = data.transactions.map(_normalizeTransactionOutput);
+		const transactions = data.transactions.map(tx => tx.toJSON());
 
 		return next(null, {
 			data: transactions,

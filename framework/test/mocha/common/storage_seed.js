@@ -56,13 +56,11 @@ class StorageSeed {
 				block = new fixtures.blocks.Block({
 					id: account.blockId,
 					generatorPublicKey: account.publicKey,
-					previousBlock: block ? block.id : null,
+					previousBlockId: block ? block.id : null,
 					height: blocks.length + 1,
 				});
 			}
 
-			block.previousBlockId = block.previousBlock;
-			delete block.previousBlock;
 			delete block.transactions;
 
 			blocks.push(block);
@@ -137,9 +135,6 @@ class StorageSeed {
 		const tables = [
 			'blocks',
 			'mem_accounts',
-			'mem_accounts2multisignatures',
-			'mem_accounts2delegates',
-			'rounds_rewards',
 			'peers',
 			'trs',
 			'chain_meta',

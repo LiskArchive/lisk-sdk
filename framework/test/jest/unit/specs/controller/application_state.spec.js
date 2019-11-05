@@ -23,15 +23,20 @@ jest.mock('os', () => ({
 describe('Application State', () => {
 	let applicationState;
 	const initialState = {
+		blockVersion: 0,
 		version: '1.0.0-beta.3',
 		wsPort: '3001',
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
 		nethash: 'test broadhash',
+		prevotedConfirmedUptoHeight: 0,
+		height: 1,
 		nonce: 'test nonce',
+		os: 'platformrelease',
 	};
 	const mockedState = {
+		blockVersion: 0,
 		os: 'platformrelease',
 		version: '1.0.0-beta.3',
 		wsPort: '3001',
@@ -39,7 +44,6 @@ describe('Application State', () => {
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
 		nethash: 'test broadhash',
-		broadhash: 'test broadhash',
 		prevotedConfirmedUptoHeight: 0,
 		height: 1,
 		nonce: 'test nonce',
@@ -94,7 +98,6 @@ describe('Application State', () => {
 		describe('when there is an error', () => {
 			// Arrange
 			const newState = {
-				broadhash: 'xxx',
 				prevotedConfirmedUptoHeight: 0,
 				height: '10',
 			};
@@ -134,7 +137,6 @@ describe('Application State', () => {
 				// Arrange
 				newState = {
 					prevotedConfirmedUptoHeight: 0,
-					broadhash: 'newBroadhash',
 					height: undefined,
 				};
 				const heightAssertionError = new AssertionError({
@@ -154,7 +156,6 @@ describe('Application State', () => {
 				// Arrange
 				newState = {
 					prevotedConfirmedUptoHeight: 0,
-					broadhash: 'newBroadhash',
 					height: null,
 				};
 				const heightAssertionError = new AssertionError({
@@ -180,7 +181,6 @@ describe('Application State', () => {
 				// Arrange
 				newState = {
 					prevotedConfirmedUptoHeight: 1,
-					broadhash: 'newBroadhash',
 					height: '10',
 				};
 				applicationState.channel = channel;
@@ -188,11 +188,6 @@ describe('Application State', () => {
 				// Act
 				result = await applicationState.update(newState);
 				updatedState = applicationState.state;
-			});
-
-			it('should update broadhash', async () => {
-				// Assert
-				expect(updatedState.broadhash).toBe(newState.broadhash);
 			});
 
 			it('should update prevotedConfirmedUptoHeight', async () => {
@@ -211,8 +206,8 @@ describe('Application State', () => {
 				// Assert
 				expect(logger.debug).toHaveBeenCalled();
 				expect(logger.debug).toHaveBeenLastCalledWith(
-					'Application state',
 					updatedState,
+					'Update application state',
 				);
 			});
 

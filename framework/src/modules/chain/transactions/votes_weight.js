@@ -18,10 +18,10 @@ const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 
 // TODO: change to more generic way
-const TRANSACTION_TYPES_SEND = 0;
-const TRANSACTION_TYPES_VOTE = 3;
-const TRANSACTION_TYPES_IN_TRANSFER = 6;
-const TRANSACTION_TYPES_OUT_TRANSFER = 7;
+const TRANSACTION_TYPES_SEND = [0, 8];
+const TRANSACTION_TYPES_VOTE = [3, 11];
+const TRANSACTION_TYPES_IN_TRANSFER = [6];
+const TRANSACTION_TYPES_OUT_TRANSFER = [7];
 
 const revertVotes = votes =>
 	votes.map(vote => {
@@ -49,18 +49,20 @@ const getRecipientAddress = (stateStore, transaction) => {
 	 *  If transaction type is IN_TRANSFER then,
 	 * `recipientId` is the owner of dappRegistration transaction
 	 */
-	if (transaction.type === TRANSACTION_TYPES_IN_TRANSFER) {
+	if (TRANSACTION_TYPES_IN_TRANSFER.includes(transaction.type)) {
 		const dappTransaction = stateStore.transaction.get(
 			transaction.asset.inTransfer.dappId,
 		);
 		return dappTransaction.senderId;
 	}
 	if (
-		transaction.type === TRANSACTION_TYPES_SEND ||
-		transaction.type === TRANSACTION_TYPES_OUT_TRANSFER ||
-		transaction.type === TRANSACTION_TYPES_VOTE
+		[
+			...TRANSACTION_TYPES_SEND,
+			...TRANSACTION_TYPES_OUT_TRANSFER,
+			...TRANSACTION_TYPES_VOTE,
+		].includes(transaction.type)
 	) {
-		return transaction.recipientId;
+		return transaction.asset.recipientId;
 	}
 
 	return null;
@@ -101,7 +103,9 @@ const updateRecipientDelegateVotes = (
 		return false;
 	}
 
-	const { amount } = transaction;
+	const {
+		asset: { amount },
+	} = transaction;
 	const account = stateStore.account.get(address);
 	const method = undo ? 'sub' : 'add';
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
@@ -121,7 +125,8 @@ const updateSenderDelegateVotes = (
 	exceptions,
 	undo = false,
 ) => {
-	const amount = transaction.fee.plus(transaction.amount);
+	// use the ammount or default to zero as LIP-0012 removes the 'amount' property from all transactions but transfer
+	const amount = transaction.fee.plus(transaction.asset.amount || 0);
 	const method = undo ? 'add' : 'sub';
 	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
 	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];
@@ -136,7 +141,7 @@ const updateSenderDelegateVotes = (
 	 * @todo Remove if condition when we have testnet
 	 */
 	if (
-		transaction.type === TRANSACTION_TYPES_VOTE &&
+		TRANSACTION_TYPES_VOTE.includes(transaction.type) &&
 		(!exceptions.roundVotes || !exceptions.roundVotes.includes(transaction.id))
 	) {
 		/**
@@ -167,7 +172,7 @@ const updateDelegateVotes = (stateStore, transaction, undo = false) => {
 	/**
 	 * If transaction is not VOTE transaction,
 	 */
-	if (transaction.type !== TRANSACTION_TYPES_VOTE) {
+	if (!TRANSACTION_TYPES_VOTE.includes(transaction.type)) {
 		return false;
 	}
 

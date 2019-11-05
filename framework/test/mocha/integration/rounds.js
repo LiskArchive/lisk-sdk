@@ -31,6 +31,11 @@ const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
+const { getNetworkIdentifier } = require('../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -105,7 +110,9 @@ describe('rounds', () => {
 				// Update sender
 				accounts[address].balance = new BigNum(accounts[address].balance)
 					.minus(
-						new BigNum(transaction.fee).plus(new BigNum(transaction.amount)),
+						new BigNum(transaction.fee).plus(
+							new BigNum(transaction.asset.amount || 0),
+						),
 					)
 					.toString();
 
@@ -118,27 +125,45 @@ describe('rounds', () => {
 				}
 
 				// Apply register delegate transaction
-				if (transaction.type === 2) {
-					accounts[address].username = transaction.asset.delegate.username;
+				if (transaction.type === 10) {
+					accounts[address].username = transaction.asset.username;
 					accounts[address].isDelegate = 1;
+				}
+
+				// After merging mem_accounts depdentent tables the returned account has more fields so we need to account for this
+				if (transaction.type === 11) {
+					const upvotes = transaction.asset.votes
+						.filter(vote => vote.charAt(0) === '+')
+						.map(vote => vote.substring(1));
+					const unvotes = transaction.asset.votes
+						.filter(vote => vote.charAt(0) === '-')
+						.map(vote => vote.substring(1));
+					const originalVotes =
+						accounts[address].votedDelegatesPublicKeys || [];
+					const votedDelegatesPublicKeys = [
+						...originalVotes,
+						...upvotes,
+					].filter(vote => !unvotes.includes(vote));
+
+					accounts[address].votedDelegatesPublicKeys = votedDelegatesPublicKeys;
 				}
 			}
 
 			// RECIPIENT: Get address from recipientId
-			address = transaction.recipientId;
+			address = transaction.asset.recipientId;
 			// Perform only when address exists (exclude non-standard tyransaction types)
 			if (address) {
 				// If account with address exists - set expected values
 				if (accounts[address]) {
 					// Update recipient
 					accounts[address].balance = new BigNum(accounts[address].balance)
-						.plus(new BigNum(transaction.amount))
+						.plus(new BigNum(transaction.asset.amount || 0))
 						.toString();
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
-						balance: new BigNum(transaction.amount).toString(),
+						balance: new BigNum(transaction.asset.amount || 0).toString(),
 					});
 				}
 			}
@@ -447,8 +472,9 @@ describe('rounds', () => {
 				),
 				(_accounts, _delegates, _delegatesList) => {
 					// Get genesis accounts address - should be senderId from first transaction
-					const genesisAddress =
-						library.genesisBlock.block.transactions[0].senderId;
+					const genesisAddress = getAddressFromPublicKey(
+						library.genesisBlock.block.transactions[0].senderPublicKey,
+					);
 					// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
 					const genesisPublicKey = _accounts[genesisAddress].publicKey.toString(
 						'hex',
@@ -468,6 +494,7 @@ describe('rounds', () => {
 
 			before(done => {
 				const transaction = transfer({
+					networkIdentifier,
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000).toString(),
 					passphrase: accountsFixtures.genesis.passphrase,
@@ -487,6 +514,7 @@ describe('rounds', () => {
 
 				for (let i = transactionsPerBlock - 1; i >= 0; i--) {
 					const transaction = transfer({
+						networkIdentifier,
 						recipientId: randomUtil.account().address,
 						amount: randomUtil.number(100000000, 1000000000).toString(),
 						passphrase: accountsFixtures.genesis.passphrase,
@@ -511,6 +539,7 @@ describe('rounds', () => {
 					const transactions = [];
 					for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 						const transaction = transfer({
+							networkIdentifier,
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountsFixtures.genesis.passphrase,
@@ -538,6 +567,7 @@ describe('rounds', () => {
 
 			before(() => {
 				const transaction = transfer({
+					networkIdentifier,
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000).toString(),
 					passphrase: accountsFixtures.genesis.passphrase,
@@ -568,8 +598,9 @@ describe('rounds', () => {
 						const delegates = {};
 
 						// Get genesis accounts address - should be senderId from first transaction
-						const genesisAddress =
-							library.genesisBlock.block.transactions[0].senderId;
+						const genesisAddress = getAddressFromPublicKey(
+							library.genesisBlock.block.transactions[0].senderPublicKey,
+						);
 						// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
 						const genesisPublicKey = _accounts[
 							genesisAddress
@@ -640,7 +671,7 @@ describe('rounds', () => {
 			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
 				return getMemAccounts().then(_accounts => {
 					// Add back empty account, created accounts are never deleted
-					const address = lastBlock.transactions[0].recipientId;
+					const address = lastBlock.transactions[0].asset.recipientId;
 					round.accountsBeforeLastBlock[address] = accountsFixtures.dbAccount({
 						address,
 						balance: '0',
@@ -696,6 +727,7 @@ describe('rounds', () => {
 
 				// Create unvote transaction
 				const transaction = castVotes({
+					networkIdentifier,
 					passphrase: accountsFixtures.genesis.passphrase,
 					unvotes: [lastBlockForger],
 				});
@@ -821,6 +853,7 @@ describe('rounds', () => {
 
 					// Create transfer transaction (fund new account)
 					let transaction = transfer({
+						networkIdentifier,
 						recipientId: tmpAccount.address,
 						amount: '5000000000',
 						passphrase: accountsFixtures.genesis.passphrase,
@@ -829,12 +862,14 @@ describe('rounds', () => {
 
 					// Create register delegate transaction
 					transaction = registerDelegate({
+						networkIdentifier,
 						passphrase: tmpAccount.passphrase,
 						username: 'my_little_delegate',
 					});
 					transactions.delegate.push(transaction);
 
 					transaction = castVotes({
+						networkIdentifier,
 						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 						votes: [tmpAccount.publicKey],
@@ -993,6 +1028,7 @@ describe('rounds', () => {
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 							const transaction = transfer({
+								networkIdentifier,
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000).toString(),
 								passphrase: accountsFixtures.genesis.passphrase,
@@ -1048,6 +1084,7 @@ describe('rounds', () => {
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 							const transaction = transfer({
+								networkIdentifier,
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000).toString(),
 								passphrase: accountsFixtures.genesis.passphrase,

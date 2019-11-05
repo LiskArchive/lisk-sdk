@@ -15,31 +15,12 @@
 
 'use strict';
 
-const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
-
-const createBlock = (
-	chainModule,
-	lastBlock,
-	transactions,
-	keypair,
-	timestamp,
-) =>
-	blocksLogic.create({
-		blockReward: chainModule.blocks.blockReward,
-		previousBlock: lastBlock,
-		transactions,
-		maxPayloadLength: chainModule.constants.maxPayloadLength,
-		keypair,
-		timestamp,
-	});
-
 const processBlock = async (chainModule, block) =>
 	chainModule.blocks.processBlock(block);
 
 const deleteLastBlock = async chainModule => chainModule.blocks.recoverChain();
 
 module.exports = {
-	createBlock,
 	processBlock,
 	deleteLastBlock,
 };

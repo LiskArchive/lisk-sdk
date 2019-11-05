@@ -14,10 +14,7 @@
 
 'use strict';
 
-const EventEmitter = require('events');
 const { hash } = require('@liskhq/lisk-cryptography');
-// Will be fired once a round is finished
-const EVENT_ROUND_FINISHED = 'EVENT_ROUND_FINISHED';
 
 const shuffleDelegateListForRound = (round, list) => {
 	const seedSource = round.toString();
@@ -39,9 +36,8 @@ const shuffleDelegateListForRound = (round, list) => {
 	return delegateList;
 };
 
-class DelegatesList extends EventEmitter {
+class DelegatesList {
 	constructor({ storage, activeDelegates, slots, exceptions }) {
-		super();
 		this.storage = storage;
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
@@ -49,12 +45,16 @@ class DelegatesList extends EventEmitter {
 	}
 
 	/**
-	 * Get shuffled list of active delegate public keys for a specific round -> forger public keys
+	 * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
+	 * The list of delegates used is the one computed at the end of the round `r - delegateListRoundOffset`
 	 * @param {number} round
+	 * @param {number} delegateListRoundOffset
 	 */
-	async getForgerPublicKeysForRound(round, tx) {
+	async getForgerPublicKeysForRound(round, delegateListRoundOffset, tx) {
+		// Delegate list is generated from round 1 hence `roundWithOffset` can't be less than 1
+		const roundWithOffset = Math.max(round - delegateListRoundOffset, 1);
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
-			round,
+			roundWithOffset,
 			tx,
 		);
 
@@ -132,13 +132,19 @@ class DelegatesList extends EventEmitter {
 	 * Validates if block was forged by correct delegate
 	 *
 	 * @param {Object} block
+	 * @param {Number} delegateListRoundOffset - use delegate list generated at the end of `delegateListRoundOffset` before the current round
 	 * @return {Boolean} - `true`
 	 * @throw {Error} Failed to verify slot
 	 */
-	async verifyBlockForger(block, tx) {
+	async verifyBlockForger(block, { tx, delegateListRoundOffset }) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
-		const round = this.slots.calcRound(block.height);
-		const delegateList = await this.getForgerPublicKeysForRound(round, tx);
+		const currentRound = this.slots.calcRound(block.height);
+
+		const delegateList = await this.getForgerPublicKeysForRound(
+			currentRound,
+			delegateListRoundOffset,
+			tx,
+		);
 
 		if (!delegateList.length) {
 			throw new Error(
@@ -163,11 +169,15 @@ class DelegatesList extends EventEmitter {
 			 * Should be tackled by https://github.com/LiskHQ/lisk-sdk/issues/4194
 			 */
 			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
-			if (ignoreDelegateListCacheForRounds.includes(round)) {
+			if (ignoreDelegateListCacheForRounds.includes(currentRound)) {
 				return true;
 			}
 
-			throw new Error(`Failed to verify slot: ${currentSlot}`);
+			throw new Error(
+				`Failed to verify slot: ${currentSlot}. Block ID: ${
+					block.id
+				}. Block Height: ${block.height}`,
+			);
 		}
 
 		return true;
@@ -176,6 +186,5 @@ class DelegatesList extends EventEmitter {
 
 module.exports = {
 	DelegatesList,
-	EVENT_ROUND_FINISHED,
 	shuffleDelegateListForRound,
 };

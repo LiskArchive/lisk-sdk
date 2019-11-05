@@ -13,8 +13,13 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { DelegateTransaction } from './10_delegate_transaction';
+import { VoteTransaction } from './11_vote_transaction';
+import { MultisignatureTransaction } from './12_multisignature_transaction';
+import { TransferTransaction } from './8_transfer_transaction';
+import { SecondSignatureTransaction } from './9_second_signature_transaction';
+import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
-import { multiSignTransaction, verifyTransaction } from './utils';
 
 export interface SignatureObject {
 	readonly publicKey: string;
@@ -22,25 +27,69 @@ export interface SignatureObject {
 	readonly transactionId: string;
 }
 
-export const createSignatureObject = (
-	transaction: TransactionJSON,
-	passphrase: string,
-): SignatureObject => {
-	if (!verifyTransaction(transaction)) {
-		throw new Error('Invalid transaction.');
+// tslint:disable-next-line no-any
+const transactionMap: { readonly [key: number]: any } = {
+	8: TransferTransaction,
+	9: SecondSignatureTransaction,
+	10: DelegateTransaction,
+	11: VoteTransaction,
+	12: MultisignatureTransaction,
+};
+
+export const createSignatureObject = (options: {
+	readonly transaction: TransactionJSON;
+	readonly passphrase: string;
+	readonly networkIdentifier: string;
+}): SignatureObject => {
+	const { transaction, passphrase, networkIdentifier } = options;
+	if (transaction.type === undefined || transaction.type === null) {
+		throw new Error('Transaction type is required.');
+	}
+
+	// tslint:disable-next-line no-magic-numbers
+	if (!Object.keys(transactionMap).includes(String(transaction.type))) {
+		throw new Error('Invalid transaction type.');
 	}
 
 	if (!transaction.id) {
 		throw new Error('Transaction ID is required to create a signature object.');
 	}
 
+	// tslint:disable-next-line variable-name
+	const TransactionClass = transactionMap[transaction.type];
+	const tx = new TransactionClass({
+		...transaction,
+		networkIdentifier,
+	}) as BaseTransaction;
+
+	const validStatus = tx.validate();
+	if (validStatus.errors.length > 0) {
+		throw new Error('Invalid transaction.');
+	}
+
 	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(
 		passphrase,
 	);
 
+	// tslint:disable-next-line no-any
+	(tx as any)._signature = undefined;
+	// tslint:disable-next-line no-any
+	(tx as any)._signSignature = undefined;
+
+	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+		networkIdentifierBytes,
+		tx.getBytes(),
+	]);
+
+	const multiSignature = cryptography.signData(
+		cryptography.hash(transactionWithNetworkIdentifierBytes),
+		passphrase,
+	);
+
 	return {
-		transactionId: transaction.id,
+		transactionId: tx.id,
 		publicKey,
-		signature: multiSignTransaction(transaction, passphrase),
+		signature: multiSignature,
 	};
 };

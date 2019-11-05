@@ -28,13 +28,7 @@ const Transaction = stampit({
 		timestamp: 40080841,
 		senderPublicKey:
 			'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
-		requesterPublicKey:
-			'a0c4ebee8c0c50ebee32918655e089f6e1a604b83afa760367c61e0f18ac6a',
 		senderId: '2525786814299543383L',
-		recipientId: '16313739661670634666L',
-		recipientPublicKey:
-			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-		amount: '112340000',
 		fee: '20000000',
 		signature:
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
@@ -51,17 +45,19 @@ const Transaction = stampit({
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 		this.asset = asset || { data: 'extra information' };
 
-		this.type = type || 0;
+		this.type = type || 8;
 
 		switch (this.type) {
 			// SEND
-			case 0:
+			case 8:
 				this.asset.data = randomstring.generate({ length: 64 });
+				this.asset.amount = '112340000';
+				this.asset.recipientId = '16313739661670634666L';
 				break;
 
 			// SIGNATURE
-			case 1:
-				this.asset.signature = {
+			case 9:
+				this.asset = {
 					publicKey: randomstring.generate({
 						charset: 'hex',
 						length: 64,
@@ -71,8 +67,8 @@ const Transaction = stampit({
 				break;
 
 			// DELEGATE
-			case 2:
-				this.asset.delegate = {
+			case 10:
+				this.asset = {
 					username:
 						delegateName ||
 						randomstring.generate({ length: 10, charset: 'alphabetic' }),
@@ -80,7 +76,7 @@ const Transaction = stampit({
 				break;
 
 			// VOTE
-			case 3:
+			case 11:
 				this.asset.votes = votes || [
 					randomstring.generate({
 						charset: 'hex',
@@ -93,11 +89,13 @@ const Transaction = stampit({
 						capitalization: 'lowercase',
 					}),
 				];
+				this.asset.amount = '112340000';
+				this.asset.recipientId = '16313739661670634666L';
 				break;
 
 			// MULTI
-			case 4:
-				this.asset.multisignature = {
+			case 12:
+				this.asset = {
 					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),
 					keysgroup: [

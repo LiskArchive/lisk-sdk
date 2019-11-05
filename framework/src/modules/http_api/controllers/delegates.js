@@ -29,12 +29,11 @@ const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
 		'username',
-		'vote',
+		'voteWeight',
 		'rewards',
 		'producedBlocks',
 		'missedBlocks',
 		'productivity',
-		'rank',
 	]);
 
 	result.account = {
@@ -43,9 +42,7 @@ function delegateFormatter(totalSupply, delegate) {
 		secondPublicKey: delegate.secondPublicKey || '',
 	};
 
-	result.approval = calculateApproval(result.vote, totalSupply);
-
-	result.rank = parseInt(result.rank, 10);
+	result.approval = calculateApproval(result.voteWeight, totalSupply);
 
 	return result;
 }
@@ -160,12 +157,11 @@ async function _aggregateBlocksReward(filter) {
 		});
 	} catch (err) {
 		if (err.code === 0) {
-			throw 'Account not found';
+			throw new Error('Account not found');
 		}
 	}
 
 	params.generatorPublicKey = account.publicKey;
-	params.delegates = ACTIVE_DELEGATES;
 
 	if (filter.start !== undefined) {
 		params.fromTimestamp = Math.floor(
@@ -184,9 +180,8 @@ async function _aggregateBlocksReward(filter) {
 	let delegateBlocksRewards;
 
 	try {
-		delegateBlocksRewards = await channel.invoke(
-			'chain:getDelegateBlocksRewards',
-			{ filters: params },
+		delegateBlocksRewards = await storage.entities.Block.delegateBlocksRewards(
+			params,
 		);
 	} catch (err) {
 		logger.error(err.stack);
@@ -225,12 +220,12 @@ async function _getForgingStatistics(filters) {
 			});
 		} catch (err) {
 			if (err.code === 0) {
-				throw 'Account not found';
+				throw new Error('Account not found');
 			}
 		}
 
 		if (!account.isDelegate) {
-			throw 'Account is not a delegate';
+			throw new Error('Account is not a delegate');
 		}
 
 		account = _.pick(account, [
@@ -361,9 +356,15 @@ DelegatesController.getForgingStatistics = async (context, next) => {
 	try {
 		reward = await _getForgingStatistics(filters);
 	} catch (err) {
-		if (err === 'Account not found' || err === 'Account is not a delegate') {
+		if (
+			err.message === 'Account not found' ||
+			err.message === 'Account is not a delegate'
+		) {
 			return next(
-				swaggerHelper.generateParamsErrorObject([params.address], [err]),
+				swaggerHelper.generateParamsErrorObject(
+					[params.address],
+					[err.message],
+				),
 			);
 		}
 		return next(err);

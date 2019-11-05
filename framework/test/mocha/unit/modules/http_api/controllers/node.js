@@ -65,10 +65,7 @@ describe('node/api', () => {
 			},
 			config: configStub,
 			channel: channelStub,
-			applicationState: {
-				broadhash:
-					'176caf53295f73a5a67a1fb56f31445392a3b8e8f11ed6167f323813001eb73b',
-			},
+			applicationState: {},
 		};
 
 		new NodeController(library);
@@ -118,7 +115,6 @@ describe('node/api', () => {
 
 	describe('getStatus', () => {
 		const status = {
-			consensus: 100,
 			secondsSinceEpoch: 89742345,
 			lastBlock: {
 				height: 1187,
@@ -132,28 +128,18 @@ describe('node/api', () => {
 				validated: 0,
 				received: 0,
 			},
+			chainMaxHeightFinalized: 1010,
 		};
 		const now = Date.now();
 
 		const expectedStatus = {
-			broadhash:
-				'176caf53295f73a5a67a1fb56f31445392a3b8e8f11ed6167f323813001eb73b',
-			consensus: 100,
 			secondsSinceEpoch: 89742345,
 			height: 1187,
 			loaded: true,
 			networkHeight: 456,
 			syncing: false,
-			transactions: {
-				confirmed: confirmedTransactions,
-				ready: 0,
-				verified: 0,
-				pending: 0,
-				validated: 0,
-				received: 0,
-				total: 10,
-			},
 			currentTime: now,
+			chainMaxHeightFinalized: 1010,
 		};
 
 		const defaultPeers = [
@@ -194,11 +180,9 @@ describe('node/api', () => {
 
 			beforeEach(async () => {
 				statusWithoutSomeParameters = _.cloneDeep(status);
-				statusWithoutSomeParameters.consensus = undefined;
 				statusWithoutSomeParameters.lastBlock.height = undefined;
 				statusWithoutSomeParameters.networkHeight = undefined;
 				expectedStatusWithoutSomeParameters = _.cloneDeep(expectedStatus);
-				expectedStatusWithoutSomeParameters.consensus = 0;
 				expectedStatusWithoutSomeParameters.height = 0;
 				channelStub.invoke
 					.withArgs('chain:getNodeStatus')

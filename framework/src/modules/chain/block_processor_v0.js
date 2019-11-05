@@ -43,8 +43,8 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlock
-		? intToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
+	const previousBlockBuffer = block.previousBlockId
+		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
 		: Buffer.alloc(SIZE_INT64);
 
 	const numTransactionsBuffer = intToBuffer(
@@ -108,36 +108,48 @@ const validateSchema = ({ block }) => {
 };
 
 class BlockProcessorV0 extends BaseBlockProcessor {
-	constructor({ blocksModule, logger, constants, exceptions }) {
+	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
 		super();
+		const delegateListRoundOffset = 0;
 		this.blocksModule = blocksModule;
+		this.dposModule = dposModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
 
-		this.init.pipe([() => this.blocksModule.init()]);
+		this.deserialize.pipe([
+			({ block }) => this.blocksModule.deserialize(block),
+		]);
+
+		this.serialize.pipe([({ block }) => this.blocksModule.serialize(block)]);
 
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }) =>
+				this.blocksModule.blockReward.calculateReward(block.height),
+			({ block }, expectedReward) =>
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				),
 			data => this.blocksModule.verifyInMemory(data),
+			({ block }) =>
+				this.dposModule.verifyBlockForger(block, { delegateListRoundOffset }),
 		]);
 
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }) =>
+				this.blocksModule.blockReward.calculateReward(block.height),
+			({ block }, expectedReward) =>
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				),
 		]);
 
 		this.forkStatus.pipe([
@@ -149,11 +161,23 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.verify.pipe([data => this.blocksModule.verify(data)]);
 
-		this.apply.pipe([data => this.blocksModule.apply(data)]);
+		this.apply.pipe([
+			data => this.blocksModule.apply(data),
+			({ block, tx }) =>
+				this.dposModule.apply(block, { tx, delegateListRoundOffset }),
+		]);
 
-		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
+		this.applyGenesis.pipe([
+			data => this.blocksModule.applyGenesis(data),
+			({ block, tx }) =>
+				this.dposModule.apply(block, { tx, delegateListRoundOffset }),
+		]);
 
-		this.undo.pipe([data => this.blocksModule.undo(data)]);
+		this.undo.pipe([
+			data => this.blocksModule.undo(data),
+			({ block, tx }) =>
+				this.dposModule.undo(block, { tx, delegateListRoundOffset }),
+		]);
 
 		this.create.pipe([data => this._create(data)]);
 	}
@@ -185,7 +209,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			size += transactionBytes.length;
 
 			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.amount);
+			totalAmount = totalAmount.plus(transaction.asset.amount || 0);
 
 			blockTransactions.push(transaction);
 			transactionsBytesArray.push(transactionBytes);
@@ -204,7 +228,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,
-			previousBlock: previousBlock.id,
+			previousBlockId: previousBlock.id,
 			generatorPublicKey: keypair.publicKey.toString('hex'),
 			transactions: blockTransactions,
 		};

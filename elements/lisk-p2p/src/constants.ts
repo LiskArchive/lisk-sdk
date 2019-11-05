@@ -18,7 +18,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
-export const DEFAULT_SEND_PEER_LIMIT = 24;
+export const DEFAULT_SEND_PEER_LIMIT = 16;
 // Max rate of WebSocket messages per second per peer.
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
@@ -39,10 +39,6 @@ export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
-
-// Peer pool constants
-export const PEER_KIND_OUTBOUND = 'outbound';
-export const PEER_KIND_INBOUND = 'inbound';
 
 // Peer base constants
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
@@ -92,3 +88,18 @@ export const FORBIDDEN_CONNECTION_REASON = 'Peer is not allowed to connect';
 export const EVICTED_PEER_CODE = 4418;
 export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
+
+// Peer info constants
+export enum ConnectionKind {
+	OUTBOUND = 'outbound',
+	INBOUND = 'inbound',
+	NONE = 'none',
+}
+
+export enum PeerKind {
+	FIXED_PEER = 'fixedPeer',
+	WHITELISTED_PEER = 'whitelistedPeer',
+	SEED_PEER = 'seedPeer',
+	BLACKLISTED_PEER = 'blacklistedPeer',
+	NONE = 'NONE',
+}

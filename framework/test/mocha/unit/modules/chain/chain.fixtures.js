@@ -27,7 +27,13 @@ const buildVersion = '#buildVersion';
 const peerList = ['peerList'];
 
 const chainOptions = {
-	genesisBlock: { transactions: [], version: 0, height: 1 },
+	genesisBlock: {
+		transactions: [],
+		version: 0,
+		height: 1,
+		communityIdentifier: 'Lisk',
+		payloadHash: '',
+	},
 	loading: {},
 	syncing: {},
 	broadcasts: {},
@@ -64,7 +70,6 @@ const chainOptions = {
 		MAX_SHARED_TRANSACTIONS: 100,
 		MAX_VOTES_PER_TRANSACTION: 33,
 		MAX_VOTES_PER_ACCOUNT: 101,
-		MIN_BROADHASH_CONSENSUS: 51,
 		REWARDS: {
 			MILESTONES: [
 				'500000000', // Initial Reward

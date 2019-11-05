@@ -44,5 +44,8 @@ module.exports = {
 	 */
 	resetModules: true,
 	coverageDirectory: '.coverage/unit',
-	collectCoverageFrom: ['framework/src/controller/**'],
+	collectCoverageFrom: [
+		'framework/src/controller/**',
+		'framework/src/modules/chain/**',
+	],
 };

@@ -18,8 +18,15 @@ const { expect } = require('chai');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-describe('exceptions for recipient transactions exceeding uint64', () => {
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+// TODO: Delete after #4433
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('exceptions for recipient transactions exceeding uint64', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
@@ -42,13 +49,14 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 			'fe8f1a47180e7f318cb162b06470fbe259bc1d9d5359a8792cda3f087e49f72b',
 		recipientPublicKey: '',
 		senderId: '9961131544040416558L',
-		recipientId: '19961131544040416558L',
-		amount: '100000000',
 		fee: '10000000',
 		signature:
 			'02a806771711ecb9ffa676d8f6c85c5ffb87398cddbd0d55ae6c1e83f0e8e74c50490979e85633715b66d42090e9b37af918b1f823d706e900f5e2b72f876408',
 		signatures: [],
-		asset: {},
+		asset: {
+			recipientId: '19961131544040416558L',
+			amount: '100000000',
+		},
 	};
 
 	localCommon.beforeBlock('system_exceptions_recipientId_uint_64', lib => {
@@ -64,6 +72,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 	describe('send funds to account', () => {
 		before(async () => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId:
 					accountWhichCreatesTransactionWithExceedingUint64Recipient.address,
 				amount: (6000000000 * 100).toString(),
@@ -128,7 +137,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 
 				it('should add balance to the recipient account', async () => {
 					return expect(recipientMemAccountAfter.balance).to.equal(
-						transactionWithExceedingUint64Recipient.amount.toString(),
+						transactionWithExceedingUint64Recipient.asset.amount.toString(),
 					);
 				});
 			});

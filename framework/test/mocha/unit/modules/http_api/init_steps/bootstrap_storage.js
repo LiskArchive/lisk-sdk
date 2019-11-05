@@ -26,6 +26,7 @@ describe('init_steps/bootstrap_storage', () => {
 			components: {
 				storage: {
 					bootstrap: sinonSandbox.stub().resolves(true),
+					registerEntity: sinonSandbox.stub(),
 					entities: {
 						Account: {
 							extendDefaultOptions: sinonSandbox.stub(),
@@ -43,6 +44,7 @@ describe('init_steps/bootstrap_storage', () => {
 	it('should bootstrap the storage', async () => {
 		expect(argument.components.storage.bootstrap).to.be.called;
 	});
+
 	it('should extend account entity limit', async () => {
 		expect(
 			argument.components.storage.entities.Account.extendDefaultOptions,
@@ -50,6 +52,7 @@ describe('init_steps/bootstrap_storage', () => {
 			limit: accountLimit,
 		});
 	});
+
 	it('should log error if there is any', async () => {
 		const error = new Error('error');
 		argument.components.storage.bootstrap.rejects(error);

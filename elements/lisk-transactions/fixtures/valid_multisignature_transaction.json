@@ -3,11 +3,7 @@
 	"type": 4,
 	"timestamp": 24659540,
 	"senderPublicKey": "500660b67a2ade1e2528b7f648feef8f3b46e2f4f90ca7f5439101b5119f309d",
-	"senderId": "9999142599245349337L",
-	"recipientId": "",
-	"recipientPublicKey": "",
 	"amount": "0",
-	"fee": "2000000000",
 	"signature": "0ad43fb934626bed36da6e145f27fa3d5d54d255d179503ca17b9ed009af1180c2595322361b1adda9e2afb29252ffbd3f36c19a56debce5e759df6826d0a609",
 	"signatures": [
 		"e527764e5bb5a4867b3af114320a063f2ae1a69a89d4a83f23d2950d1779811ff6d4344edb1b95759a1a1a1b313cdd913f335f1fcfbeeb20f1e07f951f7fcb06",
@@ -15,14 +11,12 @@
 		"2c8d9beefd6a7dafa67bc601b2f49eea5f3c0ede5976f598abe32028b8e27d5f5cd6b7d87da71426f1f696f7cde7d704da07aa1b6a45708a4be3865066616d07"
 	],
 	"asset": {
-		"multisignature": {
-			"min": 2,
-			"lifetime": 1,
-			"keysgroup": [
-				"+40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f",
-				"+d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb",
-				"+542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf"
-			]
-		}
+		"min": 2,
+		"lifetime": 1,
+		"keysgroup": [
+			"+40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f",
+			"+d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb",
+			"+542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf"
+		]
 	}
 }

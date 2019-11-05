@@ -17,7 +17,7 @@
 const {
 	transfer,
 	registerDelegate: createRegisterDelegate,
-	utils: transactionUtils,
+	createSignatureObject: createSignatureObjectElements,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../fixtures/accounts');
@@ -25,6 +25,11 @@ const {
 	calculateApproval,
 } = require('../../../../src/modules/http_api/helpers/utils');
 const SwaggerSpec = require('../swagger_spec');
+const { getNetworkIdentifier } = require('../network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const http = {
 	abstractRequest(options, done) {
@@ -225,6 +230,7 @@ function sendSignature(signature, cb) {
 
 function creditAccount(address, amount, cb) {
 	const transaction = transfer({
+		networkIdentifier,
 		amount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: address,
@@ -333,10 +339,11 @@ function createSignatureObject(transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: transactionUtils.multiSignTransaction(
+		signature: createSignatureObjectElements({
 			transaction,
-			signer.passphrase,
-		),
+			passphrase: signer.passphrase,
+			networkIdentifier,
+		}).signature,
 	};
 }
 

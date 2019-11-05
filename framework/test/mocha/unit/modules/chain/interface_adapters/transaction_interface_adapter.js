@@ -24,6 +24,9 @@ const {
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../../../../src/modules/chain/interface_adapters');
+const {
+	devnetNetworkIdentifier: networkIdentifier,
+} = require('../../../../common/network_identifier');
 
 // TODO: re-implement for new transaction processing
 describe('transactions', () => {
@@ -31,18 +34,21 @@ describe('transactions', () => {
 
 	describe('TransactionInterfaceAdapter', () => {
 		const registeredTransactions = {
-			0: TransferTransaction,
-			1: SecondSignatureTransaction,
-			2: DelegateTransaction,
-			3: VoteTransaction,
-			4: MultisignatureTransaction,
+			8: TransferTransaction,
+			9: SecondSignatureTransaction,
+			10: DelegateTransaction,
+			11: VoteTransaction,
+			12: MultisignatureTransaction,
 		};
 
 		let transactions;
 
 		beforeEach(async () => {
 			// Act
-			transactions = new TransactionInterfaceAdapter(registeredTransactions);
+			transactions = new TransactionInterfaceAdapter(
+				networkIdentifier,
+				registeredTransactions,
+			);
 		});
 
 		describe('constructor', () => {
@@ -52,25 +58,25 @@ describe('transactions', () => {
 
 			it('should have transactionClassMap property with Lisk transaction types', async () => {
 				expect([...transactions.transactionClassMap.keys()]).to.be.eql([
-					0,
-					1,
-					2,
-					3,
-					4,
+					8,
+					9,
+					10,
+					11,
+					12,
 				]);
 			});
 		});
 
 		describe('fromJson', () => {
 			it('should throw an error if transaction type is not registered', async () => {
-				expect(() => transactions.fromJson({ type: 9 })).to.throw(
+				expect(() => transactions.fromJson({ type: 1 })).to.throw(
 					'Transaction type not found.',
 				);
 			});
 
 			it('should initialize a transfer transaction', async () => {
 				const transfer = {
-					type: 0,
+					type: 8,
 					amount: '4008489300000000',
 					fee: '10000000',
 					recipientId: '1859190791819301L',
@@ -90,10 +96,7 @@ describe('transactions', () => {
 
 			it('should initialize a second signature transaction', async () => {
 				const secondSignature = {
-					type: 1,
-					amount: '0',
-					fee: '500000000',
-					recipientId: '',
+					type: 9,
 					senderPublicKey:
 						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 					timestamp: 54316324,
@@ -115,10 +118,7 @@ describe('transactions', () => {
 
 			it('should initialize a delegate transaction', async () => {
 				const delegate = {
-					type: 2,
-					amount: '0',
-					fee: '2500000000',
-					recipientId: '',
+					type: 10,
 					senderPublicKey:
 						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 					timestamp: 54196076,
@@ -141,10 +141,7 @@ describe('transactions', () => {
 
 			it('should initialize a vote transaction', async () => {
 				const vote = {
-					type: 3,
-					amount: '0',
-					fee: '100000000',
-					recipientId: '16313739661670634666L',
+					type: 11,
 					senderPublicKey:
 						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 					timestamp: 54196078,
@@ -167,25 +164,20 @@ describe('transactions', () => {
 
 			it('should initialize a multisignature transaction', async () => {
 				const multisignature = {
-					type: 4,
-					amount: '0',
-					fee: '3000000000',
-					recipientId: '',
+					type: 12,
 					senderPublicKey:
 						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 					timestamp: 54196078,
 					asset: {
-						multisignature: {
-							min: 5,
-							lifetime: 1,
-							keysgroup: [
-								'+6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf',
-								'+a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed',
-								'+4bb9e15fa15cbe87d19b6854474d57c3aa515deb586548bb515630dc7121d021',
-								'+068bcac57c9d988f0a03bab381785c67ef4b63ca8047f41863fb2a0202aa88a5',
-								'+261fb86d60785e208ba7541db9ab56d3e02fcf9357a25bf859f826e87cadb816',
-							],
-						},
+						min: 5,
+						lifetime: 1,
+						keysgroup: [
+							'+6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf',
+							'+a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed',
+							'+4bb9e15fa15cbe87d19b6854474d57c3aa515deb586548bb515630dc7121d021',
+							'+068bcac57c9d988f0a03bab381785c67ef4b63ca8047f41863fb2a0202aa88a5',
+							'+261fb86d60785e208ba7541db9ab56d3e02fcf9357a25bf859f826e87cadb816',
+						],
 					},
 					signature:
 						'46f6ce8da1b5948aaa63a51cf28913210d356cc27a2cc952a2bf1b88f47d6cd6f250f8d907b9a4e0c531a66c601b50aa483a461e803412f2ae9543d99155970f',

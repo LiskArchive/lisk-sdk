@@ -5,6 +5,7 @@ Object {
   "app": Object {
     "genesisConfig": Object {
       "BLOCK_TIME": 10,
+      "DELEGATE_LIST_ROUND_OFFSET": 2,
       "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
       "MAX_TRANSACTIONS_PER_BLOCK": 25,
       "REWARDS": Object {
@@ -75,6 +76,7 @@ Object {
         "precedent": Object {
           "disableDappTransaction": 0,
           "disableDappTransfer": 0,
+          "disableV1Transactions": 0,
         },
         "recipientExceedingUint64": Object {},
         "recipientLeadingZero": Object {},
@@ -502,11 +504,11 @@ Object {
         "rebuildUpToRound": null,
       },
       "registeredTransactions": Object {
-        "0": [Function],
-        "1": [Function],
-        "2": [Function],
-        "3": [Function],
-        "4": [Function],
+        "10": [Function],
+        "11": [Function],
+        "12": [Function],
+        "8": [Function],
+        "9": [Function],
       },
       "syncing": Object {
         "active": true,
@@ -523,6 +525,13 @@ Object {
         ],
       },
       "address": "0.0.0.0",
+      "apm": Object {
+        "enabled": false,
+        "options": Object {
+          "name": "Lisk-APM",
+          "uriPath": "/http-stats",
+        },
+      },
       "enabled": true,
       "forging": Object {
         "access": Object {
@@ -568,7 +577,7 @@ Object {
       "blacklistedPeers": Array [],
       "connectTimeout": 5000,
       "discoveryInterval": 30000,
-      "emitPeerLimit": 25,
+      "emitPeerLimit": 16,
       "fixedPeers": Array [],
       "maxInboundConnections": 100,
       "maxOutboundConnections": 20,

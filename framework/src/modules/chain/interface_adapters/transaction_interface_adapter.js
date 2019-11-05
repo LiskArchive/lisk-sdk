@@ -14,10 +14,9 @@
 
 'use strict';
 
-const { omitBy, isNull } = require('lodash');
-
 class TransactionInterfaceAdapter {
-	constructor(registeredTransactions = {}) {
+	constructor(networkIdentifier, registeredTransactions = {}) {
+		this.networkIdentifier = networkIdentifier;
 		this.transactionClassMap = new Map();
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
@@ -31,7 +30,10 @@ class TransactionInterfaceAdapter {
 		const transactions = block.transactions || [];
 
 		const response = transactions.map(transaction =>
-			this.fromJson(transaction),
+			this.fromJson({
+				...transaction,
+				networkIdentifier: this.networkIdentifier,
+			}),
 		);
 
 		return response;
@@ -44,28 +46,10 @@ class TransactionInterfaceAdapter {
 			throw new Error('Transaction type not found.');
 		}
 
-		return new TransactionClass(rawTx);
-	}
-
-	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
-	dbRead(raw) {
-		if (
-			raw.t_id === undefined ||
-			raw.t_id === null ||
-			raw.t_type === undefined ||
-			raw.t_type === null
-		) {
-			return null;
-		}
-		const TransactionClass = this.transactionClassMap.get(raw.t_type);
-
-		if (!TransactionClass) {
-			return null;
-		}
-
-		const transactionJSON = new TransactionClass().fromSync(raw);
-
-		return this.fromJson(omitBy(transactionJSON, isNull));
+		return new TransactionClass({
+			...rawTx,
+			networkIdentifier: this.networkIdentifier,
+		});
 	}
 }
 

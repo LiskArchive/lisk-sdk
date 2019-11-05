@@ -1,15 +1,13 @@
 {
-	"amount": "10000000000",
-	"recipientId": "13356260975429434553L",
-	"senderId": "10582186986223407633L",
 	"senderPublicKey": "bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8",
 	"timestamp": 80685381,
 	"type": 0,
-	"fee": "10000000",
-	"recipientPublicKey": "",
-	"asset": {},
 	"signature": "3357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01",
 	"signatures": [],
 	"signSignature": "11f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503",
-	"id": "11638517642515821734"
+	"id": "11638517642515821734",
+	"asset": {
+		"amount": "10000000000",
+		"recipientId": "13356260975429434553L"
+	}
 }

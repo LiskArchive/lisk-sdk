@@ -22,14 +22,12 @@ const {
 	entities: { BaseEntity },
 	utils: {
 		filterTypes: { NUMBER, TEXT },
-		inputSerializers: { stringToByte },
 	},
 } = require('../../../../../components/storage');
 
 const defaultCreateValues = {
 	os: null,
 	version: null,
-	broadhash: null,
 	height: 1,
 	protocolVersion: null,
 };
@@ -55,7 +53,6 @@ const sqlFiles = {
  * @property {string} os
  * @property {string} version
  * @property {string} protocolVersion
- * @property {string} broadhash
  * @property {number} height
  */
 
@@ -106,11 +103,6 @@ const sqlFiles = {
  * @property {string} [protocolVersion_ne]
  * @property {string} [protocolVersion_in]
  * @property {string} [protocolVersion_like]
- * @property {string} [broadhash]
- * @property {string} [broadhash_eql]
- * @property {string} [broadhash_ne]
- * @property {string} [broadhash_in]
- * @property {string} [broadhash_like]
  * @property {number} [height]
  * @property {number} [height_eql]
  * @property {number} [height_ne]
@@ -137,7 +129,6 @@ class Peer extends BaseEntity {
 		this.addField('os', 'string', { filter: TEXT });
 		this.addField('version', 'string', { filter: TEXT });
 		this.addField('protocolVersion', 'string', { filter: TEXT });
-		this.addField('broadhash', 'string', { filter: TEXT }, stringToByte);
 		this.addField('height', 'number', { filter: NUMBER });
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');

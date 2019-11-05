@@ -29,6 +29,11 @@ const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
+const { getNetworkIdentifier } = require('../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
@@ -237,7 +242,10 @@ function addTransaction(library, transaction, cb) {
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
 		transaction,
 	);
-	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
+
+	const amountNormalized = !transaction.asset.amount
+		? 0
+		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
 	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
 	__testContext.debug(
 		`Enqueue transaction ID: ${
@@ -299,20 +307,13 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 }
 
 function getAccountFromDb(library, address) {
-	return Promise.all([
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts where address = '${address}'`,
-		),
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`,
-		),
-	]).then(res => {
-		return {
-			// Get the first row if resultant array is not empty
-			mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
-			mem_accounts2multisignatures: res[1],
-		};
-	});
+	return library.components.storage.adapter
+		.execute(`SELECT * FROM mem_accounts where address = '${address}'`)
+		.then(res => {
+			return {
+				mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
+			};
+		});
 }
 
 function getTransactionFromModule(library, filter, cb) {
@@ -388,6 +389,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	switch (key) {
 		case 'SEND':
 			transaction = transfer({
+				networkIdentifier,
 				amount: '1',
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
@@ -396,12 +398,14 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'SIGNATURE':
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});
 			break;
 		case 'DELEGATE':
 			transaction = registerDelegate({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				username: accountCopy.username,
@@ -409,6 +413,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'VOTE':
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				votes: [accountFixtures.existingDelegate.publicKey],
@@ -416,6 +421,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'MULTI':
 			transaction = registerMultisignature({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				keysgroup: [accountFixtures.existingDelegate.publicKey],

@@ -27,13 +27,13 @@ import {
 } from '../errors';
 import {
 	P2PCompatibilityCheckReturnType,
-	P2PDiscoveredPeerInfo,
+	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
-	ProtocolMessagePacket,
+	P2PRequestPacket,
 	ProtocolPeerInfo,
-	ProtocolRPCRequestPacket,
 } from '../p2p_types';
+import { constructPeerId } from './misc';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -44,40 +44,53 @@ const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
 
 const validateNetworkCompatibility = (
-	peerInfo: P2PDiscoveredPeerInfo,
+	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
-	if (!peerInfo.nethash) {
+	if (!peerInfo.sharedState) {
 		return false;
 	}
 
-	return peerInfo.nethash === nodeInfo.nethash;
+	if (!peerInfo.sharedState.nethash) {
+		return false;
+	}
+
+	return peerInfo.sharedState.nethash === nodeInfo.nethash;
 };
 
 const validateProtocolVersionCompatibility = (
-	peerInfo: P2PDiscoveredPeerInfo,
+	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
+	if (!peerInfo.sharedState) {
+		return false;
+	}
 	// Backwards compatibility for older peers which do not have a protocolVersion field.
-	if (!peerInfo.protocolVersion) {
+	if (!peerInfo.sharedState.protocolVersion) {
 		try {
-			return isVersionGTE(peerInfo.version, nodeInfo.minVersion as string);
+			return isVersionGTE(
+				peerInfo.sharedState.version,
+				nodeInfo.minVersion as string,
+			);
 		} catch (error) {
 			return false;
 		}
 	}
-	if (typeof peerInfo.protocolVersion !== 'string') {
+	if (typeof peerInfo.sharedState.protocolVersion !== 'string') {
 		return false;
 	}
 
-	const peerHardForks = parseInt(peerInfo.protocolVersion.split('.')[0], 10);
+	const peerHardForks = parseInt(
+		peerInfo.sharedState.protocolVersion.split('.')[0],
+		10,
+	);
 	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
 
 export const validatePeerCompatibility = (
-	peerInfo: P2PDiscoveredPeerInfo,
+	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): P2PCompatibilityCheckReturnType => {
 	if (!validateNetworkCompatibility(peerInfo, nodeInfo)) {
@@ -116,15 +129,17 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
+	const ipAddress = protocolPeer.ip || protocolPeer.ipAddress;
+
 	if (
-		!protocolPeer.ip ||
+		!ipAddress ||
 		!protocolPeer.wsPort ||
-		!validatePeerAddress(protocolPeer.ip, protocolPeer.wsPort)
+		!validatePeerAddress(ipAddress, protocolPeer.wsPort)
 	) {
 		throw new InvalidPeerError(
-			`Invalid peer ip or port for peer with ip: ${
-				protocolPeer.ip
-			} and wsPort ${protocolPeer.wsPort}`,
+			`Invalid peer ip or port for peer with ip: ${ipAddress} and wsPort ${
+				protocolPeer.wsPort
+			}`,
 		);
 	}
 
@@ -136,28 +151,32 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		);
 	}
 
-	const version = protocolPeer.version;
-	const protocolVersion = protocolPeer.protocolVersion;
-	const wsPort = +protocolPeer.wsPort;
-	const os = protocolPeer.os ? protocolPeer.os : '';
-	const height =
-		protocolPeer.height && isNumeric(protocolPeer.height.toString())
-			? +protocolPeer.height
-			: 0;
-	const { options, ...protocolPeerWithoutOptions } = protocolPeer;
-	const peerInfo: P2PPeerInfo = {
-		...protocolPeerWithoutOptions,
-		ipAddress: protocolPeerWithoutOptions.ip,
-		wsPort,
-		height,
-		os,
+	const {
+		ip,
+		ipAddress: protocolIPAddress,
 		version,
 		protocolVersion,
+		height,
+		os,
+		wsPort,
+		options,
+		...restOfProtocolPeer
+	} = protocolPeer;
+
+	const peerInfo: P2PPeerInfo = {
+		peerId: constructPeerId(ipAddress, protocolPeer.wsPort),
+		ipAddress,
+		wsPort: +wsPort,
+		sharedState: {
+			version,
+			protocolVersion: protocolVersion as string,
+			os: os ? os : '',
+			height: height && isNumeric(height.toString()) ? +height : 0,
+			...restOfProtocolPeer,
+		},
 	};
 
-	const { ip, ...peerInfoUpdated } = peerInfo;
-
-	return peerInfoUpdated;
+	return peerInfo;
 };
 
 export const validatePeerInfo = (
@@ -201,14 +220,12 @@ export const validatePeersInfoList = (
 	}
 };
 
-export const validateRPCRequest = (
-	request: unknown,
-): ProtocolRPCRequestPacket => {
+export const validateRPCRequest = (request: unknown): P2PRequestPacket => {
 	if (!request) {
 		throw new InvalidRPCRequestError('Invalid request');
 	}
 
-	const rpcRequest = request as ProtocolRPCRequestPacket;
+	const rpcRequest = request as P2PRequestPacket;
 	if (typeof rpcRequest.procedure !== 'string') {
 		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}
@@ -216,14 +233,12 @@ export const validateRPCRequest = (
 	return rpcRequest;
 };
 
-export const validateProtocolMessage = (
-	message: unknown,
-): ProtocolMessagePacket => {
+export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
 	if (!message) {
 		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
-	const protocolMessage = message as ProtocolMessagePacket;
+	const protocolMessage = message as P2PMessagePacket;
 	if (typeof protocolMessage.event !== 'string') {
 		throw new InvalidProtocolMessageError('Protocol message is not a string');
 	}

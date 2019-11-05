@@ -18,7 +18,6 @@ import {
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
-	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
 import {
@@ -37,15 +36,12 @@ import { createResponse, Status } from './response';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
-	isValidNumber,
 	validateSenderIdAndPublicKey,
 	validateSignature,
-	validateTransactionId,
 	validator,
 	verifyBalance,
 	verifyMultiSignatures,
 	verifySecondSignature,
-	verifySenderId,
 	verifySenderPublicKey,
 } from './utils';
 import * as schemas from './utils/validation/schema';
@@ -99,31 +95,28 @@ export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
 export abstract class BaseTransaction {
-	public readonly amount: BigNum;
-	public readonly recipientId: string;
 	public readonly blockId?: string;
 	public readonly height?: number;
 	public readonly relays?: number;
 	public readonly confirmations?: number;
-	public readonly recipientPublicKey?: string;
 	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
-	public readonly fee: BigNum;
 	public readonly asset: object;
+	public fee: BigNum;
 	public receivedAt?: Date;
 
 	public static TYPE: number;
 	public static FEE = '0';
 
 	protected _id?: string;
-	protected _senderId?: string;
 	protected _senderPublicKey?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
+	protected _networkIdentifier: string;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -132,47 +125,26 @@ export abstract class BaseTransaction {
 	protected abstract undoAsset(
 		store: StateStore,
 	): ReadonlyArray<TransactionError>;
-	protected abstract verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError>;
-	// tslint:disable-next-line no-any
-	protected abstract assetFromSync(raw: any): object | undefined;
 
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 
-		this.amount = new BigNum(
-			isValidNumber(tx.amount) ? (tx.amount as string | number) : '0',
-		);
-
-		this.fee = new BigNum(
-			isValidNumber(tx.fee)
-				? (tx.fee as string | number)
-				: (this.constructor as typeof BaseTransaction).FEE,
-		);
-
+		this.fee = new BigNum((this.constructor as typeof BaseTransaction).FEE);
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
 				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
-		this.recipientId = tx.recipientId || '';
-		this.recipientPublicKey = tx.recipientPublicKey || undefined;
 		this._senderPublicKey = tx.senderPublicKey || '';
-		try {
-			this._senderId = tx.senderId
-				? tx.senderId
-				: getAddressFromPublicKey(this.senderPublicKey);
-		} catch (error) {
-			this._senderId = '';
-		}
 
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
+		this._networkIdentifier = tx.networkIdentifier || '';
+
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
 
 		// Additional data not related to the protocol
@@ -185,19 +157,11 @@ export abstract class BaseTransaction {
 	}
 
 	public get id(): string {
-		if (!this._id) {
-			throw new Error('id is required to be set before use');
-		}
-
-		return this._id;
+		return this._id || 'incalculable-id';
 	}
 
 	public get senderId(): string {
-		if (!this._senderId) {
-			throw new Error('senderId is required to be set before use');
-		}
-
-		return this._senderId;
+		return getAddressFromPublicKey(this.senderPublicKey);
 	}
 
 	public get senderPublicKey(): string {
@@ -220,22 +184,24 @@ export abstract class BaseTransaction {
 		return this._signSignature;
 	}
 
+	/**
+	 * This method is using private versions of _id, _senderPublicKey and _signature
+	 * as we should allow for it to be called at any stage of the transaction construction
+	 */
+
 	public toJSON(): TransactionJSON {
 		const transaction = {
-			id: this.id,
+			id: this._id,
 			blockId: this.blockId,
 			height: this.height,
 			relays: this.relays,
 			confirmations: this.confirmations,
-			amount: this.amount.toString(),
 			type: this.type,
 			timestamp: this.timestamp,
-			senderPublicKey: this.senderPublicKey,
-			senderId: this.senderId,
-			recipientId: this.recipientId,
-			recipientPublicKey: this.recipientPublicKey,
+			senderPublicKey: this._senderPublicKey || '',
+			senderId: this._senderPublicKey ? this.senderId : '',
 			fee: this.fee.toString(),
-			signature: this.signature,
+			signature: this._signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
@@ -271,7 +237,23 @@ export abstract class BaseTransaction {
 		if (errors.length > 0) {
 			return createResponse(this.id, errors);
 		}
+
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
+
+		this._id = getId(this.getBytes());
 
 		const {
 			valid: signatureValid,
@@ -279,18 +261,12 @@ export abstract class BaseTransaction {
 		} = validateSignature(
 			this.senderPublicKey,
 			this.signature,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 
 		if (!signatureValid && verificationError) {
 			errors.push(verificationError);
-		}
-
-		const idError = validateTransactionId(this.id, this.getBytes());
-
-		if (idError) {
-			errors.push(idError);
 		}
 
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
@@ -305,25 +281,14 @@ export abstract class BaseTransaction {
 			);
 		}
 
-		const feeError = this.validateFee();
-
-		if (feeError) {
-			errors.push(feeError);
-		}
-
 		return createResponse(this.id, errors);
 	}
 
-	public validateFee(): TransactionError | undefined {
-		return !this.fee.eq((this.constructor as typeof BaseTransaction).FEE)
-			? new TransactionError(
-					`Invalid fee`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					(this.constructor as typeof BaseTransaction).FEE.toString(),
-			  )
-			: undefined;
+	// tslint:disable-next-line prefer-function-over-method
+	protected verifyAgainstTransactions(
+		_: ReadonlyArray<TransactionJSON>,
+	): ReadonlyArray<TransactionError> {
+		return [];
 	}
 
 	public verifyAgainstOtherTransactions(
@@ -437,11 +402,26 @@ export abstract class BaseTransaction {
 			]);
 		}
 
+		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
+
 		// Validate the signature using the signature sender and transaction details
 		const { valid } = validateSignature(
 			signatureObject.publicKey,
 			signatureObject.signature,
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			this.id,
 		);
 		// If the signature is valid for the sender push it to the signatures array
@@ -450,6 +430,7 @@ export abstract class BaseTransaction {
 
 			return this.processMultisignatures(store);
 		}
+
 		// Else populate errors
 		const errors = valid
 			? []
@@ -479,12 +460,25 @@ export abstract class BaseTransaction {
 	public processMultisignatures(store: StateStore): TransactionResponse {
 		const sender = store.account.get(this.senderId);
 		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to validate a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
 		const { status, errors } = verifyMultiSignatures(
 			this.id,
 			sender,
 			this.signatures,
-			transactionBytes,
+			transactionWithNetworkIdentifierBytes,
 		);
 		this._multisignatureStatus = status;
 		if (this._multisignatureStatus === MultisignatureStatus.PENDING) {
@@ -517,15 +511,7 @@ export abstract class BaseTransaction {
 	}
 
 	public sign(passphrase: string, secondPassphrase?: string): void {
-		const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
-			passphrase,
-		);
-
-		if (this._senderId !== '' && this._senderId !== address) {
-			throw new Error(
-				'Transaction senderId does not match address from passphrase',
-			);
-		}
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
 			throw new Error(
@@ -533,76 +519,54 @@ export abstract class BaseTransaction {
 			);
 		}
 
-		this._senderId = address;
 		this._senderPublicKey = publicKey;
 
 		this._signature = undefined;
 		this._signSignature = undefined;
-		this._signature = signData(hash(this.getBytes()), passphrase);
-		if (secondPassphrase) {
-			this._signSignature = signData(hash(this.getBytes()), secondPassphrase);
+
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error('Network identifier is required to sign a transaction ');
 		}
+
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBytes(),
+		]);
+
+		this._signature = signData(
+			hash(transactionWithNetworkIdentifierBytes),
+			passphrase,
+		);
+
+		if (secondPassphrase) {
+			this._signSignature = signData(
+				hash(
+					Buffer.concat([
+						transactionWithNetworkIdentifierBytes,
+						hexToBuffer(this._signature),
+					]),
+				),
+				secondPassphrase,
+			);
+		}
+
 		this._id = getId(this.getBytes());
-	}
-
-	/* tslint:disable:next-line: no-any no-null-keyword */
-	public fromSync(raw: any): TransactionJSON | null {
-		const transactionJSON: TransactionJSON & {
-			readonly requesterPublicKey: string;
-			readonly [key: string]: string | number | object | null;
-		} = {
-			id: raw.t_id,
-			height: raw.b_height,
-			blockId: raw.b_id || raw.t_blockId,
-			type: parseInt(raw.t_type, 10),
-			timestamp: parseInt(raw.t_timestamp, 10),
-			senderPublicKey: raw.t_senderPublicKey,
-			requesterPublicKey: raw.t_requesterPublicKey,
-			senderId: raw.t_senderId,
-			recipientId: raw.t_recipientId,
-			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: raw.t_amount,
-			fee: raw.t_fee,
-			signature: raw.t_signature,
-			signSignature: raw.t_signSignature,
-			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations || 0, 10),
-			asset: {},
-		};
-
-		const transaction = {
-			...transactionJSON,
-			asset: this.assetFromSync(raw) || {},
-		};
-
-		return transaction;
 	}
 
 	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
-
+		transactionTimestamp.writeIntBE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
-
-		const transactionRecipientID = this.recipientId
-			? intToBuffer(
-					this.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  ).slice(0, BYTESIZES.RECIPIENT_ID)
-			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
-
-		const transactionAmount = this.amount.toBuffer({
-			endian: 'little',
-			size: BYTESIZES.AMOUNT,
-		});
 
 		return Buffer.concat([
 			transactionType,
 			transactionTimestamp,
 			transactionSenderPublicKey,
-			transactionRecipientID,
-			transactionAmount,
 			this.assetToBytes(),
 		]);
 	}
@@ -619,19 +583,33 @@ export abstract class BaseTransaction {
 		 * We are currently conducting a research to specify an optimal generic way of changing asset to bytes.
 		 * You can expect this enhanced implementation to be included in the next releases.
 		 */
+
 		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
+		const transactionBytes = this.getBasicBytes();
+		if (
+			this._networkIdentifier === undefined ||
+			this._networkIdentifier === ''
+		) {
+			throw new Error(
+				'Network identifier is required to verify a transaction ',
+			);
+		}
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 		const secondSignatureTxBytes = Buffer.concat([
-			this.getBasicBytes(),
+			transactionWithNetworkIdentifierBytes,
 			hexToBuffer(this.signature),
 		]);
 
 		// Verify Basic state
 		return [
 			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
-			verifySenderId(this.id, sender, this.senderId),
 			verifyBalance(this.id, sender, this.fee),
 			verifySecondSignature(
 				this.id,

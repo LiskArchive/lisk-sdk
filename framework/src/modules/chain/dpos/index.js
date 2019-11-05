@@ -16,8 +16,10 @@
 
 const { Slots } = require('./slots');
 const Dpos = require('./dpos');
+const constants = require('./constants');
 
 module.exports = {
 	Slots,
 	Dpos,
+	constants,
 };

@@ -18,7 +18,7 @@ const { when } = require('jest-when');
 const { Dpos } = require('../../../../../../../../src/modules/chain/dpos');
 const { delegatePublicKeys, delegateAccounts } = require('../round_delegates');
 const shuffledDelegatePublicKeys = require('./shuffled_delegate_publickeys_for_round_5.json');
-const { constants } = require('../../../../../utils');
+const { constants } = require('../../../../../../utils');
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
@@ -26,11 +26,10 @@ const { constants } = require('../../../../../utils');
  * need shuffled list for another round, please create/update
  * the list accordingly.
  */
-const roundNo = 5;
-
 describe('dpos.getForgerPublicKeysForRound()', () => {
 	const stubs = {};
 	let dpos;
+
 	beforeEach(() => {
 		// Arrange
 		stubs.storage = {
@@ -51,36 +50,72 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 		dpos = new Dpos({
 			...stubs,
 			activeDelegates: constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
-	describe('When non-shuffled delegate public keys exist in round_delegates table', () => {
+	describe('Given delegateListRoundOffset is NOT used', () => {
+		const round = 5;
+		const roundWithOffset = 3;
+
 		it('should return shuffled delegate public keys by using round_delegates table record', async () => {
 			// Arrange
 			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
-				.calledWith(roundNo)
+				.calledWith(roundWithOffset)
 				.mockResolvedValue(delegatePublicKeys);
 
 			// Act
-			const list = await dpos.getForgerPublicKeysForRound(roundNo);
+			const list = await dpos.getForgerPublicKeysForRound(round);
 
 			// Assert
 			expect(list).toEqual(shuffledDelegatePublicKeys);
 		});
-	});
 
-	describe('Given the round is NOT in the round_delegates table', () => {
 		it('should throw error when round is not in round_delegates table', async () => {
 			// Arrange
 			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
-				.calledWith(roundNo)
+				.calledWith(roundWithOffset)
 				.mockResolvedValue([]);
 			stubs.storage.entities.Account.get.mockResolvedValue(delegateAccounts);
 
 			// Act && Assert
-			return expect(dpos.getForgerPublicKeysForRound(roundNo)).rejects.toThrow(
-				`No delegate list found for round: ${roundNo}`,
+			return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(
+				`No delegate list found for round: ${round}`,
 			);
+		});
+	});
+
+	describe('Given delegateListRoundOffset is used and equal to 0', () => {
+		const round = 5;
+		const roundWithOffset = 5;
+		const delegateListRoundOffset = 0;
+
+		it('should return shuffled delegate public keys by using round_delegates table record', async () => {
+			// Arrange
+			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
+				.calledWith(roundWithOffset)
+				.mockResolvedValue(delegatePublicKeys);
+
+			// Act
+			const list = await dpos.getForgerPublicKeysForRound(round, {
+				delegateListRoundOffset,
+			});
+
+			// Assert
+			expect(list).toEqual(shuffledDelegatePublicKeys);
+		});
+
+		it('should throw error when round is not in round_delegates table', async () => {
+			// Arrange
+			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
+				.calledWith(roundWithOffset)
+				.mockResolvedValue([]);
+			stubs.storage.entities.Account.get.mockResolvedValue(delegateAccounts);
+
+			// Act && Assert
+			return expect(
+				dpos.getForgerPublicKeysForRound(round, { delegateListRoundOffset }),
+			).rejects.toThrow(`No delegate list found for round: ${round}`);
 		});
 	});
 });

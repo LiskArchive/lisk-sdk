@@ -14,8 +14,14 @@
 
 'use strict';
 
+const { Block } = require('../components/storage/entities');
+
 module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 	try {
+		storage.registerEntity('Block', Block, {
+			replaceExisting: true,
+		});
+
 		const status = await storage.bootstrap();
 		if (!status) {
 			throw new Error('Can not bootstrap the storage component');

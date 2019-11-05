@@ -76,7 +76,6 @@ class Forger {
 		dposModule,
 		transactionPoolModule,
 		blocksModule,
-		peersModule,
 		// constants
 		activeDelegates,
 		maxTransactionsPerBlock,
@@ -105,7 +104,6 @@ class Forger {
 
 		this.processorModule = processorModule;
 		this.dposModule = dposModule;
-		this.peersModule = peersModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 	}
@@ -170,11 +168,7 @@ class Forger {
 			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 		};
 
-		const options = {
-			extended: true,
-		};
-
-		const [account] = await this.storage.entities.Account.get(filters, options);
+		const [account] = await this.storage.entities.Account.get(filters);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -243,27 +237,24 @@ class Forger {
 			};
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
-				throw `Invalid encryptedPassphrase for publicKey: ${
-					encryptedItem.publicKey
-				}. Public keys do not match`;
+				throw new Error(
+					`Invalid encryptedPassphrase for publicKey: ${
+						encryptedItem.publicKey
+					}. Public keys do not match`,
+				);
 			}
 
 			const filters = {
 				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 			};
 
-			const options = {
-				extended: true,
-			};
-
-			const [account] = await this.storage.entities.Account.get(
-				filters,
-				options,
-			);
+			const [account] = await this.storage.entities.Account.get(filters);
 			if (!account) {
-				throw `Account with public key: ${keypair.publicKey.toString(
-					'hex',
-				)} not found`;
+				throw new Error(
+					`Account with public key: ${keypair.publicKey.toString(
+						'hex',
+					)} not found`,
+				);
 			}
 			if (account.isDelegate) {
 				this.keypairs[keypair.publicKey.toString('hex')] = keypair;
@@ -290,7 +281,7 @@ class Forger {
 	}
 
 	/**
-	 * Gets peers, checks consensus and generates new block, once delegates
+	 * Generates new block, once delegates
 	 * are enabled, client is ready to forge and is the correct slot.
 	 *
 	 * @returns {Promise}
@@ -308,7 +299,10 @@ class Forger {
 		const lastBlockSlot = this.slots.getSlotNumber(lastBlock.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
-			this.logger.debug('Block already forged for the current slot');
+			this.logger.debug(
+				{ slot: currentSlot },
+				'Block already forged for the current slot',
+			);
 			return;
 		}
 
@@ -325,41 +319,18 @@ class Forger {
 				round,
 				this.constants.activeDelegates,
 			);
-		} catch (getDelegateKeypairForCurrentSlotError) {
-			this.logger.error(
-				'Skipping delegate slot',
-				getDelegateKeypairForCurrentSlotError,
-			);
-			throw getDelegateKeypairForCurrentSlotError;
+		} catch (err) {
+			this.logger.error({ err }, 'Skipping delegate slot');
+			throw err;
 		}
 
 		if (delegateKeypair === null) {
-			this.logger.debug('Waiting for delegate slot', {
-				currentSlot: this.slots.getSlotNumber(),
-			});
-			return;
-		}
-		const isPoorConsensus = await this.peersModule.isPoorConsensus(
-			this.blocksModule.broadhash,
-		);
-		if (isPoorConsensus) {
-			const consensus = await this.peersModule.getLastConsensus(
-				this.blocksModule.broadhash,
-			);
-			const consensusErr = `Inadequate broadhash consensus before forging a block: ${consensus} %`;
-			this.logger.error(
-				'Failed to generate block within delegate slot',
-				consensusErr,
+			this.logger.debug(
+				{ currentSlot: this.slots.getSlotNumber() },
+				'Waiting for delegate slot',
 			);
 			return;
 		}
-
-		const consensus = await this.peersModule.getLastConsensus(
-			this.blocksModule.broadhash,
-		);
-		this.logger.info(
-			`Broadhash consensus before forging a block: ${consensus} %`,
-		);
 
 		// If last block slot is way back than one block
 		// and still time left as per threshold specified
@@ -400,19 +371,17 @@ class Forger {
 			timestamp,
 			transactions: sortedTransactions,
 			previousBlock,
-			// FIXME: Add correct value from BFT in pipeline
-			maxHeightPreviouslyForged: 0,
-			prevotedConfirmedUptoHeight: 0,
 		});
 		await this.processorModule.process(forgedBlock);
 		this.logger.info(
-			`Forged new block id: ${forgedBlock.id} height: ${
-				forgedBlock.height
-			} round: ${this.slots.calcRound(
-				forgedBlock.height,
-			)} slot: ${this.slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
-				forgedBlock.reward
-			}`,
+			{
+				id: forgedBlock.id,
+				height: forgedBlock.height,
+				round: this.slots.calcRound(forgedBlock.height),
+				slot: this.slots.getSlotNumber(forgedBlock.timestamp),
+				reward: forgedBlock.reward.toString(),
+			},
+			'Forged new block',
 		);
 	}
 

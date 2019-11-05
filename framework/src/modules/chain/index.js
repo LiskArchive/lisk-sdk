@@ -115,10 +115,6 @@ class ChainModule extends BaseModule {
 			postTransaction: {
 				handler: async action => this.chain.actions.postTransaction(action),
 			},
-			getDelegateBlocksRewards: {
-				handler: async action =>
-					this.chain.actions.getDelegateBlocksRewards(action),
-			},
 			getSlotNumber: {
 				handler: async action => this.chain.actions.getSlotNumber(action),
 			},
@@ -130,14 +126,15 @@ class ChainModule extends BaseModule {
 			},
 			getLastBlock: {
 				handler: async () => this.chain.actions.getLastBlock(),
-			},
-			blocks: {
-				handler: async action => this.chain.actions.blocks(action),
 				isPublic: true,
 			},
-			getHighestCommonBlockId: {
+			getBlocksFromId: {
+				handler: async action => this.chain.actions.getBlocksFromId(action),
+				isPublic: true,
+			},
+			getHighestCommonBlock: {
 				handler: async action =>
-					this.chain.actions.getHighestCommonBlockId(action),
+					this.chain.actions.getHighestCommonBlock(action),
 				isPublic: true,
 			},
 		};

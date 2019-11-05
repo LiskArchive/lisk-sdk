@@ -18,8 +18,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=8.10 <=10",
-		"npm": ">=3 <=6"
+		"node": ">=12.13.0 <=12",
+		"npm": ">=6.12.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -31,6 +31,7 @@
 		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}{,/**/}/*.ts",
 		"test:unit": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/unit/{,/**/}/*.ts",
 		"test:integration": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/{,/**/}/*.ts",
+		"test:functional": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/functional/{,/**/}/*.ts",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check",
@@ -44,7 +45,8 @@
 		"build": "npm run build:node",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check",
-		"enableLocalIPs": "sudo ./scripts/enableTestLocalIPs.sh 10 19"
+		"enableLocalIPs": "./scripts/enableTestLocalIPs.sh 10 19",
+		"disableLocalIPs": "./scripts/disableTestLocalIPs.sh 10 19"
 	},
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.3.0",

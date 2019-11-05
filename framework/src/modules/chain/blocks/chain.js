@@ -14,38 +14,10 @@
 
 'use strict';
 
-const { cloneDeep } = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionsModule = require('../transactions');
 
-const TRANSACTION_TYPES_VOTE = 3;
-
-/**
- * Parse the JS object of block into a json object
- * @param {Object} block - Full block
- * @param {Object} jsonBlock - Full normalized block
- */
-const parseBlockToJson = block => {
-	// Parse block data to json
-	const parsedBlock = cloneDeep(block);
-
-	parsedBlock.reward = block.reward.toString();
-	parsedBlock.totalAmount = block.totalAmount.toString();
-	parsedBlock.totalFee = block.totalFee.toString();
-	parsedBlock.previousBlockId = block.previousBlock;
-	delete parsedBlock.previousBlock;
-
-	parsedBlock.transactions = block.transactions.map(transaction =>
-		transaction.toJSON(),
-	);
-
-	parsedBlock.transactions.forEach(transaction => {
-		transaction.blockId = block.id;
-		return transaction;
-	});
-
-	return parsedBlock;
-};
+const TRANSACTION_TYPES_VOTE = [3, 11];
 
 const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 	const promises = [
@@ -74,13 +46,11 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
  * @returns {string} cb.err - Error if occurred
  */
 const saveBlock = async (storage, block, tx) => {
-	const parsedBlock = parseBlockToJson(block);
-
 	if (!tx) {
 		throw new Error('Block should only be saved in a database tx');
 	}
 	// If there is already a running transaction use it
-	return saveBlockBatch(storage, parsedBlock, tx);
+	return saveBlockBatch(storage, block, tx);
 };
 
 /**
@@ -96,7 +66,7 @@ const deleteLastBlock = async (storage, lastBlock, tx) => {
 		throw new Error('Cannot delete genesis block');
 	}
 	const [storageBlock] = await storage.entities.Block.get(
-		{ id: lastBlock.previousBlock },
+		{ id: lastBlock.previousBlockId },
 		{ extended: true },
 		tx,
 	);
@@ -112,11 +82,8 @@ const deleteLastBlock = async (storage, lastBlock, tx) => {
 /**
  * Deletes all blocks with height >= supplied block ID.
  *
+ * @param storage - Storage module dependency
  * @param {number} blockId - ID of block to begin with
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - SQL error
- * @returns {Object} cb.res - SQL response
  */
 const deleteFromBlockId = async (storage, blockId) => {
 	const block = await storage.entities.Block.getOne({
@@ -202,7 +169,7 @@ const applyConfirmedGenesisStep = async (
 	tx,
 ) => {
 	const sortedTransactionInstances = block.transactions.sort(a => {
-		if (a.type === TRANSACTION_TYPES_VOTE) {
+		if (TRANSACTION_TYPES_VOTE.includes(a.type)) {
 			return 1;
 		}
 		return 0;
@@ -215,25 +182,6 @@ const applyConfirmedGenesisStep = async (
 		tx,
 	);
 	return block;
-};
-
-/**
- * Calls saveBlock for the block and performs round tick
- *
- * @private
- * @param {Object} storage - Storage component with write methods
- * @param {Object} dposModule - Dpos module class
- * @param {Object} block - Block object
- * @param {boolean} skipSave - Flag to save block into database
- * @param {function} tx - Database transaction for atomic operations
- * @returns {Promise<reject|resolve>}
- */
-const saveBlockStep = async (storage, dposModule, block, skipSave, tx) => {
-	if (!skipSave) {
-		await saveBlock(storage, block, tx);
-	}
-
-	await dposModule.apply(block, tx);
 };
 
 /**
@@ -271,23 +219,12 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 	await stateStore.account.finalize();
 };
 
-/**
- * Revert given block
- * @param {Object} block - block to be undone
- * @param {Object} tx - database transaction
- */
-const undoBlockStep = async (dposModule, block, tx) =>
-	dposModule.undo(block, tx);
-
 module.exports = {
 	saveBlock,
-	undoBlockStep,
 	saveBlockBatch,
 	deleteLastBlock,
 	deleteFromBlockId,
-	saveBlockStep,
 	applyConfirmedStep,
 	applyConfirmedGenesisStep,
 	undoConfirmedStep,
-	parseBlockToJson,
 };

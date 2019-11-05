@@ -18,6 +18,9 @@
 const rewire = require('rewire');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
+const {
+	Synchronizer,
+} = require('../../../../../src/modules/chain/synchronizer/synchronizer');
 const { Processor } = require('../../../../../src/modules/chain/processor');
 const { BFT } = require('../../../../../src/modules/chain/bft');
 const {
@@ -35,7 +38,7 @@ describe('Chain', () => {
 		// Arrange
 
 		sinonSandbox.stub(Processor.prototype, 'init').resolves();
-		sinonSandbox.stub(BFT.prototype, 'init').resolves();
+		sinonSandbox.stub(Synchronizer.prototype, 'init').resolves();
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -146,37 +149,37 @@ describe('Chain', () => {
 			};
 		});
 
-		describe('getHighestCommonBlockId', () => {
+		describe('getHighestCommonBlock', () => {
 			const actionQuery = {
 				params: { ids: ['1', '1'] },
 			};
 
 			it('should validate the request and return a validation error and debug log it if it fails', async () => {
 				try {
-					await chain.actions.getHighestCommonBlockId(actionQuery);
+					await chain.actions.getHighestCommonBlock(actionQuery);
 				} catch (error) {
 					expect(error.message).to.equal(
 						'should NOT have duplicate items (items ## 1 and 0 are identical): undefined',
 					);
 					expect(chain.logger.debug).to.be.calledWith(
-						'getHighestCommonBlockId request validation failed',
 						{
 							err:
 								'should NOT have duplicate items (items ## 1 and 0 are identical): undefined',
 							req: actionQuery.params,
 						},
+						'getHighestCommonBlock request validation failed',
 					);
 				}
 			});
 
 			it('should return null if commonBlock has not been found', async () => {
 				chain.scope.modules.blocks.getHighestCommonBlock.returns(undefined);
-				const response = await chain.actions.getHighestCommonBlockId({
+				const response = await chain.actions.getHighestCommonBlock({
 					params: {
 						ids: ['1', '2'],
 					},
 				});
-				expect(response).to.be.null;
+				expect(response).to.be.undefined;
 			});
 
 			it('should return the block id if commonBlock has been found', async () => {
@@ -184,10 +187,10 @@ describe('Chain', () => {
 					id: '123',
 					height: '1',
 				});
-				const response = await chain.actions.getHighestCommonBlockId({
+				const response = await chain.actions.getHighestCommonBlock({
 					params: { ids: ['1', '2'] },
 				});
-				expect(response).to.equal('123');
+				expect(response).to.eql({ id: '123', height: '1' });
 			});
 
 			it('should call blocks.getHighestCommonBlock with proper arguments', async () => {});
@@ -293,11 +296,9 @@ describe('Chain', () => {
 
 			// Assert
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'Failed to assign nethash from genesis block',
+			expect(chain.logger.fatal).to.have.been.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -317,11 +318,10 @@ describe('Chain', () => {
 			await chain.bootstrap();
 
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
+			// Ignoring the error object as its non-deterministic
+			expect(chain.logger.fatal).to.be.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -341,11 +341,9 @@ describe('Chain', () => {
 			await chain.bootstrap();
 
 			expect(chain.logger.fatal).to.be.calledOnce;
-			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization',
-			);
-			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
+			expect(chain.logger.fatal).to.have.been.calledWithMatch(
+				{},
+				'Failed to initialization chain module',
 			);
 		});
 
@@ -397,10 +395,6 @@ describe('Chain', () => {
 			expect(chain.processor.init).to.have.been.calledOnce;
 		});
 
-		it('should invoke bft.init', async () => {
-			expect(chain.bft.init).to.have.been.calledOnce;
-		});
-
 		it('should subscribe to "app:state:updated" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
 				'app:state:updated',
@@ -435,9 +429,10 @@ describe('Chain', () => {
 				sinonSandbox.restore();
 			});
 
-			it('should log "Chain initialization"', async () => {
-				expect(chain.logger.fatal).to.have.been.calledWith(
-					'Chain initialization',
+			it('should log "Failed to initialization chain module"', async () => {
+				expect(chain.logger.fatal).to.be.calledWithMatch(
+					{},
+					'Failed to initialization chain module',
 				);
 			});
 			it('should emit an event "cleanup" on the process', () => {
@@ -480,75 +475,10 @@ describe('Chain', () => {
 		});
 	});
 
-	describe('#_syncTask', () => {
-		beforeEach(async () => {
-			await chain.bootstrap();
-			sinonSandbox.stub(chain.loader, 'sync').resolves();
-			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
-			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
-				await fn();
-			});
-		});
-
-		it('should info log every time this task is triggered', async () => {
-			// Arrange
-			chain.loader.syncing.returns(true); // To avoid triggering extra logic irrelevant for this scenario
-
-			// Act
-			await chain._syncTask();
-
-			// Assert
-			expect(stubs.logger.debug).to.be.calledWith(
-				{
-					syncing: chain.loader.syncing(),
-					lastReceipt: chain.blocks.lastReceipt,
-				},
-				'Sync time triggered',
-			);
-		});
-
-		it('should use the Sequence the node is not syncing', async () => {
-			// Arrange
-			chain.loader.syncing.returns(false);
-
-			// Act
-			await chain._syncTask();
-
-			// Assert
-			expect(chain.scope.sequence.add).to.be.called;
-		});
-
-		describe('in sequence', () => {
-			beforeEach(async () => {
-				chain.loader.syncing.returns(false);
-			});
-
-			it('should call loader.sync', async () => {
-				await chain._syncTask();
-				expect(chain.loader.sync).to.be.called;
-			});
-
-			it('should catch and log the error if the above fails', async () => {
-				// Arrange
-				const expectedError = new Error('an error');
-				chain.loader.sync.rejects(expectedError);
-
-				// Act
-				await chain._syncTask();
-
-				// Assert
-				expect(stubs.logger.error).to.be.calledWith(
-					expectedError,
-					'Sync timer',
-				);
-			});
-		});
-	});
-
 	describe('#_startLoader', () => {
 		beforeEach(async () => {
 			await chain.bootstrap();
-			sinonSandbox.stub(chain.loader, 'loadTransactionsAndSignatures');
+			sinonSandbox.stub(chain.loader, 'loadUnconfirmedTransactions');
 		});
 
 		it('should return if syncing.active in config is set to false', async () => {
@@ -564,22 +494,7 @@ describe('Chain', () => {
 
 		it('should load transactions and signatures', async () => {
 			chain._startLoader();
-			expect(chain.loader.loadTransactionsAndSignatures).to.be.called;
-		});
-
-		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
-			// Arrange
-			chain.options.syncing.active = true;
-
-			// Act
-			chain._startLoader();
-
-			// Assert
-			expect(stubs.jobsQueue.register).to.be.calledWith(
-				'nextSync',
-				sinonSandbox.match.func,
-				Chain.__get__('syncInterval'),
-			);
+			expect(chain.loader.loadUnconfirmedTransactions).to.be.called;
 		});
 	});
 
@@ -588,10 +503,10 @@ describe('Chain', () => {
 			await chain.bootstrap();
 			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
 			sinonSandbox.stub(chain.forger, 'forge');
-			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
 			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
+			sinonSandbox.stub(chain.synchronizer, 'isActive').get(() => false);
 		});
 
 		it('should halt if no delegates are enabled', async () => {
@@ -611,7 +526,7 @@ describe('Chain', () => {
 
 		it('should halt if the client is not ready to forge (is syncing)', async () => {
 			// Arrange
-			chain.loader.syncing.returns(true);
+			sinonSandbox.stub(chain.synchronizer, 'isActive').get(() => true);
 
 			// Act
 			await chain._forgingTask();

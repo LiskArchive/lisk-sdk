@@ -331,25 +331,6 @@ class FinalityManager extends EventEmitter {
 	}
 
 	/**
-	 * @param delegatePubKey
-	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: number}>}
-	 */
-	async computeBFTHeaderProperties(delegatePubKey) {
-		const lastBlockForgedByDelegate = this._findLastBlockForgedByDelegate(
-			delegatePubKey,
-		);
-
-		const maxHeightPreviouslyForged = !lastBlockForgedByDelegate
-			? 0
-			: lastBlockForgedByDelegate.height;
-
-		return {
-			maxHeightPreviouslyForged,
-			prevotedConfirmedUptoHeight: this.prevotedConfirmedHeight, // It is 0 by default. No need to set default values here.
-		};
-	}
-
-	/**
 	 * Returns the latest block that a delegate has forged
 	 * @return {BlockHeader | undefined} blockHeader
 	 */

@@ -78,10 +78,6 @@ describe('forge', () => {
 				blocksModule: {
 					filterReadyTransactions: sinonSandbox.stub().returns([]),
 				},
-				peersModule: {
-					isPoorConsensus: sinonSandbox.stub(),
-					getLastConsensus: sinonSandbox.stub(),
-				},
 				processorModule: {
 					create: sinonSandbox.stub(),
 					process: sinonSandbox.stub(),
@@ -797,7 +793,6 @@ describe('forge', () => {
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
-				forgeModule.peersModule.isPoorConsensus.resolves(false);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
 					'utf8',
@@ -818,6 +813,7 @@ describe('forge', () => {
 				expect(data).to.be.undefined;
 				expect(mockLogger.debug).to.be.calledOnce;
 				expect(mockLogger.debug).to.be.calledWith(
+					{ slot: 5 },
 					'Block already forged for the current slot',
 				);
 			});
@@ -835,8 +831,8 @@ describe('forge', () => {
 					expect(data).to.be.undefined;
 					expect(mockLogger.error).to.be.calledOnce;
 					expect(mockLogger.error).to.be.calledWithExactly(
+						{ err: rejectionError },
 						'Skipping delegate slot',
-						rejectionError,
 					);
 				}
 			});
@@ -849,25 +845,9 @@ describe('forge', () => {
 				const data = await forgeModule.forge();
 				expect(data).to.be.undefined;
 				expect(mockLogger.debug).to.be.calledOnce;
-				expect(mockLogger.debug).to.be.calledWith('Waiting for delegate slot');
-			});
-
-			it('should log message and return if there is poor consensus', async () => {
-				const lastConsensus = 10;
-
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.resolves(testDelegate);
-				forgeModule.peersModule.isPoorConsensus.resolves(true);
-				forgeModule.peersModule.getLastConsensus.returns(lastConsensus);
-
-				const data = await forgeModule.forge();
-
-				expect(data).to.be.undefined;
-				expect(mockLogger.error).to.be.calledOnce;
-				expect(mockLogger.error).to.be.calledWithExactly(
-					'Failed to generate block within delegate slot',
-					`Inadequate broadhash consensus before forging a block: ${lastConsensus} %`,
+				expect(mockLogger.debug).to.be.calledWith(
+					{ currentSlot: 5 },
+					'Waiting for delegate slot',
 				);
 			});
 
@@ -892,10 +872,6 @@ describe('forge', () => {
 
 				await forgeModule.forge();
 				expect(forgeModule.processorModule.create).to.not.been.called;
-				expect(mockLogger.info).to.be.calledTwice;
-				expect(mockLogger.info.secondCall.args).to.be.eql([
-					'Skipping forging to wait for last block',
-				]);
 				expect(mockLogger.debug).to.be.calledWithExactly('Slot information', {
 					currentSlot,
 					lastBlockSlot: changedLastBlockSlot,

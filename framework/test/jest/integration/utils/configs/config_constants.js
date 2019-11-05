@@ -18,6 +18,7 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	BLOCK_TIME: 10,
 	MAX_TRANSACTIONS_PER_BLOCK: 25,
+	DELEGATE_LIST_ROUND_OFFSET: 2,
 	REWARDS: {
 		MILESTONES: [
 			'500000000', // Initial Reward
@@ -45,7 +46,6 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	MAX_PAYLOAD_LENGTH: 1024 * 1024,
 	MAX_SHARED_TRANSACTIONS: 100,
 	MAX_VOTES_PER_ACCOUNT: 101,
-	MIN_BROADHASH_CONSENSUS: 51,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	TOTAL_AMOUNT: '10000000000000000',
 	TRANSACTION_TYPES: {

@@ -22,11 +22,16 @@ const {
 	castVotes,
 	registerMultisignature,
 	createDapp,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 // FIXME: this function was used from transactions library, but it doesn't exist
 const transferIntoDapp = () => {};
@@ -59,6 +64,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 			function createAccountWithFunds(done) {
 				testAccount = randomUtil.account();
 				const sendTransaction = transfer({
+					networkIdentifier,
 					amount: (100000000 * 100).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: testAccount.address,
@@ -82,6 +88,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should create a transaction and forge a block', done => {
 					testReceipt = randomUtil.account();
 					const transferTransaction = transfer({
+						networkIdentifier,
 						amount: '100000000',
 						passphrase: testAccount.passphrase,
 						recipientId: testReceipt.address,
@@ -172,6 +179,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					const signatureTransaction = registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						secondPassphrase: testAccount.secondPassphrase,
 					});
@@ -247,13 +255,13 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.null;
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.be.null;
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should forge a block', done => {
 					const delegateTransaction = registerDelegate({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						username: testAccount.username,
 					});
@@ -274,9 +282,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.equal(testAccount.username);
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.equal(null);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should delete last block', async () => {
@@ -298,9 +305,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.username).to.be.null;
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.be.null;
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 
 				it('should forge a block with pool transaction', done => {
@@ -321,9 +327,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
-					expect(account.rank).to.equal(null);
 					expect(account.rewards).to.equal('0');
-					expect(account.vote).to.equal('0');
+					expect(account.voteWeight).to.equal('0');
 				});
 			});
 
@@ -344,6 +349,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					const voteTransaction = castVotes({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						votes: [accountFixtures.existingDelegate.publicKey],
 					});
@@ -378,7 +384,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.votedDelegatesPublicKeys).to.be.null;
+					expect(account.votedDelegatesPublicKeys).to.eql([]);
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -419,16 +425,18 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					const multisigTransaction = registerMultisignature({
+						networkIdentifier,
 						passphrase: testAccount.passphrase,
 						keysgroup: [accountFixtures.existingDelegate.publicKey],
 						lifetime: 1,
 						minimum: 1,
 					});
-					const signature = transactionUtils.multiSignTransaction(
-						multisigTransaction,
-						accountFixtures.existingDelegate.passphrase,
-					);
-					multisigTransaction.signatures = [signature];
+					const signatureObject = createSignatureObject({
+						networkIdentifier,
+						transaction: multisigTransaction,
+						passphrase: accountFixtures.existingDelegate.passphrase,
+					});
+					multisigTransaction.signatures = [signatureObject.signature];
 					multisigTransaction.ready = true;
 
 					localCommon.addTransactionsAndForge(
@@ -470,7 +478,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.be.null;
+					expect(account.membersPublicKeys).to.eql([]);
 				});
 
 				it('should forge a block with transaction pool', done => {

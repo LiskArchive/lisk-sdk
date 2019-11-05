@@ -17,8 +17,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=8.10 <=10",
-		"npm": ">=5"
+		"node": ">=12.13.0 <=12",
+		"npm": ">=6.12.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -59,7 +59,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "2.0.3",
+		"@liskhq/lisk-api-client": "3.0.0-alpha.0",
 		"@liskhq/lisk-constants": "1.2.3",
 		"@liskhq/lisk-cryptography": "2.3.0",
 		"@liskhq/lisk-passphrase": "2.0.3",

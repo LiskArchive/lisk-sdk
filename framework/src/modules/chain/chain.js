@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
@@ -23,16 +24,19 @@ const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
-const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const {
 	TransactionPool,
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Slots, Dpos } = require('./dpos');
+const {
+	Slots,
+	Dpos,
+	constants: { EVENT_ROUND_CHANGED },
+} = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
-const { Blocks, EVENT_NEW_BROADHASH } = require('./blocks');
+const { Blocks } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
@@ -45,8 +49,8 @@ const { Processor } = require('./processor');
 const { Rebuilder } = require('./rebuilder');
 const { BlockProcessorV0 } = require('./block_processor_v0.js');
 const { BlockProcessorV1 } = require('./block_processor_v1.js');
+const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
-const syncInterval = 10000;
 const forgeInterval = 1000;
 
 /**
@@ -126,10 +130,14 @@ module.exports = class Chain {
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
 
+			this.networkIdentifier = getNetworkIdentifier(
+				this.options.genesisBlock.payloadHash,
+				this.options.genesisBlock.communityIdentifier,
+			);
+
 			const self = this;
 			this.scope = {
 				config: self.options,
-				peers: this.peers,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
 				sequence: new Sequence({
@@ -154,7 +162,8 @@ module.exports = class Chain {
 			// Prepare dependency
 			const processorDependencies = {
 				blocksModule: this.blocks,
-				bft: this.bft,
+				bftModule: this.bft,
+				dposModule: this.dpos,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
@@ -174,9 +183,22 @@ module.exports = class Chain {
 							height >= period.start && height <= period.end,
 					});
 				}
+
+				if (this.options.exceptions.blockVersions[1]) {
+					const period = this.options.exceptions.blockVersions[1];
+					this.processor.register(new BlockProcessorV1(processorDependencies), {
+						matcher: ({ height }) =>
+							height >= period.start && height <= period.end,
+					});
+				}
 			}
 
-			this.processor.register(new BlockProcessorV1(processorDependencies));
+			this.processor.register(new BlockProcessorV2(processorDependencies));
+
+			// Deserialize genesis block and overwrite the options
+			this.options.genesisBlock = await this.processor.deserialize(
+				this.options.genesisBlock,
+			);
 
 			// Deactivate broadcast and syncing during snapshotting process
 			if (this.options.loading.rebuildUpToRound) {
@@ -202,14 +224,12 @@ module.exports = class Chain {
 			});
 
 			this.logger.info('Modules ready and launched');
-			await this.bft.init();
 			// After binding, it should immediately load blockchain
 			await this.processor.init(this.options.genesisBlock);
 
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
-				this._calculateConsensus();
 				await this._startForging();
 			});
 
@@ -221,7 +241,7 @@ module.exports = class Chain {
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe(
 					'network:event',
-					async ({ data: { event, data } }) => {
+					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactions') {
 								await this.transport.postTransactions(data);
@@ -232,23 +252,29 @@ module.exports = class Chain {
 								return;
 							}
 							if (event === 'postBlock') {
-								await this.transport.postBlock(data);
+								await this.transport.postBlock(data, peerId);
 								return;
 							}
-						} catch (error) {
+						} catch (err) {
 							this.logger.warn(
-								{ error, event },
+								{ err, event },
 								'Received invalid event message',
 							);
 						}
 					},
 				);
 			}
+
+			// Check if blocks are left in temp_block table
+			await this.synchronizer.init();
 		} catch (error) {
-			this.logger.fatal('Chain initialization', {
-				message: error.message,
-				stack: error.stack,
-			});
+			this.logger.fatal(
+				{
+					message: error.message,
+					stack: error.stack,
+				},
+				'Failed to initialization chain module',
+			);
 			process.emit('cleanup', error);
 		}
 	}
@@ -279,29 +305,30 @@ module.exports = class Chain {
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
 				this.transport.postTransaction(action.params),
-			getDelegateBlocksRewards: async action =>
-				this.scope.components.storage.entities.Account.delegateBlocksRewards(
-					action.params.filters,
-					action.params.tx,
-				),
 			getSlotNumber: async action =>
 				action.params
 					? this.slots.getSlotNumber(action.params.epochTime)
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				consensus: await this.peers.getLastConsensus(this.blocks.broadhash),
 				loaded: true,
-				syncing: this.loader.syncing(),
+				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
+				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
 			}),
-			getLastBlock: async () => this.blocks.lastBlock,
-			blocks: async action => this.transport.blocks(action.params || {}),
-			getHighestCommonBlockId: async action => {
+			getLastBlock: async () => ({
+				...this.blocks.lastBlock,
+				reward: this.blocks.lastBlock.reward.toString(),
+				totalAmount: this.blocks.lastBlock.totalAmount.toString(),
+				totalFee: this.blocks.lastBlock.totalFee.toString(),
+			}),
+			getBlocksFromId: async action =>
+				this.transport.getBlocksFromId(action.params || {}),
+			getHighestCommonBlock: async action => {
 				const valid = validator.validate(
-					definitions.getHighestCommonBlockIdRequest,
+					definitions.getHighestCommonBlockRequest,
 					action.params,
 				);
 
@@ -309,11 +336,11 @@ module.exports = class Chain {
 					const err = valid;
 					const error = `${err[0].message}: ${err[0].path}`;
 					this.logger.debug(
-						'getHighestCommonBlockId request validation failed',
 						{
 							err: error,
 							req: action.params,
 						},
+						'getHighestCommonBlock request validation failed',
 					);
 					throw new Error(error);
 				}
@@ -322,7 +349,7 @@ module.exports = class Chain {
 					action.params.ids,
 				);
 
-				return commonBlock ? commonBlock.id : null;
+				return commonBlock;
 			},
 		};
 	}
@@ -363,19 +390,12 @@ module.exports = class Chain {
 		this.scope.modules = {};
 		this.interfaceAdapters = {
 			transactions: new TransactionInterfaceAdapter(
+				this.networkIdentifier,
 				this.options.registeredTransactions,
 			),
 		};
 
 		// Deserialize genesis block
-		const transactionInstances = this.options.genesisBlock.transactions.map(
-			transaction => this.interfaceAdapters.transactions.fromJson(transaction),
-		);
-		const blockWithTransactionInstances = {
-			...this.options.genesisBlock,
-			transactions: transactionInstances,
-		};
-		this.options.genesisBlock = blockWithTransactionInstances;
 
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		this.slots = new Slots({
@@ -395,8 +415,15 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: this.options.constants
+				.DELEGATE_LIST_ROUND_OFFSET,
 			exceptions: this.options.exceptions,
 		});
+
+		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
+			this.channel.publish('chain:rounds:change', { number: data.newRound });
+		});
+
 		this.blocks = new Blocks({
 			logger: this.logger,
 			storage: this.storage,
@@ -404,7 +431,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			slots: this.slots,
 			exceptions: this.options.exceptions,
-			dposModule: this.dpos,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
@@ -433,24 +459,29 @@ module.exports = class Chain {
 			channel: this.channel,
 			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			processorModule: this.processor,
+			interfaceAdapters: this.interfaceAdapters,
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
 			storage: this.storage,
 			logger: this.logger,
+			channel: this.channel,
 			slots: this.slots,
 			blocks: this.blocks,
-			dpos: {},
+			bft: this.bft,
+			dpos: this.dpos,
+			processor: this.processor,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 
 		this.synchronizer = new Synchronizer({
-			storage: this.storage,
 			logger: this.logger,
+			blocksModule: this.blocks,
 			processorModule: this.processor,
+			storageModule: this.storage,
+			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
-		this.synchronizer.register(blockSyncMechanism);
-		this.synchronizer.register(fastChainSwitchMechanism);
 
 		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
@@ -469,13 +500,6 @@ module.exports = class Chain {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.scope.modules.transactionPool = this.transactionPool;
-		// TODO: Remove - Temporal write to modules for blocks circular dependency
-		this.peers = new Peers({
-			channel: this.channel,
-			forgingForce: this.options.forging.force,
-			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
-		});
-		this.scope.modules.peers = this.peers;
 		this.loader = new Loader({
 			channel: this.channel,
 			logger: this.logger,
@@ -484,7 +508,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
-			peersModule: this.peers,
 			processorModule: this.processor,
 			interfaceAdapters: this.interfaceAdapters,
 			loadPerIteration: this.options.loading.loadPerIteration,
@@ -511,7 +534,6 @@ module.exports = class Chain {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			blocksModule: this.blocks,
-			peersModule: this.peers,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
@@ -524,6 +546,7 @@ module.exports = class Chain {
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
+			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
@@ -543,45 +566,8 @@ module.exports = class Chain {
 		this.scope.modules.synchronizer = this.synchronizer;
 	}
 
-	async _syncTask() {
-		this.logger.debug(
-			{
-				syncing: this.loader.syncing(),
-				lastReceipt: this.blocks.lastReceipt,
-			},
-			'Sync time triggered',
-		);
-		// TODO: Do we need further checks here, removing blocks.isStale()
-		if (!this.loader.syncing()) {
-			await this.scope.sequence.add(async () => {
-				try {
-					await this.loader.sync();
-				} catch (error) {
-					this.logger.error(error, 'Sync timer');
-				}
-			});
-		}
-	}
-
 	_startLoader() {
-		this.loader.loadTransactionsAndSignatures();
-		if (!this.options.syncing.active) {
-			return;
-		}
-		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
-	}
-
-	_calculateConsensus() {
-		jobQueue.register(
-			'calculateConsensus',
-			async () => {
-				const consensus = await this.peers.calculateConsensus(
-					this.blocks.broadhash,
-				);
-				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
-			},
-			this.peers.broadhashConsensusCalculationInterval,
-		);
+		this.loader.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {
@@ -592,13 +578,13 @@ module.exports = class Chain {
 					this.logger.debug('No delegates are enabled');
 					return;
 				}
-				if (this.loader.syncing()) {
+				if (this.synchronizer.isActive) {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
 				await this.forger.forge();
-			} catch (error) {
-				this.logger.error(error);
+			} catch (err) {
+				this.logger.error({ err });
 			}
 		});
 	}
@@ -607,7 +593,7 @@ module.exports = class Chain {
 		try {
 			await this.forger.loadDelegates();
 		} catch (err) {
-			this.logger.error(err, 'Failed to load delegates');
+			this.logger.error({ err }, 'Failed to load delegates for forging');
 		}
 		jobQueue.register(
 			'nextForge',
@@ -624,21 +610,24 @@ module.exports = class Chain {
 			},
 		);
 
-		this.channel.subscribe('chain:processor:deleteBlock', ({ block }) => {
-			if (block.transactions.length) {
-				const transactions = block.transactions.reverse();
-				this.transactionPool.onDeletedTransactions(transactions);
-				this.channel.publish(
-					'chain:transactions:confirmed:change',
-					block.transactions,
+		this.channel.subscribe(
+			'chain:processor:deleteBlock',
+			({ data: { block } }) => {
+				if (block.transactions.length) {
+					const transactions = block.transactions.reverse();
+					this.transactionPool.onDeletedTransactions(transactions);
+					this.channel.publish(
+						'chain:transactions:confirmed:change',
+						block.transactions,
+					);
+				}
+				this.logger.info(
+					{ id: block.id, height: block.height },
+					'Deleted a block from the chain',
 				);
-			}
-			this.logger.info(
-				{ id: block.id, height: block.height },
-				'Deleted a block from the chain',
-			);
-			this.channel.publish('chain:blocks:change', block);
-		});
+				this.channel.publish('chain:blocks:change', block);
+			},
+		);
 
 		this.channel.subscribe(
 			'chain:processor:newBlock',
@@ -650,6 +639,9 @@ module.exports = class Chain {
 						block.transactions,
 					);
 				}
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+				});
 				this.logger.info(
 					{
 						id: block.id,
@@ -660,29 +652,25 @@ module.exports = class Chain {
 				);
 				this.channel.publish('chain:blocks:change', block);
 
-				if (!this.loader.syncing()) {
+				if (!this.synchronizer.isActive) {
 					this.channel.invoke('app:updateApplicationState', {
 						height: block.height,
 						lastBlockId: block.id,
 						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+						blockVersion: block.version,
 					});
 				}
 			},
 		);
 
-		this.channel.subscribe('chain:processor:sync', ({ data: { block } }) => {
-			this.logger.info(
-				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.',
-			);
-			this.synchronizer
-				.run(block)
-				.then(() => {
-					this.logger.info('Synchronization finished.');
-				})
-				.catch(error => {
-					this.logger.error('Error occurred during synchronization.', error);
+		this.channel.subscribe(
+			'chain:processor:sync',
+			({ data: { block, peerId } }) => {
+				this.synchronizer.run(block, peerId).catch(err => {
+					this.logger.error({ err }, 'Error occurred during synchronization.');
 				});
-		});
+			},
+		);
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
 			this.logger.trace(
@@ -690,15 +678,6 @@ module.exports = class Chain {
 				'Received EVENT_UNCONFIRMED_TRANSACTION',
 			);
 			this.transport.onUnconfirmedTransaction(transaction, true);
-		});
-
-		// TODO: Remove this event
-		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
-			this.channel.invoke('app:updateApplicationState', { broadhash, height });
-			this.logger.debug(
-				{ broadhash, height },
-				'Updating the application state',
-			);
 		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
@@ -716,7 +695,6 @@ module.exports = class Chain {
 
 	_unsubscribeToEvents() {
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
-		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
 		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}

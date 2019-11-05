@@ -114,7 +114,10 @@ class ChainMeta extends BaseEntity {
 	 */
 	async setKey(key, value, tx) {
 		assert(key, 'Must provide the key to set');
-		assert(value, 'Must provide the value to set');
+		assert(
+			value !== null && value !== undefined,
+			'Must provide the value to set',
+		);
 
 		const expectedResultCount = 0;
 

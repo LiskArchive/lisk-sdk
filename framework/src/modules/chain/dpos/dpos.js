@@ -14,13 +14,25 @@
 
 'use strict';
 
-const { DelegatesList, EVENT_ROUND_FINISHED } = require('./delegates_list');
+const EventEmitter = require('events');
+const { EVENT_ROUND_CHANGED } = require('./constants');
+const { DelegatesList } = require('./delegates_list');
 const { DelegatesInfo } = require('./delegates_info');
 
 module.exports = class Dpos {
-	constructor({ storage, slots, activeDelegates, logger, exceptions = {} }) {
+	constructor({
+		storage,
+		slots,
+		activeDelegates,
+		delegateListRoundOffset,
+		logger,
+		exceptions = {},
+	}) {
+		this.events = new EventEmitter();
+		this.delegateListRoundOffset = delegateListRoundOffset;
 		this.finalizedBlockRound = 0;
 		this.slots = slots;
+
 		this.delegatesList = new DelegatesList({
 			storage,
 			logger,
@@ -28,22 +40,35 @@ module.exports = class Dpos {
 			activeDelegates,
 			exceptions,
 		});
+
 		this.delegatesInfo = new DelegatesInfo({
 			storage,
 			slots,
 			activeDelegates,
 			logger,
+			events: this.events,
 			delegatesList: this.delegatesList,
 			exceptions,
 		});
 
-		this.delegatesList.on(EVENT_ROUND_FINISHED, () => {
-			this.onRoundFinish();
+		this.events.on(EVENT_ROUND_CHANGED, async () => {
+			try {
+				await this.onRoundFinish();
+			} catch (err) {
+				this.logger.error({ err }, 'Failed to apply round finish');
+			}
 		});
 	}
 
-	async getForgerPublicKeysForRound(round, tx) {
-		return this.delegatesList.getForgerPublicKeysForRound(round, tx);
+	async getForgerPublicKeysForRound(
+		round,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		return this.delegatesList.getForgerPublicKeysForRound(
+			round,
+			delegateListRoundOffset,
+			tx,
+		);
 	}
 
 	async onBlockFinalized({ height }) {
@@ -51,24 +76,34 @@ module.exports = class Dpos {
 	}
 
 	async onRoundFinish() {
-		// TODO use the configuration variable to set the value of this variable
-		const delegateListOffsetForRound = 2;
 		const disposableDelegateList =
-			this.finalizedBlockRound - delegateListOffsetForRound;
+			this.finalizedBlockRound - this.delegateListRoundOffset;
 		await this.delegatesList.deleteDelegateListUntilRound(
 			disposableDelegateList,
 		);
 	}
 
-	async verifyBlockForger(block, tx) {
-		return this.delegatesList.verifyBlockForger(block, tx);
+	async verifyBlockForger(
+		block,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		return this.delegatesList.verifyBlockForger(block, {
+			tx,
+			delegateListRoundOffset,
+		});
 	}
 
-	async apply(block, tx) {
-		return this.delegatesInfo.apply(block, tx);
+	async apply(
+		block,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		return this.delegatesInfo.apply(block, { tx, delegateListRoundOffset });
 	}
 
-	async undo(block, tx) {
-		return this.delegatesInfo.undo(block, tx);
+	async undo(
+		block,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		return this.delegatesInfo.undo(block, { tx, delegateListRoundOffset });
 	}
 };

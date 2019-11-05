@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "2.0.3",
+	"version": "3.0.0-alpha.0",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -17,8 +17,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=8.10 <=10",
-		"npm": ">=5"
+		"node": ">=12.13.0 <=12",
+		"npm": ">=6.12.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {

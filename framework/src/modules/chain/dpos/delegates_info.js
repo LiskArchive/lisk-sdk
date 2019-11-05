@@ -15,6 +15,7 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
+const { EVENT_ROUND_CHANGED } = require('./constants');
 
 const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
 	delegatePublicKeys
@@ -53,6 +54,7 @@ class DelegatesInfo {
 		slots,
 		activeDelegates,
 		logger,
+		events,
 		delegatesList,
 		exceptions,
 	}) {
@@ -60,11 +62,12 @@ class DelegatesInfo {
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
 		this.logger = logger;
+		this.events = events;
 		this.delegatesList = delegatesList;
 		this.exceptions = exceptions;
 	}
 
-	async apply(block, tx) {
+	async apply(block, { tx, delegateListRoundOffset }) {
 		const undo = false;
 
 		/**
@@ -77,30 +80,33 @@ class DelegatesInfo {
 			return false;
 		}
 
-		return this._update(block, undo, tx);
+		return this._update(block, { undo, tx, delegateListRoundOffset });
 	}
 
-	async undo(block, tx) {
+	async undo(block, { tx, delegateListRoundOffset }) {
 		const undo = true;
 
 		// Never undo genesis block
 		if (_isGenesisBlock(block)) {
 			throw new Error('Cannot undo genesis block');
 		}
-		return this._update(block, undo, tx);
+		return this._update(block, { undo, tx, delegateListRoundOffset });
 	}
 
 	/**
 	 * @param {Block} block
 	 */
-	async _update(block, undo, tx) {
+	async _update(block, { undo, tx, delegateListRoundOffset }) {
 		await this._updateProducedBlocks(block, undo, tx);
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {
 			const round = this.slots.calcRound(block.height);
 
-			const roundSummary = await this._summarizeRound(block, tx);
+			const roundSummary = await this._summarizeRound(block, {
+				tx,
+				delegateListRoundOffset,
+			});
 
 			// Can NOT execute in parallel as _updateVotedDelegatesVoteWeight uses data updated on _updateBalanceRewardsAndFees
 			await this._updateMissedBlocks(roundSummary, undo, tx);
@@ -108,6 +114,12 @@ class DelegatesInfo {
 			await this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx);
 
 			if (undo) {
+				const previousRound = round + 1;
+				this.events.emit(EVENT_ROUND_CHANGED, {
+					oldRound: previousRound,
+					newRound: round,
+				});
+
 				/**
 				 * If we are reverting the block, new transactions
 				 * can change vote weight of delegates, so we need to
@@ -115,8 +127,13 @@ class DelegatesInfo {
 				 */
 				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
 			} else {
-				// Create round delegate list
 				const nextRound = round + 1;
+				this.events.emit(EVENT_ROUND_CHANGED, {
+					oldRound: round,
+					newRound: nextRound,
+				});
+
+				// Create round delegate list
 				await this.delegatesList.createRoundDelegateList(nextRound, tx);
 			}
 		}
@@ -230,7 +247,7 @@ class DelegatesInfo {
 	 * @returns {Object} { earnings: { fee, reward } }
 	 * @returns {Object} { delegateAccount: AccountEntity }
 	 */
-	async _summarizeRound(block, tx) {
+	async _summarizeRound(block, { tx, delegateListRoundOffset }) {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
@@ -254,7 +271,7 @@ class DelegatesInfo {
 
 			const delegateAccounts = await this.storage.entities.Account.get(
 				{ publicKey_in: summedRound.delegates },
-				{ extended: true },
+				{},
 				tx,
 			);
 
@@ -284,6 +301,7 @@ class DelegatesInfo {
 
 			return {
 				round,
+				delegateListRoundOffset,
 				totalFee,
 				uniqForgersInfo,
 			};
@@ -293,9 +311,15 @@ class DelegatesInfo {
 		}
 	}
 
-	async _getMissedBlocksDelegatePublicKeys({ round, uniqForgersInfo }, tx) {
+	async _getMissedBlocksDelegatePublicKeys({
+		round,
+		delegateListRoundOffset,
+		uniqForgersInfo,
+		tx,
+	}) {
 		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
 			round,
+			delegateListRoundOffset,
 			tx,
 		);
 
@@ -346,4 +370,4 @@ class DelegatesInfo {
 	}
 }
 
-module.exports = { DelegatesInfo };
+module.exports = { DelegatesInfo, EVENT_ROUND_CHANGED };

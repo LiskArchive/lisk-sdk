@@ -32,6 +32,7 @@ const {
 const {
 	BlockProcessorV1,
 } = require('../../../src/modules/chain/block_processor_v1');
+const { getNetworkIdentifier } = require('./network_identifier');
 
 let currentAppScope;
 
@@ -62,6 +63,7 @@ const initStepsForTest = {
 		});
 		modules.interfaceAdapters = {};
 		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
+			getNetworkIdentifier(__testContext.config.genesisBlock),
 			__testContext.config.modules.chain.registeredTransactions,
 		);
 
@@ -69,8 +71,11 @@ const initStepsForTest = {
 		modules.dpos = new Dpos({
 			logger: scope.components.logger,
 			slots: scope.slots,
+			channel: scope.channel,
 			storage: scope.components.storage,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset:
+				__testContext.config.constants.DELEGATE_LIST_ROUND_OFFSET,
 			exceptions: __testContext.config.modules.chain.exceptions,
 		});
 
@@ -84,7 +89,6 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			slots: scope.slots,
 			exceptions: __testContext.config.modules.chain.exceptions,
-			dposModule: modules.dpos,
 			interfaceAdapters: modules.interfaceAdapters,
 			blockReceiptTimeout: __testContext.config.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
@@ -106,6 +110,7 @@ const initStepsForTest = {
 		});
 		const processorDependency = {
 			blocksModule: modules.blocks,
+			dposModule: modules.dpos,
 			logger: scope.components.logger,
 			constants: __testContext.config.constants,
 			exceptions: __testContext.config.modules.chain.exceptions,
@@ -115,13 +120,6 @@ const initStepsForTest = {
 		});
 		modules.processor.register(new BlockProcessorV1(processorDependency));
 		scope.modules = modules;
-		const { Peers } = rewire('../../../src/modules/chain/peers');
-		scope.peers = new Peers({
-			channel: scope.channel,
-			minBroadhashConsensus:
-				__testContext.config.constants.MIN_BROADHASH_CONSENSUS,
-			forgingForce: __testContext.config.modules.chain.forging.force,
-		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool',
 		);
@@ -157,7 +155,6 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
-			peersModule: modules.peers,
 			interfaceAdapters: modules.interfaceAdapters,
 			loadPerIteration:
 				__testContext.config.modules.chain.loading.loadPerIteration,
@@ -177,7 +174,6 @@ const initStepsForTest = {
 			dposModule: modules.dpos,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
-			peersModule: modules.peers,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock:
 				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
@@ -313,7 +309,7 @@ async function __init(sandbox, initScope) {
 				channel: {
 					invoke: sinonSandbox.stub(),
 					publish: sinonSandbox.stub(),
-					suscribe: sinonSandbox.stub(),
+					subscribe: sinonSandbox.stub(),
 					once: sinonSandbox.stub().callsArg(1),
 				},
 				applicationState: __testContext.config.initialState,

@@ -21,6 +21,7 @@ import {
 	getInputsFromSources,
 	InputFromSourceOutput,
 } from '../../../utils/input';
+import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 interface Args {
 	readonly address: string;
@@ -35,11 +36,14 @@ const dataFlag = {
 `,
 };
 
-const processInputs = (amount: string, address: string, data?: string) => ({
-	passphrase,
-	secondPassphrase,
-}: InputFromSourceOutput) =>
+const processInputs = (
+	networkIdentifier: string,
+	amount: string,
+	address: string,
+	data?: string,
+) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
 	transfer({
+		networkIdentifier,
 		recipientId: address,
 		amount,
 		data,
@@ -69,6 +73,7 @@ export default class TransferCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
@@ -79,6 +84,7 @@ export default class TransferCommand extends BaseCommand {
 		const {
 			args,
 			flags: {
+				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
@@ -87,11 +93,16 @@ export default class TransferCommand extends BaseCommand {
 		} = this.parse(TransferCommand);
 
 		const { amount, address }: Args = args;
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
 
 		transactionUtils.validateAddress(address);
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
 		const processFunction = processInputs(
+			networkIdentifier,
 			normalizedAmount,
 			address,
 			dataString,

@@ -29,6 +29,11 @@ const common = require('./common');
 const {
 	createInvalidRegisterMultisignatureTransaction,
 } = require('../../../common/utils/elements');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const { MULTISIG_CONSTRAINTS } = __testContext.config;
@@ -91,14 +96,16 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		describe('keysgroup', () => {
 			it('using empty array should fail', async () => {
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
-				transaction.asset.multisignature.keysgroup = [];
-				transaction = elements.redoSignature(
+				transaction.asset.keysgroup = [];
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -111,7 +118,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup' should NOT have fewer than 1 items",
+						"'.keysgroup' should NOT have fewer than 1 items",
 					);
 					badTransactions.push(transaction);
 				});
@@ -125,15 +132,17 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
 
-				transaction.asset.multisignature.keysgroup.push(null);
-				transaction = elements.redoSignature(
+				transaction.asset.keysgroup.push(null);
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -146,7 +155,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup[3]' should be string",
+						"'.keysgroup[3]' should be string",
 					);
 					badTransactions.push(transaction);
 				});
@@ -159,6 +168,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -187,18 +197,20 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
 
-				transaction.asset.multisignature.keysgroup = [
+				transaction.asset.keysgroup = [
 					`+${accountFixtures.existingDelegate.publicKey}`,
 					`+${accountFixtures.existingDelegate.publicKey}`,
 				];
-				transaction = elements.redoSignature(
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -211,7 +223,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup' should NOT have duplicate items (items ## 1 and 0 are identical)",
+						"'.keysgroup' should NOT have duplicate items (items ## 1 and 0 are identical)",
 					);
 					badTransactions.push(transaction);
 				});
@@ -224,18 +236,20 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
 
-				transaction.asset.multisignature.keysgroup = [
+				transaction.asset.keysgroup = [
 					`+${scenarios.no_funds.account.publicKey}`,
 					`+L${accountFixtures.existingDelegate.publicKey.slice(0, -1)}`,
 				];
-				transaction = elements.redoSignature(
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -248,7 +262,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[1]\' should match format "additionPublicKey"',
+						'\'.keysgroup[1]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -262,18 +276,20 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
 
-				transaction.asset.multisignature.keysgroup[0] = transaction.asset.multisignature.keysgroup[0].replace(
+				transaction.asset.keysgroup[0] = transaction.asset.keysgroup[0].replace(
 					'+',
 					'',
 				);
-				transaction = elements.redoSignature(
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -286,7 +302,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
+						'\'.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -299,15 +315,17 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = registerMultisignature({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
 
-				transaction.asset.multisignature.keysgroup = ['+', '+'];
-				transaction = elements.redoSignature(
+				transaction.asset.keysgroup = ['+', '+'];
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -320,7 +338,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
+						'\'.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -333,6 +351,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -340,12 +359,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					baseFee: FEES.MULTISIGNATURE,
 				});
 
-				transaction.asset.multisignature.keysgroup = [
+				transaction.asset.keysgroup = [
 					`-${accountFixtures.existingDelegate.publicKey}`,
 					`+${scenarios.no_funds.account.publicKey}`,
 				];
-				transaction = elements.redoSignature(
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -358,7 +378,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
+						'\'.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -371,6 +391,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -378,12 +399,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					baseFee: FEES.MULTISIGNATURE,
 				});
 
-				transaction.asset.multisignature.keysgroup = [
+				transaction.asset.keysgroup = [
 					`++${accountFixtures.existingDelegate.publicKey}`,
 					`+${scenarios.no_funds.account.publicKey}`,
 				];
-				transaction = elements.redoSignature(
+				transaction = elements.redoMultisignatureTransactionSignature(
 					transaction,
+					networkIdentifier,
 					scenarios.regular.account.passphrase,
 				);
 
@@ -396,7 +418,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
+						'\'.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -405,6 +427,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using more_than_max_members scenario(${MULTISIG_CONSTRAINTS.KEYSGROUP
 				.MAX_ITEMS + 2}, 2) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.more_than_max_members.account.passphrase,
 					keysgroup: scenarios.more_than_max_members.keysgroup,
 					lifetime: 1,
@@ -421,7 +444,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup' should NOT have more than 15 items",
+						"'.keysgroup' should NOT have more than 15 items",
 					);
 					badTransactions.push(transaction);
 				});
@@ -431,6 +454,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		describe('min', () => {
 			it('using bigger than keysgroup size plus 1 should fail', async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
@@ -457,6 +481,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.MIN.MAXIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.max_members_max_min.account.passphrase,
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
@@ -473,7 +498,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.min' should be <= 15",
+						"'.min' should be <= 15",
 					);
 					badTransactions.push(transaction);
 				});
@@ -483,6 +508,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.MIN.MINIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.max_members.account.passphrase,
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
@@ -499,7 +525,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.min' should be >= 1",
+						"'.min' should be >= 1",
 					);
 					badTransactions.push(transaction);
 				});
@@ -511,6 +537,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1,
@@ -527,7 +554,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.lifetime' should be <= 72",
+						"'.lifetime' should be <= 72",
 					);
 					badTransactions.push(transaction);
 				});
@@ -537,6 +564,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM
 			}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
+					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1,
@@ -553,7 +581,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.lifetime' should be >= 1",
+						"'.lifetime' should be >= 1",
 					);
 					badTransactions.push(transaction);
 				});
@@ -623,6 +651,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		it('using valid params regular_with_second_signature scenario should be ok', async () => {
 			const scenario = scenarios.regular_with_second_signature;
 			const multiSigSecondPassphraseTransaction = registerMultisignature({
+				networkIdentifier,
 				passphrase: scenario.account.passphrase,
 				secondPassphrase: scenario.account.secondPassphrase,
 				keysgroup: scenario.keysgroup,

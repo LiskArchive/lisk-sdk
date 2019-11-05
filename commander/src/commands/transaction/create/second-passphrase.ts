@@ -22,8 +22,9 @@ import {
 	getInputsFromSources,
 	InputFromSourceOutput,
 } from '../../../utils/input';
+import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
-export const processInputs = () => ({
+export const processInputs = (networkIdentifier: string) => ({
 	passphrase,
 	secondPassphrase,
 }: InputFromSourceOutput) => {
@@ -32,6 +33,7 @@ export const processInputs = () => ({
 	}
 
 	return registerSecondPassphrase({
+		networkIdentifier,
 		passphrase,
 		secondPassphrase,
 	});
@@ -46,6 +48,7 @@ export default class SecondPassphraseCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
@@ -54,13 +57,18 @@ export default class SecondPassphraseCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const {
 			flags: {
+				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 			},
 		} = this.parse(SecondPassphraseCommand);
 
-		const processFunction = processInputs();
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
+		const processFunction = processInputs(networkIdentifier);
 
 		const inputs = noSignature
 			? await getInputsFromSources({

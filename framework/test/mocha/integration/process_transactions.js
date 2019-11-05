@@ -15,7 +15,6 @@
 'use strict';
 
 const util = require('util');
-
 const liskTransactions = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../fixtures/accounts');
 const application = require('../common/application');
@@ -26,11 +25,19 @@ const transactionsModule = require('../../../src/modules/chain/transactions');
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../src/modules/chain/interface_adapters');
+const { getNetworkIdentifier } = require('../common/network_identifier');
 
-const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(registeredTransactions),
-};
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
 const genesisBlock = __testContext.config.genesisBlock;
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(
+		networkIdentifier,
+		registeredTransactions,
+	),
+};
 const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
@@ -73,6 +80,7 @@ describe('processTransactions', () => {
 		beforeEach(done => {
 			account = random.account();
 			const transaction = liskTransactions.transfer({
+				networkIdentifier,
 				amount: (NORMALIZER * 1000000).toString(),
 				recipientId: account.address,
 				passphrase: accountFixtures.genesis.passphrase,
@@ -84,6 +92,7 @@ describe('processTransactions', () => {
 		describe('process transactions', () => {
 			beforeEach(async () => {
 				const allowedTransactionTransfer = liskTransactions.transfer({
+					networkIdentifier,
 					amount: (NORMALIZER * 1000).toString(),
 					recipientId: account.address,
 					passphrase: account.passphrase,
@@ -91,6 +100,7 @@ describe('processTransactions', () => {
 				allowedTransactionTransfer.matcher = () => true;
 
 				const nonAllowedTransactionTransfer = liskTransactions.transfer({
+					networkIdentifier,
 					amount: (NORMALIZER * 1000).toString(),
 					recipientId: account.address,
 					passphrase: account.passphrase,
@@ -103,6 +113,7 @@ describe('processTransactions', () => {
 
 				transactionsWithNoMatcherImpl = [
 					liskTransactions.transfer({
+						networkIdentifier,
 						amount: (NORMALIZER * 1000).toString(),
 						recipientId: account.address,
 						passphrase: account.passphrase,
@@ -111,19 +122,23 @@ describe('processTransactions', () => {
 
 				verifiableTransactions = [
 					liskTransactions.transfer({
+						networkIdentifier,
 						amount: (NORMALIZER * 1000).toString(),
 						recipientId: account.address,
 						passphrase: account.passphrase,
 					}),
 					liskTransactions.registerDelegate({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						username: account.username,
 					}),
 					liskTransactions.registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						secondPassphrase: account.secondPassphrase,
 					}),
 					liskTransactions.castVotes({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						votes: [`${accountFixtures.existingDelegate.publicKey}`],
 					}),
@@ -138,11 +153,12 @@ describe('processTransactions', () => {
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
 				appliableTransactions = verifiableTransactions.filter(
-					transaction => transaction.type !== 1,
+					transaction => transaction.type !== 9,
 				);
 
 				nonVerifiableTransactions = [
 					liskTransactions.transfer({
+						networkIdentifier,
 						amount: (NORMALIZER * 1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: random.account().passphrase,
@@ -155,6 +171,7 @@ describe('processTransactions', () => {
 
 				pendingTransactions = [
 					liskTransactions.registerMultisignature({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						keysgroup,
 						lifetime: 10,
@@ -290,6 +307,7 @@ describe('processTransactions', () => {
 					const { transactionsResponses } = await undoTransactions([
 						interfaceAdapters.transactions.fromJson(
 							liskTransactions.transfer({
+								networkIdentifier,
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,
 								passphrase: sender.passphrase,

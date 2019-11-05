@@ -69,7 +69,7 @@ describe('Block', () => {
 			totalAmount: '10000000000000000',
 			totalFee: '0',
 			reward: '0',
-			version: '0',
+			version: 0,
 		};
 
 		validReturnedBlock = {
@@ -90,7 +90,7 @@ describe('Block', () => {
 			totalAmount: '10000000000000000',
 			totalFee: '0',
 			reward: '0',
-			version: '0',
+			version: 0,
 		};
 
 		invalidBlock = {
@@ -106,7 +106,7 @@ describe('Block', () => {
 			totalAmount: '',
 			totalFee: '0',
 			reward: '0',
-			version: 0,
+			version: '0',
 		};
 
 		adapter = storage.adapter;
@@ -165,7 +165,7 @@ describe('Block', () => {
 			const block = new Block(localAdapter);
 			block.getValuesSet = sinonSandbox.stub();
 			block.create(validBlock);
-			expect(block.getValuesSet.calledWith([validReturnedBlock])).to.be.true;
+			expect(block.getValuesSet).calledWith([validReturnedBlock]);
 		});
 
 		it('should create a block object successfully', async () => {

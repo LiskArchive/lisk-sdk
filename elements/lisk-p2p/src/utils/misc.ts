@@ -14,15 +14,14 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../p2p_types';
+import { CustomPeerInfo } from '../peer_book/base_list';
 
-const SECRET_BUFFER_LENGTH = 4;
-const NETWORK_BUFFER_LENGTH = 1;
-const PREFIX_BUFFER_LENGTH = 1;
 const BYTES_4 = 4;
 const BYTES_16 = 16;
-const BYTES_64 = 64;
-const BYTES_128 = 128;
+export const SECRET_BUFFER_LENGTH = 4;
+export const NETWORK_BUFFER_LENGTH = 1;
+const PREFIX_BUFFER_LENGTH = 1;
 
 interface AddressBytes {
 	readonly aBytes: Buffer;
@@ -121,15 +120,85 @@ export const getNetgroup = (address: string, secret: number): number => {
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
+// TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
+export const getUniquePeersbyIp = (
+	peerList: ReadonlyArray<P2PPeerInfo>,
+): ReadonlyArray<P2PPeerInfo> => {
+	const peerMap = new Map<string, P2PPeerInfo>();
+
+	for (const peer of peerList) {
+		const { sharedState } = peer;
+		const peerHeight = sharedState
+			? sharedState.height
+				? (sharedState.height as number)
+				: 0
+			: 0;
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			const { sharedState: tempSharedState } = tempPeer;
+			const tempPeerHeight = tempSharedState
+				? tempSharedState.height
+					? (tempSharedState.height as number)
+					: 0
+				: 0;
+			if (peerHeight > tempPeerHeight) {
+				peerMap.set(peer.ipAddress, peer);
+			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	}
+
+	return [...peerMap.values()];
+};
+
+export const constructPeerId = (ipAddress: string, wsPort: number): string =>
+	`${ipAddress}:${wsPort}`;
+
+export const getByteSize = (object: any): number =>
+	Buffer.byteLength(JSON.stringify(object));
+
+export const evictPeerRandomlyFromBucket = (
+	bucket: Map<string, CustomPeerInfo>,
+): CustomPeerInfo | undefined => {
+	const bucketPeerIds = Array.from(bucket.keys());
+	const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
+	const randomPeerId = bucketPeerIds[randomPeerIndex];
+	const evictedPeer = bucket.get(randomPeerId);
+	bucket.delete(randomPeerId);
+
+	return evictedPeer;
+};
+
+export const expirePeerFromBucket = (
+	bucket: Map<string, CustomPeerInfo>,
+	thresholdTime: number,
+): CustomPeerInfo | undefined => {
+	// First eviction strategy: eviction by time of residence
+	for (const [peerId, peer] of bucket) {
+		const timeDifference = Math.round(
+			Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+		);
+
+		if (timeDifference >= thresholdTime) {
+			bucket.delete(peerId);
+
+			return peer;
+		}
+	}
+
+	return undefined;
+};
+
 // TODO: Source address to be included in hash for later version
-export const getBucket = (options: {
+export const getBucketId = (options: {
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 	readonly targetAddress: string;
+	readonly bucketCount: number;
 }): number => {
-	const { secret, targetAddress, peerType } = options;
+	const { secret, targetAddress, peerType, bucketCount } = options;
 	const firstMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_16 : BYTES_4;
-	const secondMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_128 : BYTES_64;
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
 	const network = getNetwork(targetAddress);
@@ -153,7 +222,7 @@ export const getBucket = (options: {
 	if (network !== NETWORK.NET_IPV4) {
 		return (
 			hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) %
-			secondMod
+			bucketCount
 		);
 	}
 
@@ -194,30 +263,5 @@ export const getBucket = (options: {
 		kBytes,
 	]);
 
-	return hash(bucketBytes).readUInt32BE(0) % secondMod;
+	return hash(bucketBytes).readUInt32BE(0) % bucketCount;
 };
-
-export const getUniquePeersbyIp = (
-	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
-
-	for (const peer of peerList) {
-		const tempPeer = peerMap.get(peer.ipAddress);
-		if (tempPeer) {
-			if (peer.height > tempPeer.height) {
-				peerMap.set(peer.ipAddress, peer);
-			}
-		} else {
-			peerMap.set(peer.ipAddress, peer);
-		}
-	}
-
-	return [...peerMap.values()];
-};
-
-export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
-
-export const getByteSize = (object: any): number =>
-	Buffer.byteLength(JSON.stringify(object));

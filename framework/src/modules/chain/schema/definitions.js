@@ -50,7 +50,7 @@ module.exports = {
 	CommonBlock: {
 		id: 'CommonBlock',
 		type: 'object',
-		required: ['id', 'height', 'previousBlock'],
+		required: ['id', 'height', 'previousBlockId'],
 		properties: {
 			id: {
 				type: 'string',
@@ -64,7 +64,7 @@ module.exports = {
 				example: 123,
 				minimum: 1,
 			},
-			previousBlock: {
+			previousBlockId: {
 				type: 'string',
 				format: 'id',
 				example: '15918760246746894806',
@@ -99,8 +99,19 @@ module.exports = {
 			type: 'object',
 		},
 	},
-	getHighestCommonBlockIdRequest: {
-		id: 'getHighestCommonBlockIdRequest',
+	getBlocksFromIdRequest: {
+		id: 'getBlocksFromIdRequest',
+		type: 'object',
+		required: ['blockId'],
+		properties: {
+			blockId: {
+				type: 'string',
+				format: 'id',
+			},
+		},
+	},
+	getHighestCommonBlockRequest: {
+		id: 'getHighestCommonBlockRequest',
 		type: 'object',
 		required: ['ids'],
 		properties: {

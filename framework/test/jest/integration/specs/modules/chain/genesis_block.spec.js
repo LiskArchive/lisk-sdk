@@ -14,13 +14,14 @@
 
 'use strict';
 
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { chainUtils, storageUtils, configUtils } = require('../../../utils');
 const delegateListForTheFirstRound = require('../../../../../fixtures/config/devnet/delegates_for_first_round.json');
 const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
-	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 2;
+	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 10;
 	let storage;
 	let chainModule;
 
@@ -69,7 +70,7 @@ describe('genesis block', () => {
 						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId,
+					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
@@ -94,7 +95,7 @@ describe('genesis block', () => {
 						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId,
+					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
@@ -147,7 +148,7 @@ describe('genesis block', () => {
 						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId,
+					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
@@ -172,7 +173,7 @@ describe('genesis block', () => {
 						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId,
+					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(

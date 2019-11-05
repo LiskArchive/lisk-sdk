@@ -23,6 +23,11 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const createValidBlockPromisified = promisify(localCommon.createValidBlock);
 
@@ -54,6 +59,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 		beforeEach('send funds to signature account', done => {
 			signatureAccount = randomUtil.account();
 			const sendTransaction = transfer({
+				networkIdentifier,
 				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
@@ -66,6 +72,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 
 			beforeEach(done => {
 				signatureTransaction = registerSecondPassphrase({
+					networkIdentifier,
 					passphrase: signatureAccount.passphrase,
 					secondPassphrase: signatureAccount.secondPassphrase,
 				});
@@ -96,7 +103,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
 							account.mem_accounts.secondPublicKey.toString('hex'),
-						).to.equal(signatureTransaction.asset.signature.publicKey);
+						).to.equal(signatureTransaction.asset.publicKey);
 					});
 				});
 			});
@@ -106,6 +113,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 
 				beforeEach(async () => {
 					signatureTransaction2 = registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
@@ -128,7 +136,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
 							account.mem_accounts.secondPublicKey.toString('hex'),
-						).to.equal(signatureTransaction2.asset.signature.publicKey);
+						).to.equal(signatureTransaction2.asset.publicKey);
 					});
 				});
 			});
@@ -140,11 +148,13 @@ describe('integration test (type 1) - second signature transactions from pool an
 
 				beforeEach(async () => {
 					signatureTransaction3 = registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
 
 					signatureTransaction4 = registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});

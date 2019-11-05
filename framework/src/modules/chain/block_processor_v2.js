@@ -70,8 +70,8 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlock
-		? intToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
+	const previousBlockBuffer = block.previousBlockId
+		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
 		: Buffer.alloc(SIZE_INT64);
 
 	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
@@ -151,52 +151,72 @@ const validateSchema = ({ block }) => {
 	}
 };
 
-// const validateAndVerifyBFTproperties = ({ block }) => {
-// 	const blockHeader = extractBFTBlockHeaderFromBlock(block);
-//
-// 	// Check heightPrevoted correctness.
-// 	utils.validateBlockHeader(blockHeader);
-//
-// 	// Check for header contradictions against current chain
-// 	bft.verifyBlockHeaders(blockHeader);
-//
-// 	// Check reward has correct value.
-// 	// TODO: Find out how to do this.
-// };
-
 class BlockProcessorV2 extends BaseBlockProcessor {
-	constructor({ blocksModule, bft, logger, constants, exceptions }) {
+	constructor({
+		blocksModule,
+		bftModule,
+		dposModule,
+		logger,
+		constants,
+		exceptions,
+	}) {
 		super();
 		this.blocksModule = blocksModule;
-		this.bft = bft;
+		this.bftModule = bftModule;
+		this.dposModule = dposModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
 
-		this.init.pipe([() => this.blocksModule.init()]);
+		this.init.pipe([() => this.bftModule.init()]);
+
+		this.deserialize.pipe([
+			({ block }) => this.blocksModule.deserialize(block),
+			(_, updatedBlock) => this.bftModule.deserialize(updatedBlock),
+		]);
+
+		this.serialize.pipe([
+			({ block }) => this.blocksModule.serialize(block),
+			(_, updatedBlock) => this.bftModule.serialize(updatedBlock),
+		]);
 
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }) => {
+				let expectedReward = this.blocksModule.blockReward.calculateReward(
+					block.height,
+				);
+				if (!this.bftModule.isBFTProtocolCompliant(block)) {
+					expectedReward *= 0.25;
+				}
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				);
+			},
 			data => this.blocksModule.verifyInMemory(data),
-			({ block }) => this.bft.validateBlock(block),
+			({ block }) => this.dposModule.verifyBlockForger(block),
+			({ block }) => this.bftModule.validateBlock(block),
 		]);
 
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => getBytes(block),
-			(data, blockBytes) =>
-				this.blocksModule.validateDetached({
-					...data,
-					blockBytes,
-				}), // validate common block header
+			({ block }) => {
+				let expectedReward = this.blocksModule.blockReward.calculateReward(
+					block.height,
+				);
+				if (!this.bftModule.isBFTProtocolCompliant(block)) {
+					expectedReward *= 0.25;
+				}
+				this.blocksModule.validateBlockHeader(
+					block,
+					getBytes(block),
+					expectedReward,
+				);
+			},
 		]);
 
 		this.forkStatus.pipe([
@@ -206,19 +226,43 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		// TODO: Remove validate new since it's no longer required
 		this.validateNew.pipe([() => Promise.resolve()]);
 
-		this.verify.pipe([({ block }) => this.bft.verifyNewBlock(block)]);
+		this.verify.pipe([({ block }) => this.bftModule.verifyNewBlock(block)]);
 
 		this.apply.pipe([
 			data => this.blocksModule.verify(data),
 			data => this.blocksModule.apply(data),
-			({ block }) => this.bft.addNewBlock(block),
+			({ block, tx }) => this.dposModule.apply(block, { tx }),
+			({ block, tx }) => this.bftModule.addNewBlock(block, tx),
 		]);
 
-		this.applyGenesis.pipe([data => this.blocksModule.applyGenesis(data)]);
+		this.applyGenesis.pipe([
+			data => this.blocksModule.applyGenesis(data),
+			({ block, tx }) => this.dposModule.apply(block, { tx }),
+		]);
 
-		this.undo.pipe([data => this.blocksModule.undo(data)]);
+		this.undo.pipe([
+			data => this.blocksModule.undo(data),
+			({ block, tx }) => this.dposModule.undo(block, { tx }),
+			({ block }) => this.bftModule.deleteBlocks([block]),
+		]);
 
-		this.create.pipe([data => this._create(data)]);
+		this.create.pipe([
+			// Getting the BFT header (maxHeightPreviouslyForged and prevotedConfirmedUptoHeight)
+			async ({ keypair }) => {
+				const delegatePublicKey = keypair.publicKey.toString('hex');
+				return this.bftModule.computeBFTHeaderProperties(delegatePublicKey);
+			},
+			// Create a block with with basic block and bft properties
+			(data, bftHeader) => this._create({ ...data, ...bftHeader }),
+			async (data, block) => {
+				// Saving maxHeightPreviouslyForged before broadcasting
+				await this.bftModule.saveMaxHeightPreviouslyForged(
+					block.generatorPublicKey,
+					block.height,
+				);
+				return block;
+			},
+		]);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -256,7 +300,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			size += transactionBytes.length;
 
 			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.amount);
+			totalAmount = totalAmount.plus(transaction.asset.amount || 0);
 
 			blockTransactions.push(transaction);
 			transactionsBytesArray.push(transactionBytes);
@@ -274,13 +318,18 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,
-			previousBlock: previousBlock.id,
+			previousBlockId: previousBlock.id,
 			generatorPublicKey: keypair.publicKey.toString('hex'),
 			transactions: blockTransactions,
 			height: nextHeight,
 			maxHeightPreviouslyForged,
 			prevotedConfirmedUptoHeight,
 		};
+
+		// Reduce reward based on BFT rules
+		if (!this.bftModule.isBFTProtocolCompliant(block)) {
+			block.reward = block.reward.times(0.25);
+		}
 
 		return {
 			...block,
@@ -294,4 +343,5 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 module.exports = {
 	BlockProcessorV2,
+	getBytes,
 };

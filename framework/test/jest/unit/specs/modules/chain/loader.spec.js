@@ -20,10 +20,13 @@ const {
 } = require('../../../../../../src/modules/chain/interface_adapters');
 const {
 	registeredTransactions,
-} = require('../../../utils/registered_transactions');
+} = require('../../../../utils/registered_transactions');
 
 describe('Loader', () => {
-	describe('#_getTransactionsFromNetwork', () => {
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
+	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
 		let loader;
 		let channelStub;
 		let transactionPoolModuleStub;
@@ -31,9 +34,13 @@ describe('Loader', () => {
 		beforeEach(async () => {
 			const loggerStub = {
 				info: jest.fn(),
+				error: jest.fn(),
 			};
 			const interfaceAdapters = {
-				transactions: new TransactionInterfaceAdapter(registeredTransactions),
+				transactions: new TransactionInterfaceAdapter(
+					networkIdentifier,
+					registeredTransactions,
+				),
 			};
 			transactionPoolModuleStub = {
 				processUnconfirmedTransaction: jest.fn(),
@@ -53,31 +60,20 @@ describe('Loader', () => {
 			const validtransactions = {
 				transactions: [
 					{
-						id: '15043091312357212504',
-						blockId: undefined,
-						height: undefined,
-						confirmations: undefined,
-						receivedAt: undefined,
-						relays: undefined,
-						type: 3,
-						timestamp: 1724154,
+						type: 11,
 						senderPublicKey:
-							'7b371f87a54fd38ec99df0e2c39f6ae8ed90194ac20ec9b11591248850f0c767',
-						recipientPublicKey:
-							'7b371f87a54fd38ec99df0e2c39f6ae8ed90194ac20ec9b11591248850f0c767',
-						senderId: '16220776681445518997L',
-						recipientId: '16220776681445518997L',
-						amount: '0',
-						fee: '100000000',
-						signature:
-							'2ffb887415fe56ca6ce0a638ec860f01e7da7e4710e60b354190242cd40d3941b3d35733a4fb2da692e655b0402d2ac6dda3c1c6508d874df59a782fa3db2a0d',
-						signatures: [],
-						signSignature: undefined,
+							'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+						timestamp: 54316326,
 						asset: {
 							votes: [
-								'+ad287c536f62f19b62aeb44de3a0cef94ba95bc8ff6f75316b6de9e8c59043a9',
+								'+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+								'+6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
+								'-1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
 							],
 						},
+						signature:
+							'b534786e208c570022ac7ebdb19915d8772998bab2fa7bdfb5fe219c2103a0517209301974c772596c46dd95b2d32b3b1f38172295801ff8c3968654a7bde406',
+						id: '16951860278597630982',
 					},
 				],
 			};
@@ -89,7 +85,7 @@ describe('Loader', () => {
 			it('should not throw an error', async () => {
 				let error;
 				try {
-					await loader._getTransactionsFromNetwork();
+					await loader._getUnconfirmedTransactionsFromNetwork();
 				} catch (err) {
 					error = err;
 				}
@@ -97,7 +93,7 @@ describe('Loader', () => {
 			});
 
 			it('should process the transaction with transactionPoolModule', async () => {
-				await loader._getTransactionsFromNetwork();
+				await loader._getUnconfirmedTransactionsFromNetwork();
 				expect(
 					transactionPoolModuleStub.processUnconfirmedTransaction,
 				).toHaveBeenCalledTimes(1);
@@ -113,7 +109,7 @@ describe('Loader', () => {
 			it('should throw an error', async () => {
 				let error;
 				try {
-					await loader._getTransactionsFromNetwork();
+					await loader._getUnconfirmedTransactionsFromNetwork();
 				} catch (err) {
 					error = err;
 				}
@@ -136,7 +132,10 @@ describe('Loader', () => {
 				debug: jest.fn(),
 			};
 			const interfaceAdapters = {
-				transactions: new TransactionInterfaceAdapter(registeredTransactions),
+				transactions: new TransactionInterfaceAdapter(
+					networkIdentifier,
+					registeredTransactions,
+				),
 			};
 			channelStub = {
 				invoke: jest.fn(),
@@ -147,26 +146,11 @@ describe('Loader', () => {
 					id: 'blockID',
 				},
 			};
-			const peersModuleStub = {
-				isPoorConsensus: jest.fn().mockReturnValue(true),
-			};
 			loader = new Loader({
 				logger: loggerStub,
 				channel: channelStub,
 				blocksModule: blocksModuleStub,
-				peersModule: peersModuleStub,
 				interfaceAdapters,
-			});
-		});
-
-		describe('when blocks endpoint returns success false', () => {
-			beforeEach(async () => {
-				channelStub.invoke.mockReturnValue({ data: { success: false } });
-			});
-
-			it('should call recoverChain of blocks module', async () => {
-				await loader._loadBlocksFromNetwork();
-				expect(blocksModuleStub.recoverChain).toHaveBeenCalledTimes(5);
 			});
 		});
 

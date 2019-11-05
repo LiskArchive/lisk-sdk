@@ -35,12 +35,20 @@ const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const { Slots } = require('../../../../../src/modules/chain/dpos');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
 const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+	transactions: new TransactionInterfaceAdapter(
+		networkIdentifier,
+		registeredTransactions,
+	),
 };
 
 const slots = new Slots({
@@ -155,7 +163,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyPreviousBlock', () => {
-			it('should fail when previousBlock property is missing', async () => {});
+			it('should fail when previousBlockId property is missing', async () => {});
 		});
 
 		describe('verifyVersion', () => {
@@ -196,11 +204,11 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyForkOne', () => {
-			it('should fail when previousBlock value is invalid', async () => {});
+			it('should fail when previousBlockId value is invalid', async () => {});
 		});
 
 		describe('verifyBlockSlot', () => {
-			it('should fail when block timestamp < than previousBlock timestamp', async () => {});
+			it('should fail when block timestamp < than previousBlockId timestamp', async () => {});
 		});
 
 		describe('verifyBlockSlotWindow', () => {
@@ -306,7 +314,7 @@ describe('blocks/verify', () => {
 			expect(block1.totalAmount.equals('0')).to.be.true;
 			expect(block1.payloadLength).to.equal(0);
 			expect(block1.transactions).to.deep.equal([]);
-			expect(block1.previousBlock).to.equal(genesisBlock.id);
+			expect(block1.previousBlockId).to.equal(genesisBlock.id);
 		});
 
 		it('should be ok when processing block 1', async () => {
@@ -355,13 +363,14 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.totalAmount.equals('0')).to.be.true;
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.equal([]);
-			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
+			expect(invalidBlock2.previousBlockId).to.equal(genesisBlock.id);
 		});
 
 		describe('normalizeBlock validations', () => {
 			beforeEach(async () => {
 				const account = random.account();
 				const transaction = transfer({
+					networkIdentifier,
 					amount: new BigNum(NORMALIZER).times(1000).toString(),
 					recipientId: accountFixtures.genesis.address,
 					passphrase: account.passphrase,
@@ -418,16 +427,22 @@ describe('blocks/verify', () => {
 				try {
 					await library.modules.processor.process(block2);
 				} catch (err) {
-					expect(err.message).equal('Invalid payload hash');
+					expect(err[0].message).equal(
+						"'' should have required property 'timestamp'",
+					);
 					block2.transactions[0].timestamp = transactionTimestamp;
 				}
 			});
 
-			it('should fail when block generator is invalid (fork:3)', async () => {
+			it('should fail when block generator is invalid', async () => {
 				try {
 					await library.modules.processor.process(block2);
 				} catch (err) {
-					expect(err.message).equal('Failed to verify slot: 3377288');
+					expect(err.message).equal(
+						`Failed to verify slot: 3377288. Block ID: ${
+							block2.id
+						}. Block Height: ${block2.height}`,
+					);
 				}
 			});
 
@@ -440,6 +455,7 @@ describe('blocks/verify', () => {
 
 					const account = random.account();
 					const transferTransaction = transfer({
+						networkIdentifier,
 						amount: new BigNum(NORMALIZER).times(1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
@@ -466,12 +482,13 @@ describe('blocks/verify', () => {
 					).to.deep.equal(
 						[transferTransaction].map(transaction => transaction.id),
 					);
-					expect(auxBlock.previousBlock).to.equal(genesisBlock.id);
+					expect(auxBlock.previousBlockId).to.equal(genesisBlock.id);
 				});
 
 				it('should fail when transaction is invalid', async () => {
 					const account = random.account();
 					const transaction = transfer({
+						networkIdentifier,
 						amount: new BigNum(NORMALIZER).times(1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
@@ -519,6 +536,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', async () => {
 					const account = random.account();
 					const transaction = transfer({
+						networkIdentifier,
 						amount: new BigNum(NORMALIZER).times(1000).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
@@ -590,7 +608,7 @@ describe('blocks/verify', () => {
 			expect(block2.totalAmount.equals('0')).to.be.true;
 			expect(block2.payloadLength).to.equal(0);
 			expect(block2.transactions).to.deep.equal([]);
-			expect(block2.previousBlock).to.equal(genesisBlock.id);
+			expect(block2.previousBlockId).to.equal(genesisBlock.id);
 		});
 
 		it('should be ok when processing block 2', async () => {

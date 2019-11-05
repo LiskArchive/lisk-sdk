@@ -13,63 +13,68 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { transfer } from './0_transfer';
-import { TransferTransaction } from './0_transfer_transaction';
-import { registerSecondPassphrase } from './1_register_second_passphrase';
-import { SecondSignatureTransaction } from './1_second_signature_transaction';
-import { DelegateTransaction } from './2_delegate_transaction';
-import { registerDelegate } from './2_register_delegate';
-import { castVotes } from './3_cast_votes';
-import { VoteTransaction } from './3_vote_transaction';
-import { MultisignatureTransaction } from './4_multisignature_transaction';
-import { registerMultisignature } from './4_register_multisignature_account';
-import { createDapp } from './5_create_dapp';
-import { DappTransaction } from './5_dapp_transaction';
+import { DelegateTransaction } from './10_delegate_transaction';
+import { VoteTransaction } from './11_vote_transaction';
+import { MultisignatureTransaction } from './12_multisignature_transaction';
+import { TransferTransaction } from './8_transfer_transaction';
+import { SecondSignatureTransaction } from './9_second_signature_transaction';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
+import { castVotes } from './cast_votes';
 import * as constants from './constants';
-import { createSignatureObject } from './create_signature_object';
-import { convertToAssetError, TransactionError } from './errors';
-import { Status, TransactionResponse } from './response';
-import { TransactionJSON } from './transaction_types';
 import {
-	checkPublicKeysForDuplicates,
+	createSignatureObject,
+	SignatureObject,
+} from './create_signature_object';
+import {
+	convertToAssetError,
+	convertToTransactionError,
+	TransactionError,
+	TransactionPendingError,
+} from './errors';
+import { registerDelegate } from './register_delegate';
+import { registerMultisignature } from './register_multisignature_account';
+import { registerSecondPassphrase } from './register_second_passphrase';
+import { createResponse, Status, TransactionResponse } from './response';
+import { Account, TransactionJSON } from './transaction_types';
+import { transfer } from './transfer';
+import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getTransactionBytes,
-	getTransactionHash,
-	getTransactionId,
+	getId,
 	isValidInteger,
-	multiSignTransaction,
-	prepareTransaction,
+	isValidNumber,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	signRawTransaction,
-	signTransaction,
 	stringEndsWith,
 	transactionInterface,
 	validateAddress,
-	validateFee,
 	validateKeysgroup,
+	validateMultisignatures,
 	validateNonTransferAmount,
 	validatePublicKey,
 	validatePublicKeys,
-	validateTransaction,
+	validateSenderIdAndPublicKey,
+	validateSignature,
 	validateTransferAmount,
 	validator,
 	verifyAmountBalance,
-	verifyTransaction,
+	verifyBalance,
+	verifyMultiSignatures,
+	verifySecondSignature,
+	verifySenderPublicKey,
 } from './utils';
 
 const exposedUtils = {
 	BigNum,
 	convertBeddowsToLSK,
+	getId,
 	convertLSKToBeddows,
 	isValidInteger,
-	multiSignTransaction,
+	isValidNumber,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	stringEndsWith,
@@ -78,24 +83,20 @@ const exposedUtils = {
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
+	validateMultisignatures,
+	validateSignature,
 	verifyAmountBalance,
 	validateNonTransferAmount,
 	validateTransferAmount,
-
-	// TODO: Deprecated
-	signTransaction,
-	getTransactionBytes,
-	getTransactionId,
-	verifyTransaction,
-	checkPublicKeysForDuplicates,
-	getTransactionHash,
-	prepareTransaction,
-	signRawTransaction,
-	validateFee,
-	validateTransaction,
+	validateSenderIdAndPublicKey,
+	verifyBalance,
+	verifyMultiSignatures,
+	verifySecondSignature,
+	verifySenderPublicKey,
 };
 
 export {
+	Account,
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
@@ -108,16 +109,18 @@ export {
 	VoteTransaction,
 	castVotes,
 	MultisignatureTransaction,
+	createResponse,
 	registerMultisignature,
-	DappTransaction,
-	createDapp,
 	createSignatureObject,
+	SignatureObject,
 	Status,
 	TransactionResponse,
 	TransactionJSON,
 	TransactionError,
+	TransactionPendingError,
 	transactionInterface,
 	convertToAssetError,
+	convertToTransactionError,
 	constants,
 	exposedUtils as utils,
 };

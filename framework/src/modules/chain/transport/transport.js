@@ -16,19 +16,10 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const _ = require('lodash');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const definitions = require('../schema/definitions');
-const blocksUtils = require('../blocks');
 const transactionsModule = require('../transactions');
-
-function incrementRelays(packet) {
-	if (!Number.isInteger(packet.relays)) {
-		packet.relays = 0;
-	}
-	packet.relays += 1;
-}
 
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
@@ -54,10 +45,10 @@ class Transport {
 		applicationState,
 		exceptions,
 		// Modules
+		synchronizer,
 		transactionPoolModule,
 		blocksModule,
 		processorModule,
-		loaderModule,
 		interfaceAdapters,
 		// Constants
 		nonce,
@@ -69,6 +60,7 @@ class Transport {
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
+		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
 
@@ -81,7 +73,6 @@ class Transport {
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
-		this.loaderModule = loaderModule;
 		this.interfaceAdapters = interfaceAdapters;
 
 		this.broadcaster = new Broadcaster(
@@ -105,8 +96,6 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onSignature(signature, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(signature);
 			this.broadcaster.enqueue(
 				{},
 				{
@@ -131,8 +120,6 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(transaction);
 			const transactionJSON = transaction.toJSON();
 			this.broadcaster.enqueue(
 				{},
@@ -160,10 +147,7 @@ class Transport {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
-		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-		incrementRelays(block);
-
-		if (this.loaderModule.syncing()) {
+		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
@@ -189,13 +173,9 @@ class Transport {
 			);
 		}
 
-		const { broadhash } = this.applicationState;
-
 		// Perform actual broadcast operation
 		return this.broadcaster.broadcast(
-			{
-				broadhash,
-			},
+			{},
 			{ api: 'postBlock', data: { block } },
 		);
 	}
@@ -216,54 +196,27 @@ class Transport {
 	 */
 
 	/**
-	 * Description of blocks.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add description of the function
+	 * Returns a set of full blocks starting from the ID defined in the payload up to
+	 * the current tip of the chain.
+	 * @param {object} payload
+	 * @param {string} payload.blockId - The ID of the starting block
+	 * @return {Promise<Array<object>>}
 	 */
-	// eslint-disable-next-line consistent-return
-	async blocks(query) {
-		// Get 34 blocks with all data (joins) from provided block id
-		// According to maxium payload of 58150 bytes per block with every transaction being a vote
-		// Discounting maxium compression setting used in middleware
-		// Maximum transport payload = 2000000 bytes
-		if (!query || !query.lastBlockId) {
-			return {
-				success: false,
-				message: 'Invalid lastBlockId requested',
-			};
+	async getBlocksFromId(payload) {
+		validator.validate(definitions.getBlocksFromIdRequest, payload);
+
+		if (validator.validator.errors) {
+			this.logger.debug(
+				{
+					err: validator.validator.errors,
+					req: payload,
+				},
+				'getBlocksFromID request validation failed',
+			);
+			throw validator.validator.errors;
 		}
 
-		try {
-			const data = await this.blocksModule.loadBlocksDataWS({
-				limit: 34, // 1977100 bytes
-				lastId: query.lastBlockId,
-			});
-
-			_.each(data, block => {
-				if (block.tf_data) {
-					try {
-						block.tf_data = block.tf_data.toString('utf8');
-					} catch (e) {
-						this.logger.error(
-							'Transport->blocks: Failed to convert data field to UTF-8',
-							{
-								block,
-								error: e,
-							},
-						);
-					}
-				}
-			});
-
-			return { blocks: data, success: true };
-		} catch (err) {
-			return {
-				blocks: [],
-				message: err,
-				success: false,
-			};
-		}
+		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
 	}
 
 	/**
@@ -273,7 +226,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}) {
+	async postBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -281,9 +234,9 @@ class Transport {
 		}
 
 		// Should ignore received block if syncing
-		if (this.loaderModule.syncing()) {
+		if (this.synchronizer.isActive) {
 			return this.logger.debug(
-				{ id: query.block.id, height: query.block.height },
+				{ blockId: query.block.id, height: query.block.height },
 				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
@@ -292,20 +245,20 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug(
-				'Received post block broadcast request in unexpected format',
 				{
 					errors,
 					module: 'transport',
 					query,
 				},
+				'Received post block broadcast request in unexpected format',
 			);
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
-		const block = blocksUtils.addBlockProperties(query.block);
+		const block = await this.processorModule.deserialize(query.block);
 
-		return this.processorModule.process(block);
+		return this.processorModule.process(block, { peerId });
 	}
 
 	/**
@@ -358,7 +311,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSSignaturesList, query);
 
 		if (errors.length) {
-			this.logger.debug('Invalid signatures body', errors);
+			this.logger.debug({ err: errors }, 'Invalid signatures body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
@@ -453,7 +406,7 @@ class Transport {
 		const errors = validator.validate(definitions.WSTransactionsRequest, query);
 
 		if (errors.length) {
-			this.logger.debug('Invalid transactions body', errors);
+			this.logger.debug({ err: errors }, 'Invalid transactions body');
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
@@ -553,17 +506,20 @@ class Transport {
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			this.logger.debug('Transaction normalization failed', {
-				id,
-				err: errString,
-				module: 'transport',
-			});
+			this.logger.error(
+				{
+					id,
+					err: errString,
+					module: 'transport',
+				},
+				'Transaction normalization failed',
+			);
 
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
-		this.logger.debug(`Received transaction ${transaction.id}`);
+		this.logger.debug({ id: transaction.id }, 'Received transaction');
 
 		try {
 			await this.transactionPoolModule.processUnconfirmedTransaction(
@@ -574,7 +530,7 @@ class Transport {
 		} catch (err) {
 			this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 			if (transaction) {
-				this.logger.debug('Transaction', transaction);
+				this.logger.debug({ transaction }, 'Transaction');
 			}
 			throw err;
 		}

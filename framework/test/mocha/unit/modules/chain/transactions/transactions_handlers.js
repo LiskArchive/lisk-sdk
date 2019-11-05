@@ -858,17 +858,17 @@ describe('transactions', () => {
 
 			const validTransaction = transactionFixture();
 			validTransaction.senderId = account.address;
-			validTransaction.amount = '3';
+			validTransaction.asset.amount = '3';
 			validTransaction.fee = '2';
 
 			const inValidTransaction1 = transactionFixture();
 			inValidTransaction1.senderId = account.address;
-			inValidTransaction1.amount = '3';
+			inValidTransaction1.asset.amount = '3';
 			inValidTransaction1.fee = '2';
 
 			const inValidTransaction2 = transactionFixture();
 			inValidTransaction2.senderId = account.address;
-			inValidTransaction2.amount = '1';
+			inValidTransaction2.asset.amount = '1';
 			inValidTransaction2.fee = '1';
 
 			// First transaction is valid, while second and third exceed the balance
@@ -906,12 +906,12 @@ describe('transactions', () => {
 
 			const validTransaction1 = transactionFixture();
 			validTransaction1.senderId = account.address;
-			validTransaction1.amount = '2';
+			validTransaction1.asset.amount = '2';
 			validTransaction1.fee = '2';
 
 			const validTransaction2 = transactionFixture();
 			validTransaction2.senderId = account.address;
-			validTransaction2.amount = '2';
+			validTransaction2.asset.amount = '2';
 			validTransaction2.fee = '2';
 
 			const transactions = [
@@ -934,12 +934,12 @@ describe('transactions', () => {
 
 			const validTransaction1 = transactionFixture();
 			validTransaction1.senderId = account.address;
-			validTransaction1.amount = '2';
+			validTransaction1.asset.amount = '2';
 			validTransaction1.fee = '2';
 
 			const validTransaction2 = transactionFixture();
 			validTransaction2.senderId = account.address;
-			validTransaction2.amount = '2';
+			validTransaction2.asset.amount = '2';
 			validTransaction2.fee = '2';
 
 			const transactions = [

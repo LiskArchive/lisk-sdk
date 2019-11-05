@@ -112,7 +112,7 @@ const checkMultisig = (transactionResponse, transaction, exceptions = {}) => {
 		return false;
 	}
 
-	if (transactionResponse.errors[0].dataPath !== '.asset.multisignature.min') {
+	if (transactionResponse.errors[0].dataPath !== '.asset.min') {
 		return false;
 	}
 
@@ -170,14 +170,13 @@ const checkRecipientLeadingZero = (
 	if (!transactionResponse.errors.length > 1) {
 		return false;
 	}
-
 	if (transactionResponse.errors[0].dataPath !== '.recipientId') {
 		return false;
 	}
 
 	if (
 		exceptions.recipientLeadingZero[transactionResponse.id] !==
-		transaction.recipientId
+		transaction.asset.recipientId
 	) {
 		return false;
 	}
@@ -196,7 +195,6 @@ const checkRecipientExceedingUint64 = (
 	) {
 		return false;
 	}
-
 	if (transactionResponse.errors.length > 1) {
 		return false;
 	}
@@ -207,7 +205,7 @@ const checkRecipientExceedingUint64 = (
 
 	if (
 		exceptions.recipientExceedingUint64[transactionResponse.id] !==
-		transaction.recipientId
+		transaction.asset.recipientId
 	) {
 		return false;
 	}

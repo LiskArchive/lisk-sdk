@@ -35,16 +35,11 @@ export interface Delegate {
 }
 
 export interface TransactionJSON {
-	readonly amount: string | number;
 	readonly asset: object;
-	readonly fee: string | number;
 	readonly id?: string;
 	readonly blockId?: string;
 	readonly height?: number;
 	readonly confirmations?: number;
-	readonly recipientId: string | null;
-	readonly recipientPublicKey?: string;
-	readonly senderId?: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
 	readonly signatures?: ReadonlyArray<string>;
@@ -53,6 +48,7 @@ export interface TransactionJSON {
 	readonly type: number;
 	readonly receivedAt?: string;
 	readonly relays?: number;
+	readonly networkIdentifier?: string;
 }
 
 export interface IsValidResponse {

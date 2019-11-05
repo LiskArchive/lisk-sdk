@@ -12,34 +12,39 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { constructPeerIdFromPeerInfo } from '.';
-import {
-	P2PNodeInfo,
-	P2PPeerInfo,
-	PeerLists,
-	ProtocolNodeInfo,
-	ProtocolPeerInfo,
-} from '../p2p_types';
+import { constructPeerId } from '.';
+import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
 
 export const sanitizeIncomingPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
 ): P2PPeerInfo => {
-	const { ip, ...restOfPeerInfo } = peerInfo;
+	const { ip, ipAddress, wsPort, height, ...restOfPeerInfo } = peerInfo;
 
 	return {
-		ipAddress: ip,
-		...restOfPeerInfo,
+		peerId: constructPeerId(peerInfo.ip || peerInfo.ipAddress, peerInfo.wsPort),
+		ipAddress: ip || ipAddress,
+		wsPort,
+		sharedState: {
+			height: height ? height : 0,
+			protocolVersion: restOfPeerInfo.protocolVersion
+				? restOfPeerInfo.protocolVersion
+				: '',
+			version: restOfPeerInfo.version ? restOfPeerInfo.version : '',
+			...restOfPeerInfo,
+		},
 	};
 };
 
 export const sanitizeOutgoingPeerInfo = (
 	peerInfo: P2PPeerInfo,
 ): ProtocolPeerInfo => {
-	const { ipAddress, ...restOfPeerInfo } = peerInfo;
+	const { ipAddress, wsPort, sharedState } = peerInfo;
 
 	return {
 		ip: ipAddress,
-		...restOfPeerInfo,
+		ipAddress,
+		wsPort,
+		...sharedState,
 	};
 };
 
@@ -90,19 +95,11 @@ export const sanitizePeerLists = (
 			return false;
 		}
 
-		if (
-			fixedPeers
-				.map(constructPeerIdFromPeerInfo)
-				.includes(constructPeerIdFromPeerInfo(peerInfo))
-		) {
+		if (fixedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
 			return false;
 		}
 
-		if (
-			seedPeers
-				.map(constructPeerIdFromPeerInfo)
-				.includes(constructPeerIdFromPeerInfo(peerInfo))
-		) {
+		if (seedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
 			return false;
 		}
 
@@ -127,19 +124,5 @@ export const sanitizePeerLists = (
 		fixedPeers,
 		whitelisted,
 		previousPeers,
-	};
-};
-
-// Format the node info so that it will be valid from the perspective of both new and legacy nodes.
-export const sanitizeNodeInfoToLegacyFormat = (
-	nodeInfo: P2PNodeInfo,
-): ProtocolNodeInfo => {
-	const { httpPort, nonce, broadhash } = nodeInfo;
-
-	return {
-		...nodeInfo,
-		broadhash: broadhash ? (broadhash as string) : '',
-		nonce: nonce ? (nonce as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0,
 	};
 };

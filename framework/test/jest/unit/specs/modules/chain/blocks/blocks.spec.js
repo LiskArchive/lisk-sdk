@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { when } = require('jest-when');
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 const {
@@ -26,12 +27,21 @@ const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fo
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+const {
+	registeredTransactions,
+} = require('../../../../../utils/registered_transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../../../src/modules/chain/interface_adapters');
 
 jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('events');
 
 // TODO: Share fixture generation b/w mocha and jest
 const randomUtils = require('../../../../../../mocha/common/utils/random.js');
+const {
+	devnetNetworkIdentifier: networkIdentifier,
+} = require('../../../../../../mocha/common/network_identifier');
 
 describe('blocks', () => {
 	const stubs = {};
@@ -63,9 +73,10 @@ describe('blocks', () => {
 		// Arrange
 		stubs.dependencies = {
 			interfaceAdapters: {
-				transactions: {
-					fromBlock: jest.fn(),
-				},
+				transactions: new TransactionInterfaceAdapter(
+					networkIdentifier,
+					registeredTransactions,
+				),
 			},
 			storage: {
 				entities: {
@@ -87,6 +98,8 @@ describe('blocks', () => {
 					},
 					TempBlock: {
 						create: jest.fn(),
+						delete: jest.fn(),
+						get: jest.fn(),
 					},
 				},
 			},
@@ -94,11 +107,6 @@ describe('blocks', () => {
 				debug: jest.fn(),
 				log: jest.fn(),
 				error: jest.fn(),
-			},
-			dposModule: {
-				apply: jest.fn(),
-				undo: jest.fn(),
-				verifyBlockForger: jest.fn(),
 			},
 		};
 
@@ -265,11 +273,6 @@ describe('blocks', () => {
 			});
 		});
 
-		describe('reloadRequired', () => {
-			// TODO: Add tests or remove the code after the discussion on https://github.com/LiskHQ/lisk-sdk/issues/4130
-			it.todo('confirm if it needs tests here');
-		});
-
 		describe('loadLastBlock', () => {
 			it('should throw an error when Block.get throws error', async () => {
 				// Arrange
@@ -318,7 +321,7 @@ describe('blocks', () => {
 		describe('verifyPreviousBlockId', () => {
 			it("should throw when the block is not a genesis block and previous block id doesn't match the last block id", async () => {
 				// Arrange
-				const block = newBlock({ previousBlock: null });
+				const block = newBlock({ previousBlockId: null });
 				const blockBytes = getBytes(block);
 				const errorMessage = 'Invalid previous block';
 				expect.assertions(1);
@@ -337,7 +340,11 @@ describe('blocks', () => {
 
 			it("should not throw when previous block property doesn't exist and block height = 1", async () => {
 				// Arrange
-				const block = cloneDeep(blocksInstance.genesisBlock);
+				const block = {
+					...cloneDeep(blocksInstance.genesisBlock),
+					maxHeightPreviouslyForged: 0,
+					prevotedConfirmedUptoHeight: 0,
+				};
 				const blockBytes = getBytes(block);
 				block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
 
@@ -394,7 +401,7 @@ describe('blocks', () => {
 				// Arrange
 				const lastBlock = newBlock({});
 				const block = newBlock({
-					previousBlock: lastBlock.id,
+					previousBlockId: lastBlock.id,
 					height: lastBlock.height + 1,
 				});
 				const blockBytes = getBytes(block);
@@ -409,34 +416,87 @@ describe('blocks', () => {
 				).rejects.toThrow('Invalid block timestamp');
 			});
 		});
+	});
 
-		it('should call verifyBlockForger', async () => {
-			// Arrange
-			const block = cloneDeep(blocksInstance.genesisBlock);
-			const blockBytes = getBytes(block);
-			block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
+	describe('serialize', () => {
+		const transaction = new TransferTransaction(randomUtils.transaction());
+		const block = newBlock({ transactions: [transaction] });
 
-			blocksInstance.slots.getEpochTime = jest.fn(
-				() => blocksInstance._lastBlock.timestamp + 1010,
-			); // It will get assigned to newBlock.receivedAt
+		it('should convert all the field to be JSON format', () => {
+			const blockInstance = blocksInstance.serialize(block);
+			expect(blockInstance.reward).toBe(block.reward.toString());
+			expect(blockInstance.totalFee).toBe(block.totalFee.toString());
+			expect(blockInstance.totalAmount).toBe(block.totalAmount.toString());
+		});
 
-			expect.assertions(1);
-			// Act
-			await blocksInstance.verifyInMemory({
-				block,
-				lastBlock: genesisBlock,
-				blockBytes,
-			});
-
-			// Assert
-			expect(blocksInstance.dposModule.verifyBlockForger).toHaveBeenCalled();
+		it('should have only previousBlockId property', () => {
+			const blockInstance = blocksInstance.serialize(block);
+			expect(blockInstance.previousBlockId).toBeString();
 		});
 	});
 
-	describe('validateDetached', () => {
+	describe('deserialize', () => {
+		const blockJSON = {
+			totalFee: '10000000',
+			totalAmount: '1',
+			payloadHash:
+				'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
+			payloadLength: 117,
+			numberOfTransactions: 1,
+			version: 2,
+			height: 2,
+			transactions: [
+				{
+					id: '1065693148641117014',
+					blockId: '7360015088758644957',
+					type: 8,
+					timestamp: 107102856,
+					senderPublicKey:
+						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+					fee: '10000000',
+					signature:
+						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
+					signatures: [],
+					asset: {
+						amount: '1',
+						recipientId: '10361596175468657749L',
+					},
+				},
+			],
+			reward: '0',
+			timestamp: 1000,
+			generatorPublicKey:
+				'1c51f8d57dd74b9cede1fa957f46559cd9596655c46ae9a306364dc5b39581d1',
+			blockSignature:
+				'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
+			id: '7360015088758644957',
+			previousBlockId: '6524861224470851795',
+		};
+
+		it('should convert big number field to be instance', () => {
+			const blockInstance = blocksInstance.deserialize(blockJSON);
+			expect(blockInstance.totalAmount).toBeInstanceOf(BigNum);
+			expect(blockInstance.totalFee).toBeInstanceOf(BigNum);
+			expect(blockInstance.reward).toBeInstanceOf(BigNum);
+		});
+
+		it('should convert transaction to be a class', () => {
+			const blockInstance = blocksInstance.deserialize(blockJSON);
+			expect(blockInstance.transactions[0]).toBeInstanceOf(TransferTransaction);
+		});
+
+		it('should have only previousBlockId property', () => {
+			const blockInstance = blocksInstance.deserialize(blockJSON);
+			expect(blockInstance.previousBlockId).toBeString();
+		});
+	});
+
+	describe('validateBlockHeader', () => {
 		let validateTransactionsFn;
+		let expectedReward;
 
 		beforeEach(async () => {
+			expectedReward = '0';
 			validateTransactionsFn = jest.fn().mockReturnValue({
 				transactionsResponses: [],
 			});
@@ -455,11 +515,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
+					await blocksInstance.validateBlockHeader(
 						block,
-						lastBlock: genesisBlock,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -474,11 +534,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).resolves.toBeUndefined();
 			});
 		});
@@ -496,11 +552,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
+					await blocksInstance.validateBlockHeader(
 						block,
-						lastBlock: genesisBlock,
-						blockBytes: mutatedBlockBytes,
-					});
+						mutatedBlockBytes,
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -519,11 +575,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
-						block: blockWithMutatedSignature,
-						lastBlock: genesisBlock,
+					await blocksInstance.validateBlockHeader(
+						blockWithMutatedSignature,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -542,11 +598,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.validateDetached({
-						block: blockWithDifferentGeneratorPublicKey,
-						lastBlock: genesisBlock,
+					await blocksInstance.validateBlockHeader(
+						blockWithDifferentGeneratorPublicKey,
 						blockBytes,
-					});
+						expectedReward,
+					);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -564,11 +620,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow('Payload length is too long');
 			});
 
@@ -582,11 +634,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow(
 					'Included transactions do not match block transactions count',
 				);
@@ -602,11 +650,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow('Number of transactions exceeds maximum per block');
 			});
 
@@ -623,11 +667,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toThrow(
 					'Included transactions do not match block transactions count',
 				);
@@ -644,11 +684,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentPayloadhash,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentPayloadhash,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid payload hash');
 			});
 
@@ -663,11 +703,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentTotalAmount,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentTotalAmount,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid total amount');
 			});
 
@@ -682,11 +722,11 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block: blockWithDifferentTotalAmount,
-						lastBlock: genesisBlock,
+					blocksInstance.validateBlockHeader(
+						blockWithDifferentTotalAmount,
 						blockBytes,
-					}),
+						expectedReward,
+					),
 				).rejects.toThrow('Invalid total fee');
 			});
 		});
@@ -701,11 +741,11 @@ describe('blocks', () => {
 
 			expect.assertions(1);
 			// Act & Assert
-			await blocksInstance.validateDetached({
+			await blocksInstance.validateBlockHeader(
 				block,
-				lastBlock: genesisBlock,
 				blockBytes,
-			});
+				expectedReward,
+			);
 			expect(block.id).toEqual(originalId);
 		});
 
@@ -716,11 +756,11 @@ describe('blocks', () => {
 				const blockBytes = getBytes(block);
 				expect.assertions(2);
 				// Act
-				await blocksInstance.validateDetached({
+				await blocksInstance.validateBlockHeader(
 					block,
-					lastBlock: genesisBlock,
 					blockBytes,
-				});
+					expectedReward,
+				);
 				expect(transactionsModule.validateTransactions).toHaveBeenCalledWith(
 					exceptions,
 				);
@@ -745,11 +785,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).rejects.toEqual(transactionErrors);
 			});
 
@@ -770,11 +806,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.validateDetached({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
 				).resolves.toEqual();
 			});
 		});
@@ -829,7 +861,7 @@ describe('blocks', () => {
 			const aNewBlock = {
 				...defaults.newBlock,
 				height: defaults.lastBlock.height + 1,
-				previousBlock: defaults.lastBlock.id,
+				previousBlockId: defaults.lastBlock.id,
 			};
 
 			expect(
@@ -846,7 +878,7 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height,
 				prevotedConfirmedUptoHeight:
 					defaults.lastBlock.prevotedConfirmedUptoHeight,
-				previousBlock: defaults.lastBlock.previousBlock,
+				previousBlockId: defaults.lastBlock.previousBlockId,
 				generatorPublicKey: defaults.lastBlock.generatorPublicKey,
 			};
 
@@ -864,7 +896,7 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height,
 				prevotedConfirmedUptoHeight:
 					defaults.lastBlock.prevotedConfirmedUptoHeight,
-				previousBlock: defaults.lastBlock.previousBlock,
+				previousBlockId: defaults.lastBlock.previousBlockId,
 				timestamp: defaults.lastBlock.timestamp + 1000,
 			};
 
@@ -907,10 +939,15 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height, // This way, none of the conditions are met
 			};
 
+			const lastBlock = {
+				...defaults.lastBlock,
+				height: 2,
+			};
+
 			expect(
 				blocksInstance.forkChoice({
 					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
+					lastBlock,
 				}),
 			).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
 		});
@@ -1276,247 +1313,134 @@ describe('blocks', () => {
 	describe('save', () => {
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
-			stubs.dependencies.dposModule.apply = jest.fn().mockResolvedValue();
 		});
 
-		describe('when skipSave is set to true', () => {
-			it('should not save the block in the database when skipSave is set to true', async () => {
-				// Arrange
-				const block = newBlock();
-				// Act
-				await blocksInstance.save({
-					block,
-					skipSave: true,
+		it('should throw error when block create fails', async () => {
+			// Arrange
+			const block = newBlock();
+			const blockCreateError = 'block create error';
+			stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
+				blockCreateError,
+			);
+			expect.assertions(1);
+
+			// Act & Assert
+			await expect(
+				blocksInstance.save({
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
-				});
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Block.create,
-				).not.toHaveBeenCalled();
-				expect(
-					stubs.dependencies.storage.entities.Transaction.create,
-				).not.toHaveBeenCalled();
-			});
-
-			it('should resolve when dpos module successfully performs apply', async () => {
-				// Arrange
-				const block = newBlock();
-
-				// Act & Assert
-				expect.assertions(2);
-
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).resolves.toEqual();
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
-
-			it('should throw error with error from Dpos module failed to apply', async () => {
-				// Arrange
-				const block = newBlock();
-				const roundsError = new Error('dpos.apply error');
-				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
-
-				// Act & Assert
-				expect.assertions(2);
-
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(roundsError);
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
+				}),
+			).rejects.toEqual(blockCreateError);
 		});
 
-		describe('when skipSave is set to false', () => {
-			it('should throw error when block create fails', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockCreateError = 'block create error';
-				stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
-					blockCreateError,
-				);
-				expect.assertions(1);
+		it('should throw error when transaction create fails', async () => {
+			// Arrange
+			const transaction = new TransferTransaction(randomUtils.transaction());
+			const block = newBlock({ transactions: [transaction] });
+			const transactionCreateError = 'transaction create error';
+			stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
+				transactionCreateError,
+			);
+			expect.assertions(1);
 
-				// Act & Assert
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: false,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(blockCreateError);
-			});
-
-			it('should throw error when transaction create fails', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				const transactionCreateError = 'transaction create error';
-				stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
-					transactionCreateError,
-				);
-				expect.assertions(1);
-
-				// Act & Assert
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: false,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(transactionCreateError);
-			});
-
-			it('should not perform Dpos apply when save block fails', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				const transactionCreateError = 'transaction create error';
-				stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
-					transactionCreateError,
-				);
-				expect.assertions(2);
-
-				try {
-					// Act
-					await blocksInstance.save({
-						block,
-						skipSave: false,
-						tx: stubs.tx,
-					});
-				} catch (error) {
-					// Assert
-					expect(error).toEqual(transactionCreateError);
-					expect(stubs.dependencies.dposModule.apply).not.toHaveBeenCalled();
-				}
-			});
-
-			it('should call Block.create with correct parameters', async () => {
-				// Arrange
-				const block = newBlock({
-					reward: new BigNum('0'),
-					totolAmount: new BigNum('0'),
-					totalFee: new BigNum('0'),
-				});
-				const blockJson = {
-					...block,
-					reward: '0',
-					totalAmount: '0',
-					totalFee: '0',
-					previousBlockId: block.previousBlock,
-				};
-				delete blockJson.previousBlock;
-				expect.assertions(1);
-
-				// Act
-				await blocksInstance.save({
-					block,
-					skipSave: false,
+			// Act & Assert
+			await expect(
+				blocksInstance.save({
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
-				});
+				}),
+			).rejects.toEqual(transactionCreateError);
+		});
 
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Block.create,
-				).toHaveBeenCalledWith(blockJson, {}, stubs.tx);
+		it('should call Block.create with correct parameters', async () => {
+			// Arrange
+			const block = newBlock({
+				reward: new BigNum('0'),
+				totolAmount: new BigNum('0'),
+				totalFee: new BigNum('0'),
+			});
+			const blockJSON = blocksInstance.serialize(block);
+			expect.assertions(1);
+
+			// Act
+			await blocksInstance.save({
+				blockJSON,
+				tx: stubs.tx,
 			});
 
-			it('should not call Transaction.create with if block has no transactions', async () => {
-				// Arrange
-				const block = newBlock();
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.Block.create,
+			).toHaveBeenCalledWith(blockJSON, {}, stubs.tx);
+		});
 
-				// Act
-				await blocksInstance.save({
-					block,
-					skipSave: false,
+		it('should not call Transaction.create with if block has no transactions', async () => {
+			// Arrange
+			const block = newBlock();
+
+			// Act
+			await blocksInstance.save({
+				blockJSON: blocksInstance.serialize(block),
+				tx: stubs.tx,
+			});
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.Transaction.create,
+			).not.toHaveBeenCalled();
+		});
+
+		it('should call Transaction.create with correct parameters', async () => {
+			// Arrange
+			const transaction = new TransferTransaction(randomUtils.transaction());
+			const block = newBlock({ transactions: [transaction] });
+			transaction.blockId = block.id;
+			const transactionJSON = transaction.toJSON();
+
+			// Act
+			await blocksInstance.save({
+				blockJSON: blocksInstance.serialize(block),
+				tx: stubs.tx,
+			});
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.Transaction.create,
+			).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
+		});
+
+		it('should resolve when blocks module successfully performs save', async () => {
+			// Arrange
+			const block = newBlock();
+
+			// Act & Assert
+			expect.assertions(1);
+
+			await expect(
+				blocksInstance.save({
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
-				});
+				}),
+			).resolves.toEqual();
+		});
 
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Transaction.create,
-				).not.toHaveBeenCalled();
-			});
+		it('should throw error when storage create fails', async () => {
+			// Arrange
+			const block = newBlock();
+			const blockCreateError = 'block create error';
+			stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
+				blockCreateError,
+			);
 
-			it('should call Transaction.create with correct parameters', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				transaction.blockId = block.id;
-				const transactionJSON = transaction.toJSON();
+			expect.assertions(1);
 
-				// Act
-				await blocksInstance.save({
-					block,
-					skipSave: false,
+			// Act & Assert
+			await expect(
+				blocksInstance.save({
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
-				});
-
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.Transaction.create,
-				).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
-			});
-
-			it('should resolve when dpos module successfully performs apply', async () => {
-				// Arrange
-				const block = newBlock();
-
-				// Act & Assert
-				expect.assertions(2);
-
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).resolves.toEqual();
-
-				return expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
-
-			it('should throw error with error from dpos module failed to apply', async () => {
-				// Arrange
-				const block = newBlock();
-				const roundsError = new Error('dpos.apply error');
-				stubs.dependencies.dposModule.apply.mockRejectedValue(roundsError);
-
-				expect.assertions(2);
-
-				// Act & Assert
-				await expect(
-					blocksInstance.save({
-						block,
-						skipSave: true,
-						tx: stubs.tx,
-					}),
-				).rejects.toEqual(roundsError);
-
-				expect(stubs.dependencies.dposModule.apply).toHaveBeenCalledWith(
-					block,
-					stubs.tx,
-				);
-			});
+				}),
+			).rejects.toBe(blockCreateError);
 		});
 	});
 
@@ -1532,7 +1456,8 @@ describe('blocks', () => {
 			// Act & Assert
 			await expect(
 				blocksInstance.remove({
-					block: genesisBlock,
+					block: blocksInstance.deserialize(genesisBlock),
+					blockJSON: genesisBlock,
 					tx: stubs.tx,
 				}),
 			).rejects.toThrow('Cannot delete genesis block');
@@ -1546,6 +1471,7 @@ describe('blocks', () => {
 			await expect(
 				blocksInstance.remove({
 					block,
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
 				}),
 			).rejects.toThrow('PreviousBlock is null');
@@ -1565,6 +1491,7 @@ describe('blocks', () => {
 			await expect(
 				blocksInstance.remove({
 					block,
+					blockJSON: blocksInstance.serialize(block),
 					tx: stubs.tx,
 				}),
 			).rejects.toEqual(deleteBlockError);
@@ -1576,6 +1503,7 @@ describe('blocks', () => {
 			// Act
 			await blocksInstance.remove({
 				block,
+				blockJSON: blocksInstance.serialize(block),
 				tx: stubs.tx,
 			});
 			// Assert
@@ -1604,6 +1532,7 @@ describe('blocks', () => {
 					blocksInstance.remove(
 						{
 							block,
+							blockJSON: blocksInstance.serialize(block),
 							tx: stubs.tx,
 						},
 						true,
@@ -1616,20 +1545,12 @@ describe('blocks', () => {
 				const transaction = new TransferTransaction(randomUtils.transaction());
 				const block = newBlock({ transactions: [transaction] });
 				transaction.blockId = block.id;
-				const transactionJson = transaction.toJSON();
-				const blockJson = {
-					...block,
-					reward: '0',
-					totalAmount: '1',
-					totalFee: '10000000',
-					previousBlockId: block.previousBlock,
-					transactions: [transactionJson],
-				};
-				delete blockJson.previousBlock;
+				const blockJSON = blocksInstance.serialize(block);
 				// Act
 				await blocksInstance.remove(
 					{
 						block,
+						blockJSON,
 						tx: stubs.tx,
 					},
 					true,
@@ -1639,9 +1560,9 @@ describe('blocks', () => {
 					stubs.dependencies.storage.entities.TempBlock.create,
 				).toHaveBeenCalledWith(
 					{
-						id: blockJson.id,
-						height: blockJson.height,
-						fullBlock: blockJson,
+						id: blockJSON.id,
+						height: blockJSON.height,
+						fullBlock: blockJSON,
 					},
 					{},
 					stubs.tx,
@@ -1650,14 +1571,41 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('exists', () => {
+	describe('removeBlockFromTempTable()', () => {
+		it('should remove block from table for block ID', async () => {
+			// Arrange
+			const block = newBlock();
+
+			// Act
+			await blocksInstance.removeBlockFromTempTable(block.id, stubs.tx);
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.TempBlock.delete,
+			).toHaveBeenCalledWith({ id: block.id }, {}, stubs.tx);
+		});
+	});
+
+	describe('getTempBlocks()', () => {
+		it('should retrieve all blocks from temp_block table', async () => {
+			// Act
+			await blocksInstance.getTempBlocks({}, {}, stubs.tx);
+
+			// Assert
+			expect(
+				stubs.dependencies.storage.entities.TempBlock.get,
+			).toHaveBeenCalledWith({}, {}, stubs.tx);
+		});
+	});
+
+	describe('exists()', () => {
 		beforeEach(async () => {
 			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
 				true,
 			);
 		});
 
-		it("should return true if the block doesn't exist", async () => {
+		it('should return true if the block does not exist', async () => {
 			// Arrange
 			const block = newBlock();
 			expect.assertions(2);
@@ -1703,12 +1651,128 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('loadBlocksDataWs', () => {
-		it.todo('a');
-	});
+	describe('loadBlocksFromLastBlockId', () => {
+		describe('when called without lastBlockId', () => {
+			it('should reject with error', async () => {
+				expect.assertions(1);
+				try {
+					await blocksInstance.loadBlocksFromLastBlockId();
+				} catch (err) {
+					expect(err.message).toBe('lastBlockId needs to be specified');
+				}
+			});
+		});
 
-	describe('readBlocksFromNetwork', () => {
-		it.todo('b');
+		describe('when called without limit', () => {
+			const validLastBlock = {
+				height: 100,
+				id: 'block-id',
+			};
+
+			beforeEach(async () => {
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+					validLastBlock,
+				]);
+			});
+
+			it('should use limit 1 as default', async () => {
+				await blocksInstance.loadBlocksFromLastBlockId('block-id');
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{
+						height_gt: 100,
+						height_lte: 101,
+					},
+					{
+						extended: true,
+						limit: 1,
+						sort: ['height'],
+					},
+				);
+			});
+		});
+
+		describe('when called with invalid lastBlockId', () => {
+			beforeEach(async () => {
+				when(stubs.dependencies.storage.entities.Block.get)
+					.calledWith({ id: 'block-id' })
+					.mockResolvedValue([]);
+			});
+
+			it('should reject with error', async () => {
+				expect.assertions(1);
+				try {
+					await blocksInstance.loadBlocksFromLastBlockId('block-id');
+				} catch (err) {
+					expect(err.message).toBe('Invalid lastBlockId requested: block-id');
+				}
+			});
+		});
+
+		describe('when called with valid lastBlockId and limit', () => {
+			const validLastBlock = {
+				height: 100,
+				id: 'block-id',
+			};
+
+			const validBlocksFromStorage = [
+				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
+			];
+			const validBlocks = [
+				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
+			];
+
+			beforeEach(async () => {
+				when(stubs.dependencies.storage.entities.Block.get)
+					.calledWith({ id: 'block-id' })
+					.mockResolvedValue([validLastBlock]);
+				when(stubs.dependencies.storage.entities.Block.get)
+					.calledWith(
+						{
+							height_gt: 100,
+							height_lte: 134,
+						},
+						{
+							extended: true,
+							limit: 34,
+							sort: ['height'],
+						},
+					)
+					.mockResolvedValue(validBlocksFromStorage);
+			});
+
+			it('should call storage for the lastBlockId', async () => {
+				await blocksInstance.loadBlocksFromLastBlockId('block-id', 34);
+
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith({
+					id: 'block-id',
+				});
+			});
+
+			it('should use the storage with correct filter', async () => {
+				const blocks = await blocksInstance.loadBlocksFromLastBlockId(
+					'block-id',
+					34,
+				);
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{
+						height_gt: 100,
+						height_lte: 134,
+					},
+					{
+						extended: true,
+						limit: 34,
+						sort: ['height'],
+					},
+				);
+				expect(blocks).toEqual(validBlocks);
+			});
+		});
 	});
 
 	describe('getHighestCommonBlock', () => {

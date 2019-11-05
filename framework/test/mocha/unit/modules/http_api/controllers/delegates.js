@@ -55,11 +55,11 @@ describe('delegates/api', () => {
 		dummyDelegates = [
 			{
 				username: 'genesis_100',
-				vote: '9997431613722222',
+				voteWeight: '9997431613722222',
 			},
 			{
 				username: 'genesis_51',
-				vote: '9997428613722222',
+				voteWeight: '9997428613722222',
 			},
 		];
 
@@ -73,10 +73,10 @@ describe('delegates/api', () => {
 						isDelegate: 4,
 					}),
 					get: sinonSandbox.stub().resolves(dummyDelegates),
-					delegateBlocksRewards: sinonSandbox.stub(),
 				},
 				Block: {
 					get: sinonSandbox.stub().resolves([dummyBlock]),
+					delegateBlocksRewards: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -306,8 +306,9 @@ describe('delegates/api', () => {
 			).to.eventually.be.rejectedWith('Account not found');
 		});
 
-		it('should return error when channel.invoke("getDelegateBlocksRewards" fails', async () => {
-			channelStub.invoke.rejects({
+		it('should return error when storage.entities.Block.delegateBlocksRewards fails', async () => {
+			storageStub.entities.Account.getOne.resolves({});
+			storageStub.entities.Block.delegateBlocksRewards.rejects({
 				stack: ['anError'],
 			});
 
@@ -320,14 +321,17 @@ describe('delegates/api', () => {
 		});
 
 		it('should return error when account is not a delegate', () => {
-			channelStub.invoke.resolves([{ delegate: null }]);
+			storageStub.entities.Account.getOne.resolves({});
+			storageStub.entities.Block.delegateBlocksRewards.resolves([
+				{ delegate: null },
+			]);
 			return expect(
 				__private.aggregateBlocksReward({ address: '1L' }),
 			).to.eventually.be.rejectedWith('Account is not a delegate');
 		});
 
 		it('should return aggregate blocks rewards', async () => {
-			channelStub.invoke.resolves([
+			storageStub.entities.Block.delegateBlocksRewards.resolves([
 				{ delegate: '123abc', fees: 1, count: 100 },
 			]);
 			const data = await __private.aggregateBlocksReward({ address: '1L' });

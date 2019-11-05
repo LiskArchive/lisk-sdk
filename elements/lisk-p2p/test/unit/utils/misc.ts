@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { initializePeerInfoList } from '../../utils/peers';
+import { initPeerInfoList } from '../../utils/peers';
 import {
 	getIPGroup,
 	isPrivate,
@@ -21,22 +21,23 @@ import {
 	getNetwork,
 	getIPBytes,
 	getNetgroup,
-	getBucket,
 	getUniquePeersbyIp,
 	NETWORK,
+	getBucketId,
 	PEER_TYPE,
 } from '../../../src/utils';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('utils/misc', () => {
-	const IPv4Address = '1.160.10.240';
-	const privateAddress = '10.0.0.0';
-	const localAddress = '127.0.0.1';
-	const secret = 123456;
 	const MAX_GROUP_NUM = 255;
 	const MAX_NEW_BUCKETS = 128;
 	const MAX_TRIED_BUCKETS = 64;
 	const MAX_PEER_ADDRESSES = 65025;
+	const secret = DEFAULT_RANDOM_SECRET;
+	const IPv4Address = '1.160.10.240';
+	const privateAddress = '10.0.0.0';
+	const localAddress = '127.0.0.1';
 
 	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
@@ -45,11 +46,7 @@ describe('utils/misc', () => {
 		});
 
 		it('should throw an error for second argument greater than 3', () => {
-			try {
-				getIPGroup(IPv4Address, 4);
-			} catch (err) {
-				expect(err).to.have.property('message', 'Invalid IP group.');
-			}
+			expect(() => getIPGroup(IPv4Address, 4)).to.throw('Invalid IP group.');
 		});
 	});
 
@@ -98,6 +95,14 @@ describe('utils/misc', () => {
 	});
 
 	describe('#getNetgroup', () => {
+		it(`should throw an error if network is equal to ${
+			NETWORK.NET_OTHER
+		}`, () => {
+			expect(() => getNetgroup('wrong ip', DEFAULT_RANDOM_SECRET)).to.throw(
+				'IP address is unsupported.',
+			);
+		});
+
 		it('should return a number netgroup', () => {
 			return expect(getNetgroup(IPv4Address, secret)).to.be.a('number');
 		});
@@ -134,170 +139,11 @@ describe('utils/misc', () => {
 		});
 	});
 
-	describe('#getBucket', () => {
-		it('should return a bucket number', () => {
-			return expect(
-				getBucket({
-					secret,
-					targetAddress: IPv4Address,
-					peerType: PEER_TYPE.NEW_PEER,
-				}),
-			).to.be.a('number');
-		});
-
-		it('should return different buckets for different target addresses', () => {
-			const secondIPv4Address = '1.161.10.240';
-			const firstBucket = getBucket({
-				secret,
-				targetAddress: IPv4Address,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-			const secondBucket = getBucket({
-				secret,
-				targetAddress: secondIPv4Address,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-
-			return expect(firstBucket).to.not.eql(secondBucket);
-		});
-
-		it('should return same bucket for unique local target addresses', () => {
-			const firstBucket = getBucket({
-				secret,
-				targetAddress: localAddress,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-			const secondLocalAddress = '127.0.1.1';
-			const secondBucket = getBucket({
-				secret,
-				targetAddress: secondLocalAddress,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-
-			return expect(firstBucket).to.eql(secondBucket);
-		});
-
-		it('should return same bucket for unique private target addresses', () => {
-			const firstBucket = getBucket({
-				secret,
-				targetAddress: privateAddress,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-			const secondPrivateAddress = '10.0.0.1';
-			const secondBucket = getBucket({
-				secret,
-				targetAddress: secondPrivateAddress,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-
-			return expect(firstBucket).to.eql(secondBucket);
-		});
-
-		it('should return different buckets for local and private target addresses', () => {
-			const firstBucket = getBucket({
-				secret,
-				targetAddress: localAddress,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-			const secondBucket = getBucket({
-				secret,
-				targetAddress: privateAddress,
-				peerType: PEER_TYPE.NEW_PEER,
-			});
-
-			return expect(firstBucket).to.not.eql(secondBucket);
-		});
-
-		it('should return the same bucket given random ip addresses in the same group for new peers', async () => {
-			const collectedBuckets = new Array(MAX_GROUP_NUM)
-				.fill(0)
-				.map(() => '61.26.254.' + Math.floor(Math.random() * 256))
-				.map(address =>
-					getBucket({
-						secret,
-						targetAddress: address,
-						peerType: PEER_TYPE.NEW_PEER,
-					}),
-				);
-			const firstBucket = collectedBuckets[0];
-			expect(collectedBuckets.every(bucket => bucket === firstBucket)).to.be
-				.true;
-		});
-
-		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', async () => {
-			const expectedPeerCountPerBucketLowerBound =
-				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
-			const expectedPeerCountPerBucketUpperBound =
-				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
-			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
-				.fill(0)
-				.reduce((collectedBuckets: any) => {
-					const targetAddress = `${Math.floor(
-						Math.random() * 256,
-					)}.${Math.floor(Math.random() * 256)}.254.1`;
-					const bucket = getBucket({
-						secret,
-						targetAddress,
-						peerType: PEER_TYPE.TRIED_PEER,
-					});
-					if (!collectedBuckets[bucket]) {
-						collectedBuckets[bucket] = 0;
-					}
-					collectedBuckets[bucket]++;
-
-					return collectedBuckets;
-				}, {});
-
-			Object.values(collectedBuckets).forEach((bucketCount: any) => {
-				expect(bucketCount).to.be.greaterThan(
-					expectedPeerCountPerBucketLowerBound,
-				);
-				expect(bucketCount).to.be.lessThan(
-					expectedPeerCountPerBucketUpperBound,
-				);
-			});
-		});
-
-		// The bounds are more tolerant here due to our temporary solution to not include source IP changing the outcome of distribution
-		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for new peers', async () => {
-			const expectedPeerCountPerBucketLowerBound =
-				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.2;
-			const expectedPeerCountPerBucketUpperBound =
-				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 2.7;
-			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
-				.fill(0)
-				.reduce((collectedBuckets: any) => {
-					const targetAddress = `${Math.floor(
-						Math.random() * 256,
-					)}.${Math.floor(Math.random() * 256)}.254.1`;
-					const bucket = getBucket({
-						secret,
-						targetAddress,
-						peerType: PEER_TYPE.NEW_PEER,
-					});
-					if (!collectedBuckets[bucket]) {
-						collectedBuckets[bucket] = 0;
-					}
-					collectedBuckets[bucket]++;
-
-					return collectedBuckets;
-				}, {});
-			Object.values(collectedBuckets).forEach((bucketCount: any) => {
-				expect(bucketCount).to.be.greaterThan(
-					expectedPeerCountPerBucketLowerBound,
-				);
-				expect(bucketCount).to.be.lessThan(
-					expectedPeerCountPerBucketUpperBound,
-				);
-			});
-		});
-	});
-
 	describe('#getUniquePeersbyIp', () => {
-		const samplePeers = initializePeerInfoList();
+		const samplePeers = initPeerInfoList();
 
 		describe('when two peers have same peer infos', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+			let uniquePeerListByIp: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
 				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
@@ -310,7 +156,7 @@ describe('utils/misc', () => {
 		});
 
 		describe('when two peers have same IP and different wsPort and height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+			let uniquePeerListByIp: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
 				const peer1 = {
@@ -335,18 +181,22 @@ describe('utils/misc', () => {
 		});
 
 		describe('when two peers have same IP and different wsPort but same height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+			let uniquePeerListByIp: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
 				const peer1 = {
 					...samplePeers[0],
-					height: samplePeers[0].height,
+					height: samplePeers[0].sharedState
+						? samplePeers[0].sharedState.height
+						: 0,
 					wsPort: samplePeers[0].wsPort + 1,
 				};
 
 				const peer2 = {
 					...samplePeers[1],
-					height: samplePeers[1].height,
+					height: samplePeers[1].sharedState
+						? samplePeers[1].sharedState.height
+						: 0,
 					wsPort: samplePeers[1].wsPort + 1,
 				};
 
@@ -356,6 +206,215 @@ describe('utils/misc', () => {
 
 			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
 				expect(uniquePeerListByIp).eql(samplePeers);
+			});
+		});
+	});
+
+	describe('#evictPeerRandomlyFromBucket', () => {
+		it('must return the evicted peer info');
+	});
+
+	describe('#expirePeerFromBucket', () => {
+		describe('when bucket contains old peers', () => {
+			it('should return the evicted peer info');
+		});
+		describe('when bucket does not contains old peers', () => {
+			it('should return undefined');
+		});
+	});
+
+	describe('#getBucketId', () => {
+		it(`should throw an error if network is equal to ${
+			NETWORK.NET_OTHER
+		}`, () => {
+			expect(() =>
+				getBucketId({
+					secret,
+					targetAddress: 'wrong ip',
+					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
+				}),
+			).to.throw('IP address is unsupported.');
+		});
+
+		it('should return a bucket number', () => {
+			expect(
+				getBucketId({
+					secret,
+					targetAddress: IPv4Address,
+					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
+				}),
+			)
+				.to.be.a('number')
+				.within(0, MAX_NEW_BUCKETS);
+		});
+
+		it('should return different buckets for different target addresses', () => {
+			const secondIPv4Address = '1.161.10.240';
+			const firstBucket = getBucketId({
+				secret,
+				targetAddress: IPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+			const secondBucket = getBucketId({
+				secret,
+				targetAddress: secondIPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			expect(firstBucket).to.not.eql(secondBucket);
+		});
+
+		it('should return same bucket for unique local target addresses', () => {
+			const firstBucket = getBucketId({
+				secret,
+				targetAddress: localAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+			const secondLocalAddress = '127.0.1.1';
+			const secondBucket = getBucketId({
+				secret,
+				targetAddress: secondLocalAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			expect(firstBucket).to.eql(secondBucket);
+		});
+
+		it('should return same bucket for unique private target addresses', () => {
+			const firstBucket = getBucketId({
+				secret,
+				targetAddress: privateAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+			const secondPrivateAddress = '10.0.0.1';
+			const secondBucket = getBucketId({
+				secret,
+				targetAddress: secondPrivateAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			expect(firstBucket).to.eql(secondBucket);
+		});
+
+		it('should return ifferent buckets for local and private target addresses', () => {
+			const firstBucket = getBucketId({
+				secret,
+				targetAddress: localAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+			const secondBucket = getBucketId({
+				secret,
+				targetAddress: privateAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			expect(firstBucket).to.not.eql(secondBucket);
+		});
+
+		it('should return the same bucket given random ip addresses in the same group for new peers', () => {
+			const collectedBuckets = new Array(MAX_GROUP_NUM)
+				.fill(0)
+				.map(() => '61.26.254.' + Math.floor(Math.random() * 256))
+				.map(address =>
+					getBucketId({
+						secret,
+						targetAddress: address,
+						peerType: PEER_TYPE.NEW_PEER,
+						bucketCount: MAX_NEW_BUCKETS,
+					}),
+				);
+			const firstBucket = collectedBuckets[0];
+			expect(collectedBuckets.every(bucket => bucket === firstBucket)).to.be
+				.true;
+		});
+
+		it('should return NaN if bucketCount is 0', () => {
+			const bucketId = getBucketId({
+				secret,
+				targetAddress: '61.26.254.123',
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: 0,
+			});
+			expect(bucketId).is.NaN;
+		});
+
+		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
+			const expectedPeerCountPerBucketLowerBound =
+				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
+			const expectedPeerCountPerBucketUpperBound =
+				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
+			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
+				.fill(0)
+				.reduce((collectedBuckets: any) => {
+					const targetAddress = `${Math.floor(
+						Math.random() * 256,
+					)}.${Math.floor(Math.random() * 256)}.254.1`;
+					const bucket = getBucketId({
+						secret,
+						targetAddress,
+						peerType: PEER_TYPE.TRIED_PEER,
+						bucketCount: MAX_TRIED_BUCKETS,
+					});
+					if (!collectedBuckets[bucket]) {
+						collectedBuckets[bucket] = 0;
+					}
+					collectedBuckets[bucket]++;
+
+					return collectedBuckets;
+				}, {});
+
+			Object.values(collectedBuckets).forEach((bucketCount: any) => {
+				expect(bucketCount).to.be.greaterThan(
+					expectedPeerCountPerBucketLowerBound,
+				);
+				expect(bucketCount).to.be.lessThan(
+					expectedPeerCountPerBucketUpperBound,
+				);
+			});
+		});
+
+		// The bounds are more tolerant here due to our temporary solution to not include source IP changing the outcome of distribution
+		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for new peers', () => {
+			const expectedPeerCountPerBucketLowerBound =
+				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.2;
+			const expectedPeerCountPerBucketUpperBound =
+				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 2.7;
+			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
+				.fill(0)
+				.reduce((collectedBuckets: any) => {
+					const targetAddress = `${Math.floor(
+						Math.random() * 256,
+					)}.${Math.floor(Math.random() * 256)}.254.1`;
+					const bucket = getBucketId({
+						secret,
+						targetAddress,
+						peerType: PEER_TYPE.NEW_PEER,
+						bucketCount: MAX_NEW_BUCKETS,
+					});
+					if (!collectedBuckets[bucket]) {
+						collectedBuckets[bucket] = 0;
+					}
+					collectedBuckets[bucket]++;
+
+					return collectedBuckets;
+				}, {});
+			Object.values(collectedBuckets).forEach((bucketCount: any) => {
+				expect(bucketCount).to.be.greaterThan(
+					expectedPeerCountPerBucketLowerBound,
+				);
+				expect(bucketCount).to.be.lessThan(
+					expectedPeerCountPerBucketUpperBound,
+				);
 			});
 		});
 	});

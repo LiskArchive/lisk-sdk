@@ -16,8 +16,12 @@
 
 const BigNum = require('@liskhq/bignum');
 const { when } = require('jest-when');
-const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { constants, randomInt } = require('../../../../utils');
+const {
+	Dpos,
+	Slots,
+	constants: { EVENT_ROUND_CHANGED },
+} = require('../../../../../../../src/modules/chain/dpos');
+const { constants, randomInt } = require('../../../../../utils');
 const {
 	delegateAccounts,
 	delegatePublicKeys,
@@ -69,6 +73,7 @@ describe('dpos.undo()', () => {
 			slots,
 			...stubs,
 			activeDelegates: constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
@@ -83,7 +88,7 @@ describe('dpos.undo()', () => {
 
 		it('should throw exception and NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
 			// Act && Assert
-			expect(dpos.undo(genesisBlock, stubs.tx)).rejects.toThrow(
+			expect(dpos.undo(genesisBlock, { tx: stubs.tx })).rejects.toThrow(
 				'Cannot undo genesis block',
 			);
 
@@ -105,7 +110,7 @@ describe('dpos.undo()', () => {
 			};
 
 			// Act
-			await dpos.undo(block, stubs.tx);
+			await dpos.undo(block, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -128,7 +133,7 @@ describe('dpos.undo()', () => {
 			};
 
 			// Act
-			await dpos.undo(block, stubs.tx);
+			await dpos.undo(block, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -160,7 +165,7 @@ describe('dpos.undo()', () => {
 			};
 
 			// Act
-			await dpos.undo(block, stubs.tx);
+			await dpos.undo(block, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -170,15 +175,15 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRound;
+		let lastBlockOfTheRoundNine;
 		let feePerDelegate;
 		let rewardPerDelegate;
 		let totalFee;
 		let getTotalEarningsOfDelegate;
 		beforeEach(() => {
 			// Arrange
-			lastBlockOfTheRound = {
-				height: 202,
+			lastBlockOfTheRoundNine = {
+				height: 909,
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 			};
 
@@ -187,7 +192,7 @@ describe('dpos.undo()', () => {
 					{
 						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
 					},
-					{ extended: true },
+					{},
 					stubs.tx,
 				)
 				.mockResolvedValue(delegatesWhoForged);
@@ -221,7 +226,7 @@ describe('dpos.undo()', () => {
 
 		it('should decrease "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
 			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect(
@@ -240,7 +245,7 @@ describe('dpos.undo()', () => {
 
 		it('should undo distribution of reward and fee ONLY to the delegates who forged', async () => {
 			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(constants.ACTIVE_DELEGATES);
@@ -267,7 +272,7 @@ describe('dpos.undo()', () => {
 
 		it('should undo distribution of reward and fee for delegate who forged once but missed once', async () => {
 			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(delegatesWhoForgedOnceMissedOnce.length);
@@ -287,7 +292,7 @@ describe('dpos.undo()', () => {
 
 		it('should undo distribution of rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {
 			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length);
@@ -323,7 +328,7 @@ describe('dpos.undo()', () => {
 			]);
 
 			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged);
@@ -368,7 +373,7 @@ describe('dpos.undo()', () => {
 
 		it('should update vote weight of accounts that delegates who forged voted for', async () => {
 			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length);
@@ -391,10 +396,10 @@ describe('dpos.undo()', () => {
 
 		it('should delete delegate list for rounds which are after the current round', async () => {
 			// Arrange
-			const roundNo = slots.calcRound(lastBlockOfTheRound.height);
+			const roundNo = slots.calcRound(lastBlockOfTheRoundNine.height);
 
 			// Act
-			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
 			expect(stubs.storage.entities.RoundDelegates.delete).toHaveBeenCalledWith(
@@ -404,6 +409,23 @@ describe('dpos.undo()', () => {
 				{},
 				stubs.tx,
 			);
+		});
+
+		it('should should emit EVENT_ROUND_CHANGED', async () => {
+			// Arrange
+			const eventCallbackStub = jest.fn();
+			const newRound =
+				lastBlockOfTheRoundNine.height / constants.ACTIVE_DELEGATES;
+			dpos.events.on(EVENT_ROUND_CHANGED, eventCallbackStub);
+
+			// Act
+			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
+
+			// Assert
+			expect(eventCallbackStub).toHaveBeenCalledWith({
+				oldRound: newRound + 1,
+				newRound,
+			});
 		});
 
 		describe('When all delegates successfully forges a block', () => {
@@ -422,13 +444,13 @@ describe('dpos.undo()', () => {
 						{
 							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
 						},
-						{ extended: true },
+						{},
 						stubs.tx,
 					)
 					.mockResolvedValue(delegateAccounts);
 
 				// Act
-				await dpos.undo(lastBlockOfTheRound, stubs.tx);
+				await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				expect(
 					stubs.storage.entities.Account.decreaseFieldBy,
@@ -445,9 +467,9 @@ describe('dpos.undo()', () => {
 				);
 
 				// Act && Assert
-				await expect(dpos.undo(lastBlockOfTheRound, stubs.tx)).rejects.toBe(
-					err,
-				);
+				await expect(
+					dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx }),
+				).rejects.toBe(err);
 
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 				expect(
@@ -472,7 +494,7 @@ describe('dpos.undo()', () => {
 					// setting bonus to a dividable amount
 					fees_bonus: constants.ACTIVE_DELEGATES * 123,
 				};
-				const exceptionRound = slots.calcRound(lastBlockOfTheRound.height);
+				const exceptionRound = slots.calcRound(lastBlockOfTheRoundNine.height);
 				const exceptions = {
 					rounds: {
 						[exceptionRound]: exceptionFactors,
@@ -483,13 +505,14 @@ describe('dpos.undo()', () => {
 					slots,
 					...stubs,
 					activeDelegates: constants.ACTIVE_DELEGATES,
+					delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,
 				});
 			});
 
 			it('should multiply delegate reward with "rewards_factor"', async () => {
 				// Act
-				await dpos.undo(lastBlockOfTheRound, stubs.tx);
+				await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				// Assert
 				expect.assertions(uniqueDelegatesWhoForged.length);
@@ -516,7 +539,7 @@ describe('dpos.undo()', () => {
 
 			it('should multiple "totalFee" with "fee_factor" and add "fee_bonus" and substract it from the account', async () => {
 				// Act
-				await dpos.undo(lastBlockOfTheRound, stubs.tx);
+				await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				uniqueDelegatesWhoForged.forEach(account => {
 					const blockCount = delegatesWhoForged.filter(

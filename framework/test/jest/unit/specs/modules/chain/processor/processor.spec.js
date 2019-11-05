@@ -63,11 +63,14 @@ describe('processor', () => {
 			info: jest.fn(),
 			warn: jest.fn(),
 			error: jest.fn(),
+			trace: jest.fn(),
 		};
 		blocksModuleStub = {
+			init: jest.fn(),
 			save: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
+			removeBlockFromTempTable: jest.fn(),
 		};
 		Object.defineProperty(blocksModuleStub, 'lastBlock', {
 			get: jest.fn().mockReturnValue(defaultLastBlock),
@@ -177,6 +180,10 @@ describe('processor', () => {
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 			});
 
+			it('should call blocksModule init', async () => {
+				expect(blocksModuleStub.init).toHaveBeenCalledTimes(1);
+			});
+
 			it('should check if genesis block exists', async () => {
 				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
@@ -191,10 +198,10 @@ describe('processor', () => {
 			});
 
 			it('should save the genesis block', async () => {
+				const blockJSON = await processor.serialize(genesisBlock);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: genesisBlock,
+					blockJSON,
 					tx: txStub,
-					skipSave: false,
 				});
 			});
 		});
@@ -205,6 +212,10 @@ describe('processor', () => {
 
 				await processor.init(genesisBlock);
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should call blocksModule init', async () => {
+				expect(blocksModuleStub.init).toHaveBeenCalledTimes(1);
 			});
 
 			it('should check if genesis block exists', async () => {
@@ -219,6 +230,25 @@ describe('processor', () => {
 
 			it('should not save the genesis block', async () => {
 				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('when processor has multiple block processor registered', () => {
+			let initSteps2;
+			let blockProcessorV1;
+
+			beforeEach(async () => {
+				initSteps2 = [jest.fn(), jest.fn()];
+				blockProcessorV1 = new FakeBlockProcessorV1();
+				blockProcessorV1.init.pipe(initSteps2);
+				processor.register(blockProcessorV1);
+			});
+
+			it('should call all of the init steps', async () => {
+				await processor.init(genesisBlock);
+				for (const step of initSteps2) {
+					expect(step).toHaveBeenCalledTimes(1);
+				}
 			});
 		});
 
@@ -426,10 +456,13 @@ describe('processor', () => {
 						undefined,
 					);
 				});
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
-					block: defaultLastBlock,
-					tx: txStub,
-				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+					{
+						block: defaultLastBlock,
+						tx: txStub,
+					},
+					false,
+				);
 			});
 
 			it('should emit deleteBlock event for the last block', async () => {
@@ -466,8 +499,9 @@ describe('processor', () => {
 			});
 
 			it('should save the block', async () => {
+				const blockJSON = await processor.serialize(blockV0);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: blockV0,
+					blockJSON,
 					tx: txStub,
 				});
 			});
@@ -528,10 +562,13 @@ describe('processor', () => {
 						undefined,
 					);
 				});
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
-					block: defaultLastBlock,
-					tx: txStub,
-				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+					{
+						block: defaultLastBlock,
+						tx: txStub,
+					},
+					false,
+				);
 			});
 
 			it('should emit deleteBlock event for the last block', async () => {
@@ -579,8 +616,9 @@ describe('processor', () => {
 
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should save the last block', async () => {
+				const blockJSON = await processor.serialize(defaultLastBlock);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: defaultLastBlock,
+					blockJSON,
 					tx: txStub,
 				});
 			});
@@ -629,9 +667,10 @@ describe('processor', () => {
 				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not publish sync', async () => {
+			it('should publish sync', async () => {
 				expect(channelStub.publish).toHaveBeenCalledWith(
 					'chain:processor:sync',
+					{ block: blockV0 },
 				);
 			});
 		});
@@ -866,7 +905,7 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when more than 2 processor is registered', () => {
+		describe('when more than 2 processors are registered', () => {
 			let blockProcessorV1;
 			let verifySteps2;
 
@@ -946,9 +985,9 @@ describe('processor', () => {
 				});
 			});
 
-			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
-			});
+			it.todo(
+				'should not save the block (figure out how to test if database tx was rolled back)',
+			);
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
@@ -991,14 +1030,7 @@ describe('processor', () => {
 
 			it('should apply the block', async () => {
 				applySteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: blockV0,
-							lastBlock: defaultLastBlock,
-							tx: txStub,
-						},
-						undefined,
-					);
+					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
@@ -1013,6 +1045,22 @@ describe('processor', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'chain:processor:newBlock',
 					expect.anything(),
+				);
+			});
+		});
+
+		describe('when block successfully processed with flag removeFromTempTable = true', () => {
+			beforeEach(async () => {
+				await processor.processValidated(blockV0, {
+					removeFromTempTable: true,
+				});
+				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
+			});
+
+			it('should remove block from temp_block table', async () => {
+				expect(blocksModuleStub.removeBlockFromTempTable).toHaveBeenCalledWith(
+					blockV0.id,
+					txStub,
 				);
 			});
 		});
@@ -1050,8 +1098,9 @@ describe('processor', () => {
 			});
 
 			it('should save the block', async () => {
+				const blockJSON = await processor.serialize(blockV0);
 				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: blockV0,
+					blockJSON,
 					tx: txStub,
 				});
 			});
@@ -1061,6 +1110,12 @@ describe('processor', () => {
 					'chain:processor:broadcast',
 					expect.anything(),
 				);
+			});
+
+			it('should not save block in temp_block table', async () => {
+				expect(
+					blocksModuleStub.removeBlockFromTempTable,
+				).not.toHaveBeenCalled();
 			});
 
 			it('should emit newBlock event', async () => {
@@ -1188,9 +1243,9 @@ describe('processor', () => {
 				});
 			});
 
-			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
-			});
+			it.todo(
+				'should not save the block (figure out how to test if database tx was rolled back)',
+			);
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
@@ -1296,11 +1351,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: blockV0,
-					tx: txStub,
-					skipSave: true,
-				});
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should not broadcast the block', async () => {
@@ -1399,10 +1450,13 @@ describe('processor', () => {
 			});
 
 			it('should call remove from blocksModule', async () => {
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith({
-					block: defaultLastBlock,
-					tx: txStub,
-				});
+				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+					{
+						block: defaultLastBlock,
+						tx: txStub,
+					},
+					false,
+				);
 			});
 
 			it('should publish event deleteBlock', async () => {
@@ -1480,12 +1534,8 @@ describe('processor', () => {
 				});
 			});
 
-			it('should save genesis block with skipSave', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					block: genesisBlock,
-					tx: txStub,
-					skipSave: true,
-				});
+			it('should not save the block', async () => {
+				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 

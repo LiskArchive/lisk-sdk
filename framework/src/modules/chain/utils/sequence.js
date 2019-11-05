@@ -78,6 +78,7 @@ class Sequence {
 
 	/**
 	 * Adds a new task to queue.
+	 * Promise will resolve when the task has been completed.
 	 *
 	 * @param {function} worker
 	 * @param {Array} args

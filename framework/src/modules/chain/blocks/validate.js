@@ -53,10 +53,14 @@ const validateSignature = (block, blockBytes) => {
  */
 const validatePreviousBlockProperty = (block, genesisBlock) => {
 	const isGenesisBlock =
-		block.id === genesisBlock.id && !block.previousBlock && block.height === 1;
+		block.id === genesisBlock.id &&
+		!block.previousBlockId &&
+		block.height === 1;
 	const propertyIsValid =
 		isGenesisBlock ||
-		(block.id !== genesisBlock.id && block.previousBlock && block.height !== 1);
+		(block.id !== genesisBlock.id &&
+			block.previousBlockId &&
+			block.height !== 1);
 
 	if (!propertyIsValid) {
 		throw new Error('Invalid previous block');
@@ -68,11 +72,12 @@ const validatePreviousBlockProperty = (block, genesisBlock) => {
  *
  * @func validateReward
  * @param {Object} block - Target block
- * @param {Object} blockReward - block reward functions
+ * @param {Object} expectedReward - expected block reward
  * @param {Object} exceptions
  */
-const validateReward = (block, blockReward, exceptions) => {
-	const expectedReward = blockReward.calculateReward(block.height);
+const validateReward = (block, expectedReward, exceptions) => {
+	expectedReward = new BigNum(expectedReward);
+
 	if (
 		block.height !== 1 &&
 		!expectedReward.equals(block.reward) &&
@@ -121,7 +126,7 @@ const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
 		if (transactionBytes) {
 			transactionsBytesArray.push(transactionBytes);
 		}
-		totalAmount = totalAmount.plus(transaction.amount);
+		totalAmount = totalAmount.plus(transaction.asset.amount || 0);
 		totalFee = totalFee.plus(transaction.fee);
 	});
 

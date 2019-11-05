@@ -81,7 +81,7 @@ const isLastAppliedBlockReceivedWithinForgingSlot = (
 // eslint-disable-next-line class-methods-use-this
 const isValidBlock = (lastBlock, currentBlock) =>
 	lastBlock.height + 1 === currentBlock.height &&
-	lastBlock.id === currentBlock.previousBlock;
+	lastBlock.id === currentBlock.previousBlockId;
 
 /**
  * Determine if Case 1 fulfills
@@ -106,7 +106,7 @@ const isDuplicateBlock = (lastBlock, currentBlock) =>
 	lastBlock.height === currentBlock.height &&
 	lastBlock.prevotedConfirmedUptoHeight ===
 		currentBlock.prevotedConfirmedUptoHeight &&
-	lastBlock.previousBlock === currentBlock.previousBlock;
+	lastBlock.previousBlockId === currentBlock.previousBlockId;
 
 /**
  * Determine if Case 3 fulfills
@@ -142,12 +142,16 @@ const isTieBreak = ({ slots, lastAppliedBlock, receivedBlock }) =>
  * @return {boolean}
  */
 // eslint-disable-next-line class-methods-use-this
-const isDifferentChain = (lastBlock, currentBlock) =>
-	lastBlock.prevotedConfirmedUptoHeight <
-		currentBlock.prevotedConfirmedUptoHeight ||
-	(lastBlock.height < currentBlock.height &&
-		lastBlock.prevotedConfirmedUptoHeight ===
-			currentBlock.prevotedConfirmedUptoHeight);
+const isDifferentChain = (lastBlock, currentBlock) => {
+	const prevotedConfirmedUptoHeight =
+		lastBlock.prevotedConfirmedUptoHeight || 0;
+
+	return (
+		prevotedConfirmedUptoHeight < currentBlock.prevotedConfirmedUptoHeight ||
+		(lastBlock.height < currentBlock.height &&
+			prevotedConfirmedUptoHeight === currentBlock.prevotedConfirmedUptoHeight)
+	);
+};
 
 module.exports = {
 	FORK_STATUS_IDENTICAL_BLOCK,

@@ -17,20 +17,7 @@ import { TransactionError, TransactionPendingError } from '../errors';
 import {
 	IsValidResponse,
 	IsValidResponseWithError,
-	TransactionJSON,
 } from '../transaction_types';
-import { getTransactionHash } from './get_transaction_hash';
-
-export const multiSignTransaction = (
-	transaction: TransactionJSON,
-	passphrase: string,
-): string => {
-	const { signature, signSignature, ...transactionToSign } = transaction;
-
-	const transactionHash = getTransactionHash(transactionToSign);
-
-	return cryptography.signData(transactionHash, passphrase);
-};
 
 export const validateSignature = (
 	publicKey: string,
@@ -71,8 +58,8 @@ export const checkPublicKeySignatureUniqueness = (
 	transactionBytes: Buffer,
 	id?: string,
 ): Set<string> => {
-	const checkedPublicKeys = new Set();
-	const validSignatures = new Set();
+	const checkedPublicKeys = new Set<string>();
+	const validSignatures = new Set<string>();
 	publicKeys.forEach(publicKey => {
 		signatures.forEach((signature: string) => {
 			// Avoid single key from verifying more than one signature.
@@ -157,68 +144,4 @@ export const validateMultisignatures = (
 				  )
 				: [],
 	};
-};
-
-// FIXME: Deprecated
-export const signTransaction = (
-	transaction: TransactionJSON,
-	passphrase: string,
-): string => {
-	const transactionHash = getTransactionHash(transaction);
-
-	return cryptography.signData(transactionHash, passphrase);
-};
-
-// FIXME: Deprecated
-export const secondSignTransaction = (
-	transaction: TransactionJSON,
-	secondPassphrase: string,
-): TransactionJSON => ({
-	...transaction,
-	signSignature: signTransaction(transaction, secondPassphrase),
-});
-
-// FIXME: Deprecated
-export const verifyTransaction = (
-	transaction: TransactionJSON,
-	secondPublicKey?: string,
-): boolean => {
-	if (!transaction.signature) {
-		throw new Error('Cannot verify transaction without signature.');
-	}
-	if (!!transaction.signSignature && !secondPublicKey) {
-		throw new Error('Cannot verify signSignature without secondPublicKey.');
-	}
-
-	const {
-		signature,
-		signSignature,
-		...transactionWithoutSignatures
-	} = transaction;
-	const transactionWithoutSignature = !!transaction.signSignature
-		? {
-				...transactionWithoutSignatures,
-				signature,
-		  }
-		: transactionWithoutSignatures;
-
-	const transactionHash = getTransactionHash(transactionWithoutSignature);
-
-	const publicKey =
-		!!transaction.signSignature && secondPublicKey
-			? secondPublicKey
-			: transaction.senderPublicKey;
-	const lastSignature = transaction.signSignature
-		? transaction.signSignature
-		: transaction.signature;
-
-	const verified = cryptography.verifyData(
-		transactionHash,
-		lastSignature,
-		publicKey,
-	);
-
-	return !!transaction.signSignature
-		? verified && verifyTransaction(transactionWithoutSignature)
-		: verified;
 };

@@ -18,8 +18,15 @@ const { expect } = require('chai');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-describe('exceptions for senderPublicKey transactions', () => {
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+// TODO: Delete after #4433
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('exceptions for senderPublicKey transactions', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
@@ -42,13 +49,14 @@ describe('exceptions for senderPublicKey transactions', () => {
 			'99f1d6d200ce1d45783e1e5d01f3c392d9e7cb6750226bbf3ec2956745f86543',
 		recipientPublicKey: '',
 		senderId: '12530546017554603584L',
-		recipientId: '000123L',
-		amount: '312200000',
 		fee: '10000000',
 		signature:
 			'37e06997d11a8ee98d36edc154fd1e9cca963fecedf87d6cbeee678f0bbd16f8992a3c4f0277e9c041b9fc04bb572f7188aa35670afa6ced4831ca1f561b0c09',
 		signatures: [],
-		asset: {},
+		asset: {
+			amount: '312200000',
+			recipientId: '000123L',
+		},
 	};
 
 	localCommon.beforeBlock('system_exceptions_recipientId_leading_zero', lib => {
@@ -64,6 +72,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 	describe('send funds to account', () => {
 		before(async () => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId:
 					accountWhichCreatesTransactionWithLeadingZeroRecipient.address,
 				amount: (6000000000 * 100).toString(),
@@ -127,7 +136,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 				it('should add balance to the recipient account', async () => {
 					return expect(recipientMemAccountAfter.balance).to.equal(
-						transactionWithLeadingZeroRecipientId.amount.toString(),
+						transactionWithLeadingZeroRecipientId.asset.amount.toString(),
 					);
 				});
 			});

@@ -38,6 +38,9 @@ describe('init_steps/setup_servers', () => {
 		config: {
 			coverage: false,
 			trustProxy: false,
+			apm: {
+				enable: false,
+			},
 			ssl: {
 				enabled: false,
 				options: {

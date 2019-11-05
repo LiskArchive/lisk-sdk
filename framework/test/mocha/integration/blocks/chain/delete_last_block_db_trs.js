@@ -20,6 +20,11 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('integration test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
@@ -48,6 +53,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 	beforeEach('send funds to accounts', async () => {
 		blockAccount1 = randomUtil.account();
 		fundTrsForAccount1 = transfer({
+			networkIdentifier,
 			amount: transferAmount.toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
@@ -67,7 +73,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 		describe('when popLastBlock fails', () => {
 			describe('when loadBlockSecondLastBlockStep fails', () => {
 				beforeEach(async () => {
-					block.previousBlock = null;
+					block.previousBlockId = null;
 					library.modules.blocks._lastBlock = block;
 				});
 
@@ -83,7 +89,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when dpos.undo fails', () => {
 				beforeEach(async () => {
 					sinonSandbox
-						.stub(library.modules.blocks.dposModule, 'undo')
+						.stub(library.modules.dpos, 'undo')
 						.throws(new Error('dposModule.undo err'));
 				});
 
@@ -104,7 +110,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error).to.exist;
-						expect(library.modules.blocks.dposModule.undo).to.be.calledOnce;
+						expect(library.modules.dpos.undo).to.be.calledOnce;
 					}
 				});
 
@@ -116,7 +122,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId,
+						fundTrsForAccount1.asset.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
 						transferAmount.toString(),
@@ -161,7 +167,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId,
+						fundTrsForAccount1.asset.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
 						transferAmount.toString(),
@@ -222,7 +228,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				await library.modules.processor.deleteLastBlock();
 				const account = await localCommon.getAccountFromDb(
 					library,
-					fundTrsForAccount1.recipientId,
+					fundTrsForAccount1.asset.recipientId,
 				);
 				expect(account.mem_accounts.balance).to.equal('0');
 			});

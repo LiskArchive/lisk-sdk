@@ -24,6 +24,7 @@ const accountFixtures = require('../../fixtures/accounts');
 const {
 	sortTransactions,
 } = require('../../../../src/modules/chain/transactions');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
 
 const {
 	registeredTransactions,
@@ -32,7 +33,12 @@ const {
 	TransactionInterfaceAdapter,
 } = require('../../../../src/modules/chain/interface_adapters');
 
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
 const transactionInterfaceAdapter = new TransactionInterfaceAdapter(
+	networkIdentifier,
 	registeredTransactions,
 );
 const { NORMALIZER } = global.__testContext.config;
@@ -47,6 +53,7 @@ const addTransactionsAndForge = util.promisify(
 
 function createDebitTransaction(account, amount) {
 	return transfer({
+		networkIdentifier,
 		amount: new BigNum(NORMALIZER).times(amount).toString(),
 		recipientId: random.account().address,
 		passphrase: account.passphrase,
@@ -55,6 +62,7 @@ function createDebitTransaction(account, amount) {
 
 function createCreditTransaction(account, amount) {
 	return transfer({
+		networkIdentifier,
 		amount: new BigNum(NORMALIZER).times(amount).toString(),
 		recipientId: account.address,
 		passphrase: accountFixtures.genesis.passphrase,
@@ -73,7 +81,7 @@ const EXPECT = {
 
 const formatTransaction = t => ({
 	id: t.id,
-	amount: new BigNum(t.amount).toFixed(),
+	amount: new BigNum(t.asset.amount).toFixed(),
 	senderId: t.senderId,
 	recipientId: t.recipientId,
 });
@@ -232,7 +240,7 @@ class BlocksTransactionsHelper {
 		const totalSpending = this._transactions
 			.filter(t => t.type === TYPE.SPEND)
 			.reduce((total, t) => {
-				return total.plus(t.data.amount).plus(t.data.fee);
+				return total.plus(t.data.asset.amount).plus(t.data.fee);
 			}, new BigNum(0));
 		return totalSpending.toFixed();
 	}
