@@ -28,7 +28,7 @@ const {
 	FORK_STATUS_TIE_BREAK,
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
-} = require('./fork_choice_rule');
+} = require('../bft/fork_choice_rule');
 const { baseBlockSchema } = require('./schema');
 
 module.exports = {

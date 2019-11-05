@@ -23,7 +23,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
-const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
+const forkChoiceRule = require('../../../../../../../src/modules/chain/bft/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { newBlock, getBytes } = require('./utils.js');
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');

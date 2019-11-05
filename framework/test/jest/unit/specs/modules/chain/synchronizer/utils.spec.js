@@ -18,7 +18,7 @@ const {
 	restoreBlocks,
 	restoreBlocksUponStartup,
 } = require('../../../../../../../src/modules/chain/synchronizer/utils');
-const ForkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
+const ForkChoiceRule = require('../../../../../../../src/modules/chain/bft/fork_choice_rule');
 
 describe('#synchronizer/utils', () => {
 	let blocksMock;

@@ -43,7 +43,7 @@ const {
 	calculateReward,
 	calculateMilestone,
 } = require('./block_reward');
-const forkChoiceRule = require('./fork_choice_rule');
+const forkChoiceRule = require('../bft/fork_choice_rule');
 const {
 	validateSignature,
 	validatePreviousBlockProperty,
