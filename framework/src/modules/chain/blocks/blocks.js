@@ -392,33 +392,6 @@ class Blocks extends EventEmitter {
 		return this.storage.entities.Block.get(filters, options);
 	}
 
-	// TODO: Unit tests written in mocha, which should be migrated to jest.
-	async filterReadyTransactions(transactions, context) {
-		const stateStore = new StateStore(this.storage);
-		const allowedTransactionsIds = checkAllowedTransactions(context)(
-			transactions,
-		)
-			.transactionsResponses.filter(
-				transactionResponse =>
-					transactionResponse.status === TransactionStatus.OK,
-			)
-			.map(transactionReponse => transactionReponse.id);
-
-		const allowedTransactions = transactions.filter(transaction =>
-			allowedTransactionsIds.includes(transaction.id),
-		);
-		const { transactionsResponses: responses } = await applyTransactions(
-			this.exceptions,
-		)(allowedTransactions, stateStore);
-		const readyTransactions = allowedTransactions.filter(transaction =>
-			responses
-				.filter(response => response.status === TransactionStatus.OK)
-				.map(response => response.id)
-				.includes(transaction.id),
-		);
-		return readyTransactions;
-	}
-
 	async loadBlocksFromLastBlockId(lastBlockId, limit = 1) {
 		return blocksUtils.loadBlocksFromLastBlockId(
 			this.storage,
@@ -447,6 +420,33 @@ class Blocks extends EventEmitter {
 			this.logger.error({ err: e }, errMessage);
 			throw new Error(errMessage);
 		}
+	}
+
+	// TODO: Unit tests written in mocha, which should be migrated to jest.
+	async filterReadyTransactions(transactions, context) {
+		const stateStore = new StateStore(this.storage);
+		const allowedTransactionsIds = checkAllowedTransactions(context)(
+			transactions,
+		)
+			.transactionsResponses.filter(
+				transactionResponse =>
+					transactionResponse.status === TransactionStatus.OK,
+			)
+			.map(transactionReponse => transactionReponse.id);
+
+		const allowedTransactions = transactions.filter(transaction =>
+			allowedTransactionsIds.includes(transaction.id),
+		);
+		const { transactionsResponses: responses } = await applyTransactions(
+			this.exceptions,
+		)(allowedTransactions, stateStore);
+		const readyTransactions = allowedTransactions.filter(transaction =>
+			responses
+				.filter(response => response.status === TransactionStatus.OK)
+				.map(response => response.id)
+				.includes(transaction.id),
+		);
+		return readyTransactions;
 	}
 
 	async validateTransactions(transactions) {
