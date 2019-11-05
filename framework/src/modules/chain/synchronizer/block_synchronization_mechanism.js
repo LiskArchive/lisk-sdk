@@ -372,7 +372,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 */
 	async _requestLastCommonBlock(peerId) {
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
-		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
+		const requestLimit = 3; // Maximum number of requests to be made to the remote peer
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
@@ -398,15 +398,23 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				},
 			)).map(block => block.id);
 
-			// Request the highest common block with the previously computed list
-			// to the given peer
-			const { data } = await this.channel.invoke('network:requestFromPeer', {
-				procedure: 'getHighestCommonBlock',
-				peerId,
-				data: {
-					ids: blockIds,
-				},
-			});
+			let data;
+
+			try {
+				// Request the highest common block with the previously computed list
+				// to the given peer
+				data = await this.channel.invoke('network:requestFromPeer', {
+					procedure: 'getHighestCommonBlock',
+					peerId,
+					data: {
+						ids: blockIds,
+					},
+				}).data;
+			} catch (e) {
+				numberOfRequests += 1;
+				// eslint-disable-next-line no-continue
+				continue;
+			}
 
 			if (!data) {
 				numberOfRequests += 1;

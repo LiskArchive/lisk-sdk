@@ -623,7 +623,7 @@ describe('block_synchronization_mechanism', () => {
 
 					await blockSynchronizationMechanism.run(receivedBlock);
 
-					expect(channelMock.invoke).toHaveBeenCalledTimes(10 + 2);
+					expect(channelMock.invoke).toHaveBeenCalledTimes(3 + 2);
 
 					expect(
 						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
