@@ -142,6 +142,9 @@ const defaultConfig = {
 		outboundShuffleInterval: {
 			type: 'integer',
 		},
+		advertiseAddress: {
+			type: 'boolean',
+		},
 	},
 	required: ['wsPort', 'seedPeers'],
 	default: {
@@ -165,6 +168,7 @@ const defaultConfig = {
 		maxPeerInfoSize: 20480,
 		wsMaxPayload: 3048576,
 		outboundShuffleInterval: 300000,
+		advertiseAddress: true,
 	},
 };
 

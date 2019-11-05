@@ -159,6 +159,7 @@ module.exports = class Network {
 			maxPeerInfoSize: this.options.maxPeerInfoSize,
 			wsMaxPayload: this.options.wsMaxPayload,
 			secret: this.secret,
+			advertiseAddress: this.options.advertiseAddress,
 		};
 
 		this.p2p = new P2P(p2pConfig);
