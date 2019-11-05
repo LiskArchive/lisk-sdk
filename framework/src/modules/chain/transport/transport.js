@@ -348,7 +348,7 @@ class Transport {
 	}
 
 	/**
-	 * Description of getTransactions.
+	 * Get default number of transactions or by ids.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
@@ -366,6 +366,7 @@ class Transport {
 		}
 
 		if (ids.length > this.constants.maxSharedTransactions) {
+			// TODO: apply penalty to the requester #3672
 			return {
 				success: false,
 				transactions: [],
@@ -431,7 +432,8 @@ class Transport {
 	}
 
 	/**
-	 * Description of postTransactionsAnnouncement.
+	 * Process transactions IDs announcement. First validates, filter the known transactions
+	 * and finally ask to the emitter the ones that are unknown.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
