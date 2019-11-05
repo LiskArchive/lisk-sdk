@@ -190,7 +190,6 @@ class Transport {
 	 * @property {function} getSignatures
 	 * @property {function} getTransactions
 	 * @property {function} postTransactionsAnnouncement
-	 * @property {function} checkTransactionsIDs
 	 * @todo Add description for the functions
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
@@ -445,7 +444,9 @@ class Transport {
 			throw errors;
 		}
 
-		const unknownTransactions = await this.checkTransactionsIDs(data);
+		const unknownTransactions = await this._obtainUnknownTransactionIDs(
+			data.transactions.map(transaction => transaction.id),
+		);
 		if (unknownTransactions.length > 0) {
 			const { data: result } = await this.channel.invoke(
 				'network:requestFromPeer',
@@ -462,25 +463,17 @@ class Transport {
 	}
 
 	/**
-	 * Description of checkTransactionsIDs.
+	 * It filters the known transaction IDs because they are either in the queues or exist in the database.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async checkTransactionsIDs(data) {
-		const errors = validator.validate(definitions.WSTransactionsRequest, data);
-
-		if (errors.length) {
-			this.logger.debug({ err: errors }, 'Invalid transactions body');
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-			throw errors;
-		}
-
+	async _obtainUnknownTransactionIDs(ids) {
 		// Check if any transaction is in the queues.
-		const unknownTransactionsIDs = data.transactions
-			.map(transaction => transaction.id)
-			.filter(id => !this.transactionPoolModule.transactionInPool(id));
+		const unknownTransactionsIDs = ids.filter(
+			id => !this.transactionPoolModule.transactionInPool(id),
+		);
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.

@@ -64,6 +64,8 @@ describe('transport', () => {
 	let multisignatureTransactionsList;
 	let blockMock;
 	let error;
+	let result;
+	let query = { ids: ['1', '2', '3'] };
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -170,6 +172,7 @@ describe('transport', () => {
 		};
 
 		sinonSandbox.stub(jobsQueue, 'register');
+		sinonSandbox.stub(validator, 'validate').returns(true);
 
 		transportModule = new TransportModule({
 			channel: channelStub,
@@ -293,7 +296,6 @@ describe('transport', () => {
 		describe('receiveSignature', () => {
 			beforeEach(async () => {
 				transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
-				sinonSandbox.spy(validator, 'validate');
 			});
 
 			describe('when validator.validate succeeds', () => {
@@ -554,8 +556,6 @@ describe('transport', () => {
 			});
 
 			describe('when modules.transactions.processUnconfirmedTransaction succeeds', () => {
-				let result;
-
 				beforeEach(async () => {
 					result = await transportModule._receiveTransaction(transaction);
 				});
@@ -570,6 +570,112 @@ describe('transport', () => {
 							'Received transaction',
 						),
 					).to.be.true);
+			});
+		});
+
+		describe('_obtainUnknownTransactionIDs', () => {
+			let resultTransactionsIDsCheck;
+
+			beforeEach(async () => {
+				query = {
+					transactions: transactionsList,
+				};
+			});
+
+			describe('when transaction is neither in the queues, nor in the database', () => {
+				beforeEach(async () => {
+					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
+						.stub()
+						.returns(false);
+					transportModule.storage.entities.Transaction.get = sinonSandbox
+						.stub()
+						.resolves([]);
+					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
+						query.transactions.map(_transaction => _transaction.id),
+					);
+				});
+
+				it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+					for (const transactionToCheck of transactionsList) {
+						expect(
+							transportModule.transactionPoolModule.transactionInPool,
+						).to.be.calledWith(transactionToCheck.id);
+					}
+				});
+
+				it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
+					expect(
+						transportModule.storage.entities.Transaction.get,
+					).to.be.calledWith({
+						id_in: transactionsList.map(tx => tx.id),
+					});
+				});
+
+				it('should return array of transactions ids', async () =>
+					expect(resultTransactionsIDsCheck).to.include.members([
+						transactionsList[0].id,
+						transactionsList[1].id,
+					]));
+			});
+
+			describe('when transaction is in the queues', () => {
+				beforeEach(async () => {
+					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
+						.stub()
+						.returns(true);
+					transportModule.storage.entities.Transaction.get = sinonSandbox.stub();
+					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
+						query.transactions.map(_transaction => _transaction.id),
+					);
+				});
+
+				it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+					for (const transactionToCheck of transactionsList) {
+						expect(
+							transportModule.transactionPoolModule.transactionInPool,
+						).to.be.calledWith(transactionToCheck.id);
+					}
+				});
+
+				it('should not call storage.entities.Transaction.get', async () =>
+					expect(transportModule.storage.entities.Transaction.get).to.have.not
+						.been.called);
+
+				it('should return empty array', async () =>
+					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
+			});
+
+			describe('when transaction exists in the database', () => {
+				beforeEach(async () => {
+					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
+						.stub()
+						.returns(false);
+					transportModule.storage.entities.Transaction.get = sinonSandbox
+						.stub()
+						.resolves(transactionsList);
+					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
+						query.transactions.map(_transaction => _transaction.id),
+					);
+				});
+
+				it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+					for (const transactionToCheck of transactionsList) {
+						expect(
+							transportModule.transactionPoolModule.transactionInPool,
+						).to.be.calledWith(transactionToCheck.id);
+					}
+				});
+
+				it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
+					expect(
+						transportModule.storage.entities.Transaction.get,
+					).to.be.calledWith({
+						id_in: transactionsList.map(tx => tx.id),
+					});
+				});
+
+				it('should return empty array', async () =>
+					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
 			});
 		});
 
@@ -745,9 +851,6 @@ describe('transport', () => {
 			});
 
 			describe('Transport.prototype.shared', () => {
-				let result;
-				let query = { ids: ['1', '2', '3'] };
-
 				describe('getBlocksFromId', () => {
 					describe('when query is undefined', () => {
 						it('should throw a validation error', async () => {
@@ -805,7 +908,6 @@ describe('transport', () => {
 						postBlockQuery = {
 							block: blockMock,
 						};
-						sinonSandbox.spy(validator, 'validate');
 					});
 
 					describe('when transportModule.config.broadcasts.active option is false', () => {
@@ -929,7 +1031,6 @@ describe('transport', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
 							transportModule.postSignatures(query);
-							sinonSandbox.spy(validator, 'validate');
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -960,7 +1061,7 @@ describe('transport', () => {
 						it('should call transportModule.logger.debug with "Invalid signatures body" and err as arguments', async () => {
 							validateErr = new Error('Transaction query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
-							validator.validate = sinonSandbox.stub().returns([validateErr]);
+							validator.validate.returns([validateErr]);
 
 							expect(transportModule.postSignatures(query)).to.be.rejectedWith([
 								validateErr,
@@ -1238,7 +1339,7 @@ describe('transport', () => {
 
 						it('should not call validator.validate; function should return before', async () => {
 							await transportModule.postTransactionsAnnouncement(query);
-							expect(validator.validate).to.be.called;
+							expect(validator.validate).to.be.not.called;
 						});
 					});
 
@@ -1252,20 +1353,21 @@ describe('transport', () => {
 									peerId: '127.0.0.1:5001',
 								};
 								transportModule.constants.broadcasts.active = true;
-								transportModule.checkTransactionsIDs = sinonSandbox
+								transportModule._obtainUnknownTransactionIDs = sinonSandbox
 									.stub()
 									.resolves([transaction.id]);
 								transportModule.channel.invoke = sinonSandbox
 									.stub()
 									.resolves({ data: { transactions: [transaction] } });
 								transportModule._receiveTransactions = sinonSandbox.stub();
-								validator.validate.returns(true);
 								await transportModule.postTransactionsAnnouncement(query);
 							});
 
-							it('should call transportModule.checkTransactionsIDs with query.data', async () =>
-								expect(transportModule.checkTransactionsIDs).to.be.calledWith(
-									query.data,
+							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
+								expect(
+									transportModule._obtainUnknownTransactionIDs,
+								).to.be.calledWith(
+									query.data.transactions.map(_transaction => _transaction.id),
 								));
 
 							it('should invoke network:requestFromPeer event', async () =>
@@ -1293,18 +1395,19 @@ describe('transport', () => {
 									peerId: '127.0.0.1:5001',
 								};
 								transportModule.constants.broadcasts.active = true;
-								transportModule.checkTransactionsIDs = sinonSandbox
+								transportModule._obtainUnknownTransactionIDs = sinonSandbox
 									.stub()
 									.resolves([]);
 								transportModule.channel.invoke = sinonSandbox.stub();
 								transportModule._receiveTransactions = sinonSandbox.stub();
-								validator.validate.returns(true);
 								await transportModule.postTransactionsAnnouncement(query);
 							});
 
-							it('should call transportModule.checkTransactionsIDs with query.data', async () =>
-								expect(transportModule.checkTransactionsIDs).to.be.calledWith(
-									query.data,
+							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
+								expect(
+									transportModule._obtainUnknownTransactionIDs,
+								).to.be.calledWith(
+									query.data.transactions.map(_transaction => _transaction.id),
 								));
 
 							it('should not invoke any network event', async () =>
@@ -1321,133 +1424,10 @@ describe('transport', () => {
 								'Transaction query did not match schema',
 							);
 							validateErr.code = 'INVALID_FORMAT';
-							validator.validate = sinonSandbox.stub().returns([validateErr]);
+							validator.validate.returns([validateErr]);
 
 							expect(
 								transportModule.postTransactionsAnnouncement(query),
-							).to.be.rejectedWith([validateErr]);
-						});
-					});
-				});
-
-				describe('checkTransactionsIDs', () => {
-					let resultTransactionsIDsCheck;
-
-					describe('when validator.validate succeeds', () => {
-						beforeEach(async () => {
-							query = {
-								transactions: transactionsList,
-							};
-							validator.validate.returns(true);
-						});
-
-						describe('when transaction is neither in the queues, nor in the database', () => {
-							beforeEach(async () => {
-								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
-									.stub()
-									.returns(false);
-								transportModule.storage.entities.Transaction.get = sinonSandbox
-									.stub()
-									.resolves([]);
-								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
-									query,
-								);
-							});
-
-							it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
-								for (const transactionToCheck of transactionsList) {
-									expect(
-										transportModule.transactionPoolModule.transactionInPool,
-									).to.be.calledWith(transactionToCheck.id);
-								}
-							});
-
-							it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
-								expect(
-									transportModule.storage.entities.Transaction.get,
-								).to.be.calledWith({
-									id_in: transactionsList.map(tx => tx.id),
-								});
-							});
-
-							it('should return array of transactions ids', async () =>
-								expect(resultTransactionsIDsCheck).to.include.members([
-									transactionsList[0].id,
-									transactionsList[1].id,
-								]));
-						});
-
-						describe('when transaction is in the queues', () => {
-							beforeEach(async () => {
-								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
-									.stub()
-									.returns(true);
-								transportModule.storage.entities.Transaction.get = sinonSandbox.stub();
-								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
-									query,
-								);
-							});
-
-							it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
-								for (const transactionToCheck of transactionsList) {
-									expect(
-										transportModule.transactionPoolModule.transactionInPool,
-									).to.be.calledWith(transactionToCheck.id);
-								}
-							});
-
-							it('should not call storage.entities.Transaction.get', async () =>
-								expect(transportModule.storage.entities.Transaction.get).to.have
-									.not.been.called);
-
-							it('should return empty array', async () =>
-								expect(resultTransactionsIDsCheck).to.be.an('array').empty);
-						});
-
-						describe('when transaction exists in the database', () => {
-							beforeEach(async () => {
-								transportModule.transactionPoolModule.transactionInPool = sinonSandbox
-									.stub()
-									.returns(false);
-								transportModule.storage.entities.Transaction.get = sinonSandbox
-									.stub()
-									.resolves(transactionsList);
-								resultTransactionsIDsCheck = await transportModule.checkTransactionsIDs(
-									query,
-								);
-							});
-
-							it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
-								for (const transactionToCheck of transactionsList) {
-									expect(
-										transportModule.transactionPoolModule.transactionInPool,
-									).to.be.calledWith(transactionToCheck.id);
-								}
-							});
-
-							it('should call storage.entities.Transaction.get with query.transaction.ids as arguments', async () => {
-								expect(
-									transportModule.storage.entities.Transaction.get,
-								).to.be.calledWith({
-									id_in: transactionsList.map(tx => tx.id),
-								});
-							});
-
-							it('should return empty array', async () =>
-								expect(resultTransactionsIDsCheck).to.be.an('array').empty);
-						});
-					});
-
-					describe('when validator.validate fails', () => {
-						it('should resolve with error = null and result = {success: false, message: message}', async () => {
-							const validateErr = new Error(
-								'Transaction query did not match schema',
-							);
-							validateErr.code = 'INVALID_FORMAT';
-							validator.validate = sinonSandbox.stub().returns([validateErr]);
-
-							return expect(
-								transportModule.checkTransactionsIDs(query),
 							).to.be.rejectedWith([validateErr]);
 						});
 					});
