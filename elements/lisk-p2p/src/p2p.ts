@@ -559,12 +559,18 @@ export class P2P extends EventEmitter {
 	// Make sure you always share shared peer state to a user
 	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		// Only share the shared state to the user
-		return this._peerPool.getAllConnectedPeerInfos().map(peer => ({
-			...peer.sharedState,
-			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
-			peerId: peer.peerId,
-		}));
+		return this._peerPool
+			.getAllConnectedPeerInfos()
+			.map(peer => ({
+				...peer.sharedState,
+				ipAddress: peer.ipAddress,
+				wsPort: peer.wsPort,
+				peerId: peer.peerId,
+				advertiseAddress: peer.internalState
+					? peer.internalState.advertiseAddress
+					: true,
+			}))
+			.filter(peer => peer.advertiseAddress);
 	}
 	// Make sure you always share shared peer state to a user
 	public getUniqueOutboundConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
@@ -593,12 +599,17 @@ export class P2P extends EventEmitter {
 		});
 
 		// Only share the shared state to the user
-		return disconnectedPeers.map(peer => ({
-			...peer.sharedState,
-			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
-			peerId: peer.peerId,
-		}));
+		return disconnectedPeers
+			.map(peer => ({
+				...peer.sharedState,
+				ipAddress: peer.ipAddress,
+				wsPort: peer.wsPort,
+				peerId: peer.peerId,
+				advertiseAddress: peer.internalState
+					? peer.internalState.advertiseAddress
+					: true,
+			}))
+			.filter(peer => peer.advertiseAddress);
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -900,12 +911,14 @@ export class P2P extends EventEmitter {
 			.slice(0, randomPeerCount)
 			.map(
 				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
-			);
+			)
+			.filter(peer => peer.advertiseAddress);
 
 		const peerInfoList = {
 			success: true,
 			peers: selectedPeers,
 		};
+
 		request.end(peerInfoList);
 	}
 

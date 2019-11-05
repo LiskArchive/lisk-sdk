@@ -55,6 +55,7 @@ export interface P2PInternalState {
 	readonly productivity?: number;
 	readonly reputation?: number;
 	readonly connectionKind?: ConnectionKind;
+	readonly advertiseAddress?: boolean;
 }
 
 export interface P2PPeerInfo {
@@ -77,6 +78,7 @@ export interface P2PNodeInfo extends P2PSharedState {
 	readonly os: string;
 	readonly nethash: string;
 	readonly wsPort: number;
+	readonly advertiseAddress?: boolean;
 }
 
 // This is a representation of the inbound peer object according to the current protocol.
@@ -132,6 +134,7 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
+	readonly advertiseAddress?: boolean;
 }
 
 export interface P2PPeerSelectionForSendInput {
