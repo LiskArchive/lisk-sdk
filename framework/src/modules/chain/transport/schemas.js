@@ -27,7 +27,7 @@ module.exports = {
 		},
 	},
 	blocksBroadcast: {
-		id: 'WSBlocksBroadcast',
+		id: 'blocksBroadcast',
 		type: 'object',
 		required: ['block'],
 		properties: {
@@ -109,7 +109,7 @@ module.exports = {
 		},
 	},
 	signature: {
-		id: 'Signature',
+		id: 'signature',
 		type: 'object',
 		required: ['transactionId', 'publicKey', 'signature'],
 		properties: {
@@ -141,7 +141,7 @@ module.exports = {
 		},
 	},
 	signaturesList: {
-		id: 'WSSignaturesList',
+		id: 'signaturesList',
 		type: 'object',
 		required: ['signatures'],
 		properties: {
@@ -162,7 +162,7 @@ module.exports = {
 		},
 	},
 	transactionsRequest: {
-		id: 'WSTransactionsRequest',
+		id: 'TransactionsRequest',
 		type: 'object',
 		required: ['transactions'],
 		properties: {
