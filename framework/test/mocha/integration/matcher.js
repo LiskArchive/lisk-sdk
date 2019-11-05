@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 /* eslint-disable mocha/no-pending-tests */
 const { promisify } = require('util');
 const {
@@ -131,7 +145,7 @@ async function createRawBlock(library, rawTransactions) {
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
-		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction),
+		library.modules.blocks.deserializeTransaction(rawTransaction),
 	);
 
 	const delegateKey = await new Promise((resolve, reject) => {
@@ -168,7 +182,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 		configurable: true,
 	});
 
-	scope.modules.interfaceAdapters.transactions.transactionClassMap.set(
+	scope.modules.blocks._interfaceAdapter.transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
 		CustomTransationClass,
 	);
@@ -190,7 +204,7 @@ describe('matcher', () => {
 	};
 
 	before(async () => {
-		TransferTransaction.matcher = () => false;
+		// TransferTransaction.matcher = () => false;
 
 		scope = await application.init({
 			sandbox: {
@@ -210,7 +224,7 @@ describe('matcher', () => {
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
-		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(7);
+		scope.modules.blocks._interfaceAdapter.transactionClassMap.delete(7);
 		transactionPool = scope.modules.transactionPool;
 
 		// Define matcher property to be configurable so it can be overriden in the tests
@@ -224,7 +238,7 @@ describe('matcher', () => {
 	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
-		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(
+		scope.modules.blocks._interfaceAdapter.transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE,
 		);
 

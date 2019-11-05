@@ -20,12 +20,7 @@ const accountFixtures = require('../fixtures/accounts');
 const application = require('../common/application');
 const random = require('../common/utils/random');
 const localCommon = require('./common');
-const { registeredTransactions } = require('../common/registered_transactions');
-const transactionsModule = require('../../../src/modules/chain/transactions');
-const StateStore = require('../../../src/modules/chain/state_store');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../src/modules/chain/interface_adapters');
+const { StateStore } = require('../../../src/modules/chain/blocks');
 const { getNetworkIdentifier } = require('../common/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
@@ -33,18 +28,14 @@ const networkIdentifier = getNetworkIdentifier(
 );
 
 const genesisBlock = __testContext.config.genesisBlock;
-const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(
-		networkIdentifier,
-		registeredTransactions,
-	),
-};
 const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
 const { Slots } = require('../../../src/modules/chain/dpos');
 
-describe('processTransactions', () => {
+// This is covered by the blocks module unit tests
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('processTransactions', () => {
 	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
@@ -148,7 +139,7 @@ describe('processTransactions', () => {
 					// 	options: random.application(),
 					// }),
 				].map(transaction =>
-					interfaceAdapters.transactions.fromJson(transaction),
+					library.modules.blocks.deserializeTransaction(transaction),
 				);
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
@@ -165,7 +156,7 @@ describe('processTransactions', () => {
 						passphrase: random.account().passphrase,
 					}),
 				].map(transaction =>
-					interfaceAdapters.transactions.fromJson(transaction),
+					library.modules.blocks.deserializeTransaction(transaction),
 				);
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
@@ -179,7 +170,7 @@ describe('processTransactions', () => {
 						minimum: 2,
 					}),
 				].map(transaction =>
-					interfaceAdapters.transactions.fromJson(transaction),
+					library.modules.blocks.deserializeTransaction(transaction),
 				);
 			});
 
@@ -307,7 +298,7 @@ describe('processTransactions', () => {
 
 					const { transactionsResponses } = await undoTransactions(
 						[
-							interfaceAdapters.transactions.fromJson(
+							library.modules.blocks.deserializeTransaction(
 								liskTransactions.transfer({
 									networkIdentifier,
 									amount: (NORMALIZER * 1000).toString(),
