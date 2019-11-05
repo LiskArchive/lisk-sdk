@@ -94,7 +94,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onSignature(signature, broadcast) {
+	handleBroadcastSignature(signature, broadcast) {
 		if (broadcast) {
 			this.broadcaster.enqueue(
 				{},
@@ -118,7 +118,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onUnconfirmedTransaction(transaction, broadcast) {
+	handleBroadcastTransaction(transaction, broadcast) {
 		if (broadcast) {
 			const transactionJSON = transaction.toJSON();
 			this.broadcaster.enqueue(
@@ -143,7 +143,7 @@ class Transport {
 	 */
 	// TODO: Remove after block module becomes event-emitter
 	// eslint-disable-next-line class-methods-use-this
-	onBroadcastBlock(block, broadcast) {
+	handleBroadcastBlock(block, broadcast) {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
@@ -202,7 +202,7 @@ class Transport {
 	 * @param {string} payload.blockId - The ID of the starting block
 	 * @return {Promise<Array<object>>}
 	 */
-	async getBlocksFromId(payload) {
+	async handleRPCGetBlocksFromId(payload) {
 		validator.validate(definitions.getBlocksFromIdRequest, payload);
 
 		if (validator.validator.errors) {
@@ -226,7 +226,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}, peerId) {
+	async handleEventPostBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -268,7 +268,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignature(query) {
+	async handleEventPostSignature(query) {
 		const errors = validator.validate(definitions.Signature, query.signature);
 
 		if (errors.length) {
@@ -301,7 +301,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignatures(query) {
+	async handleEventPostSignatures(query) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving signatures disabled by user through config.json',
@@ -326,7 +326,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getSignatures() {
+	async handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
 			this.constants.maxSharedTransactions,
@@ -354,7 +354,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions() {
+	async handleRPCGetTransactions() {
 		const transactions = this.transactionPoolModule.getMergedTransactionList(
 			true,
 			this.constants.maxSharedTransactions,
@@ -373,7 +373,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransaction(query) {
+	async handleEventPostTransaction(query) {
 		try {
 			const id = await this._receiveTransaction(query.transaction);
 			return {
@@ -396,7 +396,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransactions(query) {
+	async handleEventPostTransactions(query) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',

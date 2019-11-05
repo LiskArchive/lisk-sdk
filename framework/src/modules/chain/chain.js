@@ -244,15 +244,15 @@ module.exports = class Chain {
 					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactions') {
-								await this.transport.postTransactions(data);
+								await this.transport.handleEventPostTransactions(data);
 								return;
 							}
 							if (event === 'postSignatures') {
-								await this.transport.postSignatures(data);
+								await this.transport.handleEventPostSignatures(data);
 								return;
 							}
 							if (event === 'postBlock') {
-								await this.transport.postBlock(data, peerId);
+								await this.transport.handleEventPostBlock(data, peerId);
 								return;
 							}
 						} catch (err) {
@@ -295,16 +295,16 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging,
 				),
-			getTransactions: async () => this.transport.getTransactions(),
-			getSignatures: async () => this.transport.getSignatures(),
+			getTransactions: async () => this.transport.handleRPCGetTransactions(),
+			getSignatures: async () => this.transport.handleRPCGetSignatures(),
 			postSignature: async action =>
-				this.transport.postSignature(action.params),
+				this.transport.handleEventPostSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
 				this.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
-				this.transport.postTransaction(action.params),
+				this.transport.handleEventPostTransaction(action.params),
 			getSlotNumber: async action =>
 				action.params
 					? this.slots.getSlotNumber(action.params.epochTime)
@@ -325,7 +325,7 @@ module.exports = class Chain {
 				totalFee: this.blocks.lastBlock.totalFee.toString(),
 			}),
 			getBlocksFromId: async action =>
-				this.transport.getBlocksFromId(action.params || {}),
+				this.transport.handleRPCGetBlocksFromId(action.params || {}),
 			getHighestCommonBlock: async action => {
 				const valid = validator.validate(
 					definitions.getHighestCommonBlockRequest,
@@ -606,7 +606,7 @@ module.exports = class Chain {
 		this.channel.subscribe(
 			'chain:processor:broadcast',
 			({ data: { block } }) => {
-				this.transport.onBroadcastBlock(block, true);
+				this.transport.handleBroadcastBlock(block, true);
 			},
 		);
 
@@ -677,7 +677,7 @@ module.exports = class Chain {
 				{ transactionId: transaction.id },
 				'Received EVENT_UNCONFIRMED_TRANSACTION',
 			);
-			this.transport.onUnconfirmedTransaction(transaction, true);
+			this.transport.handleBroadcastTransaction(transaction, true);
 		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
@@ -689,7 +689,7 @@ module.exports = class Chain {
 				{ signature },
 				'Received EVENT_MULTISIGNATURE_SIGNATURE',
 			);
-			this.transport.onSignature(signature, true);
+			this.transport.handleBroadcastSignature(signature, true);
 		});
 	}
 
