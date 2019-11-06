@@ -656,20 +656,68 @@ describe('blocks/header', () => {
 	});
 
 	describe('#apply', () => {
-		describe('when block does not contain transactions', () => {});
-		describe('when transaction is inert', () => {});
-		describe('when transaction is not applicable', () => {});
-		describe('when transactions are all valid', () => {});
+		describe('when block does not contain transactions', () => {
+			it('should not call account update', async () => {});
+
+			it('should set the block to the last block', async () => {});
+		});
+
+		describe('when transaction is inert', () => {
+			it('should not call apply for the transaction', async () => {});
+
+			it('should set the block to the last block', async () => {});
+		});
+
+		describe('when transaction is not applicable', () => {
+			it('should throw error', async () => {});
+
+			it('should not set the block to the last block', async () => {});
+		});
+
+		describe('when transactions are all valid', () => {
+			it('should call apply for the transaction', async () => {});
+
+			it('should call account update', async () => {});
+
+			it('should set the block to the last block', async () => {});
+		});
 	});
 
 	describe('#applyGenesis', () => {
-		describe('when transaction fails to be applied', () => {});
-		describe('when transactions are all valid', () => {});
+		describe('when transaction fails to be applied', () => {
+			it('should throw error', async () => {});
+
+			it('should not set the block to the last block', async () => {});
+		});
+
+		describe('when transactions are all valid', () => {
+			it('should call apply for the transaction', async () => {});
+
+			it('should call account update', async () => {});
+
+			it('should set the block to the last block', async () => {});
+		});
 	});
 
 	describe('#undo', () => {
-		describe('when block does not contain transactions', () => {});
-		describe('when transaction is inert', () => {});
-		describe('when transactions are all valid', () => {});
+		describe('when block does not contain transactions', () => {
+			it('should not call account update', async () => {});
+
+			it('should set the second last block to the last block', async () => {});
+		});
+
+		describe('when transaction is inert', () => {
+			it('should not call undo for the transaction', async () => {});
+
+			it('should set the second last block to the last block', async () => {});
+		});
+
+		describe('when transactions are all valid', () => {
+			it('should call undo for the transaction', async () => {});
+
+			it('should call account update', async () => {});
+
+			it('should set second last block to the last block', async () => {});
+		});
 	});
 });
