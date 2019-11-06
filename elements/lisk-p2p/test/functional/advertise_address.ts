@@ -62,12 +62,12 @@ describe('Advertise Address', () => {
 		const advertisePeerPort = 5998;
 		const p2pNode = new P2P(p2pConfig(advertisePeerPort));
 		await p2pNode.start();
-		await wait(100);
+		await wait(400);
 
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
-				.filter(p => p.wsPort === p2pNode.nodeInfo.wsPort);
+				.filter(p => p.wsPort === advertisePeerPort);
 
 			expect(connectedPeers[0].wsPort).to.be.eql(advertisePeerPort);
 		}
@@ -75,17 +75,18 @@ describe('Advertise Address', () => {
 	});
 
 	it('should not advertise address in network when disabled', async () => {
+		const advertisePeerPort = 5999;
 		const p2pNode = new P2P(p2pConfig(5999, false));
 		await p2pNode.start();
-		await wait(100);
+		await wait(400);
 
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
-				.filter(p => p.wsPort === p2pNode.nodeInfo.wsPort);
+				.filter(p => p.wsPort === advertisePeerPort);
 			const disConnectedPeers = p2p
 				.getDisconnectedPeers()
-				.filter(p => p.wsPort === p2pNode.nodeInfo.wsPort);
+				.filter(p => p.wsPort === advertisePeerPort);
 			expect(connectedPeers).to.be.empty;
 			expect(disConnectedPeers).to.be.empty;
 		}
