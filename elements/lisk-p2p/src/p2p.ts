@@ -185,11 +185,11 @@ const createPeerPoolConfig = (
 });
 
 const filterAdvertiseAddressPeer = (peer: P2PPeerInfo) => {
-	if (peer.internalState && peer.internalState.advertiseAddress === false) {
-		return true;
+	if (peer.internalState && !peer.internalState.advertiseAddress) {
+		return false;
 	}
 
-	return false;
+	return true;
 };
 
 export class P2P extends EventEmitter {

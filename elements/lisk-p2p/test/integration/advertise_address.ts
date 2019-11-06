@@ -50,7 +50,7 @@ describe('Advertise Address', () => {
 			populatorInterval: POPULATOR_INTERVAL,
 		});
 
-		p2pNodeList = await createNetwork({ customConfig });
+		p2pNodeList = await createNetwork({ networkSize: 4, customConfig });
 	});
 
 	afterEach(async () => {
