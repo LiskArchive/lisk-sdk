@@ -42,7 +42,7 @@ const p2pConfig = (wsPort: number, advertiseAddress: boolean = true) => ({
 	},
 });
 
-describe.only('Advertise Address', () => {
+describe('Advertise Address', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
