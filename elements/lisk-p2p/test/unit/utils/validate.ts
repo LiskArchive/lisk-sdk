@@ -17,6 +17,7 @@ import {
 	validatePeerAddress,
 	validatePeerInfo,
 	validateRPCRequest,
+	validatePeerInfoSchema,
 	validateProtocolMessage,
 } from '../../../src/utils';
 import {
@@ -281,6 +282,99 @@ describe('utils/validate', () => {
 			expect(returnedValidatedMessage)
 				.to.be.an('object')
 				.has.property('data').to.be.string;
+		});
+	});
+
+	describe('#validatePeerInfoSchema', () => {
+		let peerInfo: ProtocolPeerInfo;
+		beforeEach(() => {
+			peerInfo = {
+				ip: '12.23.54.3',
+				ipAddress: '12.23.54.3',
+				wsPort: 5393,
+				os: 'darwin',
+				height: 23232,
+				version: '1.1.2',
+				protocolVersion: '1.1',
+				httpPort: 2000,
+			};
+		});
+
+		it('should throw invalid peer object error if peer info is undefined', () => {
+			return expect(validatePeerInfoSchema.bind(undefined)).to.throw();
+		});
+
+		it('should throw invalid peer error if peer info wsPort is undefined', () => {
+			return expect(
+				validatePeerInfoSchema.bind({ ...peerInfo, wsPort: undefined }),
+			).to.throw();
+		});
+
+		it('should throw invalid peer error if peer info ipAddress is undefined', () => {
+			return expect(
+				validatePeerInfoSchema.bind({ ...peerInfo, ipAddress: undefined }),
+			).to.throw();
+		});
+
+		it('should throw invalid peer error if peer info has invalid protocol version', () => {
+			return expect(
+				validatePeerInfoSchema.bind({
+					...peerInfo,
+					protocolVersion: undefined,
+				}),
+			).to.throw();
+		});
+
+		it('should return peer info for a valid protocol peer info', () => {
+			return expect(validatePeerInfoSchema(peerInfo)).to.be.eql({
+				peerId: '12.23.54.3:5393',
+				ipAddress: '12.23.54.3',
+				wsPort: 5393,
+				sharedState: {
+					version: '1.1.2',
+					protocolVersion: '1.1',
+					os: 'darwin',
+					height: 23232,
+					httpPort: 2000,
+				},
+				internalState: { advertiseAddress: true },
+			});
+		});
+
+		describe('advertiseAddress', () => {
+			it('should return advertiseAddress true when peer info does not contain it', () => {
+				return expect(validatePeerInfoSchema(peerInfo)).to.be.eql({
+					peerId: '12.23.54.3:5393',
+					ipAddress: '12.23.54.3',
+					wsPort: 5393,
+					sharedState: {
+						version: '1.1.2',
+						protocolVersion: '1.1',
+						os: 'darwin',
+						height: 23232,
+						httpPort: 2000,
+					},
+					internalState: { advertiseAddress: true },
+				});
+			});
+
+			it('should return advertiseAddress false when peer info sets it to false', () => {
+				return expect(
+					validatePeerInfoSchema({ ...peerInfo, advertiseAddress: false }),
+				).to.be.eql({
+					peerId: '12.23.54.3:5393',
+					ipAddress: '12.23.54.3',
+					wsPort: 5393,
+					sharedState: {
+						version: '1.1.2',
+						protocolVersion: '1.1',
+						os: 'darwin',
+						height: 23232,
+						httpPort: 2000,
+					},
+					internalState: { advertiseAddress: false },
+				});
+			});
 		});
 	});
 });
