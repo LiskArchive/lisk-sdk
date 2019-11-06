@@ -70,6 +70,7 @@ describe('P2P.applyNodeInfo', () => {
 				wsPort: firstP2PNode.nodeInfo.wsPort,
 				options: firstP2PNode.nodeInfo.options,
 				junk: '1.'.repeat(13000),
+				nonce: 'nonce',
 			}),
 		).to.throw(
 			InvalidNodeInfoError,

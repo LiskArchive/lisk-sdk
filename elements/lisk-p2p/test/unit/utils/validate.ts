@@ -158,6 +158,7 @@ describe('utils/validate', () => {
 					foo: 'bar',
 					fizz: 'buzz',
 				},
+				nonce: 'nonce678',
 			};
 
 			it('should return NodeInfo', async () => {
@@ -166,6 +167,7 @@ describe('utils/validate', () => {
 					.eql({
 						os: '12.23.54.3',
 						nethash: '12.23.54.3',
+						nonce: 'nonce678',
 						wsPort: 5393,
 						version: '1.1.2',
 						protocolVersion: '1.1',
@@ -187,6 +189,7 @@ describe('utils/validate', () => {
 					foo: 'bar',
 					fizz: 'buzz',
 				},
+				nonce: 'nonce678',
 			};
 
 			it('should throw Invalid NodeInfo version error', async () => {
@@ -209,6 +212,7 @@ describe('utils/validate', () => {
 					foo: 'bar',
 					fizz: 'buzz',
 				},
+				nonce: 'nonce678',
 			};
 
 			it('should throw Invalid NodeInfo maximum allowed size error', async () => {

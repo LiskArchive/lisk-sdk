@@ -41,7 +41,8 @@ describe('Penalty sending malformed peerInfo', () => {
 			protocolVersion: '1.1',
 			wsPort: p2pNodeList[0].nodeInfo.wsPort,
 			height: 10,
-			junk: '1.'.repeat(13000),
+			nonce: 'nonce',
+			invalidData: '1.'.repeat(13000),
 			options: p2pNodeList[0].nodeInfo.options,
 		});
 
