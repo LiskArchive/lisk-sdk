@@ -103,11 +103,6 @@ describe('transactionPool', () => {
 		it('should create pool instance', async () => {
 			expect(transactionPool.pool).to.be.an.instanceOf(pool.TransactionPool);
 		});
-
-		it('should call composeTransactionSteps to compose verifyTransactions', async () => {
-			expect(transactionsModule.composeTransactionSteps).to.have.been
-				.calledTwice;
-		});
 	});
 
 	describe('transactionInPool', () => {
@@ -479,6 +474,7 @@ describe('transactionPool', () => {
 					errors: [],
 				},
 			];
+			sinonSandbox.stub(transactionPool, 'verifyTransactions');
 			transactionPool.verifyTransactions.returns({ transactionsResponses });
 		});
 
