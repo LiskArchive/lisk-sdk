@@ -14,11 +14,7 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
-import {
-	createNetwork,
-	NETWORK_START_PORT,
-	destroyNetwork,
-} from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('P2P.requestFromPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -28,12 +24,16 @@ describe('P2P.requestFromPeer', () => {
 		p2pNodeList = await createNetwork();
 
 		collectedMessages = [];
+
 		for (let p2p of p2pNodeList) {
 			p2p.on('requestReceived', request => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					request,
-				});
+				if (request.procedure === 'foo') {
+					collectedMessages.push({
+						nodePort: p2p.nodeInfo.wsPort,
+						request,
+					});
+				}
+
 				if (request.procedure === 'getGreeting') {
 					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`);
 				} else {
@@ -52,38 +52,38 @@ describe('P2P.requestFromPeer', () => {
 	it('should send request to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
-		const targetPeerPort = NETWORK_START_PORT + 4;
-		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+		const targetPeer = firstP2PNode.getConnectedPeers()[1];
 
 		await firstP2PNode.requestFromPeer(
 			{
-				procedure: 'proc',
+				procedure: 'foo',
 				data: 123456,
 			},
-			targetPeerId,
+			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
 
 		expect(collectedMessages.length).to.equal(1);
 		expect(collectedMessages[0]).to.have.property('request');
-		expect(collectedMessages[0].request.procedure).to.equal('proc');
+		expect(collectedMessages[0].request.procedure).to.equal('foo');
 		expect(collectedMessages[0].request.data).to.equal(123456);
 	});
 
 	it('should receive response from a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
-		const targetPeerPort = NETWORK_START_PORT + 2;
-		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+		const targetPeer = firstP2PNode.getConnectedPeers()[1];
 
 		const response = await firstP2PNode.requestFromPeer(
 			{
 				procedure: 'getGreeting',
 				data: 'world',
 			},
-			targetPeerId,
+			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
 
 		expect(response).to.have.property('data');
-		expect(response.data).to.equal(`Hello world from peer ${targetPeerPort}`);
+		expect(response.data).to.equal(
+			`Hello world from peer ${targetPeer.wsPort}`,
+		);
 	});
 });

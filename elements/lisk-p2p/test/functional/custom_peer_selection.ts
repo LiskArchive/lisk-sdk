@@ -25,12 +25,7 @@ import {
 } from '../../src/p2p_types';
 import { ConnectionKind } from '../../src/constants';
 
-import {
-	POPULATOR_INTERVAL,
-	createNetwork,
-	SEED_PEER_IP,
-	destroyNetwork,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -108,31 +103,13 @@ describe('Custom peer selection', () => {
 			height: 1000 + index,
 		});
 
-		const customSeedPeers = (
-			index: number,
-			startPort: number,
-			networkSize: number,
-		) =>
-			[...new Array(networkSize / 2).keys()]
-				.map(index => ({
-					ipAddress: SEED_PEER_IP,
-					wsPort: startPort + ((index + 2) % networkSize),
-				}))
-				.filter(seedPeer => seedPeer.wsPort !== startPort + index);
-
-		const customConfig = (
-			index: number,
-			startPort: number,
-			networkSize: number,
-		) => ({
+		const customConfig = (index: number) => ({
 			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 			peerSelectionForConnection,
-			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: 5,
 			maxInboundConnections: 5,
 			nodeInfo: customNodeInfo(index),
-			seedPeers: customSeedPeers(index, startPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({

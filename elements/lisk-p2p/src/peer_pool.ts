@@ -23,6 +23,7 @@ import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
 import {
 	ConnectionKind,
+	DEFAULT_LOCALHOST_IP,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
 } from './constants';
@@ -70,7 +71,6 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
-import { getUniquePeersbyIp } from './utils';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -306,7 +306,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const outboundPeerInfos = this.getUniqueOutboundConnectedPeers();
+		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
 			peers: outboundPeerInfos,
@@ -400,18 +400,10 @@ export class PeerPool extends EventEmitter {
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
-			newPeer =>
-				!this._peerMap.has(newPeer.peerId) ||
-				!fixedPeers
-					.map(fixedPeer => fixedPeer.ipAddress)
-					.includes(newPeer.ipAddress),
+			newPeer => !this._peerMap.has(newPeer.peerId),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
-			triedPeer =>
-				!this._peerMap.has(triedPeer.peerId) ||
-				!fixedPeers
-					.map(fixedPeer => fixedPeer.ipAddress)
-					.includes(triedPeer.ipAddress),
+			triedPeer => !this._peerMap.has(triedPeer.peerId),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
@@ -434,13 +426,7 @@ export class PeerPool extends EventEmitter {
 		});
 
 		[...peersToConnect, ...disconnectedFixedPeers].forEach(
-			(peerInfo: P2PPeerInfo) => {
-				const existingPeer = this.getPeer(peerInfo.peerId);
-
-				return existingPeer
-					? existingPeer
-					: this.addOutboundPeer(peerInfo.peerId, peerInfo);
-			},
+			(peerInfo: P2PPeerInfo) => this._addOutboundPeer(peerInfo),
 		);
 	}
 
@@ -467,10 +453,19 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public addOutboundPeer(peerId: string, peerInfo: P2PPeerInfo): Peer {
-		const existingPeer = this.getPeer(peerId);
-		if (existingPeer) {
-			return existingPeer;
+	private _addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
+		if (this.hasPeer(peerInfo.peerId)) {
+			return false;
+		}
+
+		// Check if we got already Outbound connection into the IP address of the Peer
+		const outboundConnectedPeer = this.getPeers(OutboundPeer).find(
+			p =>
+				p.ipAddress === peerInfo.ipAddress &&
+				p.ipAddress !== DEFAULT_LOCALHOST_IP,
+		);
+		if (outboundConnectedPeer) {
+			return false;
 		}
 
 		const peer = new OutboundPeer(peerInfo, { ...this._peerConfig });
@@ -481,7 +476,7 @@ export class PeerPool extends EventEmitter {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 
-		return peer;
+		return true;
 	}
 
 	public getPeersCountPerKind(): P2PPeersCount {
@@ -528,10 +523,6 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return peers;
-	}
-
-	public getUniqueOutboundConnectedPeers(): ReadonlyArray<P2PPeerInfo> {
-		return getUniquePeersbyIp(this.getAllConnectedPeerInfos(OutboundPeer));
 	}
 
 	public getAllConnectedPeerInfos(

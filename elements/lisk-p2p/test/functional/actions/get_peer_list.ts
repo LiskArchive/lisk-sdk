@@ -14,7 +14,6 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
-import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
@@ -31,11 +30,7 @@ describe('PeerPool actions', () => {
 		].map(index => NETWORK_START_PORT + index);
 
 		beforeEach(async () => {
-			p2pNodeList = await createNetwork({
-				networkDiscoveryWaitTime: 1,
-			});
-
-			await wait(1000);
+			p2pNodeList = await createNetwork();
 		});
 
 		afterEach(async () => {
@@ -44,7 +39,6 @@ describe('PeerPool actions', () => {
 
 		it('should discover all peers and add them to the connectedPeers list within each node', async () => {
 			const firstNode = p2pNodeList[0];
-
 			const peerPorts = firstNode
 				.getConnectedPeers()
 				.map(peerInfo => peerInfo.wsPort)
@@ -56,35 +50,6 @@ describe('PeerPool actions', () => {
 			});
 
 			expect(peerPorts).to.be.eql(expectedPeerPorts);
-		});
-	});
-
-	describe('getUniqueOutboundConnectedPeers', () => {
-		beforeEach(async () => {
-			p2pNodeList = await createNetwork({
-				networkSize: 3,
-				networkDiscoveryWaitTime: 1,
-			});
-
-			await wait(1000);
-		});
-
-		afterEach(async () => {
-			await destroyNetwork(p2pNodeList);
-		});
-
-		it('should discover all peers from unique IP address and give them back', async () => {
-			const secondNode = p2pNodeList[1];
-
-			const UniqueOutboundPeersIpAddress = secondNode
-				.getUniqueOutboundConnectedPeers()
-				.map(peer => peer.ipAddress);
-
-			expect(UniqueOutboundPeersIpAddress).to.have.members(['127.0.0.1']);
-		});
-
-		afterEach(async () => {
-			await destroyNetwork(p2pNodeList);
 		});
 	});
 

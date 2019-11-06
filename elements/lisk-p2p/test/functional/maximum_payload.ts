@@ -15,7 +15,11 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	NETWORK_START_PORT,
+} from '../utils/network_setup';
 
 // TODO: Skipping this test as its fragile, need to revisit
 describe.skip('Maximum payload', () => {
@@ -86,13 +90,13 @@ describe.skip('Maximum payload', () => {
 			data: dataLargerThanMaxPayload,
 		});
 
-		await wait(300);
+		await wait(100);
 
 		const disconnectMaxPayload = disconnectReasons.filter(
 			packet =>
 				packet.reason === 'Message was too big to process' &&
 				packet.code === 1009 &&
-				packet.peerPort === 5000,
+				packet.peerPort === NETWORK_START_PORT,
 		);
 
 		expect(disconnectMaxPayload).length.gt(0);
