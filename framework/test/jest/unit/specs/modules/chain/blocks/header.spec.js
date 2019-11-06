@@ -14,21 +14,421 @@
 
 'use strict';
 
-const { when } = require('jest-when');
+// const { when } = require('jest-when');
+const BigNum = require('@liskhq/bignum');
+const { transfer } = require('@liskhq/lisk-transactions');
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
+const { newBlock, getBytes } = require('./utils.js');
+const { Slots } = require('../../../../../../../src/modules/chain/dpos');
+const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
+const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
+const { genesisAccount } = require('./default_account');
+const {
+	registeredTransactions,
+} = require('../../../../../utils/registered_transactions');
+
+jest.mock('events');
 
 describe('blocks/header', () => {
+	const constants = {
+		blockReceiptTimeout: 20,
+		loadPerIteration: 1000,
+		maxPayloadLength: 1024 * 1024,
+		maxTransactionsPerBlock: 25,
+		activeDelegates: 101,
+		rewardDistance: 3000000,
+		rewardOffset: 2160,
+		rewardMileStones: [
+			'500000000', // Initial Reward
+			'400000000', // Milestone 1
+			'300000000', // Milestone 2
+			'200000000', // Milestone 3
+			'100000000', // Milestone 4
+		],
+		totalAmount: '10000000000000000',
+		blockSlotWindow: 5,
+		blockTime: 10,
+		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
+	};
+	const defaultReward = 0;
+	const networkIdentifier = getNetworkIdentifier(
+		genesisBlock.payloadHash,
+		genesisBlock.communityIdentifier,
+	);
+
+	let exceptions = {};
+	let blocksInstance;
+	let storageStub;
+	let loggerStub;
+	let txStub;
+	let slots;
+	let block;
+	let blockBytes;
+
+	beforeEach(async () => {
+		storageStub = {
+			entities: {
+				Account: {
+					get: jest.fn(),
+					update: jest.fn(),
+				},
+				Block: {
+					begin: jest.fn(),
+					create: jest.fn(),
+					count: jest.fn(),
+					getOne: jest.fn(),
+					delete: jest.fn(),
+					get: jest.fn(),
+					isPersisted: jest.fn(),
+				},
+				Transaction: {
+					get: jest.fn(),
+					create: jest.fn(),
+				},
+				TempBlock: {
+					create: jest.fn(),
+					delete: jest.fn(),
+					get: jest.fn(),
+				},
+			},
+		};
+		loggerStub = {
+			debug: jest.fn(),
+			log: jest.fn(),
+			error: jest.fn(),
+		};
+		slots = new Slots({
+			epochTime: constants.epochTime,
+			interval: constants.blockTime,
+			blocksPerRound: constants.activeDelegates,
+		});
+		exceptions = {
+			transactions: [],
+		};
+		txStub = {
+			batch: jest.fn(),
+		};
+
+		blocksInstance = new Blocks({
+			storage: storageStub,
+			logger: loggerStub,
+			genesisBlock,
+			networkIdentifier,
+			registeredTransactions,
+			slots,
+			exceptions,
+			...constants,
+		});
+		blocksInstance._lastBlock = {
+			...genesisBlock,
+			receivedAt: new Date(),
+		};
+		block = newBlock();
+		blockBytes = getBytes(block);
+	});
+
 	describe('#validateBlockHeader', () => {
-		describe('when previous block property is invalid', () => {});
-		describe('when signature is invalid', () => {});
-		describe('when a transaction included is invalid', () => {});
-		describe('when payload exceeds maximum', () => {});
-		describe('when payload length is incorrect', () => {});
-		describe('when payload hash is incorrect', () => {});
+		describe('when previous block property is invalid', () => {
+			it('should throw error', async () => {
+				// Arrange
+				block = newBlock({ previousBlockId: undefined, height: 3 });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (error) {
+					expect(error.message).toContain('Invalid previous block');
+				}
+			});
+		});
+		describe('when signature is invalid', () => {
+			it('should throw error', async () => {
+				// Arrange
+				block = newBlock({ blockSignature: 'aaaa' });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (error) {
+					expect(error.message).toContain('Invalid block signature');
+				}
+			});
+		});
+
+		describe('when reward is invalid', () => {
+			it('should throw error', async () => {
+				// Arrange
+				block = newBlock();
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(block, blockBytes, 5);
+				} catch (error) {
+					expect(error.message).toContain('Invalid block reward');
+				}
+			});
+		});
+
+		describe('when a transaction included is invalid', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const invalidTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				invalidTx._signature = '1234567890';
+				block = newBlock({ transactions: [invalidTx] });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (errors) {
+					expect(errors).toHaveLength(1);
+				}
+			});
+		});
+
+		describe('when payload exceeds maximum', () => {
+			it('should throw error', async () => {
+				// Arrange
+				blocksInstance.constants.maxPayloadLength = 100;
+				const txs = new Array(200).fill(0).map((_, v) =>
+					blocksInstance.deserializeTransaction(
+						transfer({
+							passphrase: genesisAccount.passphrase,
+							recipientId: `${v + 1}L`,
+							amount: '100',
+							networkIdentifier,
+						}),
+					),
+				);
+				block = newBlock({ transactions: txs });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (error) {
+					expect(error.message).toContain('Payload length is too long');
+				}
+			});
+		});
+
+		describe('when payload exceeds maximum', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const txs = new Array(30).fill(0).map((_, v) =>
+					blocksInstance.deserializeTransaction(
+						transfer({
+							passphrase: genesisAccount.passphrase,
+							recipientId: `${v + 1}L`,
+							amount: '100',
+							networkIdentifier,
+						}),
+					),
+				);
+				block = newBlock({ transactions: txs });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (error) {
+					expect(error.message).toContain(
+						'Number of transactions exceeds maximum per block',
+					);
+				}
+			});
+		});
+
+		describe('when numberOfTransactions is incorrect', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const txs = new Array(20).fill(0).map((_, v) =>
+					blocksInstance.deserializeTransaction(
+						transfer({
+							passphrase: genesisAccount.passphrase,
+							recipientId: `${v + 1}L`,
+							amount: '100',
+							networkIdentifier,
+						}),
+					),
+				);
+				block = newBlock({ transactions: txs, numberOfTransactions: 10 });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (error) {
+					expect(error.message).toContain(
+						'Included transactions do not match block transactions count',
+					);
+				}
+			});
+		});
+
+		describe('when payload hash is incorrect', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const txs = new Array(20).fill(0).map((_, v) =>
+					blocksInstance.deserializeTransaction(
+						transfer({
+							passphrase: genesisAccount.passphrase,
+							recipientId: `${v + 1}L`,
+							amount: '100',
+							networkIdentifier,
+						}),
+					),
+				);
+				block = newBlock({ transactions: txs, payloadHash: '1234567890' });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (error) {
+					expect(error.message).toContain('Invalid payload hash');
+				}
+			});
+		});
+
+		describe('when all the value is valid', () => {
+			it('should not throw error', async () => {
+				// Arrange
+				const txs = new Array(20).fill(0).map((_, v) =>
+					blocksInstance.deserializeTransaction(
+						transfer({
+							passphrase: genesisAccount.passphrase,
+							recipientId: `${v + 1}L`,
+							amount: '100',
+							networkIdentifier,
+						}),
+					),
+				);
+				block = newBlock({ transactions: txs });
+				blockBytes = getBytes(block);
+				// Act & assert
+				let err;
+				try {
+					await blocksInstance.validateBlockHeader(
+						block,
+						blockBytes,
+						defaultReward,
+					);
+				} catch (error) {
+					err = error;
+				}
+				expect(err).toBeUndefined();
+			});
+		});
 	});
 
 	describe('#verifyInMemory', () => {
-		describe('when previous block id is invalid', () => {});
-		describe('when previous block slot is invalid', () => {});
+		describe('when previous block id is invalid', () => {
+			it('should not throw error', async () => {
+				// Arrange
+				block = newBlock({ previousBlockId: '123' });
+				blockBytes = getBytes(block);
+				// Act & assert
+				expect.assertions(1);
+				try {
+					await blocksInstance.verifyInMemory(block, blocksInstance.lastBlock);
+				} catch (error) {
+					expect(error.message).toContain('Invalid previous block');
+				}
+			});
+		});
+
+		describe('when block slot is invalid', () => {
+			it('should throw when block timestamp is in the future', async () => {
+				// Arrange
+				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
+				block = newBlock({ timestamp: futureTimestamp });
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.verifyInMemory(block, genesisBlock),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+
+			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
+				// Arrange
+				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
+				block = newBlock({ timestamp: futureTimestamp });
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.verifyInMemory(block, genesisBlock),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+
+			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
+				// Arrange
+				const lastBlock = newBlock({});
+				block = newBlock({
+					previousBlockId: lastBlock.id,
+					height: lastBlock.height + 1,
+				});
+				expect.assertions(1);
+				// Act & Assert
+				await expect(
+					blocksInstance.verifyInMemory(block, lastBlock),
+				).rejects.toThrow('Invalid block timestamp');
+			});
+		});
+
+		describe('when all values are valid', () => {
+			it('should not throw error', async () => {
+				// Arrange
+				block = newBlock();
+				blockBytes = getBytes(block);
+				// Act & assert
+				let err;
+				try {
+					await blocksInstance.verifyInMemory(block, blocksInstance.lastBlock);
+				} catch (error) {
+					err = error;
+				}
+				expect(err).toBeUndefined();
+			});
+		});
 	});
 
 	describe('#verify', () => {
@@ -56,15 +456,5 @@ describe('blocks/header', () => {
 		describe('when block does not contain transactions', () => {});
 		describe('when transaction is inert', () => {});
 		describe('when transactions are all valid', () => {});
-	});
-
-	describe('#save', () => {
-		describe('when block does not contain transactions', () => {});
-		describe('when block contains transactions', () => {});
-	});
-
-	describe('#remove', () => {
-		describe('when saveTempBlock is false', () => {});
-		describe('when saveTempBlock is true', () => {});
 	});
 });
