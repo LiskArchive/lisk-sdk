@@ -147,7 +147,7 @@ describe('utils/validate', () => {
 	});
 
 	describe('#validateNodeInfo', () => {
-		describe('for valid values', () => {
+		describe('when values are valid', () => {
 			const NodeInfo: P2PNodeInfo = {
 				os: '12.23.54.3',
 				nethash: '12.23.54.3',
@@ -160,7 +160,7 @@ describe('utils/validate', () => {
 				},
 			};
 
-			it('it should return NodeInfo', async () => {
+			it('should return NodeInfo', async () => {
 				expect(validateNodeInfo(NodeInfo, DEFAULT_MAX_PEER_INFO_SIZE))
 					.to.be.an('object')
 					.eql({
@@ -174,6 +174,47 @@ describe('utils/validate', () => {
 							fizz: 'buzz',
 						},
 					});
+			});
+		});
+		describe('when NodeInfo has invalid version', () => {
+			const NodeInfo: P2PNodeInfo = {
+				os: '12.23.54.3',
+				nethash: '12.23.54.3',
+				wsPort: 5393,
+				version: '',
+				protocolVersion: '1.1',
+				options: {
+					foo: 'bar',
+					fizz: 'buzz',
+				},
+			};
+
+			it('should throw Invalid NodeInfo version error', async () => {
+				expect(
+					validateNodeInfo.bind(null, NodeInfo, DEFAULT_MAX_PEER_INFO_SIZE),
+				).to.throw('Invalid NodeInfo version');
+			});
+		});
+
+		describe('when NodeInfo is larger than maximum allowed size', () => {
+			const maximum_size = 10;
+
+			const NodeInfo: P2PNodeInfo = {
+				os: '12.23.54.3',
+				nethash: '12.23.54.3',
+				wsPort: 5393,
+				version: '1.1.2',
+				protocolVersion: '1.1',
+				options: {
+					foo: 'bar',
+					fizz: 'buzz',
+				},
+			};
+
+			it('should throw Invalid NodeInfo maximum allowed size error', async () => {
+				expect(validateNodeInfo.bind(null, NodeInfo, maximum_size)).to.throw(
+					`Invalid NodeInfo was larger than the maximum allowed ${maximum_size} bytes`,
+				);
 			});
 		});
 	});

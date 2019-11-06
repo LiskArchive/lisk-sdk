@@ -200,7 +200,7 @@ export const validateNodeInfo = (
 
 	if (byteSize > maxByteSize) {
 		throw new InvalidNodeInfoError(
-			`NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+			`Invalid NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
 
