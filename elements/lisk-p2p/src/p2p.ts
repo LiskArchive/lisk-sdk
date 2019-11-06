@@ -755,13 +755,21 @@ export class P2P extends EventEmitter {
 				}
 
 				// Remove these wsPort and ip from the query object
-				const { wsPort, ip, ...restOfQueryObject } = queryObject;
+				const {
+					wsPort,
+					ip,
+					advertiseAddress,
+					...restOfQueryObject
+				} = queryObject;
 				const incomingPeerInfo: P2PPeerInfo = {
 					sharedState: {
 						...restOfQueryObject,
 						...queryOptions,
 						height: queryObject.height ? +queryObject.height : 0,
 						version: queryObject.version,
+					},
+					internalState: {
+						advertiseAddress: advertiseAddress === 'false' ? false : true,
 					},
 					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
 					ipAddress: socket.remoteAddress,

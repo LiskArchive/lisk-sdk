@@ -160,6 +160,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 		os,
 		wsPort,
 		options,
+		advertiseAddress,
 		...restOfProtocolPeer
 	} = protocolPeer;
 
@@ -173,6 +174,10 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 			os: os ? os : '',
 			height: height && isNumeric(height.toString()) ? +height : 0,
 			...restOfProtocolPeer,
+		},
+		internalState: {
+			advertiseAddress:
+				advertiseAddress === false ? (advertiseAddress as boolean) : true,
 		},
 	};
 
