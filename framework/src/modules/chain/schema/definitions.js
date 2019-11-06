@@ -77,18 +77,4 @@ module.exports = {
 			},
 		},
 	},
-	WSSignaturesResponse: {
-		id: 'WSSignaturesResponse',
-		required: ['signatures'],
-		properties: {
-			signatures: {
-				type: 'array',
-				uniqueItems: true,
-				maxItems: 100,
-				items: {
-					type: 'object',
-				},
-			},
-		},
-	},
 };

@@ -51,7 +51,6 @@ class Transport {
 		processorModule,
 		interfaceAdapters,
 		// Constants
-		nonce,
 		broadcasts,
 		maxSharedTransactions,
 	}) {
@@ -65,7 +64,6 @@ class Transport {
 		this.exceptions = exceptions;
 
 		this.constants = {
-			nonce,
 			broadcasts,
 			maxSharedTransactions,
 		};
@@ -76,7 +74,6 @@ class Transport {
 		this.interfaceAdapters = interfaceAdapters;
 
 		this.broadcaster = new Broadcaster(
-			this.constants.nonce,
 			this.constants.broadcasts,
 			this.transactionPoolModule,
 			this.logger,

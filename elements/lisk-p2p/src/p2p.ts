@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
@@ -26,6 +27,7 @@ import {
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD,
 	DEFAULT_NODE_HOST_IP,
+	DEFAULT_NONCE_LENGTH_BYTES,
 	DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
 	DEFAULT_PEER_PROTECTION_FOR_LATENCY,
 	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
@@ -516,7 +518,10 @@ export class P2P extends EventEmitter {
 			});
 		}
 
-		this._nodeInfo = config.nodeInfo;
+		this._nodeInfo = {
+			...config.nodeInfo,
+			nonce: getRandomBytes(DEFAULT_NONCE_LENGTH_BYTES).toString('hex'),
+		};
 		this.applyNodeInfo(this._nodeInfo);
 
 		this._populatorInterval = config.populatorInterval

@@ -26,16 +26,18 @@ import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
+	const nodeInfo: P2PNodeInfo = {
+		height: 545777,
+		nethash: '73458irc3yb7rg37r7326dbt7236',
+		os: 'linux',
+		version: '1.1.1',
+		protocolVersion: '1.1',
+		wsPort: 5000,
+		nonce: 'nonce',
+	};
+
 	describe('#selectPeersForRequest', () => {
 		let peerList = initPeerInfoList();
-		const nodeInfo: P2PNodeInfo = {
-			height: 545777,
-			nethash: '73458irc3yb7rg37r7326dbt7236',
-			os: 'linux',
-			version: '1.1.1',
-			protocolVersion: '1.1',
-			wsPort: 5000,
-		};
 
 		describe('get a list of n number of good peers', () => {
 			beforeEach(async () => {
@@ -161,15 +163,6 @@ describe('peer selector', () => {
 
 	describe('#selectPeersForSend', () => {
 		let peerList = initPeerInfoListWithSuffix('111.112.113', 120);
-
-		const nodeInfo: P2PNodeInfo = {
-			height: 545777,
-			nethash: '73458irc3yb7rg37r7326dbt7236',
-			os: 'linux',
-			version: '1.1.1',
-			protocolVersion: '1.1',
-			wsPort: 5000,
-		};
 
 		it('should return an array containing an even number of inbound and outbound peers', () => {
 			const selectedPeers = selectPeersForSend({
