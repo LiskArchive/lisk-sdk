@@ -7,6 +7,8 @@
 	"payloadHash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d",
 	"timestamp": 0,
 	"numberOfTransactions": 103,
+	"prevotedConfirmedUptoHeight": 0,
+	"maxHeightPreviouslyForged": 0,
 	"payloadLength": 19619,
 	"previousBlockId": null,
 	"generatorPublicKey": "c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8",
