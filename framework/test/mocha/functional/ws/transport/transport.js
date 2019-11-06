@@ -194,7 +194,6 @@ describe('WS transport', () => {
 					procedure: 'getTransactions',
 					data: [transaction.id],
 				});
-				expect(data).to.have.property('success', true);
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an('array').not.empty;
 				expect(data.transactions[0])
@@ -226,7 +225,6 @@ describe('WS transport', () => {
 					procedure: 'getTransactions',
 					data: [transactionInQueues[transactionInQueues.length - 1].id],
 				});
-				expect(data).to.have.property('success', true);
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an('array').not.empty;
 				expect(data.transactions[0])
@@ -242,7 +240,6 @@ describe('WS transport', () => {
 						transactionInQueues[transactionInQueues.length - 2].id,
 					],
 				});
-				expect(data).to.have.property('success', true);
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.have.length(2);
 				expect(data.transactions[0])
@@ -260,7 +257,6 @@ describe('WS transport', () => {
 					procedure: 'getTransactions',
 					data: ['id1', 'id2'],
 				});
-				expect(data).to.have.property('success', true);
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an.empty('array');
 			});
