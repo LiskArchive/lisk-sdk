@@ -18,7 +18,7 @@ const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
-const definitions = require('../schema/definitions');
+const schemas = require('./schemas');
 const transactionsModule = require('../transactions');
 
 /**
@@ -91,7 +91,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onSignature(signature, broadcast) {
+	handleBroadcastSignature(signature, broadcast) {
 		if (broadcast) {
 			this.broadcaster.enqueue(
 				{},
@@ -115,7 +115,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onUnconfirmedTransaction(transaction, broadcast) {
+	handleBroadcastTransaction(transaction, broadcast) {
 		if (broadcast) {
 			const transactionJSON = transaction.toJSON();
 			this.broadcaster.enqueue(
@@ -140,7 +140,7 @@ class Transport {
 	 */
 	// TODO: Remove after block module becomes event-emitter
 	// eslint-disable-next-line class-methods-use-this
-	onBroadcastBlock(block, broadcast) {
+	handleBroadcastBlock(block, broadcast) {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
@@ -199,8 +199,8 @@ class Transport {
 	 * @param {string} payload.blockId - The ID of the starting block
 	 * @return {Promise<Array<object>>}
 	 */
-	async getBlocksFromId(payload) {
-		validator.validate(definitions.getBlocksFromIdRequest, payload);
+	async handleRPCGetBlocksFromId(payload) {
+		validator.validate(schemas.getBlocksFromIdRequest, payload);
 
 		if (validator.validator.errors) {
 			this.logger.debug(
@@ -223,7 +223,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}, peerId) {
+	async handleEventPostBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -238,7 +238,7 @@ class Transport {
 			);
 		}
 
-		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
+		const errors = validator.validate(schemas.blocksBroadcast, query);
 
 		if (errors.length) {
 			this.logger.debug(
@@ -265,13 +265,12 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignature(query) {
-		const errors = validator.validate(definitions.Signature, query.signature);
+	async handleEventPostSignature(query) {
+		const errors = validator.validate(schemas.signatureObject, query.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
 			return {
-				success: false,
 				code: 400,
 				errors: [error],
 			};
@@ -281,10 +280,9 @@ class Transport {
 			await this.transactionPoolModule.getTransactionAndProcessSignature(
 				query.signature,
 			);
-			return { success: true };
+			return {};
 		} catch (err) {
 			return {
-				success: false,
 				code: 409,
 				errors: err,
 			};
@@ -298,14 +296,14 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignatures(query) {
+	async handleEventPostSignatures(query) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving signatures disabled by user through config.json',
 			);
 		}
 
-		const errors = validator.validate(definitions.WSSignaturesList, query);
+		const errors = validator.validate(schemas.signaturesList, query);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid signatures body');
@@ -323,7 +321,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getSignatures() {
+	async handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
 			this.constants.maxSharedTransactions,
@@ -339,7 +337,6 @@ class Transport {
 			}));
 
 		return {
-			success: true,
 			signatures,
 		};
 	}
@@ -351,7 +348,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions(ids) {
+	async handleRPCGetTransactions(ids) {
 		if (!(ids && Array.isArray(ids) && ids.length)) {
 			return {
 				success: true,
@@ -365,7 +362,6 @@ class Transport {
 		if (ids.length > this.constants.maxSharedTransactions) {
 			// TODO: apply penalty to the requester #3672
 			return {
-				success: false,
 				transactions: [],
 			};
 		}
@@ -394,13 +390,11 @@ class Transport {
 			);
 
 			return {
-				success: true,
 				transactions: transactionsFromQueues.concat(transactionsFromDatabase),
 			};
 		}
 
 		return {
-			success: true,
 			transactions: transactionsFromQueues,
 		};
 	}
@@ -412,16 +406,14 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransaction(query) {
+	async handleEventPostTransaction(query) {
 		try {
 			const id = await this._receiveTransaction(query.transaction);
 			return {
-				success: true,
 				transactionId: id,
 			};
 		} catch (err) {
 			return {
-				success: false,
 				message: err.message || 'Transaction was rejected with errors',
 				errors: err,
 			};
@@ -436,14 +428,14 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransactionsAnnouncement({ data, peerId }) {
+	async handleEventPostTransactionsAnnouncement({ data, peerId }) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',
 			);
 		}
 
-		const errors = validator.validate(definitions.WSTransactionsRequest, data);
+		const errors = validator.validate(schemas.transactionsRequest, data);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid transactions body');
@@ -532,7 +524,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	async _receiveSignature(signature) {
-		const errors = validator.validate(definitions.Signature, signature);
+		const errors = validator.validate(schemas.signatureObject, signature);
 
 		if (errors.length) {
 			throw errors;

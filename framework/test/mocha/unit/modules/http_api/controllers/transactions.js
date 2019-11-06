@@ -74,7 +74,7 @@ describe('transactions/api', () => {
 			beforeEach(async () => {
 				channelStub = TransactionsController.__set__('channel', {
 					invoke: sinonSandbox.stub().resolves({
-						success: false,
+						errors: [],
 						message: 'Processing error',
 					}),
 				});

@@ -59,7 +59,7 @@ describe('signatures/api', () => {
 			beforeEach(async () => {
 				channelStub = SignaturesController.__set__('channel', {
 					invoke: sinonSandbox.stub().resolves({
-						success: false,
+						errors: [],
 						code: apiCodes.PROCESSING_ERROR,
 					}),
 				});
@@ -79,9 +79,10 @@ describe('signatures/api', () => {
 		describe('when data.code = "BAD_REQUEST', () => {
 			beforeEach(async () => {
 				channelStub = SignaturesController.__set__('channel', {
-					invoke: sinonSandbox
-						.stub()
-						.resolves({ success: false, code: apiCodes.BAD_REQUEST }),
+					invoke: sinonSandbox.stub().resolves({
+						errors: [],
+						code: apiCodes.BAD_REQUEST,
+					}),
 				});
 			});
 
@@ -96,7 +97,7 @@ describe('signatures/api', () => {
 				channelStub = SignaturesController.__set__('channel', {
 					invoke: sinonSandbox
 						.stub()
-						.resolves({ success: false, code: apiCodes.INTERNAL_SERVER_ERROR }),
+						.resolves({ code: apiCodes.INTERNAL_SERVER_ERROR }),
 				});
 			});
 
@@ -123,7 +124,7 @@ describe('signatures/api', () => {
 		describe('when signature successful accepted', () => {
 			beforeEach(async () => {
 				channelStub = SignaturesController.__set__('channel', {
-					invoke: sinonSandbox.stub().resolves({ success: true }),
+					invoke: sinonSandbox.stub().resolves({}),
 				});
 			});
 
