@@ -185,6 +185,7 @@ const createPeerPoolConfig = (
 });
 
 const filterAdvertiseAddressPeer = (peer: P2PPeerInfo) => {
+	// tslint:disable-next-line no-boolean-literal-compare
 	if (peer.internalState && peer.internalState.advertiseAddress === false) {
 		return false;
 	}
