@@ -51,7 +51,6 @@ describe('P2P.request', () => {
 			procedure: 'foo',
 			data: 'bar',
 		});
-
 		expect(response).to.have.property('data');
 		expect(response.data)
 			.to.have.property('nodePort')

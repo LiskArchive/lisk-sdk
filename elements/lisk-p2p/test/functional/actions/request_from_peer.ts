@@ -28,7 +28,7 @@ describe('P2P.requestFromPeer', () => {
 
 		for (let p2p of p2pNodeList) {
 			p2p.on('requestReceived', request => {
-				if (request.procedure === 'proc') {
+				if (request.procedure === 'foo') {
 					collectedMessages.push({
 						nodePort: p2p.nodeInfo.wsPort,
 						request,
@@ -59,7 +59,7 @@ describe('P2P.requestFromPeer', () => {
 
 		await firstP2PNode.requestFromPeer(
 			{
-				procedure: 'proc',
+				procedure: 'foo',
 				data: 123456,
 			},
 			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
@@ -67,7 +67,7 @@ describe('P2P.requestFromPeer', () => {
 
 		expect(collectedMessages.length).to.equal(1);
 		expect(collectedMessages[0]).to.have.property('request');
-		expect(collectedMessages[0].request.procedure).to.equal('proc');
+		expect(collectedMessages[0].request.procedure).to.equal('foo');
 		expect(collectedMessages[0].request.data).to.equal(123456);
 	});
 

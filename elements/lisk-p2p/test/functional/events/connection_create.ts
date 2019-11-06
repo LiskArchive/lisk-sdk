@@ -22,6 +22,7 @@ import {
 	EVENT_FAILED_TO_ADD_INBOUND_PEER,
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+	INVALID_CONNECTION_SELF_REASON,
 } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import {
@@ -172,6 +173,7 @@ describe(`Connection Create`, () => {
 		});
 
 		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, async () => {
+			expect(collectedErrors).to.include(INVALID_CONNECTION_SELF_REASON);
 			expect(collectedErrors).to.include(INCOMPATIBLE_NETWORK_REASON);
 			expect(collectedErrors).to.include(INCOMPATIBLE_PROTOCOL_VERSION_REASON);
 		});

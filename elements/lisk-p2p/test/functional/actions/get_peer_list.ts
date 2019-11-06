@@ -14,7 +14,6 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
-import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
@@ -31,7 +30,7 @@ describe('PeerPool actions', () => {
 		].map(index => NETWORK_START_PORT + index);
 
 		beforeEach(async () => {
-			p2pNodeList = await createNetwork({});
+			p2pNodeList = await createNetwork();
 		});
 
 		afterEach(async () => {
@@ -40,7 +39,6 @@ describe('PeerPool actions', () => {
 
 		it('should discover all peers and add them to the connectedPeers list within each node', async () => {
 			const firstNode = p2pNodeList[0];
-			await wait(300);
 			const peerPorts = firstNode
 				.getConnectedPeers()
 				.map(peerInfo => peerInfo.wsPort)

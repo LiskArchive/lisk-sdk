@@ -131,7 +131,6 @@ describe('Custom peer selection', () => {
 		it('should run peer discovery successfully', async () => {
 			for (let p2p of p2pNodeList) {
 				expect(p2p.isActive).to.be.true;
-
 				expect(p2p.getConnectedPeers().length).to.gt(1);
 			}
 		});
