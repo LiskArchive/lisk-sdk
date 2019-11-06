@@ -83,12 +83,15 @@ describe('P2P.send', () => {
 
 	it('should receive a message in the correct format', async () => {
 		const firstP2PNode = p2pNodeList[0];
+
+		const numOfConnectedPeers = firstP2PNode.getConnectedPeers().length;
+
 		firstP2PNode.send({ event: 'bar', data: 'test' });
 
 		await wait(100);
 
 		expect(collectedMessages).to.be.an('array');
-		expect(collectedMessages.length).to.be.eql(9);
+		expect(collectedMessages.length).to.be.eql(numOfConnectedPeers);
 		expect(collectedMessages[0]).to.have.property('message');
 		expect(collectedMessages[0].message)
 			.to.have.property('event')
@@ -121,7 +124,7 @@ describe('P2P.send', () => {
 
 		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send messages to peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
-			const TOTAL_SENDS = 100;
+			const TOTAL_SENDS = 1000;
 			const nodePortToMessagesMap: any = {};
 
 			const expectedAverageMessagesPerNode = TOTAL_SENDS;

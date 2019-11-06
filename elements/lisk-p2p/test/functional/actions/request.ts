@@ -67,11 +67,9 @@ describe('P2P.request', () => {
 	});
 
 	// Check for even distribution of requests across the network. Account for an error margin.
-	// TODO: Skipping this test as of now because we are removing duplicate IPs so this scenario will not work locally
-	// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
-	it.skip('requests made to the network should be distributed randomly', async () => {
+	it('requests made to the network should be distributed randomly', async () => {
 		const TOTAL_REQUESTS = 1000;
-		const firstP2PNode = p2pNodeList[0];
+		const lastP2PNode = p2pNodeList[NETWORK_PEER_COUNT - 1];
 		const nodePortToResponsesMap: any = {};
 
 		const expectedAverageRequestsPerNode = TOTAL_REQUESTS / NETWORK_PEER_COUNT;
@@ -79,7 +77,7 @@ describe('P2P.request', () => {
 		const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
 
 		for (let i = 0; i < TOTAL_REQUESTS; i++) {
-			const response = await firstP2PNode.request({
+			const response = await lastP2PNode.request({
 				procedure: 'foo',
 				data: i,
 			});
@@ -97,5 +95,5 @@ describe('P2P.request', () => {
 			);
 			expect(requestsHandled.length).to.be.lessThan(expectedRequestsUpperBound);
 		}
-	});
+	}).timeout(5000);
 });

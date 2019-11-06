@@ -14,29 +14,18 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
-import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
-	NETWORK_START_PORT,
+	SEED_PEER_IP,
 } from 'utils/network_setup';
+import { constructPeerId } from '../../../src/utils';
 
 describe('P2P.sendToPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	let collectedMessages: Array<any> = [];
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork();
-
-		collectedMessages = [];
-		for (let p2p of p2pNodeList) {
-			p2p.on('messageReceived', message => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					message,
-				});
-			});
-		}
+		p2pNodeList = await createNetwork({ networkSize: 2 });
 	});
 
 	afterEach(async () => {
@@ -45,29 +34,29 @@ describe('P2P.sendToPeer', () => {
 
 	it('should send message to a specific peer within the network', async () => {
 		const firstP2PNode = p2pNodeList[0];
-		const targetPeerPort = NETWORK_START_PORT + 3;
-		const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+
+		const targetPeer = firstP2PNode.getConnectedPeers()[0];
 
 		firstP2PNode.sendToPeer(
 			{
 				event: 'foo',
 				data: 123,
 			},
-			targetPeerId,
+			constructPeerId(targetPeer.ipAddress, targetPeer.wsPort),
 		);
 
-		await wait(100);
-
-		expect(collectedMessages.length).to.equal(1);
-		expect(collectedMessages[0])
-			.to.have.property('nodePort')
-			.which.is.equal(targetPeerPort);
-		expect(collectedMessages[0]).to.have.property('message');
-		expect(collectedMessages[0].message)
-			.to.have.property('event')
-			.which.is.equal('foo');
-		expect(collectedMessages[0].message)
-			.to.have.property('data')
-			.which.is.equal(123);
+		p2pNodeList[1].on('messageReceived', msg => {
+			expect(msg)
+				.to.have.property('peerId')
+				.which.is.equal(
+					constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
+				);
+			expect(msg)
+				.to.have.property('event')
+				.which.is.equal('foo');
+			expect(msg)
+				.to.have.property('data')
+				.which.is.equal(123);
+		});
 	});
 });
