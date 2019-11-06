@@ -138,8 +138,7 @@ TransactionsController.postTransaction = async function(context, next) {
 
 	try {
 		const data = await channel.invoke('chain:postTransaction', { transaction });
-
-		if (data.success) {
+		if (!data.errors) {
 			return next(null, {
 				data: { message: 'Transaction(s) accepted' },
 				meta: { status: true },

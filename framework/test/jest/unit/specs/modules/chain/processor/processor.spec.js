@@ -191,7 +191,7 @@ describe('processor', () => {
 			it('should call all of the apply genesis steps', async () => {
 				applyGenesisSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
-						{ block: genesisBlock, tx: txStub },
+						{ block: genesisBlock, tx: txStub, stateStore: expect.any(Object) },
 						undefined,
 					);
 				});
@@ -199,10 +199,7 @@ describe('processor', () => {
 
 			it('should save the genesis block', async () => {
 				const blockJSON = await processor.serialize(genesisBlock);
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					blockJSON,
-					tx: txStub,
-				});
+				expect(blocksModuleStub.save).toHaveBeenCalledWith(blockJSON, txStub);
 			});
 		});
 
@@ -267,7 +264,6 @@ describe('processor', () => {
 		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
 
 		let forkSteps;
-		let validateNewSteps;
 		let validateSteps;
 		let verifySteps;
 		let applySteps;
@@ -277,13 +273,11 @@ describe('processor', () => {
 		beforeEach(async () => {
 			forkSteps = [jest.fn().mockResolvedValue(1)];
 			validateSteps = [jest.fn(), jest.fn()];
-			validateNewSteps = [jest.fn(), jest.fn()];
 			verifySteps = [jest.fn(), jest.fn()];
 			applySteps = [jest.fn(), jest.fn()];
 			undoSteps = [jest.fn(), jest.fn()];
 			txStub = jest.fn();
 			blockProcessorV0.forkStatus.pipe(forkSteps);
-			blockProcessorV0.validateNew.pipe(validateNewSteps);
 			blockProcessorV0.validate.pipe(validateSteps);
 			blockProcessorV0.verify.pipe(verifySteps);
 			blockProcessorV0.apply.pipe(applySteps);
@@ -346,12 +340,6 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should not validate for new block ', async () => {
-				validateNewSteps.forEach(step => {
-					expect(step).not.toHaveBeenCalled();
-				});
-			});
-
 			it('should not validate block', async () => {
 				validateSteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
@@ -384,12 +372,6 @@ describe('processor', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_DOUBLE_FORGING);
 				await processor.process(blockV0);
-			});
-
-			it('should not validate for new block ', async () => {
-				validateNewSteps.forEach(step => {
-					expect(step).not.toHaveBeenCalled();
-				});
 			});
 
 			it('should not validate block', async () => {
@@ -428,15 +410,6 @@ describe('processor', () => {
 				await storageStub.entities.Block.begin.mock.calls[1][1](txStub);
 			});
 
-			it('should validate for new block ', async () => {
-				validateNewSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{ block: blockV0, lastBlock: defaultLastBlock },
-						undefined,
-					);
-				});
-			});
-
 			it('should validate block', async () => {
 				validateSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
@@ -452,16 +425,19 @@ describe('processor', () => {
 			it('should revert the last block', async () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
-						{ block: defaultLastBlock, tx: txStub },
+						{
+							block: defaultLastBlock,
+							tx: txStub,
+							stateStore: expect.any(Object),
+						},
 						undefined,
 					);
 				});
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
-					{
-						block: defaultLastBlock,
-						tx: txStub,
-					},
-					false,
+					defaultLastBlock,
+					undefined,
+					txStub,
+					{ saveTempBlock: false },
 				);
 			});
 
@@ -478,6 +454,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -489,6 +466,7 @@ describe('processor', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
+							stateStore: expect.any(Object),
 							block: blockV0,
 							lastBlock: defaultLastBlock,
 							tx: txStub,
@@ -500,10 +478,7 @@ describe('processor', () => {
 
 			it('should save the block', async () => {
 				const blockJSON = await processor.serialize(blockV0);
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					blockJSON,
-					tx: txStub,
-				});
+				expect(blocksModuleStub.save).toHaveBeenCalledWith(blockJSON, txStub);
 			});
 
 			it('should emit newBlock event for the block', async () => {
@@ -534,15 +509,6 @@ describe('processor', () => {
 				}
 			});
 
-			it('should validate for new block ', async () => {
-				validateNewSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{ block: blockV0, lastBlock: defaultLastBlock },
-						undefined,
-					);
-				});
-			});
-
 			it('should validate block', async () => {
 				validateSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
@@ -558,16 +524,19 @@ describe('processor', () => {
 			it('should revert the last block', async () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
-						{ block: defaultLastBlock, tx: txStub },
+						{
+							block: defaultLastBlock,
+							tx: txStub,
+							stateStore: expect.any(Object),
+						},
 						undefined,
 					);
 				});
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
-					{
-						block: defaultLastBlock,
-						tx: txStub,
-					},
-					false,
+					defaultLastBlock,
+					undefined,
+					txStub,
+					{ saveTempBlock: false },
 				);
 			});
 
@@ -593,6 +562,7 @@ describe('processor', () => {
 						{
 							block: defaultLastBlock,
 							lastBlock: defaultLastBlock,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -617,10 +587,7 @@ describe('processor', () => {
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should save the last block', async () => {
 				const blockJSON = await processor.serialize(defaultLastBlock);
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					blockJSON,
-					tx: txStub,
-				});
+				expect(blocksModuleStub.save).toHaveBeenCalledWith(blockJSON, txStub);
 			});
 
 			// eslint-disable-next-line jest/no-disabled-tests
@@ -636,12 +603,6 @@ describe('processor', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_DIFFERENT_CHAIN);
 				await processor.process(blockV0);
-			});
-
-			it('should not validate for new block ', async () => {
-				validateNewSteps.forEach(step => {
-					expect(step).not.toHaveBeenCalled();
-				});
 			});
 
 			it('should not validate block', async () => {
@@ -681,12 +642,6 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should not validate for new block ', async () => {
-				validateNewSteps.forEach(step => {
-					expect(step).not.toHaveBeenCalled();
-				});
-			});
-
 			it('should not validate block', async () => {
 				validateSteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
@@ -720,12 +675,6 @@ describe('processor', () => {
 				forkSteps[0].mockResolvedValue(FORK_STATUS_VALID_BLOCK);
 				await processor.process(blockV0);
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
-			});
-
-			it('should validate for new block ', async () => {
-				validateNewSteps.forEach(step => {
-					expect(step).toHaveBeenCalledTimes(1);
-				});
 			});
 
 			it('should validate block', async () => {
@@ -978,6 +927,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1021,6 +971,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1077,6 +1028,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1090,6 +1042,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1099,10 +1052,7 @@ describe('processor', () => {
 
 			it('should save the block', async () => {
 				const blockJSON = await processor.serialize(blockV0);
-				expect(blocksModuleStub.save).toHaveBeenCalledWith({
-					blockJSON,
-					tx: txStub,
-				});
+				expect(blocksModuleStub.save).toHaveBeenCalledWith(blockJSON, txStub);
 			});
 
 			it('should not broadcast the block', async () => {
@@ -1236,6 +1186,7 @@ describe('processor', () => {
 							block: blockV0,
 							skipExistingCheck: true,
 							lastBlock: defaultLastBlock,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1280,6 +1231,7 @@ describe('processor', () => {
 							block: blockV0,
 							lastBlock: defaultLastBlock,
 							skipExistingCheck: true,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1294,6 +1246,7 @@ describe('processor', () => {
 							block: blockV0,
 							lastBlock: defaultLastBlock,
 							skipExistingCheck: true,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1329,6 +1282,7 @@ describe('processor', () => {
 							block: blockV0,
 							lastBlock: defaultLastBlock,
 							tx: txStub,
+							stateStore: expect.any(Object),
 							skipExistingCheck: true,
 						},
 						undefined,
@@ -1343,6 +1297,7 @@ describe('processor', () => {
 							block: blockV0,
 							lastBlock: defaultLastBlock,
 							skipExistingCheck: true,
+							stateStore: expect.any(Object),
 							tx: txStub,
 						},
 						undefined,
@@ -1420,7 +1375,11 @@ describe('processor', () => {
 			it('should call undo steps', async () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
-						{ block: defaultLastBlock, tx: txStub },
+						{
+							block: defaultLastBlock,
+							tx: txStub,
+							stateStore: expect.any(Object),
+						},
 						undefined,
 					);
 				});
@@ -1443,7 +1402,11 @@ describe('processor', () => {
 			it('should call undo steps', async () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
-						{ block: defaultLastBlock, tx: txStub },
+						{
+							block: defaultLastBlock,
+							tx: txStub,
+							stateStore: expect.any(Object),
+						},
 						undefined,
 					);
 				});
@@ -1451,11 +1414,10 @@ describe('processor', () => {
 
 			it('should call remove from blocksModule', async () => {
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
-					{
-						block: defaultLastBlock,
-						tx: txStub,
-					},
-					false,
+					defaultLastBlock,
+					undefined,
+					txStub,
+					{ saveTempBlock: false },
 				);
 			});
 
@@ -1528,7 +1490,7 @@ describe('processor', () => {
 			it('should apply genesis block', async () => {
 				applyGenesisSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
-						{ block: genesisBlock, tx: txStub },
+						{ block: genesisBlock, tx: txStub, stateStore: expect.any(Object) },
 						undefined,
 					);
 				});

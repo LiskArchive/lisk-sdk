@@ -35,13 +35,12 @@ const defaultAccount = {
 };
 
 class AccountStore {
-	constructor(accountEntity, { mutate, tx } = { mutate: true, tx: undefined }) {
+	constructor(accountEntity, { tx } = { tx: undefined }) {
 		this.account = accountEntity;
 		this.data = [];
 		this.updatedKeys = {};
 		this.primaryKey = 'address';
 		this.name = 'Account';
-		this.mutate = mutate;
 		this.originalData = [];
 		this.originalUpdatedKeys = {};
 		this.tx = tx;
@@ -128,11 +127,6 @@ class AccountStore {
 	}
 
 	finalize() {
-		if (!this.mutate) {
-			throw new Error(
-				'Cannot finalize when store is initialized with mutate = false',
-			);
-		}
 		const affectedAccounts = Object.entries(this.updatedKeys).map(
 			([index, updatedKeys]) => ({
 				updatedItem: this.data[index],

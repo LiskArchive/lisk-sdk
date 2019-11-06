@@ -322,16 +322,11 @@ describe('blocks', () => {
 			it("should throw when the block is not a genesis block and previous block id doesn't match the last block id", async () => {
 				// Arrange
 				const block = newBlock({ previousBlockId: null });
-				const blockBytes = getBytes(block);
 				const errorMessage = 'Invalid previous block';
 				expect.assertions(1);
 				// Act
 				try {
-					await blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					});
+					await blocksInstance.verifyInMemory(block, genesisBlock);
 				} catch (error) {
 					// Assert
 					expect(error.message).toEqual(errorMessage);
@@ -345,7 +340,6 @@ describe('blocks', () => {
 					maxHeightPreviouslyForged: 0,
 					prevotedConfirmedUptoHeight: 0,
 				};
-				const blockBytes = getBytes(block);
 				block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
 
 				blocksInstance.slots.getEpochTime = jest.fn(
@@ -355,11 +349,7 @@ describe('blocks', () => {
 				expect.assertions(1);
 				// Act
 				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.verifyInMemory(block, genesisBlock),
 				).resolves.toBeUndefined();
 			});
 		});
@@ -369,15 +359,10 @@ describe('blocks', () => {
 				// Arrange
 				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
 				const block = newBlock({ timestamp: futureTimestamp });
-				const blockBytes = getBytes(block);
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.verifyInMemory(block, genesisBlock),
 				).rejects.toThrow('Invalid block timestamp');
 			});
 
@@ -385,15 +370,10 @@ describe('blocks', () => {
 				// Arrange
 				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
 				const block = newBlock({ timestamp: futureTimestamp });
-				const blockBytes = getBytes(block);
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
+					blocksInstance.verifyInMemory(block, genesisBlock),
 				).rejects.toThrow('Invalid block timestamp');
 			});
 
@@ -404,15 +384,10 @@ describe('blocks', () => {
 					previousBlockId: lastBlock.id,
 					height: lastBlock.height + 1,
 				});
-				const blockBytes = getBytes(block);
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock,
-						blockBytes,
-					}),
+					blocksInstance.verifyInMemory(block, lastBlock),
 				).rejects.toThrow('Invalid block timestamp');
 			});
 		});
@@ -849,12 +824,9 @@ describe('blocks', () => {
 				id: defaults.lastBlock.id,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK,
+			);
 		});
 
 		it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', async () => {
@@ -864,12 +836,9 @@ describe('blocks', () => {
 				previousBlockId: defaults.lastBlock.id,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_VALID_BLOCK);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_VALID_BLOCK,
+			);
 		});
 
 		it('should return FORK_STATUS_DOUBLE_FORGING if isDoubleForging evaluates to true', () => {
@@ -882,12 +851,9 @@ describe('blocks', () => {
 				generatorPublicKey: defaults.lastBlock.generatorPublicKey,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_DOUBLE_FORGING);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_DOUBLE_FORGING,
+			);
 		});
 
 		it('should return FORK_STATUS_TIE_BREAK if isTieBreak evaluates to true', () => {
@@ -909,12 +875,9 @@ describe('blocks', () => {
 				receivedAt: defaults.lastBlock.timestamp + 1000, // Received late
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_TIE_BREAK);
+			expect(blocksInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_TIE_BREAK,
+			);
 		});
 
 		it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
@@ -925,12 +888,9 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height + 1,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
+			);
 		});
 
 		it('should return FORK_STATUS_DISCARD if no conditions are met', async () => {
@@ -944,17 +904,15 @@ describe('blocks', () => {
 				height: 2,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
+			expect(blocksInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_DISCARD,
+			);
 		});
 	});
 
 	describe('verify', () => {
 		let checkPersistedTransactionsFn;
+		let stateStoreStub;
 
 		beforeEach(async () => {
 			checkPersistedTransactionsFn = jest.fn().mockResolvedValue({
@@ -968,6 +926,7 @@ describe('blocks', () => {
 			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
 				false,
 			);
+			stateStoreStub = jest.fn();
 		});
 
 		it('should throw in case the block id exists in the last n blocks', async () => {
@@ -978,8 +937,7 @@ describe('blocks', () => {
 			blocksInstance._lastNBlockIds = [];
 			try {
 				// Act
-				await blocksInstance.verify({
-					block,
+				await blocksInstance.verify(block, stateStoreStub, {
 					skipExistingCheck: true,
 				});
 			} catch (e) {
@@ -996,8 +954,7 @@ describe('blocks', () => {
 
 			try {
 				// Act
-				await blocksInstance.verify({
-					block,
+				await blocksInstance.verify(block, stateStoreStub, {
 					skipExistingCheck: false,
 				});
 			} catch (e) {
@@ -1018,8 +975,7 @@ describe('blocks', () => {
 			);
 
 			// Act
-			await blocksInstance.verify({
-				block,
+			await blocksInstance.verify(block, stateStoreStub, {
 				skipExistingCheck: false,
 			});
 			// Assert
@@ -1033,21 +989,17 @@ describe('blocks', () => {
 	});
 
 	describe('apply', () => {
-		const stateStore = {
-			account: {
-				finalize: jest.fn(),
-			},
-			round: {
-				finalize: jest.fn(),
-				setRoundForData: jest.fn(),
-			},
-		};
+		let stateStoreStub;
 		let applyTransactionsFn;
 
 		beforeEach(() => {
+			stateStoreStub = {
+				account: {
+					finalize: jest.fn(),
+				},
+			};
 			applyTransactionsFn = jest.fn().mockResolvedValue({
 				transactionsResponses: [{ status: 1, errors: [] }],
-				stateStore,
 			});
 			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
 		});
@@ -1055,7 +1007,7 @@ describe('blocks', () => {
 		it('should not perform any action if transactions is an empty array', async () => {
 			const block = newBlock();
 			block.transactions = []; // Block with empty transactions
-			await blocksInstance.apply({ block });
+			await blocksInstance.apply(block, stateStoreStub);
 
 			expect(
 				transactionsModule.checkIfTransactionIsInert,
@@ -1074,15 +1026,13 @@ describe('blocks', () => {
 
 			try {
 				// Act
-				await blocksInstance.apply({
-					block,
-				});
+				await blocksInstance.apply(block, stateStoreStub);
 			} catch (e) {
 				// Do nothing
 			}
 
 			// Assert
-			expect(applyTransactionsFn).toHaveBeenCalledWith([], undefined);
+			expect(applyTransactionsFn).toHaveBeenCalledWith([], stateStoreStub);
 		});
 		it('should throw the errors for first unappliable transactions', async () => {
 			// Arrange
@@ -1096,15 +1046,12 @@ describe('blocks', () => {
 
 			applyTransactionsFn = jest.fn().mockResolvedValue({
 				transactionsResponses: [{ status: 0, errors: [new Error('anError')] }],
-				stateStore,
 			});
 			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
 
 			try {
 				// Act
-				await blocksInstance.apply({
-					block,
-				});
+				await blocksInstance.apply(block, stateStoreStub);
 			} catch (e) {
 				// Assert
 				expect(e[0].message).toEqual('anError');
@@ -1113,89 +1060,66 @@ describe('blocks', () => {
 		it('should update account state when transactions are appliable', async () => {
 			const block = newBlock();
 
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
 			try {
-				await blocksInstance.apply({
-					block,
-				});
+				await blocksInstance.apply(block, stateStoreStub);
 			} catch (e) {
 				// Do nothing
 			}
 
-			expect(stateStore.account.finalize).toHaveBeenCalled();
-		});
-		it('should update round state when transactions are appliable', async () => {
-			const block = newBlock();
-
-			try {
-				await blocksInstance.apply({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
+			expect(stateStoreStub.account.finalize).toHaveBeenCalled();
 		});
 	});
 
 	describe('applyGenesis', () => {
-		const stateStore = {
-			account: {
-				finalize: jest.fn(),
-			},
-			round: {
-				finalize: jest.fn(),
-				setRoundForData: jest.fn(),
-			},
-		};
+		let stateStoreStub;
 		let applyGenesisTransactionsFn;
 
 		beforeEach(() => {
-			applyGenesisTransactionsFn = jest.fn().mockResolvedValue({
-				stateStore,
-			});
+			stateStoreStub = {
+				account: {
+					finalize: jest.fn(),
+				},
+			};
+			applyGenesisTransactionsFn = jest.fn().mockResolvedValue({});
 			transactionsModule.applyGenesisTransactions.mockReturnValue(
 				applyGenesisTransactionsFn,
 			);
 		});
 
 		it('should call transactionsModule.applyGenesisTransactions by sorting transactions', async () => {
-			await blocksInstance.applyGenesis({
-				block: newBlock(),
-			});
+			await blocksInstance.applyGenesis(newBlock(), stateStoreStub);
 
 			expect(transactionsModule.applyGenesisTransactions).toHaveBeenCalled();
 		});
 
 		it('should account state when transactions are appliable', async () => {
-			await blocksInstance.applyGenesis({
-				block: newBlock(),
-			});
+			await blocksInstance.applyGenesis(newBlock(), stateStoreStub);
 
-			expect(stateStore.account.finalize).toHaveBeenCalled();
-		});
-
-		it('should round state when transactions are appliable', async () => {
-			await blocksInstance.applyGenesis({
-				block: newBlock(),
-			});
+			expect(stateStoreStub.account.finalize).toHaveBeenCalled();
 		});
 	});
 
 	describe('undo', () => {
-		const stateStore = {
-			account: {
-				finalize: jest.fn(),
-			},
-			round: {
-				finalize: jest.fn(),
-				setRoundForData: jest.fn(),
-			},
-		};
+		let stateStoreStub;
 		let undoTransactionsFn;
 
 		beforeEach(() => {
+			stateStoreStub = {
+				account: {
+					finalize: jest.fn(),
+				},
+				round: {
+					finalize: jest.fn(),
+					setRoundForData: jest.fn(),
+				},
+			};
 			undoTransactionsFn = jest.fn().mockResolvedValue({
 				transactionsResponses: [{ status: 1, errors: [] }],
-				stateStore,
 			});
 			transactionsModule.undoTransactions.mockReturnValue(undoTransactionsFn);
 
@@ -1209,9 +1133,7 @@ describe('blocks', () => {
 
 			try {
 				// Act
-				await blocksInstance.undo({
-					block: newBlock(),
-				});
+				await blocksInstance.undo(block, stateStoreStub);
 			} catch (e) {
 				// Do nothing here
 			}
@@ -1236,15 +1158,13 @@ describe('blocks', () => {
 
 			try {
 				// Act
-				await blocksInstance.undo({
-					block,
-				});
+				await blocksInstance.undo(block, stateStoreStub);
 			} catch (e) {
 				// Do nothing
 			}
 
 			// Assert
-			expect(undoTransactionsFn).toHaveBeenCalledWith([], undefined);
+			expect(undoTransactionsFn).toHaveBeenCalledWith([], stateStoreStub);
 		});
 		it('should throw the errors for the first transaction which fails on undo function', async () => {
 			// Arrange
@@ -1258,15 +1178,12 @@ describe('blocks', () => {
 
 			undoTransactionsFn = jest.fn().mockResolvedValue({
 				transactionsResponses: [{ status: 0, errors: [new Error('anError')] }],
-				stateStore,
 			});
 			transactionsModule.undoTransactions.mockReturnValue(undoTransactionsFn);
 
 			try {
 				// Act
-				await blocksInstance.undo({
-					block,
-				});
+				await blocksInstance.undo(block, stateStoreStub);
 			} catch (e) {
 				// Assert
 				expect(e[0].message).toEqual('anError');
@@ -1275,9 +1192,7 @@ describe('blocks', () => {
 
 		it('should throw an error if previous block is null', async () => {
 			try {
-				await blocksInstance.undo({
-					block: newBlock(),
-				});
+				await blocksInstance.undo(newBlock(), stateStoreStub);
 			} catch (e) {
 				expect(e.message).toEqual('PreviousBlock is null');
 			}
@@ -1285,28 +1200,19 @@ describe('blocks', () => {
 
 		it('should update account state when transactions are reverted', async () => {
 			const block = newBlock();
+			block.transactions = [
+				{
+					id: '1234',
+				},
+			];
 
 			try {
-				await blocksInstance.undo({
-					block,
-				});
+				await blocksInstance.undo(block, stateStoreStub);
 			} catch (e) {
 				// Do nothing
 			}
 
-			expect(stateStore.account.finalize).toHaveBeenCalled();
-		});
-
-		it('should update round state when transactions are reverted', async () => {
-			const block = newBlock();
-
-			try {
-				await blocksInstance.undo({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
+			expect(stateStoreStub.account.finalize).toHaveBeenCalled();
 		});
 	});
 
@@ -1326,10 +1232,7 @@ describe('blocks', () => {
 
 			// Act & Assert
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).rejects.toEqual(blockCreateError);
 		});
 
@@ -1345,10 +1248,7 @@ describe('blocks', () => {
 
 			// Act & Assert
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).rejects.toEqual(transactionCreateError);
 		});
 
@@ -1363,10 +1263,7 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			// Act
-			await blocksInstance.save({
-				blockJSON,
-				tx: stubs.tx,
-			});
+			await blocksInstance.save(blockJSON, stubs.tx);
 
 			// Assert
 			expect(
@@ -1379,10 +1276,7 @@ describe('blocks', () => {
 			const block = newBlock();
 
 			// Act
-			await blocksInstance.save({
-				blockJSON: blocksInstance.serialize(block),
-				tx: stubs.tx,
-			});
+			await blocksInstance.save(blocksInstance.serialize(block), stubs.tx);
 
 			// Assert
 			expect(
@@ -1398,10 +1292,7 @@ describe('blocks', () => {
 			const transactionJSON = transaction.toJSON();
 
 			// Act
-			await blocksInstance.save({
-				blockJSON: blocksInstance.serialize(block),
-				tx: stubs.tx,
-			});
+			await blocksInstance.save(blocksInstance.serialize(block), stubs.tx);
 
 			// Assert
 			expect(
@@ -1417,10 +1308,7 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).resolves.toEqual();
 		});
 
@@ -1436,10 +1324,7 @@ describe('blocks', () => {
 
 			// Act & Assert
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).rejects.toBe(blockCreateError);
 		});
 	});
@@ -1455,11 +1340,11 @@ describe('blocks', () => {
 		it('should throw an error when removing genesis block', async () => {
 			// Act & Assert
 			await expect(
-				blocksInstance.remove({
-					block: blocksInstance.deserialize(genesisBlock),
-					blockJSON: genesisBlock,
-					tx: stubs.tx,
-				}),
+				blocksInstance.remove(
+					blocksInstance.deserialize(genesisBlock),
+					genesisBlock,
+					stubs.tx,
+				),
 			).rejects.toThrow('Cannot delete genesis block');
 		});
 
@@ -1469,11 +1354,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			// Act & Assert
 			await expect(
-				blocksInstance.remove({
-					block,
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.remove(block, blocksInstance.serialize(block), stubs.tx),
 			).rejects.toThrow('PreviousBlock is null');
 		});
 
@@ -1489,11 +1370,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			// Act & Assert
 			await expect(
-				blocksInstance.remove({
-					block,
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.remove(block, blocksInstance.serialize(block), stubs.tx),
 			).rejects.toEqual(deleteBlockError);
 		});
 
@@ -1501,11 +1378,11 @@ describe('blocks', () => {
 			// Arrange
 			const block = newBlock();
 			// Act
-			await blocksInstance.remove({
+			await blocksInstance.remove(
 				block,
-				blockJSON: blocksInstance.serialize(block),
-				tx: stubs.tx,
-			});
+				blocksInstance.serialize(block),
+				stubs.tx,
+			);
 			// Assert
 			expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
 			expect(
@@ -1530,12 +1407,10 @@ describe('blocks', () => {
 				// Act & Assert
 				await expect(
 					blocksInstance.remove(
-						{
-							block,
-							blockJSON: blocksInstance.serialize(block),
-							tx: stubs.tx,
-						},
-						true,
+						block,
+						blocksInstance.serialize(block),
+						stubs.tx,
+						{ saveTempBlock: true },
 					),
 				).rejects.toEqual(tempBlockCreateError);
 			});
@@ -1547,14 +1422,9 @@ describe('blocks', () => {
 				transaction.blockId = block.id;
 				const blockJSON = blocksInstance.serialize(block);
 				// Act
-				await blocksInstance.remove(
-					{
-						block,
-						blockJSON,
-						tx: stubs.tx,
-					},
-					true,
-				);
+				await blocksInstance.remove(block, blockJSON, stubs.tx, {
+					saveTempBlock: true,
+				});
 				// Assert
 				expect(
 					stubs.dependencies.storage.entities.TempBlock.create,
@@ -1636,20 +1506,6 @@ describe('blocks', () => {
 	});
 
 	describe('filterReadyTransactions', () => {});
-
-	describe('broadcast', () => {
-		it('should emit EVENT_BROADCAST_BLOCK event', () => {
-			const block = newBlock();
-			blocksInstance.broadcast(block);
-
-			expect(blocksInstance.emit).toHaveBeenCalledWith(
-				'EVENT_BROADCAST_BLOCK',
-				{
-					block,
-				},
-			);
-		});
-	});
 
 	describe('loadBlocksFromLastBlockId', () => {
 		describe('when called without lastBlockId', () => {

@@ -32,7 +32,7 @@ const {
 	TransactionInterfaceAdapter,
 } = require('../../../../../../src/modules/chain/interface_adapters');
 const blocksModule = require('../../../../../../src/modules/chain/blocks');
-const definitions = require('../../../../../../src/modules/chain/schema/definitions');
+const schemas = require('../../../../../../src/modules/chain/transport/schemas');
 const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');
@@ -417,7 +417,7 @@ describe('transport', () => {
 						expect(validator.validate.calledOnce).to.be.true;
 						return expect(
 							validator.validate.calledWith(
-								definitions.Signature,
+								schemas.signatureObject,
 								SAMPLE_SIGNATURE_1,
 							),
 						).to.be.true;
@@ -699,7 +699,7 @@ describe('transport', () => {
 						transportModule.broadcaster = {
 							enqueue: sinonSandbox.stub(),
 						};
-						transportModule.onSignature(SAMPLE_SIGNATURE_1, true);
+						transportModule.handleBroadcastSignature(SAMPLE_SIGNATURE_1, true);
 					});
 
 					it('should call transportModule.broadcaster.enqueue with signature', () => {
@@ -760,7 +760,7 @@ describe('transport', () => {
 						invoke: sinonSandbox.stub(),
 						publish: sinonSandbox.stub(),
 					};
-					transportModule.onUnconfirmedTransaction(transaction, true);
+					transportModule.handleBroadcastTransaction(transaction, true);
 				});
 
 				describe('when broadcast is defined', () => {
@@ -772,7 +772,7 @@ describe('transport', () => {
 							invoke: sinonSandbox.stub(),
 							publish: sinonSandbox.stub(),
 						};
-						transportModule.onUnconfirmedTransaction(transaction, true);
+						transportModule.handleBroadcastTransaction(transaction, true);
 					});
 
 					it('should call transportModule.broadcaster.enqueue with {} and {api: "postTransationsAnnouncement", data: {transaction}}', async () => {
@@ -798,7 +798,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('onBroadcastBlock', () => {
+			describe('handleBroadcastBlock', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						block = {
@@ -817,7 +817,7 @@ describe('transport', () => {
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
-						return transportModule.onBroadcastBlock(block, true);
+						return transportModule.handleBroadcastBlock(block, true);
 					});
 
 					it('should call transportModule.broadcaster.broadcast', () => {
@@ -838,7 +838,7 @@ describe('transport', () => {
 					describe('when modules.synchronizer.isActive = true', () => {
 						beforeEach(async () => {
 							transportModule.synchronizer.isActive = true;
-							transportModule.onBroadcastBlock(block, true);
+							transportModule.handleBroadcastBlock(block, true);
 						});
 
 						it('should call transportModule.logger.debug with proper error message', () => {
@@ -853,13 +853,13 @@ describe('transport', () => {
 			});
 
 			describe('Transport.prototype.shared', () => {
-				describe('getBlocksFromId', () => {
+				describe('handleRPCGetBlocksFromId', () => {
 					describe('when query is undefined', () => {
 						it('should throw a validation error', async () => {
 							query = {};
 
 							try {
-								await transportModule.getBlocksFromId(query);
+								await transportModule.handleRPCGetBlocksFromId(query);
 							} catch (e) {
 								expect(e[0].message).to.equal(
 									"should have required property 'blockId'",
@@ -874,7 +874,7 @@ describe('transport', () => {
 								blockId: '6258354802676165798',
 							};
 
-							await transportModule.getBlocksFromId(query);
+							await transportModule.handleRPCGetBlocksFromId(query);
 							return expect(
 								transportModule.blocksModule.loadBlocksFromLastBlockId,
 							).to.be.calledWith(query.blockId, 34);
@@ -895,7 +895,7 @@ describe('transport', () => {
 							);
 
 							try {
-								await transportModule.getBlocksFromId(query);
+								await transportModule.handleRPCGetBlocksFromId(query);
 							} catch (e) {
 								expect(e.message).to.equal(errorMessage);
 							}
@@ -903,7 +903,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('postBlock', () => {
+				describe('handleEventPostBlock', () => {
 					let postBlockQuery;
 
 					beforeEach(async () => {
@@ -915,7 +915,7 @@ describe('transport', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							await transportModule.postBlock(postBlockQuery);
+							await transportModule.handleEventPostBlock(postBlockQuery);
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -939,7 +939,7 @@ describe('transport', () => {
 
 							it('should throw an error', async () => {
 								try {
-									await transportModule.postBlock(postBlockQuery);
+									await transportModule.handleEventPostBlock(postBlockQuery);
 								} catch (err) {
 									expect(err[0].message).to.equal(blockValidationError);
 								}
@@ -952,7 +952,7 @@ describe('transport', () => {
 
 							describe('when query.block is defined', () => {
 								it('should call modules.blocks.addBlockProperties with query.block', async () => {
-									await transportModule.postBlock({
+									await transportModule.handleEventPostBlock({
 										block: genesisBlock,
 									});
 									expect(
@@ -968,7 +968,7 @@ describe('transport', () => {
 								transportModule.processorModule.deserialize.resolves(
 									blockWithProperties,
 								);
-								await transportModule.postBlock(
+								await transportModule.handleEventPostBlock(
 									{
 										block: genesisBlock,
 									},
@@ -984,17 +984,15 @@ describe('transport', () => {
 					});
 				});
 
-				describe('postSignature', () => {
+				describe('handleEventPostSignature', () => {
 					describe('when getTransactionAndProcessSignature succeeds', () => {
-						it('should invoke resolve with object { success: true }', async () => {
+						it('should invoke resolve with empty object {}', async () => {
 							query = {
 								signature: SAMPLE_SIGNATURE_1,
 							};
 							transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
-							result = await transportModule.postSignature(query);
-							return expect(result)
-								.to.have.property('success')
-								.which.is.equal(true);
+							result = await transportModule.handleEventPostSignature(query);
+							return expect(result).to.eql({});
 						});
 					});
 
@@ -1003,17 +1001,14 @@ describe('transport', () => {
 							new Error('Invalid signature body ...'),
 						];
 
-						it('should invoke resolve with object { success: false, message: err }', async () => {
+						it('should invoke resolve with object { message: err }', async () => {
 							query = {
 								signature: SAMPLE_SIGNATURE_1,
 							};
 							transportModule.transactionPoolModule.getTransactionAndProcessSignature.rejects(
 								receiveSignatureError,
 							);
-							result = await transportModule.postSignature(query);
-							expect(result)
-								.to.have.property('success')
-								.which.is.equal(false);
+							result = await transportModule.handleEventPostSignature(query);
 							return expect(result)
 								.to.have.property('errors')
 								.which.is.equal(receiveSignatureError);
@@ -1021,7 +1016,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('postSignatures', () => {
+				describe('handleEventPostSignatures', () => {
 					beforeEach(async () => {
 						query = {
 							signatures: [SAMPLE_SIGNATURE_1],
@@ -1032,7 +1027,7 @@ describe('transport', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							transportModule.postSignatures(query);
+							transportModule.handleEventPostSignatures(query);
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -1049,7 +1044,7 @@ describe('transport', () => {
 					describe('when validator.validate succeeds', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = true;
-							return transportModule.postSignatures(query);
+							return transportModule.handleEventPostSignatures(query);
 						});
 
 						it('should call transportModule._receiveSignatures with query.signatures as argument', async () =>
@@ -1065,9 +1060,9 @@ describe('transport', () => {
 							validateErr.code = 'INVALID_FORMAT';
 							validator.validate.returns([validateErr]);
 
-							expect(transportModule.postSignatures(query)).to.be.rejectedWith([
-								validateErr,
-							]);
+							expect(
+								transportModule.handleEventPostSignatures(query),
+							).to.be.rejectedWith([validateErr]);
 
 							return expect(transportModule.logger.debug).to.be.calledWithMatch(
 								{},
@@ -1077,13 +1072,13 @@ describe('transport', () => {
 					});
 				});
 
-				describe('getSignatures', () => {
+				describe('handleRPCGetSignatures', () => {
 					beforeEach(async () => {
 						transportModule.transactionPoolModule.getMultisignatureTransactionList = sinonSandbox
 							.stub()
 							.returns(multisignatureTransactionsList);
 
-						result = await transportModule.getSignatures();
+						result = await transportModule.handleRPCGetSignatures();
 					});
 
 					it('should call modules.transactionPool.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
@@ -1094,10 +1089,7 @@ describe('transport', () => {
 					});
 
 					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
-						it('should resolve with result = {success: true, signatures: signatures} where signatures contains all transactions', async () => {
-							expect(result)
-								.to.have.property('success')
-								.which.equals(true);
+						it('should resolve with result = {signatures: signatures} where signatures contains all transactions', async () => {
 							return expect(result)
 								.to.have.property('signatures')
 								.which.is.an('array')
@@ -1127,13 +1119,10 @@ describe('transport', () => {
 								.stub()
 								.returns(multisignatureTransactionsList);
 
-							result = await transportModule.getSignatures();
+							result = await transportModule.handleRPCGetSignatures();
 						});
 
-						it('should resolve with result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', async () => {
-							expect(result)
-								.to.have.property('success')
-								.which.equals(true);
+						it('should resolve with result = {signatures: signatures} where signatures does not contain multisignature registration transactions', async () => {
 							return expect(result)
 								.to.have.property('signatures')
 								.which.is.an('array')
@@ -1143,13 +1132,13 @@ describe('transport', () => {
 					});
 				});
 
-				describe('getTransactions', () => {
+				describe('handleRPCGetTransactions', () => {
 					describe('when is called without filters', () => {
 						beforeEach(async () => {
 							transportModule.transactionPoolModule.getMergedTransactionList.returns(
 								multisignatureTransactionsList,
 							);
-							result = await transportModule.getTransactions();
+							result = await transportModule.handleRPCGetTransactions();
 						});
 
 						it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
@@ -1158,10 +1147,7 @@ describe('transport', () => {
 							).calledWith(true, MAX_SHARED_TRANSACTIONS);
 						});
 
-						it('should resolve with result = {success: true, transactions: transactions}', async () => {
-							expect(result)
-								.to.have.property('success')
-								.which.is.equal(true);
+						it('should resolve with result = {transactions: transactions}', async () => {
 							return expect(result)
 								.to.have.property('transactions')
 								.which.is.an('array')
@@ -1176,7 +1162,7 @@ describe('transport', () => {
 								transportModule.transactionPoolModule.findInTransactionPool.returns(
 									new TransferTransaction(transaction),
 								);
-								result = await transportModule.getTransactions(
+								result = await transportModule.handleRPCGetTransactions(
 									Array.from(
 										{
 											length:
@@ -1200,10 +1186,7 @@ describe('transport', () => {
 								).to.be.not.called;
 							});
 
-							it('should resolve with result = {success: true, transactions: transactions}', async () => {
-								expect(result)
-									.to.have.property('success')
-									.which.is.equal(false);
+							it('should resolve with result = {transactions: transactions}', async () => {
 								expect(result)
 									.to.have.property('transactions')
 									.which.is.an('array').empty;
@@ -1215,7 +1198,7 @@ describe('transport', () => {
 								transportModule.transactionPoolModule.findInTransactionPool.returns(
 									new TransferTransaction(transaction),
 								);
-								result = await transportModule.getTransactions([
+								result = await transportModule.handleRPCGetTransactions([
 									transaction.id,
 								]);
 							});
@@ -1233,10 +1216,7 @@ describe('transport', () => {
 								).to.be.calledWith(transaction.id);
 							});
 
-							it('should resolve with result = {success: true, transactions: transactions}', async () => {
-								expect(result)
-									.to.have.property('success')
-									.which.is.equal(true);
+							it('should resolve with result = {transactions: transactions}', async () => {
 								expect(result)
 									.to.have.property('transactions')
 									.which.is.an('array')
@@ -1250,7 +1230,7 @@ describe('transport', () => {
 									undefined,
 								);
 								storageStub.entities.Transaction.get.resolves([transaction]);
-								result = await transportModule.getTransactions([
+								result = await transportModule.handleRPCGetTransactions([
 									transaction.id,
 								]);
 							});
@@ -1279,9 +1259,6 @@ describe('transport', () => {
 
 							it('should resolve with result = {success: true, transactions: transactions}', async () => {
 								expect(result)
-									.to.have.property('success')
-									.which.is.equal(true);
-								expect(result)
 									.to.have.property('transactions')
 									.which.is.an('array')
 									.contains(transaction);
@@ -1290,7 +1267,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('postTransaction', () => {
+				describe('handleEventPostTransaction', () => {
 					beforeEach(async () => {
 						query = {
 							transaction,
@@ -1300,7 +1277,7 @@ describe('transport', () => {
 							.stub()
 							.resolves(transaction.id);
 
-						result = await transportModule.postTransaction(query);
+						result = await transportModule.handleEventPostTransaction(query);
 					});
 
 					it('should call transportModule._receiveTransaction with query.transaction as argument', async () =>
@@ -1309,13 +1286,10 @@ describe('transport', () => {
 						).to.be.true);
 
 					describe('when transportModule._receiveTransaction succeeds', () => {
-						it('should resolve with object { success: true, transactionId: id }', async () => {
-							expect(result)
+						it('should resolve with object { transactionId: id }', async () => {
+							return expect(result)
 								.to.have.property('transactionId')
 								.which.is.a('string');
-							return expect(result)
-								.to.have.property('success')
-								.which.is.equal(true);
 						});
 					});
 
@@ -1329,13 +1303,10 @@ describe('transport', () => {
 								.stub()
 								.rejects(receiveTransactionError);
 
-							result = await transportModule.postTransaction(query);
+							result = await transportModule.handleEventPostTransaction(query);
 						});
 
-						it('should resolve with object { success: false, message: err }', async () => {
-							expect(result)
-								.to.have.property('success')
-								.which.is.equal(false);
+						it('should resolve with object { message: err }', async () => {
 							return expect(result)
 								.to.have.property('errors')
 								.which.is.equal(receiveTransactionError);
@@ -1352,13 +1323,10 @@ describe('transport', () => {
 								.stub()
 								.rejects(receiveTransactionError);
 
-							result = await transportModule.postTransaction(query);
+							result = await transportModule.handleEventPostTransaction(query);
 						});
 
-						it('should resolve with object { success: false, message: err }', async () => {
-							expect(result)
-								.to.have.property('success')
-								.which.is.equal(false);
+						it('should resolve with object { message: err }', async () => {
 							return expect(result)
 								.to.have.property('errors')
 								.which.is.equal(receiveTransactionError);
@@ -1366,14 +1334,16 @@ describe('transport', () => {
 					});
 				});
 
-				describe('postTransactionsAnnouncement', () => {
+				describe('handleEventPostTransactions', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
 						});
 
 						it('should call transportModule.logger.debug', async () => {
-							await transportModule.postTransactionsAnnouncement(query);
+							await transportModule.handleEventPostTransactionsAnnouncement(
+								query,
+							);
 							expect(
 								transportModule.logger.debug.calledWith(
 									'Receiving transactions disabled by user through config.json',
@@ -1382,7 +1352,9 @@ describe('transport', () => {
 						});
 
 						it('should not call validator.validate; function should return before', async () => {
-							await transportModule.postTransactionsAnnouncement(query);
+							await transportModule.handleEventPostTransactionsAnnouncement(
+								query,
+							);
 							expect(validator.validate).to.be.not.called;
 						});
 					});
@@ -1404,7 +1376,9 @@ describe('transport', () => {
 									.stub()
 									.resolves({ data: { transactions: [transaction] } });
 								transportModule._receiveTransactions = sinonSandbox.stub();
-								await transportModule.postTransactionsAnnouncement(query);
+								await transportModule.handleEventPostTransactionsAnnouncement(
+									query,
+								);
 							});
 
 							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
@@ -1444,7 +1418,9 @@ describe('transport', () => {
 									.resolves([]);
 								transportModule.channel.invoke = sinonSandbox.stub();
 								transportModule._receiveTransactions = sinonSandbox.stub();
-								await transportModule.postTransactionsAnnouncement(query);
+								await transportModule.handleEventPostTransactionsAnnouncement(
+									query,
+								);
 							});
 
 							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
@@ -1471,7 +1447,7 @@ describe('transport', () => {
 							validator.validate.returns([validateErr]);
 
 							expect(
-								transportModule.postTransactionsAnnouncement(query),
+								transportModule.handleEventPostTransactionsAnnouncement(query),
 							).to.be.rejectedWith([validateErr]);
 						});
 					});
