@@ -176,8 +176,7 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 			...restOfProtocolPeer,
 		},
 		internalState: {
-			advertiseAddress:
-				advertiseAddress === false ? (advertiseAddress as boolean) : true,
+			advertiseAddress: (advertiseAddress as string) === 'false' ? false : true,
 		},
 	};
 

@@ -32,9 +32,8 @@ const p2pConfig = (wsPort: number, advertiseAddress: boolean = true) => ({
 		},
 	],
 	wsEngine: 'ws',
-	populatorInterval: POPULATOR_INTERVAL,
-	maxOutboundConnections: 20,
-	maxInboundConnections: 100,
+	maxOutboundConnections: 10,
+	maxInboundConnections: 10,
 	nodeInfo: {
 		...nodeInfoConstants,
 		wsPort,
