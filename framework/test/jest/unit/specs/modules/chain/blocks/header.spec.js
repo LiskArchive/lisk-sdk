@@ -15,12 +15,14 @@
 'use strict';
 
 // const { when } = require('jest-when');
-const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { newBlock, getBytes } = require('./utils.js');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
+const {
+	Blocks,
+	StateStore,
+} = require('../../../../../../../src/modules/chain/blocks');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 const { genesisAccount } = require('./default_account');
 const {
@@ -60,7 +62,6 @@ describe('blocks/header', () => {
 	let blocksInstance;
 	let storageStub;
 	let loggerStub;
-	let txStub;
 	let slots;
 	let block;
 	let blockBytes;
@@ -104,9 +105,6 @@ describe('blocks/header', () => {
 		});
 		exceptions = {
 			transactions: [],
-		};
-		txStub = {
-			batch: jest.fn(),
 		};
 
 		blocksInstance = new Blocks({
@@ -365,7 +363,6 @@ describe('blocks/header', () => {
 			it('should not throw error', async () => {
 				// Arrange
 				block = newBlock({ previousBlockId: '123' });
-				blockBytes = getBytes(block);
 				// Act & assert
 				expect.assertions(1);
 				try {
@@ -418,7 +415,6 @@ describe('blocks/header', () => {
 			it('should not throw error', async () => {
 				// Arrange
 				block = newBlock();
-				blockBytes = getBytes(block);
 				// Act & assert
 				let err;
 				try {
@@ -432,12 +428,231 @@ describe('blocks/header', () => {
 	});
 
 	describe('#verify', () => {
-		describe('when skip existing check is true and a transaction is inert', () => {});
-		describe('when skip existing check is true and a transaction is allowed', () => {});
-		describe('when skip existing check is true and a transaction is not verifiable', () => {});
-		describe('when skip existing check is true and transactions are valid', () => {});
-		describe('when skip existing check is false and block exists in database', () => {});
-		describe('when skip existing check is false and block does not exist in database but transaction does', () => {});
+		describe('when skip existing check is true and a transaction is inert', () => {
+			let validTx;
+			let txApplySpy;
+
+			beforeEach(async () => {
+				// Arrage
+				validTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				txApplySpy = jest.spyOn(validTx, 'apply');
+				blocksInstance.exceptions.inertTransactions = [validTx.id];
+				block = newBlock({ transactions: [validTx] });
+				// Act
+				const stateStore = new StateStore(storageStub);
+				await blocksInstance.verify(block, stateStore, {
+					skipExistingCheck: true,
+				});
+			});
+
+			it('should not call blocks entity', async () => {
+				expect(storageStub.entities.Block.isPersisted).not.toBeCalled();
+			});
+
+			it('should not call transactions entity', async () => {
+				expect(storageStub.entities.Transaction.get).not.toBeCalled();
+			});
+
+			it('should not call apply for the transaction', async () => {
+				expect(txApplySpy).not.toBeCalled();
+			});
+		});
+
+		describe('when skip existing check is true and a transaction is not allowed', () => {
+			let notAllowedTx;
+			let txApplySpy;
+			let originalClass;
+
+			beforeEach(async () => {
+				// Arrage
+				notAllowedTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				const transactionClass = blocksInstance._interfaceAdapter.transactionClassMap.get(
+					notAllowedTx.type,
+				);
+				originalClass = transactionClass;
+				Object.defineProperty(transactionClass.prototype, 'matcher', {
+					get: () => () => false,
+					configurable: true,
+				});
+				blocksInstance._interfaceAdapter.transactionClassMap.set(
+					notAllowedTx.type,
+					transactionClass,
+				);
+				txApplySpy = jest.spyOn(notAllowedTx, 'apply');
+				block = newBlock({ transactions: [notAllowedTx] });
+			});
+
+			afterEach(async () => {
+				Object.defineProperty(originalClass.prototype, 'matcher', {
+					get: () => () => true,
+					configurable: true,
+				});
+			});
+
+			it('should not call apply for the transaction and throw error', async () => {
+				// Act
+				const stateStore = new StateStore(storageStub);
+				try {
+					await blocksInstance.verify(block, stateStore, {
+						skipExistingCheck: true,
+					});
+				} catch (errors) {
+					expect(errors).not.toBeEmpty();
+					expect(errors[0].message).toContain('is currently not allowed');
+				}
+				expect(txApplySpy).not.toBeCalled();
+			});
+		});
+
+		describe('when skip existing check is true and a transaction is not verifiable', () => {
+			let invalidTx;
+
+			beforeEach(async () => {
+				// Arrage
+				storageStub.entities.Account.get.mockResolvedValue([
+					{ address: genesisAccount.address, balance: '0' },
+				]);
+				invalidTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				block = newBlock({ transactions: [invalidTx] });
+			});
+
+			it('should not call apply for the transaction and throw error', async () => {
+				// Act
+				const stateStore = new StateStore(storageStub);
+				expect.assertions(2);
+				try {
+					await blocksInstance.verify(block, stateStore, {
+						skipExistingCheck: true,
+					});
+				} catch (errors) {
+					expect(errors).not.toBeEmpty();
+					expect(errors[0].message).toContain(
+						'Account does not have enough LSK',
+					);
+				}
+			});
+		});
+
+		describe('when skip existing check is true and transactions are valid', () => {
+			let invalidTx;
+
+			beforeEach(async () => {
+				// Arrage
+				storageStub.entities.Account.get.mockResolvedValue([
+					{ address: genesisAccount.address, balance: '100000000000000' },
+				]);
+				invalidTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				block = newBlock({ transactions: [invalidTx] });
+			});
+
+			it('should not call apply for the transaction and throw error', async () => {
+				// Act
+				const stateStore = new StateStore(storageStub);
+				let err;
+				try {
+					await blocksInstance.verify(block, stateStore, {
+						skipExistingCheck: true,
+					});
+				} catch (errors) {
+					err = errors;
+				}
+				expect(err).toBeUndefined();
+			});
+		});
+
+		describe('when skip existing check is false and block exists in database', () => {
+			beforeEach(async () => {
+				// Arrage
+				storageStub.entities.Block.isPersisted.mockResolvedValue(true);
+				storageStub.entities.Account.get.mockResolvedValue([
+					{ address: genesisAccount.address, balance: '100000000000000' },
+				]);
+				const validTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				block = newBlock({ transactions: [validTx] });
+			});
+
+			it('should not call apply for the transaction and throw error', async () => {
+				// Act
+				const stateStore = new StateStore(storageStub);
+				expect.assertions(1);
+				try {
+					await blocksInstance.verify(block, stateStore, {
+						skipExistingCheck: false,
+					});
+				} catch (error) {
+					expect(error.message).toContain('already exists');
+				}
+			});
+		});
+
+		describe('when skip existing check is false and block does not exist in database but transaction does', () => {
+			beforeEach(async () => {
+				// Arrage
+				storageStub.entities.Account.get.mockResolvedValue([
+					{ address: genesisAccount.address, balance: '100000000000000' },
+				]);
+				const validTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				storageStub.entities.Transaction.get.mockResolvedValue([validTx]);
+				block = newBlock({ transactions: [validTx] });
+			});
+
+			it('should not call apply for the transaction and throw error', async () => {
+				// Act
+				const stateStore = new StateStore(storageStub);
+				expect.assertions(1);
+				try {
+					await blocksInstance.verify(block, stateStore, {
+						skipExistingCheck: false,
+					});
+				} catch (errors) {
+					expect(errors[0].message).toContain(
+						'Transaction is already confirmed',
+					);
+				}
+			});
+		});
 	});
 
 	describe('#apply', () => {
