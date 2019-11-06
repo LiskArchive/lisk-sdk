@@ -76,7 +76,7 @@ describe('Outbound peer shuffling', () => {
 		await wait(500);
 
 		p2pNodeList.forEach(p2p => {
-			let evictedConnections = collectedEventsCount.get(p2p.nodeInfo.wsPort);
+			const evictedConnections = collectedEventsCount.get(p2p.nodeInfo.wsPort);
 
 			expect(evictedConnections).to.be.gt(0);
 		});

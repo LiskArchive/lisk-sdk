@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
-import { wait } from 'utils/helpers';
 
 describe('P2P.requestFromPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -55,8 +54,6 @@ describe('P2P.requestFromPeer', () => {
 
 		const targetPeer = firstP2PNode.getConnectedPeers()[1];
 
-		await wait(300);
-
 		await firstP2PNode.requestFromPeer(
 			{
 				procedure: 'foo',
@@ -75,8 +72,6 @@ describe('P2P.requestFromPeer', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		const targetPeer = firstP2PNode.getConnectedPeers()[1];
-
-		await wait(300);
 
 		const response = await firstP2PNode.requestFromPeer(
 			{

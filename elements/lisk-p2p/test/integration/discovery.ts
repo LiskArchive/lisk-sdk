@@ -79,7 +79,7 @@ describe('Peer discovery', () => {
 
 	after(async () => {
 		await disconnectedNode.stop();
-		await wait(1000);
+		await wait(200);
 	});
 
 	it('should discover all peers and add them to the connectedPeers list within each node', async () => {
