@@ -204,7 +204,6 @@ describe('transport', () => {
 				syncing: sinonSandbox.stub().returns(false),
 			},
 			interfaceAdapters,
-			nonce: __testContext.config.app.nonce,
 			broadcasts: __testContext.config.modules.chain.broadcasts,
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,

@@ -2135,7 +2135,6 @@ definitions:
       - milestone
       - nethash
       - reward
-      - nonce
       - supply
       - build
       - commit
@@ -2191,14 +2190,6 @@ definitions:
         description: |
           The reward a delegate will get for forging a block.
           Depends on the slot height.
-      nonce:
-        type: string
-        example: cJmXK66xxz644d67
-        minLength: 16
-        maxLength: 16
-        description: |
-          Unique identifier of the node.
-          Random string.
       fees:
         $ref: '#/definitions/Fees'
 

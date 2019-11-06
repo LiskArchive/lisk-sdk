@@ -41,7 +41,6 @@ describe('Controller Class', () => {
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
 		nethash: 'test broadhash',
-		nonce: 'test nonce',
 	};
 	const systemDirs = {
 		temp: `${config.tempPath}/${appLabel}/`,

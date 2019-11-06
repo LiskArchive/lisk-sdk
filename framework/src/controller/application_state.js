@@ -33,7 +33,6 @@ const __private = {
  * - height
  * - nethash
  * - prevotedConfirmedUptoHeight
- * - nonce
  *
  * @class
  * @requires os
@@ -50,7 +49,6 @@ class ApplicationState {
 			minVersion,
 			protocolVersion,
 			nethash,
-			nonce,
 		},
 		logger,
 	}) {
@@ -66,7 +64,6 @@ class ApplicationState {
 			blockVersion: 0,
 			prevotedConfirmedUptoHeight: 0,
 			nethash,
-			nonce,
 		});
 	}
 

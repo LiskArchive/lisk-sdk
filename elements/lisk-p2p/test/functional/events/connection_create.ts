@@ -110,14 +110,7 @@ describe(`Connection Create`, () => {
 
 		it(`should update peerBook with connected peer`, async () => {
 			const firstNode = p2pNodeList[0];
-			const secondNode = p2pNodeList[1];
-
-			const connectedPeer = firstNode.getConnectedPeers()[0];
 			const disconnectedPeers = firstNode.getDisconnectedPeers();
-
-			expect(connectedPeer)
-				.to.have.property('nonce')
-				.which.is.equal(secondNode.nodeInfo.nonce);
 
 			expect(disconnectedPeers).to.be.empty;
 		});
