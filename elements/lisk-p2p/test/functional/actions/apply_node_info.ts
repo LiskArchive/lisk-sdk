@@ -46,6 +46,7 @@ describe('P2P.applyNodeInfo', () => {
 			wsPort: firstP2PNode.nodeInfo.wsPort,
 			height: 10,
 			options: firstP2PNode.nodeInfo.options,
+			nonce: 'nonce',
 		});
 
 		await wait(200);

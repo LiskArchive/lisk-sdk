@@ -160,7 +160,6 @@ NodeController.getConstants = async (context, next) => {
 				dappDeposit: FEES.DAPP_DEPOSIT.toString(),
 			},
 			nethash: library.config.nethash,
-			nonce: library.config.nonce,
 			milestone: milestone.toString(),
 			reward: reward.toString(),
 			supply: supply.toString(),

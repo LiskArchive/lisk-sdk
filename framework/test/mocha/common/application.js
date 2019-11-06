@@ -198,7 +198,6 @@ const initStepsForTest = {
 			blocksModule: modules.blocks,
 			loaderModule: modules.loader,
 			interfaceAdapters: modules.interfaceAdapters,
-			nonce: __testContext.config.app.nonce,
 			forgingForce: __testContext.config.modules.chain.forging.force,
 			broadcasts: __testContext.config.modules.chain.broadcasts,
 			maxSharedTransactions:

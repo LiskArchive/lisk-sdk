@@ -24,7 +24,6 @@ const {
 	transactionInterface,
 } = require('@liskhq/lisk-transactions');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
-const randomstring = require('randomstring');
 const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
@@ -395,7 +394,6 @@ class Application {
 	_compileAndValidateConfigurations() {
 		const modules = this.getModules();
 
-		this.config.app.nonce = randomstring.generate(16);
 		this.config.app.nethash = this.genesisBlock.payloadHash;
 
 		const appConfigToShareWithModules = {
@@ -403,7 +401,6 @@ class Application {
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
 			nethash: this.config.app.nethash,
-			nonce: this.config.app.nonce,
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
 			lastCommitId: this.config.app.lastCommitId,
@@ -426,7 +423,6 @@ class Application {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
-			nonce: this.config.app.nonce,
 			nethash: this.config.app.nethash,
 			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,

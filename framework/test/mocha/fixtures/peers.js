@@ -14,7 +14,6 @@
 
 'use strict';
 
-const randomstring = require('randomstring');
 const faker = require('faker');
 const stampit = require('stampit');
 
@@ -28,10 +27,6 @@ const NormalizedPeer = stampit({
 		state: 2,
 		version: '0.0.0',
 		protocolVersion: '0.0',
-		nonce: '',
-	},
-	init({ nonce }) {
-		this.nonce = nonce || randomstring.generate(16);
 	},
 });
 
@@ -44,11 +39,10 @@ const Peer = stampit({
 		wsPort: null,
 		httpPort: null,
 		state: null,
-		nonce: '',
 		version: '',
 		protocolVersion: '',
 	},
-	init({ nonce, state }) {
+	init({ state }) {
 		this.dappid = null;
 		this.height = parseInt(_.sample([50, 70, 90, 110]), 10);
 		this.ip = faker.internet.ip();
@@ -57,7 +51,6 @@ const Peer = stampit({
 		this.httpPort = `4${faker.random.number({ max: 999, min: 100 })}`;
 		this.version = faker.system.semver();
 		this.state = state || 2; // Connected Peer
-		this.nonce = nonce || randomstring.generate(16);
 	},
 });
 
@@ -65,7 +58,6 @@ const DBPeer = stampit(Peer, {
 	init() {
 		delete this.dappid;
 		delete this.httpPort;
-		delete this.nonce;
 		this.wsPort = parseInt(this.wsPort, 10);
 	},
 });

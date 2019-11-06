@@ -36,6 +36,7 @@ describe('p2p', () => {
 				os: 'darwin',
 				height: 0,
 				options: {},
+				nonce: 'nonce',
 			},
 		});
 

@@ -15,7 +15,6 @@
 'use strict';
 
 const express = require('express');
-const randomstring = require('randomstring');
 const async = require('async');
 const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
@@ -52,7 +51,6 @@ const modulesLoader = new function() {
 				this.argsMessages = [];
 			},
 		},
-		nonce: randomstring.generate(16),
 		sequence: new Sequence({
 			onWarning(current) {
 				this.logger.warn('Main queue', current);
@@ -71,7 +69,6 @@ const modulesLoader = new function() {
 			httpPort: __testContext.httpPort,
 			minVersion: __testContext.minVersion,
 			protocolVersion: __testContext.protocolVersion,
-			nonce: __testContext.nonce,
 		},
 	};
 

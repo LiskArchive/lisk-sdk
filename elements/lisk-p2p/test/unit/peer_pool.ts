@@ -109,6 +109,7 @@ describe('peerPool', () => {
 			nethash: 'abc',
 			wsPort: 5000,
 			height: 1000,
+			nonce: 'nonce',
 		};
 		requestPacket = { procedure: 'abc', data: 'abc' };
 		messagePacket = { ...requestPacket, event: 'abc' };

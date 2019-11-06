@@ -79,6 +79,7 @@ export interface P2PNodeInfo extends P2PSharedState {
 	readonly nethash: string;
 	readonly wsPort: number;
 	readonly advertiseAddress?: boolean;
+	readonly nonce: string;
 }
 
 // This is a representation of the inbound peer object according to the current protocol.
@@ -90,7 +91,6 @@ export interface ProtocolPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
 	readonly height?: number;
-	readonly nonce?: string;
 	readonly os?: string;
 	readonly version?: string;
 	readonly protocolVersion?: string;

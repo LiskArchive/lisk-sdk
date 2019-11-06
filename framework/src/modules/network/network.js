@@ -34,7 +34,6 @@ const {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
 } = require('@liskhq/lisk-p2p');
-const randomstring = require('randomstring');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
 const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
@@ -97,13 +96,9 @@ module.exports = class Network {
 
 		this.secret = getRandomBytes(4).readUInt32BE(0);
 
-		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
-		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
-		const moduleNonce = randomstring.generate(16);
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
 			state: 2, // TODO: Delete state property
-			nonce: moduleNonce,
 			wsPort: this.options.wsPort,
 		});
 
