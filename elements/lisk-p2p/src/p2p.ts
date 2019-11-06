@@ -182,12 +182,12 @@ const createPeerPoolConfig = (
 	peerLists,
 });
 
-const filteradvertiseAddressPeer = (peer: P2PPeerInfo) => {
-	if (peer.internalState && !peer.internalState.advertiseAddress) {
-		return false;
+const filterAdvertiseAddressPeer = (peer: P2PPeerInfo) => {
+	if (peer.internalState && peer.internalState.advertiseAddress === false) {
+		return true;
 	}
 
-	return true;
+	return false;
 };
 
 export class P2P extends EventEmitter {
@@ -569,7 +569,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
-			.filter(filteradvertiseAddressPeer)
+			.filter(filterAdvertiseAddressPeer)
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
@@ -604,7 +604,7 @@ export class P2P extends EventEmitter {
 		});
 
 		// Only share the shared state to the user
-		return disconnectedPeers.filter(filteradvertiseAddressPeer).map(peer => ({
+		return disconnectedPeers.filter(filterAdvertiseAddressPeer).map(peer => ({
 			...peer.sharedState,
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
@@ -917,7 +917,7 @@ export class P2P extends EventEmitter {
 
 		const selectedPeers = shuffle(knownPeers)
 			.slice(0, randomPeerCount)
-			.filter(filteradvertiseAddressPeer)
+			.filter(filterAdvertiseAddressPeer)
 			.map(
 				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
 			);
