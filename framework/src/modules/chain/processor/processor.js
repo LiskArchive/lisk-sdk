@@ -24,6 +24,7 @@ const {
 	FORK_STATUS_DISCARD,
 } = require('../blocks');
 const { Sequence } = require('../utils/sequence');
+const StateStore = require('../state_store');
 
 const forkStatusList = [
 	FORK_STATUS_IDENTICAL_BLOCK,
@@ -144,10 +145,6 @@ class Processor {
 					{ id: lastBlock.id, height: lastBlock.height },
 					'Received tie breaking block',
 				);
-				await blockProcessor.validateNew.run({
-					block,
-					lastBlock,
-				});
 				await blockProcessor.validate.run({
 					block,
 					lastBlock,
@@ -176,11 +173,6 @@ class Processor {
 				{ id: block.id, height: block.height },
 				'Processing valid block',
 			);
-			// Process block as it's valid: FORK_STATUS_VALID_BLOCK
-			await blockProcessor.validateNew.run({
-				block,
-				lastBlock,
-			});
 			await blockProcessor.validate.run({
 				block,
 				lastBlock,
@@ -287,10 +279,12 @@ class Processor {
 		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
 	) {
 		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
+			const stateStore = new StateStore(this.storage, { tx });
 			await processor.verify.run({
 				block,
 				lastBlock,
 				skipExistingCheck: skipSave,
+				stateStore,
 				tx,
 			});
 
@@ -302,7 +296,8 @@ class Processor {
 
 			if (!skipSave) {
 				const blockJSON = await this.serialize(block);
-				await this.blocksModule.save({ blockJSON, tx });
+				// TODO: After moving everything to state store, save should get the state store and finalize the state store
+				await this.blocksModule.save(blockJSON, tx);
 			}
 
 			// Apply should always be executed after save as it performs database calculations
@@ -311,6 +306,7 @@ class Processor {
 				block,
 				lastBlock,
 				skipExistingCheck: skipSave,
+				stateStore,
 				tx,
 			});
 
@@ -337,6 +333,7 @@ class Processor {
 		return this.storage.entities.Block.begin(
 			'Chain:processGenesisBlock',
 			async tx => {
+				const stateStore = new StateStore(this.storage, { tx });
 				// Check if genesis block ID already exists in the database
 				const isPersisted = await this.blocksModule.exists(block);
 
@@ -353,15 +350,14 @@ class Processor {
 
 				await processor.applyGenesis.run({
 					block,
+					stateStore,
 					tx,
 				});
 
 				if (!skipSave) {
 					const blockJSON = await this.serialize(block);
-					await this.blocksModule.save({
-						blockJSON,
-						tx,
-					});
+					// TODO: After moving everything to state store, save should get the state store and finalize the state store
+					await this.blocksModule.save(blockJSON, tx);
 				}
 
 				return block;
@@ -371,19 +367,14 @@ class Processor {
 
 	async _deleteBlock(block, processor, saveTempBlock = false) {
 		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
+			const stateStore = new StateStore(this.storage, { tx });
 			await processor.undo.run({
 				block,
+				stateStore,
 				tx,
 			});
 			const blockJSON = await this.serialize(block);
-			await this.blocksModule.remove(
-				{
-					block,
-					blockJSON,
-					tx,
-				},
-				saveTempBlock,
-			);
+			await this.blocksModule.remove(block, blockJSON, tx, { saveTempBlock });
 			this.channel.publish('chain:processor:deleteBlock', {
 				block: cloneDeep(block),
 			});
