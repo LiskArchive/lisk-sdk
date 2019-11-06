@@ -18,7 +18,7 @@ import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
-describe('Penalty sending malformed peerInfo', () => {
+describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	const collectedEvents = new Map();
 

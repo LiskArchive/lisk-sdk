@@ -96,8 +96,8 @@ export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
 
 // Peer info constants
-export const INVALID_PEER_INFO_LIST_REASON = 'PeerInfo list had invalid value';
-export const PEER_INFO_LIST_TOO_LONG_REASON = 'PeerInfo list was too long';
+export const INVALID_PEER_INFO_LIST_REASON = 'PeerInfo list has invalid value';
+export const PEER_INFO_LIST_TOO_LONG_REASON = 'PeerInfo list is too long';
 export enum ConnectionKind {
 	OUTBOUND = 'outbound',
 	INBOUND = 'inbound',
