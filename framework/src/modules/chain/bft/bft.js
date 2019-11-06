@@ -118,7 +118,8 @@ class BFT extends EventEmitter {
 	deserialize(blockJSON) {
 		return {
 			...blockJSON,
-			maxHeightPreviouslyForged: blockJSON.maxHeightPreviouslyForged || 0,
+			maxHeightPreviouslyForged:
+				blockJSON.maxHeightPreviouslyForged || blockJSON.height,
 			prevotedConfirmedUptoHeight: blockJSON.prevotedConfirmedUptoHeight || 0,
 		};
 	}
