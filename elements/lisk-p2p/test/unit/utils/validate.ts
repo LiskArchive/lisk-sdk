@@ -64,6 +64,9 @@ describe('utils/validate', () => {
 							protocolVersion: '1.1',
 							httpPort: 2000,
 						},
+						internalState: {
+							advertiseAddress: true,
+						},
 					});
 			});
 
@@ -80,6 +83,9 @@ describe('utils/validate', () => {
 							version: '3.4.5-alpha.9',
 							protocolVersion: '1.1',
 							httpPort: 2000,
+						},
+						internalState: {
+							advertiseAddress: true,
 						},
 					});
 			});

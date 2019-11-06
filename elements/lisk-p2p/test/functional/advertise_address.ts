@@ -22,27 +22,28 @@ import {
 } from '../utils/network_setup';
 import { wait } from '../utils/helpers';
 
-const p2pConfig = (wsPort: number, advertiseAddress: boolean = true) => ({
-	connectTimeout: 100,
-	ackTimeout: 200,
-	seedPeers: [
-		{
-			ipAddress: '127.0.0.1',
-			wsPort: 5003,
-		},
-	],
-	wsEngine: 'ws',
-	maxOutboundConnections: 10,
-	maxInboundConnections: 10,
-	nodeInfo: {
-		...nodeInfoConstants,
-		wsPort,
-		advertiseAddress,
-	},
-});
-
 describe('Advertise Address', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
+
+	const p2pConfig = (wsPort: number, advertiseAddress: boolean = true) => ({
+		connectTimeout: 100,
+		ackTimeout: 200,
+		seedPeers: [
+			{
+				ipAddress: '127.0.0.1',
+				wsPort: 5003,
+			},
+		],
+		wsEngine: 'ws',
+		populatorInterval: POPULATOR_INTERVAL,
+		maxOutboundConnections: 20,
+		maxInboundConnections: 100,
+		nodeInfo: {
+			...nodeInfoConstants,
+			wsPort,
+			advertiseAddress,
+		},
+	});
 
 	beforeEach(async () => {
 		const customConfig = () => ({

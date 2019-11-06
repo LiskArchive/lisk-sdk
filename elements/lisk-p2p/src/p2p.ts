@@ -185,7 +185,7 @@ const createPeerPoolConfig = (
 });
 
 const filterAdvertiseAddressPeer = (peer: P2PPeerInfo) => {
-	if (peer.internalState && !peer.internalState.advertiseAddress) {
+	if (peer.internalState && peer.internalState.advertiseAddress === false) {
 		return false;
 	}
 
