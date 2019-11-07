@@ -429,7 +429,8 @@ export class PeerPool extends EventEmitter {
 		});
 
 		[...peersToConnect, ...disconnectedFixedPeers].forEach(
-			(peerInfo: P2PPeerInfo) => this._addOutboundPeer(peerInfo),
+			(peerInfo: P2PPeerInfo) =>
+				this._addOutboundPeer(peerInfo, this._nodeInfo as P2PNodeInfo),
 		);
 	}
 
@@ -456,7 +457,10 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	private _addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
+	private _addOutboundPeer(
+		peerInfo: P2PPeerInfo,
+		nodeInfo: P2PNodeInfo,
+	): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {
 			return false;
 		}
@@ -471,7 +475,13 @@ export class PeerPool extends EventEmitter {
 			return false;
 		}
 
-		const peer = new OutboundPeer(peerInfo, { ...this._peerConfig });
+		/*
+			Inject our nodeInfo for validation during handshake on outbound peer connection
+		*/
+		const peer = new OutboundPeer(peerInfo, {
+			...this._peerConfig,
+			serverNodeInfo: nodeInfo,
+		});
 
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);

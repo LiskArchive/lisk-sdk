@@ -57,6 +57,7 @@ import {
 import {
 	getNetgroup,
 	sanitizeIncomingPeerInfo,
+	validatePeerCompatibility,
 	validatePeerInfo,
 	validatePeerInfoList,
 	validateProtocolMessage,
@@ -102,6 +103,7 @@ export interface PeerConfig {
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
+	readonly serverNodeInfo?: P2PNodeInfo;
 }
 
 export class Peer extends EventEmitter {
@@ -127,9 +129,11 @@ export class Peer extends EventEmitter {
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
+	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
+
 	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
@@ -163,7 +167,7 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
-
+		this._serverNodeInfo = peerConfig.serverNodeInfo;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
 			packet: unknown,
@@ -427,7 +431,7 @@ export class Peer extends EventEmitter {
 		return discoveredPeerInfoList;
 	}
 
-	public async fetchStatus(): Promise<P2PPeerInfo> {
+	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {
 		// tslint:disable-next-line:no-let
 		let response: P2PResponsePacket;
 		try {
@@ -453,7 +457,7 @@ export class Peer extends EventEmitter {
 			}
 
 			throw new RPCResponseError(
-				'Failed to update peer info of peer as part of fetch operation',
+				'Failed to update peer info of peer due to validation of peer compatibility.',
 				`${this.ipAddress}:${this.wsPort}`,
 			);
 		}
@@ -510,7 +514,6 @@ export class Peer extends EventEmitter {
 			this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
-
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
 		// Sanitize and validate PeerInfo
 		const newPeerInfo = validatePeerInfo(
