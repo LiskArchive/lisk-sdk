@@ -98,6 +98,7 @@ import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
 	sanitizeOutgoingPeerInfo,
+	sanitizeOutgoingPeerListSize,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -882,9 +883,10 @@ export class P2P extends EventEmitter {
 		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
 			? this._config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
-		const maxPeerInfoSize = this._config.maxPeerInfoSize
-			? this._config.maxPeerInfoSize
-			: DEFAULT_MAX_PEER_INFO_SIZE;
+		const maxPeerInfoSize = this._peerPool.peerConfig.maxPeerInfoSize;
+		const wsMaxPayload = this._config.wsMaxPayload
+			? this._config.wsMaxPayload
+			: DEFAULT_WS_MAX_PAYLOAD;
 
 		const peerstWithSharedState = this._peerBook.allPeerstWithSharedState;
 
@@ -922,6 +924,8 @@ export class P2P extends EventEmitter {
 				this._peerBook.removePeer(peer);
 			}
 		});
+
+		sanitizeOutgoingPeerListSize(validatedPeerList, wsMaxPayload);
 
 		const peerInfoList = {
 			success: true,
