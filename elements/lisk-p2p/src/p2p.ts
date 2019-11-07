@@ -184,15 +184,6 @@ const createPeerPoolConfig = (
 	peerLists,
 });
 
-const filterAdvertiseAddressPeer = (peer: P2PPeerInfo) => {
-	// tslint:disable-next-line no-boolean-literal-compare
-	if (peer.internalState && peer.internalState.advertiseAddress === false) {
-		return false;
-	}
-
-	return true;
-};
-
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _sanitizedPeerLists: PeerLists;
@@ -575,7 +566,9 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
-			.filter(filterAdvertiseAddressPeer)
+			.filter(
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+			)
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
@@ -600,12 +593,16 @@ export class P2P extends EventEmitter {
 		});
 
 		// Only share the shared state to the user and remove private peers
-		return disconnectedPeers.filter(filterAdvertiseAddressPeer).map(peer => ({
-			...peer.sharedState,
-			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
-			peerId: peer.peerId,
-		}));
+		return disconnectedPeers
+			.filter(
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+			)
+			.map(peer => ({
+				...peer.sharedState,
+				ipAddress: peer.ipAddress,
+				wsPort: peer.wsPort,
+				peerId: peer.peerId,
+			}));
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -913,7 +910,9 @@ export class P2P extends EventEmitter {
 
 		const selectedPeers = shuffle(knownPeers)
 			.slice(0, randomPeerCount)
-			.filter(filterAdvertiseAddressPeer)
+			.filter(
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+			)
 			.map(
 				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
 			);
