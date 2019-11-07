@@ -26,7 +26,6 @@ const {
 	registeredTransactions,
 } = require('../../../../../utils/registered_transactions');
 
-jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('events');
 
 // TODO: Share fixture generation b/w mocha and jest
