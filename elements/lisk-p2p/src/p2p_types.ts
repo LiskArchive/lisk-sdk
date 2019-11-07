@@ -134,7 +134,6 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
-	readonly advertiseAddress?: boolean;
 }
 
 export interface P2PPeerSelectionForSendInput {
