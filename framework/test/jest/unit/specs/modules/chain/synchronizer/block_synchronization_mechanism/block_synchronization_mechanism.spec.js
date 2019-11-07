@@ -44,7 +44,7 @@ const { newBlock } = require('../../../chain/blocks/utils');
 const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block');
 const peersList = require('./peers');
 
-const PEER_STATE_CONNECTED = 2;
+const PEER_STATE_CONNECTED = 3;
 
 const ChannelMock = jest.genMockFromModule(
 	'../../../../../../../../src/controller/channels/in_memory_channel',
