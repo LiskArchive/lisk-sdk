@@ -77,6 +77,14 @@ module.exports = {
 			type: 'string',
 			format: 'publicKey',
 		},
+		prevotedConfirmedUptoHeight: {
+			type: 'integer',
+			minimum: 0,
+		},
+		maxHeightPreviouslyForged: {
+			type: 'integer',
+			minimum: 0,
+		},
 		transactions: {
 			type: 'array',
 			items: {
