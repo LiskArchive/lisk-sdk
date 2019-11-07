@@ -898,7 +898,7 @@ describe('block_synchronization_mechanism', () => {
 
 					expect(loggerMock.error).toHaveBeenCalledWith(
 						{ err: processingError },
-						'Error while processing block',
+						'Block processing failed',
 					);
 
 					expect(loggerMock.debug).toHaveBeenCalledWith(
@@ -1005,7 +1005,7 @@ describe('block_synchronization_mechanism', () => {
 
 					expect(loggerMock.error).toHaveBeenCalledWith(
 						{ err: processingError },
-						'Error while processing block',
+						'Block processing failed',
 					);
 
 					expect(loggerMock.debug).toHaveBeenCalledWith(

@@ -403,13 +403,13 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			try {
 				// Request the highest common block with the previously computed list
 				// to the given peer
-				data = await this.channel.invoke('network:requestFromPeer', {
+				data = (await this.channel.invoke('network:requestFromPeer', {
 					procedure: 'getHighestCommonBlock',
 					peerId,
 					data: {
 						ids: blockIds,
 					},
-				}).data;
+				})).data;
 			} catch (e) {
 				numberOfRequests += 1;
 				// eslint-disable-next-line no-continue
