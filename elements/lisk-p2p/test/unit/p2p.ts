@@ -37,6 +37,7 @@ describe('p2p', () => {
 				height: 0,
 				options: {},
 				nonce: 'nonce',
+				advertiseAddress: true,
 			},
 		});
 

@@ -47,6 +47,7 @@ describe('P2P.applyNodeInfo', () => {
 			height: 10,
 			options: firstP2PNode.nodeInfo.options,
 			nonce: 'nonce',
+			advertiseAddress: true,
 		});
 
 		await wait(200);

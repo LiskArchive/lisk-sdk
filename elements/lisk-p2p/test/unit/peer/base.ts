@@ -80,6 +80,7 @@ describe('peer/base', () => {
 			wsPort: 6001,
 			height: 100,
 			nonce: 'nonce',
+			advertiseAddress: true,
 		};
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerId(

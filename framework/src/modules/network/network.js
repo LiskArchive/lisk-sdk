@@ -100,6 +100,7 @@ module.exports = class Network {
 			...nodeInfo,
 			state: 2, // TODO: Delete state property
 			wsPort: this.options.wsPort,
+			advertiseAddress: this.options.advertiseAddress,
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(

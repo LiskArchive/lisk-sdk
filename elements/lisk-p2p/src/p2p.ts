@@ -548,6 +548,7 @@ export class P2P extends EventEmitter {
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = {
 			...nodeInfo,
+			nonce: this.nodeInfo.nonce,
 		};
 		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}

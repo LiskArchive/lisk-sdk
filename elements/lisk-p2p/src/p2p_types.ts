@@ -78,7 +78,7 @@ export interface P2PNodeInfo extends P2PSharedState {
 	readonly os: string;
 	readonly nethash: string;
 	readonly wsPort: number;
-	readonly advertiseAddress?: boolean;
+	readonly advertiseAddress: boolean;
 	readonly nonce: string;
 }
 
