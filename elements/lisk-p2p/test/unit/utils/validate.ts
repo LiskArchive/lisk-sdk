@@ -98,6 +98,7 @@ describe('utils/validate', () => {
 			});
 
 			it('should throw if PeerInfo is too big', async () => {
+				const maximumPeerInfoSizeInBytes = 10;
 				const peer: ProtocolPeerInfo = {
 					ip: '12.23.54.3',
 					ipAddress: '12.23.54.3',
@@ -109,8 +110,10 @@ describe('utils/validate', () => {
 					httpPort: 2000,
 				};
 
-				expect(validatePeerInfo.bind(null, peer, 10)).to.throw(
-					'PeerInfo was larger than the maximum allowed 10 bytes',
+				expect(
+					validatePeerInfo.bind(null, peer, maximumPeerInfoSizeInBytes),
+				).to.throw(
+					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
 			});
 
@@ -147,37 +150,6 @@ describe('utils/validate', () => {
 	});
 
 	describe('#validateNodeInfo', () => {
-		describe('when values are valid', () => {
-			const NodeInfo: P2PNodeInfo = {
-				os: '12.23.54.3',
-				nethash: '12.23.54.3',
-				wsPort: 5393,
-				version: '1.1.2',
-				protocolVersion: '1.1',
-				options: {
-					foo: 'bar',
-					fizz: 'buzz',
-				},
-				nonce: 'nonce678',
-			};
-
-			it('should return NodeInfo', async () => {
-				expect(validateNodeInfo(NodeInfo, DEFAULT_MAX_PEER_INFO_SIZE))
-					.to.be.an('object')
-					.eql({
-						os: '12.23.54.3',
-						nethash: '12.23.54.3',
-						nonce: 'nonce678',
-						wsPort: 5393,
-						version: '1.1.2',
-						protocolVersion: '1.1',
-						options: {
-							foo: 'bar',
-							fizz: 'buzz',
-						},
-					});
-			});
-		});
 		describe('when NodeInfo has invalid version', () => {
 			const NodeInfo: P2PNodeInfo = {
 				os: '12.23.54.3',

@@ -137,7 +137,7 @@ export const validatePeerInfo = (
 	const byteSize = getByteSize(rawPeerInfo);
 	if (byteSize > maxByteSize) {
 		throw new InvalidPeerInfoError(
-			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+			`PeerInfo is larger than the maximum allowed size ${maxByteSize} bytes`,
 		);
 	}
 
@@ -195,7 +195,7 @@ export const validatePeerInfo = (
 export const validateNodeInfo = (
 	nodeInfo: P2PNodeInfo,
 	maxByteSize: number,
-): P2PNodeInfo => {
+): void => {
 	const byteSize = getByteSize(nodeInfo);
 
 	if (byteSize > maxByteSize) {
@@ -210,7 +210,7 @@ export const validateNodeInfo = (
 		);
 	}
 
-	return nodeInfo;
+	return;
 };
 
 export const validatePeersInfoList = (

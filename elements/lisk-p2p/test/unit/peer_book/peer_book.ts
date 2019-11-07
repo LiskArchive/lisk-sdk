@@ -128,7 +128,7 @@ describe('peerBook', () => {
 		});
 	});
 
-	describe('#allFetchedPeers', () => {
+	describe('#allPeerstWithSharedState', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerBook = new PeerBook(peerBookConfig);
@@ -152,7 +152,7 @@ describe('peerBook', () => {
 				sharedState: undefined,
 			});
 
-			expect(peerBook.allFetchedPeers).to.be.eql([
+			expect(peerBook.allPeerstWithSharedState).to.be.eql([
 				samplePeers[1],
 				samplePeers[0],
 			]);

@@ -91,7 +91,7 @@ describe('Peers base list', () => {
 		});
 	});
 
-	describe('#fetchedPeerList', () => {
+	describe('#peerListWithSharedState', () => {
 		let fetchedPeersArray: ReadonlyArray<P2PPeerInfo>;
 		let invalidPeerInfos: Array<P2PPeerInfo>;
 
@@ -116,7 +116,7 @@ describe('Peers base list', () => {
 
 			invalidPeerInfos.forEach(invalidPeer => peerListObj.addPeer(invalidPeer));
 
-			fetchedPeersArray = peerListObj.fetchedPeerList as ReadonlyArray<
+			fetchedPeersArray = peerListObj.peerListWithSharedState as ReadonlyArray<
 				P2PPeerInfo
 			>;
 		});

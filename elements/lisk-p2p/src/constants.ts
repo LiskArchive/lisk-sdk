@@ -54,7 +54,7 @@ export const DEFAULT_PRODUCTIVITY = {
 	lastResponded: 0,
 };
 
-// Penality constatns
+// Penalty constants
 export const INVALID_PEER_LIST_PENALTY = 100;
 export const INVALID_PEER_INFO_PENALTY = 100;
 

@@ -549,13 +549,10 @@ export class P2P extends EventEmitter {
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		const validatedNodeInfo = validateNodeInfo(
-			nodeInfo,
-			this._peerPool.peerConfig.maxPeerInfoSize,
-		);
+		validateNodeInfo(nodeInfo, this._peerPool.peerConfig.maxPeerInfoSize);
 
 		this._nodeInfo = {
-			...validatedNodeInfo,
+			...nodeInfo,
 		};
 
 		this._peerPool.applyNodeInfo(this._nodeInfo);
@@ -889,22 +886,28 @@ export class P2P extends EventEmitter {
 			? this._config.maxPeerInfoSize
 			: DEFAULT_MAX_PEER_INFO_SIZE;
 
-		const knownFetchedPeers = this._peerBook.allFetchedPeers;
+		const peerstWithSharedState = this._peerBook.allPeerstWithSharedState;
 
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
-			Math.min(peerDiscoveryResponseLength, knownFetchedPeers.length * 0.25),
+			Math.min(
+				peerDiscoveryResponseLength,
+				peerstWithSharedState.length * 0.25,
+			),
 		);
 		const max = Math.floor(
-			Math.min(peerDiscoveryResponseLength, knownFetchedPeers.length * 0.5),
+			Math.min(peerDiscoveryResponseLength, peerstWithSharedState.length * 0.5),
 		);
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
 		const randomPeerCount = Math.max(
 			random,
-			Math.min(minimumPeerDiscoveryThreshold, knownFetchedPeers.length),
+			Math.min(minimumPeerDiscoveryThreshold, peerstWithSharedState.length),
 		);
 
-		const selectedPeers = shuffle(knownFetchedPeers).slice(0, randomPeerCount);
+		const selectedPeers = shuffle(peerstWithSharedState).slice(
+			0,
+			randomPeerCount,
+		);
 
 		const validatedPeerList: ProtocolPeerInfo[] = [];
 

@@ -71,7 +71,7 @@ export class BaseList {
 	}
 
 	// Peers which got sharedState
-	public get fetchedPeerList(): ReadonlyArray<P2PPeerInfo> {
+	public get peerListWithSharedState(): ReadonlyArray<P2PPeerInfo> {
 		const peerListMap: P2PPeerInfo[] = [];
 
 		for (const peerMap of [...this.peerMap.values()]) {
