@@ -15,7 +15,7 @@
 'use strict';
 
 // const { when } = require('jest-when');
-const { transfer } = require('@liskhq/lisk-transactions');
+const { transfer, castVotes } = require('@liskhq/lisk-transactions');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { newBlock, getBytes } = require('./utils.js');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
@@ -72,6 +72,7 @@ describe('blocks/header', () => {
 				Account: {
 					get: jest.fn(),
 					update: jest.fn(),
+					upsert: jest.fn(),
 				},
 				Block: {
 					begin: jest.fn(),
@@ -657,67 +658,357 @@ describe('blocks/header', () => {
 
 	describe('#apply', () => {
 		describe('when block does not contain transactions', () => {
-			it('should not call account update', async () => {});
+			let stateStore;
 
-			it('should set the block to the last block', async () => {});
+			beforeEach(async () => {
+				stateStore = new StateStore(storageStub);
+				// Arrage
+				block = newBlock();
+				await blocksInstance.apply(block, stateStore);
+			});
+
+			it('should not call account update', async () => {
+				expect(storageStub.entities.Account.upsert).not.toBeCalled();
+			});
+
+			it('should set the block to the last block', async () => {
+				expect(blocksInstance.lastBlock).toStrictEqual(block);
+			});
 		});
 
 		describe('when transaction is inert', () => {
-			it('should not call apply for the transaction', async () => {});
+			let validTx;
+			let stateStore;
+			let txApplySpy;
 
-			it('should set the block to the last block', async () => {});
+			beforeEach(async () => {
+				// Arrage
+				validTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				txApplySpy = jest.spyOn(validTx, 'apply');
+				blocksInstance.exceptions.inertTransactions = [validTx.id];
+				block = newBlock({ transactions: [validTx] });
+				// Act
+				stateStore = new StateStore(storageStub);
+				await blocksInstance.apply(block, stateStore);
+			});
+
+			it('should not call apply for the transaction', async () => {
+				expect(txApplySpy).not.toBeCalled();
+			});
+
+			it('should set the block to the last block', async () => {
+				expect(blocksInstance.lastBlock).toStrictEqual(block);
+			});
 		});
 
 		describe('when transaction is not applicable', () => {
-			it('should throw error', async () => {});
+			let validTx;
+			let stateStore;
 
-			it('should not set the block to the last block', async () => {});
+			beforeEach(async () => {
+				// Arrage
+				storageStub.entities.Account.get.mockResolvedValue([
+					{ address: genesisAccount.address, balance: '0' },
+				]);
+				validTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				block = newBlock({ transactions: [validTx] });
+				// Act
+				stateStore = new StateStore(storageStub);
+			});
+
+			it('should throw error', async () => {
+				expect.assertions(2);
+				try {
+					await blocksInstance.apply(block, stateStore);
+				} catch (errors) {
+					expect(errors).not.toBeEmpty();
+					expect(errors[0].message).toContain(
+						'Account does not have enough LSK',
+					);
+				}
+			});
+
+			it('should not set the block to the last block', async () => {
+				expect(blocksInstance.lastBlock).toStrictEqual(genesisBlock);
+			});
 		});
 
 		describe('when transactions are all valid', () => {
-			it('should call apply for the transaction', async () => {});
+			let stateStore;
+			let delegate1;
+			let delegate2;
+			let validTxApplySpy;
+			let validTx2ApplySpy;
 
-			it('should call account update', async () => {});
+			beforeEach(async () => {
+				// Arrage
+				delegate1 = {
+					address: '8411848252534809650L',
+					passphrase:
+						'weapon visual tag seed deal solar country toy boring concert decline require',
+					publicKey:
+						'8c4dddbfe40892940d3bd5446d9d2ee9cdd16ceffecebda684a0585837f60f23',
+					username: 'genesis_200',
+					balance: '10000000000',
+					voteWeight: '0',
+				};
+				delegate2 = {
+					address: '13608682259919656227L',
+					passphrase:
+						'shoot long boost electric upon mule enough swing ritual example custom party',
+					publicKey:
+						'6263120d0ee380d60070e648684a7f98ece4767d140ccb277f267c3a6f36a799',
+					username: 'genesis_201',
+					balance: '10000000000',
+					voteWeight: '0',
+				};
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: genesisAccount.address,
+						balance: '10000000000',
+						votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+					},
+					delegate1,
+					delegate2,
+				]);
+				// Act
+				const validTx = blocksInstance.deserializeTransaction(
+					castVotes({
+						passphrase: genesisAccount.passphrase,
+						networkIdentifier,
+						votes: [delegate1.publicKey, delegate2.publicKey],
+					}),
+				);
+				const validTx2 = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '124L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				validTxApplySpy = jest.spyOn(validTx, 'apply');
+				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
+				block = newBlock({ transactions: [validTx, validTx2] });
+				// Act
+				stateStore = new StateStore(storageStub);
+				await blocksInstance.apply(block, stateStore);
+			});
 
-			it('should set the block to the last block', async () => {});
+			it('should call apply for the transaction', async () => {
+				expect(validTxApplySpy).toBeCalledTimes(1);
+				expect(validTx2ApplySpy).toBeCalledTimes(1);
+			});
+
+			it('should call account update', async () => {
+				expect(storageStub.entities.Account.upsert).toBeCalledTimes(4);
+			});
+
+			it('should update vote weight on voted delegate', async () => {
+				expect(stateStore.account.get(delegate1.address).voteWeight).toBe(
+					'9889999900',
+				);
+				expect(stateStore.account.get(delegate2.address).voteWeight).toBe(
+					'9889999900',
+				);
+			});
+
+			it('should update vote weight on sender and recipient', async () => {
+				const newTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: genesisAccount.address,
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				const nextBlock = newBlock({ transactions: [newTx] });
+				await blocksInstance.apply(nextBlock, stateStore);
+				// expect
+				// it should decrease by fee
+				expect(stateStore.account.get(delegate1.address).voteWeight).toBe(
+					'9879999900',
+				);
+				expect(stateStore.account.get(delegate2.address).voteWeight).toBe(
+					'9879999900',
+				);
+			});
+
+			it('should set the block to the last block', async () => {
+				expect(blocksInstance.lastBlock).toStrictEqual(block);
+			});
 		});
 	});
 
 	describe('#applyGenesis', () => {
-		describe('when transaction fails to be applied', () => {
-			it('should throw error', async () => {});
+		let stateStore;
+		let genesisInstance;
 
-			it('should not set the block to the last block', async () => {});
+		beforeEach(async () => {
+			// Arrage
+			storageStub.entities.Account.get.mockResolvedValue([]);
+			// Act
+			genesisInstance = blocksInstance.deserialize(genesisBlock);
+			// Act
+			stateStore = new StateStore(storageStub);
+			await blocksInstance.applyGenesis(genesisInstance, stateStore);
 		});
 
 		describe('when transactions are all valid', () => {
-			it('should call apply for the transaction', async () => {});
+			it('should call apply for the transaction', async () => {
+				expect(stateStore.account.get(genesisAccount.address).balance).toBe(
+					'10000000000000000',
+				);
+			});
 
-			it('should call account update', async () => {});
+			it('should call account update', async () => {
+				expect(storageStub.entities.Account.upsert).toBeCalledTimes(103);
+			});
 
-			it('should set the block to the last block', async () => {});
+			it('should set the block to the last block', async () => {
+				expect(blocksInstance.lastBlock).toStrictEqual(genesisInstance);
+			});
 		});
 	});
 
 	describe('#undo', () => {
 		describe('when block does not contain transactions', () => {
-			it('should not call account update', async () => {});
+			let stateStore;
 
-			it('should set the second last block to the last block', async () => {});
+			beforeEach(async () => {
+				stateStore = new StateStore(storageStub);
+				// Arrage
+				block = newBlock();
+				await blocksInstance.undo(block, stateStore);
+			});
+
+			it('should not call account update', async () => {
+				expect(storageStub.entities.Account.upsert).not.toBeCalled();
+			});
 		});
 
 		describe('when transaction is inert', () => {
-			it('should not call undo for the transaction', async () => {});
+			let validTx;
+			let stateStore;
+			let txUndoSpy;
 
-			it('should set the second last block to the last block', async () => {});
+			beforeEach(async () => {
+				// Arrage
+				validTx = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '123L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				txUndoSpy = jest.spyOn(validTx, 'undo');
+				blocksInstance.exceptions.inertTransactions = [validTx.id];
+				block = newBlock({ transactions: [validTx] });
+				// Act
+				stateStore = new StateStore(storageStub);
+				await blocksInstance.undo(block, stateStore);
+			});
+
+			it('should not call undo for the transaction', async () => {
+				expect(txUndoSpy).not.toBeCalled();
+			});
 		});
 
 		describe('when transactions are all valid', () => {
-			it('should call undo for the transaction', async () => {});
+			let stateStore;
+			let delegate1;
+			let delegate2;
+			let validTxUndoSpy;
+			let validTx2UndoSpy;
 
-			it('should call account update', async () => {});
+			beforeEach(async () => {
+				// Arrage
+				delegate1 = {
+					address: '8411848252534809650L',
+					passphrase:
+						'weapon visual tag seed deal solar country toy boring concert decline require',
+					publicKey:
+						'8c4dddbfe40892940d3bd5446d9d2ee9cdd16ceffecebda684a0585837f60f23',
+					username: 'genesis_200',
+					balance: '10000000000',
+					voteWeight: '9889999900',
+				};
+				delegate2 = {
+					address: '13608682259919656227L',
+					passphrase:
+						'shoot long boost electric upon mule enough swing ritual example custom party',
+					publicKey:
+						'6263120d0ee380d60070e648684a7f98ece4767d140ccb277f267c3a6f36a799',
+					username: 'genesis_201',
+					balance: '10000000000',
+					voteWeight: '9889999900',
+				};
+				const recipient = {
+					address: '124L',
+					balance: '100',
+				};
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: genesisAccount.address,
+						balance: '9889999900',
+						votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+					},
+					delegate1,
+					delegate2,
+					recipient,
+				]);
+				// Act
+				const validTx = blocksInstance.deserializeTransaction(
+					castVotes({
+						passphrase: genesisAccount.passphrase,
+						networkIdentifier,
+						votes: [delegate1.publicKey, delegate2.publicKey],
+					}),
+				);
+				const validTx2 = blocksInstance.deserializeTransaction(
+					transfer({
+						passphrase: genesisAccount.passphrase,
+						recipientId: '124L',
+						amount: '100',
+						networkIdentifier,
+					}),
+				);
+				validTxUndoSpy = jest.spyOn(validTx, 'undo');
+				validTx2UndoSpy = jest.spyOn(validTx2, 'undo');
+				block = newBlock({ transactions: [validTx, validTx2] });
+				// Act
+				stateStore = new StateStore(storageStub);
+				await blocksInstance.undo(block, stateStore);
+			});
 
-			it('should set second last block to the last block', async () => {});
+			it('should call undo for the transaction', async () => {
+				expect(validTxUndoSpy).toBeCalledTimes(1);
+				expect(validTx2UndoSpy).toBeCalledTimes(1);
+			});
+
+			it('should call account update', async () => {
+				expect(storageStub.entities.Account.upsert).toBeCalledTimes(4);
+			});
+
+			it('should update vote weight on voted delegate', async () => {
+				expect(stateStore.account.get(delegate1.address).voteWeight).toBe('0');
+				expect(stateStore.account.get(delegate2.address).voteWeight).toBe('0');
+			});
 		});
 	});
 });
