@@ -14,7 +14,6 @@
 
 'use strict';
 
-// const { when } = require('jest-when');
 const { transfer, castVotes } = require('@liskhq/lisk-transactions');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { newBlock, getBytes } = require('./utils.js');
@@ -207,7 +206,7 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when payload exceeds maximum', () => {
+		describe('when payload length exceeds maximum allowed', () => {
 			it('should throw error', async () => {
 				// Arrange
 				blocksInstance.constants.maxPayloadLength = 100;
@@ -237,7 +236,7 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when payload exceeds maximum', () => {
+		describe('when exceeds maximum transactions per block', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const txs = new Array(30).fill(0).map((_, v) =>
@@ -388,8 +387,7 @@ describe('blocks/header', () => {
 
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
 				// Arrange
-				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
-				block = newBlock({ timestamp: futureTimestamp });
+				block = newBlock({ timestamp: 0 });
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
@@ -481,7 +479,7 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}),
 				);
-				const transactionClass = blocksInstance._interfaceAdapter.transactionClassMap.get(
+				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				originalClass = transactionClass;
@@ -489,7 +487,7 @@ describe('blocks/header', () => {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._interfaceAdapter.transactionClassMap.set(
+				blocksInstance._transactionAdapter.transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);

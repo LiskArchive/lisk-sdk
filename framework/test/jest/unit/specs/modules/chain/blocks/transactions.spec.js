@@ -142,14 +142,14 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}),
 				);
-				const transactionClass = blocksInstance._interfaceAdapter.transactionClassMap.get(
+				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._interfaceAdapter.transactionClassMap.set(
+				blocksInstance._transactionAdapter.transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -271,14 +271,14 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}),
 				);
-				const transactionClass = blocksInstance._interfaceAdapter.transactionClassMap.get(
+				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._interfaceAdapter.transactionClassMap.set(
+				blocksInstance._transactionAdapter.transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -415,14 +415,14 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}),
 				);
-				const transactionClass = blocksInstance._interfaceAdapter.transactionClassMap.get(
+				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._interfaceAdapter.transactionClassMap.set(
+				blocksInstance._transactionAdapter.transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);

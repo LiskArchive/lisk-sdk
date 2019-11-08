@@ -84,7 +84,7 @@ class Blocks extends EventEmitter {
 	}) {
 		super();
 		this._lastBlock = {};
-		this._interfaceAdapter = new TransactionInterfaceAdapter(
+		this._transactionAdapter = new TransactionInterfaceAdapter(
 			networkIdentifier,
 			registeredTransactions,
 		);
@@ -181,7 +181,7 @@ class Blocks extends EventEmitter {
 	 */
 	deserialize(blockJSON) {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
-			this._interfaceAdapter.fromJSON(transaction),
+			this._transactionAdapter.fromJSON(transaction),
 		);
 		return {
 			...blockJSON,
@@ -203,7 +203,7 @@ class Blocks extends EventEmitter {
 	}
 
 	deserializeTransaction(transactionJSON) {
-		return this._interfaceAdapter.fromJSON(transactionJSON);
+		return this._transactionAdapter.fromJSON(transactionJSON);
 	}
 
 	async validateBlockHeader(block, blockBytes, expectedReward) {
@@ -416,7 +416,7 @@ class Blocks extends EventEmitter {
 			);
 			return block;
 		} catch (e) {
-			const errMessage = 'Failed to access storage layer';
+			const errMessage = 'Failed to fetch the heigest common block';
 			this.logger.error({ err: e }, errMessage);
 			throw new Error(errMessage);
 		}
@@ -467,7 +467,7 @@ class Blocks extends EventEmitter {
 					blockHeight: height,
 					blockTimestamp: timestamp,
 				};
-			}), // TODO: probably wrong
+			}),
 			checkPersistedTransactions(this.storage),
 			verifyTransactions(this.slots, this.exceptions),
 		)(transactions, stateStore);
