@@ -70,13 +70,13 @@ class Transport {
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
 
-		this.broadcaster = new Broadcaster(
-			this.constants.broadcasts,
-			this.transactionPoolModule,
-			this.logger,
-			this.channel,
-			this.storage,
-		);
+		this.broadcaster = new Broadcaster({
+			broadcasts: this.constants.broadcasts,
+			transactionPool: this.transactionPoolModule,
+			logger: this.logger,
+			channel: this.channel,
+			storage: this.storage,
+		});
 	}
 
 	/**
@@ -87,20 +87,9 @@ class Transport {
 	 * @emits signature/change
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	handleBroadcastSignature(signature, broadcast) {
-		if (broadcast) {
-			this.broadcaster.enqueue(
-				{},
-				{
-					api: 'postSignatures',
-					data: {
-						signature,
-					},
-				},
-			);
-			this.channel.publish('chain:signature:change', signature);
-		}
+	handleBroadcastSignature(signature) {
+		this.broadcaster.enqueueSignatureObject(signature);
+		this.channel.publish('chain:signature:change', signature);
 	}
 
 	/**
@@ -111,21 +100,9 @@ class Transport {
 	 * @emits transactions/change
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	handleBroadcastTransaction(transaction, broadcast) {
-		if (broadcast) {
-			const transactionJSON = transaction.toJSON();
-			this.broadcaster.enqueue(
-				{},
-				{
-					api: 'postTransactionsAnnouncement',
-					data: {
-						transaction: { id: transaction.id },
-					},
-				},
-			);
-			this.channel.publish('chain:transactions:change', transactionJSON);
-		}
+	handleBroadcastTransaction(transaction) {
+		this.broadcaster.enqueueTransactionId(transaction.id);
+		this.channel.publish('chain:transactions:change', transaction.toJSON());
 	}
 
 	/**
@@ -135,43 +112,19 @@ class Transport {
 	 * @param {boolean} broadcast - Signal flag for broadcast
 	 * @emits blocks/change
 	 */
-	// TODO: Remove after block module becomes event-emitter
-	// eslint-disable-next-line class-methods-use-this
-	handleBroadcastBlock(block, broadcast) {
-		// Exit immediately when 'broadcast' flag is not set
-		if (!broadcast) return null;
-
+	async handleBroadcastBlock(block) {
 		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
 			return null;
 		}
-
-		if (block.totalAmount) {
-			block.totalAmount = block.totalAmount.toNumber();
-		}
-
-		if (block.totalFee) {
-			block.totalFee = block.totalFee.toNumber();
-		}
-
-		if (block.reward) {
-			block.reward = block.reward.toNumber();
-		}
-
-		if (block.transactions) {
-			// Convert transactions to JSON
-			block.transactions = block.transactions.map(transactionInstance =>
-				transactionInstance.toJSON(),
-			);
-		}
-
-		// Perform actual broadcast operation
-		return this.broadcaster.broadcast(
-			{},
-			{ api: 'postBlock', data: { block } },
-		);
+		return this.channel.invoke('network:send', {
+			event: 'postBlock',
+			data: {
+				block,
+			},
+		});
 	}
 
 	/**
@@ -441,7 +394,7 @@ class Transport {
 		}
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
-			data.transactions.map(transaction => transaction.id),
+			data.transactionIds,
 		);
 		if (unknownTransactionIDs.length > 0) {
 			const { data: result } = await this.channel.invoke(

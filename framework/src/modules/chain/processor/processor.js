@@ -288,14 +288,14 @@ class Processor {
 				tx,
 			});
 
+			const blockJSON = await this.serialize(block);
 			if (!skipBroadcast) {
 				this.channel.publish('chain:processor:broadcast', {
-					block: cloneDeep(block),
+					block: blockJSON,
 				});
 			}
 
 			if (!skipSave) {
-				const blockJSON = await this.serialize(block);
 				// TODO: After moving everything to state store, save should get the state store and finalize the state store
 				await this.blocksModule.save(blockJSON, tx);
 			}
@@ -321,7 +321,7 @@ class Processor {
 			// Should only publish 'chain:processor:newBlock' if saved AND applied successfully
 			if (!skipSave) {
 				this.channel.publish('chain:processor:newBlock', {
-					block: cloneDeep(block),
+					block: blockJSON,
 				});
 			}
 
@@ -376,7 +376,7 @@ class Processor {
 			const blockJSON = await this.serialize(block);
 			await this.blocksModule.remove(block, blockJSON, tx, { saveTempBlock });
 			this.channel.publish('chain:processor:deleteBlock', {
-				block: cloneDeep(block),
+				block: blockJSON,
 			});
 		});
 	}

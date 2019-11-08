@@ -592,7 +592,7 @@ module.exports = class Chain {
 		this.channel.subscribe(
 			'chain:processor:broadcast',
 			({ data: { block } }) => {
-				this.transport.handleBroadcastBlock(block, true);
+				this.transport.handleBroadcastBlock(block);
 			},
 		);
 
@@ -663,7 +663,7 @@ module.exports = class Chain {
 				{ transactionId: transaction.id },
 				'Received EVENT_UNCONFIRMED_TRANSACTION',
 			);
-			this.transport.handleBroadcastTransaction(transaction, true);
+			this.transport.handleBroadcastTransaction(transaction);
 		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
@@ -675,7 +675,7 @@ module.exports = class Chain {
 				{ signature },
 				'Received EVENT_MULTISIGNATURE_SIGNATURE',
 			);
-			this.transport.handleBroadcastSignature(signature, true);
+			this.transport.handleBroadcastSignature(signature);
 		});
 	}
 
