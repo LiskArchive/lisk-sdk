@@ -520,7 +520,7 @@ export class Peer extends EventEmitter {
 		const newPeerInfo = validatePeerInfo(
 			protocolPeerInfo,
 			this._peerConfig.maxPeerInfoSize,
-		);
+		).peerInfo;
 
 		this.updatePeerInfo(newPeerInfo);
 	}

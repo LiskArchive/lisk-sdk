@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { constructPeerId, getByteSize } from '.';
 import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
+import { constructPeerId } from './misc';
 
 export const sanitizeIncomingPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
@@ -46,28 +46,6 @@ export const sanitizeOutgoingPeerInfo = (
 		wsPort,
 		...sharedState,
 	};
-};
-
-export const sanitizeOutgoingPeerListSize = (
-	peerList: ProtocolPeerInfo[],
-	maxByteSize: number,
-): ProtocolPeerInfo[] => {
-	const divider = 2;
-
-	if (getByteSize(peerList) > maxByteSize) {
-		const shrinkedPeerList = [...peerList];
-
-		while (
-			getByteSize(shrinkedPeerList) > maxByteSize &&
-			shrinkedPeerList.length > divider
-		) {
-			shrinkedPeerList.splice(0, Math.ceil(shrinkedPeerList.length / divider));
-		}
-
-		return shrinkedPeerList;
-	}
-
-	return peerList;
 };
 
 export const sanitizePeerLists = (

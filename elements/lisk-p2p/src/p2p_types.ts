@@ -66,6 +66,11 @@ export interface P2PPeerInfo {
 	readonly internalState?: P2PInternalState;
 }
 
+export interface ValidateP2PPeerInfo {
+	readonly peerInfo: P2PPeerInfo;
+	readonly byteSize: number;
+}
+
 export interface P2PPeersCount {
 	readonly outboundCount: number;
 	readonly inboundCount: number;

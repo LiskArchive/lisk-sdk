@@ -98,7 +98,6 @@ import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
 	sanitizeOutgoingPeerInfo,
-	sanitizeOutgoingPeerListSize,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -913,19 +912,27 @@ export class P2P extends EventEmitter {
 
 		const validatedPeerList: ProtocolPeerInfo[] = [];
 
-		selectedPeers.forEach(peer => {
+		// tslint:disable-next-line: no-let
+		let requestPayloadSize = 0;
+
+		for (const peer of selectedPeers) {
 			try {
 				const sanitizedPeerInfo = sanitizeOutgoingPeerInfo(peer);
 
-				validatePeerInfo(sanitizedPeerInfo, maxPeerInfoSize);
+				requestPayloadSize += validatePeerInfo(
+					sanitizedPeerInfo,
+					maxPeerInfoSize,
+				).byteSize;
 
-				validatedPeerList.push(sanitizedPeerInfo);
+				if (requestPayloadSize < wsMaxPayload) {
+					validatedPeerList.push(sanitizedPeerInfo);
+				} else {
+					break;
+				}
 			} catch (err) {
 				this._peerBook.removePeer(peer);
 			}
-		});
-
-		sanitizeOutgoingPeerListSize(validatedPeerList, wsMaxPayload);
+		}
 
 		const peerInfoList = {
 			success: true,

@@ -35,6 +35,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	ProtocolPeerInfo,
+	ValidateP2PPeerInfo,
 } from '../p2p_types';
 import { constructPeerId } from './misc';
 
@@ -129,16 +130,9 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 export const validatePeerInfo = (
 	rawPeerInfo: unknown,
 	maxByteSize: number,
-): P2PPeerInfo => {
+): ValidateP2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerInfoError(`Invalid peer object`);
-	}
-
-	const byteSize = getByteSize(rawPeerInfo);
-	if (byteSize > maxByteSize) {
-		throw new InvalidPeerInfoError(
-			`PeerInfo is larger than the maximum allowed size ${maxByteSize} bytes`,
-		);
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
@@ -189,7 +183,14 @@ export const validatePeerInfo = (
 		},
 	};
 
-	return peerInfo;
+	const byteSize = getByteSize(peerInfo);
+	if (byteSize > maxByteSize) {
+		throw new InvalidPeerInfoError(
+			`PeerInfo is larger than the maximum allowed size ${maxByteSize} bytes`,
+		);
+	}
+
+	return { peerInfo, byteSize };
 };
 
 export const validateNodeInfo = (
@@ -231,8 +232,8 @@ export const validatePeersInfoList = (
 			throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
 		}
 
-		const sanitizedPeerList = peers.map<P2PPeerInfo>(peerInfo =>
-			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
+		const sanitizedPeerList = peers.map<P2PPeerInfo>(
+			peerInfo => validatePeerInfo(peerInfo, maxPeerInfoByteSize).peerInfo,
 		);
 
 		return sanitizedPeerList;
