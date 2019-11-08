@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { addBlockProperties } = require('./utils');
 const {
 	calculateMilestone,
 	calculateReward,
@@ -30,9 +29,11 @@ const {
 	FORK_STATUS_DISCARD,
 } = require('./fork_choice_rule');
 const { baseBlockSchema } = require('./schema');
+const { StateStore } = require('./state_store');
 
 module.exports = {
 	Blocks,
+	StateStore,
 	baseBlockSchema,
 	calculateMilestone,
 	calculateReward,
@@ -43,5 +44,4 @@ module.exports = {
 	FORK_STATUS_TIE_BREAK,
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
-	addBlockProperties,
 };

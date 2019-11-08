@@ -14,10 +14,6 @@
 
 'use strict';
 
-const {
-	TransactionInterfaceAdapter,
-} = require('./transaction_interface_adapter');
+const { StateStore } = require('./state_store');
 
-module.exports = {
-	TransactionInterfaceAdapter,
-};
+module.exports = { StateStore };

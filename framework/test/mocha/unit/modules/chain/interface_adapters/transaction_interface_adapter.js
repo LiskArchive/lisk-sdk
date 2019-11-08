@@ -23,7 +23,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const {
 	TransactionInterfaceAdapter,
-} = require('../../../../../../src/modules/chain/interface_adapters');
+} = require('../../../../../../src/modules/chain/blocks/transaction_interface_adapter');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
 } = require('../../../../common/network_identifier');
@@ -67,9 +67,9 @@ describe('transactions', () => {
 			});
 		});
 
-		describe('fromJson', () => {
+		describe('fromJSON', () => {
 			it('should throw an error if transaction type is not registered', async () => {
-				expect(() => transactions.fromJson({ type: 1 })).to.throw(
+				expect(() => transactions.fromJSON({ type: 1 })).to.throw(
 					'Transaction type not found.',
 				);
 			});
@@ -89,7 +89,7 @@ describe('transactions', () => {
 					id: '7507990258936015021',
 				};
 
-				expect(transactions.fromJson(transfer)).to.be.instanceof(
+				expect(transactions.fromJSON(transfer)).to.be.instanceof(
 					TransferTransaction,
 				);
 			});
@@ -111,7 +111,7 @@ describe('transactions', () => {
 					id: '6998015087494860094',
 				};
 
-				expect(transactions.fromJson(secondSignature)).to.be.instanceof(
+				expect(transactions.fromJSON(secondSignature)).to.be.instanceof(
 					SecondSignatureTransaction,
 				);
 			});
@@ -134,7 +134,7 @@ describe('transactions', () => {
 					id: '5337978774712629501',
 				};
 
-				expect(transactions.fromJson(delegate)).to.be.instanceof(
+				expect(transactions.fromJSON(delegate)).to.be.instanceof(
 					DelegateTransaction,
 				);
 			});
@@ -159,7 +159,7 @@ describe('transactions', () => {
 					id: '9048233810524582722',
 				};
 
-				expect(transactions.fromJson(vote)).to.be.instanceof(VoteTransaction);
+				expect(transactions.fromJSON(vote)).to.be.instanceof(VoteTransaction);
 			});
 
 			it('should initialize a multisignature transaction', async () => {
@@ -184,7 +184,7 @@ describe('transactions', () => {
 					id: '15911083597203956215',
 				};
 
-				expect(transactions.fromJson(multisignature)).to.be.instanceof(
+				expect(transactions.fromJSON(multisignature)).to.be.instanceof(
 					MultisignatureTransaction,
 				);
 			});
