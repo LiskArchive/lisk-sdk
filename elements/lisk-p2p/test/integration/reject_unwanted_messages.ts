@@ -68,7 +68,7 @@ describe(`Detect ${INVALID_MESSAGE_1} messages and ban the peer`, () => {
 	});
 
 	it('should set the isActive property to true for all nodes', async () => {
-		expect(countPingMessages).toEqual(1);
+		expect(countPingMessages).toEqual(4);
 		expect(collectInboundErrorMessages.length).toEqual(1);
 		expect((collectInboundErrorMessages as any[])[0]).toEqual(
 			`Peer ${SEED_PEER_IP}:5000 was disconnected due to unwanted to messages`,
