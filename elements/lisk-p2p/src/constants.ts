@@ -61,6 +61,8 @@ export const INVALID_PEER_INFO_PENALTY = 100;
 // Peer inbound constants
 export const DEFAULT_PING_INTERVAL_MAX = 60000;
 export const DEFAULT_PING_INTERVAL_MIN = 20000;
+export const SOCKET_PING_MESSAGE = '#1';
+export const SOCKET_PONG_MESSAGE = '#2';
 
 // Peer directory constants
 export const DEFAULT_NEW_BUCKET_COUNT = 128;
