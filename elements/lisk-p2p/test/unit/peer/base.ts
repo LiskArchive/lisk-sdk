@@ -44,7 +44,7 @@ const createSocketStubInstance = () => <SCServerSocket>({
 		destroy: sandbox.stub(),
 	} as any);
 
-describe.only('peer/base', () => {
+describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
 	let nodeInfo: P2PNodeInfo;
