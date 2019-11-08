@@ -122,10 +122,7 @@ const applyGenesisTransactions = storage => async (
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	for (const transaction of transactions) {
-		// eslint-disable-next-line no-await-in-loop
-		await votesWeight.prepare(stateStore, transaction);
-	}
+	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {
 		// Fee is handled by Elements now so we set it to zero here. LIP-0012
@@ -161,10 +158,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	for (const transaction of transactions) {
-		// eslint-disable-next-line no-await-in-loop
-		await votesWeight.prepare(stateStore, transaction);
-	}
+	await votesWeight.prepare(stateStore, transactions);
 
 	// Verify total spending of per account accumulative
 	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
@@ -296,10 +290,7 @@ const undoTransactions = (storage, exceptions) => async (
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	for (const transaction of transactions) {
-		// eslint-disable-next-line no-await-in-loop
-		await votesWeight.prepare(stateStore, transaction);
-	}
+	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
