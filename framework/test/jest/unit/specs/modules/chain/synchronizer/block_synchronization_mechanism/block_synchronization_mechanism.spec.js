@@ -35,9 +35,6 @@ const {
 const {
 	Processor,
 } = require('../../../../../../../../src/modules/chain/processor');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../../../../src/modules/chain/interface_adapters');
 const { constants } = require('../../../../../../utils');
 const { newBlock } = require('../../../chain/blocks/utils');
 
@@ -118,9 +115,6 @@ describe('block_synchronization_mechanism', () => {
 			slots,
 			genesisBlock: genesisBlockDevnet,
 			sequence: new Sequence(),
-			interfaceAdapters: {
-				transactions: new TransactionInterfaceAdapter(),
-			},
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
@@ -160,9 +154,6 @@ describe('block_synchronization_mechanism', () => {
 			logger: loggerMock,
 			channel: channelMock,
 			slots,
-			interfaceAdapters: {
-				transactions: new TransactionInterfaceAdapter(),
-			},
 			blocks: blocksModule,
 			bft: bftModule,
 			processorModule,
