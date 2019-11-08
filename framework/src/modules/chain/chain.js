@@ -24,7 +24,6 @@ const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
-const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const {
 	TransactionPool,
 	EVENT_MULTISIGNATURE_SIGNATURE,
@@ -243,16 +242,19 @@ module.exports = class Chain {
 					'network:event',
 					async ({ data: { event, data, peerId } }) => {
 						try {
-							if (event === 'postTransactions') {
-								await this.transport.postTransactions(data);
+							if (event === 'postTransactionsAnnouncement') {
+								await this.transport.handleEventPostTransactionsAnnouncement({
+									data,
+									peerId,
+								});
 								return;
 							}
 							if (event === 'postSignatures') {
-								await this.transport.postSignatures(data);
+								await this.transport.handleEventPostSignatures(data);
 								return;
 							}
 							if (event === 'postBlock') {
-								await this.transport.postBlock(data, peerId);
+								await this.transport.handleEventPostBlock(data, peerId);
 								return;
 							}
 						} catch (err) {
@@ -295,16 +297,19 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging,
 				),
-			getTransactions: async () => this.transport.getTransactions(),
-			getSignatures: async () => this.transport.getSignatures(),
+			getTransactions: async action =>
+				action.params
+					? this.transport.handleRPCGetTransactions(action.params)
+					: this.transport.handleRPCGetTransactions(),
+			getSignatures: async () => this.transport.handleRPCGetSignatures(),
 			postSignature: async action =>
-				this.transport.postSignature(action.params),
+				this.transport.handleEventPostSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
 				this.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
-				this.transport.postTransaction(action.params),
+				this.transport.handleEventPostTransaction(action.params),
 			getSlotNumber: async action =>
 				action.params
 					? this.slots.getSlotNumber(action.params.epochTime)
@@ -325,7 +330,7 @@ module.exports = class Chain {
 				totalFee: this.blocks.lastBlock.totalFee.toString(),
 			}),
 			getBlocksFromId: async action =>
-				this.transport.getBlocksFromId(action.params || {}),
+				this.transport.handleRPCGetBlocksFromId(action.params || {}),
 			getHighestCommonBlock: async action => {
 				const valid = validator.validate(
 					definitions.getHighestCommonBlockRequest,
@@ -388,16 +393,6 @@ module.exports = class Chain {
 
 	async _initModules() {
 		this.scope.modules = {};
-		this.interfaceAdapters = {
-			transactions: new TransactionInterfaceAdapter(
-				this.networkIdentifier,
-				this.options.registeredTransactions,
-			),
-		};
-
-		// Deserialize genesis block
-
-		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		this.slots = new Slots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
@@ -429,9 +424,10 @@ module.exports = class Chain {
 			storage: this.storage,
 			sequence: this.scope.sequence,
 			genesisBlock: this.options.genesisBlock,
+			registeredTransactions: this.options.registeredTransactions,
+			networkIdentifier: this.networkIdentifier,
 			slots: this.slots,
 			exceptions: this.options.exceptions,
-			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
@@ -449,7 +445,6 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			blocksModule: this.blocks,
-			interfaceAdapters: this.interfaceAdapters,
 		});
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
@@ -460,7 +455,6 @@ module.exports = class Chain {
 			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			processorModule: this.processor,
-			interfaceAdapters: this.interfaceAdapters,
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
@@ -503,13 +497,9 @@ module.exports = class Chain {
 		this.loader = new Loader({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
-			cache: this.cache,
-			genesisBlock: this.options.genesisBlock,
+			processorModule: this.processor,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
-			processorModule: this.processor,
-			interfaceAdapters: this.interfaceAdapters,
 			loadPerIteration: this.options.loading.loadPerIteration,
 			syncingActive: this.options.syncing.active,
 		});
@@ -520,7 +510,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
-			interfaceAdapters: this.interfaceAdapters,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.modules.rebuilder = this.rebuilder;
@@ -528,7 +517,6 @@ module.exports = class Chain {
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
-			sequence: this.scope.sequence,
 			slots: this.slots,
 			dposModule: this.dpos,
 			transactionPoolModule: this.transactionPool,
@@ -553,8 +541,6 @@ module.exports = class Chain {
 			processorModule: this.processor,
 			blocksModule: this.blocks,
 			loaderModule: this.loader,
-			interfaceAdapters: this.interfaceAdapters,
-			nonce: this.options.nonce,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});
@@ -606,7 +592,7 @@ module.exports = class Chain {
 		this.channel.subscribe(
 			'chain:processor:broadcast',
 			({ data: { block } }) => {
-				this.transport.onBroadcastBlock(block, true);
+				this.transport.handleBroadcastBlock(block, true);
 			},
 		);
 
@@ -677,7 +663,7 @@ module.exports = class Chain {
 				{ transactionId: transaction.id },
 				'Received EVENT_UNCONFIRMED_TRANSACTION',
 			);
-			this.transport.onUnconfirmedTransaction(transaction, true);
+			this.transport.handleBroadcastTransaction(transaction, true);
 		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
@@ -689,7 +675,7 @@ module.exports = class Chain {
 				{ signature },
 				'Received EVENT_MULTISIGNATURE_SIGNATURE',
 			);
-			this.transport.onSignature(signature, true);
+			this.transport.handleBroadcastSignature(signature, true);
 		});
 	}
 

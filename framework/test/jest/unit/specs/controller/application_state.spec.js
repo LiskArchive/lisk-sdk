@@ -32,7 +32,6 @@ describe('Application State', () => {
 		nethash: 'test broadhash',
 		prevotedConfirmedUptoHeight: 0,
 		height: 1,
-		nonce: 'test nonce',
 		os: 'platformrelease',
 	};
 	const mockedState = {
@@ -46,7 +45,6 @@ describe('Application State', () => {
 		nethash: 'test broadhash',
 		prevotedConfirmedUptoHeight: 0,
 		height: 1,
-		nonce: 'test nonce',
 	};
 	const logger = {
 		debug: jest.fn(),

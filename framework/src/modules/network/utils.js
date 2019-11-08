@@ -37,7 +37,7 @@ const lookupPeersIPs = async (peersList, enabled) => {
 	}
 
 	// In case domain names are used, resolve those to IP addresses.
-	peersList = await Promise.all(
+	return Promise.all(
 		peersList.map(async peer => {
 			if (net.isIPv4(peer.ip)) {
 				return peer;
@@ -57,8 +57,6 @@ const lookupPeersIPs = async (peersList, enabled) => {
 			}
 		}),
 	);
-
-	return peersList;
 };
 
 /**
@@ -135,7 +133,6 @@ const filterByParams = (peers, filters) => {
 		'version',
 		'protocolVersion',
 		'height',
-		'nonce',
 	];
 	const {
 		limit: filterLimit,

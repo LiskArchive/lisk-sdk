@@ -317,6 +317,13 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				const blockInstance = await this.processor.deserialize(block);
 				await this.processor.processValidated(blockInstance);
 			}
+			this.logger.info(
+				{
+					currentHeight: this.blocks.lastBlock.height,
+					highestCommonBlockHeight: highestCommonBlock.height,
+				},
+				'Successfully switched chains. Node is now up to date',
+			);
 		} catch (err) {
 			this.logger.error({ err }, 'Error while processing blocks');
 			this.logger.debug(
@@ -334,8 +341,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			this.logger.debug('Cleaning blocks temp table');
 			await clearBlocksTempTable(this.storage);
 		}
-
-		this.logger.info('Successfully switched chains. Node is now up to date');
 	}
 
 	/**
@@ -366,7 +371,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	async _requestLastCommonBlock(peerId) {
 		this.logger.debug({ peerId }, 'Requesting the last common block with peer');
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
-		let numberOfRequests = 0; // Keeps track of the number of requests made to the remote peer
+		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 
 		const heightList = this._computeLastTwoRoundsHeights();
 

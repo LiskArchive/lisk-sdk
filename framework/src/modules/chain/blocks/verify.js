@@ -15,7 +15,7 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionsModule = require('../transactions');
+const transactionsModule = require('./transactions');
 
 const verifyBlockNotExists = async (storage, block) => {
 	const isPersisted = await storage.entities.Block.isPersisted({
@@ -70,8 +70,8 @@ class BlocksVerify {
 		}
 	}
 
-	async checkTransactions(block) {
-		const { version, height, timestamp, transactions } = block;
+	async checkTransactions(blockInstance, stateStore) {
+		const { version, height, timestamp, transactions } = blockInstance;
 		if (transactions.length === 0) {
 			return;
 		}
@@ -103,10 +103,9 @@ class BlocksVerify {
 		const {
 			transactionsResponses,
 		} = await transactionsModule.verifyTransactions(
-			this.storage,
 			this.slots,
 			this.exceptions,
-		)(nonInertTransactions);
+		)(nonInertTransactions, stateStore);
 
 		const unverifiableTransactionsResponse = transactionsResponses.filter(
 			transactionResponse =>

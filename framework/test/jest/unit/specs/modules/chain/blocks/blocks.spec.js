@@ -15,26 +15,17 @@
 'use strict';
 
 const { when } = require('jest-when');
-const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
-const {
-	TransferTransaction,
-	Status: TransactionStatus,
-} = require('@liskhq/lisk-transactions');
+const { TransferTransaction } = require('@liskhq/lisk-transactions');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
 const forkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
-const { newBlock, getBytes } = require('./utils.js');
-const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+const { newBlock } = require('./utils.js');
 const {
 	registeredTransactions,
 } = require('../../../../../utils/registered_transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../../../src/modules/chain/interface_adapters');
 
-jest.mock('../../../../../../../src/modules/chain/transactions');
 jest.mock('events');
 
 // TODO: Share fixture generation b/w mocha and jest
@@ -72,12 +63,6 @@ describe('blocks', () => {
 	beforeEach(() => {
 		// Arrange
 		stubs.dependencies = {
-			interfaceAdapters: {
-				transactions: new TransactionInterfaceAdapter(
-					networkIdentifier,
-					registeredTransactions,
-				),
-			},
 			storage: {
 				entities: {
 					Account: {
@@ -127,6 +112,8 @@ describe('blocks', () => {
 		blocksInstance = new Blocks({
 			...stubs.dependencies,
 			genesisBlock,
+			networkIdentifier,
+			registeredTransactions,
 			slots,
 			exceptions,
 			...constants,
@@ -317,107 +304,6 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('verifyInMemory', () => {
-		describe('verifyPreviousBlockId', () => {
-			it("should throw when the block is not a genesis block and previous block id doesn't match the last block id", async () => {
-				// Arrange
-				const block = newBlock({ previousBlockId: null });
-				const blockBytes = getBytes(block);
-				const errorMessage = 'Invalid previous block';
-				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					});
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
-			});
-
-			it("should not throw when previous block property doesn't exist and block height = 1", async () => {
-				// Arrange
-				const block = {
-					...cloneDeep(blocksInstance.genesisBlock),
-					maxHeightPreviouslyForged: 0,
-					prevotedConfirmedUptoHeight: 0,
-				};
-				const blockBytes = getBytes(block);
-				block.timestamp = blocksInstance._lastBlock.timestamp + 1000;
-
-				blocksInstance.slots.getEpochTime = jest.fn(
-					() => blocksInstance._lastBlock.timestamp + 1010,
-				); // It will get assigned to newBlock.receivedAt
-
-				expect.assertions(1);
-				// Act
-				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).resolves.toBeUndefined();
-			});
-		});
-
-		describe('validateBlockSlot', () => {
-			it('should throw when block timestamp is in the future', async () => {
-				// Arrange
-				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
-				const block = newBlock({ timestamp: futureTimestamp });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).rejects.toThrow('Invalid block timestamp');
-			});
-
-			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
-				// Arrange
-				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
-				const block = newBlock({ timestamp: futureTimestamp });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock: genesisBlock,
-						blockBytes,
-					}),
-				).rejects.toThrow('Invalid block timestamp');
-			});
-
-			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
-				// Arrange
-				const lastBlock = newBlock({});
-				const block = newBlock({
-					previousBlockId: lastBlock.id,
-					height: lastBlock.height + 1,
-				});
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.verifyInMemory({
-						block,
-						lastBlock,
-						blockBytes,
-					}),
-				).rejects.toThrow('Invalid block timestamp');
-			});
-		});
-	});
-
 	describe('serialize', () => {
 		const transaction = new TransferTransaction(randomUtils.transaction());
 		const block = newBlock({ transactions: [transaction] });
@@ -491,327 +377,6 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('validateBlockHeader', () => {
-		let validateTransactionsFn;
-		let expectedReward;
-
-		beforeEach(async () => {
-			expectedReward = '0';
-			validateTransactionsFn = jest.fn().mockReturnValue({
-				transactionsResponses: [],
-			});
-			transactionsModule.validateTransactions.mockReturnValue(
-				validateTransactionsFn,
-			);
-		});
-
-		describe('validateReward', () => {
-			// should not throw if block height === 1? (Where should the test go)
-			it('should throw if the expected reward does not match the reward property in block object', async () => {
-				// Arrange
-				const block = newBlock({ reward: '1' });
-				const blockBytes = getBytes(block);
-				const errorMessage = 'Invalid block reward: 1 expected: 0';
-				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						expectedReward,
-					);
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
-			});
-
-			it('should not throw if the expected reward does not match the reward property in block object but the block id included in exception', async () => {
-				// Arrange
-				const block = newBlock({ reward: '1' });
-				exceptions.blockRewards = [block.id];
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act
-				await expect(
-					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
-				).resolves.toBeUndefined();
-			});
-		});
-
-		describe('validateSignature', () => {
-			it('should throw when the block bytes are mutated', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockBytes = getBytes(block);
-				const mutatedBlockBytes = Buffer.from(
-					blockBytes.toString('hex').replace('0', '1'),
-					'hex',
-				);
-				const errorMessage = 'Invalid block signature';
-				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						mutatedBlockBytes,
-						expectedReward,
-					);
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
-			});
-
-			it('should throw when the block signature is mutated', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockBytes = getBytes(block);
-				const blockWithMutatedSignature = {
-					...block,
-					blockSignature: block.blockSignature.replace('0', '1'),
-				};
-				const errorMessage = 'Invalid block signature';
-				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.validateBlockHeader(
-						blockWithMutatedSignature,
-						blockBytes,
-						expectedReward,
-					);
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
-			});
-
-			it('should throw when generator public key is different', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockBytes = getBytes(block);
-				const blockWithDifferentGeneratorPublicKey = {
-					...block,
-					generatorPublicKey: randomUtils.account().publicKey,
-				};
-				const errorMessage = 'Invalid block signature';
-				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.validateBlockHeader(
-						blockWithDifferentGeneratorPublicKey,
-						blockBytes,
-						expectedReward,
-					);
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
-			});
-		});
-
-		describe('validatePayload', () => {
-			it('should throw if the payload size is bigger than maxPayloadLength', async () => {
-				// Arrange
-				const block = newBlock({
-					payloadLength: constants.maxPayloadLength + 1,
-				});
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
-				).rejects.toThrow('Payload length is too long');
-			});
-
-			it('should throw if the transactions array is not equal to numberOfTransactions', async () => {
-				// Arrange
-				const transactions = new Array(10)
-					.fill('')
-					.map(() => new TransferTransaction(randomUtils.transaction()));
-				const block = newBlock({ numberOfTransactions: 1, transactions });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
-				).rejects.toThrow(
-					'Included transactions do not match block transactions count',
-				);
-			});
-
-			it('should throw if the transactions array is more than maxTransactionsPerBlock', async () => {
-				// Arrange
-				const transactions = new Array(constants.maxTransactionsPerBlock + 1)
-					.fill('')
-					.map(() => new TransferTransaction(randomUtils.transaction()));
-				const block = newBlock({ transactions });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
-				).rejects.toThrow('Number of transactions exceeds maximum per block');
-			});
-
-			it('should throw if there are duplicate transaction ids', async () => {
-				// Arrange
-				const duplicateTransaction = new TransferTransaction(
-					randomUtils.transaction(),
-				);
-				const block = newBlock({
-					numberOfTransactions: 1,
-					transactions: [duplicateTransaction, duplicateTransaction],
-				});
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
-				).rejects.toThrow(
-					'Included transactions do not match block transactions count',
-				);
-			});
-
-			it('should throw if the calculated payload hash is not equal to payloadHash property in block object', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockBytes = getBytes(block);
-				const blockWithDifferentPayloadhash = {
-					...block,
-					payloadHash: block.payloadHash.replace('0', '1'),
-				};
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(
-						blockWithDifferentPayloadhash,
-						blockBytes,
-						expectedReward,
-					),
-				).rejects.toThrow('Invalid payload hash');
-			});
-
-			it('should throw if the calculated totalAmount is not equal to totalAmount property in block object', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockBytes = getBytes(block);
-				const blockWithDifferentTotalAmount = {
-					...block,
-					totalAmount: new BigNum('12'),
-				};
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(
-						blockWithDifferentTotalAmount,
-						blockBytes,
-						expectedReward,
-					),
-				).rejects.toThrow('Invalid total amount');
-			});
-
-			it('should throw if the calculated totalFee is not equal to totalFee property in block object', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockBytes = getBytes(block);
-				const blockWithDifferentTotalAmount = {
-					...block,
-					totalFee: new BigNum('1'),
-				};
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(
-						blockWithDifferentTotalAmount,
-						blockBytes,
-						expectedReward,
-					),
-				).rejects.toThrow('Invalid total fee');
-			});
-		});
-
-		it('should reassign the id property for block object', async () => {
-			// Arrange
-			const block = newBlock();
-			const blockBytes = getBytes(block);
-			const originalId = block.id;
-			const mutatedId = '123';
-			block.id = mutatedId;
-
-			expect.assertions(1);
-			// Act & Assert
-			await blocksInstance.validateBlockHeader(
-				block,
-				blockBytes,
-				expectedReward,
-			);
-			expect(block.id).toEqual(originalId);
-		});
-
-		describe('validateTransactions', () => {
-			it('should call validateTransactions with expected parameters', async () => {
-				// Arrange
-				const block = newBlock();
-				const blockBytes = getBytes(block);
-				expect.assertions(2);
-				// Act
-				await blocksInstance.validateBlockHeader(
-					block,
-					blockBytes,
-					expectedReward,
-				);
-				expect(transactionsModule.validateTransactions).toHaveBeenCalledWith(
-					exceptions,
-				);
-				expect(validateTransactionsFn).toHaveBeenCalledWith(block.transactions);
-			});
-
-			it('should throw errors of the first invalid Transaction', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-
-				const transactionErrors = [new Error('Invalid signature')];
-				const transactionResponseForInvalidTransaction = {
-					errors: transactionErrors,
-					status: TransactionStatus.FAIL,
-				};
-				validateTransactionsFn.mockReturnValue({
-					transactionsResponses: [transactionResponseForInvalidTransaction],
-				});
-
-				const block = newBlock({ transactions: [transaction] });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
-				).rejects.toEqual(transactionErrors);
-			});
-
-			it('should not throw when there are no errors', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-
-				const transactionResponseForValidTransaction = {
-					errors: [],
-					status: TransactionStatus.OK,
-				};
-				validateTransactionsFn.mockReturnValue({
-					transactionsResponses: [transactionResponseForValidTransaction],
-				});
-
-				const block = newBlock({ transactions: [transaction] });
-				const blockBytes = getBytes(block);
-				expect.assertions(1);
-				// Act & Assert
-				await expect(
-					blocksInstance.validateBlockHeader(block, blockBytes, expectedReward),
-				).resolves.toEqual();
-			});
-		});
-	});
-
 	describe('forkChoice', () => {
 		const defaults = {};
 
@@ -849,12 +414,9 @@ describe('blocks', () => {
 				id: defaults.lastBlock.id,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK,
+			);
 		});
 
 		it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', async () => {
@@ -864,12 +426,9 @@ describe('blocks', () => {
 				previousBlockId: defaults.lastBlock.id,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_VALID_BLOCK);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_VALID_BLOCK,
+			);
 		});
 
 		it('should return FORK_STATUS_DOUBLE_FORGING if isDoubleForging evaluates to true', () => {
@@ -882,12 +441,9 @@ describe('blocks', () => {
 				generatorPublicKey: defaults.lastBlock.generatorPublicKey,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_DOUBLE_FORGING);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_DOUBLE_FORGING,
+			);
 		});
 
 		it('should return FORK_STATUS_TIE_BREAK if isTieBreak evaluates to true', () => {
@@ -909,12 +465,9 @@ describe('blocks', () => {
 				receivedAt: defaults.lastBlock.timestamp + 1000, // Received late
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_TIE_BREAK);
+			expect(blocksInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_TIE_BREAK,
+			);
 		});
 
 		it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
@@ -925,12 +478,9 @@ describe('blocks', () => {
 				height: defaults.lastBlock.height + 1,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock: defaults.lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN);
+			expect(blocksInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
+			);
 		});
 
 		it('should return FORK_STATUS_DISCARD if no conditions are met', async () => {
@@ -944,369 +494,9 @@ describe('blocks', () => {
 				height: 2,
 			};
 
-			expect(
-				blocksInstance.forkChoice({
-					block: aNewBlock,
-					lastBlock,
-				}),
-			).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
-		});
-	});
-
-	describe('verify', () => {
-		let checkPersistedTransactionsFn;
-
-		beforeEach(async () => {
-			checkPersistedTransactionsFn = jest.fn().mockResolvedValue({
-				transactionsResponses: [{ status: 0, errors: [new Error('error')] }],
-			});
-
-			transactionsModule.checkPersistedTransactions.mockReturnValue(
-				checkPersistedTransactionsFn,
+			expect(blocksInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
+				forkChoiceRule.FORK_STATUS_DISCARD,
 			);
-
-			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
-				false,
-			);
-		});
-
-		it('should throw in case the block id exists in the last n blocks', async () => {
-			// Arrange
-			const block = newBlock();
-
-			const previousLastNBlockIds = blocksInstance._lastNBlockIds;
-			blocksInstance._lastNBlockIds = [];
-			try {
-				// Act
-				await blocksInstance.verify({
-					block,
-					skipExistingCheck: true,
-				});
-			} catch (e) {
-				blocksInstance._lastNBlockIds = previousLastNBlockIds;
-
-				// Assert
-				expect(e.message).toEqual('Block already exists in chain');
-			}
-		});
-
-		it('should throw in case checkPersistedTransactionsFail', async () => {
-			// Arrange
-			const block = newBlock();
-
-			try {
-				// Act
-				await blocksInstance.verify({
-					block,
-					skipExistingCheck: false,
-				});
-			} catch (e) {
-				// Assert
-				expect(e[0].message).toBe('error');
-			}
-		});
-
-		it('should call checkPersistedTransactions with proper arguments', async () => {
-			// Arrange
-			const block = newBlock();
-			const checkPersistedTransactionsFunction = jest.fn().mockResolvedValue({
-				transactionsResponses: [{ status: 1, errors: [] }],
-			});
-
-			transactionsModule.checkPersistedTransactions.mockReturnValue(
-				checkPersistedTransactionsFunction,
-			);
-
-			// Act
-			await blocksInstance.verify({
-				block,
-				skipExistingCheck: false,
-			});
-			// Assert
-			expect(
-				transactionsModule.checkPersistedTransactions,
-			).toHaveBeenCalledWith(blocksInstance.storage);
-			expect(checkPersistedTransactionsFunction).toHaveBeenCalledWith(
-				block.transactions,
-			);
-		});
-	});
-
-	describe('apply', () => {
-		const stateStore = {
-			account: {
-				finalize: jest.fn(),
-			},
-			round: {
-				finalize: jest.fn(),
-				setRoundForData: jest.fn(),
-			},
-		};
-		let applyTransactionsFn;
-
-		beforeEach(() => {
-			applyTransactionsFn = jest.fn().mockResolvedValue({
-				transactionsResponses: [{ status: 1, errors: [] }],
-				stateStore,
-			});
-			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
-		});
-
-		it('should not perform any action if transactions is an empty array', async () => {
-			const block = newBlock();
-			block.transactions = []; // Block with empty transactions
-			await blocksInstance.apply({ block });
-
-			expect(
-				transactionsModule.checkIfTransactionIsInert,
-			).not.toHaveBeenCalled();
-		});
-		it('should not call apply transactions for inert transactions', async () => {
-			// Arrange
-			const block = newBlock();
-			transactionsModule.checkIfTransactionIsInert.mockReturnValue(true);
-
-			block.transactions = [
-				{
-					id: '1234',
-				},
-			];
-
-			try {
-				// Act
-				await blocksInstance.apply({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
-
-			// Assert
-			expect(applyTransactionsFn).toHaveBeenCalledWith([], undefined);
-		});
-		it('should throw the errors for first unappliable transactions', async () => {
-			// Arrange
-			const block = newBlock();
-
-			block.transactions = [
-				{
-					id: '1234',
-				},
-			];
-
-			applyTransactionsFn = jest.fn().mockResolvedValue({
-				transactionsResponses: [{ status: 0, errors: [new Error('anError')] }],
-				stateStore,
-			});
-			transactionsModule.applyTransactions.mockReturnValue(applyTransactionsFn);
-
-			try {
-				// Act
-				await blocksInstance.apply({
-					block,
-				});
-			} catch (e) {
-				// Assert
-				expect(e[0].message).toEqual('anError');
-			}
-		});
-		it('should update account state when transactions are appliable', async () => {
-			const block = newBlock();
-
-			try {
-				await blocksInstance.apply({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
-
-			expect(stateStore.account.finalize).toHaveBeenCalled();
-		});
-		it('should update round state when transactions are appliable', async () => {
-			const block = newBlock();
-
-			try {
-				await blocksInstance.apply({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
-		});
-	});
-
-	describe('applyGenesis', () => {
-		const stateStore = {
-			account: {
-				finalize: jest.fn(),
-			},
-			round: {
-				finalize: jest.fn(),
-				setRoundForData: jest.fn(),
-			},
-		};
-		let applyGenesisTransactionsFn;
-
-		beforeEach(() => {
-			applyGenesisTransactionsFn = jest.fn().mockResolvedValue({
-				stateStore,
-			});
-			transactionsModule.applyGenesisTransactions.mockReturnValue(
-				applyGenesisTransactionsFn,
-			);
-		});
-
-		it('should call transactionsModule.applyGenesisTransactions by sorting transactions', async () => {
-			await blocksInstance.applyGenesis({
-				block: newBlock(),
-			});
-
-			expect(transactionsModule.applyGenesisTransactions).toHaveBeenCalled();
-		});
-
-		it('should account state when transactions are appliable', async () => {
-			await blocksInstance.applyGenesis({
-				block: newBlock(),
-			});
-
-			expect(stateStore.account.finalize).toHaveBeenCalled();
-		});
-
-		it('should round state when transactions are appliable', async () => {
-			await blocksInstance.applyGenesis({
-				block: newBlock(),
-			});
-		});
-	});
-
-	describe('undo', () => {
-		const stateStore = {
-			account: {
-				finalize: jest.fn(),
-			},
-			round: {
-				finalize: jest.fn(),
-				setRoundForData: jest.fn(),
-			},
-		};
-		let undoTransactionsFn;
-
-		beforeEach(() => {
-			undoTransactionsFn = jest.fn().mockResolvedValue({
-				transactionsResponses: [{ status: 1, errors: [] }],
-				stateStore,
-			});
-			transactionsModule.undoTransactions.mockReturnValue(undoTransactionsFn);
-
-			stubs.dependencies.storage.entities.Block.get.mockReturnValue([]);
-		});
-
-		it('should not perform any action if transactions is an empty array', async () => {
-			// Arrange
-			const block = newBlock();
-			block.transactions = []; // Empty transactions
-
-			try {
-				// Act
-				await blocksInstance.undo({
-					block: newBlock(),
-				});
-			} catch (e) {
-				// Do nothing here
-			}
-
-			// Assert
-			expect(transactionsModule.undoTransactions).not.toHaveBeenCalled();
-		});
-
-		it('should not call undoTransactions for inert transactions', async () => {
-			// Arrange
-			const block = newBlock();
-			block.transactions = [
-				{
-					id: '1234',
-				},
-			];
-
-			blocksInstance.exceptions = {
-				...blocksInstance.exceptions,
-				inertTransactions: ['1234'],
-			};
-
-			try {
-				// Act
-				await blocksInstance.undo({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
-
-			// Assert
-			expect(undoTransactionsFn).toHaveBeenCalledWith([], undefined);
-		});
-		it('should throw the errors for the first transaction which fails on undo function', async () => {
-			// Arrange
-			const block = newBlock();
-
-			block.transactions = [
-				{
-					id: '1234',
-				},
-			];
-
-			undoTransactionsFn = jest.fn().mockResolvedValue({
-				transactionsResponses: [{ status: 0, errors: [new Error('anError')] }],
-				stateStore,
-			});
-			transactionsModule.undoTransactions.mockReturnValue(undoTransactionsFn);
-
-			try {
-				// Act
-				await blocksInstance.undo({
-					block,
-				});
-			} catch (e) {
-				// Assert
-				expect(e[0].message).toEqual('anError');
-			}
-		});
-
-		it('should throw an error if previous block is null', async () => {
-			try {
-				await blocksInstance.undo({
-					block: newBlock(),
-				});
-			} catch (e) {
-				expect(e.message).toEqual('PreviousBlock is null');
-			}
-		});
-
-		it('should update account state when transactions are reverted', async () => {
-			const block = newBlock();
-
-			try {
-				await blocksInstance.undo({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
-
-			expect(stateStore.account.finalize).toHaveBeenCalled();
-		});
-
-		it('should update round state when transactions are reverted', async () => {
-			const block = newBlock();
-
-			try {
-				await blocksInstance.undo({
-					block,
-				});
-			} catch (e) {
-				// Do nothing
-			}
 		});
 	});
 
@@ -1326,10 +516,7 @@ describe('blocks', () => {
 
 			// Act & Assert
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).rejects.toEqual(blockCreateError);
 		});
 
@@ -1345,10 +532,7 @@ describe('blocks', () => {
 
 			// Act & Assert
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).rejects.toEqual(transactionCreateError);
 		});
 
@@ -1363,10 +547,7 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			// Act
-			await blocksInstance.save({
-				blockJSON,
-				tx: stubs.tx,
-			});
+			await blocksInstance.save(blockJSON, stubs.tx);
 
 			// Assert
 			expect(
@@ -1379,10 +560,7 @@ describe('blocks', () => {
 			const block = newBlock();
 
 			// Act
-			await blocksInstance.save({
-				blockJSON: blocksInstance.serialize(block),
-				tx: stubs.tx,
-			});
+			await blocksInstance.save(blocksInstance.serialize(block), stubs.tx);
 
 			// Assert
 			expect(
@@ -1398,10 +576,7 @@ describe('blocks', () => {
 			const transactionJSON = transaction.toJSON();
 
 			// Act
-			await blocksInstance.save({
-				blockJSON: blocksInstance.serialize(block),
-				tx: stubs.tx,
-			});
+			await blocksInstance.save(blocksInstance.serialize(block), stubs.tx);
 
 			// Assert
 			expect(
@@ -1417,10 +592,7 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).resolves.toEqual();
 		});
 
@@ -1436,10 +608,7 @@ describe('blocks', () => {
 
 			// Act & Assert
 			await expect(
-				blocksInstance.save({
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
 			).rejects.toBe(blockCreateError);
 		});
 	});
@@ -1455,11 +624,11 @@ describe('blocks', () => {
 		it('should throw an error when removing genesis block', async () => {
 			// Act & Assert
 			await expect(
-				blocksInstance.remove({
-					block: blocksInstance.deserialize(genesisBlock),
-					blockJSON: genesisBlock,
-					tx: stubs.tx,
-				}),
+				blocksInstance.remove(
+					blocksInstance.deserialize(genesisBlock),
+					genesisBlock,
+					stubs.tx,
+				),
 			).rejects.toThrow('Cannot delete genesis block');
 		});
 
@@ -1469,11 +638,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			// Act & Assert
 			await expect(
-				blocksInstance.remove({
-					block,
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.remove(block, blocksInstance.serialize(block), stubs.tx),
 			).rejects.toThrow('PreviousBlock is null');
 		});
 
@@ -1489,11 +654,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			// Act & Assert
 			await expect(
-				blocksInstance.remove({
-					block,
-					blockJSON: blocksInstance.serialize(block),
-					tx: stubs.tx,
-				}),
+				blocksInstance.remove(block, blocksInstance.serialize(block), stubs.tx),
 			).rejects.toEqual(deleteBlockError);
 		});
 
@@ -1501,11 +662,11 @@ describe('blocks', () => {
 			// Arrange
 			const block = newBlock();
 			// Act
-			await blocksInstance.remove({
+			await blocksInstance.remove(
 				block,
-				blockJSON: blocksInstance.serialize(block),
-				tx: stubs.tx,
-			});
+				blocksInstance.serialize(block),
+				stubs.tx,
+			);
 			// Assert
 			expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
 			expect(
@@ -1530,12 +691,10 @@ describe('blocks', () => {
 				// Act & Assert
 				await expect(
 					blocksInstance.remove(
-						{
-							block,
-							blockJSON: blocksInstance.serialize(block),
-							tx: stubs.tx,
-						},
-						true,
+						block,
+						blocksInstance.serialize(block),
+						stubs.tx,
+						{ saveTempBlock: true },
 					),
 				).rejects.toEqual(tempBlockCreateError);
 			});
@@ -1547,14 +706,9 @@ describe('blocks', () => {
 				transaction.blockId = block.id;
 				const blockJSON = blocksInstance.serialize(block);
 				// Act
-				await blocksInstance.remove(
-					{
-						block,
-						blockJSON,
-						tx: stubs.tx,
-					},
-					true,
-				);
+				await blocksInstance.remove(block, blockJSON, stubs.tx, {
+					saveTempBlock: true,
+				});
 				// Assert
 				expect(
 					stubs.dependencies.storage.entities.TempBlock.create,
@@ -1636,20 +790,6 @@ describe('blocks', () => {
 	});
 
 	describe('filterReadyTransactions', () => {});
-
-	describe('broadcast', () => {
-		it('should emit EVENT_BROADCAST_BLOCK event', () => {
-			const block = newBlock();
-			blocksInstance.broadcast(block);
-
-			expect(blocksInstance.emit).toHaveBeenCalledWith(
-				'EVENT_BROADCAST_BLOCK',
-				{
-					block,
-				},
-			);
-		});
-	});
 
 	describe('loadBlocksFromLastBlockId', () => {
 		describe('when called without lastBlockId', () => {
@@ -1808,7 +948,7 @@ describe('blocks', () => {
 				await blocksInstance.getHighestCommonBlock(ids);
 			} catch (e) {
 				// Assert
-				expect(e.message).toEqual('Failed to access storage layer');
+				expect(e.message).toEqual('Failed to fetch the highest common block');
 			}
 		});
 	});

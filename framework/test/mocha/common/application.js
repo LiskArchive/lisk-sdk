@@ -50,22 +50,11 @@ const initStepsForTest = {
 		scope.rewiredModules = {};
 		const modules = {};
 
-		const {
-			TransactionInterfaceAdapter: RewiredTransactionInterfaceAdapter,
-		} = rewire('../../../src/modules/chain/interface_adapters');
-
-		scope.rewiredModules.interfaceAdapters = {};
-		scope.rewiredModules.interfaceAdapters.transactions = RewiredTransactionInterfaceAdapter;
 		scope.slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
-		modules.interfaceAdapters = {};
-		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
-			getNetworkIdentifier(__testContext.config.genesisBlock),
-			__testContext.config.modules.chain.registeredTransactions,
-		);
 
 		const { Dpos } = require('../../../src/modules/chain/dpos');
 		modules.dpos = new Dpos({
@@ -85,11 +74,15 @@ const initStepsForTest = {
 		modules.blocks = new RewiredBlocks({
 			logger: scope.components.logger,
 			storage: scope.components.storage,
+			networkIdentifier: getNetworkIdentifier(
+				__testContext.config.genesisBlock,
+			),
+			registeredTransactions:
+				__testContext.config.modules.chain.registeredTransactions,
 			sequence: scope.sequence,
 			genesisBlock: __testContext.config.genesisBlock,
 			slots: scope.slots,
 			exceptions: __testContext.config.modules.chain.exceptions,
-			interfaceAdapters: modules.interfaceAdapters,
 			blockReceiptTimeout: __testContext.config.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
@@ -155,7 +148,6 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
-			interfaceAdapters: modules.interfaceAdapters,
 			loadPerIteration:
 				__testContext.config.modules.chain.loading.loadPerIteration,
 			rebuildUpToRound:
@@ -197,8 +189,6 @@ const initStepsForTest = {
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
 			loaderModule: modules.loader,
-			interfaceAdapters: modules.interfaceAdapters,
-			nonce: __testContext.config.app.nonce,
 			forgingForce: __testContext.config.modules.chain.forging.force,
 			broadcasts: __testContext.config.modules.chain.broadcasts,
 			maxSharedTransactions:
@@ -213,7 +203,6 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			blocksModule: modules.blocks,
 			processorModule: modules.processor,
-			interfaceAdapters: modules.interfaceAdapters,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
 
@@ -352,14 +341,9 @@ async function __init(sandbox, initScope) {
 		}
 
 		// Deserialize genesis block
-		const transactionInstances = __testContext.config.genesisBlock.transactions.map(
-			transaction =>
-				scope.modules.interfaceAdapters.transactions.fromJson(transaction),
+		const blockWithTransactionInstances = scope.modules.blocks.deserialize(
+			__testContext.config.genesisBlock,
 		);
-		const blockWithTransactionInstances = {
-			...__testContext.config.genesisBlock,
-			transactions: transactionInstances,
-		};
 
 		// Overwrite onBlockchainReady function to prevent automatic forging
 		await scope.modules.processor.init(blockWithTransactionInstances);

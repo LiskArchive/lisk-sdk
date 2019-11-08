@@ -34,12 +34,11 @@ const jobsQueue = require('../utils/jobs_queue');
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(nonce, broadcasts, transactionPool, logger, channel, storage) {
+	constructor(broadcasts, transactionPool, logger, channel, storage) {
 		this.logger = logger;
 		this.transactionPool = transactionPool;
 		this.config = broadcasts;
 		this.channel = channel;
-		this.nonce = nonce;
 		this.storage = storage;
 
 		this.queue = [];
@@ -47,7 +46,7 @@ class Broadcaster {
 		// Broadcast routes
 		this.routes = [
 			{
-				path: 'postTransactions',
+				path: 'postTransactionsAnnouncement',
 				collection: 'transactions',
 				object: 'transaction',
 			},
@@ -82,13 +81,16 @@ class Broadcaster {
 	 */
 	async broadcast(params, { api: event, data }) {
 		// Broadcast using Elements P2P library via network module
-		const wrappedData = {
-			...data,
-			nonce: this.nonce,
-		};
-		await this.channel.invoke('network:send', {
+		if (event === 'postTransactionsAnnouncement') {
+			return this.channel.invoke('network:broadcast', {
+				event,
+				data,
+			});
+		}
+
+		return this.channel.invoke('network:send', {
 			event,
-			data: wrappedData,
+			data,
 		});
 	}
 

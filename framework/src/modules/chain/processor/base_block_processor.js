@@ -54,7 +54,6 @@ class BaseBlockProcessor {
 		 */
 		this.validate = new Pipeline();
 		this.validateDetached = new Pipeline();
-		this.validateNew = new Pipeline();
 
 		/**
 		 * verify should check the block data with history of chain

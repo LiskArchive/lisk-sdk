@@ -23,7 +23,6 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const { sortBy } = require('./sort');
-const transactionsModule = require('../transactions');
 
 const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
 const EVENT_MULTISIGNATURE_SIGNATURE = 'EVENT_MULTISIGNATURE_SIGNATURE';
@@ -63,7 +62,6 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 class TransactionPool extends EventEmitter {
 	constructor({
 		storage,
-		exceptions,
 		blocks,
 		slots,
 		logger,
@@ -86,25 +84,12 @@ class TransactionPool extends EventEmitter {
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 
-		this.validateTransactions = transactionsModule.validateTransactions(
-			this.exceptions,
-		);
-		this.verifyTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkAllowedTransactions(() => {
-				const { version, height, timestamp } = this.blocks.lastBlock;
-				return {
-					blockVersion: version,
-					blockHeight: height,
-					blockTimestamp: timestamp,
-				};
-			}), // TODO: probably wrong
-			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.verifyTransactions(storage, slots, exceptions),
-		);
-		this.processTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.applyTransactions(storage, exceptions),
-		);
+		this.validateTransactions = transactions =>
+			this.blocks.validateTransactions(transactions);
+		this.verifyTransactions = transactions =>
+			this.blocks.verifyTransactions(transactions);
+		this.processTransactions = transactions =>
+			this.blocks.processTransactions(transactions);
 
 		const poolConfig = {
 			expireTransactionsInterval: this.expireTransactionsInterval,
@@ -216,9 +201,10 @@ class TransactionPool extends EventEmitter {
 			throw [new TransactionError(message, '', '.signature')];
 		}
 
-		const transactionResponse = await transactionsModule.processSignature(
-			this.storage,
-		)(transaction, signature);
+		const transactionResponse = await this.blocks.processSignature(
+			transaction,
+			signature,
+		);
 		if (
 			transactionResponse.status === TransactionStatus.FAIL &&
 			transactionResponse.errors.length > 0
@@ -524,6 +510,10 @@ class TransactionPool extends EventEmitter {
 			transactions: toSend,
 			count: transactions.length,
 		};
+	}
+
+	findInTransactionPool(id) {
+		return this.pool.findInTransactionPool(id);
 	}
 }
 

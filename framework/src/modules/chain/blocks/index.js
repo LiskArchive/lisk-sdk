@@ -14,22 +14,12 @@
 
 'use strict';
 
-const { addBlockProperties } = require('./utils');
 const {
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
 } = require('./block_reward');
-const {
-	Blocks,
-	EVENT_NEW_BLOCK,
-	EVENT_DELETE_BLOCK,
-	EVENT_BROADCAST_BLOCK,
-	EVENT_PRIORITY_CHAIN_DETECTED,
-	BLOCKCHAIN_STATUS_REBUILD,
-	BLOCKCHAIN_STATUS_RECOVERY,
-	BLOCKCHAIN_STATUS_READY,
-} = require('./blocks');
+const { Blocks } = require('./blocks');
 const {
 	FORK_STATUS_IDENTICAL_BLOCK,
 	FORK_STATUS_VALID_BLOCK,
@@ -39,25 +29,19 @@ const {
 	FORK_STATUS_DISCARD,
 } = require('./fork_choice_rule');
 const { baseBlockSchema } = require('./schema');
+const { StateStore } = require('./state_store');
 
 module.exports = {
 	Blocks,
+	StateStore,
 	baseBlockSchema,
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
-	EVENT_NEW_BLOCK,
-	EVENT_DELETE_BLOCK,
-	EVENT_BROADCAST_BLOCK,
-	EVENT_PRIORITY_CHAIN_DETECTED,
 	FORK_STATUS_IDENTICAL_BLOCK,
 	FORK_STATUS_VALID_BLOCK,
 	FORK_STATUS_DOUBLE_FORGING,
 	FORK_STATUS_TIE_BREAK,
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
-	BLOCKCHAIN_STATUS_REBUILD,
-	BLOCKCHAIN_STATUS_RECOVERY,
-	BLOCKCHAIN_STATUS_READY,
-	addBlockProperties,
 };

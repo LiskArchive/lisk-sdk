@@ -18,7 +18,7 @@ const AccountStore = require('./account_store');
 const TransactionStore = require('./transaction_store');
 
 class StateStore {
-	constructor(storage, options) {
+	constructor(storage, options = {}) {
 		this.entities = {
 			Account: storage.entities.Account,
 			Transaction: storage.entities.Transaction,
@@ -39,4 +39,4 @@ class StateStore {
 	}
 }
 
-module.exports = StateStore;
+module.exports = { StateStore };

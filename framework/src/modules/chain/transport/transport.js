@@ -18,8 +18,7 @@ const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
-const definitions = require('../schema/definitions');
-const transactionsModule = require('../transactions');
+const schemas = require('./schemas');
 
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
@@ -49,9 +48,7 @@ class Transport {
 		transactionPoolModule,
 		blocksModule,
 		processorModule,
-		interfaceAdapters,
 		// Constants
-		nonce,
 		broadcasts,
 		maxSharedTransactions,
 	}) {
@@ -65,7 +62,6 @@ class Transport {
 		this.exceptions = exceptions;
 
 		this.constants = {
-			nonce,
 			broadcasts,
 			maxSharedTransactions,
 		};
@@ -73,10 +69,8 @@ class Transport {
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
-		this.interfaceAdapters = interfaceAdapters;
 
 		this.broadcaster = new Broadcaster(
-			this.constants.nonce,
 			this.constants.broadcasts,
 			this.transactionPoolModule,
 			this.logger,
@@ -94,7 +88,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onSignature(signature, broadcast) {
+	handleBroadcastSignature(signature, broadcast) {
 		if (broadcast) {
 			this.broadcaster.enqueue(
 				{},
@@ -118,15 +112,15 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onUnconfirmedTransaction(transaction, broadcast) {
+	handleBroadcastTransaction(transaction, broadcast) {
 		if (broadcast) {
 			const transactionJSON = transaction.toJSON();
 			this.broadcaster.enqueue(
 				{},
 				{
-					api: 'postTransactions',
+					api: 'postTransactionsAnnouncement',
 					data: {
-						transaction: transactionJSON,
+						transaction: { id: transaction.id },
 					},
 				},
 			);
@@ -143,7 +137,7 @@ class Transport {
 	 */
 	// TODO: Remove after block module becomes event-emitter
 	// eslint-disable-next-line class-methods-use-this
-	onBroadcastBlock(block, broadcast) {
+	handleBroadcastBlock(block, broadcast) {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
@@ -189,7 +183,7 @@ class Transport {
 	 * @property {function} postSignatures
 	 * @property {function} getSignatures
 	 * @property {function} getTransactions
-	 * @property {function} postTransactions
+	 * @property {function} postTransactionsAnnouncement
 	 * @todo Add description for the functions
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
@@ -202,8 +196,8 @@ class Transport {
 	 * @param {string} payload.blockId - The ID of the starting block
 	 * @return {Promise<Array<object>>}
 	 */
-	async getBlocksFromId(payload) {
-		validator.validate(definitions.getBlocksFromIdRequest, payload);
+	async handleRPCGetBlocksFromId(payload) {
+		validator.validate(schemas.getBlocksFromIdRequest, payload);
 
 		if (validator.validator.errors) {
 			this.logger.debug(
@@ -226,7 +220,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}, peerId) {
+	async handleEventPostBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -241,7 +235,7 @@ class Transport {
 			);
 		}
 
-		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
+		const errors = validator.validate(schemas.blocksBroadcast, query);
 
 		if (errors.length) {
 			this.logger.debug(
@@ -268,13 +262,12 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignature(query) {
-		const errors = validator.validate(definitions.Signature, query.signature);
+	async handleEventPostSignature(query) {
+		const errors = validator.validate(schemas.signatureObject, query.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
 			return {
-				success: false,
 				code: 400,
 				errors: [error],
 			};
@@ -284,10 +277,9 @@ class Transport {
 			await this.transactionPoolModule.getTransactionAndProcessSignature(
 				query.signature,
 			);
-			return { success: true };
+			return {};
 		} catch (err) {
 			return {
-				success: false,
 				code: 409,
 				errors: err,
 			};
@@ -301,14 +293,14 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignatures(query) {
+	async handleEventPostSignatures(query) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving signatures disabled by user through config.json',
 			);
 		}
 
-		const errors = validator.validate(definitions.WSSignaturesList, query);
+		const errors = validator.validate(schemas.signaturesList, query);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid signatures body');
@@ -326,7 +318,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getSignatures() {
+	async handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
 			this.constants.maxSharedTransactions,
@@ -342,27 +334,65 @@ class Transport {
 			}));
 
 		return {
-			success: true,
 			signatures,
 		};
 	}
 
 	/**
-	 * Description of getTransactions.
+	 * Get default number of transactions or by ids.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions() {
-		const transactions = this.transactionPoolModule.getMergedTransactionList(
-			true,
-			this.constants.maxSharedTransactions,
-		);
+	async handleRPCGetTransactions(ids) {
+		if (!(ids && Array.isArray(ids) && ids.length)) {
+			return {
+				success: true,
+				transactions: this.transactionPoolModule.getMergedTransactionList(
+					true,
+					this.constants.maxSharedTransactions,
+				),
+			};
+		}
+
+		if (ids.length > this.constants.maxSharedTransactions) {
+			// TODO: apply penalty to the requester #3672
+			return {
+				transactions: [],
+			};
+		}
+
+		const transactionsFromQueues = [];
+		const idsNotInPool = [];
+
+		for (const id of ids) {
+			// Check if any transaction is in the queues.
+			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
+				id,
+			);
+
+			if (transactionInPool) {
+				transactionsFromQueues.push(transactionInPool.toJSON());
+			} else {
+				idsNotInPool.push(id);
+			}
+		}
+
+		if (idsNotInPool.length) {
+			// Check if any transaction that was not in the queues, is in the database instead.
+			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
+				{ id_in: idsNotInPool },
+				{ limit: this.constants.maxSharedTransactions },
+			);
+
+			return {
+				transactions: transactionsFromQueues.concat(transactionsFromDatabase),
+			};
+		}
 
 		return {
-			success: true,
-			transactions,
+			transactions: transactionsFromQueues,
 		};
 	}
 
@@ -373,16 +403,14 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransaction(query) {
+	async handleEventPostTransaction(query) {
 		try {
 			const id = await this._receiveTransaction(query.transaction);
 			return {
-				success: true,
 				transactionId: id,
 			};
 		} catch (err) {
 			return {
-				success: false,
 				message: err.message || 'Transaction was rejected with errors',
 				errors: err,
 			};
@@ -390,20 +418,21 @@ class Transport {
 	}
 
 	/**
-	 * Description of postTransactions.
+	 * Process transactions IDs announcement. First validates, filter the known transactions
+	 * and finally ask to the emitter the ones that are unknown.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransactions(query) {
+	async handleEventPostTransactionsAnnouncement({ data, peerId }) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',
 			);
 		}
 
-		const errors = validator.validate(definitions.WSTransactionsRequest, query);
+		const errors = validator.validate(schemas.transactionsRequest, data);
 
 		if (errors.length) {
 			this.logger.debug({ err: errors }, 'Invalid transactions body');
@@ -411,7 +440,57 @@ class Transport {
 			throw errors;
 		}
 
-		return this._receiveTransactions(query.transactions);
+		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
+			data.transactions.map(transaction => transaction.id),
+		);
+		if (unknownTransactionIDs.length > 0) {
+			const { data: result } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getTransactions',
+					data: unknownTransactionIDs,
+					peerId,
+				},
+			);
+			return this._receiveTransactions(result.transactions);
+		}
+
+		return null;
+	}
+
+	/**
+	 * It filters the known transaction IDs because they are either in the queues or exist in the database.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async _obtainUnknownTransactionIDs(ids) {
+		// Check if any transaction is in the queues.
+		const unknownTransactionsIDs = ids.filter(
+			id => !this.transactionPoolModule.transactionInPool(id),
+		);
+
+		if (unknownTransactionsIDs.length) {
+			// Check if any transaction exists in the database.
+			const existingTransactions = await this.storage.entities.Transaction.get(
+				{
+					id_in: unknownTransactionsIDs,
+				},
+				{
+					limit: this.constants.maxSharedTransactions,
+				},
+			);
+
+			return unknownTransactionsIDs.filter(
+				id =>
+					existingTransactions.find(
+						existingTransaction => existingTransaction.id === id,
+					) === undefined,
+			);
+		}
+
+		return unknownTransactionsIDs;
 	}
 
 	/**
@@ -442,7 +521,7 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	async _receiveSignature(signature) {
-		const errors = validator.validate(definitions.Signature, signature);
+		const errors = validator.validate(schemas.signatureObject, signature);
 
 		if (errors.length) {
 			throw errors;
@@ -486,20 +565,12 @@ class Transport {
 		const id = transactionJSON ? transactionJSON.id : 'null';
 		let transaction;
 		try {
-			transaction = this.interfaceAdapters.transactions.fromJson(
-				transactionJSON,
-			);
+			transaction = this.blocksModule.deserializeTransaction(transactionJSON);
 
-			const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
-				transactionsModule.checkAllowedTransactions(
-					this.blocksModule.lastBlock,
-				),
-				transactionsModule.validateTransactions(this.exceptions),
-			);
-
-			const { transactionsResponses } = await composedTransactionsCheck([
-				transaction,
-			]);
+			// Composed transaction checks are all static, so it does not need state store
+			const {
+				transactionsResponses,
+			} = await this.blocksModule.validateTransactions([transaction]);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;

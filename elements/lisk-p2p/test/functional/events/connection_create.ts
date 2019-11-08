@@ -20,9 +20,9 @@ import {
 	EVENT_DISCOVERED_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_TO_ADD_INBOUND_PEER,
-	INVALID_CONNECTION_SELF_REASON,
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+	INVALID_CONNECTION_SELF_REASON,
 } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import {
@@ -110,14 +110,7 @@ describe(`Connection Create`, () => {
 
 		it(`should update peerBook with connected peer`, async () => {
 			const firstNode = p2pNodeList[0];
-			const secondNode = p2pNodeList[1];
-
-			const connectedPeer = firstNode.getConnectedPeers()[0];
 			const disconnectedPeers = firstNode.getDisconnectedPeers();
-
-			expect(connectedPeer)
-				.to.have.property('nonce')
-				.which.is.equal(secondNode.nodeInfo.nonce);
 
 			expect(disconnectedPeers).to.be.empty;
 		});

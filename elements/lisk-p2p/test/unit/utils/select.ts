@@ -26,16 +26,18 @@ import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
+	const nodeInfo: P2PNodeInfo = {
+		height: 545777,
+		nethash: '73458irc3yb7rg37r7326dbt7236',
+		os: 'linux',
+		version: '1.1.1',
+		protocolVersion: '1.1',
+		wsPort: 5000,
+		nonce: 'nonce',
+	};
+
 	describe('#selectPeersForRequest', () => {
 		let peerList = initPeerInfoList();
-		const nodeInfo: P2PNodeInfo = {
-			height: 545777,
-			nethash: '73458irc3yb7rg37r7326dbt7236',
-			os: 'linux',
-			version: '1.1.1',
-			protocolVersion: '1.1',
-			wsPort: 5000,
-		};
 
 		describe('get a list of n number of good peers', () => {
 			beforeEach(async () => {
@@ -161,15 +163,6 @@ describe('peer selector', () => {
 
 	describe('#selectPeersForSend', () => {
 		let peerList = initPeerInfoListWithSuffix('111.112.113', 120);
-
-		const nodeInfo: P2PNodeInfo = {
-			height: 545777,
-			nethash: '73458irc3yb7rg37r7326dbt7236',
-			os: 'linux',
-			version: '1.1.1',
-			protocolVersion: '1.1',
-			wsPort: 5000,
-		};
 
 		it('should return an array containing an even number of inbound and outbound peers', () => {
 			const selectedPeers = selectPeersForSend({
@@ -354,6 +347,52 @@ describe('peer selector', () => {
 					.to.be.an('array')
 					.of.length(3);
 				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are multiple peer from same IP with different height', () => {
+			it('should return only unique IPs', () => {
+				let uniqIpAddresses: Array<string> = [];
+
+				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${10001 + i}`,
+					ipAddress: '205.120.0.20',
+					wsPort: 10001 + i,
+					sharedState: {
+						height: 10001 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
+
+				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${5000 + i}`,
+					ipAddress: '205.120.0.20',
+					wsPort: 5000 + i,
+					sharedState: {
+						height: 5000 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
+
+				triedPeers.push(peerList[0]);
+				newPeers.push(peerList[2]);
+
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 5,
+				});
+
+				selectedPeers.map(peer => uniqIpAddresses.push(peer.ipAddress));
+
+				expect(selectedPeers).to.be.not.empty;
+				expect(selectedPeers.length).to.equal(
+					[...new Set(uniqIpAddresses)].length,
+				);
 			});
 		});
 	});
