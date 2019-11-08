@@ -116,9 +116,12 @@ export const validatePeerCompatibility = (
 	};
 };
 
-export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
+export const validatePeerAddress = (
+	ipAddress: string,
+	wsPort: number,
+): boolean => {
 	if (
-		(!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) ||
+		(!isIP(ipAddress, IPV4_NUMBER) && !isIP(ipAddress, IPV6_NUMBER)) ||
 		!isPort(wsPort.toString())
 	) {
 		return false;
@@ -136,30 +139,28 @@ export const validatePeerInfo = (
 	}
 
 	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
-	const ipAddress = protocolPeer.ip || protocolPeer.ipAddress;
 
 	if (
-		!ipAddress ||
+		!protocolPeer.ipAddress ||
 		!protocolPeer.wsPort ||
-		!validatePeerAddress(ipAddress, protocolPeer.wsPort)
+		!validatePeerAddress(protocolPeer.ipAddress, protocolPeer.wsPort)
 	) {
 		throw new InvalidPeerInfoError(
-			`Invalid peer ip or port for peer with ip: ${ipAddress} and wsPort ${
-				protocolPeer.wsPort
-			}`,
+			`Invalid peer ipAddress or port for peer with ip: ${
+				protocolPeer.ipAddress
+			} and wsPort ${protocolPeer.wsPort}`,
 		);
 	}
 
 	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
 		throw new InvalidPeerInfoError(
-			`Invalid peer version for peer with ip: ${protocolPeer.ip}, wsPort ${
-				protocolPeer.wsPort
-			} and version ${protocolPeer.version}`,
+			`Invalid peer version for peer with ip: ${
+				protocolPeer.ipAddress
+			}, wsPort ${protocolPeer.wsPort} and version ${protocolPeer.version}`,
 		);
 	}
 
 	const {
-		ip,
 		ipAddress: protocolIPAddress,
 		version,
 		protocolVersion,
@@ -171,8 +172,8 @@ export const validatePeerInfo = (
 	} = protocolPeer;
 
 	const peerInfo: P2PPeerInfo = {
-		peerId: constructPeerId(ipAddress, protocolPeer.wsPort),
-		ipAddress,
+		peerId: constructPeerId(protocolPeer.ipAddress, protocolPeer.wsPort),
+		ipAddress: protocolPeer.ipAddress,
 		wsPort: +wsPort,
 		sharedState: {
 			version,

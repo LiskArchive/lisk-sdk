@@ -570,7 +570,7 @@ describe('peer/base', () => {
 
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
 				const peer = {
-					ip: '1.1.1.1',
+					ipAddress: '1.1.1.1',
 					wsPort: 1111,
 					version: '1.1.2',
 				};

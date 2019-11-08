@@ -513,7 +513,7 @@ export class Peer extends EventEmitter {
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
 		const protocolPeerInfo = {
 			...rawPeerInfo,
-			ip: this._ipAddress,
+			ipAddress: this._ipAddress,
 			wsPort: this._wsPort,
 		};
 

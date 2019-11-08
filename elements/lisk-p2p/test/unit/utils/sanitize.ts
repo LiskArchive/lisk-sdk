@@ -13,19 +13,15 @@
  *
  */
 import { expect } from 'chai';
-import {
-	sanitizeIncomingPeerInfo,
-	sanitizeOutgoingPeerInfo,
-} from '../../../src/utils';
+import { sanitizeIncomingPeerInfo } from '../../../src/utils';
 import { initPeerInfoList } from 'utils/peers';
 
 describe('utils/sanitize', () => {
 	describe('#sanitizeIncomingPeerInfo', () => {
-		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
+		it('should return the peerInfo with ipAddress and convert it to ipAddress', async () => {
 			const samplePeers = initPeerInfoList();
 			const { ipAddress, wsPort, sharedState } = samplePeers[0];
 			const protocolPeerInfo = {
-				ip: ipAddress,
 				ipAddress,
 				wsPort,
 				...sharedState,
@@ -36,18 +32,7 @@ describe('utils/sanitize', () => {
 	});
 
 	describe('#sanitizeOutgoingPeerInfo', () => {
-		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
-			const samplePeers = initPeerInfoList();
-			const { ipAddress, wsPort, sharedState } = samplePeers[0];
-			const protocolPeerInfo = {
-				ip: ipAddress,
-				ipAddress,
-				wsPort,
-				...sharedState,
-			};
-
-			expect(sanitizeOutgoingPeerInfo(samplePeers[0])).eql(protocolPeerInfo);
-		});
+		it('should sanitize peer info');
 	});
 
 	describe('#sanitizePeerLists', () => {

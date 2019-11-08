@@ -150,6 +150,6 @@ export const selectPeersForConnection = (
 		return shuffledTriedPeers.pop() as P2PPeerInfo;
 	});
 
-	// TODO: Remove the usage of height for choosing among peers having same ip, instead use productivity and reputation
+	// TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 	return _removeCommonIPsFromLists(peerList);
 };

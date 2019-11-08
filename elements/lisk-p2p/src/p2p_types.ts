@@ -90,7 +90,6 @@ export interface P2PNodeInfo extends P2PSharedState {
 // TODO: Include peerId as field
 export interface ProtocolPeerInfo {
 	// To support the existing protocol
-	readonly ip?: string;
 	readonly ipAddress: string;
 	readonly wsPort: number;
 	readonly height?: number;

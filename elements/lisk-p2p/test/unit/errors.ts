@@ -81,7 +81,7 @@ describe('errors', () => {
 	});
 
 	describe('#InvalidPeerInfoError', () => {
-		const defaultMessage = 'Invalid peer ip or port';
+		const defaultMessage = 'Invalid peer ipAddress or port';
 		let invalidPeer: InvalidPeerInfoError;
 
 		beforeEach(async () => {

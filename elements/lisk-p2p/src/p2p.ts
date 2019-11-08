@@ -749,8 +749,8 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				// Remove these wsPort and ip from the query object
-				const { wsPort, ip, ...restOfQueryObject } = queryObject;
+				// Remove these wsPort and ipAddress from the query object
+				const { wsPort, ipAddress, ...restOfQueryObject } = queryObject;
 				const incomingPeerInfo: P2PPeerInfo = {
 					sharedState: {
 						...restOfQueryObject,

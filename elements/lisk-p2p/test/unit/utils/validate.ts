@@ -30,7 +30,6 @@ describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
 			const peer: ProtocolPeerInfo = {
-				ip: '12.23.54.3',
 				ipAddress: '12.23.54.3',
 				wsPort: 5393,
 				os: 'darwin',
@@ -41,7 +40,6 @@ describe('utils/validate', () => {
 			};
 
 			const peerWithInvalidHeightValue: unknown = {
-				ip: '12.23.54.3',
 				ipAddress: '12.23.54.3',
 				wsPort: 5393,
 				os: '778',
@@ -98,7 +96,6 @@ describe('utils/validate', () => {
 			it('should throw if PeerInfo is too big', async () => {
 				const maximumPeerInfoSizeInBytes = 10;
 				const peer: ProtocolPeerInfo = {
-					ip: '12.23.54.3',
 					ipAddress: '12.23.54.3',
 					wsPort: 5393,
 					os: 'darwin',
@@ -115,9 +112,8 @@ describe('utils/validate', () => {
 				);
 			});
 
-			it('should throw InvalidPeer error for invalid peer ip or port', async () => {
+			it('should throw InvalidPeer error for invalid peer ipAddress or port', async () => {
 				const peerInvalid: unknown = {
-					ip: '12.23.54.uhig3',
 					wsPort: 53937888,
 					height: '23232',
 					discoveredInfo: {
@@ -126,13 +122,13 @@ describe('utils/validate', () => {
 				};
 
 				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
-					'Invalid peer ip or port',
+					'Invalid peer ipAddress or port',
 				);
 			});
 
 			it('should throw an InvalidPeer error for invalid peer version', async () => {
 				const peerInvalid: unknown = {
-					ip: '12.23.54.23',
+					ipAddress: '12.23.54.23',
 					wsPort: 5390,
 					os: 'darwin',
 					height: '23232',
@@ -175,42 +171,45 @@ describe('utils/validate', () => {
 	describe('#validatePeerAddress', () => {
 		it('should return true for correct IPv4', async () => {
 			const peer = {
-				ip: '12.12.12.12',
+				ipAddress: '12.12.12.12',
 				wsPort: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).to.be.true;
 		});
 
 		it('should return true for correct IPv6', async () => {
 			const peer = {
-				ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+				ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
 				wsPort: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).to.be.true;
 		});
 
-		it('should return false for incorrect ip', async () => {
+		it('should return false for incorrect ipAddress', async () => {
 			const peerWithIncorrectIp = {
-				ip: '12.12.hh12.12',
+				ipAddress: '12.12.hh12.12',
 				wsPort: 4001,
 			};
 
 			expect(
-				validatePeerAddress(peerWithIncorrectIp.ip, peerWithIncorrectIp.wsPort),
+				validatePeerAddress(
+					peerWithIncorrectIp.ipAddress,
+					peerWithIncorrectIp.wsPort,
+				),
 			).to.be.false;
 		});
 
 		it('should return false for incorrect port', async () => {
 			const peerWithIncorrectPort = {
-				ip: '12.12.12.12',
+				ipAddress: '12.12.12.12',
 				wsPort: NaN,
 			};
 
 			expect(
 				validatePeerAddress(
-					peerWithIncorrectPort.ip,
+					peerWithIncorrectPort.ipAddress,
 					peerWithIncorrectPort.wsPort,
 				),
 			).to.be.false;
