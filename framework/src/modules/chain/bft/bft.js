@@ -214,7 +214,7 @@ class BFT extends EventEmitter {
 		);
 	}
 
-	forkChoice({ lastBlock, block }) {
+	forkChoice(block, lastBlock) {
 		// Current time since Lisk Epoch
 		block.receivedAt = this.slots.getEpochTime();
 		// Cases are numbered following LIP-0014 Fork choice rule.
