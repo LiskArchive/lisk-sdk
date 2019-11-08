@@ -205,12 +205,6 @@ export const validateNodeInfo = (
 		);
 	}
 
-	if (!nodeInfo.version || !isValidVersion(nodeInfo.version)) {
-		throw new InvalidNodeInfoError(
-			`Invalid NodeInfo version ${nodeInfo.version}`,
-		);
-	}
-
 	return;
 };
 
