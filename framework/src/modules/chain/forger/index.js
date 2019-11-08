@@ -14,6 +14,9 @@
 
 'use strict';
 
-const StateStore = require('./state_store');
+const { Forger, getDelegateKeypairForCurrentSlot } = require('./forger');
 
-module.exports = StateStore;
+module.exports = {
+	Forger,
+	getDelegateKeypairForCurrentSlot,
+};

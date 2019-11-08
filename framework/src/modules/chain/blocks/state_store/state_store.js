@@ -39,4 +39,4 @@ class StateStore {
 	}
 }
 
-module.exports = StateStore;
+module.exports = { StateStore };

@@ -19,7 +19,6 @@ const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const schemas = require('./schemas');
-const transactionsModule = require('../transactions');
 
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
@@ -49,7 +48,6 @@ class Transport {
 		transactionPoolModule,
 		blocksModule,
 		processorModule,
-		interfaceAdapters,
 		// Constants
 		broadcasts,
 		maxSharedTransactions,
@@ -71,7 +69,6 @@ class Transport {
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
-		this.interfaceAdapters = interfaceAdapters;
 
 		this.broadcaster = new Broadcaster(
 			this.constants.broadcasts,
@@ -568,22 +565,12 @@ class Transport {
 		const id = transactionJSON ? transactionJSON.id : 'null';
 		let transaction;
 		try {
-			transaction = this.interfaceAdapters.transactions.fromJson(
-				transactionJSON,
-			);
-
-			const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
-				transactionsModule.checkAllowedTransactions(
-					this.blocksModule.lastBlock,
-				),
-				transactionsModule.validateTransactions(this.exceptions),
-			);
+			transaction = this.blocksModule.deserializeTransaction(transactionJSON);
 
 			// Composed transaction checks are all static, so it does not need state store
-			const { transactionsResponses } = await composedTransactionsCheck(
-				[transaction],
-				undefined,
-			);
+			const {
+				transactionsResponses,
+			} = await this.blocksModule.validateTransactions([transaction]);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;
