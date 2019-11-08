@@ -948,7 +948,7 @@ describe('blocks', () => {
 				await blocksInstance.getHighestCommonBlock(ids);
 			} catch (e) {
 				// Assert
-				expect(e.message).toEqual('Failed to access storage layer');
+				expect(e.message).toEqual('Failed to fetch the highest common block');
 			}
 		});
 	});
