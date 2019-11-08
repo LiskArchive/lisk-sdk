@@ -172,7 +172,6 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.deserialize.pipe([
 			({ block }) => this.blocksModule.deserialize(block),
-			(_, updatedBlock) => this.bftModule.deserialize(updatedBlock),
 		]);
 
 		this.serialize.pipe([

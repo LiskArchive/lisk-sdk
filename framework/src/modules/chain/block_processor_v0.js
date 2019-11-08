@@ -127,7 +127,13 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.deserialize.pipe([
 			({ block }) => this.blocksModule.deserialize(block),
-			(_, updatedBlock) => this.bftModule.deserialize(updatedBlock),
+			(_, updatedBlock) => ({
+				...updatedBlock,
+				maxHeightPreviouslyForged:
+					updatedBlock.maxHeightPreviouslyForged || updatedBlock.height,
+				prevotedConfirmedUptoHeight:
+					updatedBlock.prevotedConfirmedUptoHeight || 0,
+			}),
 		]);
 
 		this.serialize.pipe([({ block }) => this.blocksModule.serialize(block)]);
