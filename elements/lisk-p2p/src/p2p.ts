@@ -20,6 +20,7 @@ import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import {
+	ConnectionKind,
 	DEFAULT_BAN_TIME,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -764,6 +765,7 @@ export class P2P extends EventEmitter {
 					},
 					internalState: {
 						advertiseAddress: advertiseAddress === 'false' ? false : true,
+						connectionKind: ConnectionKind.INBOUND,
 					},
 					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
 					ipAddress: socket.remoteAddress,
