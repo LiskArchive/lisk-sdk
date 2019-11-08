@@ -511,20 +511,6 @@ describe('Synchronizer', () => {
 			expect(synchronizer.active).toBeFalsy();
 		});
 
-		it('should throw an error if two mechanisms are conflicting (both are valid)', async () => {
-			syncMechanism1.isValidFor.mockResolvedValue(true);
-			syncMechanism2.isValidFor.mockResolvedValue(true);
-
-			try {
-				await synchronizer.run(aReceivedBlock, aPeerId);
-			} catch (error) {
-				expect(error.message).toEqual(
-					'Multiple mechanisms cannot be valid at the same time',
-				);
-				expect(synchronizer.active).toBeFalsy();
-			}
-		});
-
 		it('should log message if unable to determine syncing mechanism', async () => {
 			syncMechanism1.isValidFor.mockResolvedValue(false);
 			syncMechanism2.isValidFor.mockResolvedValue(false);
