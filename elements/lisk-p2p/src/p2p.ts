@@ -647,6 +647,19 @@ export class P2P extends EventEmitter {
 		this._scServer.on(
 			'handshake',
 			(socket: SCServerSocket): void => {
+				// Terminate the connection the moment it receive ping frame
+				(socket as any).socket.on('ping', () => {
+					(socket as any).socket.terminate();
+
+					return;
+				});
+				// Terminate the connection the moment it receive pong frame
+				(socket as any).socket.on('pong', () => {
+					(socket as any).socket.terminate();
+
+					return;
+				});
+
 				if (this._bannedPeers.has(socket.remoteAddress)) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
