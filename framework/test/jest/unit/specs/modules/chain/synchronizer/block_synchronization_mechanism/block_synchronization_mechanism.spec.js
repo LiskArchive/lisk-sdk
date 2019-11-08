@@ -272,7 +272,7 @@ describe('block_synchronization_mechanism', () => {
 						blockId: highestCommonBlock.id,
 					},
 				})
-				.mockResolvedValue({ data: requestedBlocks });
+				.mockResolvedValue({ data: cloneDeep(requestedBlocks) });
 		}
 
 		when(storageMock.entities.Block.get)
@@ -548,11 +548,39 @@ describe('block_synchronization_mechanism', () => {
 					'The tip of the chain of the peer is not valid or is not in a different chain',
 				);
 			});
+
+			it('should apply penalty and restart the mechanism if the peer does not provide the last block', async () => {
+				for (const expectedPeer of peersList.expectedSelection) {
+					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getLastBlock',
+							peerId,
+						})
+						.mockResolvedValue({
+							data: undefined,
+						});
+				}
+
+				await blockSynchronizationMechanism.run(aBlock);
+
+				expect(
+					blockSynchronizationMechanism._revertToLastCommonBlock,
+				).not.toHaveBeenCalled();
+				expect(
+					blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
+				).not.toHaveBeenCalled();
+
+				expectApplyPenaltyAndRestartIsCalled(
+					aBlock,
+					"Peer didn't provide its last block",
+				);
+			});
 		});
 
 		describe('request and revert to last common block from peer', () => {
 			describe('request the highest common block', () => {
-				it('should give up requesting the last common block after 10 tries, and then ban the peer and restart the mechanism', async () => {
+				it('should give up requesting the last common block after 3 tries, and then ban the peer and restart the mechanism', async () => {
 					// Set last block to a high height
 					const lastBlock = newBlock({
 						height: genesisBlockDevnet.height + 2000,
@@ -647,7 +675,9 @@ describe('block_synchronization_mechanism', () => {
 					blockList = [genesisBlockDevnet];
 					blockIdsList = [blockList[0].id];
 
-					highestCommonBlock = newBlock({ height: 0 });
+					highestCommonBlock = newBlock({
+						height: bftModule.finalizedHeight - 1,
+					}); // height: 0
 					requestedBlocks = [
 						...new Array(10)
 							.fill(0)
@@ -725,6 +755,9 @@ describe('block_synchronization_mechanism', () => {
 					).toHaveBeenCalled();
 
 					expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(1);
+					expect(processorModule.deleteLastBlock).toHaveBeenCalledWith({
+						saveTempBlock: true,
+					});
 					expect(
 						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
 					).toHaveBeenCalledWith(
@@ -738,6 +771,31 @@ describe('block_synchronization_mechanism', () => {
 
 		describe('request and apply blocks to current chain', () => {
 			it('should request blocks and apply them', async () => {
+				requestedBlocks = [
+					...new Array(10)
+						.fill(0)
+						.map((_, index) =>
+							newBlock({ height: highestCommonBlock.height + 1 + index }),
+						),
+					aBlock,
+					...new Array(10) // Extra blocks. They will be truncated
+						.fill(0)
+						.map((_, index) => newBlock({ height: aBlock.height + 1 + index })),
+				];
+
+				for (const expectedPeer of peersList.expectedSelection) {
+					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					when(channelMock.invoke)
+						.calledWith('network:requestFromPeer', {
+							procedure: 'getBlocksFromId',
+							peerId,
+							data: {
+								blockId: highestCommonBlock.id,
+							},
+						})
+						.mockResolvedValue({ data: cloneDeep(requestedBlocks) });
+				}
+
 				await blockSynchronizationMechanism.run(aBlock);
 
 				expect(channelMock.invoke).toHaveBeenCalledWith(
@@ -759,8 +817,19 @@ describe('block_synchronization_mechanism', () => {
 					'Applying obtained blocks from peer',
 				);
 
-				for (const requestedBlock of requestedBlocks) {
+				const blocksToApply = cloneDeep(requestedBlocks);
+				const blocksToNotApply = blocksToApply.splice(
+					requestedBlocks.findIndex(block => block.id === aBlock.id) + 1,
+				);
+
+				for (const requestedBlock of blocksToApply) {
 					expect(processorModule.process).toHaveBeenCalledWith(
+						await processorModule.deserialize(requestedBlock),
+					);
+				}
+
+				for (const requestedBlock of blocksToNotApply) {
+					expect(processorModule.process).not.toHaveBeenCalledWith(
 						await processorModule.deserialize(requestedBlock),
 					);
 				}

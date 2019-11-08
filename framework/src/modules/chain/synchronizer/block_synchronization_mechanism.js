@@ -452,6 +452,13 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			peerId,
 		});
 
+		if (!data) {
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				"Peer didn't provide its last block",
+			);
+		}
+
 		const networkLastBlock = await this.processorModule.deserialize(data);
 
 		this.logger.debug(
