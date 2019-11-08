@@ -91,12 +91,11 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	/**
 	 * Check if this sync mechanism is valid for the received block
 	 *
-	 * @param {ExtendedBlock} receivedBlock - The blocked received from the network
 	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
 	 * @throws {Error} - In case want to abort the sync pipeline
 	 */
 	// eslint-disable-next-line no-unused-vars
-	async isValidFor(receivedBlock) {
+	async isValidFor() {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
 		const finalizedBlock = await this.storage.entities.Block.getOne({
 			height_eql: this.bft.finalizedHeight,
