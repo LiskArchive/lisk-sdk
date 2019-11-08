@@ -457,7 +457,7 @@ export class Peer extends EventEmitter {
 			}
 
 			throw new RPCResponseError(
-				'Failed to update peer info of peer due to validation of peer compatibility.',
+				'Failed to update peer info of peer due to validation of peer compatibility',
 				`${this.ipAddress}:${this.wsPort}`,
 			);
 		}

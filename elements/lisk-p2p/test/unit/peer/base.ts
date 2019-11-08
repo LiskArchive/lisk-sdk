@@ -582,7 +582,7 @@ describe.only('peer/base', () => {
 				it('should throw error', async () => {
 					return expect(defaultPeer.fetchAndUpdateStatus())
 						.to.eventually.be.rejectedWith(
-							'Failed to update peer info of peer as part of fetch operation',
+							'Failed to update peer info of peer due to validation of peer compatibility',
 						)
 						.and.be.an.instanceOf(RPCResponseError)
 						.and.have.property(
