@@ -645,9 +645,17 @@ export class P2P extends EventEmitter {
 
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
-			'connection',
-			// tslint:disable-next-line: cyclomatic-complexity
+			'handshake',
 			(socket: SCServerSocket): void => {
+				if (this._bannedPeers.has(socket.remoteAddress)) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						FORBIDDEN_CONNECTION,
+						FORBIDDEN_CONNECTION_REASON,
+					);
+
+					return;
+				}
 				// Check blacklist to avoid incoming connections from backlisted ips
 				if (this._sanitizedPeerLists.blacklistedPeers) {
 					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
@@ -663,7 +671,12 @@ export class P2P extends EventEmitter {
 						return;
 					}
 				}
+			},
+		);
 
+		this._scServer.on(
+			'connection',
+			(socket: SCServerSocket): void => {
 				if (!socket.request.url) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
@@ -734,24 +747,8 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				if (this._bannedPeers.has(socket.remoteAddress)) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						FORBIDDEN_CONNECTION,
-						FORBIDDEN_CONNECTION_REASON,
-					);
-
-					return;
-				}
-
-				// Remove these wsPort and ipAddress from the query object
-				const {
-					wsPort,
-					ipAddress,
-					advertiseAddress,
-					...restOfQueryObject
-				} = queryObject;
-
+				// Remove these wsPort and ip from the query object
+				const { wsPort, ip, ...restOfQueryObject } = queryObject;
 				const incomingPeerInfo: P2PPeerInfo = {
 					sharedState: {
 						...restOfQueryObject,
