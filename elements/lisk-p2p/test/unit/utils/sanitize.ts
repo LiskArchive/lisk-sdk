@@ -31,10 +31,6 @@ describe('utils/sanitize', () => {
 		});
 	});
 
-	describe('#sanitizeOutgoingPeerInfo', () => {
-		it('should sanitize peer info');
-	});
-
 	describe('#sanitizePeerLists', () => {
 		it('should return an object with several peer lists');
 	});

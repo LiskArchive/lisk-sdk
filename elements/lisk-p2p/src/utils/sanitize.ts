@@ -35,18 +35,6 @@ export const sanitizeIncomingPeerInfo = (
 	};
 };
 
-export const sanitizeOutgoingPeerInfo = (
-	peerInfo: P2PPeerInfo,
-): ProtocolPeerInfo => {
-	const { ipAddress, wsPort, sharedState } = peerInfo;
-
-	return {
-		ipAddress,
-		wsPort,
-		...sharedState,
-	};
-};
-
 export const sanitizePeerLists = (
 	lists: PeerLists,
 	nodeInfo: P2PPeerInfo,

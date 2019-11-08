@@ -97,7 +97,6 @@ import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
-	sanitizeOutgoingPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -921,7 +920,12 @@ export class P2P extends EventEmitter {
 
 		for (const peer of selectedPeers) {
 			try {
-				const sanitizedPeerInfo = sanitizeOutgoingPeerInfo(peer);
+				// Remove internal state
+				const sanitizedPeerInfo: ProtocolPeerInfo = {
+					ipAddress: peer.ipAddress,
+					wsPort: peer.wsPort,
+					...peer.sharedState,
+				};
 
 				requestPayloadSize += validatePeerInfo(
 					sanitizedPeerInfo,
