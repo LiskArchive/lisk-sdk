@@ -190,6 +190,11 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			{ sort: 'height:desc', limit: 1, extended: true },
 		);
 
+		if (!tipBeforeApplying) {
+			this.logger.error('Blocks temp table should not be empty');
+			throw new RestartError('Blocks temp table should not be empty');
+		}
+
 		const tipBeforeApplyingInstance = await this.processorModule.deserialize(
 			tipBeforeApplying.fullBlock,
 		);
