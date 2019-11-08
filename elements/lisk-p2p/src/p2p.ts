@@ -549,7 +549,12 @@ export class P2P extends EventEmitter {
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		validateNodeInfo(nodeInfo, this._peerPool.peerConfig.maxPeerInfoSize);
+		validateNodeInfo(
+			nodeInfo,
+			this._config.maxPeerInfoSize
+				? this._config.maxPeerInfoSize
+				: DEFAULT_MAX_PEER_INFO_SIZE,
+		);
 
 		this._nodeInfo = {
 			...nodeInfo,
@@ -882,7 +887,6 @@ export class P2P extends EventEmitter {
 		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
 			? this._config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
-		const maxPeerInfoSize = this._peerPool.peerConfig.maxPeerInfoSize;
 		const wsMaxPayload = this._config.wsMaxPayload
 			? this._config.wsMaxPayload
 			: DEFAULT_WS_MAX_PAYLOAD;
@@ -921,7 +925,9 @@ export class P2P extends EventEmitter {
 
 				requestPayloadSize += validatePeerInfo(
 					sanitizedPeerInfo,
-					maxPeerInfoSize,
+					this.config.maxPeerInfoSize
+						? this.config.maxPeerInfoSize
+						: DEFAULT_MAX_PEER_INFO_SIZE,
 				).byteSize;
 
 				if (requestPayloadSize < wsMaxPayload) {
