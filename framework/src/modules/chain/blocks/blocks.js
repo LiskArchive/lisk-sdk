@@ -416,7 +416,7 @@ class Blocks extends EventEmitter {
 			);
 			return block;
 		} catch (e) {
-			const errMessage = 'Failed to fetch the heigest common block';
+			const errMessage = 'Failed to fetch the highest common block';
 			this.logger.error({ err: e }, errMessage);
 			throw new Error(errMessage);
 		}
