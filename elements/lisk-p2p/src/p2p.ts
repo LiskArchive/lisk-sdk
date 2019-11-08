@@ -926,8 +926,6 @@ export class P2P extends EventEmitter {
 
 				if (requestPayloadSize < wsMaxPayload) {
 					validatedPeerList.push(sanitizedPeerInfo);
-				} else {
-					break;
 				}
 			} catch (err) {
 				this._peerBook.removePeer(peer);
