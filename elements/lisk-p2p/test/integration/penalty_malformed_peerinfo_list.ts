@@ -14,8 +14,13 @@
  */
 import { expect } from 'chai';
 import { P2P, EVENT_BAN_PEER } from '../../src/index';
-import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	SEED_PEER_IP,
+} from '../utils/network_setup';
 import { wait } from 'utils/helpers';
+import { constructPeerId } from '../../src/utils';
 
 describe('penalty sending malformed Peer List', () => {
 	describe('When Peer List is too long', () => {
@@ -63,8 +68,10 @@ describe('penalty sending malformed Peer List', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should not send malformed peerInfo`, async () => {
-			expect(collectedEvents).to.be.empty;
+		it(`should ban the emitter`, async () => {
+			expect(collectedEvents.get(EVENT_BAN_PEER)).to.eql(
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
+			);
 		});
 	});
 
@@ -99,8 +106,10 @@ describe('penalty sending malformed Peer List', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should not send malformed peerInfo`, async () => {
-			expect(collectedEvents).to.be.empty;
+		it(`should ban the emitter`, async () => {
+			expect(collectedEvents.get(EVENT_BAN_PEER)).to.eql(
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
+			);
 		});
 	});
 });

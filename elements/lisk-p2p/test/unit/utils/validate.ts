@@ -50,7 +50,7 @@ describe('utils/validate', () => {
 			};
 
 			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(peer, 10000).peerInfo)
+				expect(validatePeerInfo(peer, 10000))
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
@@ -67,7 +67,7 @@ describe('utils/validate', () => {
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', async () => {
-				expect(validatePeerInfo(peerWithInvalidHeightValue, 10000).peerInfo)
+				expect(validatePeerInfo(peerWithInvalidHeightValue, 10000))
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',

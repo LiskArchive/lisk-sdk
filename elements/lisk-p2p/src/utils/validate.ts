@@ -35,7 +35,6 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	ProtocolPeerInfo,
-	ValidateP2PPeerInfo,
 } from '../p2p_types';
 import { constructPeerId } from './misc';
 
@@ -133,7 +132,7 @@ export const validatePeerAddress = (
 export const validatePeerInfo = (
 	rawPeerInfo: unknown,
 	maxByteSize: number,
-): ValidateP2PPeerInfo => {
+): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerInfoError(`Invalid peer object`);
 	}
@@ -160,6 +159,7 @@ export const validatePeerInfo = (
 		);
 	}
 
+	// TODO: create sanitizePeerInfo()
 	const {
 		ipAddress: protocolIPAddress,
 		version,
@@ -191,7 +191,7 @@ export const validatePeerInfo = (
 		);
 	}
 
-	return { peerInfo, byteSize };
+	return peerInfo;
 };
 
 export const validateNodeInfo = (
@@ -227,8 +227,8 @@ export const validatePeersInfoList = (
 			throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
 		}
 
-		const sanitizedPeerList = peers.map<P2PPeerInfo>(
-			peerInfo => validatePeerInfo(peerInfo, maxPeerInfoByteSize).peerInfo,
+		const sanitizedPeerList = peers.map<P2PPeerInfo>(peerInfo =>
+			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
 		);
 
 		return sanitizedPeerList;

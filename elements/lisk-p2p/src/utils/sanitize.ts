@@ -39,6 +39,7 @@ export const sanitizePeerLists = (
 	lists: PeerLists,
 	nodeInfo: P2PPeerInfo,
 ): PeerLists => {
+	// TODO: remove non-valid peer infos
 	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;

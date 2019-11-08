@@ -97,13 +97,13 @@ import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
+	getByteSize,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
 	validateNodeInfo,
 	validatePeerCompatibility,
-	validatePeerInfo,
 } from './utils';
 
 interface SCServerUpdated extends SCServer {
@@ -890,6 +890,7 @@ export class P2P extends EventEmitter {
 			? this._config.wsMaxPayload
 			: DEFAULT_WS_MAX_PAYLOAD;
 
+		// TODO: create a function inside peer book to make testable
 		const peerstWithSharedState = this._peerBook.allPeerstWithSharedState;
 
 		/* tslint:disable no-magic-numbers*/
@@ -913,41 +914,31 @@ export class P2P extends EventEmitter {
 			randomPeerCount,
 		);
 
-		const validatedPeerList: ProtocolPeerInfo[] = [];
+		// Remove internal state to check byte size
+		const sanitizedPeerInfoList: ProtocolPeerInfo[] = selectedPeers.map(
+			peer => ({
+				ipAddress: peer.ipAddress,
+				wsPort: peer.wsPort,
+				...peer.sharedState,
+			}),
+		);
 
-		// tslint:disable-next-line: no-let
-		let requestPayloadSize = 0;
-
-		for (const peer of selectedPeers) {
-			try {
-				// Remove internal state
-				const sanitizedPeerInfo: ProtocolPeerInfo = {
-					ipAddress: peer.ipAddress,
-					wsPort: peer.wsPort,
-					...peer.sharedState,
-				};
-
-				requestPayloadSize += validatePeerInfo(
-					sanitizedPeerInfo,
-					this.config.maxPeerInfoSize
-						? this.config.maxPeerInfoSize
-						: DEFAULT_MAX_PEER_INFO_SIZE,
-				).byteSize;
-
-				if (requestPayloadSize < wsMaxPayload) {
-					validatedPeerList.push(sanitizedPeerInfo);
-				}
-			} catch (err) {
-				this._peerBook.removePeer(peer);
-			}
-		}
-
-		const peerInfoList = {
+		request.end({
 			success: true,
-			peers: validatedPeerList,
-		};
-
-		request.end(peerInfoList);
+			peers:
+				getByteSize(sanitizedPeerInfoList) < wsMaxPayload
+					? sanitizedPeerInfoList
+					: {
+							success: true,
+							peers: shuffle(sanitizedPeerInfoList).slice(
+								0,
+								// TODO: check maxPayload divided by maxPeerInforSize
+								sanitizedPeerInfoList.length < 125
+									? sanitizedPeerInfoList.length
+									: 125,
+							),
+					  },
+		});
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {
