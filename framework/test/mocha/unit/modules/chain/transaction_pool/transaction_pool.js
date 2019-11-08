@@ -25,7 +25,7 @@ const {
 	EVENT_UNCONFIRMED_TRANSACTION,
 	EVENT_MULTISIGNATURE_SIGNATURE,
 } = require('../../../../../../src/modules/chain/transaction_pool/transaction_pool');
-const transactionsModule = require('../../../../../../src/modules/chain/transactions');
+const transactionsModule = require('../../../../../../src/modules/chain/blocks/transactions');
 const { transactions: transactionsFixtures } = require('../../../../fixtures');
 
 describe('transactionPool', () => {
@@ -53,6 +53,9 @@ describe('transactionPool', () => {
 		lastBlock: {
 			get: sinonSandbox.stub(),
 		},
+		processSignature: sinonSandbox
+			.stub()
+			.resolves({ transactionsResponses: [] }),
 	};
 
 	const slotsStub = {

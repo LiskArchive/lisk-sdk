@@ -24,7 +24,7 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const { sortTransactions } = require('../../../src/modules/chain/transactions');
+const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
@@ -78,7 +78,7 @@ async function createBlock(
 	previousBlock,
 ) {
 	transactions = transactions.map(transaction =>
-		library.modules.interfaceAdapters.transactions.fromJson(transaction),
+		library.modules.blocks.deserializeTransaction(transaction),
 	);
 	// TODO Remove hardcoded values and use from BFT class
 	const block = await library.modules.processor.create({
@@ -239,9 +239,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.modules.interfaceAdapters.transactions.fromJson(
-		transaction,
-	);
+	transaction = library.modules.blocks.deserializeTransaction(transaction);
 
 	const amountNormalized = !transaction.asset.amount
 		? 0
@@ -263,9 +261,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = library.modules.interfaceAdapters.transactions.fromJson(
-		transaction,
-	);
+	transaction = library.modules.blocks.deserializeTransaction(transaction);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => library.modules.transactionPool.fillPool())

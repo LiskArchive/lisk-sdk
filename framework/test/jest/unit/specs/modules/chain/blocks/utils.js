@@ -39,7 +39,7 @@ const calculateTransactionsInfo = block => {
 		const transactionBytes = transaction.getBytes(transaction);
 
 		totalFee = totalFee.plus(transaction.fee);
-		totalAmount = totalAmount.plus(transaction.asset.amount);
+		totalAmount = totalAmount.plus(transaction.asset.amount || '0');
 
 		payloadLength += transactionBytes.length;
 		transactionsBytesArray.push(transactionBytes);

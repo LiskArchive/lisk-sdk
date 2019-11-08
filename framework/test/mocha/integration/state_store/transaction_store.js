@@ -1,5 +1,5 @@
 const localCommon = require('../common');
-const TransactionStore = require('../../../../src/modules/chain/state_store/transaction_store.js');
+const TransactionStore = require('../../../../src/modules/chain/blocks/state_store/transaction_store.js');
 
 describe('system test - transaction store', () => {
 	let library;

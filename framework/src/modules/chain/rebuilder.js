@@ -29,7 +29,6 @@ class Rebuilder {
 		// Modules
 		processorModule,
 		blocksModule,
-		interfaceAdapters,
 		// Constants
 		activeDelegates,
 	}) {
@@ -43,7 +42,6 @@ class Rebuilder {
 
 		this.processorModule = processorModule;
 		this.blocksModule = blocksModule;
-		this.interfaceAdapters = interfaceAdapters;
 		this.constants = {
 			activeDelegates,
 		};
