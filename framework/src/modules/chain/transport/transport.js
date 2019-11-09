@@ -147,21 +147,55 @@ class Transport {
 	 * @param {string} payload.blockId - The ID of the starting block
 	 * @return {Promise<Array<object>>}
 	 */
-	async handleRPCGetBlocksFromId(payload) {
+	async handleRPCGetBlocksFromId(payload, peerId) {
 		validator.validate(schemas.getBlocksFromIdRequest, payload);
 
 		if (validator.validator.errors) {
-			this.logger.debug(
+			this.logger.warn(
 				{
 					err: validator.validator.errors,
 					req: payload,
 				},
 				'getBlocksFromID request validation failed',
 			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw validator.validator.errors;
 		}
 
 		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
+	}
+
+	async handleRPCGetGetHighestCommonBlock(payload, peerId) {
+		const valid = validator.validate(
+			schemas.getHighestCommonBlockRequest,
+			payload,
+		);
+
+		if (valid.length) {
+			const err = valid;
+			const error = `${err[0].message}: ${err[0].path}`;
+			this.logger.warn(
+				{
+					err: error,
+					req: payload,
+				},
+				'getHighestCommonBlock request validation failed',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw new Error(error);
+		}
+
+		const commonBlock = await this.scope.modules.blocks.getHighestCommonBlock(
+			payload.ids,
+		);
+
+		return commonBlock;
 	}
 
 	/**
@@ -171,7 +205,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostBlock(query = {}, peerId) {
+	async handleEventPostBlock(query, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -189,7 +223,7 @@ class Transport {
 		const errors = validator.validate(schemas.blocksBroadcast, query);
 
 		if (errors.length) {
-			this.logger.debug(
+			this.logger.warn(
 				{
 					errors,
 					module: 'transport',
@@ -197,7 +231,10 @@ class Transport {
 				},
 				'Received post block broadcast request in unexpected format',
 			);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
@@ -244,7 +281,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostSignatures(query) {
+	async handleEventPostSignatures(query, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving signatures disabled by user through config.json',
@@ -254,8 +291,11 @@ class Transport {
 		const errors = validator.validate(schemas.signaturesList, query);
 
 		if (errors.length) {
-			this.logger.debug({ err: errors }, 'Invalid signatures body');
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			this.logger.warn({ err: errors }, 'Invalid signatures body');
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
@@ -296,7 +336,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleRPCGetTransactions(ids) {
+	async handleRPCGetTransactions(ids, peerId) {
 		if (!(ids && Array.isArray(ids) && ids.length)) {
 			return {
 				success: true,
@@ -308,7 +348,11 @@ class Transport {
 		}
 
 		if (ids.length > this.constants.broadcasts.releaseLimit) {
-			// TODO: apply penalty to the requester #3672
+			this.logger.warn({ peerId }, 'Received invalid request.');
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			return {
 				transactions: [],
 			};
@@ -376,7 +420,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostTransactionsAnnouncement({ data, peerId }) {
+	async handleEventPostTransactionsAnnouncement(data, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',
@@ -386,8 +430,14 @@ class Transport {
 		const errors = validator.validate(schemas.transactionsRequest, data);
 
 		if (errors.length) {
-			this.logger.debug({ err: errors }, 'Invalid transactions body');
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			this.logger.warn(
+				{ err: errors, peerId },
+				'Received invalid transactions body',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
@@ -403,7 +453,20 @@ class Transport {
 					peerId,
 				},
 			);
-			return this._receiveTransactions(result.transactions);
+			try {
+				for (const transaction of result.transactions) {
+					if (transaction) {
+						transaction.bundled = true;
+					}
+					await this._receiveTransaction(transaction);
+				}
+			} catch (err) {
+				this.logger.warn({ err, peerId }, 'Received invalid transactions.');
+				await this.channel.invoke('network:applyPenalty', {
+					peerId,
+					penalty: 100,
+				});
+			}
 		}
 
 		return null;
@@ -484,26 +547,6 @@ class Transport {
 	}
 
 	/**
-	 * Validates transactions with schema and calls receiveTransaction for each transaction.
-	 *
-	 * @private
-	 * @implements {__private.receiveTransaction}
-	 * @param {Array} transactions - Array of transactions
-	 */
-	async _receiveTransactions(transactions = []) {
-		for (const transaction of transactions) {
-			try {
-				if (transaction) {
-					transaction.bundled = true;
-				}
-				await this._receiveTransaction(transaction);
-			} catch (err) {
-				this.logger.debug(convertErrorsToString(err), transaction);
-			}
-		}
-	}
-
-	/**
 	 * Normalizes transaction
 	 * processUnconfirmedTransaction to confirm it.
 	 *
@@ -537,7 +580,6 @@ class Transport {
 				'Transaction normalization failed',
 			);
 
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 

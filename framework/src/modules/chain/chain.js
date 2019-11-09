@@ -15,10 +15,8 @@
 'use strict';
 
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -243,14 +241,14 @@ module.exports = class Chain {
 					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactionsAnnouncement') {
-								await this.transport.handleEventPostTransactionsAnnouncement({
+								await this.transport.handleEventPostTransactionsAnnouncement(
 									data,
 									peerId,
-								});
+								);
 								return;
 							}
 							if (event === 'postSignatures') {
-								await this.transport.handleEventPostSignatures(data);
+								await this.transport.handleEventPostSignatures(data, peerId);
 								return;
 							}
 							if (event === 'postBlock') {
@@ -298,9 +296,10 @@ module.exports = class Chain {
 					action.params.forging,
 				),
 			getTransactions: async action =>
-				action.params
-					? this.transport.handleRPCGetTransactions(action.params)
-					: this.transport.handleRPCGetTransactions(),
+				this.transport.handleRPCGetTransactions(
+					action.params.data,
+					action.params.peerId,
+				),
 			getSignatures: async () => this.transport.handleRPCGetSignatures(),
 			postSignature: async action =>
 				this.transport.handleEventPostSignature(action.params),
@@ -323,39 +322,17 @@ module.exports = class Chain {
 				lastBlock: this.blocks.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
 			}),
-			getLastBlock: async () => ({
-				...this.blocks.lastBlock,
-				reward: this.blocks.lastBlock.reward.toString(),
-				totalAmount: this.blocks.lastBlock.totalAmount.toString(),
-				totalFee: this.blocks.lastBlock.totalFee.toString(),
-			}),
+			getLastBlock: async () => this.processor.serialize(this.blocks.lastBlock),
 			getBlocksFromId: async action =>
-				this.transport.handleRPCGetBlocksFromId(action.params || {}),
-			getHighestCommonBlock: async action => {
-				const valid = validator.validate(
-					definitions.getHighestCommonBlockRequest,
-					action.params,
-				);
-
-				if (valid.length) {
-					const err = valid;
-					const error = `${err[0].message}: ${err[0].path}`;
-					this.logger.debug(
-						{
-							err: error,
-							req: action.params,
-						},
-						'getHighestCommonBlock request validation failed',
-					);
-					throw new Error(error);
-				}
-
-				const commonBlock = await this.scope.modules.blocks.getHighestCommonBlock(
-					action.params.ids,
-				);
-
-				return commonBlock;
-			},
+				this.transport.handleRPCGetBlocksFromId(
+					action.params.data,
+					action.params.peerId,
+				),
+			getHighestCommonBlock: async action =>
+				this.transport.handleRPCGetGetHighestCommonBlock(
+					action.params.data,
+					action.params.peerId,
+				),
 		};
 	}
 
