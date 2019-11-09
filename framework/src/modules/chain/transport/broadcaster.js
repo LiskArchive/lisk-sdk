@@ -14,8 +14,6 @@
 
 'use strict';
 
-const jobsQueue = require('../utils/jobs_queue');
-
 const ENDPOINT_BORADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 const ENDPOINT_BORADCAST_SIGNATURES = 'postSignatures';
 
@@ -45,11 +43,13 @@ class Broadcaster {
 		this.signatureObjectQueue = [];
 
 		if (this.config.active) {
-			jobsQueue.register(
-				'broadcasterReleaseQueue',
-				async () => this._broadcast(),
-				this.config.broadcastInterval,
-			);
+			setInterval(async () => {
+				try {
+					await this._broadcast();
+				} catch (err) {
+					this.logger.error({ err }, 'Failed to broadcast information');
+				}
+			}, this.config.broadcastInterval);
 		} else {
 			this.logger.info(
 				'Broadcasting data disabled by user through config.json',
@@ -95,27 +95,38 @@ class Broadcaster {
 			this.transactionIdQueue = this.transactionIdQueue.filter(id =>
 				this.transactionPool.transactionInPool(id),
 			);
+			const transactionIds = this.transactionIdQueue.slice(
+				0,
+				this.config.releaseLimit,
+			);
 			await this.channel.invoke('network:broadcast', {
 				event: ENDPOINT_BORADCAST_TRANSACTIONS,
 				data: {
-					transactionIds: this.transactionIdQueue.splice(
-						0,
-						this.config.releaseLimit,
-					),
+					transactionIds,
 				},
 			});
+			this.transactionIdQueue = this.transactionIdQueue.filter(
+				id => !transactionIds.includes(id),
+			);
 		}
 		// Broadcast using Elements P2P library via network module
 		if (this.signatureObjectQueue.length > 0) {
-			this.channel.invoke('network:send', {
+			const signatures = this.signatureObjectQueue.slice(
+				0,
+				this.config.releaseLimit,
+			);
+			await this.channel.invoke('network:send', {
 				event: ENDPOINT_BORADCAST_SIGNATURES,
 				data: {
-					signatures: this.signatureObjectQueue.splice(
-						0,
-						this.config.releaseLimit,
-					),
+					signatures,
 				},
 			});
+			this.signatureObjectQueue = this.signatureObjectQueue.filter(
+				obj =>
+					signatures.find(
+						signatureObj => signatureObj.signature === obj.signature,
+					) === undefined,
+			);
 		}
 	}
 }

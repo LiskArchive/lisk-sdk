@@ -50,7 +50,6 @@ class Transport {
 		processorModule,
 		// Constants
 		broadcasts,
-		maxSharedTransactions,
 	}) {
 		this.message = {};
 
@@ -63,7 +62,6 @@ class Transport {
 
 		this.constants = {
 			broadcasts,
-			maxSharedTransactions,
 		};
 
 		this.transactionPoolModule = transactionPoolModule;
@@ -112,7 +110,7 @@ class Transport {
 	 * @param {boolean} broadcast - Signal flag for broadcast
 	 * @emits blocks/change
 	 */
-	async handleBroadcastBlock(block) {
+	async handleBroadcastBlock(blockJSON) {
 		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
@@ -122,7 +120,7 @@ class Transport {
 		return this.channel.invoke('network:send', {
 			event: 'postBlock',
 			data: {
-				block,
+				block: blockJSON,
 			},
 		});
 	}
@@ -274,7 +272,7 @@ class Transport {
 	async handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
-			this.constants.maxSharedTransactions,
+			this.constants.broadcasts.releaseLimit,
 		);
 
 		const signatures = transactions
@@ -304,12 +302,12 @@ class Transport {
 				success: true,
 				transactions: this.transactionPoolModule.getMergedTransactionList(
 					true,
-					this.constants.maxSharedTransactions,
+					this.constants.broadcasts.releaseLimit,
 				),
 			};
 		}
 
-		if (ids.length > this.constants.maxSharedTransactions) {
+		if (ids.length > this.constants.broadcasts.releaseLimit) {
 			// TODO: apply penalty to the requester #3672
 			return {
 				transactions: [],
@@ -336,7 +334,7 @@ class Transport {
 			// Check if any transaction that was not in the queues, is in the database instead.
 			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
 				{ id_in: idsNotInPool },
-				{ limit: this.constants.maxSharedTransactions },
+				{ limit: this.constants.broadcasts.releaseLimit },
 			);
 
 			return {
@@ -431,7 +429,7 @@ class Transport {
 					id_in: unknownTransactionsIDs,
 				},
 				{
-					limit: this.constants.maxSharedTransactions,
+					limit: this.constants.broadcasts.releaseLimit,
 				},
 			);
 

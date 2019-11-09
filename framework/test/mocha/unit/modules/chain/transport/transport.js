@@ -33,7 +33,7 @@ const {
 const expect = chai.expect;
 
 describe('transport', () => {
-	const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
+	const { releaseLimit } = __testContext.config.modules.chain.broadcasts;
 
 	let storageStub;
 	let loggerStub;
@@ -197,8 +197,6 @@ describe('transport', () => {
 				syncing: sinonSandbox.stub().returns(false),
 			},
 			broadcasts: __testContext.config.modules.chain.broadcasts,
-			maxSharedTransactions:
-				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
 	});
 
@@ -259,7 +257,7 @@ describe('transport', () => {
 						transportModule.storage.entities.Transaction.get,
 					).to.be.calledWithExactly(
 						{ id_in: transactionsList.map(tx => tx.id) },
-						{ limit: transportModule.constants.maxSharedTransactions },
+						{ limit: transportModule.constants.broadcasts.releaseLimit },
 					);
 				});
 
@@ -323,7 +321,7 @@ describe('transport', () => {
 						transportModule.storage.entities.Transaction.get,
 					).to.be.calledWithExactly(
 						{ id_in: transactionsList.map(tx => tx.id) },
-						{ limit: transportModule.constants.maxSharedTransactions },
+						{ limit: transportModule.constants.broadcasts.releaseLimit },
 					);
 				});
 
@@ -1030,11 +1028,11 @@ describe('transport', () => {
 						result = await transportModule.handleRPCGetSignatures();
 					});
 
-					it('should call modules.transactionPool.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
+					it('should call modules.transactionPool.getMultisignatureTransactionList with true and releaseLimit', async () => {
 						expect(
 							transportModule.transactionPoolModule
 								.getMultisignatureTransactionList,
-						).calledWith(true, MAX_SHARED_TRANSACTIONS);
+						).calledWith(true, releaseLimit);
 					});
 
 					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
@@ -1090,10 +1088,10 @@ describe('transport', () => {
 							result = await transportModule.handleRPCGetTransactions();
 						});
 
-						it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
+						it('should call modules.transactionPool.getMergedTransactionList with true and releaseLimit', async () => {
 							expect(
 								transportModule.transactionPoolModule.getMergedTransactionList,
-							).calledWith(true, MAX_SHARED_TRANSACTIONS);
+							).calledWith(true, releaseLimit);
 						});
 
 						it('should resolve with result = {transactions: transactions}', async () => {
@@ -1115,7 +1113,7 @@ describe('transport', () => {
 									Array.from(
 										{
 											length:
-												transportModule.constants.maxSharedTransactions + 1,
+												transportModule.constants.broadcasts.releaseLimit + 1,
 										},
 										() => Math.floor(Math.random() * 10000000),
 									),
@@ -1202,7 +1200,7 @@ describe('transport', () => {
 									storageStub.entities.Transaction.get,
 								).to.be.calledWithExactly(
 									{ id_in: [transaction.id] },
-									{ limit: transportModule.constants.maxSharedTransactions },
+									{ limit: transportModule.constants.broadcasts.releaseLimit },
 								);
 							});
 

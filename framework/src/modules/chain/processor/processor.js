@@ -136,7 +136,11 @@ class Processor {
 					{ id: block.id, height: block.height },
 					'Detected different chain to sync',
 				);
-				this.channel.publish('chain:processor:sync', { block, peerId });
+				const blockJSON = await this.serialize(block);
+				this.channel.publish('chain:processor:sync', {
+					block: blockJSON,
+					peerId,
+				});
 				return;
 			}
 			// Replacing a block
