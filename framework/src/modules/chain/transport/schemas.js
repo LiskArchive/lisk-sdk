@@ -171,4 +171,20 @@ module.exports = {
 			},
 		},
 	},
+	getHighestCommonBlockRequest: {
+		id: 'getHighestCommonBlockRequest',
+		type: 'object',
+		required: ['ids'],
+		properties: {
+			ids: {
+				type: 'array',
+				items: {
+					type: 'string',
+					format: 'id',
+				},
+				uniqueItems: true,
+				minItems: 1,
+			},
+		},
+	},
 };
