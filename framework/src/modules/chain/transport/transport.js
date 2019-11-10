@@ -191,7 +191,7 @@ class Transport {
 			throw new Error(error);
 		}
 
-		const commonBlock = await this.scope.modules.blocks.getHighestCommonBlock(
+		const commonBlock = await this.blocksModule.getHighestCommonBlock(
 			payload.ids,
 		);
 
