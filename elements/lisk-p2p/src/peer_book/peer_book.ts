@@ -152,20 +152,24 @@ export class PeerBook {
 		return false;
 	}
 
-	public getDiscoveryPeerList(
-		minPeerListLength: number,
-		maxPeerListLength: number,
+	public getPeerDiscoveryResponsePeerList(
+		minimumPeerDiscoveryThreshold: number,
+		peerDiscoveryResponseLength: number,
 	): ReadonlyArray<P2PPeerInfo> {
 		const allPeers = [...this.newPeers, ...this.triedPeers];
 
 		/* tslint:disable no-magic-numbers*/
-		const min = Math.ceil(Math.min(maxPeerListLength, allPeers.length * 0.25));
-		const max = Math.floor(Math.min(maxPeerListLength, allPeers.length * 0.5));
+		const min = Math.ceil(
+			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.25),
+		);
+		const max = Math.floor(
+			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.5),
+		);
 
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
 		const randomPeerCount = Math.max(
 			random,
-			Math.min(minPeerListLength, allPeers.length),
+			Math.min(minimumPeerDiscoveryThreshold, allPeers.length),
 		);
 
 		return shuffle(allPeers).slice(0, randomPeerCount);
