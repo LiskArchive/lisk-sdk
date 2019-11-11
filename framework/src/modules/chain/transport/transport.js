@@ -20,6 +20,9 @@ const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const schemas = require('./schemas');
 
+const DEFAULT_RATE_RESET_TIME = 10000;
+const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
+
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
  *
@@ -75,6 +78,12 @@ class Transport {
 			channel: this.channel,
 			storage: this.storage,
 		});
+
+		// Rate limit for certain endpoints
+		this.rateTracker = {};
+		setInterval(() => {
+			this.rateTracker = {};
+		}, DEFAULT_RATE_RESET_TIME);
 	}
 
 	/**
@@ -282,6 +291,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleEventPostSignatures(query, peerId) {
+		this._addRateLimit('postSignatures', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving signatures disabled by user through config.json',
@@ -337,6 +347,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleRPCGetTransactions(ids, peerId) {
+		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		if (!(ids && Array.isArray(ids) && ids.length)) {
 			return {
 				success: true,
@@ -348,14 +359,13 @@ class Transport {
 		}
 
 		if (ids.length > this.constants.broadcasts.releaseLimit) {
-			this.logger.warn({ peerId }, 'Received invalid request.');
+			const error = new Error('Received invalid request.');
+			this.logger.warn({ err: error, peerId }, 'Received invalid request.');
 			await this.channel.invoke('network:applyPenalty', {
 				peerId,
 				penalty: 100,
 			});
-			return {
-				transactions: [],
-			};
+			throw error;
 		}
 
 		const transactionsFromQueues = [];
@@ -421,6 +431,11 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleEventPostTransactionsAnnouncement(data, peerId) {
+		this._addRateLimit(
+			'postTransactionsAnnouncement',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',
@@ -597,6 +612,24 @@ class Transport {
 				this.logger.debug({ transaction }, 'Transaction');
 			}
 			throw err;
+		}
+	}
+
+	_addRateLimit(procedure, peerId, limit) {
+		if (this.rateTracker[procedure] === undefined) {
+			this.rateTracker[procedure] = { [peerId]: 1 };
+		}
+		this.rateTracker[procedure][peerId] = this.rateTracker[procedure][peerId]
+			? this.rateTracker[procedure][peerId] + 1
+			: 1;
+		if (this.rateTracker[procedure][peerId] > limit) {
+			this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 10,
+			});
+			throw new Error(
+				`Peer ${peerId} exceeded the limit ${limit} within ${DEFAULT_RATE_RESET_TIME}`,
+			);
 		}
 	}
 }
