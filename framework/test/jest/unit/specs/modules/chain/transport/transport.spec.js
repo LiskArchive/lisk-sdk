@@ -42,13 +42,16 @@ describe('Transport', () => {
 		};
 		loggerStub = {
 			info: jest.fn(),
+			warn: jest.fn(),
 		};
 		storageStub = {};
 		transactionPoolStub = {
 			transactionInPool: jest.fn().mockReturnValue(true),
 		};
 		synchronizerStub = {};
-		blocksStub = {};
+		blocksStub = {
+			getHighestCommonBlock: jest.fn(),
+		};
 		processorStub = {};
 		transport = new Transport({
 			channel: channelStub,
@@ -353,6 +356,102 @@ describe('Transport', () => {
 						signatures: signatureObjects.splice(0, defaultReleaseLimit),
 					},
 				});
+			});
+		});
+	});
+
+	describe('handleRPCGetGetHighestCommonBlock', () => {
+		const defaultPeerId = 'peer-id';
+
+		describe('when schema validation fails', () => {
+			it('should throw an error with wrong ID format', async () => {
+				const invalidData = {
+					ids: ['randome', 'string'],
+				};
+				expect.assertions(2);
+				try {
+					await transport.handleRPCGetGetHighestCommonBlock(
+						invalidData,
+						defaultPeerId,
+					);
+				} catch (error) {
+					expect(error.message).toContain('should match format');
+					expect(channelStub.invoke).toHaveBeenCalledWith(
+						'network:applyPenalty',
+						{
+							peerId: defaultPeerId,
+							penalty: 100,
+						},
+					);
+				}
+			});
+
+			it('should throw an error with wrong ID format', async () => {
+				const invalidData = {
+					noKey: ['randome', 'string'],
+				};
+				expect.assertions(2);
+				try {
+					await transport.handleRPCGetGetHighestCommonBlock(
+						invalidData,
+						defaultPeerId,
+					);
+				} catch (error) {
+					expect(error.message).toContain('should have required property ');
+					expect(channelStub.invoke).toHaveBeenCalledWith(
+						'network:applyPenalty',
+						{
+							peerId: defaultPeerId,
+							penalty: 100,
+						},
+					);
+				}
+			});
+		});
+
+		describe('when commonBlock has not been found', () => {
+			beforeEach(async () => {
+				blocksStub.getHighestCommonBlock.mockResolvedValue(null);
+			});
+
+			it('should return null', async () => {
+				const validData = {
+					ids: ['15196562876801949910'],
+				};
+
+				const result = await transport.handleRPCGetGetHighestCommonBlock(
+					validData,
+					defaultPeerId,
+				);
+				expect(blocksStub.getHighestCommonBlock).toHaveBeenCalledWith(
+					validData.ids,
+				);
+				expect(result).toBe(null);
+			});
+		});
+
+		describe('when commonBlock has been found', () => {
+			const validBlock = {
+				id: '15196562876801949910',
+			};
+
+			beforeEach(async () => {
+				blocksStub.getHighestCommonBlock.mockResolvedValue(validBlock);
+			});
+
+			it('should return the result', async () => {
+				const validData = {
+					ids: ['15196562876801949910'],
+				};
+
+				const result = await transport.handleRPCGetGetHighestCommonBlock(
+					validData,
+					defaultPeerId,
+				);
+				expect(blocksStub.getHighestCommonBlock).toHaveBeenCalledWith(
+					validData.ids,
+				);
+				expect(result).toBe(validBlock);
 			});
 		});
 	});

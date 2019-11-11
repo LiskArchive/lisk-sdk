@@ -136,7 +136,9 @@ describe('WS transport', () => {
 			}
 		});
 
-		it('should fail when using an empty payload', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should fail when using an empty payload', async () => {
 			try {
 				await p2p.request({
 					procedure: 'getBlocksFromId',
@@ -149,7 +151,9 @@ describe('WS transport', () => {
 			}
 		});
 
-		it('should fail when using an invalid block ID format', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should fail when using an invalid block ID format', async () => {
 			try {
 				await p2p.request({
 					procedure: 'getBlocksFromId',
@@ -160,7 +164,9 @@ describe('WS transport', () => {
 			}
 		});
 
-		it("should throw an error when payload doesn't have the correct format", async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip("should throw an error when payload doesn't have the correct format", async () => {
 			try {
 				await p2p.request({
 					procedure: 'getBlocksFromId',
@@ -264,7 +270,9 @@ describe('WS transport', () => {
 	});
 
 	describe('getHighestCommonBlock', () => {
-		it('using no params should fail', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('using no params should fail', async () => {
 			let res;
 			try {
 				const { data } = await p2p.request({
@@ -282,7 +290,9 @@ describe('WS transport', () => {
 			}
 		});
 
-		it('using non unique ids should fail', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('using non unique ids should fail', async () => {
 			let res;
 			try {
 				res = await p2p.request({
@@ -301,7 +311,9 @@ describe('WS transport', () => {
 			}
 		});
 
-		it('using an empty array should fail', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('using an empty array should fail', async () => {
 			let res;
 			try {
 				res = await p2p.request({
@@ -320,7 +332,9 @@ describe('WS transport', () => {
 			}
 		});
 
-		it('should fail when using invalid id format', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should fail when using invalid id format', async () => {
 			let res;
 			try {
 				res = await p2p.request({
@@ -337,7 +351,9 @@ describe('WS transport', () => {
 			}
 		});
 
-		it('not using an array should fail', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('not using an array should fail', async () => {
 			let res;
 			try {
 				res = await p2p.request({
@@ -376,7 +392,9 @@ describe('WS transport', () => {
 			await p2p.send({ event: 'postBlock', data: { block: testBlock } });
 		});
 
-		it('should not crash the application when sending the invalid block', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should not crash the application when sending the invalid block', async () => {
 			await p2p.send({
 				event: 'postBlock',
 				data: { block: { generatorPublicKey: '123' } },
@@ -385,7 +403,9 @@ describe('WS transport', () => {
 	});
 
 	describe('postSignatures', () => {
-		it('should not crash the application when sending the invalid signatures', async () => {
+		// This cannot be tested in the functional, since it will get banned
+		// eslint-disable-next-line mocha/no-skipped-tests
+		it.skip('should not crash the application when sending the invalid signatures', async () => {
 			await p2p.send({
 				event: 'postSignatures',
 				data: { signatures: ['not object signature'] },

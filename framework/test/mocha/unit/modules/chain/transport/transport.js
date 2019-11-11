@@ -147,6 +147,7 @@ describe('transport', () => {
 			error: sinonSandbox.stub(),
 			info: sinonSandbox.spy(),
 			trace: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
 		};
 
 		channelStub = {
@@ -444,70 +445,6 @@ describe('transport', () => {
 					} catch (e) {
 						expect(e.message).to.equal('Invalid signture body');
 					}
-				});
-			});
-		});
-
-		describe('_receiveTransactions', () => {
-			beforeEach(async () => {
-				transportModule.logger = {
-					debug: sinonSandbox.spy(),
-				};
-
-				transportModule._receiveTransaction = sinonSandbox.stub().callsArg(1);
-			});
-
-			describe('when transactions argument is undefined', () => {
-				beforeEach(async () => {
-					transportModule._receiveTransactions(undefined);
-				});
-
-				// If a single transaction within the batch fails, it is not going to
-				// send back an error.
-				it('should should not call transportModule._receiveTransaction', async () =>
-					expect(transportModule._receiveTransaction.notCalled).to.be.true);
-			});
-
-			describe('for every transaction in transactions', () => {
-				describe('when transaction is defined', () => {
-					describe('when call transportModule._receiveTransaction succeeds', () => {
-						beforeEach(async () => {
-							transportModule._receiveTransactions(transactionsList);
-						});
-
-						it('should set transaction.bundled = true', async () =>
-							expect(transactionsList[0])
-								.to.have.property('bundled')
-								.which.equals(true));
-
-						it('should call transportModule._receiveTransaction with transaction with transaction argument', async () =>
-							expect(
-								transportModule._receiveTransaction.calledWith(
-									transactionsList[0],
-								),
-							).to.be.true);
-					});
-
-					describe('when call transportModule._receiveTransaction fails', () => {
-						let receiveTransactionError;
-
-						beforeEach(async () => {
-							receiveTransactionError = 'Invalid transaction body - ...';
-							transportModule._receiveTransaction = sinonSandbox
-								.stub()
-								.rejects(receiveTransactionError);
-
-							return transportModule._receiveTransactions(transactionsList);
-						});
-
-						it('should call transportModule.logger.debug with error and transaction', async () =>
-							expect(
-								transportModule.logger.debug.calledWith(
-									receiveTransactionError,
-									transactionsList[0],
-								),
-							).to.be.true);
-					});
 				});
 			});
 		});
@@ -1011,8 +948,8 @@ describe('transport', () => {
 								transportModule.handleEventPostSignatures(query),
 							).to.be.rejectedWith([validateErr]);
 
-							return expect(transportModule.logger.debug).to.be.calledWithMatch(
-								{},
+							return expect(transportModule.logger.warn).to.be.calledWithMatch(
+								{ err: [validateErr] },
 								'Invalid signatures body',
 							);
 						});
@@ -1322,9 +1259,9 @@ describe('transport', () => {
 								transportModule.channel.invoke = sinonSandbox
 									.stub()
 									.resolves({ data: { transactions: [transaction] } });
-								transportModule._receiveTransactions = sinonSandbox.stub();
 								await transportModule.handleEventPostTransactionsAnnouncement(
-									query,
+									query.data,
+									query.peerId,
 								);
 							});
 
@@ -1342,11 +1279,6 @@ describe('transport', () => {
 										peerId: query.peerId,
 									},
 								));
-
-							it('should call transportModule._receiveTransactions with query.transaction as argument', async () =>
-								expect(transportModule._receiveTransactions).to.be.calledWith([
-									transaction,
-								]));
 						});
 
 						describe('when none of the transactions ids are unknonw ', () => {
@@ -1362,7 +1294,6 @@ describe('transport', () => {
 									.stub()
 									.resolves([]);
 								transportModule.channel.invoke = sinonSandbox.stub();
-								transportModule._receiveTransactions = sinonSandbox.stub();
 								await transportModule.handleEventPostTransactionsAnnouncement(
 									query,
 								);
@@ -1375,9 +1306,6 @@ describe('transport', () => {
 
 							it('should not invoke any network event', async () =>
 								expect(transportModule.channel.invoke).to.be.not.called);
-
-							it('should not call transportModule._receiveTransactions', async () =>
-								expect(transportModule._receiveTransactions).to.be.not.called);
 						});
 					});
 
