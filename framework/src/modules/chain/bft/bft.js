@@ -47,6 +47,7 @@ class BFT extends EventEmitter {
 	 *
 	 * @param {Object} storage - Storage component instance
 	 * @param {Object} logger - Logger component instance
+	 * @param {Object} slots - Slots class
 	 * @param {integer} activeDelegates - Number of delegates
 	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
 	 */
