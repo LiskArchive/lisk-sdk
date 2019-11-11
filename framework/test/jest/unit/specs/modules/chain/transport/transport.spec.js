@@ -641,12 +641,15 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called without ids, but exceeds maximum', () => {
-			const ids = new Array(30).map((_, v) => `100000000000000000${v}`);
+			const ids = new Array(30).fill(0).map((_, v) => `100000000000000000${v}`);
 
 			it('should throw an error', async () => {
 				expect.assertions(1);
 				try {
-					await transport.handleRPCGetTransactions({ ids }, defaultPeerId);
+					await transport.handleRPCGetTransactions(
+						{ transactionIds: ids },
+						defaultPeerId,
+					);
 				} catch (error) {
 					expect(error.message).toContain('Received invalid request');
 				}
@@ -655,7 +658,10 @@ describe('Transport', () => {
 			it('should apply penalty', async () => {
 				expect.assertions(1);
 				try {
-					await transport.handleRPCGetTransactions({ ids }, defaultPeerId);
+					await transport.handleRPCGetTransactions(
+						{ transactionIds: ids },
+						defaultPeerId,
+					);
 				} catch (error) {
 					expect(channelStub.invoke).toHaveBeenCalledWith(
 						'network:applyPenalty',
@@ -675,12 +681,13 @@ describe('Transport', () => {
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
+				tx.sign('signature');
 				transactionPoolStub.findInTransactionPool.mockReturnValue(tx);
 			});
 
 			it('should call find transactionInPool with the id', async () => {
 				await transport.handleRPCGetTransactions(
-					{ ids: [tx.id] },
+					{ transactionIds: [tx.id] },
 					defaultPeerId,
 				);
 				expect(transactionPoolStub.findInTransactionPool).toHaveBeenCalledWith(
@@ -690,7 +697,7 @@ describe('Transport', () => {
 
 			it('should return transaction in the pool', async () => {
 				const result = await transport.handleRPCGetTransactions(
-					{ ids: [tx.id] },
+					{ transactionIds: [tx.id] },
 					defaultPeerId,
 				);
 				expect(result.transactions).toStrictEqual([tx.toJSON()]);
@@ -720,7 +727,7 @@ describe('Transport', () => {
 
 			it('should call find transactionInPool with the id', async () => {
 				await transport.handleRPCGetTransactions(
-					{ ids: [tx.id, txDatabase.id] },
+					{ transactionIds: [tx.id, txDatabase.id] },
 					defaultPeerId,
 				);
 				expect(transactionPoolStub.findInTransactionPool).toHaveBeenCalledWith(
@@ -733,7 +740,7 @@ describe('Transport', () => {
 
 			it('should return transaction in the pool', async () => {
 				const result = await transport.handleRPCGetTransactions(
-					{ ids: [tx.id, txDatabase.id] },
+					{ transactionIds: [tx.id, txDatabase.id] },
 					defaultPeerId,
 				);
 				expect(storageStub.entities.Transaction.get).toHaveBeenCalledWith(
@@ -856,7 +863,7 @@ describe('Transport', () => {
 					'network:requestFromPeer',
 					{
 						procedure: 'getTransactions',
-						data: { ids: validTransactionsRequest.transactionIds },
+						data: { transactionIds: validTransactionsRequest.transactionIds },
 						peerId: defaultPeerId,
 					},
 				);
@@ -934,7 +941,7 @@ describe('Transport', () => {
 					'network:requestFromPeer',
 					{
 						procedure: 'getTransactions',
-						data: { ids: [tx2.id] },
+						data: { transactionIds: [tx2.id] },
 						peerId: defaultPeerId,
 					},
 				);

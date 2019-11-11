@@ -381,7 +381,10 @@ module.exports = class Network {
 				return filterByParams(peers, filterWithoutLimitOffset).length;
 			},
 			applyPenalty: action =>
-				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
+				this.p2p.applyPenalty({
+					peerId: action.params.peerId,
+					penalty: action.params.penalty,
+				}),
 		};
 	}
 

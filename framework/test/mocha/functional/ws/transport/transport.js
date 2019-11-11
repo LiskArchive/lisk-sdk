@@ -198,7 +198,7 @@ describe('WS transport', () => {
 			it('should return object containing an array of transactions', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: [transaction.id],
+					data: { transactionIds: [transaction.id] },
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an('array').not.empty;
@@ -229,7 +229,11 @@ describe('WS transport', () => {
 			it('should return object containing an array with one transaction', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: [transactionInQueues[transactionInQueues.length - 1].id],
+					data: {
+						transactionIds: [
+							transactionInQueues[transactionInQueues.length - 1].id,
+						],
+					},
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an('array').not.empty;
@@ -241,10 +245,12 @@ describe('WS transport', () => {
 			it('should return object containing an array with several transactions', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: [
-						transactionInQueues[transactionInQueues.length - 1].id,
-						transactionInQueues[transactionInQueues.length - 2].id,
-					],
+					data: {
+						transactionIds: [
+							transactionInQueues[transactionInQueues.length - 1].id,
+							transactionInQueues[transactionInQueues.length - 2].id,
+						],
+					},
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.have.length(2);
@@ -261,7 +267,9 @@ describe('WS transport', () => {
 			it('should return object containing an array of empty transactions', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: ['id1', 'id2'],
+					data: {
+						transactionIds: ['10000000000000000000', '9600000000000000000'],
+					},
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an.empty('array');

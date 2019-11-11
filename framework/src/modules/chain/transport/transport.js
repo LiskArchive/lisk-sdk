@@ -227,7 +227,7 @@ class Transport {
 			);
 		}
 
-		const errors = validator.validate(schemas.blocksBroadcast, data);
+		const errors = validator.validate(schemas.postBlockEvent, data);
 
 		if (errors.length) {
 			this.logger.warn(
@@ -289,8 +289,12 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleEventPostSignatures(data, peerId) {
-		this._addRateLimit('postSignatures', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		const errors = validator.validate(schemas.signaturesList, data);
+		await this._addRateLimit(
+			'postSignatures',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		const errors = validator.validate(schemas.postSignatureEvent, data);
 
 		if (errors.length) {
 			this.logger.warn({ err: errors }, 'Invalid signatures body');
@@ -356,9 +360,26 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleRPCGetTransactions(data, peerId) {
-		const { ids } = data;
-		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		if (!(ids && Array.isArray(ids) && ids.length)) {
+		await this._addRateLimit(
+			'getTransactions',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		const errors = validator.validate(schemas.getTransactionsRequest, data);
+		if (errors.length) {
+			this.logger.warn(
+				{ err: errors, peerId },
+				'Received invalid transactions body',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw errors;
+		}
+
+		const { transactionIds } = data;
+		if (!transactionIds) {
 			return {
 				transactions: this.transactionPoolModule.getMergedTransactionList(
 					true,
@@ -367,7 +388,7 @@ class Transport {
 			};
 		}
 
-		if (ids.length > this.constants.broadcasts.releaseLimit) {
+		if (transactionIds.length > this.constants.broadcasts.releaseLimit) {
 			const error = new Error('Received invalid request.');
 			this.logger.warn({ err: error, peerId }, 'Received invalid request.');
 			await this.channel.invoke('network:applyPenalty', {
@@ -380,7 +401,7 @@ class Transport {
 		const transactionsFromQueues = [];
 		const idsNotInPool = [];
 
-		for (const id of ids) {
+		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
 			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
 				id,
@@ -440,12 +461,15 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async handleEventPostTransactionsAnnouncement(data, peerId) {
-		this._addRateLimit(
+		await this._addRateLimit(
 			'postTransactionsAnnouncement',
 			peerId,
 			DEFAULT_RATE_LIMIT_FREQUENCY,
 		);
-		const errors = validator.validate(schemas.transactionsRequest, data);
+		const errors = validator.validate(
+			schemas.postTransactionsAnnouncementEvent,
+			data,
+		);
 
 		if (errors.length) {
 			this.logger.warn(
@@ -467,7 +491,7 @@ class Transport {
 				'network:requestFromPeer',
 				{
 					procedure: 'getTransactions',
-					data: { ids: unknownTransactionIDs },
+					data: { transactionIds: unknownTransactionIDs },
 					peerId,
 				},
 			);
@@ -577,7 +601,7 @@ class Transport {
 		}
 	}
 
-	_addRateLimit(procedure, peerId, limit) {
+	async _addRateLimit(procedure, peerId, limit) {
 		if (this.rateTracker[procedure] === undefined) {
 			this.rateTracker[procedure] = { [peerId]: 0 };
 		}
@@ -585,7 +609,7 @@ class Transport {
 			? this.rateTracker[procedure][peerId] + 1
 			: 1;
 		if (this.rateTracker[procedure][peerId] > limit) {
-			this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('network:applyPenalty', {
 				peerId,
 				penalty: 10,
 			});

@@ -26,8 +26,22 @@ module.exports = {
 			},
 		},
 	},
-	blocksBroadcast: {
-		id: 'blocksBroadcast',
+	getTransactionsRequest: {
+		id: 'getTransactionsRequest',
+		type: 'object',
+		properties: {
+			transactionIds: {
+				type: 'array',
+				items: {
+					type: 'string',
+					format: 'id',
+				},
+				minItems: 1,
+			},
+		},
+	},
+	postBlockEvent: {
+		id: 'postBlockEvent',
 		type: 'object',
 		required: ['block'],
 		properties: {
@@ -140,8 +154,8 @@ module.exports = {
 			},
 		},
 	},
-	signaturesList: {
-		id: 'signaturesList',
+	postSignatureEvent: {
+		id: 'postSignatureEvent',
 		type: 'object',
 		required: ['signatures'],
 		properties: {
@@ -155,8 +169,8 @@ module.exports = {
 			},
 		},
 	},
-	transactionsRequest: {
-		id: 'transactionsRequest',
+	postTransactionsAnnouncementEvent: {
+		id: 'postTransactionsAnnouncementEvent',
 		type: 'object',
 		required: ['transactionIds'],
 		properties: {
