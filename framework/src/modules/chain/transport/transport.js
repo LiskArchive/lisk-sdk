@@ -150,20 +150,20 @@ class Transport {
 	 */
 
 	/**
-	 * Returns a set of full blocks starting from the ID defined in the payload up to
+	 * Returns a set of full blocks starting from the ID defined in the data up to
 	 * the current tip of the chain.
-	 * @param {object} payload
-	 * @param {string} payload.blockId - The ID of the starting block
+	 * @param {object} data
+	 * @param {string} data.blockId - The ID of the starting block
 	 * @return {Promise<Array<object>>}
 	 */
-	async handleRPCGetBlocksFromId(payload, peerId) {
-		validator.validate(schemas.getBlocksFromIdRequest, payload);
+	async handleRPCGetBlocksFromId(data, peerId) {
+		validator.validate(schemas.getBlocksFromIdRequest, data);
 
 		if (validator.validator.errors) {
 			this.logger.warn(
 				{
 					err: validator.validator.errors,
-					req: payload,
+					req: data,
 				},
 				'getBlocksFromID request validation failed',
 			);
@@ -174,13 +174,13 @@ class Transport {
 			throw validator.validator.errors;
 		}
 
-		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
+		return this.blocksModule.loadBlocksFromLastBlockId(data.blockId, 34);
 	}
 
-	async handleRPCGetGetHighestCommonBlock(payload, peerId) {
+	async handleRPCGetGetHighestCommonBlock(data, peerId) {
 		const valid = validator.validate(
 			schemas.getHighestCommonBlockRequest,
-			payload,
+			data,
 		);
 
 		if (valid.length) {
@@ -189,7 +189,7 @@ class Transport {
 			this.logger.warn(
 				{
 					err: error,
-					req: payload,
+					req: data,
 				},
 				'getHighestCommonBlock request validation failed',
 			);
@@ -200,9 +200,7 @@ class Transport {
 			throw new Error(error);
 		}
 
-		const commonBlock = await this.blocksModule.getHighestCommonBlock(
-			payload.ids,
-		);
+		const commonBlock = await this.blocksModule.getHighestCommonBlock(data.ids);
 
 		return commonBlock;
 	}
@@ -214,7 +212,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostBlock(query, peerId) {
+	async handleEventPostBlock(data, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -224,19 +222,19 @@ class Transport {
 		// Should ignore received block if syncing
 		if (this.synchronizer.isActive) {
 			return this.logger.debug(
-				{ blockId: query.block.id, height: query.block.height },
+				{ blockId: data.block.id, height: data.block.height },
 				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
 
-		const errors = validator.validate(schemas.blocksBroadcast, query);
+		const errors = validator.validate(schemas.blocksBroadcast, data);
 
 		if (errors.length) {
 			this.logger.warn(
 				{
 					errors,
 					module: 'transport',
-					query,
+					data,
 				},
 				'Received post block broadcast request in unexpected format',
 			);
@@ -247,7 +245,7 @@ class Transport {
 			throw errors;
 		}
 
-		const block = await this.processorModule.deserialize(query.block);
+		const block = await this.processorModule.deserialize(data.block);
 
 		return this.processorModule.process(block, { peerId });
 	}
@@ -259,8 +257,8 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostSignature(query) {
-		const errors = validator.validate(schemas.signatureObject, query.signature);
+	async handleEventPostSignature(data) {
+		const errors = validator.validate(schemas.signatureObject, data.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
@@ -272,7 +270,7 @@ class Transport {
 
 		try {
 			await this.transactionPoolModule.getTransactionAndProcessSignature(
-				query.signature,
+				data.signature,
 			);
 			return {};
 		} catch (err) {
@@ -290,15 +288,9 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostSignatures(query, peerId) {
+	async handleEventPostSignatures(data, peerId) {
 		this._addRateLimit('postSignatures', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		if (!this.constants.broadcasts.active) {
-			return this.logger.debug(
-				'Receiving signatures disabled by user through config.json',
-			);
-		}
-
-		const errors = validator.validate(schemas.signaturesList, query);
+		const errors = validator.validate(schemas.signaturesList, data);
 
 		if (errors.length) {
 			this.logger.warn({ err: errors }, 'Invalid signatures body');
@@ -309,7 +301,24 @@ class Transport {
 			throw errors;
 		}
 
-		return this._receiveSignatures(query.signatures);
+		for (const signature of data.signatures) {
+			const signatureObjectErrors = validator.validate(
+				schemas.signatureObject,
+				signature,
+			);
+
+			if (signatureObjectErrors.length) {
+				await this.channel.invoke('network:applyPenalty', {
+					peerId,
+					penalty: 100,
+				});
+				throw signatureObjectErrors;
+			}
+
+			await this.transactionPoolModule.getTransactionAndProcessSignature(
+				signature,
+			);
+		}
 	}
 
 	/**
@@ -346,11 +355,11 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleRPCGetTransactions(ids, peerId) {
+	async handleRPCGetTransactions(data, peerId) {
+		const { ids } = data;
 		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		if (!(ids && Array.isArray(ids) && ids.length)) {
 			return {
-				success: true,
 				transactions: this.transactionPoolModule.getMergedTransactionList(
 					true,
 					this.constants.broadcasts.releaseLimit,
@@ -408,9 +417,9 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostTransaction(query) {
+	async handleEventPostTransaction(data) {
 		try {
-			const id = await this._receiveTransaction(query.transaction);
+			const id = await this._receiveTransaction(data.transaction);
 			return {
 				transactionId: id,
 			};
@@ -436,12 +445,6 @@ class Transport {
 			peerId,
 			DEFAULT_RATE_LIMIT_FREQUENCY,
 		);
-		if (!this.constants.broadcasts.active) {
-			return this.logger.debug(
-				'Receiving transactions disabled by user through config.json',
-			);
-		}
-
 		const errors = validator.validate(schemas.transactionsRequest, data);
 
 		if (errors.length) {
@@ -464,15 +467,13 @@ class Transport {
 				'network:requestFromPeer',
 				{
 					procedure: 'getTransactions',
-					data: unknownTransactionIDs,
+					data: { ids: unknownTransactionIDs },
 					peerId,
 				},
 			);
 			try {
 				for (const transaction of result.transactions) {
-					if (transaction) {
-						transaction.bundled = true;
-					}
+					transaction.bundled = true;
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
@@ -520,45 +521,6 @@ class Transport {
 		}
 
 		return unknownTransactionsIDs;
-	}
-
-	/**
-	 * Validates signatures body and for each signature calls receiveSignature.
-	 *
-	 * @private
-	 * @implements {__private.receiveSignature}
-	 * @param {Array} signatures - Array of signatures
-	 */
-	async _receiveSignatures(signatures = []) {
-		for (const signature of signatures) {
-			try {
-				await this._receiveSignature(signature);
-			} catch (err) {
-				this.logger.debug(err, signature);
-			}
-		}
-	}
-
-	/**
-	 * Validates signature with schema and calls getTransactionAndProcessSignature.
-	 *
-	 * @private
-	 * @param {Object} query
-	 * @param {string} query.signature
-	 * @param {Object} query.transaction
-	 * @returns {Promise.<boolean, Error>}
-	 * @todo Add description for the params
-	 */
-	async _receiveSignature(signature) {
-		const errors = validator.validate(schemas.signatureObject, signature);
-
-		if (errors.length) {
-			throw errors;
-		}
-
-		return this.transactionPoolModule.getTransactionAndProcessSignature(
-			signature,
-		);
 	}
 
 	/**
@@ -617,7 +579,7 @@ class Transport {
 
 	_addRateLimit(procedure, peerId, limit) {
 		if (this.rateTracker[procedure] === undefined) {
-			this.rateTracker[procedure] = { [peerId]: 1 };
+			this.rateTracker[procedure] = { [peerId]: 0 };
 		}
 		this.rateTracker[procedure][peerId] = this.rateTracker[procedure][peerId]
 			? this.rateTracker[procedure][peerId] + 1
