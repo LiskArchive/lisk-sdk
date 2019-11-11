@@ -589,9 +589,6 @@ class Transport {
 				peerId,
 				penalty: 10,
 			});
-			throw new Error(
-				`Peer ${peerId} exceeded the limit ${limit} within ${DEFAULT_RATE_RESET_TIME}`,
-			);
 		}
 	}
 }

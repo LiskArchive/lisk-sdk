@@ -64,11 +64,9 @@ describe('Transport', () => {
 		blocksStub = {
 			getHighestCommonBlock: jest.fn(),
 			deserializeTransaction: jest.fn().mockImplementation(val => val),
-			validateTransactions: jest
-				.fn()
-				.mockResolvedValue({
-					transactionsResponses: [{ status: 1, errors: [] }],
-				}),
+			validateTransactions: jest.fn().mockResolvedValue({
+				transactionsResponses: [{ status: 1, errors: [] }],
+			}),
 		};
 		processorStub = {};
 		transport = new Transport({
@@ -492,7 +490,6 @@ describe('Transport', () => {
 			const defaultRateLimit = 10000;
 
 			it('should apply penalty', async () => {
-				let error;
 				await transport.handleEventPostSignatures(
 					validSignaturesData,
 					defaultPeerId,
@@ -505,14 +502,10 @@ describe('Transport', () => {
 					validSignaturesData,
 					defaultPeerId,
 				);
-				try {
-					await transport.handleEventPostSignatures(
-						validSignaturesData,
-						defaultPeerId,
-					);
-				} catch (err) {
-					error = err;
-				}
+				await transport.handleEventPostSignatures(
+					validSignaturesData,
+					defaultPeerId,
+				);
 				await jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
 					'network:applyPenalty',
@@ -521,7 +514,6 @@ describe('Transport', () => {
 						penalty: 10,
 					},
 				);
-				expect(error.message).toContain('exceeded the limit');
 			});
 		});
 
@@ -613,15 +605,11 @@ describe('Transport', () => {
 			const defaultRateLimit = 10000;
 
 			it('should apply penalty', async () => {
-				let error;
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
-				try {
-					await transport.handleRPCGetTransactions({}, defaultPeerId);
-				} catch (err) {
-					error = err;
-				}
+				await transport.handleRPCGetTransactions({}, defaultPeerId);
+
 				await jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
 					'network:applyPenalty',
@@ -630,7 +618,6 @@ describe('Transport', () => {
 						penalty: 10,
 					},
 				);
-				expect(error.message).toContain('exceeded the limit');
 			});
 		});
 
@@ -788,7 +775,6 @@ describe('Transport', () => {
 			const defaultRateLimit = 10000;
 
 			it('should apply penalty', async () => {
-				let error;
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
@@ -801,14 +787,10 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				try {
-					await transport.handleEventPostTransactionsAnnouncement(
-						validTransactionsRequest,
-						defaultPeerId,
-					);
-				} catch (err) {
-					error = err;
-				}
+				await transport.handleEventPostTransactionsAnnouncement(
+					validTransactionsRequest,
+					defaultPeerId,
+				);
 				await jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
 					'network:applyPenalty',
@@ -817,7 +799,6 @@ describe('Transport', () => {
 						penalty: 10,
 					},
 				);
-				expect(error.message).toContain('exceeded the limit');
 			});
 		});
 
