@@ -765,27 +765,21 @@ describe('bft', () => {
 					id: defaults.lastBlock.id,
 				};
 
-				expect(
-					bftInstance.forkChoice({
-						block: aNewBlock,
-						lastBlock: defaults.lastBlock,
-					}),
-				).toEqual(forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK);
+				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+					forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK,
+				);
 			});
 
 			it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', async () => {
 				const aNewBlock = {
 					...defaults.newBlock,
 					height: defaults.lastBlock.height + 1,
-					previousBlock: defaults.lastBlock.id,
+					previousBlockId: defaults.lastBlock.id,
 				};
 
-				expect(
-					bftInstance.forkChoice({
-						block: aNewBlock,
-						lastBlock: defaults.lastBlock,
-					}),
-				).toEqual(forkChoiceRule.FORK_STATUS_VALID_BLOCK);
+				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+					forkChoiceRule.FORK_STATUS_VALID_BLOCK,
+				);
 			});
 
 			it('should return FORK_STATUS_DOUBLE_FORGING if isDoubleForging evaluates to true', () => {
@@ -794,16 +788,13 @@ describe('bft', () => {
 					height: defaults.lastBlock.height,
 					prevotedConfirmedUptoHeight:
 						defaults.lastBlock.prevotedConfirmedUptoHeight,
-					previousBlock: defaults.lastBlock.previousBlock,
+					previousBlockId: defaults.lastBlock.previousBlockId,
 					generatorPublicKey: defaults.lastBlock.generatorPublicKey,
 				};
 
-				expect(
-					bftInstance.forkChoice({
-						block: aNewBlock,
-						lastBlock: defaults.lastBlock,
-					}),
-				).toEqual(forkChoiceRule.FORK_STATUS_DOUBLE_FORGING);
+				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+					forkChoiceRule.FORK_STATUS_DOUBLE_FORGING,
+				);
 			});
 
 			it('should return FORK_STATUS_TIE_BREAK if isTieBreak evaluates to true', () => {
@@ -812,7 +803,7 @@ describe('bft', () => {
 					height: defaults.lastBlock.height,
 					prevotedConfirmedUptoHeight:
 						defaults.lastBlock.prevotedConfirmedUptoHeight,
-					previousBlock: defaults.lastBlock.previousBlock,
+					previousBlockId: defaults.lastBlock.previousBlockId,
 					timestamp: defaults.lastBlock.timestamp + 1000,
 				};
 
@@ -825,12 +816,9 @@ describe('bft', () => {
 					receivedAt: defaults.lastBlock.timestamp + 1000, // Received late
 				};
 
-				expect(
-					bftInstance.forkChoice({
-						block: aNewBlock,
-						lastBlock,
-					}),
-				).toEqual(forkChoiceRule.FORK_STATUS_TIE_BREAK);
+				expect(bftInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
+					forkChoiceRule.FORK_STATUS_TIE_BREAK,
+				);
 			});
 
 			it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
@@ -841,12 +829,9 @@ describe('bft', () => {
 					height: defaults.lastBlock.height + 1,
 				};
 
-				expect(
-					bftInstance.forkChoice({
-						block: aNewBlock,
-						lastBlock: defaults.lastBlock,
-					}),
-				).toEqual(forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN);
+				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
+					forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
+				);
 			});
 
 			it('should return FORK_STATUS_DISCARD if no conditions are met', async () => {
@@ -860,12 +845,9 @@ describe('bft', () => {
 					height: 2,
 				};
 
-				expect(
-					bftInstance.forkChoice({
-						block: aNewBlock,
-						lastBlock,
-					}),
-				).toEqual(forkChoiceRule.FORK_STATUS_DISCARD);
+				expect(bftInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
+					forkChoiceRule.FORK_STATUS_DISCARD,
+				);
 			});
 		});
 
