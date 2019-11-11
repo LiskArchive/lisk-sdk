@@ -21,12 +21,13 @@ import {
 } from 'utils/network_setup';
 import { wait } from 'utils/helpers';
 import expect = require('expect');
-const INVALID_MESSAGE_1 = '#1';
+import { SOCKET_PING_MESSAGE } from '../../src';
 
-describe(`Detect ${INVALID_MESSAGE_1} messages and ban the peer`, () => {
+describe(`Detect ${SOCKET_PING_MESSAGE} messages and ban the peer`, () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let countPingMessages = 0;
 	let collectInboundErrorMessages: any[] = [];
+
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({ networkSize: 2 });
 
@@ -54,7 +55,7 @@ describe(`Detect ${INVALID_MESSAGE_1} messages and ban the peer`, () => {
 				);
 				if (peerOfNode1 && peerOfNode1['_socket']) {
 					for (let num = 0; num < 50; num++) {
-						peerOfNode1['_socket'].send(INVALID_MESSAGE_1, {});
+						peerOfNode1['_socket'].send(SOCKET_PING_MESSAGE, {});
 					}
 				}
 			}
@@ -67,7 +68,7 @@ describe(`Detect ${INVALID_MESSAGE_1} messages and ban the peer`, () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should set the isActive property to true for all nodes', async () => {
+	it('should disconnect with the node sending unvalid messages', async () => {
 		expect(countPingMessages).toEqual(4);
 		expect(collectInboundErrorMessages.length).toEqual(1);
 		expect((collectInboundErrorMessages as any[])[0]).toEqual(
