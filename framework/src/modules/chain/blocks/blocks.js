@@ -19,11 +19,17 @@ const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	applyTransactions,
+	composeTransactionSteps,
 	checkPersistedTransactions,
 	checkAllowedTransactions,
 	validateTransactions,
-} = require('../transactions');
-const StateStore = require('../state_store');
+	verifyTransactions,
+	processSignature,
+} = require('./transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('./transaction_interface_adapter');
+const { StateStore } = require('./state_store');
 const blocksUtils = require('./utils');
 const {
 	BlocksVerify,
@@ -61,8 +67,9 @@ class Blocks extends EventEmitter {
 		slots,
 		exceptions,
 		// Modules
-		interfaceAdapters,
+		registeredTransactions,
 		// constants
+		networkIdentifier,
 		blockReceiptTimeout, // set default
 		loadPerIteration,
 		maxPayloadLength,
@@ -76,22 +83,15 @@ class Blocks extends EventEmitter {
 	}) {
 		super();
 		this._lastBlock = {};
-
-		/**
-		 * Represents the receipt time of the last block that was received
-		 * from the network.
-		 * TODO: Remove after fork.
-		 * @type {number}
-		 * @private
-		 */
-
-		this._cleaning = false;
+		this._transactionAdapter = new TransactionInterfaceAdapter(
+			networkIdentifier,
+			registeredTransactions,
+		);
 
 		this.logger = logger;
 		this.storage = storage;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
-		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
 		this.blockRewardArgs = {
 			distance: rewardDistance,
@@ -180,7 +180,7 @@ class Blocks extends EventEmitter {
 	 */
 	deserialize(blockJSON) {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
-			this.interfaceAdapters.transactions.fromJson(transaction),
+			this._transactionAdapter.fromJSON(transaction),
 		);
 		return {
 			...blockJSON,
@@ -199,6 +199,10 @@ class Blocks extends EventEmitter {
 					: blockJSON.payloadLength,
 			transactions,
 		};
+	}
+
+	deserializeTransaction(transactionJSON) {
+		return this._transactionAdapter.fromJSON(transactionJSON);
 	}
 
 	async validateBlockHeader(block, blockBytes, expectedReward) {
@@ -342,6 +346,36 @@ class Blocks extends EventEmitter {
 		return this.storage.entities.Block.get(filters, options);
 	}
 
+	async loadBlocksFromLastBlockId(lastBlockId, limit = 1) {
+		return blocksUtils.loadBlocksFromLastBlockId(
+			this.storage,
+			lastBlockId,
+			limit,
+		);
+	}
+
+	/**
+	 * Returns the highest common block between ids and the database blocks table
+	 * @param {Array<String>} ids - An array of block ids
+	 * @return {Promise<BasicBlock|undefined>}
+	 */
+	// TODO: Unit tests written in mocha, which should be migrated to jest.
+	async getHighestCommonBlock(ids) {
+		try {
+			const [block] = await this.storage.entities.Block.get(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 },
+			);
+			return block;
+		} catch (e) {
+			const errMessage = 'Failed to fetch the highest common block';
+			this.logger.error({ err: e }, errMessage);
+			throw new Error(errMessage);
+		}
+	}
+
 	// TODO: Unit tests written in mocha, which should be migrated to jest.
 	async filterReadyTransactions(transactions, context) {
 		const stateStore = new StateStore(this.storage);
@@ -369,34 +403,41 @@ class Blocks extends EventEmitter {
 		return readyTransactions;
 	}
 
-	async loadBlocksFromLastBlockId(lastBlockId, limit = 1) {
-		return blocksUtils.loadBlocksFromLastBlockId(
-			this.storage,
-			lastBlockId,
-			limit,
-		);
+	async validateTransactions(transactions) {
+		return composeTransactionSteps(
+			checkAllowedTransactions(this.lastBlock),
+			validateTransactions(this.exceptions),
+			// Composed transaction checks are all static, so it does not need state store
+		)(transactions, undefined);
 	}
 
-	/**
-	 * Returns the highest common block between ids and the database blocks table
-	 * @param {Array<String>} ids - An array of block ids
-	 * @return {Promise<BasicBlock|undefined>}
-	 */
-	// TODO: Unit tests written in mocha, which should be migrated to jest.
-	async getHighestCommonBlock(ids) {
-		try {
-			const [block] = await this.storage.entities.Block.get(
-				{
-					id_in: ids,
-				},
-				{ sort: 'height:desc', limit: 1 },
-			);
-			return block;
-		} catch (e) {
-			const errMessage = 'Failed to access storage layer';
-			this.logger.error({ err: e }, errMessage);
-			throw new Error(errMessage);
-		}
+	async verifyTransactions(transactions) {
+		const stateStore = new StateStore(this.storage);
+		return composeTransactionSteps(
+			checkAllowedTransactions(() => {
+				const { version, height, timestamp } = this._lastBlock;
+				return {
+					blockVersion: version,
+					blockHeight: height,
+					blockTimestamp: timestamp,
+				};
+			}),
+			checkPersistedTransactions(this.storage),
+			verifyTransactions(this.slots, this.exceptions),
+		)(transactions, stateStore);
+	}
+
+	async processTransactions(transactions) {
+		const stateStore = new StateStore(this.storage);
+		return composeTransactionSteps(
+			checkPersistedTransactions(this.storage),
+			applyTransactions(this.exceptions),
+		)(transactions, stateStore);
+	}
+
+	async processSignature(transaction, signature) {
+		const stateStore = new StateStore(this.storage);
+		return processSignature()(transaction, signature, stateStore);
 	}
 }
 

@@ -25,12 +25,6 @@ const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
-const {
-	registeredTransactions,
-} = require('../../../common/registered_transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../src/modules/chain/interface_adapters');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -44,12 +38,6 @@ const networkIdentifier = getNetworkIdentifier(
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
-const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(
-		networkIdentifier,
-		registeredTransactions,
-	),
-};
 
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
@@ -73,7 +61,7 @@ async function createBlock(
 		privateKey: keypairBytes.privateKeyBytes,
 	};
 	transactions = transactions.map(transaction =>
-		interfaceAdapters.transactions.fromJson(transaction),
+		library.modules.blocks.deserializeTransaction(transaction),
 	);
 	library.modules.blocks._lastBlock = previousBlockArgs;
 	const newBlock = await library.modules.processor.create({

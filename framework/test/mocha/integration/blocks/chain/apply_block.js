@@ -17,12 +17,6 @@
 const async = require('async');
 const expect = require('chai').expect;
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
-const {
-	registeredTransactions,
-} = require('../../../common/registered_transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../src/modules/chain/interface_adapters');
 
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -33,13 +27,6 @@ const { getNetworkIdentifier } = require('../../../common/network_identifier');
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
-
-const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(
-		networkIdentifier,
-		registeredTransactions,
-	),
-};
 
 describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
@@ -237,43 +224,46 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			});
 
 			describe('when block contains invalid transaction - timestamp out of postgres integer range', () => {
-				const auxBlock = {
-					blockSignature:
-						'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-					generatorPublicKey:
-						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					numberOfTransactions: 2,
-					payloadHash:
-						'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-					payloadLength: 494,
-					previousBlockId: __testContext.config.genesisBlock.id,
-					height: 2,
-					reward: 0,
-					timestamp: 32578370,
-					totalAmount: 10000000000000000,
-					totalFee: 0,
-					transactions: [
-						{
-							type: 8,
-							fee: 0,
-							networkIdentifier,
-							timestamp: -3704634000,
-							senderPublicKey:
-								'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-							signature:
-								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
-							id: '1465651642158264048',
-							asset: {
-								recipientId: '16313739661670634666L',
-								amount: '10000000000000000',
+				let auxBlock;
+				beforeEach(async () => {
+					auxBlock = {
+						blockSignature:
+							'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
+						generatorPublicKey:
+							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+						numberOfTransactions: 2,
+						payloadHash:
+							'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
+						payloadLength: 494,
+						previousBlockId: __testContext.config.genesisBlock.id,
+						height: 2,
+						reward: 0,
+						timestamp: 32578370,
+						totalAmount: 10000000000000000,
+						totalFee: 0,
+						transactions: [
+							{
+								type: 8,
+								fee: 0,
+								networkIdentifier,
+								timestamp: -3704634000,
+								senderPublicKey:
+									'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+								signature:
+									'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
+								id: '1465651642158264048',
+								asset: {
+									recipientId: '16313739661670634666L',
+									amount: '10000000000000000',
+								},
 							},
-						},
-					].map(transaction =>
-						interfaceAdapters.transactions.fromJson(transaction),
-					),
-					version: 0,
-					id: '884740302254229983',
-				};
+						].map(transaction =>
+							library.modules.blocks.deserializeTransaction(transaction),
+						),
+						version: 0,
+						id: '884740302254229983',
+					};
+				});
 
 				it('should call a callback with proper error', async () => {
 					try {

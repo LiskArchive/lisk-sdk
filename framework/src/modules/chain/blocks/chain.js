@@ -15,7 +15,7 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionsModule = require('../transactions');
+const transactionsModule = require('./transactions');
 
 const TRANSACTION_TYPES_VOTE = [3, 11];
 

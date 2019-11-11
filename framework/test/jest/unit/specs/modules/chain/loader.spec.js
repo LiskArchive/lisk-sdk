@@ -15,47 +15,50 @@
 'use strict';
 
 const { Loader } = require('../../../../../../src/modules/chain/loader');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../../src/modules/chain/interface_adapters');
-const {
-	registeredTransactions,
-} = require('../../../../utils/registered_transactions');
 
 describe('Loader', () => {
-	const networkIdentifier =
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+	let loader;
+	let channelStub;
+	let blocksModuleStub;
+	let transactionPoolModuleStub;
+
+	beforeEach(async () => {
+		const loggerStub = {
+			info: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+		};
+		blocksModuleStub = {
+			recoverChain: jest.fn(),
+			lastBlock: {
+				id: 'blockID',
+			},
+			deserializeTransaction: jest.fn().mockImplementation(val => val),
+			validateTransactions: jest.fn().mockResolvedValue({
+				transactionsResponses: [
+					{
+						errors: [],
+						status: 1,
+					},
+				],
+			}),
+		};
+		transactionPoolModuleStub = {
+			processUnconfirmedTransaction: jest.fn(),
+		};
+		channelStub = {
+			invoke: jest.fn(),
+		};
+		loader = new Loader({
+			logger: loggerStub,
+			channel: channelStub,
+			transactionPoolModule: transactionPoolModuleStub,
+			blocksModule: blocksModuleStub,
+		});
+	});
 
 	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
-		let loader;
-		let channelStub;
-		let transactionPoolModuleStub;
-
-		beforeEach(async () => {
-			const loggerStub = {
-				info: jest.fn(),
-				error: jest.fn(),
-			};
-			const interfaceAdapters = {
-				transactions: new TransactionInterfaceAdapter(
-					networkIdentifier,
-					registeredTransactions,
-				),
-			};
-			transactionPoolModuleStub = {
-				processUnconfirmedTransaction: jest.fn(),
-			};
-			channelStub = {
-				invoke: jest.fn(),
-			};
-			loader = new Loader({
-				logger: loggerStub,
-				channel: channelStub,
-				transactionPoolModule: transactionPoolModuleStub,
-				interfaceAdapters,
-			});
-		});
-
 		describe('when peer returns valid transaction response', () => {
 			const validtransactions = {
 				transactions: [
@@ -122,38 +125,6 @@ describe('Loader', () => {
 	});
 
 	describe('#_loadBlocksFromNetwork', () => {
-		let loader;
-		let channelStub;
-		let blocksModuleStub;
-
-		beforeEach(async () => {
-			const loggerStub = {
-				warn: jest.fn(),
-				debug: jest.fn(),
-			};
-			const interfaceAdapters = {
-				transactions: new TransactionInterfaceAdapter(
-					networkIdentifier,
-					registeredTransactions,
-				),
-			};
-			channelStub = {
-				invoke: jest.fn(),
-			};
-			blocksModuleStub = {
-				recoverChain: jest.fn(),
-				lastBlock: {
-					id: 'blockID',
-				},
-			};
-			loader = new Loader({
-				logger: loggerStub,
-				channel: channelStub,
-				blocksModule: blocksModuleStub,
-				interfaceAdapters,
-			});
-		});
-
 		describe('when blocks endpoint returns success true and empty array', () => {
 			beforeEach(async () => {
 				channelStub.invoke.mockReturnValue({

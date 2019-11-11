@@ -17,7 +17,6 @@
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const { validateTransactions } = require('./transactions');
 const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
 
@@ -39,18 +38,12 @@ class Loader {
 		// components
 		channel,
 		logger,
-		storage,
-		cache,
-		// Unique requirements
-		genesisBlock,
 		// Modules
 		processorModule,
 		transactionPoolModule,
 		blocksModule,
-		interfaceAdapters,
 		// Constants
 		loadPerIteration,
-		rebuildUpToRound,
 		syncingActive,
 	}) {
 		this.isActive = false;
@@ -60,21 +53,15 @@ class Loader {
 
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
-		// TODO: Remove cache
-		this.cache = cache;
-		this.genesisBlock = genesisBlock;
 
 		this.constants = {
 			loadPerIteration,
-			rebuildUpToRound,
 			syncingActive,
 		};
 
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
-		this.interfaceAdapters = interfaceAdapters;
 	}
 
 	/**
@@ -124,11 +111,13 @@ class Loader {
 		}
 
 		const transactions = result.transactions.map(tx =>
-			this.interfaceAdapters.transactions.fromJson(tx),
+			this.blocksModule.deserializeTransaction(tx),
 		);
 
 		try {
-			const { transactionsResponses } = validateTransactions()(transactions);
+			const {
+				transactionsResponses,
+			} = await this.blocksModule.validateTransactions(transactions);
 			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,
