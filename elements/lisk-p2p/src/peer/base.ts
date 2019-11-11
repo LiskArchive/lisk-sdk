@@ -525,6 +525,16 @@ export class Peer extends EventEmitter {
 			this._peerConfig.maxPeerInfoSize,
 		);
 
+		if (!this._serverNodeInfo) {
+			throw new Error('Missing server node info.');
+		}
+
+		const result = validatePeerCompatibility(newPeerInfo, this._serverNodeInfo);
+
+		if (!result.success && result.error) {
+			throw new Error(result.error);
+		}
+
 		this.updatePeerInfo(newPeerInfo);
 	}
 
