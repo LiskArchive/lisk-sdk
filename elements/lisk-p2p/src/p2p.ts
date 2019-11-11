@@ -98,7 +98,6 @@ import {
 	constructPeerId,
 	getByteSize,
 	sanitezeInitialPeerInfo,
-	sanitezePreviousPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -229,8 +228,6 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
-		this._config = config;
-
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers
@@ -246,14 +243,7 @@ export class P2P extends EventEmitter {
 					? config.whitelistedPeers.map(sanitezeInitialPeerInfo)
 					: [],
 				previousPeers: config.previousPeers
-					? config.previousPeers.map(peer =>
-							sanitezePreviousPeerInfo(
-								peer,
-								this._config.maxPeerInfoSize
-									? this._config.maxPeerInfoSize
-									: DEFAULT_MAX_PEER_INFO_SIZE,
-							),
-					  )
+					? config.previousPeers.map(sanitezeInitialPeerInfo)
 					: [],
 			},
 			{
@@ -266,6 +256,7 @@ export class P2P extends EventEmitter {
 			},
 		);
 
+		this._config = config;
 		this._isActive = false;
 		this._hasConnected = false;
 		this._peerBook = new PeerBook({

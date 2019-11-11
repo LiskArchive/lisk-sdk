@@ -13,7 +13,7 @@
  */
 
 import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
-import { constructPeerId, getByteSize } from './misc';
+import { constructPeerId } from './misc';
 
 export const sanitizeIncomingPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
@@ -36,28 +36,6 @@ export const sanitezeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
 	ipAddress: peerInfo.ipAddress,
 	wsPort: peerInfo.wsPort,
 });
-
-export const sanitezePreviousPeerInfo = (
-	peerInfo: ProtocolPeerInfo,
-	maxByteSize: number,
-) => {
-	const { ipAddress, wsPort } = peerInfo;
-
-	const sanitizedPeerInfo = {
-		...peerInfo,
-		peerId: constructPeerId(ipAddress, wsPort),
-	};
-
-	if (getByteSize(sanitizedPeerInfo) > maxByteSize) {
-		return {
-			peerId: sanitizedPeerInfo.peerId,
-			ipAddress: sanitizedPeerInfo.ipAddress,
-			wsPort: sanitizedPeerInfo.wsPort,
-		};
-	} else {
-		return sanitizedPeerInfo;
-	}
-};
 
 export const sanitizePeerLists = (
 	lists: PeerLists,
