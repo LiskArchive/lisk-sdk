@@ -17,9 +17,9 @@
 const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionHandlers = require('../../../../../../src/modules/chain/transactions/transactions_handlers');
-const votesWeightHandler = require('../../../../../../src/modules/chain/transactions/votes_weight');
-const exceptionHandlers = require('../../../../../../src/modules/chain/transactions/exceptions_handlers');
+const transactionHandlers = require('../../../../../../src/modules/chain/blocks/transactions/transactions_handlers');
+const votesWeightHandler = require('../../../../../../src/modules/chain/blocks/transactions/votes_weight');
+const exceptionHandlers = require('../../../../../../src/modules/chain/blocks/transactions/exceptions_handlers');
 const {
 	Transaction: transactionFixture,
 } = require('../../../../fixtures/transactions');

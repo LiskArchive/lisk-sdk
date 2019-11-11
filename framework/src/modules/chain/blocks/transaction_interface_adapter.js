@@ -26,20 +26,7 @@ class TransactionInterfaceAdapter {
 		});
 	}
 
-	fromBlock(block) {
-		const transactions = block.transactions || [];
-
-		const response = transactions.map(transaction =>
-			this.fromJson({
-				...transaction,
-				networkIdentifier: this.networkIdentifier,
-			}),
-		);
-
-		return response;
-	}
-
-	fromJson(rawTx) {
+	fromJSON(rawTx) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
 
 		if (!TransactionClass) {

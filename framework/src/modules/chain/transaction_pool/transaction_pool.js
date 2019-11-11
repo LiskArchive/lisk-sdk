@@ -23,8 +23,6 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const { sortBy } = require('./sort');
-const transactionsModule = require('../transactions');
-const StateStore = require('../state_store');
 
 const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
 const EVENT_MULTISIGNATURE_SIGNATURE = 'EVENT_MULTISIGNATURE_SIGNATURE';
@@ -64,7 +62,6 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 class TransactionPool extends EventEmitter {
 	constructor({
 		storage,
-		exceptions,
 		blocks,
 		slots,
 		logger,
@@ -87,31 +84,12 @@ class TransactionPool extends EventEmitter {
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 
-		this.validateTransactions = transactionsModule.validateTransactions(
-			this.exceptions,
-		);
-		this.verifyTransactions = transactions => {
-			const stateStore = new StateStore(this.storage);
-			return transactionsModule.composeTransactionSteps(
-				transactionsModule.checkAllowedTransactions(() => {
-					const { version, height, timestamp } = this.blocks.lastBlock;
-					return {
-						blockVersion: version,
-						blockHeight: height,
-						blockTimestamp: timestamp,
-					};
-				}),
-				transactionsModule.checkPersistedTransactions(storage),
-				transactionsModule.verifyTransactions(slots, exceptions),
-			)(transactions, stateStore);
-		};
-		this.processTransactions = transactions => {
-			const stateStore = new StateStore(this.storage);
-			return transactionsModule.composeTransactionSteps(
-				transactionsModule.checkPersistedTransactions(storage),
-				transactionsModule.applyTransactions(exceptions),
-			)(transactions, stateStore);
-		};
+		this.validateTransactions = transactions =>
+			this.blocks.validateTransactions(transactions);
+		this.verifyTransactions = transactions =>
+			this.blocks.verifyTransactions(transactions);
+		this.processTransactions = transactions =>
+			this.blocks.processTransactions(transactions);
 
 		const poolConfig = {
 			expireTransactionsInterval: this.expireTransactionsInterval,
@@ -223,11 +201,9 @@ class TransactionPool extends EventEmitter {
 			throw [new TransactionError(message, '', '.signature')];
 		}
 
-		const stateStore = new StateStore(this.storage);
-		const transactionResponse = await transactionsModule.processSignature()(
+		const transactionResponse = await this.blocks.processSignature(
 			transaction,
 			signature,
-			stateStore,
 		);
 		if (
 			transactionResponse.status === TransactionStatus.FAIL &&

@@ -31,9 +31,6 @@ const {
 const {
 	Processor,
 } = require('../../../../../../../../src/modules/chain/processor');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../../../../src/modules/chain/interface_adapters');
 const { constants } = require('../../../../../../utils');
 const { newBlock } = require('../../../chain/blocks/utils');
 
@@ -105,9 +102,6 @@ describe('fast_chain_switching_mechanism', () => {
 			slots,
 			genesisBlock: genesisBlockDevnet,
 			sequence: new Sequence(),
-			interfaceAdapters: {
-				transactions: new TransactionInterfaceAdapter(),
-			},
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,

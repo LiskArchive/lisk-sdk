@@ -23,24 +23,13 @@ const localCommon = require('../../integration/common');
 const accountFixtures = require('../../fixtures/accounts');
 const {
 	sortTransactions,
-} = require('../../../../src/modules/chain/transactions');
+} = require('../../../../src/modules/chain/forger/sort');
 const { getNetworkIdentifier } = require('../../common/network_identifier');
-
-const {
-	registeredTransactions,
-} = require('../../common/registered_transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../src/modules/chain/interface_adapters');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const transactionInterfaceAdapter = new TransactionInterfaceAdapter(
-	networkIdentifier,
-	registeredTransactions,
-);
 const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
 const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
@@ -137,7 +126,7 @@ class BlocksTransactionsHelper {
 			// Get only transactions marked as valid
 			.filter(t => t.expect === EXPECT.OK)
 			// Amounts have to be instances of BigNum for sorting
-			.map(t => transactionInterfaceAdapter.fromJson(t.data));
+			.map(t => this._library.modules.blocks.deserializeTransaction(t.data));
 
 		// Sort transactions the same way as they are sorted in a block
 		const sortedTransactions = sortTransactions(validTransactions);
@@ -211,7 +200,7 @@ class BlocksTransactionsHelper {
 		const timestamp = this._library.slots.getSlotTime(lastBlockSlot + 1);
 
 		const transactions = this._transactions.map(t =>
-			transactionInterfaceAdapter.fromJson(t.data),
+			this._library.modules.blocks.deserializeTransaction(t.data),
 		);
 
 		const sortedTransactions = sortTransactions(transactions);
