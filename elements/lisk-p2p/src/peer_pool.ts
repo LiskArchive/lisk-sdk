@@ -585,7 +585,7 @@ export class PeerPool extends EventEmitter {
 			return;
 		}
 
-		throw new Error('Peer not found');
+		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
