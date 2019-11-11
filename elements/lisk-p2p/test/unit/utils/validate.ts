@@ -125,21 +125,6 @@ describe('utils/validate', () => {
 					'Invalid peer ipAddress or port',
 				);
 			});
-
-			it('should throw an InvalidPeer error for invalid peer version', async () => {
-				const peerInvalid: unknown = {
-					ipAddress: '12.23.54.23',
-					wsPort: 5390,
-					os: 'darwin',
-					height: '23232',
-					version: '1222.22',
-					protocolVersion: '1.1',
-				};
-
-				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
-					'Invalid peer version',
-				);
-			});
 		});
 	});
 

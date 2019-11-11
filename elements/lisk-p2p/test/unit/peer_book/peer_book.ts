@@ -13,7 +13,10 @@
  *
  */
 import { expect } from 'chai';
-import { initPeerInfoList } from '../../utils/peers';
+import {
+	initPeerInfoList,
+	initPeerInfoListWithSuffix,
+} from '../../utils/peers';
 import { PeerBook, PeerBookConfig } from '../../../src/peer_book';
 import {
 	DEFAULT_RANDOM_SECRET,
@@ -125,37 +128,6 @@ describe('peerBook', () => {
 			peerBook.upgradePeer(samplePeers[0]);
 			peerBook.addPeer(samplePeers[1]);
 			expect(peerBook.allPeers).to.be.eql([samplePeers[1], samplePeers[0]]);
-		});
-	});
-
-	describe('#allPeerstWithSharedState', () => {
-		beforeEach(() => {
-			samplePeers = initPeerInfoList();
-			peerBook = new PeerBook(peerBookConfig);
-		});
-
-		it('should get all peers with existing sharedState', () => {
-			peerBook.addPeer(samplePeers[0]);
-			peerBook.upgradePeer(samplePeers[0]);
-			peerBook.addPeer(samplePeers[1]);
-
-			peerBook.addPeer({
-				peerId: '204.120.125.15:6000',
-				ipAddress: '204.120.125.15',
-				wsPort: 6000,
-			});
-
-			peerBook.addPeer({
-				peerId: '204.120.125.16:6001',
-				ipAddress: '204.120.125.16',
-				wsPort: 6001,
-				sharedState: undefined,
-			});
-
-			expect(peerBook.allPeerstWithSharedState).to.be.eql([
-				samplePeers[1],
-				samplePeers[0],
-			]);
 		});
 	});
 
@@ -387,6 +359,31 @@ describe('peerBook', () => {
 				expect(peerBook.downgradePeer(samplePeers[0])).to.be.false;
 				expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 			});
+		});
+	});
+
+	describe('#getDiscoveryPeerList', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoListWithSuffix('204.123.64', 200);
+			peerBook = new PeerBook(peerBookConfig);
+
+			samplePeers.forEach(samplePeer => {
+				peerBook.addPeer(samplePeer);
+			});
+		});
+
+		it('should return PeerList random size between range', () => {
+			const minPeerListLength = 50;
+			const maxPeerListLength = 100;
+
+			expect(
+				peerBook.getDiscoveryPeerList(minPeerListLength, maxPeerListLength)
+					.length,
+			).to.be.gt(minPeerListLength - 1);
+			expect(
+				peerBook.getDiscoveryPeerList(minPeerListLength, maxPeerListLength)
+					.length,
+			).to.be.lt(maxPeerListLength + 1);
 		});
 	});
 });

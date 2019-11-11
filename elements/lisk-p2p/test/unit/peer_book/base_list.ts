@@ -91,43 +91,6 @@ describe('Peers base list', () => {
 		});
 	});
 
-	describe('#peerListWithSharedState', () => {
-		let fetchedPeersArray: ReadonlyArray<P2PPeerInfo>;
-		let invalidPeerInfos: Array<P2PPeerInfo>;
-
-		before(() => {
-			samplePeers = initPeerInfoList();
-			peerListObj = new BaseList(peerListConfig);
-			peerListObj.addPeer(samplePeers[0]);
-			peerListObj.addPeer(samplePeers[1]);
-			invalidPeerInfos = [
-				{
-					peerId: '204.120.125.16:6001',
-					ipAddress: '204.120.125.16',
-					wsPort: 6001,
-					sharedState: undefined,
-				},
-				{
-					peerId: '204.120.125.15:6000',
-					ipAddress: '204.120.125.15',
-					wsPort: 6000,
-				},
-			];
-
-			invalidPeerInfos.forEach(invalidPeer => peerListObj.addPeer(invalidPeer));
-
-			fetchedPeersArray = peerListObj.peerListWithSharedState as ReadonlyArray<
-				P2PPeerInfo
-			>;
-		});
-
-		it('should return peers list with sharedState', () => {
-			const expectedFetchedPeersArray = [samplePeers[0], samplePeers[1]];
-			expect(fetchedPeersArray).to.not.have.members(invalidPeerInfos);
-			expect(fetchedPeersArray).to.have.members(expectedFetchedPeersArray);
-		});
-	});
-
 	describe('#getBucket', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();

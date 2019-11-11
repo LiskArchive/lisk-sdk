@@ -10,10 +10,10 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
+
 import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
-import { constructPeerId } from './misc';
+import { constructPeerId, getByteSize } from './misc';
 
 export const sanitizeIncomingPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
@@ -25,21 +25,44 @@ export const sanitizeIncomingPeerInfo = (
 		ipAddress,
 		wsPort,
 		sharedState: {
-			height: height ? height : 0,
-			protocolVersion: restOfPeerInfo.protocolVersion
-				? restOfPeerInfo.protocolVersion
-				: '',
-			version: restOfPeerInfo.version ? restOfPeerInfo.version : '',
+			height: typeof height === 'number' ? height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 			...restOfPeerInfo,
 		},
 	};
+};
+
+export const sanitezeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
+	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
+	ipAddress: peerInfo.ipAddress,
+	wsPort: peerInfo.wsPort,
+});
+
+export const sanitezePreviousPeerInfo = (
+	peerInfo: ProtocolPeerInfo,
+	maxByteSize: number,
+) => {
+	const { ipAddress, wsPort } = peerInfo;
+
+	const sanitizedPeerInfo = {
+		...peerInfo,
+		peerId: constructPeerId(ipAddress, wsPort),
+	};
+
+	if (getByteSize(sanitizedPeerInfo) > maxByteSize) {
+		return {
+			peerId: sanitizedPeerInfo.peerId,
+			ipAddress: sanitizedPeerInfo.ipAddress,
+			wsPort: sanitizedPeerInfo.wsPort,
+		};
+	} else {
+		return sanitizedPeerInfo;
+	}
 };
 
 export const sanitizePeerLists = (
 	lists: PeerLists,
 	nodeInfo: P2PPeerInfo,
 ): PeerLists => {
-	// TODO: remove non-valid peer infos
 	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;

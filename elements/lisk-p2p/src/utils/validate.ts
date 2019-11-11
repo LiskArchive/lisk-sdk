@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { gte as isVersionGTE, valid as isValidVersion } from 'semver';
-import { isIP, isNumeric, isPort } from 'validator';
-import { getByteSize } from '.';
+import { isIP, isPort } from 'validator';
+import { getByteSize, sanitizeIncomingPeerInfo } from '.';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -36,7 +35,6 @@ import {
 	P2PRequestPacket,
 	ProtocolPeerInfo,
 } from '../p2p_types';
-import { constructPeerId } from './misc';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -68,17 +66,7 @@ const validateProtocolVersionCompatibility = (
 	if (!peerInfo.sharedState) {
 		return false;
 	}
-	// Backwards compatibility for older peers which do not have a protocolVersion field.
-	if (!peerInfo.sharedState.protocolVersion) {
-		try {
-			return isVersionGTE(
-				peerInfo.sharedState.version,
-				nodeInfo.minVersion as string,
-			);
-		} catch (error) {
-			return false;
-		}
-	}
+
 	if (typeof peerInfo.sharedState.protocolVersion !== 'string') {
 		return false;
 	}
@@ -151,38 +139,7 @@ export const validatePeerInfo = (
 		);
 	}
 
-	if (!protocolPeer.version || !isValidVersion(protocolPeer.version)) {
-		throw new InvalidPeerInfoError(
-			`Invalid peer version for peer with ip: ${
-				protocolPeer.ipAddress
-			}, wsPort ${protocolPeer.wsPort} and version ${protocolPeer.version}`,
-		);
-	}
-
-	// TODO: create sanitizePeerInfo()
-	const {
-		ipAddress: protocolIPAddress,
-		version,
-		protocolVersion,
-		height,
-		os,
-		wsPort,
-		options,
-		...restOfProtocolPeer
-	} = protocolPeer;
-
-	const peerInfo: P2PPeerInfo = {
-		peerId: constructPeerId(protocolPeer.ipAddress, protocolPeer.wsPort),
-		ipAddress: protocolPeer.ipAddress,
-		wsPort: +wsPort,
-		sharedState: {
-			version,
-			protocolVersion: protocolVersion as string,
-			os: os ? os : '',
-			height: height && isNumeric(height.toString()) ? +height : 0,
-			...restOfProtocolPeer,
-		},
-	};
+	const peerInfo = sanitizeIncomingPeerInfo(protocolPeer);
 
 	const byteSize = getByteSize(peerInfo);
 	if (byteSize > maxByteSize) {

@@ -20,6 +20,7 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_MAX_PEER_INFO_SIZE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -380,8 +381,6 @@ describe('peer/base', () => {
 						sharedState: {
 							version: '1.1.1',
 							height: 0,
-							protocolVersion: undefined,
-							os: '',
 						},
 					},
 					{
@@ -391,8 +390,6 @@ describe('peer/base', () => {
 						sharedState: {
 							version: '2.2.2',
 							height: 0,
-							protocolVersion: undefined,
-							os: '',
 						},
 					},
 				];
@@ -553,7 +550,7 @@ describe('peer/base', () => {
 			describe('when _updateFromProtocolPeerInfo() fails from malformed PeerInfo', () => {
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
-						data: {},
+						data: '1'.repeat(DEFAULT_MAX_PEER_INFO_SIZE),
 					});
 					sandbox.stub(defaultPeer, 'applyPenalty');
 					sandbox.stub(defaultPeer, 'emit');
@@ -561,6 +558,7 @@ describe('peer/base', () => {
 
 				it(`should apply invalid PeerInfo penalty`, async () => {
 					await expect(defaultPeer.fetchStatus()).to.be.rejected;
+
 					expect(defaultPeer.emit).to.be.calledOnceWith(
 						EVENT_FAILED_PEER_INFO_UPDATE,
 					);
@@ -573,6 +571,9 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					wsPort: 1111,
 					version: '1.1.2',
+					height: 0,
+					protocolVersion: undefined,
+					os: '',
 				};
 
 				beforeEach(() => {

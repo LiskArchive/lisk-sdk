@@ -16,7 +16,6 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
-import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import {
@@ -98,6 +97,8 @@ import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
 	getByteSize,
+	sanitezeInitialPeerInfo,
+	sanitezePreviousPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -228,41 +229,31 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
+		this._config = config;
+
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers
-					? config.seedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.seedPeers.map(sanitezeInitialPeerInfo)
 					: [],
 				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.blacklistedPeers.map(sanitezeInitialPeerInfo)
 					: [],
 				fixedPeers: config.fixedPeers
-					? config.fixedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.fixedPeers.map(sanitezeInitialPeerInfo)
 					: [],
 				whitelisted: config.whitelistedPeers
-					? config.whitelistedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.whitelistedPeers.map(sanitezeInitialPeerInfo)
 					: [],
 				previousPeers: config.previousPeers
-					? config.previousPeers.map(peer => ({
-							...peer,
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-					  }))
+					? config.previousPeers.map(peer =>
+							sanitezePreviousPeerInfo(
+								peer,
+								this._config.maxPeerInfoSize
+									? this._config.maxPeerInfoSize
+									: DEFAULT_MAX_PEER_INFO_SIZE,
+							),
+					  )
 					: [],
 			},
 			{
@@ -274,7 +265,7 @@ export class P2P extends EventEmitter {
 				wsPort: config.nodeInfo.wsPort,
 			},
 		);
-		this._config = config;
+
 		this._isActive = false;
 		this._hasConnected = false;
 		this._peerBook = new PeerBook({
@@ -889,29 +880,16 @@ export class P2P extends EventEmitter {
 		const wsMaxPayload = this._config.wsMaxPayload
 			? this._config.wsMaxPayload
 			: DEFAULT_WS_MAX_PAYLOAD;
+		const maxPeerInforSize = this._config.maxPeerInfoSize
+			? this._config.maxPeerInfoSize
+			: DEFAULT_MAX_PEER_INFO_SIZE;
 
-		// TODO: create a function inside peer book to make testable
-		const peerstWithSharedState = this._peerBook.allPeerstWithSharedState;
+		const safeMaxPeerInfoLength =
+			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInforSize) - 1;
 
-		/* tslint:disable no-magic-numbers*/
-		const min = Math.ceil(
-			Math.min(
-				peerDiscoveryResponseLength,
-				peerstWithSharedState.length * 0.25,
-			),
-		);
-		const max = Math.floor(
-			Math.min(peerDiscoveryResponseLength, peerstWithSharedState.length * 0.5),
-		);
-		const random = Math.floor(Math.random() * (max - min + 1) + min);
-		const randomPeerCount = Math.max(
-			random,
-			Math.min(minimumPeerDiscoveryThreshold, peerstWithSharedState.length),
-		);
-
-		const selectedPeers = shuffle(peerstWithSharedState).slice(
-			0,
-			randomPeerCount,
+		const selectedPeers = this._peerBook.getDiscoveryPeerList(
+			minimumPeerDiscoveryThreshold,
+			peerDiscoveryResponseLength,
 		);
 
 		// Remove internal state to check byte size
@@ -928,16 +906,7 @@ export class P2P extends EventEmitter {
 			peers:
 				getByteSize(sanitizedPeerInfoList) < wsMaxPayload
 					? sanitizedPeerInfoList
-					: {
-							success: true,
-							peers: shuffle(sanitizedPeerInfoList).slice(
-								0,
-								// TODO: check maxPayload divided by maxPeerInforSize
-								sanitizedPeerInfoList.length < 125
-									? sanitizedPeerInfoList.length
-									: 125,
-							),
-					  },
+					: sanitizedPeerInfoList.slice(0, safeMaxPeerInfoLength),
 		});
 	}
 
