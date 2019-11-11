@@ -515,7 +515,16 @@ export class Peer extends EventEmitter {
 		}
 	}
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		// Sanitize and validate PeerInfo
+		if (!this._serverNodeInfo) {
+			throw new Error('Missing server node info.');
+		}
+
+		const protocolPeerInfo = {
+			...rawPeerInfo,
+			ip: this._ipAddress,
+			wsPort: this._wsPort,
+		};
+
 		const newPeerInfo = validatePeerInfo(
 			sanitizeIncomingPeerInfo({
 				...rawPeerInfo,
@@ -524,10 +533,6 @@ export class Peer extends EventEmitter {
 			}),
 			this._peerConfig.maxPeerInfoSize,
 		);
-
-		if (!this._serverNodeInfo) {
-			throw new Error('Missing server node info.');
-		}
 
 		const result = validatePeerCompatibility(newPeerInfo, this._serverNodeInfo);
 
