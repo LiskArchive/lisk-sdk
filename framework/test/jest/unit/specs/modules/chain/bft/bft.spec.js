@@ -759,7 +759,7 @@ describe('bft', () => {
 				};
 			});
 
-			it('should return FORK_STATUS_IDENTICAL_BLOCK if isIdenticalBlock evaluates to true', async () => {
+			it('should return FORK_STATUS_IDENTICAL_BLOCK if isIdenticalBlock evaluates to true', () => {
 				const aNewBlock = {
 					...defaults.newBlock,
 					id: defaults.lastBlock.id,
@@ -770,7 +770,7 @@ describe('bft', () => {
 				);
 			});
 
-			it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', async () => {
+			it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', () => {
 				const aNewBlock = {
 					...defaults.newBlock,
 					height: defaults.lastBlock.height + 1,
@@ -834,7 +834,7 @@ describe('bft', () => {
 				);
 			});
 
-			it('should return FORK_STATUS_DISCARD if no conditions are met', async () => {
+			it('should return FORK_STATUS_DISCARD if no conditions are met', () => {
 				const aNewBlock = {
 					...defaults.newBlock,
 					height: defaults.lastBlock.height, // This way, none of the conditions are met
