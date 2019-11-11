@@ -375,22 +375,31 @@ describe('dpos.undo()', () => {
 			// Act
 			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
+			const publicKeysToUpdate = uniqueDelegatesWhoForged.reduce(
+				(accumulator, account) => {
+					const { fee, reward } = getTotalEarningsOfDelegate(account);
+					account.votedDelegatesPublicKeys.forEach(publicKey => {
+						if (accumulator[publicKey]) {
+							accumulator[publicKey] = accumulator[publicKey].plus(
+								fee.plus(reward),
+							);
+						} else {
+							accumulator[publicKey] = fee.plus(reward);
+						}
+					});
+					return accumulator;
+				},
+				{},
+			);
+
 			// Assert
-			expect.assertions(uniqueDelegatesWhoForged.length);
-			uniqueDelegatesWhoForged.forEach(account => {
-				const { fee, reward } = getTotalEarningsOfDelegate(account);
-				const amount = fee.plus(reward);
+			expect.assertions(publicKeysToUpdate.length);
+			Object.keys(publicKeysToUpdate).forEach(publicKey => {
+				const amount = publicKeysToUpdate[publicKey].toString();
 
 				expect(
 					stubs.storage.entities.Account.decreaseFieldBy,
-				).toHaveBeenCalledWith(
-					{
-						publicKey_in: account.votedDelegatesPublicKeys,
-					},
-					'voteWeight',
-					amount.toString(),
-					stubs.tx,
-				);
+				).toHaveBeenCalledWith({ publicKey }, 'voteWeight', amount, stubs.tx);
 			});
 		});
 
