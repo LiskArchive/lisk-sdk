@@ -199,27 +199,32 @@ class DelegatesInfo {
 
 	// update VoteWeight to accounts voted by delegates who forged
 	async _updateVotedDelegatesVoteWeight({ uniqForgersInfo }, undo, tx) {
+		const publicKeysToUpdate = uniqForgersInfo
+			.filter(_hasVotedDelegatesPublicKeys)
+			.reduce((acc, { delegateAccount, earnings: { fee, reward } }) => {
+				delegateAccount.votedDelegatesPublicKeys.forEach(publicKey => {
+					if (acc[publicKey]) {
+						acc[publicKey] = acc[publicKey].plus(fee.plus(reward));
+					} else {
+						acc[publicKey] = fee.plus(reward);
+					}
+				});
+				return acc;
+			}, {});
+
 		return Promise.all(
-			uniqForgersInfo
-				.filter(_hasVotedDelegatesPublicKeys)
-				.map(({ delegateAccount, earnings: { fee, reward } }) => {
-					const amount = fee.plus(reward);
+			Object.keys(publicKeysToUpdate).map(publicKey => {
+				const field = 'voteWeight';
+				const value = publicKeysToUpdate[publicKey].toString();
+				const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
 
-					const filters = {
-						publicKey_in: delegateAccount.votedDelegatesPublicKeys,
-					};
-					const field = 'voteWeight';
-					const value = amount.toString();
-
-					const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
-
-					return this.storage.entities.Account[method](
-						filters,
-						field,
-						value,
-						tx,
-					);
-				}),
+				return this.storage.entities.Account[method](
+					{ publicKey },
+					field,
+					value,
+					tx,
+				);
+			}),
 		);
 	}
 
