@@ -21,7 +21,6 @@ const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const accountFixtures = require('../../../../fixtures/accounts');
 const { Block, GenesisBlock } = require('../../../../fixtures/blocks');
-const schemas = require('../../../../../../src/modules/chain/transport/schemas');
 const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');
@@ -56,14 +55,6 @@ describe('transport', () => {
 			'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
 		signature:
 			'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739',
-	};
-
-	const SAMPLE_SIGNATURE_2 = {
-		transactionId: '222675625422353768',
-		publicKey:
-			'3ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23080',
-		signature:
-			'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595',
 	};
 
 	beforeEach(async () => {
@@ -328,124 +319,6 @@ describe('transport', () => {
 
 				it('should return empty array', async () =>
 					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
-			});
-		});
-
-		describe('_receiveSignatures', () => {
-			describe('for every signature in signatures', () => {
-				describe('when transportModule._receiveSignature succeeds', () => {
-					beforeEach(async () => {
-						transportModule._receiveSignature = sinonSandbox.stub().callsArg(1);
-						transportModule._receiveSignatures([
-							SAMPLE_SIGNATURE_1,
-							SAMPLE_SIGNATURE_2,
-						]);
-					});
-
-					it('should call receiveSignature with signature', async () => {
-						expect(transportModule._receiveSignature.calledTwice).to.be.true;
-						expect(
-							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_1),
-						).to.be.true;
-						return expect(
-							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_2),
-						).to.be.true;
-					});
-				});
-
-				describe('when receiveSignature fails', () => {
-					let receiveSignatureError;
-
-					beforeEach(async () => {
-						receiveSignatureError = new Error(
-							'Error processing signature: Error message',
-						);
-						transportModule._receiveSignature = sinonSandbox
-							.stub()
-							.rejects(receiveSignatureError);
-
-						await transportModule._receiveSignatures([
-							SAMPLE_SIGNATURE_1,
-							SAMPLE_SIGNATURE_2,
-						]);
-					});
-
-					it('should call transportModule.logger.debug with err and signature', async () => {
-						// If any of the transportModule._receiveSignature calls fail, the rest of
-						// the batch should still be processed.
-						expect(transportModule._receiveSignature.calledTwice).to.be.true;
-						expect(
-							transportModule.logger.debug.calledWith(
-								receiveSignatureError,
-								SAMPLE_SIGNATURE_1,
-							),
-						).to.be.true;
-						return expect(
-							transportModule.logger.debug.calledWith(
-								receiveSignatureError,
-								SAMPLE_SIGNATURE_2,
-							),
-						).to.be.true;
-					});
-				});
-			});
-		});
-
-		describe('_receiveSignature', () => {
-			beforeEach(async () => {
-				transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
-			});
-
-			describe('when validator.validate succeeds', () => {
-				describe('when modules.transactionPool.getTransactionAndProcessSignature succeeds', () => {
-					beforeEach(async () => {
-						transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
-						return transportModule._receiveSignature(SAMPLE_SIGNATURE_1);
-					});
-
-					it('should call validator.validate with signature', async () => {
-						expect(validator.validate.calledOnce).to.be.true;
-						return expect(
-							validator.validate.calledWith(
-								schemas.signatureObject,
-								SAMPLE_SIGNATURE_1,
-							),
-						).to.be.true;
-					});
-
-					it('should call modules.transactionPool.getTransactionAndProcessSignature with signature', async () => {
-						return expect(
-							transportModule.transactionPoolModule
-								.getTransactionAndProcessSignature,
-						).to.be.calledWith(SAMPLE_SIGNATURE_1);
-					});
-				});
-
-				describe('when modules.transactionPool.getTransactionAndProcessSignature fails', () => {
-					const processSignatureError = new TransactionError(
-						'Transaction not found',
-					);
-
-					it('should reject with error', async () => {
-						transportModule.transactionPoolModule.getTransactionAndProcessSignature.rejects(
-							[processSignatureError],
-						);
-
-						return expect(
-							transportModule._receiveSignature(SAMPLE_SIGNATURE_1),
-						).to.be.rejectedWith([processSignatureError]);
-					});
-				});
-			});
-
-			describe('when validator.validate fails', () => {
-				it('should reject with error = "Invalid signature body"', async () => {
-					try {
-						await transportModule._receiveSignature(SAMPLE_SIGNATURE_1);
-					} catch (e) {
-						expect(e.message).to.equal('Invalid signture body');
-					}
-				});
 			});
 		});
 
