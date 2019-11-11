@@ -105,13 +105,10 @@ const verifyTotalSpending = (transactions, stateStore) => {
 
 const applyGenesisTransactions = () => async (transactions, stateStore) => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
-	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
-		// eslint-disable-next-line no-await-in-loop
 		await transaction.prepare(stateStore);
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
 	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {
@@ -134,13 +131,10 @@ const applyGenesisTransactions = () => async (transactions, stateStore) => {
 
 const applyTransactions = exceptions => async (transactions, stateStore) => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
-	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
-		// eslint-disable-next-line no-await-in-loop
 		await transaction.prepare(stateStore);
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
 	await votesWeight.prepare(stateStore, transactions);
 
 	// Verify total spending of per account accumulative
@@ -256,13 +250,10 @@ const checkAllowedTransactions = contexter => transactions => ({
 
 const undoTransactions = exceptions => async (transactions, stateStore) => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
-	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
-		// eslint-disable-next-line no-await-in-loop
 		await transaction.prepare(stateStore);
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
 	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {

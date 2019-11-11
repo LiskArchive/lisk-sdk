@@ -964,13 +964,15 @@ describe('blocks/header', () => {
 					{
 						address: genesisAccount.address,
 						balance: '9889999900',
-						votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+						votedDelegatesPublicKeys: [
+							delegate1.publicKey,
+							delegate2.publicKey,
+						],
 					},
 					delegate1,
 					delegate2,
 					recipient,
 				]);
-				// Act
 				const validTx = blocksInstance.deserializeTransaction(
 					castVotes({
 						passphrase: genesisAccount.passphrase,
@@ -989,6 +991,7 @@ describe('blocks/header', () => {
 				validTxUndoSpy = jest.spyOn(validTx, 'undo');
 				validTx2UndoSpy = jest.spyOn(validTx2, 'undo');
 				block = newBlock({ transactions: [validTx, validTx2] });
+
 				// Act
 				stateStore = new StateStore(storageStub);
 				await blocksInstance.undo(block, stateStore);
