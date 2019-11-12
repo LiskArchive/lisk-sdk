@@ -19,6 +19,7 @@ import { CustomPeerInfo } from '../peer_book/base_list';
 
 const BYTES_4 = 4;
 const BYTES_16 = 16;
+
 export const SECRET_BUFFER_LENGTH = 4;
 export const NETWORK_BUFFER_LENGTH = 1;
 const PREFIX_BUFFER_LENGTH = 1;
@@ -158,14 +159,21 @@ export const expirePeerFromBucket = (
 	return undefined;
 };
 
-// TODO: Source address to be included in hash for later version
+// For new peer buckets, provide the source IP address from which the peer list was received
 export const getBucketId = (options: {
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 	readonly targetAddress: string;
+	readonly sourceAddress: string;
 	readonly bucketCount: number;
 }): number => {
-	const { secret, targetAddress, peerType, bucketCount } = options;
+	const {
+		secret,
+		targetAddress,
+		sourceAddress,
+		peerType,
+		bucketCount,
+	} = options;
 	const firstMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_16 : BYTES_4;
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
@@ -181,7 +189,12 @@ export const getBucketId = (options: {
 		dBytes: targetDBytes,
 	} = getIPBytes(targetAddress);
 
-	// Check if ipAddress is unsupported network type
+	// Get bytes of ip address to bucket
+	const { aBytes: sourceABytes, bBytes: sourceBBytes } = getIPBytes(
+		sourceAddress,
+	);
+
+	// Check if ip address is unsupported network type
 	if (network === NETWORK.NET_OTHER) {
 		throw Error('IP address is unsupported.');
 	}
@@ -211,6 +224,8 @@ export const getBucketId = (options: {
 					Buffer.concat([
 						secretBytes,
 						networkBytes,
+						sourceABytes,
+						sourceBBytes,
 						targetABytes,
 						targetBBytes,
 					]),
@@ -223,13 +238,22 @@ export const getBucketId = (options: {
 
 	// New peers: b = Hash(random_secret, source_group, k) % 128
 	// Tried peers: b = Hash(random_secret, group, k) % 64
-	const bucketBytes = Buffer.concat([
-		secretBytes,
-		networkBytes,
-		targetABytes,
-		targetBBytes,
-		kBytes,
-	]);
+	const bucketBytes =
+		peerType === PEER_TYPE.NEW_PEER
+			? Buffer.concat([
+					secretBytes,
+					networkBytes,
+					sourceABytes,
+					sourceBBytes,
+					kBytes,
+			  ])
+			: Buffer.concat([
+					secretBytes,
+					networkBytes,
+					targetABytes,
+					targetBBytes,
+					kBytes,
+			  ]);
 
 	return hash(bucketBytes).readUInt32BE(0) % bucketCount;
 };
