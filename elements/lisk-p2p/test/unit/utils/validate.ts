@@ -254,6 +254,7 @@ describe('utils/validate', () => {
 					fizz: 'buzz',
 				},
 				nonce: 'nonce678',
+				advertiseAddress: true,
 			};
 
 			it('should throw Invalid NodeInfo maximum allowed size error', async () => {
