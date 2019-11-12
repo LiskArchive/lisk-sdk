@@ -383,9 +383,6 @@ describe('peer/base', () => {
 							version: '1.1.1',
 							height: 0,
 						},
-						internalState: {
-							advertiseAddress: true,
-						},
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
@@ -394,9 +391,6 @@ describe('peer/base', () => {
 						sharedState: {
 							version: '2.2.2',
 							height: 0,
-						},
-						internalState: {
-							advertiseAddress: true,
 						},
 					},
 				];
@@ -604,9 +598,6 @@ describe('peer/base', () => {
 							height: 0,
 							protocolVersion: undefined,
 							os: '',
-						},
-						internalState: {
-							advertiseAddress: true,
 						},
 					};
 					await defaultPeer.fetchStatus();
