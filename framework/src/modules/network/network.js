@@ -150,15 +150,7 @@ module.exports = class Network {
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
-			previousPeers: previousPeers.map(peer => {
-				// Remove the id field coming from the database.
-				const { ip, id, ...strippedPeer } = peer;
-
-				return {
-					ipAddress: ip,
-					...strippedPeer,
-				};
-			}),
+			previousPeers,
 			discoveryInterval: this.options.discoveryInterval,
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,
