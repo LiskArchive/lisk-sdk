@@ -32,7 +32,7 @@ const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
  * @property {string} blockId
  * @property {int} height
  * @property {int} maxHeightPreviouslyForged
- * @property {int} prevotedConfirmedUptoHeight
+ * @property {int} maxHeightPrevoted
  * @property {int} activeSinceRound
  * @property {string} delegatePublicKey
  */
@@ -350,10 +350,10 @@ class FinalityManager extends EventEmitter {
 	verifyBlockHeaders(blockHeader) {
 		debug('verifyBlockHeaders invoked');
 		// We need minimum processingThreshold to decide
-		// if prevotedConfirmedUptoHeight is correct
+		// if maxHeightPrevoted is correct
 		if (
 			this.headers.length >= this.processingThreshold &&
-			blockHeader.prevotedConfirmedUptoHeight !== this.prevotedConfirmedHeight
+			blockHeader.maxHeightPrevoted !== this.prevotedConfirmedHeight
 		) {
 			throw new BFTInvalidAttributeError(
 				'Wrong prevotedConfirmedHeight in blockHeader.',
@@ -384,10 +384,7 @@ class FinalityManager extends EventEmitter {
 			throw new BFTChainDisjointError();
 		}
 
-		if (
-			delegateLastBlock.prevotedConfirmedUptoHeight >
-			blockHeader.prevotedConfirmedUptoHeight
-		) {
+		if (delegateLastBlock.maxHeightPrevoted > blockHeader.maxHeightPrevoted) {
 			throw new BFTLowerChainBranchError();
 		}
 

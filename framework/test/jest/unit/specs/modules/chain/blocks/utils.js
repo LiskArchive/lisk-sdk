@@ -66,7 +66,7 @@ const newBlock = block => {
 		version: 2,
 		height: 2,
 		maxHeightPreviouslyForged: 0,
-		prevotedConfirmedUptoHeight: 0,
+		maxHeightPrevoted: 0,
 		previousBlockId: genesisBlock.id,
 		keypair: randomUtil.account().keypair,
 		transactions: [],

@@ -211,7 +211,7 @@ class BlocksTransactionsHelper {
 			previousBlock: lastBlock,
 			transactions: sortedTransactions,
 			maxHeightPreviouslyForged: 0,
-			prevotedConfirmedUptoHeight: 0,
+			maxHeightPrevoted: 0,
 		});
 	}
 

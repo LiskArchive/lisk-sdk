@@ -88,7 +88,7 @@ async function createBlock(
 		previousBlock,
 		transactions,
 		maxHeightPreviouslyForged: 1,
-		prevotedConfirmedUptoHeight: 1,
+		maxHeightPrevoted: 1,
 	});
 
 	block.height = previousBlock.height + 1;
