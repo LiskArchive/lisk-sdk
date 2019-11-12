@@ -46,22 +46,6 @@ module.exports = {
 			type: 'object',
 		},
 	},
-	getHighestCommonBlockRequest: {
-		id: 'getHighestCommonBlockRequest',
-		type: 'object',
-		required: ['ids'],
-		properties: {
-			ids: {
-				type: 'array',
-				items: {
-					type: 'string',
-					format: 'id',
-				},
-				uniqueItems: true,
-				minItems: 1,
-			},
-		},
-	},
 	WSTransactionsResponse: {
 		id: 'WSTransactionsResponse',
 		type: 'object',
