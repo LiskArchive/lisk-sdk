@@ -15,15 +15,15 @@
 'use strict';
 
 const { cloneDeep } = require('lodash');
+const { StateStore } = require('../blocks');
 const {
-	StateStore,
 	FORK_STATUS_IDENTICAL_BLOCK,
 	FORK_STATUS_VALID_BLOCK,
 	FORK_STATUS_DOUBLE_FORGING,
 	FORK_STATUS_TIE_BREAK,
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
-} = require('../blocks');
+} = require('../bft');
 const { Sequence } = require('../utils/sequence');
 
 const forkStatusList = [

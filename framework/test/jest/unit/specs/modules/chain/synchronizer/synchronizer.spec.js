@@ -91,6 +91,7 @@ describe('Synchronizer', () => {
 		bftModule = new BFT({
 			storage: storageMock,
 			logger: loggerMock,
+			slots,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
 		});
@@ -177,7 +178,7 @@ describe('Synchronizer', () => {
 					.map((_, index) => ({
 						height: index,
 						id: `${index}`,
-						fullBlock: { height: index, id: index, version: 2 },
+						fullBlock: newBlock({ height: index, id: index, version: 2 }),
 					}))
 					.slice(genesisBlockDevnet.height + 2);
 				const initialLastBlock = {
@@ -341,7 +342,7 @@ describe('Synchronizer', () => {
 				.map((_, index) => ({
 					height: index,
 					id: `${index}`,
-					fullBlock: { height: index, id: index, version: 2 },
+					fullBlock: newBlock({ height: index, id: index, version: 2 }),
 				}))
 				.slice(genesisBlockDevnet.height + 2);
 			const initialLastBlock = {

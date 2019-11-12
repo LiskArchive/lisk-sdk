@@ -20,6 +20,7 @@ const {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
 } = require('./finality_manager');
+const forkChoiceRule = require('./fork_choice_rule');
 const { validateBlockHeader } = require('./utils');
 
 const META_KEYS = {
@@ -46,15 +47,17 @@ class BFT extends EventEmitter {
 	 *
 	 * @param {Object} storage - Storage component instance
 	 * @param {Object} logger - Logger component instance
+	 * @param {Object} slots - Slots class
 	 * @param {integer} activeDelegates - Number of delegates
 	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
 	 */
-	constructor({ storage, logger, activeDelegates, startingHeight }) {
+	constructor({ storage, logger, slots, activeDelegates, startingHeight }) {
 		super();
 		this.finalityManager = null;
 
 		this.logger = logger;
 		this.storage = storage;
+		this.slots = slots;
 		this.constants = {
 			activeDelegates,
 			startingHeight,
@@ -105,19 +108,6 @@ class BFT extends EventEmitter {
 			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
 			prevotedConfirmedUptoHeight:
 				blockInstance.prevotedConfirmedUptoHeight || 0,
-		};
-	}
-
-	/**
-	 * Deserialize common properties to instance format
-	 * @param {*} blockJSON JSON format of the block
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	deserialize(blockJSON) {
-		return {
-			...blockJSON,
-			maxHeightPreviouslyForged: blockJSON.maxHeightPreviouslyForged || 0,
-			prevotedConfirmedUptoHeight: blockJSON.prevotedConfirmedUptoHeight || 0,
 		};
 	}
 
@@ -223,6 +213,51 @@ class BFT extends EventEmitter {
 			META_KEYS.LAST_BLOCK_FORGED,
 			previouslyForgedStr,
 		);
+	}
+
+	forkChoice(block, lastBlock) {
+		// Current time since Lisk Epoch
+		block.receivedAt = this.slots.getEpochTime();
+		// Cases are numbered following LIP-0014 Fork choice rule.
+		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
+		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
+
+		if (forkChoiceRule.isValidBlock(lastBlock, block)) {
+			// Case 2: correct block received
+			return forkChoiceRule.FORK_STATUS_VALID_BLOCK;
+		}
+
+		if (forkChoiceRule.isIdenticalBlock(lastBlock, block)) {
+			// Case 1: same block received twice
+			return forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK;
+		}
+
+		if (forkChoiceRule.isDoubleForging(lastBlock, block)) {
+			// Delegates are the same
+			// Case 3: double forging different blocks in the same slot.
+			// Last Block stands.
+			return forkChoiceRule.FORK_STATUS_DOUBLE_FORGING;
+		}
+
+		if (
+			forkChoiceRule.isTieBreak({
+				slots: this.slots,
+				lastAppliedBlock: lastBlock,
+				receivedBlock: block,
+			})
+		) {
+			// Two competing blocks by different delegates at the same height.
+			// Case 4: Tie break
+			return forkChoiceRule.FORK_STATUS_TIE_BREAK;
+		}
+
+		if (forkChoiceRule.isDifferentChain(lastBlock, block)) {
+			// Case 5: received block has priority. Move to a different chain.
+			return forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN;
+		}
+
+		// Discard newly received block
+		return forkChoiceRule.FORK_STATUS_DISCARD;
 	}
 
 	async _getPreviouslyForgedMap() {
