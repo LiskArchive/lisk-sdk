@@ -42,8 +42,6 @@ export interface P2PPenalty {
 }
 
 export interface P2PSharedState {
-	readonly version: string;
-	readonly protocolVersion: string;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
@@ -75,6 +73,7 @@ export interface P2PPeersCount {
 // P2PPeerInfo and P2PNodeInfo are related.
 // P2PNodeInfo is the outbound info from our node.
 export interface P2PNodeInfo extends P2PSharedState {
+	readonly protocolVersion: string;
 	readonly os: string;
 	readonly nethash: string;
 	readonly wsPort: number;
@@ -87,14 +86,8 @@ export interface P2PNodeInfo extends P2PSharedState {
 // TODO: Include peerId as field
 export interface ProtocolPeerInfo {
 	// To support the existing protocol
-	readonly ip?: string;
 	readonly ipAddress: string;
 	readonly wsPort: number;
-	readonly height?: number;
-	readonly os?: string;
-	readonly version?: string;
-	readonly protocolVersion?: string;
-	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }

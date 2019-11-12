@@ -16,7 +16,6 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
-import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import {
@@ -46,6 +45,7 @@ import {
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
+	INCOMPATIBLE_PEER_INFO_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
 	INVALID_CONNECTION_QUERY_REASON,
@@ -98,12 +98,15 @@ import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
-	sanitizeOutgoingPeerInfo,
+	getByteSize,
+	sanitizeInitialPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
+	validateNodeInfo,
 	validatePeerCompatibility,
+	validatePeerInfo,
 } from './utils';
 
 interface SCServerUpdated extends SCServer {
@@ -231,38 +234,19 @@ export class P2P extends EventEmitter {
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers
-					? config.seedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.seedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.blacklistedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				fixedPeers: config.fixedPeers
-					? config.fixedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.fixedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				whitelisted: config.whitelistedPeers
-					? config.whitelistedPeers.map(peer => ({
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-					  }))
+					? config.whitelistedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				previousPeers: config.previousPeers
-					? config.previousPeers.map(peer => ({
-							...peer,
-							peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-					  }))
+					? config.previousPeers.map(sanitizeInitialPeerInfo)
 					: [],
 			},
 			{
@@ -274,6 +258,7 @@ export class P2P extends EventEmitter {
 				wsPort: config.nodeInfo.wsPort,
 			},
 		);
+
 		this._config = config;
 		this._isActive = false;
 		this._hasConnected = false;
@@ -295,6 +280,7 @@ export class P2P extends EventEmitter {
 			if (request.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
 				this._handleGetPeersRequest(request);
 			}
+
 			// Re-emit the request for external use.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
@@ -547,10 +533,18 @@ export class P2P extends EventEmitter {
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+		validateNodeInfo(
+			nodeInfo,
+			this._config.maxPeerInfoSize
+				? this._config.maxPeerInfoSize
+				: DEFAULT_MAX_PEER_INFO_SIZE,
+		);
+
 		this._nodeInfo = {
 			...nodeInfo,
 			nonce: this.nodeInfo.nonce,
 		};
+
 		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}
 
@@ -652,6 +646,7 @@ export class P2P extends EventEmitter {
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'connection',
+			// tslint:disable-next-line: cyclomatic-complexity
 			(socket: SCServerSocket): void => {
 				// Check blacklist to avoid incoming connections from backlisted ips
 				if (this._sanitizedPeerLists.blacklistedPeers) {
@@ -749,19 +744,20 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				// Remove these wsPort and ip from the query object
+				// Remove these wsPort and ipAddress from the query object
 				const {
 					wsPort,
-					ip,
+					ipAddress,
 					advertiseAddress,
 					...restOfQueryObject
 				} = queryObject;
+
 				const incomingPeerInfo: P2PPeerInfo = {
 					sharedState: {
 						...restOfQueryObject,
 						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0,
-						version: queryObject.version,
+						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+						protocolVersion: queryObject.protocolVersion,
 					},
 					internalState: {
 						advertiseAddress: advertiseAddress !== 'false',
@@ -771,6 +767,21 @@ export class P2P extends EventEmitter {
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
 				};
+
+				try {
+					validatePeerInfo(
+						incomingPeerInfo,
+						this._config.maxPeerInfoSize
+							? this._config.maxPeerInfoSize
+							: DEFAULT_MAX_PEER_INFO_SIZE,
+					);
+				} catch (error) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						INCOMPATIBLE_PEER_INFO_CODE,
+						error,
+					);
+				}
 
 				const { success, errors } = this._peerHandshakeCheck(
 					incomingPeerInfo,
@@ -896,36 +907,39 @@ export class P2P extends EventEmitter {
 		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
 			? this._config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
+		const wsMaxPayload = this._config.wsMaxPayload
+			? this._config.wsMaxPayload
+			: DEFAULT_WS_MAX_PAYLOAD;
+		const maxPeerInforSize = this._config.maxPeerInfoSize
+			? this._config.maxPeerInfoSize
+			: DEFAULT_MAX_PEER_INFO_SIZE;
 
-		const knownPeers = this._peerBook.allPeers;
-		/* tslint:disable no-magic-numbers*/
-		const min = Math.ceil(
-			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.25),
-		);
-		const max = Math.floor(
-			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.5),
-		);
-		const random = Math.floor(Math.random() * (max - min + 1) + min);
-		const randomPeerCount = Math.max(
-			random,
-			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
+		const safeMaxPeerInfoLength =
+			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInforSize) - 1;
+
+		const selectedPeers = this._peerBook.getRandomizedPeerList(
+			minimumPeerDiscoveryThreshold,
+			peerDiscoveryResponseLength,
 		);
 
-		const selectedPeers = shuffle(knownPeers)
-			.slice(0, randomPeerCount)
+		// Remove internal state to check byte size
+		const sanitizedPeerInfoList: ProtocolPeerInfo[] = selectedPeers
 			.filter(
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
-			.map(
-				sanitizeOutgoingPeerInfo, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
-			);
+			.map(peer => ({
+				ipAddress: peer.ipAddress,
+				wsPort: peer.wsPort,
+				...peer.sharedState,
+			}));
 
-		const peerInfoList = {
+		request.end({
 			success: true,
-			peers: selectedPeers,
-		};
-
-		request.end(peerInfoList);
+			peers:
+				getByteSize(sanitizedPeerInfoList) < wsMaxPayload
+					? sanitizedPeerInfoList
+					: sanitizedPeerInfoList.slice(0, safeMaxPeerInfoLength),
+		});
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {

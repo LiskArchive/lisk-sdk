@@ -13,7 +13,10 @@
  *
  */
 import { expect } from 'chai';
-import { initPeerInfoList } from '../../utils/peers';
+import {
+	initPeerInfoList,
+	initPeerInfoListWithSuffix,
+} from '../../utils/peers';
 import { PeerBook, PeerBookConfig } from '../../../src/peer_book';
 import {
 	DEFAULT_RANDOM_SECRET,
@@ -356,6 +359,31 @@ describe('peerBook', () => {
 				expect(peerBook.downgradePeer(samplePeers[0])).to.be.false;
 				expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 			});
+		});
+	});
+
+	describe('#getDiscoveryPeerList', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoListWithSuffix('204.123.64', 200);
+			peerBook = new PeerBook(peerBookConfig);
+
+			samplePeers.forEach(samplePeer => {
+				peerBook.addPeer(samplePeer);
+			});
+		});
+
+		it('should return PeerList random size between range', () => {
+			const minPeerListLength = 50;
+			const maxPeerListLength = 100;
+
+			expect(
+				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength)
+					.length,
+			).to.be.gt(minPeerListLength - 1);
+			expect(
+				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength)
+					.length,
+			).to.be.lt(maxPeerListLength + 1);
 		});
 	});
 });

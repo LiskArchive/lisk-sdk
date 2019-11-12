@@ -94,12 +94,12 @@ describe('finality_manager', () => {
 		});
 
 		describe('verifyBlockHeaders', () => {
-			it('should throw error if prevotedConfirmedUptoHeight is not accurate', async () => {
+			it('should throw error if maxHeightPrevoted is not accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				generateValidHeaders(bft.processingThreshold + 1).forEach(header => {
 					bft.headers.add(header);
 				});
-				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
+				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
 
 				expect(() => bft.verifyBlockHeaders(header)).toThrow(
 					BFTInvalidAttributeError,
@@ -107,12 +107,12 @@ describe('finality_manager', () => {
 				);
 			});
 
-			it('should not throw error if prevotedConfirmedUptoHeight is accurate', async () => {
+			it('should not throw error if maxHeightPrevoted is accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				generateValidHeaders(bft.processingThreshold + 1).forEach(header => {
 					bft.headers.add(header);
 				});
-				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
+				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
 				bft.prevotedConfirmedHeight = 10;
 
 				expect(() => bft.verifyBlockHeaders(header)).not.toThrow();
@@ -185,16 +185,16 @@ describe('finality_manager', () => {
 				);
 			});
 
-			it('should throw error if prevotedConfirmedUptoHeight has wrong value', async () => {
+			it('should throw error if maxHeightPrevoted has wrong value', async () => {
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
 					delegatePublicKey: delegateAccount.publicKey,
-					prevotedConfirmedUptoHeight: 10,
+					maxHeightPrevoted: 10,
 					height: 9,
 				});
 				const currentBlock = blockHeaderFixture({
 					delegatePublicKey: delegateAccount.publicKey,
-					prevotedConfirmedUptoHeight: 9,
+					maxHeightPrevoted: 9,
 					maxHeightPreviouslyForged: 9,
 					height: 10,
 				});

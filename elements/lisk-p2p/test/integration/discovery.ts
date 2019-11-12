@@ -22,6 +22,7 @@ import {
 	EVENT_NEW_INBOUND_PEER,
 	EVENT_NETWORK_READY,
 	EVENT_UPDATED_PEER_INFO,
+	EVENT_BAN_PEER,
 } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
@@ -44,7 +45,12 @@ describe('Peer discovery', () => {
 
 	beforeEach(async () => {
 		// To capture all the initial events set network creation time to minimum 1 ms
-		p2pNodeList = await createNetwork({ networkDiscoveryWaitTime: 1 });
+		const customConfig = () => ({});
+
+		p2pNodeList = await createNetwork({
+			networkDiscoveryWaitTime: 1,
+			customConfig,
+		});
 		const firstNode = p2pNodeList[0];
 
 		firstNode.on(EVENT_NEW_INBOUND_PEER, () => {
@@ -53,10 +59,13 @@ describe('Peer discovery', () => {
 		firstNode.on(EVENT_FAILED_TO_ADD_INBOUND_PEER, () => {
 			collectedEvents.set('EVENT_FAILED_TO_ADD_INBOUND_PEER', true);
 		});
-		firstNode.on(EVENT_FAILED_TO_FETCH_PEERS, () => {
+		// We monitor last node to ensure outbound connection
+		p2pNodeList[p2pNodeList.length - 1].on(EVENT_FAILED_TO_FETCH_PEERS, () => {
 			collectedEvents.set('EVENT_FAILED_TO_FETCH_PEERS', true);
 		});
-		// We monitor last node to ensure outbound connection
+		p2pNodeList[p2pNodeList.length - 1].on(EVENT_BAN_PEER, () => {
+			collectedEvents.set('EVENT_BAN_PEER', true);
+		});
 		p2pNodeList[p2pNodeList.length - 1].on(EVENT_CONNECT_OUTBOUND, () => {
 			collectedEvents.set('EVENT_CONNECT_OUTBOUND', true);
 		});
@@ -137,6 +146,11 @@ describe('Peer discovery', () => {
 				p2p.nodeInfo.peerId,
 			]);
 		}
+	});
+
+	it('should not apply penalty or throw error Peerlist at peer discovery', async () => {
+		expect(collectedEvents.get('EVENT_FAILED_TO_FETCH_PEERS')).to.undefined;
+		expect(collectedEvents.get('EVENT_BAN_PEER')).to.undefined;
 	});
 
 	it(`should fire ${EVENT_NETWORK_READY} event`, async () => {

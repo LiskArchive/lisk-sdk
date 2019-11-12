@@ -14,10 +14,10 @@
 
 
  /*
-   DESCRIPTION: Add maxHeightPreviouslyForged and prevotedConfirmedUptoHeight field for blocks column. Both columns are of type 32-bit unsigned integer
+   DESCRIPTION: Add maxHeightPreviouslyForged and maxHeightPrevoted field for blocks column. Both columns are of type 32-bit unsigned integer
    PARAMETERS: None
 */
 
   -- Add to blocks column
 ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "maxHeightPreviouslyForged" INT;
-ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "prevotedConfirmedUptoHeight" INT;
+ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "maxHeightPrevoted" INT;

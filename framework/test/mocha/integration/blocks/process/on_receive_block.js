@@ -90,7 +90,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			blockReward,
 			maxPayloadLength,
 			maxHeightPreviouslyForged: 1,
-			prevotedConfirmedUptoHeight: 1,
+			maxHeightPrevoted: 1,
 		});
 
 		return block;

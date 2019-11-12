@@ -131,8 +131,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 				...updatedBlock,
 				maxHeightPreviouslyForged:
 					updatedBlock.maxHeightPreviouslyForged || updatedBlock.height,
-				prevotedConfirmedUptoHeight:
-					updatedBlock.prevotedConfirmedUptoHeight || 0,
+				maxHeightPrevoted: updatedBlock.maxHeightPrevoted || 0,
 			}),
 		]);
 
