@@ -172,7 +172,6 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.deserialize.pipe([
 			({ block }) => this.blocksModule.deserialize(block),
-			(_, updatedBlock) => this.bftModule.deserialize(updatedBlock),
 		]);
 
 		this.serialize.pipe([
@@ -221,7 +220,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		]);
 
 		this.forkStatus.pipe([
-			({ block, lastBlock }) => this.blocksModule.forkChoice(block, lastBlock), // validate common block header
+			({ block, lastBlock }) => this.bftModule.forkChoice(block, lastBlock), // validate common block header
 		]);
 
 		this.verify.pipe([({ block }) => this.bftModule.verifyNewBlock(block)]);
