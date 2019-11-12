@@ -149,7 +149,7 @@ describe('fast_chain_switching_mechanism', () => {
 	});
 
 	describe('async run()', () => {
-		const aPeer = '127.0.0.1:5000';
+		const aPeerId = '127.0.0.1:5000';
 		let aBlock;
 
 		const checkApplyPenaltyAndRestartIsCalled = (
@@ -265,7 +265,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -273,14 +273,14 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue({ data: undefined });
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeer);
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
 				expect(channelMock.invoke).toHaveBeenCalledTimes(10);
 				checkApplyPenaltyAndRestartIsCalled(
 					aBlock,
-					aPeer,
+					aPeerId,
 					"Peer didn't return a common block or its height is lower than the finalized height of the chain",
 				);
 				expect(fastChainSwitchingMechanism.active).toBeFalsy();
@@ -315,7 +315,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -323,18 +323,18 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue({ data: highestCommonBlock });
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeer);
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
 				checkApplyPenaltyAndRestartIsCalled(
 					aBlock,
-					aPeer,
+					aPeerId,
 					"Peer didn't return a common block or its height is lower than the finalized height of the chain",
 				);
 				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
 					aBlock,
 					highestCommonBlock,
-					aPeer,
+					aPeerId,
 				);
 			});
 
@@ -365,7 +365,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -378,7 +378,7 @@ describe('fast_chain_switching_mechanism', () => {
 					height:
 						highestCommonBlock.height + constants.ACTIVE_DELEGATES * 2 + 1,
 				});
-				await fastChainSwitchingMechanism.run(receivedBlock, aPeer);
+				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
 
 				// Assert
 				checkIfAbortIsCalled(
@@ -390,7 +390,7 @@ describe('fast_chain_switching_mechanism', () => {
 				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
 					receivedBlock,
 					highestCommonBlock,
-					aPeer,
+					aPeerId,
 				);
 			});
 
@@ -439,7 +439,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -451,7 +451,7 @@ describe('fast_chain_switching_mechanism', () => {
 					height:
 						highestCommonBlock.height + constants.ACTIVE_DELEGATES * 2 + 1,
 				});
-				await fastChainSwitchingMechanism.run(receivedBlock, aPeer);
+				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
 
 				// Assert
 				checkIfAbortIsCalled(
@@ -463,7 +463,7 @@ describe('fast_chain_switching_mechanism', () => {
 				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
 					receivedBlock,
 					highestCommonBlock,
-					aPeer,
+					aPeerId,
 				);
 			});
 		});
@@ -509,7 +509,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -532,7 +532,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue(genesisBlockDevnet);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeer);
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
 				let previousBlock = await processorModule.deserialize(
@@ -556,7 +556,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 				expect(
 					fastChainSwitchingMechanism._validateBlocks,
-				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeer);
+				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeerId);
 			});
 
 			it('should apply penalty and abort if any of the blocks fail to validate', async () => {
@@ -599,7 +599,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -620,19 +620,19 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeer);
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
 				checkApplyPenaltyAndAbortIsCalled(
-					aPeer,
+					aPeerId,
 					new Errors.ApplyPenaltyAndAbortError(
-						aPeer,
+						aPeerId,
 						'Block validation failed',
 					),
 				);
 				expect(
 					fastChainSwitchingMechanism._validateBlocks,
-				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeer);
+				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeerId);
 			});
 		});
 
@@ -676,7 +676,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -699,12 +699,13 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue(genesisBlockDevnet);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeer);
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
 				expect(fastChainSwitchingMechanism._switchChain).toHaveBeenCalledWith(
 					highestCommonBlock,
 					requestedBlocks,
+					aPeerId,
 				);
 				expect(loggerMock.info).toHaveBeenCalledWith('Switching chain');
 				expect(loggerMock.debug).toHaveBeenCalledWith(
@@ -798,7 +799,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(channelMock.invoke)
 					.calledWith('network:requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
-						peerId: aPeer,
+						peerId: aPeerId,
 						data: {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
@@ -834,20 +835,21 @@ describe('fast_chain_switching_mechanism', () => {
 
 				blocksModule.getTempBlocks.mockResolvedValue(blocksInTempTable);
 
-				const validationError = new Error('Error while processing block');
-				processorModule.processValidated.mockRejectedValueOnce(validationError);
+				const processingError = new Errors.BlockProcessingError();
+				processorModule.processValidated.mockRejectedValueOnce(processingError);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeer);
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
 				expect(fastChainSwitchingMechanism._switchChain).toHaveBeenCalledWith(
 					highestCommonBlock,
 					requestedBlocks,
+					aPeerId,
 				);
 				expect(processorModule.processValidated).toHaveBeenCalled();
 				expect(loggerMock.error).toHaveBeenCalledWith(
-					{ err: validationError },
+					{ err: processingError },
 					'Error while processing blocks',
 				);
 				expect(loggerMock.debug).toHaveBeenCalledWith(
