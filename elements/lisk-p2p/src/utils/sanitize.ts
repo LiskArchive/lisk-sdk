@@ -22,12 +22,15 @@ export const sanitizeIncomingPeerInfo = (
 		return undefined;
 	}
 
-	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
-
-	const { ipAddress, wsPort, height, ...restOfPeerInfo } = protocolPeer;
+	const {
+		ipAddress,
+		wsPort,
+		height,
+		...restOfPeerInfo
+	} = rawPeerInfo as ProtocolPeerInfo;
 
 	return {
-		peerId: constructPeerId(protocolPeer.ipAddress, protocolPeer.wsPort),
+		peerId: constructPeerId(ipAddress, wsPort),
 		ipAddress,
 		wsPort,
 		sharedState: {
