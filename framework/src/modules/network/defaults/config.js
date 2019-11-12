@@ -129,12 +129,15 @@ const defaultConfig = {
 		},
 		peerDiscoveryResponseLength: {
 			type: 'integer',
+			maximum: 1000,
 		},
 		maxPeerDiscoveryResponseLength: {
 			type: 'integer',
+			maximum: 1000,
 		},
 		maxPeerInfoSize: {
 			type: 'integer',
+			maximum: 20480,
 		},
 		wsMaxPayload: {
 			type: 'integer',

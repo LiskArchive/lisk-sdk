@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import {
-	InvalidPeerError,
+	InvalidPeerInfoError,
 	PeerInboundHandshakeError,
 	RPCResponseError,
 	InvalidRPCResponseError,
@@ -23,6 +23,7 @@ import {
 	RPCResponseAlreadySentError,
 	RequestFailError,
 	ExistingPeerError,
+	InvalidNodeInfoError,
 } from '../../src/errors';
 import { P2PPeerInfo } from '../../src';
 import { constructPeerId } from '../../src/utils';
@@ -79,20 +80,20 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InvalidPeerError', () => {
-		const defaultMessage = 'Invalid peer ip or port';
-		let invalidPeer: InvalidPeerError;
+	describe('#InvalidPeerInfoError', () => {
+		const defaultMessage = 'Invalid peer ipAddress or port';
+		let invalidPeer: InvalidPeerInfoError;
 
 		beforeEach(async () => {
-			invalidPeer = new InvalidPeerError(defaultMessage);
+			invalidPeer = new InvalidPeerInfoError(defaultMessage);
 		});
 
-		it('should create a new instance of InvalidPeerError', async () => {
-			expect(invalidPeer).to.be.instanceof(InvalidPeerError);
+		it('should create a new instance of InvalidPeerInfoError', async () => {
+			expect(invalidPeer).to.be.instanceof(InvalidPeerInfoError);
 		});
 
-		it('should set error name to `InvalidPeerError`', async () => {
-			expect(invalidPeer.name).to.eql('InvalidPeerError');
+		it('should set error name to `InvalidPeerInfoError`', async () => {
+			expect(invalidPeer.name).to.eql('InvalidPeerInfoError');
 		});
 
 		it('should set error message when passed an argument', async () => {
@@ -127,6 +128,27 @@ describe('errors', () => {
 
 		it(`should set peerInfo parameter when passing an argument`, async () => {
 			expect(existingPeer.peerInfo).to.eql(peerInfo);
+		});
+	});
+
+	describe('#InvalidNodeInfoError', () => {
+		const InvalidNodeInfoErrorMessagge = 'Invalid NodeInfo version';
+		let invalidNodeInfo: InvalidNodeInfoError;
+
+		beforeEach(async () => {
+			invalidNodeInfo = new InvalidNodeInfoError(InvalidNodeInfoErrorMessagge);
+		});
+
+		it('should create a new instance of InvalidNodeInfoError', async () => {
+			expect(invalidNodeInfo).to.be.instanceof(InvalidNodeInfoError);
+		});
+
+		it('should set error name to `InvalidNodeInfoError`', async () => {
+			expect(invalidNodeInfo.name).to.eql('InvalidNodeInfoError');
+		});
+
+		it(`should set error message to ${InvalidNodeInfoError}`, async () => {
+			expect(invalidNodeInfo.message).to.eql(InvalidNodeInfoErrorMessagge);
 		});
 	});
 

@@ -21,8 +21,7 @@ import {
 	NETWORK_START_PORT,
 } from '../utils/network_setup';
 
-// TODO: Skipping this test as its fragile, need to revisit
-describe.skip('Maximum payload', () => {
+describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 	let disconnectReasons: Array<any> = [];
@@ -40,12 +39,15 @@ describe.skip('Maximum payload', () => {
 		p2pNodeList = await createNetwork({ customConfig });
 
 		collectedMessages = [];
+
 		p2pNodeList.forEach(p2p => {
 			p2p.on('messageReceived', message => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					message,
-				});
+				if (message.event === 'maxPayload') {
+					collectedMessages.push({
+						nodePort: p2p.nodeInfo.wsPort,
+						message,
+					});
+				}
 			});
 
 			p2p.on('closeInbound', packet => {

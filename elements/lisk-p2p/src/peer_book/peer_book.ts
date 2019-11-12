@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line no-require-imports
+import shuffle = require('lodash.shuffle');
 import {
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_NEW_BUCKET_SIZE,
@@ -61,15 +63,38 @@ export class PeerBook {
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
-		return this._newPeers.peersList;
+		return this._newPeers.peerList;
 	}
 
 	public get triedPeers(): ReadonlyArray<P2PPeerInfo> {
-		return this._triedPeers.peersList;
+		return this._triedPeers.peerList;
 	}
 
 	public get allPeers(): ReadonlyArray<P2PPeerInfo> {
 		return [...this.newPeers, ...this.triedPeers];
+	}
+
+	public getRandomizedPeerList(
+		minimumPeerDiscoveryThreshold: number,
+		peerDiscoveryResponseLength: number,
+	): ReadonlyArray<P2PPeerInfo> {
+		const allPeers = [...this.newPeers, ...this.triedPeers];
+
+		/* tslint:disable no-magic-numbers*/
+		const min = Math.ceil(
+			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.25),
+		);
+		const max = Math.floor(
+			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.5),
+		);
+
+		const random = Math.floor(Math.random() * (max - min + 1) + min);
+		const randomPeerCount = Math.max(
+			random,
+			Math.min(minimumPeerDiscoveryThreshold, allPeers.length),
+		);
+
+		return shuffle(allPeers).slice(0, randomPeerCount);
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
