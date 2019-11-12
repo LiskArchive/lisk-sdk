@@ -160,7 +160,14 @@ module.exports = class Network {
 
 		this.channel.subscribe('app:state:updated', event => {
 			const newNodeInfo = sanitizeNodeInfo(event.data);
-			this.p2p.applyNodeInfo(newNodeInfo);
+			try {
+				this.p2p.applyNodeInfo(newNodeInfo);
+			} catch (error) {
+				this.logger.error(
+					`Applying NodeInfo failed because of error: ${error.message ||
+						error}`,
+				);
+			}
 		});
 
 		// ---- START: Bind event handlers ----

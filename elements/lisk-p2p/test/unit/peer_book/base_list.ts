@@ -78,7 +78,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
-			triedPeersArray = peerListObj.peersList as ReadonlyArray<P2PPeerInfo>;
+			triedPeersArray = peerListObj.peerList as ReadonlyArray<P2PPeerInfo>;
 		});
 
 		it('should return tried peers list', () => {
@@ -98,7 +98,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 		});
 
-		it('should get a bucket by ip address', () => {
+		it('should get a bucket by ipAddress', () => {
 			const bucketId = getBucketId({
 				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
 				secret: DEFAULT_RANDOM_SECRET,
@@ -153,7 +153,7 @@ describe('Peers base list', () => {
 				.and.have.property('peerInfo', samplePeers[0]);
 		});
 
-		it('should call makeSpace method with the ip address of the peer to add', () => {
+		it('should call makeSpace method with the ipAddress of the peer to add', () => {
 			sandbox.stub(peerListObj, 'makeSpace');
 			peerListObj.addPeer(samplePeers[1]);
 

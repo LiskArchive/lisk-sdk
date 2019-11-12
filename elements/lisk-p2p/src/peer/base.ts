@@ -21,8 +21,14 @@ import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	INVALID_PEER_INFO_PENALTY,
+	INVALID_PEER_LIST_PENALTY,
 } from '../constants';
-import { RPCResponseError } from '../errors';
+import {
+	InvalidPeerInfoError,
+	InvalidPeerInfoListError,
+	RPCResponseError,
+} from '../errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_DISCOVERED_PEER,
@@ -50,8 +56,9 @@ import {
 } from '../p2p_types';
 import {
 	getNetgroup,
+	sanitizeIncomingPeerInfo,
 	validatePeerInfo,
-	validatePeersInfoList,
+	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../utils';
@@ -194,7 +201,6 @@ export class Peer extends EventEmitter {
 			);
 
 			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				this._nodeInfo = request.data as P2PNodeInfo;
 				request.end(this._nodeInfo);
 			}
 
@@ -390,12 +396,19 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
 
-			return validatePeersInfoList(
+			return validatePeerInfoList(
 				response.data,
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
 		} catch (error) {
+			if (
+				error instanceof InvalidPeerInfoError ||
+				error instanceof InvalidPeerInfoListError
+			) {
+				this.applyPenalty(INVALID_PEER_LIST_PENALTY);
+			}
+
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
 			throw new RPCResponseError(
@@ -433,6 +446,11 @@ export class Peer extends EventEmitter {
 			this._updateFromProtocolPeerInfo(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+
+			// Apply penalty for malformed PeerInfo
+			if (error instanceof InvalidPeerInfoError) {
+				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
+			}
 
 			throw new RPCResponseError(
 				'Failed to update peer info of peer as part of fetch operation',
@@ -494,15 +512,16 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = {
-			...rawPeerInfo,
-			ip: this._ipAddress,
-			wsPort: this._wsPort,
-		};
+		// Sanitize and validate PeerInfo
 		const newPeerInfo = validatePeerInfo(
-			protocolPeerInfo,
+			sanitizeIncomingPeerInfo({
+				...rawPeerInfo,
+				ipAddress: this._ipAddress,
+				wsPort: this._wsPort,
+			}),
 			this._peerConfig.maxPeerInfoSize,
 		);
+
 		this.updatePeerInfo(newPeerInfo);
 	}
 
@@ -511,6 +530,11 @@ export class Peer extends EventEmitter {
 		try {
 			this._updateFromProtocolPeerInfo(message.data);
 		} catch (error) {
+			// Apply penalty for malformed PeerInfo update
+			if (error instanceof InvalidPeerInfoError) {
+				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
+			}
+
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			return;

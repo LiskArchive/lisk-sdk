@@ -104,8 +104,7 @@ const isIdenticalBlock = (lastBlock, currentBlock) =>
 // eslint-disable-next-line class-methods-use-this
 const isDuplicateBlock = (lastBlock, currentBlock) =>
 	lastBlock.height === currentBlock.height &&
-	lastBlock.prevotedConfirmedUptoHeight ===
-		currentBlock.prevotedConfirmedUptoHeight &&
+	lastBlock.maxHeightPrevoted === currentBlock.maxHeightPrevoted &&
 	lastBlock.previousBlockId === currentBlock.previousBlockId;
 
 /**
@@ -143,13 +142,12 @@ const isTieBreak = ({ slots, lastAppliedBlock, receivedBlock }) =>
  */
 // eslint-disable-next-line class-methods-use-this
 const isDifferentChain = (lastBlock, currentBlock) => {
-	const prevotedConfirmedUptoHeight =
-		lastBlock.prevotedConfirmedUptoHeight || 0;
+	const maxHeightPrevoted = lastBlock.maxHeightPrevoted || 0;
 
 	return (
-		prevotedConfirmedUptoHeight < currentBlock.prevotedConfirmedUptoHeight ||
+		maxHeightPrevoted < currentBlock.maxHeightPrevoted ||
 		(lastBlock.height < currentBlock.height &&
-			prevotedConfirmedUptoHeight === currentBlock.prevotedConfirmedUptoHeight)
+			maxHeightPrevoted === currentBlock.maxHeightPrevoted)
 	);
 };
 

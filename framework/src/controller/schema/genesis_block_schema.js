@@ -77,7 +77,7 @@ module.exports = {
 			type: 'string',
 			format: 'publicKey',
 		},
-		prevotedConfirmedUptoHeight: {
+		maxHeightPrevoted: {
 			type: 'integer',
 			minimum: 0,
 		},

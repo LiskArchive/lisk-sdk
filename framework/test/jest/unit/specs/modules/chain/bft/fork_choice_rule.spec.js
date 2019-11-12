@@ -5,7 +5,7 @@ const {
 	isDuplicateBlock,
 	isTieBreak,
 	isValidBlock,
-} = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
+} = require('../../../../../../../src/modules/chain/bft/fork_choice_rule');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
@@ -42,13 +42,13 @@ describe('Fork Choice Rule', () => {
 		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockId === current.previousBlockId', async () => {
 			const last = {
 				height: 1,
-				prevotedConfirmedUptoHeight: 0,
+				maxHeightPrevoted: 0,
 				previousBlockId: 0,
 				id: '1',
 			};
 			const current = {
 				height: last.height,
-				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight,
+				maxHeightPrevoted: last.maxHeightPrevoted,
 				previousBlockId: last.previousBlockId,
 				id: '2',
 			};
@@ -70,14 +70,14 @@ describe('Fork Choice Rule', () => {
 		it('should return true if _isDuplicateBlock(last, current) && last.generatorPublicKey === current.generatorPublicKey', async () => {
 			const last = {
 				height: 1,
-				prevotedConfirmedUptoHeight: 0,
+				maxHeightPrevoted: 0,
 				previousBlockId: 0,
 				id: '1',
 				generatorPublicKey: 'abc',
 			};
 			const current = {
 				height: last.height,
-				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight,
+				maxHeightPrevoted: last.maxHeightPrevoted,
 				previousBlockId: last.previousBlockId,
 				id: '2',
 				generatorPublicKey: last.generatorPublicKey,
@@ -117,7 +117,7 @@ describe('Fork Choice Rule', () => {
 
 			const lastAppliedBlock = {
 				height: 1,
-				prevotedConfirmedUptoHeight: 0,
+				maxHeightPrevoted: 0,
 				previousBlockId: 0,
 				id: '1',
 				timestamp: lastReceivedAndAppliedBlock.receivedTime,
@@ -146,7 +146,7 @@ describe('Fork Choice Rule', () => {
 		it('should return true if last.heightPrevoted < current.heightPrevoted', async () => {
 			const last = {
 				height: 1,
-				prevotedConfirmedUptoHeight: 0,
+				maxHeightPrevoted: 0,
 				previousBlockId: 0,
 				id: '1',
 				timestamp: Date.now(),
@@ -154,7 +154,7 @@ describe('Fork Choice Rule', () => {
 			};
 			const current = {
 				height: last.height,
-				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight + 1,
+				maxHeightPrevoted: last.maxHeightPrevoted + 1,
 				previousBlockId: last.previousBlockId,
 				id: '2',
 				timestamp: Date.now() + 1000,
@@ -167,7 +167,7 @@ describe('Fork Choice Rule', () => {
 		it('OR should return true if (last.height < current.height && last.heightPrevoted === current.heightPrevoted)', async () => {
 			const last = {
 				height: 1,
-				prevotedConfirmedUptoHeight: 0,
+				maxHeightPrevoted: 0,
 				previousBlockId: 0,
 				id: '1',
 				timestamp: Date.now(),
@@ -175,7 +175,7 @@ describe('Fork Choice Rule', () => {
 			};
 			const current = {
 				height: last.height + 1,
-				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight,
+				maxHeightPrevoted: last.maxHeightPrevoted,
 				previousBlockId: last.previousBlockId,
 				id: '2',
 				timestamp: Date.now() + 1000,

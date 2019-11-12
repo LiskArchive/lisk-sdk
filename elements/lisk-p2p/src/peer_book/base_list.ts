@@ -58,16 +58,16 @@ export class BaseList {
 		}
 	}
 
-	public get peersList(): ReadonlyArray<P2PPeerInfo> {
-		const peersListMap: P2PPeerInfo[] = [];
+	public get peerList(): ReadonlyArray<P2PPeerInfo> {
+		const peerListMap: P2PPeerInfo[] = [];
 
 		for (const peerMap of [...this.peerMap.values()]) {
 			for (const peer of [...peerMap.values()]) {
-				peersListMap.push(peer.peerInfo);
+				peerListMap.push(peer.peerInfo);
 			}
 		}
 
-		return peersListMap;
+		return peerListMap;
 	}
 
 	public initPeerInfo = (peerInfo: P2PPeerInfo): CustomPeerInfo => ({

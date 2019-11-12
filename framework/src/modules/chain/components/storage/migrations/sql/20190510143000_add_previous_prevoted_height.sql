@@ -14,8 +14,10 @@
 
 
  /*
-  DESCRIPTION: Create index for mem_accounts.publicKey
-  PARAMETERS: None
+   DESCRIPTION: Add maxHeightPreviouslyForged and maxHeightPrevoted field for blocks column. Both columns are of type 32-bit unsigned integer
+   PARAMETERS: None
 */
 
-CREATE INDEX IF NOT EXISTS "mem_accounts_public_key" ON "mem_accounts" (ENCODE("publicKey", 'hex'));
+  -- Add to blocks column
+ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "maxHeightPreviouslyForged" INT;
+ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "maxHeightPrevoted" INT;

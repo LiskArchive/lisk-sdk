@@ -32,6 +32,7 @@ const {
 const {
 	BlockProcessorV1,
 } = require('../../../src/modules/chain/block_processor_v1');
+const { BFT } = require('../../../src/modules/chain/bft');
 const { getNetworkIdentifier } = require('./network_identifier');
 
 let currentAppScope;
@@ -95,6 +96,13 @@ const initStepsForTest = {
 			totalAmount: __testContext.config.constants.TOTAL_AMOUNT,
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
+		modules.bft = new BFT({
+			storage: scope.components.storage,
+			logger: scope.components.logger,
+			slots: scope.slots,
+			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			startingHeight: 1,
+		});
 		modules.processor = new Processor({
 			channel: scope.channel,
 			storage: scope.components.storage,
@@ -103,6 +111,7 @@ const initStepsForTest = {
 		});
 		const processorDependency = {
 			blocksModule: modules.blocks,
+			bftModule: modules.bft,
 			dposModule: modules.dpos,
 			logger: scope.components.logger,
 			constants: __testContext.config.constants,

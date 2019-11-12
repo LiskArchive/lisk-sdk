@@ -68,10 +68,24 @@ export class ExistingPeerError extends Error {
 	}
 }
 
-export class InvalidPeerError extends Error {
+export class InvalidNodeInfoError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidPeerError';
+		this.name = 'InvalidNodeInfoError';
+	}
+}
+
+export class InvalidPeerInfoError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidPeerInfoError';
+	}
+}
+
+export class InvalidPeerInfoListError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidPeerInfoListError';
 	}
 }
 

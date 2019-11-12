@@ -14,8 +14,8 @@
 
 'use strict';
 
-const ENDPOINT_BORADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
-const ENDPOINT_BORADCAST_SIGNATURES = 'postSignatures';
+const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
+const ENDPOINT_BROADCAST_SIGNATURES = 'postSignatures';
 
 /**
  * Main Broadcaster logic.
@@ -100,7 +100,7 @@ class Broadcaster {
 				this.config.releaseLimit,
 			);
 			await this.channel.invoke('network:broadcast', {
-				event: ENDPOINT_BORADCAST_TRANSACTIONS,
+				event: ENDPOINT_BROADCAST_TRANSACTIONS,
 				data: {
 					transactionIds,
 				},
@@ -116,7 +116,7 @@ class Broadcaster {
 				this.config.releaseLimit,
 			);
 			await this.channel.invoke('network:send', {
-				event: ENDPOINT_BORADCAST_SIGNATURES,
+				event: ENDPOINT_BROADCAST_SIGNATURES,
 				data: {
 					signatures,
 				},

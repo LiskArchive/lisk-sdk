@@ -37,14 +37,14 @@ const blockSchema = {
 		maxHeightPreviouslyForged: {
 			type: 'integer',
 		},
-		prevotedConfirmedUptoHeight: {
+		maxHeightPrevoted: {
 			type: 'integer',
 		},
 	},
 	required: [
 		...baseBlockSchema.required,
 		'maxHeightPreviouslyForged',
-		'prevotedConfirmedUptoHeight',
+		'maxHeightPrevoted',
 		'height',
 	],
 };
@@ -82,8 +82,8 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const prevotedConfirmedUptoHeightBuffer = intToBuffer(
-		block.prevotedConfirmedUptoHeight,
+	const maxHeightPrevotedBuffer = intToBuffer(
+		block.maxHeightPrevoted,
 		SIZE_INT32,
 		LITTLE_ENDIAN,
 	);
@@ -132,7 +132,7 @@ const getBytes = block => {
 		previousBlockBuffer,
 		heightBuffer,
 		maxHeightPreviouslyForgedBuffer,
-		prevotedConfirmedUptoHeightBuffer,
+		maxHeightPrevotedBuffer,
 		numTransactionsBuffer,
 		totalAmountBuffer,
 		totalFeeBuffer,
@@ -172,7 +172,6 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.deserialize.pipe([
 			({ block }) => this.blocksModule.deserialize(block),
-			(_, updatedBlock) => this.bftModule.deserialize(updatedBlock),
 		]);
 
 		this.serialize.pipe([
@@ -221,7 +220,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		]);
 
 		this.forkStatus.pipe([
-			({ block, lastBlock }) => this.blocksModule.forkChoice(block, lastBlock), // validate common block header
+			({ block, lastBlock }) => this.bftModule.forkChoice(block, lastBlock), // validate common block header
 		]);
 
 		this.verify.pipe([({ block }) => this.bftModule.verifyNewBlock(block)]);
@@ -247,7 +246,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		]);
 
 		this.create.pipe([
-			// Getting the BFT header (maxHeightPreviouslyForged and prevotedConfirmedUptoHeight)
+			// Getting the BFT header (maxHeightPreviouslyForged and maxHeightPrevoted)
 			async ({ keypair }) => {
 				const delegatePublicKey = keypair.publicKey.toString('hex');
 				return this.bftModule.computeBFTHeaderProperties(delegatePublicKey);
@@ -276,7 +275,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		keypair,
 		timestamp,
 		maxHeightPreviouslyForged,
-		prevotedConfirmedUptoHeight,
+		maxHeightPrevoted,
 	}) {
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
@@ -323,7 +322,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			transactions: blockTransactions,
 			height: nextHeight,
 			maxHeightPreviouslyForged,
-			prevotedConfirmedUptoHeight,
+			maxHeightPrevoted,
 		};
 
 		// Reduce reward based on BFT rules

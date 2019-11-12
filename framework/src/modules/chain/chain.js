@@ -379,6 +379,7 @@ module.exports = class Chain {
 		this.bft = new BFT({
 			storage: this.storage,
 			logger: this.logger,
+			slots: this.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
@@ -625,7 +626,7 @@ module.exports = class Chain {
 					this.channel.invoke('app:updateApplicationState', {
 						height: block.height,
 						lastBlockId: block.id,
-						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+						maxHeightPrevoted: block.maxHeightPrevoted,
 						blockVersion: block.version,
 					});
 				}

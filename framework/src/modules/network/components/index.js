@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,19 +14,8 @@
 
 'use strict';
 
-/**
- * @namespace BFT
- */
-
-const { extractBFTBlockHeaderFromBlock, BFT } = require('./bft');
-const BFTErrors = require('./errors');
-const utils = require('./utils');
-const forkChoiceRule = require('./fork_choice_rule');
+const { migrations } = require('./storage/migrations');
 
 module.exports = {
-	extractBFTBlockHeaderFromBlock,
-	BFT,
-	...BFTErrors,
-	...forkChoiceRule,
-	utils,
+	migrations,
 };

@@ -54,6 +54,10 @@ export const DEFAULT_PRODUCTIVITY = {
 	lastResponded: 0,
 };
 
+// Penalty constants
+export const INVALID_PEER_LIST_PENALTY = 100;
+export const INVALID_PEER_INFO_PENALTY = 100;
+
 // Peer inbound constants
 export const DEFAULT_PING_INTERVAL_MAX = 60000;
 export const DEFAULT_PING_INTERVAL_MIN = 20000;
@@ -84,6 +88,8 @@ export const INCOMPATIBLE_PROTOCOL_VERSION_REASON =
 export const INCOMPATIBLE_PEER_CODE = 4104;
 export const INCOMPATIBLE_PEER_UNKNOWN_REASON =
 	'Peer is incompatible with the node for unknown reasons';
+export const INCOMPATIBLE_PEER_INFO_CODE = 4105;
+export const INCOMPATIBLE_PEER_INFO_CODE_REASON = 'Peer has invalid PeerInfo';
 // First case to follow HTTP status codes
 export const FORBIDDEN_CONNECTION = 4403;
 export const FORBIDDEN_CONNECTION_REASON = 'Peer is not allowed to connect';
@@ -92,6 +98,8 @@ export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
 
 // Peer info constants
+export const INVALID_PEER_INFO_LIST_REASON = 'PeerInfo list has invalid value';
+export const PEER_INFO_LIST_TOO_LONG_REASON = 'PeerInfo list is too long';
 export enum ConnectionKind {
 	OUTBOUND = 'outbound',
 	INBOUND = 'inbound',

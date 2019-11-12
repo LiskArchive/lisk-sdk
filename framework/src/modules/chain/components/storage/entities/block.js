@@ -24,13 +24,13 @@ const {
 
 const defaultCreateValues = {
 	maxHeightPreviouslyForged: 0,
-	prevotedConfirmedUptoHeight: 0,
+	maxHeightPrevoted: 0,
 };
 const createFields = [
 	'id',
 	'height',
 	'maxHeightPreviouslyForged',
-	'prevotedConfirmedUptoHeight',
+	'maxHeightPrevoted',
 	'blockSignature',
 	'generatorPublicKey',
 	'payloadHash',

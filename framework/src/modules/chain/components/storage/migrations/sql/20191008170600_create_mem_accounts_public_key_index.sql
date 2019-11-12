@@ -14,10 +14,9 @@
 
 
  /*
-   DESCRIPTION: Add maxHeightPreviouslyForged and prevotedConfirmedUptoHeight field for blocks column. Both columns are of type 32-bit unsigned integer
-   PARAMETERS: None
+  DESCRIPTION: Create index for mem_accounts.publicKey
+  PARAMETERS: None
 */
 
-  -- Add to blocks column
-ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "maxHeightPreviouslyForged" INT;
-ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "prevotedConfirmedUptoHeight" INT;
+DROP INDEX IF EXISTS "mem_accounts_public_key";
+CREATE INDEX IF NOT EXISTS "mem_accounts_public_key" ON "mem_accounts" ("publicKey");

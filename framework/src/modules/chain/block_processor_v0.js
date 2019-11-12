@@ -108,17 +108,31 @@ const validateSchema = ({ block }) => {
 };
 
 class BlockProcessorV0 extends BaseBlockProcessor {
-	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
+	constructor({
+		blocksModule,
+		dposModule,
+		bftModule,
+		logger,
+		constants,
+		exceptions,
+	}) {
 		super();
 		const delegateListRoundOffset = 0;
 		this.blocksModule = blocksModule;
 		this.dposModule = dposModule;
+		this.bftModule = bftModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
 
 		this.deserialize.pipe([
 			({ block }) => this.blocksModule.deserialize(block),
+			(_, updatedBlock) => ({
+				...updatedBlock,
+				maxHeightPreviouslyForged:
+					updatedBlock.maxHeightPreviouslyForged || updatedBlock.height,
+				maxHeightPrevoted: updatedBlock.maxHeightPrevoted || 0,
+			}),
 		]);
 
 		this.serialize.pipe([({ block }) => this.blocksModule.serialize(block)]);
@@ -154,7 +168,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		]);
 
 		this.forkStatus.pipe([
-			({ block, lastBlock }) => this.blocksModule.forkChoice(block, lastBlock), // validate common block header
+			({ block, lastBlock }) => this.bftModule.forkChoice(block, lastBlock), // validate common block header
 		]);
 
 		this.verify.pipe([
