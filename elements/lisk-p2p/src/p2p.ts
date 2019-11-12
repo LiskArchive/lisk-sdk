@@ -764,7 +764,7 @@ export class P2P extends EventEmitter {
 						version: queryObject.version,
 					},
 					internalState: {
-						advertiseAddress: advertiseAddress === 'false' ? false : true,
+						advertiseAddress: advertiseAddress !== 'false',
 						connectionKind: ConnectionKind.INBOUND,
 					},
 					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
