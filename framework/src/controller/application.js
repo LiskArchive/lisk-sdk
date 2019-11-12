@@ -51,8 +51,7 @@ const registerProcessHooks = app => {
 		// Handle error safely
 		app.logger.error(
 			{
-				message: err.message,
-				stack: err.stack,
+				err,
 			},
 			'System error: uncaughtException',
 		);
@@ -63,8 +62,7 @@ const registerProcessHooks = app => {
 		// Handle error safely
 		app.logger.fatal(
 			{
-				message: err.message,
-				stack: err.stack,
+				err,
 			},
 			'System error: unhandledRejection',
 		);
