@@ -176,8 +176,10 @@ export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 			...restOfProtocolPeer,
 		},
 		internalState: {
-			// tslint:disable-next-line no-boolean-literal-compare
-			advertiseAddress: (advertiseAddress as boolean) === false ? false : true,
+			advertiseAddress:
+				advertiseAddress !== undefined
+					? !(advertiseAddress === 'false' || advertiseAddress === false)
+					: true,
 		},
 	};
 
