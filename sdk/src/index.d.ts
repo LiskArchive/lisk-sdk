@@ -25,7 +25,19 @@ declare class Application {
 
 declare const version: number;
 declare const systemDirs: any;
-declare const configurator: any;
+declare class Configurator {
+	constructor();
+	getConfig(
+		overrideValues: object,
+		options: { failOnInvalidArg: boolean }
+	): void;
+	registerModule(moduleClass: any): void;
+	loadConfigFile(configFilePath: string, destinationPath: string): void;
+	loadConfig(data: string, destinationPath: string): void;
+	extractMetaInformation(): void;
+	helpBanner(): void;
+	registerSchema(schema: object, key: string): void;
+}
 
 declare const configDevnet: any;
 declare const genesisBlockDevnet: any;
@@ -34,7 +46,7 @@ export {
 	Application,
 	version,
 	systemDirs,
-	configurator,
+	Configurator,
 	BigNum,
 	cryptography,
 	transactions,
