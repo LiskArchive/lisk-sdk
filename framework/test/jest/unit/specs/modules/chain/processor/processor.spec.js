@@ -435,7 +435,7 @@ describe('processor', () => {
 				});
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
-					undefined,
+					defaultLastBlock,
 					txStub,
 					{ saveTempBlock: false },
 				);
@@ -534,7 +534,7 @@ describe('processor', () => {
 				});
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
-					undefined,
+					defaultLastBlock,
 					txStub,
 					{ saveTempBlock: false },
 				);
@@ -1415,7 +1415,7 @@ describe('processor', () => {
 			it('should call remove from blocksModule', async () => {
 				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
-					undefined,
+					defaultLastBlock,
 					txStub,
 					{ saveTempBlock: false },
 				);
