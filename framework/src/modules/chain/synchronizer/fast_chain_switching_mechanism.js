@@ -24,6 +24,7 @@ const {
 	ApplyPenaltyAndAbortError,
 	ApplyPenaltyAndRestartError,
 	AbortError,
+	BlockProcessingError,
 	RestartError,
 } = require('./errors');
 
@@ -63,7 +64,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				peerId,
 			);
 			await this._validateBlocks(blocks, highestCommonBlock, peerId);
-			await this._switchChain(highestCommonBlock, blocks);
+			await this._switchChain(highestCommonBlock, blocks, peerId);
 		} catch (err) {
 			if (err instanceof ApplyPenaltyAndRestartError) {
 				return this._applyPenaltyAndRestartSync(
@@ -279,13 +280,38 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}
 
 	/**
+	 * Applies blocks to current chain
+	 * @param {Array<ExtendedBlock>} blocksToApply
+	 * @return {Promise<void>}
+	 * @throws {BlockProcessingError}
+	 * @private
+	 */
+	async _applyBlocks(blocksToApply) {
+		try {
+			for (const block of blocksToApply) {
+				this.logger.trace(
+					{
+						blockId: block.id,
+						height: block.height,
+					},
+					'Applying blocks',
+				);
+				const blockInstance = await this.processor.deserialize(block);
+				await this.processor.processValidated(blockInstance);
+			}
+		} catch (e) {
+			throw new BlockProcessingError();
+		}
+	}
+
+	/**
 	 * Switches to desired chain
 	 * @param {Object} highestCommonBlock
 	 * @param {Array<Object>} blocksToApply
 	 * @return {Promise<void>}
 	 * @private
 	 */
-	async _switchChain(highestCommonBlock, blocksToApply) {
+	async _switchChain(highestCommonBlock, blocksToApply, peerId) {
 		this.logger.info('Switching chain');
 		this.logger.debug(
 			{ height: highestCommonBlock.height },
@@ -309,14 +335,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				},
 				'Applying blocks',
 			);
-			for (const block of blocksToApply) {
-				this.logger.trace(
-					{ blockId: block.id, height: block.height },
-					'Applying blocks',
-				);
-				const blockInstance = await this.processor.deserialize(block);
-				await this.processor.processValidated(blockInstance);
-			}
+			await this._applyBlocks(blocksToApply);
 			this.logger.info(
 				{
 					currentHeight: this.blocks.lastBlock.height,
@@ -325,18 +344,26 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				'Successfully switched chains. Node is now up to date',
 			);
 		} catch (err) {
-			this.logger.error({ err }, 'Error while processing blocks');
-			this.logger.debug(
-				{ height: highestCommonBlock.height },
-				'Deleting blocks after height',
-			);
-			await deleteBlocksAfterHeight(
-				this.processor,
-				this.blocks,
-				highestCommonBlock.height,
-			);
-			this.logger.debug('Restoring blocks from temporary table');
-			await restoreBlocks(this.blocks, this.processor);
+			if (err instanceof BlockProcessingError) {
+				this.logger.error({ err }, 'Error while processing blocks');
+				this.logger.debug(
+					{ height: highestCommonBlock.height },
+					'Deleting blocks after height',
+				);
+				await deleteBlocksAfterHeight(
+					this.processor,
+					this.blocks,
+					highestCommonBlock.height,
+				);
+				this.logger.debug('Restoring blocks from temporary table');
+				await restoreBlocks(this.blocks, this.processor);
+				throw new ApplyPenaltyAndRestartError(
+					peerId,
+					'Detected invalid block while processing list of requested blocks',
+				);
+			} else {
+				throw err;
+			}
 		} finally {
 			this.logger.debug('Cleaning blocks temp table');
 			await clearBlocksTempTable(this.storage);
