@@ -96,21 +96,17 @@ describe('Chain', () => {
 		stubs.channel.invoke.withArgs('app:getApplicationState').resolves({});
 
 		stubs.createLoggerComponent = sinonSandbox.stub().returns(stubs.logger);
-		stubs.createCacheComponent = sinonSandbox.stub().returns(stubs.cache);
 		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
 
 		stubs.initSteps = {
 			bootstrapStorage: sinonSandbox.stub(),
-			bootstrapCache: sinonSandbox.stub(),
 		};
 
 		/* Arranging Stubs end */
 
 		Chain.__set__('createLoggerComponent', stubs.createLoggerComponent);
-		Chain.__set__('createCacheComponent', stubs.createCacheComponent);
 		Chain.__set__('createStorageComponent', stubs.createStorageComponent);
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
-		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
 		Chain.__set__('jobQueue', stubs.jobsQueue);
 
 		// Act
@@ -300,10 +296,6 @@ describe('Chain', () => {
 			);
 		});
 
-		it('should create cache component', () => {
-			return expect(chain.scope.components.cache).to.be.equal(stubs.cache);
-		});
-
 		it('should create storage component', () => {
 			return expect(chain.scope.components.storage).to.be.equal(stubs.storage);
 		});
@@ -318,7 +310,6 @@ describe('Chain', () => {
 			expect(chain.scope).to.have.nested.property('genesisBlock.block');
 			expect(chain.scope).to.have.property('sequence');
 			expect(chain.scope).to.have.nested.property('components.storage');
-			expect(chain.scope).to.have.nested.property('components.cache');
 			expect(chain.scope).to.have.nested.property('components.logger');
 			expect(chain.scope).to.have.property('channel');
 			expect(chain.scope).to.have.property('applicationState');
@@ -328,12 +319,6 @@ describe('Chain', () => {
 			return expect(stubs.initSteps.bootstrapStorage).to.have.been.calledWith(
 				chain.scope,
 				chainOptions.constants.ACTIVE_DELEGATES,
-			);
-		});
-
-		it('should bootstrap cache', () => {
-			return expect(stubs.initSteps.bootstrapCache).to.have.been.calledWith(
-				chain.scope,
 			);
 		});
 
@@ -411,7 +396,6 @@ describe('Chain', () => {
 			await chain.cleanup();
 
 			// Assert
-			expect(stubs.cache.cleanup).to.have.been.called;
 			expect(stubs.storage.cleanup).to.have.been.called;
 			return expect(stubs.logger.cleanup).to.have.been.called;
 		});
@@ -470,7 +454,7 @@ describe('Chain', () => {
 			await chain._forgingTask();
 
 			// Assert
-			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+			expect(stubs.logger.debug.getCall(1)).to.be.calledWith(
 				'No delegates are enabled',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
@@ -485,7 +469,7 @@ describe('Chain', () => {
 			await chain._forgingTask();
 
 			// Assert
-			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+			expect(stubs.logger.debug.getCall(1)).to.be.calledWith(
 				'Client not ready to forge',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
