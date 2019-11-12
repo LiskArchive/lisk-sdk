@@ -16,7 +16,7 @@
 
 const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
-const { migrations } = require('./migrations');
+const { migrations } = require('./components');
 const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */

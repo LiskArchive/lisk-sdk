@@ -15,7 +15,7 @@
 'use strict';
 
 const { config } = require('./defaults');
-const { migrations } = require('./migrations');
+const { migrations } = require('./components');
 const Network = require('./network');
 const BaseModule = require('../base_module');
 
