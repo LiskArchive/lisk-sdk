@@ -37,14 +37,21 @@ const updateDelegateVote = (
 	const delegateAccount = stateStore.account.get(delegateAddress);
 	const voteBigNum = new BigNum(delegateAccount.voteWeight || '0');
 	const voteWeight = voteBigNum[method](amount).toString();
-	const updatedDelegateAccount = {
-		...delegateAccount,
-		voteWeight,
-	};
-	stateStore.account.set(delegateAddress, updatedDelegateAccount);
+	delegateAccount.voteWeight = voteWeight;
+	stateStore.account.set(delegateAddress, delegateAccount);
 };
 
 const getRecipientAddress = (stateStore, transaction) => {
+	if (
+		[
+			...TRANSACTION_TYPES_SEND,
+			...TRANSACTION_TYPES_OUT_TRANSFER,
+			...TRANSACTION_TYPES_VOTE,
+		].includes(transaction.type)
+	) {
+		return transaction.asset.recipientId;
+	}
+
 	/**
 	 *  If transaction type is IN_TRANSFER then,
 	 * `recipientId` is the owner of dappRegistration transaction
@@ -54,15 +61,6 @@ const getRecipientAddress = (stateStore, transaction) => {
 			transaction.asset.inTransfer.dappId,
 		);
 		return dappTransaction.senderId;
-	}
-	if (
-		[
-			...TRANSACTION_TYPES_SEND,
-			...TRANSACTION_TYPES_OUT_TRANSFER,
-			...TRANSACTION_TYPES_VOTE,
-		].includes(transaction.type)
-	) {
-		return transaction.asset.recipientId;
 	}
 
 	return null;
@@ -110,13 +108,9 @@ const updateRecipientDelegateVotes = (
 	const method = undo ? 'sub' : 'add';
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
 
-	return votedDelegatesPublicKeys
-		.map(delegatePublicKey => ({
-			delegatePublicKey,
-			amount,
-			method,
-		}))
-		.forEach(data => updateDelegateVote(stateStore, data));
+	return votedDelegatesPublicKeys.forEach(delegatePublicKey =>
+		updateDelegateVote(stateStore, { delegatePublicKey, amount, method }),
+	);
 };
 
 const updateSenderDelegateVotes = (
@@ -159,13 +153,9 @@ const updateSenderDelegateVotes = (
 		);
 	}
 
-	return votedDelegatesPublicKeys
-		.map(delegatePublicKey => ({
-			delegatePublicKey,
-			amount,
-			method,
-		}))
-		.forEach(data => updateDelegateVote(stateStore, data));
+	return votedDelegatesPublicKeys.forEach(delegatePublicKey =>
+		updateDelegateVote(stateStore, { delegatePublicKey, amount, method }),
+	);
 };
 
 const updateDelegateVotes = (stateStore, transaction, undo = false) => {
@@ -209,24 +199,39 @@ const undo = (stateStore, transaction, exceptions = {}) => {
 	updateDelegateVotes(stateStore, transaction, true);
 };
 
-const prepare = async (stateStore, transaction) => {
-	// Get delegate public keys whom sender voted for
-	const senderVotedPublicKeys =
-		stateStore.account.getOrDefault(transaction.senderId)
-			.votedDelegatesPublicKeys || [];
+const prepare = async (stateStore, transactions) => {
+	const publicKeys = transactions.map(transaction => {
+		// Get delegate public keys whom sender voted for
+		const senderVotedPublicKeys =
+			stateStore.account.getOrDefault(transaction.senderId)
+				.votedDelegatesPublicKeys || [];
 
-	const recipientId = getRecipientAddress(stateStore, transaction);
+		const recipientId = getRecipientAddress(stateStore, transaction);
 
-	// Get delegate public keys whom recipient voted for
-	const recipientVotedPublicKeys =
-		(recipientId &&
-			stateStore.account.getOrDefault(recipientId).votedDelegatesPublicKeys) ||
-		[];
+		// Get delegate public keys whom recipient voted for
+		const recipientVotedPublicKeys =
+			(recipientId &&
+				stateStore.account.getOrDefault(recipientId)
+					.votedDelegatesPublicKeys) ||
+			[];
+		return {
+			senderVotedPublicKeys,
+			recipientVotedPublicKeys,
+		};
+	});
+
+	const publicKeySet = new Set();
+	for (const publicKey of publicKeys) {
+		for (const sender of publicKey.senderVotedPublicKeys) {
+			publicKeySet.add(sender);
+		}
+		for (const recipient of publicKey.recipientVotedPublicKeys) {
+			publicKeySet.add(recipient);
+		}
+	}
 
 	// Get unique public key list from merged arrays
-	const senderRecipientVotedPublicKeys = [
-		...new Set([...senderVotedPublicKeys, ...recipientVotedPublicKeys]),
-	];
+	const senderRecipientVotedPublicKeys = Array.from(publicKeySet);
 
 	if (senderRecipientVotedPublicKeys.length === 0) {
 		return true;
