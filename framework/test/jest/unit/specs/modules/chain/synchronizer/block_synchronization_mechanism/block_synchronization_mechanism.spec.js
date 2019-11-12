@@ -105,6 +105,7 @@ describe('block_synchronization_mechanism', () => {
 		bftModule = new BFT({
 			storage: storageMock,
 			logger: loggerMock,
+			slots,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
 		});

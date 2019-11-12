@@ -18,7 +18,7 @@ const { maxBy } = require('lodash');
 const {
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_VALID_BLOCK,
-} = require('../blocks');
+} = require('../bft');
 
 /**
  * Restore blocks from temp table and re-apply to chain

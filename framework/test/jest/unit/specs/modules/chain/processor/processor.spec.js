@@ -31,7 +31,7 @@ const {
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
 	FORK_STATUS_VALID_BLOCK,
-} = require('../../../../../../../src/modules/chain/blocks');
+} = require('../../../../../../../src/modules/chain/bft');
 
 describe('processor', () => {
 	const defaultLastBlock = {
