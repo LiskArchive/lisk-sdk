@@ -33,7 +33,7 @@ const {
 const expect = chai.expect;
 
 describe('transport', () => {
-	const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
+	const { releaseLimit } = __testContext.config.modules.chain.broadcasts;
 
 	let storageStub;
 	let loggerStub;
@@ -197,8 +197,6 @@ describe('transport', () => {
 				syncing: sinonSandbox.stub().returns(false),
 			},
 			broadcasts: __testContext.config.modules.chain.broadcasts,
-			maxSharedTransactions:
-				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
 	});
 
@@ -229,7 +227,7 @@ describe('transport', () => {
 
 			beforeEach(async () => {
 				query = {
-					transactions: transactionsList,
+					transactionIds: transactionsList.map(tx => tx.id),
 				};
 			});
 
@@ -242,7 +240,7 @@ describe('transport', () => {
 						.stub()
 						.resolves([]);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
-						query.transactions.map(_transaction => _transaction.id),
+						query.transactionIds,
 					);
 				});
 
@@ -259,7 +257,7 @@ describe('transport', () => {
 						transportModule.storage.entities.Transaction.get,
 					).to.be.calledWithExactly(
 						{ id_in: transactionsList.map(tx => tx.id) },
-						{ limit: transportModule.constants.maxSharedTransactions },
+						{ limit: transportModule.constants.broadcasts.releaseLimit },
 					);
 				});
 
@@ -277,7 +275,7 @@ describe('transport', () => {
 						.returns(true);
 					transportModule.storage.entities.Transaction.get = sinonSandbox.stub();
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
-						query.transactions.map(_transaction => _transaction.id),
+						query.transactionIds,
 					);
 				});
 
@@ -306,7 +304,7 @@ describe('transport', () => {
 						.stub()
 						.resolves(transactionsList);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
-						query.transactions.map(_transaction => _transaction.id),
+						query.transactionIds,
 					);
 				});
 
@@ -323,7 +321,7 @@ describe('transport', () => {
 						transportModule.storage.entities.Transaction.get,
 					).to.be.calledWithExactly(
 						{ id_in: transactionsList.map(tx => tx.id) },
-						{ limit: transportModule.constants.maxSharedTransactions },
+						{ limit: transportModule.constants.broadcasts.releaseLimit },
 					);
 				});
 
@@ -673,35 +671,18 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						transportModule.broadcaster = {
-							enqueue: sinonSandbox.stub(),
+							enqueueSignatureObject: sinonSandbox.stub(),
 						};
 						transportModule.handleBroadcastSignature(SAMPLE_SIGNATURE_1, true);
 					});
 
-					it('should call transportModule.broadcaster.enqueue with signature', () => {
-						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
-						return expect(
-							transportModule.broadcaster.enqueue.calledWith(
-								{},
-								{
-									api: 'postSignatures',
-									data: { signature: SAMPLE_SIGNATURE_1 },
-								},
-							),
+					it('should call transportModule.broadcaster.enqueueSignatureObject with signature', () => {
+						expect(
+							transportModule.broadcaster.enqueueSignatureObject.calledOnce,
 						).to.be.true;
-					});
-
-					it('should call transportModule.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', async () => {
-						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
-							transportModule.broadcaster.enqueue.calledWith(
-								{},
-								{
-									api: 'postSignatures',
-									data: { signature: SAMPLE_SIGNATURE_1 },
-								},
-							),
-						).to.be.true;
+							transportModule.broadcaster.enqueueSignatureObject,
+						).calledWith(SAMPLE_SIGNATURE_1);
 					});
 
 					it('should call transportModule.channel.publish with "chain:signature:change" and signature', async () => {
@@ -730,7 +711,7 @@ describe('transport', () => {
 							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 					});
 					transportModule.broadcaster = {
-						enqueue: sinonSandbox.stub(),
+						enqueueTransactionId: sinonSandbox.stub(),
 					};
 					transportModule.channel = {
 						invoke: sinonSandbox.stub(),
@@ -742,7 +723,7 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						transportModule.broadcaster = {
-							enqueue: sinonSandbox.stub(),
+							enqueueTransactionId: sinonSandbox.stub(),
 						};
 						transportModule.channel = {
 							invoke: sinonSandbox.stub(),
@@ -751,17 +732,12 @@ describe('transport', () => {
 						transportModule.handleBroadcastTransaction(transaction, true);
 					});
 
-					it('should call transportModule.broadcaster.enqueue with {} and {api: "postTransationsAnnouncement", data: {transaction}}', async () => {
-						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
+					it('should call transportModule.broadcaster.enqueueTransactionId transactionId', async () => {
+						expect(transportModule.broadcaster.enqueueTransactionId).to.be
+							.calledOnce;
 						return expect(
-							transportModule.broadcaster.enqueue.calledWith(
-								{},
-								{
-									api: 'postTransactionsAnnouncement',
-									data: { transaction: { id: transaction.id } },
-								},
-							),
-						).to.be.true;
+							transportModule.broadcaster.enqueueTransactionId,
+						).to.be.calledWith(transaction.id);
 					});
 
 					it('should call transportModule.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
@@ -793,28 +769,23 @@ describe('transport', () => {
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
-						return transportModule.handleBroadcastBlock(block, true);
+						return transportModule.handleBroadcastBlock(block);
 					});
 
-					it('should call transportModule.broadcaster.broadcast', () => {
-						expect(transportModule.broadcaster.broadcast.calledOnce).to.be.true;
-						return expect(
-							transportModule.broadcaster.broadcast,
-						).to.be.calledWith(
-							{},
-							{
-								api: 'postBlock',
-								data: {
-									block,
-								},
+					it('should call channel.invoke to send', () => {
+						expect(channelStub.invoke).to.be.calledOnce;
+						return expect(channelStub.invoke).to.be.calledWith('network:send', {
+							event: 'postBlock',
+							data: {
+								block,
 							},
-						);
+						});
 					});
 
 					describe('when modules.synchronizer.isActive = true', () => {
 						beforeEach(async () => {
 							transportModule.synchronizer.isActive = true;
-							transportModule.handleBroadcastBlock(block, true);
+							transportModule.handleBroadcastBlock(block);
 						});
 
 						it('should call transportModule.logger.debug with proper error message', () => {
@@ -1057,11 +1028,11 @@ describe('transport', () => {
 						result = await transportModule.handleRPCGetSignatures();
 					});
 
-					it('should call modules.transactionPool.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
+					it('should call modules.transactionPool.getMultisignatureTransactionList with true and releaseLimit', async () => {
 						expect(
 							transportModule.transactionPoolModule
 								.getMultisignatureTransactionList,
-						).calledWith(true, MAX_SHARED_TRANSACTIONS);
+						).calledWith(true, releaseLimit);
 					});
 
 					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
@@ -1117,10 +1088,10 @@ describe('transport', () => {
 							result = await transportModule.handleRPCGetTransactions();
 						});
 
-						it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
+						it('should call modules.transactionPool.getMergedTransactionList with true and releaseLimit', async () => {
 							expect(
 								transportModule.transactionPoolModule.getMergedTransactionList,
-							).calledWith(true, MAX_SHARED_TRANSACTIONS);
+							).calledWith(true, releaseLimit);
 						});
 
 						it('should resolve with result = {transactions: transactions}', async () => {
@@ -1142,7 +1113,7 @@ describe('transport', () => {
 									Array.from(
 										{
 											length:
-												transportModule.constants.maxSharedTransactions + 1,
+												transportModule.constants.broadcasts.releaseLimit + 1,
 										},
 										() => Math.floor(Math.random() * 10000000),
 									),
@@ -1229,7 +1200,7 @@ describe('transport', () => {
 									storageStub.entities.Transaction.get,
 								).to.be.calledWithExactly(
 									{ id_in: [transaction.id] },
-									{ limit: transportModule.constants.maxSharedTransactions },
+									{ limit: transportModule.constants.broadcasts.releaseLimit },
 								);
 							});
 
@@ -1340,7 +1311,7 @@ describe('transport', () => {
 							beforeEach(async () => {
 								query = {
 									data: {
-										transactions: transactionsList,
+										transactionIds: transactionsList,
 									},
 									peerId: '127.0.0.1:5001',
 								};
@@ -1360,9 +1331,7 @@ describe('transport', () => {
 							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
 								expect(
 									transportModule._obtainUnknownTransactionIDs,
-								).to.be.calledWith(
-									query.data.transactions.map(_transaction => _transaction.id),
-								));
+								).to.be.calledWith(query.data.transactionIds));
 
 							it('should invoke network:requestFromPeer event', async () =>
 								expect(transportModule.channel.invoke).to.be.calledWith(
@@ -1402,9 +1371,7 @@ describe('transport', () => {
 							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
 								expect(
 									transportModule._obtainUnknownTransactionIDs,
-								).to.be.calledWith(
-									query.data.transactions.map(_transaction => _transaction.id),
-								));
+								).to.be.calledWith(query.data.transactionIds));
 
 							it('should not invoke any network event', async () =>
 								expect(transportModule.channel.invoke).to.be.not.called);

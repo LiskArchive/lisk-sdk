@@ -592,8 +592,8 @@ module.exports = class Chain {
 	_subscribeToEvents() {
 		this.channel.subscribe(
 			'chain:processor:broadcast',
-			({ data: { block } }) => {
-				this.transport.handleBroadcastBlock(block, true);
+			async ({ data: { block } }) => {
+				await this.transport.handleBroadcastBlock(block);
 			},
 		);
 
@@ -601,7 +601,9 @@ module.exports = class Chain {
 			'chain:processor:deleteBlock',
 			({ data: { block } }) => {
 				if (block.transactions.length) {
-					const transactions = block.transactions.reverse();
+					const transactions = block.transactions
+						.reverse()
+						.map(tx => this.blocks.deserializeTransaction(tx));
 					this.transactionPool.onDeletedTransactions(transactions);
 					this.channel.publish(
 						'chain:transactions:confirmed:change',
@@ -620,7 +622,11 @@ module.exports = class Chain {
 			'chain:processor:newBlock',
 			({ data: { block } }) => {
 				if (block.transactions.length) {
-					this.transactionPool.onConfirmedTransactions(block.transactions);
+					this.transactionPool.onConfirmedTransactions(
+						block.transactions.map(tx =>
+							this.blocks.deserializeTransaction(tx),
+						),
+					);
 					this.channel.publish(
 						'chain:transactions:confirmed:change',
 						block.transactions,
@@ -664,7 +670,7 @@ module.exports = class Chain {
 				{ transactionId: transaction.id },
 				'Received EVENT_UNCONFIRMED_TRANSACTION',
 			);
-			this.transport.handleBroadcastTransaction(transaction, true);
+			this.transport.handleBroadcastTransaction(transaction);
 		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
@@ -676,7 +682,7 @@ module.exports = class Chain {
 				{ signature },
 				'Received EVENT_MULTISIGNATURE_SIGNATURE',
 			);
-			this.transport.handleBroadcastSignature(signature, true);
+			this.transport.handleBroadcastSignature(signature);
 		});
 	}
 

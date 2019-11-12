@@ -50,7 +50,6 @@ class Transport {
 		processorModule,
 		// Constants
 		broadcasts,
-		maxSharedTransactions,
 	}) {
 		this.message = {};
 
@@ -63,20 +62,19 @@ class Transport {
 
 		this.constants = {
 			broadcasts,
-			maxSharedTransactions,
 		};
 
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
 
-		this.broadcaster = new Broadcaster(
-			this.constants.broadcasts,
-			this.transactionPoolModule,
-			this.logger,
-			this.channel,
-			this.storage,
-		);
+		this.broadcaster = new Broadcaster({
+			broadcasts: this.constants.broadcasts,
+			transactionPool: this.transactionPoolModule,
+			logger: this.logger,
+			channel: this.channel,
+			storage: this.storage,
+		});
 	}
 
 	/**
@@ -87,20 +85,9 @@ class Transport {
 	 * @emits signature/change
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	handleBroadcastSignature(signature, broadcast) {
-		if (broadcast) {
-			this.broadcaster.enqueue(
-				{},
-				{
-					api: 'postSignatures',
-					data: {
-						signature,
-					},
-				},
-			);
-			this.channel.publish('chain:signature:change', signature);
-		}
+	handleBroadcastSignature(signature) {
+		this.broadcaster.enqueueSignatureObject(signature);
+		this.channel.publish('chain:signature:change', signature);
 	}
 
 	/**
@@ -111,21 +98,9 @@ class Transport {
 	 * @emits transactions/change
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	handleBroadcastTransaction(transaction, broadcast) {
-		if (broadcast) {
-			const transactionJSON = transaction.toJSON();
-			this.broadcaster.enqueue(
-				{},
-				{
-					api: 'postTransactionsAnnouncement',
-					data: {
-						transaction: { id: transaction.id },
-					},
-				},
-			);
-			this.channel.publish('chain:transactions:change', transactionJSON);
-		}
+	handleBroadcastTransaction(transaction) {
+		this.broadcaster.enqueueTransactionId(transaction.id);
+		this.channel.publish('chain:transactions:change', transaction.toJSON());
 	}
 
 	/**
@@ -135,43 +110,19 @@ class Transport {
 	 * @param {boolean} broadcast - Signal flag for broadcast
 	 * @emits blocks/change
 	 */
-	// TODO: Remove after block module becomes event-emitter
-	// eslint-disable-next-line class-methods-use-this
-	handleBroadcastBlock(block, broadcast) {
-		// Exit immediately when 'broadcast' flag is not set
-		if (!broadcast) return null;
-
+	async handleBroadcastBlock(blockJSON) {
 		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
 			return null;
 		}
-
-		if (block.totalAmount) {
-			block.totalAmount = block.totalAmount.toNumber();
-		}
-
-		if (block.totalFee) {
-			block.totalFee = block.totalFee.toNumber();
-		}
-
-		if (block.reward) {
-			block.reward = block.reward.toNumber();
-		}
-
-		if (block.transactions) {
-			// Convert transactions to JSON
-			block.transactions = block.transactions.map(transactionInstance =>
-				transactionInstance.toJSON(),
-			);
-		}
-
-		// Perform actual broadcast operation
-		return this.broadcaster.broadcast(
-			{},
-			{ api: 'postBlock', data: { block } },
-		);
+		return this.channel.invoke('network:send', {
+			event: 'postBlock',
+			data: {
+				block: blockJSON,
+			},
+		});
 	}
 
 	/**
@@ -321,7 +272,7 @@ class Transport {
 	async handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
-			this.constants.maxSharedTransactions,
+			this.constants.broadcasts.releaseLimit,
 		);
 
 		const signatures = transactions
@@ -351,12 +302,12 @@ class Transport {
 				success: true,
 				transactions: this.transactionPoolModule.getMergedTransactionList(
 					true,
-					this.constants.maxSharedTransactions,
+					this.constants.broadcasts.releaseLimit,
 				),
 			};
 		}
 
-		if (ids.length > this.constants.maxSharedTransactions) {
+		if (ids.length > this.constants.broadcasts.releaseLimit) {
 			// TODO: apply penalty to the requester #3672
 			return {
 				transactions: [],
@@ -383,7 +334,7 @@ class Transport {
 			// Check if any transaction that was not in the queues, is in the database instead.
 			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
 				{ id_in: idsNotInPool },
-				{ limit: this.constants.maxSharedTransactions },
+				{ limit: this.constants.broadcasts.releaseLimit },
 			);
 
 			return {
@@ -441,7 +392,7 @@ class Transport {
 		}
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
-			data.transactions.map(transaction => transaction.id),
+			data.transactionIds,
 		);
 		if (unknownTransactionIDs.length > 0) {
 			const { data: result } = await this.channel.invoke(
@@ -478,7 +429,7 @@ class Transport {
 					id_in: unknownTransactionsIDs,
 				},
 				{
-					limit: this.constants.maxSharedTransactions,
+					limit: this.constants.broadcasts.releaseLimit,
 				},
 			);
 
