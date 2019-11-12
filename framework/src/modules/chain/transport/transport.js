@@ -20,6 +20,9 @@ const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
 const schemas = require('./schemas');
 
+const DEFAULT_RATE_RESET_TIME = 10000;
+const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
+
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
  *
@@ -75,6 +78,12 @@ class Transport {
 			channel: this.channel,
 			storage: this.storage,
 		});
+
+		// Rate limit for certain endpoints
+		this.rateTracker = {};
+		setInterval(() => {
+			this.rateTracker = {};
+		}, DEFAULT_RATE_RESET_TIME);
 	}
 
 	/**
@@ -141,27 +150,59 @@ class Transport {
 	 */
 
 	/**
-	 * Returns a set of full blocks starting from the ID defined in the payload up to
+	 * Returns a set of full blocks starting from the ID defined in the data up to
 	 * the current tip of the chain.
-	 * @param {object} payload
-	 * @param {string} payload.blockId - The ID of the starting block
+	 * @param {object} data
+	 * @param {string} data.blockId - The ID of the starting block
 	 * @return {Promise<Array<object>>}
 	 */
-	async handleRPCGetBlocksFromId(payload) {
-		validator.validate(schemas.getBlocksFromIdRequest, payload);
+	async handleRPCGetBlocksFromId(data, peerId) {
+		validator.validate(schemas.getBlocksFromIdRequest, data);
 
 		if (validator.validator.errors) {
-			this.logger.debug(
+			this.logger.warn(
 				{
 					err: validator.validator.errors,
-					req: payload,
+					req: data,
 				},
 				'getBlocksFromID request validation failed',
 			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw validator.validator.errors;
 		}
 
-		return this.blocksModule.loadBlocksFromLastBlockId(payload.blockId, 34);
+		return this.blocksModule.loadBlocksFromLastBlockId(data.blockId, 34);
+	}
+
+	async handleRPCGetGetHighestCommonBlock(data, peerId) {
+		const valid = validator.validate(
+			schemas.getHighestCommonBlockRequest,
+			data,
+		);
+
+		if (valid.length) {
+			const err = valid;
+			const error = `${err[0].message}: ${err[0].path}`;
+			this.logger.warn(
+				{
+					err: error,
+					req: data,
+				},
+				'getHighestCommonBlock request validation failed',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw new Error(error);
+		}
+
+		const commonBlock = await this.blocksModule.getHighestCommonBlock(data.ids);
+
+		return commonBlock;
 	}
 
 	/**
@@ -171,7 +212,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostBlock(query = {}, peerId) {
+	async handleEventPostBlock(data, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -181,27 +222,30 @@ class Transport {
 		// Should ignore received block if syncing
 		if (this.synchronizer.isActive) {
 			return this.logger.debug(
-				{ blockId: query.block.id, height: query.block.height },
+				{ blockId: data.block.id, height: data.block.height },
 				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
 
-		const errors = validator.validate(schemas.blocksBroadcast, query);
+		const errors = validator.validate(schemas.postBlockEvent, data);
 
 		if (errors.length) {
-			this.logger.debug(
+			this.logger.warn(
 				{
 					errors,
 					module: 'transport',
-					query,
+					data,
 				},
 				'Received post block broadcast request in unexpected format',
 			);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
-		const block = await this.processorModule.deserialize(query.block);
+		const block = await this.processorModule.deserialize(data.block);
 
 		return this.processorModule.process(block, { peerId });
 	}
@@ -213,8 +257,8 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostSignature(query) {
-		const errors = validator.validate(schemas.signatureObject, query.signature);
+	async handleEventPostSignature(data) {
+		const errors = validator.validate(schemas.signatureObject, data.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
@@ -226,7 +270,7 @@ class Transport {
 
 		try {
 			await this.transactionPoolModule.getTransactionAndProcessSignature(
-				query.signature,
+				data.signature,
 			);
 			return {};
 		} catch (err) {
@@ -244,22 +288,41 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostSignatures(query) {
-		if (!this.constants.broadcasts.active) {
-			return this.logger.debug(
-				'Receiving signatures disabled by user through config.json',
-			);
-		}
-
-		const errors = validator.validate(schemas.signaturesList, query);
+	async handleEventPostSignatures(data, peerId) {
+		await this._addRateLimit(
+			'postSignatures',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		const errors = validator.validate(schemas.postSignatureEvent, data);
 
 		if (errors.length) {
-			this.logger.debug({ err: errors }, 'Invalid signatures body');
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			this.logger.warn({ err: errors }, 'Invalid signatures body');
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
-		return this._receiveSignatures(query.signatures);
+		for (const signature of data.signatures) {
+			const signatureObjectErrors = validator.validate(
+				schemas.signatureObject,
+				signature,
+			);
+
+			if (signatureObjectErrors.length) {
+				await this.channel.invoke('network:applyPenalty', {
+					peerId,
+					penalty: 100,
+				});
+				throw signatureObjectErrors;
+			}
+
+			await this.transactionPoolModule.getTransactionAndProcessSignature(
+				signature,
+			);
+		}
 	}
 
 	/**
@@ -296,10 +359,28 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleRPCGetTransactions(ids) {
-		if (!(ids && Array.isArray(ids) && ids.length)) {
+	async handleRPCGetTransactions(data, peerId) {
+		await this._addRateLimit(
+			'getTransactions',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		const errors = validator.validate(schemas.getTransactionsRequest, data);
+		if (errors.length) {
+			this.logger.warn(
+				{ err: errors, peerId },
+				'Received invalid transactions body',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw errors;
+		}
+
+		const { transactionIds } = data;
+		if (!transactionIds) {
 			return {
-				success: true,
 				transactions: this.transactionPoolModule.getMergedTransactionList(
 					true,
 					this.constants.broadcasts.releaseLimit,
@@ -307,17 +388,20 @@ class Transport {
 			};
 		}
 
-		if (ids.length > this.constants.broadcasts.releaseLimit) {
-			// TODO: apply penalty to the requester #3672
-			return {
-				transactions: [],
-			};
+		if (transactionIds.length > this.constants.broadcasts.releaseLimit) {
+			const error = new Error('Received invalid request.');
+			this.logger.warn({ err: error, peerId }, 'Received invalid request.');
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw error;
 		}
 
 		const transactionsFromQueues = [];
 		const idsNotInPool = [];
 
-		for (const id of ids) {
+		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
 			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
 				id,
@@ -354,9 +438,9 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostTransaction(query) {
+	async handleEventPostTransaction(data) {
 		try {
-			const id = await this._receiveTransaction(query.transaction);
+			const id = await this._receiveTransaction(data.transaction);
 			return {
 				transactionId: id,
 			};
@@ -376,18 +460,26 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleEventPostTransactionsAnnouncement({ data, peerId }) {
-		if (!this.constants.broadcasts.active) {
-			return this.logger.debug(
-				'Receiving transactions disabled by user through config.json',
-			);
-		}
-
-		const errors = validator.validate(schemas.transactionsRequest, data);
+	async handleEventPostTransactionsAnnouncement(data, peerId) {
+		await this._addRateLimit(
+			'postTransactionsAnnouncement',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		const errors = validator.validate(
+			schemas.postTransactionsAnnouncementEvent,
+			data,
+		);
 
 		if (errors.length) {
-			this.logger.debug({ err: errors }, 'Invalid transactions body');
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			this.logger.warn(
+				{ err: errors, peerId },
+				'Received invalid transactions body',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
@@ -399,11 +491,22 @@ class Transport {
 				'network:requestFromPeer',
 				{
 					procedure: 'getTransactions',
-					data: unknownTransactionIDs,
+					data: { transactionIds: unknownTransactionIDs },
 					peerId,
 				},
 			);
-			return this._receiveTransactions(result.transactions);
+			try {
+				for (const transaction of result.transactions) {
+					transaction.bundled = true;
+					await this._receiveTransaction(transaction);
+				}
+			} catch (err) {
+				this.logger.warn({ err, peerId }, 'Received invalid transactions.');
+				await this.channel.invoke('network:applyPenalty', {
+					peerId,
+					penalty: 100,
+				});
+			}
 		}
 
 		return null;
@@ -445,65 +548,6 @@ class Transport {
 	}
 
 	/**
-	 * Validates signatures body and for each signature calls receiveSignature.
-	 *
-	 * @private
-	 * @implements {__private.receiveSignature}
-	 * @param {Array} signatures - Array of signatures
-	 */
-	async _receiveSignatures(signatures = []) {
-		for (const signature of signatures) {
-			try {
-				await this._receiveSignature(signature);
-			} catch (err) {
-				this.logger.debug(err, signature);
-			}
-		}
-	}
-
-	/**
-	 * Validates signature with schema and calls getTransactionAndProcessSignature.
-	 *
-	 * @private
-	 * @param {Object} query
-	 * @param {string} query.signature
-	 * @param {Object} query.transaction
-	 * @returns {Promise.<boolean, Error>}
-	 * @todo Add description for the params
-	 */
-	async _receiveSignature(signature) {
-		const errors = validator.validate(schemas.signatureObject, signature);
-
-		if (errors.length) {
-			throw errors;
-		}
-
-		return this.transactionPoolModule.getTransactionAndProcessSignature(
-			signature,
-		);
-	}
-
-	/**
-	 * Validates transactions with schema and calls receiveTransaction for each transaction.
-	 *
-	 * @private
-	 * @implements {__private.receiveTransaction}
-	 * @param {Array} transactions - Array of transactions
-	 */
-	async _receiveTransactions(transactions = []) {
-		for (const transaction of transactions) {
-			try {
-				if (transaction) {
-					transaction.bundled = true;
-				}
-				await this._receiveTransaction(transaction);
-			} catch (err) {
-				this.logger.debug(convertErrorsToString(err), transaction);
-			}
-		}
-	}
-
-	/**
 	 * Normalizes transaction
 	 * processUnconfirmedTransaction to confirm it.
 	 *
@@ -537,7 +581,6 @@ class Transport {
 				'Transaction normalization failed',
 			);
 
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
@@ -555,6 +598,21 @@ class Transport {
 				this.logger.debug({ transaction }, 'Transaction');
 			}
 			throw err;
+		}
+	}
+
+	async _addRateLimit(procedure, peerId, limit) {
+		if (this.rateTracker[procedure] === undefined) {
+			this.rateTracker[procedure] = { [peerId]: 0 };
+		}
+		this.rateTracker[procedure][peerId] = this.rateTracker[procedure][peerId]
+			? this.rateTracker[procedure][peerId] + 1
+			: 1;
+		if (this.rateTracker[procedure][peerId] > limit) {
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 10,
+			});
 		}
 	}
 }
