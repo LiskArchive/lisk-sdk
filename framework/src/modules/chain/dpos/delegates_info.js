@@ -123,7 +123,7 @@ class DelegatesInfo {
 				/**
 				 * If we are reverting the block, new transactions
 				 * can change vote weight of delegates, so we need to
-				 * invalidate the cache for the next rounds.
+				 * invalidate the state store cache for the next rounds.
 				 */
 				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
 			} else {

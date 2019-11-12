@@ -237,11 +237,11 @@ const prepare = async (stateStore, transactions) => {
 		return true;
 	}
 
-	const cacheFilter = senderRecipientVotedPublicKeys.map(publicKey => ({
+	const cacheAddress = senderRecipientVotedPublicKeys.map(publicKey => ({
 		address: getAddressFromPublicKey(publicKey),
 	}));
 
-	return stateStore.account.cache(cacheFilter);
+	return stateStore.account.cache(cacheAddress);
 };
 
 module.exports = {
