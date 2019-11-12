@@ -377,16 +377,12 @@ describe('peerBook', () => {
 			const maxPeerListLength = 100;
 
 			expect(
-				peerBook.getPeerDiscoveryResponsePeerList(
-					minPeerListLength,
-					maxPeerListLength,
-				).length,
+				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength)
+					.length,
 			).to.be.gt(minPeerListLength - 1);
 			expect(
-				peerBook.getPeerDiscoveryResponsePeerList(
-					minPeerListLength,
-					maxPeerListLength,
-				).length,
+				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength)
+					.length,
 			).to.be.lt(maxPeerListLength + 1);
 		});
 	});

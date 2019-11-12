@@ -16,12 +16,18 @@ import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
 import { constructPeerId } from './misc';
 
 export const sanitizeIncomingPeerInfo = (
-	peerInfo: ProtocolPeerInfo,
-): P2PPeerInfo => {
-	const { ipAddress, wsPort, height, ...restOfPeerInfo } = peerInfo;
+	rawPeerInfo: unknown,
+): P2PPeerInfo | undefined => {
+	if (!rawPeerInfo) {
+		return undefined;
+	}
+
+	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
+
+	const { ipAddress, wsPort, height, ...restOfPeerInfo } = protocolPeer;
 
 	return {
-		peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
+		peerId: constructPeerId(protocolPeer.ipAddress, protocolPeer.wsPort),
 		ipAddress,
 		wsPort,
 		sharedState: {
@@ -31,7 +37,7 @@ export const sanitizeIncomingPeerInfo = (
 	};
 };
 
-export const sanitezeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
+export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
 	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
 	ipAddress: peerInfo.ipAddress,
 	wsPort: peerInfo.wsPort,

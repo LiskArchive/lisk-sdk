@@ -33,7 +33,6 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
-	ProtocolPeerInfo,
 } from '../p2p_types';
 
 interface RPCPeerListResponse {
@@ -118,28 +117,24 @@ export const validatePeerAddress = (
 };
 
 export const validatePeerInfo = (
-	rawPeerInfo: unknown,
+	peerInfo: P2PPeerInfo | undefined,
 	maxByteSize: number,
 ): P2PPeerInfo => {
-	if (!rawPeerInfo) {
+	if (!peerInfo) {
 		throw new InvalidPeerInfoError(`Invalid peer object`);
 	}
 
-	const protocolPeer = rawPeerInfo as ProtocolPeerInfo;
-
 	if (
-		!protocolPeer.ipAddress ||
-		!protocolPeer.wsPort ||
-		!validatePeerAddress(protocolPeer.ipAddress, protocolPeer.wsPort)
+		!peerInfo.ipAddress ||
+		!peerInfo.wsPort ||
+		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
 	) {
 		throw new InvalidPeerInfoError(
 			`Invalid peer ipAddress or port for peer with ip: ${
-				protocolPeer.ipAddress
-			} and wsPort ${protocolPeer.wsPort}`,
+				peerInfo.ipAddress
+			} and wsPort ${peerInfo.wsPort}`,
 		);
 	}
-
-	const peerInfo = sanitizeIncomingPeerInfo(protocolPeer);
 
 	const byteSize = getByteSize(peerInfo);
 	if (byteSize > maxByteSize) {
@@ -166,7 +161,7 @@ export const validateNodeInfo = (
 	return;
 };
 
-export const validatePeersInfoList = (
+export const validatePeerInfoList = (
 	rawBasicPeerInfoList: unknown,
 	maxPeerInfoListLength: number,
 	maxPeerInfoByteSize: number,
@@ -185,7 +180,7 @@ export const validatePeersInfoList = (
 		}
 
 		const sanitizedPeerList = peers.map<P2PPeerInfo>(peerInfo =>
-			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
+			validatePeerInfo(sanitizeIncomingPeerInfo(peerInfo), maxPeerInfoByteSize),
 		);
 
 		return sanitizedPeerList;

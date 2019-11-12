@@ -19,6 +19,8 @@ import {
 	validateRPCRequest,
 	validateProtocolMessage,
 	validateNodeInfo,
+	sanitizeIncomingPeerInfo,
+	validatePeerInfoList,
 } from '../../../src/utils';
 import {
 	ProtocolPeerInfo,
@@ -26,6 +28,12 @@ import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 } from '../../../src/p2p_types';
+import {
+	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+	DEFAULT_MAX_PEER_INFO_SIZE,
+	PEER_INFO_LIST_TOO_LONG_REASON,
+	INVALID_PEER_INFO_LIST_REASON,
+} from '../../../src';
 describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
@@ -50,7 +58,7 @@ describe('utils/validate', () => {
 			};
 
 			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(peer, 10000))
+				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000))
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
@@ -67,7 +75,12 @@ describe('utils/validate', () => {
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', async () => {
-				expect(validatePeerInfo(peerWithInvalidHeightValue, 10000))
+				expect(
+					validatePeerInfo(
+						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
+						10000,
+					),
+				)
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
@@ -88,9 +101,13 @@ describe('utils/validate', () => {
 			it('should throw an InvalidPeer error for invalid peer', async () => {
 				const peerInvalid: unknown = null;
 
-				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
-					'Invalid peer object',
-				);
+				expect(
+					validatePeerInfo.bind(
+						null,
+						sanitizeIncomingPeerInfo(peerInvalid),
+						10000,
+					),
+				).to.throw('Invalid peer object');
 			});
 
 			it('should throw if PeerInfo is too big', async () => {
@@ -106,7 +123,11 @@ describe('utils/validate', () => {
 				};
 
 				expect(
-					validatePeerInfo.bind(null, peer, maximumPeerInfoSizeInBytes),
+					validatePeerInfo.bind(
+						null,
+						sanitizeIncomingPeerInfo(peer),
+						maximumPeerInfoSizeInBytes,
+					),
 				).to.throw(
 					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
@@ -121,9 +142,99 @@ describe('utils/validate', () => {
 					},
 				};
 
-				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
-					'Invalid peer ipAddress or port',
-				);
+				expect(
+					validatePeerInfo.bind(
+						null,
+						sanitizeIncomingPeerInfo(peerInvalid),
+						10000,
+					),
+				).to.throw('Invalid peer ipAddress or port');
+			});
+		});
+	});
+
+	describe('#validatePeerInfoList', () => {
+		let generatePeerInfoResponse: any = {
+			peers: [],
+		};
+		beforeEach(() => {
+			generatePeerInfoResponse = {
+				peers: [],
+			};
+
+			generatePeerInfoResponse.peers = [...Array(3)].map(() => ({
+				ipAddress: '128.127.126.125',
+				wsPort: 5000,
+			}));
+		});
+
+		describe('when PeerInfo list is valid', () => {
+			it('should return P2PPeerInfo array', async () => {
+				expect(
+					validatePeerInfoList(
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					).length,
+				).to.be.eql(generatePeerInfoResponse.peers.length);
+			});
+		});
+
+		describe('when rawBasicPeerInfoList list is falsy', () => {
+			it('should throw an Error', async () => {
+				generatePeerInfoResponse = undefined;
+
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw(INVALID_PEER_INFO_LIST_REASON);
+			});
+		});
+
+		describe('when PeerInfo list is not an array', () => {
+			it('should throw an Error', async () => {
+				generatePeerInfoResponse.peers = 'fizzBuzz';
+
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw(INVALID_PEER_INFO_LIST_REASON);
+			});
+		});
+
+		describe('when PeerInfo list os too long', () => {
+			it('should throw an Error', async () => {
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						generatePeerInfoResponse.peers.length - 1,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw(PEER_INFO_LIST_TOO_LONG_REASON);
+			});
+		});
+
+		describe('when PeerInfo list has falsy PeerInfo', () => {
+			it('should return P2PPeerInfo array', async () => {
+				generatePeerInfoResponse.peers.push(undefined);
+
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw('Invalid peer object');
 			});
 		});
 	});

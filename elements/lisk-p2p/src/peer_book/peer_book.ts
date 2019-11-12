@@ -74,6 +74,29 @@ export class PeerBook {
 		return [...this.newPeers, ...this.triedPeers];
 	}
 
+	public getRandomizedPeerList(
+		minimumPeerDiscoveryThreshold: number,
+		peerDiscoveryResponseLength: number,
+	): ReadonlyArray<P2PPeerInfo> {
+		const allPeers = [...this.newPeers, ...this.triedPeers];
+
+		/* tslint:disable no-magic-numbers*/
+		const min = Math.ceil(
+			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.25),
+		);
+		const max = Math.floor(
+			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.5),
+		);
+
+		const random = Math.floor(Math.random() * (max - min + 1) + min);
+		const randomPeerCount = Math.max(
+			random,
+			Math.min(minimumPeerDiscoveryThreshold, allPeers.length),
+		);
+
+		return shuffle(allPeers).slice(0, randomPeerCount);
+	}
+
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		const triedPeer = this._triedPeers.getPeer(peerInfo);
 		if (this._triedPeers.getPeer(peerInfo)) {
@@ -150,28 +173,5 @@ export class PeerBook {
 		}
 
 		return false;
-	}
-
-	public getPeerDiscoveryResponsePeerList(
-		minimumPeerDiscoveryThreshold: number,
-		peerDiscoveryResponseLength: number,
-	): ReadonlyArray<P2PPeerInfo> {
-		const allPeers = [...this.newPeers, ...this.triedPeers];
-
-		/* tslint:disable no-magic-numbers*/
-		const min = Math.ceil(
-			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.25),
-		);
-		const max = Math.floor(
-			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.5),
-		);
-
-		const random = Math.floor(Math.random() * (max - min + 1) + min);
-		const randomPeerCount = Math.max(
-			random,
-			Math.min(minimumPeerDiscoveryThreshold, allPeers.length),
-		);
-
-		return shuffle(allPeers).slice(0, randomPeerCount);
 	}
 }

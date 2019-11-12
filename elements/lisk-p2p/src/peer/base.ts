@@ -56,8 +56,9 @@ import {
 } from '../p2p_types';
 import {
 	getNetgroup,
+	sanitizeIncomingPeerInfo,
 	validatePeerInfo,
-	validatePeersInfoList,
+	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../utils';
@@ -395,7 +396,7 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
 
-			return validatePeersInfoList(
+			return validatePeerInfoList(
 				response.data,
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
@@ -511,14 +512,13 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = {
-			...rawPeerInfo,
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
-		};
-
+		// Sanitize and validate PeerInfo
 		const newPeerInfo = validatePeerInfo(
-			protocolPeerInfo,
+			sanitizeIncomingPeerInfo({
+				...rawPeerInfo,
+				ipAddress: this._ipAddress,
+				wsPort: this._wsPort,
+			}),
 			this._peerConfig.maxPeerInfoSize,
 		);
 

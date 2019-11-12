@@ -44,6 +44,7 @@ import {
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
+	INCOMPATIBLE_PEER_INFO_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
 	INVALID_CONNECTION_QUERY_REASON,
@@ -97,13 +98,14 @@ import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
 	getByteSize,
-	sanitezeInitialPeerInfo,
+	sanitizeInitialPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
 	validateNodeInfo,
 	validatePeerCompatibility,
+	validatePeerInfo,
 } from './utils';
 
 interface SCServerUpdated extends SCServer {
@@ -231,19 +233,19 @@ export class P2P extends EventEmitter {
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers
-					? config.seedPeers.map(sanitezeInitialPeerInfo)
+					? config.seedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers.map(sanitezeInitialPeerInfo)
+					? config.blacklistedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				fixedPeers: config.fixedPeers
-					? config.fixedPeers.map(sanitezeInitialPeerInfo)
+					? config.fixedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				whitelisted: config.whitelistedPeers
-					? config.whitelistedPeers.map(sanitezeInitialPeerInfo)
+					? config.whitelistedPeers.map(sanitizeInitialPeerInfo)
 					: [],
 				previousPeers: config.previousPeers
-					? config.previousPeers.map(sanitezeInitialPeerInfo)
+					? config.previousPeers.map(sanitizeInitialPeerInfo)
 					: [],
 			},
 			{
@@ -633,6 +635,7 @@ export class P2P extends EventEmitter {
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'connection',
+			// tslint:disable-next-line: cyclomatic-complexity
 			(socket: SCServerSocket): void => {
 				// Check blacklist to avoid incoming connections from backlisted ips
 				if (this._sanitizedPeerLists.blacklistedPeers) {
@@ -736,13 +739,28 @@ export class P2P extends EventEmitter {
 					sharedState: {
 						...restOfQueryObject,
 						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0,
-						version: queryObject.version,
+						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+						protocolVersion: queryObject.protocolVersion,
 					},
 					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
 				};
+
+				try {
+					validatePeerInfo(
+						incomingPeerInfo,
+						this._config.maxPeerInfoSize
+							? this._config.maxPeerInfoSize
+							: DEFAULT_MAX_PEER_INFO_SIZE,
+					);
+				} catch (error) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						INCOMPATIBLE_PEER_INFO_CODE,
+						error,
+					);
+				}
 
 				const { success, errors } = this._peerHandshakeCheck(
 					incomingPeerInfo,
@@ -878,7 +896,7 @@ export class P2P extends EventEmitter {
 		const safeMaxPeerInfoLength =
 			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInforSize) - 1;
 
-		const selectedPeers = this._peerBook.getPeerDiscoveryResponsePeerList(
+		const selectedPeers = this._peerBook.getRandomizedPeerList(
 			minimumPeerDiscoveryThreshold,
 			peerDiscoveryResponseLength,
 		);
