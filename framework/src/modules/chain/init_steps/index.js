@@ -15,9 +15,7 @@
 'use strict';
 
 const bootstrapStorage = require('./bootstrap_storage');
-const bootstrapCache = require('./bootstrap_cache');
 
 module.exports = {
 	bootstrapStorage,
-	bootstrapCache,
 };
