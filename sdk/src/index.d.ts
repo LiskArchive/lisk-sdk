@@ -17,7 +17,12 @@ import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 
-declare const Application: any;
+declare class Application {
+	constructor(genesisBlock: object, config: object);
+	run(): Promise<void>;
+	registerTransaction(transactionClass: object): void;
+}
+
 declare const version: number;
 declare const systemDirs: any;
 declare const configurator: any;
