@@ -30,6 +30,10 @@ Object {
       "minimum": 0,
       "type": "integer",
     },
+    "maxHeightPrevoted": Object {
+      "minimum": 0,
+      "type": "integer",
+    },
     "numberOfTransactions": Object {
       "minimum": 0,
       "type": "integer",
@@ -50,10 +54,6 @@ Object {
         "null",
         "string",
       ],
-    },
-    "maxHeightPrevoted": Object {
-      "minimum": 0,
-      "type": "integer",
     },
     "reward": Object {
       "format": "amount",
