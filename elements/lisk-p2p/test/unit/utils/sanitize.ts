@@ -15,38 +15,62 @@
 import { expect } from 'chai';
 import {
 	sanitizeIncomingPeerInfo,
-	sanitizeOutgoingPeerInfo,
+	sanitizeInitialPeerInfo,
 } from '../../../src/utils';
 import { initPeerInfoList } from 'utils/peers';
 
 describe('utils/sanitize', () => {
 	describe('#sanitizeIncomingPeerInfo', () => {
-		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
+		describe('when rawPeerInfo is valid', () => {
+			it('should return the peerInfo with peerId', async () => {
+				const samplePeers = initPeerInfoList();
+				const { ipAddress, wsPort, sharedState } = samplePeers[0];
+				const protocolPeerInfo = {
+					ipAddress,
+					wsPort,
+					...sharedState,
+				};
+
+				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).eql(samplePeers[0]);
+			});
+		});
+		describe('when rawPeerInfo is falsy', () => {
+			it('should return undefined', async () => {
+				const undefinedPeerInfo = undefined;
+				const nullPeerInfo = null;
+
+				expect(sanitizeIncomingPeerInfo(undefinedPeerInfo)).eql(undefined);
+				expect(sanitizeIncomingPeerInfo(nullPeerInfo)).eql(undefined);
+			});
+		});
+	});
+
+	describe('#sanitizeInitialPeerInfo', () => {
+		it('should return only sanitized fields', async () => {
+			const samplePeers = initPeerInfoList();
+			const { peerId, ipAddress, wsPort } = samplePeers[0];
+
+			const protocolPeerInfo = {
+				...samplePeers[0],
+			};
+
+			expect(sanitizeInitialPeerInfo(protocolPeerInfo)).eql({
+				peerId,
+				ipAddress,
+				wsPort,
+			});
+		});
+
+		it('should remove ', async () => {
 			const samplePeers = initPeerInfoList();
 			const { ipAddress, wsPort, sharedState } = samplePeers[0];
 			const protocolPeerInfo = {
-				ip: ipAddress,
 				ipAddress,
 				wsPort,
 				...sharedState,
 			};
 
 			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).eql(samplePeers[0]);
-		});
-	});
-
-	describe('#sanitizeOutgoingPeerInfo', () => {
-		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
-			const samplePeers = initPeerInfoList();
-			const { ipAddress, wsPort, sharedState } = samplePeers[0];
-			const protocolPeerInfo = {
-				ip: ipAddress,
-				ipAddress,
-				wsPort,
-				...sharedState,
-			};
-
-			expect(sanitizeOutgoingPeerInfo(samplePeers[0])).eql(protocolPeerInfo);
 		});
 	});
 

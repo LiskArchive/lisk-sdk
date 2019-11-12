@@ -169,7 +169,7 @@ describe('New Peers List', () => {
 
 		it(`should not allow newPeer list to grow beyond ${DEFAULT_NEW_BUCKET_SIZE *
 			DEFAULT_NEW_BUCKET_COUNT} peers`, () => {
-			expect(newPeersList.peersList.length).to.be.lte(
+			expect(newPeersList.peerList.length).to.be.lte(
 				DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT,
 			);
 		});

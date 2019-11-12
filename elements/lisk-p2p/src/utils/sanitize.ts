@@ -10,43 +10,41 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import { constructPeerId } from '.';
+
 import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
+import { constructPeerId } from './misc';
 
 export const sanitizeIncomingPeerInfo = (
-	peerInfo: ProtocolPeerInfo,
-): P2PPeerInfo => {
-	const { ip, ipAddress, wsPort, height, ...restOfPeerInfo } = peerInfo;
+	rawPeerInfo: unknown,
+): P2PPeerInfo | undefined => {
+	if (!rawPeerInfo) {
+		return undefined;
+	}
+
+	const {
+		ipAddress,
+		wsPort,
+		height,
+		...restOfPeerInfo
+	} = rawPeerInfo as ProtocolPeerInfo;
 
 	return {
-		peerId: constructPeerId(peerInfo.ip || peerInfo.ipAddress, peerInfo.wsPort),
-		ipAddress: ip || ipAddress,
+		peerId: constructPeerId(ipAddress, wsPort),
+		ipAddress,
 		wsPort,
 		sharedState: {
-			height: height ? height : 0,
-			protocolVersion: restOfPeerInfo.protocolVersion
-				? restOfPeerInfo.protocolVersion
-				: '',
-			version: restOfPeerInfo.version ? restOfPeerInfo.version : '',
+			height: typeof height === 'number' ? height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 			...restOfPeerInfo,
 		},
 	};
 };
 
-export const sanitizeOutgoingPeerInfo = (
-	peerInfo: P2PPeerInfo,
-): ProtocolPeerInfo => {
-	const { ipAddress, wsPort, sharedState } = peerInfo;
-
-	return {
-		ip: ipAddress,
-		ipAddress,
-		wsPort,
-		...sharedState,
-	};
-};
+export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
+	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
+	ipAddress: peerInfo.ipAddress,
+	wsPort: peerInfo.wsPort,
+});
 
 export const sanitizePeerLists = (
 	lists: PeerLists,
