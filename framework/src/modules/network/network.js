@@ -277,10 +277,10 @@ module.exports = class Network {
 				? request.procedure
 				: `chain:${request.procedure}`;
 			try {
-				const result = await this.channel.invokePublic(
-					sanitizedProcedure,
-					request.data,
-				);
+				const result = await this.channel.invokePublic(sanitizedProcedure, {
+					data: request.data,
+					peerId: request.peerId,
+				});
 				this.logger.trace(
 					`Peer request fulfilled event: Responded to peer request ${
 						request.procedure
@@ -388,7 +388,10 @@ module.exports = class Network {
 				return filterByParams(peers, filterWithoutLimitOffset).length;
 			},
 			applyPenalty: action =>
-				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
+				this.p2p.applyPenalty({
+					peerId: action.params.peerId,
+					penalty: action.params.penalty,
+				}),
 		};
 	}
 
