@@ -304,6 +304,25 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 	}
 
+	async _handleBlockProcessingFailure(error, highestCommonBlock, peerId) {
+		this.logger.error({ err: error }, 'Error while processing blocks');
+		this.logger.debug(
+			{ height: highestCommonBlock.height },
+			'Deleting blocks after height',
+		);
+		await deleteBlocksAfterHeight(
+			this.processor,
+			this.blocks,
+			highestCommonBlock.height,
+		);
+		this.logger.debug('Restoring blocks from temporary table');
+		await restoreBlocks(this.blocks, this.processor);
+		throw new ApplyPenaltyAndRestartError(
+			peerId,
+			'Detected invalid block while processing list of requested blocks',
+		);
+	}
+
 	/**
 	 * Switches to desired chain
 	 * @param {Object} highestCommonBlock
@@ -345,21 +364,10 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			);
 		} catch (err) {
 			if (err instanceof BlockProcessingError) {
-				this.logger.error({ err }, 'Error while processing blocks');
-				this.logger.debug(
-					{ height: highestCommonBlock.height },
-					'Deleting blocks after height',
-				);
-				await deleteBlocksAfterHeight(
-					this.processor,
-					this.blocks,
-					highestCommonBlock.height,
-				);
-				this.logger.debug('Restoring blocks from temporary table');
-				await restoreBlocks(this.blocks, this.processor);
-				throw new ApplyPenaltyAndRestartError(
+				await this._handleBlockProcessingFailure(
+					err,
+					highestCommonBlock,
 					peerId,
-					'Detected invalid block while processing list of requested blocks',
 				);
 			} else {
 				throw err;
