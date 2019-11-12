@@ -51,7 +51,7 @@ Object {
         "string",
       ],
     },
-    "prevotedConfirmedUptoHeight": Object {
+    "maxHeightPrevoted": Object {
       "minimum": 0,
       "type": "integer",
     },

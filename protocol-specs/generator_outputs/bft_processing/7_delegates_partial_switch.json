@@ -17,7 +17,7 @@
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 0
+					"maxHeightPrevoted": 0
 				}
 			},
 			"output": {
@@ -38,7 +38,7 @@
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 0
+					"maxHeightPrevoted": 0
 				}
 			},
 			"output": {
@@ -60,7 +60,7 @@
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 0
+					"maxHeightPrevoted": 0
 				}
 			},
 			"output": {
@@ -83,7 +83,7 @@
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 0
+					"maxHeightPrevoted": 0
 				}
 			},
 			"output": {
@@ -107,7 +107,7 @@
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 0
+					"maxHeightPrevoted": 0
 				}
 			},
 			"output": {
@@ -132,7 +132,7 @@
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 1
+					"maxHeightPrevoted": 1
 				}
 			},
 			"output": {
@@ -160,7 +160,7 @@
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 2
+					"maxHeightPrevoted": 2
 				}
 			},
 			"output": {
@@ -190,7 +190,7 @@
 					"maxHeightPreviouslyForged": 2,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 3
+					"maxHeightPrevoted": 3
 				}
 			},
 			"output": {
@@ -222,7 +222,7 @@
 					"maxHeightPreviouslyForged": 3,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 4
+					"maxHeightPrevoted": 4
 				}
 			},
 			"output": {
@@ -256,7 +256,7 @@
 					"maxHeightPreviouslyForged": 1,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 5
+					"maxHeightPrevoted": 5
 				}
 			},
 			"output": {
@@ -292,7 +292,7 @@
 					"maxHeightPreviouslyForged": 4,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 6
+					"maxHeightPrevoted": 6
 				}
 			},
 			"output": {
@@ -330,7 +330,7 @@
 					"maxHeightPreviouslyForged": 9,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -369,7 +369,7 @@
 					"maxHeightPreviouslyForged": 10,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -409,7 +409,7 @@
 					"maxHeightPreviouslyForged": 11,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -450,7 +450,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -491,7 +491,7 @@
 					"maxHeightPreviouslyForged": 12,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -534,7 +534,7 @@
 					"maxHeightPreviouslyForged": 14,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -578,7 +578,7 @@
 					"maxHeightPreviouslyForged": 15,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -623,7 +623,7 @@
 					"maxHeightPreviouslyForged": 16,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -669,7 +669,7 @@
 					"maxHeightPreviouslyForged": 17,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -716,7 +716,7 @@
 					"maxHeightPreviouslyForged": 18,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -764,7 +764,7 @@
 					"maxHeightPreviouslyForged": 19,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -813,7 +813,7 @@
 					"maxHeightPreviouslyForged": 20,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -863,7 +863,7 @@
 					"maxHeightPreviouslyForged": 21,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -914,7 +914,7 @@
 					"maxHeightPreviouslyForged": 22,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -966,7 +966,7 @@
 					"maxHeightPreviouslyForged": 23,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1019,7 +1019,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1072,7 +1072,7 @@
 					"maxHeightPreviouslyForged": 25,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1127,7 +1127,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1182,7 +1182,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1238,7 +1238,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1295,7 +1295,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1353,7 +1353,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1412,7 +1412,7 @@
 					"maxHeightPreviouslyForged": 6,
 					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 7
+					"maxHeightPrevoted": 7
 				}
 			},
 			"output": {
@@ -1473,7 +1473,7 @@
 					"maxHeightPreviouslyForged": 29,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"activeSinceRound": 1,
-					"prevotedConfirmedUptoHeight": 30
+					"maxHeightPrevoted": 30
 				}
 			},
 			"output": {

@@ -33,7 +33,7 @@ const extractBFTBlockHeaderFromBlock = block => ({
 	blockId: block.id,
 	height: block.height,
 	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged,
-	prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+	maxHeightPrevoted: block.maxHeightPrevoted,
 	delegatePublicKey: block.generatorPublicKey,
 	activeSinceRound: 0, // TODO: Link the new DPOS with BFT here
 });
@@ -106,8 +106,7 @@ class BFT extends EventEmitter {
 		return {
 			...blockInstance,
 			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
-			prevotedConfirmedUptoHeight:
-				blockInstance.prevotedConfirmedUptoHeight || 0,
+			maxHeightPrevoted: blockInstance.maxHeightPrevoted || 0,
 		};
 	}
 
@@ -174,18 +173,18 @@ class BFT extends EventEmitter {
 	}
 
 	/**
-	 * Computes maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties that are necessary
+	 * Computes maxHeightPreviouslyForged and maxHeightPrevoted properties that are necessary
 	 * for creating a new block
 	 * @param delegatePublicKey
-	 * @return {Promise<{prevotedConfirmedUptoHeight: number, maxHeightPreviouslyForged: (number|*)}>}
+	 * @return {Promise<{maxHeightPrevoted: number, maxHeightPreviouslyForged: (number|*)}>}
 	 */
 	async computeBFTHeaderProperties(delegatePublicKey) {
 		const previouslyForged = await this._getPreviouslyForgedMap();
 		const maxHeightPreviouslyForged = previouslyForged[delegatePublicKey] || 0;
 
 		return {
-			// prevotedConfirmedUptoHeight is up till height - 1
-			prevotedConfirmedUptoHeight: this.finalityManager.prevotedConfirmedHeight,
+			// maxHeightPrevoted is up till height - 1
+			maxHeightPrevoted: this.finalityManager.prevotedConfirmedHeight,
 			maxHeightPreviouslyForged,
 		};
 	}
