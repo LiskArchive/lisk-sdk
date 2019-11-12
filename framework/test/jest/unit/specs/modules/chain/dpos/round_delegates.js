@@ -28,7 +28,11 @@ const delegateAccounts = delegatePublicKeys.map((pk, index) => {
 		voteWeight,
 		fees: balance.sub(rewards),
 		publicKey: pk,
-		votedDelegatesPublicKeys: [`abc${index}`, `def${index}`, `xyz${index}`],
+		votedDelegatesPublicKeys: [
+			`abc${index}`,
+			`def${index}`,
+			`xyz${index % 10}`,
+		], // array with 2 uniq and one shared public key
 	};
 });
 

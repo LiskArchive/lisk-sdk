@@ -18,7 +18,11 @@ const {
 	restoreBlocks,
 	restoreBlocksUponStartup,
 } = require('../../../../../../../src/modules/chain/synchronizer/utils');
-const ForkChoiceRule = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
+const {
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_VALID_BLOCK,
+	FORK_STATUS_DISCARD,
+} = require('../../../../../../../src/modules/chain/bft');
 
 describe('#synchronizer/utils', () => {
 	let blocksMock;
@@ -146,9 +150,7 @@ describe('#synchronizer/utils', () => {
 
 		it('should restore blocks if fork status = FORK_STATUS_DIFFERENT_CHAIN', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(
-				ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
-			);
+			processorMock.forkStatus.mockResolvedValue(FORK_STATUS_DIFFERENT_CHAIN);
 
 			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
@@ -167,9 +169,7 @@ describe('#synchronizer/utils', () => {
 
 		it('should restore blocks if fork status = FORK_STATUS_VALID_BLOCK', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(
-				ForkChoiceRule.FORK_STATUS_VALID_BLOCK,
-			);
+			processorMock.forkStatus.mockResolvedValue(FORK_STATUS_VALID_BLOCK);
 
 			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
@@ -188,9 +188,7 @@ describe('#synchronizer/utils', () => {
 
 		it('should truncate temp_block table if fork status != FORK_STATUS_DIFFERENT_CHAIN || != FORK_STATUS_VALID_BLOCK', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(
-				ForkChoiceRule.FORK_STATUS_DISCARD,
-			);
+			processorMock.forkStatus.mockResolvedValue(FORK_STATUS_DISCARD);
 			processorMock.deleteLastBlock.mockResolvedValue({ height: 0 });
 
 			blocksMock.lastBlock = {
@@ -215,9 +213,7 @@ describe('#synchronizer/utils', () => {
 
 		it('should call forkStatus with lowest block object', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(
-				ForkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
-			);
+			processorMock.forkStatus.mockResolvedValue(FORK_STATUS_DIFFERENT_CHAIN);
 
 			processorMock.deserialize.mockResolvedValue(tempBlocks[0].fullBlock);
 

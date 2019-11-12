@@ -18,4 +18,5 @@
   PARAMETERS: None
 */
 
-CREATE INDEX IF NOT EXISTS "mem_accounts_public_key" ON "mem_accounts" (ENCODE("publicKey", 'hex'));
+DROP INDEX IF EXISTS "mem_accounts_public_key";
+CREATE INDEX IF NOT EXISTS "mem_accounts_public_key" ON "mem_accounts" ("publicKey");

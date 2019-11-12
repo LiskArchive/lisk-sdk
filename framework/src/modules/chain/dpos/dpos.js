@@ -87,7 +87,10 @@ module.exports = class Dpos {
 		block,
 		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
 	) {
-		return this.delegatesList.verifyBlockForger(block, { tx, delegateListRoundOffset });
+		return this.delegatesList.verifyBlockForger(block, {
+			tx,
+			delegateListRoundOffset,
+		});
 	}
 
 	async apply(
