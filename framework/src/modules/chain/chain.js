@@ -15,10 +15,8 @@
 'use strict';
 
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createLoggerComponent } = require('../../components/logger');
 const { bootstrapStorage } = require('./init_steps');
@@ -231,14 +229,14 @@ module.exports = class Chain {
 					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactionsAnnouncement') {
-								await this.transport.handleEventPostTransactionsAnnouncement({
+								await this.transport.handleEventPostTransactionsAnnouncement(
 									data,
 									peerId,
-								});
+								);
 								return;
 							}
 							if (event === 'postSignatures') {
-								await this.transport.handleEventPostSignatures(data);
+								await this.transport.handleEventPostSignatures(data, peerId);
 								return;
 							}
 							if (event === 'postBlock') {
@@ -286,9 +284,10 @@ module.exports = class Chain {
 					action.params.forging,
 				),
 			getTransactions: async action =>
-				action.params
-					? this.transport.handleRPCGetTransactions(action.params)
-					: this.transport.handleRPCGetTransactions(),
+				this.transport.handleRPCGetTransactions(
+					action.params.data,
+					action.params.peerId,
+				),
 			getSignatures: async () => this.transport.handleRPCGetSignatures(),
 			postSignature: async action =>
 				this.transport.handleEventPostSignature(action.params),
@@ -311,39 +310,17 @@ module.exports = class Chain {
 				lastBlock: this.blocks.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
 			}),
-			getLastBlock: async () => ({
-				...this.blocks.lastBlock,
-				reward: this.blocks.lastBlock.reward.toString(),
-				totalAmount: this.blocks.lastBlock.totalAmount.toString(),
-				totalFee: this.blocks.lastBlock.totalFee.toString(),
-			}),
+			getLastBlock: async () => this.processor.serialize(this.blocks.lastBlock),
 			getBlocksFromId: async action =>
-				this.transport.handleRPCGetBlocksFromId(action.params || {}),
-			getHighestCommonBlock: async action => {
-				const valid = validator.validate(
-					definitions.getHighestCommonBlockRequest,
-					action.params,
-				);
-
-				if (valid.length) {
-					const err = valid;
-					const error = `${err[0].message}: ${err[0].path}`;
-					this.logger.debug(
-						{
-							err: error,
-							req: action.params,
-						},
-						'getHighestCommonBlock request validation failed',
-					);
-					throw new Error(error);
-				}
-
-				const commonBlock = await this.scope.modules.blocks.getHighestCommonBlock(
-					action.params.ids,
-				);
-
-				return commonBlock;
-			},
+				this.transport.handleRPCGetBlocksFromId(
+					action.params.data,
+					action.params.peerId,
+				),
+			getHighestCommonBlock: async action =>
+				this.transport.handleRPCGetGetHighestCommonBlock(
+					action.params.data,
+					action.params.peerId,
+				),
 		};
 	}
 
@@ -580,8 +557,8 @@ module.exports = class Chain {
 	_subscribeToEvents() {
 		this.channel.subscribe(
 			'chain:processor:broadcast',
-			({ data: { block } }) => {
-				this.transport.handleBroadcastBlock(block, true);
+			async ({ data: { block } }) => {
+				await this.transport.handleBroadcastBlock(block);
 			},
 		);
 
@@ -589,7 +566,9 @@ module.exports = class Chain {
 			'chain:processor:deleteBlock',
 			({ data: { block } }) => {
 				if (block.transactions.length) {
-					const transactions = block.transactions.reverse();
+					const transactions = block.transactions
+						.reverse()
+						.map(tx => this.blocks.deserializeTransaction(tx));
 					this.transactionPool.onDeletedTransactions(transactions);
 					this.channel.publish(
 						'chain:transactions:confirmed:change',
@@ -608,7 +587,11 @@ module.exports = class Chain {
 			'chain:processor:newBlock',
 			({ data: { block } }) => {
 				if (block.transactions.length) {
-					this.transactionPool.onConfirmedTransactions(block.transactions);
+					this.transactionPool.onConfirmedTransactions(
+						block.transactions.map(tx =>
+							this.blocks.deserializeTransaction(tx),
+						),
+					);
 					this.channel.publish(
 						'chain:transactions:confirmed:change',
 						block.transactions,
@@ -631,7 +614,7 @@ module.exports = class Chain {
 					this.channel.invoke('app:updateApplicationState', {
 						height: block.height,
 						lastBlockId: block.id,
-						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+						maxHeightPrevoted: block.maxHeightPrevoted,
 						blockVersion: block.version,
 					});
 				}
@@ -652,7 +635,7 @@ module.exports = class Chain {
 				{ transactionId: transaction.id },
 				'Received EVENT_UNCONFIRMED_TRANSACTION',
 			);
-			this.transport.handleBroadcastTransaction(transaction, true);
+			this.transport.handleBroadcastTransaction(transaction);
 		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
@@ -664,7 +647,7 @@ module.exports = class Chain {
 				{ signature },
 				'Received EVENT_MULTISIGNATURE_SIGNATURE',
 			);
-			this.transport.handleBroadcastSignature(signature, true);
+			this.transport.handleBroadcastSignature(signature);
 		});
 	}
 

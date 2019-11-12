@@ -530,11 +530,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 
 		// TODO: Move this to validator
-		const requiredProps = [
-			'blockVersion',
-			'prevotedConfirmedUptoHeight',
-			'height',
-		];
+		const requiredProps = ['blockVersion', 'maxHeightPrevoted', 'height'];
 		const compatiblePeers = peers.filter(p =>
 			requiredProps.every(prop => Object.keys(p).includes(prop)),
 		);
@@ -548,14 +544,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'List of compatible peers connected peers',
 		);
 		this.logger.debug('Computing the best peer to synchronize from');
-		// Largest subset of peers with largest prevotedConfirmedUptoHeight
-		const largestSubsetByPrevotedConfirmedUptoHeight = computeLargestSubsetMaxBy(
+		// Largest subset of peers with largest maxHeightPrevoted
+		const largestSubsetBymaxHeightPrevoted = computeLargestSubsetMaxBy(
 			compatiblePeers,
-			peer => peer.prevotedConfirmedUptoHeight,
+			peer => peer.maxHeightPrevoted,
 		);
 		// Largest subset of peers with largest height
 		const largestSubsetByHeight = computeLargestSubsetMaxBy(
-			largestSubsetByPrevotedConfirmedUptoHeight,
+			largestSubsetBymaxHeightPrevoted,
 			peer => peer.height,
 		);
 		// Group peers by their block Id
@@ -588,8 +584,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// Pick random peer from list
 		const randomPeerIndex = Math.floor(Math.random() * selectedPeers.length);
 		const peersTip = {
-			prevotedConfirmedUptoHeight:
-				selectedPeers[randomPeerIndex].prevotedConfirmedUptoHeight,
+			maxHeightPrevoted: selectedPeers[randomPeerIndex].maxHeightPrevoted,
 			height: selectedPeers[randomPeerIndex].height,
 			version: selectedPeers[randomPeerIndex].blockVersion,
 		};

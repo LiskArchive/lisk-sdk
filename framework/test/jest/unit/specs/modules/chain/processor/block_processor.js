@@ -24,12 +24,24 @@ class FakeBlockProcessorV0 extends BaseBlockProcessor {
 	get version() {
 		return 0;
 	}
+
+	constructor() {
+		super();
+		this.serialize.pipe([({ block }) => block]);
+		this.deserialize.pipe([({ block }) => block]);
+	}
 }
 
 class FakeBlockProcessorV1 extends BaseBlockProcessor {
 	// eslint-disable-next-line class-methods-use-this
 	get version() {
 		return 1;
+	}
+
+	constructor() {
+		super();
+		this.serialize.pipe([({ block }) => block]);
+		this.deserialize.pipe([({ block }) => block]);
 	}
 }
 

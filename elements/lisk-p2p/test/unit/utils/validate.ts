@@ -18,18 +18,26 @@ import {
 	validatePeerInfo,
 	validateRPCRequest,
 	validateProtocolMessage,
+	validateNodeInfo,
+	sanitizeIncomingPeerInfo,
+	validatePeerInfoList,
 } from '../../../src/utils';
 import {
 	ProtocolPeerInfo,
 	P2PRequestPacket,
 	P2PMessagePacket,
+	P2PNodeInfo,
 } from '../../../src/p2p_types';
-
+import {
+	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+	DEFAULT_MAX_PEER_INFO_SIZE,
+	PEER_INFO_LIST_TOO_LONG_REASON,
+	INVALID_PEER_INFO_LIST_REASON,
+} from '../../../src';
 describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
 			const peer: ProtocolPeerInfo = {
-				ip: '12.23.54.3',
 				ipAddress: '12.23.54.3',
 				wsPort: 5393,
 				os: 'darwin',
@@ -40,7 +48,6 @@ describe('utils/validate', () => {
 			};
 
 			const peerWithInvalidHeightValue: unknown = {
-				ip: '12.23.54.3',
 				ipAddress: '12.23.54.3',
 				wsPort: 5393,
 				os: '778',
@@ -51,7 +58,7 @@ describe('utils/validate', () => {
 			};
 
 			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(peer, 10000))
+				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000))
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
@@ -68,7 +75,12 @@ describe('utils/validate', () => {
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', async () => {
-				expect(validatePeerInfo(peerWithInvalidHeightValue, 10000))
+				expect(
+					validatePeerInfo(
+						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
+						10000,
+					),
+				)
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
@@ -89,14 +101,18 @@ describe('utils/validate', () => {
 			it('should throw an InvalidPeer error for invalid peer', async () => {
 				const peerInvalid: unknown = null;
 
-				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
-					'Invalid peer object',
-				);
+				expect(
+					validatePeerInfo.bind(
+						null,
+						sanitizeIncomingPeerInfo(peerInvalid),
+						10000,
+					),
+				).to.throw('Invalid peer object');
 			});
 
 			it('should throw if PeerInfo is too big', async () => {
+				const maximumPeerInfoSizeInBytes = 10;
 				const peer: ProtocolPeerInfo = {
-					ip: '12.23.54.3',
 					ipAddress: '12.23.54.3',
 					wsPort: 5393,
 					os: 'darwin',
@@ -106,14 +122,19 @@ describe('utils/validate', () => {
 					httpPort: 2000,
 				};
 
-				expect(validatePeerInfo.bind(null, peer, 10)).to.throw(
-					'PeerInfo was larger than the maximum allowed 10 bytes',
+				expect(
+					validatePeerInfo.bind(
+						null,
+						sanitizeIncomingPeerInfo(peer),
+						maximumPeerInfoSizeInBytes,
+					),
+				).to.throw(
+					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
 			});
 
-			it('should throw InvalidPeer error for invalid peer ip or port', async () => {
+			it('should throw InvalidPeer error for invalid peer ipAddress or port', async () => {
 				const peerInvalid: unknown = {
-					ip: '12.23.54.uhig3',
 					wsPort: 53937888,
 					height: '23232',
 					discoveredInfo: {
@@ -121,23 +142,124 @@ describe('utils/validate', () => {
 					},
 				};
 
-				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
-					'Invalid peer ip or port',
-				);
+				expect(
+					validatePeerInfo.bind(
+						null,
+						sanitizeIncomingPeerInfo(peerInvalid),
+						10000,
+					),
+				).to.throw('Invalid peer ipAddress or port');
 			});
+		});
+	});
 
-			it('should throw an InvalidPeer error for invalid peer version', async () => {
-				const peerInvalid: unknown = {
-					ip: '12.23.54.23',
-					wsPort: 5390,
-					os: 'darwin',
-					height: '23232',
-					version: '1222.22',
-					protocolVersion: '1.1',
-				};
+	describe('#validatePeerInfoList', () => {
+		let generatePeerInfoResponse: any = {
+			peers: [],
+		};
+		beforeEach(() => {
+			generatePeerInfoResponse = {
+				peers: [],
+			};
 
-				expect(validatePeerInfo.bind(null, peerInvalid, 10000)).to.throw(
-					'Invalid peer version',
+			generatePeerInfoResponse.peers = [...Array(3)].map(() => ({
+				ipAddress: '128.127.126.125',
+				wsPort: 5000,
+			}));
+		});
+
+		describe('when PeerInfo list is valid', () => {
+			it('should return P2PPeerInfo array', async () => {
+				expect(
+					validatePeerInfoList(
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					).length,
+				).to.be.eql(generatePeerInfoResponse.peers.length);
+			});
+		});
+
+		describe('when rawBasicPeerInfoList list is falsy', () => {
+			it('should throw an Error', async () => {
+				generatePeerInfoResponse = undefined;
+
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw(INVALID_PEER_INFO_LIST_REASON);
+			});
+		});
+
+		describe('when PeerInfo list is not an array', () => {
+			it('should throw an Error', async () => {
+				generatePeerInfoResponse.peers = 'fizzBuzz';
+
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw(INVALID_PEER_INFO_LIST_REASON);
+			});
+		});
+
+		describe('when PeerInfo list os too long', () => {
+			it('should throw an Error', async () => {
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						generatePeerInfoResponse.peers.length - 1,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw(PEER_INFO_LIST_TOO_LONG_REASON);
+			});
+		});
+
+		describe('when PeerInfo list has falsy PeerInfo', () => {
+			it('should return P2PPeerInfo array', async () => {
+				generatePeerInfoResponse.peers.push(undefined);
+
+				expect(
+					validatePeerInfoList.bind(
+						null,
+						generatePeerInfoResponse,
+						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+						DEFAULT_MAX_PEER_INFO_SIZE,
+					),
+				).to.throw('Invalid peer object');
+			});
+		});
+	});
+
+	describe('#validateNodeInfo', () => {
+		describe('when NodeInfo is larger than maximum allowed size', () => {
+			const maximum_size = 10;
+
+			const NodeInfo: P2PNodeInfo = {
+				os: '12.23.54.3',
+				nethash: '12.23.54.3',
+				wsPort: 5393,
+				version: '1.1.2',
+				protocolVersion: '1.1',
+				options: {
+					foo: 'bar',
+					fizz: 'buzz',
+				},
+				nonce: 'nonce678',
+				advertiseAddress: true,
+			};
+
+			it('should throw Invalid NodeInfo maximum allowed size error', async () => {
+				expect(validateNodeInfo.bind(null, NodeInfo, maximum_size)).to.throw(
+					`Invalid NodeInfo was larger than the maximum allowed ${maximum_size} bytes`,
 				);
 			});
 		});
@@ -146,42 +268,45 @@ describe('utils/validate', () => {
 	describe('#validatePeerAddress', () => {
 		it('should return true for correct IPv4', async () => {
 			const peer = {
-				ip: '12.12.12.12',
+				ipAddress: '12.12.12.12',
 				wsPort: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).to.be.true;
 		});
 
 		it('should return true for correct IPv6', async () => {
 			const peer = {
-				ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+				ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
 				wsPort: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).to.be.true;
 		});
 
-		it('should return false for incorrect ip', async () => {
+		it('should return false for incorrect ipAddress', async () => {
 			const peerWithIncorrectIp = {
-				ip: '12.12.hh12.12',
+				ipAddress: '12.12.hh12.12',
 				wsPort: 4001,
 			};
 
 			expect(
-				validatePeerAddress(peerWithIncorrectIp.ip, peerWithIncorrectIp.wsPort),
+				validatePeerAddress(
+					peerWithIncorrectIp.ipAddress,
+					peerWithIncorrectIp.wsPort,
+				),
 			).to.be.false;
 		});
 
 		it('should return false for incorrect port', async () => {
 			const peerWithIncorrectPort = {
-				ip: '12.12.12.12',
+				ipAddress: '12.12.12.12',
 				wsPort: NaN,
 			};
 
 			expect(
 				validatePeerAddress(
-					peerWithIncorrectPort.ip,
+					peerWithIncorrectPort.ipAddress,
 					peerWithIncorrectPort.wsPort,
 				),
 			).to.be.false;

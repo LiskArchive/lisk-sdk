@@ -21,7 +21,6 @@ const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const accountFixtures = require('../../../../fixtures/accounts');
 const { Block, GenesisBlock } = require('../../../../fixtures/blocks');
-const schemas = require('../../../../../../src/modules/chain/transport/schemas');
 const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');
@@ -33,7 +32,7 @@ const {
 const expect = chai.expect;
 
 describe('transport', () => {
-	const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
+	const { releaseLimit } = __testContext.config.modules.chain.broadcasts;
 
 	let storageStub;
 	let loggerStub;
@@ -56,14 +55,6 @@ describe('transport', () => {
 			'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
 		signature:
 			'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739',
-	};
-
-	const SAMPLE_SIGNATURE_2 = {
-		transactionId: '222675625422353768',
-		publicKey:
-			'3ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23080',
-		signature:
-			'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595',
 	};
 
 	beforeEach(async () => {
@@ -147,6 +138,7 @@ describe('transport', () => {
 			error: sinonSandbox.stub(),
 			info: sinonSandbox.spy(),
 			trace: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
 		};
 
 		channelStub = {
@@ -197,8 +189,6 @@ describe('transport', () => {
 				syncing: sinonSandbox.stub().returns(false),
 			},
 			broadcasts: __testContext.config.modules.chain.broadcasts,
-			maxSharedTransactions:
-				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
 	});
 
@@ -229,7 +219,7 @@ describe('transport', () => {
 
 			beforeEach(async () => {
 				query = {
-					transactions: transactionsList,
+					transactionIds: transactionsList.map(tx => tx.id),
 				};
 			});
 
@@ -242,7 +232,7 @@ describe('transport', () => {
 						.stub()
 						.resolves([]);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
-						query.transactions.map(_transaction => _transaction.id),
+						query.transactionIds,
 					);
 				});
 
@@ -259,7 +249,7 @@ describe('transport', () => {
 						transportModule.storage.entities.Transaction.get,
 					).to.be.calledWithExactly(
 						{ id_in: transactionsList.map(tx => tx.id) },
-						{ limit: transportModule.constants.maxSharedTransactions },
+						{ limit: transportModule.constants.broadcasts.releaseLimit },
 					);
 				});
 
@@ -277,7 +267,7 @@ describe('transport', () => {
 						.returns(true);
 					transportModule.storage.entities.Transaction.get = sinonSandbox.stub();
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
-						query.transactions.map(_transaction => _transaction.id),
+						query.transactionIds,
 					);
 				});
 
@@ -306,7 +296,7 @@ describe('transport', () => {
 						.stub()
 						.resolves(transactionsList);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
-						query.transactions.map(_transaction => _transaction.id),
+						query.transactionIds,
 					);
 				});
 
@@ -323,194 +313,12 @@ describe('transport', () => {
 						transportModule.storage.entities.Transaction.get,
 					).to.be.calledWithExactly(
 						{ id_in: transactionsList.map(tx => tx.id) },
-						{ limit: transportModule.constants.maxSharedTransactions },
+						{ limit: transportModule.constants.broadcasts.releaseLimit },
 					);
 				});
 
 				it('should return empty array', async () =>
 					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
-			});
-		});
-
-		describe('_receiveSignatures', () => {
-			describe('for every signature in signatures', () => {
-				describe('when transportModule._receiveSignature succeeds', () => {
-					beforeEach(async () => {
-						transportModule._receiveSignature = sinonSandbox.stub().callsArg(1);
-						transportModule._receiveSignatures([
-							SAMPLE_SIGNATURE_1,
-							SAMPLE_SIGNATURE_2,
-						]);
-					});
-
-					it('should call receiveSignature with signature', async () => {
-						expect(transportModule._receiveSignature.calledTwice).to.be.true;
-						expect(
-							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_1),
-						).to.be.true;
-						return expect(
-							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_2),
-						).to.be.true;
-					});
-				});
-
-				describe('when receiveSignature fails', () => {
-					let receiveSignatureError;
-
-					beforeEach(async () => {
-						receiveSignatureError = new Error(
-							'Error processing signature: Error message',
-						);
-						transportModule._receiveSignature = sinonSandbox
-							.stub()
-							.rejects(receiveSignatureError);
-
-						await transportModule._receiveSignatures([
-							SAMPLE_SIGNATURE_1,
-							SAMPLE_SIGNATURE_2,
-						]);
-					});
-
-					it('should call transportModule.logger.debug with err and signature', async () => {
-						// If any of the transportModule._receiveSignature calls fail, the rest of
-						// the batch should still be processed.
-						expect(transportModule._receiveSignature.calledTwice).to.be.true;
-						expect(
-							transportModule.logger.debug.calledWith(
-								receiveSignatureError,
-								SAMPLE_SIGNATURE_1,
-							),
-						).to.be.true;
-						return expect(
-							transportModule.logger.debug.calledWith(
-								receiveSignatureError,
-								SAMPLE_SIGNATURE_2,
-							),
-						).to.be.true;
-					});
-				});
-			});
-		});
-
-		describe('_receiveSignature', () => {
-			beforeEach(async () => {
-				transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
-			});
-
-			describe('when validator.validate succeeds', () => {
-				describe('when modules.transactionPool.getTransactionAndProcessSignature succeeds', () => {
-					beforeEach(async () => {
-						transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
-						return transportModule._receiveSignature(SAMPLE_SIGNATURE_1);
-					});
-
-					it('should call validator.validate with signature', async () => {
-						expect(validator.validate.calledOnce).to.be.true;
-						return expect(
-							validator.validate.calledWith(
-								schemas.signatureObject,
-								SAMPLE_SIGNATURE_1,
-							),
-						).to.be.true;
-					});
-
-					it('should call modules.transactionPool.getTransactionAndProcessSignature with signature', async () => {
-						return expect(
-							transportModule.transactionPoolModule
-								.getTransactionAndProcessSignature,
-						).to.be.calledWith(SAMPLE_SIGNATURE_1);
-					});
-				});
-
-				describe('when modules.transactionPool.getTransactionAndProcessSignature fails', () => {
-					const processSignatureError = new TransactionError(
-						'Transaction not found',
-					);
-
-					it('should reject with error', async () => {
-						transportModule.transactionPoolModule.getTransactionAndProcessSignature.rejects(
-							[processSignatureError],
-						);
-
-						return expect(
-							transportModule._receiveSignature(SAMPLE_SIGNATURE_1),
-						).to.be.rejectedWith([processSignatureError]);
-					});
-				});
-			});
-
-			describe('when validator.validate fails', () => {
-				it('should reject with error = "Invalid signature body"', async () => {
-					try {
-						await transportModule._receiveSignature(SAMPLE_SIGNATURE_1);
-					} catch (e) {
-						expect(e.message).to.equal('Invalid signture body');
-					}
-				});
-			});
-		});
-
-		describe('_receiveTransactions', () => {
-			beforeEach(async () => {
-				transportModule.logger = {
-					debug: sinonSandbox.spy(),
-				};
-
-				transportModule._receiveTransaction = sinonSandbox.stub().callsArg(1);
-			});
-
-			describe('when transactions argument is undefined', () => {
-				beforeEach(async () => {
-					transportModule._receiveTransactions(undefined);
-				});
-
-				// If a single transaction within the batch fails, it is not going to
-				// send back an error.
-				it('should should not call transportModule._receiveTransaction', async () =>
-					expect(transportModule._receiveTransaction.notCalled).to.be.true);
-			});
-
-			describe('for every transaction in transactions', () => {
-				describe('when transaction is defined', () => {
-					describe('when call transportModule._receiveTransaction succeeds', () => {
-						beforeEach(async () => {
-							transportModule._receiveTransactions(transactionsList);
-						});
-
-						it('should set transaction.bundled = true', async () =>
-							expect(transactionsList[0])
-								.to.have.property('bundled')
-								.which.equals(true));
-
-						it('should call transportModule._receiveTransaction with transaction with transaction argument', async () =>
-							expect(
-								transportModule._receiveTransaction.calledWith(
-									transactionsList[0],
-								),
-							).to.be.true);
-					});
-
-					describe('when call transportModule._receiveTransaction fails', () => {
-						let receiveTransactionError;
-
-						beforeEach(async () => {
-							receiveTransactionError = 'Invalid transaction body - ...';
-							transportModule._receiveTransaction = sinonSandbox
-								.stub()
-								.rejects(receiveTransactionError);
-
-							return transportModule._receiveTransactions(transactionsList);
-						});
-
-						it('should call transportModule.logger.debug with error and transaction', async () =>
-							expect(
-								transportModule.logger.debug.calledWith(
-									receiveTransactionError,
-									transactionsList[0],
-								),
-							).to.be.true);
-					});
-				});
 			});
 		});
 
@@ -673,35 +481,18 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						transportModule.broadcaster = {
-							enqueue: sinonSandbox.stub(),
+							enqueueSignatureObject: sinonSandbox.stub(),
 						};
 						transportModule.handleBroadcastSignature(SAMPLE_SIGNATURE_1, true);
 					});
 
-					it('should call transportModule.broadcaster.enqueue with signature', () => {
-						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
-						return expect(
-							transportModule.broadcaster.enqueue.calledWith(
-								{},
-								{
-									api: 'postSignatures',
-									data: { signature: SAMPLE_SIGNATURE_1 },
-								},
-							),
+					it('should call transportModule.broadcaster.enqueueSignatureObject with signature', () => {
+						expect(
+							transportModule.broadcaster.enqueueSignatureObject.calledOnce,
 						).to.be.true;
-					});
-
-					it('should call transportModule.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', async () => {
-						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
-							transportModule.broadcaster.enqueue.calledWith(
-								{},
-								{
-									api: 'postSignatures',
-									data: { signature: SAMPLE_SIGNATURE_1 },
-								},
-							),
-						).to.be.true;
+							transportModule.broadcaster.enqueueSignatureObject,
+						).calledWith(SAMPLE_SIGNATURE_1);
 					});
 
 					it('should call transportModule.channel.publish with "chain:signature:change" and signature', async () => {
@@ -730,7 +521,7 @@ describe('transport', () => {
 							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 					});
 					transportModule.broadcaster = {
-						enqueue: sinonSandbox.stub(),
+						enqueueTransactionId: sinonSandbox.stub(),
 					};
 					transportModule.channel = {
 						invoke: sinonSandbox.stub(),
@@ -742,7 +533,7 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						transportModule.broadcaster = {
-							enqueue: sinonSandbox.stub(),
+							enqueueTransactionId: sinonSandbox.stub(),
 						};
 						transportModule.channel = {
 							invoke: sinonSandbox.stub(),
@@ -751,17 +542,12 @@ describe('transport', () => {
 						transportModule.handleBroadcastTransaction(transaction, true);
 					});
 
-					it('should call transportModule.broadcaster.enqueue with {} and {api: "postTransationsAnnouncement", data: {transaction}}', async () => {
-						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
+					it('should call transportModule.broadcaster.enqueueTransactionId transactionId', async () => {
+						expect(transportModule.broadcaster.enqueueTransactionId).to.be
+							.calledOnce;
 						return expect(
-							transportModule.broadcaster.enqueue.calledWith(
-								{},
-								{
-									api: 'postTransactionsAnnouncement',
-									data: { transaction: { id: transaction.id } },
-								},
-							),
-						).to.be.true;
+							transportModule.broadcaster.enqueueTransactionId,
+						).to.be.calledWith(transaction.id);
 					});
 
 					it('should call transportModule.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
@@ -793,28 +579,23 @@ describe('transport', () => {
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
-						return transportModule.handleBroadcastBlock(block, true);
+						return transportModule.handleBroadcastBlock(block);
 					});
 
-					it('should call transportModule.broadcaster.broadcast', () => {
-						expect(transportModule.broadcaster.broadcast.calledOnce).to.be.true;
-						return expect(
-							transportModule.broadcaster.broadcast,
-						).to.be.calledWith(
-							{},
-							{
-								api: 'postBlock',
-								data: {
-									block,
-								},
+					it('should call channel.invoke to send', () => {
+						expect(channelStub.invoke).to.be.calledOnce;
+						return expect(channelStub.invoke).to.be.calledWith('network:send', {
+							event: 'postBlock',
+							data: {
+								block,
 							},
-						);
+						});
 					});
 
 					describe('when modules.synchronizer.isActive = true', () => {
 						beforeEach(async () => {
 							transportModule.synchronizer.isActive = true;
-							transportModule.handleBroadcastBlock(block, true);
+							transportModule.handleBroadcastBlock(block);
 						});
 
 						it('should call transportModule.logger.debug with proper error message', () => {
@@ -992,62 +773,6 @@ describe('transport', () => {
 					});
 				});
 
-				describe('handleEventPostSignatures', () => {
-					beforeEach(async () => {
-						query = {
-							signatures: [SAMPLE_SIGNATURE_1],
-						};
-						transportModule._receiveSignatures = sinonSandbox.stub();
-					});
-
-					describe('when transportModule.config.broadcasts.active option is false', () => {
-						beforeEach(async () => {
-							transportModule.constants.broadcasts.active = false;
-							transportModule.handleEventPostSignatures(query);
-						});
-
-						it('should call transportModule.logger.debug', async () =>
-							expect(
-								transportModule.logger.debug.calledWith(
-									'Receiving signatures disabled by user through config.json',
-								),
-							).to.be.true);
-
-						it('should not call validator.validate; function should return before', async () =>
-							expect(validator.validate.called).to.be.false);
-					});
-
-					describe('when validator.validate succeeds', () => {
-						beforeEach(async () => {
-							transportModule.constants.broadcasts.active = true;
-							return transportModule.handleEventPostSignatures(query);
-						});
-
-						it('should call transportModule._receiveSignatures with query.signatures as argument', async () =>
-							expect(
-								transportModule._receiveSignatures.calledWith(query.signatures),
-							).to.be.true);
-					});
-					describe('when validator.validate fails', () => {
-						let validateErr;
-
-						it('should call transportModule.logger.debug with "Invalid signatures body" and err as arguments', async () => {
-							validateErr = new Error('Transaction query did not match schema');
-							validateErr.code = 'INVALID_FORMAT';
-							validator.validate.returns([validateErr]);
-
-							expect(
-								transportModule.handleEventPostSignatures(query),
-							).to.be.rejectedWith([validateErr]);
-
-							return expect(transportModule.logger.debug).to.be.calledWithMatch(
-								{},
-								'Invalid signatures body',
-							);
-						});
-					});
-				});
-
 				describe('handleRPCGetSignatures', () => {
 					beforeEach(async () => {
 						transportModule.transactionPoolModule.getMultisignatureTransactionList = sinonSandbox
@@ -1057,11 +782,11 @@ describe('transport', () => {
 						result = await transportModule.handleRPCGetSignatures();
 					});
 
-					it('should call modules.transactionPool.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
+					it('should call modules.transactionPool.getMultisignatureTransactionList with true and releaseLimit', async () => {
 						expect(
 							transportModule.transactionPoolModule
 								.getMultisignatureTransactionList,
-						).calledWith(true, MAX_SHARED_TRANSACTIONS);
+						).calledWith(true, releaseLimit);
 					});
 
 					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
@@ -1104,141 +829,6 @@ describe('transport', () => {
 								.which.is.an('array')
 								.that.has.property('length')
 								.which.equals(1);
-						});
-					});
-				});
-
-				describe('handleRPCGetTransactions', () => {
-					describe('when is called without filters', () => {
-						beforeEach(async () => {
-							transportModule.transactionPoolModule.getMergedTransactionList.returns(
-								multisignatureTransactionsList,
-							);
-							result = await transportModule.handleRPCGetTransactions();
-						});
-
-						it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
-							expect(
-								transportModule.transactionPoolModule.getMergedTransactionList,
-							).calledWith(true, MAX_SHARED_TRANSACTIONS);
-						});
-
-						it('should resolve with result = {transactions: transactions}', async () => {
-							return expect(result)
-								.to.have.property('transactions')
-								.which.is.an('array')
-								.that.has.property('length')
-								.which.equals(2);
-						});
-					});
-
-					describe('when is called with ids filter', () => {
-						describe('when ids filter is too big', () => {
-							beforeEach(async () => {
-								transportModule.transactionPoolModule.findInTransactionPool.returns(
-									new TransferTransaction(transaction),
-								);
-								result = await transportModule.handleRPCGetTransactions(
-									Array.from(
-										{
-											length:
-												transportModule.constants.maxSharedTransactions + 1,
-										},
-										() => Math.floor(Math.random() * 10000000),
-									),
-								);
-							});
-
-							it('should not call modules.transactionPool.getMergedTransactionList', async () => {
-								expect(
-									transportModule.transactionPoolModule
-										.getMergedTransactionList,
-								).to.be.not.called;
-							});
-
-							it('should not call transportModule.transactionPoolModule.findInTransactionPool', async () => {
-								expect(
-									transportModule.transactionPoolModule.findInTransactionPool,
-								).to.be.not.called;
-							});
-
-							it('should resolve with result = {transactions: transactions}', async () => {
-								expect(result)
-									.to.have.property('transactions')
-									.which.is.an('array').empty;
-							});
-						});
-
-						describe('when any id is in the queues', () => {
-							beforeEach(async () => {
-								transportModule.transactionPoolModule.findInTransactionPool.returns(
-									new TransferTransaction(transaction),
-								);
-								result = await transportModule.handleRPCGetTransactions([
-									transaction.id,
-								]);
-							});
-
-							it('should not call modules.transactionPool.getMergedTransactionList', async () => {
-								expect(
-									transportModule.transactionPoolModule
-										.getMergedTransactionList,
-								).to.be.not.called;
-							});
-
-							it('should call transportModule.transactionPoolModule.findInTransactionPool', async () => {
-								expect(
-									transportModule.transactionPoolModule.findInTransactionPool,
-								).to.be.calledWith(transaction.id);
-							});
-
-							it('should resolve with result = {transactions: transactions}', async () => {
-								expect(result)
-									.to.have.property('transactions')
-									.which.is.an('array')
-									.to.deep.include(transaction);
-							});
-						});
-
-						describe('when any id exists in the database', () => {
-							beforeEach(async () => {
-								transportModule.transactionPoolModule.findInTransactionPool.returns(
-									undefined,
-								);
-								storageStub.entities.Transaction.get.resolves([transaction]);
-								result = await transportModule.handleRPCGetTransactions([
-									transaction.id,
-								]);
-							});
-
-							it('should not call modules.transactionPool.getMergedTransactionList', async () => {
-								expect(
-									transportModule.transactionPoolModule
-										.getMergedTransactionList,
-								).to.be.not.called;
-							});
-
-							it('should call transportModule.transactionPoolModule.findInTransactionPool', async () => {
-								expect(
-									transportModule.transactionPoolModule.findInTransactionPool,
-								).to.be.calledWith(transaction.id);
-							});
-
-							it('should call storageStub.entities.Transaction.get', async () => {
-								expect(
-									storageStub.entities.Transaction.get,
-								).to.be.calledWithExactly(
-									{ id_in: [transaction.id] },
-									{ limit: transportModule.constants.maxSharedTransactions },
-								);
-							});
-
-							it('should resolve with result = {success: true, transactions: transactions}', async () => {
-								expect(result)
-									.to.have.property('transactions')
-									.which.is.an('array')
-									.contains(transaction);
-							});
 						});
 					});
 				});
@@ -1306,125 +896,6 @@ describe('transport', () => {
 							return expect(result)
 								.to.have.property('errors')
 								.which.is.equal(receiveTransactionError);
-						});
-					});
-				});
-
-				describe('handleEventPostTransactions', () => {
-					describe('when transportModule.config.broadcasts.active option is false', () => {
-						beforeEach(async () => {
-							transportModule.constants.broadcasts.active = false;
-						});
-
-						it('should call transportModule.logger.debug', async () => {
-							await transportModule.handleEventPostTransactionsAnnouncement(
-								query,
-							);
-							expect(
-								transportModule.logger.debug.calledWith(
-									'Receiving transactions disabled by user through config.json',
-								),
-							).to.be.true;
-						});
-
-						it('should not call validator.validate; function should return before', async () => {
-							await transportModule.handleEventPostTransactionsAnnouncement(
-								query,
-							);
-							expect(validator.validate).to.be.not.called;
-						});
-					});
-
-					describe('when validator.validate succeeds', () => {
-						describe('when any of the transaction ids is unknown', () => {
-							beforeEach(async () => {
-								query = {
-									data: {
-										transactions: transactionsList,
-									},
-									peerId: '127.0.0.1:5001',
-								};
-								transportModule.constants.broadcasts.active = true;
-								transportModule._obtainUnknownTransactionIDs = sinonSandbox
-									.stub()
-									.resolves([transaction.id]);
-								transportModule.channel.invoke = sinonSandbox
-									.stub()
-									.resolves({ data: { transactions: [transaction] } });
-								transportModule._receiveTransactions = sinonSandbox.stub();
-								await transportModule.handleEventPostTransactionsAnnouncement(
-									query,
-								);
-							});
-
-							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
-								expect(
-									transportModule._obtainUnknownTransactionIDs,
-								).to.be.calledWith(
-									query.data.transactions.map(_transaction => _transaction.id),
-								));
-
-							it('should invoke network:requestFromPeer event', async () =>
-								expect(transportModule.channel.invoke).to.be.calledWith(
-									'network:requestFromPeer',
-									{
-										procedure: 'getTransactions',
-										data: [transaction.id],
-										peerId: query.peerId,
-									},
-								));
-
-							it('should call transportModule._receiveTransactions with query.transaction as argument', async () =>
-								expect(transportModule._receiveTransactions).to.be.calledWith([
-									transaction,
-								]));
-						});
-
-						describe('when none of the transactions ids are unknonw ', () => {
-							beforeEach(async () => {
-								query = {
-									data: {
-										transactions: transactionsList,
-									},
-									peerId: '127.0.0.1:5001',
-								};
-								transportModule.constants.broadcasts.active = true;
-								transportModule._obtainUnknownTransactionIDs = sinonSandbox
-									.stub()
-									.resolves([]);
-								transportModule.channel.invoke = sinonSandbox.stub();
-								transportModule._receiveTransactions = sinonSandbox.stub();
-								await transportModule.handleEventPostTransactionsAnnouncement(
-									query,
-								);
-							});
-
-							it('should call transportModule._obtainUnknownTransactionIDs with query.data', async () =>
-								expect(
-									transportModule._obtainUnknownTransactionIDs,
-								).to.be.calledWith(
-									query.data.transactions.map(_transaction => _transaction.id),
-								));
-
-							it('should not invoke any network event', async () =>
-								expect(transportModule.channel.invoke).to.be.not.called);
-
-							it('should not call transportModule._receiveTransactions', async () =>
-								expect(transportModule._receiveTransactions).to.be.not.called);
-						});
-					});
-
-					describe('when validator.validate fails', () => {
-						it('should resolve with error = null and result = {success: false, message: message}', async () => {
-							const validateErr = new Error(
-								'Transaction query did not match schema',
-							);
-							validateErr.code = 'INVALID_FORMAT';
-							validator.validate.returns([validateErr]);
-
-							expect(
-								transportModule.handleEventPostTransactionsAnnouncement(query),
-							).to.be.rejectedWith([validateErr]);
 						});
 					});
 				});

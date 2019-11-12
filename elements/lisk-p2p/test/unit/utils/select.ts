@@ -34,6 +34,7 @@ describe('peer selector', () => {
 		protocolVersion: '1.1',
 		wsPort: 5000,
 		nonce: 'nonce',
+		advertiseAddress: true,
 	};
 
 	describe('#selectPeersForRequest', () => {

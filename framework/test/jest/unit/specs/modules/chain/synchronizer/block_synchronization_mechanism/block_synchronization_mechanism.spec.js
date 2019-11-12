@@ -163,7 +163,7 @@ describe('block_synchronization_mechanism', () => {
 	});
 
 	beforeEach(async () => {
-		aBlock = newBlock({ height: 10, prevotedConfirmedUptoHeight: 0 });
+		aBlock = newBlock({ height: 10, maxHeightPrevoted: 0 });
 		// blocksModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 		// memory. The following mock fakes this to be true
 		when(storageMock.entities.Block.begin)
@@ -370,11 +370,7 @@ describe('block_synchronization_mechanism', () => {
 
 			it('should throw an error if there are no compatible peers', async () => {
 				// If has one of these properties missing, it is considered an incompatible peer
-				const requiredProps = [
-					'blockVersion',
-					'prevotedConfirmedUptoHeight',
-					'height',
-				];
+				const requiredProps = ['blockVersion', 'maxHeightPrevoted', 'height'];
 
 				for (const requiredProp of requiredProps) {
 					when(channelMock.invoke)
@@ -438,7 +434,7 @@ describe('block_synchronization_mechanism', () => {
 					})
 					.mockResolvedValueOnce([
 						...peersList.expectedSelection.map(peer => {
-							peer.prevotedConfirmedUptoHeight = 0;
+							peer.maxHeightPrevoted = 0;
 							peer.height = 0;
 							return peer;
 						}),
@@ -493,7 +489,7 @@ describe('block_synchronization_mechanism', () => {
 			it('should apply penalty and restart the mechanisms if the last block of the peer does not have preference over current tip', async () => {
 				const receivedBlock = newBlock({
 					height: 0,
-					prevotedConfirmedUptoHeight: 0,
+					maxHeightPrevoted: 0,
 				});
 
 				requestedBlocks = [
@@ -867,7 +863,7 @@ describe('block_synchronization_mechanism', () => {
 				it('should restore blocks from temp table, ban peer and restart mechanism if new tip of the chain has no preference over previous tip', async () => {
 					const previousTip = newBlock({
 						height: genesisBlockDevnet.height + 140, // So it has preference over new tip (height <)
-						prevotedConfirmedUptoHeight: 0,
+						maxHeightPrevoted: 0,
 					});
 
 					requestedBlocks = [
@@ -1009,7 +1005,7 @@ describe('block_synchronization_mechanism', () => {
 				it('should clean up the temporary table and restart the mechanism if the new tip has preference over the last tip', async () => {
 					const previousTip = newBlock({
 						height: aBlock.height - 1, // So it doesn't have preference over new tip (height >)
-						prevotedConfirmedUptoHeight: aBlock.prevotedConfirmedUptoHeight,
+						maxHeightPrevoted: aBlock.maxHeightPrevoted,
 					});
 
 					requestedBlocks = [

@@ -100,6 +100,7 @@ module.exports = class Network {
 			...nodeInfo,
 			state: 2, // TODO: Delete state property
 			wsPort: this.options.wsPort,
+			advertiseAddress: this.options.advertiseAddress,
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
@@ -160,7 +161,14 @@ module.exports = class Network {
 
 		this.channel.subscribe('app:state:updated', event => {
 			const newNodeInfo = sanitizeNodeInfo(event.data);
-			this.p2p.applyNodeInfo(newNodeInfo);
+			try {
+				this.p2p.applyNodeInfo(newNodeInfo);
+			} catch (error) {
+				this.logger.error(
+					`Applying NodeInfo failed because of error: ${error.message ||
+						error}`,
+				);
+			}
 		});
 
 		// ---- START: Bind event handlers ----
@@ -270,10 +278,10 @@ module.exports = class Network {
 				? request.procedure
 				: `chain:${request.procedure}`;
 			try {
-				const result = await this.channel.invokePublic(
-					sanitizedProcedure,
-					request.data,
-				);
+				const result = await this.channel.invokePublic(sanitizedProcedure, {
+					data: request.data,
+					peerId: request.peerId,
+				});
 				this.logger.trace(
 					`Peer request fulfilled event: Responded to peer request ${
 						request.procedure
@@ -381,7 +389,10 @@ module.exports = class Network {
 				return filterByParams(peers, filterWithoutLimitOffset).length;
 			},
 			applyPenalty: action =>
-				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
+				this.p2p.applyPenalty({
+					peerId: action.params.peerId,
+					penalty: action.params.penalty,
+				}),
 		};
 	}
 

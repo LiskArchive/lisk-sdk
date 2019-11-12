@@ -70,7 +70,7 @@ async function createBlock(
 		previousBlock: library.modules.blocks.lastBlock,
 		transactions,
 		maxHeightPreviouslyForged: 1,
-		prevotedConfirmedUptoHeight: 1,
+		maxHeightPrevoted: 1,
 	});
 	return newBlock;
 }

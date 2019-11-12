@@ -20,6 +20,7 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_MAX_PEER_INFO_SIZE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -80,6 +81,7 @@ describe('peer/base', () => {
 			wsPort: 6001,
 			height: 100,
 			nonce: 'nonce',
+			advertiseAddress: true,
 		};
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerId(
@@ -350,11 +352,14 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
+			beforeEach(() => {
+				sandbox.stub(defaultPeer, 'applyPenalty');
+			});
 			it('should return a sanitized peer list', async () => {
 				const peers = [
 					{
 						peerId: constructPeerId('1.1.1.1', 1111),
-						ip: '1.1.1.1',
+						ipAddress: '1.1.1.1',
 						wsPort: 1111,
 						sharedState: {
 							version: '1.1.1',
@@ -362,7 +367,7 @@ describe('peer/base', () => {
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
-						ip: '2.2.2.2',
+						ipAddress: '2.2.2.2',
 						wsPort: 2222,
 						sharedState: {
 							version: '2.2.2',
@@ -377,8 +382,6 @@ describe('peer/base', () => {
 						sharedState: {
 							version: '1.1.1',
 							height: 0,
-							protocolVersion: undefined,
-							os: '',
 						},
 					},
 					{
@@ -388,8 +391,6 @@ describe('peer/base', () => {
 						sharedState: {
 							version: '2.2.2',
 							height: 0,
-							protocolVersion: undefined,
-							os: '',
 						},
 					},
 				];
@@ -397,7 +398,7 @@ describe('peer/base', () => {
 					data: {
 						peers: peers.map(peer => ({
 							...peer.sharedState,
-							ipAddress: peer.ip,
+							ipAddress: peer.ipAddress,
 							wsPort: peer.wsPort,
 						})),
 						success: true,
@@ -405,6 +406,59 @@ describe('peer/base', () => {
 				});
 				const response = await defaultPeer.fetchPeers();
 				expect(response).to.be.eql(sanitizedPeers);
+			});
+
+			it('should throw apply penalty on malformed Peer list', async () => {
+				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
+					peerId: `'1.1.1.1:${1 + index}`,
+					ipAddress: '1.1.1.1',
+					wsPort: 1 + index,
+					sharedState: {
+						version: '1.1.1',
+					},
+				}));
+
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers: malformedPeerList.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
+						})),
+						success: true,
+					},
+				});
+
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(100);
+			});
+
+			it('should throw apply penalty on malformed Peer', async () => {
+				const malformedPeerList = [
+					{
+						peerId: `'1.1.1.1:5000`,
+						ipAddress: '1.1.1.1',
+						wsPort: 1111,
+						sharedState: {
+							version: '1.1.1',
+							junkData: [...new Array(10000).keys()].map(() => 'a'),
+						},
+					},
+				];
+
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers: malformedPeerList.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
+						})),
+						success: true,
+					},
+				});
+
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(100);
 			});
 		});
 	});
@@ -494,39 +548,33 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
-			describe('when _updateFromProtocolPeerInfo() fails', () => {
+			describe('when _updateFromProtocolPeerInfo() fails from malformed PeerInfo', () => {
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
-						data: {},
+						data: '1'.repeat(DEFAULT_MAX_PEER_INFO_SIZE),
 					});
+					sandbox.stub(defaultPeer, 'applyPenalty');
 					sandbox.stub(defaultPeer, 'emit');
 				});
 
-				it(`should emit ${EVENT_FAILED_PEER_INFO_UPDATE} event with error`, async () => {
+				it(`should apply invalid PeerInfo penalty`, async () => {
 					await expect(defaultPeer.fetchStatus()).to.be.rejected;
+
 					expect(defaultPeer.emit).to.be.calledOnceWith(
 						EVENT_FAILED_PEER_INFO_UPDATE,
 					);
-				});
-
-				it('should throw error', async () => {
-					return expect(defaultPeer.fetchStatus())
-						.to.eventually.be.rejectedWith(
-							'Failed to update peer info of peer as part of fetch operation',
-						)
-						.and.be.an.instanceOf(RPCResponseError)
-						.and.have.property(
-							'peerId',
-							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
-						);
+					expect(defaultPeer.applyPenalty).to.be.calledOnceWithExactly(100);
 				});
 			});
 
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
 				const peer = {
-					ip: '1.1.1.1',
+					ipAddress: '1.1.1.1',
 					wsPort: 1111,
 					version: '1.1.2',
+					height: 0,
+					protocolVersion: undefined,
+					os: '',
 				};
 
 				beforeEach(() => {

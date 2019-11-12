@@ -22,7 +22,7 @@ SELECT
 	"reward",
 	"payloadLength",
 	"maxHeightPreviouslyForged",
-	"prevotedConfirmedUptoHeight",
+	"maxHeightPrevoted",
 	"previousBlockId",
 	"numberOfTransactions",
 	"totalAmount",

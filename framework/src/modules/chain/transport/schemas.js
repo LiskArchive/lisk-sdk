@@ -26,8 +26,22 @@ module.exports = {
 			},
 		},
 	},
-	blocksBroadcast: {
-		id: 'blocksBroadcast',
+	getTransactionsRequest: {
+		id: 'getTransactionsRequest',
+		type: 'object',
+		properties: {
+			transactionIds: {
+				type: 'array',
+				items: {
+					type: 'string',
+					format: 'id',
+				},
+				minItems: 1,
+			},
+		},
+	},
+	postBlockEvent: {
+		id: 'postBlockEvent',
 		type: 'object',
 		required: ['block'],
 		properties: {
@@ -52,7 +66,7 @@ module.exports = {
 						example: 123,
 						minimum: 1,
 					},
-					prevotedConfirmedUptoHeight: {
+					maxHeightPrevoted: {
 						type: 'integer',
 						example: 123,
 						minimum: 0,
@@ -140,17 +154,11 @@ module.exports = {
 			},
 		},
 	},
-	signaturesList: {
-		id: 'signaturesList',
+	postSignatureEvent: {
+		id: 'postSignatureEvent',
 		type: 'object',
 		required: ['signatures'],
 		properties: {
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 16,
-				maxLength: 16,
-			},
 			signatures: {
 				type: 'array',
 				items: {
@@ -161,24 +169,35 @@ module.exports = {
 			},
 		},
 	},
-	transactionsRequest: {
-		id: 'TransactionsRequest',
+	postTransactionsAnnouncementEvent: {
+		id: 'postTransactionsAnnouncementEvent',
 		type: 'object',
-		required: ['transactions'],
+		required: ['transactionIds'],
 		properties: {
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 16,
-				maxLength: 16,
-			},
-			transactions: {
+			transactionIds: {
 				type: 'array',
 				items: {
-					type: 'object',
+					type: 'string',
+					format: 'id',
 				},
 				minItems: 1,
 				maxItems: 25,
+			},
+		},
+	},
+	getHighestCommonBlockRequest: {
+		id: 'getHighestCommonBlockRequest',
+		type: 'object',
+		required: ['ids'],
+		properties: {
+			ids: {
+				type: 'array',
+				items: {
+					type: 'string',
+					format: 'id',
+				},
+				uniqueItems: true,
+				minItems: 1,
 			},
 		},
 	},

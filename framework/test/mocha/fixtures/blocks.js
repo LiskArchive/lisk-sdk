@@ -44,7 +44,7 @@ const Block = stampit({
 		height,
 		version,
 		maxHeightPreviouslyForged,
-		prevotedConfirmedUptoHeight,
+		maxHeightPrevoted,
 	}) {
 		// Must to provide
 		this.previousBlockId = previousBlockId;
@@ -66,7 +66,7 @@ const Block = stampit({
 
 		if (this.version === 2) {
 			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
-			this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
+			this.maxHeightPrevoted = maxHeightPrevoted || 0;
 		}
 	},
 });
@@ -92,7 +92,7 @@ const BlockHeader = stampit({
 		blockId: '',
 		height: 0,
 		maxHeightPreviouslyForged: 0,
-		prevotedConfirmedUptoHeight: 0,
+		maxHeightPrevoted: 0,
 		activeSinceRound: 3,
 		delegatePublicKey: '',
 	},
@@ -102,7 +102,7 @@ const BlockHeader = stampit({
 		delegatePublicKey,
 		activeSinceRound,
 		maxHeightPreviouslyForged,
-		prevotedConfirmedUptoHeight,
+		maxHeightPrevoted,
 	}) {
 		this.blockId =
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
@@ -114,7 +114,7 @@ const BlockHeader = stampit({
 				.toLowerCase();
 		this.activeSinceRound = activeSinceRound || 1;
 		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
-		this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
+		this.maxHeightPrevoted = maxHeightPrevoted || 0;
 	},
 });
 

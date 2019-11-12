@@ -101,10 +101,10 @@ export const getNetgroup = (address: string, secret: number): number => {
 	const networkBytes = Buffer.alloc(NETWORK_BUFFER_LENGTH);
 	networkBytes.writeUInt8(network, 0);
 
-	// Get prefix bytes of ip address to bucket
+	// Get prefix bytes of ipAddress to bucket
 	const { aBytes, bBytes } = getIPBytes(address);
 
-	// Check if ip address is unsupported network type
+	// Check if ipAddress is unsupported network type
 	if (network === NETWORK.NET_OTHER) {
 		throw Error('IP address is unsupported.');
 	}
@@ -172,7 +172,7 @@ export const getBucketId = (options: {
 	const networkBytes = Buffer.alloc(NETWORK_BUFFER_LENGTH);
 	networkBytes.writeUInt8(network, 0);
 
-	// Get bytes of ip address to bucket
+	// Get bytes of ipAddress to bucket
 	const {
 		aBytes: targetABytes,
 		bBytes: targetBBytes,
@@ -180,7 +180,7 @@ export const getBucketId = (options: {
 		dBytes: targetDBytes,
 	} = getIPBytes(targetAddress);
 
-	// Check if ip address is unsupported network type
+	// Check if ipAddress is unsupported network type
 	if (network === NETWORK.NET_OTHER) {
 		throw Error('IP address is unsupported.');
 	}

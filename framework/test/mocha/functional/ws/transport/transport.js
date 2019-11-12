@@ -135,43 +135,6 @@ describe('WS transport', () => {
 					.that.is.an('array');
 			}
 		});
-
-		it('should fail when using an empty payload', async () => {
-			try {
-				await p2p.request({
-					procedure: 'getBlocksFromId',
-					data: {},
-				});
-			} catch (e) {
-				expect(e[0].message).to.equal(
-					"should have required property 'blockId'",
-				);
-			}
-		});
-
-		it('should fail when using an invalid block ID format', async () => {
-			try {
-				await p2p.request({
-					procedure: 'getBlocksFromId',
-					data: { blockId: 'abcd1234' },
-				});
-			} catch (e) {
-				expect(e[0].message).to.equal('should match format "id"');
-			}
-		});
-
-		it("should throw an error when payload doesn't have the correct format", async () => {
-			try {
-				await p2p.request({
-					procedure: 'getBlocksFromId',
-					data: { unwantedProperty: 1 },
-				});
-			} catch (e) {
-				expect(e[0].message).to.equal(
-					"should have required property 'blockId'",
-				);
-			}
-		});
 	});
 
 	describe('getTransactions', () => {
@@ -192,7 +155,7 @@ describe('WS transport', () => {
 			it('should return object containing an array of transactions', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: [transaction.id],
+					data: { transactionIds: [transaction.id] },
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an('array').not.empty;
@@ -223,7 +186,11 @@ describe('WS transport', () => {
 			it('should return object containing an array with one transaction', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: [transactionInQueues[transactionInQueues.length - 1].id],
+					data: {
+						transactionIds: [
+							transactionInQueues[transactionInQueues.length - 1].id,
+						],
+					},
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an('array').not.empty;
@@ -235,10 +202,12 @@ describe('WS transport', () => {
 			it('should return object containing an array with several transactions', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: [
-						transactionInQueues[transactionInQueues.length - 1].id,
-						transactionInQueues[transactionInQueues.length - 2].id,
-					],
+					data: {
+						transactionIds: [
+							transactionInQueues[transactionInQueues.length - 1].id,
+							transactionInQueues[transactionInQueues.length - 2].id,
+						],
+					},
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.have.length(2);
@@ -255,7 +224,9 @@ describe('WS transport', () => {
 			it('should return object containing an array of empty transactions', async () => {
 				const { data } = await p2p.request({
 					procedure: 'getTransactions',
-					data: ['id1', 'id2'],
+					data: {
+						transactionIds: ['10000000000000000000', '9600000000000000000'],
+					},
 				});
 				expect(data).to.have.property('transactions');
 				expect(data.transactions).to.be.an.empty('array');
@@ -264,96 +235,6 @@ describe('WS transport', () => {
 	});
 
 	describe('getHighestCommonBlock', () => {
-		it('using no params should fail', async () => {
-			let res;
-			try {
-				const { data } = await p2p.request({
-					procedure: 'getHighestCommonBlock',
-				});
-				res = data;
-			} catch (err) {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err.response),
-					JSON.stringify(res),
-				);
-				expect(err.message).to.equal('should be object: undefined');
-				expect(res).to.be.undefined;
-			}
-		});
-
-		it('using non unique ids should fail', async () => {
-			let res;
-			try {
-				res = await p2p.request({
-					procedure: 'getHighestCommonBlock',
-					data: { ids: ['1', '2', '2'] },
-				});
-			} catch (err) {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err.response),
-					JSON.stringify(res),
-				);
-				expect(err.message).to.equal(
-					'should NOT have duplicate items (items ## 2 and 1 are identical): undefined',
-				);
-			}
-		});
-
-		it('using an empty array should fail', async () => {
-			let res;
-			try {
-				res = await p2p.request({
-					procedure: 'getHighestCommonBlock',
-					data: { ids: [] },
-				});
-			} catch (err) {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err.response),
-					JSON.stringify(res),
-				);
-				expect(err.message).to.equal(
-					'should NOT have fewer than 1 items: undefined',
-				);
-			}
-		});
-
-		it('should fail when using invalid id format', async () => {
-			let res;
-			try {
-				res = await p2p.request({
-					procedure: 'getHighestCommonBlock',
-					data: { ids: ['abcde', '1'] },
-				});
-			} catch (err) {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err.response),
-					JSON.stringify(res),
-				);
-				expect(err.message).to.equal('should match format "id": undefined');
-			}
-		});
-
-		it('not using an array should fail', async () => {
-			let res;
-			try {
-				res = await p2p.request({
-					procedure: 'getHighestCommonBlock',
-					data: { ids: '1,2,3,4,5,6' },
-				});
-			} catch (err) {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err.response),
-					JSON.stringify(res),
-				);
-				expect(err.message).to.equal('should be array: undefined');
-			}
-		});
-
 		it('using ["1","2","3"] should return an empty array (no common blocks)', async () => {
 			const { data } = await p2p.request({
 				procedure: 'getHighestCommonBlock',
@@ -375,20 +256,23 @@ describe('WS transport', () => {
 			});
 			await p2p.send({ event: 'postBlock', data: { block: testBlock } });
 		});
-
-		it('should not crash the application when sending the invalid block', async () => {
-			await p2p.send({
-				event: 'postBlock',
-				data: { block: { generatorPublicKey: '123' } },
-			});
-		});
 	});
 
 	describe('postSignatures', () => {
-		it('should not crash the application when sending the invalid signatures', async () => {
+		it('should not crash the application when sending the correct signatures', async () => {
 			await p2p.send({
 				event: 'postSignatures',
-				data: { signatures: ['not object signature'] },
+				data: {
+					signatures: [
+						{
+							signature:
+								'60d28cfbb67ee0dd7f4cc5c5b686445bf66883276f05136f605d77f7b1c6316587b752624379e26fa2a4e247cc49a60fce57fa7c43a28afb8152262364e00d01',
+							transactionId: '15778222267241153095',
+							publicKey:
+								'633698916662935403780f04fd01119f32f9cd180a3b104b67c5ae5ebb6d5593',
+						},
+					],
+				},
 			});
 		});
 	});
