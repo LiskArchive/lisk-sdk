@@ -32,7 +32,7 @@ const __private = {
  * - protocolVersion
  * - height
  * - nethash
- * - prevotedConfirmedUptoHeight
+ * - maxHeightPrevoted
  *
  * @class
  * @requires os
@@ -62,7 +62,7 @@ class ApplicationState {
 			protocolVersion,
 			height: 1,
 			blockVersion: 0,
-			prevotedConfirmedUptoHeight: 0,
+			maxHeightPrevoted: 0,
 			nethash,
 		});
 	}
@@ -79,7 +79,7 @@ class ApplicationState {
 	 * Updates the application state.
 	 *
 	 * @param height
-	 * @param prevotedConfirmedUptoHeight
+	 * @param maxHeightPrevoted
 	 * @param lastBlockId
 	 * @param blockVersion
 	 * @return {Promise<boolean, Error>}
@@ -87,14 +87,14 @@ class ApplicationState {
 	 */
 	async update({
 		height,
-		prevotedConfirmedUptoHeight = this.state.prevotedConfirmedUptoHeight,
+		maxHeightPrevoted = this.state.maxHeightPrevoted,
 		lastBlockId = this.state.lastBlockId,
 		blockVersion = this.state.blockVersion,
 	}) {
 		assert(height, 'height is required to update application state.');
 		try {
 			const newState = this.state;
-			newState.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight;
+			newState.maxHeightPrevoted = maxHeightPrevoted;
 			newState.lastBlockId = lastBlockId;
 			newState.height = height;
 			newState.blockVersion = blockVersion;
