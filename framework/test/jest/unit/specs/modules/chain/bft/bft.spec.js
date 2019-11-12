@@ -21,13 +21,18 @@ const {
 const {
 	FinalityManager,
 } = require('../../../../../../../src/modules/chain/bft/finality_manager');
-const forkChoiceRule = require('../../../../../../../src/modules/chain/bft/fork_choice_rule');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 
 const {
 	BFT,
 	extractBFTBlockHeaderFromBlock,
-} = require('../../../../../../../src/modules/chain/bft/bft');
+	FORK_STATUS_DISCARD,
+	FORK_STATUS_VALID_BLOCK,
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+} = require('../../../../../../../src/modules/chain/bft');
 
 const { constants } = require('../../../../../utils');
 
@@ -766,7 +771,7 @@ describe('bft', () => {
 				};
 
 				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK,
+					FORK_STATUS_IDENTICAL_BLOCK,
 				);
 			});
 
@@ -778,7 +783,7 @@ describe('bft', () => {
 				};
 
 				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					forkChoiceRule.FORK_STATUS_VALID_BLOCK,
+					FORK_STATUS_VALID_BLOCK,
 				);
 			});
 
@@ -793,7 +798,7 @@ describe('bft', () => {
 				};
 
 				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					forkChoiceRule.FORK_STATUS_DOUBLE_FORGING,
+					FORK_STATUS_DOUBLE_FORGING,
 				);
 			});
 
@@ -817,7 +822,7 @@ describe('bft', () => {
 				};
 
 				expect(bftInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
-					forkChoiceRule.FORK_STATUS_TIE_BREAK,
+					FORK_STATUS_TIE_BREAK,
 				);
 			});
 
@@ -830,7 +835,7 @@ describe('bft', () => {
 				};
 
 				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN,
+					FORK_STATUS_DIFFERENT_CHAIN,
 				);
 			});
 
@@ -846,7 +851,7 @@ describe('bft', () => {
 				};
 
 				expect(bftInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
-					forkChoiceRule.FORK_STATUS_DISCARD,
+					FORK_STATUS_DISCARD,
 				);
 			});
 		});

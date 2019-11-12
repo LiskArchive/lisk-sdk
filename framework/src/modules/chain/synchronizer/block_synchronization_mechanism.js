@@ -23,7 +23,7 @@ const {
 	restoreBlocks,
 	clearBlocksTempTable,
 } = require('./utils');
-const { FORK_STATUS_DIFFERENT_CHAIN } = require('../blocks');
+const { FORK_STATUS_DIFFERENT_CHAIN } = require('../bft');
 const {
 	ApplyPenaltyAndRestartError,
 	RestartError,

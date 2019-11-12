@@ -20,14 +20,6 @@ const {
 	calculateSupply,
 } = require('./block_reward');
 const { Blocks } = require('./blocks');
-const {
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_VALID_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_DISCARD,
-} = require('../bft/fork_choice_rule');
 const { baseBlockSchema } = require('./schema');
 const { StateStore } = require('./state_store');
 
@@ -38,10 +30,4 @@ module.exports = {
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_VALID_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_DISCARD,
 };
