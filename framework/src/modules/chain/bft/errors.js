@@ -30,7 +30,7 @@ class BFTChainDisjointError extends BFTError {
 class BFTLowerChainBranchError extends BFTError {
 	constructor() {
 		super(
-			'Violation of the condition that delegate must choose the branch with largest prevotedConfirmedUptoHeight',
+			'Violation of the condition that delegate must choose the branch with largest maxHeightPrevoted',
 		);
 	}
 }

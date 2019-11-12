@@ -166,7 +166,7 @@ async function createRawBlock(library, rawTransactions) {
 		maxTransactionPerBlock:
 			library.modules.blocks.constants.maxTransactionPerBlock,
 		maxHeightPreviouslyForged: 1,
-		prevotedConfirmedUptoHeight: 1,
+		maxHeightPrevoted: 1,
 	});
 
 	block.transactions = block.transactions.map(transaction =>

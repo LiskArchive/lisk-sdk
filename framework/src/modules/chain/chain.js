@@ -649,7 +649,7 @@ module.exports = class Chain {
 					this.channel.invoke('app:updateApplicationState', {
 						height: block.height,
 						lastBlockId: block.id,
-						prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+						maxHeightPrevoted: block.maxHeightPrevoted,
 						blockVersion: block.version,
 					});
 				}

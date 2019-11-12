@@ -32,7 +32,7 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 	for (let i = 1; i < rows.length - 1; i += 2) {
 		const delegateName = rows[i][1];
 		const maxHeightPreviouslyForged = parseInt(rows[i][2], 10);
-		const prevotedConfirmedUptoHeight = parseInt(rows[i][3], 10);
+		const maxHeightPrevoted = parseInt(rows[i][3], 10);
 		const activeSinceRound = parseInt(rows[i][4], 10);
 		const height = parseInt(rows[i][5], 10);
 
@@ -41,7 +41,7 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 			height,
 			maxHeightPreviouslyForged,
 			activeSinceRound,
-			prevotedConfirmedUptoHeight,
+			maxHeightPrevoted,
 		});
 
 		const input = { delegateName, blockHeader };
@@ -138,7 +138,7 @@ const bftFinalityTestSuiteGenerator = ({
  * @param {int} activeDelegates
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidPreVotedConfirmedUptoHeight = activeDelegates => {
+const invalidmaxHeightPrevoted = activeDelegates => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
 		activeDelegates,
@@ -147,12 +147,12 @@ const invalidPreVotedConfirmedUptoHeight = activeDelegates => {
 
 	const blockHeader = blockHeaders.pop();
 
-	// It's an invalid block header as the value for "prevotedConfirmedUptoHeight"
+	// It's an invalid block header as the value for "maxHeightPrevoted"
 	// didn't match with one BFT compute for this particular height
 	// which is normally incremented in sequence if same delegates keep forging
 	const invalidBlockHeader = {
 		...blockHeader,
-		prevotedConfirmedUptoHeight: blockHeader.prevotedConfirmedUptoHeight + 10,
+		maxHeightPrevoted: blockHeader.maxHeightPrevoted + 10,
 	};
 
 	return {
@@ -269,7 +269,7 @@ const invalidPreviouslyForgedHeight = activeDelegates => {
  * @param {int} activeDelegates
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidLowerPreVotedConfirmedUptoHeight = activeDelegates => {
+const invalidLowermaxHeightPrevoted = activeDelegates => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
 		activeDelegates,
@@ -279,10 +279,9 @@ const invalidLowerPreVotedConfirmedUptoHeight = activeDelegates => {
 	const blockHeader = blockHeaders.pop();
 	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
 
-	// If delegate last forged block have higher prevotedConfirmedUptoHeight
+	// If delegate last forged block have higher maxHeightPrevoted
 	// value that means it moved to different chain
-	delegateLastBlockHeader.prevotedConfirmedUptoHeight =
-		blockHeader.prevotedConfirmedUptoHeight + 1;
+	delegateLastBlockHeader.maxHeightPrevoted = blockHeader.maxHeightPrevoted + 1;
 	const invalidBlockHeader = {
 		...blockHeader,
 	};
@@ -304,7 +303,7 @@ const bftInvalidBlockHeaderTestSuiteGenerator = ({
 	runner: 'bft_processing',
 	handler: 'bft_invalid_block_headers',
 	testCases: [
-		invalidPreVotedConfirmedUptoHeight(activeDelegates),
+		invalidmaxHeightPrevoted(activeDelegates),
 		invalidSameHeightBlock(activeDelegates),
 		invalidLowerHeightBlock(activeDelegates),
 
@@ -313,7 +312,7 @@ const bftInvalidBlockHeaderTestSuiteGenerator = ({
 
 		// invalidPreviouslyForgedHeight(activeDelegates),
 
-		invalidLowerPreVotedConfirmedUptoHeight(activeDelegates),
+		invalidLowermaxHeightPrevoted(activeDelegates),
 	],
 });
 
