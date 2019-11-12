@@ -19,6 +19,7 @@ import * as http from 'http';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import {
+	ConnectionKind,
 	DEFAULT_BAN_TIME,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -541,6 +542,7 @@ export class P2P extends EventEmitter {
 
 		this._nodeInfo = {
 			...nodeInfo,
+			nonce: this.nodeInfo.nonce,
 		};
 
 		this._peerPool.applyNodeInfo(this._nodeInfo);
@@ -555,15 +557,20 @@ export class P2P extends EventEmitter {
 			this._peerPool.applyPenalty(peerPenalty);
 		}
 	}
-	// Make sure you always share shared peer state to a user
+	// Make sure you always share shared peer state to a user and remove private peers
 	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		// Only share the shared state to the user
-		return this._peerPool.getAllConnectedPeerInfos().map(peer => ({
-			...peer.sharedState,
-			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
-			peerId: peer.peerId,
-		}));
+		return this._peerPool
+			.getAllConnectedPeerInfos()
+			.filter(
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+			)
+			.map(peer => ({
+				...peer.sharedState,
+				ipAddress: peer.ipAddress,
+				wsPort: peer.wsPort,
+				peerId: peer.peerId,
+			}));
 	}
 	// Make sure you always share shared peer state to a user
 	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
@@ -581,13 +588,17 @@ export class P2P extends EventEmitter {
 			return true;
 		});
 
-		// Only share the shared state to the user
-		return disconnectedPeers.map(peer => ({
-			...peer.sharedState,
-			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
-			peerId: peer.peerId,
-		}));
+		// Only share the shared state to the user and remove private peers
+		return disconnectedPeers
+			.filter(
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+			)
+			.map(peer => ({
+				...peer.sharedState,
+				ipAddress: peer.ipAddress,
+				wsPort: peer.wsPort,
+				peerId: peer.peerId,
+			}));
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -734,13 +745,23 @@ export class P2P extends EventEmitter {
 				}
 
 				// Remove these wsPort and ipAddress from the query object
-				const { wsPort, ipAddress, ...restOfQueryObject } = queryObject;
+				const {
+					wsPort,
+					ipAddress,
+					advertiseAddress,
+					...restOfQueryObject
+				} = queryObject;
+
 				const incomingPeerInfo: P2PPeerInfo = {
 					sharedState: {
 						...restOfQueryObject,
 						...queryOptions,
 						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 						protocolVersion: queryObject.protocolVersion,
+					},
+					internalState: {
+						advertiseAddress: advertiseAddress !== 'false',
+						connectionKind: ConnectionKind.INBOUND,
 					},
 					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
 					ipAddress: socket.remoteAddress,
@@ -902,13 +923,15 @@ export class P2P extends EventEmitter {
 		);
 
 		// Remove internal state to check byte size
-		const sanitizedPeerInfoList: ProtocolPeerInfo[] = selectedPeers.map(
-			peer => ({
+		const sanitizedPeerInfoList: ProtocolPeerInfo[] = selectedPeers
+			.filter(
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+			)
+			.map(peer => ({
 				ipAddress: peer.ipAddress,
 				wsPort: peer.wsPort,
 				...peer.sharedState,
-			}),
-		);
+			}));
 
 		request.end({
 			success: true,

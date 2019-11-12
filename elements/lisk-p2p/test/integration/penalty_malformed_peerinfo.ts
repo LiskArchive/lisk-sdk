@@ -44,6 +44,7 @@ describe('penalty sending malformed peerInfo', () => {
 			nonce: 'nonce',
 			invalidData: '1.'.repeat(13000),
 			options: p2pNodeList[0].nodeInfo.options,
+			advertiseAddress: true,
 		});
 
 		await wait(100);
