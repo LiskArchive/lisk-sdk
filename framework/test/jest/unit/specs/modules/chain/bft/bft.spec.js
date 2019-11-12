@@ -57,7 +57,7 @@ describe('bft', () => {
 				id: blockId,
 				height,
 				maxHeightPreviouslyForged,
-				prevotedConfirmedUptoHeight,
+				maxHeightPrevoted,
 				generatorPublicKey: delegatePublicKey,
 			} = block;
 			const activeSinceRound = 0;
@@ -66,7 +66,7 @@ describe('bft', () => {
 				blockId,
 				height,
 				maxHeightPreviouslyForged,
-				prevotedConfirmedUptoHeight,
+				maxHeightPrevoted,
 				delegatePublicKey,
 				activeSinceRound,
 			};
@@ -236,9 +236,9 @@ describe('bft', () => {
 					expect(props.maxHeightPreviouslyForged).toBe(0);
 				});
 
-				it('should return prevotedConfirmedUptoHeight up to last block', async () => {
+				it('should return maxHeightPrevoted up to last block', async () => {
 					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
-					expect(props.prevotedConfirmedUptoHeight).toBe(0);
+					expect(props.maxHeightPrevoted).toBe(0);
 				});
 			});
 
@@ -259,9 +259,9 @@ describe('bft', () => {
 					expect(props.maxHeightPreviouslyForged).toBe(lastForgedHeight);
 				});
 
-				it('should return prevotedConfirmedUptoHeight up to last block', async () => {
+				it('should return maxHeightPrevoted up to last block', async () => {
 					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
-					expect(props.prevotedConfirmedUptoHeight).toBe(0);
+					expect(props.maxHeightPrevoted).toBe(0);
 				});
 			});
 		});
@@ -750,7 +750,7 @@ describe('bft', () => {
 					height: 1,
 					version: 2,
 					generatorPublicKey: 'abcdef',
-					prevotedConfirmedUptoHeight: 1,
+					maxHeightPrevoted: 1,
 					timestamp: bftInstance.slots.getEpochTime(Date.now()),
 				};
 
@@ -759,7 +759,7 @@ describe('bft', () => {
 					height: 2,
 					version: 2,
 					generatorPublicKey: 'ghijkl',
-					prevotedConfirmedUptoHeight: 1,
+					maxHeightPrevoted: 1,
 					timestamp: bftInstance.slots.getEpochTime(Date.now()),
 				};
 			});
@@ -791,8 +791,7 @@ describe('bft', () => {
 				const aNewBlock = {
 					...defaults.newBlock,
 					height: defaults.lastBlock.height,
-					prevotedConfirmedUptoHeight:
-						defaults.lastBlock.prevotedConfirmedUptoHeight,
+					maxHeightPrevoted: defaults.lastBlock.maxHeightPrevoted,
 					previousBlockId: defaults.lastBlock.previousBlockId,
 					generatorPublicKey: defaults.lastBlock.generatorPublicKey,
 				};
@@ -806,8 +805,7 @@ describe('bft', () => {
 				const aNewBlock = {
 					...defaults.newBlock,
 					height: defaults.lastBlock.height,
-					prevotedConfirmedUptoHeight:
-						defaults.lastBlock.prevotedConfirmedUptoHeight,
+					maxHeightPrevoted: defaults.lastBlock.maxHeightPrevoted,
 					previousBlockId: defaults.lastBlock.previousBlockId,
 					timestamp: defaults.lastBlock.timestamp + 1000,
 				};
@@ -829,8 +827,7 @@ describe('bft', () => {
 			it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
 				const aNewBlock = {
 					...defaults.newBlock,
-					prevotedConfirmedUptoHeight:
-						defaults.lastBlock.prevotedConfirmedUptoHeight,
+					maxHeightPrevoted: defaults.lastBlock.maxHeightPrevoted,
 					height: defaults.lastBlock.height + 1,
 				};
 

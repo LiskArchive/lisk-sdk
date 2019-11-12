@@ -24,14 +24,14 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 1,
+			maxHeightPrevoted: 1,
 			height: 66,
 			ip: '127.0.0.2',
 			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
-			prevotedConfirmedUptoHeight: 1,
+			maxHeightPrevoted: 1,
 			blockVersion: 2,
 			height: 67,
 			ip: '127.0.0.3',
@@ -40,7 +40,7 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 68,
 			wsPort: '5000',
 			ip: '127.0.0.3',
@@ -48,7 +48,7 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.4',
 			wsPort: '5000',
@@ -56,7 +56,7 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.5',
 			wsPort: '5000',
@@ -64,7 +64,7 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.6',
 			wsPort: '5000',
@@ -72,7 +72,7 @@ module.exports = {
 		{
 			lastBlockId: '12343246',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.7',
 			wsPort: '5000',
@@ -80,7 +80,7 @@ module.exports = {
 		{
 			lastBlockId: '12343246',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.8',
 			wsPort: '5000',
@@ -88,14 +88,14 @@ module.exports = {
 		{
 			lastBlockId: '12343246',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.9',
 			wsPort: '5000',
-		}, // Next three are incompatible peers (No height or blockVersion or prevotedConfirmedUptoHeight properties are present
+		}, // Next three are incompatible peers (No height or blockVersion or maxHeightPrevoted properties are present
 		{
 			lastBlockId: '12343246',
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.10',
 			wsPort: '5000',
@@ -110,7 +110,7 @@ module.exports = {
 		{
 			lastBlockId: '12343246',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			ip: '127.0.0.12',
 			wsPort: '5000',
 		},
@@ -119,7 +119,7 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.4',
 			wsPort: '5000',
@@ -127,7 +127,7 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.5',
 			wsPort: '5000',
@@ -135,7 +135,7 @@ module.exports = {
 		{
 			lastBlockId: '12343245',
 			blockVersion: 2,
-			prevotedConfirmedUptoHeight: 2,
+			maxHeightPrevoted: 2,
 			height: 69,
 			ip: '127.0.0.6',
 			wsPort: '5000',

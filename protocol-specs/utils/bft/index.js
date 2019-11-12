@@ -30,7 +30,7 @@ const generateBlockHeader = ({
 	height,
 	maxHeightPreviouslyForged,
 	activeSinceRound,
-	prevotedConfirmedUptoHeight,
+	maxHeightPrevoted,
 }) => {
 	const delegatePublicKey = getKeys(delegateName).publicKey;
 
@@ -45,7 +45,7 @@ const generateBlockHeader = ({
 		maxHeightPreviouslyForged,
 		delegatePublicKey,
 		activeSinceRound,
-		prevotedConfirmedUptoHeight,
+		maxHeightPrevoted,
 	};
 };
 
@@ -54,7 +54,7 @@ const generateBlockHeadersSeries = ({ activeDelegates, count }) => {
 
 	return new Array(count).fill(0).map((_v, index) => {
 		const height = index + 1;
-		const prevotedConfirmedUptoHeight = height - threshold;
+		const maxHeightPrevoted = height - threshold;
 		const maxHeightPreviouslyForged = height - activeDelegates;
 
 		return generateBlockHeader({
@@ -63,8 +63,7 @@ const generateBlockHeadersSeries = ({ activeDelegates, count }) => {
 			maxHeightPreviouslyForged:
 				maxHeightPreviouslyForged < 0 ? 0 : maxHeightPreviouslyForged,
 			activeSinceRound: 1,
-			prevotedConfirmedUptoHeight:
-				prevotedConfirmedUptoHeight < 0 ? 0 : prevotedConfirmedUptoHeight,
+			maxHeightPrevoted: maxHeightPrevoted < 0 ? 0 : maxHeightPrevoted,
 		});
 	});
 };

@@ -27,7 +27,7 @@ module.exports = {
 		maxHeightPreviouslyForged: {
 			type: 'integer',
 		},
-		prevotedConfirmedUptoHeight: {
+		maxHeightPrevoted: {
 			type: 'integer',
 		},
 		activeSinceRound: {
@@ -42,7 +42,7 @@ module.exports = {
 		'blockId',
 		'height',
 		'maxHeightPreviouslyForged',
-		'prevotedConfirmedUptoHeight',
+		'maxHeightPrevoted',
 		'activeSinceRound',
 		'delegatePublicKey',
 	],

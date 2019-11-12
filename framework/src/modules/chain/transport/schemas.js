@@ -52,7 +52,7 @@ module.exports = {
 						example: 123,
 						minimum: 1,
 					},
-					prevotedConfirmedUptoHeight: {
+					maxHeightPrevoted: {
 						type: 'integer',
 						example: 123,
 						minimum: 0,

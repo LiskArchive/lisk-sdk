@@ -36,7 +36,7 @@ const sqlFiles = {
  * @property {string} blockSignature
  * @property {number} height
  * @property {number} maxHeightPreviouslyForged
- * @property {number} prevotedConfirmedUptoHeight
+ * @property {number} maxHeightPrevoted
  * @property {string} totalFee
  * @property {string} reward
  * @property {number} payloadLength
@@ -172,7 +172,7 @@ class Block extends BaseEntity {
 		this.addField('maxHeightPreviouslyForged', 'number', {
 			filter: filterType.NUMBER,
 		});
-		this.addField('prevotedConfirmedUptoHeight', 'number', {
+		this.addField('maxHeightPrevoted', 'number', {
 			filter: filterType.NUMBER,
 		});
 		this.addField(
