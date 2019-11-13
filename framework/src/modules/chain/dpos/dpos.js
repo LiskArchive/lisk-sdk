@@ -139,10 +139,7 @@ module.exports = class Dpos {
 
 			for (const publicKey of activeList.delegatePublicKeys) {
 				if (!delegates[publicKey]) {
-					delegates[publicKey] = {
-						publicKey,
-						activeHeights: [],
-					};
+					delegates[publicKey] = [];
 				}
 
 				const earliestListRound =
@@ -170,8 +167,8 @@ module.exports = class Dpos {
 					earliestActiveRound,
 				);
 
-				if (!delegates[publicKey].activeHeights.includes(lastActiveMinHeight)) {
-					delegates[publicKey].activeHeights.push(lastActiveMinHeight);
+				if (!delegates[publicKey].includes(lastActiveMinHeight)) {
+					delegates[publicKey].push(lastActiveMinHeight);
 				}
 
 				delegateLists = previousLists;
