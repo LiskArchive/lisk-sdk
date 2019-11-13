@@ -902,7 +902,11 @@ export class P2P extends EventEmitter {
 	}
 
 	private _fetchSeedPeerList(): void {
-		this._peerPool.discoverSeedPeers();
+		if (this._sanitizedPeerLists.seedPeers.length === 0) {
+			return;
+		}
+
+		this._peerPool.discoverSeedPeers(this._sanitizedPeerLists.seedPeers);
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {

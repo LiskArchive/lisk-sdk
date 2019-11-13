@@ -21,8 +21,10 @@ import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
+	SEED_PEER_DISCONNECTION_REASON,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -101,6 +103,7 @@ export interface PeerConfig {
 	readonly wsMaxPayload?: number;
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
+	readonly fetchPeersAndDisconnect?: boolean;
 	readonly secret: number;
 }
 
@@ -118,6 +121,7 @@ export class Peer extends EventEmitter {
 		responseRate: number;
 		lastResponded: number;
 	};
+	protected fetchPeersAndDisconnect: boolean;
 	private _rpcCounter: Map<string, number>;
 	private _rpcRates: Map<string, number>;
 	private _messageCounter: Map<string, number>;
@@ -163,6 +167,10 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
+		this.fetchPeersAndDisconnect =
+			typeof this._peerConfig.fetchPeersAndDisconnect === 'boolean'
+				? this._peerConfig.fetchPeersAndDisconnect
+				: false;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -424,6 +432,13 @@ export class Peer extends EventEmitter {
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		});
+
+		if (this.fetchPeersAndDisconnect) {
+			this.disconnect(
+				INTENTIONAL_DISCONNECT_CODE,
+				SEED_PEER_DISCONNECTION_REASON,
+			);
+		}
 	}
 
 	public async fetchStatus(): Promise<P2PPeerInfo> {
