@@ -103,7 +103,6 @@ module.exports = class Dpos {
 				// IMPORTANT! All logic below based on ordering rounds in
 				// descending order. Change it at your own discretion!
 				sort: 'round:desc',
-				// limit: number or requested rounds + last 3 rounds
 				limit,
 			},
 			tx,
