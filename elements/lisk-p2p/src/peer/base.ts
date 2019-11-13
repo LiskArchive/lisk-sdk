@@ -537,7 +537,9 @@ export class Peer extends EventEmitter {
 		const result = validatePeerCompatibility(newPeerInfo, this._serverNodeInfo);
 
 		if (!result.success && result.error) {
-			throw new Error(result.error);
+			throw new Error(
+				`${result.error} : ${peerInfo.ipAddress}:${peerInfo.wsPort}`,
+			);
 		}
 
 		this.updatePeerInfo(newPeerInfo);
