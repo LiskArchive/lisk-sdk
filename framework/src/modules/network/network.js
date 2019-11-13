@@ -96,7 +96,7 @@ module.exports = class Network {
 		const previousPeersStr = await this.storage.entities.NetworkInfo.getKey(
 			NETWORK_INFO_KEY_TRIED_PEERS,
 		);
-		let previousPeers;
+		let previousPeers = [];
 		try {
 			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
 		} catch (err) {
