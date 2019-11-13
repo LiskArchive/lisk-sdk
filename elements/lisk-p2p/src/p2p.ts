@@ -297,7 +297,7 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
 			try {
-				this._peerBook.addPeer(peerInfo);
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 				// Should be added to newPeer list first and since it is connected so we will upgrade it
 				this._peerBook.upgradePeer(peerInfo);
 			} catch (error) {
@@ -351,7 +351,7 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
 			try {
-				this._peerBook.addPeer(peerInfo);
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 				// Since the connection is tried already hence upgrade the peer
 				this._peerBook.upgradePeer(peerInfo);
 			} catch (error) {
@@ -439,7 +439,7 @@ export class P2P extends EventEmitter {
 
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
 				try {
-					this._peerBook.addPeer(detailedPeerInfo);
+					this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
 					// Re-emit the message to allow it to bubble up the class hierarchy.
 					// Only emit event when a peer is discovered for the first time.
 					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
@@ -1038,7 +1038,7 @@ export class P2P extends EventEmitter {
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
 		newPeersToAdd.forEach(peerInfo => {
 			try {
-				this._peerBook.addPeer(peerInfo);
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 				this._peerBook.upgradePeer(peerInfo);
 			} catch (error) {
 				if (!(error instanceof ExistingPeerError)) {
