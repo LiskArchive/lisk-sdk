@@ -45,17 +45,32 @@ export interface P2PSharedState {
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
-
+// Disable readonly properties as its going to change
+// tslint:disable:readonly-keyword
 export interface P2PInternalState {
-	readonly dateAdded?: Date;
-	readonly peerKind?: PeerKind;
-	readonly isBanned?: boolean;
-	readonly productivity?: number;
-	readonly reputation?: number;
-	readonly connectionKind?: ConnectionKind;
-	readonly advertiseAddress: boolean;
+	dateAdded?: Date;
+	peerKind?: PeerKind;
+	isBanned?: boolean;
+	productivity?: {
+		requestCounter: number;
+		responseCounter: number;
+		responseRate: number;
+		lastResponded: number;
+	};
+	reputation?: number;
+	netgroup?: number;
+	latency?: number;
+	connectTime?: number;
+	messageCounter?: Map<string, number>;
+	messageRates?: Map<string, number>;
+	rpcCounter?: Map<string, number>;
+	rpcRates?: Map<string, number>;
+	wsMessageCount?: number;
+	wsMessageRate?: number;
+	connectionKind?: ConnectionKind;
+	advertiseAddress: boolean;
 }
-
+// tslint:enable:readonly-keyword
 export interface P2PPeerInfo {
 	// String to uniquely identify each peer
 	readonly peerId: string;

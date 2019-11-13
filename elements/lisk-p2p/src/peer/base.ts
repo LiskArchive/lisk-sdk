@@ -50,6 +50,7 @@ import {
 } from '../events';
 import { P2PRequest } from '../p2p_request';
 import {
+	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -146,8 +147,8 @@ export class Peer extends EventEmitter {
 
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
-		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig;
+		this._peerInfo = peerInfo;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = peerInfo.peerId;
@@ -300,12 +301,75 @@ export class Peer extends EventEmitter {
 		return state;
 	}
 
+	public updateInternalState(internalState: P2PInternalState): void {
+		this._peerInfo = {
+			...this._peerInfo,
+			internalState,
+		};
+	}
+
 	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
 	}
 
 	public get nodeInfo(): P2PNodeInfo | undefined {
 		return this._nodeInfo;
+	}
+
+	public _restoreInternalState(peerInfo: P2PPeerInfo): P2PPeerInfo {
+		const { internalState } = peerInfo;
+
+		if (internalState) {
+			return {
+				...peerInfo,
+				internalState: {
+					...internalState,
+					reputation: internalState.reputation
+						? internalState.reputation
+						: DEFAULT_REPUTATION_SCORE,
+					netgroup: getNetgroup(peerInfo.ipAddress, this._peerConfig.secret),
+					latency: internalState.latency ? internalState.latency : 0,
+					connectTime: Date.now(),
+					rpcCounter: internalState.rpcCounter
+						? internalState.rpcCounter
+						: new Map(),
+					rpcRates: internalState.rpcRates ? internalState.rpcRates : new Map(),
+					messageCounter: internalState.messageCounter
+						? internalState.messageCounter
+						: new Map(),
+					messageRates: internalState.messageRates
+						? internalState.messageRates
+						: new Map(),
+					wsMessageCount: internalState.wsMessageCount
+						? internalState.wsMessageCount
+						: 0,
+					wsMessageRate: internalState.wsMessageRate
+						? internalState.wsMessageRate
+						: 0,
+					productivity: internalState.productivity
+						? internalState.productivity
+						: { ...DEFAULT_PRODUCTIVITY },
+				},
+			};
+		}
+
+		return {
+			...this._peerInfo,
+			internalState: {
+				reputation: DEFAULT_REPUTATION_SCORE,
+				netgroup: getNetgroup(peerInfo.ipAddress, this._peerConfig.secret),
+				latency: 0,
+				connectTime: Date.now(),
+				rpcCounter: new Map(),
+				rpcRates: new Map(),
+				messageCounter: new Map(),
+				messageRates: new Map(),
+				wsMessageCount: 0,
+				wsMessageRate: 0,
+				productivity: { ...DEFAULT_PRODUCTIVITY },
+				advertiseAddress: true,
+			},
+		};
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
