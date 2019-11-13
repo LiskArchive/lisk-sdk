@@ -21,8 +21,10 @@ import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
+	SEED_PEER_DISCONNECTION_REASON,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -432,7 +434,10 @@ export class Peer extends EventEmitter {
 		});
 
 		if (this.fetchPeersAndDisconnect) {
-			this.disconnect();
+			this.disconnect(
+				INTENTIONAL_DISCONNECT_CODE,
+				SEED_PEER_DISCONNECTION_REASON,
+			);
 		}
 	}
 

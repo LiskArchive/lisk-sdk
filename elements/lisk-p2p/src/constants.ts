@@ -72,6 +72,8 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
+export const SEED_PEER_DISCONNECTION_REASON =
+	'Disconnect from SeedPeer after discovery';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';
