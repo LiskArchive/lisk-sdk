@@ -621,7 +621,6 @@ describe('peer/base', () => {
 							version: peer.version,
 							height: 0,
 							protocolVersion: '1.2',
-							os: '',
 							nethash: 'nethash',
 						},
 					};
