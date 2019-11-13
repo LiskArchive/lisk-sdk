@@ -97,7 +97,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 
 			// Assert
 			expect(Object.keys(minActiveHeightsOfDelegates).length <= 3).toBe(true);
-			expect(minActiveHeightsOfDelegates[newDelegate].activeHeights).toEqual([
+			expect(minActiveHeightsOfDelegates[newDelegate]).toEqual([
 				slots.calcRoundStartHeight(activeRound),
 			]);
 		});

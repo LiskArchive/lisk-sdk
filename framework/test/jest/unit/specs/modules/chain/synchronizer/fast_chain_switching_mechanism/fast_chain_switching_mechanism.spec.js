@@ -92,6 +92,7 @@ describe('fast_chain_switching_mechanism', () => {
 		bftModule = new BFT({
 			storage: storageMock,
 			logger: loggerMock,
+			slots,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
 		});
@@ -236,12 +237,8 @@ describe('fast_chain_switching_mechanism', () => {
 				genesisBlockDevnet,
 				lastBlock,
 			].reduce((acc, block) => {
-				acc[block.generatorPublicKey] = {
-					publicKey: block.generateBlocks,
-					// the value is not important in this test.
-					activeHeights: [1],
-				};
-
+				// the value is not important in this test.
+				acc[block.generatorPublicKey] = [1];
 				return acc;
 			}, {});
 
@@ -440,11 +437,8 @@ describe('fast_chain_switching_mechanism', () => {
 				// minActiveHeightsOfDelegates is provided to deleteBlocks function
 				// in block_processor_v2 from DPoS module.
 				const minActiveHeightsOfDelegates = [lastBlock].reduce((acc, block) => {
-					acc[block.generatorPublicKey] = {
-						publicKey: block.generateBlocks,
-						// the value is not important in this test.
-						activeHeights: [1],
-					};
+					// the value is not important in this test.
+					acc[block.generatorPublicKey] = [1];
 
 					return acc;
 				}, {});

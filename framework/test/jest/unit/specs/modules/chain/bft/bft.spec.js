@@ -79,6 +79,7 @@ describe('bft', () => {
 	describe('BFT', () => {
 		let storageMock;
 		let loggerMock;
+		let slots;
 		let activeDelegates;
 		let startingHeight;
 		let bftParams;
@@ -99,7 +100,7 @@ describe('bft', () => {
 				},
 			};
 
-			const slots = new Slots({
+			slots = new Slots({
 				epochTime: constants.EPOCH_TIME,
 				interval: constants.BLOCK_TIME,
 				blocksPerRound: constants.ACTIVE_DELEGATES,
@@ -540,12 +541,8 @@ describe('bft', () => {
 				// minActiveHeightsOfDelegates is provided to deleteBlocks function
 				// in block_processor_v2 from DPoS module.
 				const minActiveHeightsOfDelegates = blocks.reduce((acc, block) => {
-					acc[block.generatorPublicKey] = {
-						publicKey: block.generateBlocks,
-						// the value is not important in this test.
-						activeHeights: [1],
-					};
-
+					// the value is not important in this test.
+					acc[block.generatorPublicKey] = [1];
 					return acc;
 				}, {});
 
@@ -582,12 +579,8 @@ describe('bft', () => {
 				// minActiveHeightsOfDelegates is provided to deleteBlocks function
 				// in block_processor_v2 from DPoS module.
 				const minActiveHeightsOfDelegates = blocks.reduce((acc, block) => {
-					acc[block.generatorPublicKey] = {
-						publicKey: block.generateBlocks,
-						// the value is not important in this test.
-						activeHeights: [1],
-					};
-
+					// the value is not important in this test.
+					acc[block.generatorPublicKey] = [1];
 					return acc;
 				}, {});
 
@@ -626,12 +619,8 @@ describe('bft', () => {
 				// minActiveHeightsOfDelegates is provided to deleteBlocks function
 				// in block_processor_v2 from DPoS module.
 				const minActiveHeightsOfDelegates = blocks.reduce((acc, block) => {
-					acc[block.generatorPublicKey] = {
-						publicKey: block.generateBlocks,
-						// the value is not important in this test.
-						activeHeights: [1],
-					};
-
+					// the value is not important in this test.
+					acc[block.generatorPublicKey] = [1];
 					return acc;
 				}, {});
 
@@ -808,7 +797,7 @@ describe('bft', () => {
 					version: 2,
 					generatorPublicKey: 'abcdef',
 					maxHeightPrevoted: 1,
-					timestamp: bftInstance.slots.getEpochTime(Date.now()),
+					timestamp: slots.getEpochTime(Date.now()),
 				};
 
 				defaults.newBlock = {
@@ -817,7 +806,7 @@ describe('bft', () => {
 					version: 2,
 					generatorPublicKey: 'ghijkl',
 					maxHeightPrevoted: 1,
-					timestamp: bftInstance.slots.getEpochTime(Date.now()),
+					timestamp: slots.getEpochTime(Date.now()),
 				};
 			});
 
@@ -867,9 +856,7 @@ describe('bft', () => {
 					timestamp: defaults.lastBlock.timestamp + 1000,
 				};
 
-				bftInstance.slots.getEpochTime = jest.fn(
-					() => defaults.lastBlock.timestamp + 1000,
-				); // It will get assigned to newBlock.receivedAt
+				slots.getEpochTime = jest.fn(() => defaults.lastBlock.timestamp + 1000); // It will get assigned to newBlock.receivedAt
 
 				const lastBlock = {
 					...defaults.lastBlock,
@@ -1051,13 +1038,11 @@ describe('bft', () => {
 					blockWithVersion1,
 					blockWithVersion2,
 				]);
-				const delegateMinHeightActive = 1;
+				const delegateMinHeightActive = slots.calcRoundStartHeight(
+					slots.calcRound(blockWithVersion2.height),
+				);
 				const minActiveHeightsOfDelegates = {
-					[blockWithVersion2.generatorPublicKey]: {
-						publicKey: blockWithVersion2.generatorPublicKey,
-						// activeMinHeight value is not important in this scenario
-						activeHeights: [delegateMinHeightActive],
-					},
+					[blockWithVersion2.generatorPublicKey]: [delegateMinHeightActive],
 				};
 
 				// Act
@@ -1082,10 +1067,7 @@ describe('bft', () => {
 				const block = blockFixture({ version: 2, height: 520 });
 				const delegateMinHeightActive = 405;
 				const minActiveHeightsOfDelegates = {
-					[block.generatorPublicKey]: {
-						publicKey: block.generatorPublicKey,
-						activeHeights: [delegateMinHeightActive],
-					},
+					[block.generatorPublicKey]: [delegateMinHeightActive],
 				};
 				const blockHeader = extractBFTBlockHeaderFromBlock({
 					...block,

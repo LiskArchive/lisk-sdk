@@ -214,12 +214,8 @@ describe('block_synchronization_mechanism', () => {
 		// in block_processor_v2 from DPoS module.
 		const minActiveHeightsOfDelegates = [genesisBlockDevnet, lastBlock].reduce(
 			(acc, block) => {
-				acc[block.generatorPublicKey] = {
-					publicKey: block.generateBlocks,
-					// the value is not important in this test.
-					activeHeights: [1],
-				};
-
+				// the value is not important in this test.
+				acc[block.generatorPublicKey] = [1];
 				return acc;
 			},
 			{},
@@ -662,18 +658,10 @@ describe('block_synchronization_mechanism', () => {
 
 					// minActiveHeightsOfDelegates is provided to deleteBlocks function
 					// in block_processor_v2 from DPoS module.
-					const minActiveHeightsOfDelegates = [lastBlock].reduce(
-						(acc, block) => {
-							acc[block.generatorPublicKey] = {
-								publicKey: block.generateBlocks,
-								// the value is not important in this test.
-								activeHeights: [1],
-							};
-
-							return acc;
-						},
-						{},
-					);
+					const minActiveHeightsOfDelegates = {
+						// the value is not important in this test.
+						[lastBlock.generatorPublicKey]: [1],
+					};
 
 					await blocksModule.init();
 					await bftModule.init(minActiveHeightsOfDelegates);
