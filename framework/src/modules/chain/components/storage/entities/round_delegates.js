@@ -169,7 +169,7 @@ class RoundDelegates extends BaseEntity {
 
 	/**
 	 * Get a list of RoundDelegates entries
-	 * @param {filters.TempBlock|filters.TempBlock[]} filters
+	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} filters
 	 * @param {Object} [options]
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
@@ -182,7 +182,7 @@ class RoundDelegates extends BaseEntity {
 
 	/**
 	 * Get one entry of RoundDelegates
-	 * @param {filters.TempBlock|filters.TempBlock[]} filters
+	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} filters
 	 * @param {Object} [options]
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
@@ -197,12 +197,12 @@ class RoundDelegates extends BaseEntity {
 	/**
 	 * Get list of RoundDelegates
 	 *
-	 * @param {filters.TempBlock|filters.TempBlock[]} [filters = {}]
+	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<TempBlock[], Error>}
+	 * @return {Promise.<RoundDelegates[], Error>}
 	 */
 	_getResults(filters, options, tx, expectedResultCount) {
 		this.validateFilters(filters);
