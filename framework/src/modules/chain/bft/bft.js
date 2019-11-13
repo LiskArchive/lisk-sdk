@@ -75,7 +75,7 @@ class BFT extends EventEmitter {
 	 *
 	 * @return {Promise<void>}
 	 */
-	async init() {
+	async init(delegateMinHeightActiveList = {}) {
 		this.finalityManager = await this._initFinalityManager();
 
 		this.finalityManager.on(
@@ -96,6 +96,7 @@ class BFT extends EventEmitter {
 		await this._loadBlocksFromStorage({
 			fromHeight: loadFromHeight,
 			tillHeight: lastBlockHeight,
+			delegateMinHeightActiveList,
 		});
 	}
 
@@ -119,7 +120,7 @@ class BFT extends EventEmitter {
 	 * @param {Array.<Object>} blocks - List of all blocks
 	 * @return {Promise<void>}
 	 */
-	async deleteBlocks(blocks) {
+	async deleteBlocks(blocks, delegateMinHeightActiveList = {}) {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
 
@@ -147,7 +148,11 @@ class BFT extends EventEmitter {
 			const tillHeight = this.finalityManager.minHeight - 1;
 			const fromHeight =
 				this.finalityManager.maxHeight - this.constants.activeDelegates * 2;
-			await this._loadBlocksFromStorage({ fromHeight, tillHeight });
+			await this._loadBlocksFromStorage({
+				fromHeight,
+				tillHeight,
+				delegateMinHeightActiveList,
+			});
 		}
 	}
 
@@ -319,7 +324,11 @@ class BFT extends EventEmitter {
 	 * @param {int} tillHeight - The end height to fetch and load
 	 * @return {Promise<void>}
 	 */
-	async _loadBlocksFromStorage({ fromHeight, tillHeight }) {
+	async _loadBlocksFromStorage({
+		fromHeight,
+		tillHeight,
+		delegateMinHeightActiveList,
+	}) {
 		let sortOrder = 'height:asc';
 
 		// If blocks to be loaded on tail
@@ -338,7 +347,30 @@ class BFT extends EventEmitter {
 		rows.forEach(row => {
 			if (row.height !== 1 && row.version !== 2) return;
 
-			this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(row));
+			const delegate = delegateMinHeightActiveList[row.generatorPublicKey];
+
+			if (!delegate) {
+				throw new Error(
+					`Delegate "${
+						row.generatorPublicKey
+					}" was not found in the active delegate list.`,
+				);
+			}
+
+			// If there is no minHeightActive until this point,
+			// we can set the value to 0
+			const [delegateMinHeightActive = 0] = delegate.activeHeights.filter(
+				height => row.height >= height,
+			);
+
+			const blockHeaders = {
+				...row,
+				delegateMinHeightActive,
+			};
+
+			this.finalityManager.addBlockHeader(
+				extractBFTBlockHeaderFromBlock(blockHeaders),
+			);
 		});
 	}
 
