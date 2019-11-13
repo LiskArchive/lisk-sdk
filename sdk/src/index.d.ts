@@ -23,8 +23,6 @@ declare class Application {
 	registerTransaction(transactionClass: object): void;
 }
 
-declare const version: number;
-declare const systemDirs: any;
 declare class Configurator {
 	constructor();
 	getConfig(
@@ -39,6 +37,9 @@ declare class Configurator {
 	registerSchema(schema: object, key: string): void;
 }
 
+declare const version: number;
+declare const systemDirs: any;
+declare const configurator: Configurator;
 declare const configDevnet: any;
 declare const genesisBlockDevnet: any;
 
@@ -46,7 +47,7 @@ export {
 	Application,
 	version,
 	systemDirs,
-	Configurator,
+	configurator,
 	BigNum,
 	cryptography,
 	transactions,
