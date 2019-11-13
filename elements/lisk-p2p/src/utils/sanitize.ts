@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { PeerKind } from '../constants';
 import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
 
 import { constructPeerId } from './misc';
@@ -51,59 +52,85 @@ export const sanitizePeerLists = (
 	lists: PeerLists,
 	nodeInfo: P2PPeerInfo,
 ): PeerLists => {
-	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
-			return false;
-		}
+	const blacklistedPeers = lists.blacklistedPeers
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		})
+		.map(peer => ({
+			...peer,
+			internalState: {
+				advertiseAddress: true,
+				peerKind: PeerKind.BLACKLISTED_PEER,
+			},
+		}));
 
 	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
 
-	const seedPeers = lists.seedPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
-			return false;
-		}
+	const seedPeers = lists.seedPeers
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+				return false;
+			}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
-			return false;
-		}
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		})
+		.map(peer => ({
+			...peer,
+			internalState: { advertiseAddress: true, peerKind: PeerKind.SEED_PEER },
+		}));
 
-	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
-			return false;
-		}
+	const fixedPeers = lists.fixedPeers
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+				return false;
+			}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
-			return false;
-		}
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		})
+		.map(peer => ({
+			...peer,
+			internalState: { advertiseAddress: true, peerKind: PeerKind.FIXED_PEER },
+		}));
 
-	const whitelisted = lists.whitelisted.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
-			return false;
-		}
+	const whitelisted = lists.whitelisted
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+				return false;
+			}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
-			return false;
-		}
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+				return false;
+			}
 
-		if (fixedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
-			return false;
-		}
+			if (fixedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+				return false;
+			}
 
-		if (seedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
-			return false;
-		}
+			if (seedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		})
+		.map(peer => ({
+			...peer,
+			internalState: {
+				advertiseAddress: true,
+				peerKind: PeerKind.WHITELISTED_PEER,
+			},
+		}));
 
 	const previousPeers = lists.previousPeers.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
