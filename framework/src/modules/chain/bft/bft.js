@@ -73,6 +73,7 @@ class BFT extends EventEmitter {
 	/**
 	 * Initialize the BFT module
 	 *
+	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */
 	async init(minActiveHeightsOfDelegates = {}) {
@@ -118,6 +119,7 @@ class BFT extends EventEmitter {
 	 * When blocks deleted send those to BFT to update BFT state
 	 *
 	 * @param {Array.<Object>} blocks - List of all blocks
+	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */
 	async deleteBlocks(blocks, minActiveHeightsOfDelegates = {}) {
@@ -322,6 +324,7 @@ class BFT extends EventEmitter {
 	 *
 	 * @param {int} fromHeight - The start height to fetch and load
 	 * @param {int} tillHeight - The end height to fetch and load
+	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */
 	async _loadBlocksFromStorage({
