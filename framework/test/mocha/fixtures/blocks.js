@@ -93,14 +93,14 @@ const BlockHeader = stampit({
 		height: 0,
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
-		activeSinceRound: 3,
+		delegateMinHeightActive: 203,
 		delegatePublicKey: '',
 	},
 	init({
 		height,
 		blockId,
 		delegatePublicKey,
-		activeSinceRound,
+		delegateMinHeightActive,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
 	}) {
@@ -112,7 +112,7 @@ const BlockHeader = stampit({
 			randomstring
 				.generate({ charset: '0123456789ABCDE', length: 64 })
 				.toLowerCase();
-		this.activeSinceRound = activeSinceRound || 1;
+		this.delegateMinHeightActive = delegateMinHeightActive || 1;
 		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
 		this.maxHeightPrevoted = maxHeightPrevoted || 0;
 	},

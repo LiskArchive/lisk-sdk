@@ -35,7 +35,10 @@ const extractBFTBlockHeaderFromBlock = block => ({
 	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged,
 	maxHeightPrevoted: block.maxHeightPrevoted,
 	delegatePublicKey: block.generatorPublicKey,
-	activeSinceRound: 0, // TODO: Link the new DPOS with BFT here
+	// This parameter injected to block object to avoid big refactoring
+	// for the moment. `delegateMinHeightActive` will be removed from the block
+	// object with https://github.com/LiskHQ/lisk-sdk/issues/4413
+	delegateMinHeightActive: block.delegateMinHeightActive || 0,
 });
 
 /**

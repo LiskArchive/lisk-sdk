@@ -33,15 +33,16 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 		const delegateName = rows[i][1];
 		const maxHeightPreviouslyForged = parseInt(rows[i][2], 10);
 		const maxHeightPrevoted = parseInt(rows[i][3], 10);
-		const activeSinceRound = parseInt(rows[i][4], 10);
+		const delegateMinHeightActive =
+			(parseInt(rows[i][4], 10) - 1) * activeDelegates + 1;
 		const height = parseInt(rows[i][5], 10);
 
 		const blockHeader = generateBlockHeader({
 			delegateName,
 			height,
 			maxHeightPreviouslyForged,
-			activeSinceRound,
 			maxHeightPrevoted,
+			delegateMinHeightActive,
 		});
 
 		const input = { delegateName, blockHeader };
