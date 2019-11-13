@@ -33,7 +33,7 @@ const {
 } = require('../../../src/modules/chain/components/storage/entities');
 
 const {
-	Peer,
+	NetworkInfo,
 } = require('../../../src/modules/network/components/storage/entities');
 
 const {
@@ -109,7 +109,7 @@ class StorageSandbox extends Storage {
 
 		// Custom entitties
 		this.registerEntity('Migration', Migration);
-		this.registerEntity('Peer', Peer);
+		this.registerEntity('NetworkInfo', NetworkInfo);
 		this.registerEntity('ChainMeta', ChainMeta);
 		this.registerEntity('TempBlock', TempBlock);
 

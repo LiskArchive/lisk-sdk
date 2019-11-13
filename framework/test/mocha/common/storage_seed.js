@@ -135,7 +135,7 @@ class StorageSeed {
 		const tables = [
 			'blocks',
 			'mem_accounts',
-			'peers',
+			'network_info',
 			'trs',
 			'chain_meta',
 			'temp_block',

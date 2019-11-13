@@ -557,7 +557,16 @@ export class P2P extends EventEmitter {
 			this._peerPool.applyPenalty(peerPenalty);
 		}
 	}
-	// Make sure you always share shared peer state to a user and remove private peers
+
+	public getTriedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+		return this._peerBook.triedPeers.map(peer => ({
+			...peer.sharedState,
+			ipAddress: peer.ipAddress,
+			wsPort: peer.wsPort,
+		}));
+	}
+
+	// Make sure you always share shared peer state to a user
 	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		// Only share the shared state to the user
 		return this._peerPool
@@ -572,6 +581,7 @@ export class P2P extends EventEmitter {
 				peerId: peer.peerId,
 			}));
 	}
+
 	// Make sure you always share shared peer state to a user
 	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
 		const allPeers = this._peerBook.allPeers;

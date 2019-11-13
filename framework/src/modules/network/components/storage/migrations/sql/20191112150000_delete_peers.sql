@@ -12,18 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT
-	"id",
-	"ip",
-	"wsPort",
-	"state",
-	"os",
-	"version",
-	"protocolVersion",
-	"height"
-FROM
-	peers
 
-${parsedFilters:raw}
+/*
+  DESCRIPTION: drop table peers for Network.
 
-LIMIT ${limit} OFFSET ${offset}
+  PARAMETERS: None
+*/
+
+DROP TABLE IF EXISTS peers;
