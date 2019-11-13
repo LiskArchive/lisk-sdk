@@ -31,7 +31,10 @@ module.exports = class Dpos {
 		this.events = new EventEmitter();
 		this.delegateListRoundOffset = delegateListRoundOffset;
 		this.finalizedBlockRound = 0;
+		// @todo consider making this a constant and reuse it in BFT module.
+		this.delegateActiveRoundLimit = 3;
 		this.slots = slots;
+		this.storage = storage;
 
 		this.delegatesList = new DelegatesList({
 			storage,
@@ -77,10 +80,133 @@ module.exports = class Dpos {
 
 	async onRoundFinish() {
 		const disposableDelegateList =
-			this.finalizedBlockRound - this.delegateListRoundOffset;
+			this.finalizedBlockRound -
+			this.delegateListRoundOffset -
+			this.delegateActiveRoundLimit;
 		await this.delegatesList.deleteDelegateListUntilRound(
 			disposableDelegateList,
 		);
+	}
+
+	async getActiveDelegateHeights(
+		numberOfRounds = 1,
+		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
+	) {
+		const limit =
+			numberOfRounds + this.delegateActiveRoundLimit + delegateListRoundOffset;
+
+		// TODO: Discuss reintroducing a caching mechanism to avoid fetching
+		// active delegate lists multiple times.
+		let delegateLists = await this.storage.entities.RoundDelegates.get(
+			{},
+			{
+				// IMPORTANT! All logic below based on ordering rounds in
+				// descending order. Change it at your own discretion!
+				sort: 'round:desc',
+				// limit: number or requested rounds + last 3 rounds
+				limit,
+			},
+			tx,
+		);
+
+		if (!delegateLists.length) {
+			throw new Error('No delegate list found in the database.');
+		}
+
+		// the latest record in db is also the actual active round on the network.
+		const latestRound = delegateLists[0].round;
+
+		if (numberOfRounds > latestRound) {
+			throw new Error(
+				'NUmber of rounds requested is higher than number of existing rounds.',
+			);
+		}
+
+		// We need to remove redundant lists that we fetch because of delegateListRoundOffset
+		const numberOfListsToRemove = Math.min(
+			Math.max(delegateLists.length + 1 - delegateListRoundOffset, 0),
+			delegateListRoundOffset,
+		);
+		delegateLists = delegateLists.slice(numberOfListsToRemove);
+
+		const delegates = {};
+
+		const loops = Math.min(delegateLists.length, numberOfRounds);
+
+		for (let i = 0; i < loops; i += 1) {
+			const activeRound = latestRound - i;
+			const [activeList, ...previousLists] = delegateLists;
+
+			for (const publicKey of activeList.delegatePublicKeys) {
+				if (!delegates[publicKey]) {
+					delegates[publicKey] = {
+						publicKey,
+						activeHeights: [],
+					};
+				}
+
+				const earliestListRound =
+					this._findEarliestActiveListRound(publicKey, previousLists) ||
+					activeList.round;
+
+				/**
+				 * In order to calculate the correct min height we need the real round number.
+				 * That's why we need to add `delegateListRoundOffset` to the `earliestListRound`.
+				 *
+				 * Also, let's say delegateListRoundOffset = 2,
+				 * That means for round 3, 2, 1, the same list (the first) will be used.
+				 * That means earliestListRound = 1 for 3 of these rounds;
+				 * As you can see, for round 2 it would be:
+				 *   `earliestActiveRound = earliestListRound + delegateListRoundOffset` = 3
+				 * which is WRONG.
+				 *
+				 * That's why `earliestActiveRound` cannot be bigger than `activeRound`.
+				 */
+				const earliestActiveRound = Math.min(
+					earliestListRound + delegateListRoundOffset,
+					activeRound,
+				);
+				const lastActiveMinHeight = this.slots.calcRoundStartHeight(
+					earliestActiveRound,
+				);
+
+				if (!delegates[publicKey].activeHeights.includes(lastActiveMinHeight)) {
+					delegates[publicKey].activeHeights.push(lastActiveMinHeight);
+				}
+
+				delegateLists = previousLists;
+			}
+		}
+
+		return delegates;
+	}
+
+	/**
+	 * Important: delegateLists must be sorted by round number
+	 * in descending order.
+	 */
+	_findEarliestActiveListRound(delegatePublicKey, previousLists) {
+		if (!previousLists.length) {
+			return 0;
+		}
+
+		// Checking the latest 303 blocks is enough
+		const lists = previousLists.slice(0, this.delegateActiveRoundLimit);
+
+		for (let i = 0; i < lists.length; i += 1) {
+			const { round, delegatePublicKeys } = lists[i];
+
+			if (delegatePublicKeys.indexOf(delegatePublicKey) === -1) {
+				// since we are iterating backwards,
+				// if the delegate is not in this list
+				// that means delegate was in the next round :)
+				return round + 1;
+			}
+		}
+
+		// If the loop above is not broken until this point that means,
+		// delegate was always active in the given `previousLists`.
+		return lists[lists.length - 1].round;
 	}
 
 	async verifyBlockForger(
