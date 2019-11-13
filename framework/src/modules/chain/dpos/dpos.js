@@ -116,7 +116,7 @@ module.exports = class Dpos {
 		// the latest record in db is also the actual active round on the network.
 		const latestRound = delegateLists[0].round;
 
-		if (numberOfRounds > latestRound) {
+		if (numberOfRounds > latestRound && latestRound > 1) {
 			throw new Error(
 				'NUmber of rounds requested is higher than number of existing rounds.',
 			);

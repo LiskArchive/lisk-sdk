@@ -350,8 +350,19 @@ class BFT extends EventEmitter {
 		rows.forEach(row => {
 			if (row.height !== 1 && row.version !== 2) return;
 
-			const activeHeights = minActiveHeightsOfDelegates[row.generatorPublicKey];
+			// If it's genesis block, skip the logic and set
+			// `delegateMinHeightActive` to 1.
+			if (row.height === 1) {
+				this.finalityManager.addBlockHeader(
+					extractBFTBlockHeaderFromBlock({
+						...row,
+						delegateMinHeightActive: 1,
+					}),
+				);
+				return;
+			}
 
+			const activeHeights = minActiveHeightsOfDelegates[row.generatorPublicKey];
 			if (!activeHeights) {
 				throw new Error(
 					`Minimum active heights were not found for delegate "${
