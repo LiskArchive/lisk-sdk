@@ -75,7 +75,7 @@ class BFT extends EventEmitter {
 	 *
 	 * @return {Promise<void>}
 	 */
-	async init(delegateMinHeightActiveList = {}) {
+	async init(minActiveHeightsOfDelegates = {}) {
 		this.finalityManager = await this._initFinalityManager();
 
 		this.finalityManager.on(
@@ -96,7 +96,7 @@ class BFT extends EventEmitter {
 		await this._loadBlocksFromStorage({
 			fromHeight: loadFromHeight,
 			tillHeight: lastBlockHeight,
-			delegateMinHeightActiveList,
+			minActiveHeightsOfDelegates,
 		});
 	}
 
@@ -120,7 +120,7 @@ class BFT extends EventEmitter {
 	 * @param {Array.<Object>} blocks - List of all blocks
 	 * @return {Promise<void>}
 	 */
-	async deleteBlocks(blocks, delegateMinHeightActiveList = {}) {
+	async deleteBlocks(blocks, minActiveHeightsOfDelegates = {}) {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
 
@@ -151,7 +151,7 @@ class BFT extends EventEmitter {
 			await this._loadBlocksFromStorage({
 				fromHeight,
 				tillHeight,
-				delegateMinHeightActiveList,
+				minActiveHeightsOfDelegates,
 			});
 		}
 	}
@@ -327,7 +327,7 @@ class BFT extends EventEmitter {
 	async _loadBlocksFromStorage({
 		fromHeight,
 		tillHeight,
-		delegateMinHeightActiveList,
+		minActiveHeightsOfDelegates,
 	}) {
 		let sortOrder = 'height:asc';
 
@@ -347,20 +347,23 @@ class BFT extends EventEmitter {
 		rows.forEach(row => {
 			if (row.height !== 1 && row.version !== 2) return;
 
-			const delegate = delegateMinHeightActiveList[row.generatorPublicKey];
+			const activeHeights = minActiveHeightsOfDelegates[row.generatorPublicKey];
 
-			if (!delegate) {
+			if (!activeHeights) {
 				throw new Error(
-					`Delegate "${
+					`Minimum active height was not found for delegate "${
 						row.generatorPublicKey
-					}" was not found in the active delegate list.`,
+					}".`,
 				);
 			}
 
 			// If there is no minHeightActive until this point,
 			// we can set the value to 0
-			const [delegateMinHeightActive = 0] = delegate.activeHeights.filter(
-				height => row.height >= height,
+			const minimumPossibleActiveHeight = this.slots.calcRoundStartHeight(
+				this.calcRound(row.height - this.constants.activeDelegates * 3),
+			);
+			const [delegateMinHeightActive] = activeHeights.filter(
+				height => height >= minimumPossibleActiveHeight,
 			);
 
 			const blockHeaders = {

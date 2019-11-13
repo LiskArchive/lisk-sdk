@@ -230,9 +230,9 @@ describe('fast_chain_switching_mechanism', () => {
 			jest.spyOn(fastChainSwitchingMechanism, '_switchChain');
 			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks');
 
-			// delegateMinHeightActiveList is provided to deleteBlocks function
+			// minActiveHeightsOfDelegates is provided to deleteBlocks function
 			// in block_processor_v2 from DPoS module.
-			const delegateMinHeightActiveList = [
+			const minActiveHeightsOfDelegates = [
 				genesisBlockDevnet,
 				lastBlock,
 			].reduce((acc, block) => {
@@ -246,7 +246,7 @@ describe('fast_chain_switching_mechanism', () => {
 			}, {});
 
 			await blocksModule.init();
-			await bftModule.init(delegateMinHeightActiveList);
+			await bftModule.init(minActiveHeightsOfDelegates);
 		});
 
 		afterEach(() => {
@@ -437,9 +437,9 @@ describe('fast_chain_switching_mechanism', () => {
 					)
 					.mockResolvedValue([lastBlock]);
 
-				// delegateMinHeightActiveList is provided to deleteBlocks function
+				// minActiveHeightsOfDelegates is provided to deleteBlocks function
 				// in block_processor_v2 from DPoS module.
-				const delegateMinHeightActiveList = [lastBlock].reduce((acc, block) => {
+				const minActiveHeightsOfDelegates = [lastBlock].reduce((acc, block) => {
 					acc[block.generatorPublicKey] = {
 						publicKey: block.generateBlocks,
 						// the value is not important in this test.
@@ -450,7 +450,7 @@ describe('fast_chain_switching_mechanism', () => {
 				}, {});
 
 				await blocksModule.init(); // Loads last block among other checks
-				await bftModule.init(delegateMinHeightActiveList); // Loads block headers
+				await bftModule.init(minActiveHeightsOfDelegates); // Loads block headers
 
 				const heightList = new Array(
 					Math.min(

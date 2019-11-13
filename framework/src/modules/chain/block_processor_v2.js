@@ -170,13 +170,13 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.init.pipe([
 			async () => {
-				// delegateMinHeightActiveList will be used to load 202 blocks from the storage
+				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
-				const delegateMinHeightActiveList = await this.dposModule.getActiveDelegateHeights(
+				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					numberOfRounds,
 				);
-				this.bftModule.init(delegateMinHeightActiveList);
+				this.bftModule.init(minActiveHeightsOfDelegates);
 			},
 		]);
 
@@ -245,18 +245,14 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				// Since the block is always the latest,
 				// fetching only the latest active delegate list would be enough.
 				const numberOfRounds = 1;
-				const delegateMinHeightActiveList = await this.dposModule.getActiveDelegateHeights(
+				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					numberOfRounds,
 					{ tx },
 				);
 
-				const delegate = delegateMinHeightActiveList.find(
-					d => block.generatorPublicKey === d.publicKey,
-				);
-
-				const delegateMinHeightActive = delegate.activeHeights.filter(
-					height => block.height >= height,
-				)[0];
+				const [delegateMinHeightActive] = minActiveHeightsOfDelegates[
+					block.generatorPublicKey
+				];
 
 				const blockHeader = {
 					...block,
@@ -279,14 +275,14 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			({ block, stateStore }) => this.blocksModule.undo(block, stateStore),
 			({ block, tx }) => this.dposModule.undo(block, { tx }),
 			async ({ block, tx }) => {
-				// delegateMinHeightActiveList will be used to load 202 blocks from the storage
+				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
-				const delegateMinHeightActiveList = await this.dposModule.getActiveDelegateHeights(
+				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					numberOfRounds,
 					{ tx },
 				);
-				this.bftModule.deleteBlocks([block], delegateMinHeightActiveList);
+				this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
 			},
 		]);
 
