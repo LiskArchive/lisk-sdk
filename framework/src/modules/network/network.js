@@ -42,7 +42,7 @@ const { NetworkInfo } = require('./components/storage/entities');
 const hasNamespaceReg = /:/;
 
 const NETWORK_INFO_KEY_NODE_SECRET = 'node_secret';
-const NETWORK_INFO_KEY_TRIED_PEERS = 'peer_list';
+const NETWORK_INFO_KEY_TRIED_PEERS = 'tried_peers_list';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 /**
@@ -96,7 +96,12 @@ module.exports = class Network {
 		const previousPeersStr = await this.storage.entities.NetworkInfo.getKey(
 			NETWORK_INFO_KEY_TRIED_PEERS,
 		);
-		const previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
+		let previousPeers;
+		try {
+			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
+		} catch (err) {
+			this.logger.error({ err }, 'Failed to parse JSON of previous peers.');
+		}
 
 		// Get previous secret if exists
 		const secret = await this.storage.entities.NetworkInfo.getKey(
@@ -416,7 +421,6 @@ module.exports = class Network {
 
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
-		// TODO: In phase 2, only previousPeers will be saved to database
 		this.logger.info('Cleaning network...');
 
 		return this.p2p.stop();
