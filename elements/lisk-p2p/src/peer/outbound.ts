@@ -63,18 +63,7 @@ export class OutboundPeer extends Peer {
 
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super(peerInfo, peerConfig);
-		this._peerInfo = {
-			...this._peerInfo,
-			internalState: this._peerInfo.internalState
-				? {
-						...this._peerInfo.internalState,
-						connectionKind: ConnectionKind.OUTBOUND,
-				  }
-				: {
-						advertiseAddress: true,
-						connectionKind: ConnectionKind.OUTBOUND,
-				  },
-		};
+		this._peerInfo.internalState.connectionKind = ConnectionKind.OUTBOUND;
 	}
 
 	public set socket(scClientSocket: SCClientSocket) {
@@ -127,8 +116,8 @@ export class OutboundPeer extends Peer {
 			: DEFAULT_ACK_TIMEOUT;
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
-			hostname: this._ipAddress,
-			port: this._wsPort,
+			hostname: this.ipAddress,
+			port: this.wsPort,
 			query: querystring.stringify({
 				...this._nodeInfo,
 				options: JSON.stringify(this._nodeInfo),

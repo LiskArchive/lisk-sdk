@@ -55,18 +55,7 @@ export class InboundPeer extends Peer {
 		peerConfig: PeerConfig,
 	) {
 		super(peerInfo, peerConfig);
-		this._peerInfo = {
-			...this._peerInfo,
-			internalState: this._peerInfo.internalState
-				? {
-						...this._peerInfo.internalState,
-						connectionKind: ConnectionKind.INBOUND,
-				  }
-				: {
-						advertiseAddress: true,
-						connectionKind: ConnectionKind.INBOUND,
-				  },
-		};
+		this._peerInfo.internalState.connectionKind = ConnectionKind.INBOUND;
 		this._handleInboundSocketError = (error: Error) => {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
@@ -108,7 +97,7 @@ export class InboundPeer extends Peer {
 	private _sendPing(): void {
 		const pingStart = Date.now();
 		this._socket.emit(REMOTE_EVENT_PING, undefined, () => {
-			this._latency = Date.now() - pingStart;
+			this._peerInfo.internalState.latency = Date.now() - pingStart;
 			this._pingTimeoutId = setTimeout(() => {
 				this._sendPing();
 			}, getRandomPingDelay());
