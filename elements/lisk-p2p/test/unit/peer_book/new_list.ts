@@ -91,10 +91,10 @@ describe('New Peers List', () => {
 		});
 
 		it('should call get bucket', () => {
-			sandbox.stub(newPeersList, 'getBucket');
+			sandbox.stub(newPeersList, 'calculateBucket');
 			newPeersList.makeSpace(samplePeers[0].ipAddress);
 
-			expect(newPeersList.getBucket).to.be.calledOnceWithExactly(
+			expect(newPeersList.calculateBucket).to.be.calledOnceWithExactly(
 				samplePeers[0].ipAddress,
 			);
 		});

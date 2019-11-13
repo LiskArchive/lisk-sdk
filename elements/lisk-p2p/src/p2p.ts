@@ -88,6 +88,7 @@ import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
+	P2PEnhancedPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -209,12 +210,16 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
-	private readonly _handleDiscoveredPeer: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handleDiscoveredPeer: (
+		peerInfo: P2PEnhancedPeerInfo,
+	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToSendMessage: (error: Error) => void;
-	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handleOutboundPeerConnect: (
+		peerInfo: P2PEnhancedPeerInfo,
+	) => void;
 	private readonly _handleOutboundPeerConnectAbort: (
-		peerInfo: P2PPeerInfo,
+		peerInfo: P2PEnhancedPeerInfo,
 	) => void;
 	private readonly _handlePeerCloseOutbound: (
 		closePacket: P2PClosePacket,
@@ -223,7 +228,9 @@ export class P2P extends EventEmitter {
 		closePacket: P2PClosePacket,
 	) => void;
 	private readonly _handleRemovePeer: (peerId: string) => void;
-	private readonly _handlePeerInfoUpdate: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerInfoUpdate: (
+		peerInfo: P2PPeerInfo,
+	) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeers: (error: Error) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
@@ -297,7 +304,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
-		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnect = (peerInfo: P2PEnhancedPeerInfo) => {
 			try {
 				this._peerBook.addPeer(peerInfo);
 				// Should be added to newPeer list first and since it is connected so we will upgrade it
@@ -313,6 +320,7 @@ export class P2P extends EventEmitter {
 					peerId: peerInfo.peerId,
 					ipAddress: peerInfo.ipAddress,
 					wsPort: peerInfo.wsPort,
+					sourceAddress: peerInfo.sourceAddress,
 				};
 				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
@@ -324,7 +332,9 @@ export class P2P extends EventEmitter {
 			}
 		};
 
-		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnectAbort = (
+			peerInfo: P2PPeerInfo,
+		) => {
 			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 				peer => peer.peerId === peerInfo.peerId,
 			);
@@ -433,7 +443,7 @@ export class P2P extends EventEmitter {
 		};
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
-		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
+		this._handleDiscoveredPeer = (detailedPeerInfo: P2PEnhancedPeerInfo) => {
 			// Check blacklist to avoid incoming connections from backlisted ips
 			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
@@ -562,7 +572,7 @@ export class P2P extends EventEmitter {
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
 		}));
-	}
+	};
 
 	// Make sure you always share shared peer state to a user
 	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
@@ -839,7 +849,10 @@ export class P2P extends EventEmitter {
 				}
 
 				try {
-					this._peerBook.addPeer(incomingPeerInfo);
+					this._peerBook.addPeer({
+						...incomingPeerInfo,
+						sourceAddress: socket.remoteAddress,
+					});
 				} catch (error) {
 					if (!(error instanceof ExistingPeerError)) {
 						throw error;

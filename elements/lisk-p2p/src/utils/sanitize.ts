@@ -11,9 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
-
+import {
+	P2PPeerInfo,
+	PeerLists,
+	ProtocolPeerInfo,
+} from '../p2p_types';
 import { constructPeerId } from './misc';
 
 export const sanitizeIncomingPeerInfo = (

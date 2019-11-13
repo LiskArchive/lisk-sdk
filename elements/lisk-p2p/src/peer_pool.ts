@@ -54,6 +54,7 @@ import {
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
+	P2PEnhancedPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -142,7 +143,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
-	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handleOutboundPeerConnect: (peerInfo: P2PEnhancedPeerInfo) => void;
 	private readonly _handleDiscoverPeer: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleOutboundPeerConnectAbort: (
 		peerInfo: P2PPeerInfo,
@@ -504,7 +505,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _addOutboundPeer(
-		peerInfo: P2PPeerInfo,
+		peerInfo: P2PEnhancedPeerInfo,
 		nodeInfo: P2PNodeInfo,
 	): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {

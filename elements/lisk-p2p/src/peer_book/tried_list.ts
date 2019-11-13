@@ -13,20 +13,13 @@
  *
  */
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
-import { P2PPeerInfo } from '../p2p_types';
 
-import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
+import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { BaseList, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {
 	readonly maxReconnectTries?: number;
 }
-
-interface TriedListInfo extends CustomPeerInfo {
-	// tslint:disable-next-line:readonly-keyword
-	numOfConnectionFailures: number;
-}
-
-type TriedListMap = Map<number, Map<string, TriedListInfo>>;
 
 export class TriedList extends BaseList {
 	private readonly _maxReconnectTries: number;
@@ -49,22 +42,12 @@ export class TriedList extends BaseList {
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 
-		this.initPeerList(this.peerMap as TriedListMap);
-	}
-
-	// Override init peer list
-	public initPeerList(peerMap: Map<number, Map<string, TriedListInfo>>): void {
-		// Init the Map with all the buckets
-		for (const bucketId of [
-			...new Array(this.peerListConfig.peerBucketCount).keys(),
-		]) {
-			peerMap.set(bucketId, new Map<string, TriedListInfo>());
-		}
+		this.initPeerList(this.bucketToPeerListMap);
 	}
 
 	// Override init peer info
-	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
-		peerInfo,
+	public initPeerInfo = (peerInfo: P2PPeerInfo): P2PEnhancedPeerInfo => ({
+		...peerInfo,
 		numOfConnectionFailures: 0,
 		dateAdded: new Date(),
 	});
@@ -78,30 +61,31 @@ export class TriedList extends BaseList {
 
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const bucket = this.getBucket(incomingPeerInfo.ipAddress);
-		const incomingPeerId = incomingPeerInfo.peerId;
-		const foundPeer = bucket.get(incomingPeerId);
-		if (!foundPeer) {
+		const peerLookup = this.peerIdToPeerLookup.get(incomingPeerInfo.peerId);
+
+		if (!(peerLookup && peerLookup.bucket)) {
 			return false;
 		}
+
 		const {
-			peerInfo,
 			numOfConnectionFailures,
 			dateAdded,
-		} = foundPeer as TriedListInfo;
+			...peerInfo
+		} = peerLookup.peerInfo;
 
-		if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
-			bucket.delete(incomingPeerId);
+		if ((numOfConnectionFailures as number) + 1 >= this._maxReconnectTries) {
+			peerLookup.bucket.delete(incomingPeerInfo.peerId);
 
 			return true;
 		}
+
 		const updatedTriedPeerInfo = {
-			peerInfo,
-			numOfConnectionFailures: numOfConnectionFailures + 1,
+			...peerInfo,
+			numOfConnectionFailures: (numOfConnectionFailures as number) + 1,
 			dateAdded,
 		};
 
-		bucket.set(incomingPeerId, updatedTriedPeerInfo);
+		peerLookup.bucket.set(incomingPeerInfo.peerId, updatedTriedPeerInfo);
 
 		return false;
 	}

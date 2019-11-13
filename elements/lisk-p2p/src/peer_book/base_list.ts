@@ -13,7 +13,7 @@
  *
  */
 import { ExistingPeerError } from '../errors';
-import { P2PPeerInfo } from '../p2p_types';
+import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { evictPeerRandomlyFromBucket, getBucketId, PEER_TYPE } from '../utils';
 
 export interface PeerListConfig {
@@ -23,14 +23,36 @@ export interface PeerListConfig {
 	readonly peerType: PEER_TYPE;
 }
 
-export interface CustomPeerInfo {
-	readonly peerInfo: P2PPeerInfo;
-	readonly dateAdded: Date;
+interface PeerLookup {
+	readonly peerInfo: P2PEnhancedPeerInfo;
+	readonly bucket: Bucket;
 }
+
+type Bucket = Map<string, P2PEnhancedPeerInfo>;
+
+const addDate = (peerInfo: P2PPeerInfo): P2PEnhancedPeerInfo => ({
+	...peerInfo,
+	dateAdded: new Date(),
+});
+
+const removeInternalFields = (peerInfo: P2PEnhancedPeerInfo): P2PPeerInfo => {
+	const {
+		dateAdded,
+		numOfConnectionFailures,
+		sourceAddress,
+		...sharedPeerInfo
+	} = peerInfo;
+
+	return sharedPeerInfo;
+};
 
 // Base list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
 export class BaseList {
-	protected peerMap: Map<number, Map<string, CustomPeerInfo>>;
+	protected bucketToPeerListMap: Map<number, Bucket>;
+	/*
+		Auxilliary map for peerInfo lookups
+	*/
+	protected peerIdToPeerLookup: Map<string, PeerLookup>;
 	protected readonly peerListConfig: PeerListConfig;
 
 	public constructor({
@@ -45,93 +67,124 @@ export class BaseList {
 			peerType,
 			secret,
 		};
-		this.peerMap = new Map();
-		this.initPeerList(this.peerMap);
+		this.bucketToPeerListMap = new Map();
+		this.initPeerList(this.bucketToPeerListMap);
+
+		this.peerIdToPeerLookup = new Map();
 	}
 
-	public initPeerList(peerMap: Map<number, Map<string, CustomPeerInfo>>): void {
+	public initPeerList(
+		bucketToPeerListMap: Map<number, Map<string, P2PEnhancedPeerInfo>>,
+	): void {
 		// Init the Map with all the buckets
 		for (const bucketId of [
 			...new Array(this.peerListConfig.peerBucketCount).keys(),
 		]) {
-			peerMap.set(bucketId, new Map<string, CustomPeerInfo>());
+			bucketToPeerListMap.set(bucketId, new Map<string, P2PEnhancedPeerInfo>());
 		}
 	}
 
 	public get peerList(): ReadonlyArray<P2PPeerInfo> {
 		const peerListMap: P2PPeerInfo[] = [];
 
-		for (const peerMap of [...this.peerMap.values()]) {
-			for (const peer of [...peerMap.values()]) {
-				peerListMap.push(peer.peerInfo);
+		for (const peerList of [...this.bucketToPeerListMap.values()]) {
+			for (const peer of [...peerList.values()]) {
+				/*
+					Remove internal fields before sharing
+				*/
+				peerListMap.push(removeInternalFields(peer));
 			}
 		}
 
 		return peerListMap;
 	}
 
-	public initPeerInfo = (peerInfo: P2PPeerInfo): CustomPeerInfo => ({
-		peerInfo,
-		dateAdded: new Date(),
-	});
-
-	public getBucket(ipAddress: string): Map<string, CustomPeerInfo> {
+	public calculateBucket(
+		targetAddress: string,
+		sourceAddress?: string,
+	): Bucket {
 		const bucketId = getBucketId({
 			secret: this.peerListConfig.secret,
 			peerType: this.peerListConfig.peerType,
-			targetAddress: ipAddress,
+			targetAddress,
+			sourceAddress,
 			bucketCount: this.peerListConfig.peerBucketCount,
 		});
 
-		return this.peerMap.get(bucketId) as Map<string, CustomPeerInfo>;
+		return this.bucketToPeerListMap.get(bucketId) as Bucket;
 	}
 
-	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
-		const peer = bucket.get(incomingPeerId);
+	public getPeer(incomingPeerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
+		const peerLookup = this.peerIdToPeerLookup.get(incomingPeerInfo.peerId);
 
-		return peer ? peer.peerInfo : undefined;
-	}
-
-	public addPeer(peerInfo: P2PPeerInfo): CustomPeerInfo | undefined {
-		if (this.getPeer(peerInfo)) {
-			throw new ExistingPeerError(peerInfo);
+		if (!(peerLookup && peerLookup.peerInfo)) {
+			throw new Error('Peer not found in peer book.');
 		}
-		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
-		const newPeer = this.initPeerInfo(peerInfo);
-		const evictedPeer = this.makeSpace(peerInfo.ipAddress);
-		bucket.set(incomingPeerId, newPeer);
+
+		return peerLookup.peerInfo;
+	}
+
+	public addPeer(
+		incomingPeerInfo: P2PEnhancedPeerInfo,
+	): P2PEnhancedPeerInfo | undefined {
+		if (this.getPeer(incomingPeerInfo)) {
+			throw new ExistingPeerError(incomingPeerInfo);
+		}
+		const bucket = this.calculateBucket(
+			incomingPeerInfo.ipAddress,
+			incomingPeerInfo.sourceAddress
+				? incomingPeerInfo.sourceAddress
+				: undefined,
+		);
+		const incomingPeerId = incomingPeerInfo.peerId;
+		const peerInfo = addDate(incomingPeerInfo);
+		bucket.set(incomingPeerId, peerInfo);
+		this.peerIdToPeerLookup.set(incomingPeerInfo.peerId, { peerInfo, bucket });
+
+		const evictedPeer = this.makeSpace(incomingPeerInfo.peerId);
 
 		// If a peer was evicted in order to make space for the new one, we return its info
 		return evictedPeer;
 	}
 
-	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
-		const foundPeer = bucket.get(incomingPeerId);
+	public updatePeer(incomingPeerInfo: P2PPeerInfo): boolean {
+		const peerLookup = this.peerIdToPeerLookup.get(incomingPeerInfo.peerId);
+
+		if (!(peerLookup && peerLookup.bucket)) {
+			return false;
+		}
+
+		const foundPeer = peerLookup.bucket.get(incomingPeerInfo.peerId);
 
 		if (!foundPeer) {
 			return false;
 		}
-		const updatedPeerInfo: CustomPeerInfo = {
-			...foundPeer,
-			peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
-		};
 
-		bucket.set(incomingPeerId, updatedPeerInfo);
+		peerLookup.bucket.set(incomingPeerInfo.peerId, {
+			...foundPeer,
+			...incomingPeerInfo,
+		});
+
+		this.peerIdToPeerLookup.set(incomingPeerInfo.peerId, {
+			peerInfo: {
+				...foundPeer,
+				...incomingPeerInfo,
+			},
+			bucket: peerLookup.bucket,
+		});
 
 		return true;
 	}
 
-	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
+	public removePeer(incomingPeerInfo: P2PPeerInfo): boolean {
+		const peerLookup = this.peerIdToPeerLookup.get(incomingPeerInfo.peerId);
 
-		if (bucket.get(incomingPeerId)) {
-			const result = bucket.delete(incomingPeerId);
+		if (!(peerLookup && peerLookup.bucket)) {
+			return false;
+		}
+
+		if (peerLookup.bucket.get(incomingPeerInfo.peerId)) {
+			const result = peerLookup.bucket.delete(incomingPeerInfo.peerId);
 
 			return result;
 		}
@@ -139,11 +192,15 @@ export class BaseList {
 		return false;
 	}
 
-	public makeSpace(ipAddress: string): CustomPeerInfo | undefined {
-		const bucket = this.getBucket(ipAddress);
+	public makeSpace(peerId: string): P2PEnhancedPeerInfo | undefined {
+		const peerLookup = this.peerIdToPeerLookup.get(peerId);
 
-		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
-			return evictPeerRandomlyFromBucket(bucket);
+		if (
+			peerLookup &&
+			peerLookup.bucket &&
+			peerLookup.bucket.size === this.peerListConfig.peerBucketSize
+		) {
+			return evictPeerRandomlyFromBucket(peerLookup.bucket);
 		}
 
 		return undefined;

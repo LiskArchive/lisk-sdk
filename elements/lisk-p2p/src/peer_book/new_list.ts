@@ -13,9 +13,9 @@
  *
  */
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
+import { P2PEnhancedPeerInfo } from '../p2p_types';
 import { evictPeerRandomlyFromBucket, expirePeerFromBucket } from '../utils';
-
-import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
+import { BaseList, PeerListConfig } from './base_list';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
@@ -51,13 +51,15 @@ export class NewList extends BaseList {
 	}
 
 	// Override make space method from base list
-	public makeSpace(ipAddress: string): CustomPeerInfo | undefined {
-		const bucket = this.getBucket(ipAddress);
+	public makeSpace(
+		peerId: string,
+	): P2PEnhancedPeerInfo | undefined {
+		const peerLookup = this.peerIdToPeerLookup.get(peerId);
 
-		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
+		if (peerLookup && peerLookup.bucket && peerLookup.bucket.size === this.peerListConfig.peerBucketSize) {
 			// First eviction strategy: eviction by time of residence
 			const evictedPeer = expirePeerFromBucket(
-				bucket,
+				peerLookup.bucket,
 				this._evictionThresholdTime,
 			);
 			if (evictedPeer) {
@@ -65,7 +67,7 @@ export class NewList extends BaseList {
 			}
 
 			// Second eviction strategy: Default eviction based on base class
-			return evictPeerRandomlyFromBucket(bucket);
+			return evictPeerRandomlyFromBucket(peerLookup.bucket);
 		}
 
 		return undefined;

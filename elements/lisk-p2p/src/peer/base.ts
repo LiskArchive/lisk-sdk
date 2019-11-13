@@ -50,6 +50,7 @@ import {
 } from '../events';
 import { P2PRequest } from '../p2p_request';
 import {
+	P2PEnhancedPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -106,6 +107,7 @@ export interface PeerConfig {
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
 	readonly serverNodeInfo?: P2PNodeInfo;
+	readonly sourceAddress?: string;
 }
 
 export class Peer extends EventEmitter {
@@ -127,7 +129,7 @@ export class Peer extends EventEmitter {
 	private _messageCounter: Map<string, number>;
 	private _messageRates: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
-	protected _peerInfo: P2PPeerInfo;
+	protected _peerInfo: P2PEnhancedPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
@@ -400,17 +402,19 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PEnhancedPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
 
-			return validatePeerInfoList(
+			const validatedPeers = validatePeerInfoList(
 				response.data,
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
+
+			return validatedPeers.map(peerInfo => ({ ...peerInfo, sourceAddress: this._ipAddress }))
 		} catch (error) {
 			if (
 				error instanceof InvalidPeerInfoError ||
@@ -428,13 +432,16 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async discoverPeers(): Promise<ReadonlyArray<P2PEnhancedPeerInfo>> {
 		const discoveredPeerInfoList = await this.fetchPeers();
 		discoveredPeerInfoList.forEach(peerInfo => {
-			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
+			this.emit(EVENT_DISCOVERED_PEER, {
+				sourceAddress: this.peerInfo.ipAddress,
+				...peerInfo,
+			});
 		});
 
-		return discoveredPeerInfoList;
+		return discoveredPeerInfoList.map(peerInfo => ({...peerInfo, sourceAddress: peerInfo.sourceAddress }));
 	}
 
 	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {

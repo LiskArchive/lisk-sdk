@@ -13,7 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { BaseList, CustomPeerInfo } from '../../../src/peer_book/base_list';
+import { BaseList } from '../../../src/peer_book/base_list';
+import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 import {
@@ -104,11 +105,15 @@ describe('Peers base list', () => {
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 				targetAddress: samplePeers[0].ipAddress,
+				sourceAddress: samplePeers[0].ipAddress,
 			});
 
-			expect(peerListObj.getBucket(samplePeers[0].ipAddress)).to.eql(
-				(peerListObj as any).peerMap.get(bucketId),
-			);
+			expect(
+				peerListObj.calculateBucket(
+					samplePeers[0].ipAddress,
+					samplePeers[0].ipAddress,
+				),
+			).to.eql((peerListObj as any).peerMap.get(bucketId));
 		});
 	});
 
@@ -173,8 +178,8 @@ describe('Peers base list', () => {
 
 		describe('when bucket is full', () => {
 			it('should return evicted peer', () => {
-				const customPeer: CustomPeerInfo = {
-					peerInfo: samplePeers[2],
+				const customPeer: P2PEnhancedPeerInfo = {
+					...samplePeers[2],
 					dateAdded: new Date(),
 				};
 				sandbox.stub(peerListObj, 'makeSpace').returns(customPeer);
@@ -248,10 +253,10 @@ describe('Peers base list', () => {
 		});
 
 		it('should call get bucket', () => {
-			sandbox.stub(peerListObj, 'getBucket');
+			sandbox.stub(peerListObj, 'calculateBucket');
 			peerListObj.makeSpace(samplePeers[0].ipAddress);
 
-			expect(peerListObj.getBucket).to.be.calledOnceWithExactly(
+			expect(peerListObj.calculateBucket).to.be.calledOnceWithExactly(
 				samplePeers[0].ipAddress,
 			);
 		});
@@ -267,8 +272,8 @@ describe('Peers base list', () => {
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
-				const bucket = new Map<string, CustomPeerInfo>();
-				sandbox.stub(peerListObj, 'getBucket').returns(bucket);
+				const bucket = new Map<string, P2PEnhancedPeerInfo>();
+				sandbox.stub(peerListObj, 'calculateBucket').returns(bucket);
 
 				const evictedPeer = peerListObj.makeSpace(samplePeers[0].ipAddress);
 
