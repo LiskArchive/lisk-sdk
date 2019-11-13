@@ -168,7 +168,17 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.constants = constants;
 		this.exceptions = exceptions;
 
-		this.init.pipe([() => this.bftModule.init()]);
+		this.init.pipe([
+			async () => {
+				// delegateMinHeightActiveList will be used to load 202 blocks from the storage
+				// That's why we need to get the delegates who were active in the last 2 rounds.
+				const numberOfRounds = 2;
+				const delegateMinHeightActiveList = await this.dposModule.getActiveDelegateHeights(
+					numberOfRounds,
+				);
+				this.bftModule.init(delegateMinHeightActiveList);
+			},
+		]);
 
 		this.deserialize.pipe([
 			({ block }) => this.blocksModule.deserialize(block),
@@ -230,7 +240,33 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				this.blocksModule.verify(block, stateStore, { skipExistingCheck }),
 			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
 			({ block, tx }) => this.dposModule.apply(block, { tx }),
-			({ block, tx }) => this.bftModule.addNewBlock(block, tx),
+			async ({ block, tx }) => {
+				// We only need activeMinHeight value of the delegate who is forging the block.
+				// Since the block is always the latest,
+				// fetching only the latest active delegate list would be enough.
+				const numberOfRounds = 1;
+				const delegateMinHeightActiveList = await this.dposModule.getActiveDelegateHeights(
+					numberOfRounds,
+					{ tx },
+				);
+
+				const delegate = delegateMinHeightActiveList.find(
+					d => block.generatorPublicKey === d.publicKey,
+				);
+
+				const delegateMinHeightActive = delegate.activeHeights.filter(
+					height => block.height >= height,
+				)[0];
+
+				const blockHeader = {
+					...block,
+					// This parameter injected to block object to avoid big refactoring
+					// for the moment. `delegateMinHeightActive` will be removed from the block
+					// object with https://github.com/LiskHQ/lisk-sdk/issues/4413
+					delegateMinHeightActive,
+				};
+				return this.bftModule.addNewBlock(blockHeader, tx);
+			},
 		]);
 
 		this.applyGenesis.pipe([
@@ -242,7 +278,16 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.undo.pipe([
 			({ block, stateStore }) => this.blocksModule.undo(block, stateStore),
 			({ block, tx }) => this.dposModule.undo(block, { tx }),
-			({ block }) => this.bftModule.deleteBlocks([block]),
+			async ({ block, tx }) => {
+				// delegateMinHeightActiveList will be used to load 202 blocks from the storage
+				// That's why we need to get the delegates who were active in the last 2 rounds.
+				const numberOfRounds = 2;
+				const delegateMinHeightActiveList = await this.dposModule.getActiveDelegateHeights(
+					numberOfRounds,
+					{ tx },
+				);
+				this.bftModule.deleteBlocks([block], delegateMinHeightActiveList);
+			},
 		]);
 
 		this.create.pipe([
