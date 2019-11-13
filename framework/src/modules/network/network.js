@@ -37,9 +37,11 @@ const {
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
 const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
-const { Peer } = require('./components/storage/entities');
+const { Peer, NetworkInfo } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
+
+const NETWORK_INFO_KEY_NODE_SECRET = 'node_secret';
 
 /**
  * Network Module
@@ -82,6 +84,7 @@ module.exports = class Network {
 
 		this.storage = createStorageComponent(storageConfig, dbLogger);
 		this.storage.registerEntity('Peer', Peer);
+		this.storage.registerEntity('NetworkInfo', NetworkInfo);
 
 		const status = await this.storage.bootstrap();
 		if (!status) {
@@ -94,7 +97,19 @@ module.exports = class Network {
 			{ limit: null },
 		);
 
-		this.secret = getRandomBytes(4).readUInt32BE(0);
+		// Get previous secret if exists
+		const secret = await this.storage.entities.NetworkInfo.getKey(
+			NETWORK_INFO_KEY_NODE_SECRET,
+		);
+		if (!secret) {
+			this.secret = getRandomBytes(4).readUInt32BE(0);
+			await this.storage.entities.NetworkInfo.setKey(
+				NETWORK_INFO_KEY_NODE_SECRET,
+				this.secret,
+			);
+		} else {
+			this.secret = Number(secret);
+		}
 
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
