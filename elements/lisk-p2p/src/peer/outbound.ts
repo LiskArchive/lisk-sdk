@@ -138,6 +138,8 @@ export class OutboundPeer extends Peer {
 				await this.fetchAndUpdateStatus();
 			} catch (error) {
 				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
+
+				return;
 			}
 
 			try {
