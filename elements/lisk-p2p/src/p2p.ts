@@ -876,6 +876,8 @@ export class P2P extends EventEmitter {
 				this._sanitizedPeerLists.fixedPeers || [],
 			);
 		}, this._populatorInterval);
+
+		// Initial Populator
 		this._peerPool.triggerNewConnections(
 			this._peerBook.newPeers,
 			this._peerBook.triedPeers,
@@ -897,6 +899,14 @@ export class P2P extends EventEmitter {
 		}
 
 		return false;
+	}
+
+	private _fetchSeedPeerList(): void {
+		if (this._sanitizedPeerLists.seedPeers.length === 0) {
+			return;
+		}
+
+		this._peerPool.discoverSeedPeers(this._sanitizedPeerLists.seedPeers);
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
@@ -963,9 +973,8 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		const newPeersToAdd = this._sanitizedPeerLists.seedPeers.concat(
-			this._sanitizedPeerLists.whitelisted,
-		);
+		const newPeersToAdd = this._sanitizedPeerLists.whitelisted;
+
 		newPeersToAdd.forEach(newPeerInfo => {
 			try {
 				this._peerBook.addPeer(newPeerInfo);
@@ -984,6 +993,8 @@ export class P2P extends EventEmitter {
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
+			// Initial Discovery SeedPeers and Disconnect
+			this._fetchSeedPeerList();
 			this._startPopulator();
 		}
 	}

@@ -396,6 +396,20 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
+	public discoverSeedPeers(seedPeers: ReadonlyArray<P2PPeerInfo>): void {
+		const seedPeersForFetch = shuffle([...seedPeers]);
+
+		seedPeersForFetch.map(peer => {
+			this.fetchPeeersAndDisconnect(peer);
+		});
+	}
+
+	public fetchPeeersAndDisconnect(peerInfo: P2PPeerInfo): void {
+		this._addOutboundPeer(peerInfo, {
+			fetchPeersAndDisconnect: true,
+		});
+	}
+
 	public triggerNewConnections(
 		newPeers: ReadonlyArray<P2PPeerInfo>,
 		triedPeers: ReadonlyArray<P2PPeerInfo>,
@@ -456,7 +470,10 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	private _addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
+	private _addOutboundPeer(
+		peerInfo: P2PPeerInfo,
+		customPeerConfig?: object,
+	): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {
 			return false;
 		}
@@ -471,7 +488,10 @@ export class PeerPool extends EventEmitter {
 			return false;
 		}
 
-		const peer = new OutboundPeer(peerInfo, { ...this._peerConfig });
+		const peer = new OutboundPeer(peerInfo, {
+			...this._peerConfig,
+			...customPeerConfig,
+		});
 
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);

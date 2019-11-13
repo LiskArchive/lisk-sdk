@@ -101,6 +101,7 @@ export interface PeerConfig {
 	readonly wsMaxPayload?: number;
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
+	readonly fetchPeersAndDisconnect?: boolean;
 	readonly secret: number;
 }
 
@@ -118,6 +119,7 @@ export class Peer extends EventEmitter {
 		responseRate: number;
 		lastResponded: number;
 	};
+	protected fetchPeersAndDisconnect: boolean;
 	private _rpcCounter: Map<string, number>;
 	private _rpcRates: Map<string, number>;
 	private _messageCounter: Map<string, number>;
@@ -163,6 +165,10 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
+		this.fetchPeersAndDisconnect =
+			typeof this._peerConfig.fetchPeersAndDisconnect === 'boolean'
+				? this._peerConfig.fetchPeersAndDisconnect
+				: false;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -418,13 +424,16 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async discoverPeers(): Promise<void> {
 		const discoveredPeerInfoList = await this.fetchPeers();
+
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		});
 
-		return discoveredPeerInfoList;
+		if (this.fetchPeersAndDisconnect) {
+			this.disconnect();
+		}
 	}
 
 	public async fetchStatus(): Promise<P2PPeerInfo> {
