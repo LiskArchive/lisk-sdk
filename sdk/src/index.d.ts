@@ -18,15 +18,20 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 
 type AnyClass = { new (): any };
+type TransactionClass = AnyClass;
+type ModuleClass = AnyClass;
 
 declare class Application {
+	readonly logger: any;
+	readonly config: any;
+
 	constructor(genesisBlock: any, config?: any);
 	run(): Promise<void>;
 	registerTransaction(
-		transactionClass: AnyClass,
+		transactionClass: TransactionClass,
 		matcher?: { matcher: () => boolean }
 	): void;
-	registerModule(moduleClass: AnyClass, options?: any, alias?: string): void;
+	registerModule(moduleClass: ModuleClass, options?: any, alias?: string): void;
 	registerMigrations(namespace: string, migrations: Array<string>): void;
 	getTransaction(transactionType: number): AnyClass;
 	getTransactions(): { [key: number]: AnyClass };
