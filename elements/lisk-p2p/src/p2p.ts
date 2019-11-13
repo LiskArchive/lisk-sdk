@@ -335,11 +335,47 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
+			const { peerInfo } = closePacket;
+			// Update connection kind when closing connection
+			if (this._peerBook.getPeer(closePacket.peerInfo)) {
+				const updatedPeer = {
+					...peerInfo,
+					internalState: peerInfo.internalState
+						? {
+								...peerInfo.internalState,
+								connectionKind: ConnectionKind.NONE,
+						  }
+						: {
+								advertiseAddress: true,
+								connectionKind: ConnectionKind.NONE,
+						  },
+				};
+
+				this._peerBook.updatePeer(updatedPeer);
+			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+			const { peerInfo } = closePacket;
+			// Update connection kind when closing connection
+			if (this._peerBook.getPeer(closePacket.peerInfo)) {
+				const updatedPeer = {
+					...peerInfo,
+					internalState: peerInfo.internalState
+						? {
+								...peerInfo.internalState,
+								connectionKind: ConnectionKind.NONE,
+						  }
+						: {
+								advertiseAddress: true,
+								connectionKind: ConnectionKind.NONE,
+						  },
+				};
+
+				this._peerBook.updatePeer(updatedPeer);
+			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};

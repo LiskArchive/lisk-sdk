@@ -16,9 +16,10 @@ import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
 
 import {
+	ConnectionKind,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
-	INTENTIONAL_DISCONNECT_CODE,
+	INTENTIONAL_DISCONNECT_CODE
 } from '../constants';
 import {
 	EVENT_CLOSE_OUTBOUND,
@@ -62,6 +63,18 @@ export class OutboundPeer extends Peer {
 
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super(peerInfo, peerConfig);
+		this._peerInfo = {
+			...this._peerInfo,
+			internalState: this._peerInfo.internalState
+				? {
+						...this._peerInfo.internalState,
+						connectionKind: ConnectionKind.OUTBOUND,
+				  }
+				: {
+						advertiseAddress: true,
+						connectionKind: ConnectionKind.OUTBOUND,
+				  },
+		};
 	}
 
 	public set socket(scClientSocket: SCClientSocket) {
