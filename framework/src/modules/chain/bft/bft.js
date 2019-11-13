@@ -360,7 +360,7 @@ class BFT extends EventEmitter {
 			// If there is no minHeightActive until this point,
 			// we can set the value to 0
 			const minimumPossibleActiveHeight = this.slots.calcRoundStartHeight(
-				this.calcRound(row.height - this.constants.activeDelegates * 3),
+				this.slots.calcRound(row.height - this.constants.activeDelegates * 3),
 			);
 			const [delegateMinHeightActive] = activeHeights.filter(
 				height => height >= minimumPossibleActiveHeight,
