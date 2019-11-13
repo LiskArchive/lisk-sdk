@@ -382,7 +382,7 @@ describe('peerPool', () => {
 				outboundCount: 0,
 				inboundCount: 0,
 			});
-			peerPool.triggerNewConnections([], [], []);
+			peerPool.triggerNewConnections([], []);
 		});
 
 		it('should call _peerSelectForConnection with all the necessary options', async () => {

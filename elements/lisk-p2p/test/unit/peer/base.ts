@@ -49,6 +49,7 @@ describe('peer/base', () => {
 	let nodeInfo: P2PNodeInfo;
 	let p2pDiscoveredPeerInfo: P2PPeerInfo;
 	let defaultPeer: Peer;
+	let initialSeedPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
 
 	beforeEach(() => {
@@ -108,6 +109,10 @@ describe('peer/base', () => {
 			internalState: undefined,
 		};
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
+		initialSeedPeer = new Peer(defaultPeerInfo, {
+			fetchPeersAndDisconnect: true,
+			...peerConfig,
+		});
 	});
 
 	afterEach(() => {
@@ -501,32 +506,61 @@ describe('peer/base', () => {
 			];
 			sandbox.stub(defaultPeer, 'fetchPeers').resolves(discoveredPeers);
 			sandbox.stub(defaultPeer, 'emit');
+
+			sandbox.stub(initialSeedPeer, 'fetchPeers').resolves(discoveredPeers);
+			sandbox.stub(initialSeedPeer, 'emit');
+			sandbox.stub(initialSeedPeer, 'disconnect');
 		});
 
-		it('should call fetchPeers', async () => {
-			await defaultPeer.discoverPeers();
-			expect(defaultPeer.fetchPeers).to.be.calledOnce;
-		});
+		describe('when Peer is defaultPeer', () => {
+			it('should call fetchPeers', async () => {
+				await defaultPeer.discoverPeers();
+				expect(defaultPeer.fetchPeers).to.be.calledOnce;
+			});
 
-		it(`should emit ${EVENT_DISCOVERED_PEER} event 2 times`, async () => {
-			await defaultPeer.discoverPeers();
-			expect(defaultPeer.emit).to.be.calledTwice;
-		});
+			it(`should emit ${EVENT_DISCOVERED_PEER} event 2 times`, async () => {
+				await defaultPeer.discoverPeers();
+				expect(defaultPeer.emit).to.be.calledTwice;
+			});
 
-		it(`should emit ${EVENT_DISCOVERED_PEER} event with every peer info`, async () => {
-			await defaultPeer.discoverPeers();
-			expect(discoveredPeers).to.be.not.empty;
-			discoveredPeers.forEach(discoveredPeer => {
-				expect(defaultPeer.emit).to.be.calledWith(
-					EVENT_DISCOVERED_PEER,
-					discoveredPeer,
-				);
+			it(`should emit ${EVENT_DISCOVERED_PEER} event with every peer info`, async () => {
+				await defaultPeer.discoverPeers();
+				expect(discoveredPeers).to.be.not.empty;
+				discoveredPeers.forEach(discoveredPeer => {
+					expect(defaultPeer.emit).to.be.calledWith(
+						EVENT_DISCOVERED_PEER,
+						discoveredPeer,
+					);
+				});
 			});
 		});
 
-		it(`should return discoveredPeerInfoList`, async () => {
-			const discoveredPeerInfoList = await defaultPeer.discoverPeers();
-			expect(discoveredPeerInfoList).to.be.eql(discoveredPeers);
+		describe('when Peer is initialSeedPeer', () => {
+			it('should call fetchPeers', async () => {
+				await initialSeedPeer.discoverPeers();
+				expect(initialSeedPeer.fetchPeers).to.be.calledOnce;
+			});
+
+			it(`should emit ${EVENT_DISCOVERED_PEER} event 2 times`, async () => {
+				await initialSeedPeer.discoverPeers();
+				expect(initialSeedPeer.emit).to.be.calledTwice;
+			});
+
+			it(`should emit ${EVENT_DISCOVERED_PEER} event with every peer info`, async () => {
+				await initialSeedPeer.discoverPeers();
+				expect(initialSeedPeer).to.be.not.empty;
+				discoveredPeers.forEach(discoveredPeer => {
+					expect(initialSeedPeer.emit).to.be.calledWith(
+						EVENT_DISCOVERED_PEER,
+						discoveredPeer,
+					);
+				});
+			});
+
+			it('should call disconnect', async () => {
+				await initialSeedPeer.discoverPeers();
+				expect(initialSeedPeer.disconnect).to.be.calledOnce;
+			});
 		});
 	});
 

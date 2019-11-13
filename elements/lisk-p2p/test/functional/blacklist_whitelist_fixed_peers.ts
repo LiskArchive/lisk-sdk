@@ -22,7 +22,6 @@ import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
-	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 	const NETWORK_START_PORT = 5000;
 	const previousPeers = [
 		{
@@ -89,7 +88,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => ({
 				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
@@ -193,7 +191,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => ({
 				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
@@ -259,7 +256,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => ({
 				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),

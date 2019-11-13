@@ -35,7 +35,7 @@ describe('Advertise Address', () => {
 			},
 		],
 		wsEngine: 'ws',
-		populatorInterval: POPULATOR_INTERVAL,
+		populatorInterval: POPULATOR_INTERVAL + 15,
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
 		nodeInfo: {
@@ -48,7 +48,6 @@ describe('Advertise Address', () => {
 	beforeEach(async () => {
 		const customConfig = () => ({
 			advertiseAddress: true,
-			populatorInterval: POPULATOR_INTERVAL,
 		});
 
 		p2pNodeList = await createNetwork({ networkSize: 4, customConfig });

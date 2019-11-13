@@ -70,9 +70,10 @@ describe('P2P.request', () => {
 	it('requests made to the network should be distributed randomly', async () => {
 		const TOTAL_REQUESTS = 1000;
 		const lastP2PNode = p2pNodeList[NETWORK_PEER_COUNT - 1];
+		const { outboundCount } = lastP2PNode['_peerPool'].getPeersCountPerKind();
 		const nodePortToResponsesMap: any = {};
 
-		const expectedAverageRequestsPerNode = TOTAL_REQUESTS / NETWORK_PEER_COUNT;
+		const expectedAverageRequestsPerNode = TOTAL_REQUESTS / outboundCount;
 		const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
 		const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
 

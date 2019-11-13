@@ -41,7 +41,6 @@ describe('Peer inbound eviction for connection time', () => {
 			productivityProtectionRatio: 0,
 			longevityProtectionRatio: 0.5,
 			maxInboundConnections: 3,
-			populatorInterval: 100,
 			seedPeers: customSeedPeers(index, networkStartPort, networkSize),
 		});
 

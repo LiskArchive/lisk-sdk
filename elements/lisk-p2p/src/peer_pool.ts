@@ -307,10 +307,10 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
+		const peerInfos = this.getAllConnectedPeerInfos();
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: outboundPeerInfos,
+			peers: peerInfos,
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -397,10 +397,31 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
+	public discoverSeedPeers(): void {
+		const openOutboundSlots = this._getAvailableOutboundConnectionSlots();
+
+		if (openOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
+			return;
+		}
+
+		const seedPeersForFetch = shuffle(
+			this._peerLists.seedPeers.slice(0, openOutboundSlots),
+		);
+
+		seedPeersForFetch.map(peer => {
+			this.fetchPeeersAndDisconnect(peer);
+		});
+	}
+
+	public fetchPeeersAndDisconnect(peerInfo: P2PPeerInfo): void {
+		this._addOutboundPeer(peerInfo, this._nodeInfo as P2PNodeInfo, {
+			fetchPeersAndDisconnect: true,
+		});
+	}
+
 	public triggerNewConnections(
 		newPeers: ReadonlyArray<P2PPeerInfo>,
 		triedPeers: ReadonlyArray<P2PPeerInfo>,
-		fixedPeers: ReadonlyArray<P2PPeerInfo>,
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
@@ -409,17 +430,13 @@ export class PeerPool extends EventEmitter {
 		const disconnectedTriedPeers = triedPeers.filter(
 			triedPeer => !this._peerMap.has(triedPeer.peerId),
 		);
-		const { outboundCount } = this.getPeersCountPerKind();
-		const disconnectedFixedPeers = fixedPeers
+		const disconnectedFixedPeers = this._peerLists.fixedPeers
 			.filter(peer => !this._peerMap.get(peer.peerId))
 			.map(peer2Convert => peer2Convert);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
-		const peerLimit =
-			this._maxOutboundConnections -
-			disconnectedFixedPeers.length -
-			outboundCount;
+		const peerLimit = this._getAvailableOutboundConnectionSlots();
 
 		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
@@ -462,6 +479,7 @@ export class PeerPool extends EventEmitter {
 	private _addOutboundPeer(
 		peerInfo: P2PPeerInfo,
 		nodeInfo: P2PNodeInfo,
+		customPeerConfig?: object,
 	): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {
 			return false;
@@ -482,6 +500,7 @@ export class PeerPool extends EventEmitter {
 		*/
 		const peer = new OutboundPeer(peerInfo, {
 			...this._peerConfig,
+			...customPeerConfig,
 			serverNodeInfo: nodeInfo,
 		});
 
@@ -589,6 +608,22 @@ export class PeerPool extends EventEmitter {
 		}
 
 		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
+	}
+
+	private _getAvailableOutboundConnectionSlots(): number {
+		const { outboundCount } = this.getPeersCountPerKind();
+
+		const disconnectedFixedPeers = this._peerLists.fixedPeers
+			.filter(peer => !this._peerMap.get(peer.peerId))
+			.map(peer2Convert => peer2Convert);
+
+		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
+		const openOutboundSlots =
+			this._maxOutboundConnections -
+			disconnectedFixedPeers.length -
+			outboundCount;
+
+		return openOutboundSlots;
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
