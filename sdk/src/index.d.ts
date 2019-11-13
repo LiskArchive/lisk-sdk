@@ -17,24 +17,34 @@ import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 
+type AnyClass = { new (): any };
+
 declare class Application {
-	constructor(genesisBlock: object, config: object);
+	constructor(genesisBlock: any, config?: any);
 	run(): Promise<void>;
-	registerTransaction(transactionClass: object): void;
+	registerTransaction(
+		transactionClass: AnyClass,
+		matcher?: { matcher: () => boolean }
+	): void;
+	registerModule(moduleClass: AnyClass, options?: any, alias?: string): void;
+	registerMigrations(namespace: string, migrations: Array<string>): void;
+	getTransaction(transactionType: number): AnyClass;
+	getTransactions(): { [key: number]: AnyClass };
+	getModule(alias: string): AnyClass;
+	getModules(): { [key: string]: AnyClass };
+	getMigrations(): { [key: string]: AnyClass };
+	shutdown(errorCode?: number, message?: string): Promise<void>;
 }
 
 declare class Configurator {
 	constructor();
-	getConfig(
-		overrideValues: object,
-		options: { failOnInvalidArg: boolean }
-	): void;
-	registerModule(moduleClass: any): void;
+	getConfig(overrideValues: any, options: { failOnInvalidArg: boolean }): void;
+	registerModule(moduleClass: AnyClass): void;
 	loadConfigFile(configFilePath: string, destinationPath: string): void;
 	loadConfig(data: string, destinationPath: string): void;
 	extractMetaInformation(): void;
 	helpBanner(): void;
-	registerSchema(schema: object, key: string): void;
+	registerSchema(schema: any, key: string): void;
 }
 
 declare const version: number;
