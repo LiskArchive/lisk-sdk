@@ -13,7 +13,7 @@
  *
  */
 import { isIP, isPort } from 'validator';
-import { getByteSize, sanitizeIncomingPeerInfo } from '.';
+import { getByteSize } from '.';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -179,11 +179,9 @@ export const validatePeerInfoList = (
 			throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
 		}
 
-		const sanitizedPeerList = peers.map<P2PPeerInfo>(peerInfo =>
-			validatePeerInfo(sanitizeIncomingPeerInfo(peerInfo), maxPeerInfoByteSize),
+		return peers.map<P2PPeerInfo>(peerInfo =>
+			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
 		);
-
-		return sanitizedPeerList;
 	} else {
 		throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
 	}

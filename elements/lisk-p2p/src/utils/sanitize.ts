@@ -12,39 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
-import { constructPeerId } from './misc';
-
-export const sanitizeIncomingPeerInfo = (
-	rawPeerInfo: unknown,
-): P2PPeerInfo | undefined => {
-	if (!rawPeerInfo) {
-		return undefined;
-	}
-
-	const {
-		ipAddress,
-		wsPort,
-		height,
-		...restOfPeerInfo
-	} = rawPeerInfo as ProtocolPeerInfo;
-
-	return {
-		peerId: constructPeerId(ipAddress, wsPort),
-		ipAddress,
-		wsPort,
-		sharedState: {
-			height: typeof height === 'number' ? height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-			...restOfPeerInfo,
-		},
-	};
-};
-
-export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
-	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
-	ipAddress: peerInfo.ipAddress,
-	wsPort: peerInfo.wsPort,
-});
+import { P2PPeerInfo, PeerLists } from '../p2p_types';
 
 export const sanitizePeerLists = (
 	lists: PeerLists,

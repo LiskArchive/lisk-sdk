@@ -363,58 +363,6 @@ describe('peer/base', () => {
 			beforeEach(() => {
 				sandbox.stub(defaultPeer, 'applyPenalty');
 			});
-			it('should return a sanitized peer list', async () => {
-				const peers = [
-					{
-						peerId: constructPeerId('1.1.1.1', 1111),
-						ipAddress: '1.1.1.1',
-						wsPort: 1111,
-						sharedState: {
-							version: '1.1.1',
-						},
-					},
-					{
-						peerId: constructPeerId('2.2.2.2', 2222),
-						ipAddress: '2.2.2.2',
-						wsPort: 2222,
-						sharedState: {
-							version: '2.2.2',
-						},
-					},
-				];
-				const sanitizedPeers = [
-					{
-						peerId: constructPeerId('1.1.1.1', 1111),
-						ipAddress: '1.1.1.1',
-						wsPort: 1111,
-						sharedState: {
-							version: '1.1.1',
-							height: 0,
-						},
-					},
-					{
-						peerId: constructPeerId('2.2.2.2', 2222),
-						ipAddress: '2.2.2.2',
-						wsPort: 2222,
-						sharedState: {
-							version: '2.2.2',
-							height: 0,
-						},
-					},
-				];
-				sandbox.stub(defaultPeer, 'request').resolves({
-					data: {
-						peers: peers.map(peer => ({
-							...peer.sharedState,
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-						})),
-						success: true,
-					},
-				});
-				const response = await defaultPeer.fetchPeers();
-				expect(response).to.be.eql(sanitizedPeers);
-			});
 
 			it('should throw apply penalty on malformed Peer list', async () => {
 				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
@@ -594,11 +542,15 @@ describe('peer/base', () => {
 
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
 				const peer = {
+					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
 					wsPort: 1111,
-					version: '1.1.2',
-					protocolVersion: '1.2',
-					nethash: 'nethash',
+					sharedState: {
+						height: 1,
+						protocolVersion: '1.2',
+						nethash: 'nethash',
+						os: 'darwin',
+					},
 				};
 
 				beforeEach(() => {
@@ -618,7 +570,6 @@ describe('peer/base', () => {
 						ipAddress: defaultPeerInfo.ipAddress,
 						wsPort: defaultPeerInfo.wsPort,
 						sharedState: {
-							version: peer.version,
 							height: 0,
 							protocolVersion: '1.2',
 							nethash: 'nethash',

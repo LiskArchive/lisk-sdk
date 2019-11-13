@@ -92,14 +92,12 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
-	ProtocolPeerInfo,
 } from './p2p_types';
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
 	constructPeerId,
 	getByteSize,
-	sanitizeInitialPeerInfo,
 	sanitizePeerLists,
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -233,21 +231,13 @@ export class P2P extends EventEmitter {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
-				seedPeers: config.seedPeers
-					? config.seedPeers.map(sanitizeInitialPeerInfo)
-					: [],
+				seedPeers: config.seedPeers ? config.seedPeers : [],
 				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers.map(sanitizeInitialPeerInfo)
+					? config.blacklistedPeers
 					: [],
-				fixedPeers: config.fixedPeers
-					? config.fixedPeers.map(sanitizeInitialPeerInfo)
-					: [],
-				whitelisted: config.whitelistedPeers
-					? config.whitelistedPeers.map(sanitizeInitialPeerInfo)
-					: [],
-				previousPeers: config.previousPeers
-					? config.previousPeers.map(sanitizeInitialPeerInfo)
-					: [],
+				fixedPeers: config.fixedPeers ? config.fixedPeers : [],
+				whitelisted: config.whitelistedPeers ? config.whitelistedPeers : [],
+				previousPeers: config.previousPeers ? config.previousPeers : [],
 			},
 			{
 				peerId: constructPeerId(
@@ -558,16 +548,17 @@ export class P2P extends EventEmitter {
 		}
 	}
 
-	public getTriedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+	public getTriedPeers(): ReadonlyArray<P2PPeerInfo> {
 		return this._peerBook.triedPeers.map(peer => ({
-			...peer.sharedState,
+			peerId: peer.peerId,
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
+			sharedState: peer.sharedState,
 		}));
 	}
 
 	// Make sure you always share shared peer state to a user
-	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+	public getConnectedPeers(): ReadonlyArray<P2PPeerInfo> {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
@@ -583,7 +574,7 @@ export class P2P extends EventEmitter {
 	}
 
 	// Make sure you always share shared peer state to a user
-	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+	public getDisconnectedPeers(): ReadonlyArray<P2PPeerInfo> {
 		const allPeers = this._peerBook.allPeers;
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
@@ -604,10 +595,10 @@ export class P2P extends EventEmitter {
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
-				...peer.sharedState,
+				peerId: peer.peerId,
 				ipAddress: peer.ipAddress,
 				wsPort: peer.wsPort,
-				peerId: peer.peerId,
+				sharedState: peer.sharedState,
 			}));
 	}
 
@@ -947,14 +938,15 @@ export class P2P extends EventEmitter {
 		);
 
 		// Remove internal state to check byte size
-		const sanitizedPeerInfoList: ProtocolPeerInfo[] = selectedPeers
+		const sanitizedPeerInfoList: P2PPeerInfo[] = selectedPeers
 			.filter(
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
+				peerId: constructPeerId(peer.ipAddress, peer.wsPort),
 				ipAddress: peer.ipAddress,
 				wsPort: peer.wsPort,
-				...peer.sharedState,
+				sharedState: peer.sharedState,
 			}));
 
 		request.end({

@@ -56,7 +56,6 @@ import {
 } from '../p2p_types';
 import {
 	getNetgroup,
-	sanitizeIncomingPeerInfo,
 	validatePeerCompatibility,
 	validatePeerInfo,
 	validatePeerInfoList,
@@ -306,13 +305,13 @@ export class Peer extends EventEmitter {
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
-		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
+		// Peer Id, ip address and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
+			ipAddress: this.ipAddress,
+			wsPort: this.wsPort,
+			peerId: this.id,
 			sharedState: newPeerInfo.sharedState,
 			internalState: this._peerInfo.internalState,
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
-			peerId: this._peerInfo.peerId,
 		};
 	}
 
@@ -520,24 +519,22 @@ export class Peer extends EventEmitter {
 		}
 
 		// Sanitize and validate PeerInfo
-		const peerInfo = validatePeerInfo(
-			sanitizeIncomingPeerInfo({
-				...rawPeerInfo,
-				ipAddress: this._ipAddress,
-				wsPort: this._wsPort,
-			}),
+		const newPeerInfo = validatePeerInfo(
+			rawPeerInfo as P2PPeerInfo,
 			this._peerConfig.maxPeerInfoSize,
 		);
 
-		const result = validatePeerCompatibility(peerInfo, this._serverNodeInfo);
+		const result = validatePeerCompatibility(newPeerInfo, this._serverNodeInfo);
 
 		if (!result.success && result.error) {
 			throw new Error(
-				`${result.error} : ${peerInfo.ipAddress}:${peerInfo.wsPort}`,
+				`${result.error} : ${newPeerInfo.ipAddress}:${
+					newPeerInfo.wsPort
+				}`,
 			);
 		}
 
-		this.updatePeerInfo(peerInfo);
+		this.updatePeerInfo(newPeerInfo);
 	}
 
 	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {

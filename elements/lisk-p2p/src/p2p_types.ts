@@ -41,6 +41,11 @@ export interface P2PPenalty {
 	readonly penalty: number;
 }
 
+export interface P2PPeersCount {
+	readonly outboundCount: number;
+	readonly inboundCount: number;
+}
+
 export interface P2PSharedState {
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
@@ -65,39 +70,25 @@ export interface P2PPeerInfo {
 	readonly internalState?: P2PInternalState;
 }
 
-export interface P2PPeersCount {
-	readonly outboundCount: number;
-	readonly inboundCount: number;
-}
-
 // P2PPeerInfo and P2PNodeInfo are related.
 // P2PNodeInfo is the outbound info from our node.
-export interface P2PNodeInfo extends P2PSharedState {
+export interface P2PNodeInfo {
 	readonly protocolVersion: string;
 	readonly os: string;
 	readonly nethash: string;
 	readonly wsPort: number;
 	readonly advertiseAddress: boolean;
 	readonly nonce: string;
-}
-
-// This is a representation of the inbound peer object according to the current protocol.
-// TODO later: Switch to LIP protocol format.
-// TODO: Include peerId as field
-export interface ProtocolPeerInfo {
-	// To support the existing protocol
-	readonly ipAddress: string;
-	readonly wsPort: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
 
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly fixedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly whitelistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
-	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers?: ReadonlyArray<P2PPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;

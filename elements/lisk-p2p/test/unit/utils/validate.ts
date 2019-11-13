@@ -19,14 +19,13 @@ import {
 	validateRPCRequest,
 	validateProtocolMessage,
 	validateNodeInfo,
-	sanitizeIncomingPeerInfo,
 	validatePeerInfoList,
 } from '../../../src/utils';
 import {
-	ProtocolPeerInfo,
 	P2PRequestPacket,
 	P2PMessagePacket,
 	P2PNodeInfo,
+	P2PPeerInfo,
 } from '../../../src/p2p_types';
 import {
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -37,28 +36,20 @@ import {
 describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
-			const peer: ProtocolPeerInfo = {
+			const peer: P2PPeerInfo = {
+				peerId: '12.23.54.3:5393',
 				ipAddress: '12.23.54.3',
 				wsPort: 5393,
-				os: 'darwin',
-				height: 23232,
-				version: '1.1.2',
-				protocolVersion: '1.1',
-				httpPort: 2000,
-			};
-
-			const peerWithInvalidHeightValue: unknown = {
-				ipAddress: '12.23.54.3',
-				wsPort: 5393,
-				os: '778',
-				height: '2323wqdqd2',
-				version: '3.4.5-alpha.9',
-				protocolVersion: '1.1',
-				httpPort: 2000,
+				sharedState: {
+					httpPort: 2000,
+					os: 'darwin',
+					height: 23232,
+					protocolVersion: '1.1',
+				},
 			};
 
 			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000))
+				expect(validatePeerInfo(peer, 10000))
 					.to.be.an('object')
 					.eql({
 						peerId: '12.23.54.3:5393',
@@ -67,29 +58,6 @@ describe('utils/validate', () => {
 						sharedState: {
 							height: 23232,
 							os: 'darwin',
-							version: '1.1.2',
-							protocolVersion: '1.1',
-							httpPort: 2000,
-						},
-					});
-			});
-
-			it('should return P2PPeerInfo object with height value set to 0', async () => {
-				expect(
-					validatePeerInfo(
-						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
-						10000,
-					),
-				)
-					.to.be.an('object')
-					.eql({
-						peerId: '12.23.54.3:5393',
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						sharedState: {
-							height: 0,
-							os: '778',
-							version: '3.4.5-alpha.9',
 							protocolVersion: '1.1',
 							httpPort: 2000,
 						},
@@ -101,33 +69,27 @@ describe('utils/validate', () => {
 			it('should throw an InvalidPeer error for invalid peer', async () => {
 				const peerInvalid: unknown = null;
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).to.throw('Invalid peer object');
+				expect(() => validatePeerInfo(peerInvalid as any, 10000)).to.throw(
+					'Invalid peer object',
+				);
 			});
 
 			it('should throw if PeerInfo is too big', async () => {
 				const maximumPeerInfoSizeInBytes = 10;
-				const peer: ProtocolPeerInfo = {
+				const peerInfo: P2PPeerInfo = {
+					peerId: '12.23.54.3:5393',
 					ipAddress: '12.23.54.3',
 					wsPort: 5393,
-					os: 'darwin',
-					height: 23232,
-					version: '1.1.2',
-					protocolVersion: '1.1',
-					httpPort: 2000,
+					sharedState: {
+						height: 23232,
+						os: 'darwin',
+						protocolVersion: '1.1',
+						httpPort: 2000,
+					},
 				};
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peer),
-						maximumPeerInfoSizeInBytes,
-					),
+				expect(() =>
+					validatePeerInfo(peerInfo, maximumPeerInfoSizeInBytes),
 				).to.throw(
 					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
@@ -142,13 +104,9 @@ describe('utils/validate', () => {
 					},
 				};
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).to.throw('Invalid peer ipAddress or port');
+				expect(() => validatePeerInfo(peerInvalid as any, 10000)).to.throw(
+					'Invalid peer ipAddress or port',
+				);
 			});
 		});
 	});
