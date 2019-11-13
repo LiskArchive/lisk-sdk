@@ -55,6 +55,7 @@ import {
 	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
+	PeerKind,
 } from './constants';
 import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
 import {
@@ -641,6 +642,62 @@ export class P2P extends EventEmitter {
 		);
 	}
 
+	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
+		if (
+			this._sanitizedPeerLists.blacklistedPeers
+				.map(peer => peer.ipAddress)
+				.includes(peerInfo.ipAddress)
+		) {
+			return {
+				...peerInfo,
+				internalState: peerInfo.internalState
+					? { ...peerInfo.internalState, peerKind: PeerKind.BLACKLISTED_PEER }
+					: { peerKind: PeerKind.BLACKLISTED_PEER, advertiseAddress: true },
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.fixedPeers
+				.map(peer => peer.peerId)
+				.includes(peerInfo.peerId)
+		) {
+			return {
+				...peerInfo,
+				internalState: peerInfo.internalState
+					? { ...peerInfo.internalState, peerKind: PeerKind.FIXED_PEER }
+					: { peerKind: PeerKind.FIXED_PEER, advertiseAddress: true },
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.whitelisted
+				.map(peer => peer.peerId)
+				.includes(peerInfo.peerId)
+		) {
+			return {
+				...peerInfo,
+				internalState: peerInfo.internalState
+					? { ...peerInfo.internalState, peerKind: PeerKind.WHITELISTED_PEER }
+					: { peerKind: PeerKind.WHITELISTED_PEER, advertiseAddress: true },
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.seedPeers
+				.map(peer => peer.peerId)
+				.includes(peerInfo.peerId)
+		) {
+			return {
+				...peerInfo,
+				internalState: peerInfo.internalState
+					? { ...peerInfo.internalState, peerKind: PeerKind.SEED_PEER }
+					: { peerKind: PeerKind.SEED_PEER, advertiseAddress: true },
+			};
+		}
+
+		return peerInfo;
+	}
+
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'handshake',
@@ -766,7 +823,7 @@ export class P2P extends EventEmitter {
 					...restOfQueryObject
 				} = queryObject;
 
-				const incomingPeerInfo: P2PPeerInfo = {
+				const incomingPeerInfo: P2PPeerInfo = this._assignPeerKind({
 					sharedState: {
 						...restOfQueryObject,
 						...queryOptions,
@@ -780,7 +837,7 @@ export class P2P extends EventEmitter {
 					peerId,
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
-				};
+				});
 
 				try {
 					validatePeerInfo(
