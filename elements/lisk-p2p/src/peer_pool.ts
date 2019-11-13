@@ -26,6 +26,7 @@ import {
 	DEFAULT_LOCALHOST_IP,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
+	SEED_PEER_DISCONNECTION_REASON,
 } from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
@@ -396,17 +397,11 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
-	public discoverSeedPeers(seedPeers: ReadonlyArray<P2PPeerInfo>): void {
-		const seedPeersForFetch = shuffle([...seedPeers]);
+	public discoverSeedPeers(): void {
+		const seedPeersForFetch = shuffle([...this._peerLists.seedPeers]);
 
 		seedPeersForFetch.map(peer => {
-			this.fetchPeeersAndDisconnect(peer);
-		});
-	}
-
-	public fetchPeeersAndDisconnect(peerInfo: P2PPeerInfo): void {
-		this._addOutboundPeer(peerInfo, {
-			fetchPeersAndDisconnect: true,
+			this._addOutboundPeer(peer);
 		});
 	}
 
@@ -470,10 +465,7 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	private _addOutboundPeer(
-		peerInfo: P2PPeerInfo,
-		customPeerConfig?: object,
-	): boolean {
+	private _addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {
 			return false;
 		}
@@ -490,7 +482,6 @@ export class PeerPool extends EventEmitter {
 
 		const peer = new OutboundPeer(peerInfo, {
 			...this._peerConfig,
-			...customPeerConfig,
 		});
 
 		this._peerMap.set(peer.id, peer);
@@ -668,22 +659,40 @@ export class PeerPool extends EventEmitter {
 
 	private _evictPeer(kind: typeof InboundPeer | typeof OutboundPeer): void {
 		const peers = this.getPeers(kind);
-		if (peers.length < 1) {
+		if (peers.length <= 1) {
 			return;
 		}
 
 		if (kind === OutboundPeer) {
-			const selectedPeer = shuffle(
-				peers.filter(peer =>
-					this._peerLists.fixedPeers.every(p => p.peerId !== peer.id),
+			// Remove Outbound SeedPeers first LIP-0004
+			const selectedSeedPeer = shuffle(
+				peers.filter(
+					peer =>
+						this._peerLists.fixedPeers.every(p => p.peerId !== peer.id) &&
+						this._peerLists.seedPeers.find(p => p.peerId === peer.id),
 				),
 			)[0];
-			if (selectedPeer) {
+
+			if (selectedSeedPeer) {
 				this.removePeer(
-					selectedPeer.id,
+					selectedSeedPeer.id,
 					EVICTED_PEER_CODE,
-					`Evicted outbound peer ${selectedPeer.id}`,
+					SEED_PEER_DISCONNECTION_REASON,
 				);
+			} else {
+				const selectedPeer = shuffle(
+					peers.filter(peer =>
+						this._peerLists.fixedPeers.every(p => p.peerId !== peer.id),
+					),
+				)[0];
+
+				if (selectedPeer) {
+					this.removePeer(
+						selectedPeer.id,
+						EVICTED_PEER_CODE,
+						`Evicted outbound peer ${selectedPeer.id}`,
+					);
+				}
 			}
 		}
 
