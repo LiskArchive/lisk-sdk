@@ -226,7 +226,7 @@ class DelegatesInfo {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
-		const blocksInRounds = this.storage.entities.Block.get(
+		const blocksInRounds = await this.storage.entities.Block.get(
 			{
 				height_gte: this.slots.calcRoundStartHeight(round),
 				height_lte: this.slots.calcRoundEndHeight(round),
@@ -237,7 +237,7 @@ class DelegatesInfo {
 
 		// In case of the result doesn't contain enough blocks
 		if (
-			blocksInRounds.length === this.activeDelegates - 1 &&
+			blocksInRounds.length === this.activeDelegates &&
 			blocksInRounds.find(
 				fetchedBlock => fetchedBlock.height === block.height,
 			) === undefined
