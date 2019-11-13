@@ -21,6 +21,7 @@ const {
 const {
 	FinalityManager,
 } = require('../../../../../../../src/modules/chain/bft/finality_manager');
+const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 
 const {
 	BFT,
@@ -32,6 +33,8 @@ const {
 	FORK_STATUS_IDENTICAL_BLOCK,
 	FORK_STATUS_DOUBLE_FORGING,
 } = require('../../../../../../../src/modules/chain/bft');
+
+const { constants } = require('../../../../../utils');
 
 const generateBlocks = ({ startHeight, numberOfBlocks }) =>
 	new Array(numberOfBlocks)
@@ -96,12 +99,19 @@ describe('bft', () => {
 				},
 			};
 
+			const slots = new Slots({
+				epochTime: constants.EPOCH_TIME,
+				interval: constants.BLOCK_TIME,
+				blocksPerRound: constants.ACTIVE_DELEGATES,
+			});
+
 			loggerMock = {};
 			activeDelegates = 101;
 			startingHeight = 0;
 			bftParams = {
 				storage: storageMock,
 				logger: loggerMock,
+				slots,
 				activeDelegates,
 				startingHeight,
 			};
