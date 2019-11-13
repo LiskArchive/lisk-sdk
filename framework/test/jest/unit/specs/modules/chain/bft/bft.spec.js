@@ -53,7 +53,7 @@ describe('bft', () => {
 		it('should extract particular headers for bft', async () => {
 			// Arrange,
 			const block = blockFixture();
-			const delegateMinHeightActive = 304;
+			const delegateMinHeightActive = constants.ACTIVE_DELEGATES * 3 + 1;
 			const {
 				id: blockId,
 				height,
@@ -1065,7 +1065,7 @@ describe('bft', () => {
 			it('should load block headers to finalityManager', async () => {
 				// Arrange
 				const block = blockFixture({ version: 2, height: 520 });
-				const delegateMinHeightActive = 405;
+				const delegateMinHeightActive = constants.ACTIVE_DELEGATES * 4 + 1;
 				const minActiveHeightsOfDelegates = {
 					[block.generatorPublicKey]: [delegateMinHeightActive],
 				};
