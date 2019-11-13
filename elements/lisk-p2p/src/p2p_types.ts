@@ -53,6 +53,7 @@ export interface P2PInternalState {
 	readonly productivity?: number;
 	readonly reputation?: number;
 	readonly connectionKind?: ConnectionKind;
+	readonly advertiseAddress: boolean;
 }
 
 export interface P2PPeerInfo {
@@ -76,6 +77,7 @@ export interface P2PNodeInfo extends P2PSharedState {
 	readonly os: string;
 	readonly nethash: string;
 	readonly wsPort: number;
+	readonly advertiseAddress: boolean;
 	readonly nonce: string;
 }
 

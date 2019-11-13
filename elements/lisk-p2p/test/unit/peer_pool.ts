@@ -115,6 +115,7 @@ describe('peerPool', () => {
 			wsPort: 5000,
 			height: 1000,
 			nonce: 'nonce',
+			advertiseAddress: true,
 		};
 		requestPacket = { procedure: 'abc', data: 'abc' };
 		messagePacket = { ...requestPacket, event: 'abc' };

@@ -48,6 +48,7 @@ describe('P2P.applyNodeInfo', () => {
 			height: 10,
 			options: firstP2PNode.nodeInfo.options,
 			nonce: 'nonce',
+			advertiseAddress: true,
 		});
 
 		await wait(200);
@@ -71,6 +72,7 @@ describe('P2P.applyNodeInfo', () => {
 				options: firstP2PNode.nodeInfo.options,
 				junk: '1.'.repeat(13000),
 				nonce: 'nonce',
+				advertiseAddress: true,
 			}),
 		).to.throw(
 			InvalidNodeInfoError,

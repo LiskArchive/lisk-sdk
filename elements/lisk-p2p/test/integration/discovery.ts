@@ -196,6 +196,7 @@ describe('Peer discovery', () => {
 				os: platform(),
 				height: 10000,
 				nonce: `404`,
+				advertiseAddress: true,
 			},
 		});
 		await disconnectedNode.start();

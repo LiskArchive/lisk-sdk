@@ -18,9 +18,8 @@ const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const { createStorageComponent } = require('../../components/storage');
-const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { bootstrapStorage, bootstrapCache } = require('./init_steps');
+const { bootstrapStorage } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const {
 	TransactionPool,
@@ -76,11 +75,6 @@ module.exports = class Chain {
 			'storage',
 		);
 
-		const cacheConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'cache',
-		);
-
 		this.applicationState = await this.channel.invoke(
 			'app:getApplicationState',
 		);
@@ -116,10 +110,6 @@ module.exports = class Chain {
 				);
 			}
 
-			// Cache
-			this.logger.debug('Initiating cache...');
-			this.cache = createCacheComponent(cacheConfig, this.logger);
-
 			// Storage
 			this.logger.debug('Initiating storage...');
 			this.storage = createStorageComponent(storageConfig, dbLogger);
@@ -144,7 +134,6 @@ module.exports = class Chain {
 				}),
 				components: {
 					storage: this.storage,
-					cache: this.cache,
 					logger: this.logger,
 				},
 				channel: this.channel,
@@ -152,7 +141,6 @@ module.exports = class Chain {
 			};
 
 			await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
-			await bootstrapCache(this.scope);
 
 			await this._initModules();
 
