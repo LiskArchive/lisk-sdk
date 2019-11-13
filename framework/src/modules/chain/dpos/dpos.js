@@ -88,7 +88,7 @@ module.exports = class Dpos {
 		);
 	}
 
-	async getActiveDelegateHeights(
+	async getMinActiveHeightsOfDelegates(
 		numberOfRounds = 1,
 		{ tx, delegateListRoundOffset = this.delegateListRoundOffset } = {},
 	) {

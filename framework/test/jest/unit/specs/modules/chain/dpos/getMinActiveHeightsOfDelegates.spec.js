@@ -18,7 +18,7 @@ const { when } = require('jest-when');
 const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { constants } = require('../../../../../utils');
 
-describe('dpos.getActiveDelegateHeights()', () => {
+describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 	const stubs = {};
 	let dpos;
 	let slots;
@@ -88,13 +88,16 @@ describe('dpos.getActiveDelegateHeights()', () => {
 				.mockResolvedValue(lists);
 
 			// Act
-			const activeDelegateHeights = await dpos.getActiveDelegateHeights(1, {
-				tx: stubs.tx,
-			});
+			const minActiveHeightsOfDelegates = await dpos.getMinActiveHeightsOfDelegates(
+				1,
+				{
+					tx: stubs.tx,
+				},
+			);
 
 			// Assert
-			expect(Object.keys(activeDelegateHeights).length <= 3).toBe(true);
-			expect(activeDelegateHeights[newDelegate].activeHeights).toEqual([
+			expect(Object.keys(minActiveHeightsOfDelegates).length <= 3).toBe(true);
+			expect(minActiveHeightsOfDelegates[newDelegate].activeHeights).toEqual([
 				slots.calcRoundStartHeight(activeRound),
 			]);
 		});
