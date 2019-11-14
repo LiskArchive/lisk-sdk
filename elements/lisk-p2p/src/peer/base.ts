@@ -519,13 +519,8 @@ export class Peer extends EventEmitter {
 			throw new Error('Missing server node info.');
 		}
 
-		const protocolPeerInfo = {
-			...rawPeerInfo,
-			ip: this._ipAddress,
-			wsPort: this._wsPort,
-		};
-
-		const newPeerInfo = validatePeerInfo(
+		// Sanitize and validate PeerInfo
+		const peerInfo = validatePeerInfo(
 			sanitizeIncomingPeerInfo({
 				...rawPeerInfo,
 				ipAddress: this._ipAddress,
@@ -534,7 +529,7 @@ export class Peer extends EventEmitter {
 			this._peerConfig.maxPeerInfoSize,
 		);
 
-		const result = validatePeerCompatibility(newPeerInfo, this._serverNodeInfo);
+		const result = validatePeerCompatibility(peerInfo, this._serverNodeInfo);
 
 		if (!result.success && result.error) {
 			throw new Error(
@@ -542,7 +537,7 @@ export class Peer extends EventEmitter {
 			);
 		}
 
-		this.updatePeerInfo(newPeerInfo);
+		this.updatePeerInfo(peerInfo);
 	}
 
 	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {

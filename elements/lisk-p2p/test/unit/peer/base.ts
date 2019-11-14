@@ -20,7 +20,6 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
-	DEFAULT_MAX_PEER_INFO_SIZE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -79,6 +78,7 @@ describe('peer/base', () => {
 				protocolVersion: '1.2',
 				wsPort: 6001,
 				nonce: 'nonce',
+				advertiseAddress: true,
 			},
 		};
 		nodeInfo = {

@@ -794,6 +794,21 @@ export class P2P extends EventEmitter {
 					wsPort: remoteWSPort,
 				};
 
+				try {
+					validatePeerInfo(
+						incomingPeerInfo,
+						this._config.maxPeerInfoSize
+							? this._config.maxPeerInfoSize
+							: DEFAULT_MAX_PEER_INFO_SIZE,
+					);
+				} catch (error) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						INCOMPATIBLE_PEER_INFO_CODE,
+						error,
+					);
+				}
+
 				const { success, error } = this._peerHandshakeCheck(
 					incomingPeerInfo,
 					this._nodeInfo,
