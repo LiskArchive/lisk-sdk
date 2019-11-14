@@ -30,7 +30,7 @@ module.exports = {
 		maxHeightPrevoted: {
 			type: 'integer',
 		},
-		activeSinceRound: {
+		delegateMinHeightActive: {
 			type: 'integer',
 		},
 		delegatePublicKey: {
@@ -43,7 +43,7 @@ module.exports = {
 		'height',
 		'maxHeightPreviouslyForged',
 		'maxHeightPrevoted',
-		'activeSinceRound',
+		'delegateMinHeightActive',
 		'delegatePublicKey',
 	],
 };

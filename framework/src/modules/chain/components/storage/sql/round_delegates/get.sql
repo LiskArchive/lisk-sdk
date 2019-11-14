@@ -12,5 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+SELECT
+	"round"::bigint,
+	"delegatePublicKeys"::json
+FROM "round_delegates"
 
-UPDATE peers SET ${updateSet:raw} ${parsedFilters:raw};
+${parsedFilters:raw}
+
+${parsedSort:raw}
+
+LIMIT ${limit}
+OFFSET ${offset}

@@ -35,7 +35,10 @@ const extractBFTBlockHeaderFromBlock = block => ({
 	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged,
 	maxHeightPrevoted: block.maxHeightPrevoted,
 	delegatePublicKey: block.generatorPublicKey,
-	activeSinceRound: 0, // TODO: Link the new DPOS with BFT here
+	// This parameter injected to block object to avoid big refactoring
+	// for the moment. `delegateMinHeightActive` will be removed from the block
+	// object with https://github.com/LiskHQ/lisk-sdk/issues/4413
+	delegateMinHeightActive: block.delegateMinHeightActive || 0,
 });
 
 /**
@@ -70,9 +73,10 @@ class BFT extends EventEmitter {
 	/**
 	 * Initialize the BFT module
 	 *
+	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */
-	async init() {
+	async init(minActiveHeightsOfDelegates = {}) {
 		this.finalityManager = await this._initFinalityManager();
 
 		this.finalityManager.on(
@@ -93,6 +97,7 @@ class BFT extends EventEmitter {
 		await this._loadBlocksFromStorage({
 			fromHeight: loadFromHeight,
 			tillHeight: lastBlockHeight,
+			minActiveHeightsOfDelegates,
 		});
 	}
 
@@ -114,9 +119,10 @@ class BFT extends EventEmitter {
 	 * When blocks deleted send those to BFT to update BFT state
 	 *
 	 * @param {Array.<Object>} blocks - List of all blocks
+	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */
-	async deleteBlocks(blocks) {
+	async deleteBlocks(blocks, minActiveHeightsOfDelegates = {}) {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
 
@@ -144,7 +150,11 @@ class BFT extends EventEmitter {
 			const tillHeight = this.finalityManager.minHeight - 1;
 			const fromHeight =
 				this.finalityManager.maxHeight - this.constants.activeDelegates * 2;
-			await this._loadBlocksFromStorage({ fromHeight, tillHeight });
+			await this._loadBlocksFromStorage({
+				fromHeight,
+				tillHeight,
+				minActiveHeightsOfDelegates,
+			});
 		}
 	}
 
@@ -314,9 +324,14 @@ class BFT extends EventEmitter {
 	 *
 	 * @param {int} fromHeight - The start height to fetch and load
 	 * @param {int} tillHeight - The end height to fetch and load
+	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */
-	async _loadBlocksFromStorage({ fromHeight, tillHeight }) {
+	async _loadBlocksFromStorage({
+		fromHeight,
+		tillHeight,
+		minActiveHeightsOfDelegates,
+	}) {
 		let sortOrder = 'height:asc';
 
 		// If blocks to be loaded on tail
@@ -335,7 +350,46 @@ class BFT extends EventEmitter {
 		rows.forEach(row => {
 			if (row.height !== 1 && row.version !== 2) return;
 
-			this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(row));
+			// If it's genesis block, skip the logic and set
+			// `delegateMinHeightActive` to 1.
+			if (row.height === 1) {
+				this.finalityManager.addBlockHeader(
+					extractBFTBlockHeaderFromBlock({
+						...row,
+						delegateMinHeightActive: 1,
+					}),
+				);
+				return;
+			}
+
+			const activeHeights = minActiveHeightsOfDelegates[row.generatorPublicKey];
+			if (!activeHeights) {
+				throw new Error(
+					`Minimum active heights were not found for delegate "${
+						row.generatorPublicKey
+					}".`,
+				);
+			}
+
+			// If there is no minHeightActive until this point,
+			// we can set the value to 0
+			const minimumPossibleActiveHeight = this.slots.calcRoundStartHeight(
+				this.slots.calcRound(
+					Math.max(row.height - this.constants.activeDelegates * 3, 1),
+				),
+			);
+			const [delegateMinHeightActive] = activeHeights.filter(
+				height => height >= minimumPossibleActiveHeight,
+			);
+
+			const blockHeaders = {
+				...row,
+				delegateMinHeightActive,
+			};
+
+			this.finalityManager.addBlockHeader(
+				extractBFTBlockHeaderFromBlock(blockHeaders),
+			);
 		});
 	}
 

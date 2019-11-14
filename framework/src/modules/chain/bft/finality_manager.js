@@ -33,7 +33,7 @@ const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
  * @property {int} height
  * @property {int} maxHeightPreviouslyForged
  * @property {int} maxHeightPrevoted
- * @property {int} activeSinceRound
+ * @property {int} delegateMinHeightActive
  * @property {string} delegatePublicKey
  */
 
@@ -163,10 +163,6 @@ class FinalityManager extends EventEmitter {
 			maxPreCommitHeight: 0,
 		};
 
-		// Get first block of the round when delegate was active
-		const heightSinceDelegateActive =
-			(header.activeSinceRound - 1) * this.activeDelegates + 1;
-
 		const validMinHeightToVoteAndCommit = this._getValidMinHeightToCommit(
 			header,
 		);
@@ -175,7 +171,7 @@ class FinalityManager extends EventEmitter {
 		// if it forged before then we probably have the last commit height
 		// delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommitHeight = Math.max(
-			heightSinceDelegateActive,
+			header.delegateMinHeightActive,
 			validMinHeightToVoteAndCommit,
 			delegateState.maxPreCommitHeight + 1,
 		);
@@ -200,7 +196,7 @@ class FinalityManager extends EventEmitter {
 		// Or one step ahead where it left the last pre-vote
 		// Or maximum 3 rounds backward
 		const minPreVoteHeight = Math.max(
-			heightSinceDelegateActive,
+			header.delegateMinHeightActive,
 			header.maxHeightPreviouslyForged + 1,
 			delegateState.maxPreVoteHeight + 1,
 			header.height - this.processingThreshold,

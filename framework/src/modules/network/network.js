@@ -37,9 +37,13 @@ const {
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
 const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
-const { Peer } = require('./components/storage/entities');
+const { NetworkInfo } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
+
+const NETWORK_INFO_KEY_NODE_SECRET = 'node_secret';
+const NETWORK_INFO_KEY_TRIED_PEERS = 'tried_peers_list';
+const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 /**
  * Network Module
@@ -81,7 +85,7 @@ module.exports = class Network {
 				  });
 
 		this.storage = createStorageComponent(storageConfig, dbLogger);
-		this.storage.registerEntity('Peer', Peer);
+		this.storage.registerEntity('NetworkInfo', NetworkInfo);
 
 		const status = await this.storage.bootstrap();
 		if (!status) {
@@ -89,12 +93,29 @@ module.exports = class Network {
 		}
 
 		// Load peers from the database that were tried or connected the last time node was running
-		const previousPeers = await this.storage.entities.Peer.get(
-			{},
-			{ limit: null },
+		const previousPeersStr = await this.storage.entities.NetworkInfo.getKey(
+			NETWORK_INFO_KEY_TRIED_PEERS,
 		);
+		let previousPeers = [];
+		try {
+			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
+		} catch (err) {
+			this.logger.error({ err }, 'Failed to parse JSON of previous peers.');
+		}
 
-		this.secret = getRandomBytes(4).readUInt32BE(0);
+		// Get previous secret if exists
+		const secret = await this.storage.entities.NetworkInfo.getKey(
+			NETWORK_INFO_KEY_NODE_SECRET,
+		);
+		if (!secret) {
+			this.secret = getRandomBytes(4).readUInt32BE(0);
+			await this.storage.entities.NetworkInfo.setKey(
+				NETWORK_INFO_KEY_NODE_SECRET,
+				this.secret,
+			);
+		} else {
+			this.secret = Number(secret);
+		}
 
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
@@ -134,15 +155,7 @@ module.exports = class Network {
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
-			previousPeers: previousPeers.map(peer => {
-				// Remove the id field coming from the database.
-				const { ip, id, ...strippedPeer } = peer;
-
-				return {
-					ipAddress: ip,
-					...strippedPeer,
-				};
-			}),
+			previousPeers,
 			discoveryInterval: this.options.discoveryInterval,
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,
@@ -321,6 +334,16 @@ module.exports = class Network {
 			);
 		});
 
+		setInterval(async () => {
+			const triedPeers = this.p2p.getTriedPeers();
+			if (triedPeers.length) {
+				await this.storage.entities.NetworkInfo.setKey(
+					NETWORK_INFO_KEY_TRIED_PEERS,
+					JSON.stringify(triedPeers),
+				);
+			}
+		}, DEFAULT_PEER_SAVE_INTERVAL);
+
 		// ---- END: Bind event handlers ----
 
 		try {
@@ -398,28 +421,7 @@ module.exports = class Network {
 
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
-		// TODO: In phase 2, only previousPeers will be saved to database
 		this.logger.info('Cleaning network...');
-
-		const peersToSave = this.p2p.getConnectedPeers().map(peer => {
-			const { ipAddress, ...peerWithoutIp } = peer;
-
-			return {
-				ip: ipAddress,
-				...peerWithoutIp,
-				state: peerWithoutIp.state ? peerWithoutIp.state : 2,
-				protocolVersion: peerWithoutIp.protocolVersion
-					? peerWithoutIp.protocolVersion
-					: '',
-			};
-		});
-		// Add new peers that have been tried
-		if (peersToSave.length !== 0) {
-			// First delete all the previously saved peers
-			await this.storage.entities.Peer.delete();
-			await this.storage.entities.Peer.create(peersToSave);
-			this.logger.info('Saved all the peers to DB that have been tried');
-		}
 
 		return this.p2p.stop();
 	}

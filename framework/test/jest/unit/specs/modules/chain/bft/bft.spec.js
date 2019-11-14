@@ -51,8 +51,9 @@ describe('bft', () => {
 
 	describe('extractBFTBlockHeaderFromBlock', () => {
 		it('should extract particular headers for bft', async () => {
+			// Arrange,
 			const block = blockFixture();
-
+			const delegateMinHeightActive = constants.ACTIVE_DELEGATES * 3 + 1;
 			const {
 				id: blockId,
 				height,
@@ -60,7 +61,7 @@ describe('bft', () => {
 				maxHeightPrevoted,
 				generatorPublicKey: delegatePublicKey,
 			} = block;
-			const activeSinceRound = 0;
+			block.delegateMinHeightActive = delegateMinHeightActive;
 
 			const blockHeader = {
 				blockId,
@@ -68,7 +69,7 @@ describe('bft', () => {
 				maxHeightPreviouslyForged,
 				maxHeightPrevoted,
 				delegatePublicKey,
-				activeSinceRound,
+				delegateMinHeightActive,
 			};
 
 			expect(extractBFTBlockHeaderFromBlock(block)).toEqual(blockHeader);
@@ -76,31 +77,46 @@ describe('bft', () => {
 	});
 
 	describe('BFT', () => {
-		const storageMock = {
-			entities: {
-				Block: {
-					get: jest.fn(),
+		let storageMock;
+		let loggerMock;
+		let slots;
+		let activeDelegates;
+		let startingHeight;
+		let bftParams;
+		beforeEach(() => {
+			storageMock = {
+				entities: {
+					Block: {
+						get: jest.fn().mockResolvedValue([]),
+					},
+					ChainMeta: {
+						getKey: jest.fn(),
+						setKey: jest.fn(),
+					},
+					Account: {
+						get: jest.fn().mockResolvedValue([]),
+						getOne: jest.fn().mockResolvedValue({}),
+					},
 				},
-				ChainMeta: {
-					getKey: jest.fn(),
-					setKey: jest.fn(),
-				},
-			},
-		};
-		const loggerMock = {};
-		const activeDelegates = 101;
-		const startingHeight = 0;
-		const bftParams = {
-			storage: storageMock,
-			logger: loggerMock,
-			slots: new Slots({
+			};
+
+			slots = new Slots({
 				epochTime: constants.EPOCH_TIME,
 				interval: constants.BLOCK_TIME,
 				blocksPerRound: constants.ACTIVE_DELEGATES,
-			}),
-			activeDelegates,
-			startingHeight,
-		};
+			});
+
+			loggerMock = {};
+			activeDelegates = 101;
+			startingHeight = 0;
+			bftParams = {
+				storage: storageMock,
+				logger: loggerMock,
+				slots,
+				activeDelegates,
+				startingHeight,
+			};
+		});
 
 		describe('#constructor', () => {
 			it('should create instance of BFT', async () => {
@@ -154,6 +170,7 @@ describe('bft', () => {
 				bft.constants.startingHeight = 0;
 				const finalizedHeight = 500;
 				const lastBlockHeight = 600;
+				const minActiveHeightsOfDelegates = { dummy: 'object' };
 
 				bft._initFinalityManager.mockReturnValue({
 					finalizedHeight,
@@ -161,12 +178,13 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init();
+				await bft.init(minActiveHeightsOfDelegates);
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
 					fromHeight: finalizedHeight,
 					tillHeight: lastBlockHeight,
+					minActiveHeightsOfDelegates,
 				});
 			});
 
@@ -174,6 +192,7 @@ describe('bft', () => {
 				bft.constants.startingHeight = 0;
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
+				const minActiveHeightsOfDelegates = { dummy: 'object' };
 
 				bft._initFinalityManager.mockReturnValue({
 					finalizedHeight,
@@ -181,12 +200,13 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init();
+				await bft.init(minActiveHeightsOfDelegates);
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
 					fromHeight: lastBlockHeight - activeDelegates * 2,
 					tillHeight: lastBlockHeight,
+					minActiveHeightsOfDelegates,
 				});
 			});
 
@@ -194,6 +214,7 @@ describe('bft', () => {
 				bft.constants.startingHeight = 550;
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
+				const minActiveHeightsOfDelegates = { dummy: 'object' };
 
 				bft._initFinalityManager.mockReturnValue({
 					finalizedHeight,
@@ -201,12 +222,13 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init();
+				await bft.init(minActiveHeightsOfDelegates);
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
 					fromHeight: bft.constants.startingHeight,
 					tillHeight: lastBlockHeight,
+					minActiveHeightsOfDelegates,
 				});
 			});
 		});
@@ -491,7 +513,7 @@ describe('bft', () => {
 				// Arrange
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
-				const blocksToDelete = 50;
+				const numberOfBlocksToDelete = 50;
 				const blocks = generateBlocks({
 					startHeight: 1,
 					numberOfBlocks,
@@ -500,7 +522,7 @@ describe('bft', () => {
 				const blocksInBft = blocks.slice(400);
 
 				// Last 50 blocks from height 451 to 500
-				const blockToDelete = blocks.slice(-blocksToDelete);
+				const blocksToDelete = blocks.slice(-numberOfBlocksToDelete);
 
 				// Will fetch 202 - (450 - 401) = 153 more blocks
 				const blocksFetchedFromStorage = blocks.slice(400 - 153, 400).reverse();
@@ -516,8 +538,16 @@ describe('bft', () => {
 					blocksFetchedFromStorage,
 				);
 
+				// minActiveHeightsOfDelegates is provided to deleteBlocks function
+				// in block_processor_v2 from DPoS module.
+				const minActiveHeightsOfDelegates = blocks.reduce((acc, block) => {
+					// the value is not important in this test.
+					acc[block.generatorPublicKey] = [1];
+					return acc;
+				}, {});
+
 				// Act - Delete top 50 blocks (500-450 height)
-				await bft.deleteBlocks(blockToDelete);
+				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(450);
@@ -535,7 +565,7 @@ describe('bft', () => {
 				// Arrange
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
-				const blocksToDelete = 50;
+				const numberOfBlocksToDelete = 50;
 				const blocks = generateBlocks({
 					startHeight: 1,
 					numberOfBlocks,
@@ -544,7 +574,15 @@ describe('bft', () => {
 				const blocksInBft = blocks.slice(200);
 
 				// Last 50 blocks from height 451 to 500
-				const blockToDelete = blocks.slice(-blocksToDelete);
+				const blocksToDelete = blocks.slice(-numberOfBlocksToDelete);
+
+				// minActiveHeightsOfDelegates is provided to deleteBlocks function
+				// in block_processor_v2 from DPoS module.
+				const minActiveHeightsOfDelegates = blocks.reduce((acc, block) => {
+					// the value is not important in this test.
+					acc[block.generatorPublicKey] = [1];
+					return acc;
+				}, {});
 
 				// Load last 300 blocks to bft (201 to 500)
 				// eslint-disable-next-line no-restricted-syntax
@@ -554,7 +592,7 @@ describe('bft', () => {
 				}
 
 				// Act
-				await bft.deleteBlocks(blockToDelete);
+				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(450);
@@ -574,9 +612,17 @@ describe('bft', () => {
 				const blocksInBft = blocks.slice(200);
 
 				// Delete blocks keeping exactly two rounds in the list from (201 to 298)
-				const blockToDelete = blocks.slice(
+				const blocksToDelete = blocks.slice(
 					-1 * (300 - activeDelegates * 2 - 1),
 				);
+
+				// minActiveHeightsOfDelegates is provided to deleteBlocks function
+				// in block_processor_v2 from DPoS module.
+				const minActiveHeightsOfDelegates = blocks.reduce((acc, block) => {
+					// the value is not important in this test.
+					acc[block.generatorPublicKey] = [1];
+					return acc;
+				}, {});
 
 				// Load last 300 blocks to bft (201 to 500)
 				// eslint-disable-next-line no-restricted-syntax
@@ -586,7 +632,7 @@ describe('bft', () => {
 				}
 
 				// Act
-				await bft.deleteBlocks(blockToDelete);
+				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(403);
@@ -751,7 +797,7 @@ describe('bft', () => {
 					version: 2,
 					generatorPublicKey: 'abcdef',
 					maxHeightPrevoted: 1,
-					timestamp: bftInstance.slots.getEpochTime(Date.now()),
+					timestamp: slots.getEpochTime(Date.now()),
 				};
 
 				defaults.newBlock = {
@@ -760,7 +806,7 @@ describe('bft', () => {
 					version: 2,
 					generatorPublicKey: 'ghijkl',
 					maxHeightPrevoted: 1,
-					timestamp: bftInstance.slots.getEpochTime(Date.now()),
+					timestamp: slots.getEpochTime(Date.now()),
 				};
 			});
 
@@ -810,9 +856,7 @@ describe('bft', () => {
 					timestamp: defaults.lastBlock.timestamp + 1000,
 				};
 
-				bftInstance.slots.getEpochTime = jest.fn(
-					() => defaults.lastBlock.timestamp + 1000,
-				); // It will get assigned to newBlock.receivedAt
+				slots.getEpochTime = jest.fn(() => defaults.lastBlock.timestamp + 1000); // It will get assigned to newBlock.receivedAt
 
 				const lastBlock = {
 					...defaults.lastBlock,
@@ -960,14 +1004,24 @@ describe('bft', () => {
 			});
 
 			it('should call fetch blocks from storage particular parameters', async () => {
-				storageMock.entities.Block.get.mockReset();
-				storageMock.entities.Block.get.mockReturnValue([]);
+				// Arrange
+				storageMock.entities.Block.get.mockClear();
+				const minActiveHeightsOfDelegates = {};
 
-				await bft._loadBlocksFromStorage({ fromHeight, tillHeight });
+				// Act
+				await bft._loadBlocksFromStorage({
+					fromHeight,
+					tillHeight,
+					minActiveHeightsOfDelegates,
+				});
 
+				// Assert
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledWith(
-					{ height_gte: fromHeight, height_lte: tillHeight },
+					{
+						height_gte: fromHeight,
+						height_lte: tillHeight,
+					},
 					{
 						limit: null,
 						sort: 'height:asc',
@@ -984,25 +1038,49 @@ describe('bft', () => {
 					blockWithVersion1,
 					blockWithVersion2,
 				]);
+				const delegateMinHeightActive = slots.calcRoundStartHeight(
+					slots.calcRound(blockWithVersion2.height),
+				);
+				const minActiveHeightsOfDelegates = {
+					[blockWithVersion2.generatorPublicKey]: [delegateMinHeightActive],
+				};
 
 				// Act
-				await bft._loadBlocksFromStorage({ fromHeight, tillHeight });
+				await bft._loadBlocksFromStorage({
+					fromHeight,
+					tillHeight,
+					minActiveHeightsOfDelegates,
+				});
 
 				// Assert
 				expect(bft.finalityManager.headers.length).toEqual(1);
 				expect(bft.finalityManager.headers.items).toEqual([
-					extractBFTBlockHeaderFromBlock(blockWithVersion2),
+					extractBFTBlockHeaderFromBlock({
+						...blockWithVersion2,
+						delegateMinHeightActive,
+					}),
 				]);
 			});
 
 			it('should load block headers to finalityManager', async () => {
 				// Arrange
-				const block = blockFixture({ version: 2, height: 8 });
-				const blockHeader = extractBFTBlockHeaderFromBlock(block);
+				const block = blockFixture({ version: 2, height: 520 });
+				const delegateMinHeightActive = constants.ACTIVE_DELEGATES * 4 + 1;
+				const minActiveHeightsOfDelegates = {
+					[block.generatorPublicKey]: [delegateMinHeightActive],
+				};
+				const blockHeader = extractBFTBlockHeaderFromBlock({
+					...block,
+					delegateMinHeightActive,
+				});
 				storageMock.entities.Block.get.mockReturnValue([block]);
 
 				// Act
-				await bft._loadBlocksFromStorage({ fromHeight, tillHeight });
+				await bft._loadBlocksFromStorage({
+					fromHeight,
+					tillHeight,
+					minActiveHeightsOfDelegates,
+				});
 
 				// Assert
 				expect(bft.finalityManager.headers.items.length).toEqual(1);

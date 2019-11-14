@@ -53,7 +53,7 @@ const sqlFiles = {
 class ChainBlock extends BlockEntity {
 	/**
 	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
+	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
 	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
@@ -61,10 +61,10 @@ class ChainBlock extends BlockEntity {
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
 
-		const cutomSQLs = this.loadSQLFiles('blocks', sqlFiles, this.sqlDirectory);
+		const customSQLs = this.loadSQLFiles('blocks', sqlFiles, this.sqlDirectory);
 		this.SQLs = {
 			...this.SQLs,
-			...cutomSQLs,
+			...customSQLs,
 		};
 	}
 

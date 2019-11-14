@@ -12,6 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT EXISTS (
-	SELECT 1 FROM peers ${parsedFilters:raw}
-);
+
+/*
+  DESCRIPTION: drop table peers for Network.
+
+  PARAMETERS: None
+*/
+
+DROP TABLE IF EXISTS peers;
