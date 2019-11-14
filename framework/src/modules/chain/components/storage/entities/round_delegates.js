@@ -26,6 +26,7 @@ const {
 const sqlFiles = {
 	create: 'round_delegates/create.sql',
 	delete: 'round_delegates/delete.sql',
+	get: 'round_delegates/get.sql',
 	getActiveDelegatesForRound: 'round_delegates/get_round_delegates.sql',
 	summedRound: 'round_delegates/summed_round.sql',
 };
@@ -162,6 +163,70 @@ class RoundDelegates extends BaseEntity {
 			this.SQLs.summedRound,
 			{ round, activeDelegates },
 			{},
+			tx,
+		);
+	}
+
+	/**
+	 * Get a list of RoundDelegates entries
+	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} filters
+	 * @param {Object} [options]
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Object} [tx] - Transaction object
+	 * @return {Promise} Promise object which represents the response returned from the database
+	 */
+	async get(filters = {}, options = {}, tx = null) {
+		return this._getResults(filters, options, tx);
+	}
+
+	/**
+	 * Get one entry of RoundDelegates
+	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} filters
+	 * @param {Object} [options]
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Object} [tx] - Transaction object
+	 * @return {Promise} Promise object which represents the response returned from the database
+	 */
+	async getOne(filters = {}, options = {}, tx = null) {
+		const expectedResultCount = 1;
+		return this._getResults(filters, options, tx, expectedResultCount);
+	}
+
+	/**
+	 * Get list of RoundDelegates
+	 *
+	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Object} [tx] - Database transaction object
+	 * @return {Promise.<RoundDelegates[], Error>}
+	 */
+	_getResults(filters, options, tx, expectedResultCount) {
+		this.validateFilters(filters);
+		this.validateOptions(options);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const { limit, offset, sort } = {
+			...options,
+			...this.defaultOptions,
+		};
+		const parsedSort = this.parseSort(sort);
+
+		const params = {
+			limit,
+			offset,
+			parsedSort,
+			parsedFilters,
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.get,
+			params,
+			{ expectedResultCount },
 			tx,
 		);
 	}

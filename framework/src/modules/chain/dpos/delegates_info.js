@@ -284,7 +284,7 @@ class DelegatesInfo {
 
 			const totalFee = new BigNum(summedRound.fees);
 
-			// Aggregate forger infor into one object
+			// Aggregate forger info into one object
 			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
 				forgerInfo => ({
 					...forgerInfo,

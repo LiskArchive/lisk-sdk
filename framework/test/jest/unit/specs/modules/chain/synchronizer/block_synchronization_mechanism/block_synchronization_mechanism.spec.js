@@ -210,8 +210,19 @@ describe('block_synchronization_mechanism', () => {
 			})
 			.mockResolvedValue(peersList.connectedPeers);
 
+		// minActiveHeightsOfDelegates is provided to deleteBlocks function
+		// in block_processor_v2 from DPoS module.
+		const minActiveHeightsOfDelegates = [genesisBlockDevnet, lastBlock].reduce(
+			(acc, block) => {
+				// the value is not important in this test.
+				acc[block.generatorPublicKey] = [1];
+				return acc;
+			},
+			{},
+		);
+
 		await blocksModule.init();
-		await bftModule.init();
+		await bftModule.init(minActiveHeightsOfDelegates);
 
 		// Used in getHighestCommonBlock network action payload
 		const blockHeightsList = computeBlockHeightsList(
@@ -634,8 +645,26 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 						.mockResolvedValue([lastBlock]);
 
+					// BFT loads blocks from storage and extracts their headers
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							expect.objectContaining({
+								height_gte: expect.any(Number),
+								height_lte: expect.any(Number),
+							}),
+							{ limit: null, sort: 'height:asc' },
+						)
+						.mockResolvedValue([lastBlock]);
+
+					// minActiveHeightsOfDelegates is provided to deleteBlocks function
+					// in block_processor_v2 from DPoS module.
+					const minActiveHeightsOfDelegates = {
+						// the value is not important in this test.
+						[lastBlock.generatorPublicKey]: [1],
+					};
+
 					await blocksModule.init();
-					await bftModule.init();
+					await bftModule.init(minActiveHeightsOfDelegates);
 
 					await blockSynchronizationMechanism.run(receivedBlock);
 

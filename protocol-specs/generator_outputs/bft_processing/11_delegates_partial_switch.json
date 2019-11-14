@@ -16,7 +16,7 @@
 					"height": 1,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -37,7 +37,7 @@
 					"height": 2,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -59,7 +59,7 @@
 					"height": 3,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -82,7 +82,7 @@
 					"height": 4,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -106,7 +106,7 @@
 					"height": 5,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -131,7 +131,7 @@
 					"height": 6,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -157,7 +157,7 @@
 					"height": 7,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -184,7 +184,7 @@
 					"height": 8,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "8866be938b09f9abb626b9f48e7310b0b33735d8dbbf9ebd328d6ac4a821c440",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
 			},
@@ -212,7 +212,7 @@
 					"height": 9,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "80346e3d249bae58cc40792a8c82a6d89c1300ef71859a2ab959379d2a42cc26",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 1
 				}
 			},
@@ -243,7 +243,7 @@
 					"height": 10,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "cf4f97b6a8663ebcb37a82737670360c8c05d3f0fe2b9b8d2002d31ed663fae5",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 2
 				}
 			},
@@ -276,7 +276,7 @@
 					"height": 11,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "75a894c0b07adcd17be59d6ddc7cdd2d6d8b2a10ccae7fefdb0a3c536a7151a3",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 3
 				}
 			},
@@ -311,7 +311,7 @@
 					"height": 12,
 					"maxHeightPreviouslyForged": 1,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 4
 				}
 			},
@@ -348,7 +348,7 @@
 					"height": 13,
 					"maxHeightPreviouslyForged": 2,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 5
 				}
 			},
@@ -387,7 +387,7 @@
 					"height": 14,
 					"maxHeightPreviouslyForged": 3,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 6
 				}
 			},
@@ -428,7 +428,7 @@
 					"height": 15,
 					"maxHeightPreviouslyForged": 4,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
 			},
@@ -471,7 +471,7 @@
 					"height": 16,
 					"maxHeightPreviouslyForged": 5,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 8
 				}
 			},
@@ -516,7 +516,7 @@
 					"height": 17,
 					"maxHeightPreviouslyForged": 6,
 					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 9
 				}
 			},
@@ -563,7 +563,7 @@
 					"height": 18,
 					"maxHeightPreviouslyForged": 7,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 10
 				}
 			},
@@ -612,7 +612,7 @@
 					"height": 19,
 					"maxHeightPreviouslyForged": 8,
 					"delegatePublicKey": "8866be938b09f9abb626b9f48e7310b0b33735d8dbbf9ebd328d6ac4a821c440",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 11
 				}
 			},
@@ -663,7 +663,7 @@
 					"height": 20,
 					"maxHeightPreviouslyForged": 9,
 					"delegatePublicKey": "80346e3d249bae58cc40792a8c82a6d89c1300ef71859a2ab959379d2a42cc26",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 12
 				}
 			},
@@ -716,7 +716,7 @@
 					"height": 21,
 					"maxHeightPreviouslyForged": 10,
 					"delegatePublicKey": "cf4f97b6a8663ebcb37a82737670360c8c05d3f0fe2b9b8d2002d31ed663fae5",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 13
 				}
 			},
@@ -771,7 +771,7 @@
 					"height": 22,
 					"maxHeightPreviouslyForged": 11,
 					"delegatePublicKey": "75a894c0b07adcd17be59d6ddc7cdd2d6d8b2a10ccae7fefdb0a3c536a7151a3",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 14
 				}
 			},
@@ -828,7 +828,7 @@
 					"height": 23,
 					"maxHeightPreviouslyForged": 12,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 15
 				}
 			},
@@ -887,7 +887,7 @@
 					"height": 24,
 					"maxHeightPreviouslyForged": 13,
 					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 16
 				}
 			},
@@ -948,7 +948,7 @@
 					"height": 25,
 					"maxHeightPreviouslyForged": 14,
 					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 17
 				}
 			},
@@ -1011,7 +1011,7 @@
 					"height": 26,
 					"maxHeightPreviouslyForged": 15,
 					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 18
 				}
 			},
@@ -1076,7 +1076,7 @@
 					"height": 27,
 					"maxHeightPreviouslyForged": 16,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 19
 				}
 			},
@@ -1143,7 +1143,7 @@
 					"height": 28,
 					"maxHeightPreviouslyForged": 17,
 					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 20
 				}
 			},
@@ -1212,7 +1212,7 @@
 					"height": 29,
 					"maxHeightPreviouslyForged": 18,
 					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 21
 				}
 			},
@@ -1283,7 +1283,7 @@
 					"height": 30,
 					"maxHeightPreviouslyForged": 19,
 					"delegatePublicKey": "8866be938b09f9abb626b9f48e7310b0b33735d8dbbf9ebd328d6ac4a821c440",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 22
 				}
 			},
@@ -1356,7 +1356,7 @@
 					"height": 31,
 					"maxHeightPreviouslyForged": 20,
 					"delegatePublicKey": "80346e3d249bae58cc40792a8c82a6d89c1300ef71859a2ab959379d2a42cc26",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 23
 				}
 			},
@@ -1431,7 +1431,7 @@
 					"height": 32,
 					"maxHeightPreviouslyForged": 21,
 					"delegatePublicKey": "cf4f97b6a8663ebcb37a82737670360c8c05d3f0fe2b9b8d2002d31ed663fae5",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 24
 				}
 			},
@@ -1508,7 +1508,7 @@
 					"height": 33,
 					"maxHeightPreviouslyForged": 22,
 					"delegatePublicKey": "75a894c0b07adcd17be59d6ddc7cdd2d6d8b2a10ccae7fefdb0a3c536a7151a3",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 25
 				}
 			},
@@ -1587,7 +1587,7 @@
 					"height": 34,
 					"maxHeightPreviouslyForged": 31,
 					"delegatePublicKey": "80346e3d249bae58cc40792a8c82a6d89c1300ef71859a2ab959379d2a42cc26",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 26
 				}
 			},
@@ -1668,7 +1668,7 @@
 					"height": 35,
 					"maxHeightPreviouslyForged": 0,
 					"delegatePublicKey": "491527e8b388e213a7c3bcb4710f0613a720ac0538186d477786cb4cb287847e",
-					"activeSinceRound": 4,
+					"delegateMinHeightActive": 34,
 					"maxHeightPrevoted": 26
 				}
 			},
@@ -1750,7 +1750,7 @@
 					"height": 36,
 					"maxHeightPreviouslyForged": 27,
 					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 26
 				}
 			},
@@ -1833,7 +1833,7 @@
 					"height": 37,
 					"maxHeightPreviouslyForged": 23,
 					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
-					"activeSinceRound": 1,
+					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 26
 				}
 			},
