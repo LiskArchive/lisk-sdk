@@ -338,7 +338,10 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public disconnect(code: number = 1000, reason?: string): void {
+	public disconnect(
+		code: number = INTENTIONAL_DISCONNECT_CODE,
+		reason?: string,
+	): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
 		if (this._socket) {
@@ -434,6 +437,7 @@ export class Peer extends EventEmitter {
 		});
 
 		if (this.fetchPeersAndDisconnect) {
+			// tslint:disable-next-line: no-magic-numbers
 			this.disconnect(
 				INTENTIONAL_DISCONNECT_CODE,
 				SEED_PEER_DISCONNECTION_REASON,

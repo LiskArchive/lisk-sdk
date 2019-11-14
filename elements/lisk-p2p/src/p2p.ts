@@ -433,6 +433,18 @@ export class P2P extends EventEmitter {
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
 
+			const isSeedPeer = this._sanitizedPeerLists.seedPeers.find(
+				peer => peer.peerId === detailedPeerInfo.peerId,
+			);
+
+			if (isSeedPeer) {
+				this._peerPool.triggerNewConnections(
+					this._peerBook.newPeers,
+					this._peerBook.triedPeers,
+					this._sanitizedPeerLists.fixedPeers || [],
+				);
+			}
+
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
 				try {
 					this._peerBook.addPeer(detailedPeerInfo);
