@@ -164,7 +164,7 @@ export type P2PPeerSelectionForConnectionFunction = (
 
 export interface P2PCompatibilityCheckReturnType {
 	readonly success: boolean;
-	readonly errors?: string[];
+	readonly error?: string;
 }
 
 export type P2PCheckPeerCompatibility = (
