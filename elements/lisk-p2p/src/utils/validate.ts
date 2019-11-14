@@ -86,14 +86,14 @@ export const validatePeerCompatibility = (
 	if (!validateNetworkCompatibility(peerInfo, nodeInfo)) {
 		return {
 			success: false,
-			errors: [INCOMPATIBLE_NETWORK_REASON],
+			error: INCOMPATIBLE_NETWORK_REASON,
 		};
 	}
 
 	if (!validateProtocolVersionCompatibility(peerInfo, nodeInfo)) {
 		return {
 			success: false,
-			errors: [INCOMPATIBLE_PROTOCOL_VERSION_REASON],
+			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,
 		};
 	}
 
