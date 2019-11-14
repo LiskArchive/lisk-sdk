@@ -165,7 +165,7 @@ describe('Transfer transaction class', () => {
 				);
 			expect(errors[0])
 				.to.be.instanceof(TransactionError)
-				.and.to.have.property('dataPath', `asset.amount`);
+				.and.to.have.property('dataPath', `.asset.amount`);
 		});
 
 		it('should return error with invalid asset', async () => {
