@@ -812,7 +812,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect(peer.netgroup).to.be.greaterThan(1);
+				expect((peer as any).netgroup).to.be.greaterThan(1);
 			});
 		});
 
@@ -824,7 +824,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect(peer.latency).to.be.lessThan(3);
+				expect((peer as any).latency).to.be.lessThan(3);
 			});
 		});
 
@@ -835,7 +835,9 @@ describe('peerPool', () => {
 				protectBy: PROTECT_BY.HIGHEST,
 			});
 
-			expect(filteredPeers.filter(p => p.responseRate === 1).length).to.eql(2);
+			expect(
+				filteredPeers.filter((p: any) => p.responseRate === 1).length,
+			).to.eql(2);
 		});
 
 		it('should protect peers with lowest connectTime value when sorted by descending', async () => {
@@ -846,7 +848,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect(peer.connectTime).to.be.lessThan(2);
+				expect((peer as any).connectTime).to.be.lessThan(2);
 			});
 		});
 	});

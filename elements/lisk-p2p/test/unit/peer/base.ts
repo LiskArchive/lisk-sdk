@@ -146,25 +146,29 @@ describe('peer/base', () => {
 
 	describe('#netgroup', () =>
 		it('should get netgroup property', () =>
-			expect(defaultPeer.netgroup).to.be.eql(
+			expect(defaultPeer.getInternalState().netgroup).to.be.eql(
 				getNetgroup(defaultPeerInfo.ipAddress, peerConfig.secret),
 			)));
 
 	describe('#reputation', () =>
 		it('should get reputation property', () =>
-			expect(defaultPeer.reputation).to.be.eql(DEFAULT_REPUTATION_SCORE)));
+			expect(defaultPeer.getInternalState().reputation).to.be.eql(
+				DEFAULT_REPUTATION_SCORE,
+			)));
 
 	describe('#latency', () =>
 		it('should get latency property', () =>
-			expect(defaultPeer.latency).to.be.eql(0)));
+			expect(defaultPeer.getInternalState().latency).to.be.eql(0)));
 
 	describe('#connectTime', () =>
 		it('should get connectTime property', () =>
-			expect(defaultPeer.connectTime).to.be.at.least(0)));
+			expect(defaultPeer.getInternalState().connectTime).to.be.at.least(0)));
 
 	describe('#responseRate', () =>
 		it('should get responseRate property', () =>
-			expect(defaultPeer.responseRate).to.be.eql(0)));
+			expect(
+				defaultPeer.getInternalState().productivity.responseRate,
+			).to.be.eql(0)));
 
 	describe('#productivity', () =>
 		it('should get productivity property', () => {
@@ -175,12 +179,12 @@ describe('peer/base', () => {
 				lastResponded: 0,
 			};
 
-			expect(defaultPeer.productivity).to.eql(productivity);
+			expect(defaultPeer.getInternalState().productivity).to.eql(productivity);
 		}));
 
 	describe('#wsMessageRate', () =>
 		it('should get wsMessageRate property', () =>
-			expect(defaultPeer.wsMessageRate).to.be.eql(0)));
+			expect(defaultPeer.getInternalState().wsMessageRate).to.be.eql(0)));
 
 	describe('#state', () =>
 		it('should get state property', () =>
@@ -188,7 +192,9 @@ describe('peer/base', () => {
 
 	describe('#peerInfo', () =>
 		it('should get peerInfo property', () =>
-			expect(defaultPeer.peerInfo).to.be.eql(defaultPeerInfo)));
+			expect(defaultPeer.peerInfo.sharedState).to.be.eql(
+				defaultPeerInfo.sharedState,
+			)));
 
 	describe('#nodeInfo', () => {
 		beforeEach(() => {
@@ -212,7 +218,9 @@ describe('peer/base', () => {
 		it('should update peer info', () => {
 			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo);
 
-			expect(defaultPeer.peerInfo).to.be.eql(p2pDiscoveredPeerInfo);
+			expect(defaultPeer.peerInfo.sharedState).to.be.eql(
+				p2pDiscoveredPeerInfo.sharedState,
+			);
 		}));
 
 	describe('#applyNodeInfo', async () => {
@@ -654,10 +662,12 @@ describe('peer/base', () => {
 			});
 
 			it('should apply penalty', () => {
-				const reputation = defaultPeer.reputation;
+				const reputation = defaultPeer.getInternalState().reputation;
 				const penalty = DEFAULT_REPUTATION_SCORE / 10;
 				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
+				expect(defaultPeer.getInternalState().reputation).to.be.eql(
+					reputation - penalty,
+				);
 			});
 
 			it('should not ban peer', () => {
@@ -674,10 +684,12 @@ describe('peer/base', () => {
 			});
 
 			it('should apply penalty', () => {
-				const reputation = defaultPeer.reputation;
+				const reputation = defaultPeer.getInternalState().reputation;
 				const penalty = DEFAULT_REPUTATION_SCORE;
 				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.reputation).to.be.eql(reputation - penalty);
+				expect(defaultPeer.getInternalState().reputation).to.be.eql(
+					reputation - penalty,
+				);
 			});
 
 			it(`should emit ${EVENT_BAN_PEER} event`, () => {
