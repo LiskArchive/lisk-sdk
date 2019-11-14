@@ -359,7 +359,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleRPCGetTransactions(data, peerId) {
+	async handleRPCGetTransactions(data = {}, peerId) {
 		await this._addRateLimit(
 			'getTransactions',
 			peerId,
