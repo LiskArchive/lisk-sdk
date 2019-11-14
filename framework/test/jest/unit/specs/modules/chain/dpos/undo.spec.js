@@ -45,6 +45,9 @@ describe('dpos.undo()', () => {
 					decreaseFieldBy: jest.fn(),
 					update: jest.fn(),
 				},
+				Block: {
+					get: jest.fn(),
+				},
 				RoundDelegates: {
 					delete: jest.fn(),
 					getActiveDelegatesForRound: jest
@@ -190,7 +193,9 @@ describe('dpos.undo()', () => {
 			when(stubs.storage.entities.Account.get)
 				.calledWith(
 					{
-						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
+						publicKey_in: uniqueDelegatesWhoForged.map(
+							({ publicKey }) => publicKey,
+						),
 					},
 					{},
 					stubs.tx,
@@ -214,14 +219,14 @@ describe('dpos.undo()', () => {
 					fee,
 				};
 			};
+			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
+				generatorPublicKey: delegate.publicKey,
+				totalFee: feePerDelegate,
+				reward: rewardPerDelegate,
+				height: 809 + i,
+			}));
 
-			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
-				{
-					fees: totalFee, // dividable to ACTIVE_DELEGATE count
-					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
-					delegates: delegatesWhoForged.map(account => account.publicKey),
-				},
-			]);
+			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 		});
 
 		it('should decrease "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
@@ -319,13 +324,17 @@ describe('dpos.undo()', () => {
 		it('should remove the remainingFee ONLY from the last delegate of the round who forged', async () => {
 			// Arrange
 			const remainingFee = randomInt(5, 10);
-			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
-				{
-					fees: totalFee + remainingFee,
-					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
-					delegates: delegatesWhoForged.map(a => a.publicKey),
-				},
-			]);
+			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
+				generatorPublicKey: delegate.publicKey,
+				totalFee: feePerDelegate,
+				reward: rewardPerDelegate,
+				height: 809 + i,
+			}));
+
+			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
+			forgedBlocks[delegatesWhoForged.length - 1].totalFee = new BigNum(
+				feePerDelegate,
+			).add(remainingFee);
 
 			// Act
 			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -471,9 +480,7 @@ describe('dpos.undo()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				stubs.storage.entities.RoundDelegates.summedRound.mockRejectedValue(
-					err,
-				);
+				stubs.storage.entities.Block.get.mockRejectedValue(err);
 
 				// Act && Assert
 				await expect(

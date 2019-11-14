@@ -257,7 +257,7 @@ class DelegatesInfo {
 			totalFee,
 		} = blocksInRounds.reduce(
 			(acc, fetchedBlock, i) => {
-				acc.totalFee.add(fetchedBlock.totalFee);
+				acc.totalFee = acc.totalFee.add(fetchedBlock.totalFee);
 
 				const delegate = acc.uniqDelegateListWithRewardsInfo.find(
 					({ publicKey }) => publicKey === fetchedBlock.generatorPublicKey,

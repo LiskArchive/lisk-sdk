@@ -47,13 +47,15 @@ describe('dpos.apply()', () => {
 					increaseFieldBy: jest.fn(),
 					update: jest.fn(),
 				},
+				Block: {
+					get: jest.fn().mockResolvedValue([]),
+				},
 				RoundDelegates: {
 					getActiveDelegatesForRound: jest
 						.fn()
 						.mockReturnValue(delegatePublicKeys),
 					create: jest.fn(),
 					delete: jest.fn(),
-					summedRound: jest.fn(),
 				},
 			},
 		};
@@ -248,7 +250,9 @@ describe('dpos.apply()', () => {
 			when(stubs.storage.entities.Account.get)
 				.calledWith(
 					{
-						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
+						publicKey_in: uniqueDelegatesWhoForged.map(
+							({ publicKey }) => publicKey,
+						),
 					},
 					{},
 					stubs.tx,
@@ -285,13 +289,14 @@ describe('dpos.apply()', () => {
 				};
 			};
 
-			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
-				{
-					fees: totalFee, // dividable to ACTIVE_DELEGATE count
-					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
-					delegates: delegatesWhoForged.map(account => account.publicKey),
-				},
-			]);
+			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
+				generatorPublicKey: delegate.publicKey,
+				totalFee: feePerDelegate,
+				reward: rewardPerDelegate,
+				height: 809 + i,
+			}));
+
+			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 		});
 
 		it('should increase "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
@@ -389,13 +394,18 @@ describe('dpos.apply()', () => {
 		it('should give the remainingFee ONLY to the last delegate of the round who forged', async () => {
 			// Arrange
 			const remainingFee = randomInt(5, 10);
-			stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
-				{
-					fees: totalFee + remainingFee,
-					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
-					delegates: delegatesWhoForged.map(a => a.publicKey),
-				},
-			]);
+			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
+				generatorPublicKey: delegate.publicKey,
+				totalFee: feePerDelegate,
+				reward: rewardPerDelegate,
+				height: 809 + i,
+			}));
+
+			forgedBlocks[delegatesWhoForged.length - 1].totalFee = new BigNum(
+				feePerDelegate,
+			).add(remainingFee);
+
+			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -548,13 +558,14 @@ describe('dpos.apply()', () => {
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
 				// Arrange
-				stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
-					{
-						fees: totalFee,
-						rewards: delegateAccounts.map(() => randomInt(1, 20)),
-						delegates: delegateAccounts.map(a => a.publicKey),
-					},
-				]);
+				const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
+					generatorPublicKey: delegate.publicKey,
+					totalFee: feePerDelegate,
+					reward: rewardPerDelegate,
+					height: 809 + i,
+				}));
+
+				stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 
 				when(stubs.storage.entities.Account.get)
 					.calledWith(
@@ -579,9 +590,7 @@ describe('dpos.apply()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				stubs.storage.entities.RoundDelegates.summedRound.mockRejectedValue(
-					err,
-				);
+				stubs.storage.entities.Block.get.mockRejectedValue(err);
 
 				// Act && Assert
 				await expect(
@@ -613,13 +622,14 @@ describe('dpos.apply()', () => {
 					randomInt(10, 1000),
 				);
 
-				stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
-					{
-						fees: totalFee.toString(), // dividable to ACTIVE_DELEGATE count
-						rewards: delegatesWhoForged.map(() => rewardPerDelegate),
-						delegates: delegatesWhoForged.map(account => account.publicKey),
-					},
-				]);
+				const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
+					generatorPublicKey: delegate.publicKey,
+					totalFee: feePerDelegate,
+					reward: rewardPerDelegate,
+					height: 809 + i,
+				}));
+
+				stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 
 				getTotalEarningsOfDelegate = account => {
 					const blockCount = delegatesWhoForged.filter(
