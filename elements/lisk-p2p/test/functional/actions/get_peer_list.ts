@@ -41,7 +41,7 @@ describe('PeerPool actions', () => {
 			const firstNode = p2pNodeList[0];
 			const peerPorts = firstNode
 				.getConnectedPeers()
-				.map(peerInfo => peerInfo.wsPort)
+				.map(peerInfo => peerInfo.sharedState.wsPort)
 				.sort();
 
 			// The current node should not be in its own peer list.

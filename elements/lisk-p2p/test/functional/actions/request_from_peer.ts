@@ -59,7 +59,7 @@ describe('P2P.requestFromPeer', () => {
 				procedure: 'foo',
 				data: 123456,
 			},
-			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
+			`${targetPeer.ipAddress}:${targetPeer.sharedState.wsPort}`,
 		);
 
 		expect(collectedMessages.length).to.equal(1);
@@ -78,12 +78,12 @@ describe('P2P.requestFromPeer', () => {
 				procedure: 'getGreeting',
 				data: 'world',
 			},
-			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
+			`${targetPeer.ipAddress}:${targetPeer.sharedState.wsPort}`,
 		);
 
 		expect(response).to.have.property('data');
 		expect(response.data).to.equal(
-			`Hello world from peer ${targetPeer.wsPort}`,
+			`Hello world from peer ${targetPeer.sharedState.wsPort}`,
 		);
 	});
 });

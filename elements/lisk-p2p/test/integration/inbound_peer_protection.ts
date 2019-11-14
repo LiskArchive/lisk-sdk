@@ -16,6 +16,7 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { InboundPeer } from '../../src/peer';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import { constructPeerId } from '../../src/utils';
 
 describe('Peer inbound eviction for connection time', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -27,8 +28,15 @@ describe('Peer inbound eviction for connection time', () => {
 			networkSize: number,
 		) => [
 			{
+				peerId: constructPeerId(
+					'127.0.0.1',
+					networkStartPort + ((index - 1 + networkSize) % networkSize),
+				),
 				ipAddress: '127.0.0.1',
-				wsPort: networkStartPort + ((index - 1 + networkSize) % networkSize),
+				sharedState: {
+					wsPort: networkStartPort + ((index - 1 + networkSize) % networkSize),
+					advertiseAddress: true,
+				},
 			},
 		];
 
@@ -58,7 +66,8 @@ describe('Peer inbound eviction for connection time', () => {
 		const firstNode = p2pNodeList[0];
 		const inboundPeers = firstNode['_peerPool']
 			.getPeers(InboundPeer)
-			.map(peer => peer.wsPort);
+			.map(peer => peer.peerInfo.sharedState.wsPort);
+
 		expect(inboundPeers).to.satisfy(
 			(n: Number[]) => n.includes(5001) || n.includes(5002),
 		);

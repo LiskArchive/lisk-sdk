@@ -64,11 +64,11 @@ describe(`Events on Connection Close`, () => {
 		expect(payload)
 			.to.have.property('code')
 			.which.equals(INTENTIONAL_DISCONNECT_CODE);
-		expect(payload).to.have.property('peerInfo');
-		expect(payload.peerInfo)
+		expect(payload)
+			.to.have.property('peerInfo')
+			.to.have.property('sharedState')
 			.to.have.property('wsPort')
 			.which.equals(secondNode.nodeInfo.wsPort);
-		expect(payload.peerInfo).to.have.property('sharedState');
 	});
 
 	it(`should handle ${EVENT_CLOSE_OUTBOUND} event and payload`, async () => {
@@ -82,10 +82,10 @@ describe(`Events on Connection Close`, () => {
 		expect(payload)
 			.to.have.property('code')
 			.which.equals(SOCKET_HUNG_UP_CODE);
-		expect(payload).to.have.property('peerInfo');
-		expect(payload.peerInfo)
+		expect(payload)
+			.to.have.property('peerInfo')
+			.to.have.property('sharedState')
 			.to.have.property('wsPort')
 			.which.equals(firstNode.nodeInfo.wsPort);
-		expect(payload.peerInfo).to.have.property('sharedState');
 	});
 });

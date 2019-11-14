@@ -95,7 +95,7 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const peerPorts = p2p
 				.getConnectedPeers()
-				.map(peerInfo => peerInfo.wsPort)
+				.map(peerInfo => peerInfo.sharedState.wsPort)
 				.sort();
 
 			// The current node should not be in its own peer list.
@@ -111,7 +111,9 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const newPeers = p2p['_peerBook'].newPeers;
 
-			const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
+			const peerPorts = newPeers
+				.map(peerInfo => peerInfo.sharedState.wsPort)
+				.sort();
 
 			expect(ALL_NODE_PORTS).to.include.members(peerPorts);
 		}
@@ -121,7 +123,9 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const triedPeers = p2p['_peerBook'].triedPeers;
 
-			const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
+			const peerPorts = triedPeers
+				.map(peerInfo => peerInfo.sharedState.wsPort)
+				.sort();
 
 			// The current node should not be in its own peer list.
 			const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
@@ -139,7 +143,9 @@ describe('Peer discovery', () => {
 			const allPeersPorts = allPeers.map(peerInfo => peerInfo.peerId).sort();
 			const connectedPeerPorts = p2p
 				.getConnectedPeers()
-				.map(peerInfo => constructPeerId(peerInfo.ipAddress, peerInfo.wsPort))
+				.map(peerInfo =>
+					constructPeerId(peerInfo.ipAddress, peerInfo.sharedState.wsPort),
+				)
 				.sort();
 
 			expect([...allPeersPorts, ...connectedPeerPorts]).to.not.contain.members([
@@ -181,7 +187,10 @@ describe('Peer discovery', () => {
 				{
 					peerId: '127.0.0.1:5000',
 					ipAddress: '127.0.0.1',
-					wsPort: 5000,
+					sharedState: {
+						wsPort: 5000,
+						advertiseAddress: true,
+					},
 				},
 			],
 			wsEngine: 'ws',
@@ -190,6 +199,7 @@ describe('Peer discovery', () => {
 			maxInboundConnections: 0,
 			nodeInfo: {
 				wsPort: 5020,
+				advertiseAddress: true,
 				nethash: 'aaa',
 				version: '9.9.9',
 				protocolVersion: '9.9',
@@ -197,7 +207,6 @@ describe('Peer discovery', () => {
 				os: platform(),
 				height: 10000,
 				nonce: `404`,
-				advertiseAddress: true,
 			},
 		});
 		await disconnectedNode.start();

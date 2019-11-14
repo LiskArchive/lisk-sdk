@@ -86,11 +86,11 @@ import {
 	P2PClosePacket,
 	P2PConfig,
 	P2PMessagePacket,
-	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	P2PSharedState,
 	PeerLists,
 } from './p2p_types';
 import { PeerBook } from './peer_book';
@@ -196,7 +196,7 @@ export class P2P extends EventEmitter {
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
-	private _nodeInfo: P2PNodeInfo;
+	private _nodeInfo: P2PSharedState;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
 
@@ -239,14 +239,7 @@ export class P2P extends EventEmitter {
 				whitelisted: config.whitelistedPeers ? config.whitelistedPeers : [],
 				previousPeers: config.previousPeers ? config.previousPeers : [],
 			},
-			{
-				peerId: constructPeerId(
-					config.hostIp || DEFAULT_NODE_HOST_IP,
-					config.nodeInfo.wsPort,
-				),
-				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
-				wsPort: config.nodeInfo.wsPort,
-			},
+			config.hostIp || DEFAULT_NODE_HOST_IP,
 		);
 
 		this._config = config;
@@ -292,11 +285,10 @@ export class P2P extends EventEmitter {
 				}
 
 				const updatedPeerInfo = {
-					internalState: error.peerInfo.internalState,
-					sharedState: peerInfo.sharedState,
 					peerId: peerInfo.peerId,
 					ipAddress: peerInfo.ipAddress,
-					wsPort: peerInfo.wsPort,
+					sharedState: peerInfo.sharedState,
+					internalState: error.peerInfo.internalState,
 				};
 				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
@@ -347,9 +339,7 @@ export class P2P extends EventEmitter {
 
 				const updatedPeerInfo = {
 					...error.peerInfo,
-					sharedState: peerInfo.sharedState
-						? { ...peerInfo.sharedState }
-						: error.peerInfo.sharedState,
+					sharedState: peerInfo.sharedState,
 				};
 				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 				if (isUpdated) {
@@ -388,23 +378,16 @@ export class P2P extends EventEmitter {
 			);
 
 			const bannedPeerInfo = {
+				peerId,
 				ipAddress: peerId.split(':')[0],
-				wsPort: +peerId.split(':')[1],
+				sharedState: {
+					wsPort: +peerId.split(':')[1],
+					advertiseAddress: true,
+				},
 			};
 
-			if (
-				this._peerBook.getPeer({
-					ipAddress: bannedPeerInfo.ipAddress,
-					wsPort: bannedPeerInfo.wsPort,
-					peerId,
-				}) &&
-				!isWhitelisted
-			) {
-				this._peerBook.removePeer({
-					ipAddress: bannedPeerInfo.ipAddress,
-					wsPort: bannedPeerInfo.wsPort,
-					peerId,
-				});
+			if (this._peerBook.getPeer(bannedPeerInfo) && !isWhitelisted) {
+				this._peerBook.removePeer(bannedPeerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
@@ -522,7 +505,7 @@ export class P2P extends EventEmitter {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
-	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+	public applyNodeInfo(nodeInfo: P2PSharedState): void {
 		validateNodeInfo(
 			nodeInfo,
 			this._config.maxPeerInfoSize
@@ -535,10 +518,10 @@ export class P2P extends EventEmitter {
 			nonce: this.nodeInfo.nonce,
 		};
 
-		this._peerPool.applyNodeInfo(this._nodeInfo);
+		this._peerPool.applyNodeInfo(this.nodeInfo);
 	}
 
-	public get nodeInfo(): P2PNodeInfo {
+	public get nodeInfo(): P2PSharedState {
 		return this._nodeInfo;
 	}
 
@@ -552,7 +535,6 @@ export class P2P extends EventEmitter {
 		return this._peerBook.triedPeers.map(peer => ({
 			peerId: peer.peerId,
 			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
 			sharedState: peer.sharedState,
 		}));
 	}
@@ -566,10 +548,9 @@ export class P2P extends EventEmitter {
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
-				...peer.sharedState,
-				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
 				peerId: peer.peerId,
+				ipAddress: peer.ipAddress,
+				sharedState: peer.sharedState,
 			}));
 	}
 
@@ -589,15 +570,15 @@ export class P2P extends EventEmitter {
 			return true;
 		});
 
-		// Only share the shared state to the user and remove private peers
+		// Only share the shared state to the user
 		return disconnectedPeers
 			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+				peer =>
+					!(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
 				peerId: peer.peerId,
 				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
 				sharedState: peer.sharedState,
 			}));
 	}
@@ -717,7 +698,10 @@ export class P2P extends EventEmitter {
 					this._peerBook.removePeer({
 						peerId: constructPeerId(socket.remoteAddress, selfWSPort),
 						ipAddress: socket.remoteAddress,
-						wsPort: selfWSPort,
+						sharedState: {
+							wsPort: selfWSPort,
+							advertiseAddress: true,
+						},
 					});
 
 					return;
@@ -775,6 +759,7 @@ export class P2P extends EventEmitter {
 						...queryOptions,
 						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 						protocolVersion: queryObject.protocolVersion,
+						wsPort: remoteWSPort,
 					},
 					internalState: {
 						advertiseAddress: advertiseAddress !== 'false',
@@ -782,7 +767,6 @@ export class P2P extends EventEmitter {
 					},
 					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
 					ipAddress: socket.remoteAddress,
-					wsPort: remoteWSPort,
 				};
 
 				try {
@@ -802,7 +786,7 @@ export class P2P extends EventEmitter {
 
 				const { success, error } = this._peerHandshakeCheck(
 					incomingPeerInfo,
-					this._nodeInfo,
+					this.nodeInfo,
 				);
 
 				if (!success) {
@@ -938,16 +922,16 @@ export class P2P extends EventEmitter {
 		);
 
 		// Remove internal state to check byte size
-		const sanitizedPeerInfoList: P2PPeerInfo[] = selectedPeers
+		const sanitizedPeerInfoList: ReadonlyArray<P2PPeerInfo> = selectedPeers
 			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
-			)
-			.map(peer => ({
-				peerId: constructPeerId(peer.ipAddress, peer.wsPort),
-				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
-				sharedState: peer.sharedState,
-			}));
+					peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+				)
+			.map(
+				peer => ({
+					peerId: constructPeerId(peer.ipAddress, peer.sharedState.wsPort),
+					ipAddress: peer.ipAddress,
+					sharedState: peer.sharedState,
+				}));
 
 		request.end({
 			success: true,

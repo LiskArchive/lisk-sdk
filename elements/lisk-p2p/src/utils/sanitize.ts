@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { P2PPeerInfo, PeerLists } from '../p2p_types';
+import { PeerLists } from '../p2p_types';
 
 export const sanitizePeerLists = (
 	lists: PeerLists,
-	nodeInfo: P2PPeerInfo,
+	nodeIpAddress: string,
 ): PeerLists => {
 	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
 
@@ -29,7 +29,7 @@ export const sanitizePeerLists = (
 	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
 
 	const seedPeers = lists.seedPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
 
@@ -41,7 +41,7 @@ export const sanitizePeerLists = (
 	});
 
 	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
 
@@ -53,11 +53,11 @@ export const sanitizePeerLists = (
 	});
 
 	const whitelisted = lists.whitelisted.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+		if (blacklistedIPs.includes(nodeIpAddress)) {
 			return false;
 		}
 
@@ -73,11 +73,11 @@ export const sanitizePeerLists = (
 	});
 
 	const previousPeers = lists.previousPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+		if (blacklistedIPs.includes(nodeIpAddress)) {
 			return false;
 		}
 

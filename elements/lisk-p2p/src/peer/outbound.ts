@@ -105,11 +105,11 @@ export class OutboundPeer extends Peer {
 			: DEFAULT_ACK_TIMEOUT;
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
-			hostname: this._ipAddress,
-			port: this._wsPort,
+			hostname: this.peerInfo.ipAddress,
+			port: this.peerInfo.sharedState.wsPort,
 			query: querystring.stringify({
-				...this._nodeInfo,
-				options: JSON.stringify(this._nodeInfo),
+				...this.nodeInfo,
+				options: JSON.stringify(this.nodeInfo),
 			}),
 			connectTimeout,
 			ackTimeout,

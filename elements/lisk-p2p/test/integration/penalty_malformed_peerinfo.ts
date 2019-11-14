@@ -34,17 +34,17 @@ describe('penalty sending malformed peerInfo', () => {
 		});
 
 		p2pNodeList[0].applyNodeInfo({
+			wsPort: p2pNodeList[0].nodeInfo.wsPort,
+			advertiseAddress: true,
 			os: platform(),
 			nethash:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			version: p2pNodeList[0].nodeInfo.version,
 			protocolVersion: '1.1',
-			wsPort: p2pNodeList[0].nodeInfo.wsPort,
 			height: 10,
 			nonce: 'nonce',
-			invalidData: '1.'.repeat(13000),
 			options: p2pNodeList[0].nodeInfo.options,
-			advertiseAddress: true,
+			invalidData: '1.'.repeat(13000),
 		});
 
 		await wait(100);

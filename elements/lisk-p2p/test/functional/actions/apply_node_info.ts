@@ -39,12 +39,12 @@ describe('P2P.applyNodeInfo', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.applyNodeInfo({
+			wsPort: firstP2PNode.nodeInfo.wsPort,
 			os: platform(),
 			nethash:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			version: firstP2PNode.nodeInfo.version,
 			protocolVersion: '1.1',
-			wsPort: firstP2PNode.nodeInfo.wsPort,
 			height: 10,
 			options: firstP2PNode.nodeInfo.options,
 			nonce: 'nonce',
@@ -63,12 +63,12 @@ describe('P2P.applyNodeInfo', () => {
 
 		expect(() =>
 			firstP2PNode.applyNodeInfo({
+				wsPort: firstP2PNode.nodeInfo.wsPort,
 				os: platform(),
 				nethash:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				version: firstP2PNode.nodeInfo.version,
 				protocolVersion: '1.1',
-				wsPort: firstP2PNode.nodeInfo.wsPort,
 				options: firstP2PNode.nodeInfo.options,
 				junk: '1.'.repeat(13000),
 				nonce: 'nonce',
@@ -98,7 +98,7 @@ describe('P2P.applyNodeInfo', () => {
 			);
 		}
 
-		// Check that each message contains the updated P2PNodeInfo.
+		// Check that each message contains the updated P2PSharedState.
 		Object.values(nodePortToMessagesMap)
 			.filter(
 				(receivedMessages: any) =>
@@ -118,11 +118,15 @@ describe('P2P.applyNodeInfo', () => {
 		for (let p2pNode of p2pNodeList.slice(1)) {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(
+					peerInfo =>
+						peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+				);
 			expect(firstP2PNodePeerInfo).to.exist;
 			expect(firstP2PNodePeerInfo)
-				.to.have.property('height')
-				.which.equals(10);
+				.to.have.property('sharedState')
+				.to.have.property('wsPort')
+				.which.equals(firstP2PNode.nodeInfo.wsPort);
 		}
 	});
 
@@ -133,12 +137,16 @@ describe('P2P.applyNodeInfo', () => {
 		for (let p2pNode of p2pNodeList.slice(1)) {
 			const firstNodeInConnectedPeer = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(
+					peerInfo =>
+						peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+				);
 
 			const allPeersList = p2pNode['_peerBook'].allPeers;
 
 			const firstNodeInAllPeersList = allPeersList.find(
-				peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+				peerInfo =>
+					peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
 			);
 
 			// Check if the peerinfo is updated in new peer list
@@ -158,9 +166,11 @@ describe('P2P.applyNodeInfo', () => {
 			// Check if the peerinfo is updated in connected peer list
 			if (firstNodeInConnectedPeer) {
 				expect(firstNodeInConnectedPeer)
+					.to.have.property('sharedState')
 					.to.have.property('height')
 					.which.equals(10);
 				expect(firstNodeInConnectedPeer)
+					.to.have.property('sharedState')
 					.to.have.property('nethash')
 					.which.equals(
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',

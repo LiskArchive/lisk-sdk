@@ -48,8 +48,9 @@ describe('penalty sending malformed Peer List', () => {
 				p2pNodeList[0]['_peerBook'].addPeer({
 					peerId: `${generatedIP}:5000`,
 					ipAddress: generatedIP,
-					wsPort: 1000,
 					sharedState: {
+						wsPort: 1000,
+						advertiseAddress: true,
 						height: 0,
 						protocolVersion: '1.1',
 						version: '1.1',
@@ -88,8 +89,9 @@ describe('penalty sending malformed Peer List', () => {
 			p2pNodeList[0]['_peerBook'].addPeer({
 				peerId: `'1.1.1.1:1000`,
 				ipAddress: '1.1.1.1',
-				wsPort: 1000,
 				sharedState: {
+					wsPort: 1000,
+					advertiseAddress: true,
 					version: '1.1',
 					protocolVersion: '1.'.repeat(13000),
 				},

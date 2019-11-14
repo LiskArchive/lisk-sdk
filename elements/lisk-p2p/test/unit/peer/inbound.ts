@@ -39,8 +39,9 @@ describe('peer/inbound', () => {
 		defaultPeerInfo = {
 			peerId: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
-			wsPort: 5001,
 			sharedState: {
+				wsPort: 5001,
+				advertiseAddress: true,
 				height: 545776,
 				isDiscoveredPeer: true,
 				version: '1.1.1',

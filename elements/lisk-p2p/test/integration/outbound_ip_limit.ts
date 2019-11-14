@@ -19,6 +19,7 @@ import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 import { OutboundPeer } from '../../src/peer';
+import { constructPeerId } from '../../src/utils';
 
 describe('Outbound IP limit', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
@@ -41,8 +42,12 @@ describe('Outbound IP limit', () => {
 			index !== 0
 				? [
 						{
+							peerId: constructPeerId('127.0.0.1', startPort),
 							ipAddress: '127.0.0.1',
-							wsPort: startPort,
+							sharedState: {
+								wsPort: startPort,
+								advertiseAddress: true,
+							}
 						},
 				  ]
 				: [];
@@ -78,7 +83,7 @@ describe('Outbound IP limit', () => {
 			let uniqIpAddresses: Array<string> = [];
 			p2p['_peerPool']
 				.getPeers(OutboundPeer)
-				.map(peer => uniqIpAddresses.push(peer.ipAddress));
+				.map(peer => uniqIpAddresses.push(peer.peerInfo.ipAddress));
 
 			expect([...new Set(uniqIpAddresses)].length).to.equal(
 				p2p['_peerPool'].getPeers(OutboundPeer).length,

@@ -20,6 +20,7 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_MAX_PEER_INFO_SIZE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -36,7 +37,7 @@ import {
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
-import { P2PNodeInfo, P2PPeerInfo } from '../../../src';
+import { P2PPeerInfo, P2PSharedState } from '../../../src';
 
 const createSocketStubInstance = () => <SCServerSocket>({
 		emit: sandbox.stub(),
@@ -46,7 +47,7 @@ const createSocketStubInstance = () => <SCServerSocket>({
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
-	let nodeInfo: P2PNodeInfo;
+	let nodeInfo: P2PSharedState;
 	let p2pDiscoveredPeerInfo: P2PPeerInfo;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
@@ -56,8 +57,9 @@ describe('peer/base', () => {
 		defaultPeerInfo = {
 			peerId: constructPeerId('12.12.12.12', 5001),
 			ipAddress: '12.12.12.12',
-			wsPort: 5001,
 			sharedState: {
+				wsPort: 5001,
+				advertiseAddress: true,
 				height: 545776,
 				isDiscoveredPeer: true,
 				version: '1.1.1',
@@ -82,11 +84,11 @@ describe('peer/base', () => {
 			},
 		};
 		nodeInfo = {
+			wsPort: 6001,
 			os: 'os',
 			version: '1.2.0',
 			protocolVersion: '1.2',
 			nethash: 'nethash',
-			wsPort: 6001,
 			height: 100,
 			nonce: 'nonce',
 			advertiseAddress: true,
@@ -94,11 +96,12 @@ describe('peer/base', () => {
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerId(
 				defaultPeerInfo.ipAddress,
-				defaultPeerInfo.wsPort,
+				defaultPeerInfo.sharedState.wsPort,
 			),
 			ipAddress: defaultPeerInfo.ipAddress,
-			wsPort: defaultPeerInfo.wsPort,
 			sharedState: {
+				wsPort: defaultPeerInfo.sharedState.wsPort,
+				advertiseAddress: true,
 				height: 1000,
 				updatedAt: new Date(),
 				os: 'MYOS',
@@ -131,18 +134,6 @@ describe('peer/base', () => {
 			expect((defaultPeer as any)._handleRawMessage).to.be.a('function');
 		});
 	});
-
-	describe('#id', () =>
-		it('should get id property', () =>
-			expect(defaultPeer.id).to.be.eql(defaultPeerInfo.peerId)));
-
-	describe('#ipAddress', () =>
-		it('should get ipAddress property', () =>
-			expect(defaultPeer.ipAddress).to.be.eql(defaultPeerInfo.ipAddress)));
-
-	describe('#wsPort', () =>
-		it('should get wsPort property', () =>
-			expect(defaultPeer.wsPort).to.be.eql(defaultPeerInfo.wsPort)));
 
 	describe('#netgroup', () =>
 		it('should get netgroup property', () =>
@@ -210,7 +201,7 @@ describe('peer/base', () => {
 
 	describe('#updatePeerInfo', () =>
 		it('should update peer info', () => {
-			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo);
+			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo.sharedState);
 
 			expect(defaultPeer.peerInfo).to.be.eql(p2pDiscoveredPeerInfo);
 		}));
@@ -368,8 +359,8 @@ describe('peer/base', () => {
 				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
 					peerId: `'1.1.1.1:${1 + index}`,
 					ipAddress: '1.1.1.1',
-					wsPort: 1 + index,
 					sharedState: {
+						wsPort: 1 + index,
 						version: '1.1.1',
 					},
 				}));
@@ -379,7 +370,7 @@ describe('peer/base', () => {
 						peers: malformedPeerList.map(peer => ({
 							...peer.sharedState,
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							wsPort: peer.sharedState.wsPort,
 						})),
 						success: true,
 					},
@@ -394,8 +385,8 @@ describe('peer/base', () => {
 					{
 						peerId: `'1.1.1.1:5000`,
 						ipAddress: '1.1.1.1',
-						wsPort: 1111,
 						sharedState: {
+							wsPort: 1111,
 							version: '1.1.1',
 							junkData: [...new Array(10000).keys()].map(() => 'a'),
 						},
@@ -405,9 +396,11 @@ describe('peer/base', () => {
 				sandbox.stub(defaultPeer, 'request').resolves({
 					data: {
 						peers: malformedPeerList.map(peer => ({
-							...peer.sharedState,
+							peerId: constructPeerId(peer.ipAddress, peer.sharedState.wsPort),
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							sharedState: {
+								...peer.sharedState,
+							},
 						})),
 						success: true,
 					},
@@ -427,8 +420,9 @@ describe('peer/base', () => {
 				{
 					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
-					wsPort: 1111,
 					sharedState: {
+						wsPort: 1111,
+						advertiseAddress: true,
 						version: '1.1.1',
 						height: 0,
 						protocolVersion: '',
@@ -438,8 +432,9 @@ describe('peer/base', () => {
 				{
 					peerId: constructPeerId('2.2.2.2', 2222),
 					ipAddress: '2.2.2.2',
-					wsPort: 2222,
 					sharedState: {
+						wsPort: 2222,
+						advertiseAddress: true,
 						version: '2.2.2',
 						height: 0,
 						protocolVersion: '',
@@ -498,23 +493,26 @@ describe('peer/base', () => {
 					.and.be.an.instanceOf(RPCResponseError)
 					.and.have.property(
 						'peerId',
-						`${defaultPeer.ipAddress}:${defaultPeer.wsPort}`,
+						`${defaultPeer.peerInfo.ipAddress}:${
+							defaultPeer.peerInfo.sharedState.wsPort
+						}`,
 					);
 			});
 		});
 
 		describe('when request() succeeds', () => {
 			describe('when _updateFromProtocolPeerInfo() fails', () => {
-				const peer = {
-					ip: '1.1.1.1',
-					wsPort: 1111,
-					version: '1.1.2',
-					protocolVersion: '9.2',
-					nethash: 'nethash',
-				};
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
-						data: peer,
+						data: {
+							peerId: `1.1.1.1:5000`,
+							ipAddress: `1.1.1.1`,
+							sharedState: {
+								wsPort: 5000,
+								advertiseAddress: true,
+								x: '1'.repeat(DEFAULT_MAX_PEER_INFO_SIZE),
+							},
+						},
 					});
 					sandbox.stub(defaultPeer, 'applyPenalty');
 					sandbox.stub(defaultPeer, 'emit');
@@ -535,7 +533,7 @@ describe('peer/base', () => {
 						.and.be.an.instanceOf(RPCResponseError)
 						.and.have.property(
 							'peerId',
-							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
+							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.sharedState.wsPort}`,
 						);
 				});
 			});
@@ -544,8 +542,9 @@ describe('peer/base', () => {
 				const peer = {
 					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
-					wsPort: 1111,
 					sharedState: {
+						wsPort: 1111,
+						advertiseAddress: true,
 						height: 1,
 						protocolVersion: '1.2',
 						nethash: 'nethash',
@@ -562,24 +561,11 @@ describe('peer/base', () => {
 				});
 
 				it(`should call updatePeerInfo()`, async () => {
-					const newPeer = {
-						peerId: constructPeerId(
-							defaultPeerInfo.ipAddress,
-							defaultPeerInfo.wsPort,
-						),
-						ipAddress: defaultPeerInfo.ipAddress,
-						wsPort: defaultPeerInfo.wsPort,
-						sharedState: {
-							height: 0,
-							protocolVersion: '1.2',
-							nethash: 'nethash',
-						},
-					};
 					await defaultPeer.fetchAndUpdateStatus();
 
-					expect((defaultPeer as any).updatePeerInfo).to.be.calledWithExactly(
-						newPeer,
-					);
+					expect(
+						(defaultPeer as any).updatePeerInfo,
+					).to.be.calledWithExactly(peer);
 				});
 
 				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
@@ -636,7 +622,7 @@ describe('peer/base', () => {
 				defaultPeer.applyPenalty(penalty);
 				expect(defaultPeer.emit).to.be.calledOnceWithExactly(
 					EVENT_BAN_PEER,
-					defaultPeer.id,
+					defaultPeer.peerInfo.peerId,
 				);
 			});
 

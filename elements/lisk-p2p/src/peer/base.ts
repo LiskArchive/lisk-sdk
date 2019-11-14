@@ -25,6 +25,7 @@ import {
 	INVALID_PEER_LIST_PENALTY,
 } from '../constants';
 import {
+	InvalidNodeInfoError,
 	InvalidPeerInfoError,
 	InvalidPeerInfoListError,
 	RPCResponseError,
@@ -49,15 +50,14 @@ import {
 import { P2PRequest } from '../p2p_request';
 import {
 	P2PMessagePacket,
-	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	P2PSharedState,
 } from '../p2p_types';
 import {
 	getNetgroup,
-	validatePeerCompatibility,
-	validatePeerInfo,
+	validateNodeInfo,
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
@@ -102,13 +102,10 @@ export interface PeerConfig {
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
-	readonly serverNodeInfo?: P2PNodeInfo;
+	readonly serverNodeInfo?: P2PSharedState;
 }
 
 export class Peer extends EventEmitter {
-	private readonly _id: string;
-	protected readonly _ipAddress: string;
-	protected readonly _wsPort: number;
 	protected _reputation: number;
 	protected _netgroup: number;
 	protected _latency: number;
@@ -127,8 +124,7 @@ export class Peer extends EventEmitter {
 	protected _peerInfo: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
-	protected _nodeInfo: P2PNodeInfo | undefined;
-	protected _serverNodeInfo: P2PNodeInfo | undefined;
+	protected _serverNodeInfo: P2PSharedState | undefined;
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
@@ -145,11 +141,8 @@ export class Peer extends EventEmitter {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig;
-		this._ipAddress = peerInfo.ipAddress;
-		this._wsPort = peerInfo.wsPort;
-		this._id = peerInfo.peerId;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
-		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
+		this._netgroup = getNetgroup(this._peerInfo.ipAddress, peerConfig.secret);
 		this._latency = 0;
 		this._connectTime = Date.now();
 		this._rpcCounter = new Map();
@@ -181,7 +174,7 @@ export class Peer extends EventEmitter {
 				respond(error);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
-					peerId: this._id,
+					peerId: this.peerInfo.peerId,
 				});
 
 				return;
@@ -196,7 +189,7 @@ export class Peer extends EventEmitter {
 				{
 					procedure: rawRequest.procedure,
 					data: rawRequest.data,
-					id: this._id,
+					id: this.peerInfo.peerId,
 					rate,
 					productivity: this._productivity,
 				},
@@ -204,7 +197,7 @@ export class Peer extends EventEmitter {
 			);
 
 			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				request.end(this._nodeInfo);
+				request.end(this.nodeInfo);
 			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
@@ -224,7 +217,7 @@ export class Peer extends EventEmitter {
 			} catch (error) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
-					peerId: this._id,
+					peerId: this.peerInfo.peerId,
 				});
 
 				return;
@@ -234,7 +227,7 @@ export class Peer extends EventEmitter {
 			const rate = this._getMessageRate(message);
 			const messageWithRateInfo = {
 				...message,
-				peerId: this._id,
+				peerId: this.peerInfo.peerId,
 				rate,
 			};
 
@@ -244,18 +237,6 @@ export class Peer extends EventEmitter {
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
 		};
-	}
-
-	public get id(): string {
-		return this._id;
-	}
-
-	public get ipAddress(): string {
-		return this._ipAddress;
-	}
-
-	public get wsPort(): number {
-		return this._wsPort;
 	}
 
 	public get netgroup(): number {
@@ -300,17 +281,19 @@ export class Peer extends EventEmitter {
 		return this._peerInfo;
 	}
 
-	public get nodeInfo(): P2PNodeInfo | undefined {
-		return this._nodeInfo;
+	public get nodeInfo(): P2PSharedState | undefined {
+		return this._serverNodeInfo;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
+	public updatePeerInfo(newSharedState: P2PSharedState): void {
 		// Peer Id, ip address and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
-			ipAddress: this.ipAddress,
-			wsPort: this.wsPort,
-			peerId: this.id,
-			sharedState: newPeerInfo.sharedState,
+			ipAddress: this.peerInfo.ipAddress,
+			peerId: this.peerInfo.peerId,
+			sharedState: {
+				...newSharedState,
+				wsPort: this.peerInfo.sharedState.wsPort,
+			},
 			internalState: this._peerInfo.internalState,
 		};
 	}
@@ -319,8 +302,8 @@ export class Peer extends EventEmitter {
 	 * Updates the node latest status and sends the same information to all other peers.
 	 * @param nodeInfo information about the node latest status
 	 */
-	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		this._nodeInfo = nodeInfo;
+	public applyNodeInfo(nodeInfo: P2PSharedState): void {
+		this._serverNodeInfo = nodeInfo;
 		this.send({
 			event: REMOTE_EVENT_POST_NODE_INFO,
 			data: nodeInfo,
@@ -384,7 +367,9 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								`${this.ipAddress}:${this.wsPort}`,
+								`${this.peerInfo.ipAddress}:${
+									this.peerInfo.sharedState.wsPort
+								}`,
 							),
 						);
 					},
@@ -416,7 +401,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
-				this.ipAddress,
+				this.peerInfo.ipAddress,
 			);
 		}
 	}
@@ -442,7 +427,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				`${this.ipAddress}:${this.wsPort}`,
+				`${this.peerInfo.ipAddress}:${this.peerInfo.sharedState.wsPort}`,
 			);
 		}
 		try {
@@ -451,13 +436,13 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			// Apply penalty for malformed PeerInfo
-			if (error instanceof InvalidPeerInfoError) {
+			if (error instanceof InvalidNodeInfoError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
 			throw new RPCResponseError(
 				'Failed to update peer info of peer due to validation of peer compatibility',
-				`${this.ipAddress}:${this.wsPort}`,
+				`${this.peerInfo.ipAddress}:${this.peerInfo.sharedState.wsPort}`,
 			);
 		}
 
@@ -513,28 +498,18 @@ export class Peer extends EventEmitter {
 			this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
-	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
+	private _updateFromProtocolPeerInfo(rawSharedState: unknown): void {
 		if (!this._serverNodeInfo) {
 			throw new Error('Missing server node info.');
 		}
 
 		// Sanitize and validate PeerInfo
-		const newPeerInfo = validatePeerInfo(
-			rawPeerInfo as P2PPeerInfo,
+		validateNodeInfo(
+			rawSharedState as P2PSharedState,
 			this._peerConfig.maxPeerInfoSize,
 		);
 
-		const result = validatePeerCompatibility(newPeerInfo, this._serverNodeInfo);
-
-		if (!result.success && result.error) {
-			throw new Error(
-				`${result.error} : ${newPeerInfo.ipAddress}:${
-					newPeerInfo.wsPort
-				}`,
-			);
-		}
-
-		this.updatePeerInfo(newPeerInfo);
+		this.updatePeerInfo(rawSharedState as P2PSharedState);
 	}
 
 	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {
@@ -543,7 +518,7 @@ export class Peer extends EventEmitter {
 			this._updateFromProtocolPeerInfo(message.data);
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
-			if (error instanceof InvalidPeerInfoError) {
+			if (error instanceof InvalidNodeInfoError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
@@ -555,7 +530,7 @@ export class Peer extends EventEmitter {
 	}
 
 	private _banPeer(): void {
-		this.emit(EVENT_BAN_PEER, this._id);
+		this.emit(EVENT_BAN_PEER, this.peerInfo.peerId);
 		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
 	}
 

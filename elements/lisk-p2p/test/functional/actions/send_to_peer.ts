@@ -42,7 +42,7 @@ describe('P2P.sendToPeer', () => {
 				event: 'foo',
 				data: 123,
 			},
-			constructPeerId(targetPeer.ipAddress, targetPeer.wsPort),
+			constructPeerId(targetPeer.ipAddress, targetPeer.sharedState.wsPort),
 		);
 
 		p2pNodeList[1].on('messageReceived', msg => {

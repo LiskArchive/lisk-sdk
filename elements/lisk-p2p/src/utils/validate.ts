@@ -30,9 +30,9 @@ import {
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PMessagePacket,
-	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
+	P2PSharedState,
 } from '../p2p_types';
 
 interface RPCPeerListResponse {
@@ -45,7 +45,7 @@ const IPV6_NUMBER = 6;
 
 const validateNetworkCompatibility = (
 	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PNodeInfo,
+	nodeInfo: P2PSharedState,
 ): boolean => {
 	if (!peerInfo.sharedState) {
 		return false;
@@ -60,13 +60,16 @@ const validateNetworkCompatibility = (
 
 const validateProtocolVersionCompatibility = (
 	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PNodeInfo,
+	nodeInfo: P2PSharedState,
 ): boolean => {
 	if (!peerInfo.sharedState) {
 		return false;
 	}
 
-	if (typeof peerInfo.sharedState.protocolVersion !== 'string') {
+	if (
+		typeof peerInfo.sharedState.protocolVersion !== 'string' ||
+		typeof nodeInfo.protocolVersion !== 'string'
+	) {
 		return false;
 	}
 
@@ -81,7 +84,7 @@ const validateProtocolVersionCompatibility = (
 
 export const validatePeerCompatibility = (
 	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PNodeInfo,
+	nodeInfo: P2PSharedState,
 ): P2PCompatibilityCheckReturnType => {
 	if (!validateNetworkCompatibility(peerInfo, nodeInfo)) {
 		return {
@@ -126,13 +129,13 @@ export const validatePeerInfo = (
 
 	if (
 		!peerInfo.ipAddress ||
-		!peerInfo.wsPort ||
-		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
+		!peerInfo.sharedState.wsPort ||
+		!validatePeerAddress(peerInfo.ipAddress, peerInfo.sharedState.wsPort)
 	) {
 		throw new InvalidPeerInfoError(
 			`Invalid peer ipAddress or port for peer with ip: ${
 				peerInfo.ipAddress
-			} and wsPort ${peerInfo.wsPort}`,
+			} and wsPort ${peerInfo.sharedState.wsPort}`,
 		);
 	}
 
@@ -147,7 +150,7 @@ export const validatePeerInfo = (
 };
 
 export const validateNodeInfo = (
-	nodeInfo: P2PNodeInfo,
+	nodeInfo: P2PSharedState,
 	maxByteSize: number,
 ): void => {
 	const byteSize = getByteSize(nodeInfo);

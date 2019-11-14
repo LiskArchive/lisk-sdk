@@ -31,6 +31,7 @@ import {
 	SEED_PEER_IP,
 	NETWORK_START_PORT,
 } from '../../utils/network_setup';
+import { constructPeerId } from '../../../src/utils';
 
 describe(`Connection Create`, () => {
 	describe(`Events`, () => {
@@ -73,9 +74,9 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
 			expect(payload)
+				.to.have.property('sharedState')
 				.to.have.property('wsPort')
 				.which.equals(secondNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
 		});
 
 		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
@@ -83,9 +84,9 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
 			expect(payload)
+				.to.have.property('sharedState')
 				.to.have.property('wsPort')
 				.which.equals(firstNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
 		});
 
 		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
@@ -93,9 +94,9 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
 			expect(payload)
+				.to.have.property('sharedState')
 				.to.have.property('wsPort')
 				.which.equals(firstNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
 		});
 
 		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
@@ -103,9 +104,9 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
 			expect(payload)
+				.to.have.property('sharedState')
 				.to.have.property('wsPort')
 				.which.equals(secondNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
 		});
 
 		it(`should update peerBook with connected peer`, async () => {
@@ -141,8 +142,11 @@ describe(`Connection Create`, () => {
 				nodeInfo: customNodeInfo(index),
 				seedPeers: [
 					{
+						peerId: constructPeerId(SEED_PEER_IP, NETWORK_START_PORT),
 						ipAddress: SEED_PEER_IP,
-						wsPort: NETWORK_START_PORT,
+						sharedState: {
+							wsPort: NETWORK_START_PORT,
+						},
 					},
 				],
 			});

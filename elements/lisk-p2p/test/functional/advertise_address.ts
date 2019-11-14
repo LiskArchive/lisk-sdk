@@ -21,6 +21,7 @@ import {
 	nodeInfoConstants,
 } from '../utils/network_setup';
 import { wait } from '../utils/helpers';
+import { constructPeerId } from '../../src/utils';
 
 describe('Advertise Address', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -30,8 +31,12 @@ describe('Advertise Address', () => {
 		ackTimeout: 200,
 		seedPeers: [
 			{
+				peerId: constructPeerId('127.0.0.1', 5003),
 				ipAddress: '127.0.0.1',
-				wsPort: 5003,
+				sharedState: {
+					wsPort: 5003,
+					advertiseAddress: true,
+				},
 			},
 		],
 		wsEngine: 'ws',
@@ -67,9 +72,11 @@ describe('Advertise Address', () => {
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
-				.filter(p => p.wsPort === advertisePeerPort);
+				.filter(p => p.sharedState.wsPort === advertisePeerPort);
 
-			expect(connectedPeers[0].wsPort).to.be.eql(advertisePeerPort);
+			expect(connectedPeers[0].sharedState.wsPort).to.be.eql(
+				advertisePeerPort,
+			);
 		}
 		await p2pNode.stop();
 	});
@@ -83,10 +90,10 @@ describe('Advertise Address', () => {
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
-				.filter(p => p.wsPort === advertisePeerPort);
+				.filter(p => p.sharedState.wsPort === advertisePeerPort);
 			const disConnectedPeers = p2p
 				.getDisconnectedPeers()
-				.filter(p => p.wsPort === advertisePeerPort);
+				.filter(p => p.sharedState.wsPort === advertisePeerPort);
 			expect(connectedPeers).to.be.empty;
 			expect(disConnectedPeers).to.be.empty;
 		}
