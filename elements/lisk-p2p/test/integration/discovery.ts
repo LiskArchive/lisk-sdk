@@ -31,7 +31,6 @@ import {
 	destroyNetwork,
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
-	POPULATOR_INTERVAL,
 } from '../utils/network_setup';
 import { constructPeerId } from '../../src/utils';
 
@@ -45,11 +44,9 @@ describe('Peer discovery', () => {
 
 	beforeEach(async () => {
 		// To capture all the initial events set network creation time to minimum 1 ms
-		const customConfig = () => ({});
 
 		p2pNodeList = await createNetwork({
 			networkDiscoveryWaitTime: 1,
-			customConfig,
 		});
 		const firstNode = p2pNodeList[0];
 
@@ -184,7 +181,6 @@ describe('Peer discovery', () => {
 				},
 			],
 			wsEngine: 'ws',
-			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: 1,
 			maxInboundConnections: 0,
 			nodeInfo: {
