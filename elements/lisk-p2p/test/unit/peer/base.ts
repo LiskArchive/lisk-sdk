@@ -20,7 +20,6 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
-	DEFAULT_MAX_PEER_INFO_SIZE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -72,6 +71,15 @@ describe('peer/base', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			serverNodeInfo: {
+				os: 'os',
+				nethash: 'nethash',
+				version: '1.2.0',
+				protocolVersion: '1.2',
+				wsPort: 6001,
+				nonce: 'nonce',
+				advertiseAddress: true,
+			},
 		};
 		nodeInfo = {
 			os: 'os',
@@ -522,7 +530,7 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#fetchStatus', () => {
+	describe('#fetchAndUpdateStatus', () => {
 		describe('when request() fails', () => {
 			beforeEach(() => {
 				sandbox.stub(defaultPeer, 'request').rejects();
@@ -530,14 +538,14 @@ describe('peer/base', () => {
 			});
 
 			it(`should emit ${EVENT_FAILED_TO_FETCH_PEER_INFO} event with error`, async () => {
-				await expect(defaultPeer.fetchStatus()).to.be.rejected;
+				await expect(defaultPeer.fetchAndUpdateStatus()).to.be.rejected;
 				expect(defaultPeer.emit).to.be.calledOnceWith(
 					EVENT_FAILED_TO_FETCH_PEER_INFO,
 				);
 			});
 
 			it('should throw error', async () => {
-				return expect(defaultPeer.fetchStatus())
+				return expect(defaultPeer.fetchAndUpdateStatus())
 					.to.eventually.be.rejectedWith('Failed to fetch peer info of peer')
 					.and.be.an.instanceOf(RPCResponseError)
 					.and.have.property(
@@ -548,22 +556,39 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
-			describe('when _updateFromProtocolPeerInfo() fails from malformed PeerInfo', () => {
+			describe('when _updateFromProtocolPeerInfo() fails', () => {
+				const peer = {
+					ip: '1.1.1.1',
+					wsPort: 1111,
+					version: '1.1.2',
+					protocolVersion: '9.2',
+					nethash: 'nethash',
+				};
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
-						data: '1'.repeat(DEFAULT_MAX_PEER_INFO_SIZE),
+						data: peer,
 					});
 					sandbox.stub(defaultPeer, 'applyPenalty');
 					sandbox.stub(defaultPeer, 'emit');
 				});
 
-				it(`should apply invalid PeerInfo penalty`, async () => {
-					await expect(defaultPeer.fetchStatus()).to.be.rejected;
-
+				it(`should emit ${EVENT_FAILED_PEER_INFO_UPDATE} event with error`, async () => {
+					await expect(defaultPeer.fetchAndUpdateStatus()).to.be.rejected;
 					expect(defaultPeer.emit).to.be.calledOnceWith(
 						EVENT_FAILED_PEER_INFO_UPDATE,
 					);
-					expect(defaultPeer.applyPenalty).to.be.calledOnceWithExactly(100);
+				});
+
+				it('should throw error', async () => {
+					return expect(defaultPeer.fetchAndUpdateStatus())
+						.to.eventually.be.rejectedWith(
+							'Failed to update peer info of peer due to validation of peer compatibility',
+						)
+						.and.be.an.instanceOf(RPCResponseError)
+						.and.have.property(
+							'peerId',
+							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
+						);
 				});
 			});
 
@@ -572,9 +597,8 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					wsPort: 1111,
 					version: '1.1.2',
-					height: 0,
-					protocolVersion: undefined,
-					os: '',
+					protocolVersion: '1.2',
+					nethash: 'nethash',
 				};
 
 				beforeEach(() => {
@@ -596,18 +620,19 @@ describe('peer/base', () => {
 						sharedState: {
 							version: peer.version,
 							height: 0,
-							protocolVersion: undefined,
-							os: '',
+							protocolVersion: '1.2',
+							nethash: 'nethash',
 						},
 					};
-					await defaultPeer.fetchStatus();
-					expect(defaultPeer.updatePeerInfo).to.be.calledOnceWithExactly(
+					await defaultPeer.fetchAndUpdateStatus();
+
+					expect((defaultPeer as any).updatePeerInfo).to.be.calledWithExactly(
 						newPeer,
 					);
 				});
 
 				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
-					const peerInfo = await defaultPeer.fetchStatus();
+					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(defaultPeer.emit).to.be.calledOnceWithExactly(
 						EVENT_UPDATED_PEER_INFO,
 						peerInfo,
@@ -615,7 +640,7 @@ describe('peer/base', () => {
 				});
 
 				it('should return fetched peer info', async () => {
-					const peerInfo = await defaultPeer.fetchStatus();
+					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo).to.be.eql(defaultPeerInfo);
 				});
 			});

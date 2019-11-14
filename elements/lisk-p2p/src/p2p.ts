@@ -809,16 +809,14 @@ export class P2P extends EventEmitter {
 					);
 				}
 
-				const { success, errors } = this._peerHandshakeCheck(
+				const { success, error } = this._peerHandshakeCheck(
 					incomingPeerInfo,
 					this._nodeInfo,
 				);
 
 				if (!success) {
 					const incompatibilityReason =
-						errors && Array.isArray(errors)
-							? errors.join(',')
-							: INCOMPATIBLE_PEER_UNKNOWN_REASON;
+						error || INCOMPATIBLE_PEER_UNKNOWN_REASON;
 
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
