@@ -141,11 +141,13 @@ export class Peer extends EventEmitter {
 	protected readonly _handleWSMessage: (message: string) => void;
 	protected readonly _handleRawMessage: (packet: unknown) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
+	public readonly internalState: ConnectedPeerInternalInfo;
 
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerConfig = peerConfig;
 		this._peerInfo = this._restoreInternalState(peerInfo) as ConnectedPeerInfo;
+		this.internalState = this._peerInfo.internalState;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
 			this._resetCounters();
@@ -186,7 +188,7 @@ export class Peer extends EventEmitter {
 					data: rawRequest.data,
 					id: this.peerInfo.peerId,
 					rate,
-					productivity: this.getInternalState().productivity,
+					productivity: this.internalState.productivity,
 				},
 				respond,
 			);
@@ -246,7 +248,7 @@ export class Peer extends EventEmitter {
 		return this._peerInfo.wsPort;
 	}
 
-	public getInternalState(): ConnectedPeerInternalInfo {
+	public get InternalState(): ConnectedPeerInternalInfo {
 		if (this.peerInfo.internalState) {
 			return this.peerInfo.internalState as ConnectedPeerInternalInfo;
 		}
@@ -518,7 +520,7 @@ export class Peer extends EventEmitter {
 
 	public applyPenalty(penalty: number): void {
 		this._peerInfo.internalState.reputation -= penalty;
-		if (this.getInternalState().reputation <= 0) {
+		if (this.internalState.reputation <= 0) {
 			this._banPeer();
 		}
 	}
@@ -540,7 +542,7 @@ export class Peer extends EventEmitter {
 		}
 
 		this._peerInfo.internalState.rpcRates = new Map(
-			[...this.getInternalState().rpcCounter.entries()].map(([key, value]) => {
+			[...this.internalState.rpcCounter.entries()].map(([key, value]) => {
 				const rate = value / this._rateInterval;
 
 				return [key, rate] as any;

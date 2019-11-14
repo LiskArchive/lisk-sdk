@@ -100,7 +100,10 @@ export const filterPeersByCategory = (
 	// tslint:disable-next-line no-any
 	return peers
 		.sort((peerA: any, peerB: any) =>
-			peerA[options.category] > peerB[options.category] ? sign : sign * -1,
+			peerA.internalState[options.category] >
+			peerB.internalState[options.category]
+				? sign
+				: sign * -1,
 		)
 		.slice(0, numberOfProtectedPeers);
 };

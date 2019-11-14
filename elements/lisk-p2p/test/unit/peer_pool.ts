@@ -798,10 +798,12 @@ describe('peerPool', () => {
 	describe('#filterPeersByCategory', () => {
 		const originalPeers = [...new Array(10).keys()].map(i => ({
 			id: i,
-			netgroup: i,
-			latency: i,
-			responseRate: i % 2 ? 0 : 1,
-			connectTime: i,
+			internalState: {
+				netgroup: i,
+				latency: i,
+				responseRate: i % 2 ? 0 : 1,
+				connectTime: i,
+			},
 		}));
 
 		it('should protect peers with highest netgroup value when sorted by ascending', async () => {
@@ -812,7 +814,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect((peer as any).netgroup).to.be.greaterThan(1);
+				expect(peer.internalState.netgroup).to.be.greaterThan(1);
 			});
 		});
 
@@ -824,7 +826,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect((peer as any).latency).to.be.lessThan(3);
+				expect(peer.internalState.latency).to.be.lessThan(3);
 			});
 		});
 
@@ -836,7 +838,8 @@ describe('peerPool', () => {
 			});
 
 			expect(
-				filteredPeers.filter((p: any) => p.responseRate === 1).length,
+				filteredPeers.filter((p: any) => p.internalState.responseRate === 1)
+					.length,
 			).to.eql(2);
 		});
 
@@ -848,7 +851,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect((peer as any).connectTime).to.be.lessThan(2);
+				expect(peer.internalState.connectTime).to.be.lessThan(2);
 			});
 		});
 	});
@@ -863,10 +866,12 @@ describe('peerPool', () => {
 		beforeEach(async () => {
 			originalPeers = [...new Array(100).keys()].map(i => ({
 				id: i,
-				netgroup: i,
-				latency: i,
-				responseRate: i % 2 ? 0 : 1,
-				connectTime: i,
+				internalState: {
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+				},
 			}));
 			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
 			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
@@ -890,10 +895,12 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(10).keys()].map(i => ({
 					id: i,
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
+					internalState: {
+						netgroup: i,
+						latency: i,
+						responseRate: i % 2 ? 0 : 1,
+						connectTime: i,
+					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
 			});
@@ -909,10 +916,12 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(5).keys()].map(i => ({
 					id: i,
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
+					internalState: {
+						netgroup: i,
+						latency: i,
+						responseRate: i % 2 ? 0 : 1,
+						connectTime: i,
+					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
 			});
@@ -993,10 +1002,12 @@ describe('peerPool', () => {
 				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
 				originalPeers = [...new Array(10).keys()].map(i => ({
 					id: i,
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
+					internalState: {
+						netgroup: i,
+						latency: i,
+						responseRate: i % 2 ? 0 : 1,
+						connectTime: i,
+					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
 			});

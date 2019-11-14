@@ -146,29 +146,29 @@ describe('peer/base', () => {
 
 	describe('#netgroup', () =>
 		it('should get netgroup property', () =>
-			expect(defaultPeer.getInternalState().netgroup).to.be.eql(
+			expect(defaultPeer.internalState.netgroup).to.be.eql(
 				getNetgroup(defaultPeerInfo.ipAddress, peerConfig.secret),
 			)));
 
 	describe('#reputation', () =>
 		it('should get reputation property', () =>
-			expect(defaultPeer.getInternalState().reputation).to.be.eql(
+			expect(defaultPeer.internalState.reputation).to.be.eql(
 				DEFAULT_REPUTATION_SCORE,
 			)));
 
 	describe('#latency', () =>
 		it('should get latency property', () =>
-			expect(defaultPeer.getInternalState().latency).to.be.eql(0)));
+			expect(defaultPeer.internalState.latency).to.be.eql(0)));
 
 	describe('#connectTime', () =>
 		it('should get connectTime property', () =>
-			expect(defaultPeer.getInternalState().connectTime).to.be.at.least(0)));
+			expect(defaultPeer.internalState.connectTime).to.be.at.least(0)));
 
 	describe('#responseRate', () =>
 		it('should get responseRate property', () =>
-			expect(
-				defaultPeer.getInternalState().productivity.responseRate,
-			).to.be.eql(0)));
+			expect(defaultPeer.internalState.productivity.responseRate).to.be.eql(
+				0,
+			)));
 
 	describe('#productivity', () =>
 		it('should get productivity property', () => {
@@ -179,12 +179,12 @@ describe('peer/base', () => {
 				lastResponded: 0,
 			};
 
-			expect(defaultPeer.getInternalState().productivity).to.eql(productivity);
+			expect(defaultPeer.internalState.productivity).to.eql(productivity);
 		}));
 
 	describe('#wsMessageRate', () =>
 		it('should get wsMessageRate property', () =>
-			expect(defaultPeer.getInternalState().wsMessageRate).to.be.eql(0)));
+			expect(defaultPeer.internalState.wsMessageRate).to.be.eql(0)));
 
 	describe('#state', () =>
 		it('should get state property', () =>
@@ -662,10 +662,10 @@ describe('peer/base', () => {
 			});
 
 			it('should apply penalty', () => {
-				const reputation = defaultPeer.getInternalState().reputation;
+				const reputation = defaultPeer.internalState.reputation;
 				const penalty = DEFAULT_REPUTATION_SCORE / 10;
 				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.getInternalState().reputation).to.be.eql(
+				expect(defaultPeer.internalState.reputation).to.be.eql(
 					reputation - penalty,
 				);
 			});
@@ -684,10 +684,10 @@ describe('peer/base', () => {
 			});
 
 			it('should apply penalty', () => {
-				const reputation = defaultPeer.getInternalState().reputation;
+				const reputation = defaultPeer.internalState.reputation;
 				const penalty = DEFAULT_REPUTATION_SCORE;
 				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.getInternalState().reputation).to.be.eql(
+				expect(defaultPeer.internalState.reputation).to.be.eql(
 					reputation - penalty,
 				);
 			});
