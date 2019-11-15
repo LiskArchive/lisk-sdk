@@ -621,6 +621,25 @@ describe('Transport', () => {
 			});
 		});
 
+		describe('when it is called with undefined', () => {
+			let tx;
+			beforeEach(async () => {
+				tx = new TransferTransaction({
+					networkIdentifier: '1234567890',
+					asset: { amount: '100', recipientId: '123L' },
+				});
+				transactionPoolStub.getMergedTransactionList.mockReturnValue([tx]);
+			});
+
+			it('should return transaction from pool', async () => {
+				const result = await transport.handleRPCGetTransactions(
+					undefined,
+					defaultPeerId,
+				);
+				expect(result.transactions).toStrictEqual([tx]);
+			});
+		});
+
 		describe('when it is called without ids', () => {
 			let tx;
 			beforeEach(async () => {
