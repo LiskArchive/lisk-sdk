@@ -242,11 +242,6 @@ describe('dpos.apply()', () => {
 		let getTotalEarningsOfDelegate;
 		beforeEach(() => {
 			// Arrange
-			lastBlockOfTheRoundNine = {
-				height: 909,
-				generatorPublicKey: delegateWhoForgedLast.publicKey,
-			};
-
 			when(stubs.storage.entities.Account.get)
 				.calledWith(
 					{
@@ -295,6 +290,14 @@ describe('dpos.apply()', () => {
 				reward: rewardPerDelegate,
 				height: 809 + i,
 			}));
+			forgedBlocks.splice(forgedBlocks.length - 1);
+
+			lastBlockOfTheRoundNine = {
+				height: 909,
+				generatorPublicKey: delegateWhoForgedLast.publicKey,
+				totalFee: feePerDelegate,
+				reward: rewardPerDelegate,
+			};
 
 			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 		});
@@ -401,9 +404,13 @@ describe('dpos.apply()', () => {
 				height: 809 + i,
 			}));
 
-			forgedBlocks[delegatesWhoForged.length - 1].totalFee = new BigNum(
-				feePerDelegate,
-			).add(remainingFee);
+			lastBlockOfTheRoundNine = {
+				height: 909,
+				generatorPublicKey: delegateWhoForgedLast.publicKey,
+				totalFee: new BigNum(feePerDelegate).add(remainingFee),
+				reward: rewardPerDelegate,
+			};
+			forgedBlocks.splice(forgedBlocks.length - 1);
 
 			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 
@@ -564,6 +571,7 @@ describe('dpos.apply()', () => {
 					reward: rewardPerDelegate,
 					height: 809 + i,
 				}));
+				forgedBlocks.splice(forgedBlocks.length - 1);
 
 				stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 
@@ -628,6 +636,14 @@ describe('dpos.apply()', () => {
 					reward: rewardPerDelegate,
 					height: 809 + i,
 				}));
+				forgedBlocks.splice(forgedBlocks.length - 1);
+
+				lastBlockOfTheRoundNine = {
+					height: 909,
+					generatorPublicKey: delegateWhoForgedLast.publicKey,
+					totalFee: feePerDelegate,
+					reward: rewardPerDelegate,
+				};
 
 				stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 

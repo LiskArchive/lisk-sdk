@@ -53,7 +53,6 @@ describe('dpos.undo()', () => {
 					getActiveDelegatesForRound: jest
 						.fn()
 						.mockReturnValue(delegatePublicKeys),
-					summedRound: jest.fn(),
 				},
 			},
 		};
@@ -185,11 +184,6 @@ describe('dpos.undo()', () => {
 		let getTotalEarningsOfDelegate;
 		beforeEach(() => {
 			// Arrange
-			lastBlockOfTheRoundNine = {
-				height: 909,
-				generatorPublicKey: delegateWhoForgedLast.publicKey,
-			};
-
 			when(stubs.storage.entities.Account.get)
 				.calledWith(
 					{
@@ -219,12 +213,20 @@ describe('dpos.undo()', () => {
 					fee,
 				};
 			};
+			lastBlockOfTheRoundNine = {
+				height: 909,
+				generatorPublicKey: delegateWhoForgedLast.publicKey,
+				totalFee: feePerDelegate,
+				reward: rewardPerDelegate,
+			};
 			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
 				generatorPublicKey: delegate.publicKey,
 				totalFee: feePerDelegate,
 				reward: rewardPerDelegate,
 				height: 809 + i,
 			}));
+
+			forgedBlocks.splice(forgedBlocks.length - 1);
 
 			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
 		});
@@ -330,11 +332,15 @@ describe('dpos.undo()', () => {
 				reward: rewardPerDelegate,
 				height: 809 + i,
 			}));
+			forgedBlocks.splice(forgedBlocks.length - 1);
 
 			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
-			forgedBlocks[delegatesWhoForged.length - 1].totalFee = new BigNum(
-				feePerDelegate,
-			).add(remainingFee);
+			lastBlockOfTheRoundNine = {
+				height: 909,
+				generatorPublicKey: delegateWhoForgedLast.publicKey,
+				totalFee: new BigNum(feePerDelegate).add(remainingFee),
+				reward: rewardPerDelegate,
+			};
 
 			// Act
 			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -449,14 +455,6 @@ describe('dpos.undo()', () => {
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
 				// Arrange
-				stubs.storage.entities.RoundDelegates.summedRound.mockResolvedValue([
-					{
-						fees: totalFee,
-						rewards: delegateAccounts.map(() => randomInt(1, 20)),
-						delegates: delegateAccounts.map(a => a.publicKey),
-					},
-				]);
-
 				when(stubs.storage.entities.Account.get)
 					.calledWith(
 						{

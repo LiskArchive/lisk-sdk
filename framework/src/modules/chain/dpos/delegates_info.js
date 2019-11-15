@@ -229,21 +229,14 @@ class DelegatesInfo {
 		const blocksInRounds = await this.storage.entities.Block.get(
 			{
 				height_gte: this.slots.calcRoundStartHeight(round),
-				height_lte: this.slots.calcRoundEndHeight(round),
+				height_lt: this.slots.calcRoundEndHeight(round),
 			},
 			{ limit: this.activeDelegates, sort: 'height:asc' },
 			tx,
 		);
 
-		// In case of the result doesn't contain enough blocks
-		if (
-			blocksInRounds.length === this.activeDelegates &&
-			blocksInRounds.find(
-				fetchedBlock => fetchedBlock.height === block.height,
-			) === undefined
-		) {
-			blocksInRounds.push(block);
-		}
+		// the blocksInRounds does not contain the last block
+		blocksInRounds.push(block);
 
 		if (blocksInRounds.length !== this.activeDelegates) {
 			throw new Error(
