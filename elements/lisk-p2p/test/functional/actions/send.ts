@@ -33,7 +33,7 @@ describe('P2P.send', () => {
 		for (let p2p of p2pNodeList) {
 			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
+					nodePort: p2p.sharedState.wsPort,
 					message,
 				});
 			});
@@ -115,7 +115,7 @@ describe('P2P.send', () => {
 			for (let p2p of p2pNodeList) {
 				p2p.on('messageReceived', message => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.sharedState.wsPort,
 						message,
 					});
 				});

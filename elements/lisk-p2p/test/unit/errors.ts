@@ -23,7 +23,7 @@ import {
 	RPCResponseAlreadySentError,
 	RequestFailError,
 	ExistingPeerError,
-	InvalidNodeInfoError,
+	InvalidSharedStateError,
 } from '../../src/errors';
 import { P2PPeerInfo } from '../../src';
 import { constructPeerId } from '../../src/utils';
@@ -134,24 +134,28 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#InvalidNodeInfoError', () => {
-		const InvalidNodeInfoErrorMessagge = 'Invalid NodeInfo version';
-		let invalidNodeInfo: InvalidNodeInfoError;
+	describe('#InvalidSharedStateError', () => {
+		const InvalidSharedStateErrorMessagge = 'Invalid SharedState version';
+		let invalidSharedState: InvalidSharedStateError;
 
 		beforeEach(async () => {
-			invalidNodeInfo = new InvalidNodeInfoError(InvalidNodeInfoErrorMessagge);
+			invalidSharedState = new InvalidSharedStateError(
+				InvalidSharedStateErrorMessagge,
+			);
 		});
 
-		it('should create a new instance of InvalidNodeInfoError', async () => {
-			expect(invalidNodeInfo).to.be.instanceof(InvalidNodeInfoError);
+		it('should create a new instance of InvalidSharedStateError', async () => {
+			expect(invalidSharedState).to.be.instanceof(InvalidSharedStateError);
 		});
 
-		it('should set error name to `InvalidNodeInfoError`', async () => {
-			expect(invalidNodeInfo.name).to.eql('InvalidNodeInfoError');
+		it('should set error name to `InvalidSharedStateError`', async () => {
+			expect(invalidSharedState.name).to.eql('InvalidSharedStateError');
 		});
 
-		it(`should set error message to ${InvalidNodeInfoError}`, async () => {
-			expect(invalidNodeInfo.message).to.eql(InvalidNodeInfoErrorMessagge);
+		it(`should set error message to ${InvalidSharedStateError}`, async () => {
+			expect(invalidSharedState.message).to.eql(
+				InvalidSharedStateErrorMessagge,
+			);
 		});
 	});
 

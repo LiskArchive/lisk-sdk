@@ -32,7 +32,7 @@ describe('P2P.broadcast', () => {
 		for (let p2p of p2pNodeList) {
 			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
+					nodePort: p2p.sharedState.wsPort,
 					message,
 				});
 			});
@@ -85,6 +85,6 @@ describe('P2P.broadcast', () => {
 			.which.is.equal('test');
 		expect(collectedMessages[0].message)
 			.to.have.property('peerId')
-			.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+			.which.is.equal(`127.0.0.1:${firstP2PNode.sharedState.wsPort}`);
 	});
 });

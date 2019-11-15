@@ -42,12 +42,12 @@ describe('Message rate limit', () => {
 		for (let p2p of p2pNodeList) {
 			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
+					nodePort: p2p.sharedState.wsPort,
 					message,
 				});
-				let peerRates = messageRates.get(p2p.nodeInfo.wsPort) || [];
+				let peerRates = messageRates.get(p2p.sharedState.wsPort) || [];
 				peerRates.push(message.rate);
-				messageRates.set(p2p.nodeInfo.wsPort, peerRates);
+				messageRates.set(p2p.sharedState.wsPort, peerRates);
 			});
 		}
 
@@ -55,25 +55,25 @@ describe('Message rate limit', () => {
 		secondP2PNode.on(EVENT_REMOVE_PEER, peerId => {
 			const peerWsPort = peerId.split(':')[1];
 			const localRemovedNodes = [];
-			if (removedPeers.get(secondP2PNode.nodeInfo.wsPort)) {
+			if (removedPeers.get(secondP2PNode.sharedState.wsPort)) {
 				localRemovedNodes.push(
-					...removedPeers.get(secondP2PNode.nodeInfo.wsPort),
+					...removedPeers.get(secondP2PNode.sharedState.wsPort),
 				);
 			}
 			localRemovedNodes.push(peerWsPort);
-			removedPeers.set(secondP2PNode.nodeInfo.wsPort, localRemovedNodes);
+			removedPeers.set(secondP2PNode.sharedState.wsPort, localRemovedNodes);
 		});
 		const thirdP2PNode = p2pNodeList[2];
 		thirdP2PNode.on(EVENT_REMOVE_PEER, peerId => {
 			const peerWsPort = peerId.split(':')[1];
 			const localRemovedNodes = [];
-			if (removedPeers.get(thirdP2PNode.nodeInfo.wsPort)) {
+			if (removedPeers.get(thirdP2PNode.sharedState.wsPort)) {
 				localRemovedNodes.push(
-					...removedPeers.get(thirdP2PNode.nodeInfo.wsPort),
+					...removedPeers.get(thirdP2PNode.sharedState.wsPort),
 				);
 			}
 			localRemovedNodes.push(peerWsPort);
-			removedPeers.set(thirdP2PNode.nodeInfo.wsPort, localRemovedNodes);
+			removedPeers.set(thirdP2PNode.sharedState.wsPort, localRemovedNodes);
 		});
 	});
 
@@ -121,7 +121,7 @@ describe('Message rate limit', () => {
 			const TOTAL_SENDS = 300;
 			const firstP2PNode = p2pNodeList[0];
 			const secondP2PNode = p2pNodeList[1];
-			const targetPeerId = `127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`;
+			const targetPeerId = `127.0.0.1:${secondP2PNode.sharedState.wsPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(1);
@@ -138,8 +138,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(secondP2PNode.nodeInfo.wsPort)).to.contain(
-				firstP2PNode.nodeInfo.wsPort.toString(),
+			expect(removedPeers.get(secondP2PNode.sharedState.wsPort)).to.contain(
+				firstP2PNode.sharedState.wsPort.toString(),
 			);
 		});
 	});
@@ -154,21 +154,21 @@ describe('Message rate limit', () => {
 			for (let p2p of p2pNodeList) {
 				p2p.on('requestReceived', request => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.sharedState.wsPort,
 						request,
 					});
 					if (request.procedure === 'getGreeting') {
 						request.end(
-							`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`,
+							`Hello ${request.data} from peer ${p2p.sharedState.wsPort}`,
 						);
 					} else {
 						if (!request.wasResponseSent) {
 							request.end(456);
 						}
 					}
-					let peerRates = requestRates.get(p2p.nodeInfo.wsPort) || [];
+					let peerRates = requestRates.get(p2p.sharedState.wsPort) || [];
 					peerRates.push(request.rate);
-					requestRates.set(p2p.nodeInfo.wsPort, peerRates);
+					requestRates.set(p2p.sharedState.wsPort, peerRates);
 				});
 			}
 		});
@@ -206,7 +206,7 @@ describe('Message rate limit', () => {
 			const firstP2PNode = p2pNodeList[0];
 			const thirdP2PNode = p2pNodeList[2];
 
-			const targetPeerId = `127.0.0.1:${thirdP2PNode.nodeInfo.wsPort}`;
+			const targetPeerId = `127.0.0.1:${thirdP2PNode.sharedState.wsPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(1);
@@ -225,8 +225,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(thirdP2PNode.nodeInfo.wsPort)).to.contain(
-				firstP2PNode.nodeInfo.wsPort.toString(),
+			expect(removedPeers.get(thirdP2PNode.sharedState.wsPort)).to.contain(
+				firstP2PNode.sharedState.wsPort.toString(),
 			);
 		});
 	});

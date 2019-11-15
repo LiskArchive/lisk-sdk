@@ -23,7 +23,7 @@ module.exports = {
 		const firstConfig = configurations[0];
 		const httpPort = firstConfig.modules.http_api.httpPort;
 		const wsPort = firstConfig.modules.network.wsPort;
-		const { nodeInfo } = generatePeerHeader({ wsPort, httpPort });
+		const { sharedState } = generatePeerHeader({ wsPort, httpPort });
 
 		const wampClient = new WAMPClient();
 		const sockets = [];
@@ -39,7 +39,7 @@ module.exports = {
 			// Since we are running a multiple nodes on a single machine, we
 			// need to give nodes a lot of time to respond.
 			ackTimeout: 2000,
-			query: nodeInfo,
+			query: sharedState,
 		};
 
 		let connectedTo = 0;

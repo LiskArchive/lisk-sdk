@@ -68,7 +68,7 @@ describe(`Events on Connection Close`, () => {
 			.to.have.property('peerInfo')
 			.to.have.property('sharedState')
 			.to.have.property('wsPort')
-			.which.equals(secondNode.nodeInfo.wsPort);
+			.which.equals(secondNode.sharedState.wsPort);
 	});
 
 	it(`should handle ${EVENT_CLOSE_OUTBOUND} event and payload`, async () => {
@@ -86,6 +86,6 @@ describe(`Events on Connection Close`, () => {
 			.to.have.property('peerInfo')
 			.to.have.property('sharedState')
 			.to.have.property('wsPort')
-			.which.equals(firstNode.nodeInfo.wsPort);
+			.which.equals(firstNode.sharedState.wsPort);
 	});
 });

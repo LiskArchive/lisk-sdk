@@ -18,7 +18,7 @@ import {
 	createNetwork,
 	destroyNetwork,
 	POPULATOR_INTERVAL,
-	nodeInfoConstants,
+	sharedStateConstants,
 } from '../utils/network_setup';
 import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
@@ -43,8 +43,8 @@ describe('Advertise Address', () => {
 		populatorInterval: POPULATOR_INTERVAL,
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
-		nodeInfo: {
-			...nodeInfoConstants,
+		sharedState: {
+			...sharedStateConstants,
 			wsPort,
 			advertiseAddress,
 		},
@@ -74,9 +74,7 @@ describe('Advertise Address', () => {
 				.getConnectedPeers()
 				.filter(p => p.sharedState.wsPort === advertisePeerPort);
 
-			expect(connectedPeers[0].sharedState.wsPort).to.be.eql(
-				advertisePeerPort,
-			);
+			expect(connectedPeers[0].sharedState.wsPort).to.be.eql(advertisePeerPort);
 		}
 		await p2pNode.stop();
 	});

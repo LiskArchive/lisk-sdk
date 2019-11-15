@@ -32,7 +32,7 @@ export const SEED_PEER_IP = '127.0.0.1';
 export const NETWORK_CREATION_WAIT_TIME = 1000;
 export const NETWORK_DESTROY_WAIT_TIME = 1000;
 
-export const nodeInfoConstants = {
+export const sharedStateConstants = {
 	nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	version: '1.0.1',
 	protocolVersion: '1.1',
@@ -81,10 +81,13 @@ export const createNetwork = async ({
 				  ];
 
 		const nodePort = NETWORK_START_PORT + index;
-		// Extract the nodeInfo out of customConfig
-		const { nodeInfo: customNodeInfo, ...customConfigObject } = customConfig
+		// Extract the sharedState out of customConfig
+		const {
+			sharedState: customSharedState,
+			...customConfigObject
+		} = customConfig
 			? (customConfig(index, startPort, numberOfPeers) as any)
-			: { nodeInfo: {} };
+			: { sharedState: {} };
 
 		const p2pConfig = {
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
@@ -95,16 +98,16 @@ export const createNetwork = async ({
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
-			nodeInfo: {
+			sharedState: {
 				wsPort: nodePort,
-				nethash: nodeInfoConstants.nethash,
-				version: nodeInfoConstants.version,
-				protocolVersion: nodeInfoConstants.protocolVersion,
-				minVersion: nodeInfoConstants.minVersion,
-				os: nodeInfoConstants.os,
-				height: nodeInfoConstants.height,
-				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
-				...customNodeInfo,
+				nethash: sharedStateConstants.nethash,
+				version: sharedStateConstants.version,
+				protocolVersion: sharedStateConstants.protocolVersion,
+				minVersion: sharedStateConstants.minVersion,
+				os: sharedStateConstants.os,
+				height: sharedStateConstants.height,
+				nonce: `${sharedStateConstants.nonce}${nodePort}`,
+				...customSharedState,
 			},
 			...customConfigObject,
 		};

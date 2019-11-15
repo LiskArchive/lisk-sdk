@@ -47,7 +47,7 @@ const createSocketStubInstance = () => <SCServerSocket>({
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
-	let nodeInfo: P2PSharedState;
+	let sharedState: P2PSharedState;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
 
@@ -72,7 +72,7 @@ describe('peer/base', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
-			nodeInfo: {
+			sharedState: {
 				os: 'os',
 				nethash: 'nethash',
 				version: '1.2.0',
@@ -82,7 +82,7 @@ describe('peer/base', () => {
 				advertiseAddress: true,
 			},
 		};
-		nodeInfo = {
+		sharedState = {
 			wsPort: 6001,
 			os: 'os',
 			version: '1.2.0',
@@ -163,37 +163,37 @@ describe('peer/base', () => {
 		it('should get peerInfo property', () =>
 			expect(defaultPeer.peerInfo).to.be.eql(defaultPeerInfo)));
 
-	describe('#nodeInfo', () => {
+	describe('#sharedState', () => {
 		beforeEach(() => {
 			sandbox.stub(defaultPeer, 'request').resolves();
 		});
 
-		it('should get node info', () => {
+		it('should get shared state', () => {
 			const socket = createSocketStubInstance();
 			(defaultPeer as any)._socket = socket;
-			defaultPeer.applyNodeInfo(nodeInfo);
+			defaultPeer.applySharedState(sharedState);
 
-			expect(defaultPeer.nodeInfo).to.eql(nodeInfo);
+			expect(defaultPeer.sharedState).to.eql(sharedState);
 			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
 				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: nodeInfo,
+				data: sharedState,
 			});
 		});
 	});
 
-	describe('#applyNodeInfo', async () => {
+	describe('#applySharedState', async () => {
 		beforeEach(() => {
 			sandbox.stub(defaultPeer, 'send').resolves();
 		});
 
-		it('should apply node info', async () => {
+		it('should apply shared state', async () => {
 			const socket = createSocketStubInstance();
 			(defaultPeer as any)._socket = socket;
-			defaultPeer.applyNodeInfo(nodeInfo);
+			defaultPeer.applySharedState(sharedState);
 
 			expect(defaultPeer.send).to.be.calledOnceWithExactly({
 				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: nodeInfo,
+				data: sharedState,
 			});
 		});
 	});
@@ -476,7 +476,7 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
-			describe('when _updatePeerNodeInfo() fails', () => {
+			describe('when _updatePeerSharedState() fails', () => {
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
 						data: {
@@ -515,7 +515,7 @@ describe('peer/base', () => {
 				});
 			});
 
-			describe('when _updatePeerNodeInfo() succeeds', () => {
+			describe('when _updatePeerSharedState() succeeds', () => {
 				const peer = {
 					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',

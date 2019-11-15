@@ -36,7 +36,7 @@ describe('Custom peer selection', () => {
 		| P2PPeerSelectionForRequestFunction = (
 		input: P2PPeerSelectionForSendInput | P2PPeerSelectionForRequestInput,
 	) => {
-		const { peers: peersList, nodeInfo } = input;
+		const { peers: peersList, sharedState } = input;
 
 		peersList.forEach(peerInfo => {
 			if (
@@ -54,12 +54,12 @@ describe('Custom peer selection', () => {
 			const { sharedState } = peer;
 			const peerHeight = sharedState ? (sharedState.height as number) : 0;
 			if (
-				nodeInfo &&
+				sharedState &&
 				peer.sharedState &&
-				(nodeInfo.height as number) <= peerHeight
+				(sharedState.height as number) <= peerHeight
 			) {
-				const nodesModules = nodeInfo.modules
-					? (nodeInfo.modules as ReadonlyArray<string>)
+				const nodesModules = sharedState.modules
+					? (sharedState.modules as ReadonlyArray<string>)
 					: undefined;
 				const peerModules = peer.sharedState.modules
 					? (peer.sharedState.modules as ReadonlyArray<string>)
@@ -86,7 +86,7 @@ describe('Custom peer selection', () => {
 				peer =>
 					peer.sharedState &&
 					(peer.sharedState.height as number) >=
-						(nodeInfo ? (nodeInfo.height as number) : 0),
+						(sharedState ? (sharedState.height as number) : 0),
 			);
 		}
 
@@ -98,7 +98,7 @@ describe('Custom peer selection', () => {
 	) => [...input.newPeers, ...input.triedPeers];
 
 	beforeEach(async () => {
-		const customNodeInfo = (index: number) => ({
+		const customSharedState = (index: number) => ({
 			modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
 			height: 1000 + index,
 		});
@@ -109,7 +109,7 @@ describe('Custom peer selection', () => {
 			peerSelectionForConnection,
 			maxOutboundConnections: 5,
 			maxInboundConnections: 5,
-			nodeInfo: customNodeInfo(index),
+			sharedState: customSharedState(index),
 		});
 
 		p2pNodeList = await createNetwork({
@@ -143,7 +143,7 @@ describe('Custom peer selection', () => {
 				p2p.on('requestReceived', request => {
 					if (!request.wasResponseSent) {
 						request.end({
-							nodePort: p2p.nodeInfo.wsPort,
+							nodePort: p2p.sharedState.wsPort,
 							requestProcedure: request.procedure,
 							requestData: request.data,
 						});
@@ -180,7 +180,7 @@ describe('Custom peer selection', () => {
 			for (let p2p of p2pNodeList) {
 				p2p.on('messageReceived', message => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.sharedState.wsPort,
 						message,
 					});
 				});

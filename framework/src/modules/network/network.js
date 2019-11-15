@@ -117,14 +117,14 @@ module.exports = class Network {
 			this.secret = Number(secret);
 		}
 
-		const sanitizeNodeInfo = nodeInfo => ({
-			...nodeInfo,
+		const sanitizeSharedState = sharedState => ({
+			...sharedState,
 			state: 2, // TODO: Delete state property
 			wsPort: this.options.wsPort,
 			advertiseAddress: this.options.advertiseAddress,
 		});
 
-		const initialNodeInfo = sanitizeNodeInfo(
+		const initialSharedState = sanitizeSharedState(
 			await this.channel.invoke('app:getApplicationState'),
 		);
 
@@ -146,7 +146,7 @@ module.exports = class Network {
 			: [];
 
 		const p2pConfig = {
-			nodeInfo: initialNodeInfo,
+			sharedState: initialSharedState,
 			hostAddress: this.options.address,
 			blacklistedPeers,
 			fixedPeers,
@@ -173,12 +173,12 @@ module.exports = class Network {
 		this.p2p = new P2P(p2pConfig);
 
 		this.channel.subscribe('app:state:updated', event => {
-			const newNodeInfo = sanitizeNodeInfo(event.data);
+			const newSharedState = sanitizeSharedState(event.data);
 			try {
-				this.p2p.applyNodeInfo(newNodeInfo);
+				this.p2p.applySharedState(newSharedState);
 			} catch (error) {
 				this.logger.error(
-					`Applying NodeInfo failed because of error: ${error.message ||
+					`Applying SharedState failed because of error: ${error.message ||
 						error}`,
 				);
 			}

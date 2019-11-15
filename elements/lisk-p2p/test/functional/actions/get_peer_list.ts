@@ -46,7 +46,7 @@ describe('PeerPool actions', () => {
 
 			// The current node should not be in its own peer list.
 			const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-				return port !== firstNode.nodeInfo.wsPort;
+				return port !== firstNode.sharedState.wsPort;
 			});
 
 			expect(peerPorts).to.be.eql(expectedPeerPorts);

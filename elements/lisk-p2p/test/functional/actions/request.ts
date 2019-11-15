@@ -31,7 +31,7 @@ describe('P2P.request', () => {
 			p2p.on(EVENT_REQUEST_RECEIVED, request => {
 				if (!request.wasResponseSent) {
 					request.end({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.sharedState.wsPort,
 						requestProcedure: request.procedure,
 						requestData: request.data,
 						requestPeerId: request.peerId,
@@ -63,7 +63,7 @@ describe('P2P.request', () => {
 			.which.is.equal('bar');
 		expect(response.data)
 			.to.have.property('requestPeerId')
-			.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
+			.which.is.equal(`127.0.0.1:${secondP2PNode.sharedState.wsPort}`);
 	});
 
 	// Check for even distribution of requests across the network. Account for an error margin.

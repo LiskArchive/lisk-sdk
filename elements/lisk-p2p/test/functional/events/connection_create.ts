@@ -76,7 +76,7 @@ describe(`Connection Create`, () => {
 			expect(payload)
 				.to.have.property('sharedState')
 				.to.have.property('wsPort')
-				.which.equals(secondNode.nodeInfo.wsPort);
+				.which.equals(secondNode.sharedState.wsPort);
 		});
 
 		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
@@ -86,7 +86,7 @@ describe(`Connection Create`, () => {
 			expect(payload)
 				.to.have.property('sharedState')
 				.to.have.property('wsPort')
-				.which.equals(firstNode.nodeInfo.wsPort);
+				.which.equals(firstNode.sharedState.wsPort);
 		});
 
 		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
@@ -96,7 +96,7 @@ describe(`Connection Create`, () => {
 			expect(payload)
 				.to.have.property('sharedState')
 				.to.have.property('wsPort')
-				.which.equals(firstNode.nodeInfo.wsPort);
+				.which.equals(firstNode.sharedState.wsPort);
 		});
 
 		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
@@ -106,7 +106,7 @@ describe(`Connection Create`, () => {
 			expect(payload)
 				.to.have.property('sharedState')
 				.to.have.property('wsPort')
-				.which.equals(secondNode.nodeInfo.wsPort);
+				.which.equals(secondNode.sharedState.wsPort);
 		});
 
 		it(`should update peerBook with connected peer`, async () => {
@@ -122,7 +122,7 @@ describe(`Connection Create`, () => {
 		const collectedErrors: Array<any> = [];
 
 		beforeEach(async () => {
-			const customNodeInfo = (index: number) => ({
+			const customSharedState = (index: number) => ({
 				nethash:
 					index === 1
 						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
@@ -139,7 +139,7 @@ describe(`Connection Create`, () => {
 			});
 
 			const customConfig = (index: number) => ({
-				nodeInfo: customNodeInfo(index),
+				sharedState: customSharedState(index),
 				seedPeers: [
 					{
 						peerId: constructPeerId(SEED_PEER_IP, NETWORK_START_PORT),

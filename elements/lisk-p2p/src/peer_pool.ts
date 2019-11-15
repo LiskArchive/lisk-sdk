@@ -160,7 +160,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleUnbanPeer: (peerId: string) => void;
-	private _nodeInfo: P2PSharedState | undefined;
+	private _sharedState: P2PSharedState | undefined;
 	private readonly _maxOutboundConnections: number;
 	private readonly _maxInboundConnections: number;
 	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
@@ -289,16 +289,16 @@ export class PeerPool extends EventEmitter {
 		};
 	}
 
-	public applyNodeInfo(nodeInfo: P2PSharedState): void {
-		this._nodeInfo = nodeInfo;
+	public applySharedState(sharedState: P2PSharedState): void {
+		this._sharedState = sharedState;
 		const peerList = this.getPeers();
 		peerList.forEach(peer => {
-			this._applyNodeInfoOnPeer(peer, nodeInfo);
+			this._applySharedStateOnPeer(peer, sharedState);
 		});
 	}
 
-	public get nodeInfo(): P2PSharedState | undefined {
-		return this._nodeInfo;
+	public get sharedState(): P2PSharedState | undefined {
+		return this._sharedState;
 	}
 
 	public get peerConfig(): PeerConfig {
@@ -310,7 +310,7 @@ export class PeerPool extends EventEmitter {
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
 			peers: outboundPeerInfos,
-			nodeInfo: this.nodeInfo,
+			sharedState: this.sharedState,
 			peerLimit: 1,
 			requestPacket: packet,
 		});
@@ -357,7 +357,7 @@ export class PeerPool extends EventEmitter {
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
-			nodeInfo: this.nodeInfo,
+			sharedState: this.sharedState,
 			peerLimit: this._sendPeerLimit,
 			messagePacket: message,
 		});
@@ -424,13 +424,13 @@ export class PeerPool extends EventEmitter {
 		const peersToConnect = this._peerSelectForConnection({
 			newPeers: disconnectedNewPeers,
 			triedPeers: disconnectedTriedPeers,
-			nodeInfo: this.nodeInfo,
+			sharedState: this.sharedState,
 			peerLimit,
 		});
 
 		[...peersToConnect, ...disconnectedFixedPeers].forEach(
 			(peerInfo: P2PPeerInfo) =>
-				this._addOutboundPeer(peerInfo, this._nodeInfo as P2PSharedState),
+				this._addOutboundPeer(peerInfo, this._sharedState as P2PSharedState),
 		);
 	}
 
@@ -451,8 +451,8 @@ export class PeerPool extends EventEmitter {
 		}
 		this._peerMap.set(peer.peerInfo.peerId, peer);
 		this._bindHandlersToPeer(peer);
-		if (this.nodeInfo) {
-			this._applyNodeInfoOnPeer(peer, this.nodeInfo);
+		if (this.sharedState) {
+			this._applySharedStateOnPeer(peer, this.sharedState);
 		}
 		peer.connect();
 
@@ -461,7 +461,7 @@ export class PeerPool extends EventEmitter {
 
 	private _addOutboundPeer(
 		peerInfo: P2PPeerInfo,
-		nodeInfo: P2PSharedState,
+		sharedState: P2PSharedState,
 	): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {
 			return false;
@@ -478,17 +478,17 @@ export class PeerPool extends EventEmitter {
 		}
 
 		/*
-			Inject our nodeInfo for validation during handshake on outbound peer connection
+			Inject our sharedState for validation during handshake on outbound peer connection
 		*/
 		const peer = new OutboundPeer(peerInfo, {
 			...this._peerConfig,
-			nodeInfo,
+			sharedState,
 		});
 
 		this._peerMap.set(peer.peerInfo.peerId, peer);
 		this._bindHandlersToPeer(peer);
-		if (this.nodeInfo) {
-			this._applyNodeInfoOnPeer(peer, this.nodeInfo);
+		if (this.sharedState) {
+			this._applySharedStateOnPeer(peer, this.sharedState);
 		}
 
 		return true;
@@ -590,9 +590,12 @@ export class PeerPool extends EventEmitter {
 		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 	}
 
-	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PSharedState): void {
+	private _applySharedStateOnPeer(
+		peer: Peer,
+		sharedState: P2PSharedState,
+	): void {
 		try {
-			peer.applyNodeInfo(nodeInfo);
+			peer.applySharedState(sharedState);
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		}

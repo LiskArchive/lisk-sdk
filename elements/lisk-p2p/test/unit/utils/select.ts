@@ -26,7 +26,7 @@ import { P2PPeerInfo, P2PSharedState } from '../../../src/p2p_types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
-	const nodeInfo: P2PSharedState = {
+	const sharedState: P2PSharedState = {
 		height: 545777,
 		nethash: '73458irc3yb7rg37r7326dbt7236',
 		os: 'linux',
@@ -58,7 +58,7 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						nodeInfo,
+						sharedState,
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -68,7 +68,7 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						nodeInfo,
+						sharedState,
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -80,7 +80,7 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: [],
-						nodeInfo,
+						sharedState,
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -92,7 +92,7 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						nodeInfo,
+						sharedState,
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -104,7 +104,7 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						nodeInfo,
+						sharedState,
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -116,7 +116,7 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						nodeInfo,
+						sharedState,
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -128,7 +128,7 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						nodeInfo,
+						sharedState,
 						peerLimit: 3,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -144,14 +144,14 @@ describe('peer selector', () => {
 			const lowHeightPeers = peerList.filter(
 				peer =>
 					peer.sharedState &&
-					(peer.sharedState.height as number) < (nodeInfo.height as number),
+					(peer.sharedState.height as number) < (sharedState.height as number),
 			);
 
 			it('should return an array with 1 good peer', () => {
 				return expect(
 					selectPeersForRequest({
 						peers: lowHeightPeers,
-						nodeInfo,
+						sharedState,
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -168,7 +168,7 @@ describe('peer selector', () => {
 		it('should return an array containing an even number of inbound and outbound peers', () => {
 			const selectedPeers = selectPeersForSend({
 				peers: peerList,
-				nodeInfo,
+				sharedState,
 				peerLimit: DEFAULT_SEND_PEER_LIMIT,
 				messagePacket: { event: 'foo', data: {} },
 			});
@@ -355,35 +355,31 @@ describe('peer selector', () => {
 			it('should return only unique IPs', () => {
 				let uniqIpAddresses: Array<string> = [];
 
-				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map(
-					(_e, i) => ({
-						peerId: `205.120.0.20:${10001 + i}`,
-						ipAddress: '205.120.0.20',
-						sharedState: {
-							wsPort: 10001 + i,
-							advertiseAddress: true,
-							height: 10001 + i,
-							isDiscoveredPeer: false,
-							version: '1.1.1',
-							protocolVersion: '1.1',
-						},
-					}),
-				);
+				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${10001 + i}`,
+					ipAddress: '205.120.0.20',
+					sharedState: {
+						wsPort: 10001 + i,
+						advertiseAddress: true,
+						height: 10001 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
 
-				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map(
-					(_e, i) => ({
-						peerId: `205.120.0.20:${5000 + i}`,
-						ipAddress: '205.120.0.20',
-						sharedState: {
-							wsPort: 5000 + i,
-							advertiseAddress: true,
-							height: 5000 + i,
-							isDiscoveredPeer: false,
-							version: '1.1.1',
-							protocolVersion: '1.1',
-						},
-					}),
-				);
+				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${5000 + i}`,
+					ipAddress: '205.120.0.20',
+					sharedState: {
+						wsPort: 5000 + i,
+						advertiseAddress: true,
+						height: 5000 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
 
 				triedPeers.push(peerList[0]);
 				newPeers.push(peerList[2]);

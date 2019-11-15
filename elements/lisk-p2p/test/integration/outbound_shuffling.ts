@@ -60,16 +60,16 @@ describe('Outbound peer shuffling', () => {
 			p2p.on(EVENT_CLOSE_OUTBOUND, msg => {
 				if (msg.code === EVICTED_PEER_CODE) {
 					let evictedConnections = collectedEventsCount.get(
-						p2p.nodeInfo.wsPort,
+						p2p.sharedState.wsPort,
 					);
 
 					if (evictedConnections) {
 						collectedEventsCount.set(
-							p2p.nodeInfo.wsPort,
+							p2p.sharedState.wsPort,
 							(evictedConnections += 1),
 						);
 					} else {
-						collectedEventsCount.set(p2p.nodeInfo.wsPort, 1);
+						collectedEventsCount.set(p2p.sharedState.wsPort, 1);
 					}
 				}
 			});
@@ -84,7 +84,9 @@ describe('Outbound peer shuffling', () => {
 		await wait(500);
 
 		p2pNodeList.forEach(p2p => {
-			const evictedConnections = collectedEventsCount.get(p2p.nodeInfo.wsPort);
+			const evictedConnections = collectedEventsCount.get(
+				p2p.sharedState.wsPort,
+			);
 
 			expect(evictedConnections).to.be.gt(0);
 		});

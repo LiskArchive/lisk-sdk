@@ -152,8 +152,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		it('should isolate the blacklisted peer', async () => {
 			for (let p2p of p2pNodeList) {
 				if (
-					p2p.nodeInfo.wsPort === blacklistedPeers[0].sharedState.wsPort &&
-					p2p.nodeInfo.hostIp === blacklistedPeers[0].ipAddress
+					p2p.sharedState.wsPort === blacklistedPeers[0].sharedState.wsPort &&
+					p2p.sharedState.hostIp === blacklistedPeers[0].ipAddress
 				) {
 					expect((p2p as any)._peerPool.getConnectedPeers().length).to.equal(0);
 				}

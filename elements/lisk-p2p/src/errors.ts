@@ -68,10 +68,10 @@ export class ExistingPeerError extends Error {
 	}
 }
 
-export class InvalidNodeInfoError extends Error {
+export class InvalidSharedStateError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidNodeInfoError';
+		this.name = 'InvalidSharedStateError';
 	}
 }
 

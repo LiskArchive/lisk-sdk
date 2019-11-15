@@ -102,9 +102,9 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-	validateNodeInfo,
 	validatePeerCompatibility,
 	validatePeerInfo,
+	validateSharedState,
 } from './utils';
 
 interface SCServerUpdated extends SCServer {
@@ -196,14 +196,14 @@ export class P2P extends EventEmitter {
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
-	private _nodeInfo: P2PSharedState;
+	private _sharedState: P2PSharedState;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
 	private readonly _handleDiscoveredPeer: (peerInfo: P2PPeerInfo) => void;
-	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
+	private readonly _handleFailedToPushSharedState: (error: Error) => void;
 	private readonly _handleFailedToSendMessage: (error: Error) => void;
 	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleOutboundPeerConnectAbort: (
@@ -435,7 +435,7 @@ export class P2P extends EventEmitter {
 			}
 		};
 
-		this._handleFailedToPushNodeInfo = (error: Error) => {
+		this._handleFailedToPushSharedState = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		};
@@ -478,11 +478,11 @@ export class P2P extends EventEmitter {
 			});
 		}
 
-		this._nodeInfo = {
-			...config.nodeInfo,
+		this._sharedState = {
+			...config.sharedState,
 			nonce: getRandomBytes(DEFAULT_NONCE_LENGTH_BYTES).toString('hex'),
 		};
-		this.applyNodeInfo(this._nodeInfo);
+		this.applySharedState(this._sharedState);
 
 		this._populatorInterval = config.populatorInterval
 			? config.populatorInterval
@@ -505,24 +505,24 @@ export class P2P extends EventEmitter {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
-	public applyNodeInfo(nodeInfo: P2PSharedState): void {
-		validateNodeInfo(
-			nodeInfo,
-			this._config.maxPeerInfoSize
-				? this._config.maxPeerInfoSize
+	public applySharedState(sharedState: P2PSharedState): void {
+		validateSharedState(
+			sharedState,
+			this.config.maxPeerInfoSize
+				? this.config.maxPeerInfoSize
 				: DEFAULT_MAX_PEER_INFO_SIZE,
 		);
 
-		this._nodeInfo = {
-			...nodeInfo,
-			nonce: this.nodeInfo.nonce,
+		this._sharedState = {
+			...sharedState,
+			nonce: this.sharedState.nonce,
 		};
 
-		this._peerPool.applyNodeInfo(this.nodeInfo);
+		this._peerPool.applySharedState(this.sharedState);
 	}
 
-	public get nodeInfo(): P2PSharedState {
-		return this._nodeInfo;
+	public get sharedState(): P2PSharedState {
+		return this._sharedState;
 	}
 
 	public applyPenalty(peerPenalty: P2PPenalty): void {
@@ -573,8 +573,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return disconnectedPeers
 			.filter(
-				peer =>
-					!(peer.internalState && !peer.internalState.advertiseAddress),
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
 				peerId: peer.peerId,
@@ -683,7 +682,7 @@ export class P2P extends EventEmitter {
 				}
 				const queryObject = url.parse(socket.request.url, true).query;
 
-				if (queryObject.nonce === this._nodeInfo.nonce) {
+				if (queryObject.nonce === this._sharedState.nonce) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
 						INVALID_CONNECTION_SELF_CODE,
@@ -692,7 +691,7 @@ export class P2P extends EventEmitter {
 
 					const selfWSPort = queryObject.wsPort
 						? +queryObject.wsPort
-						: this._nodeInfo.wsPort;
+						: this._sharedState.wsPort;
 
 					// Delete you peerinfo from both the lists
 					this._peerBook.removePeer({
@@ -772,8 +771,8 @@ export class P2P extends EventEmitter {
 				try {
 					validatePeerInfo(
 						incomingPeerInfo,
-						this._config.maxPeerInfoSize
-							? this._config.maxPeerInfoSize
+						this.config.maxPeerInfoSize
+							? this.config.maxPeerInfoSize
 							: DEFAULT_MAX_PEER_INFO_SIZE,
 					);
 				} catch (error) {
@@ -786,7 +785,7 @@ export class P2P extends EventEmitter {
 
 				const { success, error } = this._peerHandshakeCheck(
 					incomingPeerInfo,
-					this.nodeInfo,
+					this.sharedState,
 				);
 
 				if (!success) {
@@ -826,8 +825,8 @@ export class P2P extends EventEmitter {
 		);
 
 		this._httpServer.listen(
-			this._nodeInfo.wsPort,
-			this._config.hostIp || DEFAULT_NODE_HOST_IP,
+			this.sharedState.wsPort,
+			this.config.hostIp || DEFAULT_NODE_HOST_IP,
 		);
 		if (this._scServer.isReady) {
 			this._isActive = true;
@@ -899,18 +898,18 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
-		const minimumPeerDiscoveryThreshold = this._config
+		const minimumPeerDiscoveryThreshold = this.config
 			.minimumPeerDiscoveryThreshold
-			? this._config.minimumPeerDiscoveryThreshold
+			? this.config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
-			? this._config.peerDiscoveryResponseLength
+		const peerDiscoveryResponseLength = this.config.peerDiscoveryResponseLength
+			? this.config.peerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
-		const wsMaxPayload = this._config.wsMaxPayload
-			? this._config.wsMaxPayload
+		const wsMaxPayload = this.config.wsMaxPayload
+			? this.config.wsMaxPayload
 			: DEFAULT_WS_MAX_PAYLOAD;
-		const maxPeerInforSize = this._config.maxPeerInfoSize
-			? this._config.maxPeerInfoSize
+		const maxPeerInforSize = this.config.maxPeerInfoSize
+			? this.config.maxPeerInfoSize
 			: DEFAULT_MAX_PEER_INFO_SIZE;
 
 		const safeMaxPeerInfoLength =
@@ -924,14 +923,13 @@ export class P2P extends EventEmitter {
 		// Remove internal state to check byte size
 		const sanitizedPeerInfoList: ReadonlyArray<P2PPeerInfo> = selectedPeers
 			.filter(
-					peer => !(peer.internalState && !peer.internalState.advertiseAddress),
-				)
-			.map(
-				peer => ({
-					peerId: constructPeerId(peer.ipAddress, peer.sharedState.wsPort),
-					ipAddress: peer.ipAddress,
-					sharedState: peer.sharedState,
-				}));
+				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+			)
+			.map(peer => ({
+				peerId: constructPeerId(peer.ipAddress, peer.sharedState.wsPort),
+				ipAddress: peer.ipAddress,
+				sharedState: peer.sharedState,
+			}));
 
 		request.end({
 			success: true,
@@ -1027,7 +1025,7 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
 		peerPool.on(
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
-			this._handleFailedToPushNodeInfo,
+			this._handleFailedToPushSharedState,
 		);
 		peerPool.on(EVENT_FAILED_TO_SEND_MESSAGE, this._handleFailedToSendMessage);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);

@@ -85,7 +85,7 @@ describe('peerPool', () => {
 	};
 	let peerPool: PeerPool;
 	let peerInfo: P2PPeerInfo;
-	let nodeInfo: P2PSharedState;
+	let sharedState: P2PSharedState;
 	let peerId: string;
 	let peerObject: any;
 	let messagePacket: any;
@@ -214,28 +214,28 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe('#applyNodeInfo', () => {
-		it('should set _nodeInfo', async () => {
-			peerPool.applyNodeInfo(nodeInfo);
+	describe('#applySharedState', () => {
+		it('should set _sharedState', async () => {
+			peerPool.applySharedState(sharedState);
 
-			expect(peerPool.nodeInfo).to.equal(nodeInfo);
+			expect(peerPool.sharedState).to.equal(sharedState);
 		});
 
 		it('should call getPeers', async () => {
 			const getPeersStub = sandbox.stub(peerPool, 'getPeers').callThrough();
-			peerPool.applyNodeInfo(nodeInfo);
+			peerPool.applySharedState(sharedState);
 
 			expect(getPeersStub).to.be.calledOnce;
 		});
 
-		it('should call _applyNodeInfoOnPeer for each peer in peerMap', async () => {
-			const applyNodeInfoOnPeerStub = sandbox
-				.stub(peerPool as any, '_applyNodeInfoOnPeer')
+		it('should call _applySharedStateOnPeer for each peer in peerMap', async () => {
+			const applySharedStateOnPeerStub = sandbox
+				.stub(peerPool as any, '_applySharedStateOnPeer')
 				.callThrough();
-			const applyNodeInfoOnPeerCalls = applyNodeInfoOnPeerStub.getCalls()
+			const applySharedStateOnPeerCalls = applySharedStateOnPeerStub.getCalls()
 				.length;
 
-			expect(applyNodeInfoOnPeerCalls).eql(peerPool.getPeers().length);
+			expect(applySharedStateOnPeerCalls).eql(peerPool.getPeers().length);
 		});
 	});
 
@@ -261,7 +261,7 @@ describe('peerPool', () => {
 
 			expect(_peerSelectForRequestStub).to.be.calledWith({
 				peers,
-				nodeInfo: peerPool.nodeInfo,
+				sharedState: peerPool.sharedState,
 				peerLimit: 1,
 				requestPacket,
 			});
@@ -381,7 +381,7 @@ describe('peerPool', () => {
 			expect(peerPool['_peerSelectForConnection']).to.be.calledWith({
 				newPeers: [],
 				triedPeers: [],
-				nodeInfo: peerPool.nodeInfo,
+				sharedState: peerPool.sharedState,
 				peerLimit: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			});
 		});
@@ -425,19 +425,19 @@ describe('peerPool', () => {
 			expect(_bindHandlersToPeerStub).to.be.calledOnce;
 		});
 
-		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
-			(peerPool as any)._nodeInfo = {
+		it('should call _applySharedStateOnPeer if _sharedState exists', async () => {
+			(peerPool as any)._sharedState = {
 				os: 'darwin',
 				protocolVersion: '1.0.1',
 				version: '1.1',
 			};
-			let _applyNodeInfoOnPeerStub = sandbox.stub(
+			let _applySharedStateOnPeerStub = sandbox.stub(
 				peerPool as any,
-				'_applyNodeInfoOnPeer',
+				'_applySharedStateOnPeer',
 			);
 			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
-			expect(_applyNodeInfoOnPeerStub).to.have.been.calledOnce;
+			expect(_applySharedStateOnPeerStub).to.have.been.calledOnce;
 		});
 
 		it('should return peer object', async () => {
@@ -490,21 +490,21 @@ describe('peerPool', () => {
 			expect(_bindHandlersToPeerStub).to.be.calledOnce;
 		});
 
-		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
+		it('should call _applySharedStateOnPeer if _sharedState exists', async () => {
 			hasPeerStub.returns(false);
 			getPeersStub.returns([]);
-			(peerPool as any)._nodeInfo = {
+			(peerPool as any)._sharedState = {
 				os: 'darwin',
 				protocolVersion: '1.0.1',
 				version: '1.1',
 			};
-			let _applyNodeInfoOnPeerStub = sandbox.stub(
+			let _applySharedStateOnPeerStub = sandbox.stub(
 				peerPool as any,
-				'_applyNodeInfoOnPeer',
+				'_applySharedStateOnPeer',
 			);
 			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
 
-			expect(_applyNodeInfoOnPeerStub).to.have.been.calledOnce;
+			expect(_applySharedStateOnPeerStub).to.have.been.calledOnce;
 		});
 
 		it('should return peer object', async () => {
@@ -761,7 +761,7 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe.skip('#_applyNodeInfoOnPeer', () => {});
+	describe.skip('#_applySharedStateOnPeer', () => {});
 
 	describe('#filterPeersByCategory', () => {
 		const originalPeers = [...new Array(10).keys()].map(i => ({

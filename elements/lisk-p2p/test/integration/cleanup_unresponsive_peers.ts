@@ -64,9 +64,9 @@ describe('Cleanup unresponsive peers', () => {
 		const expectedPeerPortsAfterPeerCrash = peerPortsbeforePeerCrash.filter(
 			port => {
 				return (
-					port !== p2pNodeList[0].nodeInfo.wsPort &&
-					port !== p2pNodeList[1].nodeInfo.wsPort &&
-					port !== p2pNodeList[2].nodeInfo.wsPort
+					port !== p2pNodeList[0].sharedState.wsPort &&
+					port !== p2pNodeList[1].sharedState.wsPort &&
+					port !== p2pNodeList[2].sharedState.wsPort
 				);
 			},
 		);

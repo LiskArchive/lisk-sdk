@@ -18,7 +18,7 @@ import {
 	validatePeerInfo,
 	validateRPCRequest,
 	validateProtocolMessage,
-	validateNodeInfo,
+	validateSharedState,
 	validatePeerInfoList,
 	constructPeerId,
 } from '../../../src/utils';
@@ -207,11 +207,11 @@ describe('utils/validate', () => {
 		});
 	});
 
-	describe('#validateNodeInfo', () => {
-		describe('when NodeInfo is larger than maximum allowed size', () => {
+	describe('#validateSharedState', () => {
+		describe('when SharedState is larger than maximum allowed size', () => {
 			const maximum_size = 10;
 
-			const NodeInfo: P2PSharedState = {
+			const SharedState: P2PSharedState = {
 				wsPort: 5393,
 				advertiseAddress: true,
 				os: '12.23.54.3',
@@ -225,9 +225,11 @@ describe('utils/validate', () => {
 				nonce: 'nonce678',
 			};
 
-			it('should throw Invalid NodeInfo maximum allowed size error', async () => {
-				expect(validateNodeInfo.bind(null, NodeInfo, maximum_size)).to.throw(
-					`Invalid NodeInfo was larger than the maximum allowed ${maximum_size} bytes`,
+			it('should throw Invalid SharedState maximum allowed size error', async () => {
+				expect(
+					validateSharedState.bind(null, SharedState, maximum_size),
+				).to.throw(
+					`Invalid SharedState was larger than the maximum allowed ${maximum_size} bytes`,
 				);
 			});
 		});

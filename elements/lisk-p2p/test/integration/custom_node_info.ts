@@ -16,12 +16,12 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
-describe('Custom nodeInfo', () => {
+describe('Custom sharedState', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
 		const customConfig = () => ({
-			nodeInfo: {
+			sharedState: {
 				modules: {
 					names: ['test', 'crypto'],
 					active: true,

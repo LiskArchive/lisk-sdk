@@ -49,7 +49,7 @@ describe('P2P.sendToPeer', () => {
 			expect(msg)
 				.to.have.property('peerId')
 				.which.is.equal(
-					constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
+					constructPeerId(SEED_PEER_IP, firstP2PNode.sharedState.wsPort),
 				);
 			expect(msg)
 				.to.have.property('event')

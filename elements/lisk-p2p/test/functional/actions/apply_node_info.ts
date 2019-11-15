@@ -14,12 +14,12 @@
  */
 import { expect } from 'chai';
 import { P2P, EVENT_MESSAGE_RECEIVED } from '../../../src/index';
-import { InvalidNodeInfoError } from '../../../src/errors';
+import { InvalidSharedStateError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
 import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
-describe('P2P.applyNodeInfo', () => {
+describe('P2P.applySharedState', () => {
 	let p2pNodeList: P2P[] = [];
 	let collectedMessages: Array<any> = [];
 
@@ -30,7 +30,7 @@ describe('P2P.applyNodeInfo', () => {
 		for (let p2p of p2pNodeList) {
 			p2p.on(EVENT_MESSAGE_RECEIVED, request => {
 				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
+					nodePort: p2p.sharedState.wsPort,
 					request,
 				});
 			});
@@ -38,15 +38,15 @@ describe('P2P.applyNodeInfo', () => {
 
 		const firstP2PNode = p2pNodeList[0];
 
-		firstP2PNode.applyNodeInfo({
-			wsPort: firstP2PNode.nodeInfo.wsPort,
+		firstP2PNode.applySharedState({
+			wsPort: firstP2PNode.sharedState.wsPort,
 			os: platform(),
 			nethash:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: firstP2PNode.nodeInfo.version,
+			version: firstP2PNode.sharedState.version,
 			protocolVersion: '1.1',
 			height: 10,
-			options: firstP2PNode.nodeInfo.options,
+			options: firstP2PNode.sharedState.options,
 			nonce: 'nonce',
 			advertiseAddress: true,
 		});
@@ -58,29 +58,29 @@ describe('P2P.applyNodeInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should throw error when applying too large NodeInfo', async () => {
+	it('should throw error when applying too large SharedState', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		expect(() =>
-			firstP2PNode.applyNodeInfo({
-				wsPort: firstP2PNode.nodeInfo.wsPort,
+			firstP2PNode.applySharedState({
+				wsPort: firstP2PNode.sharedState.wsPort,
 				os: platform(),
 				nethash:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				version: firstP2PNode.nodeInfo.version,
+				version: firstP2PNode.sharedState.version,
 				protocolVersion: '1.1',
-				options: firstP2PNode.nodeInfo.options,
+				options: firstP2PNode.sharedState.options,
 				junk: '1.'.repeat(13000),
 				nonce: 'nonce',
 				advertiseAddress: true,
 			}),
 		).to.throw(
-			InvalidNodeInfoError,
-			'NodeInfo was larger than the maximum allowed 20480 bytes',
+			InvalidSharedStateError,
+			'SharedState was larger than the maximum allowed 20480 bytes',
 		);
 	});
 
-	it('should send the node info to peers', async () => {
+	it('should send the shared state to peers', async () => {
 		const firstP2PNode = p2pNodeList[0];
 		const nodePortToMessagesMap: any = {};
 
@@ -104,7 +104,7 @@ describe('P2P.applyNodeInfo', () => {
 				(receivedMessages: any) =>
 					receivedMessages &&
 					receivedMessages[0] &&
-					receivedMessages[0].nodePort !== firstP2PNode.nodeInfo.wsPort,
+					receivedMessages[0].nodePort !== firstP2PNode.sharedState.wsPort,
 			)
 			.forEach((receivedMessages: any) => {
 				expect(receivedMessages.length).to.be.equal(1);
@@ -120,17 +120,17 @@ describe('P2P.applyNodeInfo', () => {
 				.getConnectedPeers()
 				.find(
 					peerInfo =>
-						peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+						peerInfo.sharedState.wsPort === firstP2PNode.sharedState.wsPort,
 				);
 			expect(firstP2PNodePeerInfo).to.exist;
 			expect(firstP2PNodePeerInfo)
 				.to.have.property('sharedState')
 				.to.have.property('wsPort')
-				.which.equals(firstP2PNode.nodeInfo.wsPort);
+				.which.equals(firstP2PNode.sharedState.wsPort);
 		}
 	});
 
-	it('should update itself and reflect new node info', async () => {
+	it('should update itself and reflect new shared state', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
@@ -139,14 +139,14 @@ describe('P2P.applyNodeInfo', () => {
 				.getConnectedPeers()
 				.find(
 					peerInfo =>
-						peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+						peerInfo.sharedState.wsPort === firstP2PNode.sharedState.wsPort,
 				);
 
 			const allPeersList = p2pNode['_peerBook'].allPeers;
 
 			const firstNodeInAllPeersList = allPeersList.find(
 				peerInfo =>
-					peerInfo.sharedState.wsPort === firstP2PNode.nodeInfo.wsPort,
+					peerInfo.sharedState.wsPort === firstP2PNode.sharedState.wsPort,
 			);
 
 			// Check if the peerinfo is updated in new peer list

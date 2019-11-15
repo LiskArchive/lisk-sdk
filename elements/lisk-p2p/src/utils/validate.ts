@@ -21,11 +21,11 @@ import {
 	PEER_INFO_LIST_TOO_LONG_REASON,
 } from '../constants';
 import {
-	InvalidNodeInfoError,
 	InvalidPeerInfoError,
 	InvalidPeerInfoListError,
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
+	InvalidSharedStateError,
 } from '../errors';
 import {
 	P2PCompatibilityCheckReturnType,
@@ -45,7 +45,7 @@ const IPV6_NUMBER = 6;
 
 const validateNetworkCompatibility = (
 	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PSharedState,
+	sharedState: P2PSharedState,
 ): boolean => {
 	if (!peerInfo.sharedState) {
 		return false;
@@ -55,12 +55,12 @@ const validateNetworkCompatibility = (
 		return false;
 	}
 
-	return peerInfo.sharedState.nethash === nodeInfo.nethash;
+	return peerInfo.sharedState.nethash === sharedState.nethash;
 };
 
 const validateProtocolVersionCompatibility = (
 	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PSharedState,
+	sharedState: P2PSharedState,
 ): boolean => {
 	if (!peerInfo.sharedState) {
 		return false;
@@ -68,7 +68,7 @@ const validateProtocolVersionCompatibility = (
 
 	if (
 		typeof peerInfo.sharedState.protocolVersion !== 'string' ||
-		typeof nodeInfo.protocolVersion !== 'string'
+		typeof sharedState.protocolVersion !== 'string'
 	) {
 		return false;
 	}
@@ -77,23 +77,26 @@ const validateProtocolVersionCompatibility = (
 		peerInfo.sharedState.protocolVersion.split('.')[0],
 		10,
 	);
-	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
+	const systemHardForks = parseInt(
+		sharedState.protocolVersion.split('.')[0],
+		10,
+	);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
 
 export const validatePeerCompatibility = (
 	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PSharedState,
+	sharedState: P2PSharedState,
 ): P2PCompatibilityCheckReturnType => {
-	if (!validateNetworkCompatibility(peerInfo, nodeInfo)) {
+	if (!validateNetworkCompatibility(peerInfo, sharedState)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_NETWORK_REASON,
 		};
 	}
 
-	if (!validateProtocolVersionCompatibility(peerInfo, nodeInfo)) {
+	if (!validateProtocolVersionCompatibility(peerInfo, sharedState)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -149,15 +152,15 @@ export const validatePeerInfo = (
 	return peerInfo;
 };
 
-export const validateNodeInfo = (
-	nodeInfo: P2PSharedState,
+export const validateSharedState = (
+	sharedState: P2PSharedState,
 	maxByteSize: number,
 ): void => {
-	const byteSize = getByteSize(nodeInfo);
+	const byteSize = getByteSize(sharedState);
 
 	if (byteSize > maxByteSize) {
-		throw new InvalidNodeInfoError(
-			`Invalid NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+		throw new InvalidSharedStateError(
+			`Invalid SharedState was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
 

@@ -25,7 +25,7 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 describe('GET /peers', () => {
 	const peersEndpoint = new SwaggerEndpoint('GET /peers');
 	const peerSetting = generatePeerHeader();
-	const validHeaders = peerSetting.nodeInfo;
+	const validHeaders = peerSetting.sharedState;
 	let p2p1;
 	let p2p2;
 

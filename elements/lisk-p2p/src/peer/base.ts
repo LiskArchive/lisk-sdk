@@ -25,9 +25,9 @@ import {
 	INVALID_PEER_LIST_PENALTY,
 } from '../constants';
 import {
-	InvalidNodeInfoError,
 	InvalidPeerInfoError,
 	InvalidPeerInfoListError,
+	InvalidSharedStateError,
 	RPCResponseError,
 } from '../errors';
 import {
@@ -57,10 +57,10 @@ import {
 } from '../p2p_types';
 import {
 	getNetgroup,
-	validateNodeInfo,
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
+	validateSharedState,
 } from '../utils';
 
 export const socketErrorStatusCodes = {
@@ -102,7 +102,7 @@ export interface PeerConfig {
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
-	readonly nodeInfo?: P2PSharedState;
+	readonly sharedState?: P2PSharedState;
 }
 
 export class Peer extends EventEmitter {
@@ -124,7 +124,7 @@ export class Peer extends EventEmitter {
 	protected _peerInfo: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
-	protected _nodeInfo: P2PSharedState | undefined;
+	protected _sharedState: P2PSharedState | undefined;
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
@@ -159,7 +159,7 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
-		this._nodeInfo = peerConfig.nodeInfo;
+		this._sharedState = peerConfig.sharedState;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
 			packet: unknown,
@@ -191,13 +191,13 @@ export class Peer extends EventEmitter {
 					data: rawRequest.data,
 					id: this.peerInfo.peerId,
 					rate,
-					productivity: this._productivity,
+					productivity: this.productivity,
 				},
 				respond,
 			);
 
 			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				request.end(this.nodeInfo);
+				request.end(this.sharedState);
 			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
@@ -232,7 +232,7 @@ export class Peer extends EventEmitter {
 			};
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
-				this._handlePostNodeInfo(message);
+				this._handlePostSharedState(message);
 			}
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
@@ -256,7 +256,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public get responseRate(): number {
-		return this._productivity.responseRate;
+		return this.productivity.responseRate;
 	}
 
 	public get productivity(): Productivity {
@@ -281,19 +281,19 @@ export class Peer extends EventEmitter {
 		return this._peerInfo;
 	}
 
-	public get nodeInfo(): P2PSharedState | undefined {
-		return this._nodeInfo;
+	public get sharedState(): P2PSharedState | undefined {
+		return this._sharedState;
 	}
 
 	/**
 	 * Updates the node latest status and sends the same information to all other peers.
-	 * @param nodeInfo information about the node latest status
+	 * @param sharedState information about the node latest status
 	 */
-	public applyNodeInfo(nodeInfo: P2PSharedState): void {
-		this._nodeInfo = nodeInfo;
+	public applySharedState(sharedState: P2PSharedState): void {
+		this._sharedState = sharedState;
 		this.send({
 			event: REMOTE_EVENT_POST_NODE_INFO,
-			data: nodeInfo,
+			data: sharedState,
 		});
 	}
 
@@ -418,12 +418,12 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			this._updatePeerNodeInfo(response.data);
+			this._updatePeerSharedState(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			// Apply penalty for malformed PeerInfo
-			if (error instanceof InvalidNodeInfoError) {
+			if (error instanceof InvalidSharedStateError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
@@ -433,15 +433,15 @@ export class Peer extends EventEmitter {
 			);
 		}
 
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+		this.emit(EVENT_UPDATED_PEER_INFO, this.peerInfo);
 
 		// Return the updated detailed peer info.
-		return this._peerInfo;
+		return this.peerInfo;
 	}
 
 	public applyPenalty(penalty: number): void {
 		this._reputation -= penalty;
-		if (this._reputation <= 0) {
+		if (this.reputation <= 0) {
 			this._banPeer();
 		}
 	}
@@ -451,7 +451,7 @@ export class Peer extends EventEmitter {
 			(this._wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
 		this._wsMessageCount = 0;
 
-		if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
+		if (this.wsMessageRate > this._peerConfig.wsMaxMessageRate) {
 			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
 
 			return;
@@ -479,19 +479,19 @@ export class Peer extends EventEmitter {
 	private _resetProductivity(): void {
 		// If peer has not recently responded, reset productivity to 0
 		if (
-			this._productivity.lastResponded <
+			this.productivity.lastResponded <
 			Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
 		) {
 			this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
-	private _updatePeerNodeInfo(rawSharedState: unknown): void {
-		if (!this.nodeInfo) {
-			throw new Error('Missing server node info.');
+	private _updatePeerSharedState(rawSharedState: unknown): void {
+		if (!this.sharedState) {
+			throw new Error('Missing server shared state.');
 		}
 
-		// Sanitize and validate PeerNodeInfo
-		validateNodeInfo(
+		// Sanitize and validate PeerSharedState
+		validateSharedState(
 			rawSharedState as P2PSharedState,
 			this._peerConfig.maxPeerInfoSize,
 		);
@@ -507,17 +507,17 @@ export class Peer extends EventEmitter {
 				wsPort: this.peerInfo.sharedState.wsPort,
 				advertiseAddress: this.peerInfo.sharedState.advertiseAddress,
 			},
-			internalState: this._peerInfo.internalState,
+			internalState: this.peerInfo.internalState,
 		};
 	}
 
-	private _handlePostNodeInfo(message: P2PMessagePacket): void {
-		// Update peerInfo with the latest node info from the remote peer.
+	private _handlePostSharedState(message: P2PMessagePacket): void {
+		// Update peerInfo with the latest shared state from the remote peer.
 		try {
-			this._updatePeerNodeInfo(message.data);
+			this._updatePeerSharedState(message.data);
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
-			if (error instanceof InvalidNodeInfoError) {
+			if (error instanceof InvalidSharedStateError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
@@ -525,7 +525,7 @@ export class Peer extends EventEmitter {
 
 			return;
 		}
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+		this.emit(EVENT_UPDATED_PEER_INFO, this.peerInfo);
 	}
 
 	private _banPeer(): void {

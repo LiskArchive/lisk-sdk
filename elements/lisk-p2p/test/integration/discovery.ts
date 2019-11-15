@@ -100,7 +100,7 @@ describe('Peer discovery', () => {
 
 			// The current node should not be in its own peer list.
 			const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-				return port !== p2p.nodeInfo.wsPort;
+				return port !== p2p.sharedState.wsPort;
 			});
 
 			expect(peerPorts).to.be.eql(expectedPeerPorts);
@@ -129,7 +129,7 @@ describe('Peer discovery', () => {
 
 			// The current node should not be in its own peer list.
 			const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-				return port !== p2p.nodeInfo.wsPort;
+				return port !== p2p.sharedState.wsPort;
 			});
 
 			expect(expectedPeerPorts).to.include.members(peerPorts);
@@ -149,7 +149,7 @@ describe('Peer discovery', () => {
 				.sort();
 
 			expect([...allPeersPorts, ...connectedPeerPorts]).to.not.contain.members([
-				p2p.nodeInfo.peerId,
+				p2p.sharedState.peerId,
 			]);
 		}
 	});
@@ -197,7 +197,7 @@ describe('Peer discovery', () => {
 			populatorInterval: POPULATOR_INTERVAL,
 			maxOutboundConnections: 1,
 			maxInboundConnections: 0,
-			nodeInfo: {
+			sharedState: {
 				wsPort: 5020,
 				advertiseAddress: true,
 				nethash: 'aaa',

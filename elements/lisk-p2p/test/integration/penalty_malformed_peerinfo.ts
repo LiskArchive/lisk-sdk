@@ -33,17 +33,17 @@ describe('penalty sending malformed peerInfo', () => {
 			collectedEvents.set(EVENT_BAN_PEER, peerId);
 		});
 
-		p2pNodeList[0].applyNodeInfo({
-			wsPort: p2pNodeList[0].nodeInfo.wsPort,
+		p2pNodeList[0].applySharedState({
+			wsPort: p2pNodeList[0].sharedState.wsPort,
 			advertiseAddress: true,
 			os: platform(),
 			nethash:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: p2pNodeList[0].nodeInfo.version,
+			version: p2pNodeList[0].sharedState.version,
 			protocolVersion: '1.1',
 			height: 10,
 			nonce: 'nonce',
-			options: p2pNodeList[0].nodeInfo.options,
+			options: p2pNodeList[0].sharedState.options,
 			invalidData: '1.'.repeat(13000),
 		});
 

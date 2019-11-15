@@ -29,13 +29,15 @@ describe('P2P.requestFromPeer', () => {
 			p2p.on('requestReceived', request => {
 				if (request.procedure === 'foo') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.sharedState.wsPort,
 						request,
 					});
 				}
 
 				if (request.procedure === 'getGreeting') {
-					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`);
+					request.end(
+						`Hello ${request.data} from peer ${p2p.sharedState.wsPort}`,
+					);
 				} else {
 					if (!request.wasResponseSent) {
 						request.end(456);
