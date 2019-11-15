@@ -476,7 +476,7 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
-			describe('when _updateFromProtocolPeerInfo() fails', () => {
+			describe('when _updatePeerNodeInfo() fails', () => {
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
 						data: {
@@ -515,7 +515,7 @@ describe('peer/base', () => {
 				});
 			});
 
-			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
+			describe('when _updatePeerNodeInfo() succeeds', () => {
 				const peer = {
 					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',

@@ -232,7 +232,7 @@ export class Peer extends EventEmitter {
 			};
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
-				this._handleUpdatePeerInfo(message);
+				this._handlePostNodeInfo(message);
 			}
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
@@ -418,7 +418,7 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			this._updateFromProtocolPeerInfo(response.data);
+			this._updatePeerNodeInfo(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
@@ -485,12 +485,12 @@ export class Peer extends EventEmitter {
 			this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
-	private _updateFromProtocolPeerInfo(rawSharedState: unknown): void {
+	private _updatePeerNodeInfo(rawSharedState: unknown): void {
 		if (!this.nodeInfo) {
 			throw new Error('Missing server node info.');
 		}
 
-		// Sanitize and validate PeerInfo
+		// Sanitize and validate PeerNodeInfo
 		validateNodeInfo(
 			rawSharedState as P2PSharedState,
 			this._peerConfig.maxPeerInfoSize,
@@ -511,10 +511,10 @@ export class Peer extends EventEmitter {
 		};
 	}
 
-	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {
-		// Update peerInfo with the latest values from the remote peer.
+	private _handlePostNodeInfo(message: P2PMessagePacket): void {
+		// Update peerInfo with the latest node info from the remote peer.
 		try {
-			this._updateFromProtocolPeerInfo(message.data);
+			this._updatePeerNodeInfo(message.data);
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
 			if (error instanceof InvalidNodeInfoError) {
