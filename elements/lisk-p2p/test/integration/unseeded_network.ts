@@ -24,6 +24,7 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 		// Make sure that integration tests use real timers.
 		const customConfig = () => ({
 			seedPeers: [],
+			fixedPeers: [],
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });

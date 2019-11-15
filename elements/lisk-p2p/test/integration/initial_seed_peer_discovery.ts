@@ -34,10 +34,11 @@ describe('Initial Seed Peer Discovery', () => {
 	beforeEach(async () => {
 		const customConfig = () => ({
 			populatorInterval: POPULATOR_INTERVAL,
+			fixedPeers: [],
 		});
 
 		p2pNodeList = await createNetwork({
-			networkDiscoveryWaitTime: 1,
+			networkDiscoveryWaitTime: 0,
 			customConfig,
 		});
 
@@ -48,6 +49,8 @@ describe('Initial Seed Peer Discovery', () => {
 				}
 			});
 		});
+
+		await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 	});
 
 	afterEach(async () => {

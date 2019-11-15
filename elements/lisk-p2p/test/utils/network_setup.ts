@@ -83,6 +83,7 @@ export const createNetwork = async ({
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			seedPeers: defaultSeedPeers,
+			fixedPeers: defaultSeedPeers,
 			wsEngine: WEB_SOCKET_ENGINE,
 			populatorInterval:
 				POPULATOR_INTERVAL +
@@ -105,13 +106,16 @@ export const createNetwork = async ({
 
 		return new P2P(p2pConfig);
 	});
-	await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 
-	await wait(
-		networkDiscoveryWaitTime
-			? networkDiscoveryWaitTime
-			: NETWORK_CREATION_WAIT_TIME,
-	);
+	if (networkDiscoveryWaitTime !== 0) {
+		await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+
+		await wait(
+			networkDiscoveryWaitTime
+				? networkDiscoveryWaitTime
+				: NETWORK_CREATION_WAIT_TIME,
+		);
+	}
 
 	return p2pNodeList;
 };

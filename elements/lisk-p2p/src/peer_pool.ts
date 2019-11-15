@@ -307,10 +307,16 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const peerInfos = this.getAllConnectedPeerInfos();
+		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
+
+		const peerInfoForRequest =
+			outboundPeerInfos.length === 0
+				? this.getAllConnectedPeerInfos()
+				: outboundPeerInfos;
+
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: peerInfos,
+			peers: peerInfoForRequest,
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -409,13 +415,14 @@ export class PeerPool extends EventEmitter {
 		);
 
 		seedPeersForFetch.map(peer => {
-			this.fetchPeeersAndDisconnect(peer);
-		});
-	}
-
-	public fetchPeeersAndDisconnect(peerInfo: P2PPeerInfo): void {
-		this._addOutboundPeer(peerInfo, this._nodeInfo as P2PNodeInfo, {
-			fetchPeersAndDisconnect: true,
+			// From FixedPeers we should not disconnect
+			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo, {
+				fetchPeersAndDisconnect: this._peerLists.fixedPeers.find(
+					fixedPeer => fixedPeer.peerId === peer.peerId,
+				)
+					? false
+					: true,
+			});
 		});
 	}
 
