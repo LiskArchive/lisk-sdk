@@ -285,19 +285,6 @@ export class Peer extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public updatePeerInfo(newSharedState: P2PSharedState): void {
-		// Peer Id, ip address and wsPort properties cannot be updated after the initial discovery.
-		this._peerInfo = {
-			ipAddress: this.peerInfo.ipAddress,
-			peerId: this.peerInfo.peerId,
-			sharedState: {
-				...newSharedState,
-				wsPort: this.peerInfo.sharedState.wsPort,
-			},
-			internalState: this._peerInfo.internalState,
-		};
-	}
-
 	/**
 	 * Updates the node latest status and sends the same information to all other peers.
 	 * @param nodeInfo information about the node latest status
@@ -509,7 +496,19 @@ export class Peer extends EventEmitter {
 			this._peerConfig.maxPeerInfoSize,
 		);
 
-		this.updatePeerInfo(rawSharedState as P2PSharedState);
+		const newSharedState = rawSharedState as P2PSharedState;
+
+		// Peer Id, ip address, wsPort and advertiseAddress properties cannot be updated after the initial discovery.
+		this._peerInfo = {
+			ipAddress: this.peerInfo.ipAddress,
+			peerId: this.peerInfo.peerId,
+			sharedState: {
+				...newSharedState,
+				wsPort: this.peerInfo.sharedState.wsPort,
+				advertiseAddress: this.peerInfo.sharedState.advertiseAddress,
+			},
+			internalState: this._peerInfo.internalState,
+		};
 	}
 
 	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {

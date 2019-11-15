@@ -48,7 +48,6 @@ describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
 	let nodeInfo: P2PSharedState;
-	let p2pDiscoveredPeerInfo: P2PPeerInfo;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
 
@@ -92,23 +91,6 @@ describe('peer/base', () => {
 			height: 100,
 			nonce: 'nonce',
 			advertiseAddress: true,
-		};
-		p2pDiscoveredPeerInfo = {
-			peerId: constructPeerId(
-				defaultPeerInfo.ipAddress,
-				defaultPeerInfo.sharedState.wsPort,
-			),
-			ipAddress: defaultPeerInfo.ipAddress,
-			sharedState: {
-				wsPort: defaultPeerInfo.sharedState.wsPort,
-				advertiseAddress: true,
-				height: 1000,
-				updatedAt: new Date(),
-				os: 'MYOS',
-				version: '1.3.0',
-				protocolVersion: '1.3',
-			},
-			internalState: undefined,
 		};
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
 	});
@@ -198,13 +180,6 @@ describe('peer/base', () => {
 			});
 		});
 	});
-
-	describe('#updatePeerInfo', () =>
-		it('should update peer info', () => {
-			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo.sharedState);
-
-			expect(defaultPeer.peerInfo).to.be.eql(p2pDiscoveredPeerInfo);
-		}));
 
 	describe('#applyNodeInfo', async () => {
 		beforeEach(() => {
@@ -556,18 +531,9 @@ describe('peer/base', () => {
 
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
-						data: peer,
+						data: peer.sharedState,
 					});
-					sandbox.stub(defaultPeer, 'updatePeerInfo');
 					sandbox.stub(defaultPeer, 'emit');
-				});
-
-				it(`should call updatePeerInfo()`, async () => {
-					await defaultPeer.fetchAndUpdateStatus();
-
-					expect((defaultPeer as any).updatePeerInfo).to.be.calledWithExactly(
-						peer,
-					);
 				});
 
 				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
@@ -578,9 +544,29 @@ describe('peer/base', () => {
 					);
 				});
 
-				it('should return fetched peer info', async () => {
+				it('should return just fetched and updated peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
-					expect(peerInfo).to.be.eql(defaultPeerInfo);
+					expect(peerInfo.peerId).to.be.eql(defaultPeerInfo.peerId);
+					expect(peerInfo.ipAddress).to.be.eql(defaultPeerInfo.ipAddress);
+					expect(peerInfo.internalState).to.be.eql(
+						defaultPeerInfo.internalState,
+					);
+					expect(peerInfo.sharedState.wsPort).to.be.eql(
+						defaultPeerInfo.sharedState.wsPort,
+					);
+					const {
+						wsPort,
+						advertiseAddress,
+						...sharedStateWithoutWSPort
+					} = peer.sharedState;
+					const {
+						wsPort: _wsPort,
+						advertiseAddress: _advertiseAddress,
+						...sharedStateWithoutWSPortDefault
+					} = peer.sharedState;
+					expect(sharedStateWithoutWSPort).to.be.eql(
+						sharedStateWithoutWSPortDefault,
+					);
 				});
 			});
 		});
