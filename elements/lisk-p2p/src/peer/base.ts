@@ -124,7 +124,6 @@ export class Peer extends EventEmitter {
 	protected _peerInfo: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
-	protected _sharedState: P2PSharedState | undefined;
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
@@ -159,7 +158,6 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
-		this._sharedState = peerConfig.sharedState;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
 			packet: unknown,
@@ -195,10 +193,6 @@ export class Peer extends EventEmitter {
 				},
 				respond,
 			);
-
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				request.end(this.sharedState);
-			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
@@ -279,22 +273,6 @@ export class Peer extends EventEmitter {
 
 	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
-	}
-
-	public get sharedState(): P2PSharedState | undefined {
-		return this._sharedState;
-	}
-
-	/**
-	 * Updates the node latest status and sends the same information to all other peers.
-	 * @param sharedState information about the node latest status
-	 */
-	public applySharedState(sharedState: P2PSharedState): void {
-		this._sharedState = sharedState;
-		this.send({
-			event: REMOTE_EVENT_POST_NODE_INFO,
-			data: sharedState,
-		});
 	}
 
 	public connect(): void {
@@ -486,8 +464,8 @@ export class Peer extends EventEmitter {
 		}
 	}
 	private _updatePeerSharedState(rawSharedState: unknown): void {
-		if (!this.sharedState) {
-			throw new Error('Missing server shared state.');
+		if (!this.peerInfo.sharedState) {
+			throw new Error('Missing peer shared state.');
 		}
 
 		// Sanitize and validate PeerSharedState

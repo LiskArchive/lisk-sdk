@@ -228,9 +228,9 @@ describe('peerPool', () => {
 			expect(getPeersStub).to.be.calledOnce;
 		});
 
-		it('should call _applySharedStateOnPeer for each peer in peerMap', async () => {
+		it('should call _sendSharedStateToPeer for each peer in peerMap', async () => {
 			const applySharedStateOnPeerStub = sandbox
-				.stub(peerPool as any, '_applySharedStateOnPeer')
+				.stub(peerPool as any, '_sendSharedStateToPeer')
 				.callThrough();
 			const applySharedStateOnPeerCalls = applySharedStateOnPeerStub.getCalls()
 				.length;
@@ -425,7 +425,7 @@ describe('peerPool', () => {
 			expect(_bindHandlersToPeerStub).to.be.calledOnce;
 		});
 
-		it('should call _applySharedStateOnPeer if _sharedState exists', async () => {
+		it('should call _sendSharedStateToPeer if _sharedState exists', async () => {
 			(peerPool as any)._sharedState = {
 				os: 'darwin',
 				protocolVersion: '1.0.1',
@@ -433,7 +433,7 @@ describe('peerPool', () => {
 			};
 			let _applySharedStateOnPeerStub = sandbox.stub(
 				peerPool as any,
-				'_applySharedStateOnPeer',
+				'_sendSharedStateToPeer',
 			);
 			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
@@ -490,7 +490,7 @@ describe('peerPool', () => {
 			expect(_bindHandlersToPeerStub).to.be.calledOnce;
 		});
 
-		it('should call _applySharedStateOnPeer if _sharedState exists', async () => {
+		it('should call _sendSharedStateToPeer if sharedState exists', async () => {
 			hasPeerStub.returns(false);
 			getPeersStub.returns([]);
 			(peerPool as any)._sharedState = {
@@ -500,7 +500,7 @@ describe('peerPool', () => {
 			};
 			let _applySharedStateOnPeerStub = sandbox.stub(
 				peerPool as any,
-				'_applySharedStateOnPeer',
+				'_sendSharedStateToPeer',
 			);
 			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
 
@@ -761,7 +761,7 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe.skip('#_applySharedStateOnPeer', () => {});
+	describe.skip('#_sendSharedStateToPeer', () => {});
 
 	describe('#filterPeersByCategory', () => {
 		const originalPeers = [...new Array(10).keys()].map(i => ({

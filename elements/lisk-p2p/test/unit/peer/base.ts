@@ -32,12 +32,11 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	REMOTE_EVENT_POST_NODE_INFO,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
-import { P2PPeerInfo, P2PSharedState } from '../../../src';
+import { P2PPeerInfo } from '../../../src';
 
 const createSocketStubInstance = () => <SCServerSocket>({
 		emit: sandbox.stub(),
@@ -47,7 +46,6 @@ const createSocketStubInstance = () => <SCServerSocket>({
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
-	let sharedState: P2PSharedState;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
 
@@ -72,25 +70,6 @@ describe('peer/base', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
-			sharedState: {
-				os: 'os',
-				nethash: 'nethash',
-				version: '1.2.0',
-				protocolVersion: '1.2',
-				wsPort: 6001,
-				nonce: 'nonce',
-				advertiseAddress: true,
-			},
-		};
-		sharedState = {
-			wsPort: 6001,
-			os: 'os',
-			version: '1.2.0',
-			protocolVersion: '1.2',
-			nethash: 'nethash',
-			height: 100,
-			nonce: 'nonce',
-			advertiseAddress: true,
 		};
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
 	});
@@ -162,41 +141,6 @@ describe('peer/base', () => {
 	describe('#peerInfo', () =>
 		it('should get peerInfo property', () =>
 			expect(defaultPeer.peerInfo).to.be.eql(defaultPeerInfo)));
-
-	describe('#sharedState', () => {
-		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'request').resolves();
-		});
-
-		it('should get shared state', () => {
-			const socket = createSocketStubInstance();
-			(defaultPeer as any)._socket = socket;
-			defaultPeer.applySharedState(sharedState);
-
-			expect(defaultPeer.sharedState).to.eql(sharedState);
-			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
-				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: sharedState,
-			});
-		});
-	});
-
-	describe('#applySharedState', async () => {
-		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'send').resolves();
-		});
-
-		it('should apply shared state', async () => {
-			const socket = createSocketStubInstance();
-			(defaultPeer as any)._socket = socket;
-			defaultPeer.applySharedState(sharedState);
-
-			expect(defaultPeer.send).to.be.calledOnceWithExactly({
-				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: sharedState,
-			});
-		});
-	});
 
 	describe('#connect', () => {
 		it('should throw error if socket does not exist', () => {

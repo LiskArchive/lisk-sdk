@@ -48,6 +48,8 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_POST_NODE_INFO,
+	REMOTE_EVENT_RPC_GET_NODE_INFO,
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
@@ -200,6 +202,10 @@ export class PeerPool extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
+			if (request.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+				request.end(this.sharedState);
+			}
+
 			// Re-emit the request to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
@@ -293,7 +299,7 @@ export class PeerPool extends EventEmitter {
 		this._sharedState = sharedState;
 		const peerList = this.getPeers();
 		peerList.forEach(peer => {
-			this._applySharedStateOnPeer(peer, sharedState);
+			this._sendSharedStateToPeer(peer);
 		});
 	}
 
@@ -429,8 +435,7 @@ export class PeerPool extends EventEmitter {
 		});
 
 		[...peersToConnect, ...disconnectedFixedPeers].forEach(
-			(peerInfo: P2PPeerInfo) =>
-				this._addOutboundPeer(peerInfo, this._sharedState as P2PSharedState),
+			(peerInfo: P2PPeerInfo) => this._addOutboundPeer(peerInfo),
 		);
 	}
 
@@ -452,17 +457,14 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.peerInfo.peerId, peer);
 		this._bindHandlersToPeer(peer);
 		if (this.sharedState) {
-			this._applySharedStateOnPeer(peer, this.sharedState);
+			this._sendSharedStateToPeer(peer);
 		}
 		peer.connect();
 
 		return peer;
 	}
 
-	private _addOutboundPeer(
-		peerInfo: P2PPeerInfo,
-		sharedState: P2PSharedState,
-	): boolean {
+	private _addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {
 			return false;
 		}
@@ -482,13 +484,13 @@ export class PeerPool extends EventEmitter {
 		*/
 		const peer = new OutboundPeer(peerInfo, {
 			...this._peerConfig,
-			sharedState,
+			sharedState: this.sharedState,
 		});
 
 		this._peerMap.set(peer.peerInfo.peerId, peer);
 		this._bindHandlersToPeer(peer);
 		if (this.sharedState) {
-			this._applySharedStateOnPeer(peer, this.sharedState);
+			this._sendSharedStateToPeer(peer);
 		}
 
 		return true;
@@ -590,12 +592,12 @@ export class PeerPool extends EventEmitter {
 		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 	}
 
-	private _applySharedStateOnPeer(
-		peer: Peer,
-		sharedState: P2PSharedState,
-	): void {
+	private _sendSharedStateToPeer(peer: Peer): void {
 		try {
-			peer.applySharedState(sharedState);
+			peer.send({
+				event: REMOTE_EVENT_POST_NODE_INFO,
+				data: this.sharedState,
+			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		}

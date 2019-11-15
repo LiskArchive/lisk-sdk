@@ -108,8 +108,8 @@ export class OutboundPeer extends Peer {
 			hostname: this.peerInfo.ipAddress,
 			port: this.peerInfo.sharedState.wsPort,
 			query: querystring.stringify({
-				...this.sharedState,
-				options: JSON.stringify(this.sharedState),
+				...this._peerConfig.sharedState,
+				options: JSON.stringify(this._peerConfig.sharedState),
 			}),
 			connectTimeout,
 			ackTimeout,
