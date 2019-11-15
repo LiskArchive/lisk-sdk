@@ -102,7 +102,7 @@ export interface PeerConfig {
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
-	readonly serverNodeInfo?: P2PSharedState;
+	readonly nodeInfo?: P2PSharedState;
 }
 
 export class Peer extends EventEmitter {
@@ -124,7 +124,7 @@ export class Peer extends EventEmitter {
 	protected _peerInfo: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
-	protected _serverNodeInfo: P2PSharedState | undefined;
+	protected _nodeInfo: P2PSharedState | undefined;
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
@@ -159,7 +159,7 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
-		this._serverNodeInfo = peerConfig.serverNodeInfo;
+		this._nodeInfo = peerConfig.nodeInfo;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
 			packet: unknown,
@@ -282,7 +282,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public get nodeInfo(): P2PSharedState | undefined {
-		return this._serverNodeInfo;
+		return this._nodeInfo;
 	}
 
 	public updatePeerInfo(newSharedState: P2PSharedState): void {
@@ -303,7 +303,7 @@ export class Peer extends EventEmitter {
 	 * @param nodeInfo information about the node latest status
 	 */
 	public applyNodeInfo(nodeInfo: P2PSharedState): void {
-		this._serverNodeInfo = nodeInfo;
+		this._nodeInfo = nodeInfo;
 		this.send({
 			event: REMOTE_EVENT_POST_NODE_INFO,
 			data: nodeInfo,
@@ -499,7 +499,7 @@ export class Peer extends EventEmitter {
 		}
 	}
 	private _updateFromProtocolPeerInfo(rawSharedState: unknown): void {
-		if (!this._serverNodeInfo) {
+		if (!this.nodeInfo) {
 			throw new Error('Missing server node info.');
 		}
 

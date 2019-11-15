@@ -482,7 +482,7 @@ export class PeerPool extends EventEmitter {
 		*/
 		const peer = new OutboundPeer(peerInfo, {
 			...this._peerConfig,
-			serverNodeInfo: nodeInfo,
+			nodeInfo,
 		});
 
 		this._peerMap.set(peer.peerInfo.peerId, peer);

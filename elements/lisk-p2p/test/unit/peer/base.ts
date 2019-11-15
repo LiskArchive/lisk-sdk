@@ -73,7 +73,7 @@ describe('peer/base', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
-			serverNodeInfo: {
+			nodeInfo: {
 				os: 'os',
 				nethash: 'nethash',
 				version: '1.2.0',
@@ -533,7 +533,9 @@ describe('peer/base', () => {
 						.and.be.an.instanceOf(RPCResponseError)
 						.and.have.property(
 							'peerId',
-							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.sharedState.wsPort}`,
+							`${defaultPeerInfo.ipAddress}:${
+								defaultPeerInfo.sharedState.wsPort
+							}`,
 						);
 				});
 			});
@@ -563,9 +565,9 @@ describe('peer/base', () => {
 				it(`should call updatePeerInfo()`, async () => {
 					await defaultPeer.fetchAndUpdateStatus();
 
-					expect(
-						(defaultPeer as any).updatePeerInfo,
-					).to.be.calledWithExactly(peer);
+					expect((defaultPeer as any).updatePeerInfo).to.be.calledWithExactly(
+						peer,
+					);
 				});
 
 				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
