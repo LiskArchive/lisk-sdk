@@ -441,7 +441,7 @@ describe('Base transaction class', () => {
 			expect(errors).to.not.be.empty;
 		});
 
-		it.only('should throw descriptive error when networkIdentifier is missing', async () => {
+		it('should throw descriptive error when networkIdentifier is missing', async () => {
 			const transactionWithMissingNetworkIdentifier = {
 				...transferFixture.testCases.input.transaction,
 			};
