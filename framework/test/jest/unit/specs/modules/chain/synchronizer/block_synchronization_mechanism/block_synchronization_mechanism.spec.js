@@ -285,6 +285,7 @@ describe('block_synchronization_mechanism', () => {
 				},
 				{
 					sort: 'height:asc',
+					limit: blockHeightsList.length,
 				},
 			)
 			.mockResolvedValueOnce(blockList);
@@ -637,6 +638,7 @@ describe('block_synchronization_mechanism', () => {
 							},
 							{
 								sort: 'height:asc',
+								limit: blockHeightsList.length,
 							},
 						)
 						.mockResolvedValue(blockList);
