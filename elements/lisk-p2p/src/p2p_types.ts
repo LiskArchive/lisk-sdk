@@ -150,8 +150,8 @@ export interface P2PCompatibilityCheckReturnType {
 }
 
 export type P2PCheckPeerCompatibility = (
-	headers: P2PPeerInfo,
-	sharedState: P2PSharedState,
+	newSharedState: P2PSharedState,
+	mySharedState: P2PSharedState,
 ) => P2PCompatibilityCheckReturnType;
 
 export interface PeerLists {

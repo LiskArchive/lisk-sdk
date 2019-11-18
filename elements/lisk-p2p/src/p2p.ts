@@ -783,7 +783,7 @@ export class P2P extends EventEmitter {
 				}
 
 				const { success, error } = this._peerHandshakeCheck(
-					incomingPeerInfo,
+					incomingPeerInfo.sharedState,
 					this.sharedState,
 				);
 

@@ -36,7 +36,7 @@ import {
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
-import { P2PPeerInfo } from '../../../src';
+import { P2PPeerInfo, P2PSharedState } from '../../../src';
 
 const createSocketStubInstance = () => <SCServerSocket>({
 		emit: sandbox.stub(),
@@ -61,6 +61,7 @@ describe('peer/base', () => {
 				isDiscoveredPeer: true,
 				version: '1.1.1',
 				protocolVersion: '1.1',
+				nethash: 'nethash',
 			},
 		};
 		peerConfig = {
@@ -70,6 +71,7 @@ describe('peer/base', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			sharedState: defaultPeerInfo.sharedState,
 		};
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
 	});
@@ -460,22 +462,18 @@ describe('peer/base', () => {
 			});
 
 			describe('when _updatePeerSharedState() succeeds', () => {
-				const peer = {
-					peerId: constructPeerId('1.1.1.1', 1111),
-					ipAddress: '1.1.1.1',
-					sharedState: {
-						wsPort: 1111,
-						advertiseAddress: true,
-						height: 1,
-						protocolVersion: '1.2',
-						nethash: 'nethash',
-						os: 'darwin',
-					},
+				const sharedState: P2PSharedState = {
+					wsPort: 1111,
+					advertiseAddress: true,
+					height: 1,
+					protocolVersion: '1.2',
+					nethash: 'nethash',
+					os: 'darwin',
 				};
 
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
-						data: peer.sharedState,
+						data: sharedState,
 					});
 					sandbox.stub(defaultPeer, 'emit');
 				});
@@ -502,12 +500,12 @@ describe('peer/base', () => {
 						wsPort,
 						advertiseAddress,
 						...sharedStateWithoutWSPort
-					} = peer.sharedState;
+					} = sharedState;
 					const {
 						wsPort: _wsPort,
 						advertiseAddress: _advertiseAddress,
 						...sharedStateWithoutWSPortDefault
-					} = peer.sharedState;
+					} = sharedState;
 					expect(sharedStateWithoutWSPort).to.be.eql(
 						sharedStateWithoutWSPortDefault,
 					);

@@ -44,41 +44,33 @@ const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
 
 const validateNetworkCompatibility = (
-	peerInfo: P2PPeerInfo,
-	sharedState: P2PSharedState,
+	newSharedState: P2PSharedState,
+	mySharedState: P2PSharedState,
 ): boolean => {
-	if (!peerInfo.sharedState) {
+	if (!newSharedState.nethash) {
 		return false;
 	}
 
-	if (!peerInfo.sharedState.nethash) {
-		return false;
-	}
-
-	return peerInfo.sharedState.nethash === sharedState.nethash;
+	return newSharedState.nethash === mySharedState.nethash;
 };
 
 const validateProtocolVersionCompatibility = (
-	peerInfo: P2PPeerInfo,
-	sharedState: P2PSharedState,
+	newSharedState: P2PSharedState,
+	mySharedState: P2PSharedState,
 ): boolean => {
-	if (!peerInfo.sharedState) {
-		return false;
-	}
-
 	if (
-		typeof peerInfo.sharedState.protocolVersion !== 'string' ||
-		typeof sharedState.protocolVersion !== 'string'
+		typeof newSharedState.protocolVersion !== 'string' ||
+		typeof mySharedState.protocolVersion !== 'string'
 	) {
 		return false;
 	}
 
 	const peerHardForks = parseInt(
-		peerInfo.sharedState.protocolVersion.split('.')[0],
+		newSharedState.protocolVersion.split('.')[0],
 		10,
 	);
 	const systemHardForks = parseInt(
-		sharedState.protocolVersion.split('.')[0],
+		mySharedState.protocolVersion.split('.')[0],
 		10,
 	);
 
@@ -86,17 +78,17 @@ const validateProtocolVersionCompatibility = (
 };
 
 export const validatePeerCompatibility = (
-	peerInfo: P2PPeerInfo,
-	sharedState: P2PSharedState,
+	newSharedState: P2PSharedState,
+	mySharedState: P2PSharedState,
 ): P2PCompatibilityCheckReturnType => {
-	if (!validateNetworkCompatibility(peerInfo, sharedState)) {
+	if (!validateNetworkCompatibility(newSharedState, mySharedState)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_NETWORK_REASON,
 		};
 	}
 
-	if (!validateProtocolVersionCompatibility(peerInfo, sharedState)) {
+	if (!validateProtocolVersionCompatibility(newSharedState, mySharedState)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,

@@ -57,6 +57,7 @@ import {
 } from '../p2p_types';
 import {
 	getNetgroup,
+	validatePeerCompatibility,
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
@@ -466,10 +467,6 @@ export class Peer extends EventEmitter {
 		}
 	}
 	private _updatePeerSharedState(rawSharedState: unknown): void {
-		if (!this.info.sharedState) {
-			throw new Error('Missing peer shared state.');
-		}
-
 		// Sanitize and validate PeerSharedState
 		validateSharedState(
 			rawSharedState as P2PSharedState,
@@ -477,6 +474,16 @@ export class Peer extends EventEmitter {
 		);
 
 		const newSharedState = rawSharedState as P2PSharedState;
+
+		const result = validatePeerCompatibility(newSharedState, this.config
+			.sharedState as P2PSharedState);
+		if (!result.success && result.error) {
+			throw new Error(
+				`${result.error} : ${this.info.ipAddress}:${
+					this.info.sharedState.wsPort
+				}`,
+			);
+		}
 
 		// Peer Id, ip address, wsPort and advertiseAddress properties cannot be updated after the initial discovery.
 		this._info = {
