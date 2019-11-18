@@ -133,6 +133,28 @@ describe('Transport', () => {
 			});
 		});
 
+		describe('when the transaction is not in the pool', () => {
+			it('should not broadcast after 5 sec', async () => {
+				const tx = new TransferTransaction({
+					networkIdentifier: '1234567890',
+					asset: { amount: '100', recipientId: '123L' },
+				});
+				tx.sign('signature');
+				await transport.handleBroadcastTransaction(tx);
+				transactionPoolStub.transactionInPool.mockReturnValue(false);
+				jest.advanceTimersByTime(defaultBroadcastInterval);
+				expect(channelStub.invoke).not.toHaveBeenCalledWith(
+					'network:broadcast',
+					{
+						event: 'postTransactionsAnnouncement',
+						data: {
+							transactionIds: [tx.id],
+						},
+					},
+				);
+			});
+		});
+
 		describe('when 25 transactions are given', () => {
 			it('should enqueue to the broadcaster', async () => {
 				const txs = new Array(25).fill(0).map((_, v) => {
