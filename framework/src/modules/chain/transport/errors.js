@@ -15,9 +15,11 @@
 'use strict';
 
 class InvalidTransactionError extends Error {
-	constructor(message, id) {
+	constructor(message, id, errors) {
 		super(message);
+		this.message = message;
 		this.id = id;
+		this.errors = errors;
 	}
 }
 

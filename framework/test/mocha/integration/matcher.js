@@ -281,8 +281,8 @@ describe('matcher', () => {
 				expect(
 					scope.modules.transactionPool.transactionInPool(rawTransaction.id),
 				).to.be.false;
-				expect(err[0]).to.be.instanceOf(Error);
-				expect(err[0].message).to.equal(
+				expect(err).to.be.instanceOf(Error);
+				expect(err.message).to.contain(
 					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`,
 				);
 			}

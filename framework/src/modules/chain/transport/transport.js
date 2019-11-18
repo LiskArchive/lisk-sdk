@@ -447,8 +447,8 @@ class Transport {
 			};
 		} catch (err) {
 			return {
-				message: err.message || 'Transaction was rejected with errors',
-				errors: err,
+				message: 'Transaction was rejected with errors',
+				errors: err.errors || err,
 			};
 		}
 	}
@@ -575,7 +575,7 @@ class Transport {
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			const err = new InvalidTransactionError(errString, id);
+			const err = new InvalidTransactionError(errString, id, errors);
 			this.logger.error(
 				{
 					err,
