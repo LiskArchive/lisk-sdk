@@ -271,6 +271,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: 2,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
@@ -322,6 +323,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: 2,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
@@ -372,6 +374,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: 2,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
@@ -466,6 +469,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: heightList.length,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
@@ -536,6 +540,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: 2,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
@@ -626,6 +631,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: 2,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
@@ -703,6 +709,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: 2,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
@@ -826,6 +833,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						{
 							sort: 'height:asc',
+							limit: 2,
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
