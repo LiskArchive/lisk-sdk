@@ -506,12 +506,16 @@ export class P2P extends EventEmitter {
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
 	public applySharedState(sharedState: P2PSharedState): void {
-		validateSharedState(
-			sharedState,
-			this.config.maxPeerInfoSize
-				? this.config.maxPeerInfoSize
-				: DEFAULT_MAX_PEER_INFO_SIZE,
-		);
+		try {
+			validateSharedState(
+				sharedState,
+				this.config.maxPeerInfoSize
+					? this.config.maxPeerInfoSize
+					: DEFAULT_MAX_PEER_INFO_SIZE,
+			);
+		} catch (e) {
+			throw e;
+		}
 
 		this._sharedState = {
 			...sharedState,
