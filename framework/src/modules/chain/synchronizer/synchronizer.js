@@ -131,17 +131,18 @@ class Synchronizer {
 			this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
 
 			await validMechanism.run(receivedBlockInstance, peerId);
+
+			return this.logger.info(
+				{
+					lastBlockHeight: this.blocksModule.lastBlock.height,
+					lastBlockId: this.blocksModule.lastBlock.id,
+					mechanism: validMechanism.constructor.name,
+				},
+				'Synchronization finished',
+			);
 		} finally {
 			this.active = false;
 		}
-
-		return this.logger.info(
-			{
-				lastBlockHeight: this.blocksModule.lastBlock.height,
-				lastBlockId: this.blocksModule.lastBlock.id,
-			},
-			'Synchronization finished',
-		);
 	}
 
 	/**
