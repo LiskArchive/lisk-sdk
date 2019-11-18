@@ -29,7 +29,7 @@ const peerList = ['peerList'];
 const chainOptions = {
 	genesisBlock: {
 		transactions: [],
-		version: 0,
+		version: 2,
 		height: 1,
 		communityIdentifier: 'Lisk',
 		payloadHash: '',
