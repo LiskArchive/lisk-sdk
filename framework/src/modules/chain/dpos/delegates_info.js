@@ -17,31 +17,6 @@
 const BigNum = require('@liskhq/bignum');
 const { EVENT_ROUND_CHANGED } = require('./constants');
 
-const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
-	delegatePublicKeys
-		.map((publicKey, index) => ({
-			publicKey,
-			reward: new BigNum(rewards[index]),
-			blocksForged: 1,
-			isGettingRemainingFees: index === delegatePublicKeys.length - 1,
-		}))
-		.reduce((acc, curr) => {
-			const delegate = acc.find(
-				({ publicKey }) => publicKey === curr.publicKey,
-			);
-
-			if (!delegate) {
-				acc.push(curr);
-				return acc;
-			}
-
-			delegate.reward = delegate.reward.plus(curr.reward);
-			delegate.blocksForged += curr.blocksForged;
-			delegate.isGettingRemainingFees = curr.isGettingRemainingFees;
-
-			return acc;
-		}, []);
-
 const _isGenesisBlock = block => block.height === 1;
 
 const _hasVotedDelegatesPublicKeys = ({
@@ -249,26 +224,61 @@ class DelegatesInfo {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
+		const blocksInRounds = await this.storage.entities.Block.get(
+			{
+				height_gte: this.slots.calcRoundStartHeight(round),
+				height_lt: this.slots.calcRoundEndHeight(round),
+			},
+			{ limit: this.activeDelegates, sort: 'height:asc' },
+			tx,
+		);
+
+		// the blocksInRounds does not contain the last block
+		blocksInRounds.push(block);
+
+		if (blocksInRounds.length !== this.activeDelegates) {
+			throw new Error(
+				'Fetched blocks do not match the size of the active delegates',
+			);
+		}
+
+		const {
+			delegatePublicKeys,
+			uniqDelegateListWithRewardsInfo,
+			totalFee,
+		} = blocksInRounds.reduce(
+			(acc, fetchedBlock, i) => {
+				acc.totalFee = acc.totalFee.add(fetchedBlock.totalFee);
+
+				const delegate = acc.uniqDelegateListWithRewardsInfo.find(
+					({ publicKey }) => publicKey === fetchedBlock.generatorPublicKey,
+				);
+
+				if (!delegate) {
+					acc.uniqDelegateListWithRewardsInfo.push({
+						publicKey: fetchedBlock.generatorPublicKey,
+						blocksForged: 1,
+						reward: new BigNum(fetchedBlock.reward),
+						isGettingRemainingFees: i === blocksInRounds.length - 1,
+					});
+					acc.delegatePublicKeys.push(fetchedBlock.generatorPublicKey);
+					return acc;
+				}
+				delegate.reward = delegate.reward.add(fetchedBlock.reward);
+				delegate.blocksForged += 1;
+				delegate.isGettingRemainingFees = i === blocksInRounds.length - 1;
+				return acc;
+			},
+			{
+				delegatePublicKeys: [],
+				uniqDelegateListWithRewardsInfo: [],
+				totalFee: new BigNum(0),
+			},
+		);
+
 		try {
-			// summedRound always returns 101 delegates,
-			// that means there can be recurring public keys for delegates
-			// who forged multiple times.
-			const [
-				summedRound,
-			] = await this.storage.entities.RoundDelegates.summedRound(
-				round,
-				this.activeDelegates,
-				tx,
-			);
-
-			// Array of unique delegates with their rewards aggregated
-			const uniqDelegateListWithRewardsInfo = _mergeRewardsAndDelegates(
-				summedRound.delegates,
-				summedRound.rewards,
-			);
-
 			const delegateAccounts = await this.storage.entities.Account.get(
-				{ publicKey_in: summedRound.delegates },
+				{ publicKey_in: delegatePublicKeys },
 				{},
 				tx,
 			);
@@ -280,9 +290,7 @@ class DelegatesInfo {
 				fees: new BigNum(account.fees),
 			}));
 
-			const totalFee = new BigNum(summedRound.fees);
-
-			// Aggregate forger info into one object
+			// Aggregate forger infor into one object
 			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
 				forgerInfo => ({
 					...forgerInfo,
