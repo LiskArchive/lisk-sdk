@@ -186,13 +186,21 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * @private
 	 */
 	async _queryBlocks(receivedBlock, highestCommonBlock, peerId) {
-		if (
-			!highestCommonBlock ||
-			highestCommonBlock.height < this.bft.finalizedHeight
-		) {
+		if (!highestCommonBlock) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
-				"Peer didn't return a common block or its height is lower than the finalized height of the chain",
+				"Peer didn't return a common block",
+			);
+		}
+
+		if (highestCommonBlock.height < this.bft.finalizedHeight) {
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				`Common block height ${
+					highestCommonBlock.height
+				} is lower than the finalized height of the chain ${
+					this.bft.finalizedHeight
+				}`,
 			);
 		}
 
