@@ -67,7 +67,7 @@ import {
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_PUSH_SHARED_STATE,
 	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
@@ -435,7 +435,7 @@ export class P2P extends EventEmitter {
 
 		this._handleFailedToPushSharedState = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+			this.emit(EVENT_FAILED_TO_PUSH_SHARED_STATE, error);
 		};
 
 		this._handleFailedToSendMessage = (error: Error) => {
@@ -1023,7 +1023,7 @@ export class P2P extends EventEmitter {
 		);
 		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
 		peerPool.on(
-			EVENT_FAILED_TO_PUSH_NODE_INFO,
+			EVENT_FAILED_TO_PUSH_SHARED_STATE,
 			this._handleFailedToPushSharedState,
 		);
 		peerPool.on(EVENT_FAILED_TO_SEND_MESSAGE, this._handleFailedToSendMessage);

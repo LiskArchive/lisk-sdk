@@ -34,14 +34,14 @@ export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
 	'failedToCollectPeerDetailsOnConnect';
 export const EVENT_FAILED_TO_FETCH_PEERS = 'failedToFetchPeers';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
-export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushSharedState';
+export const EVENT_FAILED_TO_PUSH_SHARED_STATE = 'failedToPushSharedState';
 export const EVENT_FAILED_TO_SEND_MESSAGE = 'failedToSendMessage';
 
 // Peer base
 export const REMOTE_SC_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_SC_EVENT_MESSAGE = 'remote-message';
-export const REMOTE_EVENT_POST_NODE_INFO = 'postSharedState';
-export const REMOTE_EVENT_RPC_GET_NODE_INFO = 'getSharedState';
+export const REMOTE_EVENT_POST_SHARED_STATE = 'postSharedState';
+export const REMOTE_EVENT_RPC_GET_SHARED_STATE = 'getSharedState';
 export const REMOTE_EVENT_RPC_GET_PEERS_LIST = 'getPeers';
 export const REMOTE_EVENT_PING = 'ping';
 export const REMOTE_EVENT_PONG = 'pong';

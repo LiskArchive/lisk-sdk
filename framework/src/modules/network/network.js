@@ -24,7 +24,7 @@ const {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_PUSH_SHARED_STATE,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_UPDATED_PEER_INFO,
@@ -260,7 +260,7 @@ module.exports = class Network {
 			this.logger.error(error.message || error);
 		});
 
-		this.p2p.on(EVENT_FAILED_TO_PUSH_NODE_INFO, error => {
+		this.p2p.on(EVENT_FAILED_TO_PUSH_SHARED_STATE, error => {
 			this.logger.trace(error.message || error);
 		});
 

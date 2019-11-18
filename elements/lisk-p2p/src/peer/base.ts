@@ -41,9 +41,9 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
-	REMOTE_EVENT_POST_NODE_INFO,
-	REMOTE_EVENT_RPC_GET_NODE_INFO,
+	REMOTE_EVENT_POST_SHARED_STATE,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
+	REMOTE_EVENT_RPC_GET_SHARED_STATE,
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
@@ -226,7 +226,7 @@ export class Peer extends EventEmitter {
 				rate,
 			};
 
-			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
+			if (message.event === REMOTE_EVENT_POST_SHARED_STATE) {
 				this._handlePostSharedState(message);
 			}
 
@@ -388,7 +388,7 @@ export class Peer extends EventEmitter {
 		let response: P2PResponsePacket;
 		try {
 			response = await this.request({
-				procedure: REMOTE_EVENT_RPC_GET_NODE_INFO,
+				procedure: REMOTE_EVENT_RPC_GET_SHARED_STATE,
 			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);

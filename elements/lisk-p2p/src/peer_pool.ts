@@ -39,7 +39,7 @@ import {
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_FAILED_TO_PUSH_SHARED_STATE,
 	EVENT_FAILED_TO_SEND_MESSAGE,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
@@ -48,8 +48,8 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
-	REMOTE_EVENT_POST_NODE_INFO,
-	REMOTE_EVENT_RPC_GET_NODE_INFO,
+	REMOTE_EVENT_POST_SHARED_STATE,
+	REMOTE_EVENT_RPC_GET_SHARED_STATE,
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
@@ -202,7 +202,7 @@ export class PeerPool extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+			if (request.procedure === REMOTE_EVENT_RPC_GET_SHARED_STATE) {
 				request.end(this.sharedState);
 			}
 
@@ -587,11 +587,11 @@ export class PeerPool extends EventEmitter {
 	private _sendSharedStateToPeer(peer: Peer): void {
 		try {
 			peer.send({
-				event: REMOTE_EVENT_POST_NODE_INFO,
+				event: REMOTE_EVENT_POST_SHARED_STATE,
 				data: this.sharedState,
 			});
 		} catch (error) {
-			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
+			this.emit(EVENT_FAILED_TO_PUSH_SHARED_STATE, error);
 		}
 	}
 
