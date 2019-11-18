@@ -952,7 +952,7 @@ export class P2P extends EventEmitter {
 			peer => peer.peerId === peerId,
 		);
 
-		const isFixed = this._sanitizedPeerLists.seeds.find(
+		const isFixed = this._sanitizedPeerLists.fixed.find(
 			peer => peer.peerId === peerId,
 		);
 
