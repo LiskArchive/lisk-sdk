@@ -139,6 +139,17 @@ describe('#transfer transaction', () => {
 			it('second signature property should be undefined', () => {
 				return expect(transferTransaction.signSignature).to.be.undefined;
 			});
+
+			it('without network identifier it should throw a descriptive error', () => {
+				expect(() =>
+					transfer({
+						recipientId,
+						amount,
+						passphrase,
+						data: testData,
+					} as any),
+				).to.throw('Network identifier can not be empty');
+			});
 		});
 
 		describe('with data', () => {
