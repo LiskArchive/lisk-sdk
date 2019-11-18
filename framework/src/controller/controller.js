@@ -94,8 +94,8 @@ class Controller {
 		await this._loadMigrations(migrations);
 		await this._loadModules(modules, moduleOptions);
 
-		this.logger.info(this.bus.getEvents(), 'Bus listening to events');
-		this.logger.info(this.bus.getActions(), 'Bus ready for actions');
+		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
+		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
 
 		this.channel.publish('app:ready');
 	}
