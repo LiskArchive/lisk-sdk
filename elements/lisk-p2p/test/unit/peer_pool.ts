@@ -76,10 +76,10 @@ describe('peerPool', () => {
 		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
 		peerLists: {
-			blacklistedPeers: [],
-			fixedPeers: [],
-			previousPeers: [],
-			seedPeers: [],
+			blacklisted: [],
+			fixed: [],
+			previous: [],
+			seeds: [],
 			whitelisted: [],
 		},
 	};

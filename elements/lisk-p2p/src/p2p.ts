@@ -231,13 +231,11 @@ export class P2P extends EventEmitter {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
-				seedPeers: config.seedPeers ? config.seedPeers : [],
-				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers
-					: [],
-				fixedPeers: config.fixedPeers ? config.fixedPeers : [],
+				seeds: config.seedPeers ? config.seedPeers : [],
+				blacklisted: config.blacklistedPeers ? config.blacklistedPeers : [],
+				fixed: config.fixedPeers ? config.fixedPeers : [],
 				whitelisted: config.whitelistedPeers ? config.whitelistedPeers : [],
-				previousPeers: config.previousPeers ? config.previousPeers : [],
+				previous: config.previousPeers ? config.previousPeers : [],
 			},
 			config.hostIp || DEFAULT_NODE_HOST_IP,
 		);
@@ -402,7 +400,7 @@ export class P2P extends EventEmitter {
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			// Check blacklist to avoid incoming connections from backlisted ips
-			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
+			const isBlacklisted = this._sanitizedPeerLists.blacklisted.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
 
@@ -463,8 +461,8 @@ export class P2P extends EventEmitter {
 
 		this._bindHandlersToPeerPool(this._peerPool);
 		// Add peers to tried peers if want to re-use previously tried peers
-		if (this._sanitizedPeerLists.previousPeers) {
-			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
+		if (this._sanitizedPeerLists.previous) {
+			this._sanitizedPeerLists.previous.forEach(peerInfo => {
 				try {
 					this._peerBook.addPeer(peerInfo);
 					this._peerBook.upgradePeer(peerInfo);
@@ -655,8 +653,8 @@ export class P2P extends EventEmitter {
 					return;
 				}
 				// Check blacklist to avoid incoming connections from backlisted ips
-				if (this._sanitizedPeerLists.blacklistedPeers) {
-					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
+				if (this._sanitizedPeerLists.blacklisted) {
+					const blacklist = this._sanitizedPeerLists.blacklisted.map(
 						peer => peer.ipAddress,
 					);
 					if (blacklist.includes(socket.remoteAddress)) {
@@ -875,13 +873,13 @@ export class P2P extends EventEmitter {
 			this._peerPool.triggerNewConnections(
 				this._peerBook.newPeers,
 				this._peerBook.triedPeers,
-				this._sanitizedPeerLists.fixedPeers || [],
+				this._sanitizedPeerLists.fixed || [],
 			);
 		}, this._populatorInterval);
 		this._peerPool.triggerNewConnections(
 			this._peerBook.newPeers,
 			this._peerBook.triedPeers,
-			this._sanitizedPeerLists.fixedPeers || [],
+			this._sanitizedPeerLists.fixed || [],
 		);
 	}
 
@@ -945,7 +943,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {
-		const isSeed = this._sanitizedPeerLists.seedPeers.find(
+		const isSeed = this._sanitizedPeerLists.seeds.find(
 			seedPeer => peerId === seedPeer.peerId,
 		);
 
@@ -953,7 +951,7 @@ export class P2P extends EventEmitter {
 			peer => peer.peerId === peerId,
 		);
 
-		const isFixed = this._sanitizedPeerLists.fixedPeers.find(
+		const isFixed = this._sanitizedPeerLists.seeds.find(
 			peer => peer.peerId === peerId,
 		);
 
@@ -965,7 +963,7 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		const newPeersToAdd = this._sanitizedPeerLists.seedPeers.concat(
+		const newPeersToAdd = this._sanitizedPeerLists.seeds.concat(
 			this._sanitizedPeerLists.whitelisted,
 		);
 		newPeersToAdd.forEach(newPeerInfo => {

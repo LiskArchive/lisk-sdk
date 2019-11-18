@@ -15,10 +15,10 @@
 import { PeerLists } from '../p2p_types';
 
 export const sanitizePeerLists = (
-	lists: PeerLists,
+	peerLists: PeerLists,
 	nodeIpAddress: string,
 ): PeerLists => {
-	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
+	const blacklisted = peerLists.blacklisted.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
@@ -26,21 +26,9 @@ export const sanitizePeerLists = (
 		return true;
 	});
 
-	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
+	const blacklistedIPs = blacklisted.map(peerInfo => peerInfo.ipAddress);
 
-	const seedPeers = lists.seedPeers.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeIpAddress) {
-			return false;
-		}
-
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
-			return false;
-		}
-
-		return true;
-	});
-
-	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
+	const seeds = peerLists.seeds.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
@@ -52,7 +40,19 @@ export const sanitizePeerLists = (
 		return true;
 	});
 
-	const whitelisted = lists.whitelisted.filter(peerInfo => {
+	const fixed = peerLists.fixed.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeIpAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const whitelisted = peerLists.whitelisted.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
@@ -61,18 +61,18 @@ export const sanitizePeerLists = (
 			return false;
 		}
 
-		if (fixedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+		if (fixed.map(peer => peer.peerId).includes(peerInfo.peerId)) {
 			return false;
 		}
 
-		if (seedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+		if (seeds.map(peer => peer.peerId).includes(peerInfo.peerId)) {
 			return false;
 		}
 
 		return true;
 	});
 
-	const previousPeers = lists.previousPeers.filter(peerInfo => {
+	const previous = peerLists.previous.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}
@@ -85,10 +85,10 @@ export const sanitizePeerLists = (
 	});
 
 	return {
-		blacklistedPeers,
-		seedPeers,
-		fixedPeers,
+		blacklisted,
+		seeds,
+		fixed,
 		whitelisted,
-		previousPeers,
+		previous,
 	};
 };

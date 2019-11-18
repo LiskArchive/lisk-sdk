@@ -670,9 +670,7 @@ export class PeerPool extends EventEmitter {
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
 				peers.filter(peer =>
-					this._peerLists.fixedPeers.every(
-						p => p.peerId !== peer.peerInfo.peerId,
-					),
+					this._peerLists.fixed.every(p => p.peerId !== peer.peerInfo.peerId),
 				),
 			)[0];
 			if (selectedPeer) {
