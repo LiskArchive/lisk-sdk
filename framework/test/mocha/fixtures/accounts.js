@@ -21,8 +21,8 @@ const accounts = {};
 
 // Existing delegate account
 accounts.existingDelegate = {
-	address: '10881167371402274308L',
-	publicKey: '32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
+	address: '9889644732407062730L',
+	publicKey: 'd8685de16147583d1b9f2e06eb43c6af9ba03844df30e20f3cda0b681c14fb05',
 	passphrase:
 		'dream theory eternal recall valid clever mind sell doctor empower bread cage',
 	balance: '0',

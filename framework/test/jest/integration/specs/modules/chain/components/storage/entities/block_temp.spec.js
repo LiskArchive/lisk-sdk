@@ -54,7 +54,7 @@ describe('TempBlock', () => {
 	let TempBlockEntity;
 
 	const row1 = {
-		id: '6524861224470851795',
+		id: '10620616195853047363',
 		height: 1,
 		fullBlock: {
 			version: 0,
@@ -73,7 +73,7 @@ describe('TempBlock', () => {
 			height: 1,
 			blockSignature:
 				'c81204bf67474827fd98584e7787084957f42ce8041e713843dd2bb352b73e81143f68bd74b06da8372c43f5e26406c4e7250bbd790396d85dea50d448d62606',
-			id: '6524861224470851795',
+			id: '10620616195853047363',
 		},
 	};
 
@@ -111,7 +111,7 @@ describe('TempBlock', () => {
 			height: 2,
 			blockSignature:
 				'c81204bf67474827fd98584e7787084957f42ce8041e713843dd2bb352b73e81143f68bd74b06da8372c43f5e26406c4e7250bbd790396d85dea50d448d62606',
-			id: '6524861224470851795',
+			id: '10620616195853047363',
 		},
 	};
 	beforeAll(async () => {

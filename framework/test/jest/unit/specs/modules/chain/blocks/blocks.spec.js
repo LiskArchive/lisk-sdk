@@ -355,7 +355,7 @@ describe('blocks', () => {
 			blockSignature:
 				'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
 			id: '7360015088758644957',
-			previousBlockId: '6524861224470851795',
+			previousBlockId: '10620616195853047363',
 		};
 
 		it('should convert big number field to be instance', () => {
