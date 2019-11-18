@@ -3,7 +3,7 @@
 	"timestamp": 0,
 	"height": 1,
 	"maxHeightPreviouslyForged": 0,
-	"prevotedConfirmedUptoHeight": 0,
+	"maxHeightPrevoted": 0,
 	"reward": "0",
 	"totalFee": "0",
 	"communityIdentifier": "Lisk",
@@ -11,6 +11,7 @@
 	"payloadHash": "23ce0366ef0a14a91e5fd4b1591fc880ffbef9d988ff8bebf8f3666b0c09597d",
 	"payloadLength": 17987,
 	"totalAmount": "10000000000000000",
+	"previousBlockId": null,
 	"transactions": [
 		{
 			"id": "7646387794267587684",
