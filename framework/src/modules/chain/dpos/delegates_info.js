@@ -69,17 +69,6 @@ class DelegatesInfo {
 
 	async apply(block, { tx, delegateListRoundOffset }) {
 		const undo = false;
-
-		/**
-		 * If the block is genesis block, we don't have to
-		 * update anything in the accounts.
-		 */
-		if (_isGenesisBlock(block)) {
-			const round = 1;
-			await this.delegatesList.createRoundDelegateList(round, tx);
-			return false;
-		}
-
 		return this._update(block, { undo, tx, delegateListRoundOffset });
 	}
 
@@ -98,6 +87,15 @@ class DelegatesInfo {
 	 */
 	async _update(block, { undo, tx, delegateListRoundOffset }) {
 		await this._updateProducedBlocks(block, undo, tx);
+
+		/**
+		 * Genesis block only affects `producedBlocks` attribute
+		 */
+		if (_isGenesisBlock(block)) {
+			const round = 1;
+			await this.delegatesList.createRoundDelegateList(round, tx);
+			return false;
+		}
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {

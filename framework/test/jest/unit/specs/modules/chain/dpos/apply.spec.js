@@ -143,14 +143,31 @@ describe('dpos.apply()', () => {
 			expect(result).toBeFalse();
 		});
 
-		it('should NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
+		it('should update "producedBlocks" but NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
 			// Act
 			await dpos.apply(genesisBlock, { tx: stubs.tx });
 
 			// Assert
 			expect(
 				stubs.storage.entities.Account.increaseFieldBy,
-			).not.toHaveBeenCalled();
+			).toHaveBeenCalledTimes(1);
+
+			expect(
+				stubs.storage.entities.Account.increaseFieldBy,
+			).toHaveBeenCalledWith(
+				{ publicKey: genesisBlock.generatorPublicKey },
+				'producedBlocks',
+				'1',
+				stubs.tx,
+			);
+
+			expect(
+				stubs.storage.entities.Account.increaseFieldBy,
+			).not.toHaveBeenCalledWith(expect.any(Object), 'missedBlocks');
+
+			expect(
+				stubs.storage.entities.Account.increaseFieldBy,
+			).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeight');
 
 			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 		});
