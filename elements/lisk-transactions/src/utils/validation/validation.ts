@@ -37,6 +37,9 @@ export const validatePublicKey = (publicKey: string) => {
 };
 
 export const validateNetworkIdentifier = (networkIdentifier: string) => {
+	if (!networkIdentifier) {
+		throw new Error(`Network identifier can not be empty.`);
+	}
 	const networkIdentifierBuffer = cryptography.hexToBuffer(networkIdentifier);
 	if (networkIdentifierBuffer.length !== NETWORK_IDENTIFIER_LENGTH) {
 		throw new Error(`Invalid network identifier length: ${networkIdentifier}`);
