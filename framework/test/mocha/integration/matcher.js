@@ -157,7 +157,8 @@ async function createRawBlock(library, rawTransactions) {
 		});
 	});
 
-	const block = await library.modules.processor.create({
+	const blockProcessorV1 = library.modules.processor.processors[1];
+	const block = await blockProcessorV1.create.run({
 		blockReward: library.modules.blocks.blockReward,
 		keypair: keypairs[delegateKey],
 		timestamp: slots.getSlotTime(slot),
