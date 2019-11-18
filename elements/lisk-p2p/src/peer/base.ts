@@ -123,7 +123,7 @@ export class Peer extends EventEmitter {
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _info: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
-	protected readonly _peerConfig: PeerConfig;
+	protected readonly _config: PeerConfig;
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
@@ -139,7 +139,7 @@ export class Peer extends EventEmitter {
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._info = peerInfo;
-		this._peerConfig = peerConfig;
+		this._config = peerConfig;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._netgroup = getNetgroup(this._info.ipAddress, peerConfig.secret);
 		this._latency = 0;
@@ -150,7 +150,7 @@ export class Peer extends EventEmitter {
 		this._messageRates = new Map();
 		this._wsMessageCount = 0;
 		this._wsMessageRate = 0;
-		this._rateInterval = this._peerConfig.rateCalculationInterval;
+		this._rateInterval = this._config.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
 			this._resetCounters();
 		}, this._rateInterval);
@@ -275,6 +275,10 @@ export class Peer extends EventEmitter {
 		return this._info;
 	}
 
+	public get config(): PeerConfig {
+		return this._config;
+	}
+
 	public connect(): void {
 		if (!this._socket) {
 			throw new Error('Peer socket does not exist');
@@ -349,8 +353,8 @@ export class Peer extends EventEmitter {
 
 			return validatePeerInfoList(
 				response.data,
-				this._peerConfig.maxPeerDiscoveryResponseLength,
-				this._peerConfig.maxPeerInfoSize,
+				this.config.maxPeerDiscoveryResponseLength,
+				this.config.maxPeerInfoSize,
 			);
 		} catch (error) {
 			if (
@@ -427,8 +431,8 @@ export class Peer extends EventEmitter {
 			(this._wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
 		this._wsMessageCount = 0;
 
-		if (this.wsMessageRate > this._peerConfig.wsMaxMessageRate) {
-			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
+		if (this.wsMessageRate > this.config.wsMaxMessageRate) {
+			this.applyPenalty(this.config.wsMaxMessageRatePenalty);
 
 			return;
 		}
@@ -469,7 +473,7 @@ export class Peer extends EventEmitter {
 		// Sanitize and validate PeerSharedState
 		validateSharedState(
 			rawSharedState as P2PSharedState,
-			this._peerConfig.maxPeerInfoSize,
+			this.config.maxPeerInfoSize,
 		);
 
 		const newSharedState = rawSharedState as P2PSharedState;

@@ -307,10 +307,6 @@ export class PeerPool extends EventEmitter {
 		return this._sharedState;
 	}
 
-	public get peerConfig(): PeerConfig {
-		return { ...this._peerConfig };
-	}
-
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
 		// This function can be customized so we should pass as much info as possible.

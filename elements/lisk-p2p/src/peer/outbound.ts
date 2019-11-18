@@ -97,26 +97,26 @@ export class OutboundPeer extends Peer {
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
-		const connectTimeout = this._peerConfig.connectTimeout
-			? this._peerConfig.connectTimeout
+		const connectTimeout = this.config.connectTimeout
+			? this.config.connectTimeout
 			: DEFAULT_CONNECT_TIMEOUT;
-		const ackTimeout = this._peerConfig.ackTimeout
-			? this._peerConfig.ackTimeout
+		const ackTimeout = this.config.ackTimeout
+			? this.config.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
 		// Ideally, we should JSON-serialize the whole SharedState object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this.info.ipAddress,
 			port: this.info.sharedState.wsPort,
 			query: querystring.stringify({
-				...this._peerConfig.sharedState,
-				options: JSON.stringify(this._peerConfig.sharedState),
+				...this.config.sharedState,
+				options: JSON.stringify(this.config.sharedState),
 			}),
 			connectTimeout,
 			ackTimeout,
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
-			maxPayload: this._peerConfig.wsMaxPayload,
+			maxPayload: this.config.wsMaxPayload,
 		};
 
 		const outboundSocket = socketClusterClient.create(clientOptions);
