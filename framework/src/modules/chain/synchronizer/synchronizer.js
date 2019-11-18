@@ -135,7 +135,13 @@ class Synchronizer {
 			this.active = false;
 		}
 
-		return this.logger.info('Synchronization finished');
+		return this.logger.info(
+			{
+				lastBlockHeight: this.blocksModule.lastBlock.height,
+				lastBlockId: this.blocksModule.lastBlock.id,
+			},
+			'Synchronization finished',
+		);
 	}
 
 	/**
