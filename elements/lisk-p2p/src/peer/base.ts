@@ -25,7 +25,6 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
-	SEED_PEER_DISCONNECTION_REASON,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -105,7 +104,7 @@ export interface PeerConfig {
 	readonly wsMaxPayload?: number;
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
-	readonly fetchPeersAndDisconnect?: boolean;
+	readonly discoverySeedPeer?: boolean;
 	readonly secret: number;
 	readonly serverNodeInfo?: P2PNodeInfo;
 }
@@ -124,7 +123,7 @@ export class Peer extends EventEmitter {
 		responseRate: number;
 		lastResponded: number;
 	};
-	protected fetchPeersAndDisconnect: boolean;
+	protected readonly _discoverySeedPeer: boolean;
 	private _rpcCounter: Map<string, number>;
 	private _rpcRates: Map<string, number>;
 	private _messageCounter: Map<string, number>;
@@ -173,9 +172,9 @@ export class Peer extends EventEmitter {
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		this._serverNodeInfo = peerConfig.serverNodeInfo;
-		this.fetchPeersAndDisconnect =
-			typeof this._peerConfig.fetchPeersAndDisconnect === 'boolean'
-				? this._peerConfig.fetchPeersAndDisconnect
+		this._discoverySeedPeer =
+			typeof this._peerConfig.discoverySeedPeer === 'boolean'
+				? this._peerConfig.discoverySeedPeer
 				: false;
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -283,6 +282,10 @@ export class Peer extends EventEmitter {
 
 	public get connectTime(): number {
 		return this._connectTime;
+	}
+
+	public get discoverySeedPeer(): boolean {
+		return this._discoverySeedPeer;
 	}
 
 	public get responseRate(): number {
@@ -435,20 +438,13 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async discoverPeers(): Promise<void> {
+	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		const discoveredPeerInfoList = await this.fetchPeers();
-
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		});
 
-		if (this.fetchPeersAndDisconnect) {
-			// tslint:disable-next-line: no-magic-numbers
-			this.disconnect(
-				INTENTIONAL_DISCONNECT_CODE,
-				SEED_PEER_DISCONNECTION_REASON,
-			);
-		}
+		return discoveredPeerInfoList;
 	}
 
 	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {

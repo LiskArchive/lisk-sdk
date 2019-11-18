@@ -44,9 +44,13 @@ describe('Peer discovery', () => {
 
 	beforeEach(async () => {
 		// To capture all the initial events set network creation time to minimum 1 ms
+		const customConfig = () => ({
+			maxOutboundConnections: 20,
+		});
 
 		p2pNodeList = await createNetwork({
 			networkDiscoveryWaitTime: 0,
+			customConfig,
 		});
 		const firstNode = p2pNodeList[0];
 
@@ -177,6 +181,12 @@ describe('Peer discovery', () => {
 			connectTimeout: 100,
 			ackTimeout: 200,
 			seedPeers: [
+				{
+					ipAddress: '127.0.0.1',
+					wsPort: 5000,
+				},
+			],
+			fixedPeers: [
 				{
 					ipAddress: '127.0.0.1',
 					wsPort: 5000,

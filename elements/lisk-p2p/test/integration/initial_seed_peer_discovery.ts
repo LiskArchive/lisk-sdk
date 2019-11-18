@@ -29,12 +29,10 @@ import {
 describe('Initial Seed Peer Discovery', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Array();
-	const POPULATOR_INTERVAL = 100000;
 
 	beforeEach(async () => {
 		const customConfig = () => ({
-			populatorInterval: POPULATOR_INTERVAL,
-			fixedPeers: [],
+			maxOutboundConnections: 4,
 		});
 
 		p2pNodeList = await createNetwork({
@@ -51,6 +49,8 @@ describe('Initial Seed Peer Discovery', () => {
 		});
 
 		await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+
+		await wait(1000);
 	});
 
 	afterEach(async () => {
@@ -58,8 +58,7 @@ describe('Initial Seed Peer Discovery', () => {
 	});
 
 	it('should disconnecting from Seed Peers', async () => {
-		await wait(200);
-
+		// Every peer should reach the Outbound Connection limit and disconnect from discoverySeedPeers
 		expect(collectedEvents.length).to.be.equal(NETWORK_PEER_COUNT - 1);
 
 		for (const disconnectReason of collectedEvents) {

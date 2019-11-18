@@ -149,13 +149,13 @@ export class OutboundPeer extends Peer {
 				return;
 			}
 
-			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
-
 			try {
 				await this.discoverPeers();
 			} catch (error) {
 				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 			}
+
+			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
 		});
 
 		outboundSocket.on('connectAbort', () => {

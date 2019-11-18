@@ -83,7 +83,6 @@ export const createNetwork = async ({
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			seedPeers: defaultSeedPeers,
-			fixedPeers: defaultSeedPeers,
 			wsEngine: WEB_SOCKET_ENGINE,
 			populatorInterval:
 				POPULATOR_INTERVAL +

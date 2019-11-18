@@ -27,6 +27,7 @@ import {
 	DEFAULT_LOCALHOST_IP,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
+	SEED_PEER_DISCONNECTION_REASON,
 } from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
@@ -417,7 +418,7 @@ export class PeerPool extends EventEmitter {
 		seedPeersForFetch.map(peer => {
 			// From FixedPeers we should not disconnect
 			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo, {
-				fetchPeersAndDisconnect: this._peerLists.fixedPeers.find(
+				discoverySeedPeer: this._peerLists.fixedPeers.find(
 					fixedPeer => fixedPeer.peerId === peer.peerId,
 				)
 					? false
@@ -444,6 +445,10 @@ export class PeerPool extends EventEmitter {
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
 		const peerLimit = this._getAvailableOutboundConnectionSlots();
+
+		if (peerLimit === 0) {
+			this._disconnectDiscoverySeedPeers();
+		}
 
 		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
@@ -639,6 +644,20 @@ export class PeerPool extends EventEmitter {
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		}
+	}
+
+	private _disconnectDiscoverySeedPeers(): void {
+		const outboundPeers = this.getPeers(OutboundPeer);
+
+		outboundPeers.forEach(peer => {
+			if (peer.discoverySeedPeer) {
+				this.removePeer(
+					peer.id,
+					INTENTIONAL_DISCONNECT_CODE,
+					SEED_PEER_DISCONNECTION_REASON,
+				);
+			}
+		});
 	}
 
 	private _selectPeersForEviction(): Peer[] {
