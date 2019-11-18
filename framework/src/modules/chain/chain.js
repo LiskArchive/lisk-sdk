@@ -154,11 +154,6 @@ module.exports = class Chain {
 				exceptions: this.options.exceptions,
 			};
 
-			// TODO: remove this once we have version 2 genesis block
-			this.processor.register(new BlockProcessorV0(processorDependencies), {
-				matcher: ({ height }) => height === 1,
-			});
-
 			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
 			if (this.options.exceptions.blockVersions) {
 				if (this.options.exceptions.blockVersions[0]) {
