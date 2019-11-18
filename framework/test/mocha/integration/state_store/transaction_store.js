@@ -4,7 +4,7 @@ const TransactionStore = require('../../../../src/modules/chain/blocks/state_sto
 describe('system test - transaction store', () => {
 	let library;
 	let transactionStore;
-	const persistedIds = ['7646387794267587684', '3634383815892709956'];
+	const persistedIds = ['7646387794267587684', '9912090348171005050'];
 
 	const transactionQuery = [
 		{

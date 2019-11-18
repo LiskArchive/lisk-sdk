@@ -100,7 +100,7 @@ describe('TempBlock', () => {
 					fee: '0',
 					timestamp: 0,
 					recipientId: '11237980039345381032L',
-					senderId: '1085993630748340485L',
+					senderId: '1276152240083265771L',
 					senderPublicKey:
 						'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
 					signature:

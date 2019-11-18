@@ -200,8 +200,9 @@ function forge(library, cb) {
 						25,
 					) || [];
 				const sortedTransactions = sortTransactions(transactions);
-				library.modules.processor
-					.create({
+				const blockProcessorV1 = library.modules.processor.processors[1];
+				blockProcessorV1.create
+					.run({
 						keypair,
 						timestamp: slots.getSlotTime(slot),
 						transactions: sortedTransactions,
