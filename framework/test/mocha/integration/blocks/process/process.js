@@ -57,7 +57,7 @@ describe('integration test (blocks) - process', () => {
 					async.every(
 						[
 							'blocks WHERE height > 1',
-							'trs WHERE "blockId" != \'6524861224470851795\'',
+							'trs WHERE "blockId" != \'10620616195853047363\'',
 							"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
 						],
 						(table, everyCb) => {

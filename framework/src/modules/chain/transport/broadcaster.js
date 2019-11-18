@@ -91,10 +91,10 @@ class Broadcaster {
 	 * broadcast to network.
 	 */
 	async _broadcast() {
+		this.transactionIdQueue = this.transactionIdQueue.filter(id =>
+			this.transactionPool.transactionInPool(id),
+		);
 		if (this.transactionIdQueue.length > 0) {
-			this.transactionIdQueue = this.transactionIdQueue.filter(id =>
-				this.transactionPool.transactionInPool(id),
-			);
 			const transactionIds = this.transactionIdQueue.slice(
 				0,
 				this.config.releaseLimit,
