@@ -156,7 +156,9 @@ class TransactionPool extends EventEmitter {
 						`${queueName} size: ${this.pool._queues[queueName].size()}`,
 				)
 				.join(' ');
-			this.logger.info(`Transaction pool - ${queueSizes}`);
+			if (queueSizes.length > 0) {
+				this.logger.info(`Transaction pool - ${queueSizes}`);
+			}
 		});
 	}
 
