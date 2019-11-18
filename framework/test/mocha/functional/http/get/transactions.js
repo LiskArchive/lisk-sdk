@@ -122,7 +122,7 @@ describe('GET /api/transactions', () => {
 		amount: '0',
 		recipientId: '',
 		senderPublicKey:
-			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
 		timestamp: 68943236,
 		type: 5,
 		fee: '2500000000',
@@ -148,7 +148,7 @@ describe('GET /api/transactions', () => {
 		fee: '10000000',
 		recipientId: '',
 		senderPublicKey:
-			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
 		timestamp: 69004227,
 		asset: {
 			inTransfer: {
@@ -165,7 +165,7 @@ describe('GET /api/transactions', () => {
 		fee: '10000000',
 		recipientId: '10881167371402274308L',
 		senderPublicKey:
-			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
 		timestamp: 69520900,
 		asset: {
 			outTransfer: {
@@ -355,7 +355,7 @@ describe('GET /api/transactions', () => {
 				const transactionInCheck = __testContext.config.genesisBlock.transactions.find(
 					trs => {
 						// Vote type transaction from genesisBlock
-						return trs.id === '9314232245035524467';
+						return trs.id === '17552532729871392055';
 					},
 				);
 
@@ -449,7 +449,7 @@ describe('GET /api/transactions', () => {
 					expect(res.body.data).to.not.empty;
 					// Skip Genesis vote transaction - exception as it contains 101 votes
 					const transactionsType3 = res.body.data.filter(
-						transaction => transaction.id !== '9314232245035524467',
+						transaction => transaction.id !== '17552532729871392055',
 					);
 					expect(transactionsType3.length).to.be.above(0);
 					transactionsType3.map(transaction => {

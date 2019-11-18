@@ -489,7 +489,7 @@ Object {
           },
           Object {
             "encryptedPassphrase": "iterations=1&salt=df1895b701abe3dcf29b4d92fc46d3f9&cipherText=0cea5e7df167d98203a679a4bf33e90f2e79a61d78443752014fc99a45c794e6fd7feaf710d89363cd954e51592917e77a2b8918ac680b0a0aa19003b34fa0b34dbd55ff9a8b59f98d9abdcbae970d72949b67&iv=61dc8fe3468f3b959f997f73&tag=33e7c771a90b10a0bb78f70cc72f701c&version=1",
-            "publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+            "publicKey": "32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8",
           },
           Object {
             "encryptedPassphrase": "iterations=1&salt=7ea547604c978413b57cec9cbbe091c1&cipherText=f337705e4a7987fe83c0aaf3bb45931cbf9a4973201849493612e08f59c87682d68303d9370f9c8e7190ef8d370a4b88b874aa6c052f3ec5111b18078aa91788351126c100fafb&iv=214dfb8da1a51a83bf1fa09d&tag=56ae2bd0357cdeebc8e3166da13a8d50&version=1",

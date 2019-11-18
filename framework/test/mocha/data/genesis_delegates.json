@@ -1,8 +1,8 @@
 {
 	"accounts": [
 		{
-			"address": "16313739661670634666L",
-			"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+			"address": "11237980039345381032L",
+			"publicKey": "5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca",
 			"balance": 10000000000000000,
 			"secondPublicKey": null
 		}
@@ -801,9 +801,9 @@
 			"encryptedPassphrase": "iterations=1&salt=bbd116e5f9470d12e909e6bad03d014c&cipherText=f3d2fc911f61792beb4a62752edc4f19f2308f5c1a85a818f257190163548195e19129a0595f69cc1a4dedaf636f2b1714374af6f9806a59860adc45026e1f25a863742d6fe47ad0aa042e216520f052&iv=ee03fb460c2df1b57122ede7&tag=2555203a8fdfcaae758f626390f06071&version=1"
 		},
 		{
-			"passphrase": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
+			"passphrase": "dream theory eternal recall valid clever mind sell doctor empower bread cage",
 			"address": "10881167371402274308L",
-			"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+			"publicKey": "32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8",
 			"username": "genesis_100",
 			"password": "elephant tree paris dragon chair galaxy",
 			"encryptedPassphrase": "iterations=1&salt=25e9932aaa4c885bdcafb1913058fce6&cipherText=94cd85840ca2397e609e39d9c2902000d90d98bc3a24d0d5f086219c8365b84ab67a82e4e7680e9cec0da71b6c7f930e326d3bbece8e963d9664fcfaa80bd6f2e96befb033ad84ab3e6b0e32300cb304512f3f&iv=6bff91449f495bae345ab15a&tag=91c1eaa254a80c5d51a15b75929ca335&version=1"
@@ -819,7 +819,7 @@
 	],
 	"votes": {
 		"publicKeys": [
-			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f"
+			"5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca"
 		],
 		"votes": [
 			"+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f",
@@ -921,7 +921,7 @@
 			"+31402977c7eaf9e38d18d0689a45d719d615de941f7e80f6db388453b46f4df5",
 			"+f62062b7590d46f382fb8c37a26ab0a1bd512951777aedcaa96822230727d3a1",
 			"+76c9494237e608d43fd6fb0114106a7517f5503cf79d7482db58a02304339b6c",
-			"+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+			"+32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8",
 			"+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37"
 		]
 	}

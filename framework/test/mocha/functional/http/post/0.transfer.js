@@ -170,7 +170,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
-					'Account does not have enough LSK: 16313739661670634666L, balance: ',
+					'Account does not have enough LSK: 11237980039345381032L, balance: ',
 				);
 				badTransactions.push(transaction);
 			});
@@ -181,7 +181,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it.skip('from the genesis account should fail', async () => {
 			const signedTransactionFromGenesis = {
 				senderPublicKey:
-					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+					'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
 				timestamp: 24259352,
 				type: 8,
 				asset: {

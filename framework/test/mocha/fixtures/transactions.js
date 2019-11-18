@@ -52,7 +52,7 @@ const Transaction = stampit({
 			case 8:
 				this.asset.data = randomstring.generate({ length: 64 });
 				this.asset.amount = '112340000';
-				this.asset.recipientId = '16313739661670634666L';
+				this.asset.recipientId = '11237980039345381032L';
 				break;
 
 			// SIGNATURE
@@ -90,7 +90,7 @@ const Transaction = stampit({
 					}),
 				];
 				this.asset.amount = '112340000';
-				this.asset.recipientId = '16313739661670634666L';
+				this.asset.recipientId = '11237980039345381032L';
 				break;
 
 			// MULTI
