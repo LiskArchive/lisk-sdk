@@ -592,9 +592,6 @@ module.exports = class Chain {
 						block.transactions,
 					);
 				}
-				this.channel.invoke('app:updateApplicationState', {
-					height: block.height,
-				});
 				this.logger.info(
 					{
 						id: block.id,

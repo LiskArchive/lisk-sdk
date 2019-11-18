@@ -214,19 +214,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			async ({ block }) => {
-				let expectedReward = this.blocksModule.blockReward.calculateReward(
-					block.height,
-				);
-				if (!this.bftModule.isBFTProtocolCompliant(block)) {
-					expectedReward *= 0.25;
-				}
-				await this.blocksModule.validateBlockHeader(
+			async ({ block }) =>
+				this.blocksModule.validateBlockHeader(
 					block,
 					getBytes(block),
-					expectedReward,
-				);
-			},
+					block.reward, // Because it cannot calculate BFT compliance, it assumes that reward is correct
+				),
 		]);
 
 		this.forkStatus.pipe([
