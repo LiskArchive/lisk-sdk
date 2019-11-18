@@ -54,7 +54,7 @@ describe('TempBlock', () => {
 	let TempBlockEntity;
 
 	const row1 = {
-		id: '6524861224470851795',
+		id: '10620616195853047363',
 		height: 1,
 		fullBlock: {
 			version: 0,
@@ -62,18 +62,18 @@ describe('TempBlock', () => {
 			totalFee: '0',
 			reward: '0',
 			payloadHash:
-				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+				'23ce0366ef0a14a91e5fd4b1591fc880ffbef9d988ff8bebf8f3666b0c09597d',
 			timestamp: 0,
 			numberOfTransactions: 103,
 			payloadLength: 19619,
 			previousBlockId: null,
 			generatorPublicKey:
-				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
 			transactions: [],
 			height: 1,
 			blockSignature:
 				'c81204bf67474827fd98584e7787084957f42ce8041e713843dd2bb352b73e81143f68bd74b06da8372c43f5e26406c4e7250bbd790396d85dea50d448d62606',
-			id: '6524861224470851795',
+			id: '10620616195853047363',
 		},
 	};
 
@@ -86,32 +86,32 @@ describe('TempBlock', () => {
 			totalFee: '0',
 			reward: '0',
 			payloadHash:
-				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+				'23ce0366ef0a14a91e5fd4b1591fc880ffbef9d988ff8bebf8f3666b0c09597d',
 			timestamp: 0,
 			numberOfTransactions: 103,
 			payloadLength: 19619,
 			previousBlockId: null,
 			generatorPublicKey:
-				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
 			transactions: [
 				{
 					type: 0,
 					amount: '10000000000000000',
 					fee: '0',
 					timestamp: 0,
-					recipientId: '16313739661670634666L',
-					senderId: '1085993630748340485L',
+					recipientId: '11237980039345381032L',
+					senderId: '1276152240083265771L',
 					senderPublicKey:
-						'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+						'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
 					signature:
 						'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
-					id: '1465651642158264047',
+					id: '7646387794267587684',
 				},
 			],
 			height: 2,
 			blockSignature:
 				'c81204bf67474827fd98584e7787084957f42ce8041e713843dd2bb352b73e81143f68bd74b06da8372c43f5e26406c4e7250bbd790396d85dea50d448d62606',
-			id: '6524861224470851795',
+			id: '10620616195853047363',
 		},
 	};
 	beforeAll(async () => {

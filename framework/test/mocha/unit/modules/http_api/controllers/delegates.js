@@ -48,7 +48,7 @@ describe('delegates/api', () => {
 
 	beforeEach(done => {
 		dummyBlock = {
-			id: '9314232245035524467',
+			id: '17552532729871392055',
 			height: 1,
 		};
 

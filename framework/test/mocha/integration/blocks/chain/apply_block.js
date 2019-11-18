@@ -248,12 +248,12 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 								networkIdentifier,
 								timestamp: -3704634000,
 								senderPublicKey:
-									'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+									'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
 								signature:
 									'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 								id: '1465651642158264048',
 								asset: {
-									recipientId: '16313739661670634666L',
+									recipientId: '11237980039345381032L',
 									amount: '10000000000000000',
 								},
 							},
