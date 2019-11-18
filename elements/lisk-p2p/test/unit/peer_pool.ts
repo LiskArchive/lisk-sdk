@@ -113,7 +113,7 @@ describe('peerPool', () => {
 		requestPacket = { procedure: 'abc', data: 'abc' };
 		messagePacket = { ...requestPacket, event: 'abc' };
 		peerObject = {
-			peerInfo,
+			info: peerInfo,
 			send: sandbox.stub(),
 			request: sandbox.stub(),
 			connect: sandbox.stub(),
@@ -459,21 +459,21 @@ describe('peerPool', () => {
 		});
 
 		it('should call hasPeer with peerId', async () => {
-			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
+			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 
 			expect(hasPeerStub).to.be.calledWithExactly(peerId);
 		});
 
 		it('should call getAllConnectedPeerInfos with OutboundPeer', async () => {
 			hasPeerStub.returns(false);
-			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
+			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 
 			expect(getPeersStub).to.be.calledOnce;
 		});
 
 		it('should add peer to peerMap', async () => {
 			(peerPool as any)._peerMap = new Map([]);
-			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
+			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 
 			expect((peerPool as any)._peerMap.has(peerId)).to.exist;
 		});
@@ -485,7 +485,7 @@ describe('peerPool', () => {
 				peerPool as any,
 				'_bindHandlersToPeer',
 			);
-			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
+			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 
 			expect(_bindHandlersToPeerStub).to.be.calledOnce;
 		});
@@ -502,7 +502,7 @@ describe('peerPool', () => {
 				peerPool as any,
 				'_sendSharedStateToPeer',
 			);
-			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
+			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 
 			expect(_applySharedStateOnPeerStub).to.have.been.calledOnce;
 		});
@@ -516,7 +516,7 @@ describe('peerPool', () => {
 
 	describe('#getPeersCountPerKind', () => {
 		beforeEach(async () => {
-			(peerPool as any)._addOutboundPeer(peerObject.peerInfo as any);
+			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 		});
 
 		it('should return an object with outboundCount and inboundCount', async () => {
@@ -572,9 +572,7 @@ describe('peerPool', () => {
 					.returns(
 						peerList.filter(peer => peer.state === ConnectionState.OPEN),
 					);
-				activePeersInfoList = [peerList[0], peerList[1]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[0], peerList[1]].map(peer => peer.info);
 			});
 
 			it('should returns list of peerInfos of active peers', async () => {
@@ -596,9 +594,7 @@ describe('peerPool', () => {
 					.returns(
 						peerList.filter(peer => peer.state === ConnectionState.OPEN),
 					);
-				activePeersInfoList = [peerList[0], peerList[1]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[0], peerList[1]].map(peer => peer.info);
 			});
 
 			it('should returns list of peerInfos of active peers only in inbound', async () => {
@@ -620,9 +616,7 @@ describe('peerPool', () => {
 					.returns(
 						peerList.filter(peer => peer.state === ConnectionState.OPEN),
 					);
-				activePeersInfoList = [peerList[0], peerList[1]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[0], peerList[1]].map(peer => peer.info);
 			});
 
 			it('should returns list of peerInfos of active peers only in outbound', async () => {
@@ -659,20 +653,18 @@ describe('peerPool', () => {
 			beforeEach(async () => {
 				peerList.forEach((peer, i) => {
 					(peerPool as any)._peerMap.set(
-						`${peer.peerInfo.ipAddress}:${peer.peerInfo.sharedState.wsPort}`,
+						`${peer.info.ipAddress}:${peer.info.sharedState.wsPort}`,
 						{
-							peerInfo: { ...peer.peerInfo },
+							info: peer.info,
 							state: i % 2 ? ConnectionState.OPEN : ConnectionState.CLOSED,
 						},
 					);
 				});
-				activePeersInfoList = [peerList[1], peerList[3]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[1], peerList[3]].map(peer => peer.info);
 			});
 
 			it('should return active peers', async () => {
-				expect(peerPool.getConnectedPeers().map(peer => peer.peerInfo)).eql(
+				expect(peerPool.getConnectedPeers().map(peer => peer.info)).eql(
 					activePeersInfoList,
 				);
 			});
@@ -684,14 +676,17 @@ describe('peerPool', () => {
 			beforeEach(async () => {
 				peerList.forEach(peer => {
 					(peerPool as any)._peerMap.set(
-						`${peer.peerInfo.ipAddress}:${peer.peerInfo.sharedState.wsPort}`,
-						{ peerInfo: { ...peer.peerInfo }, state: ConnectionState.CLOSED },
+						`${peer.info.ipAddress}:${peer.info.sharedState.wsPort}`,
+						{
+							peerInfo: { ...peer.info },
+							state: ConnectionState.CLOSED,
+						},
 					);
 				});
 			});
 
 			it('should return an empty array', async () => {
-				expect(peerPool.getConnectedPeers().map(peer => peer.peerInfo)).eql([]);
+				expect(peerPool.getConnectedPeers().map(peer => peer.info)).eql([]);
 			});
 		});
 	});
@@ -828,7 +823,7 @@ describe('peerPool', () => {
 
 		beforeEach(async () => {
 			originalPeers = [...new Array(100).keys()].map(i => ({
-				peerInfo: {
+				info: {
 					peerId: i,
 				},
 				netgroup: i,
@@ -857,7 +852,7 @@ describe('peerPool', () => {
 		describe('when node using default protection ratio values has 10 inbound peers', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(10).keys()].map(i => ({
-					peerInfo: {
+					info: {
 						peerId: i,
 					},
 					netgroup: i,
@@ -878,7 +873,7 @@ describe('peerPool', () => {
 		describe('when node using default protection ratio values has 5 inbound peers', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(5).keys()].map(i => ({
-					peerInfo: {
+					info: {
 						peerId: i,
 					},
 					netgroup: i,
@@ -964,7 +959,7 @@ describe('peerPool', () => {
 				(peerPool as any)._peerPoolConfig.productivityProtectionRatio = 0;
 				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
 				originalPeers = [...new Array(10).keys()].map(i => ({
-					peerInfo: {
+					info: {
 						peerId: i,
 					},
 					netgroup: i,

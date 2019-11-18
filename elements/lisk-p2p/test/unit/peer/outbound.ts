@@ -177,8 +177,8 @@ describe('peer/outbound', () => {
 
 			it('should call socketClusterClient create method', () => {
 				const clientOptions = {
-					hostname: defaultOutboundPeer.peerInfo.ipAddress,
-					port: defaultOutboundPeer.peerInfo.sharedState.wsPort,
+					hostname: defaultOutboundPeer.info.ipAddress,
+					port: defaultOutboundPeer.info.sharedState.wsPort,
 					query: 'options=',
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,

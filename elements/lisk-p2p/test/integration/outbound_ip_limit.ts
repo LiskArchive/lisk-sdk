@@ -47,7 +47,7 @@ describe('Outbound IP limit', () => {
 							sharedState: {
 								wsPort: startPort,
 								advertiseAddress: true,
-							}
+							},
 						},
 				  ]
 				: [];
@@ -83,7 +83,7 @@ describe('Outbound IP limit', () => {
 			let uniqIpAddresses: Array<string> = [];
 			p2p['_peerPool']
 				.getPeers(OutboundPeer)
-				.map(peer => uniqIpAddresses.push(peer.peerInfo.ipAddress));
+				.map(peer => uniqIpAddresses.push(peer.info.ipAddress));
 
 			expect([...new Set(uniqIpAddresses)].length).to.equal(
 				p2p['_peerPool'].getPeers(OutboundPeer).length,

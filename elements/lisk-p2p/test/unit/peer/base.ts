@@ -140,7 +140,7 @@ describe('peer/base', () => {
 
 	describe('#peerInfo', () =>
 		it('should get peerInfo property', () =>
-			expect(defaultPeer.peerInfo).to.be.eql(defaultPeerInfo)));
+			expect(defaultPeer.info).to.be.eql(defaultPeerInfo)));
 
 	describe('#connect', () => {
 		it('should throw error if socket does not exist', () => {
@@ -412,8 +412,8 @@ describe('peer/base', () => {
 					.and.be.an.instanceOf(RPCResponseError)
 					.and.have.property(
 						'peerId',
-						`${defaultPeer.peerInfo.ipAddress}:${
-							defaultPeer.peerInfo.sharedState.wsPort
+						`${defaultPeer.info.ipAddress}:${
+							defaultPeer.info.sharedState.wsPort
 						}`,
 					);
 			});
@@ -554,7 +554,7 @@ describe('peer/base', () => {
 				defaultPeer.applyPenalty(penalty);
 				expect(defaultPeer.emit).to.be.calledOnceWithExactly(
 					EVENT_BAN_PEER,
-					defaultPeer.peerInfo.peerId,
+					defaultPeer.info.peerId,
 				);
 			});
 

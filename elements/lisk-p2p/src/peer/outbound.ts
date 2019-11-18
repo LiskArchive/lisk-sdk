@@ -105,8 +105,8 @@ export class OutboundPeer extends Peer {
 			: DEFAULT_ACK_TIMEOUT;
 		// Ideally, we should JSON-serialize the whole SharedState object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
-			hostname: this.peerInfo.ipAddress,
-			port: this.peerInfo.sharedState.wsPort,
+			hostname: this.info.ipAddress,
+			port: this.info.sharedState.wsPort,
 			query: querystring.stringify({
 				...this._peerConfig.sharedState,
 				options: JSON.stringify(this._peerConfig.sharedState),
@@ -147,11 +147,11 @@ export class OutboundPeer extends Peer {
 				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 			}
 
-			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
+			this.emit(EVENT_CONNECT_OUTBOUND, this.info);
 		});
 
 		outboundSocket.on('connectAbort', () => {
-			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
+			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this.info);
 		});
 
 		outboundSocket.on(
@@ -161,7 +161,7 @@ export class OutboundPeer extends Peer {
 					? reasonMessage
 					: socketErrorStatusCodes[code] || 'Unknown reason';
 				this.emit(EVENT_CLOSE_OUTBOUND, {
-					peerInfo: this._peerInfo,
+					peerInfo: this.info,
 					code,
 					reason,
 				});
