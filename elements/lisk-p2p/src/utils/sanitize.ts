@@ -18,15 +18,13 @@ export const sanitizePeerLists = (
 	peerLists: PeerLists,
 	nodeIpAddress: string,
 ): PeerLists => {
-	const blacklisted = peerLists.blacklisted.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeIpAddress) {
+	const blacklistedIPs = peerLists.blacklistedIPs.filter(ipAddress => {
+		if (ipAddress === nodeIpAddress) {
 			return false;
 		}
 
 		return true;
 	});
-
-	const blacklistedIPs = blacklisted.map(peerInfo => peerInfo.ipAddress);
 
 	const seeds = peerLists.seeds.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeIpAddress) {
@@ -85,7 +83,7 @@ export const sanitizePeerLists = (
 	});
 
 	return {
-		blacklisted,
+		blacklistedIPs,
 		seeds,
 		fixed,
 		whitelisted,

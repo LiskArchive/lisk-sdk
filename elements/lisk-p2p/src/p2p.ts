@@ -231,8 +231,8 @@ export class P2P extends EventEmitter {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
+				blacklistedIPs: config.blacklistedIPs ? config.blacklistedIPs : [],
 				seeds: config.seedPeers ? config.seedPeers : [],
-				blacklisted: config.blacklistedPeers ? config.blacklistedPeers : [],
 				fixed: config.fixedPeers ? config.fixedPeers : [],
 				whitelisted: config.whitelistedPeers ? config.whitelistedPeers : [],
 				previous: config.previousPeers ? config.previousPeers : [],
@@ -400,8 +400,8 @@ export class P2P extends EventEmitter {
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			// Check blacklist to avoid incoming connections from backlisted ips
-			const isBlacklisted = this._sanitizedPeerLists.blacklisted.find(
-				peer => peer.peerId === detailedPeerInfo.peerId,
+			const isBlacklisted = this._sanitizedPeerLists.blacklistedIPs.find(
+				ipAddress => ipAddress === detailedPeerInfo.ipAddress,
 			);
 
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
@@ -653,11 +653,12 @@ export class P2P extends EventEmitter {
 					return;
 				}
 				// Check blacklist to avoid incoming connections from backlisted ips
-				if (this._sanitizedPeerLists.blacklisted) {
-					const blacklist = this._sanitizedPeerLists.blacklisted.map(
-						peer => peer.ipAddress,
-					);
-					if (blacklist.includes(socket.remoteAddress)) {
+				if (this._sanitizedPeerLists.blacklistedIPs) {
+					if (
+						this._sanitizedPeerLists.blacklistedIPs.includes(
+							socket.remoteAddress,
+						)
+					) {
 						this._disconnectSocketDueToFailedHandshake(
 							socket,
 							FORBIDDEN_CONNECTION,

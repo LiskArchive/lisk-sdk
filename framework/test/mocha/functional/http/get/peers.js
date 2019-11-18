@@ -86,9 +86,13 @@ describe('GET /peers', () => {
 			invalid: ['alpha'],
 		},
 	};
-	/**
-	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different apporach to setup the functional test
-	 */
+
+	it('using no params should be ok', async () => {
+		return peersEndpoint.makeRequest({}, 200).then(res => {
+			expect(res.body.data).to.not.empty;
+		});
+	});
+
 	Object.keys(paramSet).forEach(param => {
 		// Describe each param
 		describe(param, () => {
@@ -270,12 +274,6 @@ describe('GET /peers', () => {
 					expectSwaggerParamError(res, 'offset');
 					expectSwaggerParamError(res, 'sort');
 				});
-		});
-	});
-
-	it('using no params should be ok', async () => {
-		return peersEndpoint.makeRequest({}, 200).then(res => {
-			expect(res.body.data).to.not.empty;
 		});
 	});
 

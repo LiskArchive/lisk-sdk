@@ -76,7 +76,7 @@ export interface P2PPeerInfo {
 
 export interface P2PConfig {
 	readonly sharedState: P2PSharedState;
-	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly blacklistedIPs?: ReadonlyArray<string>;
 	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
@@ -155,7 +155,7 @@ export type P2PCheckPeerCompatibility = (
 ) => P2PCompatibilityCheckReturnType;
 
 export interface PeerLists {
-	readonly blacklisted: ReadonlyArray<P2PPeerInfo>;
+	readonly blacklistedIPs: ReadonlyArray<string>;
 	readonly seeds: ReadonlyArray<P2PPeerInfo>;
 	readonly fixed: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;

@@ -575,7 +575,7 @@ Object {
       "ackTimeout": 20000,
       "address": "0.0.0.0",
       "advertiseAddress": true,
-      "blacklistedPeers": Array [],
+      "blacklistedIPs": Array [],
       "connectTimeout": 5000,
       "discoveryInterval": 30000,
       "emitPeerLimit": 16,

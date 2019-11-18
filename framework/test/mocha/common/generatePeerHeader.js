@@ -42,10 +42,11 @@ const generatePeerHeader = function(headers = {}) {
 	};
 
 	return {
-		blacklistedPeers: [{ ipAddress: '127.1.0.1', wsPort: sharedState.wsPort }],
+		blacklistedIPs: ['127.1.0.1'],
 		seedPeers: testConfig.modules.network.seedPeers.map(v => ({
+			peerId: `${v.ip}:${v.wsPort}`,
 			ipAddress: v.ip,
-			wsPort: v.wsPort,
+			sharedState: { wsPort: v.wsPort },
 		})),
 		ackTimeout: 20000,
 		sharedState,
