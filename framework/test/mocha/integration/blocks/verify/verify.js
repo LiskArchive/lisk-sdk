@@ -64,7 +64,8 @@ async function createBlock(
 		library.modules.blocks.deserializeTransaction(transaction),
 	);
 	library.modules.blocks._lastBlock = previousBlockArgs;
-	const newBlock = await library.modules.processor.create({
+	const blockProcessorV1 = library.modules.processor.processors[1];
+	const newBlock = await blockProcessorV1.create.run({
 		keypair,
 		timestamp,
 		previousBlock: library.modules.blocks.lastBlock,
