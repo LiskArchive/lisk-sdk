@@ -29,6 +29,7 @@ describe('forge', () => {
 		publish: sinonSandbox.stub(),
 	};
 	const mockLogger = {
+		trace: sinonSandbox.stub(),
 		debug: sinonSandbox.stub(),
 		info: sinonSandbox.stub(),
 		warn: sinonSandbox.stub(),
@@ -812,7 +813,7 @@ describe('forge', () => {
 
 				expect(data).to.be.undefined;
 				expect(mockLogger.debug).to.be.calledOnce;
-				expect(mockLogger.debug).to.be.calledWith(
+				expect(mockLogger.trace).to.be.calledWith(
 					{ slot: 5 },
 					'Block already forged for the current slot',
 				);
@@ -845,7 +846,7 @@ describe('forge', () => {
 				const data = await forgeModule.forge();
 				expect(data).to.be.undefined;
 				expect(mockLogger.debug).to.be.calledOnce;
-				expect(mockLogger.debug).to.be.calledWith(
+				expect(mockLogger.trace).to.be.calledWith(
 					{ currentSlot: 5 },
 					'Waiting for delegate slot',
 				);
