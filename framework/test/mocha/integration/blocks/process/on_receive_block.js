@@ -156,8 +156,9 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							25,
 						) || [];
 
-					library.modules.processor
-						.create({
+					const blockProcessorV1 = library.modules.processor.processors[1];
+					blockProcessorV1.create
+						.run({
 							keypair,
 							timestamp: slots.getSlotTime(slot) + 5,
 							transactions,
@@ -848,8 +849,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				});
 			});
 
-			// eslint-disable-next-line mocha/no-skipped-tests
-			describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: with 100 blocks forged', () => {
+			describe('with 100 blocks forged', () => {
 				let secondLastBlock;
 				let lastBlock;
 				let keypair;
