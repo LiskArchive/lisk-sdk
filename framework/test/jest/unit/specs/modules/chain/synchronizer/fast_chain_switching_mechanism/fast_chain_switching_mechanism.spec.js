@@ -294,7 +294,7 @@ describe('fast_chain_switching_mechanism', () => {
 				checkApplyPenaltyAndRestartIsCalled(
 					aBlock,
 					aPeerId,
-					"Peer didn't return a common block or its height is lower than the finalized height of the chain",
+					"Peer didn't return a common block",
 				);
 				expect(fastChainSwitchingMechanism.active).toBeFalsy();
 			});
@@ -342,7 +342,7 @@ describe('fast_chain_switching_mechanism', () => {
 				checkApplyPenaltyAndRestartIsCalled(
 					aBlock,
 					aPeerId,
-					"Peer didn't return a common block or its height is lower than the finalized height of the chain",
+					'Common block height 0 is lower than the finalized height of the chain 1',
 				);
 				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
 					aBlock,
