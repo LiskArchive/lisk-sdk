@@ -15,14 +15,18 @@
 import { expect } from 'chai';
 import { P2P, ProtocolPeerInfo } from '../../../src/index';
 import { wait } from '../../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	SEED_PEER_IP,
+} from 'utils/network_setup';
 import {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
 	EVENT_CLOSE_INBOUND,
 } from '../../../src/index';
 
-describe('Peer banning mechanism', () => {
+describe.only('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();
 	const PEER_BAN_TIME = 100;
@@ -69,7 +73,7 @@ describe('Peer banning mechanism', () => {
 			firstNode.on(EVENT_CLOSE_INBOUND, packet => {
 				collectedEvents.set('EVENT_CLOSE_INBOUND', packet);
 			});
-			badPeer = firstNode.getConnectedPeers()[2];
+			badPeer = { ipAddress: SEED_PEER_IP, wsPort: 5001 };
 			const peerPenalty = {
 				peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
 				penalty: 100,
@@ -99,8 +103,18 @@ describe('Peer banning mechanism', () => {
 		});
 
 		it('should unban a peer after the ban period', async () => {
+			p2pNodeList.forEach(p2p => {
+				console.log(
+					p2p.nodeInfo.wsPort,
+					p2p.getConnectedPeers().length,
+					p2p.getDisconnectedPeers.length,
+					p2p['_peerPool'].getPeersCountPerKind(),
+				);
+			});
+
 			// Wait for ban time to expire and peer to be re-discovered
 			await wait(200);
+
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
 
 			expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
