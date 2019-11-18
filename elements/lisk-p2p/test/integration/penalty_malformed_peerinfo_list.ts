@@ -46,7 +46,7 @@ describe('penalty sending malformed Peer List', () => {
 				) + 1}.${Math.floor(Math.random() * 254) + 1}`;
 
 				p2pNodeList[0]['_peerBook'].addPeer({
-					peerId: `${generatedIP}:5000`,
+					id: `${generatedIP}:5000`,
 					ipAddress: generatedIP,
 					sharedState: {
 						wsPort: 1000,
@@ -87,7 +87,7 @@ describe('penalty sending malformed Peer List', () => {
 			});
 
 			p2pNodeList[0]['_peerBook'].addPeer({
-				peerId: `'1.1.1.1:1000`,
+				id: `'1.1.1.1:1000`,
 				ipAddress: '1.1.1.1',
 				sharedState: {
 					wsPort: 1000,

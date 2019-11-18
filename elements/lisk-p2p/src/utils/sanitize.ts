@@ -59,11 +59,11 @@ export const sanitizePeerLists = (
 			return false;
 		}
 
-		if (fixed.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+		if (fixed.map(peer => peer.id).includes(peerInfo.id)) {
 			return false;
 		}
 
-		if (seeds.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+		if (seeds.map(peer => peer.id).includes(peerInfo.id)) {
 			return false;
 		}
 

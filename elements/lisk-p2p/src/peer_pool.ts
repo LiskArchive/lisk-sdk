@@ -231,7 +231,7 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
-			const peerId = closePacket.peerInfo.peerId;
+			const peerId = closePacket.peerInfo.id;
 			this.removePeer(
 				peerId,
 				closePacket.code,
@@ -242,7 +242,7 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
-			const peerId = closePacket.peerInfo.peerId;
+			const peerId = closePacket.peerInfo.id;
 			this.removePeer(
 				peerId,
 				closePacket.code,
@@ -323,14 +323,14 @@ export class PeerPool extends EventEmitter {
 			);
 		}
 
-		const selectedPeerId = selectedPeers[0].peerId;
+		const selectedPeerId = selectedPeers[0].id;
 
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
 	public broadcast(message: P2PMessagePacket): void {
 		[...this._peerMap.values()].map(peer => {
-			const selectedPeerId = peer.info.peerId;
+			const selectedPeerId = peer.info.id;
 			try {
 				this.sendToPeer(message, selectedPeerId);
 			} catch (error) {
@@ -365,7 +365,7 @@ export class PeerPool extends EventEmitter {
 		});
 
 		selectedPeers.forEach((peerInfo: P2PPeerInfo) => {
-			const selectedPeerId = peerInfo.peerId;
+			const selectedPeerId = peerInfo.id;
 			try {
 				this.sendToPeer(message, selectedPeerId);
 			} catch (error) {
@@ -405,14 +405,14 @@ export class PeerPool extends EventEmitter {
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
-			newPeer => !this._peerMap.has(newPeer.peerId),
+			newPeer => !this._peerMap.has(newPeer.id),
 		);
 		const disconnectedTriedPeers = triedPeers.filter(
-			triedPeer => !this._peerMap.has(triedPeer.peerId),
+			triedPeer => !this._peerMap.has(triedPeer.id),
 		);
 		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
-			.filter(peer => !this._peerMap.get(peer.peerId))
+			.filter(peer => !this._peerMap.get(peer.id))
 			.map(peer2Convert => peer2Convert);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
@@ -443,10 +443,10 @@ export class PeerPool extends EventEmitter {
 
 		const peer = new InboundPeer(peerInfo, socket, this._peerConfig);
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
-		if (this._peerMap.has(peer.info.peerId)) {
-			throw new Error(`Peer ${peer.info.peerId} was already in the peer pool`);
+		if (this._peerMap.has(peer.info.id)) {
+			throw new Error(`Peer ${peer.info.id} was already in the peer pool`);
 		}
-		this._peerMap.set(peer.info.peerId, peer);
+		this._peerMap.set(peer.info.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this.sharedState) {
 			this._sendSharedStateToPeer(peer);
@@ -457,7 +457,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _addOutboundPeer(peerInfo: P2PPeerInfo): boolean {
-		if (this.hasPeer(peerInfo.peerId)) {
+		if (this.hasPeer(peerInfo.id)) {
 			return false;
 		}
 
@@ -479,7 +479,7 @@ export class PeerPool extends EventEmitter {
 			sharedState: this.sharedState,
 		});
 
-		this._peerMap.set(peer.info.peerId, peer);
+		this._peerMap.set(peer.info.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this.sharedState) {
 			this._sendSharedStateToPeer(peer);
@@ -516,9 +516,9 @@ export class PeerPool extends EventEmitter {
 
 		this._peerMap.forEach((peer: Peer) => {
 			this.removePeer(
-				peer.info.peerId,
+				peer.info.id,
 				INTENTIONAL_DISCONNECT_CODE,
-				`Intentionally removed peer ${peer.info.peerId}`,
+				`Intentionally removed peer ${peer.info.id}`,
 			);
 		});
 	}
@@ -597,7 +597,7 @@ export class PeerPool extends EventEmitter {
 
 	private _selectPeersForEviction(): Peer[] {
 		const peers = [...this.getPeers(InboundPeer)].filter(peer =>
-			this._peerLists.whitelisted.every(p => p.peerId !== peer.info.peerId),
+			this._peerLists.whitelisted.every(p => p.id !== peer.info.id),
 		);
 
 		// Cannot predict which netgroups will be protected
@@ -607,7 +607,7 @@ export class PeerPool extends EventEmitter {
 					category: PROTECTION_CATEGORY.NET_GROUP,
 					percentage: this._peerPoolConfig.netgroupProtectionRatio,
 					protectBy: PROTECT_BY.HIGHEST,
-			  }).map(peer => peer.info.peerId)
+			  }).map(peer => peer.info.id)
 			: [];
 
 		// Cannot manipulate without physically moving nodes closer to the target.
@@ -616,7 +616,7 @@ export class PeerPool extends EventEmitter {
 					category: PROTECTION_CATEGORY.LATENCY,
 					percentage: this._peerPoolConfig.latencyProtectionRatio,
 					protectBy: PROTECT_BY.LOWEST,
-			  }).map(peer => peer.info.peerId)
+			  }).map(peer => peer.info.id)
 			: [];
 
 		// Cannot manipulate this metric without performing useful work.
@@ -626,7 +626,7 @@ export class PeerPool extends EventEmitter {
 					category: PROTECTION_CATEGORY.RESPONSE_RATE,
 					percentage: this._peerPoolConfig.productivityProtectionRatio,
 					protectBy: PROTECT_BY.HIGHEST,
-			  }).map(peer => peer.info.peerId)
+			  }).map(peer => peer.info.id)
 			: [];
 
 		const uniqueProtectedPeers = new Set([
@@ -635,7 +635,7 @@ export class PeerPool extends EventEmitter {
 			...protectedPeersByResponseRate,
 		]);
 		const unprotectedPeers = peers.filter(
-			peer => !uniqueProtectedPeers.has(peer.info.peerId),
+			peer => !uniqueProtectedPeers.has(peer.info.id),
 		);
 
 		// Protect *the remaining half* of peers by longevity, precludes attacks that start later.
@@ -646,12 +646,12 @@ export class PeerPool extends EventEmitter {
 						category: PROTECTION_CATEGORY.CONNECT_TIME,
 						percentage: this._peerPoolConfig.longevityProtectionRatio,
 						protectBy: PROTECT_BY.LOWEST,
-					}).map(peer => peer.info.peerId),
+					}).map(peer => peer.info.id),
 			  ])
 			: new Set();
 
 		return unprotectedPeers.filter(
-			peer => !protectedPeersByConnectTime.has(peer.info.peerId),
+			peer => !protectedPeersByConnectTime.has(peer.info.id),
 		);
 	}
 
@@ -664,14 +664,14 @@ export class PeerPool extends EventEmitter {
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
 				peers.filter(peer =>
-					this._peerLists.fixed.every(p => p.peerId !== peer.info.peerId),
+					this._peerLists.fixed.every(p => p.id !== peer.info.id),
 				),
 			)[0];
 			if (selectedPeer) {
 				this.removePeer(
-					selectedPeer.info.peerId,
+					selectedPeer.info.id,
 					EVICTED_PEER_CODE,
-					`Evicted outbound peer ${selectedPeer.info.peerId}`,
+					`Evicted outbound peer ${selectedPeer.info.id}`,
 				);
 			}
 		}
@@ -681,9 +681,9 @@ export class PeerPool extends EventEmitter {
 			const peerToEvict = shuffle(evictionCandidates)[0];
 			if (peerToEvict) {
 				this.removePeer(
-					peerToEvict.info.peerId,
+					peerToEvict.info.id,
 					EVICTED_PEER_CODE,
-					`Evicted inbound peer ${peerToEvict.info.peerId}`,
+					`Evicted inbound peer ${peerToEvict.info.id}`,
 				);
 			}
 		}

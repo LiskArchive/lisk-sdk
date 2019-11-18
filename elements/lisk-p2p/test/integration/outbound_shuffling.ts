@@ -31,7 +31,7 @@ describe('Outbound peer shuffling', () => {
 		) =>
 			[...new Array(networkSize / 2).keys()]
 				.map(index => ({
-					peerId: constructPeerId(
+					id: constructPeerId(
 						'127.0.0.1',
 						startPort + ((index + 2) % networkSize),
 					),

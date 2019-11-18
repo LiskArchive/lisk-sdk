@@ -31,7 +31,7 @@ describe('Advertise Address', () => {
 		ackTimeout: 200,
 		seedPeers: [
 			{
-				peerId: constructPeerId('127.0.0.1', 5003),
+				id: constructPeerId('127.0.0.1', 5003),
 				ipAddress: '127.0.0.1',
 				sharedState: {
 					wsPort: 5003,

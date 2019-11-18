@@ -42,7 +42,7 @@ describe('Outbound IP limit', () => {
 			index !== 0
 				? [
 						{
-							peerId: constructPeerId('127.0.0.1', startPort),
+							id: constructPeerId('127.0.0.1', startPort),
 							ipAddress: '127.0.0.1',
 							sharedState: {
 								wsPort: startPort,

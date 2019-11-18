@@ -142,7 +142,7 @@ describe(`Connection Create`, () => {
 				sharedState: customSharedState(index),
 				seedPeers: [
 					{
-						peerId: constructPeerId(SEED_PEER_IP, NETWORK_START_PORT),
+						id: constructPeerId(SEED_PEER_IP, NETWORK_START_PORT),
 						ipAddress: SEED_PEER_IP,
 						sharedState: {
 							wsPort: NETWORK_START_PORT,

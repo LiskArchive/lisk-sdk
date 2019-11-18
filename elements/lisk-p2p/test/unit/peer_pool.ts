@@ -86,7 +86,7 @@ describe('peerPool', () => {
 	let peerPool: PeerPool;
 	let peerInfo: P2PPeerInfo;
 	let sharedState: P2PSharedState;
-	let peerId: string;
+	let id: string;
 	let peerObject: any;
 	let messagePacket: any;
 	let requestPacket: any;
@@ -95,9 +95,9 @@ describe('peerPool', () => {
 	beforeEach(async () => {
 		clock = sandbox.useFakeTimers();
 		peerPool = new PeerPool(peerPoolConfig);
-		peerId = '127.0.0.1:5000';
+		id = '127.0.0.1:5000';
 		peerInfo = {
-			peerId,
+			id,
 			ipAddress: '127.0.0.1',
 			sharedState: {
 				wsPort: 5000,
@@ -330,16 +330,16 @@ describe('peerPool', () => {
 			(peerPool as any)._peerMap = new Map();
 
 			return expect(
-				peerPool.requestFromPeer(requestPacket, peerId),
+				peerPool.requestFromPeer(requestPacket, id),
 			).to.eventually.be.rejectedWith(
 				RequestFailError,
-				`Request failed because a peer with id ${peerId} could not be found`,
+				`Request failed because a peer with id ${id} could not be found`,
 			);
 		});
 
 		it('should call peer request with packet', async () => {
 			(peerPool as any)._peerMap = new Map([['127.0.0.1:5000', peerObject]]);
-			await peerPool.requestFromPeer(requestPacket, peerId);
+			await peerPool.requestFromPeer(requestPacket, id);
 
 			expect(peerObject.request).to.be.calledWithExactly(requestPacket);
 		});
@@ -349,7 +349,7 @@ describe('peerPool', () => {
 		it('should throw error if no peers in peerPool', async () => {
 			(peerPool as any)._peerMap = new Map();
 
-			expect(() => peerPool.sendToPeer(messagePacket, peerId)).to.throw(
+			expect(() => peerPool.sendToPeer(messagePacket, id)).to.throw(
 				SendFailError,
 			);
 		});
@@ -358,8 +358,8 @@ describe('peerPool', () => {
 			const peerStub = {
 				send: sandbox.stub(),
 			};
-			(peerPool as any)._peerMap = new Map([[peerId, peerStub]]);
-			await peerPool.sendToPeer(messagePacket, peerId);
+			(peerPool as any)._peerMap = new Map([[id, peerStub]]);
+			await peerPool.sendToPeer(messagePacket, id);
 
 			expect(peerStub.send).to.be.calledWithExactly(messagePacket);
 		});
@@ -412,7 +412,7 @@ describe('peerPool', () => {
 			(peerPool as any)._peerMap = new Map([]);
 			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
-			expect((peerPool as any)._peerMap.has(peerId)).to.exist;
+			expect((peerPool as any)._peerMap.has(id)).to.exist;
 		});
 
 		it('should call _bindHandlersToPeer', async () => {
@@ -458,10 +458,10 @@ describe('peerPool', () => {
 			getPeersStub = sandbox.stub(peerPool, 'getPeers').returns([] as Peer[]);
 		});
 
-		it('should call hasPeer with peerId', async () => {
+		it('should call hasPeer with id', async () => {
 			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 
-			expect(hasPeerStub).to.be.calledWithExactly(peerId);
+			expect(hasPeerStub).to.be.calledWithExactly(id);
 		});
 
 		it('should call getAllConnectedPeerInfos with OutboundPeer', async () => {
@@ -475,7 +475,7 @@ describe('peerPool', () => {
 			(peerPool as any)._peerMap = new Map([]);
 			(peerPool as any)._addOutboundPeer(peerObject.info as any);
 
-			expect((peerPool as any)._peerMap.has(peerId)).to.exist;
+			expect((peerPool as any)._peerMap.has(id)).to.exist;
 		});
 
 		it('should call _bindHandlersToPeer', async () => {
@@ -530,7 +530,7 @@ describe('peerPool', () => {
 		let removePeerStub: any;
 
 		beforeEach(async () => {
-			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+			(peerPool as any)._peerMap = new Map([[id, peerObject]]);
 			removePeerStub = sandbox.stub(peerPool, 'removePeer');
 		});
 
@@ -538,16 +538,17 @@ describe('peerPool', () => {
 			peerPool.removeAllPeers();
 
 			expect(removePeerStub).to.be.calledWithExactly(
-				peerId,
+				id,
 				INTENTIONAL_DISCONNECT_CODE,
-				`Intentionally removed peer ${peerId}`,
+				`Intentionally removed peer ${id}`,
 			);
+			id;
 		});
 	});
 
 	describe('#getPeers', () => {
 		beforeEach(async () => {
-			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+			(peerPool as any)._peerMap = new Map([[id, peerObject]]);
 		});
 
 		it('should return peers by kind', async () => {
@@ -693,11 +694,11 @@ describe('peerPool', () => {
 
 	describe('#getPeer', () => {
 		beforeEach(async () => {
-			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+			(peerPool as any)._peerMap = new Map([[id, peerObject]]);
 		});
 
-		it('should return a peer based on peerId', async () => {
-			const peer = peerPool.getPeer(peerId);
+		it('should return a peer based on id', async () => {
+			const peer = peerPool.getPeer(id);
 
 			expect(peer).to.exist;
 		});
@@ -705,52 +706,44 @@ describe('peerPool', () => {
 
 	describe('#hasPeer', () => {
 		it('should return true if peer exists in pool', async () => {
-			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+			(peerPool as any)._peerMap = new Map([[id, peerObject]]);
 
-			expect(peerPool.hasPeer(peerId)).to.be.true;
+			expect(peerPool.hasPeer(id)).to.be.true;
 		});
 
 		it('should return false if peer does not exist in pool', async () => {
 			(peerPool as any)._peerMap = new Map([]);
 
-			expect(peerPool.hasPeer(peerId)).to.be.false;
+			expect(peerPool.hasPeer(id)).to.be.false;
 		});
 	});
 
 	describe('#removePeer', () => {
 		beforeEach(async () => {
-			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+			(peerPool as any)._peerMap = new Map([[id, peerObject]]);
 		});
 
 		it('should disconnect peer', async () => {
-			peerPool.removePeer(
-				peerId,
-				INTENTIONAL_DISCONNECT_CODE,
-				'Disconnect peer',
-			);
+			peerPool.removePeer(id, INTENTIONAL_DISCONNECT_CODE, 'Disconnect peer');
 
 			expect(peerObject.disconnect).to.be.calledOnce;
 		});
 
 		it('should remove peer from peerMap', async () => {
-			peerPool.removePeer(
-				peerId,
-				INTENTIONAL_DISCONNECT_CODE,
-				'Disconnect peer',
-			);
+			peerPool.removePeer(id, INTENTIONAL_DISCONNECT_CODE, 'Disconnect peer');
 
-			expect((peerPool as any)._peerMap.has(peerId)).to.be.false;
+			expect((peerPool as any)._peerMap.has(id)).to.be.false;
 		});
 	});
 
 	describe('#applyPenalty', () => {
 		beforeEach(async () => {
-			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+			(peerPool as any)._peerMap = new Map([[id, peerObject]]);
 		});
 
 		it('should call applyPenalty on peer', async () => {
 			const penalty = 50;
-			peerPool.applyPenalty({ peerId, penalty });
+			peerPool.applyPenalty({ peerId: id, penalty });
 
 			expect(peerObject.applyPenalty).to.be.calledOnce;
 		});
@@ -824,7 +817,7 @@ describe('peerPool', () => {
 		beforeEach(async () => {
 			originalPeers = [...new Array(100).keys()].map(i => ({
 				info: {
-					peerId: i,
+					id: i,
 				},
 				netgroup: i,
 				latency: i,
@@ -853,7 +846,7 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(10).keys()].map(i => ({
 					info: {
-						peerId: i,
+						id: i,
 					},
 					netgroup: i,
 					latency: i,
@@ -874,7 +867,7 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(5).keys()].map(i => ({
 					info: {
-						peerId: i,
+						id: i,
 					},
 					netgroup: i,
 					latency: i,
@@ -960,7 +953,7 @@ describe('peerPool', () => {
 				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
 				originalPeers = [...new Array(10).keys()].map(i => ({
 					info: {
-						peerId: i,
+						id: i,
 					},
 					netgroup: i,
 					latency: i,

@@ -36,7 +36,7 @@ describe('peer/outbound', () => {
 
 	beforeEach(() => {
 		defaultPeerInfo = {
-			peerId: '12.12.12.12:5001',
+			id: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
 			sharedState: {
 				wsPort: 5001,

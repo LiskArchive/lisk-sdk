@@ -283,7 +283,7 @@ export class P2P extends EventEmitter {
 				}
 
 				const updatedPeerInfo = {
-					peerId: peerInfo.peerId,
+					id: peerInfo.id,
 					ipAddress: peerInfo.ipAddress,
 					sharedState: peerInfo.sharedState,
 					internalState: error.peerInfo.internalState,
@@ -300,7 +300,7 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-				peer => peer.peerId === peerInfo.peerId,
+				peer => peer.id === peerInfo.id,
 			);
 			if (this._peerBook.getPeer(peerInfo) && !isWhitelisted) {
 				this._peerBook.downgradePeer(peerInfo);
@@ -372,11 +372,11 @@ export class P2P extends EventEmitter {
 		this._handleBanPeer = (peerId: string) => {
 			this._bannedPeers.add(peerId.split(':')[0]);
 			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-				peer => peer.peerId === peerId,
+				peer => peer.id === peerId,
 			);
 
 			const bannedPeerInfo = {
-				peerId,
+				id: peerId,
 				ipAddress: peerId.split(':')[0],
 				sharedState: {
 					wsPort: +peerId.split(':')[1],
@@ -416,7 +416,7 @@ export class P2P extends EventEmitter {
 					}
 
 					// Don't update peerInfo when we already have connection with that peer
-					if (!this._peerPool.hasPeer(error.peerInfo.peerId)) {
+					if (!this._peerPool.hasPeer(error.peerInfo.id)) {
 						const updatedPeerInfo = {
 							...detailedPeerInfo,
 							sharedState: detailedPeerInfo.sharedState
@@ -535,7 +535,7 @@ export class P2P extends EventEmitter {
 
 	public getTriedPeers(): ReadonlyArray<P2PPeerInfo> {
 		return this._peerBook.triedPeers.map(peer => ({
-			peerId: peer.peerId,
+			id: peer.id,
 			ipAddress: peer.ipAddress,
 			sharedState: peer.sharedState,
 		}));
@@ -550,7 +550,7 @@ export class P2P extends EventEmitter {
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
-				peerId: peer.peerId,
+				id: peer.id,
 				ipAddress: peer.ipAddress,
 				sharedState: peer.sharedState,
 			}));
@@ -561,11 +561,7 @@ export class P2P extends EventEmitter {
 		const allPeers = this._peerBook.allPeers;
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
-			if (
-				connectedPeers.find(
-					connectedPeer => peer.peerId === connectedPeer.peerId,
-				)
-			) {
+			if (connectedPeers.find(connectedPeer => peer.id === connectedPeer.id)) {
 				return false;
 			}
 
@@ -578,7 +574,7 @@ export class P2P extends EventEmitter {
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
-				peerId: peer.peerId,
+				id: peer.id,
 				ipAddress: peer.ipAddress,
 				sharedState: peer.sharedState,
 			}));
@@ -698,7 +694,7 @@ export class P2P extends EventEmitter {
 
 					// Delete you peerinfo from both the lists
 					this._peerBook.removePeer({
-						peerId: constructPeerId(socket.remoteAddress, selfWSPort),
+						id: constructPeerId(socket.remoteAddress, selfWSPort),
 						ipAddress: socket.remoteAddress,
 						sharedState: {
 							wsPort: selfWSPort,
@@ -767,7 +763,7 @@ export class P2P extends EventEmitter {
 						advertiseAddress: advertiseAddress !== 'false',
 						connectionKind: ConnectionKind.INBOUND,
 					},
-					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
+					id: constructPeerId(socket.remoteAddress, remoteWSPort),
 					ipAddress: socket.remoteAddress,
 				};
 
@@ -929,7 +925,7 @@ export class P2P extends EventEmitter {
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
 			.map(peer => ({
-				peerId: constructPeerId(peer.ipAddress, peer.sharedState.wsPort),
+				id: constructPeerId(peer.ipAddress, peer.sharedState.wsPort),
 				ipAddress: peer.ipAddress,
 				sharedState: peer.sharedState,
 			}));
@@ -945,15 +941,15 @@ export class P2P extends EventEmitter {
 
 	private _isTrustedPeer(peerId: string): boolean {
 		const isSeed = this._sanitizedPeerLists.seeds.find(
-			seedPeer => peerId === seedPeer.peerId,
+			seedPeer => peerId === seedPeer.id,
 		);
 
 		const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-			peer => peer.peerId === peerId,
+			peer => peer.id === peerId,
 		);
 
 		const isFixed = this._sanitizedPeerLists.fixed.find(
-			peer => peer.peerId === peerId,
+			peer => peer.id === peerId,
 		);
 
 		return !!isSeed || !!isWhitelisted || !!isFixed;

@@ -140,7 +140,7 @@ describe('Peer discovery', () => {
 		for (let p2p of p2pNodeList) {
 			const allPeers = p2p['_peerBook'].allPeers;
 
-			const allPeersPorts = allPeers.map(peerInfo => peerInfo.peerId).sort();
+			const allPeersPorts = allPeers.map(peerInfo => peerInfo.id).sort();
 			const connectedPeerPorts = p2p
 				.getConnectedPeers()
 				.map(peerInfo =>
@@ -185,7 +185,7 @@ describe('Peer discovery', () => {
 			ackTimeout: 200,
 			seedPeers: [
 				{
-					peerId: '127.0.0.1:5000',
+					id: '127.0.0.1:5000',
 					ipAddress: '127.0.0.1',
 					sharedState: {
 						wsPort: 5000,

@@ -172,7 +172,7 @@ export class Peer extends EventEmitter {
 				respond(error);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
-					peerId: this.info.peerId,
+					peerId: this.info.id,
 				});
 
 				return;
@@ -187,7 +187,7 @@ export class Peer extends EventEmitter {
 				{
 					procedure: rawRequest.procedure,
 					data: rawRequest.data,
-					id: this.info.peerId,
+					id: this.info.id,
 					rate,
 					productivity: this.productivity,
 				},
@@ -211,7 +211,7 @@ export class Peer extends EventEmitter {
 			} catch (error) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
-					peerId: this.info.peerId,
+					peerId: this.info.id,
 				});
 
 				return;
@@ -221,7 +221,7 @@ export class Peer extends EventEmitter {
 			const rate = this._getMessageRate(message);
 			const messageWithRateInfo = {
 				...message,
-				peerId: this.info.peerId,
+				peerId: this.info.id,
 				rate,
 			};
 
@@ -481,7 +481,7 @@ export class Peer extends EventEmitter {
 		// Peer Id, ip address, wsPort and advertiseAddress properties cannot be updated after the initial discovery.
 		this._info = {
 			ipAddress: this.info.ipAddress,
-			peerId: this.info.peerId,
+			id: this.info.id,
 			sharedState: {
 				...newSharedState,
 				wsPort: this.info.sharedState.wsPort,
@@ -509,7 +509,7 @@ export class Peer extends EventEmitter {
 	}
 
 	private _banPeer(): void {
-		this.emit(EVENT_BAN_PEER, this.info.peerId);
+		this.emit(EVENT_BAN_PEER, this.info.id);
 		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
 	}
 

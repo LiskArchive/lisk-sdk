@@ -356,7 +356,7 @@ describe('peer selector', () => {
 				let uniqIpAddresses: Array<string> = [];
 
 				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
-					peerId: `205.120.0.20:${10001 + i}`,
+					id: `205.120.0.20:${10001 + i}`,
 					ipAddress: '205.120.0.20',
 					sharedState: {
 						wsPort: 10001 + i,
@@ -369,7 +369,7 @@ describe('peer selector', () => {
 				}));
 
 				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
-					peerId: `205.120.0.20:${5000 + i}`,
+					id: `205.120.0.20:${5000 + i}`,
 					ipAddress: '205.120.0.20',
 					sharedState: {
 						wsPort: 5000 + i,

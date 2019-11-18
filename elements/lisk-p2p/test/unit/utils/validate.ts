@@ -38,7 +38,7 @@ describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
 			const peer: P2PPeerInfo = {
-				peerId: '12.23.54.3:5393',
+				id: '12.23.54.3:5393',
 				ipAddress: '12.23.54.3',
 				sharedState: {
 					wsPort: 5393,
@@ -54,7 +54,7 @@ describe('utils/validate', () => {
 				expect(validatePeerInfo(peer, 10000))
 					.to.be.an('object')
 					.eql({
-						peerId: '12.23.54.3:5393',
+						id: '12.23.54.3:5393',
 						ipAddress: '12.23.54.3',
 						sharedState: {
 							wsPort: 5393,
@@ -80,7 +80,7 @@ describe('utils/validate', () => {
 			it('should throw if PeerInfo is too big', async () => {
 				const maximumPeerInfoSizeInBytes = 10;
 				const peerInfo: P2PPeerInfo = {
-					peerId: '12.23.54.3:5393',
+					id: '12.23.54.3:5393',
 					ipAddress: '12.23.54.3',
 					sharedState: {
 						wsPort: 5393,

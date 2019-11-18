@@ -68,7 +68,7 @@ export interface P2PInternalState {
 
 export interface P2PPeerInfo {
 	// String to uniquely identify each peer
-	readonly peerId: string;
+	readonly id: string;
 	readonly ipAddress: string;
 	readonly sharedState: P2PSharedState;
 	readonly internalState?: P2PInternalState;

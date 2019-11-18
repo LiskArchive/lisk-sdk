@@ -52,7 +52,7 @@ describe('peer/base', () => {
 	beforeEach(() => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
-			peerId: constructPeerId('12.12.12.12', 5001),
+			id: constructPeerId('12.12.12.12', 5001),
 			ipAddress: '12.12.12.12',
 			sharedState: {
 				wsPort: 5001,
@@ -337,7 +337,7 @@ describe('peer/base', () => {
 		beforeEach(() => {
 			discoveredPeers = [
 				{
-					peerId: constructPeerId('1.1.1.1', 1111),
+					id: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
 					sharedState: {
 						wsPort: 1111,
@@ -349,7 +349,7 @@ describe('peer/base', () => {
 					},
 				},
 				{
-					peerId: constructPeerId('2.2.2.2', 2222),
+					id: constructPeerId('2.2.2.2', 2222),
 					ipAddress: '2.2.2.2',
 					sharedState: {
 						wsPort: 2222,
@@ -490,7 +490,7 @@ describe('peer/base', () => {
 
 				it('should return just fetched and updated peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
-					expect(peerInfo.peerId).to.be.eql(defaultPeerInfo.peerId);
+					expect(peerInfo.id).to.be.eql(defaultPeerInfo.id);
 					expect(peerInfo.ipAddress).to.be.eql(defaultPeerInfo.ipAddress);
 					expect(peerInfo.internalState).to.be.eql(
 						defaultPeerInfo.internalState,
@@ -554,7 +554,7 @@ describe('peer/base', () => {
 				defaultPeer.applyPenalty(penalty);
 				expect(defaultPeer.emit).to.be.calledOnceWithExactly(
 					EVENT_BAN_PEER,
-					defaultPeer.info.peerId,
+					defaultPeer.info.id,
 				);
 			});
 

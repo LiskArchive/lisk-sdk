@@ -26,7 +26,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 	const NETWORK_START_PORT = 5000;
 	const previousPeers = [
 		{
-			peerId: `127.0.0.15:${NETWORK_START_PORT + 5}`,
+			id: `127.0.0.15:${NETWORK_START_PORT + 5}`,
 			ipAddress: '127.0.0.15',
 			sharedState: {
 				wsPort: NETWORK_START_PORT + 5,
@@ -60,7 +60,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 		const blacklistedIPs = ['127.0.0.15'];
 		const previousPeersBlacklisted = [
 			{
-				peerId: `127.0.0.15:${NETWORK_START_PORT + 5}`,
+				id: `127.0.0.15:${NETWORK_START_PORT + 5}`,
 				ipAddress: '127.0.0.15',
 				sharedState: {
 					wsPort: NETWORK_START_PORT + 5,
@@ -79,7 +79,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => [
 				{
-					peerId: constructPeerId(
+					id: constructPeerId(
 						'127.0.0.' + (((index + 1) % networkSize) + 10),
 						startPort + ((index + 1) % networkSize),
 					),
@@ -157,7 +157,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 
 		const fixedPeers = [
 			{
-				peerId: constructPeerId('127.0.0.10', NETWORK_START_PORT),
+				id: constructPeerId('127.0.0.10', NETWORK_START_PORT),
 				ipAddress: '127.0.0.10',
 				sharedState: {
 					wsPort: NETWORK_START_PORT,
@@ -208,7 +208,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				if (index != 0) {
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
-							peerId: peer.peerId,
+							id: peer.id,
 							ipAddress: peer.ipAddress,
 							sharedState: {
 								wsPort: peer.sharedState.wsPort,
@@ -226,7 +226,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 
 		const whitelistedPeers = [
 			{
-				peerId: `127.0.0.10:${NETWORK_START_PORT}`,
+				id: `127.0.0.10:${NETWORK_START_PORT}`,
 				ipAddress: '127.0.0.10',
 				sharedState: {
 					wsPort: NETWORK_START_PORT,
@@ -278,7 +278,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					const triedPeers = p2p['_peerBook'].triedPeers;
 					const triedPeersIPWS = triedPeers.map(peer => {
 						return {
-							peerId: peer.peerId,
+							id: peer.id,
 							ipAddress: peer.ipAddress,
 							sharedState: {
 								wsPort: peer.sharedState.wsPort,
@@ -303,7 +303,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					p2p.applyPenalty(peerPenalty);
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
-							peerId: peer.peerId,
+							id: peer.id,
 							ipAddress: peer.ipAddress,
 							sharedState: {
 								wsPort: peer.sharedState.wsPort,

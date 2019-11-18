@@ -88,7 +88,7 @@ export class BaseList {
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
+		const incomingPeerId = peerInfo.id;
 		const peer = bucket.get(incomingPeerId);
 
 		return peer ? peer.peerInfo : undefined;
@@ -99,7 +99,7 @@ export class BaseList {
 			throw new ExistingPeerError(peerInfo);
 		}
 		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
+		const incomingPeerId = peerInfo.id;
 		const newPeer = this.initPeerInfo(peerInfo);
 		const evictedPeer = this.makeSpace(peerInfo.ipAddress);
 		bucket.set(incomingPeerId, newPeer);
@@ -110,7 +110,7 @@ export class BaseList {
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
 		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
+		const incomingPeerId = peerInfo.id;
 		const foundPeer = bucket.get(incomingPeerId);
 
 		if (!foundPeer) {
@@ -128,7 +128,7 @@ export class BaseList {
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
 		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.peerId;
+		const incomingPeerId = peerInfo.id;
 
 		if (bucket.get(incomingPeerId)) {
 			const result = bucket.delete(incomingPeerId);

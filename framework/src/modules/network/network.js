@@ -133,7 +133,7 @@ module.exports = class Network {
 
 		const fixedPeers = this.options.fixedPeers
 			? this.options.fixedPeers.map(peer => ({
-					peerId: `${peer.ip}:${peer.wsPort}`,
+					id: `${peer.ip}:${peer.wsPort}`,
 					ipAddress: peer.ip,
 					sharedState: {
 						wsPort: peer.wsPort,
@@ -144,7 +144,7 @@ module.exports = class Network {
 
 		const whitelistedPeers = this.options.whitelistedPeers
 			? this.options.whitelistedPeers.map(peer => ({
-					peerId: `${peer.ip}:${peer.wsPort}`,
+					id: `${peer.ip}:${peer.wsPort}`,
 					ipAddress: peer.ip,
 					sharedState: {
 						wsPort: peer.wsPort,
@@ -160,7 +160,7 @@ module.exports = class Network {
 			fixedPeers,
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
-				peerId: `${peer.ip}:${peer.wsPort}`,
+				id: `${peer.ip}:${peer.wsPort}`,
 				ipAddress: peer.ip,
 				sharedState: {
 					wsPort: peer.wsPort,

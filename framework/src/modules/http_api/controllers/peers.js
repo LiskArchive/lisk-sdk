@@ -68,12 +68,12 @@ PeersController.getPeers = async function getPeers(context, next) {
 	try {
 		const peersByFilters = await channel.invoke('network:getPeers', filters);
 		const peersCount = await channel.invoke('network:getPeersCount', filters);
-		const peersWithoutPeerId = peersByFilters.map(peer => {
-			const { peerId, ...restOfPeer } = peer;
+		const peersWithoutId = peersByFilters.map(peer => {
+			const { id, ...restOfPeer } = peer;
 			return restOfPeer;
 		});
 		return next(null, {
-			data: peersWithoutPeerId,
+			data: peersWithoutId,
 			meta: {
 				offset: params.offset.value,
 				limit: params.limit.value,

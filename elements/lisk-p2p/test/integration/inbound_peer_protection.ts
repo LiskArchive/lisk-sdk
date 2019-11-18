@@ -28,7 +28,7 @@ describe('Peer inbound eviction for connection time', () => {
 			networkSize: number,
 		) => [
 			{
-				peerId: constructPeerId(
+				id: constructPeerId(
 					'127.0.0.1',
 					networkStartPort + ((index - 1 + networkSize) % networkSize),
 				),
