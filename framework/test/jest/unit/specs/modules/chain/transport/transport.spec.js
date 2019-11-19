@@ -44,6 +44,7 @@ describe('Transport', () => {
 		loggerStub = {
 			info: jest.fn(),
 			warn: jest.fn(),
+			error: jest.fn(),
 			debug: jest.fn(),
 		};
 		storageStub = {
@@ -940,7 +941,7 @@ describe('Transport', () => {
 				);
 			});
 
-			it('should apply penalty when processUnconfirmedTransaction fails', async () => {
+			it('should not apply penalty when processUnconfirmedTransaction fails', async () => {
 				const error = new Error('validate error');
 				transactionPoolStub.processUnconfirmedTransaction.mockRejectedValue(
 					error,
@@ -949,7 +950,7 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
+				expect(channelStub.invoke).not.toHaveBeenCalledWith(
 					'network:applyPenalty',
 					{
 						peerId: defaultPeerId,
