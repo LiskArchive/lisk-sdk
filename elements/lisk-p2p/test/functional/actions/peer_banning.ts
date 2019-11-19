@@ -26,7 +26,7 @@ import {
 	EVENT_CLOSE_INBOUND,
 } from '../../../src/index';
 
-describe.only('Peer banning mechanism', () => {
+describe('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();
 	const PEER_BAN_TIME = 100;
@@ -103,15 +103,6 @@ describe.only('Peer banning mechanism', () => {
 		});
 
 		it('should unban a peer after the ban period', async () => {
-			p2pNodeList.forEach(p2p => {
-				console.log(
-					p2p.nodeInfo.wsPort,
-					p2p.getConnectedPeers().length,
-					p2p.getDisconnectedPeers.length,
-					p2p['_peerPool'].getPeersCountPerKind(),
-				);
-			});
-
 			// Wait for ban time to expire and peer to be re-discovered
 			await wait(200);
 

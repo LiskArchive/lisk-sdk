@@ -27,6 +27,7 @@ import {
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD,
+	DEFAULT_MIN_TRIED_PEER_COUNT,
 	DEFAULT_NODE_HOST_IP,
 	DEFAULT_NONCE_LENGTH_BYTES,
 	DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
@@ -266,6 +267,7 @@ export class P2P extends EventEmitter {
 		this._peerBook = new PeerBook({
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 		});
+		this._initializePeerBook();
 		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
@@ -316,6 +318,18 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 			if (this._isNetworkReady()) {
 				this.emit(EVENT_NETWORK_READY);
+			}
+
+			// Once we successfuly connected to a SeedPeer we try to make new connection or initiate eviction from it LIP-0004
+			const isSeedPeer = this._sanitizedPeerLists.seedPeers.find(
+				peer => peer.peerId === peerInfo.peerId,
+			);
+
+			if (isSeedPeer) {
+				this._peerPool.triggerNewConnections(
+					this._peerBook.newPeers,
+					this._peerBook.triedPeers,
+				);
 			}
 		};
 
@@ -434,17 +448,6 @@ export class P2P extends EventEmitter {
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
 
-			const isSeedPeer = this._sanitizedPeerLists.seedPeers.find(
-				peer => peer.peerId === detailedPeerInfo.peerId,
-			);
-
-			if (isSeedPeer) {
-				this._peerPool.triggerNewConnections(
-					this._peerBook.newPeers,
-					this._peerBook.triedPeers,
-				);
-			}
-
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
 				try {
 					this._peerBook.addPeer(detailedPeerInfo);
@@ -501,21 +504,6 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool(peerPoolConfig);
 
 		this._bindHandlersToPeerPool(this._peerPool);
-		// Add peers to tried peers if want to re-use previously tried peers
-		if (this._sanitizedPeerLists.previousPeers) {
-			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
-				try {
-					this._peerBook.addPeer(peerInfo);
-					this._peerBook.upgradePeer(peerInfo);
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
-
-					this._peerBook.upgradePeer(error.peerInfo);
-				}
-			});
-		}
 
 		this._nodeInfo = {
 			...config.nodeInfo,
@@ -998,33 +986,42 @@ export class P2P extends EventEmitter {
 		return !!isSeed || !!isWhitelisted || !!isFixed;
 	}
 
+	private _initializePeerBook(): void {
+		const newPeersToAdd = [
+			...this._sanitizedPeerLists.previousPeers,
+			...this._sanitizedPeerLists.whitelisted,
+		];
+
+		// Add peers to tried peers if want to re-use previously tried peers
+		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
+		newPeersToAdd.forEach(peerInfo => {
+			try {
+				this._peerBook.addPeer(peerInfo);
+				this._peerBook.upgradePeer(peerInfo);
+			} catch (error) {
+				if (!(error instanceof ExistingPeerError)) {
+					throw error;
+				}
+
+				this._peerBook.upgradePeer(error.peerInfo);
+			}
+		});
+	}
+
 	public async start(): Promise<void> {
 		if (this._isActive) {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		const newPeersToAdd = this._sanitizedPeerLists.whitelisted;
-
-		newPeersToAdd.forEach(newPeerInfo => {
-			try {
-				this._peerBook.addPeer(newPeerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-			}
-		});
-
-		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
-		this._sanitizedPeerLists.whitelisted.forEach(whitelistPeer =>
-			this._peerBook.upgradePeer(whitelistPeer),
-		);
 		await this._startPeerServer();
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
-			// Initial Discovery SeedPeers and Disconnect
-			this._fetchSeedPeerList();
+			// Initial Discovery SeedPeers and Disconnect LIP-0004
+			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
+				this._fetchSeedPeerList();
+			}
+
 			this._startPopulator();
 		}
 	}

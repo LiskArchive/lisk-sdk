@@ -86,7 +86,7 @@ export const createNetwork = async ({
 			wsEngine: WEB_SOCKET_ENGINE,
 			populatorInterval:
 				POPULATOR_INTERVAL +
-				Math.floor((POPULATOR_INTERVAL / numberOfPeers) * index * 3), // Should be different for each Peer to avoid connection rebound
+				Math.floor((POPULATOR_INTERVAL / numberOfPeers) * index), // Should be different for each Peer to avoid connection rebound
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			nodeInfo: {
