@@ -467,13 +467,11 @@ export class Peer extends EventEmitter {
 		}
 	}
 	private _updatePeerSharedState(rawSharedState: unknown): void {
-		// Sanitize and validate PeerSharedState
-		validateSharedState(
+		// Validate PeerSharedState
+		const newSharedState = validateSharedState(
 			rawSharedState as P2PSharedState,
 			this.config.maxPeerInfoSize,
 		);
-
-		const newSharedState = rawSharedState as P2PSharedState;
 
 		const result = validatePeerCompatibility(newSharedState, this.config
 			.sharedState as P2PSharedState);

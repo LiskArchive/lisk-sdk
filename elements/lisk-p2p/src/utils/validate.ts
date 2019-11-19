@@ -147,7 +147,7 @@ export const validatePeerInfo = (
 export const validateSharedState = (
 	sharedState: P2PSharedState,
 	maxByteSize: number,
-): void => {
+): P2PSharedState => {
 	const byteSize = getByteSize(sharedState);
 
 	if (byteSize > maxByteSize) {
@@ -156,7 +156,7 @@ export const validateSharedState = (
 		);
 	}
 
-	return;
+	return sharedState;
 };
 
 export const validatePeerInfoList = (

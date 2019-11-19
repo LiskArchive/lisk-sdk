@@ -208,29 +208,34 @@ describe('utils/validate', () => {
 	});
 
 	describe('#validateSharedState', () => {
-		describe('when SharedState is larger than maximum allowed size', () => {
-			const maximum_size = 10;
+		const sharedState: P2PSharedState = {
+			wsPort: 5393,
+			advertiseAddress: true,
+			os: '12.23.54.3',
+			nethash: '12.23.54.3',
+			version: '1.1.2',
+			protocolVersion: '1.1',
+			options: {
+				foo: 'bar',
+				fizz: 'buzz',
+			},
+			nonce: 'nonce678',
+		};
 
-			const SharedState: P2PSharedState = {
-				wsPort: 5393,
-				advertiseAddress: true,
-				os: '12.23.54.3',
-				nethash: '12.23.54.3',
-				version: '1.1.2',
-				protocolVersion: '1.1',
-				options: {
-					foo: 'bar',
-					fizz: 'buzz',
-				},
-				nonce: 'nonce678',
-			};
-
-			it('should throw Invalid SharedState maximum allowed size error', async () => {
-				expect(
-					validateSharedState.bind(null, SharedState, maximum_size),
-				).to.throw(
+		describe('when sharedState is larger than maximum allowed size', () => {
+			it('should throw Invalid sharedState maximum allowed size error', async () => {
+				const maximum_size = 10;
+				expect(() => validateSharedState(sharedState, maximum_size)).to.throw(
 					`Invalid SharedState was larger than the maximum allowed ${maximum_size} bytes`,
 				);
+			});
+		});
+
+		describe('when sharedState is larger than maximum allowed size', () => {
+			it('should return sharedState', async () => {
+				expect(
+					validateSharedState(sharedState, DEFAULT_MAX_PEER_INFO_SIZE),
+				).to.eql(sharedState);
 			});
 		});
 	});
