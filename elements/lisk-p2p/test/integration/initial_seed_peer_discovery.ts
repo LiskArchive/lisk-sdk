@@ -31,8 +31,8 @@ describe('Initial Seed Peer Discovery', () => {
 	const collectedEvents = new Array();
 
 	beforeEach(async () => {
-		const customConfig = () => ({
-			maxOutboundConnections: 4,
+		const customConfig = (index: number) => ({
+			maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 		});
 
 		p2pNodeList = await createNetwork({
@@ -59,7 +59,9 @@ describe('Initial Seed Peer Discovery', () => {
 
 	it('should disconnecting from Seed Peers', async () => {
 		// Every peer should reach the Outbound Connection limit and disconnect from discoverySeedPeers
-		expect(collectedEvents.length).to.be.equal(NETWORK_PEER_COUNT - 1);
+		expect(collectedEvents.length).to.be.equal(
+			Math.floor(NETWORK_PEER_COUNT / 2) - 1,
+		);
 
 		for (const disconnectReason of collectedEvents) {
 			expect(disconnectReason).to.be.equal(SEED_PEER_DISCONNECTION_REASON);
