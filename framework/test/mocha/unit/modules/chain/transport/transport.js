@@ -400,8 +400,8 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					expect(errorResult).to.be.an('array');
-					errorResult.forEach(anError => {
+					expect(errorResult.errors).to.be.an('array');
+					errorResult.errors.forEach(anError => {
 						expect(anError).to.be.instanceOf(TransactionError);
 					});
 				});
