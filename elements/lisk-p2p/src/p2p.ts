@@ -547,7 +547,7 @@ export class P2P extends EventEmitter {
 		return this._peerPool
 			.getAllConnectedPeerInfos()
 			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+				peer => !(peer.internalState && !peer.sharedState.advertiseAddress),
 			)
 			.map(peer => ({
 				id: peer.id,
@@ -571,7 +571,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return disconnectedPeers
 			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+				peer => !(peer.internalState && !peer.sharedState.advertiseAddress),
 			)
 			.map(peer => ({
 				id: peer.id,
@@ -744,27 +744,21 @@ export class P2P extends EventEmitter {
 				}
 
 				// Remove these wsPort and ip from the query object
-				const {
-					wsPort,
-					ipAddress,
-					advertiseAddress,
-					...restOfQueryObject
-				} = queryObject;
+				const { wsPort, advertiseAddress, ...restOfQueryObject } = queryObject;
 
 				const incomingPeerInfo: P2PPeerInfo = {
+					id: constructPeerId(socket.remoteAddress, remoteWSPort),
+					ipAddress: socket.remoteAddress,
 					sharedState: {
 						...restOfQueryObject,
 						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
 						wsPort: remoteWSPort,
+						advertiseAddress: advertiseAddress !== 'false',
+						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 					},
 					internalState: {
-						advertiseAddress: advertiseAddress !== 'false',
 						connectionKind: ConnectionKind.INBOUND,
 					},
-					id: constructPeerId(socket.remoteAddress, remoteWSPort),
-					ipAddress: socket.remoteAddress,
 				};
 
 				try {
@@ -919,10 +913,10 @@ export class P2P extends EventEmitter {
 			peerDiscoveryResponseLength,
 		);
 
-		// Remove internal state to check byte size
+		// Remove peers with advertise flag to false and those with too big payload
 		const sanitizedPeerInfoList: ReadonlyArray<P2PPeerInfo> = selectedPeers
 			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
+				peer => !(peer.internalState && !peer.sharedState.advertiseAddress),
 			)
 			.map(peer => ({
 				id: constructPeerId(peer.ipAddress, peer.sharedState.wsPort),

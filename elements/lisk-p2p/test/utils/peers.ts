@@ -112,7 +112,6 @@ export const initPeerInfoListWithSuffix = (
 				dateAdded: new Date(),
 				peerKind: PeerKind.NONE,
 				isBanned: false,
-				advertiseAddress: true,
 			},
 		});
 	}

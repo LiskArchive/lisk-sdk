@@ -345,9 +345,6 @@ export class PeerPool extends EventEmitter {
 			...peer.info,
 			internalState: {
 				...peer.info.internalState,
-				advertiseAddress: peer.info.internalState
-					? peer.info.internalState.advertiseAddress
-					: true,
 				connectionKind:
 					peer instanceof OutboundPeer
 						? ConnectionKind.OUTBOUND
