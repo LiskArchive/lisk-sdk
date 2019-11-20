@@ -65,10 +65,13 @@ export interface P2PInternalState {
 	readonly connectionKind?: ConnectionKind;
 }
 
-export interface P2PPeerInfo {
+export interface P2PBasicPeerInfo {
 	// String to uniquely identify each peer
 	readonly id: string;
 	readonly ipAddress: string;
+}
+
+export interface P2PPeerInfo extends P2PBasicPeerInfo {
 	readonly sharedState: P2PSharedState;
 	readonly internalState?: P2PInternalState;
 }

@@ -82,6 +82,7 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
+	P2PBasicPeerInfo,
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
@@ -375,13 +376,9 @@ export class P2P extends EventEmitter {
 				peer => peer.id === peerId,
 			);
 
-			const bannedPeerInfo = {
+			const bannedPeerInfo: P2PBasicPeerInfo = {
 				id: peerId,
 				ipAddress: peerId.split(':')[0],
-				sharedState: {
-					wsPort: +peerId.split(':')[1],
-					advertiseAddress: true,
-				},
 			};
 
 			if (this._peerBook.getPeer(bannedPeerInfo) && !isWhitelisted) {
@@ -696,10 +693,6 @@ export class P2P extends EventEmitter {
 					this._peerBook.removePeer({
 						id: constructPeerId(socket.remoteAddress, selfWSPort),
 						ipAddress: socket.remoteAddress,
-						sharedState: {
-							wsPort: selfWSPort,
-							advertiseAddress: true,
-						},
 					});
 
 					return;

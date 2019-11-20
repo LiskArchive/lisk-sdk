@@ -21,7 +21,7 @@ import {
 	DEFAULT_TRIED_BUCKET_SIZE,
 } from '../constants';
 import { ExistingPeerError } from '../errors';
-import { P2PPeerInfo } from '../p2p_types';
+import { P2PBasicPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
 import { NewList, NewListConfig } from './new_list';
 import { TriedList, TriedListConfig } from './tried_list';
@@ -97,13 +97,13 @@ export class PeerBook {
 		return shuffle(allPeers).slice(0, randomPeerCount);
 	}
 
-	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const triedPeer = this._triedPeers.getPeer(peerInfo);
-		if (this._triedPeers.getPeer(peerInfo)) {
+	public getPeer(basicPeerInfo: P2PBasicPeerInfo): P2PPeerInfo | undefined {
+		const triedPeer = this._triedPeers.getPeer(basicPeerInfo);
+		if (this._triedPeers.getPeer(basicPeerInfo)) {
 			return triedPeer;
 		}
 
-		return this._newPeers.getPeer(peerInfo);
+		return this._newPeers.getPeer(basicPeerInfo);
 	}
 
 	public addPeer(peerInfo: P2PPeerInfo): void {
@@ -126,13 +126,13 @@ export class PeerBook {
 		return false;
 	}
 
-	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
-			return this._triedPeers.removePeer(peerInfo);
+	public removePeer(basicPeerInfo: P2PBasicPeerInfo): boolean {
+		if (this._triedPeers.getPeer(basicPeerInfo)) {
+			return this._triedPeers.removePeer(basicPeerInfo);
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
-			return this._newPeers.removePeer(peerInfo);
+		if (this._newPeers.getPeer(basicPeerInfo)) {
+			return this._newPeers.removePeer(basicPeerInfo);
 		}
 
 		return false;

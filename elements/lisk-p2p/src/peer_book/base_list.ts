@@ -13,7 +13,7 @@
  *
  */
 import { ExistingPeerError } from '../errors';
-import { P2PPeerInfo } from '../p2p_types';
+import { P2PBasicPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { evictPeerRandomlyFromBucket, getBucketId, PEER_TYPE } from '../utils';
 
 export interface PeerListConfig {
@@ -86,9 +86,9 @@ export class BaseList {
 		return this.peerMap.get(bucketId) as Map<string, CustomPeerInfo>;
 	}
 
-	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.id;
+	public getPeer(basicPeerInfo: P2PBasicPeerInfo): P2PPeerInfo | undefined {
+		const bucket = this.getBucket(basicPeerInfo.ipAddress);
+		const incomingPeerId = basicPeerInfo.id;
 		const peer = bucket.get(incomingPeerId);
 
 		return peer ? peer.peerInfo : undefined;
@@ -126,9 +126,9 @@ export class BaseList {
 		return true;
 	}
 
-	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucket = this.getBucket(peerInfo.ipAddress);
-		const incomingPeerId = peerInfo.id;
+	public removePeer(basicPeerInfo: P2PBasicPeerInfo): boolean {
+		const bucket = this.getBucket(basicPeerInfo.ipAddress);
+		const incomingPeerId = basicPeerInfo.id;
 
 		if (bucket.get(incomingPeerId)) {
 			const result = bucket.delete(incomingPeerId);
