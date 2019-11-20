@@ -198,6 +198,7 @@ const consolidatePeers = ({ connectedPeers = [], disconnectedPeers = [] }) => {
 	// Assign state 2 to the connected peers
 	const connectedList = connectedPeers.map(peer => {
 		const {
+			advertiseAddress,
 			options,
 			minVersion,
 			nethash,
@@ -212,6 +213,7 @@ const consolidatePeers = ({ connectedPeers = [], disconnectedPeers = [] }) => {
 	});
 	const disconnectedList = disconnectedPeers.map(peer => {
 		const {
+			advertiseAddress,
 			options,
 			minVersion,
 			nethash,
