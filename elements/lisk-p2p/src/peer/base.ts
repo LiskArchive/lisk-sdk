@@ -104,7 +104,6 @@ export interface PeerConfig {
 	readonly wsMaxPayload?: number;
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
-	readonly isDiscoverySeedPeer?: boolean;
 	readonly secret: number;
 	readonly serverNodeInfo?: P2PNodeInfo;
 }
@@ -123,7 +122,6 @@ export class Peer extends EventEmitter {
 		responseRate: number;
 		lastResponded: number;
 	};
-	protected readonly _isDiscoverySeedPeer: boolean;
 	private _rpcCounter: Map<string, number>;
 	private _rpcRates: Map<string, number>;
 	private _messageCounter: Map<string, number>;
@@ -172,10 +170,6 @@ export class Peer extends EventEmitter {
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		this._serverNodeInfo = peerConfig.serverNodeInfo;
-		this._isDiscoverySeedPeer =
-			typeof this._peerConfig.isDiscoverySeedPeer === 'boolean'
-				? this._peerConfig.isDiscoverySeedPeer
-				: false;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -282,10 +276,6 @@ export class Peer extends EventEmitter {
 
 	public get connectTime(): number {
 		return this._connectTime;
-	}
-
-	public get isDiscoverySeedPeer(): boolean {
-		return this._isDiscoverySeedPeer;
 	}
 
 	public get responseRate(): number {

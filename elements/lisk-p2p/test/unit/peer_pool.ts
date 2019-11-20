@@ -79,7 +79,12 @@ describe('peerPool', () => {
 			blacklistedPeers: [],
 			fixedPeers: [],
 			previousPeers: [],
-			seedPeers: [],
+			seedPeers: [
+				{
+					ipAddress: '127.0.0.1',
+					wsPort: 5000,
+				},
+			] as Array<P2PPeerInfo>,
 			whitelisted: [],
 		},
 	};
@@ -370,6 +375,24 @@ describe('peerPool', () => {
 			await peerPool.sendToPeer(messagePacket, peerId);
 
 			expect(peerStub.send).to.be.calledWithExactly(messagePacket);
+		});
+	});
+
+	describe('#discoverSeedPeers', () => {
+		beforeEach(async () => {
+			(peerPool['_addOutboundPeer'] as any) = sandbox
+				.stub()
+				.returns(true as boolean);
+
+			sandbox.stub(peerPool, 'getPeersCountPerKind').returns({
+				outboundCount: 0,
+				inboundCount: 0,
+			});
+			peerPool.discoverSeedPeers();
+		});
+
+		it('should call _addOutboundPeer with Seed Peer', async () => {
+			expect(peerPool['_addOutboundPeer']).to.be.called;
 		});
 	});
 

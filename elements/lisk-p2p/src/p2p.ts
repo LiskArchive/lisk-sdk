@@ -923,10 +923,6 @@ export class P2P extends EventEmitter {
 		return false;
 	}
 
-	private _connectToSeedPeers(): void {
-		this._peerPool.discoverSeedPeers();
-	}
-
 	private _handleGetPeersRequest(request: P2PRequest): void {
 		const minimumPeerDiscoveryThreshold = this._config
 			.minimumPeerDiscoveryThreshold
@@ -1010,16 +1006,16 @@ export class P2P extends EventEmitter {
 
 	public async start(): Promise<void> {
 		if (this._isActive) {
-			throw new Error('Cannot start the node because it is already active');
+			throw new Error('Node cannot start because it is already active.');
 		}
 
 		await this._startPeerServer();
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
-			// Initial Discovery SeedPeers and Disconnect LIP-0004
+			// Initial discovery and disconnect from SeedPeers (LIP-0004)
 			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
-				this._connectToSeedPeers();
+				this._peerPool.discoverSeedPeers();
 			}
 
 			this._startPopulator();
@@ -1028,7 +1024,7 @@ export class P2P extends EventEmitter {
 
 	public async stop(): Promise<void> {
 		if (!this._isActive) {
-			throw new Error('Cannot stop the node because it is not active');
+			throw new Error('Node cannot because it is not active.');
 		}
 		this._isActive = false;
 		this._hasConnected = false;

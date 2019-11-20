@@ -411,19 +411,12 @@ export class PeerPool extends EventEmitter {
 			return;
 		}
 
-		const seedPeersForFetch = shuffle(
+		const seedPeersForConnection = shuffle(
 			this._peerLists.seedPeers.slice(0, openOutboundSlots),
 		);
 
-		seedPeersForFetch.forEach(peer => {
-			// From FixedPeers we should not disconnect
-			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo, {
-				isDiscoverySeedPeer: this._peerLists.fixedPeers.find(
-					fixedPeer => fixedPeer.peerId === peer.peerId,
-				)
-					? false
-					: true,
-			});
+		seedPeersForConnection.forEach(peer => {
+			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
 		});
 	}
 
@@ -491,7 +484,6 @@ export class PeerPool extends EventEmitter {
 	private _addOutboundPeer(
 		peerInfo: P2PPeerInfo,
 		nodeInfo: P2PNodeInfo,
-		customPeerConfig?: object,
 	): boolean {
 		if (this.hasPeer(peerInfo.peerId)) {
 			return false;
@@ -512,7 +504,6 @@ export class PeerPool extends EventEmitter {
 		*/
 		const peer = new OutboundPeer(peerInfo, {
 			...this._peerConfig,
-			...customPeerConfig,
 			serverNodeInfo: nodeInfo,
 		});
 
@@ -649,10 +640,18 @@ export class PeerPool extends EventEmitter {
 	private _disconnectDiscoverySeedPeers(): void {
 		const outboundPeers = this.getPeers(OutboundPeer);
 
-		outboundPeers.forEach(peer => {
-			if (peer.isDiscoverySeedPeer) {
+		outboundPeers.forEach((outboundPeer: Peer) => {
+			const isFixedPeer = this._peerLists.fixedPeers.find(
+				(peer: P2PPeerInfo) => peer.peerId === outboundPeer.id,
+			);
+			const isSeedPeer = this._peerLists.seedPeers.find(
+				(peer: P2PPeerInfo) => peer.peerId === outboundPeer.id,
+			);
+
+			// From FixedPeers we should not disconnect
+			if (isSeedPeer && !isFixedPeer) {
 				this.removePeer(
-					peer.id,
+					outboundPeer.id,
 					INTENTIONAL_DISCONNECT_CODE,
 					SEED_PEER_DISCONNECTION_REASON,
 				);
