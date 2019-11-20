@@ -73,6 +73,7 @@ export const createNetwork = async ({
 							ipAddress: SEED_PEER_IP,
 							sharedState: {
 								wsPort: NETWORK_START_PORT + index - 1,
+								advertiseAddress: true,
 							},
 						},
 				  ];
@@ -97,6 +98,7 @@ export const createNetwork = async ({
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			sharedState: {
 				wsPort: nodePort,
+				advertiseAddress: true,
 				nethash: sharedStateConstants.nethash,
 				version: sharedStateConstants.version,
 				protocolVersion: sharedStateConstants.protocolVersion,

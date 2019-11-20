@@ -64,8 +64,12 @@ describe('PeerPool actions', () => {
 				networkSize: number,
 			) => [
 				{
+					id: `127.0.0.1:${startPort + ((index + 1) % networkSize)}`,
 					ipAddress: '127.0.0.1',
-					wsPort: startPort + ((index + 1) % networkSize),
+					sharedState: {
+						wsPort: startPort + ((index + 1) % networkSize),
+						advertiseAddress: true,
+					},
 				},
 			];
 			const customConfig = (

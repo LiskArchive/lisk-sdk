@@ -30,6 +30,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 			ipAddress: '127.0.0.15',
 			sharedState: {
 				wsPort: NETWORK_START_PORT + 5,
+				advertiseAddress: true,
 				height: 10,
 				version: '1.0',
 				protocolVersion: '1.0',
@@ -64,6 +65,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				ipAddress: '127.0.0.15',
 				sharedState: {
 					wsPort: NETWORK_START_PORT + 5,
+					advertiseAddress: true,
 					height: 10,
 					version: '1.0',
 					protocolVersion: '1.0',
@@ -86,6 +88,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
 					sharedState: {
 						wsPort: startPort + ((index + 1) % networkSize),
+						advertiseAddress: true,
 						height: 10,
 						version: '1.0',
 						protocolVersion: '1.0',
@@ -161,6 +164,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				ipAddress: '127.0.0.10',
 				sharedState: {
 					wsPort: NETWORK_START_PORT,
+					advertiseAddress: true,
 				},
 			},
 		];
@@ -178,6 +182,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
 					sharedState: {
 						wsPort: startPort + ((index + 1) % networkSize),
+						advertiseAddress: true,
 					},
 				},
 			];
@@ -212,6 +217,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 							ipAddress: peer.ipAddress,
 							sharedState: {
 								wsPort: peer.sharedState.wsPort,
+								advertiseAddress: true,
 							},
 						};
 					});
@@ -230,6 +236,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				ipAddress: '127.0.0.10',
 				sharedState: {
 					wsPort: NETWORK_START_PORT,
+					advertiseAddress: true,
 				},
 			},
 		];
@@ -247,6 +254,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
 					sharedState: {
 						wsPort: startPort + ((index + 1) % networkSize),
+						advertiseAddress: true,
 					},
 				},
 			];
@@ -282,6 +290,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 							ipAddress: peer.ipAddress,
 							sharedState: {
 								wsPort: peer.sharedState.wsPort,
+								advertiseAddress: true,
 							},
 						};
 					});
@@ -307,6 +316,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 							ipAddress: peer.ipAddress,
 							sharedState: {
 								wsPort: peer.sharedState.wsPort,
+								advertiseAddress: true,
 							},
 						};
 					});

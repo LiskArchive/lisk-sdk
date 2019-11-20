@@ -73,6 +73,8 @@ describe(`Connection Create`, () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
+			console.log(payload);
+
 			expect(payload)
 				.to.have.property('sharedState')
 				.to.have.property('wsPort')
