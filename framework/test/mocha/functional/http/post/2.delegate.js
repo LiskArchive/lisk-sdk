@@ -358,6 +358,28 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			});
 		});
 
+		it('using network identifier from different network should fail', async () => {
+			const networkIdentifierOtherNetwork =
+				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
+			const transactionFromDifferentNetwork = registerDelegate({
+				networkIdentifier: networkIdentifierOtherNetwork,
+				passphrase: account.passphrase,
+				username: account.username,
+			});
+
+			return sendTransactionPromise(
+				transactionFromDifferentNetwork,
+				apiCodes.PROCESSING_ERROR,
+			).then(res => {
+				expect(res.body.errors[0].message).to.include(
+					`Failed to validate signature ${
+						transactionFromDifferentNetwork.signature
+					}`,
+				);
+				badTransactions.push(transactionFromDifferentNetwork);
+			});
+		});
+
 		it('using valid params should be ok', async () => {
 			transaction = registerDelegate({
 				networkIdentifier,

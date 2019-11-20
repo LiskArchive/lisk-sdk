@@ -425,6 +425,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				},
 				{
 					sort: 'height:asc',
+					limit: heightList.length,
 				},
 			)).map(block => block.id);
 

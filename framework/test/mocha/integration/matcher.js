@@ -157,7 +157,8 @@ async function createRawBlock(library, rawTransactions) {
 		});
 	});
 
-	const block = await library.modules.processor.create({
+	const blockProcessorV1 = library.modules.processor.processors[1];
+	const block = await blockProcessorV1.create.run({
 		blockReward: library.modules.blocks.blockReward,
 		keypair: keypairs[delegateKey],
 		timestamp: slots.getSlotTime(slot),
@@ -280,8 +281,8 @@ describe('matcher', () => {
 				expect(
 					scope.modules.transactionPool.transactionInPool(rawTransaction.id),
 				).to.be.false;
-				expect(err[0]).to.be.instanceOf(Error);
-				expect(err[0].message).to.equal(
+				expect(err).to.be.instanceOf(Error);
+				expect(err.message).to.contain(
 					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`,
 				);
 			}
