@@ -27,6 +27,7 @@ describe('Controller Class', () => {
 	// Arrange
 	const appLabel = '#LABEL';
 	const logger = {
+		debug: jest.fn(),
 		info: jest.fn(),
 		error: jest.fn(),
 	};

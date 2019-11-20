@@ -299,7 +299,7 @@ class Forger {
 		const lastBlockSlot = this.slots.getSlotNumber(lastBlock.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
-			this.logger.debug(
+			this.logger.trace(
 				{ slot: currentSlot },
 				'Block already forged for the current slot',
 			);
@@ -325,7 +325,7 @@ class Forger {
 		}
 
 		if (delegateKeypair === null) {
-			this.logger.debug(
+			this.logger.trace(
 				{ currentSlot: this.slots.getSlotNumber() },
 				'Waiting for delegate slot',
 			);

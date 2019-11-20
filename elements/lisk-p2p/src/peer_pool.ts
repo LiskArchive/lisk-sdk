@@ -328,7 +328,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public broadcast(message: P2PMessagePacket): void {
-		[...this._peerMap.values()].map(peer => {
+		[...this._peerMap.values()].forEach(peer => {
 			const selectedPeerId = peer.peerInfo.peerId;
 			try {
 				this.sendToPeer(message, selectedPeerId);
