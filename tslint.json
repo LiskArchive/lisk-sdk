@@ -12,6 +12,8 @@
 		"no-method-signature": false,
 		"no-object-mutation": false,
 		"no-this": false,
+		"no-try": false,
+		"no-throw": false,
 		"no-unsafe-any": false,
 		"object-literal-sort-keys": false,
 		"prefer-method-signature": false,

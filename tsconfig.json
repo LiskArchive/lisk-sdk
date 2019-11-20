@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"forceConsistentCasingInFileNames": true,
-		"target": "es2017",
+		"target": "es2019",
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"newLine": "lf",
