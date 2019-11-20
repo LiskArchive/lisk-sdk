@@ -14,6 +14,7 @@
  */
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
+
 import { ConnectionKind } from '../constants';
 import {
 	P2PPeerInfo,

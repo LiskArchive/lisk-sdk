@@ -13,6 +13,7 @@
  *
  */
 import { EventEmitter } from 'events';
+
 import {
 	CheckerFunction,
 	CheckTransactionsResponseWithPassAndFail,
@@ -304,7 +305,7 @@ export class TransactionPool extends EventEmitter {
 
 	public existsInTransactionPool(id: string): boolean {
 		return Object.keys(this._queues).reduce(
-			(previousValue, queueName) =>
+			(previousValue: boolean, queueName: string) =>
 				previousValue || this._queues[queueName].exists(id),
 			false,
 		);

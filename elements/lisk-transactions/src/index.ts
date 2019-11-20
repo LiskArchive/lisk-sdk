@@ -13,6 +13,7 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
+
 import { DelegateTransaction } from './10_delegate_transaction';
 import { VoteTransaction } from './11_vote_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';

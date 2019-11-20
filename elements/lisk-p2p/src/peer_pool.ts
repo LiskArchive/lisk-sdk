@@ -21,6 +21,7 @@ import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	ConnectionKind,
 	DEFAULT_LOCALHOST_IP,
@@ -216,7 +217,7 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		};
 
-		this._handleOutboundPeerConnect = async (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
@@ -501,7 +502,8 @@ export class PeerPool extends EventEmitter {
 						outboundCount: prev.outboundCount + 1,
 						inboundCount: prev.inboundCount,
 					};
-				} else if (peer instanceof InboundPeer) {
+				}
+				if (peer instanceof InboundPeer) {
 					return {
 						outboundCount: prev.outboundCount,
 						inboundCount: prev.inboundCount + 1,
@@ -663,6 +665,7 @@ export class PeerPool extends EventEmitter {
 			return;
 		}
 
+		// tslint:disable-next-line strict-comparisons
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
 				peers.filter(peer =>
@@ -678,6 +681,7 @@ export class PeerPool extends EventEmitter {
 			}
 		}
 
+		// tslint:disable-next-line strict-comparisons
 		if (kind === InboundPeer) {
 			const evictionCandidates = this._selectPeersForEviction();
 			const peerToEvict = shuffle(evictionCandidates)[0];

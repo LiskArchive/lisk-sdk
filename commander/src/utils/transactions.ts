@@ -22,6 +22,7 @@ import {
 	TransferTransaction,
 	VoteTransaction,
 } from '@liskhq/lisk-transactions';
+
 import { ValidationError } from './error';
 
 export const parseTransactionString = (transactionStr: string) => {

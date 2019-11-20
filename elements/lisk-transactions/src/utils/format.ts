@@ -13,7 +13,9 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
+
 import { FIXED_POINT } from '../constants';
+
 import { isGreaterThanMaxTransactionAmount } from './validation';
 
 const BASE_10 = 10;

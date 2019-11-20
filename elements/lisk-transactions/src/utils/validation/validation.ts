@@ -14,6 +14,7 @@
  */
 import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
+
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_PUBLIC_KEY_LENGTH,

@@ -17,6 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
+
 import BaseCommand from '../../base';
 import { RELEASE_URL } from '../../utils/constants';
 import { isCacheRunning, startCache, stopCache } from '../../utils/core/cache';

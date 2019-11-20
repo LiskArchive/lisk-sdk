@@ -14,6 +14,7 @@
  *
  */
 import { APIClient } from '@liskhq/lisk-api-client';
+
 import { NETHASHES } from './constants';
 
 const seedNodes: { readonly [key: string]: ReadonlyArray<string> } = {
