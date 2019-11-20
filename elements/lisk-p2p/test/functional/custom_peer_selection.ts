@@ -25,7 +25,11 @@ import {
 } from '../../src/p2p_types';
 import { ConnectionKind } from '../../src/constants';
 
-import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	NETWORK_PEER_COUNT,
+} from '../utils/network_setup';
 
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -100,15 +104,13 @@ describe('Custom peer selection', () => {
 	beforeEach(async () => {
 		const customNodeInfo = (index: number) => ({
 			modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
-			height: 1000 + index,
+			height: 1000 + (index % 2),
 		});
 
 		const customConfig = (index: number) => ({
 			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
-			peerSelectionForConnection,
-			maxOutboundConnections: 5,
-			maxInboundConnections: 5,
+			peerSelectionForConnection: peerSelectionForConnection as P2PPeerSelectionForConnectionFunction,
 			nodeInfo: customNodeInfo(index),
 		});
 
@@ -153,8 +155,8 @@ describe('Custom peer selection', () => {
 		});
 
 		it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
-			const secondP2PNode = p2pNodeList[1];
-			const response = await secondP2PNode.request({
+			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
+			const response = await middleP2PNode.request({
 				procedure: 'foo',
 				data: 'bar',
 			});
@@ -190,7 +192,7 @@ describe('Custom peer selection', () => {
 		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send a message to peers; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
-			const firstP2PNode = p2pNodeList[0];
+			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
 			const nodePortToMessagesMap: any = {};
 
 			const expectedAverageMessagesPerNode = TOTAL_SENDS;
@@ -198,7 +200,7 @@ describe('Custom peer selection', () => {
 			const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
-				firstP2PNode.send({ event: 'bar', data: i });
+				middleP2PNode.send({ event: 'bar', data: i });
 			}
 
 			await wait(100);
