@@ -13,6 +13,7 @@
  *
  */
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+
 import { APIClient } from './api_client';
 import { APIErrorResponse, APIResponse, HashMap } from './api_types';
 import { APIError } from './errors';
@@ -60,7 +61,7 @@ export class APIResource {
 			);
 		}
 
-		return Promise.reject(error);
+		throw error;
 	}
 
 	public async request(

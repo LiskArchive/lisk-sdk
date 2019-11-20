@@ -19,6 +19,7 @@ import {
 	stringifyEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';

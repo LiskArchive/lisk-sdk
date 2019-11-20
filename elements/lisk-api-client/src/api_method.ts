@@ -13,6 +13,7 @@
  *
  */
 import { AxiosRequestConfig } from 'axios';
+
 import {
 	APIHandler,
 	APIResponse,
@@ -40,10 +41,8 @@ export const apiMethod = (options: RequestConfig = {}): APIHandler =>
 		} = options;
 
 		if (urlParams.length > 0 && args.length < urlParams.length) {
-			return Promise.reject(
-				new Error(
-					`This endpoint must be supplied with the following parameters: ${urlParams.toString()}`,
-				),
+			throw new Error(
+				`This endpoint must be supplied with the following parameters: ${urlParams.toString()}`,
 			);
 		}
 
@@ -56,11 +55,7 @@ export const apiMethod = (options: RequestConfig = {}): APIHandler =>
 		};
 
 		if (validator) {
-			try {
-				validator(data);
-			} catch (err) {
-				return Promise.reject(err);
-			}
+			validator(data);
 		}
 
 		const resolvedURLObject = urlParams.reduce(

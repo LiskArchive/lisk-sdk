@@ -14,6 +14,7 @@
  */
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
+
 import { DEFAULT_ACK_TIMEOUT, DEFAULT_CONNECT_TIMEOUT } from '../constants';
 import {
 	EVENT_CLOSE_OUTBOUND,
@@ -32,6 +33,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
+
 import {
 	Peer,
 	PeerConfig,

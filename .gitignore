@@ -68,6 +68,7 @@ browsertest/browsertest.js
 browsertest/browsertest.min.js
 browsertest/src
 browsertest/test
+tsconfig.tsbuildinfo
 
 # Unsupported lock files
 yarn.lock

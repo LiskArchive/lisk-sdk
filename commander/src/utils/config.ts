@@ -16,7 +16,9 @@
 import fs from 'fs';
 import lockfile from 'lockfile';
 import path from 'path';
+
 import * as defaultConfig from '../default_config.json';
+
 import { CONFIG_VARIABLES } from './constants';
 import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
@@ -60,11 +62,13 @@ const attemptCallWithError = <T>(fn: () => T, errorMessage: string): T => {
 
 const attemptToCreateDir = (dirPath: string): void => {
 	const fn = fs.mkdirSync.bind(undefined, dirPath);
+	// tslint:disable-next-line invalid-void
 	attemptCallWithError<void>(fn, fileWriteErrorMessage(dirPath));
 };
 
 const attemptToCreateFile = (filePath: string): void => {
 	const fn = writeJSONSync.bind(undefined, filePath, defaultConfig);
+	// tslint:disable-next-line invalid-void
 	attemptCallWithError<void>(fn, fileWriteErrorMessage(filePath));
 };
 
@@ -94,6 +98,7 @@ const attemptToValidateConfig = (config: object, filePath: string): void => {
 	};
 	const errorMessage = `Config file seems to be corrupted: missing required keys. Please check ${filePath} or delete the file so we can create a new one from defaults.`;
 
+	// tslint:disable-next-line invalid-void
 	attemptCallWithError<void>(fn, errorMessage);
 };
 

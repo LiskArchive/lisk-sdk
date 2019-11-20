@@ -16,6 +16,7 @@
 import fs from 'fs';
 import inquirer from 'inquirer';
 import readline from 'readline';
+
 import { FileSystemError, ValidationError } from '../error';
 import { stdinIsTTY, stdoutIsTTY } from '../helpers';
 

@@ -14,6 +14,7 @@
  */
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
+
 import {
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_NEW_BUCKET_SIZE,
@@ -23,6 +24,7 @@ import {
 import { ExistingPeerError } from '../errors';
 import { P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
+
 import { NewList, NewListConfig } from './new_list';
 import { TriedList, TriedListConfig } from './tried_list';
 

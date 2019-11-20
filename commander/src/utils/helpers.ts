@@ -73,6 +73,6 @@ export const handleEPIPE = (err: ErrorObject) => {
 	}
 };
 
-export const stdoutIsTTY = (): true | undefined => process.stdout.isTTY;
+export const stdoutIsTTY = (): boolean => process.stdout.isTTY;
 
-export const stdinIsTTY = (): true | undefined => process.stdin.isTTY;
+export const stdinIsTTY = (): boolean => process.stdin.isTTY;

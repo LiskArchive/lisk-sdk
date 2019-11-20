@@ -16,6 +16,7 @@ import * as BigNum from '@liskhq/bignum';
 import * as Ajv from 'ajv';
 // tslint:disable-next-line no-require-imports
 import addKeywords = require('ajv-merge-patch');
+
 import * as schemas from './schema';
 import {
 	isGreaterThanMaxTransactionId,

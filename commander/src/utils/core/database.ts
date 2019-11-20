@@ -14,8 +14,10 @@
  *
  */
 import fs from 'fs';
+
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
+
 import { getLiskConfig, LiskConfig } from './config';
 import { describeApplication, PM2ProcessInstance } from './pm2';
 

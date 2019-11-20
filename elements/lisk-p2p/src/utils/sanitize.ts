@@ -13,6 +13,7 @@
  */
 
 import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
+
 import { constructPeerId } from './misc';
 
 export const sanitizeIncomingPeerInfo = (

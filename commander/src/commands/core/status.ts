@@ -14,6 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { describeApplication, listApplication } from '../../utils/core/pm2';
 

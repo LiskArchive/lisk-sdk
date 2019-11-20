@@ -14,6 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 
@@ -38,8 +39,8 @@ export default class GetCommand extends BaseCommand {
 			client.node.getConstants(),
 			client.node.getStatus(),
 		]).then(([constantsResponse, statusResponse]) => ({
-			...constantsResponse.data,
-			...statusResponse.data,
+			...(constantsResponse.data as object),
+			...(statusResponse.data as object),
 		}));
 		if (!showForgingStatus) {
 			this.print(baseInfo);
