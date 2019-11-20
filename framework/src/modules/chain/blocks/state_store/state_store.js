@@ -16,26 +16,31 @@
 
 const AccountStore = require('./account_store');
 const TransactionStore = require('./transaction_store');
+const ChainStateStore = require('./chain_state_store');
 
 class StateStore {
 	constructor(storage, options = {}) {
 		this.entities = {
 			Account: storage.entities.Account,
 			Transaction: storage.entities.Transaction,
+			ChainState: storage.entities.ChainState,
 		};
 
 		this.account = new AccountStore(this.entities.Account, options);
 		this.transaction = new TransactionStore(this.entities.Transaction, options);
+		this.chainState = new ChainStateStore(this.entities.ChainState, options);
 	}
 
 	createSnapshot() {
 		this.account.createSnapshot();
 		this.transaction.createSnapshot();
+		this.chainState.createSnapshot();
 	}
 
 	restoreSnapshot() {
 		this.account.restoreSnapshot();
 		this.transaction.restoreSnapshot();
+		this.chainState.restoreSnapshot();
 	}
 }
 

@@ -13,4 +13,4 @@
  */
 
 
-DELETE FROM chain_meta ${parsedFilters:raw}
+DELETE FROM chain_state ${parsedFilters:raw}

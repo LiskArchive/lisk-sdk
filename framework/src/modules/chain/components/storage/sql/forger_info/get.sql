@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT *  FROM chain_meta
+SELECT * FROM forger_info
 
 ${parsedFilters:raw}
 

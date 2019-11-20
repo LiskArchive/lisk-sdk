@@ -13,8 +13,4 @@
  */
 
 
-INSERT INTO "chain_meta" ("key", "value")
-VALUES(${key},${value})
-ON CONFLICT ON CONSTRAINT chain_meta_pkey
-DO
-	UPDATE SET "value" = ${value};
+DELETE FROM forger_info ${parsedFilters:raw}

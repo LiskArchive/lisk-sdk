@@ -13,13 +13,8 @@
  */
 
 
-/*
-  DESCRIPTION: Creates meta table for BFT.
-
-  PARAMETERS: None
-*/
-
-CREATE TABLE IF NOT EXISTS "chain_state" (
-  "key" VARCHAR(40) PRIMARY KEY,
-  "value" TEXT NOT NULL
-);
+INSERT INTO "chain_state" ("key", "value")
+VALUES(${key},${value})
+ON CONFLICT ON CONSTRAINT chain_state_pkey
+DO
+	UPDATE SET "value" = ${value};

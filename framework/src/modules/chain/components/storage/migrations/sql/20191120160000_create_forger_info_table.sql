@@ -19,7 +19,7 @@
   PARAMETERS: None
 */
 
-CREATE TABLE IF NOT EXISTS "chain_state" (
+CREATE TABLE IF NOT EXISTS "forger_info" (
   "key" VARCHAR(40) PRIMARY KEY,
   "value" TEXT NOT NULL
 );

@@ -23,10 +23,7 @@ const {
 const forkChoiceRule = require('./fork_choice_rule');
 const { validateBlockHeader } = require('./utils');
 
-const META_KEYS = {
-	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
-	LAST_BLOCK_FORGED: 'BFT.maxHeightPreviouslyForged',
-};
+const CHAIN_STATE_FINALIZED_HEIGHT = 'BFT.finalizedHeight';
 const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 const extractBFTBlockHeaderFromBlock = block => ({
@@ -67,7 +64,7 @@ class BFT extends EventEmitter {
 		};
 
 		this.blockEntity = this.storage.entities.Block;
-		this.chainMetaEntity = this.storage.entities.ChainMeta;
+		this.chainStateEntity = this.storage.entities.ChainState;
 	}
 
 	/**
@@ -76,8 +73,8 @@ class BFT extends EventEmitter {
 	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */
-	async init(minActiveHeightsOfDelegates = {}) {
-		this.finalityManager = await this._initFinalityManager();
+	async init(stateStore, minActiveHeightsOfDelegates = {}) {
+		this.finalityManager = await this._initFinalityManager(stateStore);
 
 		this.finalityManager.on(
 			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
@@ -162,65 +159,21 @@ class BFT extends EventEmitter {
 	 * Load new block to BFT
 	 *
 	 * @param {Object} block - The block which is forged
-	 * @param {Object} tx - database transaction
+	 * @param {Object} stateStore - database transaction
 	 * @return {Promise<void>}
 	 */
-	async addNewBlock(block, tx) {
+	async addNewBlock(block, stateStore) {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 		const { finalizedHeight } = this.finalityManager;
-		// TODO: this should be memory operation in the state store
-		return this.chainMetaEntity.setKey(
-			META_KEYS.FINALIZED_HEIGHT,
+		return stateStore.chainState.set(
+			CHAIN_STATE_FINALIZED_HEIGHT,
 			finalizedHeight,
-			tx,
 		);
 	}
 
 	async verifyNewBlock(block) {
 		return this.finalityManager.verifyBlockHeaders(
 			extractBFTBlockHeaderFromBlock(block),
-		);
-	}
-
-	/**
-	 * Computes maxHeightPreviouslyForged and maxHeightPrevoted properties that are necessary
-	 * for creating a new block
-	 * @param delegatePublicKey
-	 * @return {Promise<{maxHeightPrevoted: number, maxHeightPreviouslyForged: (number|*)}>}
-	 */
-	async computeBFTHeaderProperties(delegatePublicKey) {
-		const previouslyForged = await this._getPreviouslyForgedMap();
-		const maxHeightPreviouslyForged = previouslyForged[delegatePublicKey] || 0;
-
-		return {
-			// maxHeightPrevoted is up till height - 1
-			maxHeightPrevoted: this.finalityManager.prevotedConfirmedHeight,
-			maxHeightPreviouslyForged,
-		};
-	}
-
-	/**
-	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
-	 * so it needs to be outside of the DB transaction
-	 * @param delegatePublicKey
-	 * @param height
-	 */
-	async saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
-		const previouslyForgedMap = await this._getPreviouslyForgedMap();
-		const previouslyForgedHeightByDelegate =
-			previouslyForgedMap[delegatePublicKey] || 0;
-		// previously forged height only saves maximum forged height
-		if (height <= previouslyForgedHeightByDelegate) {
-			return;
-		}
-		const updatedPreviouslyForged = {
-			...previouslyForgedMap,
-			[delegatePublicKey]: height,
-		};
-		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
-		await this.chainMetaEntity.setKey(
-			META_KEYS.LAST_BLOCK_FORGED,
-			previouslyForgedStr,
 		);
 	}
 
@@ -269,26 +222,17 @@ class BFT extends EventEmitter {
 		return forkChoiceRule.FORK_STATUS_DISCARD;
 	}
 
-	async _getPreviouslyForgedMap() {
-		const previouslyForgedStr = await this.chainMetaEntity.getKey(
-			META_KEYS.LAST_BLOCK_FORGED,
-		);
-		return previouslyForgedStr ? JSON.parse(previouslyForgedStr) : {};
-	}
-
 	/**
 	 * Initialize the consensus manager and return the finalize height
 	 *
 	 * @return {Promise<number>} - Return the finalize height
 	 * @private
 	 */
-	async _initFinalityManager() {
+	async _initFinalityManager(stateStore) {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
-			parseInt(
-				await this.chainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT),
-				10,
-			) || 1;
+			parseInt(stateStore.chainState.get(CHAIN_STATE_FINALIZED_HEIGHT), 10) ||
+			1;
 
 		// Check BFT migration height
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
@@ -439,6 +383,10 @@ class BFT extends EventEmitter {
 
 	get finalizedHeight() {
 		return this.finalityManager.finalizedHeight;
+	}
+
+	get maxHeightPrevoted() {
+		return this.finalityManager.prevotedConfirmedHeight;
 	}
 }
 

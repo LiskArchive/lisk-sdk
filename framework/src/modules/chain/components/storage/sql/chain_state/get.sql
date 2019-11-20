@@ -12,14 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+SELECT * FROM chain_state
 
-/*
-  DESCRIPTION: Creates meta table for BFT.
+${parsedFilters:raw}
 
-  PARAMETERS: None
-*/
+${parsedSort:raw}
 
-CREATE TABLE IF NOT EXISTS "chain_state" (
-  "key" VARCHAR(40) PRIMARY KEY,
-  "value" TEXT NOT NULL
-);
+LIMIT ${limit} OFFSET ${offset}
