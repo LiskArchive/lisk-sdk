@@ -543,9 +543,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
-			.filter(
-				peer => !(peer.internalState && !peer.sharedState.advertiseAddress),
-			)
+			.filter(peer => peer.sharedState.advertiseAddress)
 			.map(peer => ({
 				id: peer.id,
 				ipAddress: peer.ipAddress,
@@ -567,9 +565,7 @@ export class P2P extends EventEmitter {
 
 		// Only share the shared state to the user
 		return disconnectedPeers
-			.filter(
-				peer => !(peer.internalState && !peer.sharedState.advertiseAddress),
-			)
+			.filter(peer => peer.sharedState.advertiseAddress)
 			.map(peer => ({
 				id: peer.id,
 				ipAddress: peer.ipAddress,
