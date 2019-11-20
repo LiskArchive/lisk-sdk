@@ -149,14 +149,14 @@ class TransactionPool extends EventEmitter {
 						transaction => transaction.id,
 					)}`,
 				);
-			}
-			const queueSizes = Object.keys(this.pool._queues)
-				.map(
-					queueName =>
-						`${queueName} size: ${this.pool._queues[queueName].size()}`,
-				)
-				.join(' ');
-			if (queueSizes.length > 0) {
+
+				const queueSizes = Object.keys(this.pool._queues)
+					.map(
+						queueName =>
+							`${queueName} size: ${this.pool._queues[queueName].size()}`,
+					)
+					.join(' ');
+
 				this.logger.info(`Transaction pool - ${queueSizes}`);
 			}
 		});
