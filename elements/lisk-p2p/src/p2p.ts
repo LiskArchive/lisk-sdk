@@ -923,7 +923,7 @@ export class P2P extends EventEmitter {
 		return false;
 	}
 
-	private _discoverSeedPeerList(): void {
+	private _connectToSeedPeers(): void {
 		this._peerPool.discoverSeedPeers();
 	}
 
@@ -1019,7 +1019,7 @@ export class P2P extends EventEmitter {
 		if (this._isActive) {
 			// Initial Discovery SeedPeers and Disconnect LIP-0004
 			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
-				this._discoverSeedPeerList();
+				this._connectToSeedPeers();
 			}
 
 			this._startPopulator();
