@@ -812,7 +812,7 @@ describe('forge', () => {
 				const data = await forgeModule.forge();
 
 				expect(data).to.be.undefined;
-				expect(mockLogger.debug).to.be.calledOnce;
+				expect(mockLogger.trace).to.be.calledOnce;
 				expect(mockLogger.trace).to.be.calledWith(
 					{ slot: 5 },
 					'Block already forged for the current slot',
@@ -845,7 +845,7 @@ describe('forge', () => {
 
 				const data = await forgeModule.forge();
 				expect(data).to.be.undefined;
-				expect(mockLogger.debug).to.be.calledOnce;
+				expect(mockLogger.trace).to.be.calledTwice;
 				expect(mockLogger.trace).to.be.calledWith(
 					{ currentSlot: 5 },
 					'Waiting for delegate slot',
