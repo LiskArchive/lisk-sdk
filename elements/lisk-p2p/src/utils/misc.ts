@@ -14,6 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
+
 import { CustomPeerInfo } from '../peer_book/base_list';
 
 const BYTES_4 = 4;

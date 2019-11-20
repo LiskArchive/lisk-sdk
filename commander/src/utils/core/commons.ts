@@ -16,6 +16,7 @@
 import fsExtra from 'fs-extra';
 import * as os from 'os';
 import semver from 'semver';
+
 import {
 	HTTP_PORTS,
 	NETWORK,
@@ -27,6 +28,7 @@ import {
 	WS_PORTS,
 } from '../constants';
 import { exec, ExecResult } from '../worker-process';
+
 import { defaultBackupPath } from './config';
 import {
 	listApplication,
@@ -128,12 +130,11 @@ export const getVersionToInstall = async (
 	if (!version) {
 		if (releaseUrl) {
 			return getSemver(releaseUrl);
-		} else {
-			const url = `${RELEASE_URL}/${network}/latest.txt`;
-			const latestVersion = await getLatestVersion(url);
-
-			return latestVersion;
 		}
+		const url = `${RELEASE_URL}/${network}/latest.txt`;
+		const latestVersion = await getLatestVersion(url);
+
+		return latestVersion;
 	}
 
 	return version;

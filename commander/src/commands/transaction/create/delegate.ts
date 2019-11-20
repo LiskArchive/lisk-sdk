@@ -15,6 +15,7 @@
  */
 import { registerDelegate } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../../base';
 import { flags as commonFlags } from '../../../utils/flags';
 import {

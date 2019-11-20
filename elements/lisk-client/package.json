@@ -64,7 +64,7 @@
 		"@liskhq/lisk-cryptography": "2.4.0-alpha.0",
 		"@liskhq/lisk-passphrase": "3.0.0-alpha.0",
 		"@liskhq/lisk-transactions": "3.0.0-alpha.0",
-		"@types/node": "10.12.21"
+		"@types/node": "12.12.11"
 	},
 	"devDependencies": {
 		"@types/chai": "4.1.7",
@@ -79,12 +79,12 @@
 		"nyc": "14.1.1",
 		"prettier": "1.16.4",
 		"source-map-support": "0.5.10",
-		"ts-node": "8.0.2",
+		"ts-node": "8.5.2",
 		"tsconfig-paths": "3.8.0",
-		"tslint": "5.12.1",
+		"tslint": "5.20.1",
 		"tslint-config-prettier": "1.18.0",
-		"tslint-immutable": "5.1.2",
-		"typescript": "3.3.1",
+		"tslint-immutable": "6.0.1",
+		"typescript": "3.7.2",
 		"uglify-es": "3.3.9",
 		"wait-on": "3.2.0"
 	}

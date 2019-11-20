@@ -15,6 +15,7 @@
  */
 import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
+
 import BaseCommand from '../../../base';
 import { stopDatabase } from '../../../utils/core/database';
 import {

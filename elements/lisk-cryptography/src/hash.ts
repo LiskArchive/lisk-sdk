@@ -13,6 +13,7 @@
  *
  */
 import * as crypto from 'crypto';
+
 import { hexToBuffer } from './buffer';
 
 const cryptoHashSha256 = (data: Buffer): Buffer => {

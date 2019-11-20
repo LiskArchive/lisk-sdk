@@ -15,6 +15,7 @@
  */
 import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../../base';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
 import {

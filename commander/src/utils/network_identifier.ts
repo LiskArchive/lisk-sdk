@@ -15,6 +15,7 @@
  */
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
+
 import { COMMUNITY_IDENTIFIER, NETHASHES } from './constants';
 
 export const getNetworkIdentifierWithInput = (

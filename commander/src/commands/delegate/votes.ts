@@ -14,6 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { SORT_FIELDS } from '../../utils/constants';

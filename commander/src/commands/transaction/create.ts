@@ -14,8 +14,10 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { flags as commonFlags } from '../../utils/flags';
+
 import DelegateCommand from './create/delegate';
 import MultisignatureCommand from './create/multisignature';
 import SecondPassphraseCommand from './create/second-passphrase';
