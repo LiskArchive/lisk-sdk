@@ -208,6 +208,36 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 		});
 
+		it('using network identifier from different network should fail', async () => {
+			const networkIdentifierOtherNetwork =
+				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
+			const transactionFromDifferentNetwork = new TransferTransaction({
+				networkIdentifier: networkIdentifierOtherNetwork,
+				asset: {
+					amount: '1',
+					recipientId: account.address,
+				},
+			});
+			transactionFromDifferentNetwork.sign(accountFixtures.genesis.passphrase);
+
+			return sendTransactionPromise(
+				transactionFromDifferentNetwork.toJSON(),
+				apiCodes.PROCESSING_ERROR,
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors',
+				);
+
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.include(
+					`Failed to validate signature ${
+						transactionFromDifferentNetwork.signature
+					}`,
+				);
+				badTransactions.push(transactionFromDifferentNetwork);
+			});
+		});
+
 		it('when sender has funds should be ok', async () => {
 			return sendTransactionPromise(goodTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
