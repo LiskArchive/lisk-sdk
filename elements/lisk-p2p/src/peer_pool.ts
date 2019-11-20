@@ -415,7 +415,7 @@ export class PeerPool extends EventEmitter {
 			this._peerLists.seedPeers.slice(0, openOutboundSlots),
 		);
 
-		seedPeersForFetch.map(peer => {
+		seedPeersForFetch.forEach(peer => {
 			// From FixedPeers we should not disconnect
 			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo, {
 				isDiscoverySeedPeer: this._peerLists.fixedPeers.find(
