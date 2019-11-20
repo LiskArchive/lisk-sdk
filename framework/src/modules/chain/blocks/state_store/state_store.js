@@ -42,6 +42,10 @@ class StateStore {
 		this.transaction.restoreSnapshot();
 		this.chainState.restoreSnapshot();
 	}
+
+	async finalize() {
+		return Promise.all([this.account.finalize(), this.chainState.finalize()]);
+	}
 }
 
 module.exports = { StateStore };

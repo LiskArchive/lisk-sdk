@@ -59,6 +59,10 @@ class ChainStateStore {
 	}
 
 	async finalize() {
+		if (this.updatedKeys.size === 0) {
+			return;
+		}
+
 		Promise.all(
 			Array.from(this.updatedKeys).map(key =>
 				this.chainStateEntity.setKey(key, this.data[key], this.tx),
