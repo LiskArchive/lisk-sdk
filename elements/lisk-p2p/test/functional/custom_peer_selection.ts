@@ -36,7 +36,7 @@ describe('Custom peer selection', () => {
 		| P2PPeerSelectionForRequestFunction = (
 		input: P2PPeerSelectionForSendInput | P2PPeerSelectionForRequestInput,
 	) => {
-		const { peers: peersList, sharedState } = input;
+		const { peers: peersList } = input;
 
 		peersList.forEach(peerInfo => {
 			if (
@@ -76,19 +76,6 @@ describe('Custom peer selection', () => {
 
 			return false;
 		});
-
-		// In case there are no peers with same modules or less than 30% of the peers are selected then use only height to select peers
-		if (
-			filteredPeers.length === 0 ||
-			(filteredPeers.length / peersList.length) * 100 < 30
-		) {
-			return peersList.filter(
-				peer =>
-					peer.sharedState &&
-					(peer.sharedState.height as number) >=
-						(sharedState ? (sharedState.height as number) : 0),
-			);
-		}
 
 		return filteredPeers;
 	};

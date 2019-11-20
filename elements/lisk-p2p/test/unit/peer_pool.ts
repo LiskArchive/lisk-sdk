@@ -261,7 +261,6 @@ describe('peerPool', () => {
 
 			expect(_peerSelectForRequestStub).to.be.calledWith({
 				peers,
-				sharedState: peerPool.sharedState,
 				peerLimit: 1,
 				requestPacket,
 			});
@@ -381,7 +380,6 @@ describe('peerPool', () => {
 			expect(peerPool['_peerSelectForConnection']).to.be.calledWith({
 				newPeers: [],
 				triedPeers: [],
-				sharedState: peerPool.sharedState,
 				peerLimit: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			});
 		});

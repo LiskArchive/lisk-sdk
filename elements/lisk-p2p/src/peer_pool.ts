@@ -312,7 +312,6 @@ export class PeerPool extends EventEmitter {
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
 			peers: outboundPeerInfos,
-			sharedState: this.sharedState,
 			peerLimit: 1,
 			requestPacket: packet,
 		});
@@ -359,7 +358,6 @@ export class PeerPool extends EventEmitter {
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
-			sharedState: this.sharedState,
 			peerLimit: this._sendPeerLimit,
 			messagePacket: message,
 		});
@@ -426,7 +424,6 @@ export class PeerPool extends EventEmitter {
 		const peersToConnect = this._peerSelectForConnection({
 			newPeers: disconnectedNewPeers,
 			triedPeers: disconnectedTriedPeers,
-			sharedState: this.sharedState,
 			peerLimit,
 		});
 

@@ -113,7 +113,6 @@ export interface P2PConfig {
 
 export interface P2PPeerSelectionForSendInput {
 	readonly peers: ReadonlyArray<P2PPeerInfo>;
-	readonly sharedState?: P2PSharedState;
 	readonly peerLimit?: number;
 	readonly messagePacket?: P2PMessagePacket;
 }
@@ -124,7 +123,6 @@ export type P2PPeerSelectionForSendFunction = (
 
 export interface P2PPeerSelectionForRequestInput {
 	readonly peers: ReadonlyArray<P2PPeerInfo>;
-	readonly sharedState?: P2PSharedState;
 	readonly peerLimit?: number;
 	readonly requestPacket?: P2PRequestPacket;
 }
@@ -136,7 +134,6 @@ export type P2PPeerSelectionForRequestFunction = (
 export interface P2PPeerSelectionForConnectionInput {
 	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly triedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly sharedState?: P2PSharedState;
 	readonly peerLimit?: number;
 }
 

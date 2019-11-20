@@ -58,7 +58,6 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						sharedState,
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -68,7 +67,6 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						sharedState,
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -80,7 +78,6 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: [],
-						sharedState,
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -92,7 +89,6 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						sharedState,
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -104,7 +100,6 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						sharedState,
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -116,7 +111,6 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						sharedState,
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -128,7 +122,6 @@ describe('peer selector', () => {
 				expect(
 					selectPeersForRequest({
 						peers: peerList,
-						sharedState,
 						peerLimit: 3,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -151,7 +144,6 @@ describe('peer selector', () => {
 				return expect(
 					selectPeersForRequest({
 						peers: lowHeightPeers,
-						sharedState,
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
@@ -168,7 +160,6 @@ describe('peer selector', () => {
 		it('should return an array containing an even number of inbound and outbound peers', () => {
 			const selectedPeers = selectPeersForSend({
 				peers: peerList,
-				sharedState,
 				peerLimit: DEFAULT_SEND_PEER_LIMIT,
 				messagePacket: { event: 'foo', data: {} },
 			});
