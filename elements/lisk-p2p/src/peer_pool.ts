@@ -440,7 +440,7 @@ export class PeerPool extends EventEmitter {
 		const peerLimit = this._getAvailableOutboundConnectionSlots();
 
 		if (peerLimit === 0) {
-			this._disconnectDiscoverySeedPeers();
+			this._disconnectFromSeedPeers();
 		}
 
 		// This function can be customized so we should pass as much info as possible.
@@ -637,7 +637,7 @@ export class PeerPool extends EventEmitter {
 		}
 	}
 
-	private _disconnectDiscoverySeedPeers(): void {
+	private _disconnectFromSeedPeers(): void {
 		const outboundPeers = this.getPeers(OutboundPeer);
 
 		outboundPeers.forEach((outboundPeer: Peer) => {

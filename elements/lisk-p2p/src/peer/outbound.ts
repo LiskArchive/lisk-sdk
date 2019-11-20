@@ -14,6 +14,7 @@
  */
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
+
 import {
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
