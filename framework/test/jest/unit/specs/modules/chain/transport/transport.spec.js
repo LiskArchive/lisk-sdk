@@ -44,6 +44,7 @@ describe('Transport', () => {
 		loggerStub = {
 			info: jest.fn(),
 			warn: jest.fn(),
+			error: jest.fn(),
 			debug: jest.fn(),
 		};
 		storageStub = {
@@ -130,6 +131,28 @@ describe('Transport', () => {
 				await transport.handleBroadcastTransaction(tx);
 				await transport.handleBroadcastTransaction(tx);
 				expect(transport.broadcaster.transactionIdQueue).toHaveLength(1);
+			});
+		});
+
+		describe('when the transaction is not in the pool', () => {
+			it('should not broadcast after 5 sec', async () => {
+				const tx = new TransferTransaction({
+					networkIdentifier: '1234567890',
+					asset: { amount: '100', recipientId: '123L' },
+				});
+				tx.sign('signature');
+				await transport.handleBroadcastTransaction(tx);
+				transactionPoolStub.transactionInPool.mockReturnValue(false);
+				jest.advanceTimersByTime(defaultBroadcastInterval);
+				expect(channelStub.invoke).not.toHaveBeenCalledWith(
+					'network:broadcast',
+					{
+						event: 'postTransactionsAnnouncement',
+						data: {
+							transactionIds: [tx.id],
+						},
+					},
+				);
 			});
 		});
 
@@ -918,7 +941,7 @@ describe('Transport', () => {
 				);
 			});
 
-			it('should apply penalty when processUnconfirmedTransaction fails', async () => {
+			it('should not apply penalty when processUnconfirmedTransaction fails', async () => {
 				const error = new Error('validate error');
 				transactionPoolStub.processUnconfirmedTransaction.mockRejectedValue(
 					error,
@@ -927,7 +950,7 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
+				expect(channelStub.invoke).not.toHaveBeenCalledWith(
 					'network:applyPenalty',
 					{
 						peerId: defaultPeerId,

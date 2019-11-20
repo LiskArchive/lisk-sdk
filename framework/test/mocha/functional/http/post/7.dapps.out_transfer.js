@@ -692,9 +692,9 @@ describe.skip('POST /api/transactions (type 7) outTransfer dapp', () => {
 		it('transaction should be rejected', async () => {
 			transaction = {
 				amount: '100000000',
-				recipientId: '16313739661670634666L',
+				recipientId: '11237980039345381032L',
 				senderPublicKey:
-					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+					'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 				timestamp: 60731685,
 				type: 7,
 				fee: '10000000',

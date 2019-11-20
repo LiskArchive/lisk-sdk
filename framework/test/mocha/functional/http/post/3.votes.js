@@ -458,6 +458,28 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
+		it('using network identifier from different network should fail', async () => {
+			const networkIdentifierOtherNetwork =
+				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
+			const transactionFromDifferentNetwork = castVotes({
+				networkIdentifier: networkIdentifierOtherNetwork,
+				passphrase: accountMinimalFunds.passphrase,
+				votes: [`${accountFixtures.existingDelegate.publicKey}`],
+			});
+
+			return sendTransactionPromise(
+				transactionFromDifferentNetwork,
+				apiCodes.PROCESSING_ERROR,
+			).then(res => {
+				expect(res.body.errors[0].message).to.include(
+					`Failed to validate signature ${
+						transactionFromDifferentNetwork.signature
+					}`,
+				);
+				badTransactions.push(transactionFromDifferentNetwork);
+			});
+		});
+
 		it('upvoting with minimal required amount of funds should be ok', async () => {
 			transaction = castVotes({
 				networkIdentifier,

@@ -386,17 +386,20 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			numberOfRequests < requestLimit &&
 			currentHeight > this.bft.finalizedHeight
 		) {
+			const heightList = computeBlockHeightsList(
+				this.bft.finalizedHeight,
+				this.constants.activeDelegates,
+				blocksPerRequestLimit,
+				currentRound,
+			);
+
 			const blockIds = (await this.storage.entities.Block.get(
 				{
-					height_in: computeBlockHeightsList(
-						this.bft.finalizedHeight,
-						this.constants.activeDelegates,
-						blocksPerRequestLimit,
-						currentRound,
-					),
+					height_in: heightList,
 				},
 				{
 					sort: 'height:asc',
+					limit: heightList.length,
 				},
 			)).map(block => block.id);
 

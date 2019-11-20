@@ -130,6 +130,36 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 				});
 		});
 
+		it('using network identifier from different network should fail', async () => {
+			const networkIdentifierOtherNetwork =
+				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
+			const transactionFromDifferentNetwork = registerSecondPassphrase({
+				networkIdentifier: networkIdentifierOtherNetwork,
+				passphrase: accountMinimalFunds.passphrase,
+				secondPassphrase: accountMinimalFunds.secondPassphrase,
+				timeOffset: -10000,
+			});
+
+			return apiHelpers
+				.sendTransactionPromise(
+					transactionFromDifferentNetwork,
+					apiCodes.PROCESSING_ERROR,
+				)
+				.then(res => {
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors',
+					);
+
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.include(
+						`Failed to validate signature ${
+							transactionFromDifferentNetwork.signature
+						}`,
+					);
+					badTransactions.push(transactionFromDifferentNetwork);
+				});
+		});
+
 		it('with minimal required amount of funds should be ok', async () => {
 			transaction = registerSecondPassphrase({
 				networkIdentifier,
