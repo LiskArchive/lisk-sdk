@@ -150,7 +150,7 @@ class TempBlock extends BaseEntity {
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-		const { limit, offset, sort } = { ...options, ...this.defaultOptions };
+		const { limit, offset, sort } = { ...this.defaultOptions, ...options };
 		const parsedSort = this.parseSort(sort);
 
 		const params = {

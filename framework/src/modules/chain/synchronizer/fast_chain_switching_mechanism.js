@@ -321,6 +321,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		await deleteBlocksAfterHeight(
 			this.processor,
 			this.blocks,
+			this.logger,
 			highestCommonBlock.height,
 		);
 		this.logger.debug('Restoring blocks from temporary table');
@@ -348,6 +349,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		await deleteBlocksAfterHeight(
 			this.processor,
 			this.blocks,
+			this.logger,
 			highestCommonBlock.height,
 			true,
 		);
