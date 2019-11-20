@@ -243,7 +243,7 @@ describe('matcher', () => {
 		);
 
 		// Reset transaction pool so it starts fresh back again with no transactions.
-		transactionPool.resetPool();
+		transactionPool._resetPool();
 
 		// Delete all blocks and set lastBlock back to the genesisBlock.
 		try {

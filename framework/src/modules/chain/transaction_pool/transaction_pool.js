@@ -91,10 +91,10 @@ class TransactionPool extends EventEmitter {
 		this.processTransactions = transactions =>
 			this.blocks.processTransactions(transactions);
 
-		this.resetPool();
+		this._resetPool();
 	}
 
-	resetPool() {
+	_resetPool() {
 		const poolConfig = {
 			expireTransactionsInterval: this.expireTransactionsInterval,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
