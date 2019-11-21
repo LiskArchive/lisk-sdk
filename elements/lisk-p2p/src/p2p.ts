@@ -1024,7 +1024,7 @@ export class P2P extends EventEmitter {
 
 	public async stop(): Promise<void> {
 		if (!this._isActive) {
-			throw new Error('Node cannot because it is not active.');
+			throw new Error('Node cannot be stopped because it is not active.');
 		}
 		this._isActive = false;
 		this._hasConnected = false;
