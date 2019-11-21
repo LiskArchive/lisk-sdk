@@ -289,12 +289,14 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			async data => {
 				const previouslyForged = await this._getPreviouslyForgedMap();
 				const delegatePublicKey = data.keypair.publicKey.toString('hex');
-				const maxHeightPreviouslyForged = previouslyForged[delegatePublicKey] || 0;
-				const block = this._create({
+				const maxHeightPreviouslyForged =
+					previouslyForged[delegatePublicKey] || 0;
+				const block = await this._create({
 					...data,
 					maxHeightPreviouslyForged,
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
 				});
+
 				await this._saveMaxHeightPreviouslyForged(
 					block.generatorPublicKey,
 					block.height,
