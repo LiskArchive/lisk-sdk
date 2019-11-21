@@ -14,9 +14,9 @@
 
 'use strict';
 
-const { configurator } = require('../../../../../../../src');
+const { configurator } = require('../../../../../src');
 
-const devConfig = require('../../../../../../fixtures/config/devnet/config');
+const devConfig = require('../../../../fixtures/config/devnet/config');
 
 // To compile and have one unified config along with defaults
 configurator.loadConfig(devConfig);
