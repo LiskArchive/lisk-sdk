@@ -22,6 +22,7 @@ const {
 	FinalityManager,
 } = require('../../../../../../../src/modules/chain/bft/finality_manager');
 const { Slots } = require('../../../../../../../src/modules/chain/dpos');
+const { StateStore } = require('../../../../../../../src/modules/chain/blocks');
 
 const {
 	BFT,
@@ -79,6 +80,7 @@ describe('bft', () => {
 	describe('BFT', () => {
 		let storageMock;
 		let loggerMock;
+
 		let slots;
 		let activeDelegates;
 		let startingHeight;
@@ -89,9 +91,8 @@ describe('bft', () => {
 					Block: {
 						get: jest.fn().mockResolvedValue([]),
 					},
-					ChainMeta: {
-						getKey: jest.fn(),
-						setKey: jest.fn(),
+					ChainState: {
+						get: jest.fn(),
 					},
 					Account: {
 						get: jest.fn().mockResolvedValue([]),
@@ -137,6 +138,7 @@ describe('bft', () => {
 
 		describe('#init', () => {
 			let bft;
+			let stateStore;
 
 			beforeEach(async () => {
 				bft = new BFT(bftParams);
@@ -152,16 +154,22 @@ describe('bft', () => {
 				jest
 					.spyOn(bft, '_loadBlocksFromStorage')
 					.mockImplementation(() => jest.fn());
+
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 1 },
+				]);
+				stateStore = new StateStore(storageMock);
+				await stateStore.chainState.cache();
 			});
 
 			it('should invoke _initFinalityManager()', async () => {
-				await bft.init();
+				await bft.init(stateStore);
 
 				expect(bft._initFinalityManager).toHaveBeenCalledTimes(1);
 			});
 
 			it('should invoke _getLastBlockHeight()', async () => {
-				await bft.init();
+				await bft.init(stateStore);
 
 				expect(bft._getLastBlockHeight).toHaveBeenCalledTimes(1);
 			});
@@ -178,7 +186,12 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init(minActiveHeightsOfDelegates);
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: finalizedHeight },
+				]);
+				await stateStore.chainState.cache();
+
+				await bft.init(stateStore, minActiveHeightsOfDelegates);
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -200,7 +213,12 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init(minActiveHeightsOfDelegates);
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: finalizedHeight },
+				]);
+				await stateStore.chainState.cache();
+
+				await bft.init(stateStore, minActiveHeightsOfDelegates);
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -222,7 +240,12 @@ describe('bft', () => {
 				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
-				await bft.init(minActiveHeightsOfDelegates);
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: finalizedHeight },
+				]);
+				await stateStore.chainState.cache();
+
+				await bft.init(stateStore, minActiveHeightsOfDelegates);
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
@@ -233,62 +256,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('#computeBFTHeaderProperties', () => {
-			const delegatePublicKey =
-				'9986cedd4b5a28e4c81d9b4bff0461dddaa25099df00b8632fe99e88df28ce73';
-
-			let bft;
-
-			beforeEach(async () => {
-				bft = new BFT(bftParams);
-				storageMock.entities.Block.get.mockReturnValue([]);
-				await bft.init();
-				storageMock.entities.Block.get.mockClear();
-			});
-
-			describe('when a delegate is first time forging', () => {
-				beforeEach(async () => {
-					when(storageMock.entities.ChainMeta.getKey)
-						.calledWith('BFT.maxHeightPreviouslyForged')
-						.mockResolvedValue(undefined);
-				});
-
-				it('should return maxHeightPreviouslyForged as 0', async () => {
-					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
-					expect(props.maxHeightPreviouslyForged).toBe(0);
-				});
-
-				it('should return maxHeightPrevoted up to last block', async () => {
-					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
-					expect(props.maxHeightPrevoted).toBe(0);
-				});
-			});
-
-			describe('when a delegate forged before', () => {
-				const lastForgedHeight = 123;
-				beforeEach(async () => {
-					const previouslyForgedMap = {
-						[delegatePublicKey]: lastForgedHeight,
-						dummyDelegate: 100,
-					};
-					when(storageMock.entities.ChainMeta.getKey)
-						.calledWith('BFT.maxHeightPreviouslyForged')
-						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
-				});
-
-				it('should return maxHeightPreviouslyForged as height previouslyForged', async () => {
-					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
-					expect(props.maxHeightPreviouslyForged).toBe(lastForgedHeight);
-				});
-
-				it('should return maxHeightPrevoted up to last block', async () => {
-					const props = await bft.computeBFTHeaderProperties(delegatePublicKey);
-					expect(props.maxHeightPrevoted).toBe(0);
-				});
-			});
-		});
-
-		describe('#saveMaxHeightPreviouslyForged', () => {
+		describe.skip('#saveMaxHeightPreviouslyForged', () => {
 			const delegatePublicKey =
 				'9986cedd4b5a28e4c81d9b4bff0461dddaa25099df00b8632fe99e88df28ce73';
 			const forgingHeight = 303;
@@ -308,9 +276,12 @@ describe('bft', () => {
 				};
 
 				beforeEach(async () => {
-					when(storageMock.entities.ChainMeta.getKey)
-						.calledWith('BFT.maxHeightPreviouslyForged')
-						.mockResolvedValue(JSON.stringify(previouslyForgedMap));
+					storageMock.entities.ChainState.getKey.mockResolvedValue([
+						{
+							key: 'BFT.maxHeightPreviouslyForged',
+							value: JSON.stringify(previouslyForgedMap),
+						},
+					]);
 				});
 
 				it('should save the forging height and not change other properties', async () => {
@@ -404,26 +375,27 @@ describe('bft', () => {
 			const lastFinalizedHeight = 5;
 
 			let bft;
-			let txStub;
+			let stateStore;
 
 			beforeEach(async () => {
 				storageMock.entities.Block.get.mockReturnValue([]);
 				bft = new BFT(bftParams);
-				storageMock.entities.ChainMeta.getKey.mockReturnValue(
-					lastFinalizedHeight,
-				);
-				txStub = jest.fn();
-				await bft.init();
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: lastFinalizedHeight },
+				]);
+				stateStore = new StateStore(storageMock);
+				jest.spyOn(stateStore.chainState, 'set');
+				await stateStore.chainState.cache();
+				await bft.init(stateStore);
 				storageMock.entities.Block.get.mockClear();
 			});
 
 			describe('when valid block which does not change the finality is added', () => {
 				it('should update the latest finalized height to storage', async () => {
-					await bft.addNewBlock(block1, txStub);
-					expect(storageMock.entities.ChainMeta.setKey).toHaveBeenCalledWith(
+					await bft.addNewBlock(block1, stateStore);
+					expect(stateStore.chainState.set).toHaveBeenCalledWith(
 						'BFT.finalizedHeight',
 						lastFinalizedHeight,
-						txStub,
 					);
 				});
 			});
@@ -431,11 +403,17 @@ describe('bft', () => {
 
 		describe('#deleteBlocks', () => {
 			let bft;
+			let stateStore;
 
 			beforeEach(async () => {
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
-				await bft.init();
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 1 },
+				]);
+				stateStore = new StateStore(storageMock);
+				await stateStore.chainState.cache();
+				await bft.init(stateStore);
 				storageMock.entities.Block.get.mockClear();
 			});
 
@@ -456,8 +434,11 @@ describe('bft', () => {
 			it('should reject with error if blocks deleted contains block with lower than finalized height', async () => {
 				// Arrange
 				bft = new BFT(bftParams);
-				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
-				await bft.init();
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 5 },
+				]);
+				await stateStore.chainState.cache();
+				await bft.init(stateStore);
 				const blocks = [
 					blockFixture({ height: 4, version: 2 }),
 					blockFixture({ height: 5, version: 2 }),
@@ -473,8 +454,11 @@ describe('bft', () => {
 			it('should reject with error if blocks deleted contains block with same as finalized height', async () => {
 				// Arrange
 				bft = new BFT(bftParams);
-				storageMock.entities.ChainMeta.getKey.mockReturnValue(5);
-				await bft.init();
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 5 },
+				]);
+				await stateStore.chainState.cache();
+				await bft.init(stateStore);
 				const blocks = [
 					blockFixture({ height: 5, version: 2 }),
 					blockFixture({ height: 6, version: 2 }),
@@ -492,10 +476,10 @@ describe('bft', () => {
 				const block2 = blockFixture({ height: 2, version: 2 });
 				const block3 = blockFixture({ height: 3, version: 2 });
 				const block4 = blockFixture({ height: 4, version: 2 });
-				await bft.addNewBlock(block1);
-				await bft.addNewBlock(block2);
-				await bft.addNewBlock(block3);
-				await bft.addNewBlock(block4);
+				await bft.addNewBlock(block1, stateStore);
+				await bft.addNewBlock(block2, stateStore);
+				await bft.addNewBlock(block3, stateStore);
+				await bft.addNewBlock(block4, stateStore);
 
 				// Act
 				await bft.deleteBlocks([block3, block4]);
@@ -530,7 +514,7 @@ describe('bft', () => {
 				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
 					// eslint-disable-next-line no-await-in-loop
-					await bft.addNewBlock(block);
+					await bft.addNewBlock(block, stateStore);
 				}
 
 				// When asked by BFT, return last [blocksToDelete] blocks ()
@@ -588,7 +572,7 @@ describe('bft', () => {
 				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
 					// eslint-disable-next-line no-await-in-loop
-					await bft.addNewBlock(block);
+					await bft.addNewBlock(block, stateStore);
 				}
 
 				// Act
@@ -628,7 +612,7 @@ describe('bft', () => {
 				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
 					// eslint-disable-next-line no-await-in-loop
-					await bft.addNewBlock(block);
+					await bft.addNewBlock(block, stateStore);
 				}
 
 				// Act
@@ -646,12 +630,18 @@ describe('bft', () => {
 		describe('#isBFTProtocolCompliant', () => {
 			let bft;
 			let blocks;
+			let stateStore;
 
 			beforeEach(async () => {
 				// Arrange
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
-				await bft.init();
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 1 },
+				]);
+				stateStore = new StateStore(storageMock);
+				await stateStore.chainState.cache();
+				await bft.init(stateStore);
 
 				// Setup BFT module with blocks
 				const numberOfBlocks = 101;
@@ -661,7 +651,7 @@ describe('bft', () => {
 				});
 
 				for (const block of blocks) {
-					await bft.addNewBlock(block);
+					await bft.addNewBlock(block, stateStore);
 				}
 			});
 
@@ -899,12 +889,25 @@ describe('bft', () => {
 
 		// TODO: Remove tests for private methods
 		describe('#_initFinalityManager', () => {
-			it('should call ChainMetaEntity.getKey to get stored finalized height', async () => {
-				const bft = new BFT(bftParams);
-				const result = await bft._initFinalityManager();
+			let stateStore;
 
-				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledTimes(1);
-				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledWith(
+			beforeEach(async () => {
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 1 },
+				]);
+				stateStore = new StateStore(storageMock);
+				jest.spyOn(stateStore.chainState, 'get');
+
+				await stateStore.chainState.cache();
+			});
+
+			it('should call state store to get stored finalized height', async () => {
+				const bft = new BFT(bftParams);
+
+				const result = await bft._initFinalityManager(stateStore);
+
+				expect(stateStore.chainState.get).toHaveBeenCalledTimes(1);
+				expect(stateStore.chainState.get).toHaveBeenCalledWith(
 					'BFT.finalizedHeight',
 				);
 				expect(result).toBeInstanceOf(FinalityManager);
@@ -914,14 +917,18 @@ describe('bft', () => {
 				// Arrange
 				const finalizedHeight = 500;
 				const startingHeightLower = 300;
-				storageMock.entities.ChainMeta.getKey.mockReturnValue(finalizedHeight);
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: finalizedHeight },
+				]);
+				await stateStore.chainState.cache();
+
 				const bft = new BFT({
 					...bftParams,
 					...{ startingHeight: startingHeightLower },
 				});
 
 				// Act
-				const finalityManager = await bft._initFinalityManager();
+				const finalityManager = await bft._initFinalityManager(stateStore);
 
 				// Assert
 				expect(finalityManager).toBeInstanceOf(FinalityManager);
@@ -933,14 +940,17 @@ describe('bft', () => {
 				// Arrange
 				const finalizedHeight = 500;
 				const startingHeightHigher = 800;
-				storageMock.entities.ChainMeta.getKey.mockReturnValue(finalizedHeight);
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: finalizedHeight },
+				]);
+				await stateStore.chainState.cache();
 				const bft = new BFT({
 					...bftParams,
 					...{ startingHeight: startingHeightHigher },
 				});
 
 				// Act
-				const finalityManager = await bft._initFinalityManager();
+				const finalityManager = await bft._initFinalityManager(stateStore);
 
 				// Assert
 				expect(finalityManager).toBeInstanceOf(FinalityManager);
@@ -995,12 +1005,20 @@ describe('bft', () => {
 		describe('#_loadBlocksFromStorage', () => {
 			const fromHeight = 0;
 			const tillHeight = 10;
+
 			let bft;
+			let stateStore;
 
 			beforeEach(async () => {
 				bft = new BFT(bftParams);
 				storageMock.entities.Block.get.mockReturnValue([]);
-				await bft.init();
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 1 },
+				]);
+				stateStore = new StateStore(storageMock);
+				await stateStore.chainState.cache();
+
+				await bft.init(stateStore);
 			});
 
 			it('should call fetch blocks from storage particular parameters', async () => {
