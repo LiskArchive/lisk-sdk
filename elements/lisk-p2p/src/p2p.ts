@@ -186,6 +186,7 @@ const createPeerPoolConfig = (
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerLists,
+	sharedState: config.sharedState,
 });
 
 export class P2P extends EventEmitter {
@@ -451,8 +452,13 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
+		this._sharedState = {
+			...config.sharedState,
+			nonce: getRandomBytes(DEFAULT_NONCE_LENGTH_BYTES).toString('hex'),
+		};
+
 		const peerPoolConfig = createPeerPoolConfig(
-			config,
+			{ ...config, sharedState: this._sharedState },
 			this._sanitizedPeerLists,
 		);
 		this._peerPool = new PeerPool(peerPoolConfig);
@@ -474,10 +480,6 @@ export class P2P extends EventEmitter {
 			});
 		}
 
-		this._sharedState = {
-			...config.sharedState,
-			nonce: getRandomBytes(DEFAULT_NONCE_LENGTH_BYTES).toString('hex'),
-		};
 		this.applySharedState(this._sharedState);
 
 		this._populatorInterval = config.populatorInterval

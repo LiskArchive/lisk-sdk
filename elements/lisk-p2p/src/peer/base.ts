@@ -37,6 +37,7 @@ import {
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_FAILED_TO_PUSH_SHARED_STATE,
 	EVENT_INVALID_MESSAGE_RECEIVED,
 	EVENT_INVALID_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
@@ -104,7 +105,7 @@ export interface PeerConfig {
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
-	readonly sharedState?: P2PSharedState;
+	readonly sharedState: P2PSharedState;
 }
 
 export class Peer extends EventEmitter {
@@ -122,6 +123,7 @@ export class Peer extends EventEmitter {
 	private _rpcRates: Map<string, number>;
 	private _messageCounter: Map<string, number>;
 	private _messageRates: Map<string, number>;
+	private _sharedState: P2PSharedState;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _info: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
@@ -142,6 +144,7 @@ export class Peer extends EventEmitter {
 		super();
 		this._info = peerInfo;
 		this._config = peerConfig;
+		this._sharedState = peerConfig.sharedState;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._netgroup = getNetgroup(this._info.ipAddress, peerConfig.secret);
 		this._latency = 0;
@@ -279,6 +282,22 @@ export class Peer extends EventEmitter {
 
 	public get config(): PeerConfig {
 		return this._config;
+	}
+
+	public get sharedState(): P2PSharedState {
+		return this._sharedState;
+	}
+
+	public applySharedState(sharedState: P2PSharedState): void {
+		this._sharedState = sharedState;
+		try {
+			this.send({
+				event: REMOTE_EVENT_POST_SHARED_STATE,
+				data: this.sharedState,
+			});
+		} catch (error) {
+			this.emit(EVENT_FAILED_TO_PUSH_SHARED_STATE, error);
+		}
 	}
 
 	public connect(): void {
@@ -474,8 +493,7 @@ export class Peer extends EventEmitter {
 			this.config.maxPeerInfoSize,
 		);
 
-		const result = validatePeerCompatibility(newSharedState, this.config
-			.sharedState as P2PSharedState);
+		const result = validatePeerCompatibility(newSharedState, this.sharedState);
 		if (!result.success && result.error) {
 			throw new Error(
 				`${result.error} : ${this.info.ipAddress}:${

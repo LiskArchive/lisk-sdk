@@ -110,8 +110,8 @@ export class OutboundPeer extends Peer {
 			hostname: this.info.ipAddress,
 			port: this.info.sharedState.wsPort,
 			query: querystring.stringify({
-				...this.config.sharedState,
-				options: JSON.stringify(this.config.sharedState),
+				...this.sharedState,
+				options: JSON.stringify(this.sharedState),
 			}),
 			connectTimeout,
 			ackTimeout,

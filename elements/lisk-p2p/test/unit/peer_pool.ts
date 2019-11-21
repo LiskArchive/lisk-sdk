@@ -53,6 +53,16 @@ import { constructPeerId } from '../../src/utils';
 import { RequestFailError, SendFailError } from '../../src';
 
 describe('peerPool', () => {
+	const sharedState: P2PSharedState = {
+		wsPort: 5000,
+		advertiseAddress: true,
+		os: 'darwin',
+		version: '1.1',
+		protocolVersion: '1.0.1',
+		nethash: 'abc',
+		height: 1000,
+		nonce: 'nonce',
+	};
 	const peerPoolConfig = {
 		connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 		ackTimeout: DEFAULT_ACK_TIMEOUT,
@@ -82,10 +92,10 @@ describe('peerPool', () => {
 			seeds: [],
 			whitelisted: [],
 		},
+		sharedState,
 	};
 	let peerPool: PeerPool;
 	let peerInfo: P2PPeerInfo;
-	let sharedState: P2PSharedState;
 	let id: string;
 	let peerObject: any;
 	let messagePacket: any;
@@ -99,16 +109,7 @@ describe('peerPool', () => {
 		peerInfo = {
 			id,
 			ipAddress: '127.0.0.1',
-			sharedState: {
-				wsPort: 5000,
-				advertiseAddress: true,
-				os: 'darwin',
-				version: '1.1',
-				protocolVersion: '1.0.1',
-				nethash: 'abc',
-				height: 1000,
-				nonce: 'nonce',
-			},
+			sharedState,
 		};
 		requestPacket = { procedure: 'abc', data: 'abc' };
 		messagePacket = { ...requestPacket, event: 'abc' };
@@ -162,6 +163,7 @@ describe('peerPool', () => {
 				wsMaxPayload: peerPoolConfig.wsMaxPayload,
 				maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
 				secret: peerPoolConfig.secret,
+				sharedState,
 			};
 
 			expect(actualConfig).to.eql(expectedConfig);

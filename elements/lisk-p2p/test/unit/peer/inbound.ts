@@ -25,7 +25,7 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
-import { P2PPeerInfo } from '../../../src';
+import { P2PPeerInfo, P2PSharedState } from '../../../src';
 
 describe('peer/inbound', () => {
 	let defaultPeerInfo: P2PPeerInfo;
@@ -33,20 +33,22 @@ describe('peer/inbound', () => {
 	let defaultInboundPeer: InboundPeer;
 	let inboundSocket: SCServerSocket;
 	let clock: sinon.SinonFakeTimers;
+	let sharedState: P2PSharedState;
 
 	beforeEach(() => {
+		sharedState = {
+			wsPort: 5001,
+			advertiseAddress: true,
+			height: 545776,
+			isDiscoveredPeer: true,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		};
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
 			id: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
-			sharedState: {
-				wsPort: 5001,
-				advertiseAddress: true,
-				height: 545776,
-				isDiscoveredPeer: true,
-				version: '1.1.1',
-				protocolVersion: '1.1',
-			},
+			sharedState,
 		};
 		defaultPeerConfig = {
 			rateCalculationInterval: 1000,
@@ -55,6 +57,7 @@ describe('peer/inbound', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			sharedState,
 		};
 		inboundSocket = <SCServerSocket>({
 			on: sandbox.stub(),

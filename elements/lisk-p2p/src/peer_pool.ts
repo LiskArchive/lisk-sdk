@@ -136,6 +136,7 @@ export interface PeerPoolConfig {
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
 	readonly peerLists: PeerLists;
+	readonly sharedState: P2PSharedState;
 }
 
 export class PeerPool extends EventEmitter {
@@ -163,7 +164,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleUnbanPeer: (peerId: string) => void;
-	private _sharedState: P2PSharedState | undefined;
+	private _sharedState: P2PSharedState;
 	private readonly _maxOutboundConnections: number;
 	private readonly _maxInboundConnections: number;
 	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
@@ -179,17 +180,19 @@ export class PeerPool extends EventEmitter {
 		this._peerMap = new Map();
 		this._peerPoolConfig = peerPoolConfig;
 		this._peerConfig = {
-			connectTimeout: this._peerPoolConfig.connectTimeout,
-			ackTimeout: this._peerPoolConfig.ackTimeout,
-			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
-			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
-			maxPeerDiscoveryResponseLength: this._peerPoolConfig
-				.maxPeerDiscoveryResponseLength,
-			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
-			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
-			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
-			secret: this._peerPoolConfig.secret,
+			connectTimeout: peerPoolConfig.connectTimeout,
+			ackTimeout: peerPoolConfig.ackTimeout,
+			wsMaxMessageRate: peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: peerPoolConfig.wsMaxMessageRatePenalty,
+			maxPeerDiscoveryResponseLength:
+				peerPoolConfig.maxPeerDiscoveryResponseLength,
+			rateCalculationInterval: peerPoolConfig.rateCalculationInterval,
+			wsMaxPayload: peerPoolConfig.wsMaxPayload,
+			maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
+			secret: peerPoolConfig.secret,
+			sharedState: peerPoolConfig.sharedState,
 		};
+		this._sharedState = peerPoolConfig.sharedState;
 		this._peerLists = peerPoolConfig.peerLists;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
@@ -300,11 +303,11 @@ export class PeerPool extends EventEmitter {
 		this._sharedState = sharedState;
 		const peerList = this.getPeers();
 		peerList.forEach(peer => {
-			this._sendSharedStateToPeer(peer);
+			peer.applySharedState(this.sharedState);
 		});
 	}
 
-	public get sharedState(): P2PSharedState | undefined {
+	public get sharedState(): P2PSharedState {
 		return this._sharedState;
 	}
 
@@ -436,7 +439,10 @@ export class PeerPool extends EventEmitter {
 			this._evictPeer(InboundPeer);
 		}
 
-		const peer = new InboundPeer(peerInfo, socket, this._peerConfig);
+		const peer = new InboundPeer(peerInfo, socket, {
+			...this._peerConfig,
+			sharedState: this.sharedState,
+		});
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peer.info.id)) {
 			throw new Error(`Peer ${peer.info.id} was already in the peer pool`);

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as querystring from 'querystring';
 import { expect } from 'chai';
 import * as socketClusterClient from 'socketcluster-client';
 import { OutboundPeer, PeerConfig } from '../../../src/peer';
@@ -26,26 +27,28 @@ import {
 	DEFAULT_CONNECT_TIMEOUT,
 	DEFAULT_ACK_TIMEOUT,
 } from '../../../src/constants';
-import { P2PPeerInfo } from '../../../src/p2p_types';
+import { P2PPeerInfo, P2PSharedState } from '../../../src/p2p_types';
 
 describe('peer/outbound', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let defaultOutboundPeerConfig: PeerConfig;
 	let defaultOutboundPeer: OutboundPeer;
 	let outboundSocket: SCClientSocket;
+	let sharedState: P2PSharedState;
 
 	beforeEach(() => {
+		sharedState = {
+			wsPort: 5001,
+			advertiseAddress: true,
+			height: 545776,
+			isDiscoveredPeer: true,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		};
 		defaultPeerInfo = {
 			id: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
-			sharedState: {
-				wsPort: 5001,
-				advertiseAddress: true,
-				height: 545776,
-				isDiscoveredPeer: true,
-				version: '1.1.1',
-				protocolVersion: '1.1',
-			},
+			sharedState,
 		};
 		defaultOutboundPeerConfig = {
 			rateCalculationInterval: 1000,
@@ -55,6 +58,7 @@ describe('peer/outbound', () => {
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
 			wsMaxPayload: 1000,
+			sharedState,
 		};
 		outboundSocket = <SCClientSocket>({
 			on: sandbox.stub(),
@@ -179,7 +183,10 @@ describe('peer/outbound', () => {
 				const clientOptions = {
 					hostname: defaultOutboundPeer.info.ipAddress,
 					port: defaultOutboundPeer.info.sharedState.wsPort,
-					query: 'options=',
+					query: querystring.stringify({
+						...sharedState,
+						options: JSON.stringify(sharedState),
+					}),
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,
 					multiplex: false,
