@@ -488,12 +488,12 @@ export class Peer extends EventEmitter {
 	}
 	private _updatePeerSharedState(rawSharedState: unknown): void {
 		// Validate PeerSharedState
-		const newSharedState = validateSharedState(
+		const peerSharedState = validateSharedState(
 			rawSharedState as P2PSharedState,
 			this.config.maxPeerInfoSize,
 		);
 
-		const result = validatePeerCompatibility(newSharedState, this.sharedState);
+		const result = validatePeerCompatibility(peerSharedState, this.sharedState);
 		if (!result.success && result.error) {
 			throw new Error(
 				`${result.error} : ${this.info.ipAddress}:${
@@ -507,7 +507,7 @@ export class Peer extends EventEmitter {
 			ipAddress: this.info.ipAddress,
 			id: this.info.id,
 			sharedState: {
-				...newSharedState,
+				...peerSharedState,
 				wsPort: this.info.sharedState.wsPort,
 				advertiseAddress: this.info.sharedState.advertiseAddress,
 			},

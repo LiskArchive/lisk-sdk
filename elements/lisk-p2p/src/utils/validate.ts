@@ -46,29 +46,29 @@ const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
 
 const validateNetworkCompatibility = (
-	newSharedState: P2PSharedState,
+	peerSharedState: P2PSharedState,
 	mySharedState: P2PSharedState,
 ): boolean => {
-	if (!newSharedState.nethash) {
+	if (!peerSharedState.nethash) {
 		return false;
 	}
 
-	return newSharedState.nethash === mySharedState.nethash;
+	return peerSharedState.nethash === mySharedState.nethash;
 };
 
 const validateProtocolVersionCompatibility = (
-	newSharedState: P2PSharedState,
+	peerSharedState: P2PSharedState,
 	mySharedState: P2PSharedState,
 ): boolean => {
 	if (
-		typeof newSharedState.protocolVersion !== 'string' ||
+		typeof peerSharedState.protocolVersion !== 'string' ||
 		typeof mySharedState.protocolVersion !== 'string'
 	) {
 		return false;
 	}
 
 	const peerHardForks = parseInt(
-		newSharedState.protocolVersion.split('.')[0],
+		peerSharedState.protocolVersion.split('.')[0],
 		10,
 	);
 	const systemHardForks = parseInt(
@@ -80,17 +80,17 @@ const validateProtocolVersionCompatibility = (
 };
 
 export const validatePeerCompatibility = (
-	newSharedState: P2PSharedState,
+	peerSharedState: P2PSharedState,
 	mySharedState: P2PSharedState,
 ): P2PCompatibilityCheckReturnType => {
-	if (!validateNetworkCompatibility(newSharedState, mySharedState)) {
+	if (!validateNetworkCompatibility(peerSharedState, mySharedState)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_NETWORK_REASON,
 		};
 	}
 
-	if (!validateProtocolVersionCompatibility(newSharedState, mySharedState)) {
+	if (!validateProtocolVersionCompatibility(peerSharedState, mySharedState)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,
