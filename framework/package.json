@@ -111,18 +111,14 @@
 		"jest-when": "2.6.0",
 		"jsdoc": "3.5.5",
 		"mocha": "5.2.0",
-		"moment": "2.23.0",
-		"node-mocks-http": "^1.7.3",
+		"node-mocks-http": "1.7.3",
 		"pm2": "3.5.1",
 		"popsicle": "9.1.0",
 		"prettier": "1.16.4",
 		"rewire": "4.0.1",
-		"rx": "4.1.0",
 		"sinon": "7.2.2",
 		"sinon-chai": "3.3.0",
-		"socketcluster-client": "14.2.1",
 		"stampit": "4.2.0",
-		"supertest": "3.3.0",
-		"wamp-socket-cluster": "2.0.0-beta.4"
+		"supertest": "3.3.0"
 	}
 }
