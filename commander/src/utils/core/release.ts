@@ -14,7 +14,9 @@
  *
  */
 import * as axios from 'axios';
+
 import { NETWORK, RELEASE_URL } from '../constants';
+
 import { getSemver, liskTar, liskTarSHA256 } from './commons';
 
 export const getLatestVersion = async (url: string): Promise<string> => {

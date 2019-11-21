@@ -211,7 +211,7 @@ function forge(library, cb) {
 					.then(block => library.modules.processor.process(block))
 					.then(() => {
 						last_block = library.modules.blocks.lastBlock;
-						library.modules.transactionPool.resetPool();
+						library.modules.transactionPool._resetPool();
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${
 								last_block.id

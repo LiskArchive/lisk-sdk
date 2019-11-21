@@ -15,6 +15,7 @@
 import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,

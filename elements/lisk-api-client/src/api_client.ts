@@ -13,6 +13,7 @@
  *
  */
 import * as os from 'os';
+
 import { HashMap, InitOptions } from './api_types';
 import * as constants from './constants';
 import { AccountsResource } from './resources/accounts';

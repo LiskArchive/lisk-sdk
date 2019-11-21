@@ -13,10 +13,12 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
+
 import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils/format';
+
 import {
 	validateMultisignatures,
 	validateSignature,

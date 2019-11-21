@@ -13,6 +13,7 @@
  *
  */
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	DEFAULT_PING_INTERVAL_MAX,
 	DEFAULT_PING_INTERVAL_MIN,
@@ -25,6 +26,7 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import { P2PPeerInfo } from '../p2p_types';
+
 import {
 	Peer,
 	PeerConfig,

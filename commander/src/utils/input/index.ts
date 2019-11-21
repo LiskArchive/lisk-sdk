@@ -14,6 +14,7 @@
  *
  */
 import * as passphraseModule from '@liskhq/lisk-passphrase';
+
 import { getData, getPassphrase, getStdIn } from './utils';
 
 export const getFirstLineFromString = (multilineString: unknown) =>

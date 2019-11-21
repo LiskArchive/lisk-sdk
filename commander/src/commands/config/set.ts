@@ -15,6 +15,7 @@
  */
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import url from 'url';
+
 import BaseCommand from '../../base';
 import { ConfigOptions, setConfig, WritableValue } from '../../utils/config';
 import {
@@ -92,7 +93,7 @@ const attemptWriteToFile = (
 	const message =
 		value === '' || (Array.isArray(value) && value.length === 0)
 			? `Successfully reset ${dotNotation}.`
-			: `Successfully set ${dotNotation} to ${value}.`;
+			: `Successfully set ${dotNotation} to ${String(value)}.`;
 
 	const result = {
 		message,
@@ -134,7 +135,7 @@ const setArrayURL = (
 		const { protocol, hostname } = url.parse(input);
 		if (
 			protocol === undefined ||
-			!API_PROTOCOLS.includes(protocol) ||
+			!API_PROTOCOLS.includes(protocol as string) ||
 			!hostname
 		) {
 			throw new ValidationError(URL_ERROR_MESSAGE);
@@ -212,6 +213,7 @@ export default class SetCommand extends BaseCommand {
 		'config:set api.nodes https://127.0.0.1:4000,http://mynode.com:7000',
 	];
 
+	// tslint:disable-next-line no-async-without-await
 	async run(): Promise<void> {
 		const { args } = this.parse(SetCommand);
 		const { variable, values: valuesStr = '' }: Args = args;

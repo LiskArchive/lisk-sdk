@@ -13,7 +13,7 @@
  *
  */
 import { isIP, isPort } from 'validator';
-import { getByteSize } from '.';
+
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -34,6 +34,8 @@ import {
 	P2PRequestPacket,
 	P2PSharedState,
 } from '../p2p_types';
+
+import { getByteSize } from './misc';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -169,20 +171,20 @@ export const validatePeerInfoList = (
 	}
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
-	if (Array.isArray(peers)) {
-		if (peers.length === 0) {
-			return [];
-		}
-		if (peers.length > maxPeerInfoListLength) {
-			throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
-		}
-
-		return peers.map<P2PPeerInfo>(peerInfo =>
-			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
-		);
-	} else {
+	if (!Array.isArray(peers)) {
 		throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
 	}
+
+	if (peers.length === 0) {
+		return [];
+	}
+	if (peers.length > maxPeerInfoListLength) {
+		throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
+	}
+
+	return peers.map<P2PPeerInfo>(peerInfo =>
+		validatePeerInfo(peerInfo, maxPeerInfoByteSize),
+	);
 };
 
 export const validateRPCRequest = (request: unknown): P2PRequestPacket => {

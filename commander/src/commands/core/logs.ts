@@ -15,6 +15,7 @@
  */
 import { flags as flagParser } from '@oclif/command';
 import * as childProcess from 'child_process';
+
 import BaseCommand from '../../base';
 import { describeApplication, PM2ProcessInstance } from '../../utils/core/pm2';
 

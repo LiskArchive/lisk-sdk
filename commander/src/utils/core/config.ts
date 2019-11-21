@@ -15,6 +15,7 @@
  */
 import * as os from 'os';
 import * as path from 'path';
+
 import { NETWORK } from '../constants';
 import { exec } from '../worker-process';
 

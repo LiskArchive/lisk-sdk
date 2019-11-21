@@ -18,6 +18,7 @@ import * as http from 'http';
 // tslint:disable-next-line no-require-imports
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
+
 import {
 	ConnectionKind,
 	DEFAULT_BAN_TIME,

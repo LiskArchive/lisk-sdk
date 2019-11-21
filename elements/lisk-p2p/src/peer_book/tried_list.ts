@@ -13,8 +13,8 @@
  *
  */
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
-
 import { P2PPeerInfo } from '../p2p_types';
+
 import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {

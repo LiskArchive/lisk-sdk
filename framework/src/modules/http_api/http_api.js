@@ -194,7 +194,7 @@ module.exports = class HttpApi {
 				this.scope.components.cache.removeByPattern(key),
 			);
 			try {
-				this.logger.debug(
+				this.logger.trace(
 					{ cacheKeysToClear, eventInfo },
 					'Cache - clear cache keys',
 				);

@@ -13,6 +13,7 @@
  *
  */
 import { encode as encodeVarInt } from 'varuint-bitcoin';
+
 import { bufferToHex, hexToBuffer } from './buffer';
 import { SIGNED_MESSAGE_PREFIX } from './constants';
 import { hash } from './hash';

@@ -13,6 +13,7 @@
  *
  */
 import { getKeys } from '@liskhq/lisk-cryptography';
+
 import { SecondSignatureTransaction } from './9_second_signature_transaction';
 import { TransactionJSON } from './transaction_types';
 import { createBaseTransaction, validateNetworkIdentifier } from './utils';

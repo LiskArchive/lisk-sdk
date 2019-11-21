@@ -16,6 +16,7 @@
 import { APIClient } from '@liskhq/lisk-api-client';
 import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { ValidationError } from '../../utils/error';

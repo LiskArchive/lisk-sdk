@@ -13,6 +13,7 @@
  *
  */
 import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
+
 import { VoteTransaction } from './11_vote_transaction';
 import { TransactionJSON } from './transaction_types';
 import {

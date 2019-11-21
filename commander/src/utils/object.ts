@@ -13,9 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const removeUndefinedValues = (obj: {
-	readonly [key: string]: unknown;
-}) =>
+export const removeUndefinedValues = (obj: object) =>
 	Object.entries(obj).reduce((prev, [key, val]) => {
 		if (val !== undefined) {
 			return {
