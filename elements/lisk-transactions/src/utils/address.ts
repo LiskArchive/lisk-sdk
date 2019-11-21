@@ -13,6 +13,7 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+
 import { TransactionError } from '../errors';
 
 export const validateSenderIdAndPublicKey = (

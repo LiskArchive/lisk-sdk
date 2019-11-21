@@ -15,6 +15,7 @@
  */
 import { Command, flags as flagParser } from '@oclif/command';
 import os from 'os';
+
 import { ConfigOptions, getConfig } from './utils/config';
 import { defaultLiskPm2Path } from './utils/core/config';
 import { handleEPIPE } from './utils/helpers';
@@ -59,12 +60,14 @@ export default abstract class BaseCommand extends Command {
 		pretty: true,
 	};
 
+	// tslint:disable-next-line no-async-without-await
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
 			this.error(error instanceof Error ? error.message : error);
 		}
 	}
 
+	// tslint:disable-next-line no-async-without-await
 	async init(): Promise<void> {
 		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
 		const { flags } = this.parse(

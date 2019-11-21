@@ -13,7 +13,7 @@
  *
  */
 import { isIP, isPort } from 'validator';
-import { getByteSize, sanitizeIncomingPeerInfo } from '.';
+
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -35,6 +35,8 @@ import {
 	P2PRequestPacket,
 } from '../p2p_types';
 
+import { getByteSize, sanitizeIncomingPeerInfo } from '.';
+
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
 	readonly success?: boolean; // Could be used in future
@@ -55,7 +57,7 @@ const validateNetworkCompatibility = (
 		return false;
 	}
 
-	return peerInfo.sharedState.nethash === nodeInfo.nethash;
+	return (peerInfo.sharedState.nethash as string) === nodeInfo.nethash;
 };
 
 const validateProtocolVersionCompatibility = (
@@ -184,9 +186,8 @@ export const validatePeerInfoList = (
 		);
 
 		return sanitizedPeerList;
-	} else {
-		throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
 	}
+	throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
 };
 
 export const validateRPCRequest = (request: unknown): P2PRequestPacket => {

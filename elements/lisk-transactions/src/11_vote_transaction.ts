@@ -13,6 +13,7 @@
  *
  */
 import { stringToBuffer } from '@liskhq/lisk-cryptography';
+
 import {
 	BaseTransaction,
 	StateStore,

@@ -93,7 +93,7 @@ const revertVotedDelegatePublicKeys = (
 const updateRecipientDelegateVotes = (
 	stateStore,
 	transaction,
-	undo = false,
+	isUndo = false,
 ) => {
 	const address = getRecipientAddress(stateStore, transaction);
 
@@ -105,7 +105,7 @@ const updateRecipientDelegateVotes = (
 		asset: { amount },
 	} = transaction;
 	const account = stateStore.account.get(address);
-	const method = undo ? 'sub' : 'add';
+	const method = isUndo ? 'sub' : 'add';
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
 
 	return votedDelegatesPublicKeys.forEach(delegatePublicKey =>
@@ -117,11 +117,11 @@ const updateSenderDelegateVotes = (
 	stateStore,
 	transaction,
 	exceptions,
-	undo = false,
+	isUndo = false,
 ) => {
 	// use the ammount or default to zero as LIP-0012 removes the 'amount' property from all transactions but transfer
 	const amount = transaction.fee.plus(transaction.asset.amount || 0);
-	const method = undo ? 'add' : 'sub';
+	const method = isUndo ? 'add' : 'sub';
 	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
 	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];
 
@@ -149,7 +149,7 @@ const updateSenderDelegateVotes = (
 		votedDelegatesPublicKeys = revertVotedDelegatePublicKeys(
 			votedDelegatesPublicKeys,
 			transaction,
-			undo,
+			isUndo,
 		);
 	}
 
@@ -158,7 +158,7 @@ const updateSenderDelegateVotes = (
 	);
 };
 
-const updateDelegateVotes = (stateStore, transaction, undo = false) => {
+const updateDelegateVotes = (stateStore, transaction, isUndo = false) => {
 	/**
 	 * If transaction is not VOTE transaction,
 	 */
@@ -166,7 +166,7 @@ const updateDelegateVotes = (stateStore, transaction, undo = false) => {
 		return false;
 	}
 
-	const votes = undo
+	const votes = isUndo
 		? revertVotes(transaction.asset.votes)
 		: transaction.asset.votes;
 

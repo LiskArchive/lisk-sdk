@@ -15,6 +15,7 @@
 import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
@@ -522,7 +523,7 @@ export class Peer extends EventEmitter {
 		// Sanitize and validate PeerInfo
 		const peerInfo = validatePeerInfo(
 			sanitizeIncomingPeerInfo({
-				...rawPeerInfo,
+				...(rawPeerInfo as object), // TODO: there should be typecheck before
 				ipAddress: this._ipAddress,
 				wsPort: this._wsPort,
 			}),

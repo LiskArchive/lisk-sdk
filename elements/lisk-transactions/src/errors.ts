@@ -78,6 +78,7 @@ interface ErrorObject {
 
 export const convertToTransactionError = (
 	id: string,
+	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {
@@ -96,6 +97,7 @@ export const convertToTransactionError = (
 
 export const convertToAssetError = (
 	id: string,
+	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {

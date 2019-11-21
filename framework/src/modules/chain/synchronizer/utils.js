@@ -128,7 +128,6 @@ const restoreBlocksUponStartup = async (
 			limit: null,
 		},
 	);
-	logger.debug(tempBlocks);
 	const blockLowestHeight = tempBlocks[0];
 	const blockHighestHeight = tempBlocks[tempBlocks.length - 1];
 

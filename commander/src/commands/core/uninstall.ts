@@ -16,6 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
+
 import BaseCommand from '../../base';
 import { defaultBackupPath } from '../../utils/core/config';
 import {
@@ -23,6 +24,7 @@ import {
 	PM2ProcessInstance,
 	unRegisterApplication,
 } from '../../utils/core/pm2';
+
 import StopCommand from './stop';
 
 interface Args {

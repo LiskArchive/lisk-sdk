@@ -1015,7 +1015,7 @@ describe('rounds', () => {
 
 				before(done => {
 					const transactionPool = library.modules.transactionPool;
-					transactionPool.resetPool();
+					transactionPool._resetPool();
 
 					// Set expected reward per block
 					expectedRewardsPerBlock = 0;
@@ -1070,7 +1070,7 @@ describe('rounds', () => {
 
 				before(done => {
 					const transactionPool = library.modules.transactionPool;
-					transactionPool.resetPool();
+					transactionPool._resetPool();
 
 					// Set expected reward per block as first milestone
 					expectedRewardsPerBlock =

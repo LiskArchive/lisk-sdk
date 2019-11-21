@@ -91,33 +91,10 @@ class TransactionPool extends EventEmitter {
 		this.processTransactions = transactions =>
 			this.blocks.processTransactions(transactions);
 
-		const poolConfig = {
-			expireTransactionsInterval: this.expireTransactionsInterval,
-			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
-			receivedTransactionsLimitPerProcessing: this.bundleLimit,
-			receivedTransactionsProcessingInterval: this.bundledInterval,
-			validatedTransactionsLimitPerProcessing: this.bundleLimit,
-			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
-			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: this.maxTransactionsPerBlock,
-		};
-
-		const poolDependencies = {
-			validateTransactions: this.validateTransactions,
-			verifyTransactions: this.verifyTransactions,
-			processTransactions: this.processTransactions,
-		};
-
-		this.pool = new pool.TransactionPool({
-			...poolConfig,
-			...poolDependencies,
-		});
-
-		this.subscribeEvents();
+		this._resetPool();
 	}
 
-	resetPool() {
+	_resetPool() {
 		const poolConfig = {
 			expireTransactionsInterval: this.expireTransactionsInterval,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
@@ -172,14 +149,16 @@ class TransactionPool extends EventEmitter {
 						transaction => transaction.id,
 					)}`,
 				);
+
+				const queueSizes = Object.keys(this.pool._queues)
+					.map(
+						queueName =>
+							`${queueName} size: ${this.pool._queues[queueName].size()}`,
+					)
+					.join(' ');
+
+				this.logger.info(`Transaction pool - ${queueSizes}`);
 			}
-			const queueSizes = Object.keys(this.pool._queues)
-				.map(
-					queueName =>
-						`${queueName} size: ${this.pool._queues[queueName].size()}`,
-				)
-				.join(' ');
-			this.logger.info(`Transaction pool - ${queueSizes}`);
 		});
 	}
 
