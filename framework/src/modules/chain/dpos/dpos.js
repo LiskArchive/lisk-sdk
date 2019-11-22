@@ -117,7 +117,7 @@ module.exports = class Dpos {
 
 		if (numberOfRounds > latestRound && latestRound > 1) {
 			throw new Error(
-				'NUmber of rounds requested is higher than number of existing rounds.',
+				'Number of rounds requested is higher than number of existing rounds.',
 			);
 		}
 
