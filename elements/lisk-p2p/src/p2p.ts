@@ -986,6 +986,7 @@ export class P2P extends EventEmitter {
 		const newPeersToAdd = [
 			...this._sanitizedPeerLists.previousPeers,
 			...this._sanitizedPeerLists.whitelisted,
+			...this._sanitizedPeerLists.fixedPeers,
 		];
 
 		// Add peers to tried peers if want to re-use previously tried peers
