@@ -118,7 +118,7 @@ export class BaseList {
 		const peerLookup = this.peerIdToPeerLookup.get(incomingPeerInfo.peerId);
 
 		if (!(peerLookup && peerLookup.peerInfo)) {
-			throw new Error('Peer not found in peer book.');
+			return undefined;
 		}
 
 		return peerLookup.peerInfo;
@@ -136,9 +136,8 @@ export class BaseList {
 				? incomingPeerInfo.sourceAddress
 				: undefined,
 		);
-		const incomingPeerId = incomingPeerInfo.peerId;
 		const peerInfo = addDate(incomingPeerInfo);
-		bucket.set(incomingPeerId, peerInfo);
+		bucket.set(incomingPeerInfo.peerId, peerInfo);
 		this.peerIdToPeerLookup.set(incomingPeerInfo.peerId, { peerInfo, bucket });
 
 		const evictedPeer = this.makeSpace(incomingPeerInfo.peerId);
