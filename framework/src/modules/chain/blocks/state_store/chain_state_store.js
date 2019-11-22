@@ -65,7 +65,7 @@ class ChainStateStore {
 
 		Promise.all(
 			Array.from(this.updatedKeys).map(key =>
-				this.chainStateEntity.setKey(key, this.data[key], this.tx),
+				this.chainState.setKey(key, this.data[key], this.tx),
 			),
 		);
 	}
