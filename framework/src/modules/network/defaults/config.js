@@ -127,10 +127,6 @@ const defaultConfig = {
 			minimum: 1,
 			maximum: 100,
 		},
-		peerDiscoveryResponseLength: {
-			type: 'integer',
-			maximum: 1000,
-		},
 		maxPeerDiscoveryResponseLength: {
 			type: 'integer',
 			maximum: 1000,
@@ -152,7 +148,7 @@ const defaultConfig = {
 	required: ['wsPort', 'seedPeers'],
 	default: {
 		wsPort: 5000,
-		address: '0.0.0.0',
+		hostIp: '0.0.0.0',
 		discoveryInterval: 30000,
 		peerBanTime: 86400000,
 		populatorInterval: 10000,
@@ -166,7 +162,6 @@ const defaultConfig = {
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
 		emitPeerLimit: 16,
-		peerDiscoveryResponseLength: 1000,
 		maxPeerDiscoveryResponseLength: 1000,
 		maxPeerInfoSize: 20480,
 		wsMaxPayload: 3048576,

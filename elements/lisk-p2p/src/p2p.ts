@@ -936,8 +936,9 @@ export class P2P extends EventEmitter {
 			.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
-			? this._config.peerDiscoveryResponseLength
+		const maxPeerDiscoveryResponseLength = this._config
+			.maxPeerDiscoveryResponseLength
+			? this._config.maxPeerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 		const wsMaxPayload = this._config.wsMaxPayload
 			? this._config.wsMaxPayload
@@ -951,7 +952,7 @@ export class P2P extends EventEmitter {
 
 		const selectedPeers = this._peerBook.getRandomizedPeerList(
 			minimumPeerDiscoveryThreshold,
-			peerDiscoveryResponseLength,
+			maxPeerDiscoveryResponseLength,
 		);
 
 		// Remove internal state to check byte size
