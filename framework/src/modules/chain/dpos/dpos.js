@@ -117,7 +117,7 @@ module.exports = class Dpos {
 
 		if (numberOfRounds > latestRound && latestRound > 1) {
 			throw new Error(
-				'NUmber of rounds requested is higher than number of existing rounds.',
+				'Number of rounds requested is higher than number of existing rounds.',
 			);
 		}
 
@@ -149,19 +149,16 @@ module.exports = class Dpos {
 				 * In order to calculate the correct min height we need the real round number.
 				 * That's why we need to add `delegateListRoundOffset` to the `earliestListRound`.
 				 *
-				 * Also, let's say delegateListRoundOffset = 2,
-				 * That means for round 3, 2, 1, the same list (the first) will be used.
-				 * That means earliestListRound = 1 for 3 of these rounds;
-				 * As you can see, for round 2 it would be:
-				 *   `earliestActiveRound = earliestListRound + delegateListRoundOffset` = 3
-				 * which is WRONG.
-				 *
-				 * That's why `earliestActiveRound` cannot be bigger than `activeRound`.
+				 * Please note that first 5 rounds are exceptions.
+				 * For the active round 5 and the delegate is continuously active;
+				 * That means `earliestListRound` is 1.
+				 * Since we are using the first list for first 3 rounds, we can simply
+				 * return 1 as `earliestActiveRound`.
 				 */
-				const earliestActiveRound = Math.min(
-					earliestListRound + delegateListRoundOffset,
-					activeRound,
-				);
+				const earliestActiveRound =
+					earliestListRound === 1
+						? Math.max(activeRound - this.delegateActiveRoundLimit, 1)
+						: earliestListRound + delegateListRoundOffset;
 				const lastActiveMinHeight = this.slots.calcRoundStartHeight(
 					earliestActiveRound,
 				);
