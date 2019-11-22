@@ -579,7 +579,7 @@ export class Peer extends EventEmitter {
 		// Sanitize and validate PeerInfo
 		const peerInfo = validatePeerInfo(
 			sanitizeIncomingPeerInfo({
-				...rawPeerInfo,
+				...(rawPeerInfo as object),
 				ipAddress: this.ipAddress,
 				wsPort: this.wsPort,
 			}),
