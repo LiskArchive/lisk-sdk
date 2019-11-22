@@ -974,6 +974,7 @@ describe('block_synchronization_mechanism', () => {
 							{},
 							{
 								sort: 'height:asc',
+								limit: null,
 							},
 							null,
 						)
@@ -1101,7 +1102,7 @@ describe('block_synchronization_mechanism', () => {
 					);
 
 					expect(loggerMock.debug).nthCalledWith(
-						14,
+						15,
 						{
 							currentTip: blocksModule.lastBlock.id,
 							previousTip: previousTip.id,
@@ -1110,7 +1111,7 @@ describe('block_synchronization_mechanism', () => {
 					);
 
 					expect(loggerMock.debug).nthCalledWith(
-						15,
+						16,
 						'Cleaning blocks temporary table',
 					);
 					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
