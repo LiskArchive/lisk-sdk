@@ -467,7 +467,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				expect(minActiveHeights[publicKey]).toEqual([expectedActiveMinHeight]);
 			});
 
-			it('should return the first block height of first round for activeRound = 5', async () => {
+			it('should return the first block height of the 2nd round for activeRound = 5', async () => {
 				// Arrange
 				const numberOfRounds = 1;
 				const limit =
@@ -476,7 +476,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 					delegateListRoundOffset;
 
 				const publicKey = 'x';
-				const expectedActiveMinHeight = slots.calcRoundStartHeight(1);
+				const expectedActiveMinHeight = slots.calcRoundStartHeight(2);
 
 				const lists = [
 					{ round: 5, delegatePublicKeys: ['a', 'e', 'f'] },
@@ -496,6 +496,39 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				);
 				// Assert
 				expect(Object.keys(minActiveHeights)).toEqual(['x', 'e', 'f']);
+				expect(minActiveHeights[publicKey]).toEqual([expectedActiveMinHeight]);
+			});
+
+			it('should return the first block height of the 3rd round for activeRound = 6', async () => {
+				// Arrange
+				const numberOfRounds = 1;
+				const limit =
+					numberOfRounds +
+					dpos.delegateActiveRoundLimit +
+					delegateListRoundOffset;
+
+				const publicKey = 'x';
+				const expectedActiveMinHeight = slots.calcRoundStartHeight(3);
+
+				const lists = [
+					{ round: 6, delegatePublicKeys: ['a', 'e', 'f'] },
+					{ round: 5, delegatePublicKeys: ['a', 'e', 'f'] },
+					{ round: 4, delegatePublicKeys: ['x', 'e', 'd'] },
+					{ round: 3, delegatePublicKeys: ['x', 'e', 'f'] },
+					{ round: 2, delegatePublicKeys: ['x', 'b', 'c'] },
+					{ round: 1, delegatePublicKeys: ['x', 'k', 'm'] },
+				];
+				roundsDelegatesGetResolves(lists, { stubs, limit });
+
+				// Act
+				const minActiveHeights = await dpos.getMinActiveHeightsOfDelegates(
+					numberOfRounds,
+					{
+						tx: stubs.tx,
+					},
+				);
+				// Assert
+				expect(Object.keys(minActiveHeights)).toEqual(['x', 'e', 'd']);
 				expect(minActiveHeights[publicKey]).toEqual([expectedActiveMinHeight]);
 			});
 
@@ -559,39 +592,6 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				);
 				// Assert
 				expect(Object.keys(minActiveHeights)).toEqual(['x', 'e', 'f']);
-				expect(minActiveHeights[publicKey]).toEqual([expectedActiveMinHeight]);
-			});
-
-			it('should return the first block height of 1st round when delegate was in the first list (activeRound = 6)', async () => {
-				// Arrange
-				const numberOfRounds = 1;
-				const limit =
-					numberOfRounds +
-					dpos.delegateActiveRoundLimit +
-					delegateListRoundOffset;
-
-				const publicKey = 'x';
-				const expectedActiveMinHeight = slots.calcRoundStartHeight(1);
-
-				const lists = [
-					{ round: 6, delegatePublicKeys: ['a', 'e', 'f'] },
-					{ round: 5, delegatePublicKeys: ['a', 'e', 'f'] },
-					{ round: 4, delegatePublicKeys: ['x', 'c', 'f'] },
-					{ round: 3, delegatePublicKeys: ['x', 'e', 'f'] },
-					{ round: 2, delegatePublicKeys: ['x', 'b', 'c'] },
-					{ round: 1, delegatePublicKeys: ['x', 'k', 'm'] },
-				];
-				roundsDelegatesGetResolves(lists, { stubs, limit });
-
-				// Act
-				const minActiveHeights = await dpos.getMinActiveHeightsOfDelegates(
-					numberOfRounds,
-					{
-						tx: stubs.tx,
-					},
-				);
-				// Assert
-				expect(Object.keys(minActiveHeights)).toEqual(['x', 'c', 'f']);
 				expect(minActiveHeights[publicKey]).toEqual([expectedActiveMinHeight]);
 			});
 
