@@ -362,7 +362,7 @@ describe('peerBook', () => {
 		});
 	});
 
-	describe('#getDiscoveryPeerList', () => {
+	describe('#getRandomizedPeerList', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoListWithSuffix('204.123.64', 200);
 			peerBook = new PeerBook(peerBookConfig);

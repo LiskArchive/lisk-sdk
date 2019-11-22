@@ -22,6 +22,7 @@ import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
 } from '../constants';
@@ -169,6 +170,7 @@ export class Peer extends EventEmitter {
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		this._serverNodeInfo = peerConfig.serverNodeInfo;
+
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
 			packet: unknown,
@@ -335,7 +337,10 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public disconnect(code: number = 1000, reason?: string): void {
+	public disconnect(
+		code: number = INTENTIONAL_DISCONNECT_CODE,
+		reason?: string,
+	): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
 		if (this._socket) {

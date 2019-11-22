@@ -13,7 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import {
+	P2P,
+	EVENT_CLOSE_OUTBOUND,
+	INTENTIONAL_DISCONNECT_CODE,
+	SEED_PEER_DISCONNECTION_REASON,
+} from '../../src/index';
 import { wait } from '../utils/helpers';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
@@ -22,7 +27,6 @@ import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
-	const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 	const NETWORK_START_PORT = 5000;
 	const previousPeers = [
 		{
@@ -89,9 +93,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => ({
 				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-				maxOutboundConnections: FIVE_CONNECTIONS,
-				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				blacklistedPeers,
 				fixedPeers: blacklistedPeers,
@@ -168,6 +169,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 	describe('fixed', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
+		const collectedEvents = new Array();
 
 		const fixedPeers = [
 			{
@@ -193,15 +195,33 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => ({
 				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
-				fixedPeers,
+				fixedPeers: [
+					...customSeedPeers(index, startPort, networkSize),
+					...fixedPeers,
+				],
 				previousPeers,
 			});
 
-			p2pNodeList = await createNetwork({ customConfig });
+			p2pNodeList = await createNetwork({
+				networkDiscoveryWaitTime: 1,
+				customConfig,
+			});
+
+			p2pNodeList.forEach(p2p => {
+				p2p.on(EVENT_CLOSE_OUTBOUND, msg => {
+					if (
+						msg.code === INTENTIONAL_DISCONNECT_CODE &&
+						msg.reason === SEED_PEER_DISCONNECTION_REASON
+					) {
+						collectedEvents.push(msg.reason);
+					}
+				});
+			});
+
+			await wait(1000);
 		});
 
 		afterEach(async () => {
@@ -229,6 +249,10 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
 				}
 			});
+		});
+
+		it('should not disconnect from fixed seed peers', async () => {
+			expect(collectedEvents).to.be.empty;
 		});
 	});
 
@@ -259,9 +283,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => ({
 				hostIp: '127.0.0.' + (index + 10),
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-				maxOutboundConnections: FIVE_CONNECTIONS,
-				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				whitelistedPeers,
 				previousPeers,

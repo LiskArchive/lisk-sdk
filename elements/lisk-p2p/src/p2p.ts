@@ -27,6 +27,7 @@ import {
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD,
+	DEFAULT_MIN_TRIED_PEER_COUNT,
 	DEFAULT_NODE_HOST_IP,
 	DEFAULT_NONCE_LENGTH_BYTES,
 	DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
@@ -266,6 +267,7 @@ export class P2P extends EventEmitter {
 		this._peerBook = new PeerBook({
 			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 		});
+		this._initializePeerBook();
 		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
@@ -490,21 +492,6 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool(peerPoolConfig);
 
 		this._bindHandlersToPeerPool(this._peerPool);
-		// Add peers to tried peers if want to re-use previously tried peers
-		if (this._sanitizedPeerLists.previousPeers) {
-			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
-				try {
-					this._peerBook.addPeer(peerInfo);
-					this._peerBook.upgradePeer(peerInfo);
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
-
-					this._peerBook.upgradePeer(error.peerInfo);
-				}
-			});
-		}
 
 		this._nodeInfo = {
 			...config.nodeInfo,
@@ -898,13 +885,13 @@ export class P2P extends EventEmitter {
 			this._peerPool.triggerNewConnections(
 				this._peerBook.newPeers,
 				this._peerBook.triedPeers,
-				this._sanitizedPeerLists.fixedPeers || [],
 			);
 		}, this._populatorInterval);
+
+		// Initial Populator
 		this._peerPool.triggerNewConnections(
 			this._peerBook.newPeers,
 			this._peerBook.triedPeers,
-			this._sanitizedPeerLists.fixedPeers || [],
 		);
 	}
 
@@ -983,39 +970,50 @@ export class P2P extends EventEmitter {
 		return !!isSeed || !!isWhitelisted || !!isFixed;
 	}
 
-	public async start(): Promise<void> {
-		if (this._isActive) {
-			throw new Error('Cannot start the node because it is already active');
-		}
+	private _initializePeerBook(): void {
+		const newPeersToAdd = [
+			...this._sanitizedPeerLists.previousPeers,
+			...this._sanitizedPeerLists.whitelisted,
+			...this._sanitizedPeerLists.fixedPeers,
+		];
 
-		const newPeersToAdd = this._sanitizedPeerLists.seedPeers.concat(
-			this._sanitizedPeerLists.whitelisted,
-		);
-		newPeersToAdd.forEach(newPeerInfo => {
+		// Add peers to tried peers if want to re-use previously tried peers
+		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
+		newPeersToAdd.forEach(peerInfo => {
 			try {
-				this._peerBook.addPeer(newPeerInfo);
+				this._peerBook.addPeer(peerInfo);
+				this._peerBook.upgradePeer(peerInfo);
 			} catch (error) {
 				if (!(error instanceof ExistingPeerError)) {
 					throw error;
 				}
+
+				this._peerBook.upgradePeer(error.peerInfo);
 			}
 		});
+	}
 
-		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
-		this._sanitizedPeerLists.whitelisted.forEach(whitelistPeer =>
-			this._peerBook.upgradePeer(whitelistPeer),
-		);
+	public async start(): Promise<void> {
+		if (this._isActive) {
+			throw new Error('Node cannot start because it is already active.');
+		}
+
 		await this._startPeerServer();
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
+			// Initial discovery and disconnect from SeedPeers (LIP-0004)
+			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
+				this._peerPool.discoverSeedPeers();
+			}
+
 			this._startPopulator();
 		}
 	}
 
 	public async stop(): Promise<void> {
 		if (!this._isActive) {
-			throw new Error('Cannot stop the node because it is not active');
+			throw new Error('Node cannot be stopped because it is not active.');
 		}
 		this._isActive = false;
 		this._hasConnected = false;
