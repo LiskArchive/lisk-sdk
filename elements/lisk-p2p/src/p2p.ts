@@ -319,18 +319,6 @@ export class P2P extends EventEmitter {
 			if (this._isNetworkReady()) {
 				this.emit(EVENT_NETWORK_READY);
 			}
-
-			// Once we successfuly connected to a SeedPeer we try to make new connection or initiate eviction from it LIP-0004
-			const isSeedPeer = this._sanitizedPeerLists.seedPeers.find(
-				peer => peer.peerId === peerInfo.peerId,
-			);
-
-			if (isSeedPeer) {
-				this._peerPool.triggerNewConnections(
-					this._peerBook.newPeers,
-					this._peerBook.triedPeers,
-				);
-			}
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {

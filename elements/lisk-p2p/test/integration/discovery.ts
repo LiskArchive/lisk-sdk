@@ -216,7 +216,7 @@ describe('Network discovery', () => {
 				},
 			});
 			await disconnectedNode.start();
-			await wait(1000);
+			await wait(200);
 			expect(collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER')).to.exist;
 		});
 	});
