@@ -27,7 +27,7 @@ module.exports = {
 	 * @returns {boolean} True is Null character is present in the string. False otherwise.
 	 */
 	isNullByteIncluded(string) {
-		const metacharacter = new RegExp('\\0|\\U00000000');
+		const metacharacter = new RegExp(/\0|\\u0000|\\x00/);
 		return metacharacter.test(string);
 	},
 };

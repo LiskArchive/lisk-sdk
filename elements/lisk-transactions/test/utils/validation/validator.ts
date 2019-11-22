@@ -625,7 +625,7 @@ describe('validator', () => {
 		});
 
 		it('should validate to false when string with null byte is provided', () => {
-			const nullCharacterList = ['\0', '\x00', '\u0000', '\\U00000000'];
+			const nullCharacterList = ['\0', '\x00', '\u0000'];
 			nullCharacterList.forEach(nullChar => {
 				expect(
 					validate({
