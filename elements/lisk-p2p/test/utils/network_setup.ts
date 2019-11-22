@@ -29,6 +29,7 @@ export const WEB_SOCKET_ENGINE = 'ws';
 export const SEED_PEER_IP = '127.0.0.1';
 export const NETWORK_CREATION_WAIT_TIME = 1000;
 export const NETWORK_DESTROY_WAIT_TIME = 1000;
+export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 
 export const nodeInfoConstants = {
 	nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -89,6 +90,7 @@ export const createNetwork = async ({
 				Math.floor((POPULATOR_INTERVAL / NETWORK_PEER_COUNT) * index), // Should be different for each Peer to avoid connection debounce
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
+			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
 				wsPort: nodePort,
 				nethash: nodeInfoConstants.nethash,

@@ -26,6 +26,7 @@ import {
 	EVENT_CLOSE_OUTBOUND,
 	INTENTIONAL_DISCONNECT_CODE,
 	SEED_PEER_DISCONNECTION_REASON,
+	EVENT_REQUEST_RECEIVED,
 } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
@@ -34,6 +35,7 @@ import {
 	destroyNetwork,
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
+	SEED_PEER_IP,
 } from '../utils/network_setup';
 import { constructPeerId } from '../../src/utils';
 
@@ -259,6 +261,48 @@ describe('Network discovery', () => {
 			for (const disconnectReason of collectedEvents) {
 				expect(disconnectReason).to.be.equal(SEED_PEER_DISCONNECTION_REASON);
 			}
+		});
+	});
+
+	describe('Fallback Seed Peer Discovery', () => {
+		let p2pNodeList: ReadonlyArray<P2P> = [];
+		const collectedEvents = new Array();
+
+		beforeEach(async () => {
+			const customConfig = (index: number) => ({
+				maxOutboundConnections: index % 2 === 1 ? 3 : 20,
+				fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
+				populatorInterval: index === 2 ? 100 : 10000,
+			});
+
+			p2pNodeList = await createNetwork({
+				networkDiscoveryWaitTime: 0,
+				customConfig,
+			});
+
+			const secondP2PNode = p2pNodeList[1];
+
+			secondP2PNode.on(EVENT_REQUEST_RECEIVED, msg => {
+				if (
+					msg._procedure == 'getPeers' &&
+					msg._peerId == constructPeerId(SEED_PEER_IP, NETWORK_START_PORT + 2)
+				) {
+					collectedEvents.push(msg);
+				}
+			});
+
+			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+
+			await wait(1000);
+		});
+
+		afterEach(async () => {
+			await destroyNetwork(p2pNodeList);
+		});
+
+		it(`should recreive getPeers multiple times`, async () => {
+			// thirdP2PNode should send getPeers request multiple times
+			expect(collectedEvents.length).to.be.gt(1);
 		});
 	});
 });

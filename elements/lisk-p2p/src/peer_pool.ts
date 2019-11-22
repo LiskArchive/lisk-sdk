@@ -415,12 +415,22 @@ export class PeerPool extends EventEmitter {
 			return;
 		}
 
-		const seedPeersForConnection = shuffle(
+		const seedPeersForDiscovery = shuffle(
 			this._peerLists.seedPeers.slice(0, openOutboundSlots),
 		);
 
-		seedPeersForConnection.forEach(peer => {
-			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
+		seedPeersForDiscovery.forEach(peer => {
+			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
+			const seedPeer = this.getPeer(peer.peerId);
+			if (seedPeer) {
+				setImmediate(
+					async (): Promise<void> => {
+						await seedPeer.discoverPeers();
+					},
+				);
+			} else {
+				this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
+			}
 		});
 	}
 

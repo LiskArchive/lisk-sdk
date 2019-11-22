@@ -892,7 +892,7 @@ export class P2P extends EventEmitter {
 			throw new Error('Populator is already running');
 		}
 		this._populatorIntervalId = setInterval(() => {
-			// LIP-0004 rediscovery SeedPeers when Outboundconnection < maxOutboundconnections
+			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
 			if (
 				this._nextSeedPeerDiscovery < Date.now() &&
 				this._peerPool.getAvailableOutboundConnectionSlots() > 0
