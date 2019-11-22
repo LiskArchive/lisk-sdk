@@ -35,7 +35,7 @@ const {
 const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	const tempBlocks = await blocksModule.getTempBlocks(
 		{},
-		{ sort: 'height:asc' },
+		{ sort: 'height:asc', limit: null },
 		tx,
 	);
 
@@ -75,11 +75,23 @@ const clearBlocksTempTable = storageModule =>
 const deleteBlocksAfterHeight = async (
 	processorModule,
 	blocksModule,
+	logger,
 	desiredHeight,
 	backup = false,
 ) => {
 	let { height: currentHeight } = blocksModule.lastBlock;
+	logger.debug(
+		{ desiredHeight, lastBlockHeight: currentHeight },
+		'Deleting blocks after height',
+	);
 	while (desiredHeight < currentHeight) {
+		logger.trace(
+			{
+				height: blocksModule.lastBlock.height,
+				blockId: blocksModule.lastBlock.id,
+			},
+			'Deleting block and backing it up to temporary table',
+		);
 		const lastBlock = await processorModule.deleteLastBlock({
 			saveTempBlock: backup,
 		});
@@ -109,13 +121,15 @@ const restoreBlocksUponStartup = async (
 	storageModule,
 ) => {
 	// Get all blocks and find lowest height (next one to be applied)
-	const tempBlocks = await storageModule.entities.TempBlock.get();
-	const blockHighestHeight = tempBlocks.reduce((prev, current) =>
-		prev.height > current.height ? prev : current,
+	const tempBlocks = await storageModule.entities.TempBlock.get(
+		{},
+		{
+			sort: 'height:asc',
+			limit: null,
+		},
 	);
-	const blockLowestHeight = tempBlocks.reduce((prev, current) =>
-		prev.height < current.height ? prev : current,
-	);
+	const blockLowestHeight = tempBlocks[0];
+	const blockHighestHeight = tempBlocks[tempBlocks.length - 1];
 
 	const nextTempBlock = await processorModule.deserialize(
 		blockHighestHeight.fullBlock,
@@ -131,6 +145,7 @@ const restoreBlocksUponStartup = async (
 		await deleteBlocksAfterHeight(
 			processorModule,
 			blocksModule,
+			logger,
 			blockLowestHeight.height - 1,
 			false,
 		);
