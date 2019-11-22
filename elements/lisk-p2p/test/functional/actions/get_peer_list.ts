@@ -55,7 +55,6 @@ describe('PeerPool actions', () => {
 
 	describe('getDisconnectedPeers', () => {
 		const LIMITED_CONNECTIONS = 3;
-		const POPULATOR_INTERVAL_WITH_LIMIT = 50;
 
 		beforeEach(async () => {
 			const customSeedPeers = (
@@ -78,7 +77,6 @@ describe('PeerPool actions', () => {
 				longevityProtectionRatio: 0,
 				maxOutboundConnections: LIMITED_CONNECTIONS,
 				maxInboundConnections: LIMITED_CONNECTIONS,
-				populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 			});
 

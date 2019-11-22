@@ -41,7 +41,7 @@ describe(`Connection Create`, () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
-				networkDiscoveryWaitTime: 1,
+				networkDiscoveryWaitTime: 0,
 			});
 			const firstNode = p2pNodeList[0];
 			const secondNode = p2pNodeList[1];
@@ -60,6 +60,8 @@ describe(`Connection Create`, () => {
 			secondNode.on(EVENT_UPDATED_PEER_INFO, res => {
 				collectedEvents.set(EVENT_UPDATED_PEER_INFO, res);
 			});
+
+			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 
 			await wait(1000);
 		});

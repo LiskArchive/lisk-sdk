@@ -17,6 +17,7 @@ import { SCServerSocket } from 'socketcluster-server';
 import {
 	DEFAULT_PING_INTERVAL_MAX,
 	DEFAULT_PING_INTERVAL_MIN,
+	INTENTIONAL_DISCONNECT_CODE,
 } from '../constants';
 import {
 	EVENT_CLOSE_INBOUND,
@@ -82,7 +83,10 @@ export class InboundPeer extends Peer {
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 
-	public disconnect(code: number = 1000, reason?: string): void {
+	public disconnect(
+		code: number = INTENTIONAL_DISCONNECT_CODE,
+		reason?: string,
+	): void {
 		super.disconnect(code, reason);
 		clearTimeout(this._pingTimeoutId);
 		this._unbindHandlersFromInboundSocket(this._socket);

@@ -89,7 +89,7 @@ describe('#synchronizer/utils', () => {
 			// Assert
 			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(
 				{},
-				{ sort: 'height:asc' },
+				{ sort: 'height:asc', limit: null },
 				stubs.tx,
 			);
 			expect(processorMock.processValidated).toHaveBeenCalledTimes(2);
@@ -116,7 +116,7 @@ describe('#synchronizer/utils', () => {
 			expect(result).toBeFalsy();
 			expect(blocksMock.getTempBlocks).toHaveBeenCalledWith(
 				{},
-				{ sort: 'height:asc' },
+				{ sort: 'height:asc', limit: null },
 				stubs.tx,
 			);
 			expect(processorMock.processValidated).not.toHaveBeenCalled();

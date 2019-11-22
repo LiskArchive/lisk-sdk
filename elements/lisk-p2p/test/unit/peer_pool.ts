@@ -89,7 +89,16 @@ describe('peerPool', () => {
 			blacklistedIPs: [],
 			fixed: [],
 			previous: [],
-			seeds: [],
+			seeds: [
+				{
+					id: '127.0.0.1:5000',
+					ipAddress: '127.0.0.1',
+					sharedState: {
+						wsPort: 5000,
+						advertiseAddress: true,
+					},
+				},
+			] as Array<P2PPeerInfo>,
 			whitelisted: [],
 		},
 		sharedState,
@@ -366,6 +375,24 @@ describe('peerPool', () => {
 		});
 	});
 
+	describe('#discoverSeedPeers', () => {
+		beforeEach(async () => {
+			(peerPool['_addOutboundPeer'] as any) = sandbox
+				.stub()
+				.returns(true as boolean);
+
+			sandbox.stub(peerPool, 'getPeersCountPerKind').returns({
+				outboundCount: 0,
+				inboundCount: 0,
+			});
+			peerPool.discoverSeedPeers();
+		});
+
+		it('should call _addOutboundPeer with Seed Peer', async () => {
+			expect(peerPool['_addOutboundPeer']).to.be.called;
+		});
+	});
+
 	describe('#triggerNewConnections', () => {
 		beforeEach(async () => {
 			(peerPool['_peerSelectForConnection'] as any) = sandbox
@@ -375,7 +402,7 @@ describe('peerPool', () => {
 				outboundCount: 0,
 				inboundCount: 0,
 			});
-			peerPool.triggerNewConnections([], [], []);
+			peerPool.triggerNewConnections([], []);
 		});
 
 		it('should call _peerSelectForConnection with all the necessary options', async () => {

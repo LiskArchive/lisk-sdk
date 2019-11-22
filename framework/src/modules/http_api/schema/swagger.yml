@@ -2198,10 +2198,8 @@ definitions:
     required:
       - currentTime
       - height
-      - networkHeight
       - chainMaxHeightFinalized
       - secondsSinceEpoch
-      - loaded
       - syncing
     properties:
       currentTime:
@@ -2215,16 +2213,6 @@ definitions:
         description: |
           Current block height of the node.
           Represents the current number of blocks in the chain on the node.
-      loaded:
-        type: boolean
-        example: true
-        description: True if the blockchain loaded.
-      networkHeight:
-        type: integer
-        example: 123
-        description: |
-          Current block height of the network.
-          Represents the current number of blocks in the chain on the network.
       chainMaxHeightFinalized:
         type: integer
         example: 123

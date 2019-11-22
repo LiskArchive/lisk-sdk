@@ -298,7 +298,6 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				loaded: true,
 				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getEpochTime(),
