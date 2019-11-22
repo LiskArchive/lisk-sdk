@@ -23,7 +23,7 @@ import {
 } from '../constants';
 import { ExistingPeerError } from '../errors';
 import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
-import { PEER_TYPE } from '../utils';
+import { PEER_TYPE, sanitizeInternalPeerInfo } from '../utils';
 
 import { NewList, NewListConfig } from './new_list';
 import { TriedList, TriedListConfig } from './tried_list';
@@ -101,11 +101,17 @@ export class PeerBook {
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		const triedPeer = this._triedPeers.getPeer(peerInfo);
-		if (this._triedPeers.getPeer(peerInfo)) {
-			return triedPeer;
+		if (triedPeer) {
+			return sanitizeInternalPeerInfo(triedPeer);
 		}
 
-		return this._newPeers.getPeer(peerInfo);
+		const newPeer = this._newPeers.getPeer(peerInfo);
+
+		if (newPeer) {
+			return sanitizeInternalPeerInfo(newPeer);
+		}
+
+		return undefined;
 	}
 
 	public addPeer(peerInfo: P2PEnhancedPeerInfo): void {
@@ -155,7 +161,7 @@ export class PeerBook {
 
 		return false;
 	}
-	
+
 	/**
 	 * Description: When a peer is downgraded for some reasons then new/triedPeers will trigger their failedConnectionAction,
 	 * if the peer is deleted from newList that means the peer is completely deleted from the peer lists and need to inform the calling entity by returning true.

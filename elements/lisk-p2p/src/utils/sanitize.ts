@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
+	P2PEnhancedPeerInfo,
 	P2PPeerInfo,
 	PeerLists,
 	ProtocolPeerInfo,
@@ -48,6 +49,20 @@ export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
 	ipAddress: peerInfo.ipAddress,
 	wsPort: peerInfo.wsPort,
 });
+
+export const sanitizeInternalPeerInfo = (
+	peerInfo: P2PEnhancedPeerInfo,
+): P2PPeerInfo => {
+	const {
+		dateAdded,
+		numOfConnectionFailures,
+		sourceAddress,
+		bucketId,
+		...sharedPeerInfo
+	} = peerInfo;
+
+	return sharedPeerInfo;
+};
 
 export const sanitizePeerLists = (
 	lists: PeerLists,

@@ -893,7 +893,7 @@ describe('peerPool', () => {
 			it('should return expected amount of eviction candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).to.eql(43);
+				expect(selectedPeersForEviction.length).to.eql(42);
 			});
 		});
 
@@ -912,7 +912,7 @@ describe('peerPool', () => {
 			it('should return expected amount of eviction candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).to.eql(4);
+				expect(selectedPeersForEviction.length).to.eql(3);
 			});
 		});
 
@@ -956,7 +956,7 @@ describe('peerPool', () => {
 			it('should return expected amount of eviction candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).to.eql(45);
+				expect(selectedPeersForEviction.length).to.eql(44);
 			});
 		});
 
@@ -992,7 +992,7 @@ describe('peerPool', () => {
 			it('should return expected amount of eviction candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).to.eql(86);
+				expect(selectedPeersForEviction.length).to.eql(84);
 			});
 		});
 

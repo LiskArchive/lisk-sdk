@@ -92,7 +92,7 @@ describe('New Peers List', () => {
 
 		it('should call get bucket', () => {
 			sandbox.stub(newPeersList, 'calculateBucket');
-			newPeersList.makeSpace(samplePeers[0].ipAddress);
+			newPeersList.makeSpace(samplePeers[0]);
 
 			expect(newPeersList.calculateBucket).to.be.calledOnceWithExactly(
 				samplePeers[0].ipAddress,
@@ -105,7 +105,7 @@ describe('New Peers List', () => {
 					clock.tick(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
 					newPeersList.addPeer(samplePeers[1]);
 					newPeersList.addPeer(samplePeers[2]);
-					const evictedPeer = newPeersList.makeSpace(samplePeers[3].ipAddress);
+					const evictedPeer = newPeersList.makeSpace(samplePeers[3]);
 
 					expect((evictedPeer as any).peerInfo).to.be.eql(samplePeers[0]);
 				});
@@ -115,7 +115,7 @@ describe('New Peers List', () => {
 				it('should evict one peer randomly', () => {
 					newPeersList.addPeer(samplePeers[1]);
 					newPeersList.addPeer(samplePeers[2]);
-					const evictedPeer = newPeersList.makeSpace(samplePeers[3].ipAddress);
+					const evictedPeer = newPeersList.makeSpace(samplePeers[3]);
 
 					expect(samplePeers).to.include((evictedPeer as any).peerInfo);
 				});
@@ -124,7 +124,7 @@ describe('New Peers List', () => {
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
-				const evictedPeer = newPeersList.makeSpace(samplePeers[0].ipAddress);
+				const evictedPeer = newPeersList.makeSpace(samplePeers[0]);
 
 				expect(evictedPeer).to.be.undefined;
 			});

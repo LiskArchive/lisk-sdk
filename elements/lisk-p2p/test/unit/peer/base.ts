@@ -368,6 +368,7 @@ describe('peer/base', () => {
 					{
 						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
+						sourceAddress: '12.12.12.12',
 						wsPort: 1111,
 						sharedState: {
 							version: '1.1.1',
@@ -376,6 +377,7 @@ describe('peer/base', () => {
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
+						sourceAddress: '12.12.12.12',
 						wsPort: 2222,
 						sharedState: {
 							version: '2.2.2',
@@ -386,6 +388,7 @@ describe('peer/base', () => {
 					{
 						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
+						sourceAddress: '12.12.12.12',
 						wsPort: 1111,
 						sharedState: {
 							version: '1.1.1',
@@ -395,6 +398,7 @@ describe('peer/base', () => {
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
+						sourceAddress: '12.12.12.12',
 						wsPort: 2222,
 						sharedState: {
 							version: '2.2.2',

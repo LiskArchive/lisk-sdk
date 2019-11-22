@@ -83,7 +83,7 @@ describe('Tried Peers List', () => {
 					maxReconnectTries: 1,
 				};
 				triedPeersList = new TriedList(triedPeerConfig);
-				triedPeersList.makeSpace(samplePeers[0].ipAddress);
+				triedPeersList.makeSpace(samplePeers[0]);
 				triedPeersList.addPeer(samplePeers[0]);
 			});
 
