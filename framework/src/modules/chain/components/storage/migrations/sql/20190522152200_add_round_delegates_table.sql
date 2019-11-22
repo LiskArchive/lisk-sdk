@@ -20,6 +20,6 @@
 
 /* Table */
 CREATE TABLE IF NOT EXISTS "round_delegates" (
-  "round" BIGINT NOT NULL PRIMARY KEY,
+  "round" INT NOT NULL PRIMARY KEY,
   "delegatePublicKeys" JSON NOT NULL
 );
