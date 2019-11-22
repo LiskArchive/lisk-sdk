@@ -50,7 +50,7 @@ export const validateNetworkIdentifier = (networkIdentifier: string) => {
 };
 
 export const isNullByteIncluded = (input: string) =>
-	new RegExp('\\0|\\U00000000').test(input);
+	new RegExp(/\0|\\u0000|\\x00/).test(input);
 
 export const validateUsername = (username: string) => {
 	if (isNullByteIncluded(username)) {

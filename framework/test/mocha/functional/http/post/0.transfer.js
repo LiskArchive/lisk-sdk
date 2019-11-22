@@ -35,7 +35,6 @@ const specialChar = '❤';
 const nullChar1 = '\0';
 const nullChar2 = '\x00';
 const nullChar3 = '\u0000';
-const nullChar4 = '\\U00000000';
 
 describe('POST /api/transactions (type 0) transfer funds', () => {
 	let transaction;
@@ -484,32 +483,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 				it('using nullChar3 should fail', () => {
 					const additioinalData = `${nullChar3} hey :)`;
-					const accountAdditionalData = randomUtil.account();
-					transaction = transfer({
-						networkIdentifier,
-						amount: '1',
-						passphrase: accountFixtures.genesis.passphrase,
-						recipientId: accountAdditionalData.address,
-						data: additioinalData,
-					});
-
-					return sendTransactionPromise(
-						transaction,
-						apiCodes.PROCESSING_ERROR,
-					).then(res => {
-						expect(res.body.message).to.be.eql(
-							'Transaction was rejected with errors',
-						);
-						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-						expect(res.body.errors[0].message).to.be.equal(
-							'\'.data\' should match format "transferData"',
-						);
-						badTransactions.push(transaction);
-					});
-				});
-
-				it('using nullChar4 should fail', () => {
-					const additioinalData = `${nullChar4} hey :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						networkIdentifier,
