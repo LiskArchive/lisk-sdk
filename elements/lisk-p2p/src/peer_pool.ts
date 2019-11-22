@@ -409,7 +409,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public discoverSeedPeers(): void {
-		const openOutboundSlots = this._getAvailableOutboundConnectionSlots();
+		const openOutboundSlots = this.getAvailableOutboundConnectionSlots();
 
 		if (openOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
 			return;
@@ -436,12 +436,12 @@ export class PeerPool extends EventEmitter {
 			triedPeer => !this._peerMap.has(triedPeer.peerId),
 		);
 		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
-			peer => !this._peerMap.get(peer.peerId),
+			peer => !this._peerMap.has(peer.peerId),
 		);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
-		const peerLimit = this._getAvailableOutboundConnectionSlots();
+		const peerLimit = this.getAvailableOutboundConnectionSlots();
 
 		if (peerLimit === 0) {
 			this._disconnectFromSeedPeers();
@@ -625,11 +625,11 @@ export class PeerPool extends EventEmitter {
 		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 	}
 
-	private _getAvailableOutboundConnectionSlots(): number {
+	public getAvailableOutboundConnectionSlots(): number {
 		const { outboundCount } = this.getPeersCountPerKind();
 
 		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
-			peer => !this._peerMap.get(peer.peerId),
+			peer => !this._peerMap.has(peer.peerId),
 		);
 
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them

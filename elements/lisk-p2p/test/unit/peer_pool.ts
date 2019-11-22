@@ -793,6 +793,19 @@ describe('peerPool', () => {
 		});
 	});
 
+	describe('#getAvailableOutboundConnectionSlots', () => {
+		beforeEach(async () => {
+			(peerPool as any)._addOutboundPeer(peerObject as any);
+		});
+
+		it('should return available Outbound connection slot value', async () => {
+			const peerCount = peerPool.getAvailableOutboundConnectionSlots();
+			expect(peerCount).to.be.eql(
+				(peerPool as any)._maxOutboundConnections - 1,
+			);
+		});
+	});
+
 	describe.skip('#_applyNodeInfoOnPeer', () => {});
 
 	describe('#filterPeersByCategory', () => {

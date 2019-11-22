@@ -22,6 +22,7 @@ import * as url from 'url';
 import {
 	ConnectionKind,
 	DEFAULT_BAN_TIME,
+	DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -199,6 +200,8 @@ export class P2P extends EventEmitter {
 	private readonly _peerBook: PeerBook;
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
+	private _nextSeedPeerDiscovery: number;
+	private readonly _fallbackSeedPeerDiscoveryInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
@@ -502,6 +505,13 @@ export class P2P extends EventEmitter {
 		this._populatorInterval = config.populatorInterval
 			? config.populatorInterval
 			: DEFAULT_POPULATOR_INTERVAL;
+
+		this._fallbackSeedPeerDiscoveryInterval = config.fallbackSeedPeerDiscoveryInterval
+			? config.fallbackSeedPeerDiscoveryInterval
+			: DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL;
+
+		this._nextSeedPeerDiscovery =
+			Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 
 		this._peerHandshakeCheck = config.peerHandshakeCheck
 			? config.peerHandshakeCheck
@@ -882,6 +892,16 @@ export class P2P extends EventEmitter {
 			throw new Error('Populator is already running');
 		}
 		this._populatorIntervalId = setInterval(() => {
+			// LIP-0004 rediscovery SeedPeers when Outboundconnection < maxOutboundconnections
+			if (
+				this._nextSeedPeerDiscovery < Date.now() &&
+				this._peerPool.getAvailableOutboundConnectionSlots() > 0
+			) {
+				this._peerPool.discoverSeedPeers();
+				this._nextSeedPeerDiscovery =
+					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+			}
+
 			this._peerPool.triggerNewConnections(
 				this._peerBook.newPeers,
 				this._peerBook.triedPeers,
@@ -1005,6 +1025,8 @@ export class P2P extends EventEmitter {
 			// Initial discovery and disconnect from SeedPeers (LIP-0004)
 			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
 				this._peerPool.discoverSeedPeers();
+				this._nextSeedPeerDiscovery =
+					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 			}
 
 			this._startPopulator();
