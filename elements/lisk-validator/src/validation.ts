@@ -30,7 +30,7 @@ import {
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
-	new RegExp('\\0|\\U00000000').test(input);
+	new RegExp(/\0|\\u0000|\\x00/).test(input);
 
 export const isUsername = (username: string): boolean => {
 	if (isNullCharacterIncluded(username)) {
