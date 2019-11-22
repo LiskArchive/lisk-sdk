@@ -133,6 +133,7 @@ module.exports = class Dpos {
 		const loops = Math.min(delegateLists.length, numberOfRounds);
 
 		for (let i = 0; i < loops; i += 1) {
+			const activeRound = latestRound - i;
 			const [activeList, ...previousLists] = delegateLists;
 
 			for (const publicKey of activeList.delegatePublicKeys) {
@@ -156,7 +157,7 @@ module.exports = class Dpos {
 				 */
 				const earliestActiveRound =
 					earliestListRound === 1
-						? earliestListRound
+						? Math.max(activeRound - this.delegateActiveRoundLimit, 1)
 						: earliestListRound + delegateListRoundOffset;
 				const lastActiveMinHeight = this.slots.calcRoundStartHeight(
 					earliestActiveRound,
