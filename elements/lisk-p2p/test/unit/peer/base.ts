@@ -649,7 +649,7 @@ describe('peer/base', () => {
 
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
-					expect(peerInfo).to.be.eql(defaultPeerInfo);
+					expect(peerInfo.sharedState).to.be.eql(defaultPeerInfo.sharedState);
 				});
 			});
 		});
