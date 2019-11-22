@@ -41,6 +41,7 @@ export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
+export const DEFAULT_MIN_TRIED_PEER_COUNT = 100;
 
 // Peer base constants
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
@@ -72,6 +73,8 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
+export const SEED_PEER_DISCONNECTION_REASON =
+	'Disconnect from SeedPeer after discovery';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';

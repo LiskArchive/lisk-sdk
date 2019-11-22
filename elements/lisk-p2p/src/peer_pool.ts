@@ -27,6 +27,7 @@ import {
 	DEFAULT_LOCALHOST_IP,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
+	SEED_PEER_DISCONNECTION_REASON,
 } from './constants';
 import { RequestFailError, SendFailError } from './errors';
 import {
@@ -308,9 +309,15 @@ export class PeerPool extends EventEmitter {
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
+
+		const peerInfoForRequest =
+			outboundPeerInfos.length === 0
+				? this.getAllConnectedPeerInfos()
+				: outboundPeerInfos;
+
 		// This function can be customized so we should pass as much info as possible.
 		const selectedPeers = this._peerSelectForRequest({
-			peers: outboundPeerInfos,
+			peers: peerInfoForRequest,
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -397,10 +404,25 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
+	public discoverSeedPeers(): void {
+		const openOutboundSlots = this._getAvailableOutboundConnectionSlots();
+
+		if (openOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
+			return;
+		}
+
+		const seedPeersForConnection = shuffle(
+			this._peerLists.seedPeers.slice(0, openOutboundSlots),
+		);
+
+		seedPeersForConnection.forEach(peer => {
+			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
+		});
+	}
+
 	public triggerNewConnections(
 		newPeers: ReadonlyArray<P2PPeerInfo>,
 		triedPeers: ReadonlyArray<P2PPeerInfo>,
-		fixedPeers: ReadonlyArray<P2PPeerInfo>,
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedNewPeers = newPeers.filter(
@@ -409,17 +431,17 @@ export class PeerPool extends EventEmitter {
 		const disconnectedTriedPeers = triedPeers.filter(
 			triedPeer => !this._peerMap.has(triedPeer.peerId),
 		);
-		const { outboundCount } = this.getPeersCountPerKind();
-		const disconnectedFixedPeers = fixedPeers
-			.filter(peer => !this._peerMap.get(peer.peerId))
-			.map(peer2Convert => peer2Convert);
+		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
+			peer => !this._peerMap.get(peer.peerId),
+		);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
-		const peerLimit =
-			this._maxOutboundConnections -
-			disconnectedFixedPeers.length -
-			outboundCount;
+		const peerLimit = this._getAvailableOutboundConnectionSlots();
+
+		if (peerLimit === 0) {
+			this._disconnectFromSeedPeers();
+		}
 
 		// This function can be customized so we should pass as much info as possible.
 		const peersToConnect = this._peerSelectForConnection({
@@ -591,12 +613,50 @@ export class PeerPool extends EventEmitter {
 		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 	}
 
+	private _getAvailableOutboundConnectionSlots(): number {
+		const { outboundCount } = this.getPeersCountPerKind();
+
+		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
+			peer => !this._peerMap.get(peer.peerId),
+		);
+
+		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
+		const openOutboundSlots =
+			this._maxOutboundConnections -
+			disconnectedFixedPeers.length -
+			outboundCount;
+
+		return openOutboundSlots;
+	}
+
 	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
 		try {
 			peer.applyNodeInfo(nodeInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		}
+	}
+
+	private _disconnectFromSeedPeers(): void {
+		const outboundPeers = this.getPeers(OutboundPeer);
+
+		outboundPeers.forEach((outboundPeer: Peer) => {
+			const isFixedPeer = this._peerLists.fixedPeers.find(
+				(peer: P2PPeerInfo) => peer.peerId === outboundPeer.id,
+			);
+			const isSeedPeer = this._peerLists.seedPeers.find(
+				(peer: P2PPeerInfo) => peer.peerId === outboundPeer.id,
+			);
+
+			// From FixedPeers we should not disconnect
+			if (isSeedPeer && !isFixedPeer) {
+				this.removePeer(
+					outboundPeer.id,
+					INTENTIONAL_DISCONNECT_CODE,
+					SEED_PEER_DISCONNECTION_REASON,
+				);
+			}
+		});
 	}
 
 	private _selectPeersForEviction(): Peer[] {

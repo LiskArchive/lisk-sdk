@@ -17,7 +17,7 @@ import { P2P } from '../../src/p2p';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
-		const lisk = new P2P({
+		const P2PNode = new P2P({
 			seedPeers: [],
 			blacklistedPeers: [],
 			fixedPeers: [],
@@ -42,13 +42,25 @@ describe('p2p', () => {
 		});
 
 		it('should be an object', () => {
-			return expect(lisk).to.be.an('object');
+			return expect(P2PNode).to.be.an('object');
 		});
 
 		it('should be an instance of P2P blockchain', () => {
-			return expect(lisk)
+			return expect(P2PNode)
 				.to.be.an('object')
 				.and.be.instanceof(P2P);
+		});
+
+		it('should reject at multiple start attempt', async () => {
+			await P2PNode.start();
+
+			expect(P2PNode.start()).to.be.rejected;
+		});
+
+		it('should reject at multiple stop attempt', async () => {
+			await P2PNode.stop();
+
+			expect(P2PNode.stop()).to.be.rejected;
 		});
 	});
 });

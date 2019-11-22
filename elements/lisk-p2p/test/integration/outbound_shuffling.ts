@@ -23,18 +23,6 @@ describe('Outbound peer shuffling', () => {
 	const OUTBOUND_SHUFFLE_INTERVAL = 100;
 
 	beforeEach(async () => {
-		const customSeedPeers = (
-			index: number,
-			startPort: number,
-			networkSize: number,
-		) =>
-			[...new Array(networkSize / 2).keys()]
-				.map(index => ({
-					ipAddress: '127.0.0.1',
-					wsPort: startPort + ((index + 2) % networkSize), // Choose alternate peers for connection so that a node has available peers to make outbound connections
-				}))
-				.filter(seedPeer => seedPeer.wsPort !== startPort + index); // Avoid adding yourself
-
 		const customConfig = (
 			_index: number,
 			_startPort: number,
@@ -43,7 +31,6 @@ describe('Outbound peer shuffling', () => {
 			maxOutboundConnections: Math.round(networkSize / 2),
 			maxInboundConnections: Math.round(networkSize / 2),
 			outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
-			seedPeers: customSeedPeers(_index, _startPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });
