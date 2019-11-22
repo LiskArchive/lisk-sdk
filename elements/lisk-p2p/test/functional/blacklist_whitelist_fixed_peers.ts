@@ -196,8 +196,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				if (index != 0) {
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
-							ip: peer.ipAddress,
-							wsPort: peer.sharedState.wsPort,
+							ip: peer.ip,
+							wsPort: peer.wsPort,
 						};
 					});
 					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
@@ -274,8 +274,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					p2p.applyPenalty(peerPenalty);
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
-							ip: peer.ipAddress,
-							wsPort: peer.sharedState.wsPort,
+							ip: peer.ip,
+							wsPort: peer.wsPort,
 						};
 					});
 					expect(connectedPeersIPWS).to.deep.include.members(whitelistedPeers);

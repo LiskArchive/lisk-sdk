@@ -193,7 +193,7 @@ module.exports = class Network {
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
 			this.logger.debug(
 				{
-					ipAddress: closePacket.peerInfo.ipAddress,
+					ip: closePacket.peerInfo.ipAddress,
 					wsPort: closePacket.peerInfo.wsPort,
 					code: closePacket.code,
 					reason: closePacket.reason,
@@ -205,7 +205,7 @@ module.exports = class Network {
 		this.p2p.on(EVENT_CLOSE_INBOUND, closePacket => {
 			this.logger.debug(
 				{
-					ipAddress: closePacket.peerInfo.ipAddress,
+					ip: closePacket.peerInfo.ipAddress,
 					wsPort: closePacket.peerInfo.wsPort,
 					code: closePacket.code,
 					reason: closePacket.reason,
@@ -217,7 +217,7 @@ module.exports = class Network {
 		this.p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
 			this.logger.debug(
 				{
-					ipAddress: peerInfo.ipAddress,
+					ip: peerInfo.ipAddress,
 					wsPort: peerInfo.wsPort,
 				},
 				'EVENT_CONNECT_OUTBOUND: Outbound peer connection',
@@ -227,7 +227,7 @@ module.exports = class Network {
 		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
 			this.logger.trace(
 				{
-					ipAddress: peerInfo.ipAddress,
+					ip: peerInfo.ipAddress,
 					wsPort: peerInfo.wsPort,
 				},
 				'EVENT_DISCOVERED_PEER: Discovered peer connection',
@@ -237,7 +237,7 @@ module.exports = class Network {
 		this.p2p.on(EVENT_NEW_INBOUND_PEER, peerInfo => {
 			this.logger.debug(
 				{
-					ipAddress: peerInfo.ipAddress,
+					ip: peerInfo.ipAddress,
 					wsPort: peerInfo.wsPort,
 				},
 				'EVENT_NEW_INBOUND_PEER: Inbound peer connection',
@@ -263,7 +263,7 @@ module.exports = class Network {
 		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
 			this.logger.trace(
 				{
-					ipAddress: peerInfo.ipAddress,
+					ip: peerInfo.ipAddress,
 					wsPort: peerInfo.wsPort,
 				},
 				'EVENT_UPDATED_PEER_INFO: Update peer info',

@@ -197,17 +197,10 @@ const filterByParams = (peers, filters) => {
 const consolidatePeers = ({ connectedPeers = [], disconnectedPeers = [] }) => {
 	// Assign state 2 to the connected peers
 	const connectedList = connectedPeers.map(peer => {
-		const {
-			advertiseAddress,
-			options,
-			minVersion,
-			nethash,
-			...restOfSharedState
-		} = peer.sharedState;
+		const { advertiseAddress, options, minVersion, nethash, ...rest } = peer;
 
 		return {
-			ip: peer.ipAddress,
-			...restOfSharedState,
+			...rest,
 			state: PEER_STATE_CONNECTED,
 		};
 	});
@@ -217,12 +210,11 @@ const consolidatePeers = ({ connectedPeers = [], disconnectedPeers = [] }) => {
 			options,
 			minVersion,
 			nethash,
-			...restOfSharedState
+			...rest
 		} = peer.sharedState;
 
 		return {
-			ip: peer.ipAddress,
-			...restOfSharedState,
+			...rest,
 			state: PEER_STATE_DISCONNECTED,
 		};
 	});

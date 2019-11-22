@@ -173,3 +173,7 @@ export interface PeerListsFromConfig {
 	readonly whitelisted: ReadonlyArray<PeerFromConfig>;
 	readonly previous: ReadonlyArray<P2PPeerInfo>;
 }
+
+export interface PeerInfo extends P2PSharedState {
+	readonly ip: string;
+}

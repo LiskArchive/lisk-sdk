@@ -67,9 +67,9 @@ describe('Advertise Address', () => {
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
-				.filter(p => p.sharedState.wsPort === advertisePeerPort);
+				.filter(p => p.wsPort === advertisePeerPort);
 
-			expect(connectedPeers[0].sharedState.wsPort).to.be.eql(advertisePeerPort);
+			expect(connectedPeers[0].wsPort).to.be.eql(advertisePeerPort);
 		}
 		await p2pNode.stop();
 	});
@@ -83,10 +83,10 @@ describe('Advertise Address', () => {
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
-				.filter(p => p.sharedState.wsPort === advertisePeerPort);
+				.filter(p => p.wsPort === advertisePeerPort);
 			const disConnectedPeers = p2p
 				.getDisconnectedPeers()
-				.filter(p => p.sharedState.wsPort === advertisePeerPort);
+				.filter(p => p.wsPort === advertisePeerPort);
 			expect(connectedPeers).to.be.empty;
 			expect(disConnectedPeers).to.be.empty;
 		}

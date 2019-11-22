@@ -41,7 +41,7 @@ describe('PeerPool actions', () => {
 			const firstNode = p2pNodeList[0];
 			const peerPorts = firstNode
 				.getConnectedPeers()
-				.map(peerInfo => peerInfo.sharedState.wsPort)
+				.map(peerInfo => peerInfo.wsPort)
 				.sort();
 
 			// The current node should not be in its own peer list.
@@ -97,7 +97,7 @@ describe('PeerPool actions', () => {
 				const disconnectedPeers = p2p.getDisconnectedPeers();
 
 				for (const connectedPeer of connectedPeers) {
-					expect(disconnectedPeers).to.not.deep.include(connectedPeer);
+					expect(disconnectedPeers).to.not.include(connectedPeer);
 				}
 			}
 		});

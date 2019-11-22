@@ -107,13 +107,6 @@ describe(`Connection Create`, () => {
 				.to.have.property('wsPort')
 				.which.equals(secondNode.sharedState.wsPort);
 		});
-
-		it(`should update peerBook with connected peer`, async () => {
-			const firstNode = p2pNodeList[0];
-			const disconnectedPeers = firstNode.getDisconnectedPeers();
-
-			expect(disconnectedPeers).to.be.empty;
-		});
 	});
 
 	describe(`Errors`, () => {

@@ -93,6 +93,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	P2PSharedState,
+	PeerInfo,
 	PeerLists,
 } from './p2p_types';
 import { PeerBook } from './peer_book';
@@ -542,20 +543,19 @@ export class P2P extends EventEmitter {
 	}
 
 	// Make sure you always share shared peer state to a user
-	public getConnectedPeers(): ReadonlyArray<P2PPeerInfo> {
+	public getConnectedPeers(): ReadonlyArray<PeerInfo> {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
 			.filter(peer => peer.sharedState.advertiseAddress)
 			.map(peer => ({
-				id: peer.id,
-				ipAddress: peer.ipAddress,
-				sharedState: peer.sharedState,
+				ip: peer.ipAddress,
+				...peer.sharedState,
 			}));
 	}
 
 	// Make sure you always share shared peer state to a user
-	public getDisconnectedPeers(): ReadonlyArray<P2PPeerInfo> {
+	public getDisconnectedPeers(): ReadonlyArray<PeerInfo> {
 		const allPeers = this._peerBook.allPeers;
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
@@ -570,9 +570,8 @@ export class P2P extends EventEmitter {
 		return disconnectedPeers
 			.filter(peer => peer.sharedState.advertiseAddress)
 			.map(peer => ({
-				id: peer.id,
-				ipAddress: peer.ipAddress,
-				sharedState: peer.sharedState,
+				ip: peer.ipAddress,
+				...peer.sharedState,
 			}));
 	}
 
