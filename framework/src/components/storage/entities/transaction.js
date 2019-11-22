@@ -465,7 +465,17 @@ class Transaction extends BaseEntity {
 				const parseResponse = transaction => {
 					transaction.asset = transaction.asset ? transaction.asset : {};
 
-					const recipientTransactionTypes = [0, 3, 8];
+					/**
+					 * Transaction types which still store amount and recipientId outside asset field
+					 *
+					 * Type 0 - TransferTransaction
+					 * Type 3 - VoteTransaction
+					 * Type 6 - InTransferTransaction
+					 * Type 7 - OutTransferTransaction
+					 * Type 8 - TransferTransaction (with networkIdentifier)
+					 *
+					 */
+					const recipientTransactionTypes = [0, 3, 6, 7, 8];
 
 					if (recipientTransactionTypes.includes(transaction.type)) {
 						transaction.asset.amount = transaction.amount;
