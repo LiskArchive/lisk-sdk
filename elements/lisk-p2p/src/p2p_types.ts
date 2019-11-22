@@ -100,7 +100,6 @@ export interface P2PConfig {
 	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
-	readonly hostAddress?: string;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly populatorInterval?: number;

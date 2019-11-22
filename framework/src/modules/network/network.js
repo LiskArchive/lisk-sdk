@@ -147,7 +147,7 @@ module.exports = class Network {
 
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
-			hostAddress: this.options.address,
+			hostIp: this.options.address,
 			blacklistedPeers,
 			fixedPeers,
 			whitelistedPeers,
