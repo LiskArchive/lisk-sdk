@@ -19,7 +19,6 @@ import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 import { OutboundPeer } from '../../src/peer';
-import { constructPeerId } from '../../src/utils';
 
 describe('Outbound IP limit', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
@@ -42,12 +41,8 @@ describe('Outbound IP limit', () => {
 			index !== 0
 				? [
 						{
-							id: constructPeerId('127.0.0.1', startPort),
-							ipAddress: '127.0.0.1',
-							sharedState: {
-								wsPort: startPort,
-								advertiseAddress: true,
-							},
+							ip: '127.0.0.1',
+							wsPort: startPort,
 						},
 				  ]
 				: [];

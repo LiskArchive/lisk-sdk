@@ -185,12 +185,8 @@ describe('Peer discovery', () => {
 			ackTimeout: 200,
 			seedPeers: [
 				{
-					id: '127.0.0.1:5000',
-					ipAddress: '127.0.0.1',
-					sharedState: {
-						wsPort: 5000,
-						advertiseAddress: true,
-					},
+					ip: '127.0.0.1',
+					wsPort: 5000,
 				},
 			],
 			wsEngine: 'ws',

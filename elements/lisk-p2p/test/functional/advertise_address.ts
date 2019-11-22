@@ -21,7 +21,6 @@ import {
 	sharedStateConstants,
 } from '../utils/network_setup';
 import { wait } from '../utils/helpers';
-import { constructPeerId } from '../../src/utils';
 
 describe('Advertise Address', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -31,12 +30,8 @@ describe('Advertise Address', () => {
 		ackTimeout: 200,
 		seedPeers: [
 			{
-				id: constructPeerId('127.0.0.1', 5003),
-				ipAddress: '127.0.0.1',
-				sharedState: {
-					wsPort: 5003,
-					advertiseAddress: true,
-				},
+				ip: '127.0.0.1',
+				wsPort: 5003,
 			},
 		],
 		wsEngine: 'ws',

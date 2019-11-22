@@ -19,7 +19,6 @@ import {
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 } from '../../src';
-import { constructPeerId } from '../../src/utils';
 
 export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
@@ -69,12 +68,8 @@ export const createNetwork = async ({
 				? []
 				: [
 						{
-							id: constructPeerId(SEED_PEER_IP, NETWORK_START_PORT + index - 1),
-							ipAddress: SEED_PEER_IP,
-							sharedState: {
-								wsPort: NETWORK_START_PORT + index - 1,
-								advertiseAddress: true,
-							},
+							ip: SEED_PEER_IP,
+							wsPort: NETWORK_START_PORT + index - 1,
 						},
 				  ];
 

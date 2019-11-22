@@ -16,7 +16,6 @@ import { expect } from 'chai';
 import { P2P, EVENT_CLOSE_OUTBOUND, EVICTED_PEER_CODE } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
-import { constructPeerId } from '../../src/utils';
 
 describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -31,17 +30,10 @@ describe('Outbound peer shuffling', () => {
 		) =>
 			[...new Array(networkSize / 2).keys()]
 				.map(index => ({
-					id: constructPeerId(
-						'127.0.0.1',
-						startPort + ((index + 2) % networkSize),
-					),
-					ipAddress: '127.0.0.1',
-					sharedState: {
-						wsPort: startPort + ((index + 2) % networkSize), // Choose alternate peers for connection so that a node has available peers to make outbound connections
-						advertiseAddress: true,
-					},
+					ip: '127.0.0.1',
+					wsPort: startPort + ((index + 2) % networkSize), // Choose alternate peers for connection so that a node has available peers to make outbound connections
 				}))
-				.filter(seedPeer => seedPeer.sharedState.wsPort !== startPort + index); // Avoid adding yourself
+				.filter(seedPeer => seedPeer.wsPort !== startPort + index); // Avoid adding yourself
 
 		const customConfig = (
 			_index: number,

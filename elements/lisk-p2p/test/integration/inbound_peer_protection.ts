@@ -16,7 +16,6 @@ import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { InboundPeer } from '../../src/peer';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
-import { constructPeerId } from '../../src/utils';
 
 describe('Peer inbound eviction for connection time', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -28,15 +27,8 @@ describe('Peer inbound eviction for connection time', () => {
 			networkSize: number,
 		) => [
 			{
-				id: constructPeerId(
-					'127.0.0.1',
-					networkStartPort + ((index - 1 + networkSize) % networkSize),
-				),
-				ipAddress: '127.0.0.1',
-				sharedState: {
-					wsPort: networkStartPort + ((index - 1 + networkSize) % networkSize),
-					advertiseAddress: true,
-				},
+				ip: '127.0.0.1',
+				wsPort: networkStartPort + ((index - 1 + networkSize) % networkSize),
 			},
 		];
 

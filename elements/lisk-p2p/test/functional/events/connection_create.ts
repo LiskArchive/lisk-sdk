@@ -31,7 +31,6 @@ import {
 	SEED_PEER_IP,
 	NETWORK_START_PORT,
 } from '../../utils/network_setup';
-import { constructPeerId } from '../../../src/utils';
 
 describe(`Connection Create`, () => {
 	describe(`Events`, () => {
@@ -142,11 +141,8 @@ describe(`Connection Create`, () => {
 				sharedState: customSharedState(index),
 				seedPeers: [
 					{
-						id: constructPeerId(SEED_PEER_IP, NETWORK_START_PORT),
-						ipAddress: SEED_PEER_IP,
-						sharedState: {
-							wsPort: NETWORK_START_PORT,
-						},
+						ip: SEED_PEER_IP,
+						wsPort: NETWORK_START_PORT,
 					},
 				],
 			});

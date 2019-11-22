@@ -12,65 +12,89 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { PeerLists } from '../p2p_types';
+import {
+	P2PPeerInfo,
+	PeerFromConfig,
+	PeerLists,
+	PeerListsFromConfig,
+} from '../p2p_types';
+
+const sanitizePeerFromConfig = (
+	peerFromConfig: PeerFromConfig,
+): P2PPeerInfo => ({
+	id: `${peerFromConfig.ip}:${peerFromConfig.wsPort}`,
+	ipAddress: peerFromConfig.ip,
+	sharedState: {
+		wsPort: peerFromConfig.wsPort,
+		advertiseAddress: true,
+	},
+});
 
 export const sanitizePeerLists = (
-	peerLists: PeerLists,
+	peerListsFromConfig: PeerListsFromConfig,
 	nodeIpAddress: string,
 ): PeerLists => {
-	const blacklistedIPs = peerLists.blacklistedIPs.filter(ipAddress => {
-		if (ipAddress === nodeIpAddress) {
-			return false;
-		}
+	const blacklistedIPs = peerListsFromConfig.blacklistedIPs.filter(
+		ipAddress => {
+			if (ipAddress === nodeIpAddress) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		},
+	);
 
-	const seeds = peerLists.seeds.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeIpAddress) {
-			return false;
-		}
+	const seeds = peerListsFromConfig.seeds
+		.map(sanitizePeerFromConfig)
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeIpAddress) {
+				return false;
+			}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
-			return false;
-		}
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		});
 
-	const fixed = peerLists.fixed.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeIpAddress) {
-			return false;
-		}
+	const fixed = peerListsFromConfig.fixed
+		.map(sanitizePeerFromConfig)
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeIpAddress) {
+				return false;
+			}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
-			return false;
-		}
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		});
 
-	const whitelisted = peerLists.whitelisted.filter(peerInfo => {
-		if (peerInfo.ipAddress === nodeIpAddress) {
-			return false;
-		}
+	const whitelisted = peerListsFromConfig.whitelisted
+		.map(sanitizePeerFromConfig)
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeIpAddress) {
+				return false;
+			}
 
-		if (blacklistedIPs.includes(nodeIpAddress)) {
-			return false;
-		}
+			if (blacklistedIPs.includes(nodeIpAddress)) {
+				return false;
+			}
 
-		if (fixed.map(peer => peer.id).includes(peerInfo.id)) {
-			return false;
-		}
+			if (fixed.map(peer => peer.id).includes(peerInfo.id)) {
+				return false;
+			}
 
-		if (seeds.map(peer => peer.id).includes(peerInfo.id)) {
-			return false;
-		}
+			if (seeds.map(peer => peer.id).includes(peerInfo.id)) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		});
 
-	const previous = peerLists.previous.filter(peerInfo => {
+	const previous = peerListsFromConfig.previous.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeIpAddress) {
 			return false;
 		}

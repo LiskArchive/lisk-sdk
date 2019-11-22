@@ -133,23 +133,15 @@ module.exports = class Network {
 
 		const fixedPeers = this.options.fixedPeers
 			? this.options.fixedPeers.map(peer => ({
-					id: `${peer.ip}:${peer.wsPort}`,
-					ipAddress: peer.ip,
-					sharedState: {
-						wsPort: peer.wsPort,
-						advertiseAddress: true,
-					},
+					ip: peer.ip,
+					wsPort: peer.wsPort,
 			  }))
 			: [];
 
 		const whitelistedPeers = this.options.whitelistedPeers
 			? this.options.whitelistedPeers.map(peer => ({
-					id: `${peer.ip}:${peer.wsPort}`,
-					ipAddress: peer.ip,
-					sharedState: {
-						wsPort: peer.wsPort,
-						advertiseAddress: true,
-					},
+					ip: peer.ip,
+					wsPort: peer.wsPort,
 			  }))
 			: [];
 
@@ -160,12 +152,8 @@ module.exports = class Network {
 			fixedPeers,
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
-				id: `${peer.ip}:${peer.wsPort}`,
-				ipAddress: peer.ip,
-				sharedState: {
-					wsPort: peer.wsPort,
-					advertiseAddress: true,
-				},
+				ip: peer.ip,
+				wsPort: peer.wsPort,
 			})),
 			previousPeers,
 			discoveryInterval: this.options.discoveryInterval,

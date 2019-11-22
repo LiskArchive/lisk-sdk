@@ -79,9 +79,9 @@ export interface P2PPeerInfo extends P2PBasicPeerInfo {
 export interface P2PConfig {
 	readonly sharedState: P2PSharedState;
 	readonly blacklistedIPs?: ReadonlyArray<string>;
-	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
-	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers?: ReadonlyArray<PeerFromConfig>;
+	readonly fixedPeers?: ReadonlyArray<PeerFromConfig>;
+	readonly whitelistedPeers?: ReadonlyArray<PeerFromConfig>;
 	readonly previousPeers?: ReadonlyArray<P2PPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
@@ -158,5 +158,18 @@ export interface PeerLists {
 	readonly seeds: ReadonlyArray<P2PPeerInfo>;
 	readonly fixed: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
+	readonly previous: ReadonlyArray<P2PPeerInfo>;
+}
+
+export interface PeerFromConfig {
+	readonly ip: string;
+	readonly wsPort: number;
+}
+
+export interface PeerListsFromConfig {
+	readonly blacklistedIPs: ReadonlyArray<string>;
+	readonly seeds: ReadonlyArray<PeerFromConfig>;
+	readonly fixed: ReadonlyArray<PeerFromConfig>;
+	readonly whitelisted: ReadonlyArray<PeerFromConfig>;
 	readonly previous: ReadonlyArray<P2PPeerInfo>;
 }

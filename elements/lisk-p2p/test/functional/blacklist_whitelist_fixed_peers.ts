@@ -18,7 +18,6 @@ import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
-import { constructPeerId } from '../../src/utils';
 
 describe('blacklistedIPs/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
@@ -59,6 +58,12 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 	describe('blacklistedIPs', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const blacklistedIPs = ['127.0.0.15'];
+		const blacklistedPeers = [
+			{
+				ip: '127.0.0.15',
+				wsPort: NETWORK_START_PORT + 5,
+			},
+		];
 		const previousPeersBlacklisted = [
 			{
 				id: `127.0.0.15:${NETWORK_START_PORT + 5}`,
@@ -81,19 +86,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => [
 				{
-					id: constructPeerId(
-						'127.0.0.' + (((index + 1) % networkSize) + 10),
-						startPort + ((index + 1) % networkSize),
-					),
-					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
-					sharedState: {
-						wsPort: startPort + ((index + 1) % networkSize),
-						advertiseAddress: true,
-						height: 10,
-						version: '1.0',
-						protocolVersion: '1.0',
-						number: undefined,
-					},
+					ip: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
 				},
 			];
 
@@ -108,8 +102,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				blacklistedIPs,
-				fixedPeers: previousPeersBlacklisted,
-				whitelistedPeers: previousPeersBlacklisted,
+				fixedPeers: blacklistedPeers,
+				whitelistedPeers: blacklistedPeers,
 				previousPeers: previousPeersBlacklisted,
 			});
 
@@ -160,12 +154,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 
 		const fixedPeers = [
 			{
-				id: constructPeerId('127.0.0.10', NETWORK_START_PORT),
-				ipAddress: '127.0.0.10',
-				sharedState: {
-					wsPort: NETWORK_START_PORT,
-					advertiseAddress: true,
-				},
+				ip: '127.0.0.10',
+				wsPort: NETWORK_START_PORT,
 			},
 		];
 		beforeEach(async () => {
@@ -175,15 +165,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => [
 				{
-					peerId: constructPeerId(
-						'127.0.0.' + (((index + 1) % networkSize) + 10),
-						startPort + ((index + 1) % networkSize),
-					),
-					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
-					sharedState: {
-						wsPort: startPort + ((index + 1) % networkSize),
-						advertiseAddress: true,
-					},
+					ip: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
 				},
 			];
 
@@ -213,12 +196,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				if (index != 0) {
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
-							id: peer.id,
-							ipAddress: peer.ipAddress,
-							sharedState: {
-								wsPort: peer.sharedState.wsPort,
-								advertiseAddress: true,
-							},
+							ip: peer.ipAddress,
+							wsPort: peer.sharedState.wsPort,
 						};
 					});
 					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
@@ -232,12 +211,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 
 		const whitelistedPeers = [
 			{
-				id: `127.0.0.10:${NETWORK_START_PORT}`,
-				ipAddress: '127.0.0.10',
-				sharedState: {
-					wsPort: NETWORK_START_PORT,
-					advertiseAddress: true,
-				},
+				ip: '127.0.0.10',
+				wsPort: NETWORK_START_PORT,
 			},
 		];
 		beforeEach(async () => {
@@ -247,15 +222,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 				networkSize: number,
 			) => [
 				{
-					peerId: constructPeerId(
-						'127.0.0.' + (((index + 1) % networkSize) + 10),
-						startPort + ((index + 1) % networkSize),
-					),
-					ipAddress: '127.0.0.' + (((index + 1) % networkSize) + 10),
-					sharedState: {
-						wsPort: startPort + ((index + 1) % networkSize),
-						advertiseAddress: true,
-					},
+					ip: '127.0.0.' + (((index + 1) % networkSize) + 10),
+					wsPort: startPort + ((index + 1) % networkSize),
 				},
 			];
 
@@ -286,12 +254,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					const triedPeers = p2p['_peerBook'].triedPeers;
 					const triedPeersIPWS = triedPeers.map(peer => {
 						return {
-							id: peer.id,
-							ipAddress: peer.ipAddress,
-							sharedState: {
-								wsPort: peer.sharedState.wsPort,
-								advertiseAddress: true,
-							},
+							ip: peer.ipAddress,
+							wsPort: peer.sharedState.wsPort,
 						};
 					});
 					expect(triedPeersIPWS).to.deep.include.members(whitelistedPeers);
@@ -301,9 +265,7 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 
 		it('should not be possible to ban them', async () => {
 			const peerPenalty = {
-				peerId: `${whitelistedPeers[0].ipAddress}:${
-					whitelistedPeers[0].sharedState.wsPort
-				}`,
+				peerId: `${whitelistedPeers[0].ip}:${whitelistedPeers[0].wsPort}`,
 				penalty: 100,
 			};
 
@@ -312,12 +274,8 @@ describe('blacklistedIPs/fixed/whitelisted peers', () => {
 					p2p.applyPenalty(peerPenalty);
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
-							id: peer.id,
-							ipAddress: peer.ipAddress,
-							sharedState: {
-								wsPort: peer.sharedState.wsPort,
-								advertiseAddress: true,
-							},
+							ip: peer.ipAddress,
+							wsPort: peer.sharedState.wsPort,
 						};
 					});
 					expect(connectedPeersIPWS).to.deep.include.members(whitelistedPeers);
