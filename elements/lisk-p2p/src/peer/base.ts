@@ -107,7 +107,6 @@ export interface PeerConfig {
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
 	readonly serverNodeInfo?: P2PNodeInfo;
-	readonly sourceAddress?: string;
 }
 
 export class Peer extends EventEmitter {

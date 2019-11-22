@@ -68,19 +68,17 @@ export class BaseList {
 			secret,
 		};
 		this.bucketIdToBucket = new Map();
-		this.initPeerList(this.bucketIdToBucket);
+		this.initBuckets(this.bucketIdToBucket);
 
 		this.peerIdToPeerLookup = new Map();
 	}
 
-	public initPeerList(
-		bucketToPeerListMap: Map<number, Map<string, P2PEnhancedPeerInfo>>,
-	): void {
+	public initBuckets(bucketIdToBucket: Map<number, Bucket>): void {
 		// Init the Map with all the buckets
 		for (const bucketId of [
 			...new Array(this.peerListConfig.peerBucketCount).keys(),
 		]) {
-			bucketToPeerListMap.set(bucketId, new Map<string, P2PEnhancedPeerInfo>());
+			bucketIdToBucket.set(bucketId, new Map<string, P2PEnhancedPeerInfo>());
 		}
 	}
 
