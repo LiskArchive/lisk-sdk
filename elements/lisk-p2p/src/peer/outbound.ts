@@ -32,8 +32,8 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import {
-	P2PEnhancedPeerInfo,
 	P2PMessagePacket,
+	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
@@ -60,12 +60,9 @@ interface ClientOptionsUpdated {
 export class OutboundPeer extends Peer {
 	protected _socket: SCClientSocket | undefined;
 
-	public constructor(peerInfo: P2PEnhancedPeerInfo, peerConfig: PeerConfig) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super(peerInfo, peerConfig);
-		this._peerInfo = { 
-			sourceAddress: peerConfig.sourceAddress,
-			...peerInfo,
-		}	
+		this._peerInfo = peerInfo;
 	}
 
 	public set socket(scClientSocket: SCClientSocket) {

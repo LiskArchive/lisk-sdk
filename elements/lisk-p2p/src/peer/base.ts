@@ -438,16 +438,10 @@ export class Peer extends EventEmitter {
 	public async discoverPeers(): Promise<ReadonlyArray<P2PEnhancedPeerInfo>> {
 		const discoveredPeerInfoList = await this.fetchPeers();
 		discoveredPeerInfoList.forEach(peerInfo => {
-			this.emit(EVENT_DISCOVERED_PEER, {
-				sourceAddress: this.peerInfo.ipAddress,
-				...peerInfo,
-			});
+			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		});
 
-		return discoveredPeerInfoList.map(peerInfo => ({
-			...peerInfo,
-			sourceAddress: peerInfo.sourceAddress,
-		}));
+		return discoveredPeerInfoList;
 	}
 
 	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {
