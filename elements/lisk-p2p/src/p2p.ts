@@ -210,16 +210,12 @@ export class P2P extends EventEmitter {
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
-	private readonly _handleDiscoveredPeer: (
-		peerInfo: P2PEnhancedPeerInfo,
-	) => void;
+	private readonly _handleDiscoveredPeer: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToSendMessage: (error: Error) => void;
-	private readonly _handleOutboundPeerConnect: (
-		peerInfo: P2PEnhancedPeerInfo,
-	) => void;
+	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleOutboundPeerConnectAbort: (
-		peerInfo: P2PEnhancedPeerInfo,
+		peerInfo: P2PPeerInfo,
 	) => void;
 	private readonly _handlePeerCloseOutbound: (
 		closePacket: P2PClosePacket,
@@ -228,9 +224,7 @@ export class P2P extends EventEmitter {
 		closePacket: P2PClosePacket,
 	) => void;
 	private readonly _handleRemovePeer: (peerId: string) => void;
-	private readonly _handlePeerInfoUpdate: (
-		peerInfo: P2PPeerInfo,
-	) => void;
+	private readonly _handlePeerInfoUpdate: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeers: (error: Error) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
@@ -332,9 +326,7 @@ export class P2P extends EventEmitter {
 			}
 		};
 
-		this._handleOutboundPeerConnectAbort = (
-			peerInfo: P2PPeerInfo,
-		) => {
+		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 				peer => peer.peerId === peerInfo.peerId,
 			);
@@ -443,7 +435,7 @@ export class P2P extends EventEmitter {
 		};
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
-		this._handleDiscoveredPeer = (detailedPeerInfo: P2PEnhancedPeerInfo) => {
+		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			// Check blacklist to avoid incoming connections from backlisted ips
 			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
@@ -572,7 +564,7 @@ export class P2P extends EventEmitter {
 			ipAddress: peer.ipAddress,
 			wsPort: peer.wsPort,
 		}));
-	};
+	}
 
 	// Make sure you always share shared peer state to a user
 	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {

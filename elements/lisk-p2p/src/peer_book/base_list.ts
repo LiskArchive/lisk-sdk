@@ -48,7 +48,7 @@ const removeInternalFields = (peerInfo: P2PEnhancedPeerInfo): P2PPeerInfo => {
 
 // Base list class is covering a basic peer list that has all the functionality to handle buckets with default eviction strategy
 export class BaseList {
-	protected bucketToPeerListMap: Map<number, Bucket>;
+	protected bucketIdToBucket: Map<number, Bucket>;
 	/*
 		Auxilliary map for peerInfo lookups
 	*/
@@ -67,8 +67,8 @@ export class BaseList {
 			peerType,
 			secret,
 		};
-		this.bucketToPeerListMap = new Map();
-		this.initPeerList(this.bucketToPeerListMap);
+		this.bucketIdToBucket = new Map();
+		this.initPeerList(this.bucketIdToBucket);
 
 		this.peerIdToPeerLookup = new Map();
 	}
@@ -87,7 +87,7 @@ export class BaseList {
 	public get peerList(): ReadonlyArray<P2PPeerInfo> {
 		const peerListMap: P2PPeerInfo[] = [];
 
-		for (const peerList of [...this.bucketToPeerListMap.values()]) {
+		for (const peerList of [...this.bucketIdToBucket.values()]) {
 			for (const peer of [...peerList.values()]) {
 				/*
 					Remove internal fields before sharing
@@ -111,7 +111,7 @@ export class BaseList {
 			bucketCount: this.peerListConfig.peerBucketCount,
 		});
 
-		return this.bucketToPeerListMap.get(bucketId) as Bucket;
+		return this.bucketIdToBucket.get(bucketId) as Bucket;
 	}
 
 	public getPeer(incomingPeerInfo: P2PPeerInfo): P2PPeerInfo | undefined {

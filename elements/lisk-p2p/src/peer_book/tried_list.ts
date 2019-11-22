@@ -42,7 +42,7 @@ export class TriedList extends BaseList {
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 
-		this.initPeerList(this.bucketToPeerListMap);
+		this.initPeerList(this.bucketIdToBucket);
 	}
 
 	// Override init peer info

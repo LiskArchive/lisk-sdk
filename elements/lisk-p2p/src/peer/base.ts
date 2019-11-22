@@ -129,7 +129,7 @@ export class Peer extends EventEmitter {
 	private _messageCounter: Map<string, number>;
 	private _messageRates: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
-	protected _peerInfo: P2PEnhancedPeerInfo;
+	protected _peerInfo: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
@@ -414,7 +414,10 @@ export class Peer extends EventEmitter {
 				this._peerConfig.maxPeerInfoSize,
 			);
 
-			return validatedPeers.map(peerInfo => ({ ...peerInfo, sourceAddress: this._ipAddress }))
+			return validatedPeers.map(peerInfo => ({
+				...peerInfo,
+				sourceAddress: this._ipAddress,
+			}));
 		} catch (error) {
 			if (
 				error instanceof InvalidPeerInfoError ||
@@ -441,7 +444,10 @@ export class Peer extends EventEmitter {
 			});
 		});
 
-		return discoveredPeerInfoList.map(peerInfo => ({...peerInfo, sourceAddress: peerInfo.sourceAddress }));
+		return discoveredPeerInfoList.map(peerInfo => ({
+			...peerInfo,
+			sourceAddress: peerInfo.sourceAddress,
+		}));
 	}
 
 	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {
