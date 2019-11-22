@@ -54,7 +54,7 @@ describe('storage.entities.RoundDelegates.get', () => {
 					[round, JSON.stringify(delegatePublicKeys)],
 				);
 				records.push({
-					round,
+					round: parseInt(round, 10),
 					delegatePublicKeys,
 				});
 			}

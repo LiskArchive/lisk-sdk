@@ -13,7 +13,7 @@
  */
 
 SELECT
-	"round"::bigint,
+	"round"::int,
 	"delegatePublicKeys"::json
 FROM "round_delegates"
 
