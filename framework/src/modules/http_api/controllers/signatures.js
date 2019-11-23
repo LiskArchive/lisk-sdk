@@ -48,7 +48,7 @@ SignaturesController.postSignature = async function(context, next) {
 	try {
 		const data = await channel.invoke('chain:postSignature', { signature });
 
-		if (data.success) {
+		if (!data.errors) {
 			return next(null, {
 				data: { message: 'Signature Accepted' },
 				meta: { status: true },

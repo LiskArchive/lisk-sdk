@@ -14,8 +14,8 @@
  */
 import { expect } from 'chai';
 import {
-	initializePeerInfoList,
-	initializePeerInfoListWithSuffix,
+	initPeerInfoList,
+	initPeerInfoListWithSuffix,
 } from '../../utils/peers';
 import {
 	selectPeersForConnection,
@@ -23,59 +23,26 @@ import {
 	selectPeersForSend,
 } from '../../../src/utils/select';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
+import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
-	describe('#selectPeersForSend', () => {
-		let peerList = initializePeerInfoListWithSuffix('111.112.113', 120);
+	const nodeInfo: P2PNodeInfo = {
+		height: 545777,
+		nethash: '73458irc3yb7rg37r7326dbt7236',
+		os: 'linux',
+		version: '1.1.1',
+		protocolVersion: '1.1',
+		wsPort: 5000,
+		nonce: 'nonce',
+		advertiseAddress: true,
+	};
 
-		const nodeInfo: P2PNodeInfo = {
-			height: 545777,
-			nethash: '73458irc3yb7rg37r7326dbt7236',
-			os: 'linux',
-			version: '1.1.1',
-			protocolVersion: '1.1',
-			wsPort: 5000,
-		};
-
-		it('should return an array containing an even number of inbound and outbound peers', () => {
-			const selectedPeers = selectPeersForSend({
-				peers: peerList,
-				nodeInfo,
-				peerLimit: 24,
-				messagePacket: { event: 'foo', data: {} },
-			});
-
-			let peerKindCounts = selectedPeers.reduce(
-				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
-					const kind = peerInfo.kind as string;
-					if (!peerKindTracker[kind]) {
-						peerKindTracker[kind] = 0;
-					}
-					peerKindTracker[kind]++;
-					return peerKindTracker;
-				},
-				{},
-			);
-
-			expect(peerKindCounts.inbound)
-				.to.equal(peerKindCounts.outbound)
-				.to.equal(12);
-		});
-	});
 	describe('#selectPeersForRequest', () => {
-		let peerList = initializePeerInfoList();
-		const nodeInfo: P2PNodeInfo = {
-			height: 545777,
-			nethash: '73458irc3yb7rg37r7326dbt7236',
-			os: 'linux',
-			version: '1.1.1',
-			protocolVersion: '1.1',
-			wsPort: 5000,
-		};
+		let peerList = initPeerInfoList();
 
 		describe('get a list of n number of good peers', () => {
 			beforeEach(async () => {
-				peerList = initializePeerInfoList();
+				peerList = initPeerInfoList();
 			});
 
 			it('should return an array without optional arguments', () =>
@@ -172,10 +139,12 @@ describe('peer selector', () => {
 
 		describe('peers with lower blockheight', () => {
 			beforeEach(async () => {
-				peerList = initializePeerInfoList();
+				peerList = initPeerInfoList();
 			});
 			const lowHeightPeers = peerList.filter(
-				peer => peer.height < nodeInfo.height,
+				peer =>
+					peer.sharedState &&
+					(peer.sharedState.height as number) < (nodeInfo.height as number),
 			);
 
 			it('should return an array with 1 good peer', () => {
@@ -194,11 +163,38 @@ describe('peer selector', () => {
 	});
 
 	describe('#selectPeersForSend', () => {
-		it('should check all cases');
+		let peerList = initPeerInfoListWithSuffix('111.112.113', 120);
+
+		it('should return an array containing an even number of inbound and outbound peers', () => {
+			const selectedPeers = selectPeersForSend({
+				peers: peerList,
+				nodeInfo,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
+				messagePacket: { event: 'foo', data: {} },
+			});
+
+			let peerKindCounts = selectedPeers.reduce(
+				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
+					const kind = peerInfo.internalState
+						? (peerInfo.internalState.connectionKind as string)
+						: '';
+					if (!peerKindTracker[kind]) {
+						peerKindTracker[kind] = 0;
+					}
+					peerKindTracker[kind]++;
+					return peerKindTracker;
+				},
+				{},
+			);
+
+			expect(peerKindCounts.inbound)
+				.to.equal(peerKindCounts.outbound)
+				.to.equal(DEFAULT_SEND_PEER_LIMIT / 2);
+		});
 	});
 
 	describe('#selectPeersForConnection', () => {
-		const peerList = initializePeerInfoList();
+		const peerList = initPeerInfoList();
 		const numberOfPeers = peerList.length;
 
 		describe('when there are no peers', () => {
@@ -352,6 +348,52 @@ describe('peer selector', () => {
 					.to.be.an('array')
 					.of.length(3);
 				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are multiple peer from same IP with different height', () => {
+			it('should return only unique IPs', () => {
+				let uniqIpAddresses: Array<string> = [];
+
+				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${10001 + i}`,
+					ipAddress: '205.120.0.20',
+					wsPort: 10001 + i,
+					sharedState: {
+						height: 10001 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
+
+				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
+					peerId: `205.120.0.20:${5000 + i}`,
+					ipAddress: '205.120.0.20',
+					wsPort: 5000 + i,
+					sharedState: {
+						height: 5000 + i,
+						isDiscoveredPeer: false,
+						version: '1.1.1',
+						protocolVersion: '1.1',
+					},
+				}));
+
+				triedPeers.push(peerList[0]);
+				newPeers.push(peerList[2]);
+
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 5,
+				});
+
+				selectedPeers.map(peer => uniqIpAddresses.push(peer.ipAddress));
+
+				expect(selectedPeers).to.be.not.empty;
+				expect(selectedPeers.length).to.equal(
+					[...new Set(uniqIpAddresses)].length,
+				);
 			});
 		});
 	});

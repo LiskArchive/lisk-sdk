@@ -14,8 +14,8 @@
 
 'use strict';
 
-const Peer = require('./peer');
+const NetworkInfo = require('./network_info');
 
 module.exports = {
-	Peer,
+	NetworkInfo,
 };

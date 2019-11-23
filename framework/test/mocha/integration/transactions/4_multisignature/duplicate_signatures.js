@@ -24,6 +24,11 @@ const {
 const accountsFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('duplicate_signatures', () => {
 	let library;
@@ -60,6 +65,7 @@ describe('duplicate_signatures', () => {
 
 		// Create transfer transaction (fund new account)
 		let transaction = transfer({
+			networkIdentifier,
 			recipientId: accounts.multisignature.address,
 			amount: '5000000000',
 			passphrase: accountsFixtures.genesis.passphrase,
@@ -68,6 +74,7 @@ describe('duplicate_signatures', () => {
 
 		// Create multisignature registration transaction
 		transaction = registerMultisignature({
+			networkIdentifier,
 			passphrase: accounts.multisignature.passphrase,
 			keysgroup: [
 				accounts.multisignatureMembers[0].publicKey,
@@ -80,16 +87,18 @@ describe('duplicate_signatures', () => {
 
 		// Create signatures (object)
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[0].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[0].passphrase,
+				networkIdentifier,
+			}),
 		);
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[1].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[1].passphrase,
+				networkIdentifier,
+			}),
 		);
 
 		return [transactions, signatures, accounts];
@@ -104,6 +113,7 @@ describe('duplicate_signatures', () => {
 
 		// Create transfer transaction (fund new account)
 		const transaction = transfer({
+			networkIdentifier,
 			recipientId: accounts.random.address,
 			amount: '100000000',
 			passphrase: accounts.multisignature.passphrase,
@@ -112,16 +122,18 @@ describe('duplicate_signatures', () => {
 
 		// Create signatures (object)
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[0].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[0].passphrase,
+				networkIdentifier,
+			}),
 		);
 		signatures.push(
-			createSignatureObject(
+			createSignatureObject({
 				transaction,
-				accounts.multisignatureMembers[1].passphrase,
-			),
+				passphrase: accounts.multisignatureMembers[1].passphrase,
+				networkIdentifier,
+			}),
 		);
 
 		return [transactions, signatures];
@@ -368,47 +380,30 @@ describe('duplicate_signatures', () => {
 					);
 				});
 
-				it('should reject duplicated signature', done => {
-					// Make node receive 3 signatures in parallel (1 duplicated)
-					async.parallel(
-						async.reflectAll([
-							parallelCb => {
-								library.modules.transactionPool
-									.getTransactionAndProcessSignature(signatures[0])
-									.then(() => parallelCb())
-									.catch(err => parallelCb(err));
-							},
-							parallelCb => {
-								library.modules.transactionPool
-									.getTransactionAndProcessSignature(signatures[0])
-									.then(() => parallelCb())
-									.catch(err => parallelCb(err));
-							},
-							parallelCb => {
-								library.modules.transactionPool
-									.getTransactionAndProcessSignature(signatures[1])
-									.then(() => parallelCb())
-									.catch(err => parallelCb(err));
-							},
-						]),
-						(err, results) => {
-							// There should be an error from processing only for duplicated signature
-							expect(results[0].value).to.be.undefined;
-							expect(results[1].error[0].message).to.eql(
-								'Encountered duplicate signature in transaction',
-							);
-							expect(results[2].value).to.be.undefined;
+				it('should reject duplicated signature', async () => {
+					try {
+						await Promise.all([
+							library.modules.transactionPool.getTransactionAndProcessSignature(
+								signatures[0],
+							),
+							library.modules.transactionPool.getTransactionAndProcessSignature(
+								signatures[1],
+							),
+							library.modules.transactionPool.getTransactionAndProcessSignature(
+								signatures[0],
+							),
+						]);
+					} catch (errors) {
+						expect(errors[0].message).to.eql(
+							'Encountered duplicate signature in transaction',
+						);
+						const transaction = transactionPool.getMultisignatureTransaction(
+							transactions.multisignature.id,
+						);
 
-							// Get transaction from pool
-							const transaction = transactionPool.getMultisignatureTransaction(
-								transactions.multisignature.id,
-							);
-
-							// There should be 2 signatures
-							expect(transaction.signatures).to.have.lengthOf(2);
-							done();
-						},
-					);
+						// There should be 2 signatures
+						expect(transaction.signatures).to.have.lengthOf(2);
+					}
 				});
 
 				it('should forge a block', async () => {

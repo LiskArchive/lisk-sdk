@@ -16,7 +16,7 @@
 
 const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
-const { migrations } = require('./migrations');
+const { migrations } = require('./components');
 const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */
@@ -67,6 +67,11 @@ class ChainModule extends BaseModule {
 			'delegates:fork',
 			'loader:sync',
 			'dapps:change',
+			'rebuild',
+			'processor:sync',
+			'processor:deleteBlock',
+			'processor:broadcast',
+			'processor:newBlock',
 		];
 	}
 
@@ -81,8 +86,9 @@ class ChainModule extends BaseModule {
 			calculateReward: {
 				handler: action => this.chain.actions.calculateReward(action),
 			},
-			generateDelegateList: {
-				handler: action => this.chain.actions.generateDelegateList(action),
+			getForgerPublicKeysForRound: {
+				handler: action =>
+					this.chain.actions.getForgerPublicKeysForRound(action),
 			},
 			updateForgingStatus: {
 				handler: async action => this.chain.actions.updateForgingStatus(action),
@@ -99,7 +105,7 @@ class ChainModule extends BaseModule {
 					this.chain.actions.getTransactionsFromPool(action),
 			},
 			getTransactions: {
-				handler: async () => this.chain.actions.getTransactions(),
+				handler: async action => this.chain.actions.getTransactions(action),
 				isPublic: true,
 			},
 			getSignatures: {
@@ -108,10 +114,6 @@ class ChainModule extends BaseModule {
 			},
 			postTransaction: {
 				handler: async action => this.chain.actions.postTransaction(action),
-			},
-			getDelegateBlocksRewards: {
-				handler: async action =>
-					this.chain.actions.getDelegateBlocksRewards(action),
 			},
 			getSlotNumber: {
 				handler: async action => this.chain.actions.getSlotNumber(action),
@@ -124,13 +126,15 @@ class ChainModule extends BaseModule {
 			},
 			getLastBlock: {
 				handler: async () => this.chain.actions.getLastBlock(),
-			},
-			blocks: {
-				handler: async action => this.chain.actions.blocks(action),
 				isPublic: true,
 			},
-			blocksCommon: {
-				handler: async action => this.chain.actions.blocksCommon(action),
+			getBlocksFromId: {
+				handler: async action => this.chain.actions.getBlocksFromId(action),
+				isPublic: true,
+			},
+			getHighestCommonBlock: {
+				handler: async action =>
+					this.chain.actions.getHighestCommonBlock(action),
 				isPublic: true,
 			},
 		};

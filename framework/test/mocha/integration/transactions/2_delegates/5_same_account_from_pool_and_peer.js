@@ -19,6 +19,11 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 // eslint-disable-next-line
@@ -35,7 +40,6 @@ describe('delegate', () => {
 		storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(async () => {
 			library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
@@ -49,6 +53,7 @@ describe('delegate', () => {
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
 			const sendTransaction = transfer({
+				networkIdentifier,
 				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
@@ -60,43 +65,51 @@ describe('delegate', () => {
 			let delegateTransaction;
 			let username;
 
-			beforeEach(done => {
+			beforeEach(async () => {
 				username = randomUtil.username().toLowerCase();
 
 				delegateTransaction = registerDelegate({
+					networkIdentifier,
 					passphrase: delegateAccount.passphrase,
 					username,
 				});
-				localCommon.addTransactionToUnconfirmedQueue(
-					library,
-					delegateTransaction,
-					async () => {
-						done();
-					},
-				);
+				await new Promise((resolve, reject) => {
+					localCommon.addTransactionToUnconfirmedQueue(
+						library,
+						delegateTransaction,
+						err => {
+							if (err) {
+								return reject(err);
+							}
+							return resolve();
+						},
+					);
+				});
 			});
 
 			describe('when receiving block with same transaction', () => {
-				beforeEach(done => {
-					localCommon.createValidBlock(
-						library,
-						[delegateTransaction],
-						(err, block) => {
-							expect(err).to.not.exist;
-							library.modules.blocks.receiveBlockFromNetwork(block);
-							done();
-						},
-					);
+				beforeEach(async () => {
+					const block = await new Promise((resolve, reject) => {
+						localCommon.createValidBlock(
+							library,
+							[delegateTransaction],
+							(err, res) => {
+								if (err) {
+									return reject(err);
+								}
+								return resolve(res);
+							},
+						);
+					});
+					await library.modules.processor.process(block);
 				});
 
 				describe('confirmed state', () => {
 					it('should update confirmed columns related to delegate', async () => {
-						const account = await library.sequence.add(async () => {
-							return localCommon.getAccountFromDb(
-								library,
-								delegateAccount.address,
-							);
-						});
+						const account = await localCommon.getAccountFromDb(
+							library,
+							delegateAccount.address,
+						);
 						expect(account).to.exist;
 						expect(account.mem_accounts.username).to.equal(username);
 						expect(account.mem_accounts.isDelegate).to.equal(1);
@@ -108,31 +121,34 @@ describe('delegate', () => {
 				let delegateTransaction2;
 				let username2;
 
-				beforeEach(done => {
+				beforeEach(async () => {
 					username2 = randomUtil.username().toLowerCase();
 					delegateTransaction2 = registerDelegate({
+						networkIdentifier,
 						passphrase: delegateAccount.passphrase,
 						username: username2,
 					});
-					localCommon.createValidBlock(
-						library,
-						[delegateTransaction2],
-						(err, block) => {
-							expect(err).to.not.exist;
-							library.modules.blocks.receiveBlockFromNetwork(block);
-							done();
-						},
-					);
+					const block = await new Promise((resolve, reject) => {
+						localCommon.createValidBlock(
+							library,
+							[delegateTransaction2],
+							(err, res) => {
+								if (err) {
+									return reject(err);
+								}
+								return resolve(res);
+							},
+						);
+					});
+					await library.modules.processor.process(block);
 				});
 
 				describe('confirmed state', () => {
 					it('should update confirmed columns related to delegate', async () => {
-						const account = await library.sequence.add(async () => {
-							return localCommon.getAccountFromDb(
-								library,
-								delegateAccount.address,
-							);
-						});
+						const account = await localCommon.getAccountFromDb(
+							library,
+							delegateAccount.address,
+						);
 						expect(account).to.exist;
 						expect(account.mem_accounts.username).to.equal(username2);
 						expect(account.mem_accounts.isDelegate).to.equal(1);

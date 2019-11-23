@@ -30,8 +30,6 @@ const BaseEntity = require('./base_entity');
  * @property {Integer} type
  * @property {Number} timestamp
  * @property {string} senderPublicKey
- * @property {string} [recipientPublicKey]
- * @property {string} requesterPublicKey
  * @property {string} senderId
  * @property {string} recipientId
  * @property {string} amount
@@ -39,53 +37,47 @@ const BaseEntity = require('./base_entity');
  * @property {string} signature
  * @property {string} signSignature
  * @property {Array.<string>} signatures
- * @property {json} asset
+ * @property {Object} asset
  */
 
 /**
  * Transfer Transaction
  * @typedef {BasicTransaction} TransferTransaction
- * @property {Object} asset
  * @property {string} asset.data
+ * @property {string} asset.amount
+ * @property {string} asset.recipientId
  */
 
 /**
  * Second Passphrase Transaction
  * @typedef {BasicTransaction} SecondPassphraseTransaction
- * @property {Object} asset
- * @property {Object} asset.signature
- * @property {string} asset.signature.publicKey
+ * @property {string} asset.publicKey
  */
 
 /**
  * Delegate Transaction
  * @typedef {BasicTransaction} DelegateTransaction
  * @property {Object} asset
- * @property {Object} asset.delegate
- * @property {string} asset.delegate.username
+ * @property {string} asset.username
  */
 
 /**
  * Vote Transaction
  * @typedef {BasicTransaction} VoteTransaction
- * @property {Object} asset
  * @property {Array.<string>} asset.votes
  */
 
 /**
  * Multisig Registration Transaction
  * @typedef {BasicTransaction} MultisigRegistrationTransaction
- * @property {Object} asset
- * @property {Object} asset.multisignature
- * @property {Integer} asset.multisignature.min
- * @property {Integer} asset.multisignature.lifetime
- * @property {Array.<string>} asset.multisignature.keysgroup
+ * @property {Integer} asset.min
+ * @property {Integer} asset.lifetime
+ * @property {Array.<string>} asset.keysgroup
  */
 
 /**
  * Dapp Registration Transaction
  * @typedef {BasicTransaction} DappRegistrationTransaction
- * @property {Object} asset
  * @property {Object} asset.dapp
  * @property {Integer} asset.dapp.type
  * @property {string} asset.dapp.name
@@ -160,16 +152,6 @@ const BaseEntity = require('./base_entity');
  * @property {string} [senderPublicKey_ne]
  * @property {Array.<string>} [senderPublicKey_in]
  * @property {string} [senderPublicKey_like]
- * @property {string} [recipientPublicKey]
- * @property {string} [recipientPublicKey_eql]
- * @property {string} [recipientPublicKey_ne]
- * @property {Array.<string>} [recipientPublicKey_in]
- * @property {string} [recipientPublicKey_like]
- * @property {string} [requesterPublicKey]
- * @property {string} [requesterPublicKey_eql]
- * @property {string} [requesterPublicKey_ne]
- * @property {Array.<string>} [requesterPublicKey_in]
- * @property {string} [requesterPublicKey_like]
  * @property {string} [senderId]
  * @property {string} [senderId_eql]
  * @property {string} [senderId_ne]
@@ -248,27 +230,6 @@ class Transaction extends BaseEntity {
 
 		this.addField(
 			'senderPublicKey',
-			'string',
-			{
-				filter: filterTypes.TEXT,
-				format: 'publicKey',
-			},
-			stringToByte,
-		);
-
-		this.addField(
-			'recipientPublicKey',
-			'string',
-			{
-				filter: filterTypes.TEXT,
-				format: 'publicKey',
-				fieldName: 'm.publicKey',
-			},
-			stringToByte,
-		);
-
-		this.addField(
-			'requesterPublicKey',
 			'string',
 			{
 				filter: filterTypes.TEXT,
@@ -502,14 +463,34 @@ class Transaction extends BaseEntity {
 			)
 			.then(resp => {
 				const parseResponse = transaction => {
-					if (parsedOptions.extended) {
-						transaction.asset = transaction.asset ? transaction.asset : {};
-						if (transaction.transferData) {
-							transaction.asset.data =
-								transaction.transferData.toString('utf8') || null;
-						}
-						delete transaction.transferData;
+					transaction.asset = transaction.asset ? transaction.asset : {};
+
+					/**
+					 * Transaction types which still store amount and recipientId outside asset field
+					 *
+					 * Type 0 - TransferTransaction
+					 * Type 3 - VoteTransaction
+					 * Type 6 - InTransferTransaction
+					 * Type 7 - OutTransferTransaction
+					 * Type 8 - TransferTransaction (with networkIdentifier)
+					 *
+					 */
+					const recipientTransactionTypes = [0, 3, 6, 7, 8];
+
+					if (recipientTransactionTypes.includes(transaction.type)) {
+						transaction.asset.amount = transaction.amount;
+						transaction.asset.recipientId = transaction.recipientId;
 					}
+
+					if (transaction.transferData) {
+						transaction.asset.data =
+							transaction.transferData.toString('utf8') || null;
+					}
+
+					delete transaction.transferData;
+					delete transaction.amount;
+					delete transaction.recipientId;
+
 					transaction.signatures = transaction.signatures
 						? transaction.signatures.filter(Boolean)
 						: [];

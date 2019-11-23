@@ -29,6 +29,11 @@ const elements = require('../../../common/utils/elements');
 const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES, ACTIVE_DELEGATES } = global.constants;
 const { NORMALIZER, MAX_VOTES_PER_TRANSACTION } = global.__testContext.config;
@@ -69,26 +74,31 @@ describe('POST /api/transactions (type 3) votes', () => {
 	before(() => {
 		const transactions = [];
 		const transaction1 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: delegateAccount.address,
 		});
 		const transaction2 = transfer({
+			networkIdentifier,
 			amount: FEES.VOTE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		const transaction3 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFixtures.existingDelegate.address,
 		});
 		const transaction4 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerTransaction.address,
 		});
 		const transaction5 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerAccount.address,
@@ -121,6 +131,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					const tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					const transfer1 = transfer({
+						networkIdentifier,
 						amount: FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
@@ -151,6 +162,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					const tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					const transfer2 = transfer({
+						networkIdentifier,
 						amount: FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
@@ -178,6 +190,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				transactionsToWaitFor = [];
 				const delegateRegistration = registerDelegate({
+					networkIdentifier,
 					passphrase: delegateAccount.passphrase,
 					username: delegateAccount.username,
 				});
@@ -191,6 +204,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				const transactionsDelegateMaxForPerTransaction = [];
 				for (let i = 0; i < MAX_VOTES_PER_TRANSACTION; i++) {
 					const delegateRegistration = registerDelegate({
+						networkIdentifier,
 						passphrase: delegatesMaxVotesPerTransaction[i].passphrase,
 						username: delegatesMaxVotesPerTransaction[i].username,
 					});
@@ -218,6 +232,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				const promisesDelegatesMaxVotesPerAccount = [];
 				for (let i = 0; i < ACTIVE_DELEGATES; i++) {
 					const delegateRegistration = registerDelegate({
+						networkIdentifier,
 						passphrase: delegatesMaxVotesPerAccount[i].passphrase,
 						username: delegatesMaxVotesPerAccount[i].username,
 					});
@@ -252,6 +267,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 	describe('transactions processing', () => {
 		it('using invalid publicKey should fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -260,8 +276,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				0,
 				-1,
 			)}`;
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
+				networkIdentifier,
 				delegateAccount.passphrase,
 			);
 
@@ -282,14 +299,16 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using invalid vote length (1 extra character) should fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
 			transaction.asset.votes[0] = `+1${
 				accountFixtures.existingDelegate.publicKey
 			}`;
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
+				networkIdentifier,
 				delegateAccount.passphrase,
 			);
 
@@ -310,12 +329,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using invalid vote operator "x" should fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
 			transaction.asset.votes[0] = transaction.asset.votes[0].replace('+', 'x');
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
+				networkIdentifier,
 				delegateAccount.passphrase,
 			);
 
@@ -336,12 +357,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using no vote operator should fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
 			transaction.asset.votes[0] = transaction.asset.votes[0].replace('+', '');
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
+				networkIdentifier,
 				delegateAccount.passphrase,
 			);
 
@@ -362,12 +385,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using a null publicKey inside votes should fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
 			transaction.asset.votes[0] = null;
-			transaction = elements.redoSignature(
+			transaction = elements.redoVoteTransactionSignature(
 				transaction,
+				networkIdentifier,
 				delegateAccount.passphrase,
 			);
 
@@ -389,6 +414,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		it('upvoting with no funds should fail', async () => {
 			accountNoFunds = randomUtil.account();
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountNoFunds.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -412,6 +438,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('upvoting non delegate should be fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountMinimalFunds.passphrase,
 				votes: [`${accountMinimalFunds.publicKey}`],
 			});
@@ -431,8 +458,31 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
+		it('using network identifier from different network should fail', async () => {
+			const networkIdentifierOtherNetwork =
+				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
+			const transactionFromDifferentNetwork = castVotes({
+				networkIdentifier: networkIdentifierOtherNetwork,
+				passphrase: accountMinimalFunds.passphrase,
+				votes: [`${accountFixtures.existingDelegate.publicKey}`],
+			});
+
+			return sendTransactionPromise(
+				transactionFromDifferentNetwork,
+				apiCodes.PROCESSING_ERROR,
+			).then(res => {
+				expect(res.body.errors[0].message).to.include(
+					`Failed to validate signature ${
+						transactionFromDifferentNetwork.signature
+					}`,
+				);
+				badTransactions.push(transactionFromDifferentNetwork);
+			});
+		});
+
 		it('upvoting with minimal required amount of funds should be ok', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountMinimalFunds.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -445,6 +495,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('downvoting not voted delegate should fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -466,6 +517,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('upvoting with valid params should be ok', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -478,6 +530,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('self upvoting with valid params should be ok', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${delegateAccount.publicKey}`],
 			});
@@ -490,6 +543,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it(`upvoting ${MAX_VOTES_PER_TRANSACTION} delegates (maximum votes per transaction) at once should be ok`, async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerTransaction.passphrase,
 				votes: delegatesMaxVotesPerTransaction.map(delegate => {
 					return `${delegate.publicKey}`;
@@ -505,6 +559,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		it(`upvoting ${MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount
 					.slice(0, MAX_VOTES_PER_TRANSACTION + 1)
@@ -530,24 +585,28 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it(`upvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, async () => {
 			const transaction1 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(0, 33).map(delegate => {
 					return `${delegate.publicKey}`;
 				}),
 			});
 			const transaction2 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(33, 66).map(delegate => {
 					return `${delegate.publicKey}`;
 				}),
 			});
 			const transaction3 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(66, 99).map(delegate => {
 					return `${delegate.publicKey}`;
 				}),
 			});
 			const transaction4 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(99, 102).map(delegate => {
 					return `${delegate.publicKey}`;
@@ -581,6 +640,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 	describe('validation', () => {
 		it('upvoting same delegate twice should fail', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -602,6 +662,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('downvoting voted delegate should be ok', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -614,6 +675,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('self downvoting should be ok', async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${delegateAccount.publicKey}`],
 			});
@@ -626,6 +688,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it(`exceeding maximum of ${ACTIVE_DELEGATES} votes (number of actived delegates + 1) should fail`, async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
@@ -647,6 +710,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it(`downvoting ${MAX_VOTES_PER_TRANSACTION} delegates (maximum votes per transaction) at once should be ok`, async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerTransaction.passphrase,
 				unvotes: delegatesMaxVotesPerTransaction.map(delegate => {
 					return `${delegate.publicKey}`;
@@ -662,6 +726,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		it(`downvoting ${MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, async () => {
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(0, 34).map(delegate => {
 					return `${delegate.publicKey}`;
@@ -685,24 +750,28 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it(`downvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, async () => {
 			const transaction1 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(0, 33).map(delegate => {
 					return `${delegate.publicKey}`;
 				}),
 			});
 			const transaction2 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(33, 66).map(delegate => {
 					return `${delegate.publicKey}`;
 				}),
 			});
 			const transaction3 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(66, 99).map(delegate => {
 					return `${delegate.publicKey}`;
 				}),
 			});
 			const transaction4 = castVotes({
+				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(99, 102).map(delegate => {
 					return `${delegate.publicKey}`;

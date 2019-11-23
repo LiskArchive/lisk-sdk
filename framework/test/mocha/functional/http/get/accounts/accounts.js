@@ -25,6 +25,13 @@ const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const randomUtil = require('../../../../common/utils/random');
 const waitFor = require('../../../../common/utils/wait_for');
 const apiHelpers = require('../../../../common/helpers/api');
+const {
+	getNetworkIdentifier,
+} = require('../../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -195,11 +202,13 @@ describe('GET /accounts', () => {
 		describe('secondPublicKey', () => {
 			const secondPublicKeyAccount = randomUtil.account();
 			const creditTransaction = transfer({
+				networkIdentifier,
 				amount: FEES.SECOND_SIGNATURE,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPublicKeyAccount.address,
 			});
 			const signatureTransaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: secondPublicKeyAccount.passphrase,
 				secondPassphrase: secondPublicKeyAccount.secondPassphrase,
 			});
@@ -456,7 +465,7 @@ describe('GET /accounts', () => {
 			] = await Promise.all(promises);
 
 			const calculatedApproval = apiHelpers.calculateApproval(
-				delegate.vote,
+				delegate.voteWeight,
 				constansts.supply,
 			);
 

@@ -15,7 +15,7 @@
 'use strict';
 
 const { config } = require('./defaults');
-const { migrations } = require('./migrations');
+const { migrations } = require('./components');
 const Network = require('./network');
 const BaseModule = require('../base_module');
 
@@ -57,8 +57,11 @@ module.exports = class NetworkModule extends BaseModule {
 			request: {
 				handler: async action => this.network.actions.request(action),
 			},
-			emit: {
-				handler: action => this.network.actions.emit(action),
+			send: {
+				handler: action => this.network.actions.send(action),
+			},
+			broadcast: {
+				handler: action => this.network.actions.broadcast(action),
 			},
 			getPeers: {
 				handler: action => this.network.actions.getPeers(action),
@@ -69,6 +72,16 @@ module.exports = class NetworkModule extends BaseModule {
 			getUniqueOutboundConnectedPeersCount: {
 				handler: action =>
 					this.network.actions.getUniqueOutboundConnectedPeersCount(action),
+			},
+			requestFromPeer: {
+				handler: action => this.network.actions.requestFromPeer(action),
+			},
+			applyPenalty: {
+				handler: action => this.network.actions.applyPenalty(action),
+			},
+			getUniqueOutboundConnectedPeers: {
+				handler: action =>
+					this.network.actions.getUniqueOutboundConnectedPeers(action),
 			},
 		};
 	}

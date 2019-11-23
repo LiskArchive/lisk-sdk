@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
 import { OutboundPeer, PeerConfig } from '../../../src/peer';
 import {
@@ -37,12 +36,15 @@ describe('peer/outbound', () => {
 
 	beforeEach(() => {
 		defaultPeerInfo = {
+			peerId: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
 			wsPort: 5001,
-			height: 545776,
-			isDiscoveredPeer: true,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			sharedState: {
+				height: 545776,
+				isDiscoveredPeer: true,
+				version: '1.1.1',
+				protocolVersion: '1.1',
+			},
 		};
 		defaultOutboundPeerConfig = {
 			rateCalculationInterval: 1000,
@@ -117,7 +119,7 @@ describe('peer/outbound', () => {
 
 		it('should bind handlers to an outbound socket', () => {
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._socket.on.callCount).to.eql(11);
+			expect((defaultOutboundPeer as any)._socket.on.callCount).to.eql(8);
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('error');
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
 				'connect',
@@ -140,18 +142,6 @@ describe('peer/outbound', () => {
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
 				REMOTE_SC_EVENT_MESSAGE,
 				(defaultOutboundPeer as any)._handleRawMessage,
-			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
-				'postBlock',
-				(defaultOutboundPeer as any)._handleRawLegacyMessagePostBlock,
-			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
-				'postSignatures',
-				(defaultOutboundPeer as any)._handleRawLegacyMessagePostSignatures,
-			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
-				'postTransactions',
-				(defaultOutboundPeer as any)._handleRawLegacyMessagePostTransactions,
 			);
 		});
 	});
@@ -185,14 +175,10 @@ describe('peer/outbound', () => {
 			});
 
 			it('should call socketClusterClient create method', () => {
-				const legacyNodeInfo = undefined as any;
 				const clientOptions = {
 					hostname: defaultOutboundPeer.ipAddress,
 					port: defaultOutboundPeer.wsPort,
-					query: querystring.stringify({
-						...legacyNodeInfo,
-						options: JSON.stringify(legacyNodeInfo),
-					}),
+					query: 'options=',
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,
 					multiplex: false,
@@ -254,7 +240,7 @@ describe('peer/outbound', () => {
 			it('should unbind handlers from inbound socket', () => {
 				(defaultOutboundPeer as any)._socket = outboundSocket;
 				defaultOutboundPeer.disconnect();
-				expect((defaultOutboundPeer as any)._socket.off.callCount).to.eql(10);
+				expect((defaultOutboundPeer as any)._socket.off.callCount).to.eql(7);
 				expect(
 					(defaultOutboundPeer as any)._socket.off,
 				).to.be.calledWithExactly('connect');
@@ -281,24 +267,6 @@ describe('peer/outbound', () => {
 				).to.be.calledWithExactly(
 					REMOTE_SC_EVENT_MESSAGE,
 					(defaultOutboundPeer as any)._handleRawMessage,
-				);
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly(
-					'postBlock',
-					(defaultOutboundPeer as any)._handleRawLegacyMessagePostBlock,
-				);
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly(
-					'postSignatures',
-					(defaultOutboundPeer as any)._handleRawLegacyMessagePostSignatures,
-				);
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly(
-					'postTransactions',
-					(defaultOutboundPeer as any)._handleRawLegacyMessagePostTransactions,
 				);
 			});
 		});

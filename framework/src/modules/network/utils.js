@@ -37,7 +37,7 @@ const lookupPeersIPs = async (peersList, enabled) => {
 	}
 
 	// In case domain names are used, resolve those to IP addresses.
-	peersList = await Promise.all(
+	return Promise.all(
 		peersList.map(async peer => {
 			if (net.isIPv4(peer.ip)) {
 				return peer;
@@ -57,8 +57,6 @@ const lookupPeersIPs = async (peersList, enabled) => {
 			}
 		}),
 	);
-
-	return peersList;
 };
 
 /**
@@ -134,9 +132,7 @@ const filterByParams = (peers, filters) => {
 		'os',
 		'version',
 		'protocolVersion',
-		'broadhash',
 		'height',
-		'nonce',
 	];
 	const {
 		limit: filterLimit,
@@ -198,10 +194,7 @@ const filterByParams = (peers, filters) => {
  * @param {Object}
  * @todo Add description for the params
  */
-const consolidatePeers = ({
-	connectedPeers = [],
-	disconnectedPeers = [],
-}) => {
+const consolidatePeers = ({ connectedPeers = [], disconnectedPeers = [] }) => {
 	// Assign state 2 to the connected peers
 	const connectedList = connectedPeers.map(peer => {
 		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;

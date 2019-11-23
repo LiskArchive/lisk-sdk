@@ -40,7 +40,6 @@ const expectValidTransaction = (result, transaction, extended = true) => {
 	// So the recipientPublicKey for the account is not updated
 	// expect(result.recipientPublicKey).to.be.eql(transaction.recipientPublicKey);
 
-	expect(result.requesterPublicKey).to.be.eql(transaction.requesterPublicKey);
 	expect(result.signature).to.be.eql(transaction.signature);
 	expect(result.signatures).to.be.eql(transaction.signatures);
 	expect(result.amount).to.be.eql(transaction.amount);
@@ -116,16 +115,6 @@ describe('Transaction', () => {
 			'senderPublicKey_ne',
 			'senderPublicKey_in',
 			'senderPublicKey_like',
-			'recipientPublicKey',
-			'recipientPublicKey_eql',
-			'recipientPublicKey_ne',
-			'recipientPublicKey_in',
-			'recipientPublicKey_like',
-			'requesterPublicKey',
-			'requesterPublicKey_eql',
-			'requesterPublicKey_ne',
-			'requesterPublicKey_in',
-			'requesterPublicKey_like',
 			'senderId',
 			'senderId_eql',
 			'senderId_ne',
@@ -164,16 +153,13 @@ describe('Transaction', () => {
 			'type',
 			'timestamp',
 			'senderId',
-			'recipientId',
-			'amount',
 			'fee',
 			'signature',
 			'signSignature',
 			'signatures',
 			'senderPublicKey',
-			'recipientPublicKey',
-			'requesterPublicKey',
 			'confirmations',
+			'asset',
 		];
 
 		validExtendedObjectFields = [
@@ -184,15 +170,11 @@ describe('Transaction', () => {
 			'type',
 			'timestamp',
 			'senderId',
-			'recipientId',
-			'amount',
 			'fee',
 			'signature',
 			'signSignature',
 			'signatures',
 			'senderPublicKey',
-			'recipientPublicKey',
-			'requesterPublicKey',
 			'confirmations',
 		];
 
@@ -778,7 +760,7 @@ describe('Transaction', () => {
 		it('It should return true using type as filter', async () => {
 			const transactions = [];
 			const block = seeder.getLastBlock();
-			[0, 1, 2, 3, 4, 5, 6, 7].forEach(transactionType => {
+			[8, 9, 10, 11, 12].forEach(transactionType => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
@@ -790,49 +772,31 @@ describe('Transaction', () => {
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[0].id,
-					type: 0,
+					type: 8,
 				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[1].id,
-					type: 1,
+					type: 9,
 				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[2].id,
-					type: 2,
+					type: 10,
 				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[3].id,
-					type: 3,
+					type: 11,
 				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[4].id,
-					type: 4,
-				}),
-			).to.be.true;
-			expect(
-				await storage.entities.Transaction.isPersisted({
-					id: transactions[5].id,
-					type: 5,
-				}),
-			).to.be.true;
-			expect(
-				await storage.entities.Transaction.isPersisted({
-					id: transactions[6].id,
-					type: 6,
-				}),
-			).to.be.true;
-			expect(
-				await storage.entities.Transaction.isPersisted({
-					id: transactions[7].id,
-					type: 7,
+					type: 12,
 				}),
 			).to.be.true;
 		});

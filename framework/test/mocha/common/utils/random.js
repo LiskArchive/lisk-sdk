@@ -26,6 +26,14 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../fixtures/accounts');
+const {
+	getNetworkIdentifier,
+	devnetNetworkIdentifier,
+} = require('../../common/network_identifier');
+
+const networkIdentifier = global.__testContext
+	? getNetworkIdentifier(__testContext.config.genesisBlock)
+	: devnetNetworkIdentifier;
 
 const random = {};
 
@@ -114,6 +122,7 @@ random.account = function(nonDelegate) {
 	};
 
 	account.passphrase = random.password();
+	account.keypair = getKeys(account.passphrase);
 	account.secondPassphrase = random.password();
 	account.username = nonDelegate ? '' : random.delegateName();
 	account.publicKey = getKeys(account.passphrase).publicKey;
@@ -126,6 +135,7 @@ random.account = function(nonDelegate) {
 // Returns an random basic transfer transaction to send 1 LSK from genesis account to a random account
 random.transaction = function(offset) {
 	return transfer({
+		networkIdentifier,
 		amount: '1',
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
@@ -181,8 +191,11 @@ random.multisigDappRegistrationMaxiumData = function(
 	const signatures = members
 		.map(aMember => aMember.passphrase)
 		.map(memberPassphrase => {
-			const sigObj = createSignatureObject(dappTransaction, memberPassphrase)
-				.signature;
+			const sigObj = createSignatureObject({
+				transaction: dappTransaction,
+				passphrase: memberPassphrase,
+				networkIdentifier,
+			}).signature;
 			return sigObj;
 		});
 

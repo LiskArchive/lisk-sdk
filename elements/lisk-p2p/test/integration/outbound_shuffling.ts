@@ -13,28 +13,16 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import { P2P, EVENT_CLOSE_OUTBOUND, EVICTED_PEER_CODE } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const POPULATOR_INTERVAL_SHUFFLING = 3000;
-	const OUTBOUND_SHUFFLE_INTERVAL = 500;
+	const collectedEventsCount = new Map();
+	const OUTBOUND_SHUFFLE_INTERVAL = 100;
 
 	beforeEach(async () => {
-		const customSeedPeers = (
-			index: number,
-			startPort: number,
-			networkSize: number,
-		) =>
-			[...new Array(networkSize / 2).keys()]
-				.map(index => ({
-					ipAddress: '127.0.0.1',
-					wsPort: startPort + ((index + 2) % networkSize), // Choose alternate peers for connection so that a node has available peers to make outbound connections
-				}))
-				.filter(seedPeer => seedPeer.wsPort !== startPort + index); // Avoid adding yourself
-
 		const customConfig = (
 			_index: number,
 			_startPort: number,
@@ -42,27 +30,42 @@ describe('Outbound peer shuffling', () => {
 		) => ({
 			maxOutboundConnections: Math.round(networkSize / 2),
 			maxInboundConnections: Math.round(networkSize / 2),
-			populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
 			outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
-			seedPeers: customSeedPeers(_index, _startPort, networkSize),
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });
+
+		p2pNodeList.forEach(p2p => {
+			p2p.on(EVENT_CLOSE_OUTBOUND, msg => {
+				if (msg.code === EVICTED_PEER_CODE) {
+					let evictedConnections = collectedEventsCount.get(
+						p2p.nodeInfo.wsPort,
+					);
+
+					if (evictedConnections) {
+						collectedEventsCount.set(
+							p2p.nodeInfo.wsPort,
+							(evictedConnections += 1),
+						);
+					} else {
+						collectedEventsCount.set(p2p.nodeInfo.wsPort, 1);
+					}
+				}
+			});
+		});
 	});
 
 	afterEach(async () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should shuffle outbound peers in an interval', async () => {
-		const p2pNode = p2pNodeList[0];
-		const { outboundCount } = (p2pNode as any)._peerPool.getPeersCountPerKind();
-		// Wait for periodic shuffling
+	it('should shuffle outbound peers and close connection with evict', async () => {
 		await wait(500);
-		const {
-			outboundCount: updatedOutbound,
-		} = (p2pNode as any)._peerPool.getPeersCountPerKind();
 
-		expect(updatedOutbound).lt(outboundCount);
+		p2pNodeList.forEach(p2p => {
+			const evictedConnections = collectedEventsCount.get(p2p.nodeInfo.wsPort);
+
+			expect(evictedConnections).to.be.gt(0);
+		});
 	});
 });

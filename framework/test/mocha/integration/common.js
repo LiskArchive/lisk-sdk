@@ -24,13 +24,18 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
+const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const blocksLogic = require('../../../src/modules/chain/blocks/block');
+const { getNetworkIdentifier } = require('../common/network_identifier');
 
-const slots = new BlockSlots({
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -45,8 +50,8 @@ function getDelegateForSlot(library, slot, cb) {
 	library.modules.forger
 		.loadDelegates()
 		.then(() => {
-			library.modules.rounds
-				.generateDelegateList(round)
+			library.modules.dpos
+				.getForgerPublicKeysForRound(round)
 				.then(list => {
 					const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 					return cb(null, delegatePublicKey);
@@ -65,28 +70,28 @@ function blockToJSON(block) {
 	return block;
 }
 
-function createBlock(
+async function createBlock(
 	library,
 	transactions,
 	timestamp,
 	keypair,
 	previousBlock,
-	exceptions,
 ) {
 	transactions = transactions.map(transaction =>
-		library.modules.interfaceAdapters.transactions.fromJson(transaction),
+		library.modules.blocks.deserializeTransaction(transaction),
 	);
-	const block = blocksLogic.create({
+	// TODO Remove hardcoded values and use from BFT class
+	const blockProcessorV1 = library.modules.processor.processors[1];
+	const block = await blockProcessorV1.create.run({
 		blockReward: library.modules.blocks.blockReward,
 		keypair,
 		timestamp,
 		previousBlock,
 		transactions,
-		maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
-		exceptions,
+		maxHeightPreviouslyForged: 1,
+		maxHeightPrevoted: 1,
 	});
 
-	block.id = blocksLogic.getId(block);
 	block.height = previousBlock.height + 1;
 	return block;
 }
@@ -103,15 +108,18 @@ function createValidBlockWithSlotOffset(
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		cb = typeof exceptions === 'object' ? cb : exceptions;
-		const block = createBlock(
+		createBlock(
 			library,
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
 			typeof exceptions === 'object' ? exceptions : undefined,
-		);
-		cb(err, block);
+		)
+			.then(block => {
+				cb(null, block);
+			})
+			.catch(error => cb(error));
 	});
 }
 
@@ -120,14 +128,15 @@ function createValidBlock(library, transactions, cb) {
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
-		const block = createBlock(
+		createBlock(
 			library,
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
-		);
-		cb(err, block);
+		)
+			.then(block => cb(null, block))
+			.catch(error => cb(error));
 	});
 }
 
@@ -190,11 +199,19 @@ function forge(library, cb) {
 						false,
 						25,
 					) || [];
-				library.modules.blocks
-					.generateBlock(keypair, slots.getSlotTime(slot), transactions)
+				const sortedTransactions = sortTransactions(transactions);
+				const blockProcessorV1 = library.modules.processor.processors[1];
+				blockProcessorV1.create
+					.run({
+						keypair,
+						timestamp: slots.getSlotTime(slot),
+						transactions: sortedTransactions,
+						previousBlock: last_block,
+					})
+					.then(block => library.modules.processor.process(block))
 					.then(() => {
 						last_block = library.modules.blocks.lastBlock;
-						library.modules.transactionPool.resetPool();
+						library.modules.transactionPool._resetPool();
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${
 								last_block.id
@@ -214,12 +231,9 @@ function forge(library, cb) {
 }
 
 function deleteLastBlock(library, cb) {
-	library.modules.blocks.blocksChain
-		.deleteLastBlock(library.modules.blocks.lastBlock)
-		.then(newLastBlock => {
-			library.modules.blocks._lastBlock = newLastBlock;
-			cb();
-		})
+	library.modules.processor
+		.deleteLastBlock()
+		.then(() => cb())
 		.catch(err => cb(err));
 }
 
@@ -227,10 +241,11 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.modules.interfaceAdapters.transactions.fromJson(
-		transaction,
-	);
-	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
+	transaction = library.modules.blocks.deserializeTransaction(transaction);
+
+	const amountNormalized = !transaction.asset.amount
+		? 0
+		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
 	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
 	__testContext.debug(
 		`Enqueue transaction ID: ${
@@ -248,9 +263,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = library.modules.interfaceAdapters.transactions.fromJson(
-		transaction,
-	);
+	transaction = library.modules.blocks.deserializeTransaction(transaction);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => library.modules.transactionPool.fillPool())
@@ -292,20 +305,13 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 }
 
 function getAccountFromDb(library, address) {
-	return Promise.all([
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts where address = '${address}'`,
-		),
-		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`,
-		),
-	]).then(res => {
-		return {
-			// Get the first row if resultant array is not empty
-			mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
-			mem_accounts2multisignatures: res[1],
-		};
-	});
+	return library.components.storage.adapter
+		.execute(`SELECT * FROM mem_accounts where address = '${address}'`)
+		.then(res => {
+			return {
+				mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
+			};
+		});
 }
 
 function getTransactionFromModule(library, filter, cb) {
@@ -381,6 +387,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	switch (key) {
 		case 'SEND':
 			transaction = transfer({
+				networkIdentifier,
 				amount: '1',
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
@@ -389,12 +396,14 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'SIGNATURE':
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});
 			break;
 		case 'DELEGATE':
 			transaction = registerDelegate({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				username: accountCopy.username,
@@ -402,6 +411,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'VOTE':
 			transaction = castVotes({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				votes: [accountFixtures.existingDelegate.publicKey],
@@ -409,6 +419,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 			break;
 		case 'MULTI':
 			transaction = registerMultisignature({
+				networkIdentifier,
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				keysgroup: [accountFixtures.existingDelegate.publicKey],

@@ -29,12 +29,11 @@ const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
 		'username',
-		'vote',
+		'voteWeight',
 		'rewards',
 		'producedBlocks',
 		'missedBlocks',
 		'productivity',
-		'rank',
 	]);
 
 	result.account = {
@@ -43,9 +42,7 @@ function delegateFormatter(totalSupply, delegate) {
 		secondPublicKey: delegate.secondPublicKey || '',
 	};
 
-	result.approval = calculateApproval(result.vote, totalSupply);
-
-	result.rank = parseInt(result.rank, 10);
+	result.approval = calculateApproval(result.voteWeight, totalSupply);
 
 	return result;
 }
@@ -94,13 +91,16 @@ async function _getForgers(filters) {
 	const currentSlot = await channel.invoke('chain:getSlotNumber');
 	const forgerKeys = [];
 
-	const round = await channel.invoke('chain:calcSlotRound', {
+	const currentRound = await channel.invoke('chain:calcSlotRound', {
 		height: lastBlock.height + 1,
 	});
 
-	const activeDelegates = await channel.invoke('chain:generateDelegateList', {
-		round,
-	});
+	const activeDelegates = await channel.invoke(
+		'chain:getForgerPublicKeysForRound',
+		{
+			round: currentRound,
+		},
+	);
 
 	for (
 		let i = filters.offset + 1;
@@ -157,12 +157,11 @@ async function _aggregateBlocksReward(filter) {
 		});
 	} catch (err) {
 		if (err.code === 0) {
-			throw 'Account not found';
+			throw new Error('Account not found');
 		}
 	}
 
 	params.generatorPublicKey = account.publicKey;
-	params.delegates = ACTIVE_DELEGATES;
 
 	if (filter.start !== undefined) {
 		params.fromTimestamp = Math.floor(
@@ -181,9 +180,8 @@ async function _aggregateBlocksReward(filter) {
 	let delegateBlocksRewards;
 
 	try {
-		delegateBlocksRewards = await channel.invoke(
-			'chain:getDelegateBlocksRewards',
-			{ filters: params },
+		delegateBlocksRewards = await storage.entities.Block.delegateBlocksRewards(
+			params,
 		);
 	} catch (err) {
 		logger.error(err.stack);
@@ -222,12 +220,12 @@ async function _getForgingStatistics(filters) {
 			});
 		} catch (err) {
 			if (err.code === 0) {
-				throw 'Account not found';
+				throw new Error('Account not found');
 			}
 		}
 
 		if (!account.isDelegate) {
-			throw 'Account is not a delegate';
+			throw new Error('Account is not a delegate');
 		}
 
 		account = _.pick(account, [
@@ -277,7 +275,7 @@ function DelegatesController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-DelegatesController.getDelegates = async function(context, next) {
+DelegatesController.getDelegates = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -329,7 +327,7 @@ DelegatesController.getDelegates = async function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-DelegatesController.getForgers = async function(context, next) {
+DelegatesController.getForgers = async (context, next) => {
 	const { params } = context.request.swagger;
 
 	const filters = {
@@ -345,7 +343,7 @@ DelegatesController.getForgers = async function(context, next) {
 	}
 };
 
-DelegatesController.getForgingStatistics = async function(context, next) {
+DelegatesController.getForgingStatistics = async (context, next) => {
 	const { params } = context.request.swagger;
 
 	const filters = {
@@ -358,9 +356,15 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 	try {
 		reward = await _getForgingStatistics(filters);
 	} catch (err) {
-		if (err === 'Account not found' || err === 'Account is not a delegate') {
+		if (
+			err.message === 'Account not found' ||
+			err.message === 'Account is not a delegate'
+		) {
 			return next(
-				swaggerHelper.generateParamsErrorObject([params.address], [err]),
+				swaggerHelper.generateParamsErrorObject(
+					[params.address],
+					[err.message],
+				),
 			);
 		}
 		return next(err);

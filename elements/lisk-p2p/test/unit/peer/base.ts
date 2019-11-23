@@ -31,34 +31,38 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
+	REMOTE_EVENT_POST_NODE_INFO,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
-import {
-	sanitizeNodeInfoToLegacyFormat,
-	getNetgroup,
-	constructPeerIdFromPeerInfo,
-} from '../../../src/utils';
-import { P2PDiscoveredPeerInfo, P2PNodeInfo, P2PPeerInfo } from '../../../src';
+import { getNetgroup, constructPeerId } from '../../../src/utils';
+import { P2PNodeInfo, P2PPeerInfo } from '../../../src';
+
+const createSocketStubInstance = () => <SCServerSocket>({
+		emit: sandbox.stub(),
+		destroy: sandbox.stub(),
+	} as any);
 
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
 	let nodeInfo: P2PNodeInfo;
-	let p2pDiscoveredPeerInfo: P2PDiscoveredPeerInfo;
+	let p2pDiscoveredPeerInfo: P2PPeerInfo;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
 
 	beforeEach(() => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
+			peerId: constructPeerId('12.12.12.12', 5001),
 			ipAddress: '12.12.12.12',
 			wsPort: 5001,
-			height: 545776,
-			isDiscoveredPeer: true,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			sharedState: {
+				height: 545776,
+				isDiscoveredPeer: true,
+				version: '1.1.1',
+				protocolVersion: '1.1',
+			},
 		};
 		peerConfig = {
 			rateCalculationInterval: 1000,
@@ -67,6 +71,15 @@ describe('peer/base', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			serverNodeInfo: {
+				os: 'os',
+				nethash: 'nethash',
+				version: '1.2.0',
+				protocolVersion: '1.2',
+				wsPort: 6001,
+				nonce: 'nonce',
+				advertiseAddress: true,
+			},
 		};
 		nodeInfo = {
 			os: 'os',
@@ -75,15 +88,24 @@ describe('peer/base', () => {
 			nethash: 'nethash',
 			wsPort: 6001,
 			height: 100,
+			nonce: 'nonce',
+			advertiseAddress: true,
 		};
 		p2pDiscoveredPeerInfo = {
+			peerId: constructPeerId(
+				defaultPeerInfo.ipAddress,
+				defaultPeerInfo.wsPort,
+			),
 			ipAddress: defaultPeerInfo.ipAddress,
 			wsPort: defaultPeerInfo.wsPort,
-			height: 1000,
-			updatedAt: new Date(),
-			os: 'MYOS',
-			version: '1.3.0',
-			protocolVersion: '1.3',
+			sharedState: {
+				height: 1000,
+				updatedAt: new Date(),
+				os: 'MYOS',
+				version: '1.3.0',
+				protocolVersion: '1.3',
+			},
+			internalState: undefined,
 		};
 		defaultPeer = new Peer(defaultPeerInfo, peerConfig);
 	});
@@ -108,38 +130,11 @@ describe('peer/base', () => {
 		it('should have a function named _handleRawMessage', () => {
 			expect((defaultPeer as any)._handleRawMessage).to.be.a('function');
 		});
-
-		it('should have a function named _handleRawLegacyMessagePostBlock', () => {
-			expect((defaultPeer as any)._handleRawLegacyMessagePostBlock).to.be.a(
-				'function',
-			);
-		});
-
-		it('should have a function named _handleRawLegacyMessagePostTransactions', () => {
-			expect(
-				(defaultPeer as any)._handleRawLegacyMessagePostTransactions,
-			).to.be.a('function');
-		});
-
-		it('should have a function named _handleRawLegacyMessagePostSignatures', () => {
-			expect(
-				(defaultPeer as any)._handleRawLegacyMessagePostSignatures,
-			).to.be.a('function');
-		});
 	});
-
-	describe('#height', () =>
-		it('should get height property', () =>
-			expect(defaultPeer.height).to.be.eql(defaultPeerInfo.height)));
 
 	describe('#id', () =>
 		it('should get id property', () =>
-			expect(defaultPeer.id).to.be.eql(
-				constructPeerIdFromPeerInfo({
-					ipAddress: defaultPeerInfo.ipAddress,
-					wsPort: defaultPeerInfo.wsPort,
-				}),
-			)));
+			expect(defaultPeer.id).to.be.eql(defaultPeerInfo.peerId)));
 
 	describe('#ipAddress', () =>
 		it('should get ipAddress property', () =>
@@ -200,10 +195,16 @@ describe('peer/base', () => {
 			sandbox.stub(defaultPeer, 'request').resolves();
 		});
 
-		it('should get node info', async () => {
-			await defaultPeer.applyNodeInfo(nodeInfo);
+		it('should get node info', () => {
+			const socket = createSocketStubInstance();
+			(defaultPeer as any)._socket = socket;
+			defaultPeer.applyNodeInfo(nodeInfo);
 
-			expect(defaultPeer.nodeInfo).to.be.eql(nodeInfo);
+			expect(defaultPeer.nodeInfo).to.eql(nodeInfo);
+			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
+				event: REMOTE_EVENT_POST_NODE_INFO,
+				data: nodeInfo,
+			});
 		});
 	});
 
@@ -214,50 +215,35 @@ describe('peer/base', () => {
 			expect(defaultPeer.peerInfo).to.be.eql(p2pDiscoveredPeerInfo);
 		}));
 
-	describe('#applyNodeInfo', () => {
+	describe('#applyNodeInfo', async () => {
 		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'request').resolves();
+			sandbox.stub(defaultPeer, 'send').resolves();
 		});
 
 		it('should apply node info', async () => {
-			await defaultPeer.applyNodeInfo(nodeInfo);
+			const socket = createSocketStubInstance();
+			(defaultPeer as any)._socket = socket;
+			defaultPeer.applyNodeInfo(nodeInfo);
 
-			expect(defaultPeer.nodeInfo).to.be.eql(nodeInfo);
-		});
-
-		it('should call request with exact arguments', async () => {
-			await defaultPeer.applyNodeInfo(nodeInfo);
-
-			expect(defaultPeer.request).to.be.calledOnceWithExactly({
-				procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
-				data: sanitizeNodeInfoToLegacyFormat(nodeInfo),
+			expect(defaultPeer.send).to.be.calledOnceWithExactly({
+				event: REMOTE_EVENT_POST_NODE_INFO,
+				data: nodeInfo,
 			});
 		});
 	});
 
 	describe('#connect', () => {
-		it('should throw error if socket does not exist', async () => {
+		it('should throw error if socket does not exist', () => {
 			defaultPeer.disconnect();
-			try {
+			expect(() => {
 				defaultPeer.connect();
-			} catch (e) {
-				expect(e).to.be.an('Error');
-				expect(e.message).to.be.eql('Peer socket does not exist');
-			}
+			}).to.throw('Peer socket does not exist');
 		});
 
 		it('should not throw error if socket exists', () => {
-			const socket = <SCServerSocket>({
-				destroy: sandbox.stub(),
-			} as any);
-
-			try {
-				(defaultPeer as any)._socket = socket;
-				defaultPeer.connect();
-				expect((defaultPeer as any)._socket).to.be.not.undefined;
-			} catch (e) {
-				expect(e).to.be.undefined;
-			}
+			(defaultPeer as any)._socket = createSocketStubInstance();
+			defaultPeer.connect();
+			expect((defaultPeer as any)._socket).to.be.not.undefined;
 		});
 	});
 
@@ -276,10 +262,8 @@ describe('peer/base', () => {
 			expect((defaultPeer as any)._resetProductivity).to.not.be.called;
 		});
 
-		it('should destroy socket if it exists', async () => {
-			const socket = <SCServerSocket>({
-				destroy: sandbox.stub(),
-			} as any);
+		it('should destroy socket if it exists', () => {
+			const socket = createSocketStubInstance();
 			(defaultPeer as any)._socket = socket;
 			defaultPeer.disconnect();
 			expect(socket.destroy).to.be.calledOnceWithExactly(1000, undefined);
@@ -292,56 +276,22 @@ describe('peer/base', () => {
 				data: 'myData',
 				event: 'myEvent',
 			};
-			try {
+			expect(() => {
 				defaultPeer.send(p2pPacket);
-			} catch (e) {
-				expect(e).to.be.an('Error');
-				expect(e.message).to.be.eql('Peer socket does not exist');
-			}
+			}).to.throw('Peer socket does not exist');
 		});
 
-		describe('when events are legacy', () => {
-			const legacyEvents = ['postBlock', 'postTransactions', 'postSignatures'];
-
-			legacyEvents.forEach(event => {
-				it(`should emit legacy remote events if '${event}' event`, () => {
-					const p2pPacket = {
-						data: 'myData',
-						event,
-					};
-					const socket = <SCServerSocket>({
-						emit: sandbox.stub(),
-						destroy: sandbox.stub(),
-					} as any);
-					(defaultPeer as any)._socket = socket;
-					defaultPeer.send(p2pPacket);
-					expect(socket.emit).to.be.calledOnceWithExactly(
-						p2pPacket.event,
-						p2pPacket.data,
-					);
-				});
-			});
-		});
-
-		describe('when events are not legacy', () => {
-			it(`should emit with ${REMOTE_SC_EVENT_MESSAGE} event`, () => {
-				const p2pPacket = {
-					data: 'myData',
-					event: 'myEvent',
-				};
-				const socket = <SCServerSocket>({
-					emit: sandbox.stub(),
-					destroy: sandbox.stub(),
-				} as any);
-				(defaultPeer as any)._socket = socket;
-				defaultPeer.send(p2pPacket);
-				expect(socket.emit).to.be.calledOnceWithExactly(
-					REMOTE_SC_EVENT_MESSAGE,
-					{
-						event: p2pPacket.event,
-						data: p2pPacket.data,
-					},
-				);
+		it(`should emit for event ${REMOTE_SC_EVENT_MESSAGE}`, () => {
+			const p2pPacket = {
+				data: 'myData',
+				event: 'myEvent',
+			};
+			const socket = createSocketStubInstance();
+			(defaultPeer as any)._socket = socket;
+			defaultPeer.send(p2pPacket);
+			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
+				event: p2pPacket.event,
+				data: p2pPacket.data,
 			});
 		});
 	});
@@ -352,12 +302,10 @@ describe('peer/base', () => {
 				data: 'myData',
 				procedure: 'myProcedure',
 			};
-			try {
-				await defaultPeer.request(p2pPacket);
-			} catch (e) {
-				expect(e).to.be.an('Error');
-				expect(e.message).to.be.eql('Peer socket does not exist');
-			}
+
+			return expect(defaultPeer.request(p2pPacket)).to.be.rejectedWith(
+				'Peer socket does not exist',
+			);
 		});
 
 		it('should emit if socket exists', () => {
@@ -365,10 +313,7 @@ describe('peer/base', () => {
 				data: 'myData',
 				procedure: 'myProcedure',
 			};
-			const socket = <SCServerSocket>({
-				emit: sandbox.stub(),
-				destroy: sandbox.stub(),
-			} as any);
+			const socket = createSocketStubInstance();
 			(defaultPeer as any)._socket = socket;
 			defaultPeer.request(p2pPacket);
 			expect(socket.emit).to.be.calledOnceWith(REMOTE_SC_EVENT_RPC_REQUEST, {
@@ -400,66 +345,128 @@ describe('peer/base', () => {
 			});
 
 			it(`should emit ${EVENT_FAILED_TO_FETCH_PEERS} event`, async () => {
-				try {
-					await defaultPeer.fetchPeers();
-				} catch (e) {
-					expect(defaultPeer.emit).to.be.calledOnceWith(
-						EVENT_FAILED_TO_FETCH_PEERS,
-					);
-				}
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
+				expect(defaultPeer.emit).to.be.calledOnceWith(
+					EVENT_FAILED_TO_FETCH_PEERS,
+				);
 			});
 
 			it('should throw an error', async () => {
-				try {
-					await defaultPeer.fetchPeers();
-				} catch (e) {
-					expect(e).to.be.an.instanceOf(RPCResponseError);
-					expect(e.message).to.be.eql('Failed to fetch peer list of peer');
-					expect(e.peerId).to.be.eql(defaultPeerInfo.ipAddress);
-				}
+				return expect(defaultPeer.fetchPeers())
+					.to.eventually.be.rejectedWith('Failed to fetch peer list of peer')
+					.and.be.an.instanceOf(RPCResponseError)
+					.and.have.property('peerId', defaultPeerInfo.ipAddress);
 			});
 		});
 
 		describe('when request() succeeds', () => {
+			beforeEach(() => {
+				sandbox.stub(defaultPeer, 'applyPenalty');
+			});
 			it('should return a sanitized peer list', async () => {
 				const peers = [
 					{
-						ip: '1.1.1.1',
+						peerId: constructPeerId('1.1.1.1', 1111),
+						ipAddress: '1.1.1.1',
 						wsPort: 1111,
-						version: '1.1.1',
+						sharedState: {
+							version: '1.1.1',
+						},
 					},
 					{
-						ip: '2.2.2.2',
+						peerId: constructPeerId('2.2.2.2', 2222),
+						ipAddress: '2.2.2.2',
 						wsPort: 2222,
-						version: '2.2.2',
+						sharedState: {
+							version: '2.2.2',
+						},
 					},
 				];
 				const sanitizedPeers = [
 					{
+						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
 						wsPort: 1111,
-						version: '1.1.1',
-						height: 0,
-						protocolVersion: undefined,
-						os: '',
+						sharedState: {
+							version: '1.1.1',
+							height: 0,
+						},
 					},
 					{
+						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						wsPort: 2222,
-						version: '2.2.2',
-						height: 0,
-						protocolVersion: undefined,
-						os: '',
+						sharedState: {
+							version: '2.2.2',
+							height: 0,
+						},
 					},
 				];
 				sandbox.stub(defaultPeer, 'request').resolves({
 					data: {
-						peers,
+						peers: peers.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
+						})),
 						success: true,
 					},
 				});
 				const response = await defaultPeer.fetchPeers();
 				expect(response).to.be.eql(sanitizedPeers);
+			});
+
+			it('should throw apply penalty on malformed Peer list', async () => {
+				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
+					peerId: `'1.1.1.1:${1 + index}`,
+					ipAddress: '1.1.1.1',
+					wsPort: 1 + index,
+					sharedState: {
+						version: '1.1.1',
+					},
+				}));
+
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers: malformedPeerList.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
+						})),
+						success: true,
+					},
+				});
+
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(100);
+			});
+
+			it('should throw apply penalty on malformed Peer', async () => {
+				const malformedPeerList = [
+					{
+						peerId: `'1.1.1.1:5000`,
+						ipAddress: '1.1.1.1',
+						wsPort: 1111,
+						sharedState: {
+							version: '1.1.1',
+							junkData: [...new Array(10000).keys()].map(() => 'a'),
+						},
+					},
+				];
+
+				sandbox.stub(defaultPeer, 'request').resolves({
+					data: {
+						peers: malformedPeerList.map(peer => ({
+							...peer.sharedState,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
+						})),
+						success: true,
+					},
+				});
+
+				await expect(defaultPeer.fetchPeers()).to.be.rejected;
+				expect(defaultPeer.applyPenalty).to.be.calledOnceWith(100);
 			});
 		});
 	});
@@ -470,20 +477,26 @@ describe('peer/base', () => {
 		beforeEach(() => {
 			discoveredPeers = [
 				{
+					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
 					wsPort: 1111,
-					version: '1.1.1',
-					height: 0,
-					protocolVersion: undefined,
-					os: '',
+					sharedState: {
+						version: '1.1.1',
+						height: 0,
+						protocolVersion: '',
+						os: '',
+					},
 				},
 				{
+					peerId: constructPeerId('2.2.2.2', 2222),
 					ipAddress: '2.2.2.2',
 					wsPort: 2222,
-					version: '2.2.2',
-					height: 0,
-					protocolVersion: undefined,
-					os: '',
+					sharedState: {
+						version: '2.2.2',
+						height: 0,
+						protocolVersion: '',
+						os: '',
+					},
 				},
 			];
 			sandbox.stub(defaultPeer, 'fetchPeers').resolves(discoveredPeers);
@@ -517,7 +530,7 @@ describe('peer/base', () => {
 		});
 	});
 
-	describe('#fetchStatus', () => {
+	describe('#fetchAndUpdateStatus', () => {
 		describe('when request() fails', () => {
 			beforeEach(() => {
 				sandbox.stub(defaultPeer, 'request').rejects();
@@ -525,67 +538,67 @@ describe('peer/base', () => {
 			});
 
 			it(`should emit ${EVENT_FAILED_TO_FETCH_PEER_INFO} event with error`, async () => {
-				try {
-					await defaultPeer.fetchStatus();
-				} catch (e) {
-					expect(defaultPeer.emit).to.be.calledOnceWith(
-						EVENT_FAILED_TO_FETCH_PEER_INFO,
-					);
-				}
+				await expect(defaultPeer.fetchAndUpdateStatus()).to.be.rejected;
+				expect(defaultPeer.emit).to.be.calledOnceWith(
+					EVENT_FAILED_TO_FETCH_PEER_INFO,
+				);
 			});
 
 			it('should throw error', async () => {
-				try {
-					await defaultPeer.fetchStatus();
-				} catch (e) {
-					expect(e).to.be.an.instanceOf(RPCResponseError);
-					expect(e.message).to.be.eql('Failed to fetch peer info of peer');
-					expect(e.peerId).to.be.eql(
-						`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
+				return expect(defaultPeer.fetchAndUpdateStatus())
+					.to.eventually.be.rejectedWith('Failed to fetch peer info of peer')
+					.and.be.an.instanceOf(RPCResponseError)
+					.and.have.property(
+						'peerId',
+						`${defaultPeer.ipAddress}:${defaultPeer.wsPort}`,
 					);
-				}
 			});
 		});
 
 		describe('when request() succeeds', () => {
 			describe('when _updateFromProtocolPeerInfo() fails', () => {
+				const peer = {
+					ip: '1.1.1.1',
+					wsPort: 1111,
+					version: '1.1.2',
+					protocolVersion: '9.2',
+					nethash: 'nethash',
+				};
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
-						data: {},
+						data: peer,
 					});
+					sandbox.stub(defaultPeer, 'applyPenalty');
 					sandbox.stub(defaultPeer, 'emit');
 				});
 
 				it(`should emit ${EVENT_FAILED_PEER_INFO_UPDATE} event with error`, async () => {
-					try {
-						await defaultPeer.fetchStatus();
-					} catch (e) {
-						expect(defaultPeer.emit).to.be.calledOnceWith(
-							EVENT_FAILED_PEER_INFO_UPDATE,
-						);
-					}
+					await expect(defaultPeer.fetchAndUpdateStatus()).to.be.rejected;
+					expect(defaultPeer.emit).to.be.calledOnceWith(
+						EVENT_FAILED_PEER_INFO_UPDATE,
+					);
 				});
 
 				it('should throw error', async () => {
-					try {
-						await defaultPeer.fetchStatus();
-					} catch (e) {
-						expect(e).to.be.an.instanceOf(RPCResponseError);
-						expect(e.message).to.be.eql(
-							'Failed to update peer info of peer as part of fetch operation',
-						);
-						expect(e.peerId).to.be.eql(
+					return expect(defaultPeer.fetchAndUpdateStatus())
+						.to.eventually.be.rejectedWith(
+							'Failed to update peer info of peer due to validation of peer compatibility',
+						)
+						.and.be.an.instanceOf(RPCResponseError)
+						.and.have.property(
+							'peerId',
 							`${defaultPeerInfo.ipAddress}:${defaultPeerInfo.wsPort}`,
 						);
-					}
 				});
 			});
 
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
 				const peer = {
-					ip: '1.1.1.1',
+					ipAddress: '1.1.1.1',
 					wsPort: 1111,
-					version: '1.1.1',
+					version: '1.1.2',
+					protocolVersion: '1.2',
+					nethash: 'nethash',
 				};
 
 				beforeEach(() => {
@@ -598,21 +611,28 @@ describe('peer/base', () => {
 
 				it(`should call updatePeerInfo()`, async () => {
 					const newPeer = {
-						wsPort: peer.wsPort,
-						version: peer.version,
+						peerId: constructPeerId(
+							defaultPeerInfo.ipAddress,
+							defaultPeerInfo.wsPort,
+						),
 						ipAddress: defaultPeerInfo.ipAddress,
-						height: 0,
-						protocolVersion: undefined,
-						os: '',
+						wsPort: defaultPeerInfo.wsPort,
+						sharedState: {
+							version: peer.version,
+							height: 0,
+							protocolVersion: '1.2',
+							nethash: 'nethash',
+						},
 					};
-					await defaultPeer.fetchStatus();
-					expect(defaultPeer.updatePeerInfo).to.be.calledOnceWithExactly(
+					await defaultPeer.fetchAndUpdateStatus();
+
+					expect((defaultPeer as any).updatePeerInfo).to.be.calledWithExactly(
 						newPeer,
 					);
 				});
 
 				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
-					const peerInfo = await defaultPeer.fetchStatus();
+					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(defaultPeer.emit).to.be.calledOnceWithExactly(
 						EVENT_UPDATED_PEER_INFO,
 						peerInfo,
@@ -620,7 +640,7 @@ describe('peer/base', () => {
 				});
 
 				it('should return fetched peer info', async () => {
-					const peerInfo = await defaultPeer.fetchStatus();
+					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo).to.be.eql(defaultPeerInfo);
 				});
 			});

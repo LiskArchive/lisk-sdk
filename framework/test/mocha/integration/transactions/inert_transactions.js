@@ -8,30 +8,38 @@ const {
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
 	const recipientAccount = randomUtil.account();
 	const transferInertTransaction = transfer({
+		networkIdentifier,
 		recipientId: recipientAccount.address,
 		amount: (1000000000 * 100).toString(),
 		passphrase: senderAccount.passphrase,
 	});
 
 	const voteInertTransaction = castVotes({
+		networkIdentifier,
 		passphrase: recipientAccount.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
 
 	const delegateInertTransaction = registerDelegate({
+		networkIdentifier,
 		passphrase: recipientAccount.passphrase,
 		username: recipientAccount.username,
 	});
 
 	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
-		library.modules.blocks.blocksChain.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			inertTransactions: [
 				transferInertTransaction.id,
@@ -44,6 +52,7 @@ describe('inert transactions', () => {
 	describe('send funds to account', () => {
 		before(done => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId: recipientAccount.address,
 				amount: (5000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
@@ -211,7 +220,6 @@ describe('inert transactions', () => {
 
 			describe('when forging block with inert type 2 transaction', () => {
 				const inertTransaction = delegateInertTransaction;
-
 				before(done => {
 					localCommon.addTransactionsAndForge(
 						library,

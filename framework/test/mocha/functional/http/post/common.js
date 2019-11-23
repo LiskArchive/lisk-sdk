@@ -20,16 +20,18 @@ const {
 	registerDelegate,
 	castVotes,
 	createDapp,
-	utils: transactionUtils,
+	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-const { FEES } = global.constants;
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {
@@ -37,43 +39,42 @@ function invalidAssets(option, badTransactions) {
 
 		beforeEach(done => {
 			switch (option) {
-				case 'signature':
+				case 'publicKey':
 					transaction = registerSecondPassphrase({
+						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
 					break;
-				case 'delegate':
+				case 'username':
 					transaction = registerDelegate({
+						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						username: randomUtil.delegateName(),
 					});
 					break;
 				case 'votes':
 					transaction = castVotes({
+						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						votes: [],
 						unvotes: [],
 					});
 					break;
-				case 'multisignature':
+				case 'multisignature': {
 					// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-					transaction = transactionUtils.signRawTransaction({
-						transaction: {
-							type: 4,
-							amount: '0',
-							fee: new BigNum(FEES.MULTISIGNATURE).times(2).toString(),
-							asset: {
-								multisignature: {
-									keysgroup: [`+${accountFixtures.existingDelegate.publicKey}`],
-									lifetime: 1,
-									min: 2,
-								},
-							},
+					const tx = new MultisignatureTransaction({
+						networkIdentifier,
+						asset: {
+							keysgroup: [`+${accountFixtures.existingDelegate.publicKey}`],
+							lifetime: 1,
+							min: 2,
 						},
-						passphrase: accountFixtures.genesis.passphrase,
 					});
+					tx.sign(accountFixtures.genesis.passphrase);
+					transaction = tx.toJSON();
 					break;
+				}
 				case 'dapp':
 					transaction = createDapp({
 						passphrase: accountFixtures.genesis.passphrase,

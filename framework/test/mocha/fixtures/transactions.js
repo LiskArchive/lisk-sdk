@@ -19,8 +19,6 @@ const faker = require('faker');
 const stampit = require('stampit');
 const Dapps = require('./dapps');
 
-const { TRANSACTION_TYPES } = global.constants;
-
 const Transaction = stampit({
 	props: {
 		id: '',
@@ -30,13 +28,7 @@ const Transaction = stampit({
 		timestamp: 40080841,
 		senderPublicKey:
 			'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
-		requesterPublicKey:
-			'a0c4ebee8c0c50ebee32918655e089f6e1a604b83afa760367c61e0f18ac6a',
 		senderId: '2525786814299543383L',
-		recipientId: '16313739661670634666L',
-		recipientPublicKey:
-			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-		amount: '112340000',
 		fee: '20000000',
 		signature:
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
@@ -53,15 +45,19 @@ const Transaction = stampit({
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 		this.asset = asset || { data: 'extra information' };
 
-		this.type = type || 0;
+		this.type = type || 8;
 
 		switch (this.type) {
-			case TRANSACTION_TYPES.SEND:
+			// SEND
+			case 8:
 				this.asset.data = randomstring.generate({ length: 64 });
+				this.asset.amount = '112340000';
+				this.asset.recipientId = '11237980039345381032L';
 				break;
 
-			case TRANSACTION_TYPES.SIGNATURE:
-				this.asset.signature = {
+			// SIGNATURE
+			case 9:
+				this.asset = {
 					publicKey: randomstring.generate({
 						charset: 'hex',
 						length: 64,
@@ -70,15 +66,17 @@ const Transaction = stampit({
 				};
 				break;
 
-			case TRANSACTION_TYPES.DELEGATE:
-				this.asset.delegate = {
+			// DELEGATE
+			case 10:
+				this.asset = {
 					username:
 						delegateName ||
 						randomstring.generate({ length: 10, charset: 'alphabetic' }),
 				};
 				break;
 
-			case TRANSACTION_TYPES.VOTE:
+			// VOTE
+			case 11:
 				this.asset.votes = votes || [
 					randomstring.generate({
 						charset: 'hex',
@@ -91,10 +89,13 @@ const Transaction = stampit({
 						capitalization: 'lowercase',
 					}),
 				];
+				this.asset.amount = '112340000';
+				this.asset.recipientId = '11237980039345381032L';
 				break;
 
-			case TRANSACTION_TYPES.MULTI:
-				this.asset.multisignature = {
+			// MULTI
+			case 12:
+				this.asset = {
 					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),
 					keysgroup: [
@@ -112,11 +113,13 @@ const Transaction = stampit({
 				};
 				break;
 
-			case TRANSACTION_TYPES.DAPP:
+			// DAPP
+			case 5:
 				this.asset.dapp = new Dapps.Dapp({ transactionId: this.id });
 				break;
 
-			case TRANSACTION_TYPES.IN_TRANSFER:
+			// IN_TRANSFER
+			case 6:
 				this.asset.inTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id
@@ -125,7 +128,8 @@ const Transaction = stampit({
 				});
 				break;
 
-			case TRANSACTION_TYPES.OUT_TRANSFER:
+			// OUT_TRANSFER
+			case 7:
 				this.asset.outTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id

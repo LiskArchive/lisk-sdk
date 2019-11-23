@@ -15,14 +15,22 @@
 import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
+	INTENTIONAL_DISCONNECT_CODE,
+	INVALID_PEER_INFO_PENALTY,
+	INVALID_PEER_LIST_PENALTY,
 } from '../constants';
-import { RPCResponseError } from '../errors';
+import {
+	InvalidPeerInfoError,
+	InvalidPeerInfoListError,
+	RPCResponseError,
+} from '../errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_DISCOVERED_PEER,
@@ -34,28 +42,26 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_POST_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
-	REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import { P2PRequest } from '../p2p_request';
 import {
-	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolMessagePacket,
 } from '../p2p_types';
 import {
-	constructPeerIdFromPeerInfo,
 	getNetgroup,
-	sanitizeNodeInfoToLegacyFormat,
+	sanitizeIncomingPeerInfo,
+	validatePeerCompatibility,
 	validatePeerInfo,
-	validatePeersInfoList,
+	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../utils';
@@ -99,13 +105,13 @@ export interface PeerConfig {
 	readonly maxPeerInfoSize: number;
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
+	readonly serverNodeInfo?: P2PNodeInfo;
 }
 
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
-	private readonly _height: number;
 	protected _reputation: number;
 	protected _netgroup: number;
 	protected _latency: number;
@@ -125,24 +131,17 @@ export class Peer extends EventEmitter {
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
+	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _wsMessageCount: number;
 	protected _wsMessageRate: number;
 	protected _rateInterval: number;
+
 	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
 	) => void;
 	protected readonly _handleWSMessage: (message: string) => void;
 	protected readonly _handleRawMessage: (packet: unknown) => void;
-	protected readonly _handleRawLegacyMessagePostBlock: (
-		packet: unknown,
-	) => void;
-	protected readonly _handleRawLegacyMessagePostTransactions: (
-		packet: unknown,
-	) => void;
-	protected readonly _handleRawLegacyMessagePostSignatures: (
-		packet: unknown,
-	) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
 
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
@@ -151,11 +150,7 @@ export class Peer extends EventEmitter {
 		this._peerConfig = peerConfig;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
-		this._id = constructPeerIdFromPeerInfo({
-			ipAddress: this._ipAddress,
-			wsPort: this._wsPort,
-		});
-		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
+		this._id = peerInfo.peerId;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
 		this._latency = 0;
@@ -174,6 +169,7 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._productivity = { ...DEFAULT_PRODUCTIVITY };
+		this._serverNodeInfo = peerConfig.serverNodeInfo;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -185,8 +181,8 @@ export class Peer extends EventEmitter {
 			let rawRequest;
 			try {
 				rawRequest = validateRPCRequest(packet);
-			} catch (err) {
-				respond(err);
+			} catch (error) {
+				respond(error);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -211,10 +207,8 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_UPDATE_PEER_INFO) {
-				this._handleUpdatePeerInfo(request);
-			} else if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				this._handleGetNodeInfo(request);
+			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+				request.end(this._nodeInfo);
 			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
@@ -231,7 +225,7 @@ export class Peer extends EventEmitter {
 			let message;
 			try {
 				message = validateProtocolMessage(packet);
-			} catch (err) {
+			} catch (error) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -248,35 +242,12 @@ export class Peer extends EventEmitter {
 				rate,
 			};
 
+			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
+				this._handleUpdatePeerInfo(message);
+			}
+
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
 		};
-
-		// TODO later: Delete the following legacy message handlers.
-		// For the next LIP version, the send method will always emit a 'remote-message' event on the socket.
-		this._handleRawLegacyMessagePostBlock = (data: unknown) => {
-			this._handleRawMessage({
-				event: 'postBlock',
-				data,
-			});
-		};
-
-		this._handleRawLegacyMessagePostTransactions = (data: unknown) => {
-			this._handleRawMessage({
-				event: 'postTransactions',
-				data,
-			});
-		};
-
-		this._handleRawLegacyMessagePostSignatures = (data: unknown) => {
-			this._handleRawMessage({
-				event: 'postSignatures',
-				data,
-			});
-		};
-	}
-
-	public get height(): number {
-		return this._height;
 	}
 
 	public get id(): string {
@@ -337,27 +308,26 @@ export class Peer extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
+	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
-			...newPeerInfo,
+			sharedState: newPeerInfo.sharedState,
+			internalState: this._peerInfo.internalState,
 			ipAddress: this._ipAddress,
 			wsPort: this._wsPort,
+			peerId: this._peerInfo.peerId,
 		};
 	}
 
 	/**
-	 * This is not a declared as a setter because this method will need
-	 * invoke an async RPC on the socket to pass it the new node status.
+	 * Updates the node latest status and sends the same information to all other peers.
+	 * @param nodeInfo information about the node latest status
 	 */
-	public async applyNodeInfo(nodeInfo: P2PNodeInfo): Promise<void> {
+	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
-		// TODO later: This conversion step will not be needed after switching to the new LIP protocol version.
-		const legacyNodeInfo = sanitizeNodeInfoToLegacyFormat(this._nodeInfo);
-		// TODO later: Consider using send instead of request for updateMyself for the next LIP protocol version.
-		await this.request({
-			procedure: REMOTE_EVENT_RPC_UPDATE_PEER_INFO,
-			data: legacyNodeInfo,
+		this.send({
+			event: REMOTE_EVENT_POST_NODE_INFO,
+			data: nodeInfo,
 		});
 	}
 
@@ -367,7 +337,10 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public disconnect(code: number = 1000, reason?: string): void {
+	public disconnect(
+		code: number = INTENTIONAL_DISCONNECT_CODE,
+		reason?: string,
+	): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
 		if (this._socket) {
@@ -380,17 +353,10 @@ export class Peer extends EventEmitter {
 			throw new Error('Peer socket does not exist');
 		}
 
-		const legacyEvents = ['postBlock', 'postTransactions', 'postSignatures'];
-		// TODO later: Legacy events will no longer be required after migrating to the LIP protocol version.
-		if (legacyEvents.includes(packet.event)) {
-			// Emit legacy remote events.
-			this._socket.emit(packet.event, packet.data);
-		} else {
-			this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
-				event: packet.event,
-				data: packet.data,
-			});
-		}
+		this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
+			event: packet.event,
+			data: packet.data,
+		});
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -409,9 +375,9 @@ export class Peer extends EventEmitter {
 						procedure: packet.procedure,
 						data: packet.data,
 					},
-					(err: Error | undefined, responseData: unknown) => {
-						if (err) {
-							reject(err);
+					(error: Error | undefined, responseData: unknown) => {
+						if (error) {
+							reject(error);
 
 							return;
 						}
@@ -440,12 +406,19 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
 
-			return validatePeersInfoList(
+			return validatePeerInfoList(
 				response.data,
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
 		} catch (error) {
+			if (
+				error instanceof InvalidPeerInfoError ||
+				error instanceof InvalidPeerInfoListError
+			) {
+				this.applyPenalty(INVALID_PEER_LIST_PENALTY);
+			}
+
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
 			throw new RPCResponseError(
@@ -464,7 +437,7 @@ export class Peer extends EventEmitter {
 		return discoveredPeerInfoList;
 	}
 
-	public async fetchStatus(): Promise<P2PPeerInfo> {
+	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {
 		// tslint:disable-next-line:no-let
 		let response: P2PResponsePacket;
 		try {
@@ -484,8 +457,13 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
+			// Apply penalty for malformed PeerInfo
+			if (error instanceof InvalidPeerInfoError) {
+				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
+			}
+
 			throw new RPCResponseError(
-				'Failed to update peer info of peer as part of fetch operation',
+				'Failed to update peer info of peer due to validation of peer compatibility',
 				`${this.ipAddress}:${this.wsPort}`,
 			);
 		}
@@ -542,35 +520,47 @@ export class Peer extends EventEmitter {
 			this._productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
-
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
-		const newPeerInfo = validatePeerInfo(
-			protocolPeerInfo,
+		if (!this._serverNodeInfo) {
+			throw new Error('Missing server node info.');
+		}
+
+		// Sanitize and validate PeerInfo
+		const peerInfo = validatePeerInfo(
+			sanitizeIncomingPeerInfo({
+				...(rawPeerInfo as object), // TODO: there should be typecheck before
+				ipAddress: this._ipAddress,
+				wsPort: this._wsPort,
+			}),
 			this._peerConfig.maxPeerInfoSize,
-		) as P2PDiscoveredPeerInfo;
-		this.updatePeerInfo(newPeerInfo);
+		);
+
+		const result = validatePeerCompatibility(peerInfo, this._serverNodeInfo);
+
+		if (!result.success && result.error) {
+			throw new Error(
+				`${result.error} : ${peerInfo.ipAddress}:${peerInfo.wsPort}`,
+			);
+		}
+
+		this.updatePeerInfo(peerInfo);
 	}
 
-	private _handleUpdatePeerInfo(request: P2PRequest): void {
+	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			this._updateFromProtocolPeerInfo(request.data);
+			this._updateFromProtocolPeerInfo(message.data);
 		} catch (error) {
+			// Apply penalty for malformed PeerInfo update
+			if (error instanceof InvalidPeerInfoError) {
+				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
+			}
+
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
-			request.error(error);
 
 			return;
 		}
-		request.end();
 		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
-	}
-
-	private _handleGetNodeInfo(request: P2PRequest): void {
-		const legacyNodeInfo = this._nodeInfo
-			? sanitizeNodeInfoToLegacyFormat(this._nodeInfo)
-			: {};
-		request.end(legacyNodeInfo);
 	}
 
 	private _banPeer(): void {
@@ -590,13 +580,13 @@ export class Peer extends EventEmitter {
 		return rate * RATE_NORMALIZATION_FACTOR;
 	}
 
-	private _updateMessageCounter(packet: ProtocolMessagePacket): void {
+	private _updateMessageCounter(packet: P2PMessagePacket): void {
 		const key = packet.event;
 		const count = (this._messageCounter.get(key) || 0) + 1;
 		this._messageCounter.set(key, count);
 	}
 
-	private _getMessageRate(packet: ProtocolMessagePacket): number {
+	private _getMessageRate(packet: P2PMessagePacket): number {
 		const rate = this._messageRates.get(packet.event) || 0;
 
 		return rate * RATE_NORMALIZATION_FACTOR;

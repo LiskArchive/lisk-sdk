@@ -24,7 +24,6 @@ const {
 	transactionInterface,
 } = require('@liskhq/lisk-transactions');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
-const randomstring = require('randomstring');
 const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
@@ -50,19 +49,23 @@ const registerProcessHooks = app => {
 
 	process.on('uncaughtException', err => {
 		// Handle error safely
-		app.logger.error('System error: uncaughtException :', {
-			message: err.message,
-			stack: err.stack,
-		});
+		app.logger.error(
+			{
+				err,
+			},
+			'System error: uncaughtException',
+		);
 		app.shutdown(1, err.message);
 	});
 
 	process.on('unhandledRejection', err => {
 		// Handle error safely
-		app.logger.fatal('System error: unhandledRejection :', {
-			message: err.message,
-			stack: err.stack,
-		});
+		app.logger.fatal(
+			{
+				err,
+			},
+			'System error: unhandledRejection',
+		);
 		app.shutdown(1, err.message);
 	});
 
@@ -382,14 +385,13 @@ class Application {
 		if (this.controller) {
 			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.info(`Shutting down with error code ${errorCode}: ${message}`);
+		this.logger.info({ errorCode, message }, 'Shutting down application');
 		process.exit(errorCode);
 	}
 
 	_compileAndValidateConfigurations() {
 		const modules = this.getModules();
 
-		this.config.app.nonce = randomstring.generate(16);
 		this.config.app.nethash = this.genesisBlock.payloadHash;
 
 		const appConfigToShareWithModules = {
@@ -397,7 +399,6 @@ class Application {
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
 			nethash: this.config.app.nethash,
-			nonce: this.config.app.nonce,
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
 			lastCommitId: this.config.app.lastCommitId,
@@ -420,13 +421,12 @@ class Application {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
-			nonce: this.config.app.nonce,
 			nethash: this.config.app.nethash,
 			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 
-		this.logger.trace('Compiled configurations', this.config);
+		this.logger.trace(this.config, 'Compiled configurations');
 	}
 }
 

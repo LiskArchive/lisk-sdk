@@ -14,16 +14,20 @@
  */
 
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import { P2P, RequestFailError } from '../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
 describe('Unseeded network: Each node has an empty seedPeers list', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const NO_PEERS_FOUND_ERROR = `Request failed due to no peers found in peer selection`;
 
 	beforeEach(async () => {
 		// Make sure that integration tests use real timers.
-		p2pNodeList = await createNetwork();
+		const customConfig = () => ({
+			seedPeers: [],
+			fixedPeers: [],
+		});
+
+		p2pNodeList = await createNetwork({ customConfig });
 	});
 
 	afterEach(async () => {
@@ -43,6 +47,9 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 			data: 'bar',
 		});
 
-		expect(response).to.be.rejectedWith(Error, NO_PEERS_FOUND_ERROR);
+		return expect(response).to.eventually.be.rejectedWith(
+			RequestFailError,
+			'Request failed due to no peers found in peer selection',
+		);
 	});
 });

@@ -15,6 +15,7 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const application = require('../common/application');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const accountsFixtures = require('../fixtures/accounts');
@@ -90,7 +91,7 @@ describe('app', () => {
 				before(() => {
 					// Filter register delegates transactions (type 2) from genesis block
 					delegateTransactions = _.filter(genesisBlock.transactions, {
-						type: 2,
+						type: 10,
 					});
 
 					// Get delegates from database
@@ -129,10 +130,10 @@ describe('app', () => {
 									id: delegate.transactionId,
 								});
 								expect(found).to.be.an('object');
-								expect(delegate.username).to.equal(
-									found.asset.delegate.username,
+								expect(delegate.username).to.equal(found.asset.username);
+								expect(delegate.address).to.equal(
+									getAddressFromPublicKey(found.senderPublicKey),
 								);
-								expect(delegate.address).to.equal(found.senderId);
 								expect(delegate.publicKey.toString('hex')).to.equal(
 									found.senderPublicKey,
 								);
@@ -140,14 +141,14 @@ describe('app', () => {
 							done();
 						});
 
-						it('fields vote, blocks_forged_count, blocks_missed_count, isDelegate should be valid', done => {
+						it('fields voteWeight, blocks_forged_count, blocks_missed_count, isDelegate should be valid', done => {
 							_.each(delegates, delegate => {
 								// Find accounts that vote for delegate
 								const voters = _.filter(
 									library.genesisBlock.block.transactions,
 									transaction => {
 										return (
-											transaction.type === 3 &&
+											transaction.type === 11 &&
 											transaction.asset.votes.indexOf(
 												`+${delegate.publicKey.toString('hex')}`,
 											) !== -1
@@ -156,17 +157,27 @@ describe('app', () => {
 								);
 
 								// Calculate voters balance for current delegate
+								// This assumes fee is zero for genesis
 								let voters_balance = '0';
 								_.each(voters, voter => {
 									const balance = _.reduce(
 										library.genesisBlock.block.transactions,
 										(reduceBalance, acc) => {
-											if (acc.recipientId === voter.senderId) {
+											if (acc.type !== 8) {
+												return reduceBalance;
+											}
+											if (
+												acc.asset.recipientId ===
+												getAddressFromPublicKey(voter.senderPublicKey)
+											) {
 												return new BigNum(reduceBalance)
-													.plus(acc.amount)
+													.plus(acc.asset.amount)
 													.toString();
 											}
-											if (acc.senderId === voter.senderId) {
+											if (
+												getAddressFromPublicKey(acc.senderPublicKey) ===
+												getAddressFromPublicKey(voter.senderPublicKey)
+											) {
 												return new BigNum(reduceBalance)
 													.minus(acc.amount)
 													.toString();
@@ -180,7 +191,7 @@ describe('app', () => {
 										.toString();
 								});
 
-								expect(delegate.vote).to.equal(voters_balance);
+								expect(delegate.voteWeight).to.equal(voters_balance);
 								expect(delegate.producedBlocks).to.equal(0);
 								expect(delegate.missedBlocks).to.equal(0);
 								expect(delegate.isDelegate).to.equal(1);
@@ -198,11 +209,15 @@ describe('app', () => {
 
 				before(() => {
 					// Get genesis accounts address - should be senderId from first transaction
-					genesisAddress = library.genesisBlock.block.transactions[0].senderId;
+					genesisAddress = getAddressFromPublicKey(
+						library.genesisBlock.block.transactions[0].senderPublicKey,
+					);
 
 					// Get unique accounts from genesis block
 					genesisAccounts = _.union(
-						library.genesisBlock.block.transactions.map(a => a.senderId),
+						library.genesisBlock.block.transactions.map(a =>
+							getAddressFromPublicKey(a.senderPublicKey),
+						),
 						library.genesisBlock.block.transactions.map(a => a.recipientId),
 					).filter(a => a); // We call filter here to remove null values
 
@@ -256,16 +271,21 @@ describe('app', () => {
 
 							it('fields address, balance, publicKey should match genesis block transaction', done => {
 								expect(genesisAccount.address).to.equal(
-									genesisAccountTransaction.senderId,
+									getAddressFromPublicKey(
+										genesisAccountTransaction.senderPublicKey,
+									),
 								);
 
 								// Sum all outgoing transactions from genesis account
 								const balance = _.reduce(
 									library.genesisBlock.block.transactions,
 									(reduceBalance, acc) => {
-										if (acc.senderId === genesisAccount.address) {
+										if (
+											getAddressFromPublicKey(acc.senderPublicKey) ===
+											genesisAccount.address
+										) {
 											return new BigNum(reduceBalance)
-												.minus(acc.amount)
+												.minus(acc.asset.amount)
 												.toString();
 										}
 										return reduceBalance;
@@ -300,8 +320,8 @@ describe('app', () => {
 			let delegatesList;
 
 			before(() => {
-				return library.modules.rounds
-					.generateDelegateList(1, null)
+				return library.modules.dpos
+					.getForgerPublicKeysForRound(1)
 					.then(_delegatesList => {
 						delegatesList = _delegatesList;
 					});

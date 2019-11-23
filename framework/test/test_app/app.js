@@ -29,9 +29,9 @@ const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
 	app: {
-		version: '2.0.0',
+		version: '3.0.0',
 		minVersion: '1.0.0',
-		protocolVersion: '1.1',
+		protocolVersion: '2.0',
 		lastCommitId: dummyLastCommitId,
 		buildVersion: dummyBuildVersion,
 	},
@@ -57,7 +57,7 @@ try {
 		configurator.loadConfigFile(path.resolve(process.env.CUSTOM_CONFIG_FILE));
 	}
 
-	const config = configurator.getConfig({}, { failOnInvalidArg: false });
+	const config = configurator.getConfig(appConfig, { failOnInvalidArg: false });
 
 	// Support for PROTOCOL_VERSION only for tests
 	if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {

@@ -1,3 +1,4 @@
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	TransactionPool,
 	TransactionPoolConfiguration,
@@ -126,7 +127,8 @@ describe('transaction pool events', () => {
 						...transactionsToMoveToReceivedQueue,
 					].find(
 						affectedTransaction =>
-							affectedTransaction.senderId === transferTransaction.recipientId,
+							getAddressFromPublicKey(affectedTransaction.senderPublicKey) ===
+							transferTransaction.asset.recipientId,
 					),
 			);
 
@@ -218,7 +220,8 @@ describe('transaction pool events', () => {
 			) => {
 				confirmedTransactions.find(
 					confirmedTransaction =>
-						confirmedTransaction.senderId === transaction.senderId,
+						confirmedTransaction.senderPublicKey ===
+						transaction.senderPublicKey,
 				);
 			};
 

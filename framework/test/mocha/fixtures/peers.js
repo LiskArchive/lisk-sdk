@@ -14,14 +14,11 @@
 
 'use strict';
 
-const randomstring = require('randomstring');
 const faker = require('faker');
 const stampit = require('stampit');
 
 const NormalizedPeer = stampit({
 	props: {
-		broadhash:
-			'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
 		height: 1,
 		ip: '40.40.40.40',
 		os: 'unknown',
@@ -30,16 +27,11 @@ const NormalizedPeer = stampit({
 		state: 2,
 		version: '0.0.0',
 		protocolVersion: '0.0',
-		nonce: '',
-	},
-	init({ nonce }) {
-		this.nonce = nonce || randomstring.generate(16);
 	},
 });
 
 const Peer = stampit({
 	props: {
-		broadhash: '',
 		dappid: null,
 		height: null,
 		ip: '40.40.40.40',
@@ -47,11 +39,10 @@ const Peer = stampit({
 		wsPort: null,
 		httpPort: null,
 		state: null,
-		nonce: '',
 		version: '',
 		protocolVersion: '',
 	},
-	init({ broadhash, nonce, state }) {
+	init({ state }) {
 		this.dappid = null;
 		this.height = parseInt(_.sample([50, 70, 90, 110]), 10);
 		this.ip = faker.internet.ip();
@@ -59,16 +50,7 @@ const Peer = stampit({
 		this.wsPort = `5${faker.random.number({ max: 999, min: 100 })}`;
 		this.httpPort = `4${faker.random.number({ max: 999, min: 100 })}`;
 		this.version = faker.system.semver();
-
-		this.broadhash =
-			broadhash ||
-			randomstring.generate({
-				charset: 'hex',
-				length: 64,
-				capitalization: 'lowercase',
-			});
 		this.state = state || 2; // Connected Peer
-		this.nonce = nonce || randomstring.generate(16);
 	},
 });
 
@@ -76,7 +58,6 @@ const DBPeer = stampit(Peer, {
 	init() {
 		delete this.dappid;
 		delete this.httpPort;
-		delete this.nonce;
 		this.wsPort = parseInt(this.wsPort, 10);
 	},
 });

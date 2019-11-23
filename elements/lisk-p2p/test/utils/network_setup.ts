@@ -37,7 +37,6 @@ export const nodeInfoConstants = {
 	minVersion: '1.0.0',
 	os: platform(),
 	height: 0,
-	broadhash: '2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 	nonce: `O2wTkjqplHII`,
 };
 
@@ -85,7 +84,9 @@ export const createNetwork = async ({
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			seedPeers: defaultSeedPeers,
 			wsEngine: WEB_SOCKET_ENGINE,
-			populatorInterval: POPULATOR_INTERVAL,
+			populatorInterval:
+				POPULATOR_INTERVAL +
+				Math.floor((POPULATOR_INTERVAL / NETWORK_PEER_COUNT) * index), // Should be different for each Peer to avoid connection debounce
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			nodeInfo: {
@@ -96,7 +97,6 @@ export const createNetwork = async ({
 				minVersion: nodeInfoConstants.minVersion,
 				os: nodeInfoConstants.os,
 				height: nodeInfoConstants.height,
-				broadhash: nodeInfoConstants.broadhash,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
 				...customNodeInfo,
 			},
@@ -105,13 +105,16 @@ export const createNetwork = async ({
 
 		return new P2P(p2pConfig);
 	});
-	await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 
-	await wait(
-		networkDiscoveryWaitTime
-			? networkDiscoveryWaitTime
-			: NETWORK_CREATION_WAIT_TIME,
-	);
+	if (networkDiscoveryWaitTime !== 0) {
+		await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+
+		await wait(
+			networkDiscoveryWaitTime
+				? networkDiscoveryWaitTime
+				: NETWORK_CREATION_WAIT_TIME,
+		);
+	}
 
 	return p2pNodeList;
 };

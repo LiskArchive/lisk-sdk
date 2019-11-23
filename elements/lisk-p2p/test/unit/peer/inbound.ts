@@ -14,7 +14,6 @@
  */
 import { expect } from 'chai';
 import { InboundPeer, PeerConfig } from '../../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 import { SCServerSocket } from 'socketcluster-server';
 import {
 	DEFAULT_RANDOM_SECRET,
@@ -26,9 +25,10 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
+import { P2PPeerInfo } from '../../../src';
 
 describe('peer/inbound', () => {
-	let defaultPeerInfo: P2PDiscoveredPeerInfo;
+	let defaultPeerInfo: P2PPeerInfo;
 	let defaultPeerConfig: PeerConfig;
 	let defaultInboundPeer: InboundPeer;
 	let inboundSocket: SCServerSocket;
@@ -37,12 +37,15 @@ describe('peer/inbound', () => {
 	beforeEach(() => {
 		clock = sandbox.useFakeTimers();
 		defaultPeerInfo = {
+			peerId: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
 			wsPort: 5001,
-			height: 545776,
-			isDiscoveredPeer: true,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			sharedState: {
+				height: 545776,
+				isDiscoveredPeer: true,
+				version: '1.1.1',
+				protocolVersion: '1.1',
+			},
 		};
 		defaultPeerConfig = {
 			rateCalculationInterval: 1000,
@@ -107,7 +110,7 @@ describe('peer/inbound', () => {
 		});
 
 		it('should bind handlers to inbound socket', () => {
-			expect((defaultInboundPeer as any)._socket.on.callCount).to.eql(8);
+			expect((defaultInboundPeer as any)._socket.on.callCount).to.eql(5);
 			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
 				'close',
 				(defaultInboundPeer as any)._handleInboundSocketClose,
@@ -127,18 +130,6 @@ describe('peer/inbound', () => {
 			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
 				REMOTE_SC_EVENT_MESSAGE,
 				(defaultInboundPeer as any)._handleRawMessage,
-			);
-			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
-				'postBlock',
-				(defaultInboundPeer as any)._handleRawLegacyMessagePostBlock,
-			);
-			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
-				'postSignatures',
-				(defaultInboundPeer as any)._handleRawLegacyMessagePostSignatures,
-			);
-			expect((defaultInboundPeer as any)._socket.on).to.be.calledWithExactly(
-				'postTransactions',
-				(defaultInboundPeer as any)._handleRawLegacyMessagePostTransactions,
 			);
 		});
 	});
@@ -207,7 +198,7 @@ describe('peer/inbound', () => {
 
 		it('should unbind handlers from an inbound socket', () => {
 			defaultInboundPeer.disconnect();
-			expect((defaultInboundPeer as any)._socket.off.callCount).to.eql(7);
+			expect((defaultInboundPeer as any)._socket.off.callCount).to.eql(4);
 			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
 				'close',
 				(defaultInboundPeer as any)._handleInboundSocketClose,
@@ -223,18 +214,6 @@ describe('peer/inbound', () => {
 			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
 				REMOTE_SC_EVENT_MESSAGE,
 				(defaultInboundPeer as any)._handleRawMessage,
-			);
-			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
-				'postBlock',
-				(defaultInboundPeer as any)._handleRawLegacyMessagePostBlock,
-			);
-			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
-				'postSignatures',
-				(defaultInboundPeer as any)._handleRawLegacyMessagePostSignatures,
-			);
-			expect((defaultInboundPeer as any)._socket.off).to.be.calledWithExactly(
-				'postTransactions',
-				(defaultInboundPeer as any)._handleRawLegacyMessagePostTransactions,
 			);
 		});
 	});

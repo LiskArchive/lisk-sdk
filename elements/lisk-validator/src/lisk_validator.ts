@@ -14,6 +14,7 @@
  */
 
 import * as Ajv from 'ajv';
+
 import * as formats from './formats';
 
 class LiskValidator {

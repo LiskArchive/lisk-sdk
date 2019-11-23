@@ -45,7 +45,7 @@ class Cache {
 			this.client = redis.createClient(this.options);
 			this.client.once('error', err => {
 				// Called if the "error" event occured before "ready" event
-				this.logger.warn('App was unable to connect to Cache server', err);
+				this.logger.warn({ err }, 'App was unable to connect to Cache server');
 				// Error handler needs to exist to ignore the error
 				this.client.on('error', () => {});
 				resolve();
@@ -71,7 +71,7 @@ class Cache {
 
 		this.client.on('error', err => {
 			// Log Cache errors before and after server was connected
-			this.logger.info('Cache:', err);
+			this.logger.error({ err }, 'Cache client connection error');
 		});
 	}
 
@@ -166,7 +166,7 @@ class Cache {
 	 * @return {Promise.<null, Error>}
 	 */
 	async removeByPattern(pattern) {
-		this.logger.debug(
+		this.logger.trace(
 			['Cache - removeByPattern', pattern, '| Status:', this.isReady()].join(
 				' ',
 			),
@@ -205,7 +205,7 @@ class Cache {
 	 * @return {Promise.<null, Error>}
 	 */
 	async flushDb() {
-		this.logger.debug('Cache - Flush database');
+		this.logger.debug('Cache: Flush database');
 		if (!this.isReady()) {
 			throw new Error(errorCacheDisabled);
 		}
@@ -218,7 +218,7 @@ class Cache {
 	 * @return {Promise.<null, Error>}
 	 */
 	async cleanup() {
-		this.logger.debug('Cache - Clean up database');
+		this.logger.debug('Cache: Clean up database');
 		return this.quit();
 	}
 
@@ -228,7 +228,7 @@ class Cache {
 	 * @return {Promise.<null, Error>}
 	 */
 	async quit() {
-		this.logger.debug('Cache - Quit database');
+		this.logger.debug('Cache: Quit database');
 		if (!this.isReady()) {
 			// Because connection is not established in the first place
 			return null;

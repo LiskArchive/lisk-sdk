@@ -19,8 +19,15 @@ const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-describe('exceptions for multisignature transactions', () => {
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+// TODO: Delete after #4433
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('exceptions for multisignature transactions', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
@@ -31,15 +38,13 @@ describe('exceptions for multisignature transactions', () => {
 
 	const exceptionMultisingatureTransaction = {
 		id: '8191213966308378713',
-		type: 4,
+		fee: '1500000000',
+		type: 8,
 		timestamp: 15869462,
 		senderPublicKey:
 			'0e88b1ca1414078f51a5f173356dfbf48a95b941764b894594c54f211c636941',
 		recipientPublicKey: '',
 		senderId: '15682180043073388494L',
-		recipientId: '',
-		amount: '0',
-		fee: '1500000000',
 		signature:
 			'bdfae7698da7e6082bfdc170db811d1e787ae9b5fa4c39acb980b551b7acefef64a8ed0c635a17f0b42233cf871903bcb90e5148e0bfa8b9dea2a05a58f3200b',
 		signatures: [
@@ -47,14 +52,12 @@ describe('exceptions for multisignature transactions', () => {
 			'db7fe4e0c58e458edd53ee1d61223f1da411a9e0cb3d15735219958fb9b3d646721584ea62716695bcf978b8210b9cf14645b672533182b8989f9577a0e18309',
 		],
 		asset: {
-			multisignature: {
-				min: 3,
-				lifetime: 24,
-				keysgroup: [
-					'+02e229bc194aa90ef80cc8461eccc830b52d01678add6e0426252f3a0aa7f14f',
-					'+1f2bc9022d0440254c33b5a9c09abfb864623ac9c9ea3285d79bc25d4de430f7',
-				],
-			},
+			min: 3,
+			lifetime: 24,
+			keysgroup: [
+				'+02e229bc194aa90ef80cc8461eccc830b52d01678add6e0426252f3a0aa7f14f',
+				'+1f2bc9022d0440254c33b5a9c09abfb864623ac9c9ea3285d79bc25d4de430f7',
+			],
 		},
 	};
 
@@ -65,6 +68,7 @@ describe('exceptions for multisignature transactions', () => {
 	describe('send funds to account', () => {
 		before(async () => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId: accountWithExceptionMultisig.address,
 				amount: (5000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
@@ -82,11 +86,7 @@ describe('exceptions for multisignature transactions', () => {
 					},
 				);
 			});
-			const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
-				newBlock,
-				library.modules.blocks.lastBlock,
-			);
-			library.modules.blocks._lastBlock = newLastBlock;
+			await library.modules.processor.process(newBlock);
 		});
 
 		describe('details of the accounts', () => {
@@ -101,7 +101,7 @@ describe('exceptions for multisignature transactions', () => {
 
 			describe('when forging block with transaction with multisignature exception', () => {
 				before(async () => {
-					library.modules.blocks.blocksProcess.exceptions = {
+					library.modules.blocks.exceptions = {
 						...library.modules.blocks.exceptions,
 						multisignatures: ['8191213966308378713'],
 					};
@@ -119,11 +119,7 @@ describe('exceptions for multisignature transactions', () => {
 							},
 						);
 					});
-					const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
-						newBlock,
-						library.modules.blocks.lastBlock,
-					);
-					library.modules.blocks._lastBlock = newLastBlock;
+					await library.modules.processor.process(newBlock);
 				});
 
 				describe('details of the accounts', () => {

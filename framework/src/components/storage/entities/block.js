@@ -35,6 +35,8 @@ const sqlFiles = {
  * @property {string} generatorPublicKey
  * @property {string} blockSignature
  * @property {number} height
+ * @property {number} maxHeightPreviouslyForged
+ * @property {number} maxHeightPrevoted
  * @property {string} totalFee
  * @property {string} reward
  * @property {number} payloadLength
@@ -42,7 +44,7 @@ const sqlFiles = {
  * @property {number} numberOfTransactions
  * @property {string} totalAmount
  * @property {number} timestamp
- * @property {string} version
+ * @property {number} version
  */
 
 /**
@@ -135,13 +137,13 @@ const sqlFiles = {
  * @property {string} [reward_lt]
  * @property {string} [reward_lte]
  * @property {Array.<string>} [reward_in]
- * @property {string} [version]
- * @property {string} [version_eql]
- * @property {string} [version_ne]
- * @property {string} [version_gt]
- * @property {string} [version_gte]
- * @property {string} [version_lt]
- * @property {string} [version_lte]
+ * @property {number} [version]
+ * @property {number} [version_eql]
+ * @property {number} [version_ne]
+ * @property {number} [version_gt]
+ * @property {number} [version_gte]
+ * @property {number} [version_lt]
+ * @property {number} [version_lte]
  * @property {Array.<string>} [version_in]
  * @property {string} [confirmations]
  * @property {string} [confirmations_eql]
@@ -167,6 +169,12 @@ class Block extends BaseEntity {
 		this.addField('rowId', 'number');
 		this.addField('id', 'string', { filter: filterType.TEXT });
 		this.addField('height', 'number', { filter: filterType.NUMBER });
+		this.addField('maxHeightPreviouslyForged', 'number', {
+			filter: filterType.NUMBER,
+		});
+		this.addField('maxHeightPrevoted', 'number', {
+			filter: filterType.NUMBER,
+		});
 		this.addField(
 			'blockSignature',
 			'string',
@@ -193,7 +201,6 @@ class Block extends BaseEntity {
 		});
 		this.addField('previousBlockId', 'string', {
 			filter: filterType.TEXT,
-			fieldName: 'previousBlock',
 		});
 		this.addField('timestamp', 'number', { filter: filterType.NUMBER });
 		this.addField('totalAmount', 'string', { filter: filterType.NUMBER });

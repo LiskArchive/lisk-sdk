@@ -17,7 +17,6 @@
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const { validateTransactions } = require('./transactions');
 const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
 
@@ -39,18 +38,12 @@ class Loader {
 		// components
 		channel,
 		logger,
-		storage,
-		cache,
-		// Unique requirements
-		genesisBlock,
 		// Modules
+		processorModule,
 		transactionPoolModule,
 		blocksModule,
-		peersModule,
-		interfaceAdapters,
 		// Constants
 		loadPerIteration,
-		rebuildUpToRound,
 		syncingActive,
 	}) {
 		this.isActive = false;
@@ -60,150 +53,36 @@ class Loader {
 
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
-		// TODO: Remove cache
-		this.cache = cache;
-		this.genesisBlock = genesisBlock;
 
 		this.constants = {
 			loadPerIteration,
-			rebuildUpToRound,
 			syncingActive,
 		};
 
+		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
-		this.peersModule = peersModule;
-		this.interfaceAdapters = interfaceAdapters;
 	}
 
 	/**
-	 * Checks if private constant syncIntervalId has value.
-	 *
-	 * @returns {boolean} True if syncIntervalId has value
+	 * Pulls Transactions
 	 */
-	syncing() {
-		return !!this.isActive;
-	}
-
-	/**
-	 * Pulls Transactions and signatures.
-	 */
-	async loadTransactionsAndSignatures() {
+	async loadUnconfirmedTransactions() {
 		await new Promise(resolve => {
 			async.retry(
 				this.retries,
-				async () => this._getTransactionsFromNetwork(),
+				async () => this._getUnconfirmedTransactionsFromNetwork(),
 				err => {
 					if (err) {
-						this.logger.error('Unconfirmed transactions loader', err);
+						this.logger.error(
+							{ err },
+							'Failed to get transactions from network',
+						);
 					}
 					resolve();
 				},
 			);
 		});
-		await new Promise(resolve => {
-			async.retry(
-				this.retries,
-				async () => this._getSignaturesFromNetwork(),
-				err => {
-					if (err) {
-						this.logger.error('Signatures loader', err);
-					}
-					resolve();
-				},
-			);
-		});
-	}
-
-	/**
-	 * Performs sync operation:
-	 * - Undoes unconfirmed transactions.
-	 * - Establishes broadhash consensus before sync.
-	 * - Performs sync operation: loads blocks from network.
-	 * - Update headers: broadhash and height
-	 * - Notify remote peers about our new headers
-	 * - Establishes broadhash consensus after sync.
-	 * - Applies unconfirmed transactions.
-	 *
-	 * @private
-	 * @param {function} cb
-	 * @todo Check err actions
-	 * @todo Add description for the params
-	 */
-	async sync() {
-		this.logger.info('Starting sync');
-		if (this.cache.ready) {
-			this.cache.disable();
-		}
-
-		this.isActive = true;
-
-		const consensusBefore = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash,
-		);
-
-		this.logger.debug(
-			`Establishing broadhash consensus before sync: ${consensusBefore} %`,
-		);
-
-		await this._loadBlocksFromNetwork();
-
-		const consensusAfter = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash,
-		);
-
-		this.logger.debug(
-			`Establishing broadhash consensus after sync: ${consensusAfter} %`,
-		);
-		this.isActive = false;
-		this.blocksToSync = 0;
-
-		this.logger.info('Finished sync');
-
-		if (this.cache.ready) {
-			this.cache.enable();
-		}
-	}
-
-	/**
-	 * Loads signatures from network.
-	 * Processes each signature from the network.
-	 *
-	 * @private
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
-	 */
-	async _getSignaturesFromNetwork() {
-		this.logger.info('Loading signatures from the network');
-
-		// TODO: Add target module to procedure name. E.g. chain:getSignatures
-		const { data: result } = await this.channel.invoke('network:request', {
-			procedure: 'getSignatures',
-		});
-
-		const errors = validator.validate(definitions.WSSignaturesResponse, result);
-		if (errors.length) {
-			throw errors;
-		}
-
-		const { signatures } = result;
-
-		const signatureCount = signatures.length;
-		// eslint-disable-next-line no-plusplus
-		for (let i = 0; i < signatureCount; i++) {
-			const signaturePacket = signatures[i];
-			const subSignatureCount = signaturePacket.signatures.length;
-			// eslint-disable-next-line no-plusplus
-			for (let j = 0; j < subSignatureCount; j++) {
-				const signature = signaturePacket.signatures[j];
-
-				await this.transactionPoolModule.getTransactionAndProcessSignature({
-					signature,
-					transactionId: signature.transactionId,
-				});
-			}
-		}
 	}
 
 	/**
@@ -215,7 +94,7 @@ class Loader {
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
 	 */
-	async _getTransactionsFromNetwork() {
+	async _getUnconfirmedTransactionsFromNetwork() {
 		this.logger.info('Loading transactions from the network');
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
@@ -232,11 +111,13 @@ class Loader {
 		}
 
 		const transactions = result.transactions.map(tx =>
-			this.interfaceAdapters.transactions.fromJson(tx),
+			this.blocksModule.deserializeTransaction(tx),
 		);
 
 		try {
-			const { transactionsResponses } = validateTransactions()(transactions);
+			const {
+				transactionsResponses,
+			} = await this.blocksModule.validateTransactions(transactions);
 			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,
@@ -247,11 +128,14 @@ class Loader {
 		} catch (errors) {
 			const error =
 				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
-			this.logger.debug('Transaction normalization failed', {
-				id: error.id,
-				err: error.toString(),
-				module: 'loader',
-			});
+			this.logger.error(
+				{
+					id: error.id,
+					err: error.toString(),
+					module: 'loader',
+				},
+				'Transaction normalization failed',
+			);
 			throw error;
 		}
 
@@ -295,9 +179,7 @@ class Loader {
 			throw new Error('Received an invalid blocks response from the network');
 		}
 		// Check for strict equality for backwards compatibility reasons.
-		// The misspelled data.sucess is required to support v1 nodes.
-		// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
-		if (data.success === false || data.sucess === false) {
+		if (data.success === false) {
 			throw new CommonBlockError(
 				'Peer did not have a matching lastBlockId.',
 				lastBlock.id,
@@ -333,10 +215,15 @@ class Loader {
 	 */
 	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
-		const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
-			blocks,
-		);
+		let lastValidBlock = lastBlock;
+		for (const block of blocks) {
+			const parsedBlock = await this.processorModule.deserialize(block);
+			await this.processorModule.validate(parsedBlock);
+			await this.processorModule.processValidated(parsedBlock);
+			lastValidBlock = parsedBlock;
+		}
 		this.blocksToSync = lastValidBlock.height;
+
 		return lastValidBlock.id === lastBlock.id;
 	}
 
@@ -364,29 +251,17 @@ class Loader {
 			} catch (err) {
 				failedAttemptsToLoad += 1;
 				await this._handleCommonBlockError(err);
-				this.logger.warn(
-					{ error: err },
-					'Failed to load blocks from the network.',
-				);
+				this.logger.warn({ err }, 'Failed to load blocks from the network.');
 			}
 		}
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	async _handleCommonBlockError(error) {
 		if (!(error instanceof CommonBlockError)) {
 			return;
 		}
-		if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
-			this.logger.debug('Perform chain recovery due to poor consensus');
-			try {
-				await this.blocksModule.recoverChain();
-			} catch (recoveryError) {
-				this.logger.error(
-					{ error: recoveryError },
-					'Chain recovery failed after failing to load blocks while network consensus was low.',
-				);
-			}
-		}
+		throw error;
 	}
 }
 

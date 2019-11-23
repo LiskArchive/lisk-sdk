@@ -17,8 +17,6 @@
 // Initialize global variables
 require('../setup');
 
-const randomstring = require('randomstring');
-
 const testConfig = __testContext.config;
 const random = require('./utils/random');
 
@@ -27,13 +25,11 @@ const generatePeerHeader = function(headers = {}) {
 	const httpPort = headers.httpPort || random.number(1025, 65536);
 
 	const defaults = {
-		broadhash: testConfig.app.nethash,
 		nethash: testConfig.app.nethash,
 		state: 2,
 		height: 1,
 		wsPort: headers.wsPort || httpPort - 1,
 		httpPort,
-		nonce: randomstring.generate(16),
 		os: operatingSystems[random.number(0, operatingSystems.length)],
 		version: testConfig.app.version,
 		minVersion: testConfig.app.minVersion,

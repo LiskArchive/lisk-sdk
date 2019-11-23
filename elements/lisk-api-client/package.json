@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "2.0.3",
+	"version": "3.0.0-alpha.0",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -17,8 +17,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=8.10 <=10",
-		"npm": ">=5"
+		"node": ">=12.13.0 <=12",
+		"npm": ">=6.12.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -57,7 +57,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/node": "10.12.21",
+		"@types/node": "12.12.11",
 		"axios": "0.19.0"
 	},
 	"devDependencies": {
@@ -79,12 +79,12 @@
 		"sinon": "7.2.3",
 		"sinon-chai": "3.3.0",
 		"source-map-support": "0.5.10",
-		"ts-node": "8.0.2",
+		"ts-node": "8.5.2",
 		"tsconfig-paths": "3.8.0",
-		"tslint": "5.12.1",
+		"tslint": "5.20.1",
 		"tslint-config-prettier": "1.18.0",
-		"tslint-immutable": "5.1.2",
-		"typescript": "3.3.1",
+		"tslint-immutable": "6.0.1",
+		"typescript": "3.7.2",
 		"uglify-es": "3.3.9",
 		"wait-on": "3.2.0"
 	}

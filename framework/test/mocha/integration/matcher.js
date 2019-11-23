@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 /* eslint-disable mocha/no-pending-tests */
 const { promisify } = require('util');
 const {
@@ -18,10 +32,14 @@ const {
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
-const blocksLogic = require('../../../src/modules/chain/blocks/block');
+const { Slots } = require('../../../src/modules/chain/dpos');
+const { getNetworkIdentifier } = require('../common/network_identifier');
 
-const slots = new BlockSlots({
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -103,6 +121,7 @@ class CustomTransationClass extends BaseTransaction {
  */
 function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 	const aCustomTransation = new CustomTransationClass({
+		networkIdentifier,
 		type: 7,
 		senderId,
 		senderPublicKey,
@@ -121,34 +140,41 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 	return aCustomTransation.toJSON();
 }
 
-function createRawBlock(library, rawTransactions, callback) {
+async function createRawBlock(library, rawTransactions) {
 	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
-		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction),
+		library.modules.blocks.deserializeTransaction(rawTransaction),
 	);
 
-	return getDelegateForSlot(library, slot, (err, delegateKey) => {
-		if (err) return callback(err);
-
-		const block = blocksLogic.create({
-			blockReward: library.modules.blocks.blockReward,
-			keypair: keypairs[delegateKey],
-			timestamp: slots.getSlotTime(slot),
-			previousBlock: lastBlock,
-			transactions,
-			maxTransactionPerBlock:
-				library.modules.blocks.constants.maxTransactionPerBlock,
+	const delegateKey = await new Promise((resolve, reject) => {
+		getDelegateForSlot(library, slot, (err, res) => {
+			if (err) {
+				return reject(err);
+			}
+			return resolve(res);
 		});
-
-		block.id = blocksLogic.getId(block);
-		block.height = lastBlock.height + 1;
-		block.transactions = block.transactions.map(transaction =>
-			transaction.toJSON(),
-		);
-		return callback(null, block);
 	});
+
+	const blockProcessorV1 = library.modules.processor.processors[1];
+	const block = await blockProcessorV1.create.run({
+		blockReward: library.modules.blocks.blockReward,
+		keypair: keypairs[delegateKey],
+		timestamp: slots.getSlotTime(slot),
+		previousBlock: lastBlock,
+		transactions,
+		maxTransactionPerBlock:
+			library.modules.blocks.constants.maxTransactionPerBlock,
+		maxHeightPreviouslyForged: 1,
+		maxHeightPrevoted: 1,
+	});
+
+	block.transactions = block.transactions.map(transaction =>
+		transaction.toJSON(),
+	);
+
+	return block;
 }
 
 function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
@@ -157,7 +183,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 		configurable: true,
 	});
 
-	scope.modules.interfaceAdapters.transactions.transactionClassMap.set(
+	scope.modules.blocks._transactionAdapter.transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
 		CustomTransationClass,
 	);
@@ -179,7 +205,7 @@ describe('matcher', () => {
 	};
 
 	before(async () => {
-		TransferTransaction.matcher = () => false;
+		// TransferTransaction.matcher = () => false;
 
 		scope = await application.init({
 			sandbox: {
@@ -199,7 +225,7 @@ describe('matcher', () => {
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
-		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(7);
+		scope.modules.blocks._transactionAdapter.transactionClassMap.delete(7);
 		transactionPool = scope.modules.transactionPool;
 
 		// Define matcher property to be configurable so it can be overriden in the tests
@@ -213,12 +239,12 @@ describe('matcher', () => {
 	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
-		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(
+		scope.modules.blocks._transactionAdapter.transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE,
 		);
 
 		// Reset transaction pool so it starts fresh back again with no transactions.
-		transactionPool.resetPool();
+		transactionPool._resetPool();
 
 		// Delete all blocks and set lastBlock back to the genesisBlock.
 		try {
@@ -227,7 +253,6 @@ describe('matcher', () => {
 					scope.components.storage.adapter.db.none(
 						'DELETE FROM blocks WHERE "height" > 1;',
 					),
-					scope.components.storage.adapter.db.none('DELETE FROM forks_stat;'),
 				]);
 			});
 			scope.modules.blocks._lastBlock = __testContext.config.genesisBlock;
@@ -256,8 +281,8 @@ describe('matcher', () => {
 				expect(
 					scope.modules.transactionPool.transactionInPool(rawTransaction.id),
 				).to.be.false;
-				expect(err[0]).to.be.instanceOf(Error);
-				expect(err[0].message).to.equal(
+				expect(err).to.be.instanceOf(Error);
+				expect(err.message).to.contain(
 					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`,
 				);
 			}
@@ -282,14 +307,7 @@ describe('matcher', () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-			const rawBlock = await new Promise((resolve, reject) => {
-				createRawBlock(scope, [jsonTransaction], (err, block) => {
-					if (err) {
-						return reject(err);
-					}
-					return resolve(block);
-				});
-			});
+			const rawBlock = await createRawBlock(scope, [jsonTransaction]);
 			try {
 				await scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
 			} catch (err) {
@@ -312,7 +330,7 @@ describe('matcher', () => {
 					return resolve(block);
 				});
 			});
-			await scope.modules.blocks.receiveBlockFromNetwork(newBlock);
+			await scope.modules.processor.process(newBlock);
 			expect(scope.modules.blocks.lastBlock.height).to.equal(2);
 		});
 	});
@@ -337,6 +355,7 @@ describe('matcher', () => {
 					.fill()
 					.map((_, i) => {
 						const dummyTransferTransaction = transfer({
+							networkIdentifier,
 							amount: '1',
 							data: i.toString(),
 							passphrase: accountFixtures.genesis.passphrase,

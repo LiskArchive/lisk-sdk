@@ -20,26 +20,17 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const random = require('../../common/utils/random');
 const localCommon = require('../../integration/common');
-const blocksLogic = require('../../../../src/modules/chain/blocks/block');
 const accountFixtures = require('../../fixtures/accounts');
-
 const {
-	registeredTransactions,
-} = require('../../common/registered_transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../src/modules/chain/interface_adapters');
+	sortTransactions,
+} = require('../../../../src/modules/chain/forger/sort');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
 
-const transactionInterfaceAdapter = new TransactionInterfaceAdapter(
-	registeredTransactions,
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
 );
-const {
-	NORMALIZER,
-	constants,
-	modules: {
-		chain: { exceptions },
-	},
-} = global.__testContext.config;
+
+const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
 const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
 const forge = util.promisify(localCommon.forge);
@@ -51,6 +42,7 @@ const addTransactionsAndForge = util.promisify(
 
 function createDebitTransaction(account, amount) {
 	return transfer({
+		networkIdentifier,
 		amount: new BigNum(NORMALIZER).times(amount).toString(),
 		recipientId: random.account().address,
 		passphrase: account.passphrase,
@@ -59,6 +51,7 @@ function createDebitTransaction(account, amount) {
 
 function createCreditTransaction(account, amount) {
 	return transfer({
+		networkIdentifier,
 		amount: new BigNum(NORMALIZER).times(amount).toString(),
 		recipientId: account.address,
 		passphrase: accountFixtures.genesis.passphrase,
@@ -77,7 +70,7 @@ const EXPECT = {
 
 const formatTransaction = t => ({
 	id: t.id,
-	amount: new BigNum(t.amount).toFixed(),
+	amount: new BigNum(t.asset.amount).toFixed(),
 	senderId: t.senderId,
 	recipientId: t.recipientId,
 });
@@ -90,14 +83,6 @@ class BlocksTransactionsHelper {
 		this._library = library;
 		this._transactions = [];
 
-		this.promisifyProcessBlock = async block => {
-			const lastBlock = this._library.modules.blocks.lastBlock;
-			await this._library.modules.blocks.blocksProcess.processBlock(
-				block,
-				lastBlock,
-			);
-			this._library.modules.blocks._lastBlock = block;
-		};
 		this.txPool = this._library.modules.transactionPool;
 	}
 
@@ -141,10 +126,10 @@ class BlocksTransactionsHelper {
 			// Get only transactions marked as valid
 			.filter(t => t.expect === EXPECT.OK)
 			// Amounts have to be instances of BigNum for sorting
-			.map(t => transactionInterfaceAdapter.fromJson(t.data));
+			.map(t => this._library.modules.blocks.deserializeTransaction(t.data));
 
 		// Sort transactions the same way as they are sorted in a block
-		const sortedTransactions = blocksLogic.sortTransactions(validTransactions);
+		const sortedTransactions = sortTransactions(validTransactions);
 
 		// We return only transaction ID, amount (in string format), sender and recipient
 		return sortedTransactions.map(formatTransaction);
@@ -215,24 +200,27 @@ class BlocksTransactionsHelper {
 		const timestamp = this._library.slots.getSlotTime(lastBlockSlot + 1);
 
 		const transactions = this._transactions.map(t =>
-			transactionInterfaceAdapter.fromJson(t.data),
+			this._library.modules.blocks.deserializeTransaction(t.data),
 		);
 
-		this._block = blocksLogic.create({
-			blockReward: this._library.modules.blocks.blockReward,
+		const sortedTransactions = sortTransactions(transactions);
+
+		const blockProcessorV1 = this._library.modules.processor.processors[1];
+		this._block = await blockProcessorV1.create.run({
 			keypair,
 			timestamp,
 			previousBlock: lastBlock,
-			transactions,
-			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
-			exceptions,
+			transactions: sortedTransactions,
+			maxHeightPreviouslyForged: 0,
+			maxHeightPrevoted: 0,
 		});
 	}
 
 	async createAndProcessBlock() {
 		try {
 			await this.createBlock();
-			return await this.promisifyProcessBlock(this._block, true, true);
+			await this._library.modules.processor.process(this._block);
+			return undefined;
 		} catch (err) {
 			return err;
 		}
@@ -242,7 +230,7 @@ class BlocksTransactionsHelper {
 		const totalSpending = this._transactions
 			.filter(t => t.type === TYPE.SPEND)
 			.reduce((total, t) => {
-				return total.plus(t.data.amount).plus(t.data.fee);
+				return total.plus(t.data.asset.amount).plus(t.data.fee);
 			}, new BigNum(0));
 		return totalSpending.toFixed();
 	}

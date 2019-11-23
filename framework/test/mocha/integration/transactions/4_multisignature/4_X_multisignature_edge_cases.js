@@ -18,11 +18,16 @@ const async = require('async');
 const {
 	transfer,
 	registerMultisignature,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -31,6 +36,7 @@ describe('integration test - multi signature edge cases', () => {
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;
 	const creditTransaction = transfer({
+		networkIdentifier,
 		amount: (65 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: multisigAccount.address,
@@ -53,21 +59,24 @@ describe('integration test - multi signature edge cases', () => {
 					const keysgroup = [signer1.publicKey, signer2.publicKey];
 
 					multisigTransaction = registerMultisignature({
+						networkIdentifier,
 						passphrase: multisigAccount.passphrase,
 						keysgroup,
 						lifetime: 4,
 						minimum: 2,
 					});
-					const sign1 = transactionUtils.multiSignTransaction(
-						multisigTransaction,
-						signer1.passphrase,
-					);
-					const sign2 = transactionUtils.multiSignTransaction(
-						multisigTransaction,
-						signer2.passphrase,
-					);
+					const sign1 = createSignatureObject({
+						transaction: multisigTransaction,
+						passphrase: signer1.passphrase,
+						networkIdentifier,
+					});
+					const sign2 = createSignatureObject({
+						transaction: multisigTransaction,
+						passphrase: signer2.passphrase,
+						networkIdentifier,
+					});
 
-					multisigTransaction.signatures = [sign1, sign2];
+					multisigTransaction.signatures = [sign1.signature, sign2.signature];
 					multisigTransaction.ready = true;
 					localCommon.addTransactionsAndForge(
 						library,

@@ -36,7 +36,7 @@ describe('init_steps/start_listening', () => {
 				},
 				config: {
 					httpPort: 8000,
-					address: '1085993630748340485L',
+					address: '1276152240083265771L',
 					options: {
 						limits: {
 							headersTimeout: 1000,
@@ -91,14 +91,20 @@ describe('init_steps/start_listening', () => {
 
 	it('should call logger.info with proper data on http server timeout', async () =>
 		expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
-			`Disconnecting idle socket: ${timeoutStub.remoteAddress}:${
-				timeoutStub.remotePort
-			}`,
+			{
+				remoteAddress: timeoutStub.remoteAddress,
+				remotePort: timeoutStub.remotePort,
+			},
+			'Disconnecting idle socket',
 		));
 
 	it('should call logger.info with proper data if http server started listening correctly', async () =>
 		expect(stub.arg1.components.logger.info).calledWithExactly(
-			`Lisk started: ${stub.arg1.config.address}:${stub.arg1.config.httpPort}`,
+			{
+				address: stub.arg1.config.address,
+				httpPort: stub.arg1.config.httpPort,
+			},
+			'Started Lisk',
 		));
 
 	describe('when SSL is enabled', () => {
@@ -120,16 +126,20 @@ describe('init_steps/start_listening', () => {
 
 		it('should call logger.info with proper data on https server timeout', async () =>
 			expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
-				`Disconnecting idle socket: ${timeoutStub.remoteAddress}:${
-					timeoutStub.remotePort
-				}`,
+				{
+					remoteAddress: timeoutStub.remoteAddress,
+					remotePort: timeoutStub.remotePort,
+				},
+				'Disconnecting idle socket',
 			));
 
 		it('should call logger.info with proper data if http server started listening correctly', async () =>
 			expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
-				`Lisk https started: ${stub.arg1.config.ssl.options.address}:${
-					stub.arg1.config.ssl.options.port
-				}`,
+				{
+					address: stub.arg1.config.ssl.options.address,
+					httpPort: stub.arg1.config.ssl.options.port,
+				},
+				'Started Lisk HTTPS',
 			));
 	});
 });

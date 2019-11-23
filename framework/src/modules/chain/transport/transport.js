@@ -16,19 +16,13 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const _ = require('lodash');
 const { convertErrorsToString } = require('../utils/error_handlers');
+const { InvalidTransactionError } = require('./errors');
 const Broadcaster = require('./broadcaster');
-const definitions = require('../schema/definitions');
-const blocksUtils = require('../blocks');
-const transactionsModule = require('../transactions');
+const schemas = require('./schemas');
 
-function incrementRelays(packet) {
-	if (!Number.isInteger(packet.relays)) {
-		packet.relays = 0;
-	}
-	packet.relays += 1;
-}
+const DEFAULT_RATE_RESET_TIME = 10000;
+const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
 
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
@@ -54,42 +48,43 @@ class Transport {
 		applicationState,
 		exceptions,
 		// Modules
+		synchronizer,
 		transactionPoolModule,
 		blocksModule,
-		loaderModule,
-		interfaceAdapters,
+		processorModule,
 		// Constants
-		nonce,
 		broadcasts,
-		maxSharedTransactions,
 	}) {
 		this.message = {};
 
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
+		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
 
 		this.constants = {
-			nonce,
 			broadcasts,
-			maxSharedTransactions,
 		};
 
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
-		this.loaderModule = loaderModule;
-		this.interfaceAdapters = interfaceAdapters;
+		this.processorModule = processorModule;
 
-		this.broadcaster = new Broadcaster(
-			this.constants.nonce,
-			this.constants.broadcasts,
-			this.transactionPoolModule,
-			this.logger,
-			this.channel,
-			this.storage,
-		);
+		this.broadcaster = new Broadcaster({
+			broadcasts: this.constants.broadcasts,
+			transactionPool: this.transactionPoolModule,
+			logger: this.logger,
+			channel: this.channel,
+			storage: this.storage,
+		});
+
+		// Rate limit for certain endpoints
+		this.rateTracker = {};
+		setInterval(() => {
+			this.rateTracker = {};
+		}, DEFAULT_RATE_RESET_TIME);
 	}
 
 	/**
@@ -100,22 +95,9 @@ class Transport {
 	 * @emits signature/change
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	onSignature(signature, broadcast) {
-		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(signature);
-			this.broadcaster.enqueue(
-				{},
-				{
-					api: 'postSignatures',
-					data: {
-						signature,
-					},
-				},
-			);
-			this.channel.publish('chain:signature:change', signature);
-		}
+	handleBroadcastSignature(signature) {
+		this.broadcaster.enqueueSignatureObject(signature);
+		this.channel.publish('chain:signature:change', signature);
 	}
 
 	/**
@@ -126,23 +108,9 @@ class Transport {
 	 * @emits transactions/change
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	onUnconfirmedTransaction(transaction, broadcast) {
-		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(transaction);
-			const transactionJSON = transaction.toJSON();
-			this.broadcaster.enqueue(
-				{},
-				{
-					api: 'postTransactions',
-					data: {
-						transaction: transactionJSON,
-					},
-				},
-			);
-			this.channel.publish('chain:transactions:change', transactionJSON);
-		}
+	handleBroadcastTransaction(transaction) {
+		this.broadcaster.enqueueTransactionId(transaction.id);
+		this.channel.publish('chain:transactions:change', transaction.toJSON());
 	}
 
 	/**
@@ -152,54 +120,22 @@ class Transport {
 	 * @param {boolean} broadcast - Signal flag for broadcast
 	 * @emits blocks/change
 	 */
-	// TODO: Remove after block module becomes event-emitter
-	// eslint-disable-next-line class-methods-use-this
-	onBroadcastBlock(block, broadcast) {
-		// Exit immediately when 'broadcast' flag is not set
-		if (!broadcast) return null;
-
-		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-		incrementRelays(block);
-
-		if (this.loaderModule.syncing()) {
+	async handleBroadcastBlock(blockJSON) {
+		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
 			return null;
 		}
-
-		if (block.totalAmount) {
-			block.totalAmount = block.totalAmount.toNumber();
-		}
-
-		if (block.totalFee) {
-			block.totalFee = block.totalFee.toNumber();
-		}
-
-		if (block.reward) {
-			block.reward = block.reward.toNumber();
-		}
-
-		if (block.transactions) {
-			// Convert transactions to JSON
-			block.transactions = block.transactions.map(transactionInstance =>
-				transactionInstance.toJSON(),
-			);
-		}
-
-		const { broadhash } = this.applicationState;
-
-		// Perform actual broadcast operation
-		return this.broadcaster.broadcast(
-			{
-				broadhash,
+		return this.channel.invoke('network:send', {
+			event: 'postBlock',
+			data: {
+				block: blockJSON,
 			},
-			{ api: 'postBlock', data: { block } },
-		);
+		});
 	}
 
 	/**
-	 * @property {function} blocksCommon
 	 * @property {function} blocks
 	 * @property {function} postBlock
 	 * @property {function} list
@@ -208,133 +144,66 @@ class Transport {
 	 * @property {function} postSignatures
 	 * @property {function} getSignatures
 	 * @property {function} getTransactions
-	 * @property {function} postTransactions
+	 * @property {function} postTransactionsAnnouncement
 	 * @todo Add description for the functions
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
 	 */
-	/**
-	 * Description of blocksCommon.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	async blocksCommon(query) {
-		query = query || {};
 
-		if (query.ids && query.ids.split(',').length > 1000) {
-			throw new Error('ids property contains more than 1000 values');
+	/**
+	 * Returns a set of full blocks starting from the ID defined in the data up to
+	 * the current tip of the chain.
+	 * @param {object} data
+	 * @param {string} data.blockId - The ID of the starting block
+	 * @return {Promise<Array<object>>}
+	 */
+	async handleRPCGetBlocksFromId(data, peerId) {
+		validator.validate(schemas.getBlocksFromIdRequest, data);
+
+		if (validator.validator.errors) {
+			this.logger.warn(
+				{
+					err: validator.validator.errors,
+					req: data,
+				},
+				'getBlocksFromID request validation failed',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw validator.validator.errors;
 		}
 
-		const errors = validator.validate(definitions.WSBlocksCommonRequest, query);
+		return this.blocksModule.loadBlocksFromLastBlockId(data.blockId, 34);
+	}
 
-		if (errors.length) {
-			const error = `${errors[0].message}: ${errors[0].path}`;
-			this.logger.debug('Common block request validation failed', {
-				err: error.toString(),
-				req: query,
+	async handleRPCGetGetHighestCommonBlock(data, peerId) {
+		const valid = validator.validate(
+			schemas.getHighestCommonBlockRequest,
+			data,
+		);
+
+		if (valid.length) {
+			const err = valid;
+			const error = `${err[0].message}: ${err[0].path}`;
+			this.logger.warn(
+				{
+					err: error,
+					req: data,
+				},
+				'getHighestCommonBlock request validation failed',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
 			});
 			throw new Error(error);
 		}
 
-		const escapedIds = query.ids
-			// Remove quotes
-			.replace(/['"]+/g, '')
-			// Separate by comma into an array
-			.split(',')
-			// Reject any non-numeric values
-			.filter(id => /^[0-9]+$/.test(id));
+		const commonBlock = await this.blocksModule.getHighestCommonBlock(data.ids);
 
-		if (!escapedIds.length) {
-			this.logger.debug('Common block request validation failed', {
-				err: 'ESCAPE',
-				req: query.ids,
-			});
-
-			throw new Error('Invalid block id sequence');
-		}
-
-		try {
-			const row = await this.storage.entities.Block.get({
-				id: escapedIds[0],
-			});
-
-			if (!row.length > 0) {
-				return {
-					success: true,
-					common: null,
-				};
-			}
-
-			const { height, id, previousBlockId: previousBlock, timestamp } = row[0];
-
-			const parsedRow = {
-				id,
-				height,
-				previousBlock,
-				timestamp,
-			};
-
-			return {
-				success: true,
-				common: parsedRow,
-			};
-		} catch (error) {
-			this.logger.error(error.stack);
-			throw new Error('Failed to get common block');
-		}
-	}
-
-	/**
-	 * Description of blocks.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add description of the function
-	 */
-	// eslint-disable-next-line consistent-return
-	async blocks(query) {
-		// Get 34 blocks with all data (joins) from provided block id
-		// According to maxium payload of 58150 bytes per block with every transaction being a vote
-		// Discounting maxium compression setting used in middleware
-		// Maximum transport payload = 2000000 bytes
-		if (!query || !query.lastBlockId) {
-			return {
-				success: false,
-				message: 'Invalid lastBlockId requested',
-			};
-		}
-
-		try {
-			const data = await this.blocksModule.loadBlocksDataWS({
-				limit: 34, // 1977100 bytes
-				lastId: query.lastBlockId,
-			});
-
-			_.each(data, block => {
-				if (block.tf_data) {
-					try {
-						block.tf_data = block.tf_data.toString('utf8');
-					} catch (e) {
-						this.logger.error(
-							'Transport->blocks: Failed to convert data field to UTF-8',
-							{
-								block,
-								error: e,
-							},
-						);
-					}
-				}
-			});
-
-			return { blocks: data, success: true };
-		} catch (err) {
-			return {
-				blocks: [],
-				message: err,
-				success: false,
-			};
-		}
+		return commonBlock;
 	}
 
 	/**
@@ -344,42 +213,42 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}) {
+	async handleEventPostBlock(data, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
 			);
 		}
 
-		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
+		// Should ignore received block if syncing
+		if (this.synchronizer.isActive) {
+			return this.logger.debug(
+				{ blockId: data.block.id, height: data.block.height },
+				"Client is syncing. Can't process new block at the moment.",
+			);
+		}
+
+		const errors = validator.validate(schemas.postBlockEvent, data);
 
 		if (errors.length) {
-			this.logger.debug(
-				'Received post block broadcast request in unexpected format',
+			this.logger.warn(
 				{
 					errors,
 					module: 'transport',
-					query,
+					data,
 				},
+				'Received post block broadcast request in unexpected format',
 			);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
-		let block = blocksUtils.addBlockProperties(query.block);
+		const block = await this.processorModule.deserialize(data.block);
 
-		// Instantiate transaction classes
-		block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
-
-		block = blocksUtils.objectNormalize(block);
-		// TODO: endpoint should be protected before
-		if (this.loaderModule.syncing()) {
-			return this.logger.debug(
-				"Client is syncing. Can't receive block at the moment.",
-				block.id,
-			);
-		}
-		return this.blocksModule.receiveBlockFromNetwork(block);
+		return this.processorModule.process(block, { peerId });
 	}
 
 	/**
@@ -389,13 +258,12 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignature(query) {
-		const errors = validator.validate(definitions.Signature, query.signature);
+	async handleEventPostSignature(data) {
+		const errors = validator.validate(schemas.signatureObject, data.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
 			return {
-				success: false,
 				code: 400,
 				errors: [error],
 			};
@@ -403,12 +271,11 @@ class Transport {
 
 		try {
 			await this.transactionPoolModule.getTransactionAndProcessSignature(
-				query.signature,
+				data.signature,
 			);
-			return { success: true };
+			return {};
 		} catch (err) {
 			return {
-				success: false,
 				code: 409,
 				errors: err,
 			};
@@ -422,22 +289,41 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignatures(query) {
-		if (!this.constants.broadcasts.active) {
-			return this.logger.debug(
-				'Receiving signatures disabled by user through config.json',
-			);
-		}
-
-		const errors = validator.validate(definitions.WSSignaturesList, query);
+	async handleEventPostSignatures(data, peerId) {
+		await this._addRateLimit(
+			'postSignatures',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		const errors = validator.validate(schemas.postSignatureEvent, data);
 
 		if (errors.length) {
-			this.logger.debug('Invalid signatures body', errors);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			this.logger.warn({ err: errors }, 'Invalid signatures body');
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
-		return this._receiveSignatures(query.signatures);
+		for (const signature of data.signatures) {
+			const signatureObjectErrors = validator.validate(
+				schemas.signatureObject,
+				signature,
+			);
+
+			if (signatureObjectErrors.length) {
+				await this.channel.invoke('network:applyPenalty', {
+					peerId,
+					penalty: 100,
+				});
+				throw signatureObjectErrors;
+			}
+
+			await this.transactionPoolModule.getTransactionAndProcessSignature(
+				signature,
+			);
+		}
 	}
 
 	/**
@@ -447,10 +333,10 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getSignatures() {
+	async handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
-			this.constants.maxSharedTransactions,
+			this.constants.broadcasts.releaseLimit,
 		);
 
 		const signatures = transactions
@@ -463,27 +349,86 @@ class Transport {
 			}));
 
 		return {
-			success: true,
 			signatures,
 		};
 	}
 
 	/**
-	 * Description of getTransactions.
+	 * Get default number of transactions or by ids.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async getTransactions() {
-		const transactions = this.transactionPoolModule.getMergedTransactionList(
-			true,
-			this.constants.maxSharedTransactions,
+	async handleRPCGetTransactions(data = {}, peerId) {
+		await this._addRateLimit(
+			'getTransactions',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
 		);
+		const errors = validator.validate(schemas.getTransactionsRequest, data);
+		if (errors.length) {
+			this.logger.warn(
+				{ err: errors, peerId },
+				'Received invalid transactions body',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw errors;
+		}
+
+		const { transactionIds } = data;
+		if (!transactionIds) {
+			return {
+				transactions: this.transactionPoolModule.getMergedTransactionList(
+					true,
+					this.constants.broadcasts.releaseLimit,
+				),
+			};
+		}
+
+		if (transactionIds.length > this.constants.broadcasts.releaseLimit) {
+			const error = new Error('Received invalid request.');
+			this.logger.warn({ err: error, peerId }, 'Received invalid request.');
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw error;
+		}
+
+		const transactionsFromQueues = [];
+		const idsNotInPool = [];
+
+		for (const id of transactionIds) {
+			// Check if any transaction is in the queues.
+			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
+				id,
+			);
+
+			if (transactionInPool) {
+				transactionsFromQueues.push(transactionInPool.toJSON());
+			} else {
+				idsNotInPool.push(id);
+			}
+		}
+
+		if (idsNotInPool.length) {
+			// Check if any transaction that was not in the queues, is in the database instead.
+			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
+				{ id_in: idsNotInPool },
+				{ limit: this.constants.broadcasts.releaseLimit },
+			);
+
+			return {
+				transactions: transactionsFromQueues.concat(transactionsFromDatabase),
+			};
+		}
 
 		return {
-			success: true,
-			transactions,
+			transactions: transactionsFromQueues,
 		};
 	}
 
@@ -494,104 +439,115 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransaction(query) {
+	async handleEventPostTransaction(data) {
 		try {
-			const id = await this._receiveTransaction(query.transaction);
+			const id = await this._receiveTransaction(data.transaction);
 			return {
-				success: true,
 				transactionId: id,
 			};
 		} catch (err) {
 			return {
-				success: false,
-				message: err.message || 'Transaction was rejected with errors',
-				errors: err,
+				message: 'Transaction was rejected with errors',
+				errors: err.errors || err,
 			};
 		}
 	}
 
 	/**
-	 * Description of postTransactions.
+	 * Process transactions IDs announcement. First validates, filter the known transactions
+	 * and finally ask to the emitter the ones that are unknown.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransactions(query) {
-		if (!this.constants.broadcasts.active) {
-			return this.logger.debug(
-				'Receiving transactions disabled by user through config.json',
+	async handleEventPostTransactionsAnnouncement(data, peerId) {
+		await this._addRateLimit(
+			'postTransactionsAnnouncement',
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		const errors = validator.validate(
+			schemas.postTransactionsAnnouncementEvent,
+			data,
+		);
+
+		if (errors.length) {
+			this.logger.warn(
+				{ err: errors, peerId },
+				'Received invalid transactions body',
+			);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
+			throw errors;
+		}
+
+		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
+			data.transactionIds,
+		);
+		if (unknownTransactionIDs.length > 0) {
+			const { data: result } = await this.channel.invoke(
+				'network:requestFromPeer',
+				{
+					procedure: 'getTransactions',
+					data: { transactionIds: unknownTransactionIDs },
+					peerId,
+				},
+			);
+			try {
+				for (const transaction of result.transactions) {
+					transaction.bundled = true;
+					await this._receiveTransaction(transaction);
+				}
+			} catch (err) {
+				this.logger.warn({ err, peerId }, 'Received invalid transactions.');
+				if (err instanceof InvalidTransactionError) {
+					await this.channel.invoke('network:applyPenalty', {
+						peerId,
+						penalty: 100,
+					});
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * It filters the known transaction IDs because they are either in the queues or exist in the database.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async _obtainUnknownTransactionIDs(ids) {
+		// Check if any transaction is in the queues.
+		const unknownTransactionsIDs = ids.filter(
+			id => !this.transactionPoolModule.transactionInPool(id),
+		);
+
+		if (unknownTransactionsIDs.length) {
+			// Check if any transaction exists in the database.
+			const existingTransactions = await this.storage.entities.Transaction.get(
+				{
+					id_in: unknownTransactionsIDs,
+				},
+				{
+					limit: this.constants.broadcasts.releaseLimit,
+				},
+			);
+
+			return unknownTransactionsIDs.filter(
+				id =>
+					existingTransactions.find(
+						existingTransaction => existingTransaction.id === id,
+					) === undefined,
 			);
 		}
 
-		const errors = validator.validate(definitions.WSTransactionsRequest, query);
-
-		if (errors.length) {
-			this.logger.debug('Invalid transactions body', errors);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-			throw errors;
-		}
-
-		return this._receiveTransactions(query.transactions);
-	}
-
-	/**
-	 * Validates signatures body and for each signature calls receiveSignature.
-	 *
-	 * @private
-	 * @implements {__private.receiveSignature}
-	 * @param {Array} signatures - Array of signatures
-	 */
-	async _receiveSignatures(signatures = []) {
-		for (const signature of signatures) {
-			try {
-				await this._receiveSignature(signature);
-			} catch (err) {
-				this.logger.debug(err, signature);
-			}
-		}
-	}
-
-	/**
-	 * Validates signature with schema and calls getTransactionAndProcessSignature.
-	 *
-	 * @private
-	 * @param {Object} query
-	 * @param {string} query.signature
-	 * @param {Object} query.transaction
-	 * @returns {Promise.<boolean, Error>}
-	 * @todo Add description for the params
-	 */
-	async _receiveSignature(signature) {
-		const errors = validator.validate(definitions.Signature, signature);
-
-		if (errors.length) {
-			throw errors;
-		}
-
-		return this.transactionPoolModule.getTransactionAndProcessSignature(
-			signature,
-		);
-	}
-
-	/**
-	 * Validates transactions with schema and calls receiveTransaction for each transaction.
-	 *
-	 * @private
-	 * @implements {__private.receiveTransaction}
-	 * @param {Array} transactions - Array of transactions
-	 */
-	async _receiveTransactions(transactions = []) {
-		for (const transaction of transactions) {
-			try {
-				if (transaction) {
-					transaction.bundled = true;
-				}
-				await this._receiveTransaction(transaction);
-			} catch (err) {
-				this.logger.debug(convertErrorsToString(err), transaction);
-			}
-		}
+		return unknownTransactionsIDs;
 	}
 
 	/**
@@ -607,37 +563,31 @@ class Transport {
 		const id = transactionJSON ? transactionJSON.id : 'null';
 		let transaction;
 		try {
-			transaction = this.interfaceAdapters.transactions.fromJson(
-				transactionJSON,
-			);
+			transaction = this.blocksModule.deserializeTransaction(transactionJSON);
 
-			const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
-				transactionsModule.checkAllowedTransactions(
-					this.blocksModule.lastBlock,
-				),
-				transactionsModule.validateTransactions(this.exceptions),
-			);
-
-			const { transactionsResponses } = await composedTransactionsCheck([
-				transaction,
-			]);
+			// Composed transaction checks are all static, so it does not need state store
+			const {
+				transactionsResponses,
+			} = await this.blocksModule.validateTransactions([transaction]);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			this.logger.debug('Transaction normalization failed', {
-				id,
-				err: errString,
-				module: 'transport',
-			});
+			const err = new InvalidTransactionError(errString, id, errors);
+			this.logger.error(
+				{
+					err,
+					module: 'transport',
+				},
+				'Transaction normalization failed',
+			);
 
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-			throw errors;
+			throw err;
 		}
 
-		this.logger.debug(`Received transaction ${transaction.id}`);
+		this.logger.debug({ id: transaction.id }, 'Received transaction');
 
 		try {
 			await this.transactionPoolModule.processUnconfirmedTransaction(
@@ -648,9 +598,24 @@ class Transport {
 		} catch (err) {
 			this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 			if (transaction) {
-				this.logger.debug('Transaction', transaction);
+				this.logger.debug({ transaction }, 'Transaction');
 			}
 			throw err;
+		}
+	}
+
+	async _addRateLimit(procedure, peerId, limit) {
+		if (this.rateTracker[procedure] === undefined) {
+			this.rateTracker[procedure] = { [peerId]: 0 };
+		}
+		this.rateTracker[procedure][peerId] = this.rateTracker[procedure][peerId]
+			? this.rateTracker[procedure][peerId] + 1
+			: 1;
+		if (this.rateTracker[procedure][peerId] > limit) {
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 10,
+			});
 		}
 	}
 }

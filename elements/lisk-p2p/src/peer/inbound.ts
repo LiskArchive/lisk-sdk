@@ -13,9 +13,11 @@
  *
  */
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	DEFAULT_PING_INTERVAL_MAX,
 	DEFAULT_PING_INTERVAL_MIN,
+	INTENTIONAL_DISCONNECT_CODE,
 } from '../constants';
 import {
 	EVENT_CLOSE_INBOUND,
@@ -24,7 +26,8 @@ import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
-import { P2PDiscoveredPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../p2p_types';
+
 import {
 	Peer,
 	PeerConfig,
@@ -46,7 +49,7 @@ export class InboundPeer extends Peer {
 	private _pingTimeoutId: NodeJS.Timer;
 
 	public constructor(
-		peerInfo: P2PDiscoveredPeerInfo,
+		peerInfo: P2PPeerInfo,
 		peerSocket: SCServerSocket,
 		peerConfig: PeerConfig,
 	) {
@@ -80,7 +83,10 @@ export class InboundPeer extends Peer {
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 
-	public disconnect(code: number = 1000, reason?: string): void {
+	public disconnect(
+		code: number = INTENTIONAL_DISCONNECT_CODE,
+		reason?: string,
+	): void {
 		super.disconnect(code, reason);
 		clearTimeout(this._pingTimeoutId);
 		this._unbindHandlersFromInboundSocket(this._socket);
@@ -107,15 +113,6 @@ export class InboundPeer extends Peer {
 		// Bind RPC and remote event handlers
 		inboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.on(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.on(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
 	}
 
 	// All event handlers for the inbound socket should be unbound in this method.
@@ -128,14 +125,5 @@ export class InboundPeer extends Peer {
 		// Unbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.off(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.off(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
 	}
 }

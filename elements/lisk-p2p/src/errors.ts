@@ -1,3 +1,5 @@
+import { P2PPeerInfo } from './p2p_types';
+
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -56,10 +58,34 @@ export class RPCResponseAlreadySentError extends Error {
 	}
 }
 
-export class InvalidPeerError extends Error {
+export class ExistingPeerError extends Error {
+	public peerInfo: P2PPeerInfo;
+
+	public constructor(peerInfo: P2PPeerInfo) {
+		super('Peer already exists');
+		this.name = 'ExistingPeerError';
+		this.peerInfo = peerInfo;
+	}
+}
+
+export class InvalidNodeInfoError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidPeerError';
+		this.name = 'InvalidNodeInfoError';
+	}
+}
+
+export class InvalidPeerInfoError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidPeerInfoError';
+	}
+}
+
+export class InvalidPeerInfoListError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidPeerInfoListError';
 	}
 }
 

@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { initializePeerInfoList } from '../../utils/peers';
 import {
 	getIPGroup,
 	isPrivate,
@@ -21,22 +20,21 @@ import {
 	getNetwork,
 	getIPBytes,
 	getNetgroup,
-	getBucketId,
-	getUniquePeersbyIp,
 	NETWORK,
+	getBucketId,
 	PEER_TYPE,
 } from '../../../src/utils';
-import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
+import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
 
 describe('utils/misc', () => {
-	const IPv4Address = '1.160.10.240';
-	const privateAddress = '10.0.0.0';
-	const localAddress = '127.0.0.1';
-	const secret = 123456;
 	const MAX_GROUP_NUM = 255;
 	const MAX_NEW_BUCKETS = 128;
 	const MAX_TRIED_BUCKETS = 64;
 	const MAX_PEER_ADDRESSES = 65025;
+	const secret = DEFAULT_RANDOM_SECRET;
+	const IPv4Address = '1.160.10.240';
+	const privateAddress = '10.0.0.0';
+	const localAddress = '127.0.0.1';
 
 	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
@@ -45,11 +43,7 @@ describe('utils/misc', () => {
 		});
 
 		it('should throw an error for second argument greater than 3', () => {
-			try {
-				getIPGroup(IPv4Address, 4);
-			} catch (err) {
-				expect(err).to.have.property('message', 'Invalid IP group.');
-			}
+			expect(() => getIPGroup(IPv4Address, 4)).to.throw('Invalid IP group.');
 		});
 	});
 
@@ -98,6 +92,14 @@ describe('utils/misc', () => {
 	});
 
 	describe('#getNetgroup', () => {
+		it(`should throw an error if network is equal to ${
+			NETWORK.NET_OTHER
+		}`, () => {
+			expect(() =>
+				getNetgroup('wrong ipAddress', DEFAULT_RANDOM_SECRET),
+			).to.throw('IP address is unsupported.');
+		});
+
 		it('should return a number netgroup', () => {
 			return expect(getNetgroup(IPv4Address, secret)).to.be.a('number');
 		});
@@ -134,16 +136,44 @@ describe('utils/misc', () => {
 		});
 	});
 
+	describe('#evictPeerRandomlyFromBucket', () => {
+		it('must return the evicted peer info');
+	});
+
+	describe('#expirePeerFromBucket', () => {
+		describe('when bucket contains old peers', () => {
+			it('should return the evicted peer info');
+		});
+		describe('when bucket does not contains old peers', () => {
+			it('should return undefined');
+		});
+	});
+
 	describe('#getBucketId', () => {
+		it(`should throw an error if network is equal to ${
+			NETWORK.NET_OTHER
+		}`, () => {
+			expect(() =>
+				getBucketId({
+					secret,
+					targetAddress: 'wrong ipAddress',
+					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
+				}),
+			).to.throw('IP address is unsupported.');
+		});
+
 		it('should return a bucket number', () => {
-			return expect(
+			expect(
 				getBucketId({
 					secret,
 					targetAddress: IPv4Address,
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			).to.be.a('number');
+			)
+				.to.be.a('number')
+				.within(0, MAX_NEW_BUCKETS);
 		});
 
 		it('should return different buckets for different target addresses', () => {
@@ -161,7 +191,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			return expect(firstBucket).to.not.eql(secondBucket);
+			expect(firstBucket).to.not.eql(secondBucket);
 		});
 
 		it('should return same bucket for unique local target addresses', () => {
@@ -179,7 +209,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			return expect(firstBucket).to.eql(secondBucket);
+			expect(firstBucket).to.eql(secondBucket);
 		});
 
 		it('should return same bucket for unique private target addresses', () => {
@@ -197,10 +227,10 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			return expect(firstBucket).to.eql(secondBucket);
+			expect(firstBucket).to.eql(secondBucket);
 		});
 
-		it('should return different buckets for local and private target addresses', () => {
+		it('should return ifferent buckets for local and private target addresses', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,
@@ -214,10 +244,10 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			return expect(firstBucket).to.not.eql(secondBucket);
+			expect(firstBucket).to.not.eql(secondBucket);
 		});
 
-		it('should return the same bucket given random ip addresses in the same group for new peers', async () => {
+		it('should return the same bucket given random ip addresses in the same group for new peers', () => {
 			const collectedBuckets = new Array(MAX_GROUP_NUM)
 				.fill(0)
 				.map(() => '61.26.254.' + Math.floor(Math.random() * 256))
@@ -234,7 +264,7 @@ describe('utils/misc', () => {
 				.true;
 		});
 
-		it('should return NaN if bucketCount is 0', async () => {
+		it('should return NaN if bucketCount is 0', () => {
 			const bucketId = getBucketId({
 				secret,
 				targetAddress: '61.26.254.123',
@@ -244,7 +274,7 @@ describe('utils/misc', () => {
 			expect(bucketId).is.NaN;
 		});
 
-		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', async () => {
+		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
 			const expectedPeerCountPerBucketLowerBound =
 				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
 			const expectedPeerCountPerBucketUpperBound =
@@ -280,7 +310,7 @@ describe('utils/misc', () => {
 		});
 
 		// The bounds are more tolerant here due to our temporary solution to not include source IP changing the outcome of distribution
-		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for new peers', async () => {
+		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for new peers', () => {
 			const expectedPeerCountPerBucketLowerBound =
 				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.2;
 			const expectedPeerCountPerBucketUpperBound =
@@ -311,73 +341,6 @@ describe('utils/misc', () => {
 				expect(bucketCount).to.be.lessThan(
 					expectedPeerCountPerBucketUpperBound,
 				);
-			});
-		});
-	});
-
-	describe('#getUniquePeersbyIp', () => {
-		const samplePeers = initializePeerInfoList();
-
-		describe('when two peers have same peer infos', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
-
-			beforeEach(async () => {
-				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
-			});
-
-			it('should remove the duplicate peers with the same ips', async () => {
-				expect(uniquePeerListByIp).eql(samplePeers);
-			});
-		});
-
-		describe('when two peers have same IP and different wsPort and height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
-
-			beforeEach(async () => {
-				const peer1 = {
-					...samplePeers[0],
-					height: 1212,
-					wsPort: samplePeers[0].wsPort + 1,
-				};
-
-				const peer2 = {
-					...samplePeers[1],
-					height: 1200,
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
-			});
-
-			it('should remove the duplicate ip and choose the one with higher height', async () => {
-				expect(uniquePeerListByIp).eql(samplePeers);
-			});
-		});
-
-		describe('when two peers have same IP and different wsPort but same height', () => {
-			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
-
-			beforeEach(async () => {
-				const peer1 = {
-					...samplePeers[0],
-					height: samplePeers[0].height,
-					wsPort: samplePeers[0].wsPort + 1,
-				};
-
-				const peer2 = {
-					...samplePeers[1],
-					height: samplePeers[1].height,
-					wsPort: samplePeers[1].wsPort + 1,
-				};
-
-				const duplicatesList = [...samplePeers, peer1, peer2];
-				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
-			});
-
-			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
-				expect(uniquePeerListByIp).eql(samplePeers);
 			});
 		});
 	});

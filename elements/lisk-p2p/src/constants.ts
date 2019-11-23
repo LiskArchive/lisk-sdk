@@ -16,14 +16,16 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
 // General P2P constants
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
+export const DEFAULT_LOCALHOST_IP = '127.0.0.1';
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
-export const DEFAULT_SEND_PEER_LIMIT = 24;
+export const DEFAULT_SEND_PEER_LIMIT = 16;
 // Max rate of WebSocket messages per second per peer.
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
 export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
+export const DEFAULT_NONCE_LENGTH_BYTES = 8;
 const SECRET_BYTE_LENGTH = 4;
 export const DEFAULT_RANDOM_SECRET = getRandomBytes(
 	SECRET_BYTE_LENGTH,
@@ -39,10 +41,7 @@ export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
-
-// Peer pool constants
-export const PEER_KIND_OUTBOUND = 'outbound';
-export const PEER_KIND_INBOUND = 'inbound';
+export const DEFAULT_MIN_TRIED_PEER_COUNT = 100;
 
 // Peer base constants
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
@@ -55,6 +54,10 @@ export const DEFAULT_PRODUCTIVITY = {
 	responseRate: 0,
 	lastResponded: 0,
 };
+
+// Penalty constants
+export const INVALID_PEER_LIST_PENALTY = 100;
+export const INVALID_PEER_INFO_PENALTY = 100;
 
 // Peer inbound constants
 export const DEFAULT_PING_INTERVAL_MAX = 60000;
@@ -70,6 +73,8 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
+export const SEED_PEER_DISCONNECTION_REASON =
+	'Disconnect from SeedPeer after discovery';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';
@@ -86,9 +91,28 @@ export const INCOMPATIBLE_PROTOCOL_VERSION_REASON =
 export const INCOMPATIBLE_PEER_CODE = 4104;
 export const INCOMPATIBLE_PEER_UNKNOWN_REASON =
 	'Peer is incompatible with the node for unknown reasons';
+export const INCOMPATIBLE_PEER_INFO_CODE = 4105;
+export const INCOMPATIBLE_PEER_INFO_CODE_REASON = 'Peer has invalid PeerInfo';
 // First case to follow HTTP status codes
 export const FORBIDDEN_CONNECTION = 4403;
 export const FORBIDDEN_CONNECTION_REASON = 'Peer is not allowed to connect';
 export const EVICTED_PEER_CODE = 4418;
 export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
+
+// Peer info constants
+export const INVALID_PEER_INFO_LIST_REASON = 'PeerInfo list has invalid value';
+export const PEER_INFO_LIST_TOO_LONG_REASON = 'PeerInfo list is too long';
+export enum ConnectionKind {
+	OUTBOUND = 'outbound',
+	INBOUND = 'inbound',
+	NONE = 'none',
+}
+
+export enum PeerKind {
+	FIXED_PEER = 'fixedPeer',
+	WHITELISTED_PEER = 'whitelistedPeer',
+	SEED_PEER = 'seedPeer',
+	BLACKLISTED_PEER = 'blacklistedPeer',
+	NONE = 'NONE',
+}

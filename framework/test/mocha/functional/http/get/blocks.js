@@ -20,12 +20,12 @@ const accountFixtures = require('../../../fixtures/accounts');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const { Slots } = require('../../../../../src/modules/chain/dpos');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /blocks', () => {
-	const slots = new BlockSlots({
+	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -35,9 +35,9 @@ describe('GET /blocks', () => {
 	// Testnet genesis block data
 	const block = {
 		blockHeight: 1,
-		id: '6524861224470851795',
+		id: '10620616195853047363',
 		generatorPublicKey:
-			'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+			'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
 		totalAmount: 10000000000000000,
 		totalFee: 0,
 	};
@@ -67,7 +67,7 @@ describe('GET /blocks', () => {
 			});
 
 			it('using genesisBlock id should return the result', async () => {
-				const id = '6524861224470851795';
+				const id = '10620616195853047363';
 
 				return blocksEndpoint.makeRequest({ blockId: id }, 200).then(res => {
 					expect(res.body.data[0].id).to.equal(id);
@@ -135,7 +135,7 @@ describe('GET /blocks', () => {
 
 			it('using valid fromTimestamp should return transactions', async () => {
 				// Last hour lisk time
-				const queryTime = slots.getTime() - 60 * 60;
+				const queryTime = slots.getEpochTime() - 60 * 60;
 
 				return blocksEndpoint
 					.makeRequest(
@@ -168,7 +168,7 @@ describe('GET /blocks', () => {
 
 			it('using valid toTimestamp should return transactions', async () => {
 				// Current lisk time
-				const queryTime = slots.getTime();
+				const queryTime = slots.getEpochTime();
 
 				return blocksEndpoint
 					.makeRequest(

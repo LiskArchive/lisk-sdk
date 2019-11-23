@@ -129,18 +129,24 @@ const defaultConfig = {
 		},
 		peerDiscoveryResponseLength: {
 			type: 'integer',
+			maximum: 1000,
 		},
 		maxPeerDiscoveryResponseLength: {
 			type: 'integer',
+			maximum: 1000,
 		},
 		maxPeerInfoSize: {
 			type: 'integer',
+			maximum: 20480,
 		},
 		wsMaxPayload: {
 			type: 'integer',
 		},
 		outboundShuffleInterval: {
 			type: 'integer',
+		},
+		advertiseAddress: {
+			type: 'boolean',
 		},
 	},
 	required: ['wsPort', 'seedPeers'],
@@ -159,12 +165,13 @@ const defaultConfig = {
 		wsEngine: 'ws',
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
-		emitPeerLimit: 25,
+		emitPeerLimit: 16,
 		peerDiscoveryResponseLength: 1000,
 		maxPeerDiscoveryResponseLength: 1000,
 		maxPeerInfoSize: 20480,
 		wsMaxPayload: 3048576,
 		outboundShuffleInterval: 300000,
+		advertiseAddress: true,
 	},
 };
 

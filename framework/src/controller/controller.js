@@ -94,8 +94,8 @@ class Controller {
 		await this._loadMigrations(migrations);
 		await this._loadModules(modules, moduleOptions);
 
-		this.logger.info('Bus listening to events', this.bus.getEvents());
-		this.logger.info('Bus ready for actions', this.bus.getActions());
+		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
+		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
 
 		this.channel.publish('app:ready');
 	}
@@ -120,14 +120,13 @@ class Controller {
 			const pid = parseInt(await fs.readFile(pidPath), 10);
 			const pidRunning = await isPidRunning(pid);
 
-			this.logger.info(`Old PID: ${pid}`);
-			this.logger.info(`Current PID: ${process.pid}`);
+			this.logger.info({ pid }, 'Previous Lisk PID');
+			this.logger.info({ pid: process.pid }, 'Current Lisk PID');
 
 			if (pidRunning && pid !== process.pid) {
 				this.logger.error(
-					`An instance of application "${
-						this.appLabel
-					}" is already running. You have to change application name to run another instance.`,
+					{ app_name: this.appLabel },
+					'An instance of application is already running, please change application name to run another instance',
 				);
 				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
 			}
@@ -188,8 +187,15 @@ class Controller {
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
-			this.bus.onAny((name, event) => {
-				this.logger.trace(`MONITOR: ${event.module}:${event.name}`, event.data);
+			this.bus.onAny(event => {
+				this.logger.trace(
+					{
+						module: event.module,
+						name: event.name,
+						data: event.data,
+					},
+					'Monitor Bus Channel',
+				);
 			});
 		}
 	}
@@ -229,7 +235,8 @@ class Controller {
 		validateModuleSpec(module);
 
 		this.logger.info(
-			`Loading module ${name}:${version} with alias "${moduleAlias}"`,
+			{ name, version, moduleAlias },
+			'Loading in-memory module',
 		);
 
 		const channel = new InMemoryChannel(
@@ -249,9 +256,7 @@ class Controller {
 
 		this.modules[moduleAlias] = module;
 
-		this.logger.info(
-			`Module ready with alias: ${moduleAlias}(${name}:${version})`,
-		);
+		this.logger.info({ name, version, moduleAlias }, 'Loaded in-memory module');
 	}
 
 	async _loadChildProcessModule(alias, Klass, options) {
@@ -262,7 +267,8 @@ class Controller {
 		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module ${name}:${version} with alias "${moduleAlias}" as child process`,
+			{ name, version, moduleAlias },
+			'Loading module as child process',
 		);
 
 		const modulePath = path.resolve(
@@ -300,7 +306,8 @@ class Controller {
 
 		child.on('exit', (code, signal) => {
 			this.logger.error(
-				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`,
+				{ name, version, moduleAlias, code, signal },
+				'Child process module exited',
 			);
 			// Exits the main process with a failure code
 			process.exit(1);
@@ -310,7 +317,8 @@ class Controller {
 			new Promise(resolve => {
 				this.channel.once(`${moduleAlias}:loading:finished`, () => {
 					this.logger.info(
-						`Module ready with alias: ${moduleAlias}(${name}:${version})`,
+						{ name, version, moduleAlias },
+						'Child process module ready',
 					);
 					resolve();
 				});
@@ -343,8 +351,8 @@ class Controller {
 			await this.bus.cleanup();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
-		} catch (error) {
-			this.logger.error('Caused error during cleanup', error);
+		} catch (err) {
+			this.logger.error({ err }, 'Caused error during modules cleanup');
 		}
 	}
 }

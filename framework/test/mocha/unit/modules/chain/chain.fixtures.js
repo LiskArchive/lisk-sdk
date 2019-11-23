@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const loggerConfig = {
 	logFileName: 'logs.log',
 };
@@ -11,13 +27,21 @@ const buildVersion = '#buildVersion';
 const peerList = ['peerList'];
 
 const chainOptions = {
-	genesisBlock: {},
+	genesisBlock: {
+		transactions: [],
+		version: 2,
+		height: 1,
+		communityIdentifier: 'Lisk',
+		payloadHash: '',
+	},
 	loading: {},
 	syncing: {},
-	forging: {},
 	broadcasts: {},
 	network: {
 		enabled: false,
+	},
+	forging: {
+		waitThreshold: 2,
 	},
 	transactions: {
 		maxTransactionsPerQueue: 1000,
@@ -46,7 +70,6 @@ const chainOptions = {
 		MAX_SHARED_TRANSACTIONS: 100,
 		MAX_VOTES_PER_TRANSACTION: 33,
 		MAX_VOTES_PER_ACCOUNT: 101,
-		MIN_BROADHASH_CONSENSUS: 51,
 		REWARDS: {
 			MILESTONES: [
 				'500000000', // Initial Reward

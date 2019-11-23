@@ -18,6 +18,7 @@ import {
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
@@ -26,12 +27,15 @@ import {
 	InputFromSourceOutput,
 } from '../../../utils/input';
 import { getData } from '../../../utils/input/utils';
+import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 const processInputs = (
+	networkIdentifier: string,
 	votes: ReadonlyArray<string>,
 	unvotes: ReadonlyArray<string>,
 ) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
 	castVotes({
+		networkIdentifier,
 		passphrase,
 		votes,
 		unvotes,
@@ -65,6 +69,7 @@ export default class VoteCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
@@ -75,6 +80,7 @@ export default class VoteCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const {
 			flags: {
+				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
@@ -89,7 +95,7 @@ export default class VoteCommand extends BaseCommand {
 			);
 		}
 
-		if (votes === unvotes) {
+		if ((votes as string) === unvotes) {
 			throw new ValidationError(
 				'Votes and unvotes sources must not be the same.',
 			);
@@ -109,7 +115,15 @@ export default class VoteCommand extends BaseCommand {
 			? validatePublicKeys(processVotes(processedUnvotesInput))
 			: [];
 
-		const processFunction = processInputs(validatedVotes, validatedUnvotes);
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
+		const processFunction = processInputs(
+			networkIdentifier,
+			validatedVotes,
+			validatedUnvotes,
+		);
 
 		if (noSignature) {
 			const noSignatureResult = processFunction({

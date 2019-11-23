@@ -21,6 +21,13 @@ const apiHelpers = require('../../../../common/helpers/api');
 const randomUtil = require('../../../../common/utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
+const {
+	getNetworkIdentifier,
+} = require('../../../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -44,6 +51,7 @@ describe('GET /api/node', () => {
 				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						transfer({
+							networkIdentifier,
 							amount: ((i + 1) * NORMALIZER).toString(),
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
@@ -210,29 +218,6 @@ describe('GET /api/node', () => {
 				it('using valid but unknown recipientId should be ok', async () => {
 					return ReadyEndpoint.makeRequest(
 						{ recipientId: '1631373961111634666L' },
-						200,
-					).then(res => {
-						expect(res.body.data).to.be.empty;
-					});
-				});
-			});
-
-			describe('recipientPublicKey', () => {
-				it('using invalid recipientPublicKey should fail', async () => {
-					return ReadyEndpoint.makeRequest(
-						{ recipientPublicKey: '79fjdfd' },
-						400,
-					).then(res => {
-						expectSwaggerParamError(res, 'recipientPublicKey');
-					});
-				});
-
-				it('using valid but unknown recipientPublicKey should be ok', async () => {
-					return ReadyEndpoint.makeRequest(
-						{
-							recipientPublicKey:
-								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-						},
 						200,
 					).then(res => {
 						expect(res.body.data).to.be.empty;

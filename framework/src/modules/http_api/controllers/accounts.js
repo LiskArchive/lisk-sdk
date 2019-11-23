@@ -51,22 +51,16 @@ function accountFormatter(totalSupply, account) {
 	if (account.isDelegate) {
 		formattedAccount.delegate = _.pick(account, [
 			'username',
-			'vote',
+			'voteWeight',
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'rank',
 			'productivity',
 		]);
 
-		formattedAccount.delegate.rank = parseInt(
-			formattedAccount.delegate.rank,
-			10,
-		);
-
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(
-			formattedAccount.delegate.vote,
+			formattedAccount.delegate.voteWeight,
 			totalSupply,
 		);
 	}
@@ -189,9 +183,7 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
 	};
 
 	try {
-		let account = await storage.entities.Account.getOne(filters, {
-			extended: true,
-		});
+		let account = await storage.entities.Account.getOne(filters);
 		account = await multiSigAccountFormatter(account);
 
 		return next(null, {
@@ -240,10 +232,7 @@ AccountsController.getMultisignatureMemberships = async function(
 	let account;
 
 	try {
-		account = await storage.entities.Account.getOne(
-			{ address },
-			{ extended: true },
-		);
+		account = await storage.entities.Account.getOne({ address });
 	} catch (error) {
 		if (error.code === 0) {
 			context.statusCode = 404;
@@ -254,8 +243,7 @@ AccountsController.getMultisignatureMemberships = async function(
 
 	try {
 		let groups = await storage.entities.Account.get(
-			{ membersPublicKeys_in: [account.publicKey] },
-			{ extended: true },
+			{ membersPublicKeys: `"${account.publicKey}"` }, // Need to add quotes for PSQL array search
 		);
 
 		groups = await Promise.map(groups, multiSigAccountFormatter);

@@ -17,6 +17,7 @@ import { bufferToHex, hash } from '@liskhq/lisk-cryptography';
 import * as axios from 'axios';
 import fs from 'fs-extra';
 import * as tar from 'tar';
+
 import { dateDiff, getDownloadedFileInfo } from './core/commons';
 
 export const verifyChecksum = async (

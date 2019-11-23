@@ -26,6 +26,11 @@ const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
 const QueriesHelper = require('../../common/integration/sql/queries_helper');
 const localCommon = require('../common');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const addTransactionsAndForgePromise = Promise.promisify(
 	localCommon.addTransactionsAndForge,
@@ -59,6 +64,7 @@ describe('expire transactions', () => {
 
 	const createTransaction = (amount, recipientId) => {
 		return transfer({
+			networkIdentifier,
 			recipientId,
 			amount: amount.toString(),
 			passphrase: accountsFixtures.genesis.passphrase,
@@ -180,6 +186,7 @@ describe('expire transactions', () => {
 			const keysgroup = [signer1.publicKey, signer2.publicKey];
 
 			multiSigTransaction = registerMultisignature({
+				networkIdentifier,
 				passphrase: account.passphrase,
 				keysgroup,
 				lifetime,

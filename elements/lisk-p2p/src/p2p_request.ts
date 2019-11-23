@@ -100,6 +100,7 @@ export class P2PRequest {
 	public end(responseData?: unknown): void {
 		const responsePacket: P2PResponsePacket = {
 			data: responseData,
+			peerId: this.peerId,
 		};
 		this._respondCallback(undefined, responsePacket);
 	}

@@ -58,6 +58,7 @@ const addValuesToTable = (table: object[], data: object) => {
 	});
 };
 
+// tslint:disable-next-line no-null-undefined-union
 export const tablify = (data: ReadonlyArray<object> | object) => {
 	const table = new CliTable({
 		chars,

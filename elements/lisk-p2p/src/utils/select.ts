@@ -14,18 +14,47 @@
  */
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
-import { PEER_KIND_INBOUND, PEER_KIND_OUTBOUND } from '../constants';
+
+import { ConnectionKind } from '../constants';
 import {
-	P2PDiscoveredPeerInfo,
 	P2PPeerInfo,
 	P2PPeerSelectionForConnectionInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForSendInput,
 } from '../p2p_types';
 
+const _removeCommonIPsFromLists = (
+	peerList: ReadonlyArray<P2PPeerInfo>,
+): ReadonlyArray<P2PPeerInfo> => {
+	const peerMap = new Map<string, P2PPeerInfo>();
+
+	for (const peer of peerList) {
+		const { sharedState } = peer;
+		const peerHeight =
+			sharedState && sharedState.height ? (sharedState.height as number) : 0;
+
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			const { sharedState: tempSharedState } = tempPeer;
+			const tempPeerHeight =
+				tempSharedState && tempSharedState.height
+					? (tempSharedState.height as number)
+					: 0;
+
+			if (peerHeight > tempPeerHeight) {
+				peerMap.set(peer.ipAddress, peer);
+			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	}
+
+	return [...peerMap.values()];
+};
+
 export const selectPeersForRequest = (
 	input: P2PPeerSelectionForRequestInput,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	const { peers } = input;
 	const peerLimit = input.peerLimit;
 
@@ -42,18 +71,22 @@ export const selectPeersForRequest = (
 
 export const selectPeersForSend = (
 	input: P2PPeerSelectionForSendInput,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+): ReadonlyArray<P2PPeerInfo> => {
 	const shuffledPeers = shuffle(input.peers);
 	const peerLimit = input.peerLimit as number;
 	// tslint:disable: no-magic-numbers
 	const halfPeerLimit = Math.round(peerLimit / 2);
 
-	const outboundPeers = shuffledPeers.filter(
-		(peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === PEER_KIND_OUTBOUND,
+	const outboundPeers = shuffledPeers.filter((peerInfo: P2PPeerInfo) =>
+		peerInfo.internalState
+			? peerInfo.internalState.connectionKind === ConnectionKind.OUTBOUND
+			: false,
 	);
 
-	const inboundPeers = shuffledPeers.filter(
-		(peerInfo: P2PDiscoveredPeerInfo) => peerInfo.kind === PEER_KIND_INBOUND,
+	const inboundPeers = shuffledPeers.filter((peerInfo: P2PPeerInfo) =>
+		peerInfo.internalState
+			? peerInfo.internalState.connectionKind === ConnectionKind.INBOUND
+			: false,
 	);
 
 	// tslint:disable: no-let
@@ -79,7 +112,10 @@ export const selectPeersForSend = (
 export const selectPeersForConnection = (
 	input: P2PPeerSelectionForConnectionInput,
 ): ReadonlyArray<P2PPeerInfo> => {
-	if (input.peerLimit && input.peerLimit < 0) {
+	if (
+		(input.peerLimit && input.peerLimit < 0) ||
+		(input.triedPeers.length === 0 && input.newPeers.length === 0)
+	) {
 		return [];
 	}
 
@@ -87,11 +123,7 @@ export const selectPeersForConnection = (
 		input.peerLimit === undefined ||
 		input.peerLimit >= input.triedPeers.length + input.newPeers.length
 	) {
-		return [...input.newPeers, ...input.triedPeers];
-	}
-
-	if (input.triedPeers.length === 0 && input.newPeers.length === 0) {
-		return [];
+		return _removeCommonIPsFromLists([...input.newPeers, ...input.triedPeers]);
 	}
 
 	// LIP004 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md#peer-discovery-and-selection
@@ -103,7 +135,7 @@ export const selectPeersForConnection = (
 	const shuffledTriedPeers = shuffle(input.triedPeers);
 	const shuffledNewPeers = shuffle(input.newPeers);
 
-	return [...Array(input.peerLimit)].map(() => {
+	const peerList = [...Array(input.peerLimit)].map(() => {
 		if (shuffledTriedPeers.length !== 0) {
 			if (Math.random() < r) {
 				// With probability r
@@ -118,4 +150,7 @@ export const selectPeersForConnection = (
 
 		return shuffledTriedPeers.pop() as P2PPeerInfo;
 	});
+
+	// TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+	return _removeCommonIPsFromLists(peerList);
 };

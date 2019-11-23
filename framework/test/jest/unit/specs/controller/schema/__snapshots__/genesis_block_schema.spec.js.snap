@@ -9,6 +9,9 @@ Object {
       "format": "signature",
       "type": "string",
     },
+    "communityIdentifier": Object {
+      "type": "string",
+    },
     "generatorPublicKey": Object {
       "format": "publicKey",
       "type": "string",
@@ -23,6 +26,14 @@ Object {
       "minLength": 1,
       "type": "string",
     },
+    "maxHeightPreviouslyForged": Object {
+      "minimum": 0,
+      "type": "integer",
+    },
+    "maxHeightPrevoted": Object {
+      "minimum": 0,
+      "type": "integer",
+    },
     "numberOfTransactions": Object {
       "minimum": 0,
       "type": "integer",
@@ -35,7 +46,7 @@ Object {
       "minimum": 0,
       "type": "integer",
     },
-    "previousBlock": Object {
+    "previousBlockId": Object {
       "format": "id",
       "maxLength": 20,
       "minLength": 1,
@@ -64,10 +75,6 @@ Object {
       "items": Object {
         "additionalProperties": false,
         "properties": Object {
-          "amount": Object {
-            "format": "amount",
-            "type": "string",
-          },
           "asset": Object {
             "description": "Send relevant data with transaction like delegate, vote, signature, ...",
             "type": "object",
@@ -79,21 +86,6 @@ Object {
           "id": Object {
             "format": "id",
             "maxLength": 20,
-            "minLength": 1,
-            "type": "string",
-          },
-          "recipientId": Object {
-            "format": "address",
-            "maxLength": 22,
-            "minLength": 1,
-            "type": Array [
-              "string",
-              "null",
-            ],
-          },
-          "senderId": Object {
-            "format": "address",
-            "maxLength": 22,
             "minLength": 1,
             "type": "string",
           },
@@ -110,11 +102,6 @@ Object {
             "type": "integer",
           },
           "type": Object {
-            "enum": Array [
-              0,
-              2,
-              3,
-            ],
             "type": "integer",
           },
         },
@@ -135,6 +122,7 @@ Object {
     },
   },
   "required": Array [
+    "communityIdentifier",
     "version",
     "totalAmount",
     "totalFee",

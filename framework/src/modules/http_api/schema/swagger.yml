@@ -37,9 +37,9 @@ info:
     The responses for each API request have a common basic structure:
     ```javascript
     {
-    	"data": {}, //Contains the requested data
-    	"meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`
-    	"links": {} //Will contain links to connected API calls from here, e.g. pagination links
+        "data": {}, //Contains the requested data
+        "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`
+        "links": {} //Will contain links to connected API calls from here, e.g. pagination links
     }
     ```
 
@@ -290,7 +290,6 @@ paths:
         - $ref: '#/parameters/protocolVersion'
         - $ref: '#/parameters/state'
         - $ref: '#/parameters/height'
-        - $ref: '#/parameters/broadhash'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - in: query
@@ -353,7 +352,7 @@ paths:
         - Node
       summary: Requests status data
       operationId: getStatus
-      description: Returns all current status data of the node, e.g. height and broadhash.
+      description: Returns all current status data of the node, e.g. height.
       produces:
         - application/json
       responses:
@@ -385,6 +384,7 @@ paths:
         - application/json
       parameters:
         - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/forging'
       responses:
         200:
           description: Search results matching criteria
@@ -500,7 +500,6 @@ paths:
           default: verified
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
-        - $ref: '#/parameters/recipientPublicKey'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
         - $ref: '#/parameters/transactionType'
@@ -578,15 +577,13 @@ paths:
           enum:
             - username:asc
             - username:desc
-            - rank:asc
-            - rank:desc
             - productivity:asc
             - productivity:desc
             - missedBlocks:asc
             - missedBlocks:desc
             - producedBlocks:asc
             - producedBlocks:desc
-          default: rank:asc
+          default: username:asc
       responses:
         200:
           description: Search results matching criteria
@@ -919,7 +916,6 @@ paths:
       parameters:
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
-        - $ref: '#/parameters/recipientPublicKey'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
         - $ref: '#/parameters/senderIdOrRecipientId'
@@ -1066,12 +1062,6 @@ parameters:
     type: integer
     format: int32
     minimum: 1
-  broadhash:
-    name: broadhash
-    in: query
-    description: Broadhash of the network
-    type: string
-    format: hex
   limit:
     in: query
     name: limit
@@ -1142,13 +1132,6 @@ parameters:
     format: address
     minLength: 1
     maxLength: 22
-  recipientPublicKey:
-    name: recipientPublicKey
-    in: query
-    description: Recipient public key
-    type: string
-    format: publicKey
-    minLength: 1
   senderId:
     name: senderId
     in: query
@@ -1202,6 +1185,11 @@ parameters:
     description: Ending unix timestamp
     type: integer
     minimum: 1
+  forging:
+    name: forging
+    in: query
+    description: Forging status to filter
+    type: boolean
 
 definitions:
   Meta:
@@ -1235,10 +1223,7 @@ definitions:
     required:
       - id
       - type
-      - amount
-      - fee
       - senderPublicKey
-      - recipientId
       - timestamp
       - asset
       - signature
@@ -1252,16 +1237,6 @@ definitions:
         description: |
           Unique identifier of the transaction.
           Derived from the transaction signature.
-      amount:
-        type: string
-        example: '150000000'
-        description: |
-          Amount of Lisk to be transferred in this transaction.
-      fee:
-        type: string
-        example: '1000000'
-        description: |
-          Transaction fee associated with this transaction.
       type:
         type: integer
         minimum: 0
@@ -1273,30 +1248,12 @@ definitions:
         description: |
           Time when the transaction was created.
           Unix Timestamp.
-      senderId:
-        type: string
-        format: address
-        example: 12668885769632475474L
-        description: |
-          Lisk Address of the Senders' account.
       senderPublicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         description: |
           The public key of the Senders' account.
-      senderSecondPublicKey:
-        type: string
-        format: publicKey
-        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-        description: |
-          The second public key of the Senders' account, if it exists.
-      recipientId:
-        type: string
-        format: address
-        example: 12668885769632475474L
-        description: |
-          Lisk Address of the Recipients' account.
       signature:
         type: string
         format: signature
@@ -1321,6 +1278,18 @@ definitions:
         description: |
           Displays additional transaction data.
           Can include e.g. vote data or delegate username.
+        properties:
+          amount:
+            type: string
+            example: '150000000'
+            description: |
+              Amount of Lisk to be transferred in this transaction.
+          recipientId:
+            type: string
+            format: address
+            example: 12668885769632475474L
+            description: |
+              Lisk Address of the Recipients' account.
   NodeStatusResponse:
     type: object
     required:
@@ -1652,10 +1621,8 @@ definitions:
     required:
       - id
       - type
-      - amount
       - fee
       - senderPublicKey
-      - recipientId
       - timestamp
       - asset
       - signature
@@ -1669,11 +1636,6 @@ definitions:
         description: |
           Unique identifier of the transaction.
           Derived from the transaction signature.
-      amount:
-        type: string
-        example: '150000000'
-        description: |
-          Amount of Lisk to be transferred in this transaction.
       fee:
         type: string
         example: '1000000'
@@ -1682,7 +1644,6 @@ definitions:
       type:
         type: integer
         minimum: 0
-        maximum: 7
         description: |
           Describes the Transaction type.
       height:
@@ -1722,18 +1683,6 @@ definitions:
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         description: |
           The second public key of the Senders' account, if it exists.
-      recipientId:
-        type: string
-        format: address
-        example: 12668885769632475474L
-        description: |
-          Lisk Address of the Recipients' account.
-      recipientPublicKey:
-        type: string
-        format: publicKey
-        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-        description: |
-          The public key of the Recipients' account.
       signature:
         type: string
         format: signature
@@ -1765,9 +1714,6 @@ definitions:
         type: string
         format: 'date-time'
         description: The timestamp of the moment, where a node discovered a transaction for the first time.
-      relays:
-        type: integer
-        description: Number of times, a single transaction object has been broadcasted to another peer.
       ready:
         type: boolean
         example: false
@@ -1903,6 +1849,18 @@ definitions:
         description: |
           Total amount of LSK that have been forged in this Block.
           Consists of fees and the reward.
+      maxHeightPreviouslyForged:
+        type: integer
+        example: 123
+        description: |
+          Largest height of any block previously forged by the generatorPublicKey as defined in the Lisk BFT Protocol.
+          See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md
+      maxHeightPrevoted:
+        type: integer
+        example: 123
+        description: |
+          Largest height of an ancestor block with at least 68 prevotes as defined in the Lisk BFT Protocol.
+          See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md
 
   ForgingStatus:
     type: object
@@ -2125,13 +2083,6 @@ definitions:
         description: |
           Network height on the peer node.
           Represents the current number of blocks in the chain on the peer node.
-      broadhash:
-        type: string
-        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
-        format: hex
-        description: |
-          Broadhash on the peer node.
-          Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
       nonce:
         type: string
         example: sYHEDBKcScaAAAYg
@@ -2184,7 +2135,6 @@ definitions:
       - milestone
       - nethash
       - reward
-      - nonce
       - supply
       - build
       - commit
@@ -2240,45 +2190,18 @@ definitions:
         description: |
           The reward a delegate will get for forging a block.
           Depends on the slot height.
-      nonce:
-        type: string
-        example: cJmXK66xxz644d67
-        minLength: 16
-        maxLength: 16
-        description: |
-          Unique identifier of the node.
-          Random string.
       fees:
         $ref: '#/definitions/Fees'
 
   NodeStatus:
     type: object
     required:
-      - broadhash
-      - consensus
       - currentTime
       - height
-      - loaded
-      - networkHeight
+      - chainMaxHeightFinalized
       - secondsSinceEpoch
       - syncing
-      - transactions
     properties:
-      broadhash:
-        type: string
-        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
-        minLength: 64
-        maxLength: 64
-        description: |
-          Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
-          Broadhash consensus serves a vital function for the Lisk network in order to prevent forks.
-          It ensures that a majority of available peers agree that it is acceptable to forge.
-      consensus:
-        type: integer
-        example: 95
-        minimum: 0
-        maximum: 100
-        description: Percentage of the connected peers, that have the same broadhash as the querying node.
       currentTime:
         type: integer
         example: 1533558858128
@@ -2290,16 +2213,12 @@ definitions:
         description: |
           Current block height of the node.
           Represents the current number of blocks in the chain on the node.
-      loaded:
-        type: boolean
-        example: true
-        description: True if the blockchain loaded.
-      networkHeight:
+      chainMaxHeightFinalized:
         type: integer
         example: 123
         description: |
-          Current block height of the network.
-          Represents the current number of blocks in the chain on the network.
+          The largest height with precommits by at least 68 delegates.
+          See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md
       secondsSinceEpoch:
         type: integer
         example: 1533558858
@@ -2308,46 +2227,6 @@ definitions:
         type: boolean
         example: false
         description: True if the node syncing with other peers.
-      transactions:
-        type: object
-        required:
-          - ready
-          - pending
-          - verified
-          - confirmed
-          - validated
-          - received
-          - total
-        description: Transactions known to the node.
-        properties:
-          ready:
-            type: integer
-            example: 5
-            description: Number of unconfirmed Transactions known to the node.
-          pending:
-            type: integer
-            example: 2
-            description: Number of pending Transactions known to the node.
-          verified:
-            type: integer
-            example: 3
-            description: Number of verified Transactions known to the node.
-          confirmed:
-            type: integer
-            example: 5
-            description: Number of confirmed Transactions known to the node.
-          validated:
-            type: integer
-            example: 5
-            description: Number of validated Transactions known to the node.
-          received:
-            type: integer
-            example: 5
-            description: Number of received Transactions known to the node.
-          total:
-            type: integer
-            example: 15
-            description: Number of total Transactions known to the node.
 
   TransactionError:
     type: object
@@ -2621,7 +2500,7 @@ definitions:
     type: object
     required:
       - username
-      - vote
+      - voteWeight
     properties:
       username:
         type: string
@@ -2631,7 +2510,7 @@ definitions:
           The delegates' username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
-      vote:
+      voteWeight:
         type: string
         example: 1081560729258
         description: |
@@ -2660,18 +2539,12 @@ definitions:
         description: |
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
-      rank:
-        format: integerOrNull
-        example: 70
-        description: |
-          Rank of the delegate.
-          The rank is defined by the voters weight/ approval of a delegates, in relation to all other delegates.
 
   DelegateWithAccount:
     type: object
     required:
       - username
-      - vote
+      - voteWeight
       - account
     properties:
       username:
@@ -2682,7 +2555,7 @@ definitions:
           The delegates' username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
-      vote:
+      voteWeight:
         type: string
         example: 1081560729258
         description: |
@@ -2711,12 +2584,6 @@ definitions:
         description: |
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
-      rank:
-        format: integerOrNull
-        example: 70
-        description: |
-          Rank of the delegate.
-          The rank is defined by the voters weight/ approval of a delegates, in relation to all other delegates.
       account:
         $ref: '#/definitions/Account'
 

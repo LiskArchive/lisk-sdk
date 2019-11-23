@@ -18,11 +18,11 @@ const popsicle = require('popsicle');
 const async = require('async');
 const Promise = require('bluebird');
 const apiHelpers = require('../helpers/api');
-const { BlockSlots } = require('../../../../src/modules/chain/blocks');
+const { Slots } = require('../../../../src/modules/chain/dpos');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
-const slots = new BlockSlots({
+const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -58,7 +58,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 			.then(res => {
 				retries -= 1;
 				res = JSON.parse(res.body);
-				if (!res.data.loaded && retries >= 0) {
+				if (res.data.syncing && retries >= 0) {
 					if (!doNotLogRetries) {
 						__testContext.debug(
 							`Retrying ${totalRetries -
@@ -70,7 +70,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 						fetchBlockchainStatus();
 					}, timeout);
 				}
-				if (res.data.loaded) {
+				if (!res.data.syncing) {
 					return cb();
 				}
 				return cb('Failed to load blockchain');

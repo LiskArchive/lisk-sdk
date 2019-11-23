@@ -53,6 +53,11 @@ const defaultConfig = {
 				force: {
 					type: 'boolean',
 				},
+				waitThreshold: {
+					description:
+						'Number of seconds to wait for previous block before forging',
+					type: 'integer',
+				},
 				defaultPassword: {
 					type: 'string',
 				},
@@ -76,7 +81,7 @@ const defaultConfig = {
 					},
 				},
 			},
-			required: ['force', 'delegates'],
+			required: ['force', 'waitThreshold', 'delegates'],
 		},
 		syncing: {
 			type: 'object',
@@ -177,8 +182,15 @@ const defaultConfig = {
 						disableDappTransaction: {
 							type: 'integer',
 						},
+						disableV1Transactions: {
+							type: 'integer',
+						},
 					},
-					required: ['disableDappTransfer', 'disableDappTransaction'],
+					required: [
+						'disableDappTransfer',
+						'disableDappTransaction',
+						'disableV1Transactions',
+					],
 				},
 				ignoreDelegateListCacheForRounds: {
 					type: 'array',
@@ -249,6 +261,7 @@ const defaultConfig = {
 		},
 		forging: {
 			force: false,
+			waitThreshold: 2,
 			delegates: [],
 		},
 		syncing: {
@@ -267,7 +280,11 @@ const defaultConfig = {
 			votes: [],
 			inertTransactions: [],
 			rounds: {},
-			precedent: { disableDappTransfer: 0, disableDappTransaction: 0 },
+			precedent: {
+				disableDappTransfer: 0,
+				disableDappTransaction: 0,
+				disableV1Transactions: 0,
+			},
 			ignoreDelegateListCacheForRounds: [],
 			blockVersions: {},
 			roundVotes: [],

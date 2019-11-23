@@ -21,6 +21,11 @@ const {
 } = require('@liskhq/lisk-transactions');
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../common/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -44,6 +49,7 @@ describe('integration test (type 0) - votes collision', () => {
 	};
 
 	const creditTransaction = transfer({
+		networkIdentifier,
 		amount: (10000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: collisionAccount.address,
@@ -63,6 +69,7 @@ describe('integration test (type 0) - votes collision', () => {
 		let delegateRegistrationTransaction;
 		before(done => {
 			delegateRegistrationTransaction = registerDelegate({
+				networkIdentifier,
 				passphrase: collisionAccount.passphrase,
 				username: collisionAccount.username,
 			});
@@ -97,6 +104,7 @@ describe('integration test (type 0) - votes collision', () => {
 			let voteTransactionWithCollisionPublicKey;
 			before(done => {
 				voteTransactionWithCollisionPublicKey = castVotes({
+					networkIdentifier,
 					passphrase: collisionAccount.passphrase,
 					votes: [`${collisionAccount.collisionPublicKey}`],
 				});
@@ -130,6 +138,7 @@ describe('integration test (type 0) - votes collision', () => {
 			let voteTransactionWithActualPublicKey;
 			before(done => {
 				voteTransactionWithActualPublicKey = castVotes({
+					networkIdentifier,
 					passphrase: collisionAccount.passphrase,
 					votes: [`${collisionAccount.publicKey}`],
 				});

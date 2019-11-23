@@ -27,6 +27,7 @@ describe('Controller Class', () => {
 	// Arrange
 	const appLabel = '#LABEL';
 	const logger = {
+		debug: jest.fn(),
 		info: jest.fn(),
 		error: jest.fn(),
 	};
@@ -41,7 +42,6 @@ describe('Controller Class', () => {
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
 		nethash: 'test broadhash',
-		nonce: 'test nonce',
 	};
 	const systemDirs = {
 		temp: `${config.tempPath}/${appLabel}/`,

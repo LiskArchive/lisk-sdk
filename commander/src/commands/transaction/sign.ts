@@ -13,14 +13,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
 import { getInputsFromSources } from '../../utils/input';
 import { getStdIn } from '../../utils/input/utils';
-import { parseTransactionString } from '../../utils/transactions';
+import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
+import { removeUndefinedValues } from '../../utils/object';
+import {
+	instantiateTransaction,
+	parseTransactionString,
+} from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;
@@ -57,6 +62,7 @@ export default class SignCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 	};
@@ -65,6 +71,7 @@ export default class SignCommand extends BaseCommand {
 		const {
 			args,
 			flags: {
+				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 			},
@@ -73,11 +80,6 @@ export default class SignCommand extends BaseCommand {
 		const { transaction }: Args = args;
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
-
-		const { valid } = transactions.utils.validateTransaction(transactionObject);
-		if (!valid) {
-			throw new Error('Provided transaction is invalid.');
-		}
 
 		const { passphrase, secondPassphrase } = await getInputsFromSources({
 			passphrase: {
@@ -92,12 +94,26 @@ export default class SignCommand extends BaseCommand {
 				  },
 		});
 
-		const result = transactions.utils.prepareTransaction(
-			transactionObject,
-			passphrase,
-			secondPassphrase,
-		);
+		if (!passphrase) {
+			throw new Error('Passphrase is required to sign the transaction');
+		}
 
-		this.print(result);
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
+		const txInstance = instantiateTransaction({
+			...transactionObject,
+			networkIdentifier,
+		});
+		txInstance.sign(passphrase, secondPassphrase);
+
+		const { errors } = txInstance.validate();
+
+		if (errors.length !== 0) {
+			throw errors;
+		}
+
+		this.print(removeUndefinedValues(txInstance.toJSON() as object));
 	}
 }

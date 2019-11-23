@@ -35,7 +35,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		duplicated_signature: new Scenarios.Multisig(),
 		extra_signature: new Scenarios.Multisig(),
 		unknown_signature: new Scenarios.Multisig(),
-		requesterPublicKey: new Scenarios.Multisig(),
 		all_signatures_ready_false: new Scenarios.Multisig(),
 		no_signatures_ready_true: new Scenarios.Multisig(),
 		offline_partly_signed_with_ready_true: new Scenarios.Multisig(),
@@ -384,38 +383,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						},
 					);
 				});
-			});
-		});
-
-		// Deprecated: requesterPublicKeyProperty no longer in use
-		// eslint-disable-next-line
-		describe('requesterPublicKey property', () => {
-			it('sending multisig transaction offline signed should be ok and confirmed', async () => {
-				const scenario = scenarios.requesterPublicKey;
-
-				scenario.multiSigTransaction.signatures = _.map(
-					scenario.members,
-					member => {
-						const signatureObject = apiHelpers.createSignatureObject(
-							scenario.multiSigTransaction,
-							member,
-						);
-						return signatureObject.signature;
-					},
-				);
-
-				scenario.multiSigTransaction.ready = true;
-
-				return sendTransactionPromise(scenario.multiSigTransaction).then(
-					res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-
-						transactionsToWaitFor.push(scenario.multiSigTransaction.id);
-						return waitFor.confirmations(transactionsToWaitFor);
-					},
-				);
 			});
 		});
 	});

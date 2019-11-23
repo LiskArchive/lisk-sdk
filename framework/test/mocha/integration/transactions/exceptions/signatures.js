@@ -19,8 +19,15 @@ const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-describe('exceptions for senderPublicKey transactions', () => {
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
+
+// TODO: Delete after #4433
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('exceptions for senderPublicKey transactions', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
@@ -39,18 +46,19 @@ describe('exceptions for senderPublicKey transactions', () => {
 			'd534e2d3a4584a1ed73382945411bc5a3ac6e99c79a89c38b7d341bebe17a510',
 		recipientPublicKey: '',
 		senderId: '499371933807011615L',
-		recipientId: '7607081009489509297L',
-		amount: '500000000',
 		fee: '10000000',
 		signature:
 			'562264be9a2e026a1a51ca93edff41863c49c4c9ba9db3a5e20e86a2e67a3d953e823ebe242508184517f7c0e6438d1e2f4d70157b5472c3b88f0f8960b9dd10',
 		signatures: [],
-		asset: {},
+		asset: {
+			amount: '500000000',
+			recipientId: '7607081009489509297L',
+		},
 	};
 
 	localCommon.beforeBlock('system_exceptions_signatures', lib => {
 		library = lib;
-		library.modules.blocks.blocksProcess.exceptions = {
+		library.modules.blocks.exceptions = {
 			...library.modules.blocks.exceptions,
 			signatures: ['3274071402587084244'],
 		};
@@ -59,6 +67,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 	describe('send funds to account', () => {
 		before(async () => {
 			const transferTransaction = transfer({
+				networkIdentifier,
 				recipientId: accountWithInvalidSignatureTransaction.address,
 				amount: (6000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
@@ -76,7 +85,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 					},
 				);
 			});
-			await library.modules.blocks.blocksProcess.processBlock(
+			await library.modules.processor.process(
 				newBlock,
 				library.modules.blocks.lastBlock,
 			);
@@ -108,7 +117,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 							},
 						);
 					});
-					await library.modules.blocks.blocksProcess.processBlock(
+					await library.modules.processor.process(
 						newBlock,
 						library.modules.blocks.lastBlock,
 					);
@@ -128,7 +137,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 						return expect(senderMemAccountAfter.balance).to.equal(
 							new BigNum(senderMemAccountBefore.balance)
 								.minus(transactionWithInvalidSignature.fee)
-								.minus(transactionWithInvalidSignature.amount)
+								.minus(transactionWithInvalidSignature.asset.amount)
 								.toString(),
 						);
 					});

@@ -17,21 +17,16 @@
 const async = require('async');
 const expect = require('chai').expect;
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
-const {
-	registeredTransactions,
-} = require('../../../common/registered_transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../../../../src/modules/chain/interface_adapters');
 
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 const blocksChainModule = require('../../../../../src/modules/chain/blocks/chain');
+const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
-const interfaceAdapters = {
-	transactions: new TransactionInterfaceAdapter(registeredTransactions),
-};
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
@@ -47,7 +42,6 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		await storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		});
 		library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
@@ -65,24 +59,28 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		poolAccount4 = randomUtil.account();
 
 		const fundTrsForAccount1 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
 
 		const fundTrsForAccount2 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount2.address,
 		});
 
 		const fundTrsForAccount3 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount3.address,
 		});
 
 		const fundTrsForAccount4 = transfer({
+			networkIdentifier,
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount4.address,
@@ -110,10 +108,12 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 		beforeEach('create block', done => {
 			blockTransaction1 = registerDelegate({
+				networkIdentifier,
 				passphrase: blockAccount1.passphrase,
 				username: blockAccount1.username,
 			});
 			blockTransaction2 = registerDelegate({
+				networkIdentifier,
 				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});
@@ -143,26 +143,22 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 						},
 					);
 					try {
-						await library.modules.blocks.blocksChain.applyBlock(block, true);
+						await library.modules.processor.process(block);
 					} catch (error) {
 						// this error is expected to happen
 					}
 				});
 
-				it('should have pooled transactions in queued state', done => {
-					async.forEach(
-						[poolAccount3, poolAccount4],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.secondSignature);
-									eachCb();
-								})
-								.catch(err => eachCb(err));
-						},
-						done,
-					);
+				it('should have pooled transactions in queued state', async () => {
+					// eslint-disable-next-line no-restricted-syntax
+					for (const account of [poolAccount3, poolAccount4]) {
+						// eslint-disable-next-line no-await-in-loop
+						const accountRow = await localCommon.getAccountFromDb(
+							library,
+							account.address,
+						);
+						expect(0).to.equal(accountRow.mem_accounts.secondSignature);
+					}
 				});
 
 				it('should revert applyconfirmedStep on block transactions', done => {
@@ -194,7 +190,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying a new block', () => {
 				beforeEach(async () => {
-					await library.modules.blocks.blocksChain.applyBlock(block, true);
+					await library.modules.processor.process(block);
 				});
 
 				it('should applyConfirmedStep', done => {
@@ -222,54 +218,61 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 				await storage.entities.Block.begin(t => {
 					return t.batch([
 						storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-						storage.adapter.db.none('DELETE FROM forks_stat;'),
 					]);
 				});
 				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 			});
 
 			describe('when block contains invalid transaction - timestamp out of postgres integer range', () => {
-				const auxBlock = {
-					blockSignature:
-						'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-					generatorPublicKey:
-						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					numberOfTransactions: 2,
-					payloadHash:
-						'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-					payloadLength: 494,
-					previousBlock: __testContext.config.genesisBlock.id,
-					height: 2,
-					reward: 0,
-					timestamp: 32578370,
-					totalAmount: 10000000000000000,
-					totalFee: 0,
-					transactions: [
-						{
-							type: 0,
-							amount: '10000000000000000',
-							fee: 0,
-							timestamp: -3704634000,
-							recipientId: '16313739661670634666L',
-							senderId: '1085993630748340485L',
-							senderPublicKey:
-								'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-							signature:
-								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
-							id: '1465651642158264048',
-						},
-					].map(transaction =>
-						interfaceAdapters.transactions.fromJson(transaction),
-					),
-					version: 0,
-					id: '884740302254229983',
-				};
+				let auxBlock;
+				beforeEach(async () => {
+					auxBlock = {
+						blockSignature:
+							'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
+						generatorPublicKey:
+							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+						numberOfTransactions: 2,
+						payloadHash:
+							'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
+						payloadLength: 494,
+						previousBlockId: __testContext.config.genesisBlock.id,
+						height: 2,
+						reward: 0,
+						timestamp: 32578370,
+						totalAmount: 10000000000000000,
+						totalFee: 0,
+						transactions: [
+							{
+								type: 8,
+								fee: 0,
+								networkIdentifier,
+								timestamp: -3704634000,
+								senderPublicKey:
+									'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
+								signature:
+									'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
+								id: '1465651642158264048',
+								asset: {
+									recipientId: '11237980039345381032L',
+									amount: '10000000000000000',
+								},
+							},
+						].map(transaction =>
+							library.modules.blocks.deserializeTransaction(transaction),
+						),
+						version: 0,
+						id: '884740302254229983',
+					};
+				});
 
 				it('should call a callback with proper error', async () => {
 					try {
-						await blocksChainModule.saveBlock(
-							library.components.storage,
-							auxBlock,
+						await storage.entities.Block.begin(tx =>
+							blocksChainModule.saveBlock(
+								library.components.storage,
+								auxBlock,
+								tx,
+							),
 						);
 					} catch (error) {
 						expect(error.message).to.equal('integer out of range');
@@ -287,7 +290,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					payloadHash:
 						'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
 					payloadLength: 494,
-					previousBlock: '123',
+					previousBlockId: '123',
 					height: 2,
 					reward: 0,
 					timestamp: 32578370,
@@ -300,9 +303,12 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 				it('should call a callback with proper error', async () => {
 					try {
-						await blocksChainModule.saveBlock(
-							library.components.storage,
-							auxBlock,
+						await storage.entities.Block.begin(tx =>
+							blocksChainModule.saveBlock(
+								library.components.storage,
+								auxBlock,
+								tx,
+							),
 						);
 					} catch (error) {
 						expect(error.message).to.equal(
@@ -321,7 +327,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					// Make block invalid
 					block.id = null;
 					try {
-						await library.modules.blocks.blocksChain.applyBlock(block, true);
+						await library.modules.processor.process(block);
 					} catch (error) {
 						// this error is expected
 					}
@@ -377,7 +383,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 			describe('after applying a new block', () => {
 				beforeEach(async () => {
-					await library.modules.blocks.blocksChain.applyBlock(block, true);
+					await library.modules.processor.process(block);
 				});
 
 				it('should save block in the blocks table', done => {

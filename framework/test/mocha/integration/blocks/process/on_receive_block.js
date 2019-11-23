@@ -23,19 +23,15 @@ const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
-const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
-const blocksUtils = require('../../../../../src/modules/chain/blocks/block');
+const { Slots } = require('../../../../../src/modules/chain/dpos');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../common/application');
-const {
-	getKeysSortByVote,
-} = require('../../../../../src/modules/chain/rounds/delegates');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
 describe('integration test (blocks) - process receiveBlockFromNetwork()', () => {
-	const slots = new BlockSlots({
+	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -54,18 +50,20 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			(err, scope) => {
 				library = scope;
 				storage = scope.components.storage;
+
 				setTimeout(done, 5000);
 			},
 		);
 	});
 
-	after(application.cleanup);
+	after(done => {
+		application.cleanup(done);
+	});
 
 	afterEach(async () =>
 		storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		})
 			.then(() => {
@@ -76,7 +74,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			}),
 	);
 
-	function createBlock(
+	async function createBlock(
 		transactions,
 		timestamp,
 		keypair,
@@ -84,17 +82,18 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		blockReward,
 		maxPayloadLength,
 	) {
-		const block = blocksUtils.create({
+		const blockProcessorV1 = library.modules.processor.processors[1];
+		const block = await blockProcessorV1.create.run({
 			keypair,
 			timestamp,
 			previousBlock,
 			transactions,
 			blockReward,
 			maxPayloadLength,
+			maxHeightPreviouslyForged: 1,
+			maxHeightPrevoted: 1,
 		});
 
-		block.id = blocksUtils.getId(block);
-		block.height = previousBlock.height + 1;
 		return block;
 	}
 
@@ -118,8 +117,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.rounds
-				.generateDelegateList(round, getKeysSortByVote)
+			library.modules.dpos
+				.getForgerPublicKeysForRound(round)
 				.then(delegateList => {
 					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
 					return seriesCb(nextForger);
@@ -143,7 +142,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					const keypair = getKeypair(delegate.passphrase);
 
 					__testContext.debug(
-						`Last block height: ${last_block.height}
+						`Last block version: ${last_block.version}
+						Last block height: ${last_block.height}
 						Last block ID: ${last_block.id}
 						Last block timestamp: ${last_block.timestamp}
 						Next slot: ${slot}
@@ -156,8 +156,15 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							25,
 						) || [];
 
-					library.modules.blocks
-						.generateBlock(keypair, slots.getSlotTime(slot) + 5, transactions)
+					const blockProcessorV1 = library.modules.processor.processors[1];
+					blockProcessorV1.create
+						.run({
+							keypair,
+							timestamp: slots.getSlotTime(slot) + 5,
+							transactions,
+							previousBlock: library.modules.blocks.lastBlock,
+						})
+						.then(block => library.modules.processor.process(block))
 						.then(() => {
 							last_block = library.modules.blocks.lastBlock;
 							__testContext.debug(
@@ -202,8 +209,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		const lastBlock = library.modules.blocks.lastBlock;
 		const round = slots.calcRound(lastBlock.height);
 
-		return library.modules.rounds
-			.generateDelegateList(round, null)
+		return library.modules.dpos
+			.getForgerPublicKeysForRound(round)
 			.then(list => {
 				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 				return getKeypair(
@@ -232,47 +239,33 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			});
 	}
 
-	function verifyForkStat(blockId, cause) {
-		return storage.adapter.db
-			.one(
-				'SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}',
-				{ blockId, cause },
-			)
-			.then(res => {
-				expect(res.blockId).to.equal(blockId);
-			})
-			.catch(err => {
-				__testContext.debug(err.stack);
-			});
-	}
-
 	describe('receiveBlockFromNetwork (empty transactions)', () => {
 		describe('for valid block', () => {
 			let lastBlock;
 			let block;
 
-			before(() => {
+			before(async () => {
 				lastBlock = library.modules.blocks.lastBlock;
 				const slot = slots.getSlotNumber();
-				return getValidKeypairForSlot(slot).then(keypair => {
-					block = createBlock(
-						[],
-						slots.getSlotTime(slot),
-						keypair,
-						lastBlock,
-						library.modules.blocks.blockReward,
-						library.modules.blocks.constants.maxPayloadLength,
-					);
-				});
+				const keypair = await getValidKeypairForSlot(slot);
+				block = await createBlock(
+					[],
+					slots.getSlotTime(slot),
+					keypair,
+					lastBlock,
+					library.modules.blocks.blockReward,
+					library.modules.blocks.constants.maxPayloadLength,
+				);
 			});
 
 			it('should add block to blockchain', done => {
-				library.modules.blocks.receiveBlockFromNetwork(block);
-				getBlocks((err, blockIds) => {
-					expect(err).to.not.exist;
-					expect(blockIds).to.have.length(2);
-					expect(blockIds).to.include.members([block.id, lastBlock.id]);
-					done();
+				library.modules.processor.process(block).then(() => {
+					getBlocks((err, blockIds) => {
+						expect(err).to.not.exist;
+						expect(blockIds).to.have.length(2);
+						expect(blockIds).to.include.members([block.id, lastBlock.id]);
+						done();
+					});
 				});
 			});
 		});
@@ -283,13 +276,13 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					let lastBlock;
 					let block;
 
-					beforeEach(done => {
+					beforeEach(async () => {
 						lastBlock = library.modules.blocks.lastBlock;
 						const slot = slots.getSlotNumber();
 						const nonDelegateKeypair = getKeypair(
 							accountFixtures.genesis.passphrase,
 						);
-						block = createBlock(
+						block = await createBlock(
 							[],
 							slots.getSlotTime(slot),
 							nonDelegateKeypair,
@@ -297,16 +290,16 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							library.modules.blocks.blockReward,
 							library.modules.blocks.constants.maxPayloadLength,
 						);
-						done();
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.receiveBlockFromNetwork(block);
-						getBlocks((err, blockIds) => {
-							expect(err).to.not.exist;
-							expect(blockIds).to.have.length(1);
-							expect(blockIds).to.include.members([lastBlock.id]);
-							done();
+						library.modules.processor.process(block).catch(() => {
+							getBlocks((err, blockIds) => {
+								expect(err).to.not.exist;
+								expect(blockIds).to.have.length(1);
+								expect(blockIds).to.include.members([lastBlock.id]);
+								done();
+							});
 						});
 					});
 				});
@@ -315,36 +308,37 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					let lastBlock;
 					let block;
 
-					beforeEach(() => {
+					beforeEach(async () => {
 						lastBlock = library.modules.blocks.lastBlock;
 						// Using last block's slot
 						const slot = slots.getSlotNumber() - 1;
-						return getValidKeypairForSlot(slot - 1).then(keypair => {
-							block = createBlock(
-								[],
-								slots.getTime(),
-								keypair,
-								lastBlock,
-								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength,
-							);
-						});
+						const keypair = await getValidKeypairForSlot(slot - 1);
+						block = await createBlock(
+							[],
+							slots.getEpochTime(),
+							keypair,
+							lastBlock,
+							library.modules.blocks.blockReward,
+							library.modules.blocks.constants.maxPayloadLength,
+						);
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.receiveBlockFromNetwork(block);
-						getBlocks((err, blockIds) => {
-							expect(err).to.not.exist;
-							expect(blockIds).to.have.length(1);
-							expect(blockIds).to.include.members([lastBlock.id]);
-							done();
+						library.modules.processor.process(block).catch(() => {
+							getBlocks((err, blockIds) => {
+								expect(err).to.not.exist;
+								expect(blockIds).to.have.length(1);
+								expect(blockIds).to.include.members([lastBlock.id]);
+								done();
+							});
 						});
 					});
 				});
 			});
 		});
 
-		describe('forkOne', () => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		describe.skip('forkOne', () => {
 			let forgedBlocks = [];
 			let secondLastBlock;
 			let lastBlock;
@@ -383,9 +377,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							library.modules.blocks.blockReward,
 							library.modules.blocks.constants.maxPayloadLength,
 						);
-						return library.modules.blocks.receiveBlockFromNetwork(
-							blockWithGreaterTimestamp,
-						);
+						return library.modules.processor.process(blockWithGreaterTimestamp);
 					});
 				});
 
@@ -398,7 +390,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							lastBlock.id,
 							secondLastBlock.id,
 						]);
-						return verifyForkStat(blockWithGreaterTimestamp.id, 1).then(done);
+						done();
 					});
 				});
 			});
@@ -424,9 +416,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							library.modules.blocks.blockReward,
 							library.modules.blocks.constants.maxPayloadLength,
 						);
-						library.modules.blocks.receiveBlockFromNetwork(
-							blockWithLowerTimestamp,
-						);
+
+						library.modules.processor.process(blockWithLowerTimestamp);
 					});
 				});
 
@@ -438,7 +429,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							secondLastBlock.id,
 							blockWithLowerTimestamp.id,
 						]);
-						return verifyForkStat(blockWithLowerTimestamp.id, 1).then(done);
+						done();
 					});
 				});
 			});
@@ -458,9 +449,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						blockFromPreviousRound =
 							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
-						return library.modules.blocks.receiveBlockFromNetwork(
-							blockFromPreviousRound,
-						);
+						return library.modules.processor.process(blockFromPreviousRound);
 					});
 
 					it('should reject received block', done => {
@@ -471,7 +460,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockFromPreviousRound.id, 1).then(done);
+							done();
 						});
 					});
 				});
@@ -484,9 +473,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						inSlotsWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.receiveBlockFromNetwork(
-							inSlotsWindowBlock,
-						);
+						return library.modules.processor.process(inSlotsWindowBlock);
 					});
 
 					it('should reject received block', done => {
@@ -497,7 +484,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(inSlotsWindowBlock.id, 1).then(done);
+							done();
 						});
 					});
 				});
@@ -509,9 +496,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						outOfSlotWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.receiveBlockFromNetwork(
-							outOfSlotWindowBlock,
-						);
+						return library.modules.processor.process(outOfSlotWindowBlock);
 					});
 
 					it('should reject received block', done => {
@@ -522,7 +507,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(outOfSlotWindowBlock.id, 1).then(done);
+							done();
 						});
 					});
 				});
@@ -545,9 +530,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								library.modules.blocks.blockReward,
 								library.modules.blocks.constants.maxPayloadLength,
 							);
-							library.modules.blocks.receiveBlockFromNetwork(
-								blockFromFutureSlot,
-							);
+							library.modules.processor.process(blockFromFutureSlot);
 						});
 					});
 
@@ -559,14 +542,15 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockFromFutureSlot.id, 1).then(done);
+							done();
 						});
 					});
 				});
 			});
 		});
 
-		describe('forkFive', () => {
+		// eslint-disable-next-line mocha/no-skipped-tests
+		describe.skip('forkFive', () => {
 			describe('with 5 blocks forged', () => {
 				let secondLastBlock;
 				let lastBlock;
@@ -605,9 +589,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							library.modules.blocks.blockReward,
 							library.modules.blocks.constants.maxPayloadLength,
 						);
-						library.modules.blocks.receiveBlockFromNetwork(
-							blockWithGreaterTimestamp,
-						);
+						library.modules.processor.process(blockWithGreaterTimestamp);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(6);
@@ -616,7 +598,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(done);
+							done();
 						});
 					});
 
@@ -639,9 +621,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								library.modules.blocks.blockReward,
 								library.modules.blocks.constants.maxPayloadLength,
 							);
-							library.modules.blocks.receiveBlockFromNetwork(
-								blockWithGreaterTimestamp,
-							);
+							library.modules.processor.process(blockWithGreaterTimestamp);
 							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
 								expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
@@ -649,9 +629,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									lastBlock.id,
 									secondLastBlock.id,
 								]);
-								return verifyForkStat(blockWithGreaterTimestamp.id, 5).then(
-									done,
-								);
+								done();
 							});
 						});
 					});
@@ -682,9 +660,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								library.modules.blocks.blockReward,
 								library.modules.blocks.constants.maxPayloadLength,
 							);
-							library.modules.blocks.receiveBlockFromNetwork(
-								blockWithInvalidSlot,
-							);
+							library.modules.processor.process(blockWithInvalidSlot);
 							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
 								expect(blockIds).to.have.length(6);
@@ -693,7 +669,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									secondLastBlock.id,
 									lastBlock.id,
 								]);
-								return verifyForkStat(blockWithInvalidSlot.id, 5).then(done);
+								done();
 							});
 						});
 					});
@@ -708,9 +684,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								library.modules.blocks.blockReward,
 								library.modules.blocks.constants.maxPayloadLength,
 							);
-							library.modules.blocks.receiveBlockFromNetwork(
-								blockWithLowerTimestamp,
-							);
+							library.modules.processor.process(blockWithLowerTimestamp);
 							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
 								expect(blockIds).to.have.length(6);
@@ -719,7 +693,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									blockWithLowerTimestamp.id,
 									secondLastBlock.id,
 								]);
-								return verifyForkStat(blockWithLowerTimestamp.id, 5).then(done);
+								done();
 							});
 						});
 					});
@@ -749,7 +723,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									library.modules.blocks.blockReward,
 									library.modules.blocks.constants.maxPayloadLength,
 								);
-								library.modules.blocks.receiveBlockFromNetwork(
+								library.modules.processor.process(
 									blockWithDifferentKeyAndTimestamp,
 								);
 								getBlocks((err, blockIds) => {
@@ -760,10 +734,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 										blockWithDifferentKeyAndTimestamp.id,
 										lastBlock.id,
 									]);
-									return verifyForkStat(
-										blockWithDifferentKeyAndTimestamp.id,
-										5,
-									).then(done);
+									done();
 								});
 							});
 						});
@@ -789,7 +760,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									library.modules.blocks.blockReward,
 									library.modules.blocks.constants.maxPayloadLength,
 								);
-								await library.modules.blocks.receiveBlockFromNetwork(
+								await library.modules.processor.process(
 									blockWithDifferentKeyAndTimestamp,
 								);
 								const blockIds = await new Promise((resolve, reject) => {
@@ -804,11 +775,10 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								expect(blockIds).to.not.include(
 									blockWithDifferentKeyAndTimestamp.id,
 								);
-								expect(blockIds).to.include.members([
+								return expect(blockIds).to.include.members([
 									secondLastBlock.id,
 									lastBlock.id,
 								]);
-								await verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5);
 							});
 						});
 					});
@@ -835,7 +805,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							);
 
 							function sendSkippedSlotBlock() {
-								library.modules.blocks.receiveBlockFromNetwork(nextSlotBlock);
+								library.modules.processor.process(nextSlotBlock);
 								done();
 							}
 
@@ -863,9 +833,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							library.modules.blocks.blockReward,
 							library.modules.blocks.constants.maxPayloadLength,
 						);
-						library.modules.blocks.receiveBlockFromNetwork(
-							blockWithUnskippedSlot,
-						);
+						library.modules.processor.process(blockWithUnskippedSlot);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(7);
@@ -875,7 +843,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								lastBlock.id,
 								secondLastBlock.id,
 							]);
-							return verifyForkStat(blockWithUnskippedSlot.id, 5).then(done);
+							done();
 						});
 					});
 				});
@@ -917,9 +885,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					});
 
 					it('should delete last block and save received block (from previous round)', done => {
-						library.modules.blocks.receiveBlockFromNetwork(
-							blockFromPreviousRound,
-						);
+						library.modules.processor.process(blockFromPreviousRound);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(10);
@@ -928,7 +894,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								secondLastBlock.id,
 								blockFromPreviousRound.id,
 							]);
-							return verifyForkStat(blockFromPreviousRound.id, 5).then(done);
+							done();
 						});
 					});
 				});
@@ -949,12 +915,13 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.receiveBlockFromNetwork(block);
-					getBlocks((err, blockIds) => {
-						expect(err).to.not.exist;
-						expect(blockIds).to.have.length(2);
-						expect(blockIds).to.include.members([block.id, lastBlock.id]);
-						done();
+					library.modules.processor.process(block).then(() => {
+						getBlocks((err, blockIds) => {
+							expect(err).to.not.exist;
+							expect(blockIds).to.have.length(2);
+							expect(blockIds).to.include.members([block.id, lastBlock.id]);
+							done();
+						});
 					});
 				});
 			});
@@ -964,6 +931,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 
 				beforeEach(done => {
 					const dummyLastBlock = {
+						version: 1,
 						height: 11,
 						id: '14723131253653198332',
 					};
@@ -981,15 +949,16 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.receiveBlockFromNetwork(differentChainBlock);
-					getBlocks((err, blockIds) => {
-						expect(err).to.not.exist;
-						expect(blockIds).to.have.length(1);
-						expect(blockIds).to.not.include(differentChainBlock.id);
-						expect(blockIds).to.include.members([
-							__testContext.config.genesisBlock.id,
-						]);
-						done();
+					library.modules.processor.process(differentChainBlock).catch(() => {
+						getBlocks((err, blockIds) => {
+							expect(err).to.not.exist;
+							expect(blockIds).to.have.length(1);
+							expect(blockIds).to.not.include(differentChainBlock.id);
+							expect(blockIds).to.include.members([
+								__testContext.config.genesisBlock.id,
+							]);
+							done();
+						});
 					});
 				});
 			});
