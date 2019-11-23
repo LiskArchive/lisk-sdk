@@ -16,7 +16,6 @@
 
 const path = require('path');
 const assert = require('assert');
-const { defaults, pick } = require('lodash');
 const {
 	entities: { BaseEntity },
 	utils: {
@@ -158,16 +157,15 @@ class ForgerInfo extends BaseEntity {
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = defaults(
-			{},
-			pick(options, ['limit', 'offset', 'sort']),
-			pick(this.defaultOptions, ['limit', 'offset', 'sort']),
-		);
-		const parsedSort = this.parseSort(parsedOptions.sort);
+		const { limit, offset, sort } = {
+			...this.defaultOptions,
+			...options,
+		};
+		const parsedSort = this.parseSort(sort);
 
 		const params = {
-			limit: parsedOptions.limit,
-			offset: parsedOptions.offset,
+			limit,
+			offset,
 			parsedSort,
 			parsedFilters,
 		};
