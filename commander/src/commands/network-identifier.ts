@@ -30,8 +30,14 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
-		nethash: flagParser.string(commonFlags.nethash),
-		'community-identifier': flagParser.string(commonFlags.communityIdentifier),
+		nethash: flagParser.string({
+			...commonFlags.nethash,
+			required: true,
+		}),
+		'community-identifier': flagParser.string({
+			...commonFlags.communityIdentifier,
+			required: true,
+		}),
 	};
 
 	// tslint:disable-next-line no-async-without-await
