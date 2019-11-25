@@ -14,6 +14,7 @@
  */
 import { expect } from 'chai';
 import { NewList, NewListConfig } from '../../../src/peer_book/new_list';
+import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
 import {
 	initPeerInfoListWithSuffix,
 	initPeerInfoList,
@@ -77,7 +78,7 @@ describe('New Peers List', () => {
 	describe('#makeSpace', () => {
 		let samplePeers: ReadonlyArray<P2PPeerInfo>;
 		let clock: sinon.SinonFakeTimers;
-
+		let bucket: Map<string, P2PEnhancedPeerInfo>;
 		beforeEach(() => {
 			clock = sandbox.useFakeTimers();
 			samplePeers = initPeerInfoList();
@@ -87,12 +88,13 @@ describe('New Peers List', () => {
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 			});
+			bucket = new Map<string, P2PEnhancedPeerInfo>();
 			newPeersList.addPeer(samplePeers[0]);
 		});
 
-		it('should call get bucket', () => {
+		it('should call calculateBucket', () => {
 			sandbox.stub(newPeersList, 'calculateBucket');
-			newPeersList.makeSpace(samplePeers[0]);
+			newPeersList.makeSpace(bucket);
 
 			expect(newPeersList.calculateBucket).to.be.calledOnceWithExactly(
 				samplePeers[0].ipAddress,
@@ -105,9 +107,9 @@ describe('New Peers List', () => {
 					clock.tick(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
 					newPeersList.addPeer(samplePeers[1]);
 					newPeersList.addPeer(samplePeers[2]);
-					const evictedPeer = newPeersList.makeSpace(samplePeers[3]);
+					const evictedPeer = newPeersList.makeSpace(bucket);
 
-					expect((evictedPeer as any).peerInfo).to.be.eql(samplePeers[0]);
+					expect((evictedPeer as any)).to.be.eql(samplePeers[0]);
 				});
 			});
 
@@ -115,16 +117,16 @@ describe('New Peers List', () => {
 				it('should evict one peer randomly', () => {
 					newPeersList.addPeer(samplePeers[1]);
 					newPeersList.addPeer(samplePeers[2]);
-					const evictedPeer = newPeersList.makeSpace(samplePeers[3]);
+					const evictedPeer = newPeersList.makeSpace(bucket);
 
-					expect(samplePeers).to.include((evictedPeer as any).peerInfo);
+					expect(samplePeers).to.include((evictedPeer as any));
 				});
 			});
 		});
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
-				const evictedPeer = newPeersList.makeSpace(samplePeers[0]);
+				const evictedPeer = newPeersList.makeSpace(bucket);
 
 				expect(evictedPeer).to.be.undefined;
 			});

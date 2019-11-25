@@ -314,7 +314,6 @@ export class P2P extends EventEmitter {
 					peerId: peerInfo.peerId,
 					ipAddress: peerInfo.ipAddress,
 					wsPort: peerInfo.wsPort,
-					sourceAddress: peerInfo.sourceAddress,
 				};
 				this._peerBook.upgradePeer(updatedPeerInfo);
 			}

@@ -129,7 +129,7 @@ describe('Peers base list', () => {
 
 		describe('when peer exists in the peerMap', () => {
 			it('should get the peer from the incoming peerId', () => {
-				expect(peerListObj.getPeer(samplePeers[0]))
+				expect(peerListObj.getPeer(samplePeers[0].peerId))
 					.to.be.an('object')
 					.and.eql(samplePeers[0]);
 			});
@@ -138,7 +138,7 @@ describe('Peers base list', () => {
 		describe('when peer does not exist in the peerMap', () => {
 			it('should return undefined for the given peer that does not exist in peerMap', () => {
 				const randomPeer = initPeerInfoList()[2];
-				expect(peerListObj.getPeer(randomPeer)).to.be.undefined;
+				expect(peerListObj.getPeer(randomPeer.peerId)).to.be.undefined;
 			});
 		});
 	});
@@ -151,22 +151,13 @@ describe('Peers base list', () => {
 		});
 
 		it('should add the incoming peer if it does not exist already', () => {
-			expect(peerListObj.getPeer(samplePeers[0])).eql(samplePeers[0]);
+			expect(peerListObj.getPeer(samplePeers[0].peerId)).eql(samplePeers[0]);
 		});
 
 		it('should throw error if peer already exists', () => {
 			expect(() => peerListObj.addPeer(samplePeers[0]))
 				.to.throw(ExistingPeerError, 'Peer already exists')
 				.and.have.property('peerInfo', samplePeers[0]);
-		});
-
-		it('should call makeSpace method with the ipAddress of the peer to add', () => {
-			sandbox.stub(peerListObj, 'makeSpace');
-			peerListObj.addPeer(samplePeers[1]);
-
-			expect(peerListObj.makeSpace).to.be.calledOnceWithExactly(
-				samplePeers[1],
-			);
 		});
 
 		describe('when bucket is not full', () => {
@@ -180,14 +171,16 @@ describe('Peers base list', () => {
 
 		describe('when bucket is full', () => {
 			it('should return evicted peer', () => {
-				const customPeer: P2PEnhancedPeerInfo = {
-					...samplePeers[2],
-					dateAdded: new Date(),
-				};
-				sandbox.stub(peerListObj, 'makeSpace').returns(customPeer);
+				peerListObj = new BaseList({
+					peerBucketSize: 1,
+					peerBucketCount: 1,
+					secret: DEFAULT_RANDOM_SECRET,
+					peerType: PEER_TYPE.TRIED_PEER,
+				});
+				peerListObj.addPeer(samplePeers[0]);
 				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
-				expect(evictedPeer).to.eql(customPeer);
+				expect(samplePeers.map(p => p.ipAddress)).to.include((evictedPeer as any).ipAddress);
 			});
 		});
 	});
@@ -210,7 +203,7 @@ describe('Peers base list', () => {
 
 				const success = peerListObj.updatePeer(updatedPeer);
 				expect(success).to.be.true;
-				expect(peerListObj.getPeer(samplePeers[0])).to.be.eql(updatedPeer);
+				expect(peerListObj.getPeer(samplePeers[0].peerId)).to.be.eql(updatedPeer);
 			});
 		});
 
@@ -238,11 +231,13 @@ describe('Peers base list', () => {
 
 		it('should remove the peer from the incoming peerInfo', () => {
 			peerListObj.removePeer(samplePeers[0]);
-			expect(peerListObj.getPeer(samplePeers[0])).to.be.undefined;
+			expect(peerListObj.getPeer(samplePeers[0].peerId)).to.be.undefined;
 		});
 	});
 
 	describe('#makeSpace', () => {
+		let bucket: any;
+		let calculateBucketStub: any;
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList({
@@ -252,25 +247,27 @@ describe('Peers base list', () => {
 				peerType: PEER_TYPE.TRIED_PEER,
 			});
 			peerListObj.addPeer(samplePeers[0]);
+			bucket = new Map<string, P2PEnhancedPeerInfo>();
+			bucket.set(samplePeers[0].peerId, samplePeers[0]);
+			calculateBucketStub = sandbox
+				.stub(peerListObj, 'calculateBucket')
 		});
 
 		describe('when bucket is full', () => {
 			it('should evict one peer randomly', () => {
-				peerListObj.addPeer(samplePeers[1]);
-				const evictedPeer = peerListObj.makeSpace(samplePeers[2]);
+				calculateBucketStub.returns({ bucketId: 0, bucket });
+				// peerListObj.addPeer(samplePeers[1]);
+				const evictedPeer = peerListObj.makeSpace(bucket);
 
-				expect(samplePeers).to.include((evictedPeer as any).peerInfo);
+				expect(samplePeers).to.include((evictedPeer as any));
 			});
 		});
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
 				const bucket = new Map<string, P2PEnhancedPeerInfo>();
-				sandbox
-					.stub(peerListObj, 'calculateBucket')
-					.returns({ bucketId: 1234, bucket });
-
-				const evictedPeer = peerListObj.makeSpace(samplePeers[0]);
+				calculateBucketStub.returns({ bucketId: 1234, bucket });
+				const evictedPeer = peerListObj.makeSpace(bucket);
 
 				expect(evictedPeer).to.be.undefined;
 			});

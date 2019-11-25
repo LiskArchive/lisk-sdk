@@ -13,6 +13,7 @@
  *
  */
 import { expect } from 'chai';
+import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
 import { TriedList, TriedListConfig } from '../../../src/peer_book/tried_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
@@ -71,10 +72,12 @@ describe('Tried Peers List', () => {
 
 	describe('#failedConnectionAction', () => {
 		let triedPeersList: TriedList;
+		let bucket: Map<string, P2PEnhancedPeerInfo>;
 		const samplePeers = initPeerInfoList();
 
 		describe('when peer cannot be found', () => {
 			beforeEach(() => {
+				bucket = new Map<string, P2PEnhancedPeerInfo>();
 				triedPeerConfig = {
 					peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
 					peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
@@ -83,7 +86,7 @@ describe('Tried Peers List', () => {
 					maxReconnectTries: 1,
 				};
 				triedPeersList = new TriedList(triedPeerConfig);
-				triedPeersList.makeSpace(samplePeers[0]);
+				triedPeersList.makeSpace(bucket);
 				triedPeersList.addPeer(samplePeers[0]);
 			});
 
@@ -109,7 +112,7 @@ describe('Tried Peers List', () => {
 			it('should remove the peer from the triedPeerList', () => {
 				const success = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success).to.be.true;
-				expect(triedPeersList.getPeer(samplePeers[0])).to.be.undefined;
+				expect(triedPeersList.getPeer(samplePeers[0].peerId)).to.be.undefined;
 			});
 		});
 
@@ -129,13 +132,13 @@ describe('Tried Peers List', () => {
 			it('should not remove the peer after the first call and remove it after second failed connection', () => {
 				const success1 = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success1).to.be.false;
-				expect(triedPeersList.getPeer(samplePeers[0])).to.be.eql(
+				expect(triedPeersList.getPeer(samplePeers[0].peerId)).to.be.eql(
 					samplePeers[0],
 				);
 
 				const success2 = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success2).to.be.true;
-				expect(triedPeersList.getPeer(samplePeers[0])).to.be.undefined;
+				expect(triedPeersList.getPeer(samplePeers[0].peerId)).to.be.undefined;
 			});
 		});
 	});

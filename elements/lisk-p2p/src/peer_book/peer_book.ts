@@ -23,7 +23,7 @@ import {
 } from '../constants';
 import { ExistingPeerError } from '../errors';
 import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
-import { PEER_TYPE, sanitizeInternalPeerInfo } from '../utils';
+import { PEER_TYPE } from '../utils';
 
 import { NewList, NewListConfig } from './new_list';
 import { TriedList, TriedListConfig } from './tried_list';
@@ -100,22 +100,16 @@ export class PeerBook {
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const triedPeer = this._triedPeers.getPeer(peerInfo);
+		const triedPeer = this._triedPeers.getPeer(peerInfo.peerId);
 		if (triedPeer) {
-			return sanitizeInternalPeerInfo(triedPeer);
+			return triedPeer;
 		}
 
-		const newPeer = this._newPeers.getPeer(peerInfo);
-
-		if (newPeer) {
-			return sanitizeInternalPeerInfo(newPeer);
-		}
-
-		return undefined;
+		return this._newPeers.getPeer(peerInfo.peerId);
 	}
 
 	public addPeer(peerInfo: P2PEnhancedPeerInfo): void {
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			throw new ExistingPeerError(peerInfo);
 		}
 
@@ -123,11 +117,11 @@ export class PeerBook {
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			return this._triedPeers.updatePeer(peerInfo);
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
 			return this._newPeers.updatePeer(peerInfo);
 		}
 
@@ -135,11 +129,11 @@ export class PeerBook {
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			return this._triedPeers.removePeer(peerInfo);
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
 			return this._newPeers.removePeer(peerInfo);
 		}
 
@@ -147,12 +141,12 @@ export class PeerBook {
 	}
 
 	// Move a peer from newList to triedList on events like on successful connection.
-	public upgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
+	public upgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			return true;
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
 			this._newPeers.removePeer(peerInfo);
 			this._triedPeers.addPeer(peerInfo);
 
@@ -162,18 +156,12 @@ export class PeerBook {
 		return false;
 	}
 
-	/**
-	 * Description: When a peer is downgraded for some reasons then new/triedPeers will trigger their failedConnectionAction,
-	 * if the peer is deleted from newList that means the peer is completely deleted from the peer lists and need to inform the calling entity by returning true.
-	 */
 	public downgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
-		if (this._newPeers.getPeer(peerInfo)) {
-			if (this._newPeers.failedConnectionAction(peerInfo)) {
-				return true;
-			}
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
+			return this._newPeers.failedConnectionAction(peerInfo)
 		}
 
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			const failed = this._triedPeers.failedConnectionAction(peerInfo);
 			if (failed) {
 				this.addPeer(peerInfo);

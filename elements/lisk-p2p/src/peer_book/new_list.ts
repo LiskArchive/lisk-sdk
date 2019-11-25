@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { BaseList, PeerListConfig } from './base_list';
+import { BaseList, Bucket, PeerListConfig } from './base_list';
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 import { P2PEnhancedPeerInfo } from '../p2p_types';
-import { evictPeerRandomlyFromBucket, expirePeerFromBucket } from '../utils';
+import { evictPeerRandomlyFromBucket, expirePeerFromBucket, PEER_TYPE } from '../utils';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
@@ -37,7 +37,7 @@ export class NewList extends BaseList {
 			peerBucketSize,
 			peerType,
 		});
-
+		this.type = PEER_TYPE.NEW_PEER;
 		this._evictionThresholdTime = evictionThresholdTime
 			? evictionThresholdTime
 			: DEFAULT_EVICTION_THRESHOLD_TIME;
@@ -49,25 +49,18 @@ export class NewList extends BaseList {
 			evictionThresholdTime: this._evictionThresholdTime,
 		};
 	}
-	
-	// Override make space method from base list
-	public makeSpace(peerInfo: P2PEnhancedPeerInfo): P2PEnhancedPeerInfo | undefined {
-		const { bucket } = this.calculateBucket(peerInfo.ipAddress, peerInfo.sourceAddress ? peerInfo.sourceAddress : undefined);
 
-		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
-			// First eviction strategy: eviction by time of residence
-			const evictedPeer = expirePeerFromBucket(
-				bucket,
-				this._evictionThresholdTime,
-			);
-			if (evictedPeer) {
-				return evictedPeer;
-			}
-
-			// Second eviction strategy: Default eviction based on base class
-			return evictPeerRandomlyFromBucket(bucket);
+	public makeSpace(bucket: Bucket): P2PEnhancedPeerInfo | undefined {
+		// First eviction strategy: expire older peers
+		const evictedPeer = expirePeerFromBucket(
+			bucket,
+			this._evictionThresholdTime,
+		);
+		if (evictedPeer) {
+			return evictedPeer;
 		}
 
-		return undefined;
+		// Second eviction strategy: Select random peer and evict
+		return evictPeerRandomlyFromBucket(bucket);
 	}
 }

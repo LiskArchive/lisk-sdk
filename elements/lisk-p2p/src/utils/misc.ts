@@ -142,7 +142,6 @@ export const expirePeerFromBucket = (
 	bucket: Map<string, P2PEnhancedPeerInfo>,
 	thresholdTime: number,
 ): P2PEnhancedPeerInfo | undefined => {
-	// First eviction strategy: eviction by time of residence
 	for (const [peerId, peer] of bucket) {
 		const timeDifference = Math.round(
 			Math.abs((peer.dateAdded as Date).getTime() - new Date().getTime()),

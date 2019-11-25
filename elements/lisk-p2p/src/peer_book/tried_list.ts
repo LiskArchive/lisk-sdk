@@ -13,8 +13,12 @@
  *
  */
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
-import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../p2p_types';
+import {
+	PEER_TYPE,
+} from '../utils';
 import { BaseList, PeerListConfig } from './base_list';
+
 
 export interface TriedListConfig extends PeerListConfig {
 	readonly maxReconnectTries?: number;
@@ -36,20 +40,13 @@ export class TriedList extends BaseList {
 			peerBucketSize,
 			peerType,
 		});
-
+		this.type = PEER_TYPE.TRIED_PEER;
 		this._maxReconnectTries = maxReconnectTries
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 
 		this.initBuckets(this.bucketIdToBucket);
 	}
-
-	// Override init peer info
-	public initPeerInfo = (peerInfo: P2PPeerInfo): P2PEnhancedPeerInfo => ({
-		...peerInfo,
-		numOfConnectionFailures: 0,
-		dateAdded: new Date(),
-	});
 
 	public get triedPeerConfig(): TriedListConfig {
 		return {
@@ -58,8 +55,8 @@ export class TriedList extends BaseList {
 		};
 	}
 
-	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
+		// Bucket calculation does not require sourceAddress for tried peers and is deterministic
 		const { bucket } = this.calculateBucket(incomingPeerInfo.ipAddress);
 		const incomingPeerId = incomingPeerInfo.peerId;
 		const foundPeer = bucket.get(incomingPeerId);
@@ -71,9 +68,12 @@ export class TriedList extends BaseList {
 		} = foundPeer;
 
 		if (numOfConnectionFailures as number + 1 >= this._maxReconnectTries) {
-			bucket.delete(incomingPeerId);
+			const removedFromBucket = bucket.delete(incomingPeerId);
+			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(
+				incomingPeerId,
+			);
 
-			return true;
+			return removedFromBucket && removedFromPeerLookup;
 		}
 		const updatedTriedPeerInfo = {
 			...foundPeer,
