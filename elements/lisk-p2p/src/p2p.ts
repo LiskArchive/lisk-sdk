@@ -823,12 +823,13 @@ export class P2P extends EventEmitter {
 						DUPLICATE_CONNECTION,
 						DUPLICATE_CONNECTION_REASON,
 					);
-				} else {
-					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
-					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+
+					return;
 				}
 
 				try {
+					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this._peerBook.addPeer(incomingPeerInfo);
 				} catch (error) {
 					if (!(error instanceof ExistingPeerError)) {
