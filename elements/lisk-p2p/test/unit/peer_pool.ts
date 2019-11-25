@@ -1028,13 +1028,18 @@ describe('peerPool', () => {
 		beforeEach(async () => {
 			(peerPool as any)._peerLists.whitelisted = whitelistedPeers;
 			(peerPool as any)._peerLists.fixedPeers = fixedPeers;
+			(peerPool as any)._peerPoolConfig = {
+				netgroupProtectionRatio: 0,
+				latencyProtectionRatio: 0,
+				productivityProtectionRatio: 0,
+			};
 			sandbox.stub(peerPool as any, 'getPeers').returns(defaultPeers);
 			sandbox.stub(peerPool, 'removePeer');
 		});
 
 		it('should not evict whitelisted peer', async () => {
 			(peerPool as any)._evictPeer(InboundPeer);
-			expect(peerPool.removePeer).not.to.be.calledWith(
+			expect(peerPool.removePeer).not.to.be.calledWithExactly(
 				whitelistedPeers[0].ipAddress,
 				sinon.match.any,
 				sinon.match.any,
@@ -1043,8 +1048,17 @@ describe('peerPool', () => {
 
 		it('should not evict fixed peer', async () => {
 			(peerPool as any)._evictPeer(InboundPeer);
-			expect(peerPool.removePeer).not.to.be.calledWith(
+			expect(peerPool.removePeer).not.to.be.calledWithExactly(
 				fixedPeers[0].ipAddress,
+				sinon.match.any,
+				sinon.match.any,
+			);
+		});
+
+		it('should evict a peer', async () => {
+			(peerPool as any)._evictPeer(InboundPeer);
+			expect(peerPool.removePeer).to.be.calledWithExactly(
+				defaultPeers[0].peerId,
 				sinon.match.any,
 				sinon.match.any,
 			);
