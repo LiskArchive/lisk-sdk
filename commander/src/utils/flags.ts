@@ -76,6 +76,9 @@ const liskVersionDescription = 'Lisk Core version.';
 const noStartDescription = 'Install Lisk Core without starting.';
 const networkIdentifierDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
+const communityIdentifierDescription =
+	'Unique community identifier for network.';
+const nethashDescription = 'Payload hash of network genesis block.';
 
 export type AlphabetLowercase =
 	| 'a'
@@ -140,6 +143,12 @@ export const flags: FlagMap = {
 	},
 	networkIdentifier: {
 		description: networkIdentifierDescription,
+	},
+	nethash: {
+		description: nethashDescription,
+	},
+	communityIdentifier: {
+		description: communityIdentifierDescription,
 	},
 	network: {
 		char: 'n',
