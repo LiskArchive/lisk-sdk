@@ -680,9 +680,9 @@ export class P2P extends EventEmitter {
 
 	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
 		if (
-			this._sanitizedPeerLists.blacklistedPeers
-				.map(peer => peer.ipAddress)
-				.includes(peerInfo.ipAddress)
+			this._sanitizedPeerLists.blacklistedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
 		) {
 			return {
 				...peerInfo,
@@ -693,9 +693,9 @@ export class P2P extends EventEmitter {
 		}
 
 		if (
-			this._sanitizedPeerLists.fixedPeers
-				.map(peer => peer.peerId)
-				.includes(peerInfo.peerId)
+			this._sanitizedPeerLists.fixedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
 		) {
 			return {
 				...peerInfo,
@@ -706,9 +706,9 @@ export class P2P extends EventEmitter {
 		}
 
 		if (
-			this._sanitizedPeerLists.whitelisted
-				.map(peer => peer.peerId)
-				.includes(peerInfo.peerId)
+			this._sanitizedPeerLists.whitelisted.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
 		) {
 			return {
 				...peerInfo,
@@ -719,9 +719,9 @@ export class P2P extends EventEmitter {
 		}
 
 		if (
-			this._sanitizedPeerLists.seedPeers
-				.map(peer => peer.peerId)
-				.includes(peerInfo.peerId)
+			this._sanitizedPeerLists.seedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
 		) {
 			return {
 				...peerInfo,
@@ -731,7 +731,12 @@ export class P2P extends EventEmitter {
 			};
 		}
 
-		return peerInfo;
+		return {
+			...peerInfo,
+			internalState: peerInfo.internalState
+				? { ...peerInfo.internalState, peerKind: PeerKind.NONE }
+				: { peerKind: PeerKind.NONE, advertiseAddress: true },
+		};
 	}
 
 	private async _startPeerServer(): Promise<void> {
