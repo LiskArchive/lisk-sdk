@@ -22,31 +22,31 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
 const {
-	ChainMeta,
+	ForgerInfo,
 } = require('../../../../../../../../../src/modules/chain/components/storage/entities');
 
-const { config } = require('../../shared');
+const { config } = require('../../../../shared');
 
-const getAllMeta = async adapter =>
-	adapter.execute('select * from chain_meta;');
+const getAllState = async adapter =>
+	adapter.execute('select * from forger_info;');
 
-describe('ChainMeta', () => {
+describe('ForgerInfo', () => {
 	const storage = new StorageSandbox(
 		config.components.storage,
-		'lisk_test_chain_module_storage_chain_meta',
+		'lisk_test_chain_module_storage_forger_info',
 	);
 	const validSQLs = ['upsert', 'get', 'delete'];
 	const validFields = ['key', 'value'];
 	const validFilters = ['key', 'key_eql', 'key_ne'];
 
 	let adapter;
-	let ChainMetaEntity;
+	let ForgerInfoEntity;
 
 	beforeAll(async () => {
 		await storage.bootstrap();
 
 		({ adapter } = storage);
-		ChainMetaEntity = storage.entities.ChainMeta;
+		ForgerInfoEntity = storage.entities.ForgerInfo;
 	});
 
 	afterAll(async () => {
@@ -58,53 +58,53 @@ describe('ChainMeta', () => {
 	});
 
 	it('should be a constructable function', async () => {
-		expect(ChainMeta.prototype.constructor).not.toBeNull();
-		expect(ChainMeta.prototype.constructor.name).toEqual('ChainMeta');
+		expect(ForgerInfo.prototype.constructor).not.toBeNull();
+		expect(ForgerInfo.prototype.constructor.name).toEqual('ForgerInfo');
 	});
 
 	it('should extend BaseEntity', async () => {
-		expect(ChainMeta.prototype instanceof BaseEntity).toBeTruthy();
+		expect(ForgerInfo.prototype instanceof BaseEntity).toBeTruthy();
 	});
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(ChainMeta.prototype.constructor.length).toEqual(1);
+			expect(ForgerInfo.prototype.constructor.length).toEqual(1);
 		});
 
 		it('should have called super', async () => {
 			// The reasoning here is that if the parent's contstructor was called
 			// the properties from the parent are present in the extending object
-			expect(typeof ChainMetaEntity.parseFilters).toEqual('function');
-			expect(typeof ChainMetaEntity.addFilter).toEqual('function');
-			expect(typeof ChainMetaEntity.addField).toEqual('function');
-			expect(typeof ChainMetaEntity.getFilters).toEqual('function');
-			expect(typeof ChainMetaEntity.getUpdateSet).toEqual('function');
-			expect(typeof ChainMetaEntity.getValuesSet).toEqual('function');
-			expect(typeof ChainMetaEntity.begin).toEqual('function');
-			expect(typeof ChainMetaEntity.validateFilters).toEqual('function');
-			expect(typeof ChainMetaEntity.validateOptions).toEqual('function');
+			expect(typeof ForgerInfoEntity.parseFilters).toEqual('function');
+			expect(typeof ForgerInfoEntity.addFilter).toEqual('function');
+			expect(typeof ForgerInfoEntity.addField).toEqual('function');
+			expect(typeof ForgerInfoEntity.getFilters).toEqual('function');
+			expect(typeof ForgerInfoEntity.getUpdateSet).toEqual('function');
+			expect(typeof ForgerInfoEntity.getValuesSet).toEqual('function');
+			expect(typeof ForgerInfoEntity.begin).toEqual('function');
+			expect(typeof ForgerInfoEntity.validateFilters).toEqual('function');
+			expect(typeof ForgerInfoEntity.validateOptions).toEqual('function');
 		});
 
 		it('should assign proper sql', async () => {
-			expect(Object.keys(ChainMetaEntity.SQLs)).toEqual(validSQLs);
+			expect(Object.keys(ForgerInfoEntity.SQLs)).toEqual(validSQLs);
 		});
 
 		it('should call addField the exact number of times', async () => {
-			jest.spyOn(ChainMeta.prototype, 'addField');
+			jest.spyOn(ForgerInfo.prototype, 'addField');
 			// eslint-disable-next-line no-new
-			new ChainMeta(adapter);
+			new ForgerInfo(adapter);
 
-			expect(ChainMeta.prototype.addField).toHaveBeenCalledTimes(
-				Object.keys(ChainMetaEntity.fields).length,
+			expect(ForgerInfo.prototype.addField).toHaveBeenCalledTimes(
+				Object.keys(ForgerInfoEntity.fields).length,
 			);
 		});
 
 		it('should setup correct fields', async () => {
-			expect(Object.keys(ChainMetaEntity.fields)).toEqual(validFields);
+			expect(Object.keys(ForgerInfoEntity.fields)).toEqual(validFields);
 		});
 
 		it('should setup specific filters', async () => {
-			expect(ChainMetaEntity.getFilters()).toEqual(validFilters);
+			expect(ForgerInfoEntity.getFilters()).toEqual(validFilters);
 		});
 	});
 
@@ -113,21 +113,21 @@ describe('ChainMeta', () => {
 		const data2 = { key: 'myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
-			await ChainMetaEntity.setKey(data1.key, data1.value);
-			await ChainMetaEntity.setKey(data2.key, data2.value);
+			await ForgerInfoEntity.setKey(data1.key, data1.value);
+			await ForgerInfoEntity.setKey(data2.key, data2.value);
 		});
 
 		it('should return the all key value pairs without filters', async () => {
-			const result = await getAllMeta(ChainMetaEntity.adapter);
-			expect(await ChainMetaEntity.get()).toEqual(result);
+			const result = await getAllState(ForgerInfoEntity.adapter);
+			expect(await ForgerInfoEntity.get()).toEqual(result);
 		});
 
 		it('should return matching result with provided filters', async () => {
-			expect(await ChainMetaEntity.get({ key: data1.key })).toEqual([data1]);
+			expect(await ForgerInfoEntity.get({ key: data1.key })).toEqual([data1]);
 		});
 
 		it('should return empty array if no matching result found', async () => {
-			expect(await ChainMetaEntity.get({ key: 'custom-key' })).toEqual([]);
+			expect(await ForgerInfoEntity.get({ key: 'custom-key' })).toEqual([]);
 		});
 	});
 
@@ -136,23 +136,23 @@ describe('ChainMeta', () => {
 		const data2 = { key: 'myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
-			await ChainMetaEntity.setKey(data1.key, data1.value);
-			await ChainMetaEntity.setKey(data2.key, data2.value);
+			await ForgerInfoEntity.setKey(data1.key, data1.value);
+			await ForgerInfoEntity.setKey(data2.key, data2.value);
 		});
 
 		it('should reject with error if provided without filters', async () => {
-			await expect(ChainMetaEntity.getOne()).rejects.toThrow(
+			await expect(ForgerInfoEntity.getOne()).rejects.toThrow(
 				'Multiple rows were not expected.',
 			);
 		});
 
 		it('should return matching result with provided filters', async () => {
-			expect(await ChainMetaEntity.getOne({ key: data1.key })).toEqual(data1);
+			expect(await ForgerInfoEntity.getOne({ key: data1.key })).toEqual(data1);
 		});
 
 		it('should reject with error if provided filter does not match', async () => {
 			await expect(
-				ChainMetaEntity.getOne({ key: 'custom-key' }),
+				ForgerInfoEntity.getOne({ key: 'custom-key' }),
 			).rejects.toThrow('No data returned from the query.');
 		});
 	});
@@ -162,34 +162,34 @@ describe('ChainMeta', () => {
 		const data2 = { key: 'myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
-			await ChainMetaEntity.setKey(data1.key, data1.value);
-			await ChainMetaEntity.setKey(data2.key, data2.value);
+			await ForgerInfoEntity.setKey(data1.key, data1.value);
+			await ForgerInfoEntity.setKey(data2.key, data2.value);
 		});
 
 		it('should resolve with error when invoked without key', async () => {
-			expect(ChainMetaEntity.getKey()).rejects.toThrow(
+			expect(ForgerInfoEntity.getKey()).rejects.toThrow(
 				'Must provide the key to get',
 			);
 		});
 
 		it('should return matching result value with provided filters', async () => {
-			expect(await ChainMetaEntity.getKey(data1.key)).toEqual(data1.value);
+			expect(await ForgerInfoEntity.getKey(data1.key)).toEqual(data1.value);
 		});
 
 		it('should resolve with null if provided filter does not match', async () => {
-			expect(await ChainMetaEntity.getKey('custom-key')).toBeNull();
+			expect(await ForgerInfoEntity.getKey('custom-key')).toBeNull();
 		});
 	});
 
 	describe('setKey', () => {
 		it('should resolve with error when invoked without key', async () => {
-			expect(ChainMetaEntity.setKey()).rejects.toThrow(
+			expect(ForgerInfoEntity.setKey()).rejects.toThrow(
 				'Must provide the key to set',
 			);
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			expect(ChainMetaEntity.setKey('myKey')).rejects.toThrow(
+			expect(ForgerInfoEntity.setKey('myKey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
@@ -197,9 +197,9 @@ describe('ChainMeta', () => {
 		it('should create key value pair if not exists', async () => {
 			const key = 'myKey';
 			const value = 'myValue';
-			await ChainMetaEntity.setKey(key, value);
+			await ForgerInfoEntity.setKey(key, value);
 
-			const result = await getAllMeta(ChainMetaEntity.adapter);
+			const result = await getAllState(ForgerInfoEntity.adapter);
 
 			expect(result).toEqual([{ key, value }]);
 		});
@@ -209,10 +209,10 @@ describe('ChainMeta', () => {
 			const value = 'myValue';
 			const updatedValue = 'myUpdatedValue';
 
-			await ChainMetaEntity.setKey(key, value);
-			await ChainMetaEntity.setKey(key, updatedValue);
+			await ForgerInfoEntity.setKey(key, value);
+			await ForgerInfoEntity.setKey(key, updatedValue);
 
-			const result = await getAllMeta(ChainMetaEntity.adapter);
+			const result = await getAllState(ForgerInfoEntity.adapter);
 			expect(result).toEqual([{ key, value: updatedValue }]);
 		});
 	});
@@ -222,24 +222,27 @@ describe('ChainMeta', () => {
 		const data2 = { key: 'myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
-			await ChainMetaEntity.setKey(data1.key, data1.value);
-			await ChainMetaEntity.setKey(data2.key, data2.value);
+			await ForgerInfoEntity.setKey(data1.key, data1.value);
+			await ForgerInfoEntity.setKey(data2.key, data2.value);
 		});
 
 		it('should delete the matching key record from database', async () => {
 			// Before delete verify they exists
-			expect(await getAllMeta(ChainMetaEntity.adapter)).toEqual([data1, data2]);
+			expect(await getAllState(ForgerInfoEntity.adapter)).toEqual([
+				data1,
+				data2,
+			]);
 
-			await ChainMetaEntity.delete({ key: data1.key });
+			await ForgerInfoEntity.delete({ key: data1.key });
 
-			expect(await getAllMeta(ChainMetaEntity.adapter)).toEqual([data2]);
+			expect(await getAllState(ForgerInfoEntity.adapter)).toEqual([data2]);
 		});
 
 		it('should not throw error if no matching record found', async () => {
 			const nonExistingKey = 'nonExistingKey';
 
 			await expect(
-				ChainMetaEntity.delete({ key: nonExistingKey }),
+				ForgerInfoEntity.delete({ key: nonExistingKey }),
 			).resolves.toBeNull();
 		});
 	});

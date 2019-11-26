@@ -12,14 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
 
-/*
-  DESCRIPTION: Creates meta table for BFT.
+const { configurator } = require('../../../../../src');
 
-  PARAMETERS: None
-*/
+const devConfig = require('../../../../fixtures/config/devnet/config');
 
-CREATE TABLE IF NOT EXISTS "chain_state" (
-  "key" VARCHAR(40) PRIMARY KEY,
-  "value" TEXT NOT NULL
-);
+// To compile and have one unified config along with defaults
+configurator.loadConfig(devConfig);
+
+module.exports = {
+	config: configurator.getConfig({}, { failOnInvalidArg: false }),
+};
