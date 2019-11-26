@@ -101,7 +101,6 @@ export interface P2PConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly nodeInfo: P2PNodeInfo;
-	readonly wsEngine?: string;
 	readonly populatorInterval?: number;
 	readonly fallbackSeedPeerDiscoveryInterval?: number;
 	readonly maxOutboundConnections: number;

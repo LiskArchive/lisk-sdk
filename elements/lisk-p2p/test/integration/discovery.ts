@@ -203,7 +203,6 @@ describe('Network discovery', () => {
 						wsPort: 5000,
 					},
 				],
-				wsEngine: 'ws',
 				maxOutboundConnections: 1,
 				maxInboundConnections: 0,
 				nodeInfo: {

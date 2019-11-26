@@ -156,12 +156,11 @@ module.exports = class Network {
 				wsPort: peer.wsPort,
 			})),
 			previousPeers,
-			discoveryInterval: this.options.discoveryInterval,
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,
 			peerBanTime: this.options.peerBanTime,
 			populatorInterval: this.options.populatorInterval,
-			sendPeerLimit: this.options.emitPeerLimit,
+			sendPeerLimit: this.options.sendPeerLimit,
 			maxPeerDiscoveryResponseLength: this.options
 				.maxPeerDiscoveryResponseLength,
 			maxPeerInfoSize: this.options.maxPeerInfoSize,

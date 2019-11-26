@@ -24,7 +24,6 @@ describe('p2p', () => {
 			whitelistedPeers: [],
 			previousPeers: [],
 			connectTimeout: 5000,
-			wsEngine: 'ws',
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
