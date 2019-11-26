@@ -56,7 +56,7 @@ class ForgerInfo extends BaseEntity {
 	}
 
 	/**
-	 * Get list of meta information
+	 * Get list of forger information
 	 *
 	 * @param {filters.ForgerInfo|filters.ForgerInfo[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
@@ -70,7 +70,7 @@ class ForgerInfo extends BaseEntity {
 	}
 
 	/**
-	 * Get list of meta information
+	 * Get list of forger information
 	 *
 	 * @param {filters.ForgerInfo|filters.ForgerInfo[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data

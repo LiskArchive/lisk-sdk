@@ -70,6 +70,7 @@ class BFT extends EventEmitter {
 	/**
 	 * Initialize the BFT module
 	 *
+	 * @param {Object} stateStore - State store which has been initialized
 	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
 	 * @return {Promise<void>}
 	 */

@@ -56,7 +56,7 @@ class ChainState extends BaseEntity {
 	}
 
 	/**
-	 * Get list of meta information
+	 * Get list of chain state information
 	 *
 	 * @param {filters.ChainState|filters.ChainState[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
@@ -70,7 +70,7 @@ class ChainState extends BaseEntity {
 	}
 
 	/**
-	 * Get list of meta information
+	 * Get a chain state information
 	 *
 	 * @param {filters.ChainState|filters.ChainState[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
