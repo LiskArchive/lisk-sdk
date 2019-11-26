@@ -14,11 +14,9 @@
  */
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
 import { P2PPeerInfo } from '../p2p_types';
-import {
-	PEER_TYPE,
-} from '../utils';
-import { BaseList, PeerListConfig } from './base_list';
+import { PEER_TYPE } from '../utils';
 
+import { BaseList, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {
 	readonly maxReconnectTries?: number;
@@ -56,18 +54,16 @@ export class TriedList extends BaseList {
 	}
 
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		// Bucket calculation does not require sourceAddress for tried peers and is deterministic
+		// Bucket calculation does not require sourceAddress and is deterministic
 		const { bucket } = this.calculateBucket(incomingPeerInfo.ipAddress);
 		const incomingPeerId = incomingPeerInfo.peerId;
 		const foundPeer = bucket.get(incomingPeerId);
 		if (!foundPeer) {
 			return false;
 		}
-		const {
-			numOfConnectionFailures,
-		} = foundPeer;
+		const { numOfConnectionFailures } = foundPeer;
 
-		if (numOfConnectionFailures as number + 1 >= this._maxReconnectTries) {
+		if ((numOfConnectionFailures as number) + 1 >= this._maxReconnectTries) {
 			const removedFromBucket = bucket.delete(incomingPeerId);
 			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(
 				incomingPeerId,
@@ -77,7 +73,7 @@ export class TriedList extends BaseList {
 		}
 		const updatedTriedPeerInfo = {
 			...foundPeer,
-			numOfConnectionFailures: numOfConnectionFailures as number + 1,
+			numOfConnectionFailures: (numOfConnectionFailures as number) + 1,
 		};
 
 		bucket.set(incomingPeerId, updatedTriedPeerInfo);

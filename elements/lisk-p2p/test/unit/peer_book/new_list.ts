@@ -26,7 +26,6 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_EVICTION_THRESHOLD_TIME,
 } from '../../../src/constants';
-import { P2PPeerInfo } from '../../../src';
 
 describe('New Peers List', () => {
 	let newPeerConfig: NewListConfig;
@@ -76,12 +75,16 @@ describe('New Peers List', () => {
 	});
 
 	describe('#makeSpace', () => {
-		let samplePeers: ReadonlyArray<P2PPeerInfo>;
+		let samplePeers: ReadonlyArray<any>;
 		let clock: sinon.SinonFakeTimers;
 		let bucket: Map<string, P2PEnhancedPeerInfo>;
+		let calculateBucketStub: any;
 		beforeEach(() => {
 			clock = sandbox.useFakeTimers();
-			samplePeers = initPeerInfoList();
+			samplePeers = initPeerInfoList().map(peerInfo => ({
+				...peerInfo,
+				dateAdded: new Date(),
+			}));
 			newPeersList = new NewList({
 				peerBucketSize: 3,
 				peerBucketCount: 1,
@@ -89,43 +92,33 @@ describe('New Peers List', () => {
 				peerType: PEER_TYPE.TRIED_PEER,
 			});
 			bucket = new Map<string, P2PEnhancedPeerInfo>();
-			newPeersList.addPeer(samplePeers[0]);
-		});
-
-		it('should call calculateBucket', () => {
-			sandbox.stub(newPeersList, 'calculateBucket');
-			newPeersList.makeSpace(bucket);
-
-			expect(newPeersList.calculateBucket).to.be.calledOnceWithExactly(
-				samplePeers[0].ipAddress,
-			);
+			bucket.set(samplePeers[1].peerId, samplePeers[2]);
+			calculateBucketStub = sandbox.stub(newPeersList, 'calculateBucket');
 		});
 
 		describe('when bucket is full', () => {
 			describe('when bucket contains old peers', () => {
 				it('should evict just one of them', () => {
 					clock.tick(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
-					newPeersList.addPeer(samplePeers[1]);
-					newPeersList.addPeer(samplePeers[2]);
+					calculateBucketStub.returns({ bucketId: 0, bucket });
 					const evictedPeer = newPeersList.makeSpace(bucket);
 
-					expect((evictedPeer as any)).to.be.eql(samplePeers[0]);
+					expect(evictedPeer as any).to.be.eql(samplePeers[2]);
 				});
 			});
 
 			describe('when bucket does not contain old peers', () => {
 				it('should evict one peer randomly', () => {
-					newPeersList.addPeer(samplePeers[1]);
-					newPeersList.addPeer(samplePeers[2]);
 					const evictedPeer = newPeersList.makeSpace(bucket);
 
-					expect(samplePeers).to.include((evictedPeer as any));
+					expect(samplePeers).to.include(evictedPeer as any);
 				});
 			});
 		});
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
+				bucket = new Map<string, P2PEnhancedPeerInfo>();
 				const evictedPeer = newPeersList.makeSpace(bucket);
 
 				expect(evictedPeer).to.be.undefined;

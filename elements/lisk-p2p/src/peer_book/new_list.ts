@@ -12,10 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { BaseList, Bucket, PeerListConfig } from './base_list';
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 import { P2PEnhancedPeerInfo } from '../p2p_types';
-import { evictPeerRandomlyFromBucket, expirePeerFromBucket, PEER_TYPE } from '../utils';
+import {
+	evictPeerRandomlyFromBucket,
+	expirePeerFromBucket,
+	PEER_TYPE,
+} from '../utils';
+
+import { BaseList, Bucket, PeerListConfig } from './base_list';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;

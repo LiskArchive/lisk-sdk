@@ -71,24 +71,26 @@ describe('Peers base list', () => {
 	});
 
 	describe('#peerList', () => {
-		let triedPeersArray: ReadonlyArray<P2PPeerInfo>;
-
 		before(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
-			triedPeersArray = peerListObj.peerList as ReadonlyArray<P2PPeerInfo>;
+			peerListObj.peerList as ReadonlyArray<P2PPeerInfo>;
 		});
 
 		it('should return tried peers list', () => {
-			const expectedTriedPeersArray = [
-				samplePeers[0],
-				samplePeers[1],
-				samplePeers[2],
-			];
-			expect(triedPeersArray).to.have.members(expectedTriedPeersArray);
+			expect(peerListObj.peerList.length).to.eql(3);
+			expect(peerListObj.peerList.map(peer => peer.peerId)).to.include(
+				samplePeers[0].peerId,
+			);
+			expect(peerListObj.peerList.map(peer => peer.peerId)).to.include(
+				samplePeers[1].peerId,
+			);
+			expect(peerListObj.peerList.map(peer => peer.peerId)).to.include(
+				samplePeers[2].peerId,
+			);
 		});
 	});
 
@@ -180,7 +182,9 @@ describe('Peers base list', () => {
 				peerListObj.addPeer(samplePeers[0]);
 				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
-				expect(samplePeers.map(p => p.ipAddress)).to.include((evictedPeer as any).ipAddress);
+				expect(samplePeers.map(p => p.ipAddress)).to.include(
+					(evictedPeer as any).ipAddress,
+				);
 			});
 		});
 	});
@@ -203,7 +207,9 @@ describe('Peers base list', () => {
 
 				const success = peerListObj.updatePeer(updatedPeer);
 				expect(success).to.be.true;
-				expect(peerListObj.getPeer(samplePeers[0].peerId)).to.be.eql(updatedPeer);
+				expect(peerListObj.getPeer(samplePeers[0].peerId)).to.be.eql(
+					updatedPeer,
+				);
 			});
 		});
 
@@ -249,8 +255,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			bucket = new Map<string, P2PEnhancedPeerInfo>();
 			bucket.set(samplePeers[0].peerId, samplePeers[0]);
-			calculateBucketStub = sandbox
-				.stub(peerListObj, 'calculateBucket')
+			calculateBucketStub = sandbox.stub(peerListObj, 'calculateBucket');
 		});
 
 		describe('when bucket is full', () => {
@@ -259,7 +264,7 @@ describe('Peers base list', () => {
 				// peerListObj.addPeer(samplePeers[1]);
 				const evictedPeer = peerListObj.makeSpace(bucket);
 
-				expect(samplePeers).to.include((evictedPeer as any));
+				expect(samplePeers).to.include(evictedPeer as any);
 			});
 		});
 

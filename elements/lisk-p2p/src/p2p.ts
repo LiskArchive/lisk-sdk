@@ -299,24 +299,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PEnhancedPeerInfo) => {
-			try {
-				this._peerBook.addPeer(peerInfo);
-				// Should be added to newPeer list first and since it is connected so we will upgrade it
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-
-				const updatedPeerInfo = {
-					internalState: error.peerInfo.internalState,
-					sharedState: peerInfo.sharedState,
-					peerId: peerInfo.peerId,
-					ipAddress: peerInfo.ipAddress,
-					wsPort: peerInfo.wsPort,
-				};
-				this._peerBook.upgradePeer(updatedPeerInfo);
-			}
+			this._peerBook.upgradePeer(peerInfo);
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
@@ -353,26 +336,16 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
-			try {
-				this._peerBook.addPeer(peerInfo);
-				// Since the connection is tried already hence upgrade the peer
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
+			const existingPeer = this._peerBook.getPeer(peerInfo);
 
-				const updatedPeerInfo = {
-					...error.peerInfo,
-					sharedState: peerInfo.sharedState
-						? { ...peerInfo.sharedState }
-						: error.peerInfo.sharedState,
-				};
-				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
-				if (isUpdated) {
-					// If found and updated successfully then upgrade the peer
-					this._peerBook.upgradePeer(updatedPeerInfo);
-				}
+			if (!existingPeer) {
+				this._peerBook.addPeer(peerInfo);
+			}
+
+			const isUpdated = this._peerBook.updatePeer(peerInfo);
+			if (isUpdated) {
+				// If found and updated successfully then upgrade the peer
+				this._peerBook.upgradePeer(peerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
@@ -439,31 +412,17 @@ export class P2P extends EventEmitter {
 			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
-
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
-				try {
-					this._peerBook.addPeer(detailedPeerInfo);
-					// Re-emit the message to allow it to bubble up the class hierarchy.
-					// Only emit event when a peer is discovered for the first time.
-					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
+				this._peerBook.addPeer(detailedPeerInfo);
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				// Only emit event when a peer is discovered for the first time.
+				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 
-					// Don't update peerInfo when we already have connection with that peer
-					if (!this._peerPool.hasPeer(error.peerInfo.peerId)) {
-						const updatedPeerInfo = {
-							...detailedPeerInfo,
-							sharedState: detailedPeerInfo.sharedState
-								? { ...detailedPeerInfo.sharedState }
-								: error.peerInfo.sharedState,
-						};
-						const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
-						if (isUpdated) {
-							// If found and updated successfully then upgrade the peer
-							this._peerBook.upgradePeer(updatedPeerInfo);
-						}
+				if (!this._peerPool.hasPeer(detailedPeerInfo.peerId)) {
+					const isUpdated = this._peerBook.updatePeer(detailedPeerInfo);
+					if (isUpdated) {
+						// If found and updated successfully then upgrade the peer
+						this._peerBook.upgradePeer(detailedPeerInfo);
 					}
 				}
 			}

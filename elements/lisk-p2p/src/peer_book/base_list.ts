@@ -45,7 +45,6 @@ export class BaseList {
 	protected type: PEER_TYPE | undefined;
 	protected readonly peerListConfig: PeerListConfig;
 
-
 	public constructor({
 		peerBucketSize,
 		peerBucketCount,
@@ -93,16 +92,15 @@ export class BaseList {
 			secret: this.peerListConfig.secret,
 			peerType: this.peerListConfig.peerType,
 			targetAddress,
-			sourceAddress: this.type === PEER_TYPE.NEW_PEER ? sourceAddress : undefined,
+			sourceAddress:
+				this.type === PEER_TYPE.NEW_PEER ? sourceAddress : undefined,
 			bucketCount: this.peerListConfig.peerBucketCount,
 		});
 
 		return { bucketId, bucket: this.bucketIdToBucket.get(bucketId) as Bucket };
 	}
 
-	public getPeer(
-		incomingPeerId: string,
-	): P2PEnhancedPeerInfo | undefined {
+	public getPeer(incomingPeerId: string): P2PEnhancedPeerInfo | undefined {
 		const peerInfo = this.peerIdToPeerInfo.get(incomingPeerId);
 
 		if (!peerInfo) {
@@ -122,14 +120,17 @@ export class BaseList {
 
 		const { bucketId, bucket } = this.calculateBucket(
 			incomingPeerInfo.ipAddress,
-			incomingPeerInfo.sourceAddress
+			this.type === PEER_TYPE.NEW_PEER
 				? incomingPeerInfo.sourceAddress
 				: undefined,
 		);
 
 		// If bucket is full, evict a peer to make space for incoming peer
-		const evictedPeer = (bucket.size === this.peerListConfig.peerBucketSize) ? this.makeSpace(bucket) : undefined;		
-		
+		const evictedPeer =
+			bucket.size === this.peerListConfig.peerBucketSize
+				? this.makeSpace(bucket)
+				: undefined;
+
 		const internalPeerInfo = {
 			...incomingPeerInfo,
 			numOfConnectionFailures: 0,
@@ -187,7 +188,8 @@ export class BaseList {
 		return false;
 	}
 
-	public makeSpace(bucket: Bucket): P2PEnhancedPeerInfo | undefined {	
+	// tslint:disable-next-line prefer-function-over-method
+	public makeSpace(bucket: Bucket): P2PEnhancedPeerInfo | undefined {
 		return evictPeerRandomlyFromBucket(bucket);
 	}
 

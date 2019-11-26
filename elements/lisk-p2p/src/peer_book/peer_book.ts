@@ -140,15 +140,15 @@ export class PeerBook {
 		return false;
 	}
 
-	// Move a peer from newList to triedList on events like on successful connection.
 	public upgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
 		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			return true;
 		}
 
-		if (this._newPeers.getPeer(peerInfo.peerId)) {
+		const existingPeer = this._newPeers.getPeer(peerInfo.peerId);
+		if (existingPeer) {
 			this._newPeers.removePeer(peerInfo);
-			this._triedPeers.addPeer(peerInfo);
+			this._triedPeers.addPeer({ ...existingPeer, ...peerInfo });
 
 			return true;
 		}
@@ -158,7 +158,7 @@ export class PeerBook {
 
 	public downgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
 		if (this._newPeers.getPeer(peerInfo.peerId)) {
-			return this._newPeers.failedConnectionAction(peerInfo)
+			return this._newPeers.failedConnectionAction(peerInfo);
 		}
 
 		if (this._triedPeers.getPeer(peerInfo.peerId)) {
