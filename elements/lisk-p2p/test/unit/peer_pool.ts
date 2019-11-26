@@ -13,6 +13,7 @@
  *
  */
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import {
 	PeerPool,
 	PROTECT_BY,
@@ -1006,7 +1007,63 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe.skip('#_evictPeer', () => {});
+	describe('#_evictPeer', () => {
+		const whitelistedPeers = [
+			{ peerId: '1.2.3.4:5000', ipAddress: '1.2.3.4', wsPort: 5000 },
+		];
+		const fixedPeers = [
+			{ peerId: '5.6.7.8:5000', ipAddress: '5.6.7.8', wsPort: 5000 },
+		];
+		const defaultPeers = [
+			{
+				id: '69.123.456.78:5000',
+				peerId: '69.123.456.78:5000',
+				ipAddress: '69.123.456.78',
+				wsPort: 5000,
+			},
+			...whitelistedPeers.map(peer => ({ ...peer, id: peer.peerId })),
+			...fixedPeers.map(peer => ({ ...peer, id: peer.peerId })),
+		];
+
+		beforeEach(async () => {
+			(peerPool as any)._peerLists.whitelisted = whitelistedPeers;
+			(peerPool as any)._peerLists.fixedPeers = fixedPeers;
+			(peerPool as any)._peerPoolConfig = {
+				netgroupProtectionRatio: 0,
+				latencyProtectionRatio: 0,
+				productivityProtectionRatio: 0,
+			};
+			sandbox.stub(peerPool as any, 'getPeers').returns(defaultPeers);
+			sandbox.stub(peerPool, 'removePeer');
+		});
+
+		it('should not evict whitelisted peer', async () => {
+			(peerPool as any)._evictPeer(InboundPeer);
+			expect(peerPool.removePeer).not.to.be.calledWithExactly(
+				whitelistedPeers[0].ipAddress,
+				sinon.match.any,
+				sinon.match.any,
+			);
+		});
+
+		it('should not evict fixed peer', async () => {
+			(peerPool as any)._evictPeer(InboundPeer);
+			expect(peerPool.removePeer).not.to.be.calledWithExactly(
+				fixedPeers[0].ipAddress,
+				sinon.match.any,
+				sinon.match.any,
+			);
+		});
+
+		it('should evict a peer', async () => {
+			(peerPool as any)._evictPeer(InboundPeer);
+			expect(peerPool.removePeer).to.be.calledWithExactly(
+				defaultPeers[0].peerId,
+				sinon.match.any,
+				sinon.match.any,
+			);
+		});
+	});
 
 	describe.skip('#_bindHandlersToPeer', () => {});
 });
