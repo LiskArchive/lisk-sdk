@@ -26,8 +26,10 @@ const {
 
 const createTransferTransaction = (passphrase, recipientId, amount) => {
 	const transaction = new TransferTransaction({
-		recipientId,
-		amount,
+		asset: {
+			recipientId,
+			amount,
+		},
 	});
 	transaction.sign(passphrase);
 	return transaction.toJSON();
