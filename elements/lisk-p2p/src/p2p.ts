@@ -943,12 +943,12 @@ export class P2P extends EventEmitter {
 		const wsMaxPayload = this._config.wsMaxPayload
 			? this._config.wsMaxPayload
 			: DEFAULT_WS_MAX_PAYLOAD;
-		const maxPeerInforSize = this._config.maxPeerInfoSize
+		const maxPeerInfoSize = this._config.maxPeerInfoSize
 			? this._config.maxPeerInfoSize
 			: DEFAULT_MAX_PEER_INFO_SIZE;
 
 		const safeMaxPeerInfoLength =
-			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInforSize) - 1;
+			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInfoSize) - 1;
 
 		const selectedPeers = this._peerBook.getRandomizedPeerList(
 			minimumPeerDiscoveryThreshold,
