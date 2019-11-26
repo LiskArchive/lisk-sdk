@@ -17,7 +17,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 // General P2P constants
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_LOCALHOST_IP = '127.0.0.1';
-export const DEFAULT_BAN_TIME = 86400;
+export const DEFAULT_BAN_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_SEND_PEER_LIMIT = 16;
 // Max rate of WebSocket messages per second per peer.
@@ -33,7 +33,7 @@ export const DEFAULT_RANDOM_SECRET = getRandomBytes(
 
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
-export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
+export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000; // Milliseconds 5 minute
 export const DEFAULT_PEER_PROTECTION_FOR_NETGROUP = 0.034;
 export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
@@ -66,7 +66,7 @@ export const DEFAULT_PING_INTERVAL_MIN = 20000;
 // Peer directory constants
 export const DEFAULT_NEW_BUCKET_COUNT = 128;
 export const DEFAULT_NEW_BUCKET_SIZE = 32;
-export const DEFAULT_EVICTION_THRESHOLD_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds;
+export const DEFAULT_EVICTION_THRESHOLD_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds
 export const DEFAULT_TRIED_BUCKET_COUNT = 64;
 export const DEFAULT_TRIED_BUCKET_SIZE = 32;
 export const DEFAULT_MAX_RECONNECT_TRIES = 3;
