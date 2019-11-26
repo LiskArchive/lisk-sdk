@@ -10,7 +10,9 @@ def setup(start_application=false) {
 				# teardown_*() should have killed all node processes but we want to be sure
 				# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
 				killall --verbose --wait node || true
-				dropdb --if-exists lisk_dev
+				for databse in $( psql --tuples-only --command='SELECT datname FROM pg_database WHERE datdba = (SELECT usesysid FROM pg_user WHERE usename = current_user);' |awk '{ print $1 }' ); do
+				  dropdb --if-exists $databse
+				done
 				createdb lisk_dev
 				NODE_ENV=test LISK_CONSOLE_LOG_LEVEL=debug NEWRELIC_LICENSE_KEY= node test/test_app >.app.log 2>&1 &
 				'''
