@@ -67,8 +67,10 @@ class Processor {
 			skipSave: false,
 		});
 		await this.blocksModule.init();
+		const stateStore = new StateStore(this.storage);
+		await stateStore.chainState.cache();
 		for (const processor of Object.values(this.processors)) {
-			await processor.init.run();
+			await processor.init.run({ stateStore });
 		}
 		this.logger.info('Blockchain ready');
 	}
@@ -284,6 +286,9 @@ class Processor {
 	) {
 		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
 			const stateStore = new StateStore(this.storage, { tx });
+			// initialize chain state
+			await stateStore.chainState.cache();
+
 			await processor.verify.run({
 				block,
 				lastBlock,

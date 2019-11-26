@@ -28,7 +28,8 @@ const {
 	Block,
 	Transaction,
 	RoundDelegates,
-	ChainMeta,
+	ChainState,
+	ForgerInfo,
 	TempBlock,
 } = require('../../../src/modules/chain/components/storage/entities');
 
@@ -110,7 +111,8 @@ class StorageSandbox extends Storage {
 		// Custom entitties
 		this.registerEntity('Migration', Migration);
 		this.registerEntity('NetworkInfo', NetworkInfo);
-		this.registerEntity('ChainMeta', ChainMeta);
+		this.registerEntity('ChainState', ChainState);
+		this.registerEntity('ForgerInfo', ForgerInfo);
 		this.registerEntity('TempBlock', TempBlock);
 
 		await this._createSchema();

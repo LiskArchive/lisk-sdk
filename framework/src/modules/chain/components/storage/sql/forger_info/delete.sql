@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,13 +13,4 @@
  */
 
 
-/*
-  DESCRIPTION: Creates meta table for BFT.
-
-  PARAMETERS: None
-*/
-
-CREATE TABLE IF NOT EXISTS "chain_state" (
-  "key" VARCHAR(40) PRIMARY KEY,
-  "value" TEXT NOT NULL
-);
+DELETE FROM forger_info ${parsedFilters:raw}

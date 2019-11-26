@@ -16,7 +16,8 @@
 
 const Account = require('./account');
 const Block = require('./block');
-const ChainMeta = require('./chain_meta');
+const ChainState = require('./chain_state');
+const ForgerInfo = require('./forger_info');
 const RoundDelegates = require('./round_delegates');
 const TempBlock = require('./temp_block.js');
 const Transaction = require('./transaction');
@@ -24,7 +25,8 @@ const Transaction = require('./transaction');
 module.exports = {
 	Account,
 	Block,
-	ChainMeta,
+	ChainState,
+	ForgerInfo,
 	RoundDelegates,
 	TempBlock,
 	Transaction,
