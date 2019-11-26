@@ -149,7 +149,6 @@ pipeline {
 					npm ci
 					npm run bootstrap -- --ci
 					npm run build
-					npm run lint
 					# needed by one of the "Functional HTTP GET tests"
 					git rev-parse HEAD > framework/REVISION
 					'''
