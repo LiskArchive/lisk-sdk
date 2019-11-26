@@ -113,7 +113,7 @@ const applyConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 		throw unappliableTransactionsResponse[0].errors;
 	}
 
-	await stateStore.account.finalize();
+	await stateStore.finalize();
 };
 
 /**
@@ -135,7 +135,7 @@ const applyConfirmedGenesisStep = async (blockInstance, stateStore) => {
 		sortedTransactionInstances,
 		stateStore,
 	);
-	await stateStore.account.finalize();
+	await stateStore.finalize();
 
 	return blockInstance;
 };
@@ -168,7 +168,7 @@ const undoConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 		throw unappliedTransactionResponse.errors;
 	}
 
-	await stateStore.account.finalize();
+	await stateStore.finalize();
 };
 
 module.exports = {
