@@ -105,7 +105,6 @@ export const initPeerInfoListWithSuffix = (
 					i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
 				dateAdded: new Date(),
 				peerKind: PeerKind.NONE,
-				isBanned: false,
 				advertiseAddress: true,
 			},
 		});

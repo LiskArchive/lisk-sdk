@@ -17,6 +17,7 @@ import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 
 import {
+	ConnectionKind,
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
 	DEFAULT_REPUTATION_SCORE,
@@ -25,6 +26,7 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
+	PeerKind,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -89,27 +91,8 @@ export enum ConnectionState {
 	CLOSED = 'closed',
 }
 // tslint:disable:readonly-keyword
-export interface ConnectedPeerInternalInfo extends P2PInternalState {
-	productivity: {
-		requestCounter: number;
-		responseCounter: number;
-		responseRate: number;
-		lastResponded: number;
-	};
-	reputation: number;
-	netgroup: number;
-	latency: number;
-	connectTime: number;
-	messageCounter: Map<string, number>;
-	messageRates: Map<string, number>;
-	rpcCounter: Map<string, number>;
-	rpcRates: Map<string, number>;
-	wsMessageCount: number;
-	wsMessageRate: number;
-}
-
 export interface ConnectedPeerInfo extends P2PPeerInfo {
-	internalState: ConnectedPeerInternalInfo;
+	internalState: P2PInternalState;
 }
 // tslint:enable:readonly-keyword
 export interface PeerConfig {
@@ -141,13 +124,11 @@ export class Peer extends EventEmitter {
 	protected readonly _handleWSMessage: (message: string) => void;
 	protected readonly _handleRawMessage: (packet: unknown) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
-	public readonly internalState: ConnectedPeerInternalInfo;
 
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerConfig = peerConfig;
 		this._peerInfo = this._restoreInternalState(peerInfo) as ConnectedPeerInfo;
-		this.internalState = this._peerInfo.internalState;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
 			this._resetCounters();
@@ -248,27 +229,8 @@ export class Peer extends EventEmitter {
 		return this._peerInfo.wsPort;
 	}
 
-	public get InternalState(): ConnectedPeerInternalInfo {
-		if (this.peerInfo.internalState) {
-			return this.peerInfo.internalState as ConnectedPeerInternalInfo;
-		}
-
-		const internalState: ConnectedPeerInternalInfo = {
-			reputation: DEFAULT_REPUTATION_SCORE,
-			netgroup: getNetgroup(this._peerInfo.ipAddress, this._peerConfig.secret),
-			latency: 0,
-			connectTime: Date.now(),
-			rpcCounter: new Map(),
-			rpcRates: new Map(),
-			messageCounter: new Map(),
-			messageRates: new Map(),
-			wsMessageCount: 0,
-			wsMessageRate: 0,
-			productivity: { ...DEFAULT_PRODUCTIVITY },
-			advertiseAddress: true,
-		};
-
-		return internalState;
+	public get internalState(): P2PInternalState {
+		return this.peerInfo.internalState;
 	}
 
 	public get state(): ConnectionState {
@@ -281,14 +243,14 @@ export class Peer extends EventEmitter {
 		return state;
 	}
 
-	public updateInternalState(internalState: ConnectedPeerInternalInfo): void {
+	public updateInternalState(internalState: P2PInternalState): void {
 		this._peerInfo = {
 			...this._peerInfo,
 			internalState,
 		};
 	}
 
-	public get peerInfo(): P2PPeerInfo {
+	public get peerInfo(): ConnectedPeerInfo {
 		return this._peerInfo;
 	}
 
@@ -348,6 +310,8 @@ export class Peer extends EventEmitter {
 				wsMessageRate: 0,
 				productivity: { ...DEFAULT_PRODUCTIVITY },
 				advertiseAddress: true,
+				connectionKind: ConnectionKind.NONE,
+				peerKind: PeerKind.NONE,
 			},
 		};
 	}

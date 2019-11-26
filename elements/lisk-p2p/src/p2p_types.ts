@@ -49,25 +49,24 @@ export interface P2PSharedState {
 // tslint:disable:readonly-keyword
 export interface P2PInternalState {
 	dateAdded?: Date;
-	peerKind?: PeerKind;
-	isBanned?: boolean;
-	productivity?: {
+	peerKind: PeerKind;
+	productivity: {
 		requestCounter: number;
 		responseCounter: number;
 		responseRate: number;
 		lastResponded: number;
 	};
-	reputation?: number;
-	netgroup?: number;
-	latency?: number;
-	connectTime?: number;
-	messageCounter?: Map<string, number>;
-	messageRates?: Map<string, number>;
-	rpcCounter?: Map<string, number>;
-	rpcRates?: Map<string, number>;
-	wsMessageCount?: number;
-	wsMessageRate?: number;
-	connectionKind?: ConnectionKind;
+	reputation: number;
+	netgroup: number;
+	latency: number;
+	connectTime: number;
+	messageCounter: Map<string, number>;
+	messageRates: Map<string, number>;
+	rpcCounter: Map<string, number>;
+	rpcRates: Map<string, number>;
+	wsMessageCount: number;
+	wsMessageRate: number;
+	connectionKind: ConnectionKind;
 	advertiseAddress: boolean;
 }
 // tslint:enable:readonly-keyword
@@ -77,7 +76,7 @@ export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
 	readonly sharedState?: P2PSharedState;
-	readonly internalState?: P2PInternalState;
+	readonly internalState?: Partial<P2PInternalState>;
 }
 
 export interface P2PPeersCount {
