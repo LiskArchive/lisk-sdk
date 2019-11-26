@@ -50,8 +50,10 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.4.0-alpha.0",
+		"@types/socketcluster": "14.0.2",
 		"lodash.shuffle": "4.2.0",
 		"semver": "5.6.0",
+		"socketcluster": "14.4.1",
 		"socketcluster-client": "14.3.1",
 		"socketcluster-server": "14.6.0",
 		"validator": "10.11.0"

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { SCServerSocket } from 'socketcluster-server';
-
 import {
 	ConnectionKind,
 	DEFAULT_PING_INTERVAL_MAX,
@@ -29,19 +27,15 @@ import {
 } from '../events';
 import { P2PPeerInfo } from '../p2p_types';
 
-import {
-	Peer,
-	PeerConfig,
-	SCServerSocketUpdated,
-	socketErrorStatusCodes,
-} from './base';
+import { Peer, PeerConfig, socketErrorStatusCodes } from './base';
+import { ServerSocket } from '../server/server_socket';
 
 const getRandomPingDelay = () =>
 	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
 	DEFAULT_PING_INTERVAL_MIN;
 
 export class InboundPeer extends Peer {
-	protected _socket: SCServerSocketUpdated;
+	protected _socket: ServerSocket;
 	protected readonly _handleInboundSocketError: (error: Error) => void;
 	protected readonly _handleInboundSocketClose: (
 		code: number,
@@ -51,7 +45,7 @@ export class InboundPeer extends Peer {
 
 	public constructor(
 		peerInfo: P2PPeerInfo,
-		peerSocket: SCServerSocket,
+		peerSocket: ServerSocket,
 		peerConfig: PeerConfig,
 	) {
 		super(peerInfo, peerConfig);
@@ -79,9 +73,9 @@ export class InboundPeer extends Peer {
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 
-	public set socket(scServerSocket: SCServerSocket) {
+	public set socket(serverSocket: ServerSocket) {
 		this._unbindHandlersFromInboundSocket(this._socket);
-		this._socket = scServerSocket as SCServerSocketUpdated;
+		this._socket = serverSocket;
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 
@@ -105,9 +99,7 @@ export class InboundPeer extends Peer {
 	}
 
 	// All event handlers for the inbound socket should be bound in this method.
-	private _bindHandlersToInboundSocket(
-		inboundSocket: SCServerSocketUpdated,
-	): void {
+	private _bindHandlersToInboundSocket(inboundSocket: ServerSocket): void {
 		inboundSocket.on('close', this._handleInboundSocketClose);
 		inboundSocket.on('error', this._handleInboundSocketError);
 		inboundSocket.on('message', this._handleWSMessage);
@@ -118,9 +110,7 @@ export class InboundPeer extends Peer {
 	}
 
 	// All event handlers for the inbound socket should be unbound in this method.
-	private _unbindHandlersFromInboundSocket(
-		inboundSocket: SCServerSocket,
-	): void {
+	private _unbindHandlersFromInboundSocket(inboundSocket: ServerSocket): void {
 		inboundSocket.off('close', this._handleInboundSocketClose);
 		inboundSocket.off('message', this._handleWSMessage);
 

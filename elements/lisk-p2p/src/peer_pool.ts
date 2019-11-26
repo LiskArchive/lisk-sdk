@@ -20,7 +20,6 @@
 import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
-import { SCServerSocket } from 'socketcluster-server';
 
 import {
 	ConnectionKind,
@@ -74,6 +73,7 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
+import { ServerSocket } from './server/server_socket';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -483,7 +483,7 @@ export class PeerPool extends EventEmitter {
 		);
 	}
 
-	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
+	public addInboundPeer(peerInfo: P2PPeerInfo, socket: ServerSocket): Peer {
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peerInfo.peerId)) {
 			throw new Error(`Peer ${peerInfo.peerId} was already in the peer pool`);
