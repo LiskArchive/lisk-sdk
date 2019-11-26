@@ -830,6 +830,17 @@ export class P2P extends EventEmitter {
 				try {
 					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+				} catch (err) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						DUPLICATE_CONNECTION,
+						DUPLICATE_CONNECTION_REASON,
+					);
+
+					return;
+				}
+
+				try {
 					this._peerBook.addPeer(incomingPeerInfo);
 				} catch (error) {
 					if (!(error instanceof ExistingPeerError)) {
