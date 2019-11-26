@@ -660,8 +660,10 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _selectPeersForEviction(): Peer[] {
-		const peers = [...this.getPeers(InboundPeer)].filter(peer =>
-			this._peerLists.whitelisted.every(p => p.peerId !== peer.id),
+		const peers = [...this.getPeers(InboundPeer)].filter(
+			peer =>
+				this._peerLists.whitelisted.every(p => p.peerId !== peer.id) &&
+				this._peerLists.fixedPeers.every(p => p.peerId !== peer.id),
 		);
 
 		// Cannot predict which netgroups will be protected
