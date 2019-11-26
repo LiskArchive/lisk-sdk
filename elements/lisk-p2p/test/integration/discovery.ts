@@ -36,6 +36,7 @@ import {
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
 	SEED_PEER_IP,
+	NETWORK_CREATION_WAIT_TIME,
 } from '../utils/network_setup';
 import { constructPeerId } from '../../src/utils';
 
@@ -267,12 +268,14 @@ describe('Network discovery', () => {
 	describe('Fallback Seed Peer Discovery', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Array();
+		const CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL = 400;
 
 		beforeEach(async () => {
 			const customConfig = (index: number) => ({
 				maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 				fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
-				populatorInterval: index === 2 ? 100 : 10000,
+				populatorInterval:
+					index === 2 ? CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL : 10000,
 			});
 
 			p2pNodeList = await createNetwork({
@@ -293,16 +296,21 @@ describe('Network discovery', () => {
 
 			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
 
-			await wait(1000);
+			await wait(NETWORK_CREATION_WAIT_TIME);
 		});
 
 		afterEach(async () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should recreive getPeers multiple times`, async () => {
-			// thirdP2PNode should send getPeers request multiple times
-			expect(collectedEvents.length).to.be.gt(1);
+		it(`should receive getPeers multiple times`, async () => {
+			// thirdP2PNode should send getPeers request 3 times (1 initial discovery + 2 fallback)
+			expect(collectedEvents.length).to.be.equal(
+				1 +
+					~~(
+						NETWORK_CREATION_WAIT_TIME / CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL
+					),
+			);
 		});
 	});
 });
