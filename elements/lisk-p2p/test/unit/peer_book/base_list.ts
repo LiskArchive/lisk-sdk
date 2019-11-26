@@ -27,8 +27,8 @@ import { ExistingPeerError, P2PPeerInfo } from '../../../src';
 
 describe('Peers base list', () => {
 	const peerListConfig = {
-		peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-		peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+		bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+		numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 		secret: DEFAULT_RANDOM_SECRET,
 		peerType: PEER_TYPE.TRIED_PEER,
 	};
@@ -174,8 +174,8 @@ describe('Peers base list', () => {
 		describe('when bucket is full', () => {
 			it('should return evicted peer', () => {
 				peerListObj = new BaseList({
-					peerBucketSize: 1,
-					peerBucketCount: 1,
+					bucketSize: 1,
+					numOfBuckets: 1,
 					secret: DEFAULT_RANDOM_SECRET,
 					peerType: PEER_TYPE.TRIED_PEER,
 				});
@@ -247,8 +247,8 @@ describe('Peers base list', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList({
-				peerBucketSize: 2,
-				peerBucketCount: 1,
+				bucketSize: 2,
+				numOfBuckets: 1,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 			});

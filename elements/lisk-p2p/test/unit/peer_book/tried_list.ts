@@ -31,8 +31,8 @@ describe('Tried Peers List', () => {
 	describe('#constructor', () => {
 		beforeEach(() => {
 			triedPeerConfig = {
-				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+				numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 				maxReconnectTries: 3,
@@ -42,10 +42,10 @@ describe('Tried Peers List', () => {
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect(triedPeersList.triedPeerConfig).to.be.eql(triedPeerConfig);
-			expect(triedPeersList.triedPeerConfig.peerBucketSize).to.be.equal(
+			expect(triedPeersList.triedPeerConfig.bucketSize).to.be.equal(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
-			expect(triedPeersList.triedPeerConfig.peerBucketCount).to.be.equal(
+			expect(triedPeersList.triedPeerConfig.numOfBuckets).to.be.equal(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
 		});
@@ -54,8 +54,8 @@ describe('Tried Peers List', () => {
 	describe('#triedPeerConfig', () => {
 		beforeEach(() => {
 			triedPeerConfig = {
-				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+				numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.NEW_PEER,
 			};
@@ -79,8 +79,8 @@ describe('Tried Peers List', () => {
 			beforeEach(() => {
 				bucket = new Map<string, P2PEnhancedPeerInfo>();
 				triedPeerConfig = {
-					peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-					peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+					bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+					numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 					secret: DEFAULT_RANDOM_SECRET,
 					peerType: PEER_TYPE.TRIED_PEER,
 					maxReconnectTries: 1,
@@ -99,8 +99,8 @@ describe('Tried Peers List', () => {
 		describe('when maxReconnectTries is 1', () => {
 			beforeEach(() => {
 				triedPeerConfig = {
-					peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-					peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+					bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+					numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 					secret: DEFAULT_RANDOM_SECRET,
 					peerType: PEER_TYPE.TRIED_PEER,
 					maxReconnectTries: 1,
@@ -119,8 +119,8 @@ describe('Tried Peers List', () => {
 		describe('when maxReconnectTries is 2', () => {
 			beforeEach(() => {
 				triedPeerConfig = {
-					peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-					peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+					bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+					numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 					secret: DEFAULT_RANDOM_SECRET,
 					peerType: PEER_TYPE.TRIED_PEER,
 					maxReconnectTries: 2,

@@ -31,15 +31,15 @@ export class NewList extends BaseList {
 
 	public constructor({
 		evictionThresholdTime,
-		peerBucketCount,
-		peerBucketSize,
+		numOfBuckets,
+		bucketSize,
 		secret,
 		peerType,
 	}: NewListConfig) {
 		super({
 			secret,
-			peerBucketCount,
-			peerBucketSize,
+			numOfBuckets,
+			bucketSize,
 			peerType,
 		});
 		this.type = PEER_TYPE.NEW_PEER;

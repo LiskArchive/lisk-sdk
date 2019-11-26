@@ -34,8 +34,8 @@ describe('New Peers List', () => {
 	describe('#constructor', () => {
 		beforeEach(() => {
 			newPeerConfig = {
-				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+				numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.NEW_PEER,
 				evictionThresholdTime: DEFAULT_EVICTION_THRESHOLD_TIME,
@@ -45,10 +45,10 @@ describe('New Peers List', () => {
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect(newPeersList.newPeerConfig).to.be.eql(newPeerConfig);
-			expect(newPeersList.newPeerConfig.peerBucketSize).to.be.equal(
+			expect(newPeersList.newPeerConfig.bucketSize).to.be.equal(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
-			expect(newPeersList.newPeerConfig.peerBucketCount).to.be.equal(
+			expect(newPeersList.newPeerConfig.numOfBuckets).to.be.equal(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
 		});
@@ -57,8 +57,8 @@ describe('New Peers List', () => {
 	describe('#newPeerConfig', () => {
 		beforeEach(() => {
 			newPeerConfig = {
-				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+				numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.NEW_PEER,
 				evictionThresholdTime: DEFAULT_EVICTION_THRESHOLD_TIME,
@@ -86,8 +86,8 @@ describe('New Peers List', () => {
 				dateAdded: new Date(),
 			}));
 			newPeersList = new NewList({
-				peerBucketSize: 3,
-				peerBucketCount: 1,
+				bucketSize: 3,
+				numOfBuckets: 1,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 			});
@@ -140,8 +140,8 @@ describe('New Peers List', () => {
 		beforeEach(() => {
 			clock = sandbox.useFakeTimers();
 			newPeerConfig = {
-				peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-				peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+				numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.NEW_PEER,
 				evictionThresholdTime: 600000,

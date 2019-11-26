@@ -47,8 +47,8 @@ export class PeerBook {
 				? newListConfig
 				: {
 						secret,
-						peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
-						peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+						numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
+						bucketSize: DEFAULT_NEW_BUCKET_SIZE,
 						peerType: PEER_TYPE.NEW_PEER,
 				  },
 		);
@@ -57,8 +57,8 @@ export class PeerBook {
 				? triedListConfig
 				: {
 						secret,
-						peerBucketCount: DEFAULT_TRIED_BUCKET_COUNT,
-						peerBucketSize: DEFAULT_TRIED_BUCKET_SIZE,
+						numOfBuckets: DEFAULT_TRIED_BUCKET_COUNT,
+						bucketSize: DEFAULT_TRIED_BUCKET_SIZE,
 						peerType: PEER_TYPE.TRIED_PEER,
 				  },
 		);

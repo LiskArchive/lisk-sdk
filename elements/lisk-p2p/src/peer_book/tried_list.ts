@@ -26,16 +26,16 @@ export class TriedList extends BaseList {
 	private readonly _maxReconnectTries: number;
 
 	public constructor({
-		peerBucketCount,
+		numOfBuckets,
+		bucketSize,
 		maxReconnectTries,
 		secret,
-		peerBucketSize,
 		peerType,
 	}: TriedListConfig) {
 		super({
 			secret,
-			peerBucketCount,
-			peerBucketSize,
+			numOfBuckets,
+			bucketSize,
 			peerType,
 		});
 		this.type = PEER_TYPE.TRIED_PEER;

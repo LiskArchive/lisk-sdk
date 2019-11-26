@@ -22,8 +22,8 @@ import {
 } from '../utils';
 
 export interface PeerListConfig {
-	readonly peerBucketCount: number;
-	readonly peerBucketSize: number;
+	readonly numOfBuckets: number;
+	readonly bucketSize: number;
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 }
@@ -46,14 +46,14 @@ export class BaseList {
 	protected readonly peerListConfig: PeerListConfig;
 
 	public constructor({
-		peerBucketSize,
-		peerBucketCount,
+		bucketSize,
+		numOfBuckets,
 		secret,
 		peerType,
 	}: PeerListConfig) {
 		this.peerListConfig = {
-			peerBucketSize,
-			peerBucketCount,
+			bucketSize,
+			numOfBuckets,
 			peerType,
 			secret,
 		};
@@ -65,7 +65,7 @@ export class BaseList {
 	public initBuckets(bucketIdToBucket: Map<number, Bucket>): void {
 		// Init the Map with all the buckets
 		for (const bucketId of [
-			...new Array(this.peerListConfig.peerBucketCount).keys(),
+			...new Array(this.peerListConfig.numOfBuckets).keys(),
 		]) {
 			bucketIdToBucket.set(bucketId, new Map<string, P2PEnhancedPeerInfo>());
 		}
@@ -94,7 +94,7 @@ export class BaseList {
 			targetAddress,
 			sourceAddress:
 				this.type === PEER_TYPE.NEW_PEER ? sourceAddress : undefined,
-			bucketCount: this.peerListConfig.peerBucketCount,
+			bucketCount: this.peerListConfig.numOfBuckets,
 		});
 
 		return { bucketId, bucket: this.bucketIdToBucket.get(bucketId) as Bucket };
@@ -127,7 +127,7 @@ export class BaseList {
 
 		// If bucket is full, evict a peer to make space for incoming peer
 		const evictedPeer =
-			bucket.size === this.peerListConfig.peerBucketSize
+			bucket.size === this.peerListConfig.bucketSize
 				? this.makeSpace(bucket)
 				: undefined;
 
