@@ -372,6 +372,7 @@ class Forger {
 			transactions: sortedTransactions,
 			previousBlock,
 		});
+
 		await this.processorModule.process(forgedBlock);
 		this.logger.info(
 			{
