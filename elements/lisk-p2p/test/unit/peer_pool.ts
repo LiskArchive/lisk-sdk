@@ -49,6 +49,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	INTENTIONAL_DISCONNECT_CODE,
 	DEFAULT_SEND_PEER_LIMIT,
+	PeerKind,
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
 import { RequestFailError, SendFailError } from '../../src';
@@ -871,6 +872,7 @@ describe('peerPool', () => {
 					latency: i,
 					responseRate: i % 2 ? 0 : 1,
 					connectTime: i,
+					peerKind: PeerKind.NONE,
 				},
 			}));
 			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
@@ -900,6 +902,7 @@ describe('peerPool', () => {
 						latency: i,
 						responseRate: i % 2 ? 0 : 1,
 						connectTime: i,
+						peerKind: PeerKind.NONE,
 					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
@@ -921,6 +924,7 @@ describe('peerPool', () => {
 						latency: i,
 						responseRate: i % 2 ? 0 : 1,
 						connectTime: i,
+						peerKind: PeerKind.NONE,
 					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
@@ -1007,6 +1011,7 @@ describe('peerPool', () => {
 						latency: i,
 						responseRate: i % 2 ? 0 : 1,
 						connectTime: i,
+						peerKind: PeerKind.NONE,
 					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);

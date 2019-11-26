@@ -88,6 +88,7 @@ import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
+	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -323,10 +324,11 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-				peer => peer.peerId === peerInfo.peerId,
-			);
-			if (this._peerBook.getPeer(peerInfo) && !isWhitelisted) {
+			if (
+				this._peerBook.getPeer(peerInfo) &&
+				(peerInfo.internalState as P2PInternalState).peerKind ===
+					PeerKind.WHITELISTED_PEER
+			) {
 				this._peerBook.downgradePeer(peerInfo);
 			}
 

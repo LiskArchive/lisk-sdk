@@ -27,6 +27,7 @@ import {
 	DEFAULT_LOCALHOST_IP,
 	EVICTED_PEER_CODE,
 	INTENTIONAL_DISCONNECT_CODE,
+	PeerKind,
 	SEED_PEER_DISCONNECTION_REASON,
 } from './constants';
 import { RequestFailError, SendFailError } from './errors';
@@ -678,9 +679,10 @@ export class PeerPool extends EventEmitter {
 
 	private _selectPeersForEviction(): Peer[] {
 		const peers = [...this.getPeers(InboundPeer)].filter(
-			peer =>
-				this._peerLists.whitelisted.every(p => p.peerId !== peer.id) &&
-				this._peerLists.fixedPeers.every(p => p.peerId !== peer.id),
+			peer => !(
+				peer.internalState.peerKind === PeerKind.WHITELISTED_PEER ||
+				peer.internalState.peerKind === PeerKind.FIXED_PEER
+			),
 		);
 
 		// Cannot predict which netgroups will be protected
@@ -747,8 +749,8 @@ export class PeerPool extends EventEmitter {
 		// tslint:disable-next-line strict-comparisons
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
-				peers.filter(peer =>
-					this._peerLists.fixedPeers.every(p => p.peerId !== peer.id),
+				peers.filter(
+					peer => peer.internalState.peerKind !== PeerKind.FIXED_PEER,
 				),
 			)[0];
 			if (selectedPeer) {
