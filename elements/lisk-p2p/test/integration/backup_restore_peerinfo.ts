@@ -35,7 +35,7 @@ describe('Backup and Restore', () => {
 	beforeEach(async () => {
 		const customConfig = () => ({
 			wsMaxMessageRate: 110,
-			rateCalculationInterval: 100,
+			rateCalculationInterval: 300,
 			wsMaxMessageRatePenalty: 100,
 		});
 
@@ -63,11 +63,11 @@ describe('Backup and Restore', () => {
 
 	it('send messages to second peer', async () => {
 		const targetPeerId = `127.0.0.1:${secondNode.nodeInfo.wsPort}`;
-		const TOTAL_SENDS = 8;
+		const TOTAL_SENDS = 5;
 		const CUSTOM_DISCONNECT_MESSAGE = 'Intentional disconnect **';
 
 		for (let i = 0; i < TOTAL_SENDS; i++) {
-			await wait(1);
+			await wait(2);
 			try {
 				firstNode.sendToPeer(
 					{
@@ -78,7 +78,7 @@ describe('Backup and Restore', () => {
 				);
 			} catch (error) {}
 		}
-		await wait(20);
+		await wait(50);
 
 		const getFirstConnectedPeer = secondNode['_peerPool']
 			.getConnectedPeers()
@@ -92,7 +92,19 @@ describe('Backup and Restore', () => {
 
 			expect(messageCounter).toBeGreaterThanOrEqual(TOTAL_SENDS - 1);
 
-			await wait(100);
+			const disconnectFirstPeer = secondNode['_peerBook'].getPeer({
+				ipAddress: '127.0.0.1',
+				wsPort: 5000,
+				peerId: '127.0.0.1:5000',
+			});
+			if (disconnectFirstPeer) {
+				// Should capture message counter if a peer disconnects
+				expect(
+					(disconnectFirstPeer.internalState as any).messageCounter.get('foo'),
+				).toEqual(TOTAL_SENDS);
+			}
+
+			await wait(10);
 
 			expect(
 				disconnectMessages
@@ -105,15 +117,30 @@ describe('Backup and Restore', () => {
 			);
 
 			if (getFirstNodeSecondTime) {
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					await wait(2);
+					try {
+						firstNode.sendToPeer(
+							{
+								event: 'foo',
+								data: i,
+							},
+							targetPeerId,
+						);
+					} catch (error) {}
+				}
+				await wait(20);
+
+				// Should get more TOTAL_SENDS number of foo messages
 				expect(
 					(getFirstNodeSecondTime.peerInfo
-						.internalState as any).messageRates.get('foo'),
-				).toBeGreaterThan(0);
+						.internalState as any).messageCounter.get('foo'),
+				).toEqual(TOTAL_SENDS * 2);
 			}
 
 			expect(removedPeer.length).toBeGreaterThan(0);
 			// Now send more messages to get banned
-			for (let i = 0; i < TOTAL_SENDS + 200; i++) {
+			for (let i = 0; i < 200; i++) {
 				await wait(1);
 				try {
 					firstNode.sendToPeer(
@@ -125,7 +152,7 @@ describe('Backup and Restore', () => {
 					);
 				} catch (error) {}
 			}
-			await wait(10);
+			await wait(200);
 
 			expect(bannedMessages.length).toEqual(1);
 		}

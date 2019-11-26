@@ -515,13 +515,11 @@ export class Peer extends EventEmitter {
 		this._peerInfo.internalState.rpcCounter = new Map();
 
 		this._peerInfo.internalState.messageRates = new Map(
-			[...this._peerInfo.internalState.messageCounter.entries()].map(
-				([key, value]) => {
-					const rate = value / this._rateInterval;
+			[...this.internalState.messageCounter.entries()].map(([key, value]) => {
+				const rate = value / this._rateInterval;
 
-					return [key, rate] as any;
-				},
-			),
+				return [key, rate] as any;
+			}),
 		);
 		this._peerInfo.internalState.messageCounter = new Map();
 	}
@@ -585,27 +583,25 @@ export class Peer extends EventEmitter {
 
 	private _updateRPCCounter(packet: P2PRequestPacket): void {
 		const key = packet.procedure;
-		const count = (this._peerInfo.internalState.rpcCounter.get(key) || 0) + 1;
-		this._peerInfo.internalState.rpcCounter.set(key, count);
+		const count = (this.internalState.rpcCounter.get(key) || 0) + 1;
+		this.peerInfo.internalState.rpcCounter.set(key, count);
 	}
 
 	private _getRPCRate(packet: P2PRequestPacket): number {
 		const rate =
-			this._peerInfo.internalState.rpcRates.get(packet.procedure) || 0;
+			this.peerInfo.internalState.rpcRates.get(packet.procedure) || 0;
 
 		return rate * RATE_NORMALIZATION_FACTOR;
 	}
 
 	private _updateMessageCounter(packet: P2PMessagePacket): void {
 		const key = packet.event;
-		const count =
-			(this._peerInfo.internalState.messageCounter.get(key) || 0) + 1;
-		this._peerInfo.internalState.messageCounter.set(key, count);
+		const count = (this.internalState.messageCounter.get(key) || 0) + 1;
+		this.peerInfo.internalState.messageCounter.set(key, count);
 	}
 
 	private _getMessageRate(packet: P2PMessagePacket): number {
-		const rate =
-			this._peerInfo.internalState.messageRates.get(packet.event) || 0;
+		const rate = this.internalState.messageRates.get(packet.event) || 0;
 
 		return rate * RATE_NORMALIZATION_FACTOR;
 	}
