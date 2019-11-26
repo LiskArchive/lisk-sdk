@@ -13,8 +13,13 @@
  */
 
 
-INSERT INTO "chain_meta" ("key", "value")
-VALUES(${key},${value})
-ON CONFLICT ON CONSTRAINT chain_meta_pkey
-DO
-	UPDATE SET "value" = ${value};
+/*
+  DESCRIPTION: Creates meta table for BFT.
+
+  PARAMETERS: None
+*/
+
+CREATE TABLE IF NOT EXISTS "forger_info" (
+  "key" VARCHAR(40) PRIMARY KEY,
+  "value" TEXT NOT NULL
+);

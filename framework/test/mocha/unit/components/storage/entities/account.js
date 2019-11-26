@@ -208,12 +208,9 @@ describe('Account', () => {
 
 	beforeEach(() => seeder.seed(storage));
 
-	afterEach(done => {
+	afterEach(async () => {
 		sinonSandbox.restore();
-		seeder
-			.reset(storage)
-			.then(() => done(null))
-			.catch(done);
+		await seeder.reset(storage);
 	});
 
 	it('should be a constructable function', async () => {

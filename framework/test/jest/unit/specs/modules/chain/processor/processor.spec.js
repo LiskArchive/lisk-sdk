@@ -56,6 +56,9 @@ describe('processor', () => {
 				Block: {
 					begin: jest.fn(),
 				},
+				ChainState: {
+					get: jest.fn().mockResolvedValue([]),
+				},
 			},
 		};
 		loggerStub = {
