@@ -28,12 +28,14 @@ describe('network-identifier command', () => {
 	const printMethodStub = sandbox.stub();
 
 	const setupTest = () =>
-		test.stub(config, 'getConfig', sandbox.stub().returns({}));
-	test.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub));
-	test.stub(
-		NetworkIdentifierCommand,
-		sandbox.stub().returns(networkIdentifierStub),
-	);
+		test
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				NetworkIdentifierCommand,
+				sandbox.stub().returns(networkIdentifierStub),
+			)
+			.stdout();
 
 	describe('network-identifier', () => {
 		setupTest()
@@ -62,7 +64,7 @@ describe('network-identifier command', () => {
 			.it('should throw an error');
 	});
 
-	describe.skip('network-identifier --nethash=Lisk --community-identifier=123', () => {
+	describe('network-identifier --nethash=Lisk --community-identifier=123', () => {
 		setupTest()
 			.command([
 				'network-identifier',
