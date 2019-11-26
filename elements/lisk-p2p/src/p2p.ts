@@ -777,7 +777,7 @@ export class P2P extends EventEmitter {
 						advertiseAddress: advertiseAddress !== 'false',
 						connectionKind: ConnectionKind.INBOUND,
 					},
-					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
+					peerId,
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
 				};
