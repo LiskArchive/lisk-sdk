@@ -28,22 +28,27 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 		'network-identifier --nethash=Lisk --community-identifier=da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	];
 
+	static args = [
+		{
+			name: 'nethash',
+			description: 'Payload hash of network genesis block.',
+			required: true,
+		},
+	];
+
 	static flags = {
 		...BaseCommand.flags,
-		nethash: flagParser.string({
-			...commonFlags.nethash,
-			required: true,
-		}),
 		'community-identifier': flagParser.string({
 			...commonFlags.communityIdentifier,
-			required: true,
+			default: 'Lisk',
 		}),
 	};
 
 	// tslint:disable-next-line no-async-without-await
 	async run(): Promise<void> {
 		const {
-			flags: { nethash, 'community-identifier': communityIdentifier },
+			flags: { 'community-identifier': communityIdentifier },
+			args: { nethash },
 		} = this.parse(NetworkIdentifierCommand);
 
 		const networkIdentifier = getNetworkIdentifier(

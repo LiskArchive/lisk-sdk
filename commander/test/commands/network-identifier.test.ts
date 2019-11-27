@@ -21,7 +21,7 @@ import NetworkIdentifierCommand from '../../src/commands/network-identifier';
 describe('network-identifier command', () => {
 	const networkIdentifier = {
 		networkIdentifier:
-			'7dbdc2b4694bd5ab6663c4d078aa628ae032cb91ce0fe03a5077d7ef3ba2e8bc',
+			'00adc544a063705a317d573ac2c2d88df717b9b7d472880ed4de7a830f611818',
 	};
 
 	const networkIdentifierStub = sandbox.stub();
@@ -41,7 +41,16 @@ describe('network-identifier command', () => {
 		setupTest()
 			.command(['network-identifier'])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing required flag');
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
+			.it('should throw an error');
+	});
+
+	describe('network-identifier --community-identifier=LiskDiamond', () => {
+		setupTest()
+			.command(['network-identifier', '--community-identifier=LiskDiamond'])
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error');
 	});
@@ -49,28 +58,6 @@ describe('network-identifier command', () => {
 	describe('network-identifier --nethash=123', () => {
 		setupTest()
 			.command(['network-identifier', '--nethash=123'])
-			.catch(error => {
-				return expect(error.message).to.contain('Missing required flag');
-			})
-			.it('should throw an error');
-	});
-
-	describe('network-identifier --community-identifier=Lisk', () => {
-		setupTest()
-			.command(['network-identifier', '--community-identifier=Lisk'])
-			.catch(error => {
-				return expect(error.message).to.contain('Missing required flag');
-			})
-			.it('should throw an error');
-	});
-
-	describe('network-identifier --nethash=123 --community-identifier=Lisk', () => {
-		setupTest()
-			.command([
-				'network-identifier',
-				'--nethash=123',
-				'--community-identifier=Lisk',
-			])
 			.it('should show networkIdentifier', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(
 					networkIdentifier,
