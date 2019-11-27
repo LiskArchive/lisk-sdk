@@ -16,7 +16,6 @@
 
 const path = require('path');
 const assert = require('assert');
-const { defaults, pick } = require('lodash');
 const {
 	entities: { BaseEntity },
 	utils: {
@@ -25,27 +24,27 @@ const {
 } = require('../../../../../components/storage');
 
 const sqlFiles = {
-	upsert: 'chain_meta/upsert.sql',
-	get: 'chain_meta/get.sql',
-	delete: 'chain_meta/delete.sql',
+	upsert: 'forger_info/upsert.sql',
+	get: 'forger_info/get.sql',
+	delete: 'forger_info/delete.sql',
 };
 
 /**
- * ChainMeta
- * @typedef {Object} ChainMeta
+ * ForgerInfo
+ * @typedef {Object} ForgerInfo
  * @property {string} key
  * @property {string} value
  */
 
 /**
- * ChainMeta Filters
- * @typedef {Object} filters.ChainMeta
+ * ForgerInfo Filters
+ * @typedef {Object} filters.ForgerInfo
  * @property {string} [key]
  * @property {string} [key_eql]
  * @property {string} [key_ne]
  */
 
-class ChainMeta extends BaseEntity {
+class ForgerInfo extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -53,32 +52,32 @@ class ChainMeta extends BaseEntity {
 		this.addField('value', 'string');
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
-		this.SQLs = this.loadSQLFiles('chain_meta', sqlFiles, this.sqlDirectory);
+		this.SQLs = this.loadSQLFiles('forger_info', sqlFiles, this.sqlDirectory);
 	}
 
 	/**
-	 * Get list of meta information
+	 * Get list of forger information
 	 *
-	 * @param {filters.ChainMeta|filters.ChainMeta[]} [filters = {}]
+	 * @param {filters.ForgerInfo|filters.ForgerInfo[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<ChainMeta[], Error>}
+	 * @return {Promise.<ForgerInfo[], Error>}
 	 */
 	get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
 
 	/**
-	 * Get list of meta information
+	 * Get list of forger information
 	 *
-	 * @param {filters.ChainMeta|filters.ChainMeta[]} [filters = {}]
+	 * @param {filters.ForgerInfo|filters.ForgerInfo[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<ChainMeta, Error>}
+	 * @return {Promise.<ForgerInfo, Error>}
 	 */
 	getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
@@ -132,7 +131,7 @@ class ChainMeta extends BaseEntity {
 	/**
 	 * Delete the keys with following conditions
 	 *
-	 * @param {filters.ChainMeta} filters
+	 * @param {filters.ForgerInfo} filters
 	 * @param {Object} [options]
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
@@ -158,16 +157,15 @@ class ChainMeta extends BaseEntity {
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = defaults(
-			{},
-			pick(options, ['limit', 'offset', 'sort']),
-			pick(this.defaultOptions, ['limit', 'offset', 'sort']),
-		);
-		const parsedSort = this.parseSort(parsedOptions.sort);
+		const { limit, offset, sort } = {
+			...this.defaultOptions,
+			...options,
+		};
+		const parsedSort = this.parseSort(sort);
 
 		const params = {
-			limit: parsedOptions.limit,
-			offset: parsedOptions.offset,
+			limit,
+			offset,
 			parsedSort,
 			parsedFilters,
 		};
@@ -181,4 +179,4 @@ class ChainMeta extends BaseEntity {
 	}
 }
 
-module.exports = ChainMeta;
+module.exports = ForgerInfo;

@@ -27,6 +27,9 @@ const {
 const { baseBlockSchema } = require('./blocks');
 const { BaseBlockProcessor } = require('./processor');
 
+const FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED =
+	'maxHeightPreviouslyForged';
+
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
@@ -156,6 +159,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		blocksModule,
 		bftModule,
 		dposModule,
+		storage,
 		logger,
 		constants,
 		exceptions,
@@ -165,18 +169,19 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
 		this.logger = logger;
+		this.storage = storage;
 		this.constants = constants;
 		this.exceptions = exceptions;
 
 		this.init.pipe([
-			async () => {
+			async ({ stateStore }) => {
 				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					numberOfRounds,
 				);
-				this.bftModule.init(minActiveHeightsOfDelegates);
+				this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
 			},
 		]);
 
@@ -233,7 +238,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				this.blocksModule.verify(block, stateStore, { skipExistingCheck }),
 			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
 			({ block, tx }) => this.dposModule.apply(block, { tx }),
-			async ({ block, tx }) => {
+			async ({ block, tx, stateStore }) => {
 				// We only need activeMinHeight value of the delegate who is forging the block.
 				// Since the block is always the latest,
 				// fetching only the latest active delegate list would be enough.
@@ -254,7 +259,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					// object with https://github.com/LiskHQ/lisk-sdk/issues/4413
 					delegateMinHeightActive,
 				};
-				return this.bftModule.addNewBlock(blockHeader, tx);
+				return this.bftModule.addNewBlock(blockHeader, stateStore);
 			},
 		]);
 
@@ -280,16 +285,19 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		]);
 
 		this.create.pipe([
-			// Getting the BFT header (maxHeightPreviouslyForged and maxHeightPrevoted)
-			async ({ keypair }) => {
-				const delegatePublicKey = keypair.publicKey.toString('hex');
-				return this.bftModule.computeBFTHeaderProperties(delegatePublicKey);
-			},
 			// Create a block with with basic block and bft properties
-			(data, bftHeader) => this._create({ ...data, ...bftHeader }),
-			async (data, block) => {
-				// Saving maxHeightPreviouslyForged before broadcasting
-				await this.bftModule.saveMaxHeightPreviouslyForged(
+			async data => {
+				const previouslyForged = await this._getPreviouslyForgedMap();
+				const delegatePublicKey = data.keypair.publicKey.toString('hex');
+				const maxHeightPreviouslyForged =
+					previouslyForged[delegatePublicKey] || 0;
+				const block = await this._create({
+					...data,
+					maxHeightPreviouslyForged,
+					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
+				});
+
+				await this._saveMaxHeightPreviouslyForged(
 					block.generatorPublicKey,
 					block.height,
 				);
@@ -371,6 +379,38 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				keypair.privateKey,
 			),
 		};
+	}
+
+	async _getPreviouslyForgedMap() {
+		const previouslyForgedStr = await this.storage.entities.ForgerInfo.getKey(
+			FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED,
+		);
+		return previouslyForgedStr ? JSON.parse(previouslyForgedStr) : {};
+	}
+
+	/**
+	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
+	 * so it needs to be outside of the DB transaction
+	 * @param delegatePublicKey
+	 * @param height
+	 */
+	async _saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
+		const previouslyForgedMap = await this._getPreviouslyForgedMap();
+		const previouslyForgedHeightByDelegate =
+			previouslyForgedMap[delegatePublicKey] || 0;
+		// previously forged height only saves maximum forged height
+		if (height <= previouslyForgedHeightByDelegate) {
+			return;
+		}
+		const updatedPreviouslyForged = {
+			...previouslyForgedMap,
+			[delegatePublicKey]: height,
+		};
+		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
+		await this.storage.entities.ForgerInfo.setKey(
+			FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED,
+			previouslyForgedStr,
+		);
 	}
 }
 

@@ -149,6 +149,7 @@ module.exports = class Chain {
 				blocksModule: this.blocks,
 				bftModule: this.bft,
 				dposModule: this.dpos,
+				storage: this.storage,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,

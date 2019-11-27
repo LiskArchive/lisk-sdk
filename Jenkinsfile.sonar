@@ -1,0 +1,54 @@
+@Library('lisk-jenkins') _
+
+pipeline {
+	agent { node { label 'lisk-sdk' } }
+	stages {
+		stage('Install TypeScript') {
+			steps {
+				nvm(getNodejsVersion()) {
+					sh 'npm ci'
+				}
+			}
+		}
+		stage('Run sonar-scanner') {
+			steps {
+				nvm(getNodejsVersion()) {
+					script {
+						def scannerHome = tool 'sonar';
+						withSonarQubeEnv() {
+							if (env.CHANGE_ID) {
+								sh """#!/bin/bash
+								${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=LiskHQ_lisk-sdk \
+												 -Dsonar.organization=liskhq \
+												 -Dsonar.exclusions=**/test/** \
+												 -Dsonar.scm.revision=$GIT_COMMIT \
+												 -Dsonar.projectVersion=\${GIT_COMMIT::7} \
+												 -Dsonar.pullrequest.key=$CHANGE_ID \
+												 -Dsonar.pullrequest.branch=$CHANGE_BRANCH \
+												 -Dsonar.pullrequest.base=$CHANGE_TARGET \
+												 -Dsonar.typescript.tsconfigPath=tsconfig.json
+								"""
+							} else {
+								sh """#!/bin/bash
+								${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=LiskHQ_lisk-sdk \
+												 -Dsonar.organization=liskhq \
+												 -Dsonar.exclusions=**/test/** \
+												 -Dsonar.scm.revision=$GIT_COMMIT \
+												 -Dsonar.projectVersion=\${GIT_COMMIT::7} \
+												 -Dsonar.branch.name=$GIT_BRANCH \
+												 -Dsonar.typescript.tsconfigPath=tsconfig.json
+								"""
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	post {
+		cleanup {
+			cleanWs()
+		}
+	}
+}
+// vim: filetype=groovy

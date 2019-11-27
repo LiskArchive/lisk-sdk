@@ -25,7 +25,7 @@ const {
 	TempBlock,
 } = require('../../../../../../../../../src/modules/chain/components/storage/entities');
 
-const { config } = require('../../shared');
+const { config } = require('../../../../shared');
 
 describe('TempBlock', () => {
 	const storage = new StorageSandbox(
