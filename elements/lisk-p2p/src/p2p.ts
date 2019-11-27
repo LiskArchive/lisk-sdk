@@ -777,7 +777,7 @@ export class P2P extends EventEmitter {
 						advertiseAddress: advertiseAddress !== 'false',
 						connectionKind: ConnectionKind.INBOUND,
 					},
-					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
+					peerId,
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
 				};
@@ -815,17 +815,17 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				const existingPeer = this._peerPool.getPeer(peerId);
-
-				if (existingPeer) {
+				try {
+					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+				} catch (err) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
 						DUPLICATE_CONNECTION,
 						DUPLICATE_CONNECTION_REASON,
 					);
-				} else {
-					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
-					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+
+					return;
 				}
 
 				try {
