@@ -75,7 +75,7 @@ describe('New Peers List', () => {
 	});
 
 	describe('#makeSpace', () => {
-		let samplePeers: ReadonlyArray<any>;
+		let samplePeers: ReadonlyArray<P2PEnhancedPeerInfo>;
 		let clock: sinon.SinonFakeTimers;
 		let bucket: Map<string, P2PEnhancedPeerInfo>;
 		let calculateBucketStub: any;

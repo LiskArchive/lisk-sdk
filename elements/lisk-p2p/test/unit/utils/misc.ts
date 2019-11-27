@@ -165,7 +165,7 @@ describe('utils/misc', () => {
 				.within(0, MAX_NEW_BUCKETS);
 		});
 
-		it(`should return a bucket number with source address`, () => {
+		it('should return a bucket number with source address', () => {
 			expect(
 				getBucketId({
 					secret,

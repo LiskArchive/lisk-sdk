@@ -43,10 +43,10 @@ describe('Peers base list', () => {
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect((peerListObj as any).peerListConfig).to.be.eql(peerListConfig);
-			expect((peerListObj as any).peerListConfig.peerBucketSize).to.be.equal(
+			expect((peerListObj as any).peerListConfig.bucketSize).to.be.equal(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
-			expect((peerListObj as any).peerListConfig.peerBucketCount).to.be.equal(
+			expect((peerListObj as any).peerListConfig.numOfBuckets).to.be.equal(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
 			expect((peerListObj as any).peerListConfig.secret).to.be.equal(
@@ -94,27 +94,31 @@ describe('Peers base list', () => {
 		});
 	});
 
-	describe('#getBucket', () => {
+	describe('#calculateBucket', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 		});
 
-		it('should get a bucket by ipAddress', () => {
+		it('should get a bucket an bucketId by ipAddress(es)', () => {
 			const bucketId = getBucketId({
 				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 				targetAddress: samplePeers[0].ipAddress,
-				sourceAddress: samplePeers[0].ipAddress,
+				sourceAddress: samplePeers[1].ipAddress,
 			});
 
-			const { bucket } = peerListObj.calculateBucket(
+			const {
+				bucket,
+				bucketId: calculatedBucketId,
+			} = peerListObj.calculateBucket(
 				samplePeers[0].ipAddress,
-				samplePeers[0].ipAddress,
+				samplePeers[1].ipAddress,
 			);
 
+			expect(calculatedBucketId).to.eql(bucketId);
 			expect(bucket).to.eql(
 				(peerListObj as any).bucketIdToBucket.get(bucketId),
 			);
@@ -129,7 +133,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[1]);
 		});
 
-		describe('when peer exists in the peerMap', () => {
+		describe('when peer exists in the bucketIdToBucket map', () => {
 			it('should get the peer from the incoming peerId', () => {
 				expect(peerListObj.getPeer(samplePeers[0].peerId))
 					.to.be.an('object')
@@ -137,8 +141,8 @@ describe('Peers base list', () => {
 			});
 		});
 
-		describe('when peer does not exist in the peerMap', () => {
-			it('should return undefined for the given peer that does not exist in peerMap', () => {
+		describe('when peer does not exist in the bucketIdToBucket map', () => {
+			it('should return undefined for the given peer that does not exist in bucketIdToBucket map', () => {
 				const randomPeer = initPeerInfoList()[2];
 				expect(peerListObj.getPeer(randomPeer.peerId)).to.be.undefined;
 			});
@@ -149,22 +153,44 @@ describe('Peers base list', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList(peerListConfig);
-			peerListObj.addPeer(samplePeers[0]);
+			const bucket = new Map<string, P2PEnhancedPeerInfo>();
+			bucket.set(samplePeers[0].peerId, samplePeers[0]);
+			sandbox
+				.stub(peerListObj, 'calculateBucket')
+				.returns({ bucketId: 0, bucket });
+			sandbox.stub(peerListObj, 'makeSpace');
 		});
 
 		it('should add the incoming peer if it does not exist already', () => {
+			peerListObj.addPeer(samplePeers[0]);
 			expect(peerListObj.getPeer(samplePeers[0].peerId)).eql(samplePeers[0]);
 		});
 
 		it('should throw error if peer already exists', () => {
+			peerListObj.addPeer(samplePeers[0]);
 			expect(() => peerListObj.addPeer(samplePeers[0]))
 				.to.throw(ExistingPeerError, 'Peer already exists')
 				.and.have.property('peerInfo', samplePeers[0]);
 		});
 
+		it('should call makeSpace method when bucket is full', () => {
+			peerListObj = new BaseList({
+				bucketSize: 1,
+				numOfBuckets: 1,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+			});
+			sandbox.stub(peerListObj, 'makeSpace');
+			peerListObj.addPeer(samplePeers[0]);
+			peerListObj.addPeer(samplePeers[1]);
+
+			expect(peerListObj.makeSpace).to.be.calledOnce;
+		});
+
 		describe('when bucket is not full', () => {
 			it('should return undefined', () => {
-				sandbox.stub(peerListObj, 'makeSpace').returns(undefined);
+				peerListObj = new BaseList({ ...peerListConfig, bucketSize: 50 });
+				peerListObj.addPeer(samplePeers[0]);
 				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
 				expect(evictedPeer).to.be.undefined;
@@ -182,8 +208,8 @@ describe('Peers base list', () => {
 				peerListObj.addPeer(samplePeers[0]);
 				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
-				expect(samplePeers.map(p => p.ipAddress)).to.include(
-					(evictedPeer as any).ipAddress,
+				expect(samplePeers.map(peer => peer.peerId)).to.include(
+					(evictedPeer as any).peerId,
 				);
 			});
 		});
@@ -261,7 +287,6 @@ describe('Peers base list', () => {
 		describe('when bucket is full', () => {
 			it('should evict one peer randomly', () => {
 				calculateBucketStub.returns({ bucketId: 0, bucket });
-				// peerListObj.addPeer(samplePeers[1]);
 				const evictedPeer = peerListObj.makeSpace(bucket);
 
 				expect(samplePeers).to.include(evictedPeer as any);
