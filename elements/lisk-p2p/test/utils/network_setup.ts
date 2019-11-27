@@ -81,6 +81,7 @@ export const createNetwork = async ({
 		const p2pConfig = {
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
+			peerBanTime: 5000, // avoid timeOut stuck, TODO: Cleanup unban timer properly
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			seedPeers: defaultSeedPeers,
 			wsEngine: WEB_SOCKET_ENGINE,
