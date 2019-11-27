@@ -20,7 +20,7 @@ pipeline {
 								sh """#!/bin/bash
 								${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=LiskHQ_lisk-sdk \
 												 -Dsonar.organization=liskhq \
-												 -Dsonar.exclusions=**/test/** \
+												 -Dsonar.exclusions=**/test/**,**/migrations/**,reset_mem_tables.sql,**/protocol-specs/**,**/templates/browsertest.tmpl/** \
 												 -Dsonar.scm.revision=$GIT_COMMIT \
 												 -Dsonar.projectVersion=\${GIT_COMMIT::7} \
 												 -Dsonar.pullrequest.key=$CHANGE_ID \
@@ -32,7 +32,7 @@ pipeline {
 								sh """#!/bin/bash
 								${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=LiskHQ_lisk-sdk \
 												 -Dsonar.organization=liskhq \
-												 -Dsonar.exclusions=**/test/** \
+												 -Dsonar.exclusions=**/test/**,**/migrations/**,reset_mem_tables.sql,**/protocol-specs/**,**/templates/browsertest.tmpl/** \
 												 -Dsonar.scm.revision=$GIT_COMMIT \
 												 -Dsonar.projectVersion=\${GIT_COMMIT::7} \
 												 -Dsonar.branch.name=$GIT_BRANCH \
