@@ -170,6 +170,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
+	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 	private readonly _peerConfig: PeerConfig;
 	private readonly _peerLists: PeerLists;
 
@@ -199,6 +200,7 @@ export class PeerPool extends EventEmitter {
 		this._outboundShuffleIntervalId = setInterval(() => {
 			this._evictPeer(OutboundPeer);
 		}, peerPoolConfig.outboundShuffleInterval);
+		this._unbanTimers = [];
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
@@ -278,10 +280,12 @@ export class PeerPool extends EventEmitter {
 		};
 		this._handleBanPeer = (peerId: string) => {
 			// Unban peer after peerBanTime
-			setTimeout(
+			const unbanTimeout = setTimeout(
 				this._handleUnbanPeer.bind(this, peerId),
 				this._peerPoolConfig.peerBanTime,
 			);
+
+			this._unbanTimers.push(unbanTimeout);
 			// Re-emit the peerId to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
@@ -541,6 +545,14 @@ export class PeerPool extends EventEmitter {
 		// Clear periodic eviction of outbound peers for shuffling
 		if (this._outboundShuffleIntervalId) {
 			clearInterval(this._outboundShuffleIntervalId);
+		}
+		// Clear unban timeouts
+		if (this._unbanTimers.length > 0) {
+			this._unbanTimers.forEach(timer => {
+				if (timer) {
+					clearTimeout(timer);
+				}
+			});
 		}
 
 		this._peerMap.forEach((peer: Peer) => {
