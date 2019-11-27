@@ -25,13 +25,13 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'network-identifier --nethash=Lisk --community-identifier=da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+		'network-identifier --nethash=da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	];
 
 	static args = [
 		{
 			name: 'nethash',
-			description: 'Payload hash of network genesis block.',
+			description: 'Payload hash of genesis block from the network.',
 			required: true,
 		},
 	];
