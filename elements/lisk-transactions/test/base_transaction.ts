@@ -440,6 +440,22 @@ describe('Base transaction class', () => {
 
 			expect(errors).to.not.be.empty;
 		});
+
+		it('should throw descriptive error when networkIdentifier is missing', async () => {
+			const transactionWithMissingNetworkIdentifier = {
+				...transferFixture.testCases.input.transaction,
+			};
+
+			const transactionWithMissingNetworkIdentifierInstance = new TestTransaction(
+				transactionWithMissingNetworkIdentifier as any,
+			);
+
+			expect(() =>
+				transactionWithMissingNetworkIdentifierInstance.sign(
+					transferFixture.testCases.input.account.passphrase,
+				),
+			).to.throw('Network identifier is required to sign a transaction');
+		});
 	});
 
 	describe('#validate', () => {

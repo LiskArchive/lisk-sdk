@@ -29,6 +29,7 @@ describe('forge', () => {
 		publish: sinonSandbox.stub(),
 	};
 	const mockLogger = {
+		trace: sinonSandbox.stub(),
 		debug: sinonSandbox.stub(),
 		info: sinonSandbox.stub(),
 		warn: sinonSandbox.stub(),
@@ -126,7 +127,7 @@ describe('forge', () => {
 					);
 				} catch (err) {
 					expect(err.message).to.equal(
-						'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found',
+						'Delegate with publicKey: 5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca not found',
 					);
 				}
 			});
@@ -811,8 +812,8 @@ describe('forge', () => {
 				const data = await forgeModule.forge();
 
 				expect(data).to.be.undefined;
-				expect(mockLogger.debug).to.be.calledOnce;
-				expect(mockLogger.debug).to.be.calledWith(
+				expect(mockLogger.trace).to.be.calledOnce;
+				expect(mockLogger.trace).to.be.calledWith(
 					{ slot: 5 },
 					'Block already forged for the current slot',
 				);
@@ -844,8 +845,8 @@ describe('forge', () => {
 
 				const data = await forgeModule.forge();
 				expect(data).to.be.undefined;
-				expect(mockLogger.debug).to.be.calledOnce;
-				expect(mockLogger.debug).to.be.calledWith(
+				expect(mockLogger.trace).to.be.calledTwice;
+				expect(mockLogger.trace).to.be.calledWith(
 					{ currentSlot: 5 },
 					'Waiting for delegate slot',
 				);

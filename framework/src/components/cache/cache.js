@@ -166,7 +166,7 @@ class Cache {
 	 * @return {Promise.<null, Error>}
 	 */
 	async removeByPattern(pattern) {
-		this.logger.debug(
+		this.logger.trace(
 			['Cache - removeByPattern', pattern, '| Status:', this.isReady()].join(
 				' ',
 			),

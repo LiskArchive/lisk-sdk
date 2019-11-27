@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,8 +13,4 @@
  */
 
 
-INSERT INTO "chain_meta" ("key", "value")
-VALUES(${key},${value})
-ON CONFLICT ON CONSTRAINT chain_meta_pkey
-DO
-	UPDATE SET "value" = ${value};
+DELETE FROM chain_state ${parsedFilters:raw}

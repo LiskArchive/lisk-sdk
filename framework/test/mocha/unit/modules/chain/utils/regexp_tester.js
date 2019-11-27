@@ -25,6 +25,10 @@ describe('isNullByteIncluded', () => {
 		'\x01',
 		'l©rem',
 		'❤',
+		'\\U00000000',
+		'\\U00000000lorem',
+		'ipsum\\U00000000',
+		'lorem\\U00000000 ipsum',
 	];
 
 	const invalidStrings = [
@@ -40,10 +44,8 @@ describe('isNullByteIncluded', () => {
 		'\u0000lorem',
 		'ipsum\u0000',
 		'lorem\u0000 ipsum',
-		'\\U00000000',
-		'\\U00000000lorem',
-		'ipsum\\U00000000',
-		'lorem\\U00000000 ipsum',
+		'\x00',
+		'\x00 null',
 	];
 
 	describe('strings without null character should be return false', () => {

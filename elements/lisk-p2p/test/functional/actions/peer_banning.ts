@@ -15,7 +15,11 @@
 import { expect } from 'chai';
 import { P2P, ProtocolPeerInfo } from '../../../src/index';
 import { wait } from '../../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import {
+	createNetwork,
+	destroyNetwork,
+	SEED_PEER_IP,
+} from 'utils/network_setup';
 import {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
@@ -69,7 +73,7 @@ describe('Peer banning mechanism', () => {
 			firstNode.on(EVENT_CLOSE_INBOUND, packet => {
 				collectedEvents.set('EVENT_CLOSE_INBOUND', packet);
 			});
-			badPeer = firstNode.getConnectedPeers()[2];
+			badPeer = { ipAddress: SEED_PEER_IP, wsPort: 5001 };
 			const peerPenalty = {
 				peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
 				penalty: 100,
@@ -101,6 +105,7 @@ describe('Peer banning mechanism', () => {
 		it('should unban a peer after the ban period', async () => {
 			// Wait for ban time to expire and peer to be re-discovered
 			await wait(200);
+
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
 
 			expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(

@@ -14,6 +14,7 @@
  *
  */
 import strip_ansi from 'strip-ansi';
+
 import { tablify } from './tablify';
 
 export interface StringMap {
@@ -27,7 +28,7 @@ interface PrintInput {
 
 interface Printer {
 	// tslint:disable-next-line readonly-array
-	log(message?: string, ...args: Array<unknown>): void;
+	log(message?: string, ...args: unknown[]): void;
 }
 
 const removeANSIFromObject = (object: StringMap) =>

@@ -18,6 +18,7 @@ import {
 	intToBuffer,
 	stringToBuffer,
 } from '@liskhq/lisk-cryptography';
+
 import {
 	BaseTransaction,
 	StateStore,
@@ -151,7 +152,7 @@ export class TransferTransaction extends BaseTransaction {
 				new TransactionError(
 					'Amount must be a valid number in string format.',
 					this.id,
-					'.amount',
+					'.asset.amount',
 					this.asset.amount.toString(),
 				),
 			);

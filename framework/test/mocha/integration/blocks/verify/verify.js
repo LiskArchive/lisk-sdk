@@ -64,7 +64,8 @@ async function createBlock(
 		library.modules.blocks.deserializeTransaction(transaction),
 	);
 	library.modules.blocks._lastBlock = previousBlockArgs;
-	const newBlock = await library.modules.processor.create({
+	const blockProcessorV1 = library.modules.processor.processors[1];
+	const newBlock = await blockProcessorV1.create.run({
 		keypair,
 		timestamp,
 		previousBlock: library.modules.blocks.lastBlock,
@@ -263,7 +264,7 @@ describe('blocks/verify', () => {
 			async.every(
 				[
 					'blocks WHERE height > 1',
-					'trs WHERE "blockId" != \'6524861224470851795\'',
+					'trs WHERE "blockId" != \'10620616195853047363\'',
 					"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
 				],
 				(table, seriesCb) => {
@@ -529,7 +530,7 @@ describe('blocks/verify', () => {
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});
-					transaction.senderId = '16313739661670634666L';
+					transaction.senderId = '11237980039345381032L';
 
 					const createBlockPayload = async (
 						passPhrase,

@@ -28,7 +28,6 @@ const sqlFiles = {
 	delete: 'round_delegates/delete.sql',
 	get: 'round_delegates/get.sql',
 	getActiveDelegatesForRound: 'round_delegates/get_round_delegates.sql',
-	summedRound: 'round_delegates/summed_round.sql',
 };
 
 /**
@@ -151,23 +150,6 @@ class RoundDelegates extends BaseEntity {
 	}
 
 	/**
-	 * Summarize the results for a round.
-	 *
-	 * @param {string} round - Id of the round
-	 * @param {number} activeDelegates - Number of active delegates
-	 * @param {Object} [tx] - Database transaction object
-	 * @returns {Promise}
-	 */
-	summedRound(round, activeDelegates, tx = null) {
-		return this.adapter.executeFile(
-			this.SQLs.summedRound,
-			{ round, activeDelegates },
-			{},
-			tx,
-		);
-	}
-
-	/**
 	 * Get a list of RoundDelegates entries
 	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} filters
 	 * @param {Object} [options]
@@ -211,8 +193,8 @@ class RoundDelegates extends BaseEntity {
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const { limit, offset, sort } = {
-			...options,
 			...this.defaultOptions,
+			...options,
 		};
 		const parsedSort = this.parseSort(sort);
 

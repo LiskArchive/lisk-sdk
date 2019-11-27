@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT *  FROM chain_meta
 
-${parsedFilters:raw}
-
-${parsedSort:raw}
-
-LIMIT ${limit} OFFSET ${offset}
+INSERT INTO "forger_info" ("key", "value")
+VALUES(${key},${value})
+ON CONFLICT ON CONSTRAINT forger_info_pkey
+DO
+	UPDATE SET "value" = ${value};

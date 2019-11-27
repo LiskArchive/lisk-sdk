@@ -13,6 +13,7 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+
 import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
 import { TransactionJSON } from './transaction_types';

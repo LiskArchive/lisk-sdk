@@ -13,6 +13,7 @@
  *
  */
 import * as crypto from 'crypto';
+
 import { bufferToHex, hexToBuffer } from './buffer';
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
@@ -136,6 +137,8 @@ export interface EncryptedPassphraseObject {
 	readonly salt: string;
 	readonly tag: string;
 	readonly version: string;
+	// tslint:disable-next-line no-mixed-interface
+	readonly [key: string]: string | number | undefined;
 }
 
 const encryptAES256GCMWithPassword = (

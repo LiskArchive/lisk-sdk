@@ -14,7 +14,12 @@
  */
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';
-import { DEFAULT_ACK_TIMEOUT, DEFAULT_CONNECT_TIMEOUT } from '../constants';
+
+import {
+	DEFAULT_ACK_TIMEOUT,
+	DEFAULT_CONNECT_TIMEOUT,
+	INTENTIONAL_DISCONNECT_CODE,
+} from '../constants';
 import {
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -32,6 +37,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
+
 import {
 	Peer,
 	PeerConfig,
@@ -73,7 +79,10 @@ export class OutboundPeer extends Peer {
 		this._socket.connect();
 	}
 
-	public disconnect(code: number = 1000, reason?: string): void {
+	public disconnect(
+		code: number = INTENTIONAL_DISCONNECT_CODE,
+		reason?: string,
+	): void {
 		super.disconnect(code, reason);
 		if (this._socket) {
 			this._unbindHandlersFromOutboundSocket(this._socket);
@@ -133,12 +142,21 @@ export class OutboundPeer extends Peer {
 		});
 
 		outboundSocket.on('connect', async () => {
-			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
 			try {
-				await Promise.all([this.fetchStatus(), this.discoverPeers()]);
+				await this.fetchAndUpdateStatus();
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
+
+				return;
+			}
+
+			try {
+				await this.discoverPeers();
 			} catch (error) {
 				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 			}
+
+			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
 		});
 
 		outboundSocket.on('connectAbort', () => {

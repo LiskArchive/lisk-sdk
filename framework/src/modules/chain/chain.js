@@ -149,15 +149,11 @@ module.exports = class Chain {
 				blocksModule: this.blocks,
 				bftModule: this.bft,
 				dposModule: this.dpos,
+				storage: this.storage,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
 			};
-
-			// TODO: remove this once we have version 2 genesis block
-			this.processor.register(new BlockProcessorV0(processorDependencies), {
-				matcher: ({ height }) => height === 1,
-			});
 
 			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
 			if (this.options.exceptions.blockVersions) {
@@ -303,7 +299,6 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				loaded: true,
 				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getEpochTime(),
@@ -597,9 +592,6 @@ module.exports = class Chain {
 						block.transactions,
 					);
 				}
-				this.channel.invoke('app:updateApplicationState', {
-					height: block.height,
-				});
 				this.logger.info(
 					{
 						id: block.id,

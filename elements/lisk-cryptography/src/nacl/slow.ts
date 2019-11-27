@@ -13,6 +13,7 @@
  *
  */
 import * as tweetnacl from 'tweetnacl';
+
 import { NaclInterface } from './nacl_types';
 
 export const box: NaclInterface['box'] = (

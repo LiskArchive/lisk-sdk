@@ -567,6 +567,10 @@ describe('validation', () => {
 			'\x01',
 			'l©rem',
 			'❤',
+			'\\U00000000',
+			'\\U00000000lorem',
+			'ipsum\\U00000000',
+			'lorem\\U00000000 ipsum',
 		];
 
 		const invalidStrings = [
@@ -582,10 +586,6 @@ describe('validation', () => {
 			'\u0000lorem',
 			'ipsum\u0000',
 			'lorem\u0000 ipsum',
-			'\\U00000000',
-			'\\U00000000lorem',
-			'ipsum\\U00000000',
-			'lorem\\U00000000 ipsum',
 		];
 
 		it('should return false when valid string was provided', () => {

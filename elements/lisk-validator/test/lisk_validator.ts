@@ -1216,7 +1216,7 @@ describe('validator', () => {
 		});
 
 		it('should validate to false when string with null byte is provided', async () => {
-			const nullCharacterList = ['\0', '\x00', '\u0000', '\\U00000000'];
+			const nullCharacterList = ['\0', '\x00', '\u0000'];
 			nullCharacterList.forEach(nullChar => {
 				const expectedError = [
 					{

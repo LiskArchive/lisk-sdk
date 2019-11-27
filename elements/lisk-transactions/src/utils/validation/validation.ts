@@ -14,6 +14,7 @@
  */
 import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
+
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_PUBLIC_KEY_LENGTH,
@@ -37,6 +38,9 @@ export const validatePublicKey = (publicKey: string) => {
 };
 
 export const validateNetworkIdentifier = (networkIdentifier: string) => {
+	if (!networkIdentifier) {
+		throw new Error(`Network identifier can not be empty.`);
+	}
 	const networkIdentifierBuffer = cryptography.hexToBuffer(networkIdentifier);
 	if (networkIdentifierBuffer.length !== NETWORK_IDENTIFIER_LENGTH) {
 		throw new Error(`Invalid network identifier length: ${networkIdentifier}`);
@@ -46,7 +50,7 @@ export const validateNetworkIdentifier = (networkIdentifier: string) => {
 };
 
 export const isNullByteIncluded = (input: string) =>
-	new RegExp('\\0|\\U00000000').test(input);
+	new RegExp(/\0|\\u0000|\\x00/).test(input);
 
 export const validateUsername = (username: string) => {
 	if (isNullByteIncluded(username)) {

@@ -63,6 +63,7 @@ describe('Synchronizer', () => {
 			info: jest.fn(),
 			debug: jest.fn(),
 			error: jest.fn(),
+			trace: jest.fn(),
 		};
 		storageMock = {
 			entities: {
@@ -508,7 +509,15 @@ describe('Synchronizer', () => {
 			);
 			expect(syncMechanism2.run).not.toHaveBeenCalled();
 			expect(loggerMock.info).nthCalledWith(2, 'Triggering: Object');
-			expect(loggerMock.info).nthCalledWith(3, 'Synchronization finished');
+			expect(loggerMock.info).nthCalledWith(
+				3,
+				{
+					lastBlockHeight: blocksModule.lastBlock.height,
+					lastBlockId: blocksModule.lastBlock.id,
+					mechanism: syncMechanism1.constructor.name,
+				},
+				'Synchronization finished',
+			);
 			expect(synchronizer.active).toBeFalsy();
 		});
 

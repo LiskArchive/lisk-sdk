@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "1.0.0-alpha.0",
+	"version": "1.0.0-alpha.1",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -66,7 +66,7 @@
 		"@types/lodash.clonedeep": "4.5.0",
 		"@types/lodash.shuffle": "4.2.6",
 		"@types/mocha": "5.2.5",
-		"@types/node": "10.12.21",
+		"@types/node": "12.12.11",
 		"@types/semver": "5.5.0",
 		"@types/sinon": "7.0.5",
 		"@types/sinon-chai": "3.2.2",
@@ -83,12 +83,12 @@
 		"sinon": "7.2.3",
 		"sinon-chai": "3.3.0",
 		"source-map-support": "0.5.10",
-		"ts-node": "8.0.2",
+		"ts-node": "8.5.2",
 		"tsconfig-paths": "3.8.0",
-		"tslint": "5.12.1",
+		"tslint": "5.20.1",
 		"tslint-config-prettier": "1.18.0",
-		"tslint-immutable": "5.1.2",
-		"typescript": "3.3.1",
+		"tslint-immutable": "6.0.1",
+		"typescript": "3.7.2",
 		"uglify-es": "3.3.9",
 		"wait-on": "3.2.0"
 	}

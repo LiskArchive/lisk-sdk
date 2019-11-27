@@ -1,4 +1,5 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+
 import { Transaction } from './transaction_pool';
 
 export type TransactionFilterableKeys =

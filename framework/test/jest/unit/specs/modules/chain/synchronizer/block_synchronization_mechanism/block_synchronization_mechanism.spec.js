@@ -16,7 +16,10 @@
 
 const { cloneDeep } = require('lodash');
 const { when } = require('jest-when');
-const { Blocks } = require('../../../../../../../../src/modules/chain/blocks');
+const {
+	Blocks,
+	StateStore,
+} = require('../../../../../../../../src/modules/chain/blocks');
 const { BFT } = require('../../../../../../../../src/modules/chain/bft');
 const {
 	BlockProcessorV2,
@@ -89,8 +92,8 @@ describe('block_synchronization_mechanism', () => {
 				Account: {
 					get: jest.fn(),
 				},
-				ChainMeta: {
-					getKey: jest.fn(),
+				ChainState: {
+					get: jest.fn(),
 				},
 			},
 		};
@@ -193,10 +196,9 @@ describe('block_synchronization_mechanism', () => {
 			)
 			.mockResolvedValue([genesisBlockDevnet, lastBlock]);
 
-		// Simulate finalized height stored in ChainMeta table is 0
-		when(storageMock.entities.ChainMeta.getKey)
-			.calledWith('BFT.finalizedHeight')
-			.mockResolvedValue(0);
+		storageMock.entities.ChainState.get.mockResolvedValue([
+			{ key: 'BFT.finalizedHeight', value: 0 },
+		]);
 		jest.spyOn(blockSynchronizationMechanism, '_requestAndValidateLastBlock');
 		jest.spyOn(blockSynchronizationMechanism, '_revertToLastCommonBlock');
 		jest.spyOn(
@@ -222,7 +224,9 @@ describe('block_synchronization_mechanism', () => {
 		);
 
 		await blocksModule.init();
-		await bftModule.init(minActiveHeightsOfDelegates);
+		const stateStore = new StateStore(storageMock);
+		await stateStore.chainState.cache();
+		await bftModule.init(stateStore, minActiveHeightsOfDelegates);
 
 		// Used in getHighestCommonBlock network action payload
 		const blockHeightsList = computeBlockHeightsList(
@@ -285,6 +289,7 @@ describe('block_synchronization_mechanism', () => {
 				},
 				{
 					sort: 'height:asc',
+					limit: blockHeightsList.length,
 				},
 			)
 			.mockResolvedValueOnce(blockList);
@@ -637,6 +642,7 @@ describe('block_synchronization_mechanism', () => {
 							},
 							{
 								sort: 'height:asc',
+								limit: blockHeightsList.length,
 							},
 						)
 						.mockResolvedValue(blockList);
@@ -664,7 +670,9 @@ describe('block_synchronization_mechanism', () => {
 					};
 
 					await blocksModule.init();
-					await bftModule.init(minActiveHeightsOfDelegates);
+					const stateStore = new StateStore(storageMock);
+					await stateStore.chainState.cache();
+					await bftModule.init(stateStore, minActiveHeightsOfDelegates);
 
 					await blockSynchronizationMechanism.run(receivedBlock);
 
@@ -972,6 +980,7 @@ describe('block_synchronization_mechanism', () => {
 							{},
 							{
 								sort: 'height:asc',
+								limit: null,
 							},
 							null,
 						)
@@ -1099,7 +1108,7 @@ describe('block_synchronization_mechanism', () => {
 					);
 
 					expect(loggerMock.debug).nthCalledWith(
-						14,
+						15,
 						{
 							currentTip: blocksModule.lastBlock.id,
 							previousTip: previousTip.id,
@@ -1108,7 +1117,7 @@ describe('block_synchronization_mechanism', () => {
 					);
 
 					expect(loggerMock.debug).nthCalledWith(
-						15,
+						16,
 						'Cleaning blocks temporary table',
 					);
 					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();

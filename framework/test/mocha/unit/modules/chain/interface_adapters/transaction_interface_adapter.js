@@ -83,7 +83,7 @@ describe('transactions', () => {
 					timestamp: 54196076,
 					asset: {},
 					senderPublicKey:
-						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					signature:
 						'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
 					id: '7507990258936015021',
@@ -98,7 +98,7 @@ describe('transactions', () => {
 				const secondSignature = {
 					type: 9,
 					senderPublicKey:
-						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					timestamp: 54316324,
 					asset: {
 						signature: {
@@ -120,13 +120,13 @@ describe('transactions', () => {
 				const delegate = {
 					type: 10,
 					senderPublicKey:
-						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					timestamp: 54196076,
 					asset: {
 						delegate: {
 							username: 'RLI0',
 							publicKey:
-								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+								'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 						},
 					},
 					signature:
@@ -143,7 +143,7 @@ describe('transactions', () => {
 				const vote = {
 					type: 11,
 					senderPublicKey:
-						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					timestamp: 54196078,
 					asset: {
 						votes: [
@@ -166,7 +166,7 @@ describe('transactions', () => {
 				const multisignature = {
 					type: 12,
 					senderPublicKey:
-						'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					timestamp: 54196078,
 					asset: {
 						min: 5,

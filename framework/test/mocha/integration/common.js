@@ -81,7 +81,8 @@ async function createBlock(
 		library.modules.blocks.deserializeTransaction(transaction),
 	);
 	// TODO Remove hardcoded values and use from BFT class
-	const block = await library.modules.processor.create({
+	const blockProcessorV1 = library.modules.processor.processors[1];
+	const block = await blockProcessorV1.create.run({
 		blockReward: library.modules.blocks.blockReward,
 		keypair,
 		timestamp,
@@ -199,8 +200,9 @@ function forge(library, cb) {
 						25,
 					) || [];
 				const sortedTransactions = sortTransactions(transactions);
-				library.modules.processor
-					.create({
+				const blockProcessorV1 = library.modules.processor.processors[1];
+				blockProcessorV1.create
+					.run({
 						keypair,
 						timestamp: slots.getSlotTime(slot),
 						transactions: sortedTransactions,
@@ -209,7 +211,7 @@ function forge(library, cb) {
 					.then(block => library.modules.processor.process(block))
 					.then(() => {
 						last_block = library.modules.blocks.lastBlock;
-						library.modules.transactionPool.resetPool();
+						library.modules.transactionPool._resetPool();
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${
 								last_block.id

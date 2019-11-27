@@ -19,7 +19,7 @@
   PARAMETERS: None
 */
 
-CREATE TABLE IF NOT EXISTS "chain_meta" (
+CREATE TABLE IF NOT EXISTS "chain_state" (
   "key" VARCHAR(40) PRIMARY KEY,
   "value" TEXT NOT NULL
 );

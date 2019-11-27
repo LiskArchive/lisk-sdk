@@ -71,7 +71,7 @@ describe('Transaction', () => {
 		return seeder.seed(storage);
 	});
 
-	afterEach(() => {
+	afterEach(async () => {
 		sinonSandbox.reset();
 		sinonSandbox.restore();
 		return seeder.reset(storage);

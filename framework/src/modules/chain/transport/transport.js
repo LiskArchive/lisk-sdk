@@ -17,6 +17,7 @@
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
+const { InvalidTransactionError } = require('./errors');
 const Broadcaster = require('./broadcaster');
 const schemas = require('./schemas');
 
@@ -359,7 +360,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async handleRPCGetTransactions(data, peerId) {
+	async handleRPCGetTransactions(data = {}, peerId) {
 		await this._addRateLimit(
 			'getTransactions',
 			peerId,
@@ -446,8 +447,8 @@ class Transport {
 			};
 		} catch (err) {
 			return {
-				message: err.message || 'Transaction was rejected with errors',
-				errors: err,
+				message: 'Transaction was rejected with errors',
+				errors: err.errors || err,
 			};
 		}
 	}
@@ -502,10 +503,12 @@ class Transport {
 				}
 			} catch (err) {
 				this.logger.warn({ err, peerId }, 'Received invalid transactions.');
-				await this.channel.invoke('network:applyPenalty', {
-					peerId,
-					penalty: 100,
-				});
+				if (err instanceof InvalidTransactionError) {
+					await this.channel.invoke('network:applyPenalty', {
+						peerId,
+						penalty: 100,
+					});
+				}
 			}
 		}
 
@@ -572,16 +575,16 @@ class Transport {
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
+			const err = new InvalidTransactionError(errString, id, errors);
 			this.logger.error(
 				{
-					id,
-					err: errString,
+					err,
 					module: 'transport',
 				},
 				'Transaction normalization failed',
 			);
 
-			throw errors;
+			throw err;
 		}
 
 		this.logger.debug({ id: transaction.id }, 'Received transaction');

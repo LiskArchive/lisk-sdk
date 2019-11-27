@@ -27,11 +27,11 @@ const { StorageSandbox } = require('./storage_sandbox');
 const { Processor } = require('../../../src/modules/chain/processor');
 const { Rebuilder } = require('../../../src/modules/chain/rebuilder');
 const {
-	BlockProcessorV0,
-} = require('../../../src/modules/chain/block_processor_v0');
-const {
 	BlockProcessorV1,
 } = require('../../../src/modules/chain/block_processor_v1');
+const {
+	BlockProcessorV2,
+} = require('../../../src/modules/chain/block_processor_v2');
 const { BFT } = require('../../../src/modules/chain/bft');
 const { getNetworkIdentifier } = require('./network_identifier');
 
@@ -117,7 +117,7 @@ const initStepsForTest = {
 			constants: __testContext.config.constants,
 			exceptions: __testContext.config.modules.chain.exceptions,
 		};
-		modules.processor.register(new BlockProcessorV0(processorDependency), {
+		modules.processor.register(new BlockProcessorV2(processorDependency), {
 			matcher: ({ height }) => height === 1,
 		});
 		modules.processor.register(new BlockProcessorV1(processorDependency));

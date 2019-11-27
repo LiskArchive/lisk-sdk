@@ -220,6 +220,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				await deleteBlocksAfterHeight(
 					this.processorModule,
 					this.blocks,
+					this.logger,
 					lastCommonBlock.height,
 				);
 				this.logger.debug('Restoring blocks from temporary table');
@@ -334,7 +335,10 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		}
 
-		this.logger.debug({ blockId: lastCommonBlock.id }, 'Found common block');
+		this.logger.debug(
+			{ blockId: lastCommonBlock.id, height: lastCommonBlock.height },
+			'Found common block',
+		);
 
 		if (lastCommonBlock.height < this.bft.finalizedHeight) {
 			throw new ApplyPenaltyAndRestartError(
@@ -351,6 +355,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		await deleteBlocksAfterHeight(
 			this.processorModule,
 			this.blocks,
+			this.logger,
 			lastCommonBlock.height,
 			true,
 		);
@@ -386,17 +391,20 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			numberOfRequests < requestLimit &&
 			currentHeight > this.bft.finalizedHeight
 		) {
+			const heightList = computeBlockHeightsList(
+				this.bft.finalizedHeight,
+				this.constants.activeDelegates,
+				blocksPerRequestLimit,
+				currentRound,
+			);
+
 			const blockIds = (await this.storage.entities.Block.get(
 				{
-					height_in: computeBlockHeightsList(
-						this.bft.finalizedHeight,
-						this.constants.activeDelegates,
-						blocksPerRequestLimit,
-						currentRound,
-					),
+					height_in: heightList,
 				},
 				{
 					sort: 'height:asc',
+					limit: heightList.length,
 				},
 			)).map(block => block.id);
 

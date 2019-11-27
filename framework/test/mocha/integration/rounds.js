@@ -457,7 +457,7 @@ describe('rounds', () => {
 		const round = {
 			current: 1,
 			outsiderPublicKey:
-				'948b8b509579306694c00833ec1c0f81e964487db2206ddb1517bfeca2b0dc1b',
+				'96d08ea966d5d80cbf8a0691c46af9e80954de9e113e5785d931e45bd93de992',
 		};
 
 		before(() => {
@@ -1015,7 +1015,7 @@ describe('rounds', () => {
 
 				before(done => {
 					const transactionPool = library.modules.transactionPool;
-					transactionPool.resetPool();
+					transactionPool._resetPool();
 
 					// Set expected reward per block
 					expectedRewardsPerBlock = 0;
@@ -1070,7 +1070,7 @@ describe('rounds', () => {
 
 				before(done => {
 					const transactionPool = library.modules.transactionPool;
-					transactionPool.resetPool();
+					transactionPool._resetPool();
 
 					// Set expected reward per block as first milestone
 					expectedRewardsPerBlock =

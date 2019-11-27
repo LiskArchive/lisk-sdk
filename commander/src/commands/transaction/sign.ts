@@ -14,6 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
@@ -113,6 +114,6 @@ export default class SignCommand extends BaseCommand {
 			throw errors;
 		}
 
-		this.print(removeUndefinedValues(txInstance.toJSON()));
+		this.print(removeUndefinedValues(txInstance.toJSON() as object));
 	}
 }
