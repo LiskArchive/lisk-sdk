@@ -409,31 +409,31 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public discoverFromSeedPeers(): void {
-		const openOutboundSlots = this.getAvailableOutboundConnectionSlots();
+		const freeOutboundSlots = this.getAvailableOutboundConnectionSlots();
 
-		if (openOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
+		// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
+		if (freeOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
 			return;
 		}
 
-		const seedPeersForDiscovery = shuffle(
-			this._peerLists.seedPeers.slice(0, openOutboundSlots),
-		);
-
-		seedPeersForDiscovery.forEach(peer => {
-			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
-			const seedPeer = this.getPeer(peer.peerId);
-			if (seedPeer) {
+		// Looking after existing seed peer connection(s)
+		this._peerLists.seedPeers.forEach(peer => {
+			const isConnectedSeedPeer = this.getPeer(peer.peerId);
+			if (isConnectedSeedPeer) {
 				// tslint:disable-next-line: no-floating-promises
 				(async () => {
-					try {
-						await seedPeer.discoverPeers();
-					} catch (err) {
-						throw err;
-					}
+					await isConnectedSeedPeer.discoverPeers();
 				})();
-			} else {
-				this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
 			}
+		});
+
+		const seedPeersForDiscovery = shuffle(
+			this._peerLists.seedPeers.slice(0, freeOutboundSlots),
+		);
+
+		// Add new seed peer connection(s)
+		seedPeersForDiscovery.forEach(peer => {
+			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
 		});
 	}
 
