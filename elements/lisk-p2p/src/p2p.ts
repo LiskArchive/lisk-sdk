@@ -902,7 +902,7 @@ export class P2P extends EventEmitter {
 				this._nextSeedPeerDiscovery < Date.now() &&
 				this._peerPool.getAvailableOutboundConnectionSlots() > 0
 			) {
-				this._peerPool.discoverSeedPeers();
+				this._peerPool.discoverFromSeedPeers();
 				this._nextSeedPeerDiscovery =
 					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 			}
@@ -1025,7 +1025,7 @@ export class P2P extends EventEmitter {
 		if (this._isActive) {
 			// Initial discovery and disconnect from SeedPeers (LIP-0004)
 			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
-				this._peerPool.discoverSeedPeers();
+				this._peerPool.discoverFromSeedPeers();
 				this._nextSeedPeerDiscovery =
 					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 			}

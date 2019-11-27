@@ -408,7 +408,7 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
-	public discoverSeedPeers(): void {
+	public discoverFromSeedPeers(): void {
 		const openOutboundSlots = this.getAvailableOutboundConnectionSlots();
 
 		if (openOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
@@ -423,11 +423,14 @@ export class PeerPool extends EventEmitter {
 			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
 			const seedPeer = this.getPeer(peer.peerId);
 			if (seedPeer) {
-				setImmediate(
-					async (): Promise<void> => {
+				// tslint:disable-next-line: no-floating-promises
+				(async () => {
+					try {
 						await seedPeer.discoverPeers();
-					},
-				);
+					} catch (err) {
+						throw err;
+					}
+				})();
 			} else {
 				this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
 			}
