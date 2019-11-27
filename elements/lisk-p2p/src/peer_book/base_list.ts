@@ -18,7 +18,7 @@ import {
 	evictPeerRandomlyFromBucket,
 	getBucketId,
 	PEER_TYPE,
-	sanitizeInternalPeerInfo,
+	sanitizeEnhancedPeerInfo,
 } from '../utils';
 
 export interface PeerListConfig {
@@ -77,7 +77,7 @@ export class BaseList {
 		for (const peerList of [...this.bucketIdToBucket.values()]) {
 			for (const peer of [...peerList.values()]) {
 				// Remove internal fields before sharing
-				peerListMap.push(sanitizeInternalPeerInfo(peer));
+				peerListMap.push(sanitizeEnhancedPeerInfo(peer));
 			}
 		}
 
@@ -107,7 +107,7 @@ export class BaseList {
 			return undefined;
 		}
 
-		return sanitizeInternalPeerInfo(peerInfo);
+		return sanitizeEnhancedPeerInfo(peerInfo);
 	}
 
 	public addPeer(

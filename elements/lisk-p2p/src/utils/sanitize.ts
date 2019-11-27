@@ -51,7 +51,7 @@ export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
 	wsPort: peerInfo.wsPort,
 });
 
-export const sanitizeInternalPeerInfo = (
+export const sanitizeEnhancedPeerInfo = (
 	peerInfo: P2PEnhancedPeerInfo,
 ): P2PPeerInfo => {
 	const {

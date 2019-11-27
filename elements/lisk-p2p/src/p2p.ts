@@ -964,6 +964,10 @@ export class P2P extends EventEmitter {
 		// Add peers to tried peers if want to re-use previously tried peers
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
 		newPeersToAdd.forEach(peerInfo => {
+			if (!this._peerBook.getPeer(peerInfo)) {
+				this._peerBook.addPeer(peerInfo);
+			}
+
 			this._peerBook.upgradePeer(peerInfo);
 		});
 	}
