@@ -14,6 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
+
 import { P2PEnhancedPeerInfo } from '../p2p_types';
 
 const BYTES_4 = 4;
