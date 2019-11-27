@@ -144,15 +144,9 @@ export class BaseList {
 	}
 
 	public updatePeer(incomingPeerInfo: P2PPeerInfo): boolean {
-		const internalPeerInfo = this.peerIdToPeerInfo.get(incomingPeerInfo.peerId);
+		const bucket = this.getBucket(incomingPeerInfo.peerId);
 
-		if (!(internalPeerInfo && internalPeerInfo.bucketId)) {
-			return false;
-		}
-
-		const bucket = this.bucketIdToBucket.get(internalPeerInfo.bucketId);
-
-		if (!(bucket && bucket.get(incomingPeerInfo.peerId))) {
+		if (!bucket) {
 			return false;
 		}
 
@@ -168,13 +162,7 @@ export class BaseList {
 	}
 
 	public removePeer(incomingPeerInfo: P2PPeerInfo): boolean {
-		const internalPeerInfo = this.peerIdToPeerInfo.get(incomingPeerInfo.peerId);
-
-		if (!(internalPeerInfo && internalPeerInfo.bucketId)) {
-			return false;
-		}
-
-		const bucket = this.bucketIdToBucket.get(internalPeerInfo.bucketId);
+		const bucket = this.getBucket(incomingPeerInfo.peerId);
 
 		if (bucket && bucket.get(incomingPeerInfo.peerId)) {
 			const removedFromBucket = bucket.delete(incomingPeerInfo.peerId);
@@ -196,5 +184,21 @@ export class BaseList {
 	// This action is called when a peer is disconnected
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
 		return this.removePeer(incomingPeerInfo);
+	}
+
+	protected getBucket(peerId: string): Bucket | undefined {
+		const internalPeerInfo = this.peerIdToPeerInfo.get(peerId);
+
+		if (!(internalPeerInfo && internalPeerInfo.bucketId)) {
+			return undefined;
+		}
+
+		const bucket = this.bucketIdToBucket.get(internalPeerInfo.bucketId);
+
+		if (!bucket) {
+			return undefined;
+		}
+
+		return bucket;
 	}
 }
