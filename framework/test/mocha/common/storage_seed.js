@@ -136,8 +136,9 @@ class StorageSeed {
 			'blocks',
 			'mem_accounts',
 			'network_info',
+			'forger_info',
 			'trs',
-			'chain_meta',
+			'chain_state',
 			'temp_block',
 		];
 

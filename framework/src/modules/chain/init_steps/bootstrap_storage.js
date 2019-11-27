@@ -19,7 +19,8 @@ const {
 	Block,
 	RoundDelegates,
 	Transaction,
-	ChainMeta,
+	ChainState,
+	ForgerInfo,
 	TempBlock,
 } = require('../components/storage/entities');
 
@@ -35,7 +36,8 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 		storage.registerEntity('Transaction', Transaction, {
 			replaceExisting: true,
 		});
-		storage.registerEntity('ChainMeta', ChainMeta);
+		storage.registerEntity('ChainState', ChainState);
+		storage.registerEntity('ForgerInfo', ForgerInfo);
 		storage.registerEntity('TempBlock', TempBlock);
 		const status = await storage.bootstrap();
 		if (!status) {
