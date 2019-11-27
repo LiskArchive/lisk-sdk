@@ -41,6 +41,7 @@ import {
 import { constructPeerId } from '../../src/utils';
 
 describe('Network discovery', () => {
+	const CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL = 400;
 	describe('Peer discovery', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		let disconnectedNode: P2P;
@@ -52,7 +53,7 @@ describe('Network discovery', () => {
 		beforeEach(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			const customConfig = () => ({
-				maxOutboundConnections: 20,
+				fallbackSeedPeerDiscoveryInterval: CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL,
 			});
 
 			p2pNodeList = await createNetwork({
@@ -267,7 +268,6 @@ describe('Network discovery', () => {
 	describe('Fallback Seed Peer Discovery', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Array();
-		const CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL = 400;
 
 		beforeEach(async () => {
 			const customConfig = (index: number) => ({

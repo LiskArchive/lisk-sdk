@@ -422,7 +422,10 @@ export class PeerPool extends EventEmitter {
 			if (isConnectedSeedPeer) {
 				// tslint:disable-next-line: no-floating-promises
 				(async () => {
-					await isConnectedSeedPeer.discoverPeers();
+					try {
+						await isConnectedSeedPeer.discoverPeers();
+						// tslint:disable-next-line: no-empty
+					} catch (error) {}
 				})();
 			}
 		});
