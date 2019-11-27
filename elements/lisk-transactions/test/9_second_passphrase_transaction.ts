@@ -15,15 +15,19 @@
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
 import { SecondSignatureTransaction } from '../src/9_second_signature_transaction';
-import {
-	validRegisterSecondSignatureTransaction,
-	validTransaction,
-} from '../fixtures';
+import * as protocolSpecSecondSignatureFixture from '../fixtures/transaction_network_id_and_change_order/second_signature_transaction_validate.json';
+import * as protocolSpecTransferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 describe('Second signature registration transaction class', () => {
+	let validRegisterSecondSignatureTransaction =
+		protocolSpecSecondSignatureFixture.testCases.input.transaction;
+	let validTransaction =
+		protocolSpecTransferFixture.testCases.input.transaction;
+
 	let validTestTransaction: SecondSignatureTransaction;
 	let storeAccountCacheStub: sinon.SinonStub;
 	let storeAccountGetStub: sinon.SinonStub;
@@ -39,9 +43,15 @@ describe('Second signature registration transaction class', () => {
 	};
 
 	beforeEach(async () => {
-		validTestTransaction = new SecondSignatureTransaction(
-			validRegisterSecondSignatureTransaction,
+		validTestTransaction = new SecondSignatureTransaction({
+			...validRegisterSecondSignatureTransaction,
+			networkIdentifier:
+				protocolSpecSecondSignatureFixture.testCases.input.networkIdentifier,
+		});
+		validTestTransaction.sign(
+			protocolSpecSecondSignatureFixture.testCases.input.account.passphrase,
 		);
+
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
 		storeAccountSetStub = sandbox.stub(store.account, 'set');
