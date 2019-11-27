@@ -900,7 +900,7 @@ export class P2P extends EventEmitter {
 			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
 			if (
 				this._nextSeedPeerDiscovery < Date.now() &&
-				this._peerPool.getAvailableOutboundConnectionSlots() > 0
+				this._peerPool.getFreeOutboundSlots() > 0
 			) {
 				this._peerPool.discoverFromSeedPeers();
 				this._nextSeedPeerDiscovery =

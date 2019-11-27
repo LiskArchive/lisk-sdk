@@ -793,13 +793,13 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe('#getAvailableOutboundConnectionSlots', () => {
+	describe('#getFreeOutboundSlots', () => {
 		beforeEach(async () => {
 			(peerPool as any)._addOutboundPeer(peerObject as any);
 		});
 
 		it('should return available Outbound connection slot value', async () => {
-			const peerCount = peerPool.getAvailableOutboundConnectionSlots();
+			const peerCount = peerPool.getFreeOutboundSlots();
 			expect(peerCount).to.be.eql(
 				(peerPool as any)._maxOutboundConnections - 1,
 			);
