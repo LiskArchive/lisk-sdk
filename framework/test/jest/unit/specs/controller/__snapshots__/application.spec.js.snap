@@ -585,7 +585,7 @@ Object {
       "maxPeerDiscoveryResponseLength": 1000,
       "maxPeerInfoSize": 20480,
       "outboundShuffleInterval": 300000,
-      "peerBanTime": 86400,
+      "peerBanTime": 86400000,
       "peerDiscoveryResponseLength": 1000,
       "populatorInterval": 10000,
       "seedPeers": Array [
