@@ -156,11 +156,6 @@ const sqlFiles = {
  */
 
 class Block extends BaseEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
-	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -215,87 +210,35 @@ class Block extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('block', sqlFiles);
 	}
 
-	/**
-	 * Create object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	create() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update operation is not supported for Blocks
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	update() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update operation is not supported for Blocks
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	updateOne() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Delete object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	delete() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Get list of blocks
-	 *
-	 * @param {filters.Block|filters.Block[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock[]|ExtendedBlock[], NonSupportedFilterTypeError|NonSupportedOptionError>}
-	 */
 	get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
 	}
 
-	/**
-	 * Get one block
-	 *
-	 * @param {filters.Block|filters.Block[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock|ExtendedBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
-	 */
 	getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
-	/**
-	 * Count total entries based on filters
-	 *
-	 * @param {filters.Block|filters.Block[]} [filters = {}]
-	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
-	 */
 	count(filters = {}, _options, tx) {
 		this.validateFilters(filters);
 
@@ -313,14 +256,6 @@ class Block extends BaseEntity {
 			.then(result => +result.count);
 	}
 
-	/**
-	 * Check if the record exists with following conditions
-	 *
-	 * @param {filters.Block} filters
-	 * @param {Object} [_options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	isPersisted(filters, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);

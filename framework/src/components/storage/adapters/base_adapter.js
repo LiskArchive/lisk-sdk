@@ -24,12 +24,6 @@ const EVENT_ERROR = Symbol('ADAPTER_EVENT_ERROR');
 const EVENT_DISCONNECT = Symbol('ADAPTER_EVENT_DISCONNECT');
 
 class BaseAdapter extends EventEmitter {
-	/**
-	 * Constructor for the adapter
-	 * @param {Object} options
-	 * @param {string} options.engineName
-	 * @param {Boolean} options.inTest
-	 */
 	constructor(options) {
 		super();
 		this.engineName = options.engineName;

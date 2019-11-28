@@ -189,11 +189,6 @@ const sqlFiles = {
 };
 
 class Transaction extends BaseEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.Transaction} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -284,47 +279,15 @@ class Transaction extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('transaction', sqlFiles);
 	}
 
-	/**
-	 * Get one transaction
-	 *
-	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {string} [options.sort] - Sort key for transaction e.g. amount:asc, amount:desc
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<Transaction, Error>}
-	 */
 	getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
-	/**
-	 * Get list of transactions
-	 *
-	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {string} [options.sort] - Sort key for transaction e.g. amount:asc, amount:desc
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<Transaction[], Error>}
-	 */
 	get(filters, options = {}, tx) {
 		return this._getResults(filters, options, tx);
 	}
 
-	/**
-	 * Count transactions
-	 *
-	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
-	 * @param {Object} [_options = {}] - Options to filter data
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<Transaction[], Error>}
-	 */
 	// eslint-disable-next-line no-unused-vars
 	count(filters, _options = {}, tx) {
 		this.validateFilters(filters);
@@ -345,60 +308,26 @@ class Transaction extends BaseEntity {
 			.then(data => +data.count);
 	}
 
-	/**
-	 * Create transactions object
-	 *
-	 * @param {Transaction|Array.<Transaction>} data
-	 * @param {Object} [_options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
-	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
 	create(data, _options, tx) {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	update() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	updateOne() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Delete object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	delete() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Check if the record exists with following conditions
-	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} [_options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	isPersisted(filters, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);

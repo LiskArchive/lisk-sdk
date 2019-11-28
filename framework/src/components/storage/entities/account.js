@@ -152,11 +152,6 @@ const sqlFiles = {
  */
 
 class Account extends BaseEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -250,89 +245,35 @@ class Account extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('account', sqlFiles);
 	}
 
-	/**
-	 * Create object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	create() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	update() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	updateOne() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Delete object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	delete() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Get one account
-	 *
-	 * @param {filters.Account|filters.Account[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
-	 */
 	getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
-	/**
-	 * Get list of accounts
-	 *
-	 * @param {filters.Account|filters.Account[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
-	 */
 	get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
 	}
 
-	/**
-	 * Count total entries based on filters
-	 *
-	 * @param {filters.Account|filters.Account[]} [filters = {}]
-	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
-	 */
 	count(filters = {}) {
 		this.validateFilters(filters);
 
@@ -345,14 +286,6 @@ class Account extends BaseEntity {
 			.then(result => +result.count);
 	}
 
-	/**
-	 * Check if the record exists with following conditions
-	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} [_options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	isPersisted(filters, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
