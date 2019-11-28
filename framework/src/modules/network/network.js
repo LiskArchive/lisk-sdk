@@ -45,12 +45,6 @@ const NETWORK_INFO_KEY_NODE_SECRET = 'node_secret';
 const NETWORK_INFO_KEY_TRIED_PEERS = 'tried_peers_list';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
-/**
- * Network Module
- *
- * @namespace Framework.modules.network
- * @type {module.Network}
- */
 module.exports = class Network {
 	constructor(options) {
 		this.options = options;

@@ -30,21 +30,6 @@ const sqlFiles = {
 	delete: 'network_info/delete.sql',
 };
 
-/**
- * NetworkInfo
- * @typedef {Object} NetworkInfo
- * @property {string} key
- * @property {string} value
- */
-
-/**
- * NetworkInfo Filters
- * @typedef {Object} filters.NetworkInfo
- * @property {string} [key]
- * @property {string} [key_eql]
- * @property {string} [key_ne]
- */
-
 class NetworkInfo extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
@@ -56,42 +41,15 @@ class NetworkInfo extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('network_info', sqlFiles, this.sqlDirectory);
 	}
 
-	/**
-	 * Get list of meta information
-	 *
-	 * @param {filters.NetworkInfo|filters.NetworkInfo[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<NetworkInfo[], Error>}
-	 */
 	get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
 
-	/**
-	 * Get list of meta information
-	 *
-	 * @param {filters.NetworkInfo|filters.NetworkInfo[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<NetworkInfo, Error>}
-	 */
 	getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
-	/**
-	 * Fetch the key value or resolve to null
-	 *
-	 * @param {string} key - Key to fetch
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise<{key: string, value: string} | null>}
-	 */
 	async getKey(key, tx) {
 		assert(key, 'Must provide the key to get');
 
@@ -104,14 +62,6 @@ class NetworkInfo extends BaseEntity {
 		});
 	}
 
-	/**
-	 * Update or create the key value pair
-	 *
-	 * @param {string} key
-	 * @param {string} value
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<null, Error>}
-	 */
 	async setKey(key, value, tx) {
 		assert(key, 'Must provide the key to set');
 		assert(
@@ -129,14 +79,6 @@ class NetworkInfo extends BaseEntity {
 		);
 	}
 
-	/**
-	 * Delete the keys with following conditions
-	 *
-	 * @param {filters.NetworkInfo} filters
-	 * @param {Object} [options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	delete(filters, _options, tx = null) {
 		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);

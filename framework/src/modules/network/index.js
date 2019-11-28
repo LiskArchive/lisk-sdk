@@ -20,13 +20,6 @@ const Network = require('./network');
 const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */
-
-/**
- * Network module specification
- *
- * @namespace Framework.Modules
- * @type {module.NetworkModule}
- */
 module.exports = class NetworkModule extends BaseModule {
 	static get alias() {
 		return 'network';
