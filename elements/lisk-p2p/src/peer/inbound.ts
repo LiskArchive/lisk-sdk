@@ -15,6 +15,7 @@
 import { SCServerSocket } from 'socketcluster-server';
 
 import {
+	ConnectionKind,
 	DEFAULT_PING_INTERVAL_MAX,
 	DEFAULT_PING_INTERVAL_MIN,
 	INTENTIONAL_DISCONNECT_CODE,
@@ -54,6 +55,7 @@ export class InboundPeer extends Peer {
 		peerConfig: PeerConfig,
 	) {
 		super(peerInfo, peerConfig);
+		this._peerInfo.internalState.connectionKind = ConnectionKind.INBOUND;
 		this._handleInboundSocketError = (error: Error) => {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
@@ -95,7 +97,7 @@ export class InboundPeer extends Peer {
 	private _sendPing(): void {
 		const pingStart = Date.now();
 		this._socket.emit(REMOTE_EVENT_PING, undefined, () => {
-			this._latency = Date.now() - pingStart;
+			this._peerInfo.internalState.latency = Date.now() - pingStart;
 			this._pingTimeoutId = setTimeout(() => {
 				this._sendPing();
 			}, getRandomPingDelay());
