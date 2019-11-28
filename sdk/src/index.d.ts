@@ -17,10 +17,6 @@ import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 
-type AnyClass = { new (): any };
-type TransactionClass = AnyClass;
-type ModuleClass = AnyClass;
-
 declare class Application {
 	readonly logger: any;
 	readonly config: any;
@@ -28,28 +24,28 @@ declare class Application {
 	constructor(genesisBlock: any, config?: any);
 	run(): Promise<void>;
 	registerTransaction(
-		transactionClass: TransactionClass,
-		matcher?: { matcher: () => boolean }
+		transactionClass: any,
+		matcher?: { matcher: (context: any) => boolean }
 	): void;
-	registerModule(moduleClass: ModuleClass, options?: any, alias?: string): void;
+	registerModule(moduleClass: any, options?: any, alias?: string): void;
 	registerMigrations(namespace: string, migrations: Array<string>): void;
-	getTransaction(transactionType: number): AnyClass;
-	getTransactions(): { [key: number]: AnyClass };
-	getModule(alias: string): AnyClass;
-	getModules(): { [key: string]: AnyClass };
-	getMigrations(): { [key: string]: AnyClass };
+	getTransaction(transactionType: number): any;
+	getTransactions(): { [key: number]: any };
+	getModule(alias: string): any;
+	getModules(): { [key: string]: any };
+	getMigrations(): { [key: string]: any };
 	shutdown(errorCode?: number, message?: string): Promise<void>;
 }
 
 declare class Configurator {
 	constructor();
-	getConfig(overrideValues: any, options: { failOnInvalidArg: boolean }): void;
-	registerModule(moduleClass: AnyClass): void;
-	loadConfigFile(configFilePath: string, destinationPath: string): void;
-	loadConfig(data: string, destinationPath: string): void;
+	getConfig(overrideValues?: any, options?: { failOnInvalidArg: boolean }): any;
+	registerModule(moduleClass: any): void;
+	loadConfigFile(configFilePath: string, destinationPath?: string): void;
+	loadConfig(data: any, destinationPath?: string): void;
 	extractMetaInformation(): void;
 	helpBanner(): void;
-	registerSchema(schema: any, key: string): void;
+	registerSchema(schema: any, key?: string): void;
 }
 
 declare const version: number;
