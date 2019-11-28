@@ -326,7 +326,7 @@ export class P2P extends EventEmitter {
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			if (
 				this._peerBook.getPeer(peerInfo) &&
-				(peerInfo.internalState as P2PInternalState).peerKind ===
+				(peerInfo.internalState as P2PInternalState).peerKind !==
 					PeerKind.WHITELISTED_PEER
 			) {
 				this._peerBook.downgradePeer(peerInfo);
