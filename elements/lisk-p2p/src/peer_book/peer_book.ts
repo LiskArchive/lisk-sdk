@@ -78,16 +78,16 @@ export class PeerBook {
 
 	public getRandomizedPeerList(
 		minimumPeerDiscoveryThreshold: number,
-		peerDiscoveryResponseLength: number,
+		maxPeerDiscoveryResponseLength: number,
 	): ReadonlyArray<P2PPeerInfo> {
 		const allPeers = [...this.newPeers, ...this.triedPeers];
 
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
-			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.25),
+			Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.25),
 		);
 		const max = Math.floor(
-			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.5),
+			Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.5),
 		);
 
 		const random = Math.floor(Math.random() * (max - min + 1) + min);

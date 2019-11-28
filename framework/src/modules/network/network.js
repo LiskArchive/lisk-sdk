@@ -147,7 +147,7 @@ module.exports = class Network {
 
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
-			hostAddress: this.options.address,
+			hostIp: this.options.hostIp,
 			blacklistedPeers,
 			fixedPeers,
 			whitelistedPeers,
@@ -156,13 +156,11 @@ module.exports = class Network {
 				wsPort: peer.wsPort,
 			})),
 			previousPeers,
-			discoveryInterval: this.options.discoveryInterval,
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,
 			peerBanTime: this.options.peerBanTime,
 			populatorInterval: this.options.populatorInterval,
-			sendPeerLimit: this.options.emitPeerLimit,
-			peerDiscoveryResponseLength: this.options.peerDiscoveryResponseLength,
+			sendPeerLimit: this.options.sendPeerLimit,
 			maxPeerDiscoveryResponseLength: this.options
 				.maxPeerDiscoveryResponseLength,
 			maxPeerInfoSize: this.options.maxPeerInfoSize,
