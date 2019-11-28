@@ -16,30 +16,14 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-// Private Fields
+
 let channel;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of PeersController
- */
 function PeersController(scope) {
 	({ channel } = scope);
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-PeersController.getPeers = async function getPeers(context, next) {
+PeersController.getPeers = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {

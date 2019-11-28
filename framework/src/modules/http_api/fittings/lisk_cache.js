@@ -17,19 +17,6 @@
 const debug = require('debug')('swagger:lisk:cache');
 const modules = require('../helpers/swagger_module_registry');
 
-/**
- * Description of the function.
- *
- * @func create_caches
- * @memberof api.fittings
- * @requires debug
- * @requires helpers/swagger_module_registry.getCache
- * @requires helpers/swagger_module_registry.getLogger
- * @param {Object} fittingDef
- * @param {Object} bagpipes
- * @returns {function} {@link api.fittings.lisk_cache}
- * @todo Add description for the function and the params
- */
 module.exports = function create(fittingDef) {
 	const cache = modules.getCache();
 	const logger = modules.getLogger();
@@ -38,17 +25,7 @@ module.exports = function create(fittingDef) {
 
 	debug('create', mode);
 
-	/**
-	 * Description of the function.
-	 *
-	 * @func lisk_cache
-	 * @memberof api.fittings
-	 * @param {Object} context
-	 * @param {function} next
-	 * @todo Add description for the function and the params
-	 * @todo Add @returns tag
-	 */
-	return function lisk_cache(context, next) {
+	return function liskCache(context, next) {
 		debug('exec', mode);
 
 		// If not a swagger operation don't serve from pipeline

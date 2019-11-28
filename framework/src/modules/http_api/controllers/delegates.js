@@ -47,15 +47,6 @@ function delegateFormatter(totalSupply, delegate) {
 	return result;
 }
 
-/**
- * Gets a list of delegates based on query parameters
- * @param {Object} filters - Query object
- * @param {int} filters.limit - Limit applied to results
- * @param {int} filters.offset - Offset value for results
- * @param {object} options - Filter options
- * @returns {Promise<*>}
- * @private
- */
 async function _getDelegates(filters, options) {
 	const delegates = await storage.entities.Account.get(
 		{ isDelegate: true, ...filters },
@@ -73,15 +64,6 @@ async function _getDelegates(filters, options) {
 	return delegates.map(delegate => delegateFormatter(supply, delegate));
 }
 
-/**
- * Gets a list forgers based on query parameters.
- *
- * @param {Object} filters - Query object
- * @param {int} filters.limit - Limit applied to results
- * @param {int} filters.offset - Offset value for results
- * @returns {Promise<Array<object>>}
- * @private
- */
 async function _getForgers(filters) {
 	const lastBlock = await channel.invoke('chain:getLastBlock');
 
@@ -138,14 +120,6 @@ async function _getForgers(filters) {
 	};
 }
 
-/**
- *
- * @param {string} filter.address - Address of the delegate
- * @param {string} filter.start - Start time to aggregate
- * @param {string} filter.end - End time to aggregate
- * @returns {Promise<{fees: (string), count: (string), rewards: (string)}>}
- * @private
- */
 async function _aggregateBlocksReward(filter) {
 	const params = {};
 
@@ -185,12 +159,12 @@ async function _aggregateBlocksReward(filter) {
 		);
 	} catch (err) {
 		logger.error(err.stack);
-		throw 'Blocks#aggregateBlocksReward error';
+		throw new Error('Blocks#aggregateBlocksReward error');
 	}
 
 	let data = delegateBlocksRewards[0];
 	if (data.delegate === null) {
-		throw 'Account is not a delegate';
+		throw new Error('Account is not a delegate');
 	}
 	data = {
 		fees: data.fees || '0',
@@ -200,15 +174,6 @@ async function _aggregateBlocksReward(filter) {
 	return data;
 }
 
-/**
- *
- * @param {Object} filters - Filters applied to results
- * @param {string} filters.address - Address of the delegate
- * @param {string} filters.start - Start time to aggregate
- * @param {string} filters.end - End time to aggregate
- * @returns {Promise<*>}
- * @private
- */
 async function _getForgingStatistics(filters) {
 	// If need to aggregate all data then just fetch from the account
 	if (!filters.start && !filters.end) {
@@ -252,15 +217,6 @@ async function _getForgingStatistics(filters) {
 	return reward;
 }
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of DelegatesController
- */
 function DelegatesController(scope) {
 	({
 		components: { storage, logger },
@@ -268,13 +224,6 @@ function DelegatesController(scope) {
 	} = scope);
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
 DelegatesController.getDelegates = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
@@ -320,13 +269,6 @@ DelegatesController.getDelegates = async (context, next) => {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
 DelegatesController.getForgers = async (context, next) => {
 	const { params } = context.request.swagger;
 
