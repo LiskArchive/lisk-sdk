@@ -159,6 +159,22 @@ describe('peerBook', () => {
 		});
 	});
 
+	describe('#hasPeer', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerBook = new PeerBook(peerBookConfig);
+		});
+
+		it('should return true if peer exists in peer book', () => {
+			peerBook.addPeer(samplePeers[0]);
+			expect(peerBook.hasPeer(samplePeers[0])).to.be.true;
+		});
+
+		it('should return false if peer exists in peer book', () => {
+			expect(peerBook.hasPeer(samplePeers[0])).to.be.false;
+		});
+	});
+
 	describe('#addPeer', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();

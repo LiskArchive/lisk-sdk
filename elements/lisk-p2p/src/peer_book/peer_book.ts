@@ -108,6 +108,13 @@ export class PeerBook {
 		return this._newPeers.getPeer(peerInfo.peerId);
 	}
 
+	public hasPeer(peerInfo: P2PPeerInfo): boolean {
+		return (
+			this._triedPeers.hasPeer(peerInfo.peerId) ||
+			this._newPeers.hasPeer(peerInfo.peerId)
+		);
+	}
+
 	public addPeer(peerInfo: P2PEnhancedPeerInfo): void {
 		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			throw new ExistingPeerError(peerInfo);

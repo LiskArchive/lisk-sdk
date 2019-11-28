@@ -100,7 +100,7 @@ export class BaseList {
 		return { bucketId, bucket: this.bucketIdToBucket.get(bucketId) as Bucket };
 	}
 
-	public getPeer(incomingPeerId: string): P2PEnhancedPeerInfo | undefined {
+	public getPeer(incomingPeerId: string): P2PPeerInfo | undefined {
 		const peerInfo = this.peerIdToPeerInfo.get(incomingPeerId);
 
 		if (!peerInfo) {
@@ -108,6 +108,10 @@ export class BaseList {
 		}
 
 		return sanitizeEnhancedPeerInfo(peerInfo);
+	}
+
+	public hasPeer(incomingPeerId: string): boolean {
+		return this.peerIdToPeerInfo.has(incomingPeerId);
 	}
 
 	public addPeer(
@@ -127,7 +131,7 @@ export class BaseList {
 
 		// If bucket is full, evict a peer to make space for incoming peer
 		const evictedPeer =
-			bucket.size === this.peerListConfig.bucketSize
+			bucket.size >= this.peerListConfig.bucketSize
 				? this.makeSpace(bucket)
 				: undefined;
 
@@ -143,7 +147,7 @@ export class BaseList {
 		return evictedPeer;
 	}
 
-	public updatePeer(incomingPeerInfo: P2PPeerInfo): boolean {
+	public updatePeer(incomingPeerInfo: P2PEnhancedPeerInfo): boolean {
 		const bucket = this.getBucket(incomingPeerInfo.peerId);
 
 		if (!bucket) {
@@ -164,7 +168,7 @@ export class BaseList {
 	public removePeer(incomingPeerInfo: P2PPeerInfo): boolean {
 		const bucket = this.getBucket(incomingPeerInfo.peerId);
 
-		if (bucket && bucket.get(incomingPeerInfo.peerId)) {
+		if (bucket?.has(incomingPeerInfo.peerId)) {
 			const removedFromBucket = bucket.delete(incomingPeerInfo.peerId);
 			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(
 				incomingPeerInfo.peerId,
@@ -189,7 +193,7 @@ export class BaseList {
 	protected getBucket(peerId: string): Bucket | undefined {
 		const internalPeerInfo = this.peerIdToPeerInfo.get(peerId);
 
-		if (!(internalPeerInfo && internalPeerInfo.bucketId)) {
+		if (!internalPeerInfo?.bucketId) {
 			return undefined;
 		}
 

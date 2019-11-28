@@ -57,7 +57,7 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from './constants';
-import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
+import { PeerInboundHandshakeError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -312,7 +312,7 @@ export class P2P extends EventEmitter {
 			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 				peer => peer.peerId === peerInfo.peerId,
 			);
-			if (this._peerBook.getPeer(peerInfo) && !isWhitelisted) {
+			if (this._peerBook.hasPeer(peerInfo) && !isWhitelisted) {
 				this._peerBook.downgradePeer(peerInfo);
 			}
 
@@ -336,9 +336,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
-			const existingPeer = this._peerBook.getPeer(peerInfo);
-
-			if (!existingPeer) {
+			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(peerInfo);
 			}
 
@@ -383,7 +381,7 @@ export class P2P extends EventEmitter {
 			};
 
 			if (
-				this._peerBook.getPeer({
+				this._peerBook.hasPeer({
 					ipAddress: bannedPeerInfo.ipAddress,
 					wsPort: bannedPeerInfo.wsPort,
 					peerId,
@@ -412,7 +410,7 @@ export class P2P extends EventEmitter {
 			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
-			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
+			if (!this._peerBook.hasPeer(detailedPeerInfo) && !isBlacklisted) {
 				this._peerBook.addPeer(detailedPeerInfo);
 				// Re-emit the message to allow it to bubble up the class hierarchy.
 				// Only emit event when a peer is discovered for the first time.
@@ -798,16 +796,14 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				try {
-					this._peerBook.addPeer({
-						...incomingPeerInfo,
-						sourceAddress: socket.remoteAddress,
-					});
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
+				if (this._peerBook.hasPeer(incomingPeerInfo)) {
+					return;
 				}
+
+				this._peerBook.addPeer({
+					...incomingPeerInfo,
+					sourceAddress: socket.remoteAddress,
+				});
 			},
 		);
 
@@ -964,7 +960,7 @@ export class P2P extends EventEmitter {
 		// Add peers to tried peers if want to re-use previously tried peers
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
 		newPeersToAdd.forEach(peerInfo => {
-			if (!this._peerBook.getPeer(peerInfo)) {
+			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(peerInfo);
 			}
 

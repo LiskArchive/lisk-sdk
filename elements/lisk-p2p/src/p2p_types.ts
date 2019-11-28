@@ -65,7 +65,7 @@ export interface P2PPeerInfo {
 	readonly internalState?: P2PInternalState;
 }
 
-export type P2PInternalPeerInfo = {
+export type P2PEnhancedPeerInfo = {
 	readonly dateAdded?: Date;
 	readonly numOfConnectionFailures?: number;
 	readonly sourceAddress?: string;

@@ -149,6 +149,22 @@ describe('Peers base list', () => {
 		});
 	});
 
+	describe('#hasPeer', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
+		});
+
+		it('should return true if peer exists in peer book', () => {
+			peerListObj.addPeer(samplePeers[0]);
+			expect(peerListObj.hasPeer(samplePeers[0].peerId)).to.be.true;
+		});
+
+		it('should return false if peer exists in peer book', () => {
+			expect(peerListObj.hasPeer(samplePeers[0].peerId)).to.be.false;
+		});
+	});
+
 	describe('#addPeer', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
