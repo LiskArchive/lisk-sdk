@@ -22,27 +22,7 @@ const _eventsList = new WeakMap();
 const _actionsList = new WeakMap();
 const _actions = new WeakMap();
 
-/**
- * BaseChannel class which used as reference to implement others channels for bus to module communication
- *
- * @class
- * @memberof framework.controller.channels
- * @requires modules.Event
- * @requires modules.Action
- * @type {module.BaseChannel}
- */
 class BaseChannel {
-	/**
-	 * Create the baseChannel object
-	 *
-	 * @param {string} moduleAlias - Label used for module
-	 * @param {module.Event} events - Collection of events for event listener
-	 * @param {module.Action} actions - Collection of actions available
-	 * @param {Object} [options] - Options impacting events and actions list
-	 * @param {boolean} [options.skipInternalEvents] - Skip internal events
-	 *
-	 * @throws Framework.errors.TypeError
-	 */
 	constructor(moduleAlias, events, actions, options = {}) {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
