@@ -520,7 +520,6 @@ module.exports = class Chain {
 	async _forgingTask() {
 		return this.scope.sequence.add(async () => {
 			try {
-				await this.forger.beforeForge();
 				if (!this.forger.delegatesEnabled()) {
 					this.logger.debug('No delegates are enabled');
 					return;
@@ -529,6 +528,7 @@ module.exports = class Chain {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
+				await this.forger.beforeForge();
 				await this.forger.forge();
 			} catch (err) {
 				this.logger.error({ err });
