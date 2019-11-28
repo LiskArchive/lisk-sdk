@@ -12,11 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { PeerKind } from '../constants';
-import { P2PPeerInfo, PeerLists, ProtocolPeerInfo } from '../p2p_types';
+import {
+	ConnectionKind,
+	DEFAULT_PRODUCTIVITY,
+	DEFAULT_REPUTATION_SCORE,
+	PeerKind,
+} from '../constants';
+import {
+	P2PInternalState,
+	P2PPeerInfo,
+	PeerLists,
+	ProtocolPeerInfo,
+} from '../p2p_types';
 
-import { constructPeerId } from './misc';
+import { constructPeerId, getNetgroup } from './misc';
 
+export const assignInternalInfo = (
+	peerInfo: P2PPeerInfo,
+	secret: number,
+): P2PInternalState =>
+	peerInfo.internalState
+		? peerInfo.internalState
+		: {
+				reputation: DEFAULT_REPUTATION_SCORE,
+				netgroup: getNetgroup(peerInfo.ipAddress, secret),
+				latency: 0,
+				connectTime: Date.now(),
+				rpcCounter: new Map(),
+				rpcRates: new Map(),
+				messageCounter: new Map(),
+				messageRates: new Map(),
+				wsMessageCount: 0,
+				wsMessageRate: 0,
+				productivity: { ...DEFAULT_PRODUCTIVITY },
+				advertiseAddress: true,
+				connectionKind: ConnectionKind.NONE,
+				peerKind: PeerKind.NONE,
+		  };
 export const sanitizeIncomingPeerInfo = (
 	rawPeerInfo: unknown,
 ): P2PPeerInfo | undefined => {
@@ -51,6 +83,7 @@ export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
 export const sanitizePeerLists = (
 	lists: PeerLists,
 	nodeInfo: P2PPeerInfo,
+	secret: number,
 ): PeerLists => {
 	const blacklistedPeers = lists.blacklistedPeers
 		.filter(peerInfo => {
@@ -60,13 +93,17 @@ export const sanitizePeerLists = (
 
 			return true;
 		})
-		.map(peer => ({
-			...peer,
-			internalState: {
-				advertiseAddress: true,
-				peerKind: PeerKind.BLACKLISTED_PEER,
-			},
-		}));
+		.map(peer => {
+			const peerInternalInfo = assignInternalInfo(peer, secret);
+
+			return {
+				...peer,
+				internalState: {
+					...peerInternalInfo,
+					peerKind: PeerKind.BLACKLISTED_PEER,
+				},
+			};
+		});
 
 	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
 
@@ -82,10 +119,14 @@ export const sanitizePeerLists = (
 
 			return true;
 		})
-		.map(peer => ({
-			...peer,
-			internalState: { advertiseAddress: true, peerKind: PeerKind.SEED_PEER },
-		}));
+		.map(peer => {
+			const peerInternalInfo = assignInternalInfo(peer, secret);
+
+			return {
+				...peer,
+				internalState: { ...peerInternalInfo, peerKind: PeerKind.SEED_PEER },
+			};
+		});
 
 	const fixedPeers = lists.fixedPeers
 		.filter(peerInfo => {
@@ -99,10 +140,14 @@ export const sanitizePeerLists = (
 
 			return true;
 		})
-		.map(peer => ({
-			...peer,
-			internalState: { advertiseAddress: true, peerKind: PeerKind.FIXED_PEER },
-		}));
+		.map(peer => {
+			const peerInternalInfo = assignInternalInfo(peer, secret);
+
+			return {
+				...peer,
+				internalState: { ...peerInternalInfo, peerKind: PeerKind.FIXED_PEER },
+			};
+		});
 
 	const whitelisted = lists.whitelisted
 		.filter(peerInfo => {
@@ -124,13 +169,17 @@ export const sanitizePeerLists = (
 
 			return true;
 		})
-		.map(peer => ({
-			...peer,
-			internalState: {
-				advertiseAddress: true,
-				peerKind: PeerKind.WHITELISTED_PEER,
-			},
-		}));
+		.map(peer => {
+			const peerInternalInfo = assignInternalInfo(peer, secret);
+
+			return {
+				...peer,
+				internalState: {
+					...peerInternalInfo,
+					peerKind: PeerKind.WHITELISTED_PEER,
+				},
+			};
+		});
 
 	const previousPeers = lists.previousPeers.filter(peerInfo => {
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {

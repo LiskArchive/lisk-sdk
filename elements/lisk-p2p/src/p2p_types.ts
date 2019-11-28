@@ -76,7 +76,7 @@ export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
 	readonly sharedState?: P2PSharedState;
-	readonly internalState?: Partial<P2PInternalState>;
+	readonly internalState?: P2PInternalState;
 }
 
 export interface P2PPeersCount {

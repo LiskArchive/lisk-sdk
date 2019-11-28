@@ -12,13 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	ConnectionKind,
-	DEFAULT_RANDOM_SECRET,
-	PeerKind,
-} from '../../src/constants';
+import { ConnectionKind, DEFAULT_RANDOM_SECRET } from '../../src/constants';
 import { Peer } from '../../src/peer';
 import { P2PPeerInfo } from '../../src/p2p_types';
+import { assignInternalInfo } from '../../src/utils';
 
 export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption1: P2PPeerInfo = {
@@ -101,11 +98,16 @@ export const initPeerInfoListWithSuffix = (
 				protocolVersion: '1.1',
 			},
 			internalState: {
+				...assignInternalInfo(
+					{
+						peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
+						ipAddress: `${i % 255}.${ipSuffix}`,
+						wsPort: 5000 + (i % 40000),
+					},
+					123456,
+				),
 				connectionKind:
 					i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
-				dateAdded: new Date(),
-				peerKind: PeerKind.NONE,
-				advertiseAddress: true,
 			},
 		});
 	}

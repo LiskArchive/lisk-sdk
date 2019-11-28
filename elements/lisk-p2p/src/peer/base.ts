@@ -17,16 +17,13 @@ import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 
 import {
-	ConnectionKind,
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
-	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
-	PeerKind,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -60,7 +57,7 @@ import {
 	P2PResponsePacket,
 } from '../p2p_types';
 import {
-	getNetgroup,
+	assignInternalInfo,
 	sanitizeIncomingPeerInfo,
 	validatePeerCompatibility,
 	validatePeerInfo,
@@ -265,22 +262,7 @@ export class Peer extends EventEmitter {
 			? peerInfo
 			: {
 					...peerInfo,
-					internalState: {
-						reputation: DEFAULT_REPUTATION_SCORE,
-						netgroup: getNetgroup(peerInfo.ipAddress, this._peerConfig.secret),
-						latency: 0,
-						connectTime: Date.now(),
-						rpcCounter: new Map(),
-						rpcRates: new Map(),
-						messageCounter: new Map(),
-						messageRates: new Map(),
-						wsMessageCount: 0,
-						wsMessageRate: 0,
-						productivity: { ...DEFAULT_PRODUCTIVITY },
-						advertiseAddress: true,
-						connectionKind: ConnectionKind.NONE,
-						peerKind: PeerKind.NONE,
-					},
+					internalState: assignInternalInfo(peerInfo, this._peerConfig.secret),
 			  };
 	}
 

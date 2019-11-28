@@ -101,6 +101,7 @@ import {
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
+	assignInternalInfo,
 	constructPeerId,
 	getByteSize,
 	sanitizeInitialPeerInfo,
@@ -205,6 +206,7 @@ export class P2P extends EventEmitter {
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
+	private readonly _secret: number;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
@@ -235,6 +237,7 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
+		this._secret = config.secret ? config.secret : DEFAULT_RANDOM_SECRET;
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers
@@ -261,13 +264,14 @@ export class P2P extends EventEmitter {
 				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
 				wsPort: config.nodeInfo.wsPort,
 			},
+			this._secret,
 		);
 
 		this._config = config;
 		this._isActive = false;
 		this._hasConnected = false;
 		this._peerBook = new PeerBook({
-			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
+			secret: this._secret,
 		});
 		this._initializePeerBook();
 		this._bannedPeers = new Set();
@@ -342,15 +346,7 @@ export class P2P extends EventEmitter {
 			if (this._peerBook.getPeer(closePacket.peerInfo)) {
 				const updatedPeer = {
 					...peerInfo,
-					internalState: peerInfo.internalState
-						? {
-								...peerInfo.internalState,
-								connectionKind: ConnectionKind.NONE,
-						  }
-						: {
-								advertiseAddress: true,
-								connectionKind: ConnectionKind.NONE,
-						  },
+					internalState: assignInternalInfo(peerInfo, this._secret),
 				};
 
 				this._peerBook.updatePeer(updatedPeer);
@@ -365,15 +361,7 @@ export class P2P extends EventEmitter {
 			if (this._peerBook.getPeer(closePacket.peerInfo)) {
 				const updatedPeer = {
 					...peerInfo,
-					internalState: peerInfo.internalState
-						? {
-								...peerInfo.internalState,
-								connectionKind: ConnectionKind.NONE,
-						  }
-						: {
-								advertiseAddress: true,
-								connectionKind: ConnectionKind.NONE,
-						  },
+					internalState: assignInternalInfo(peerInfo, this._secret),
 				};
 
 				this._peerBook.updatePeer(updatedPeer);
@@ -688,9 +676,10 @@ export class P2P extends EventEmitter {
 		) {
 			return {
 				...peerInfo,
-				internalState: peerInfo.internalState
-					? { ...peerInfo.internalState, peerKind: PeerKind.BLACKLISTED_PEER }
-					: { peerKind: PeerKind.BLACKLISTED_PEER, advertiseAddress: true },
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.BLACKLISTED_PEER,
+				},
 			};
 		}
 
@@ -701,9 +690,10 @@ export class P2P extends EventEmitter {
 		) {
 			return {
 				...peerInfo,
-				internalState: peerInfo.internalState
-					? { ...peerInfo.internalState, peerKind: PeerKind.FIXED_PEER }
-					: { peerKind: PeerKind.FIXED_PEER, advertiseAddress: true },
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.FIXED_PEER,
+				},
 			};
 		}
 
@@ -714,9 +704,10 @@ export class P2P extends EventEmitter {
 		) {
 			return {
 				...peerInfo,
-				internalState: peerInfo.internalState
-					? { ...peerInfo.internalState, peerKind: PeerKind.WHITELISTED_PEER }
-					: { peerKind: PeerKind.WHITELISTED_PEER, advertiseAddress: true },
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.WHITELISTED_PEER,
+				},
 			};
 		}
 
@@ -727,17 +718,19 @@ export class P2P extends EventEmitter {
 		) {
 			return {
 				...peerInfo,
-				internalState: peerInfo.internalState
-					? { ...peerInfo.internalState, peerKind: PeerKind.SEED_PEER }
-					: { peerKind: PeerKind.SEED_PEER, advertiseAddress: true },
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.SEED_PEER,
+				},
 			};
 		}
 
 		return {
 			...peerInfo,
-			internalState: peerInfo.internalState
-				? { ...peerInfo.internalState, peerKind: PeerKind.NONE }
-				: { peerKind: PeerKind.NONE, advertiseAddress: true },
+			internalState: {
+				...assignInternalInfo(peerInfo, this._secret),
+				peerKind: PeerKind.NONE,
+			},
 		};
 	}
 
@@ -866,21 +859,46 @@ export class P2P extends EventEmitter {
 					...restOfQueryObject
 				} = queryObject;
 
-				const incomingPeerInfo: P2PPeerInfo = this._assignPeerKind({
-					sharedState: {
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
-					},
-					internalState: {
-						advertiseAddress: advertiseAddress !== 'false',
-						connectionKind: ConnectionKind.INBOUND,
-					},
+				const peerInPeerBook = this._peerBook.getPeer({
 					peerId,
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
 				});
+
+				const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
+					? {
+							...peerInPeerBook,
+							internalState: {
+								...(peerInPeerBook.internalState
+									? peerInPeerBook.internalState
+									: assignInternalInfo(peerInPeerBook, this._secret)),
+								advertiseAddress: advertiseAddress !== 'false',
+								connectionKind: ConnectionKind.INBOUND,
+							},
+					  }
+					: this._assignPeerKind({
+							sharedState: {
+								...restOfQueryObject,
+								...queryOptions,
+								height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+								protocolVersion: queryObject.protocolVersion,
+							},
+							internalState: {
+								...assignInternalInfo(
+									{
+										peerId,
+										ipAddress: socket.remoteAddress,
+										wsPort: remoteWSPort,
+									},
+									this._secret,
+								),
+								advertiseAddress: advertiseAddress !== 'false',
+								connectionKind: ConnectionKind.INBOUND,
+							},
+							peerId,
+							ipAddress: socket.remoteAddress,
+							wsPort: remoteWSPort,
+					  });
 
 				try {
 					validatePeerInfo(
