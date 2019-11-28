@@ -478,6 +478,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
+		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
+		if (this._peerMap.has(peerInfo.peerId)) {
+			throw new Error(`Peer ${peerInfo.peerId} was already in the peer pool`);
+		}
+
 		const inboundPeers = this.getPeers(InboundPeer);
 		if (inboundPeers.length >= this._maxInboundConnections) {
 			this._evictPeer(InboundPeer);
@@ -487,10 +492,7 @@ export class PeerPool extends EventEmitter {
 			...this._peerConfig,
 			serverNodeInfo: this._nodeInfo,
 		});
-		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
-		if (this._peerMap.has(peer.id)) {
-			throw new Error(`Peer ${peer.id} was already in the peer pool`);
-		}
+
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
