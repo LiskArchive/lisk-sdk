@@ -148,14 +148,13 @@ export class PeerBook {
 	}
 
 	public upgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo.peerId)) {
+		if (this._triedPeers.hasPeer(peerInfo.peerId)) {
 			return true;
 		}
 
-		const existingPeer = this._newPeers.getPeer(peerInfo.peerId);
-		if (existingPeer) {
+		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			this._newPeers.removePeer(peerInfo);
-			this._triedPeers.addPeer({ ...existingPeer, ...peerInfo });
+			this._triedPeers.addPeer(peerInfo);
 
 			return true;
 		}
@@ -164,11 +163,11 @@ export class PeerBook {
 	}
 
 	public downgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
-		if (this._newPeers.getPeer(peerInfo.peerId)) {
+		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			return this._newPeers.failedConnectionAction(peerInfo);
 		}
 
-		if (this._triedPeers.getPeer(peerInfo.peerId)) {
+		if (this._triedPeers.hasPeer(peerInfo.peerId)) {
 			const failed = this._triedPeers.failedConnectionAction(peerInfo);
 			if (failed) {
 				this.addPeer(peerInfo);

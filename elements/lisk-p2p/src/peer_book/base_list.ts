@@ -117,8 +117,7 @@ export class BaseList {
 	public addPeer(
 		incomingPeerInfo: P2PEnhancedPeerInfo,
 	): P2PEnhancedPeerInfo | undefined {
-		const existingPeerInfo = this.getPeer(incomingPeerInfo.peerId);
-		if (existingPeerInfo) {
+		if (this.hasPeer(incomingPeerInfo.peerId)) {
 			throw new ExistingPeerError(incomingPeerInfo);
 		}
 

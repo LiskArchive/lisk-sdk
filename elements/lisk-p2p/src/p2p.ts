@@ -299,6 +299,10 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PEnhancedPeerInfo) => {
+			if (!this._peerBook.hasPeer(peerInfo)) {
+				this._peerBook.addPeer(peerInfo);
+			}
+
 			this._peerBook.upgradePeer(peerInfo);
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
