@@ -22,6 +22,7 @@ import * as url from 'url';
 import {
 	ConnectionKind,
 	DEFAULT_BAN_TIME,
+	DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -199,6 +200,8 @@ export class P2P extends EventEmitter {
 	private readonly _peerBook: PeerBook;
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
+	private _nextSeedPeerDiscovery: number;
+	private readonly _fallbackSeedPeerDiscoveryInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
@@ -503,6 +506,13 @@ export class P2P extends EventEmitter {
 			? config.populatorInterval
 			: DEFAULT_POPULATOR_INTERVAL;
 
+		this._fallbackSeedPeerDiscoveryInterval = config.fallbackSeedPeerDiscoveryInterval
+			? config.fallbackSeedPeerDiscoveryInterval
+			: DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL;
+
+		this._nextSeedPeerDiscovery =
+			Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+
 		this._peerHandshakeCheck = config.peerHandshakeCheck
 			? config.peerHandshakeCheck
 			: validatePeerCompatibility;
@@ -777,7 +787,7 @@ export class P2P extends EventEmitter {
 						advertiseAddress: advertiseAddress !== 'false',
 						connectionKind: ConnectionKind.INBOUND,
 					},
-					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
+					peerId,
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
 				};
@@ -815,17 +825,17 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				const existingPeer = this._peerPool.getPeer(peerId);
-
-				if (existingPeer) {
+				try {
+					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+				} catch (err) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
 						DUPLICATE_CONNECTION,
 						DUPLICATE_CONNECTION_REASON,
 					);
-				} else {
-					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
-					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+
+					return;
 				}
 
 				try {
@@ -886,6 +896,16 @@ export class P2P extends EventEmitter {
 				this._peerBook.newPeers,
 				this._peerBook.triedPeers,
 			);
+
+			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
+			if (
+				this._nextSeedPeerDiscovery < Date.now() &&
+				this._peerPool.getFreeOutboundSlots() > 0
+			) {
+				this._peerPool.discoverFromSeedPeers();
+				this._nextSeedPeerDiscovery =
+					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+			}
 		}, this._populatorInterval);
 
 		// Initial Populator
@@ -916,22 +936,23 @@ export class P2P extends EventEmitter {
 			.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
-			? this._config.peerDiscoveryResponseLength
+		const maxPeerDiscoveryResponseLength = this._config
+			.maxPeerDiscoveryResponseLength
+			? this._config.maxPeerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 		const wsMaxPayload = this._config.wsMaxPayload
 			? this._config.wsMaxPayload
 			: DEFAULT_WS_MAX_PAYLOAD;
-		const maxPeerInforSize = this._config.maxPeerInfoSize
+		const maxPeerInfoSize = this._config.maxPeerInfoSize
 			? this._config.maxPeerInfoSize
 			: DEFAULT_MAX_PEER_INFO_SIZE;
 
 		const safeMaxPeerInfoLength =
-			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInforSize) - 1;
+			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInfoSize) - 1;
 
 		const selectedPeers = this._peerBook.getRandomizedPeerList(
 			minimumPeerDiscoveryThreshold,
-			peerDiscoveryResponseLength,
+			maxPeerDiscoveryResponseLength,
 		);
 
 		// Remove internal state to check byte size
@@ -1004,7 +1025,9 @@ export class P2P extends EventEmitter {
 		if (this._isActive) {
 			// Initial discovery and disconnect from SeedPeers (LIP-0004)
 			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
-				this._peerPool.discoverSeedPeers();
+				this._peerPool.discoverFromSeedPeers();
+				this._nextSeedPeerDiscovery =
+					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 			}
 
 			this._startPopulator();

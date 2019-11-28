@@ -100,10 +100,9 @@ export interface P2PConfig {
 	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
-	readonly hostAddress?: string;
 	readonly nodeInfo: P2PNodeInfo;
-	readonly wsEngine?: string;
 	readonly populatorInterval?: number;
+	readonly fallbackSeedPeerDiscoveryInterval?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
 	readonly wsMaxPayload?: number;
@@ -123,7 +122,6 @@ export interface P2PConfig {
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
 	readonly minimumPeerDiscoveryThreshold?: number;
-	readonly peerDiscoveryResponseLength?: number;
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;

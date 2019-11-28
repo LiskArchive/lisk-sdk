@@ -24,7 +24,7 @@ const defaultConfig = {
 			env: 'LISK_WS_PORT',
 			arg: '--port,-p',
 		},
-		address: {
+		hostIp: {
 			type: 'string',
 			format: 'ip',
 			env: 'LISK_ADDRESS',
@@ -98,17 +98,11 @@ const defaultConfig = {
 			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
 			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
-		discoveryInterval: {
-			type: 'integer',
-		},
 		peerBanTime: {
 			type: 'integer',
 		},
 		populatorInterval: {
 			type: 'integer',
-		},
-		wsEngine: {
-			type: 'string',
 		},
 		connectTimeout: {
 			type: 'integer',
@@ -122,14 +116,10 @@ const defaultConfig = {
 		maxInboundConnections: {
 			type: 'integer',
 		},
-		emitPeerLimit: {
+		sendPeerLimit: {
 			type: 'integer',
 			minimum: 1,
 			maximum: 100,
-		},
-		peerDiscoveryResponseLength: {
-			type: 'integer',
-			maximum: 1000,
 		},
 		maxPeerDiscoveryResponseLength: {
 			type: 'integer',
@@ -141,6 +131,7 @@ const defaultConfig = {
 		},
 		wsMaxPayload: {
 			type: 'integer',
+			maximum: 3048576,
 		},
 		outboundShuffleInterval: {
 			type: 'integer',
@@ -152,26 +143,7 @@ const defaultConfig = {
 	required: ['wsPort', 'seedPeers'],
 	default: {
 		wsPort: 5000,
-		address: '0.0.0.0',
-		discoveryInterval: 30000,
-		peerBanTime: 86400,
-		populatorInterval: 10000,
 		seedPeers: [],
-		blacklistedPeers: [],
-		fixedPeers: [],
-		whitelistedPeers: [],
-		ackTimeout: 20000,
-		connectTimeout: 5000,
-		wsEngine: 'ws',
-		maxOutboundConnections: 20,
-		maxInboundConnections: 100,
-		emitPeerLimit: 16,
-		peerDiscoveryResponseLength: 1000,
-		maxPeerDiscoveryResponseLength: 1000,
-		maxPeerInfoSize: 20480,
-		wsMaxPayload: 3048576,
-		outboundShuffleInterval: 300000,
-		advertiseAddress: true,
 	},
 };
 

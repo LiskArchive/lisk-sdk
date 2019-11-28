@@ -170,6 +170,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
+	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 	private readonly _peerConfig: PeerConfig;
 	private readonly _peerLists: PeerLists;
 
@@ -199,6 +200,7 @@ export class PeerPool extends EventEmitter {
 		this._outboundShuffleIntervalId = setInterval(() => {
 			this._evictPeer(OutboundPeer);
 		}, peerPoolConfig.outboundShuffleInterval);
+		this._unbanTimers = [];
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
@@ -278,10 +280,12 @@ export class PeerPool extends EventEmitter {
 		};
 		this._handleBanPeer = (peerId: string) => {
 			// Unban peer after peerBanTime
-			setTimeout(
+			const unbanTimeout = setTimeout(
 				this._handleUnbanPeer.bind(this, peerId),
 				this._peerPoolConfig.peerBanTime,
 			);
+
+			this._unbanTimers.push(unbanTimeout);
 			// Re-emit the peerId to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
@@ -404,18 +408,34 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
-	public discoverSeedPeers(): void {
-		const openOutboundSlots = this._getAvailableOutboundConnectionSlots();
+	public discoverFromSeedPeers(): void {
+		const freeOutboundSlots = this.getFreeOutboundSlots();
 
-		if (openOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
+		// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
+		if (freeOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
 			return;
 		}
 
-		const seedPeersForConnection = shuffle(
-			this._peerLists.seedPeers.slice(0, openOutboundSlots),
+		// Looking after existing seed peer connection(s)
+		this._peerLists.seedPeers.forEach(peer => {
+			const isConnectedSeedPeer = this.getPeer(peer.peerId);
+			if (isConnectedSeedPeer) {
+				// tslint:disable-next-line: no-floating-promises
+				(async () => {
+					try {
+						await isConnectedSeedPeer.discoverPeers();
+						// tslint:disable-next-line: no-empty
+					} catch (error) {}
+				})();
+			}
+		});
+
+		const seedPeersForDiscovery = shuffle(
+			this._peerLists.seedPeers.slice(0, freeOutboundSlots),
 		);
 
-		seedPeersForConnection.forEach(peer => {
+		// Add new seed peer connection(s)
+		seedPeersForDiscovery.forEach(peer => {
 			this._addOutboundPeer(peer, this._nodeInfo as P2PNodeInfo);
 		});
 	}
@@ -432,12 +452,12 @@ export class PeerPool extends EventEmitter {
 			triedPeer => !this._peerMap.has(triedPeer.peerId),
 		);
 		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
-			peer => !this._peerMap.get(peer.peerId),
+			peer => !this._peerMap.has(peer.peerId),
 		);
 
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
-		const peerLimit = this._getAvailableOutboundConnectionSlots();
+		const peerLimit = this.getFreeOutboundSlots();
 
 		if (peerLimit === 0) {
 			this._disconnectFromSeedPeers();
@@ -458,6 +478,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
+		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
+		if (this._peerMap.has(peerInfo.peerId)) {
+			throw new Error(`Peer ${peerInfo.peerId} was already in the peer pool`);
+		}
+
 		const inboundPeers = this.getPeers(InboundPeer);
 		if (inboundPeers.length >= this._maxInboundConnections) {
 			this._evictPeer(InboundPeer);
@@ -467,10 +492,7 @@ export class PeerPool extends EventEmitter {
 			...this._peerConfig,
 			serverNodeInfo: this._nodeInfo,
 		});
-		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
-		if (this._peerMap.has(peer.id)) {
-			throw new Error(`Peer ${peer.id} was already in the peer pool`);
-		}
+
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
@@ -541,6 +563,14 @@ export class PeerPool extends EventEmitter {
 		// Clear periodic eviction of outbound peers for shuffling
 		if (this._outboundShuffleIntervalId) {
 			clearInterval(this._outboundShuffleIntervalId);
+		}
+		// Clear unban timeouts
+		if (this._unbanTimers.length > 0) {
+			this._unbanTimers.forEach(timer => {
+				if (timer) {
+					clearTimeout(timer);
+				}
+			});
 		}
 
 		this._peerMap.forEach((peer: Peer) => {
@@ -613,11 +643,11 @@ export class PeerPool extends EventEmitter {
 		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 	}
 
-	private _getAvailableOutboundConnectionSlots(): number {
+	public getFreeOutboundSlots(): number {
 		const { outboundCount } = this.getPeersCountPerKind();
 
 		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
-			peer => !this._peerMap.get(peer.peerId),
+			peer => !this._peerMap.has(peer.peerId),
 		);
 
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
