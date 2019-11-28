@@ -27,15 +27,6 @@ const {
 } = require('./errors');
 
 const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
-/**
- * @typedef {Object} BlockHeader
- * @property {string} blockId
- * @property {int} height
- * @property {int} maxHeightPreviouslyForged
- * @property {int} maxHeightPrevoted
- * @property {int} delegateMinHeightActive
- * @property {string} delegatePublicKey
- */
 
 class FinalityManager extends EventEmitter {
 	constructor({ finalizedHeight, activeDelegates } = {}) {
@@ -73,12 +64,6 @@ class FinalityManager extends EventEmitter {
 		this.preCommits = {};
 	}
 
-	/**
-	 * Add block header to BlockHeaderManager
-	 *
-	 * @param {BlockHeader} blockHeader
-	 * @return {Block_headers_manager}
-	 */
 	addBlockHeader(blockHeader) {
 		debug('addBlockHeader invoked');
 		debug('validateBlockHeader invoked');
@@ -117,13 +102,6 @@ class FinalityManager extends EventEmitter {
 		return this;
 	}
 
-	/**
-	 * Remove block headers above given height (exclusive)
-	 * If no param provided will remove last block header
-	 *
-	 *
-	 * @param {int} aboveHeight -  Height from above remove headers
-	 */
 	removeBlockHeaders({ aboveHeight }) {
 		debug('removeBlockHeaders invoked');
 
@@ -136,12 +114,6 @@ class FinalityManager extends EventEmitter {
 		this.recompute();
 	}
 
-	/**
-	 * Update pre-votes and pre-commits in reference to particular block header
-	 *
-	 * @param {BlockHeader} lastBlockHeader
-	 * @return {Boolean}
-	 */
 	updatePreVotesPreCommits(lastBlockHeader) {
 		debug('updatePreVotesPreCommits invoked');
 		// Update applies particularly in reference to last block header in the list
@@ -216,10 +188,6 @@ class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	/**
-	 * Update the pre-voted confirmed and finalized height
-	 * @return {boolean}
-	 */
 	updatePreVotedAndFinalizedHeight() {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 		if (this.headers.length === 0) {
@@ -252,15 +220,6 @@ class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	/**
-	 * Return the valid height to start the pre-commit
-	 * this method will help to identify the gaps in the blocks
-	 * if delegate forged a block on different chain
-	 *
-	 * @param header
-	 * @return {number}
-	 * @private
-	 */
 	_getValidMinHeightToCommit(header) {
 		// We search backward from top block to bottom block in the chain
 
@@ -307,9 +266,6 @@ class FinalityManager extends EventEmitter {
 		return needleHeight;
 	}
 
-	/**
-	 * Use existing block headers and re-compute all information
-	 */
 	recompute() {
 		this.state = {};
 		this.finalizedHeight = this._initialFinalizedHeight;
@@ -326,10 +282,6 @@ class FinalityManager extends EventEmitter {
 		this._cleanup();
 	}
 
-	/**
-	 * Returns the latest block that a delegate has forged
-	 * @return {BlockHeader | undefined} blockHeader
-	 */
 	_findLastBlockForgedByDelegate(delegatePublicKey) {
 		// Find top most block forged by same delegate
 		return this.headers
@@ -338,11 +290,6 @@ class FinalityManager extends EventEmitter {
 			.find(header => header.delegatePublicKey === delegatePublicKey);
 	}
 
-	/**
-	 * Verify if the block header is good for current chain
-	 *
-	 * @param {BlockHeader} blockHeader
-	 */
 	verifyBlockHeaders(blockHeader) {
 		debug('verifyBlockHeaders invoked');
 		// We need minimum processingThreshold to decide
@@ -387,12 +334,6 @@ class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	/**
-	 * Cleanup pre-votes and pre-commits objects
-	 * to only keep the track of maximum 5 rounds (headers list size)
-	 *
-	 * @private
-	 */
 	_cleanup() {
 		Object.keys(this.preVotes)
 			.slice(0, -1 * this.maxHeaders)
