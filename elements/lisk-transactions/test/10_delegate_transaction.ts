@@ -70,6 +70,11 @@ describe('Delegate registration transaction class', () => {
 				() => new DelegateTransaction(invalidDelegateTransactionData),
 			).not.to.throw();
 		});
+
+		it('should create instance of  DelegateTransaction when rawTransaction is empty', async () => {
+			const validEmptyTestTransaction = new DelegateTransaction(null);
+			expect(validEmptyTestTransaction).to.be.instanceOf(DelegateTransaction);
+		});
 	});
 
 	describe('#assetToBytes', () => {
