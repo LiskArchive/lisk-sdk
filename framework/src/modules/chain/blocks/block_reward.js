@@ -16,15 +16,6 @@
 
 const BigNum = require('@liskhq/bignum');
 
-/**
- * Returns absolute value from number.
- *
- * @private
- * @param {number} height
- * @returns {number}
- * @throws If block height invalid
- * @todo Add description for the params and the return value
- */
 const parseHeight = height => {
 	if (
 		typeof height === 'undefined' ||
@@ -37,13 +28,6 @@ const parseHeight = height => {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {number} height
- * @returns {number}
- * @todo Add description for the function, params and the return value
- */
 const calculateMilestone = (height, blockRewardArgs) => {
 	height = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
@@ -60,13 +44,6 @@ const calculateMilestone = (height, blockRewardArgs) => {
 	return location;
 };
 
-/**
- * Description of the function.
- *
- * @param {number} height
- * @returns {Bignumber}
- * @todo Add description for the function, params and the return value
- */
 const calculateReward = (height, blockRewardArgs) => {
 	height = parseHeight(height);
 
@@ -78,13 +55,6 @@ const calculateReward = (height, blockRewardArgs) => {
 	);
 };
 
-/**
- * Description of the function.
- *
- * @param {number} height
- * @returns {Bignumber}
- * @todo Add description for the function, params and the return value
- */
 const calculateSupply = (height, blockRewardArgs) => {
 	height = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);

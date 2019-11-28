@@ -18,18 +18,6 @@ const _ = require('lodash');
 const { hash } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
 
-/**
- * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
- * so that's why this new method was added
- * @param {Object} filter - Filter options
- * @param {Object} filter.limit - Limit blocks to amount
- * @param {Object} filter.lastId - ID of block to begin with
- * @param {function} cb - Callback function
- * @param {Object} tx - database transaction
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.rows - List of blocks
- */
 // eslint-disable-next-line class-methods-use-this
 const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 	if (!lastBlockId) {
@@ -62,17 +50,6 @@ const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 	});
 };
 
-/**
- * Get blocks IDs sequence - last block ID, IDs of first blocks of last 5 rounds, genesis block ID.
- *
- * @param {number} height - Block height
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.res - Result
- * @returns {string} cb.res.firstHeight - Height of last block
- * @returns {string} cb.res.ids - Comma separated list of blocks IDs
- */
 const getIdSequence = async (
 	storage,
 	height,
@@ -127,12 +104,6 @@ const getIdSequence = async (
 	};
 };
 
-/**
- * Adds default properties to block.
- *
- * @param {Object} block - Block object reduced
- * @returns {Object} Block object completed
- */
 const addBlockProperties = block => {
 	block.totalAmount = new BigNum(block.totalAmount || 0);
 	block.totalFee = new BigNum(block.totalFee || 0);
@@ -157,12 +128,6 @@ const addBlockProperties = block => {
 	return block;
 };
 
-/**
- * Deletes default properties from block.
- *
- * @param {Object} block - Block object completed
- * @returns {Object} Block object reduced
- */
 const deleteBlockProperties = block => {
 	const reducedBlock = {
 		...block,
@@ -192,13 +157,6 @@ const deleteBlockProperties = block => {
 	return reducedBlock;
 };
 
-/**
- * Calculates block id based on block.
- *
- * @param {block} blockBytes
- * @returns {string} Block id
- * @todo Add description for the params
- */
 const getId = blockBytes => {
 	const hashedBlock = hash(blockBytes);
 	const temp = Buffer.alloc(8);
@@ -212,29 +170,11 @@ const getId = blockBytes => {
 	return id;
 };
 
-/**
- * Set height according to the given last block.
- *
- * @private
- * @func setHeight
- * @param {Object} block - Target block
- * @param {Object} lastBlock - Last block
- * @returns {Object} block - Target block
- */
 const setHeight = (block, lastBlock) => {
 	block.height = lastBlock.height + 1;
 	return block;
 };
 
-/**
- * Get mem table status for state check
- *
- * @private
- * @func setHeight
- * @param {Object} storage - storage class
- * @param {Object} tx - database transaction
- * @returns {Object} blockcount, genesisBlock, memRounds
- */
 const loadMemTables = async (storage, tx) => {
 	const promises = [
 		storage.entities.Block.count({}, {}, tx),
@@ -248,14 +188,6 @@ const loadMemTables = async (storage, tx) => {
 		genesisBlock,
 	};
 };
-
-/**
- * Sorts transactions for later including in the block.
- *
- * @param {Array} transactions Unsorted collection of transactions
- * @returns {Array} transactions Sorted collection of transactions
- * @static
- */
 
 module.exports = {
 	getId,
