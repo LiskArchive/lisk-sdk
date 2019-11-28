@@ -22,24 +22,6 @@ const __private = {
 	state: new WeakMap(),
 };
 
-/**
- * Initial state of the entire application:
- * - os
- * - version
- * - wsPort
- * - httpPort
- * - minVersion
- * - protocolVersion
- * - height
- * - nethash
- * - maxHeightPrevoted
- *
- * @class
- * @requires os
- * @requires lodash
- * @param {Object} initialState - Initial state of the application
- * @param {Object} logger
- */
 class ApplicationState {
 	constructor({
 		initialState: {
@@ -75,16 +57,6 @@ class ApplicationState {
 		this.stateChannel = channel;
 	}
 
-	/**
-	 * Updates the application state.
-	 *
-	 * @param height
-	 * @param maxHeightPrevoted
-	 * @param lastBlockId
-	 * @param blockVersion
-	 * @return {Promise<boolean, Error>}
-	 * @throws assert.AssertionError
-	 */
 	async update({
 		height,
 		maxHeightPrevoted = this.state.maxHeightPrevoted,
