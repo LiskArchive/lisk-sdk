@@ -54,11 +54,6 @@ const sqlFiles = {
 };
 
 class ChainAccount extends AccountEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -67,14 +62,6 @@ class ChainAccount extends AccountEntity {
 		this.SQLs = this.loadSQLFiles('account', sqlFiles, this.sqlDirectory);
 	}
 
-	/*
-	 * Create account object
-	 *
-	 * @param {Object|Array.<Object>} data
-	 * @param {Object} [_options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
-	 */
 	create(data, _options, tx) {
 		assert(data, 'Must provide data to create account');
 		assert(
@@ -100,11 +87,6 @@ class ChainAccount extends AccountEntity {
 		);
 	}
 
-	/**
-	 * Parse account data and parse in default values
-	 * @param {Array[Object}] | Object} data raw database account data
-	 * @return {Array[Object]} Parsed accounts
-	 */
 	static _sanitizeCreateData(data) {
 		let accounts;
 		if (Array.isArray(data)) {
@@ -129,15 +111,6 @@ class ChainAccount extends AccountEntity {
 		return accounts;
 	}
 
-	/**
-	 * Update the records based on given condition
-	 *
-	 * @param {filters.Account} [filters]
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
-	 * @return {*}
-	 */
 	async update(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 
@@ -167,15 +140,6 @@ class ChainAccount extends AccountEntity {
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
 
-	/**
-	 * Update one record based on the condition given
-	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
-	 * @return {*}
-	 */
 	updateOne(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
@@ -194,14 +158,6 @@ class ChainAccount extends AccountEntity {
 		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
 	}
 
-	/**
-	 * Delete records with following conditions
-	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} [_options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	delete(filters, _options, tx = null) {
 		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
@@ -221,15 +177,6 @@ class ChainAccount extends AccountEntity {
 			.then(result => !result);
 	}
 
-	/**
-	 * Update data based on filters or insert data if no matching record found
-	 *
-	 * @param {filters.Account} filters - Filters to match the object
-	 * @param {Object} data - Object data to be inserted
-	 * @param {Object} [updateData] - If provided will be used for update, otherwise default data will be updated
-	 * @param {Object} [tx] - DB transaction object
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	upsert(filters, data, updateData = {}, tx = null) {
 		const task = t =>
 			this.isPersisted(filters, {}, t).then(dataFound => {
@@ -248,54 +195,18 @@ class ChainAccount extends AccountEntity {
 		return this.begin('storage:account:upsert', task);
 	}
 
-	/**
-	 * Clear data in memory tables:
-	 * - mem_accounts
-	 * - mem_round
-	 *
-	 * @param {Object} tx - DB transaction object
-	 * @returns {Promise}
-	 */
 	resetMemTables(tx) {
 		return this.adapter.executeFile(this.SQLs.resetMemTables, {}, {}, tx);
 	}
 
-	/**
-	 * Increase a field value in mem_accounts.
-	 *
-	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increase
-	 * @param {Number|string} value - Value increase
-	 * @param {Object} [tx] - Transaction object
-	 * @returns {Promise}
-	 */
 	increaseFieldBy(filters, field, value, tx) {
 		return this._updateField(filters, field, value, 'increase', tx);
 	}
 
-	/**
-	 * Decrease a field value in mem_accounts.
-	 *
-	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to decrease
-	 * @param {Number|string} value - Value decrease
-	 * @param {Object} [tx] - Transaction object
-	 * @returns {Promise}
-	 */
 	decreaseFieldBy(filters, field, value, tx) {
 		return this._updateField(filters, field, value, 'decrease', tx);
 	}
 
-	/**
-	 * Update the field value
-	 *
-	 * @param {filters.Account} filters - Filters object
-	 * @param {string} field - Filed name to update
-	 * @param {*} value - Value to be update
-	 * @param {('increase'|'decrease')} mode - Mode of update
-	 * @param {Object} [tx] - Database transaction object
-	 * @returns {Promise}
-	 */
 	_updateField(filters, field, value, mode, tx) {
 		const atLeastOneRequired = true;
 		const validFieldName = Object.keys(this.fields).includes(field);
@@ -328,9 +239,6 @@ class ChainAccount extends AccountEntity {
 		);
 	}
 
-	/**
-	 * @param {Object} data - create/update data
-	 */
 	static _stringifyVotedDelegates(data) {
 		if (data.votedDelegatesPublicKeys) {
 			return {
@@ -341,9 +249,6 @@ class ChainAccount extends AccountEntity {
 		return data;
 	}
 
-	/**
-	 * @param {Object} data - create/update data
-	 */
 	static _stringifyMembersPublicKeys(data) {
 		if (data.membersPublicKeys) {
 			return {
