@@ -29,7 +29,6 @@ describe('penalty sending malformed Peer List', () => {
 
 		beforeEach(async () => {
 			const customConfig = (index: number) => ({
-				peerDiscoveryResponseLength: index === 0 ? 10 : 100,
 				maxPeerDiscoveryResponseLength: index === 1 ? 10 : 100,
 			});
 

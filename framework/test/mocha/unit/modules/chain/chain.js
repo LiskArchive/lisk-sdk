@@ -440,6 +440,7 @@ describe('Chain', () => {
 			await chain.bootstrap();
 			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
 			sinonSandbox.stub(chain.forger, 'forge');
+			sinonSandbox.stub(chain.forger, 'beforeForge');
 			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
@@ -458,6 +459,7 @@ describe('Chain', () => {
 				'No delegates are enabled',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.beforeForge).to.not.be.called;
 			expect(chain.forger.forge).to.not.be.called;
 		});
 
@@ -473,6 +475,7 @@ describe('Chain', () => {
 				'Client not ready to forge',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.beforeForge).to.not.be.called;
 			expect(chain.forger.forge).to.not.be.called;
 		});
 
@@ -480,6 +483,7 @@ describe('Chain', () => {
 			await chain._forgingTask();
 
 			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.beforeForge).to.be.called;
 			expect(chain.forger.forge).to.be.called;
 		});
 	});

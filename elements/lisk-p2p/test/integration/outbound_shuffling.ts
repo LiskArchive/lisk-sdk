@@ -31,6 +31,7 @@ describe('Outbound peer shuffling', () => {
 			maxOutboundConnections: Math.round(networkSize / 2),
 			maxInboundConnections: Math.round(networkSize / 2),
 			outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
+			fallbackSeedPeerDiscoveryInterval: 10000,
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });

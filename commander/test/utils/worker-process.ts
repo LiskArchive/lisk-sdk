@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import fsExtra from 'fs-extra';
 import childProcess from 'child_process';
 import { exec } from '../../src/utils/worker-process';
-import { liskInstall } from '../../dist/utils/core/commons';
+import { liskInstall } from '../../src/utils/core/commons';
 import { SinonStub } from 'sinon';
 
 describe('worker process', () => {

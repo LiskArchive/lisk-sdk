@@ -13,7 +13,11 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, EVENT_MESSAGE_RECEIVED } from '../../../src/index';
+import {
+	P2P,
+	EVENT_MESSAGE_RECEIVED,
+	REMOTE_EVENT_POST_NODE_INFO,
+} from '../../../src/index';
 import { InvalidNodeInfoError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
 import { platform } from 'os';
@@ -29,10 +33,12 @@ describe('P2P.applyNodeInfo', () => {
 		collectedMessages = [];
 		for (let p2p of p2pNodeList) {
 			p2p.on(EVENT_MESSAGE_RECEIVED, request => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					request,
-				});
+				if (request.event === REMOTE_EVENT_POST_NODE_INFO) {
+					collectedMessages.push({
+						nodePort: p2p.nodeInfo.wsPort,
+						request,
+					});
+				}
 			});
 		}
 

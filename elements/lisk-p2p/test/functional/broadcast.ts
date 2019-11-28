@@ -25,16 +25,21 @@ describe('P2P.broadcast', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 
+	const BROADCAST_EVENT = 'foo';
+	const BROADCAST_DATA = 'bar';
+
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork();
 
 		collectedMessages = [];
 		for (let p2p of p2pNodeList) {
 			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					message,
-				});
+				if (message.event === BROADCAST_EVENT) {
+					collectedMessages.push({
+						nodePort: p2p.nodeInfo.wsPort,
+						message,
+					});
+				}
 			});
 		}
 	});
@@ -47,7 +52,7 @@ describe('P2P.broadcast', () => {
 		const firstP2PNode = p2pNodeList[0];
 		const nodePortToMessagesMap: any = {};
 
-		firstP2PNode.broadcast({ event: 'bar', data: 'test' });
+		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 		await wait(100);
 
 		expect(collectedMessages).to.not.to.be.empty;
@@ -70,7 +75,7 @@ describe('P2P.broadcast', () => {
 
 	it('should receive a message in the correct format', async () => {
 		const firstP2PNode = p2pNodeList[0];
-		firstP2PNode.broadcast({ event: 'bar', data: 'test' });
+		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 
 		await wait(100);
 
@@ -79,10 +84,10 @@ describe('P2P.broadcast', () => {
 		expect(collectedMessages[0]).to.have.property('message');
 		expect(collectedMessages[0].message)
 			.to.have.property('event')
-			.which.is.equal('bar');
+			.which.is.equal(BROADCAST_EVENT);
 		expect(collectedMessages[0].message)
 			.to.have.property('data')
-			.which.is.equal('test');
+			.which.is.equal(BROADCAST_DATA);
 		expect(collectedMessages[0].message)
 			.to.have.property('peerId')
 			.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);

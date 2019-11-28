@@ -13,62 +13,64 @@
  *
  */
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import { P2P, EVENT_DISCOVERED_PEER } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
-// TODO: Unskip and revisit the expectation
-describe.skip('Peer discovery threshold', () => {
+describe('Peer discovery threshold', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const MINIMUM_PEER_DISCOVERY_THRESHOLD = 1;
-	const MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 3;
+	const MINIMUM_PEER_DISCOVERY_THRESHOLD = 10;
+	const MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 100;
+	let listOfPeers: any[] = [];
 
-	describe(`When minimum peer discovery threshold is set to ${MINIMUM_PEER_DISCOVERY_THRESHOLD}`, () => {
-		beforeEach(async () => {
-			const customConfig = () => ({
-				minimumPeerDiscoveryThreshold: MINIMUM_PEER_DISCOVERY_THRESHOLD,
+	beforeEach(async () => {
+		const customConfig = () => ({
+			minimumPeerDiscoveryThreshold: MINIMUM_PEER_DISCOVERY_THRESHOLD,
+			maxPeerDiscoveryResponseLength: MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+			fallbackSeedPeerDiscoveryInterval: 10000,
+			populatorInterval: 10000,
+		});
+
+		p2pNodeList = await createNetwork({
+			networkSize: 2,
+			networkDiscoveryWaitTime: 1,
+			customConfig,
+		});
+
+		[...new Array(1000).keys()].map(() => {
+			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${Math.floor(
+				Math.random() * 254,
+			) + 1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
+				Math.random() * 254,
+			) + 1}`;
+
+			p2pNodeList[0]['_peerBook'].addPeer({
+				peerId: `${generatedIP}:5000`,
+				ipAddress: generatedIP,
+				wsPort: 1000,
+				sharedState: {
+					height: 0,
+					protocolVersion: '1.1',
+					version: '1.1',
+				},
 			});
-
-			p2pNodeList = await createNetwork({ customConfig });
 		});
 
-		afterEach(async () => {
-			await destroyNetwork(p2pNodeList);
+		p2pNodeList[1].on(EVENT_DISCOVERED_PEER, peer => {
+			listOfPeers.push(peer);
 		});
 
-		it('should return list of peers with at most the minimum discovery threshold', async () => {
-			const firstP2PNode = p2pNodeList[0];
-
-			const newPeers = (firstP2PNode as any)._peerBook.newPeers;
-			expect(newPeers.length).to.be.at.most(MINIMUM_PEER_DISCOVERY_THRESHOLD);
-		});
+		await wait(1000);
 	});
 
-	describe(`When maximum peer discovery response size is set to ${MAX_PEER_DISCOVERY_RESPONSE_LENGTH}`, () => {
-		beforeEach(async () => {
-			const customConfig = () => ({
-				minimumPeerDiscoveryThreshold: MINIMUM_PEER_DISCOVERY_THRESHOLD,
-				maxPeerDiscoveryResponseLength: MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-			});
+	afterEach(async () => {
+		await destroyNetwork(p2pNodeList);
+	});
 
-			p2pNodeList = await createNetwork({ customConfig });
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(100);
-		});
-
-		it('should return list of peers with less than maximum discovery response size', async () => {
-			const firstP2PNode = p2pNodeList[0];
-			const newPeers = (firstP2PNode as any)._peerBook.newPeers;
-			expect(newPeers.length).to.be.lessThan(
-				MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-			);
-		});
+	it(`should return list of peers with size between ${MINIMUM_PEER_DISCOVERY_THRESHOLD} - ${MAX_PEER_DISCOVERY_RESPONSE_LENGTH}`, async () => {
+		expect(
+			listOfPeers.length >= MINIMUM_PEER_DISCOVERY_THRESHOLD &&
+				listOfPeers.length <= MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
+		).to.be.eql(true);
 	});
 });

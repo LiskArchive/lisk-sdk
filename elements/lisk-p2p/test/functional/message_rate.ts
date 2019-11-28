@@ -36,6 +36,7 @@ describe('Message rate limit', () => {
 			// For the third node, make the message rate limit higher.
 			wsMaxMessageRate: index == 2 ? 100000 : 110,
 			rateCalculationInterval: 100,
+			fallbackSeedPeerDiscoveryInterval: 10000,
 		});
 		p2pNodeList = await createNetwork({ customConfig });
 
