@@ -315,7 +315,7 @@ describe('delegates/api', () => {
 			try {
 				await __private.aggregateBlocksReward({ address: '1L' });
 			} catch (err) {
-				expect(err).to.deep.equal('Blocks#aggregateBlocksReward error');
+				expect(err.message).to.deep.equal('Blocks#aggregateBlocksReward error');
 				expect(loggerStub.error).to.be.calledWith(['anError']);
 			}
 		});
