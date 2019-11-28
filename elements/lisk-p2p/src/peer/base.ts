@@ -483,7 +483,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public applyPenalty(penalty: number): void {
-		this._peerInfo.internalState.reputation -= penalty;
+		this.peerInfo.internalState.reputation -= penalty;
 		if (this.internalState.reputation <= 0) {
 			this._banPeer();
 		}
@@ -491,13 +491,12 @@ export class Peer extends EventEmitter {
 
 	private _resetCounters(): void {
 		this._peerInfo.internalState.wsMessageRate =
-			(this._peerInfo.internalState.wsMessageCount *
-				RATE_NORMALIZATION_FACTOR) /
+			(this.peerInfo.internalState.wsMessageCount * RATE_NORMALIZATION_FACTOR) /
 			this._rateInterval;
 		this._peerInfo.internalState.wsMessageCount = 0;
 
 		if (
-			this._peerInfo.internalState.wsMessageRate >
+			this.peerInfo.internalState.wsMessageRate >
 			this._peerConfig.wsMaxMessageRate
 		) {
 			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
@@ -527,7 +526,7 @@ export class Peer extends EventEmitter {
 	private _resetProductivity(): void {
 		// If peer has not recently responded, reset productivity to 0
 		if (
-			this._peerInfo.internalState.productivity.lastResponded <
+			this.peerInfo.internalState.productivity.lastResponded <
 			Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
 		) {
 			this._peerInfo.internalState.productivity = { ...DEFAULT_PRODUCTIVITY };
@@ -573,7 +572,7 @@ export class Peer extends EventEmitter {
 
 			return;
 		}
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
+		this.emit(EVENT_UPDATED_PEER_INFO, this.peerInfo);
 	}
 
 	private _banPeer(): void {

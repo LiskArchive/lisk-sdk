@@ -1038,9 +1038,20 @@ describe('peerPool', () => {
 				peerId: '69.123.456.78:5000',
 				ipAddress: '69.123.456.78',
 				wsPort: 5000,
+				internalState: {
+					peerKind: PeerKind.NONE,
+				},
 			},
-			...whitelistedPeers.map(peer => ({ ...peer, id: peer.peerId })),
-			...fixedPeers.map(peer => ({ ...peer, id: peer.peerId })),
+			...whitelistedPeers.map(peer => ({
+				...peer,
+				id: peer.peerId,
+				internalState: { peerKind: PeerKind.WHITELISTED_PEER },
+			})),
+			...fixedPeers.map(peer => ({
+				...peer,
+				id: peer.peerId,
+				internalState: { peerKind: PeerKind.FIXED_PEER },
+			})),
 		];
 
 		beforeEach(async () => {
