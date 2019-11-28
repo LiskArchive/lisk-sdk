@@ -17,11 +17,40 @@ import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 
-declare const Application: any;
+declare class Application {
+	readonly logger: any;
+	readonly config: any;
+
+	constructor(genesisBlock: any, config?: any);
+	run(): Promise<void>;
+	registerTransaction(
+		transactionClass: any,
+		matcher?: { matcher: (context: any) => boolean }
+	): void;
+	registerModule(moduleClass: any, options?: any, alias?: string): void;
+	registerMigrations(namespace: string, migrations: Array<string>): void;
+	getTransaction(transactionType: number): any;
+	getTransactions(): { [key: number]: any };
+	getModule(alias: string): any;
+	getModules(): { [key: string]: any };
+	getMigrations(): { [key: string]: any };
+	shutdown(errorCode?: number, message?: string): Promise<void>;
+}
+
+declare class Configurator {
+	constructor();
+	getConfig(overrideValues?: any, options?: { failOnInvalidArg: boolean }): any;
+	registerModule(moduleClass: any): void;
+	loadConfigFile(configFilePath: string, destinationPath?: string): void;
+	loadConfig(data: any, destinationPath?: string): void;
+	extractMetaInformation(): void;
+	helpBanner(): void;
+	registerSchema(schema: any, key?: string): void;
+}
+
 declare const version: number;
 declare const systemDirs: any;
-declare const configurator: any;
-
+declare const configurator: Configurator;
 declare const configDevnet: any;
 declare const genesisBlockDevnet: any;
 

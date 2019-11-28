@@ -540,19 +540,12 @@
 		},
 		"network": {
 			"wsPort": 5000,
-			"address": "0.0.0.0",
-			"discoveryInterval": 30000,
 			"seedPeers": [
 				{
 					"ip": "127.0.0.1",
 					"wsPort": 5000
 				}
-			],
-			"blacklistedPeers": [],
-			"ackTimeout": 20000,
-			"connectTimeout": 5000,
-			"wsEngine": "ws",
-			"emitPeerLimit": 25
+			]
 		}
 	}
 }

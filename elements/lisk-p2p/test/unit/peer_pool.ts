@@ -380,7 +380,7 @@ describe('peerPool', () => {
 		});
 	});
 
-	describe('#discoverSeedPeers', () => {
+	describe('#discoverFromSeedPeers', () => {
 		beforeEach(async () => {
 			(peerPool['_addOutboundPeer'] as any) = sandbox
 				.stub()
@@ -390,7 +390,7 @@ describe('peerPool', () => {
 				outboundCount: 0,
 				inboundCount: 0,
 			});
-			peerPool.discoverSeedPeers();
+			peerPool.discoverFromSeedPeers();
 		});
 
 		it('should call _addOutboundPeer with Seed Peer', async () => {
@@ -791,6 +791,19 @@ describe('peerPool', () => {
 			peerPool.applyPenalty({ peerId, penalty });
 
 			expect(peerObject.applyPenalty).to.be.calledOnce;
+		});
+	});
+
+	describe('#getFreeOutboundSlots', () => {
+		beforeEach(async () => {
+			(peerPool as any)._addOutboundPeer(peerObject as any);
+		});
+
+		it('should return available Outbound connection slot value', async () => {
+			const peerCount = peerPool.getFreeOutboundSlots();
+			expect(peerCount).to.be.eql(
+				(peerPool as any)._maxOutboundConnections - 1,
+			);
 		});
 	});
 

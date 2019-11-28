@@ -34,7 +34,6 @@ describe('Advertise Address', () => {
 				wsPort: 5003,
 			},
 		],
-		wsEngine: 'ws',
 		populatorInterval: POPULATOR_INTERVAL + 15,
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
