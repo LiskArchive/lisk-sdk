@@ -52,14 +52,6 @@ const blockSchema = {
 	],
 };
 
-/**
- * Creates bytebuffer out of block data used for signatures.
- *
- * @param {block} block
- * @throws {Error}
- * @returns {!Array} Contents as an ArrayBuffer
- * @todo Add description for the function and the params
- */
 const getBytes = block => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
@@ -391,8 +383,6 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 	/**
 	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
 	 * so it needs to be outside of the DB transaction
-	 * @param delegatePublicKey
-	 * @param height
 	 */
 	async _saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
 		const previouslyForgedMap = await this._getPreviouslyForgedMap();

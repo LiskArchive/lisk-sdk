@@ -14,18 +14,6 @@
 
 'use strict';
 
-/**
- * Validates sort options, methods and fields.
- *
- * @param {string|Object} sort
- * @param {Object} [options]
- * @param {string} options.fieldPrefix
- * @param {string} options.sortField
- * @param {string} options.sortMethod - asc / desc
- * @param {Array} options.sortFields
- * @returns {Object} {error} | {sortField, sortMethod}
- * @todo Add description for the params
- */
 // eslint-disable-next-line class-methods-use-this
 const sortBy = (sort, options) => {
 	options = typeof options === 'object' ? options : {};
@@ -72,14 +60,7 @@ const sortBy = (sort, options) => {
 		});
 		return { sortField: sortFields, sortMethod: sortMethods };
 	}
-	/**
-	 * Description of the function.
-	 *
-	 * @private
-	 * @todo Add param-tag and descriptions
-	 * @todo Add @returns tag
-	 * @todo Add description for the function
-	 */
+
 	function prefixField(prefixSortedField) {
 		if (!prefixSortedField) {
 			return prefixSortedField;
@@ -93,14 +74,6 @@ const sortBy = (sort, options) => {
 		return prefixSortedField;
 	}
 
-	/**
-	 * Description of the function.
-	 *
-	 * @private
-	 * @todo Add param-tag and descriptions
-	 * @todo Add @returns tag
-	 * @todo Add description for the function
-	 */
 	function quoteField(quoteSortedField) {
 		if (quoteSortedField && options.quoteField) {
 			return `"${sortField}"`;
@@ -136,9 +109,6 @@ const sortBy = (sort, options) => {
 	};
 };
 
-/**
- * @todo Add description for the params
- */
 const sort = () => {};
 
 module.exports = {
