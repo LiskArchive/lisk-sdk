@@ -15,6 +15,7 @@
  */
 import { expect, test } from '@oclif/test';
 import * as transactions from '@liskhq/lisk-transactions';
+import * as validator from '@liskhq/lisk-validator';
 import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
@@ -42,7 +43,6 @@ describe('transaction:create:transfer', () => {
 
 	const printMethodStub = sandbox.stub();
 	const transactionUtilStub = {
-		validateAddress: sandbox.stub().returns(true),
 		convertLSKToBeddows: sandbox.stub().returns(defaultTransaction.amount),
 	};
 
@@ -60,6 +60,7 @@ describe('transaction:create:transfer', () => {
 				sandbox.stub().returns(defaultTransaction),
 			)
 			.stub(transactions, 'utils', transactionUtilStub)
+			.stub(validator, 'validateAddress', sandbox.stub().returns(true))
 			.stub(
 				inputUtils,
 				'getInputsFromSources',
@@ -89,7 +90,7 @@ describe('transaction:create:transfer', () => {
 		setupTest()
 			.command(['transaction:create:transfer', defaultAmount, defaultAddress])
 			.it('should create a transfer transaction', () => {
-				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
+				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
@@ -117,7 +118,7 @@ describe('transaction:create:transfer', () => {
 				'--data=Testing lisk transaction data.',
 			])
 			.it('should create a transfer transaction', () => {
-				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
+				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
@@ -145,7 +146,7 @@ describe('transaction:create:transfer', () => {
 				'--no-signature',
 			])
 			.it('should create a transfer transaction without signature', () => {
-				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
+				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
@@ -167,7 +168,7 @@ describe('transaction:create:transfer', () => {
 				'--passphrase=pass:123',
 			])
 			.it('should create a transfer transaction', () => {
-				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
+				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
@@ -196,7 +197,7 @@ describe('transaction:create:transfer', () => {
 				'--second-passphrase=pass:456',
 			])
 			.it('should create a transfer transaction', () => {
-				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
+				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(

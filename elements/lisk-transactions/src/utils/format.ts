@@ -13,10 +13,9 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
+import { isGreaterThanMaxTransactionAmount } from '@liskhq/lisk-validator';
 
 import { FIXED_POINT } from '../constants';
-
-import { isGreaterThanMaxTransactionAmount } from './validation';
 
 const BASE_10 = 10;
 const LISK_MAX_DECIMAL_POINTS = 8;

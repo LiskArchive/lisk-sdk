@@ -13,6 +13,10 @@
  *
  */
 import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	validateNetworkIdentifier,
+	validatePublicKeys,
+} from '@liskhq/lisk-validator';
 
 import { VoteTransaction } from './11_vote_transaction';
 import { TransactionJSON } from './transaction_types';
@@ -20,8 +24,6 @@ import {
 	createBaseTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	validateNetworkIdentifier,
-	validatePublicKeys,
 } from './utils';
 
 export interface CastVoteInputs {

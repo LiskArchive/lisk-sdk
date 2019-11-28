@@ -13,6 +13,7 @@
  *
  */
 import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	BaseTransaction,
@@ -22,7 +23,7 @@ import {
 import { SIGNATURE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import { getId, validator } from './utils';
+import { getId } from './utils';
 
 export interface SecondSignatureAsset {
 	readonly publicKey: string;
@@ -86,10 +87,13 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(secondSignatureAssetFormatSchema, this.asset);
+		const schemaErrors = validator.validate(
+			secondSignatureAssetFormatSchema,
+			this.asset,
+		);
 		const errors = convertToAssetError(
 			this.id,
-			validator.errors,
+			schemaErrors,
 		) as TransactionError[];
 
 		return errors;

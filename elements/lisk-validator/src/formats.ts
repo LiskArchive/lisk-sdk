@@ -8,11 +8,12 @@ import {
 	isNumberString,
 	isSignature,
 	isUsername,
+	isValidFee,
+	isValidNonTransferAmount,
+	isValidTransferAmount,
+	isValidTransferData,
 	validateAddress,
-	validateFee,
-	validateNonTransferAmount,
 	validatePublicKey,
-	validateTransferAmount,
 } from './validation';
 
 export const address = (data: string): boolean => {
@@ -58,17 +59,19 @@ export const emptyOrPublicKey = (data: string): boolean => {
 	}
 };
 
-export const fee = validateFee;
+export const fee = isValidFee;
 
 export const hex = isHexString;
 
 export const id = (data: string): boolean =>
 	isNumberString(data) && !isGreaterThanMaxTransactionId(new BigNum(data));
 
-export const nonTransferAmount = validateNonTransferAmount;
+export const nonTransferAmount = isValidNonTransferAmount;
 
 export const noNullCharacter = (data: string): boolean =>
 	!isNullCharacterIncluded(data);
+
+export const noNullByte = noNullCharacter;
 
 export const publicKey = (data: string): boolean => {
 	try {
@@ -97,6 +100,9 @@ export const signedPublicKey = (data: string): boolean => {
 	}
 };
 
-export const transferAmount = validateTransferAmount;
+export const transferAmount = isValidTransferAmount;
 
 export const username = isUsername;
+
+export const transferData = (data: string): boolean =>
+	!isNullCharacterIncluded(data) && isValidTransferData(data);
