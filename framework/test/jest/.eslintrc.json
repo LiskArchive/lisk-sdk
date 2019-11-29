@@ -3,6 +3,7 @@
 	"rules": {
 		"callback-return": "error",
 		"no-unused-expressions": "off",
-		"arrow-body-style": "off"
+		"arrow-body-style": "off",
+		"jest/no-test-callback": "off"
 	}
 }
