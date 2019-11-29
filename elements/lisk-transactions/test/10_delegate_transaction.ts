@@ -15,14 +15,20 @@
 import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
 import { DelegateTransaction } from '../src/10_delegate_transaction';
-import {
-	validDelegateAccount,
-	validDelegateTransaction,
-	validTransaction,
-} from '../fixtures';
+import { validDelegateAccount } from '../fixtures';
+import * as protocolSpecDelegateFixture from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
+import * as protocolSpecTransferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 import { Account, TransactionJSON } from '../src/transaction_types';
 
 describe('Delegate registration transaction class', () => {
+	const {
+		networkIdentifier,
+		transaction: validDelegateTransaction,
+	} = protocolSpecDelegateFixture.testCases.input;
+	const {
+		transaction: validTransaction,
+	} = protocolSpecTransferFixture.testCases.input;
+
 	let validTestTransaction: DelegateTransaction;
 	let sender: Account;
 	let storeAccountCacheStub: sinon.SinonStub;
@@ -31,7 +37,14 @@ describe('Delegate registration transaction class', () => {
 	let storeAccountFindStub: sinon.SinonStub;
 
 	beforeEach(async () => {
-		validTestTransaction = new DelegateTransaction(validDelegateTransaction);
+		validTestTransaction = new DelegateTransaction({
+			...validDelegateTransaction,
+			networkIdentifier,
+		});
+		validTestTransaction.sign(
+			protocolSpecDelegateFixture.testCases.input.account.passphrase,
+		);
+
 		sender = validDelegateAccount;
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
@@ -45,7 +58,9 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should set the delegate asset', async () => {
-			expect(validTestTransaction.asset.username).to.eql('0x0');
+			expect(validTestTransaction.asset.username).to.eql(
+				validDelegateTransaction.asset.username,
+			);
 		});
 
 		it('should not throw when asset is not valid string', async () => {
@@ -58,6 +73,11 @@ describe('Delegate registration transaction class', () => {
 			expect(
 				() => new DelegateTransaction(invalidDelegateTransactionData),
 			).not.to.throw();
+		});
+
+		it('should create instance of  DelegateTransaction when rawTransaction is empty', async () => {
+			const validEmptyTestTransaction = new DelegateTransaction(null);
+			expect(validEmptyTestTransaction).to.be.instanceOf(DelegateTransaction);
 		});
 	});
 
@@ -80,13 +100,15 @@ describe('Delegate registration transaction class', () => {
 
 		it('should return error when other transaction from same account has the same type', async () => {
 			const conflictTransaction = {
-				...validTransaction,
-				senderPublicKey: validDelegateTransaction.senderPublicKey,
-				type: 2,
+				...validDelegateTransaction,
+				senderPublicKey:
+					protocolSpecDelegateFixture.testCases.input.account.publicKey,
+				type: 10,
 			};
 			const { errors } = validTestTransaction.verifyAgainstOtherTransactions([
 				conflictTransaction,
 			] as ReadonlyArray<TransactionJSON>);
+
 			expect(errors).to.not.be.empty;
 		});
 	});

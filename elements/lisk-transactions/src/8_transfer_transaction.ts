@@ -18,6 +18,11 @@ import {
 	intToBuffer,
 	stringToBuffer,
 } from '@liskhq/lisk-cryptography';
+import {
+	isPositiveNumberString,
+	isValidTransferAmount,
+	validator,
+} from '@liskhq/lisk-validator';
 
 import {
 	BaseTransaction,
@@ -27,13 +32,7 @@ import {
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import {
-	isValidNumber,
-	validateTransferAmount,
-	validator,
-	verifyAmountBalance,
-	verifyBalance,
-} from './utils';
+import { verifyAmountBalance, verifyBalance } from './utils';
 
 export interface TransferAsset {
 	readonly data?: string;
@@ -84,7 +83,7 @@ export class TransferTransaction extends BaseTransaction {
 				data: rawAsset.data,
 				recipientId: rawAsset.recipientId,
 				amount: new BigNum(
-					isValidNumber(rawAsset.amount) ? rawAsset.amount : '0',
+					isPositiveNumberString(rawAsset.amount) ? rawAsset.amount : '0',
 				),
 			};
 		} else {
@@ -141,13 +140,13 @@ export class TransferTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
-		validator.validate(transferAssetFormatSchema, asset);
+		const schemaErrors = validator.validate(transferAssetFormatSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
-			validator.errors,
+			schemaErrors,
 		) as TransactionError[];
 
-		if (!validateTransferAmount(this.asset.amount.toString())) {
+		if (!isValidTransferAmount(this.asset.amount.toString())) {
 			errors.push(
 				new TransactionError(
 					'Amount must be a valid number in string format.',

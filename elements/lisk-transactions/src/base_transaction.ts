@@ -20,6 +20,7 @@ import {
 	hexToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	BYTESIZES,
@@ -34,18 +35,17 @@ import {
 	TransactionPendingError,
 } from './errors';
 import { createResponse, Status } from './response';
+import * as schemas from './schema';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
 	validateSenderIdAndPublicKey,
 	validateSignature,
-	validator,
 	verifyBalance,
 	verifyMultiSignatures,
 	verifySecondSignature,
 	verifySenderPublicKey,
 } from './utils';
-import * as schemas from './utils/validation/schema';
 
 export interface TransactionResponse {
 	readonly id: string;
@@ -620,10 +620,13 @@ export abstract class BaseTransaction {
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
 		const transaction = this.toJSON();
-		validator.validate(schemas.baseTransaction, transaction);
+		const schemaErrors = validator.validate(
+			schemas.baseTransaction,
+			transaction,
+		);
 		const errors = convertToTransactionError(
 			this.id,
-			validator.errors,
+			schemaErrors,
 		) as TransactionError[];
 
 		if (

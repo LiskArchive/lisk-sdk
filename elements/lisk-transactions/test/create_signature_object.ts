@@ -135,4 +135,32 @@ describe('#createSignatureObject', () => {
 			);
 		});
 	});
+
+	describe('when invalid transaction transaction is used', () => {
+		it('should throw an Error if type is not defined', () => {
+			const passphrase = 1;
+			return expect(() =>
+				createSignatureObject({
+					transaction: {} as any,
+					passphrase: (passphrase as unknown) as string,
+					networkIdentifier:
+						multisignatureFixture.testCases.input.networkIdentifier,
+				}),
+			).to.throw('Transaction type is required');
+		});
+	});
+
+	it('should throw an Error if type is invalid', () => {
+		const passphrase = 1;
+		return expect(() =>
+			createSignatureObject({
+				transaction: {
+					type: 1966,
+				} as any,
+				passphrase: (passphrase as unknown) as string,
+				networkIdentifier:
+					multisignatureFixture.testCases.input.networkIdentifier,
+			}),
+		).to.throw('Invalid transaction type.');
+	});
 });

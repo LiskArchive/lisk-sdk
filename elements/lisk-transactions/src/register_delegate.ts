@@ -12,10 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { validateNetworkIdentifier } from '@liskhq/lisk-validator';
+
 import { DelegateTransaction } from './10_delegate_transaction';
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction, validateNetworkIdentifier } from './utils';
+import { createBaseTransaction } from './utils';
 
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
@@ -47,16 +49,6 @@ export const registerDelegate = (
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { username, passphrase, secondPassphrase, networkIdentifier } = inputs;
-
-	if (!username || typeof username !== 'string') {
-		throw new Error('Please provide a username. Expected string.');
-	}
-
-	if (username.length > USERNAME_MAX_LENGTH) {
-		throw new Error(
-			`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
-		);
-	}
 
 	const transaction = {
 		...createBaseTransaction(inputs),
