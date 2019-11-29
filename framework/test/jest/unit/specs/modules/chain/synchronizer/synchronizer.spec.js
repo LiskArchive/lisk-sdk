@@ -208,11 +208,11 @@ describe('Synchronizer', () => {
 				await synchronizer.init();
 
 				// Assert
-				expect(loggerMock.info).nthCalledWith(
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
 					1,
 					'Restoring blocks from temporary table',
 				);
-				expect(loggerMock.info).nthCalledWith(2, 'Chain successfully restored');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Chain successfully restored');
 				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 				expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(2);
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
@@ -223,7 +223,7 @@ describe('Synchronizer', () => {
 				expect.assertions(blocksTempTableEntries.length + 5);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
-					expect(processorModule.processValidated).nthCalledWith(
+					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
 						await processorModule.deserialize(tempBlock),
 						{
@@ -267,11 +267,11 @@ describe('Synchronizer', () => {
 				await synchronizer.init();
 
 				// Assert
-				expect(loggerMock.info).nthCalledWith(
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
 					1,
 					'Restoring blocks from temporary table',
 				);
-				expect(loggerMock.info).nthCalledWith(2, 'Chain successfully restored');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Chain successfully restored');
 				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksTempTableEntries.length,
@@ -281,7 +281,7 @@ describe('Synchronizer', () => {
 				expect.assertions(blocksTempTableEntries.length + 4);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
-					expect(processorModule.processValidated).nthCalledWith(
+					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
 						await processorModule.deserialize(tempBlock),
 						{
@@ -508,8 +508,8 @@ describe('Synchronizer', () => {
 				aPeerId,
 			);
 			expect(syncMechanism2.run).not.toHaveBeenCalled();
-			expect(loggerMock.info).nthCalledWith(2, 'Triggering: Object');
-			expect(loggerMock.info).nthCalledWith(
+			expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Triggering: Object');
+			expect(loggerMock.info).toHaveBeenNthCalledWith(
 				3,
 				{
 					lastBlockHeight: blocksModule.lastBlock.height,

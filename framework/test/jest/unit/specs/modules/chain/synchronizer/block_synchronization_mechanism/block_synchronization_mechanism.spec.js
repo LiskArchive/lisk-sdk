@@ -1098,7 +1098,7 @@ describe('block_synchronization_mechanism', () => {
 						'Failed to apply obtained blocks from peer',
 					);
 
-					expect(loggerMock.debug).nthCalledWith(
+					expect(loggerMock.debug).toHaveBeenNthCalledWith(
 						15,
 						{
 							currentTip: blocksModule.lastBlock.id,
@@ -1107,7 +1107,7 @@ describe('block_synchronization_mechanism', () => {
 						'Current tip of the chain has preference over previous tip',
 					);
 
-					expect(loggerMock.debug).nthCalledWith(
+					expect(loggerMock.debug).toHaveBeenNthCalledWith(
 						16,
 						'Cleaning blocks temporary table',
 					);

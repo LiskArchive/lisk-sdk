@@ -452,15 +452,15 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call blocks entity', async () => {
-				expect(storageStub.entities.Block.isPersisted).not.toBeCalled();
+				expect(storageStub.entities.Block.isPersisted).not.toHaveBeenCalled();
 			});
 
 			it('should not call transactions entity', async () => {
-				expect(storageStub.entities.Transaction.get).not.toBeCalled();
+				expect(storageStub.entities.Transaction.get).not.toHaveBeenCalled();
 			});
 
 			it('should not call apply for the transaction', async () => {
-				expect(txApplySpy).not.toBeCalled();
+				expect(txApplySpy).not.toHaveBeenCalled();
 			});
 		});
 
@@ -513,7 +513,7 @@ describe('blocks/header', () => {
 					expect(errors).not.toBeEmpty();
 					expect(errors[0].message).toContain('is currently not allowed');
 				}
-				expect(txApplySpy).not.toBeCalled();
+				expect(txApplySpy).not.toHaveBeenCalled();
 			});
 		});
 
@@ -666,7 +666,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call account update', async () => {
-				expect(storageStub.entities.Account.upsert).not.toBeCalled();
+				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
 			it('should set the block to the last block', async () => {
@@ -698,7 +698,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call apply for the transaction', async () => {
-				expect(txApplySpy).not.toBeCalled();
+				expect(txApplySpy).not.toHaveBeenCalled();
 			});
 
 			it('should set the block to the last block', async () => {
@@ -808,12 +808,12 @@ describe('blocks/header', () => {
 			});
 
 			it('should call apply for the transaction', async () => {
-				expect(validTxApplySpy).toBeCalledTimes(1);
-				expect(validTx2ApplySpy).toBeCalledTimes(1);
+				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
+				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
 			});
 
 			it('should call account update', async () => {
-				expect(storageStub.entities.Account.upsert).toBeCalledTimes(4);
+				expect(storageStub.entities.Account.upsert).toHaveBeenCalledTimes(4);
 			});
 
 			it('should update vote weight on voted delegate', async () => {
@@ -874,7 +874,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should call account update', async () => {
-				expect(storageStub.entities.Account.upsert).toBeCalledTimes(103);
+				expect(storageStub.entities.Account.upsert).toHaveBeenCalledTimes(103);
 			});
 
 			it('should set the block to the last block', async () => {
@@ -895,7 +895,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call account update', async () => {
-				expect(storageStub.entities.Account.upsert).not.toBeCalled();
+				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 		});
 
@@ -923,7 +923,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call undo for the transaction', async () => {
-				expect(txUndoSpy).not.toBeCalled();
+				expect(txUndoSpy).not.toHaveBeenCalled();
 			});
 		});
 
@@ -998,12 +998,12 @@ describe('blocks/header', () => {
 			});
 
 			it('should call undo for the transaction', async () => {
-				expect(validTxUndoSpy).toBeCalledTimes(1);
-				expect(validTx2UndoSpy).toBeCalledTimes(1);
+				expect(validTxUndoSpy).toHaveBeenCalledTimes(1);
+				expect(validTx2UndoSpy).toHaveBeenCalledTimes(1);
 			});
 
 			it('should call account update', async () => {
-				expect(storageStub.entities.Account.upsert).toBeCalledTimes(4);
+				expect(storageStub.entities.Account.upsert).toHaveBeenCalledTimes(4);
 			});
 
 			it('should update vote weight on voted delegate', async () => {

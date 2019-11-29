@@ -92,7 +92,7 @@ describe('Loader', () => {
 				} catch (err) {
 					error = err;
 				}
-				expect(error).toBe(undefined);
+				expect(error).toBeUndefined();
 			});
 
 			it('should process the transaction with transactionPoolModule', async () => {
@@ -116,7 +116,7 @@ describe('Loader', () => {
 				} catch (err) {
 					error = err;
 				}
-				expect(error.length).toBe(1);
+				expect(error).toHaveLength(1);
 				expect(error[0].message).toBe(
 					"should have required property 'transactions'",
 				);

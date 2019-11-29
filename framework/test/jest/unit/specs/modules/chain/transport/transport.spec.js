@@ -465,7 +465,7 @@ describe('Transport', () => {
 				expect(blocksStub.getHighestCommonBlock).toHaveBeenCalledWith(
 					validData.ids,
 				);
-				expect(result).toBe(null);
+				expect(result).toBeNull();
 			});
 		});
 

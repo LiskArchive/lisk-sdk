@@ -68,7 +68,7 @@ describe('NetworkInfo', () => {
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(NetworkInfo.prototype.constructor.length).toEqual(1);
+			expect(NetworkInfo.prototype.constructor).toHaveLength(1);
 		});
 
 		it('should have called super', async () => {

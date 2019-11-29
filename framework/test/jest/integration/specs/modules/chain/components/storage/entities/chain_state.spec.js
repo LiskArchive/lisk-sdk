@@ -68,7 +68,7 @@ describe('ChainState', () => {
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(ChainState.prototype.constructor.length).toEqual(1);
+			expect(ChainState.prototype.constructor).toHaveLength(1);
 		});
 
 		it('should have called super', async () => {

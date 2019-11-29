@@ -67,7 +67,7 @@ describe('Application State', () => {
 		it('should initiate the application state', () => {
 			// Assert
 			expect(applicationState.logger).toBe(logger);
-			expect(applicationState.stateChannel).toBe(undefined);
+			expect(applicationState.stateChannel).toBeUndefined();
 			expect(applicationState.state).toEqual(mockedState);
 		});
 	});

@@ -68,7 +68,7 @@ describe('ForgerInfo', () => {
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(ForgerInfo.prototype.constructor.length).toEqual(1);
+			expect(ForgerInfo.prototype.constructor).toHaveLength(1);
 		});
 
 		it('should have called super', async () => {

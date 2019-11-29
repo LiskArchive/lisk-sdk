@@ -298,7 +298,7 @@ describe('ChildProcessChannel Channel', () => {
 			anotherChildProcessChannel.publish(validEventName, data);
 
 			// Assert
-			expect(anotherChildProcessChannel.pubSocket).toBe(undefined);
+			expect(anotherChildProcessChannel.pubSocket).toBeUndefined();
 		});
 	});
 
