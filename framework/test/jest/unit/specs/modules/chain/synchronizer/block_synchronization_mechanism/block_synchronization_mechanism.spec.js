@@ -44,8 +44,6 @@ const { newBlock } = require('../../../chain/blocks/utils');
 const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block');
 const peersList = require('./peers');
 
-const PEER_STATE_CONNECTED = 2;
-
 const ChannelMock = jest.genMockFromModule(
 	'../../../../../../../../src/controller/channels/in_memory_channel',
 );
@@ -207,9 +205,7 @@ describe('block_synchronization_mechanism', () => {
 		);
 
 		when(channelMock.invoke)
-			.calledWith('network:getPeers', {
-				state: PEER_STATE_CONNECTED,
-			})
+			.calledWith('network:getConnectedPeers')
 			.mockResolvedValue(peersList.connectedPeers);
 
 		// minActiveHeightsOfDelegates is provided to deleteBlocks function
@@ -390,9 +386,7 @@ describe('block_synchronization_mechanism', () => {
 
 				for (const requiredProp of requiredProps) {
 					when(channelMock.invoke)
-						.calledWith('network:getPeers', {
-							state: PEER_STATE_CONNECTED,
-						})
+						.calledWith('network:getConnectedPeers')
 						.mockResolvedValueOnce(
 							peersList.connectedPeers.map(peer => {
 								const incompatiblePeer = cloneDeep(peer);
@@ -422,9 +416,7 @@ describe('block_synchronization_mechanism', () => {
 
 			it('should throw an error if the list of connected peers is empty', async () => {
 				when(channelMock.invoke)
-					.calledWith('network:getPeers', {
-						state: PEER_STATE_CONNECTED,
-					})
+					.calledWith('network:getConnectedPeers')
 					.mockResolvedValueOnce([]);
 
 				try {
@@ -445,14 +437,13 @@ describe('block_synchronization_mechanism', () => {
 
 			it('should throw an error if the peer tip does not have priority over current tip', async () => {
 				when(channelMock.invoke)
-					.calledWith('network:getPeers', {
-						state: PEER_STATE_CONNECTED,
-					})
+					.calledWith('network:getConnectedPeers')
 					.mockResolvedValueOnce([
 						...peersList.expectedSelection.map(peer => {
-							peer.maxHeightPrevoted = 0;
-							peer.height = 0;
-							return peer;
+							const updatedPeer = peer;
+							updatedPeer.maxHeightPrevoted = 0;
+							updatedPeer.height = 0;
+							return updatedPeer;
 						}),
 					]);
 
