@@ -13,21 +13,21 @@
  *
  */
 import { expect } from 'chai';
-import { TransactionError } from '../src/errors';
+import { TransactionError, TransactionPendingError } from '../src/errors';
 
 describe('errors', () => {
 	describe('TransactionError', () => {
 		let TxError: TransactionError;
 
-		describe('#constructor', () => {
-			beforeEach(() => {
-				TxError = new TransactionError(
-					'error message',
-					'transaction id',
-					'.dataPath',
-				);
-			});
+		beforeEach(() => {
+			TxError = new TransactionError(
+				'error message',
+				'transaction id',
+				'.dataPath',
+			);
+		});
 
+		describe('#constructor', () => {
 			it('should create a new instance of TransactionError', () => {
 				return expect(TxError).to.be.instanceof(TransactionError);
 			});
@@ -51,6 +51,63 @@ describe('errors', () => {
 				return expect(TxError)
 					.to.have.property('dataPath')
 					.and.be.a('string');
+			});
+
+			it('should show provided actual property when present', () => {
+				TxError = new TransactionError(
+					'error message',
+					'transaction id',
+					'.dataPath',
+					'__ACTUAL_PROPERTY_1__',
+				);
+				return expect(TxError.toString()).to.match(
+					/actual: __ACTUAL_PROPERTY_1__/,
+				);
+			});
+
+			it('should show provided expected property when present', () => {
+				TxError = new TransactionError(
+					'error message',
+					'transaction id',
+					'.dataPath',
+					'actual_value_provided',
+					'__EXPECTED_PROPERTY_1__',
+				);
+				return expect(TxError.toString()).to.match(
+					/expected: __EXPECTED_PROPERTY_1__/,
+				);
+			});
+		});
+
+		describe('#toString', () => {
+			it('should return a string from a TransactionError', () => {
+				return expect(TxError.toString())
+					.to.be.eql(
+						'Transaction: transaction id failed at .dataPath: error message',
+					)
+					.and.be.an('string');
+			});
+		});
+	});
+
+	describe('TransactionPendingError', () => {
+		let TxPendingError: TransactionPendingError;
+
+		beforeEach(() => {
+			TxPendingError = new TransactionPendingError(
+				'error message',
+				'transaction id',
+				'.aDataPath',
+			);
+		});
+
+		describe('#toString', () => {
+			it('should return a string from a TransactionPendingError', () => {
+				return expect(TxPendingError.toString())
+					.to.be.an('string')
+					.to.be.eql(
+						'Transaction: transaction id failed at .aDataPath: error message ',
+					);
 			});
 		});
 	});
