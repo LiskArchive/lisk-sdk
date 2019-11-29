@@ -13,6 +13,7 @@
  *
  */
 import { stringToBuffer } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	BaseTransaction,
@@ -23,7 +24,6 @@ import { VOTE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput } from './utils';
-import { validator } from './utils/validation';
 
 const PREFIX_UPVOTE = '+';
 const PREFIX_UNVOTE = '-';
@@ -151,10 +151,10 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
-		validator.validate(voteAssetFormatSchema, asset);
+		const schemaErrors = validator.validate(voteAssetFormatSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
-			validator.errors,
+			schemaErrors,
 		) as TransactionError[];
 
 		return errors;

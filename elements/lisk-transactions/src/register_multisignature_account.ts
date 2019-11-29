@@ -12,6 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	isValidInteger,
+	validateKeysgroup,
+	validateNetworkIdentifier,
+} from '@liskhq/lisk-validator';
+
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import {
 	MULTISIGNATURE_FEE,
@@ -21,13 +27,7 @@ import {
 	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
 import { TransactionJSON } from './transaction_types';
-import {
-	createBaseTransaction,
-	isValidInteger,
-	prependPlusToPublicKeys,
-	validateKeysgroup,
-	validateNetworkIdentifier,
-} from './utils';
+import { createBaseTransaction, prependPlusToPublicKeys } from './utils';
 
 export interface RegisterMultisignatureInputs {
 	readonly keysgroup: ReadonlyArray<string>;
@@ -71,7 +71,11 @@ const validateInputs = ({
 		);
 	}
 
-	validateKeysgroup(keysgroup);
+	validateKeysgroup(
+		keysgroup,
+		MULTISIGNATURE_MIN_KEYSGROUP,
+		MULTISIGNATURE_MAX_KEYSGROUP,
+	);
 
 	validateNetworkIdentifier(networkIdentifier);
 };

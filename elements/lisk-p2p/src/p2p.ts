@@ -58,7 +58,7 @@ import {
 	INVALID_CONNECTION_URL_REASON,
 	PeerKind,
 } from './constants';
-import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
+import { PeerInboundHandshakeError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -304,24 +304,11 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
-			try {
+			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
-				// Should be added to newPeer list first and since it is connected so we will upgrade it
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-
-				const updatedPeerInfo = {
-					internalState: error.peerInfo.internalState,
-					sharedState: peerInfo.sharedState,
-					peerId: peerInfo.peerId,
-					ipAddress: peerInfo.ipAddress,
-					wsPort: peerInfo.wsPort,
-				};
-				this._peerBook.upgradePeer(updatedPeerInfo);
 			}
+
+			this._peerBook.upgradePeer(peerInfo);
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
@@ -332,7 +319,7 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			if (
-				this._peerBook.getPeer(peerInfo) &&
+				this._peerBook.hasPeer(peerInfo) &&
 				(peerInfo.internalState as P2PInternalState).peerKind !==
 					PeerKind.WHITELISTED_PEER
 			) {
@@ -379,29 +366,17 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
-			try {
+			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
-				// Since the connection is tried already hence upgrade the peer
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-
-				const updatedPeerInfo = {
-					...error.peerInfo,
-					sharedState: peerInfo.sharedState
-						? { ...peerInfo.sharedState }
-						: error.peerInfo.sharedState,
-				};
-				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
-				if (isUpdated) {
-					// If found and updated successfully then upgrade the peer
-					this._peerBook.upgradePeer(updatedPeerInfo);
-				}
 			}
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
+
+			const isUpdated = this._peerBook.updatePeer(peerInfo);
+			if (isUpdated) {
+				// If found and updated successfully then upgrade the peer
+				this._peerBook.upgradePeer(peerInfo);
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
+			}
 		};
 
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
@@ -436,7 +411,7 @@ export class P2P extends EventEmitter {
 			};
 
 			if (
-				this._peerBook.getPeer({
+				this._peerBook.hasPeer({
 					ipAddress: bannedPeerInfo.ipAddress,
 					wsPort: bannedPeerInfo.wsPort,
 					peerId,
@@ -465,31 +440,17 @@ export class P2P extends EventEmitter {
 			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
+			if (!this._peerBook.hasPeer(detailedPeerInfo) && !isBlacklisted) {
+				this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				// Only emit event when a peer is discovered for the first time.
+				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 
-			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
-				try {
-					this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
-					// Re-emit the message to allow it to bubble up the class hierarchy.
-					// Only emit event when a peer is discovered for the first time.
-					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
-
-					// Don't update peerInfo when we already have connection with that peer
-					if (!this._peerPool.hasPeer(error.peerInfo.peerId)) {
-						const updatedPeerInfo = {
-							...detailedPeerInfo,
-							sharedState: detailedPeerInfo.sharedState
-								? { ...detailedPeerInfo.sharedState }
-								: error.peerInfo.sharedState,
-						};
-						const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
-						if (isUpdated) {
-							// If found and updated successfully then upgrade the peer
-							this._peerBook.upgradePeer(updatedPeerInfo);
-						}
+				if (!this._peerPool.hasPeer(detailedPeerInfo.peerId)) {
+					const isUpdated = this._peerBook.updatePeer(detailedPeerInfo);
+					if (isUpdated) {
+						// If found and updated successfully then upgrade the peer
+						this._peerBook.upgradePeer(detailedPeerInfo);
 					}
 				}
 			}
@@ -956,13 +917,14 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				try {
-					this._peerBook.addPeer(incomingPeerInfo);
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
+				if (this._peerBook.hasPeer(incomingPeerInfo)) {
+					return;
 				}
+
+				this._peerBook.addPeer({
+					...incomingPeerInfo,
+					sourceAddress: socket.remoteAddress,
+				});
 			},
 		);
 
@@ -1119,16 +1081,11 @@ export class P2P extends EventEmitter {
 		// Add peers to tried peers if want to re-use previously tried peers
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
 		newPeersToAdd.forEach(peerInfo => {
-			try {
+			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-
-				this._peerBook.upgradePeer(error.peerInfo);
 			}
+
+			this._peerBook.upgradePeer(peerInfo);
 		});
 	}
 

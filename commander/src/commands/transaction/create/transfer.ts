@@ -14,6 +14,7 @@
  *
  */
 import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
+import { validateAddress } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -99,7 +100,7 @@ export default class TransferCommand extends BaseCommand {
 			this.userConfig.api.network,
 		);
 
-		transactionUtils.validateAddress(address);
+		validateAddress(address);
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
 		const processFunction = processInputs(

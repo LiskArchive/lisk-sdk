@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { validator } from '@liskhq/lisk-validator';
+
 import {
 	BaseTransaction,
 	StateStore,
@@ -20,7 +22,6 @@ import {
 import { DELEGATE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
-import { validator } from './utils';
 
 export interface DelegateAsset {
 	readonly username: string;
@@ -90,10 +91,13 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(delegateAssetFormatSchema, this.asset);
+		const schemaErrors = validator.validate(
+			delegateAssetFormatSchema,
+			this.asset,
+		);
 		const errors = convertToAssetError(
 			this.id,
-			validator.errors,
+			schemaErrors,
 		) as TransactionError[];
 
 		return errors;
@@ -102,6 +106,7 @@ export class DelegateTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
+
 		const usernameExists = store.account.find(
 			(account: Account) => account.username === this.asset.username,
 		);
