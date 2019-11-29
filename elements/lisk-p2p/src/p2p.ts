@@ -89,7 +89,6 @@ import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
-	P2PEnhancedPeerInfo,
 	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
@@ -304,7 +303,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
-		this._handleOutboundPeerConnect = (peerInfo: P2PEnhancedPeerInfo) => {
+		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
 			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 			}

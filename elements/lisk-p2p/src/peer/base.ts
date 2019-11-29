@@ -49,7 +49,6 @@ import {
 } from '../events';
 import { P2PRequest } from '../p2p_request';
 import {
-	P2PEnhancedPeerInfo,
 	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
@@ -359,7 +358,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PEnhancedPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
@@ -392,7 +391,7 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async discoverPeers(): Promise<ReadonlyArray<P2PEnhancedPeerInfo>> {
+	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		const discoveredPeerInfoList = await this.fetchPeers();
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);

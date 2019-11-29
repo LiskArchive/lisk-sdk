@@ -94,37 +94,6 @@ describe('Peers base list', () => {
 		});
 	});
 
-	describe('#calculateBucket', () => {
-		beforeEach(() => {
-			samplePeers = initPeerInfoList();
-			peerListObj = new BaseList(peerListConfig);
-			peerListObj.addPeer(samplePeers[0]);
-		});
-
-		it('should get a bucket and bucketId by ipAddress(es)', () => {
-			const bucketId = getBucketId({
-				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
-				secret: DEFAULT_RANDOM_SECRET,
-				peerType: PEER_TYPE.TRIED_PEER,
-				targetAddress: samplePeers[0].ipAddress,
-				sourceAddress: samplePeers[1].ipAddress,
-			});
-
-			const {
-				bucket,
-				bucketId: calculatedBucketId,
-			} = peerListObj.calculateBucket(
-				samplePeers[0].ipAddress,
-				samplePeers[1].ipAddress,
-			);
-
-			expect(calculatedBucketId).to.eql(bucketId);
-			expect(bucket).to.eql(
-				(peerListObj as any).bucketIdToBucket.get(bucketId),
-			);
-		});
-	});
-
 	describe('#getPeer', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
@@ -335,6 +304,37 @@ describe('Peers base list', () => {
 				const success2 = peerListObj.failedConnectionAction(samplePeers[0]);
 				expect(success2).to.be.false;
 			});
+		});
+	});
+
+	describe('#calculateBucket', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
+			peerListObj.addPeer(samplePeers[0]);
+		});
+
+		it('should get a bucket and bucketId by ipAddress(es)', () => {
+			const bucketId = getBucketId({
+				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+				targetAddress: samplePeers[0].ipAddress,
+				sourceAddress: samplePeers[1].ipAddress,
+			});
+
+			const {
+				bucket,
+				bucketId: calculatedBucketId,
+			} = peerListObj.calculateBucket(
+				samplePeers[0].ipAddress,
+				samplePeers[1].ipAddress,
+			);
+
+			expect(calculatedBucketId).to.eql(bucketId);
+			expect(bucket).to.eql(
+				(peerListObj as any).bucketIdToBucket.get(bucketId),
+			);
 		});
 	});
 
