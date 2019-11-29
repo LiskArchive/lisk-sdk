@@ -23,10 +23,18 @@ import { Status } from '../src/response';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 describe('Second signature registration transaction class', () => {
-	let validRegisterSecondSignatureTransaction =
-		protocolSpecSecondSignatureFixture.testCases.input.transaction;
-	let validTransaction =
-		protocolSpecTransferFixture.testCases.input.transaction;
+	const {
+		networkIdentifier,
+		transaction: validRegisterSecondSignatureTransaction,
+	} = protocolSpecSecondSignatureFixture.testCases.input;
+	const {
+		transaction: validTransaction,
+	} = protocolSpecTransferFixture.testCases.input;
+
+	// let validRegisterSecondSignatureTransaction =
+	// 	protocolSpecSecondSignatureFixture.testCases.input.transaction;
+	// let validTransaction =
+	// 	protocolSpecTransferFixture.testCases.input.transaction;
 
 	let validTestTransaction: SecondSignatureTransaction;
 	let storeAccountCacheStub: sinon.SinonStub;
@@ -45,8 +53,7 @@ describe('Second signature registration transaction class', () => {
 	beforeEach(async () => {
 		validTestTransaction = new SecondSignatureTransaction({
 			...validRegisterSecondSignatureTransaction,
-			networkIdentifier:
-				protocolSpecSecondSignatureFixture.testCases.input.networkIdentifier,
+			networkIdentifier,
 		});
 		validTestTransaction.sign(
 			protocolSpecSecondSignatureFixture.testCases.input.account.passphrase,

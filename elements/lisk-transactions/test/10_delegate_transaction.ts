@@ -21,10 +21,13 @@ import * as protocolSpecTransferFixture from '../fixtures/transaction_network_id
 import { Account, TransactionJSON } from '../src/transaction_types';
 
 describe('Delegate registration transaction class', () => {
-	let validDelegateTransaction =
-		protocolSpecDelegateFixture.testCases.input.transaction;
-	let validTransaction =
-		protocolSpecTransferFixture.testCases.input.transaction;
+	const {
+		networkIdentifier,
+		transaction: validDelegateTransaction,
+	} = protocolSpecDelegateFixture.testCases.input;
+	const {
+		transaction: validTransaction,
+	} = protocolSpecTransferFixture.testCases.input;
 
 	let validTestTransaction: DelegateTransaction;
 	let sender: Account;
@@ -36,8 +39,7 @@ describe('Delegate registration transaction class', () => {
 	beforeEach(async () => {
 		validTestTransaction = new DelegateTransaction({
 			...validDelegateTransaction,
-			networkIdentifier:
-				protocolSpecDelegateFixture.testCases.input.networkIdentifier,
+			networkIdentifier,
 		});
 		validTestTransaction.sign(
 			protocolSpecDelegateFixture.testCases.input.account.passphrase,
@@ -56,7 +58,9 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should set the delegate asset', async () => {
-			expect(validTestTransaction.asset.username).to.eql('new_delegate');
+			expect(validTestTransaction.asset.username).to.eql(
+				validDelegateTransaction.asset.username,
+			);
 		});
 
 		it('should not throw when asset is not valid string', async () => {
