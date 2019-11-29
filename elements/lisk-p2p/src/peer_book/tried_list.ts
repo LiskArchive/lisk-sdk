@@ -14,60 +14,37 @@
  */
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
 import { P2PPeerInfo } from '../p2p_types';
+import { PEER_TYPE } from '../utils';
 
-import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
+import { BaseList, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {
 	readonly maxReconnectTries?: number;
 }
 
-interface TriedListInfo extends CustomPeerInfo {
-	// tslint:disable-next-line:readonly-keyword
-	numOfConnectionFailures: number;
-}
-
-type TriedListMap = Map<number, Map<string, TriedListInfo>>;
-
 export class TriedList extends BaseList {
 	private readonly _maxReconnectTries: number;
 
 	public constructor({
-		peerBucketCount,
+		numOfBuckets,
+		bucketSize,
 		maxReconnectTries,
 		secret,
-		peerBucketSize,
 		peerType,
 	}: TriedListConfig) {
 		super({
 			secret,
-			peerBucketCount,
-			peerBucketSize,
+			numOfBuckets,
+			bucketSize,
 			peerType,
 		});
-
+		this.type = PEER_TYPE.TRIED_PEER;
 		this._maxReconnectTries = maxReconnectTries
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 
-		this.initPeerList(this.peerMap as TriedListMap);
+		this.initBuckets(this.bucketIdToBucket);
 	}
-
-	// Override init peer list
-	public initPeerList(peerMap: Map<number, Map<string, TriedListInfo>>): void {
-		// Init the Map with all the buckets
-		for (const bucketId of [
-			...new Array(this.peerListConfig.peerBucketCount).keys(),
-		]) {
-			peerMap.set(bucketId, new Map<string, TriedListInfo>());
-		}
-	}
-
-	// Override init peer info
-	public initPeerInfo = (peerInfo: P2PPeerInfo): TriedListInfo => ({
-		peerInfo,
-		numOfConnectionFailures: 0,
-		dateAdded: new Date(),
-	});
 
 	public get triedPeerConfig(): TriedListConfig {
 		return {
@@ -76,29 +53,27 @@ export class TriedList extends BaseList {
 		};
 	}
 
-	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const bucket = this.getBucket(incomingPeerInfo.ipAddress);
+		// Bucket calculation does not require sourceAddress and is deterministic
+		const { bucket } = this.calculateBucket(incomingPeerInfo.ipAddress);
 		const incomingPeerId = incomingPeerInfo.peerId;
 		const foundPeer = bucket.get(incomingPeerId);
 		if (!foundPeer) {
 			return false;
 		}
-		const {
-			peerInfo,
-			numOfConnectionFailures,
-			dateAdded,
-		} = foundPeer as TriedListInfo;
+		const { numOfConnectionFailures } = foundPeer;
 
-		if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
-			bucket.delete(incomingPeerId);
+		if ((numOfConnectionFailures as number) + 1 >= this._maxReconnectTries) {
+			const removedFromBucket = bucket.delete(incomingPeerId);
+			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(
+				incomingPeerId,
+			);
 
-			return true;
+			return removedFromBucket && removedFromPeerLookup;
 		}
 		const updatedTriedPeerInfo = {
-			peerInfo,
-			numOfConnectionFailures: numOfConnectionFailures + 1,
-			dateAdded,
+			...foundPeer,
+			numOfConnectionFailures: (numOfConnectionFailures as number) + 1,
 		};
 
 		bucket.set(incomingPeerId, updatedTriedPeerInfo);

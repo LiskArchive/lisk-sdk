@@ -19,6 +19,7 @@ import {
 	PeerKind,
 } from '../constants';
 import {
+	P2PEnhancedPeerInfo,
 	P2PInternalState,
 	P2PPeerInfo,
 	PeerLists,
@@ -49,6 +50,7 @@ export const assignInternalInfo = (
 				connectionKind: ConnectionKind.NONE,
 				peerKind: PeerKind.NONE,
 		  };
+
 export const sanitizeIncomingPeerInfo = (
 	rawPeerInfo: unknown,
 ): P2PPeerInfo | undefined => {
@@ -79,6 +81,20 @@ export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
 	ipAddress: peerInfo.ipAddress,
 	wsPort: peerInfo.wsPort,
 });
+
+export const sanitizeEnhancedPeerInfo = (
+	peerInfo: P2PEnhancedPeerInfo,
+): P2PPeerInfo => {
+	const {
+		dateAdded,
+		numOfConnectionFailures,
+		sourceAddress,
+		bucketId,
+		...sharedPeerInfo
+	} = peerInfo;
+
+	return sharedPeerInfo;
+};
 
 export const sanitizePeerLists = (
 	lists: PeerLists,
