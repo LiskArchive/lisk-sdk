@@ -84,32 +84,6 @@ export class BaseList {
 		return peerListMap;
 	}
 
-	public calculateBucket(
-		targetAddress: string,
-		sourceAddress?: string,
-	): BucketInfo {
-		const bucketId = getBucketId({
-			secret: this.peerListConfig.secret,
-			peerType: this.peerListConfig.peerType,
-			targetAddress,
-			sourceAddress:
-				this.type === PEER_TYPE.NEW_PEER ? sourceAddress : undefined,
-			bucketCount: this.peerListConfig.numOfBuckets,
-		});
-
-		return { bucketId, bucket: this.bucketIdToBucket.get(bucketId) as Bucket };
-	}
-
-	public getPeer(incomingPeerId: string): P2PPeerInfo | undefined {
-		const peerInfo = this.peerIdToPeerInfo.get(incomingPeerId);
-
-		if (!peerInfo) {
-			return undefined;
-		}
-
-		return sanitizeEnhancedPeerInfo(peerInfo);
-	}
-
 	public hasPeer(incomingPeerId: string): boolean {
 		return this.peerIdToPeerInfo.has(incomingPeerId);
 	}
@@ -144,6 +118,16 @@ export class BaseList {
 		this.peerIdToPeerInfo.set(incomingPeerInfo.peerId, internalPeerInfo);
 
 		return evictedPeer;
+	}
+
+	public getPeer(incomingPeerId: string): P2PPeerInfo | undefined {
+		const peerInfo = this.peerIdToPeerInfo.get(incomingPeerId);
+
+		if (!peerInfo) {
+			return undefined;
+		}
+
+		return sanitizeEnhancedPeerInfo(peerInfo);
 	}
 
 	public updatePeer(incomingPeerInfo: P2PEnhancedPeerInfo): boolean {
@@ -187,6 +171,22 @@ export class BaseList {
 	// This action is called when a peer is disconnected
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
 		return this.removePeer(incomingPeerInfo);
+	}
+
+	public calculateBucket(
+		targetAddress: string,
+		sourceAddress?: string,
+	): BucketInfo {
+		const bucketId = getBucketId({
+			secret: this.peerListConfig.secret,
+			peerType: this.peerListConfig.peerType,
+			targetAddress,
+			sourceAddress:
+				this.type === PEER_TYPE.NEW_PEER ? sourceAddress : undefined,
+			bucketCount: this.peerListConfig.numOfBuckets,
+		});
+
+		return { bucketId, bucket: this.bucketIdToBucket.get(bucketId) as Bucket };
 	}
 
 	protected getBucket(peerId: string): Bucket | undefined {
