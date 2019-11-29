@@ -127,9 +127,12 @@ export const selectPeersForConnection = (
 	}
 
 	// LIP004 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md#peer-discovery-and-selection
-	const x =
-		input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
 	const minimumProbability = 0.5;
+	const x =
+		input.triedPeers.length + input.newPeers.length < 100
+			? minimumProbability
+			: input.triedPeers.length /
+			  (input.triedPeers.length + input.newPeers.length);
 	const r = Math.max(x, minimumProbability);
 
 	const shuffledTriedPeers = shuffle(input.triedPeers);

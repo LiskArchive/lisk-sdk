@@ -351,6 +351,35 @@ describe('peer selector', () => {
 			});
 		});
 
+		describe('when there are less than 100 peers', () => {
+			it('should return all peers', () => {
+				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
+				const newPeers = initPeerInfoListWithSuffix('111.112.114', 25);
+
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 48,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(48);
+
+				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
+
+				let triedCount = 0;
+				let newCount = 0;
+				for (const peer of selectedPeers) {
+					if (triedPeers.find(triedPeer => peer.peerId === triedPeer.peerId)) {
+						triedCount++;
+					}
+					newCount++;
+				}
+				expect(triedCount).to.gte(23);
+				expect(newCount).to.gte(23);
+			});
+		});
+
 		describe('when there are multiple peer from same IP with different height', () => {
 			it('should return only unique IPs', () => {
 				let uniqIpAddresses: Array<string> = [];
