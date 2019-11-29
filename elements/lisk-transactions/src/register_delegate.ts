@@ -48,16 +48,6 @@ export const registerDelegate = (
 	validateInputs(inputs);
 	const { username, passphrase, secondPassphrase, networkIdentifier } = inputs;
 
-	if (!username || typeof username !== 'string') {
-		throw new Error('Please provide a username. Expected string.');
-	}
-
-	if (username.length > USERNAME_MAX_LENGTH) {
-		throw new Error(
-			`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
-		);
-	}
-
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 10,

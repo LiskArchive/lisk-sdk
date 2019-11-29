@@ -102,6 +102,7 @@ export class DelegateTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
+
 		const usernameExists = store.account.find(
 			(account: Account) => account.username === this.asset.username,
 		);
