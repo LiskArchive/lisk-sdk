@@ -348,9 +348,9 @@ export class P2P extends EventEmitter {
 			if (isUpdated) {
 				// If found and updated successfully then upgrade the peer
 				this._peerBook.upgradePeer(peerInfo);
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 			}
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 		};
 
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
