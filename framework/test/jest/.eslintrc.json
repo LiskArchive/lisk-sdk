@@ -1,5 +1,5 @@
 {
-	"extends": ["lisk-base/jest"],
+	"extends": ["../../.eslintrc.json", "lisk-base/jest"],
 	"rules": {
 		"callback-return": "error",
 		"no-unused-expressions": "off",
