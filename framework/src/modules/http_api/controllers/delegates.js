@@ -159,7 +159,7 @@ async function _aggregateBlocksReward(filter) {
 		);
 	} catch (err) {
 		logger.error(err.stack);
-		throw new Error('Blocks#aggregateBlocksReward error');
+		throw 'Blocks#aggregateBlocksReward error';
 	}
 
 	let data = delegateBlocksRewards[0];
