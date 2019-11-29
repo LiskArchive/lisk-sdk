@@ -13,10 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	castVotes,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { castVotes } from '@liskhq/lisk-transactions';
+import { validatePublicKeys } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -52,8 +50,8 @@ const processVotes = (votes: string) =>
 		.filter(Boolean)
 		.map(vote => vote.trim());
 
-const validatePublicKeys = (inputs: ReadonlyArray<string>) => {
-	transactionUtils.validatePublicKeys(inputs);
+const getValidatedPublicKeys = (inputs: ReadonlyArray<string>) => {
+	validatePublicKeys(inputs);
 
 	return inputs;
 };
@@ -109,10 +107,10 @@ export default class VoteCommand extends BaseCommand {
 			: undefined;
 
 		const validatedVotes = processedVotesInput
-			? validatePublicKeys(processVotes(processedVotesInput))
+			? getValidatedPublicKeys(processVotes(processedVotesInput))
 			: [];
 		const validatedUnvotes = processedUnvotesInput
-			? validatePublicKeys(processVotes(processedUnvotesInput))
+			? getValidatedPublicKeys(processVotes(processedUnvotesInput))
 			: [];
 
 		const networkIdentifier = getNetworkIdentifierWithInput(

@@ -15,6 +15,7 @@
  */
 import { expect, test } from '@oclif/test';
 import * as transactions from '@liskhq/lisk-transactions';
+import * as validator from '@liskhq/lisk-validator';
 import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
@@ -51,9 +52,6 @@ describe('transaction:create:vote', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const transactionUtilStub = {
-		validatePublicKeys: sandbox.stub().returns(true),
-	};
 
 	const setupStub = () =>
 		test
@@ -68,7 +66,7 @@ describe('transaction:create:vote', () => {
 				'castVotes',
 				sandbox.stub().returns(defaultTransaction),
 			)
-			.stub(transactions, 'utils', transactionUtilStub)
+			.stub(validator, 'validatePublicKeys', sandbox.stub().returns(true))
 			.stub(
 				inputModule,
 				'getData',
@@ -103,7 +101,7 @@ describe('transaction:create:vote', () => {
 					},
 					secondPassphrase: undefined,
 				});
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
@@ -129,9 +127,7 @@ describe('transaction:create:vote', () => {
 					secondPassphrase: undefined,
 				});
 				expect(inputModule.getData).to.be.calledWithExactly('file:vote.txt');
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
-					fileVotes,
-				);
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
@@ -159,7 +155,7 @@ describe('transaction:create:vote', () => {
 					},
 					secondPassphrase: undefined,
 				});
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultUnvote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
@@ -185,9 +181,7 @@ describe('transaction:create:vote', () => {
 					secondPassphrase: undefined,
 				});
 				expect(inputModule.getData).to.be.calledWithExactly('file:unvote.txt');
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
-					fileVotes,
-				);
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
@@ -229,10 +223,10 @@ describe('transaction:create:vote', () => {
 					},
 					secondPassphrase: undefined,
 				});
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
 				);
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultUnvote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
@@ -260,12 +254,12 @@ describe('transaction:create:vote', () => {
 				'should create a transaction with votes and unvotes without signature',
 				() => {
 					expect(inputUtils.getInputsFromSources).not.to.be.called;
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultVote);
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultUnvote);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultVote,
+					);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultUnvote,
+					);
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: undefined,
@@ -298,12 +292,12 @@ describe('transaction:create:vote', () => {
 						},
 						secondPassphrase: undefined,
 					});
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultVote);
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultUnvote);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultVote,
+					);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultUnvote,
+					);
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
@@ -340,12 +334,12 @@ describe('transaction:create:vote', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultVote);
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultUnvote);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultVote,
+					);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultUnvote,
+					);
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,

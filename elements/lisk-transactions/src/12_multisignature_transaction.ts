@@ -17,6 +17,7 @@ import {
 	getAddressFromPublicKey,
 	hexToBuffer,
 } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	BaseTransaction,
@@ -33,7 +34,7 @@ import {
 } from './errors';
 import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { validateMultisignatures, validateSignature, validator } from './utils';
+import { validateMultisignatures, validateSignature } from './utils';
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
@@ -150,10 +151,13 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		validator.validate(multisignatureAssetFormatSchema, this.asset);
+		const schemaErrors = validator.validate(
+			multisignatureAssetFormatSchema,
+			this.asset,
+		);
 		const errors = convertToAssetError(
 			this.id,
-			validator.errors,
+			schemaErrors,
 		) as TransactionError[];
 
 		if (errors.length > 0) {
