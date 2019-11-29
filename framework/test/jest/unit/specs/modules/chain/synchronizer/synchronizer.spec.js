@@ -212,7 +212,10 @@ describe('Synchronizer', () => {
 					1,
 					'Restoring blocks from temporary table',
 				);
-				expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Chain successfully restored');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
+					2,
+					'Chain successfully restored',
+				);
 				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 				expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(2);
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
@@ -271,7 +274,10 @@ describe('Synchronizer', () => {
 					1,
 					'Restoring blocks from temporary table',
 				);
-				expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Chain successfully restored');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
+					2,
+					'Chain successfully restored',
+				);
 				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksTempTableEntries.length,
@@ -400,16 +406,12 @@ describe('Synchronizer', () => {
 				run: jest.fn().mockResolvedValue({}),
 			};
 
-			try {
-				// eslint-disable-next-line no-unused-vars
-				const aSynchronizer = new Synchronizer({
-					mechanisms: [aSyncingMechanism],
-				});
-			} catch (error) {
-				expect(error.message).toEqual(
-					'Mechanism Object should implement "isValidFor" method',
-				);
-			}
+			expect(
+				() =>
+					new Synchronizer({
+						mechanisms: [aSyncingMechanism],
+					}),
+			).toThrow('Mechanism Object should implement "isValidFor" method');
 		});
 
 		it('should enforce mandatory interfaces for passed mechanisms (run)', () => {
@@ -417,16 +419,12 @@ describe('Synchronizer', () => {
 				isValidFor: jest.fn().mockResolvedValue(false),
 			};
 
-			try {
-				// eslint-disable-next-line no-unused-vars
-				const aSynchronizer = new Synchronizer({
-					mechanisms: [aSyncingMechanism],
-				});
-			} catch (error) {
-				expect(error.message).toEqual(
-					'Mechanism Object should implement "run" method',
-				);
-			}
+			expect(
+				() =>
+					new Synchronizer({
+						mechanisms: [aSyncingMechanism],
+					}),
+			).toThrow('Mechanism Object should implement "run" method');
 		});
 	});
 
@@ -482,18 +480,21 @@ describe('Synchronizer', () => {
 		});
 
 		it('should reject with error if block validation failed', async () => {
-			try {
-				await synchronizer.run(
+			await expect(
+				synchronizer.run(
 					{
 						...aReceivedBlock,
 						blockSignature: '12312334534536645656',
 					},
 					aPeerId,
-				);
-			} catch (error) {
-				expect(error[0].message).toEqual('should match format "signature"');
-				expect(synchronizer.active).toBeFalsy();
-			}
+				),
+			).rejects.toMatchObject([
+				expect.objectContaining({
+					message: 'should match format "signature"',
+				}),
+			]);
+
+			expect(synchronizer.active).toBeFalsy();
 		});
 
 		it('should determine the sync mechanism for received block and run it', async () => {

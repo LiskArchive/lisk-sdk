@@ -405,46 +405,25 @@ describe('Transport', () => {
 		describe('when schema validation fails', () => {
 			it('should throw an error with wrong ID format', async () => {
 				const invalidData = {
-					ids: ['randome', 'string'],
+					noKey: ['random', 'string'],
 				};
-				expect.assertions(2);
-				try {
-					await transport.handleRPCGetGetHighestCommonBlock(
+				await expect(
+					transport.handleRPCGetGetHighestCommonBlock(
 						invalidData,
 						defaultPeerId,
-					);
-				} catch (error) {
-					expect(error.message).toContain('should match format');
-					expect(channelStub.invoke).toHaveBeenCalledWith(
-						'network:applyPenalty',
-						{
-							peerId: defaultPeerId,
-							penalty: 100,
-						},
-					);
-				}
-			});
-
-			it('should throw an error with wrong ID format', async () => {
-				const invalidData = {
-					noKey: ['randome', 'string'],
-				};
-				expect.assertions(2);
-				try {
-					await transport.handleRPCGetGetHighestCommonBlock(
-						invalidData,
-						defaultPeerId,
-					);
-				} catch (error) {
-					expect(error.message).toContain('should have required property ');
-					expect(channelStub.invoke).toHaveBeenCalledWith(
-						'network:applyPenalty',
-						{
-							peerId: defaultPeerId,
-							penalty: 100,
-						},
-					);
-				}
+					),
+				).rejects.toMatchObject(
+					expect.objectContaining({
+						message: expect.stringContaining('should have required property'),
+					}),
+				);
+				expect(channelStub.invoke).toHaveBeenCalledWith(
+					'network:applyPenalty',
+					{
+						peerId: defaultPeerId,
+						penalty: 100,
+					},
+				);
 			});
 		});
 
@@ -542,28 +521,26 @@ describe('Transport', () => {
 
 		describe('when invalid schema is received', () => {
 			it('should apply penalty', async () => {
-				expect.assertions(1);
-				try {
-					await transport.handleEventPostSignatures({}, defaultPeerId);
-				} catch (errors) {
-					expect(channelStub.invoke).toHaveBeenCalledWith(
-						'network:applyPenalty',
-						{
-							peerId: defaultPeerId,
-							penalty: 100,
-						},
-					);
-				}
+				await expect(
+					transport.handleEventPostSignatures({}, defaultPeerId),
+				).toReject();
+				expect(channelStub.invoke).toHaveBeenCalledWith(
+					'network:applyPenalty',
+					{
+						peerId: defaultPeerId,
+						penalty: 100,
+					},
+				);
 			});
 
 			it('should throw an error', async () => {
-				expect.assertions(2);
-				try {
-					await transport.handleEventPostSignatures({}, defaultPeerId);
-				} catch (errors) {
-					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toContain('should have required property');
-				}
+				await expect(
+					transport.handleEventPostSignatures({}, defaultPeerId),
+				).rejects.toMatchObject([
+					expect.objectContaining({
+						message: expect.stringContaining('should have required property'),
+					}),
+				]);
 			});
 		});
 
@@ -578,34 +555,26 @@ describe('Transport', () => {
 			};
 
 			it('should apply penalty', async () => {
-				expect.assertions(1);
-				try {
-					await transport.handleEventPostSignatures(
-						invalidSignature,
-						defaultPeerId,
-					);
-				} catch (errors) {
-					expect(channelStub.invoke).toHaveBeenCalledWith(
-						'network:applyPenalty',
-						{
-							peerId: defaultPeerId,
-							penalty: 100,
-						},
-					);
-				}
+				await expect(
+					transport.handleEventPostSignatures(invalidSignature, defaultPeerId),
+				).toReject();
+				expect(channelStub.invoke).toHaveBeenCalledWith(
+					'network:applyPenalty',
+					{
+						peerId: defaultPeerId,
+						penalty: 100,
+					},
+				);
 			});
 
 			it('should throw an error', async () => {
-				expect.assertions(2);
-				try {
-					await transport.handleEventPostSignatures(
-						invalidSignature,
-						defaultPeerId,
-					);
-				} catch (errors) {
-					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toContain('should match format');
-				}
+				await expect(
+					transport.handleEventPostSignatures(invalidSignature, defaultPeerId),
+				).rejects.toMatchObject([
+					expect.objectContaining({
+						message: expect.stringContaining('should match format'),
+					}),
+				]);
 			});
 		});
 
@@ -686,33 +655,28 @@ describe('Transport', () => {
 			const ids = new Array(30).fill(0).map((_, v) => `100000000000000000${v}`);
 
 			it('should throw an error', async () => {
-				expect.assertions(1);
-				try {
-					await transport.handleRPCGetTransactions(
+				await expect(
+					transport.handleRPCGetTransactions(
 						{ transactionIds: ids },
 						defaultPeerId,
-					);
-				} catch (error) {
-					expect(error.message).toContain('Received invalid request');
-				}
+					),
+				).rejects.toThrow('Received invalid request');
 			});
 
 			it('should apply penalty', async () => {
-				expect.assertions(1);
-				try {
-					await transport.handleRPCGetTransactions(
+				await expect(
+					transport.handleRPCGetTransactions(
 						{ transactionIds: ids },
 						defaultPeerId,
-					);
-				} catch (error) {
-					expect(channelStub.invoke).toHaveBeenCalledWith(
-						'network:applyPenalty',
-						{
-							peerId: defaultPeerId,
-							penalty: 100,
-						},
-					);
-				}
+					),
+				).toReject();
+				expect(channelStub.invoke).toHaveBeenCalledWith(
+					'network:applyPenalty',
+					{
+						peerId: defaultPeerId,
+						penalty: 100,
+					},
+				);
 			});
 		});
 
@@ -853,34 +817,26 @@ describe('Transport', () => {
 
 		describe('when invalid schema is received', () => {
 			it('should apply penalty', async () => {
-				expect.assertions(1);
-				try {
-					await transport.handleEventPostTransactionsAnnouncement(
-						{},
-						defaultPeerId,
-					);
-				} catch (errors) {
-					expect(channelStub.invoke).toHaveBeenCalledWith(
-						'network:applyPenalty',
-						{
-							peerId: defaultPeerId,
-							penalty: 100,
-						},
-					);
-				}
+				await expect(
+					transport.handleEventPostTransactionsAnnouncement({}, defaultPeerId),
+				).toReject();
+				expect(channelStub.invoke).toHaveBeenCalledWith(
+					'network:applyPenalty',
+					{
+						peerId: defaultPeerId,
+						penalty: 100,
+					},
+				);
 			});
 
 			it('should throw an error', async () => {
-				expect.assertions(2);
-				try {
-					await transport.handleEventPostTransactionsAnnouncement(
-						{},
-						defaultPeerId,
-					);
-				} catch (errors) {
-					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toContain('should have required property');
-				}
+				await expect(
+					transport.handleEventPostTransactionsAnnouncement({}, defaultPeerId),
+				).rejects.toMatchObject([
+					expect.objectContaining({
+						message: expect.stringContaining('should have required property'),
+					}),
+				]);
 			});
 		});
 

@@ -58,11 +58,9 @@ describe('Sequence', () => {
 
 	describe('#add', () => {
 		it('should throw an error if the input is not async function', async () => {
-			try {
-				sequence.add(() => true);
-			} catch (error) {
-				expect(error.message).toEqual('Worker must be an async function.');
-			}
+			expect(() => sequence.add(() => true)).toThrow(
+				'Worker must be an async function.',
+			);
 		});
 
 		it('should enqueue the input to the sequence', async () => {
@@ -72,7 +70,7 @@ describe('Sequence', () => {
 	});
 
 	describe('#tick', () => {
-		it('should resolve undefine when there is no task in the queue', async () => {
+		it('should resolve undefined when there is no task in the queue', async () => {
 			const result = await sequence._tick();
 			expect(result).toBeUndefined();
 		});

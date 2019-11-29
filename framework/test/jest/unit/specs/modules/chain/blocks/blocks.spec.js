@@ -274,23 +274,23 @@ describe('blocks', () => {
 				const errorMessage = 'Failed to load last block';
 				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
 				expect.assertions(1);
-				// Act
-				try {
-					await blocksInstance.init();
-				} catch (error) {
-					// Assert
-					expect(error.message).toEqual(errorMessage);
-				}
+				// Act && Assert
+				await expect(blocksInstance.init()).rejects.toThrow(errorMessage);
 			});
 			// TODO: The tests are minimal due to the changes we expect as part of https://github.com/LiskHQ/lisk-sdk/issues/4131
 			describe('when Block.get returns rows', () => {
 				it('should return the storage read of the first row', async () => {
-					// Act
+					// Arrange
 					stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 						genesisBlock,
 						newBlock(),
 					]);
+					// Act
 					await blocksInstance.init();
+
+					// Assert
+					// @TODO discuss
+					expect(true).toBeTruthy();
 				});
 			});
 		});
@@ -670,12 +670,9 @@ describe('blocks', () => {
 	describe('loadBlocksFromLastBlockId', () => {
 		describe('when called without lastBlockId', () => {
 			it('should reject with error', async () => {
-				expect.assertions(1);
-				try {
-					await blocksInstance.loadBlocksFromLastBlockId();
-				} catch (err) {
-					expect(err.message).toBe('lastBlockId needs to be specified');
-				}
+				await expect(
+					blocksInstance.loadBlocksFromLastBlockId(),
+				).rejects.toThrow('lastBlockId needs to be specified');
 			});
 		});
 
@@ -717,12 +714,10 @@ describe('blocks', () => {
 			});
 
 			it('should reject with error', async () => {
-				expect.assertions(1);
-				try {
-					await blocksInstance.loadBlocksFromLastBlockId('block-id');
-				} catch (err) {
-					expect(err.message).toBe('Invalid lastBlockId requested: block-id');
-				}
+				// Act && Assert
+				await expect(
+					blocksInstance.loadBlocksFromLastBlockId('block-id'),
+				).rejects.toThrow('Invalid lastBlockId requested: block-id');
 			});
 		});
 
@@ -819,13 +814,10 @@ describe('blocks', () => {
 				new Error('anError'),
 			);
 
-			try {
-				// Act
-				await blocksInstance.getHighestCommonBlock(ids);
-			} catch (e) {
-				// Assert
-				expect(e.message).toEqual('Failed to fetch the highest common block');
-			}
+			// Act && Assert
+			await expect(blocksInstance.getHighestCommonBlock(ids)).rejects.toThrow(
+				'Failed to fetch the highest common block',
+			);
 		});
 	});
 });

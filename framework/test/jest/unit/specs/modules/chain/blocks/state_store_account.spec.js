@@ -89,13 +89,8 @@ describe('state store / account', () => {
 		});
 
 		it('should throw an error if not exist', async () => {
-			// Act
-			expect.assertions(1);
-			try {
-				stateStore.account.get('123L');
-			} catch (err) {
-				expect(err.message).toContain('does not exist');
-			}
+			// Act && Assert
+			expect(() => stateStore.account.get('123L')).toThrow('does not exist');
 		});
 	});
 

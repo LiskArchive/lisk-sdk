@@ -1472,6 +1472,8 @@ describe('processor', () => {
 					await processor.applyGenesisBlock(genesisBlock, true);
 					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 				} catch (error) {
+					// @todo check which one function is throwing
+					// eslint-disable-next-line jest/no-try-expect
 					expect(error.message).toBe(
 						'Genesis block is not persisted but skipping to save',
 					);

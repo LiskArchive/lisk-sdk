@@ -132,16 +132,9 @@ describe('blocks/header', () => {
 				block = newBlock({ previousBlockId: undefined, height: 3 });
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (error) {
-					expect(error.message).toContain('Invalid previous block');
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).rejects.toThrow('Invalid previous block');
 			});
 		});
 		describe('when signature is invalid', () => {
@@ -150,16 +143,9 @@ describe('blocks/header', () => {
 				block = newBlock({ blockSignature: 'aaaa' });
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (error) {
-					expect(error.message).toContain('Invalid block signature');
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).rejects.toThrow('Invalid block signature');
 			});
 		});
 
@@ -169,12 +155,9 @@ describe('blocks/header', () => {
 				block = newBlock();
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(block, blockBytes, 5);
-				} catch (error) {
-					expect(error.message).toContain('Invalid block reward');
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, 5),
+				).rejects.toThrow('Invalid block reward');
 			});
 		});
 
@@ -193,16 +176,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: [invalidTx] });
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (errors) {
-					expect(errors).toHaveLength(1);
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).rejects.toHaveLength(1);
 			});
 		});
 
@@ -223,16 +199,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs });
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (error) {
-					expect(error.message).toContain('Payload length is too long');
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).rejects.toThrow('Payload length is too long');
 			});
 		});
 
@@ -252,18 +221,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs });
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (error) {
-					expect(error.message).toContain(
-						'Number of transactions exceeds maximum per block',
-					);
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).rejects.toThrow('Number of transactions exceeds maximum per block');
 			});
 		});
 
@@ -283,18 +243,11 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs, numberOfTransactions: 10 });
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (error) {
-					expect(error.message).toContain(
-						'Included transactions do not match block transactions count',
-					);
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).rejects.toThrow(
+					'Included transactions do not match block transactions count',
+				);
 			});
 		});
 
@@ -314,16 +267,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs, payloadHash: '1234567890' });
 				blockBytes = getBytes(block);
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (error) {
-					expect(error.message).toContain('Invalid payload hash');
-				}
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).rejects.toThrow('Invalid payload hash');
 			});
 		});
 
@@ -343,17 +289,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs });
 				blockBytes = getBytes(block);
 				// Act & assert
-				let err;
-				try {
-					await blocksInstance.validateBlockHeader(
-						block,
-						blockBytes,
-						defaultReward,
-					);
-				} catch (error) {
-					err = error;
-				}
-				expect(err).toBeUndefined();
+				await expect(
+					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+				).toResolve();
 			});
 		});
 	});
@@ -364,12 +302,9 @@ describe('blocks/header', () => {
 				// Arrange
 				block = newBlock({ previousBlockId: '123' });
 				// Act & assert
-				expect.assertions(1);
-				try {
-					await blocksInstance.verifyInMemory(block, blocksInstance.lastBlock);
-				} catch (error) {
-					expect(error.message).toContain('Invalid previous block');
-				}
+				await expect(
+					blocksInstance.verifyInMemory(block, blocksInstance.lastBlock),
+				).rejects.toThrow('Invalid previous block');
 			});
 		});
 
@@ -503,16 +438,19 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call apply for the transaction and throw error', async () => {
-				// Act
+				// Arrange
 				const stateStore = new StateStore(storageStub);
-				try {
-					await blocksInstance.verify(block, stateStore, {
+
+				// Act && Assert
+				await expect(
+					blocksInstance.verify(block, stateStore, {
 						skipExistingCheck: true,
-					});
-				} catch (errors) {
-					expect(errors).not.toBeEmpty();
-					expect(errors[0].message).toContain('is currently not allowed');
-				}
+					}),
+				).rejects.toMatchObject([
+					expect.objectContaining({
+						message: expect.stringContaining('is currently not allowed'),
+					}),
+				]);
 				expect(txApplySpy).not.toHaveBeenCalled();
 			});
 		});
@@ -539,17 +477,18 @@ describe('blocks/header', () => {
 			it('should not call apply for the transaction and throw error', async () => {
 				// Act
 				const stateStore = new StateStore(storageStub);
-				expect.assertions(2);
-				try {
-					await blocksInstance.verify(block, stateStore, {
+
+				await expect(
+					blocksInstance.verify(block, stateStore, {
 						skipExistingCheck: true,
-					});
-				} catch (errors) {
-					expect(errors).not.toBeEmpty();
-					expect(errors[0].message).toContain(
-						'Account does not have enough LSK',
-					);
-				}
+					}),
+				).rejects.toMatchObject([
+					expect.objectContaining({
+						message: expect.stringContaining(
+							'Account does not have enough LSK',
+						),
+					}),
+				]);
 			});
 		});
 
@@ -606,16 +545,15 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call apply for the transaction and throw error', async () => {
-				// Act
+				// Arrange
 				const stateStore = new StateStore(storageStub);
-				expect.assertions(1);
-				try {
-					await blocksInstance.verify(block, stateStore, {
+
+				// Act && Assert
+				await expect(
+					blocksInstance.verify(block, stateStore, {
 						skipExistingCheck: false,
-					});
-				} catch (error) {
-					expect(error.message).toContain('already exists');
-				}
+					}),
+				).rejects.toThrow('already exists');
 			});
 		});
 
@@ -638,18 +576,21 @@ describe('blocks/header', () => {
 			});
 
 			it('should not call apply for the transaction and throw error', async () => {
-				// Act
+				// Arrange
 				const stateStore = new StateStore(storageStub);
-				expect.assertions(1);
-				try {
-					await blocksInstance.verify(block, stateStore, {
+
+				// Act && Assert
+				await expect(
+					blocksInstance.verify(block, stateStore, {
 						skipExistingCheck: false,
-					});
-				} catch (errors) {
-					expect(errors[0].message).toContain(
-						'Transaction is already confirmed',
-					);
-				}
+					}),
+				).rejects.toMatchObject([
+					expect.objectContaining({
+						message: expect.stringContaining(
+							'Transaction is already confirmed',
+						),
+					}),
+				]);
 			});
 		});
 	});
@@ -729,15 +670,15 @@ describe('blocks/header', () => {
 			});
 
 			it('should throw error', async () => {
-				expect.assertions(2);
-				try {
-					await blocksInstance.apply(block, stateStore);
-				} catch (errors) {
-					expect(errors).not.toBeEmpty();
-					expect(errors[0].message).toContain(
-						'Account does not have enough LSK',
-					);
-				}
+				await expect(
+					blocksInstance.apply(block, stateStore),
+				).rejects.toMatchObject([
+					expect.objectContaining({
+						message: expect.stringContaining(
+							'Account does not have enough LSK',
+						),
+					}),
+				]);
 			});
 
 			it('should not set the block to the last block', async () => {

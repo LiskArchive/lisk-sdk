@@ -150,17 +150,11 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invoke(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invoke(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${
+					actionData.name
+				}' is not registered to bus.`,
+			);
 		});
 
 		it('should throw error if module does not exist', async () => {
@@ -173,17 +167,11 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invoke(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invoke(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${
+					actionData.name
+				}' is not registered to bus.`,
+			);
 		});
 	});
 
@@ -198,17 +186,11 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invokePublic(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invokePublic(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${
+					actionData.name
+				}' is not registered to bus.`,
+			);
 		});
 
 		it('should throw error if module does not exist', async () => {
@@ -221,17 +203,11 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invokePublic(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invokePublic(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${
+					actionData.name
+				}' is not registered to bus.`,
+			);
 		});
 
 		it('should throw error if action is not public', async () => {
@@ -253,17 +229,11 @@ describe('Bus', () => {
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
-			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invokePublic(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not allowed because it's not public.`,
-				);
-			}
+			await expect(bus.invokePublic(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${
+					actionData.name
+				}' is not allowed because it's not public.`,
+			);
 		});
 	});
 
