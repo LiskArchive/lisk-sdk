@@ -21,14 +21,6 @@ const { shuffle } = require('lodash');
 const PEER_STATE_CONNECTED = 'connected';
 const PEER_STATE_DISCONNECTED = 'disconnected';
 
-/**
- * Sorts peers.
- *
- * @todo Add @param tags
- * @todo Add @returns tag
- * @todo Add description of the function
- */
-
 const sortPeers = (field, asc) => (a, b) => {
 	// Match the default JavaScript sort order.
 	if (a[field] === b[field]) {
@@ -78,13 +70,6 @@ const sortPeers = (field, asc) => (a, b) => {
 	return -1;
 };
 
-/**
- * Returns peers by filter.
- * @param {Array} peers
- * @param {Object} filter
- * @returns {int} count
- * @todo Add description for the params
- */
 const filterByParams = (peers, filters) => {
 	const allowedFields = [
 		'ip',
@@ -151,11 +136,6 @@ const filterByParams = (peers, filters) => {
 	return filteredPeers;
 };
 
-/**
- * Returns list of consolidated peers
- * @param {Object}
- * @todo Add description for the params
- */
 const consolidatePeers = (connectedPeers = [], disconnectedPeers = []) => {
 	// Assign state 2 to the connected peers
 	const connectedList = [...connectedPeers].map(peer => {
