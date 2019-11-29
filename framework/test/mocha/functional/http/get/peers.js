@@ -121,6 +121,8 @@ describe('GET /peers', () => {
 	});
 
 	describe('pass data from a real peer', () => {
+		const PEER_STATE_CONNECTED = 'connected';
+
 		it(`using a valid httpPort = ${
 			validHeaders.httpPort
 		} should return the result`, async () => {
@@ -135,7 +137,7 @@ describe('GET /peers', () => {
 			validHeaders.state
 		} should return the result`, async () => {
 			return peersEndpoint
-				.makeRequest({ state: validHeaders.state }, 200)
+				.makeRequest({ state: PEER_STATE_CONNECTED }, 200)
 				.then(res => {
 					expect(res.body.data[0].state).to.be.eql('connected');
 				});

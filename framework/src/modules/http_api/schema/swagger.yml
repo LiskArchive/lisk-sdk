@@ -1052,6 +1052,9 @@ parameters:
     in: query
     description: Current state of the network
     type: string
+    enum:
+      - connected
+      - disconnected
   height:
     name: height
     in: query
@@ -2068,9 +2071,11 @@ definitions:
       state:
         type: string
         example: 'connected'
+        enum:
+          - connected
+          - disconnected
         description: |
           The state of the Peer.
-          Available values: Connected, Disconnected
       height:
         type: integer
         example: 123
