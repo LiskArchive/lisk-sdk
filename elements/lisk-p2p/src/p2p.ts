@@ -56,6 +56,7 @@ import {
 	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
+	PeerKind,
 } from './constants';
 import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
 import {
@@ -88,6 +89,7 @@ import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
+	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -100,6 +102,7 @@ import {
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
+	assignInternalInfo,
 	constructPeerId,
 	getByteSize,
 	sanitizeInitialPeerInfo,
@@ -206,6 +209,7 @@ export class P2P extends EventEmitter {
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
+	private readonly _secret: number;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
@@ -236,6 +240,7 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
+		this._secret = config.secret ? config.secret : DEFAULT_RANDOM_SECRET;
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers
@@ -262,13 +267,14 @@ export class P2P extends EventEmitter {
 				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
 				wsPort: config.nodeInfo.wsPort,
 			},
+			this._secret,
 		);
 
 		this._config = config;
 		this._isActive = false;
 		this._hasConnected = false;
 		this._peerBook = new PeerBook({
-			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
+			secret: this._secret,
 		});
 		this._initializePeerBook();
 		this._bannedPeers = new Set();
@@ -299,7 +305,7 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
 			try {
-				this._peerBook.addPeer(peerInfo);
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 				// Should be added to newPeer list first and since it is connected so we will upgrade it
 				this._peerBook.upgradePeer(peerInfo);
 			} catch (error) {
@@ -325,10 +331,11 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-				peer => peer.peerId === peerInfo.peerId,
-			);
-			if (this._peerBook.getPeer(peerInfo) && !isWhitelisted) {
+			if (
+				this._peerBook.getPeer(peerInfo) &&
+				(peerInfo.internalState as P2PInternalState).peerKind !==
+					PeerKind.WHITELISTED_PEER
+			) {
 				this._peerBook.downgradePeer(peerInfo);
 			}
 
@@ -337,11 +344,31 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
+			const { peerInfo } = closePacket;
+			// Update connection kind when closing connection
+			if (this._peerBook.getPeer(closePacket.peerInfo)) {
+				const updatedPeer = {
+					...peerInfo,
+					internalState: assignInternalInfo(peerInfo, this._secret),
+				};
+
+				this._peerBook.updatePeer(updatedPeer);
+			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+			const { peerInfo } = closePacket;
+			// Update connection kind when closing connection
+			if (this._peerBook.getPeer(closePacket.peerInfo)) {
+				const updatedPeer = {
+					...peerInfo,
+					internalState: assignInternalInfo(peerInfo, this._secret),
+				};
+
+				this._peerBook.updatePeer(updatedPeer);
+			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
@@ -353,7 +380,7 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
 			try {
-				this._peerBook.addPeer(peerInfo);
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 				// Since the connection is tried already hence upgrade the peer
 				this._peerBook.upgradePeer(peerInfo);
 			} catch (error) {
@@ -441,7 +468,7 @@ export class P2P extends EventEmitter {
 
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
 				try {
-					this._peerBook.addPeer(detailedPeerInfo);
+					this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
 					// Re-emit the message to allow it to bubble up the class hierarchy.
 					// Only emit event when a peer is discovered for the first time.
 					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
@@ -651,6 +678,72 @@ export class P2P extends EventEmitter {
 		);
 	}
 
+	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
+		if (
+			this._sanitizedPeerLists.blacklistedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.BLACKLISTED_PEER,
+				},
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.fixedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.FIXED_PEER,
+				},
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.whitelisted.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.WHITELISTED_PEER,
+				},
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.seedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.SEED_PEER,
+				},
+			};
+		}
+
+		return {
+			...peerInfo,
+			internalState: {
+				...assignInternalInfo(peerInfo, this._secret),
+				peerKind: PeerKind.NONE,
+			},
+		};
+	}
+
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'handshake',
@@ -776,21 +869,46 @@ export class P2P extends EventEmitter {
 					...restOfQueryObject
 				} = queryObject;
 
-				const incomingPeerInfo: P2PPeerInfo = {
-					sharedState: {
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
-					},
-					internalState: {
-						advertiseAddress: advertiseAddress !== 'false',
-						connectionKind: ConnectionKind.INBOUND,
-					},
+				const peerInPeerBook = this._peerBook.getPeer({
 					peerId,
 					ipAddress: socket.remoteAddress,
 					wsPort: remoteWSPort,
-				};
+				});
+
+				const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
+					? {
+							...peerInPeerBook,
+							internalState: {
+								...(peerInPeerBook.internalState
+									? peerInPeerBook.internalState
+									: assignInternalInfo(peerInPeerBook, this._secret)),
+								advertiseAddress: advertiseAddress !== 'false',
+								connectionKind: ConnectionKind.INBOUND,
+							},
+					  }
+					: this._assignPeerKind({
+							sharedState: {
+								...restOfQueryObject,
+								...queryOptions,
+								height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+								protocolVersion: queryObject.protocolVersion,
+							},
+							internalState: {
+								...assignInternalInfo(
+									{
+										peerId,
+										ipAddress: socket.remoteAddress,
+										wsPort: remoteWSPort,
+									},
+									this._secret,
+								),
+								advertiseAddress: advertiseAddress !== 'false',
+								connectionKind: ConnectionKind.INBOUND,
+							},
+							peerId,
+							ipAddress: socket.remoteAddress,
+							wsPort: remoteWSPort,
+					  });
 
 				try {
 					validatePeerInfo(
@@ -1002,7 +1120,7 @@ export class P2P extends EventEmitter {
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
 		newPeersToAdd.forEach(peerInfo => {
 			try {
-				this._peerBook.addPeer(peerInfo);
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 				this._peerBook.upgradePeer(peerInfo);
 			} catch (error) {
 				if (!(error instanceof ExistingPeerError)) {
