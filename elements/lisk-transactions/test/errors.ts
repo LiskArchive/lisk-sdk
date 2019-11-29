@@ -58,9 +58,11 @@ describe('errors', () => {
 					'error message',
 					'transaction id',
 					'.dataPath',
-					'actual property',
+					'__ACTUAL_PROPERTY_1__',
 				);
-				return expect(TxError.toString()).to.match(/actual: actual property/);
+				return expect(TxError.toString()).to.match(
+					/actual: __ACTUAL_PROPERTY_1__/,
+				);
 			});
 
 			it('should show provided expected property when present', () => {
@@ -68,11 +70,11 @@ describe('errors', () => {
 					'error message',
 					'transaction id',
 					'.dataPath',
-					'actual property',
-					'expected property',
+					'actual_value_provided',
+					'__EXPECTED_PROPERTY_1__',
 				);
 				return expect(TxError.toString()).to.match(
-					/expected: expected property/,
+					/expected: __EXPECTED_PROPERTY_1__/,
 				);
 			});
 		});
