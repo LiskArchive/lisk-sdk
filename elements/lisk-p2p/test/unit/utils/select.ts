@@ -352,7 +352,7 @@ describe('peer selector', () => {
 		});
 
 		describe('when there are less than 100 peers', () => {
-			it('should return all peers', () => {
+			it('should return peers uniformly from both lists', () => {
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 25);
 
