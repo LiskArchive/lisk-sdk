@@ -354,16 +354,16 @@ describe('peer selector', () => {
 		describe('when there are less than 100 peers', () => {
 			it('should return peers uniformly from both lists', () => {
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
-				const newPeers = initPeerInfoListWithSuffix('111.112.114', 25);
+				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
 				const selectedPeers = selectPeersForConnection({
 					triedPeers,
 					newPeers,
-					peerLimit: 48,
+					peerLimit: 50,
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(48);
+					.of.length(50);
 
 				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
 
