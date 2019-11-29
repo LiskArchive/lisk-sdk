@@ -167,7 +167,7 @@ describe('ChainState', () => {
 		});
 
 		it('should resolve with error when invoked without key', async () => {
-			expect(ChainStateEntity.getKey()).rejects.toThrow(
+			await expect(ChainStateEntity.getKey()).rejects.toThrow(
 				'Must provide the key to get',
 			);
 		});
@@ -183,13 +183,13 @@ describe('ChainState', () => {
 
 	describe('setKey', () => {
 		it('should resolve with error when invoked without key', async () => {
-			expect(ChainStateEntity.setKey()).rejects.toThrow(
+			await expect(ChainStateEntity.setKey()).rejects.toThrow(
 				'Must provide the key to set',
 			);
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			expect(ChainStateEntity.setKey('myKey')).rejects.toThrow(
+			await expect(ChainStateEntity.setKey('myKey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
