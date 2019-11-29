@@ -49,6 +49,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	INTENTIONAL_DISCONNECT_CODE,
 	DEFAULT_SEND_PEER_LIMIT,
+	PeerKind,
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
 import { RequestFailError, SendFailError } from '../../src';
@@ -811,10 +812,12 @@ describe('peerPool', () => {
 	describe('#filterPeersByCategory', () => {
 		const originalPeers = [...new Array(10).keys()].map(i => ({
 			id: i,
-			netgroup: i,
-			latency: i,
-			responseRate: i % 2 ? 0 : 1,
-			connectTime: i,
+			internalState: {
+				netgroup: i,
+				latency: i,
+				responseRate: i % 2 ? 0 : 1,
+				connectTime: i,
+			},
 		}));
 
 		it('should protect peers with highest netgroup value when sorted by ascending', async () => {
@@ -825,7 +828,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect(peer.netgroup).to.be.greaterThan(1);
+				expect(peer.internalState.netgroup).to.be.greaterThan(1);
 			});
 		});
 
@@ -837,7 +840,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect(peer.latency).to.be.lessThan(3);
+				expect(peer.internalState.latency).to.be.lessThan(3);
 			});
 		});
 
@@ -848,7 +851,10 @@ describe('peerPool', () => {
 				protectBy: PROTECT_BY.HIGHEST,
 			});
 
-			expect(filteredPeers.filter(p => p.responseRate === 1).length).to.eql(2);
+			expect(
+				filteredPeers.filter((p: any) => p.internalState.responseRate === 1)
+					.length,
+			).to.eql(2);
 		});
 
 		it('should protect peers with lowest connectTime value when sorted by descending', async () => {
@@ -859,7 +865,7 @@ describe('peerPool', () => {
 			});
 
 			filteredPeers.forEach(peer => {
-				expect(peer.connectTime).to.be.lessThan(2);
+				expect(peer.internalState.connectTime).to.be.lessThan(2);
 			});
 		});
 	});
@@ -874,10 +880,13 @@ describe('peerPool', () => {
 		beforeEach(async () => {
 			originalPeers = [...new Array(100).keys()].map(i => ({
 				id: i,
-				netgroup: i,
-				latency: i,
-				responseRate: i % 2 ? 0 : 1,
-				connectTime: i,
+				internalState: {
+					netgroup: i,
+					latency: i,
+					responseRate: i % 2 ? 0 : 1,
+					connectTime: i,
+					peerKind: PeerKind.NONE,
+				},
 			}));
 			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
 			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
@@ -901,10 +910,13 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(10).keys()].map(i => ({
 					id: i,
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
+					internalState: {
+						netgroup: i,
+						latency: i,
+						responseRate: i % 2 ? 0 : 1,
+						connectTime: i,
+						peerKind: PeerKind.NONE,
+					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
 			});
@@ -920,10 +932,13 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				originalPeers = [...new Array(5).keys()].map(i => ({
 					id: i,
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
+					internalState: {
+						netgroup: i,
+						latency: i,
+						responseRate: i % 2 ? 0 : 1,
+						connectTime: i,
+						peerKind: PeerKind.NONE,
+					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
 			});
@@ -1004,10 +1019,13 @@ describe('peerPool', () => {
 				(peerPool as any)._peerPoolConfig.longevityProtectionRatio = 0;
 				originalPeers = [...new Array(10).keys()].map(i => ({
 					id: i,
-					netgroup: i,
-					latency: i,
-					responseRate: i % 2 ? 0 : 1,
-					connectTime: i,
+					internalState: {
+						netgroup: i,
+						latency: i,
+						responseRate: i % 2 ? 0 : 1,
+						connectTime: i,
+						peerKind: PeerKind.NONE,
+					},
 				}));
 				getPeersStub.returns(originalPeers as Peer[]);
 			});
@@ -1033,9 +1051,20 @@ describe('peerPool', () => {
 				peerId: '69.123.456.78:5000',
 				ipAddress: '69.123.456.78',
 				wsPort: 5000,
+				internalState: {
+					peerKind: PeerKind.NONE,
+				},
 			},
-			...whitelistedPeers.map(peer => ({ ...peer, id: peer.peerId })),
-			...fixedPeers.map(peer => ({ ...peer, id: peer.peerId })),
+			...whitelistedPeers.map(peer => ({
+				...peer,
+				id: peer.peerId,
+				internalState: { peerKind: PeerKind.WHITELISTED_PEER },
+			})),
+			...fixedPeers.map(peer => ({
+				...peer,
+				id: peer.peerId,
+				internalState: { peerKind: PeerKind.FIXED_PEER },
+			})),
 		];
 
 		beforeEach(async () => {
