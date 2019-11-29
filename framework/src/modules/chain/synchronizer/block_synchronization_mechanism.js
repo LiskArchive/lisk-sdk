@@ -30,8 +30,6 @@ const {
 	BlockProcessingError,
 } = require('./errors');
 
-const PEER_STATE_CONNECTED = 2;
-
 class BlockSynchronizationMechanism extends BaseSynchronizer {
 	constructor({
 		storage,
@@ -524,9 +522,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * @private
 	 */
 	async _computeBestPeer() {
-		const peers = await this.channel.invoke('network:getPeers', {
-			state: PEER_STATE_CONNECTED,
-		});
+		const peers = await this.channel.invoke('network:getConnectedPeers');
 
 		if (!peers || peers.length === 0) {
 			throw new Error('List of connected peers is empty');
