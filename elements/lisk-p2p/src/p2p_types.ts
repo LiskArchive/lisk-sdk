@@ -79,6 +79,13 @@ export interface P2PPeerInfo {
 	readonly internalState?: P2PInternalState;
 }
 
+export type P2PEnhancedPeerInfo = {
+	readonly dateAdded?: Date;
+	readonly numOfConnectionFailures?: number;
+	readonly sourceAddress?: string;
+	readonly bucketId?: number;
+} & P2PPeerInfo;
+
 export interface P2PPeersCount {
 	readonly outboundCount: number;
 	readonly inboundCount: number;

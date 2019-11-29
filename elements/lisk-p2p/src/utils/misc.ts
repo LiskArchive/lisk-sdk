@@ -15,10 +15,11 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
 
-import { CustomPeerInfo } from '../peer_book/base_list';
+import { P2PEnhancedPeerInfo } from '../p2p_types';
 
 const BYTES_4 = 4;
 const BYTES_16 = 16;
+
 export const SECRET_BUFFER_LENGTH = 4;
 export const NETWORK_BUFFER_LENGTH = 1;
 const PREFIX_BUFFER_LENGTH = 1;
@@ -127,8 +128,8 @@ export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));
 
 export const evictPeerRandomlyFromBucket = (
-	bucket: Map<string, CustomPeerInfo>,
-): CustomPeerInfo | undefined => {
+	bucket: Map<string, P2PEnhancedPeerInfo>,
+): P2PEnhancedPeerInfo | undefined => {
 	const bucketPeerIds = Array.from(bucket.keys());
 	const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
 	const randomPeerId = bucketPeerIds[randomPeerIndex];
@@ -139,13 +140,12 @@ export const evictPeerRandomlyFromBucket = (
 };
 
 export const expirePeerFromBucket = (
-	bucket: Map<string, CustomPeerInfo>,
+	bucket: Map<string, P2PEnhancedPeerInfo>,
 	thresholdTime: number,
-): CustomPeerInfo | undefined => {
-	// First eviction strategy: eviction by time of residence
+): P2PEnhancedPeerInfo | undefined => {
 	for (const [peerId, peer] of bucket) {
 		const timeDifference = Math.round(
-			Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+			Math.abs((peer.dateAdded as Date).getTime() - new Date().getTime()),
 		);
 
 		if (timeDifference >= thresholdTime) {
@@ -158,14 +158,21 @@ export const expirePeerFromBucket = (
 	return undefined;
 };
 
-// TODO: Source address to be included in hash for later version
+// For new peer buckets, provide the source IP address from which the peer list was received
 export const getBucketId = (options: {
 	readonly secret: number;
 	readonly peerType: PEER_TYPE;
 	readonly targetAddress: string;
+	readonly sourceAddress?: string;
 	readonly bucketCount: number;
 }): number => {
-	const { secret, targetAddress, peerType, bucketCount } = options;
+	const {
+		secret,
+		targetAddress,
+		sourceAddress,
+		peerType,
+		bucketCount,
+	} = options;
 	const firstMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_16 : BYTES_4;
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
@@ -181,7 +188,7 @@ export const getBucketId = (options: {
 		dBytes: targetDBytes,
 	} = getIPBytes(targetAddress);
 
-	// Check if ipAddress is unsupported network type
+	// Check if ip address is unsupported network type
 	if (network === NETWORK.NET_OTHER) {
 		throw Error('IP address is unsupported.');
 	}
@@ -205,12 +212,17 @@ export const getBucketId = (options: {
 	// Tried peers: k = Hash(random_secret, IP) % 4
 	const kBytes = Buffer.alloc(firstMod);
 
+	// Get bytes of ip address to bucket
+	const sourceBytes = sourceAddress ? getIPBytes(sourceAddress) : undefined;
+
 	const k =
-		peerType === PEER_TYPE.NEW_PEER
+		peerType === PEER_TYPE.NEW_PEER && sourceBytes
 			? hash(
 					Buffer.concat([
 						secretBytes,
 						networkBytes,
+						sourceBytes.aBytes,
+						sourceBytes.bBytes,
 						targetABytes,
 						targetBBytes,
 					]),
@@ -223,13 +235,22 @@ export const getBucketId = (options: {
 
 	// New peers: b = Hash(random_secret, source_group, k) % 128
 	// Tried peers: b = Hash(random_secret, group, k) % 64
-	const bucketBytes = Buffer.concat([
-		secretBytes,
-		networkBytes,
-		targetABytes,
-		targetBBytes,
-		kBytes,
-	]);
+	const bucketBytes =
+		peerType === PEER_TYPE.NEW_PEER && sourceBytes
+			? Buffer.concat([
+					secretBytes,
+					networkBytes,
+					sourceBytes.aBytes,
+					sourceBytes.bBytes,
+					kBytes,
+			  ])
+			: Buffer.concat([
+					secretBytes,
+					networkBytes,
+					targetABytes,
+					targetBBytes,
+					kBytes,
+			  ]);
 
 	return hash(bucketBytes).readUInt32BE(0) % bucketCount;
 };

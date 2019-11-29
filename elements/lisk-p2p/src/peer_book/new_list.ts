@@ -13,9 +13,14 @@
  *
  */
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
-import { evictPeerRandomlyFromBucket, expirePeerFromBucket } from '../utils';
+import { P2PEnhancedPeerInfo } from '../p2p_types';
+import {
+	evictPeerRandomlyFromBucket,
+	expirePeerFromBucket,
+	PEER_TYPE,
+} from '../utils';
 
-import { BaseList, CustomPeerInfo, PeerListConfig } from './base_list';
+import { BaseList, Bucket, PeerListConfig } from './base_list';
 
 export interface NewListConfig extends PeerListConfig {
 	readonly evictionThresholdTime?: number;
@@ -26,18 +31,18 @@ export class NewList extends BaseList {
 
 	public constructor({
 		evictionThresholdTime,
-		peerBucketCount,
-		peerBucketSize,
+		numOfBuckets,
+		bucketSize,
 		secret,
 		peerType,
 	}: NewListConfig) {
 		super({
 			secret,
-			peerBucketCount,
-			peerBucketSize,
+			numOfBuckets,
+			bucketSize,
 			peerType,
 		});
-
+		this.type = PEER_TYPE.NEW_PEER;
 		this._evictionThresholdTime = evictionThresholdTime
 			? evictionThresholdTime
 			: DEFAULT_EVICTION_THRESHOLD_TIME;
@@ -50,24 +55,17 @@ export class NewList extends BaseList {
 		};
 	}
 
-	// Override make space method from base list
-	public makeSpace(ipAddress: string): CustomPeerInfo | undefined {
-		const bucket = this.getBucket(ipAddress);
-
-		if (bucket && bucket.size === this.peerListConfig.peerBucketSize) {
-			// First eviction strategy: eviction by time of residence
-			const evictedPeer = expirePeerFromBucket(
-				bucket,
-				this._evictionThresholdTime,
-			);
-			if (evictedPeer) {
-				return evictedPeer;
-			}
-
-			// Second eviction strategy: Default eviction based on base class
-			return evictPeerRandomlyFromBucket(bucket);
+	public makeSpace(bucket: Bucket): P2PEnhancedPeerInfo | undefined {
+		// First eviction strategy: expire older peers
+		const evictedPeer = expirePeerFromBucket(
+			bucket,
+			this._evictionThresholdTime,
+		);
+		if (evictedPeer) {
+			return evictedPeer;
 		}
 
-		return undefined;
+		// Second eviction strategy: Select random peer and evict
+		return evictPeerRandomlyFromBucket(bucket);
 	}
 }

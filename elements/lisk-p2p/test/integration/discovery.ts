@@ -133,15 +133,17 @@ describe('Network discovery', () => {
 
 		it('should discover all peers and add them to the triedPeers list within each node', () => {
 			for (let p2p of p2pNodeList) {
-				const triedPeers = p2p['_peerBook'].triedPeers;
-
-				const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
-
+				const triedPeers = [...p2p['_peerBook'].triedPeers];
+				const peerPorts = triedPeers
+					.map(peerInfo => peerInfo.wsPort)
+					.filter(port => {
+						return port !== p2p.nodeInfo.wsPort;
+					})
+					.sort();
 				// The current node should not be in its own peer list.
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
 					return port !== p2p.nodeInfo.wsPort;
 				});
-
 				expect(expectedPeerPorts).to.include.members(peerPorts);
 			}
 		});
