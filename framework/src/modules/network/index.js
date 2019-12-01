@@ -63,25 +63,17 @@ module.exports = class NetworkModule extends BaseModule {
 			broadcast: {
 				handler: action => this.network.actions.broadcast(action),
 			},
-			getPeers: {
-				handler: action => this.network.actions.getPeers(action),
+			getConnectedPeers: {
+				handler: () => this.network.actions.getConnectedPeers(),
 			},
-			getPeersCount: {
-				handler: action => this.network.actions.getPeersCount(action),
-			},
-			getUniqueOutboundConnectedPeersCount: {
-				handler: action =>
-					this.network.actions.getUniqueOutboundConnectedPeersCount(action),
+			getDisconnectedPeers: {
+				handler: () => this.network.actions.getDisconnectedPeers(),
 			},
 			requestFromPeer: {
 				handler: action => this.network.actions.requestFromPeer(action),
 			},
 			applyPenalty: {
 				handler: action => this.network.actions.applyPenalty(action),
-			},
-			getUniqueOutboundConnectedPeers: {
-				handler: action =>
-					this.network.actions.getUniqueOutboundConnectedPeers(action),
 			},
 		};
 	}

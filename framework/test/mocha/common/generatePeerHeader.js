@@ -26,7 +26,6 @@ const generatePeerHeader = function(headers = {}) {
 
 	const defaults = {
 		nethash: testConfig.app.nethash,
-		state: 2,
 		height: 1,
 		wsPort: headers.wsPort || httpPort - 1,
 		httpPort,

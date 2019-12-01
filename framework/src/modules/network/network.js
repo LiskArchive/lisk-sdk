@@ -36,7 +36,7 @@ const {
 } = require('@liskhq/lisk-p2p');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
+const { lookupPeersIPs } = require('./utils');
 const { NetworkInfo } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
@@ -119,7 +119,6 @@ module.exports = class Network {
 
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
-			state: 2, // TODO: Delete state property
 			wsPort: this.options.wsPort,
 			advertiseAddress: this.options.advertiseAddress,
 		});
@@ -391,24 +390,8 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
-			getPeers: action => {
-				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getConnectedPeers(),
-					disconnectedPeers: this.p2p.getDisconnectedPeers(),
-				});
-
-				return filterByParams(peers, action.params);
-			},
-			getPeersCount: action => {
-				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getConnectedPeers(),
-					disconnectedPeers: this.p2p.getDisconnectedPeers(),
-				});
-
-				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
-
-				return filterByParams(peers, filterWithoutLimitOffset).length;
-			},
+			getConnectedPeers: () => this.p2p.getConnectedPeers(),
+			getDisconnectedPeers: () => this.p2p.getDisconnectedPeers(),
 			applyPenalty: action =>
 				this.p2p.applyPenalty({
 					peerId: action.params.peerId,
