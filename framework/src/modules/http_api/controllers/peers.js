@@ -16,7 +16,8 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-
+const { consolidatePeers, filterByParams } = require('../helpers/utils');
+// Private Fields
 let channel;
 
 function PeersController(scope) {
@@ -50,8 +51,23 @@ PeersController.getPeers = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const peersByFilters = await channel.invoke('network:getPeers', filters);
-		const peersCount = await channel.invoke('network:getPeersCount', filters);
+		const connectedPeers = await channel.invoke('network:getConnectedPeers');
+		const disconnectedPeers = await channel.invoke(
+			'network:getDisconnectedPeers',
+		);
+
+		const peersByFilters = filterByParams(
+			consolidatePeers(connectedPeers, disconnectedPeers),
+			filters,
+		);
+
+		const { limit, offset, ...filterWithoutLimitOffset } = filters;
+
+		const peersCount = filterByParams(
+			consolidatePeers(connectedPeers, disconnectedPeers),
+			filterWithoutLimitOffset,
+		).length;
+
 		const peersWithoutPeerId = peersByFilters.map(peer => {
 			const { peerId, ...restOfPeer } = peer;
 			return restOfPeer;

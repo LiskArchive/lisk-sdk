@@ -13,10 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	registerMultisignature,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { registerMultisignature } from '@liskhq/lisk-transactions';
+import { validatePublicKeys } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -104,7 +102,7 @@ export default class MultisignatureCommand extends BaseCommand {
 		const { lifetime, minimum, keysgroup: keysgroupStr }: Args = args;
 		const keysgroup = keysgroupStr.split(',');
 
-		transactionUtils.validatePublicKeys(keysgroup);
+		validatePublicKeys(keysgroup);
 
 		validateLifetime(lifetime);
 		validateMinimum(minimum);

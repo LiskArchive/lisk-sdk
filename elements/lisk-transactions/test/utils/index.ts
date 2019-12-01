@@ -14,7 +14,6 @@
  */
 import { expect } from 'chai';
 import {
-	checkPublicKeysForDuplicates,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	getTimeFromBlockchainEpoch,
@@ -24,20 +23,10 @@ import {
 	prependPlusToPublicKeys,
 	validateMultisignatures,
 	validateSignature,
-	validateAddress,
-	validateNonTransferAmount,
-	isValidInteger,
-	validateKeysgroup,
-	validatePublicKey,
-	validatePublicKeys,
 } from '../../src/utils';
 
 describe('transaction utils', () => {
 	describe('exports', () => {
-		it('should have checkPublicKeysForDuplicates', () => {
-			return expect(checkPublicKeysForDuplicates).to.be.a('function');
-		});
-
 		it('should have convertBeddowsToLSK', () => {
 			return expect(convertBeddowsToLSK).to.be.a('function');
 		});
@@ -72,30 +61,6 @@ describe('transaction utils', () => {
 
 		it('should have verifyMultisignatures', () => {
 			return expect(validateMultisignatures).to.be.a('function');
-		});
-
-		it('should have validateAddress', () => {
-			return expect(validateAddress).to.be.a('function');
-		});
-
-		it('should have validateNonTransferAmount', () => {
-			return expect(validateNonTransferAmount).to.be.a('function');
-		});
-
-		it('should have isValidInteger', () => {
-			return expect(isValidInteger).to.be.a('function');
-		});
-
-		it('should have validateKeysgroup', () => {
-			return expect(validateKeysgroup).to.be.a('function');
-		});
-
-		it('should have validatePublicKey', () => {
-			return expect(validatePublicKey).to.be.a('function');
-		});
-
-		it('should have validatePublicKeys', () => {
-			return expect(validatePublicKeys).to.be.a('function');
 		});
 	});
 });

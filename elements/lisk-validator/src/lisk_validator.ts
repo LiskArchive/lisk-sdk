@@ -17,6 +17,8 @@ import * as Ajv from 'ajv';
 
 import * as formats from './formats';
 
+export type ErrorObject = Ajv.ErrorObject;
+
 class LiskValidator {
 	private readonly validator: Ajv.Ajv;
 	public constructor() {
@@ -36,13 +38,17 @@ class LiskValidator {
 		this.validator.addKeyword('uniqueSignedPublicKeys', {
 			type: 'array',
 			compile: () => (data: ReadonlyArray<string>) =>
-				new Set(data.map((key: string) => key.slice(1))).size === data.length,
+				new Set(
+					data
+						.filter(datum => typeof datum === 'string')
+						.map((key: string) => key.slice(1)),
+				).size === data.length,
 		});
 	}
 
-	public validate(schema: object, data: object): [] {
+	public validate(schema: object, data: object): ReadonlyArray<ErrorObject> {
 		if (!this.validator.validate(schema, data)) {
-			return this.validator.errors as [];
+			return this.validator.errors as ReadonlyArray<ErrorObject>;
 		}
 
 		return [];

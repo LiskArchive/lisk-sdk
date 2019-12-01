@@ -45,10 +45,10 @@ describe('peerBook', () => {
 			expect((peerBook as any)._newPeers.peerListConfig.secret).to.eql(
 				DEFAULT_RANDOM_SECRET,
 			);
-			expect((peerBook as any)._newPeers.peerListConfig.peerBucketCount).to.eql(
+			expect((peerBook as any)._newPeers.peerListConfig.numOfBuckets).to.eql(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
-			expect((peerBook as any)._newPeers.peerListConfig.peerBucketSize).to.eql(
+			expect((peerBook as any)._newPeers.peerListConfig.bucketSize).to.eql(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
 			expect((peerBook as any)._newPeers.peerListConfig.peerType).to.eql(
@@ -57,12 +57,12 @@ describe('peerBook', () => {
 			expect((peerBook as any)._triedPeers.peerListConfig.secret).to.eql(
 				DEFAULT_RANDOM_SECRET,
 			);
-			expect(
-				(peerBook as any)._triedPeers.peerListConfig.peerBucketCount,
-			).to.eql(DEFAULT_TRIED_BUCKET_COUNT);
-			expect(
-				(peerBook as any)._triedPeers.peerListConfig.peerBucketSize,
-			).to.eql(DEFAULT_TRIED_BUCKET_SIZE);
+			expect((peerBook as any)._triedPeers.peerListConfig.numOfBuckets).to.eql(
+				DEFAULT_TRIED_BUCKET_COUNT,
+			);
+			expect((peerBook as any)._triedPeers.peerListConfig.bucketSize).to.eql(
+				DEFAULT_TRIED_BUCKET_SIZE,
+			);
 			expect((peerBook as any)._triedPeers.peerListConfig.peerType).to.eql(
 				PEER_TYPE.TRIED_PEER,
 			);
@@ -71,14 +71,14 @@ describe('peerBook', () => {
 		it('should intialize with custom list configs', () => {
 			const newListConfig = {
 				secret: 111,
-				peerBucketCount: 1,
-				peerBucketSize: 1,
+				numOfBuckets: 1,
+				bucketSize: 1,
 				peerType: PEER_TYPE.NEW_PEER,
 			};
 			const triedListConfig = {
 				secret: 222,
-				peerBucketCount: 2,
-				peerBucketSize: 2,
+				numOfBuckets: 2,
+				bucketSize: 2,
 				peerType: PEER_TYPE.TRIED_PEER,
 			};
 			const secret = 33333;
@@ -156,6 +156,22 @@ describe('peerBook', () => {
 			it('should return undefined', () => {
 				expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 			});
+		});
+	});
+
+	describe('#hasPeer', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerBook = new PeerBook(peerBookConfig);
+		});
+
+		it('should return true if peer exists in peer book', () => {
+			peerBook.addPeer(samplePeers[0]);
+			expect(peerBook.hasPeer(samplePeers[0])).to.be.true;
+		});
+
+		it('should return false if peer exists in peer book', () => {
+			expect(peerBook.hasPeer(samplePeers[0])).to.be.false;
 		});
 	});
 

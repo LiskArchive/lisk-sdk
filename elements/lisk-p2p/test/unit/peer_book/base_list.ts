@@ -13,7 +13,8 @@
  *
  */
 import { expect } from 'chai';
-import { BaseList, CustomPeerInfo } from '../../../src/peer_book/base_list';
+import { BaseList } from '../../../src/peer_book/base_list';
+import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 import {
@@ -26,8 +27,8 @@ import { ExistingPeerError, P2PPeerInfo } from '../../../src';
 
 describe('Peers base list', () => {
 	const peerListConfig = {
-		peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
-		peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
+		bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+		numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
 		secret: DEFAULT_RANDOM_SECRET,
 		peerType: PEER_TYPE.TRIED_PEER,
 	};
@@ -42,10 +43,10 @@ describe('Peers base list', () => {
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect((peerListObj as any).peerListConfig).to.be.eql(peerListConfig);
-			expect((peerListObj as any).peerListConfig.peerBucketSize).to.be.equal(
+			expect((peerListObj as any).peerListConfig.bucketSize).to.be.equal(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
-			expect((peerListObj as any).peerListConfig.peerBucketCount).to.be.equal(
+			expect((peerListObj as any).peerListConfig.numOfBuckets).to.be.equal(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
 			expect((peerListObj as any).peerListConfig.secret).to.be.equal(
@@ -54,10 +55,10 @@ describe('Peers base list', () => {
 			expect((peerListObj as any).peerListConfig.peerType).to.be.equal(
 				PEER_TYPE.TRIED_PEER,
 			);
-			expect((peerListObj as any).peerMap)
+			expect((peerListObj as any).bucketIdToBucket)
 				.to.be.a('map')
 				.of.length(DEFAULT_NEW_BUCKET_COUNT);
-			for (const peer of (peerListObj as any).peerMap) {
+			for (const peer of (peerListObj as any).bucketIdToBucket) {
 				expect(peer)
 					.to.be.an('array')
 					.of.length(2);
@@ -70,44 +71,25 @@ describe('Peers base list', () => {
 	});
 
 	describe('#peerList', () => {
-		let triedPeersArray: ReadonlyArray<P2PPeerInfo>;
-
 		before(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList(peerListConfig);
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
-			triedPeersArray = peerListObj.peerList as ReadonlyArray<P2PPeerInfo>;
+			peerListObj.peerList as ReadonlyArray<P2PPeerInfo>;
 		});
 
 		it('should return tried peers list', () => {
-			const expectedTriedPeersArray = [
-				samplePeers[0],
-				samplePeers[1],
-				samplePeers[2],
-			];
-			expect(triedPeersArray).to.have.members(expectedTriedPeersArray);
-		});
-	});
-
-	describe('#getBucket', () => {
-		beforeEach(() => {
-			samplePeers = initPeerInfoList();
-			peerListObj = new BaseList(peerListConfig);
-			peerListObj.addPeer(samplePeers[0]);
-		});
-
-		it('should get a bucket by ipAddress', () => {
-			const bucketId = getBucketId({
-				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
-				secret: DEFAULT_RANDOM_SECRET,
-				peerType: PEER_TYPE.TRIED_PEER,
-				targetAddress: samplePeers[0].ipAddress,
-			});
-
-			expect(peerListObj.getBucket(samplePeers[0].ipAddress)).to.eql(
-				(peerListObj as any).peerMap.get(bucketId),
+			expect(peerListObj.peerList.length).to.eql(3);
+			expect(peerListObj.peerList.map(peer => peer.peerId)).to.include(
+				samplePeers[0].peerId,
+			);
+			expect(peerListObj.peerList.map(peer => peer.peerId)).to.include(
+				samplePeers[1].peerId,
+			);
+			expect(peerListObj.peerList.map(peer => peer.peerId)).to.include(
+				samplePeers[2].peerId,
 			);
 		});
 	});
@@ -120,19 +102,35 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[1]);
 		});
 
-		describe('when peer exists in the peerMap', () => {
+		describe('when peer exists in the bucketIdToBucket map', () => {
 			it('should get the peer from the incoming peerId', () => {
-				expect(peerListObj.getPeer(samplePeers[0]))
+				expect(peerListObj.getPeer(samplePeers[0].peerId))
 					.to.be.an('object')
 					.and.eql(samplePeers[0]);
 			});
 		});
 
-		describe('when peer does not exist in the peerMap', () => {
-			it('should return undefined for the given peer that does not exist in peerMap', () => {
+		describe('when peer does not exist in the bucketIdToBucket map', () => {
+			it('should return undefined for the given peer that does not exist in bucketIdToBucket map', () => {
 				const randomPeer = initPeerInfoList()[2];
-				expect(peerListObj.getPeer(randomPeer)).to.be.undefined;
+				expect(peerListObj.getPeer(randomPeer.peerId)).to.be.undefined;
 			});
+		});
+	});
+
+	describe('#hasPeer', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
+		});
+
+		it('should return true if peer exists in peer book', () => {
+			peerListObj.addPeer(samplePeers[0]);
+			expect(peerListObj.hasPeer(samplePeers[0].peerId)).to.be.true;
+		});
+
+		it('should return false if peer exists in peer book', () => {
+			expect(peerListObj.hasPeer(samplePeers[0].peerId)).to.be.false;
 		});
 	});
 
@@ -140,31 +138,44 @@ describe('Peers base list', () => {
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList(peerListConfig);
-			peerListObj.addPeer(samplePeers[0]);
+			const bucket = new Map<string, P2PEnhancedPeerInfo>();
+			bucket.set(samplePeers[0].peerId, samplePeers[0]);
+			sandbox
+				.stub(peerListObj, 'calculateBucket')
+				.returns({ bucketId: 0, bucket });
+			sandbox.stub(peerListObj, 'makeSpace');
 		});
 
 		it('should add the incoming peer if it does not exist already', () => {
-			expect(peerListObj.getPeer(samplePeers[0])).eql(samplePeers[0]);
+			peerListObj.addPeer(samplePeers[0]);
+			expect(peerListObj.getPeer(samplePeers[0].peerId)).eql(samplePeers[0]);
 		});
 
 		it('should throw error if peer already exists', () => {
+			peerListObj.addPeer(samplePeers[0]);
 			expect(() => peerListObj.addPeer(samplePeers[0]))
 				.to.throw(ExistingPeerError, 'Peer already exists')
 				.and.have.property('peerInfo', samplePeers[0]);
 		});
 
-		it('should call makeSpace method with the ipAddress of the peer to add', () => {
+		it('should call makeSpace method when bucket is full', () => {
+			peerListObj = new BaseList({
+				bucketSize: 1,
+				numOfBuckets: 1,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+			});
 			sandbox.stub(peerListObj, 'makeSpace');
+			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 
-			expect(peerListObj.makeSpace).to.be.calledOnceWithExactly(
-				samplePeers[1].ipAddress,
-			);
+			expect(peerListObj.makeSpace).to.be.calledOnce;
 		});
 
 		describe('when bucket is not full', () => {
 			it('should return undefined', () => {
-				sandbox.stub(peerListObj, 'makeSpace').returns(undefined);
+				peerListObj = new BaseList({ ...peerListConfig, bucketSize: 50 });
+				peerListObj.addPeer(samplePeers[0]);
 				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
 				expect(evictedPeer).to.be.undefined;
@@ -173,14 +184,18 @@ describe('Peers base list', () => {
 
 		describe('when bucket is full', () => {
 			it('should return evicted peer', () => {
-				const customPeer: CustomPeerInfo = {
-					peerInfo: samplePeers[2],
-					dateAdded: new Date(),
-				};
-				sandbox.stub(peerListObj, 'makeSpace').returns(customPeer);
+				peerListObj = new BaseList({
+					bucketSize: 1,
+					numOfBuckets: 1,
+					secret: DEFAULT_RANDOM_SECRET,
+					peerType: PEER_TYPE.TRIED_PEER,
+				});
+				peerListObj.addPeer(samplePeers[0]);
 				const evictedPeer = peerListObj.addPeer(samplePeers[1]);
 
-				expect(evictedPeer).to.eql(customPeer);
+				expect(samplePeers.map(peer => peer.peerId)).to.include(
+					(evictedPeer as any).peerId,
+				);
 			});
 		});
 	});
@@ -203,7 +218,9 @@ describe('Peers base list', () => {
 
 				const success = peerListObj.updatePeer(updatedPeer);
 				expect(success).to.be.true;
-				expect(peerListObj.getPeer(samplePeers[0])).to.be.eql(updatedPeer);
+				expect(peerListObj.getPeer(samplePeers[0].peerId)).to.be.eql(
+					updatedPeer,
+				);
 			});
 		});
 
@@ -231,46 +248,41 @@ describe('Peers base list', () => {
 
 		it('should remove the peer from the incoming peerInfo', () => {
 			peerListObj.removePeer(samplePeers[0]);
-			expect(peerListObj.getPeer(samplePeers[0])).to.be.undefined;
+			expect(peerListObj.getPeer(samplePeers[0].peerId)).to.be.undefined;
 		});
 	});
 
 	describe('#makeSpace', () => {
+		let bucket: any;
+		let calculateBucketStub: any;
 		beforeEach(() => {
 			samplePeers = initPeerInfoList();
 			peerListObj = new BaseList({
-				peerBucketSize: 2,
-				peerBucketCount: 1,
+				bucketSize: 2,
+				numOfBuckets: 1,
 				secret: DEFAULT_RANDOM_SECRET,
 				peerType: PEER_TYPE.TRIED_PEER,
 			});
 			peerListObj.addPeer(samplePeers[0]);
-		});
-
-		it('should call get bucket', () => {
-			sandbox.stub(peerListObj, 'getBucket');
-			peerListObj.makeSpace(samplePeers[0].ipAddress);
-
-			expect(peerListObj.getBucket).to.be.calledOnceWithExactly(
-				samplePeers[0].ipAddress,
-			);
+			bucket = new Map<string, P2PEnhancedPeerInfo>();
+			bucket.set(samplePeers[0].peerId, samplePeers[0]);
+			calculateBucketStub = sandbox.stub(peerListObj, 'calculateBucket');
 		});
 
 		describe('when bucket is full', () => {
 			it('should evict one peer randomly', () => {
-				peerListObj.addPeer(samplePeers[1]);
-				const evictedPeer = peerListObj.makeSpace(samplePeers[2].ipAddress);
+				calculateBucketStub.returns({ bucketId: 0, bucket });
+				const evictedPeer = peerListObj.makeSpace(bucket);
 
-				expect(samplePeers).to.include((evictedPeer as any).peerInfo);
+				expect(samplePeers).to.include(evictedPeer as any);
 			});
 		});
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
-				const bucket = new Map<string, CustomPeerInfo>();
-				sandbox.stub(peerListObj, 'getBucket').returns(bucket);
-
-				const evictedPeer = peerListObj.makeSpace(samplePeers[0].ipAddress);
+				const bucket = new Map<string, P2PEnhancedPeerInfo>();
+				calculateBucketStub.returns({ bucketId: 1234, bucket });
+				const evictedPeer = peerListObj.makeSpace(bucket);
 
 				expect(evictedPeer).to.be.undefined;
 			});
@@ -292,6 +304,58 @@ describe('Peers base list', () => {
 				const success2 = peerListObj.failedConnectionAction(samplePeers[0]);
 				expect(success2).to.be.false;
 			});
+		});
+	});
+
+	describe('#calculateBucket', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
+			peerListObj.addPeer(samplePeers[0]);
+		});
+
+		it('should get a bucket and bucketId by ipAddress(es)', () => {
+			const bucketId = getBucketId({
+				bucketCount: DEFAULT_NEW_BUCKET_COUNT,
+				secret: DEFAULT_RANDOM_SECRET,
+				peerType: PEER_TYPE.TRIED_PEER,
+				targetAddress: samplePeers[0].ipAddress,
+				sourceAddress: samplePeers[1].ipAddress,
+			});
+
+			const {
+				bucket,
+				bucketId: calculatedBucketId,
+			} = peerListObj.calculateBucket(
+				samplePeers[0].ipAddress,
+				samplePeers[1].ipAddress,
+			);
+
+			expect(calculatedBucketId).to.eql(bucketId);
+			expect(bucket).to.eql(
+				(peerListObj as any).bucketIdToBucket.get(bucketId),
+			);
+		});
+	});
+
+	describe('#getBucket', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoList();
+			peerListObj = new BaseList(peerListConfig);
+			peerListObj.addPeer(samplePeers[0]);
+		});
+
+		it('should get bucket based on peerId', () => {
+			const bucket = (peerListObj as any).getBucket(samplePeers[0].peerId);
+
+			expect(bucket.get(samplePeers[0].peerId).peerId).to.eql(
+				samplePeers[0].peerId,
+			);
+		});
+
+		it('should return undefined if peer not in bucket', () => {
+			expect((peerListObj as any).getBucket(samplePeers[1].peerId)).to.be
+				.undefined;
 		});
 	});
 });

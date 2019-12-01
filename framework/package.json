@@ -114,7 +114,7 @@
 		"node-mocks-http": "1.7.3",
 		"pm2": "3.5.1",
 		"popsicle": "9.1.0",
-		"prettier": "1.16.4",
+		"prettier": "1.19.1",
 		"rewire": "4.0.1",
 		"sinon": "7.2.2",
 		"sinon-chai": "3.3.0",

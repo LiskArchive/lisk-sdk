@@ -364,11 +364,16 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
 
-			return validatePeerInfoList(
+			const validatedPeers = validatePeerInfoList(
 				response.data,
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
+
+			return validatedPeers.map(peerInfo => ({
+				...peerInfo,
+				sourceAddress: this.ipAddress,
+			}));
 		} catch (error) {
 			if (
 				error instanceof InvalidPeerInfoError ||

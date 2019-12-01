@@ -237,12 +237,12 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 
 			return res;
 		})
-		.catch(eror => {
+		.catch(error => {
 			__testContext.debug(
 				'> Response Error:'.grey,
 				JSON.stringify(validator.getLastErrors()),
 			);
-			throw eror;
+			throw error;
 		});
 };
 
