@@ -29,7 +29,7 @@ describe('Sequence', () => {
 	describe('#constructor', () => {
 		it('should have the default config', async () => {
 			expect(sequence.config.warningLimit).toEqual(50);
-			expect(sequence.config.onWarning).toEqual(null);
+			expect(sequence.config.onWarning).toBeNull();
 		});
 
 		it('should call the _tick after event loop', async () => {
@@ -58,23 +58,21 @@ describe('Sequence', () => {
 
 	describe('#add', () => {
 		it('should throw an error if the input is not async function', async () => {
-			try {
-				sequence.add(() => true);
-			} catch (error) {
-				expect(error.message).toEqual('Worker must be an async function.');
-			}
+			expect(() => sequence.add(() => true)).toThrow(
+				'Worker must be an async function.',
+			);
 		});
 
 		it('should enqueue the input to the sequence', async () => {
 			sequence.add(async () => true);
-			expect(sequence.queue.length).toEqual(1);
+			expect(sequence.queue).toHaveLength(1);
 		});
 	});
 
 	describe('#tick', () => {
-		it('should resolve undefine when there is no task in the queue', async () => {
+		it('should resolve undefined when there is no task in the queue', async () => {
 			const result = await sequence._tick();
-			expect(result).toEqual(undefined);
+			expect(result).toBeUndefined();
 		});
 
 		it('should resolve to the result of the fist function ', async () => {

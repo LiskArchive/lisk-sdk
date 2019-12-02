@@ -96,46 +96,57 @@ describe('InMemoryChannel', () => {
 		});
 
 		describe('#subscribe', () => {
-			it('should be able to subscribe to an event.', done => {
+			it('should be able to subscribe to an event.', () => {
 				// Arrange
 				const betaEventData = '#DATA';
 				const eventName = beta.events[0].key();
 
-				// Act
-				inMemoryChannelAlpha.subscribe(
-					`${beta.moduleAlias}:${eventName}`,
-					data => {
-						// Assert
-						expect(Event.deserialize(data).data).toBe(betaEventData);
-						done();
-					},
-				);
-
-				inMemoryChannelBeta.publish(
-					`${beta.moduleAlias}:${eventName}`,
-					betaEventData,
-				);
-			});
-
-			it('should be able to subscribe to an event once.', done => {
-				// Arrange
-				const betaEventData = '#DATA';
-				const eventName = beta.events[0].key();
-
-				// Act
-				inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
-					// Assert
-					expect(Event.deserialize(data).data).toBe(betaEventData);
-					done();
+				const donePromise = new Promise(resolve => {
+					// Act
+					inMemoryChannelAlpha.subscribe(
+						`${beta.moduleAlias}:${eventName}`,
+						data => {
+							// Assert
+							expect(Event.deserialize(data).data).toBe(betaEventData);
+							resolve();
+						},
+					);
 				});
 
 				inMemoryChannelBeta.publish(
 					`${beta.moduleAlias}:${eventName}`,
 					betaEventData,
 				);
+
+				return donePromise;
 			});
 
-			it('should be able to subscribe to an unregistered event.', async done => {
+			it('should be able to subscribe to an event once.', () => {
+				// Arrange
+				const betaEventData = '#DATA';
+				const eventName = beta.events[0].key();
+
+				const donePromise = new Promise(resolve => {
+					// Act
+					inMemoryChannelAlpha.once(
+						`${beta.moduleAlias}:${eventName}`,
+						data => {
+							// Assert
+							expect(Event.deserialize(data).data).toBe(betaEventData);
+							resolve();
+						},
+					);
+				});
+
+				inMemoryChannelBeta.publish(
+					`${beta.moduleAlias}:${eventName}`,
+					betaEventData,
+				);
+
+				return donePromise;
+			});
+
+			it('should be able to subscribe to an unregistered event.', async () => {
 				// Arrange
 				const omegaEventName = 'omegaEventName';
 				const omegaAlias = 'omegaAlias';
@@ -146,15 +157,17 @@ describe('InMemoryChannel', () => {
 					{},
 				);
 
-				// Act
-				inMemoryChannelAlpha.subscribe(
-					`${omegaAlias}:${omegaEventName}`,
-					data => {
-						// Assert
-						expect(Event.deserialize(data).data).toBe(dummyData);
-						done();
-					},
-				);
+				const donePromise = new Promise(resolve => {
+					// Act
+					inMemoryChannelAlpha.subscribe(
+						`${omegaAlias}:${omegaEventName}`,
+						data => {
+							// Assert
+							expect(Event.deserialize(data).data).toBe(dummyData);
+							resolve();
+						},
+					);
+				});
 
 				await inMemoryChannelOmega.registerToBus(bus);
 
@@ -162,26 +175,35 @@ describe('InMemoryChannel', () => {
 					`${omegaAlias}:${omegaEventName}`,
 					dummyData,
 				);
+
+				return donePromise;
 			});
 		});
 
 		describe('#publish', () => {
-			it('should be able to publish an event.', done => {
+			it('should be able to publish an event.', () => {
 				// Arrange
 				const alphaEventData = '#DATA';
 				const eventName = alpha.events[0].key();
 
-				// Act
-				inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
-					// Assert
-					expect(Event.deserialize(data).data).toBe(alphaEventData);
-					done();
+				const donePromise = new Promise(done => {
+					// Act
+					inMemoryChannelBeta.once(
+						`${alpha.moduleAlias}:${eventName}`,
+						data => {
+							// Assert
+							expect(Event.deserialize(data).data).toBe(alphaEventData);
+							done();
+						},
+					);
 				});
 
 				inMemoryChannelAlpha.publish(
 					`${alpha.moduleAlias}:${eventName}`,
 					alphaEventData,
 				);
+
+				return donePromise;
 			});
 		});
 
@@ -221,9 +243,7 @@ describe('InMemoryChannel', () => {
 						`${beta.moduleAlias}:${invalidActionName}`,
 					),
 				).rejects.toThrow(
-					`Action name "${
-						beta.moduleAlias
-					}:${invalidActionName}" must be a valid name with module name.`,
+					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name.`,
 				);
 			});
 		});

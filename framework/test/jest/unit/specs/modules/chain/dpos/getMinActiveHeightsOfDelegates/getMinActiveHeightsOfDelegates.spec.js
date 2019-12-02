@@ -93,7 +93,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				.mockResolvedValue([]);
 
 			// Act
-			expect(
+			await expect(
 				dpos.getMinActiveHeightsOfDelegates(numberOfRounds, {
 					tx: stubs.tx,
 				}),
@@ -127,7 +127,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				.mockResolvedValue(lists);
 
 			// Act
-			expect(
+			await expect(
 				dpos.getMinActiveHeightsOfDelegates(numberOfRounds, {
 					tx: stubs.tx,
 				}),
