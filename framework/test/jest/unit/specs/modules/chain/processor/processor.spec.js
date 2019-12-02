@@ -447,7 +447,9 @@ describe('processor', () => {
 			it('should emit deleteBlock event for the last block', async () => {
 				expect(channelStub.publish).toHaveBeenCalledWith(
 					'chain:processor:deleteBlock',
-					{ block: defaultLastBlock },
+					{
+						block: defaultLastBlock,
+					},
 				);
 			});
 
@@ -485,17 +487,15 @@ describe('processor', () => {
 			});
 
 			it('should emit newBlock event for the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:newBlock',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:newBlock', { block: blockV0 });
 			});
 
 			it('should emit broadcast event for the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:broadcast',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:broadcast', { block: blockV0 });
 			});
 		});
 
@@ -546,7 +546,9 @@ describe('processor', () => {
 			it('should emit deleteBlock event for the last block', async () => {
 				expect(channelStub.publish).toHaveBeenCalledWith(
 					'chain:processor:deleteBlock',
-					{ block: defaultLastBlock },
+					{
+						block: defaultLastBlock,
+					},
 				);
 			});
 
@@ -597,7 +599,9 @@ describe('processor', () => {
 			it.skip('should emit newBlock event for the last block', async () => {
 				expect(channelStub.publish).toHaveBeenCalledWith(
 					'chain:processor:newBlock',
-					{ block: defaultLastBlock },
+					{
+						block: defaultLastBlock,
+					},
 				);
 			});
 		});
@@ -704,17 +708,15 @@ describe('processor', () => {
 			});
 
 			it('should broadcast with the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:broadcast',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:broadcast', { block: blockV0 });
 			});
 
 			it('should emit newBlock event with the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:newBlock',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:newBlock', { block: blockV0 });
 			});
 		});
 	});
@@ -1468,16 +1470,11 @@ describe('processor', () => {
 			});
 
 			it('should throw an error', async () => {
-				try {
-					await processor.applyGenesisBlock(genesisBlock, true);
-					await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
-				} catch (error) {
-					// @todo check which one function is throwing
-					// eslint-disable-next-line jest/no-try-expect
-					expect(error.message).toBe(
-						'Genesis block is not persisted but skipping to save',
-					);
-				}
+				await expect(
+					processor.applyGenesisBlock(genesisBlock, true),
+				).rejects.toThrow(
+					'Genesis block is not persisted but skipping to save',
+				);
 			});
 		});
 
