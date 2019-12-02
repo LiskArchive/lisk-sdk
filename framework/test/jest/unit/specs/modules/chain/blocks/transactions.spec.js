@@ -385,7 +385,7 @@ describe('blocks/transactions', () => {
 				expect(responses.every(res => res.errors.length === 0)).toBeTrue();
 			});
 
-			it('should return all transactions response which are all ok', async () => {
+			it('should invoke transaction validations', async () => {
 				expect(validTxValidateSpy).toHaveBeenCalledTimes(1);
 				expect(validTx2ValidateSpy).toHaveBeenCalledTimes(1);
 			});

@@ -956,7 +956,7 @@ describe('bft', () => {
 				});
 
 				// Assert
-				expect(bft.finalityManager.headers.length).toEqual(1);
+				expect(bft.finalityManager.headers).toHaveLength(1);
 				expect(bft.finalityManager.headers.items).toEqual([
 					extractBFTBlockHeaderFromBlock({
 						...blockWithVersion2,
@@ -986,7 +986,7 @@ describe('bft', () => {
 				});
 
 				// Assert
-				expect(bft.finalityManager.headers.items.length).toEqual(1);
+				expect(bft.finalityManager.headers.items).toHaveLength(1);
 				expect(bft.finalityManager.headers.items).toEqual([blockHeader]);
 			});
 		});

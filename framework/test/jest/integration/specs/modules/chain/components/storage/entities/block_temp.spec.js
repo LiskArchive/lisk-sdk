@@ -145,7 +145,7 @@ describe('TempBlock', () => {
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(TempBlock.prototype.constructor.length).toEqual(1);
+			expect(TempBlock.prototype.constructor).toHaveLength(1);
 		});
 
 		it('should have called super', async () => {

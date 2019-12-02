@@ -25,6 +25,7 @@ const {
 } = require('./utils');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../bft');
 const {
+	AbortError,
 	ApplyPenaltyAndRestartError,
 	RestartError,
 	BlockProcessingError,
@@ -396,28 +397,32 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				currentRound,
 			);
 
-			const blockIds = (await this.storage.entities.Block.get(
-				{
-					height_in: heightList,
-				},
-				{
-					sort: 'height:asc',
-					limit: heightList.length,
-				},
-			)).map(block => block.id);
+			const blockIds = (
+				await this.storage.entities.Block.get(
+					{
+						height_in: heightList,
+					},
+					{
+						sort: 'height:asc',
+						limit: heightList.length,
+					},
+				)
+			).map(block => block.id);
 
 			let data;
 
 			try {
 				// Request the highest common block with the previously computed list
 				// to the given peer
-				data = (await this.channel.invoke('network:requestFromPeer', {
-					procedure: 'getHighestCommonBlock',
-					peerId,
-					data: {
-						ids: blockIds,
-					},
-				})).data;
+				data = (
+					await this.channel.invoke('network:requestFromPeer', {
+						procedure: 'getHighestCommonBlock',
+						peerId,
+						data: {
+							ids: blockIds,
+						},
+					})
+				).data;
 			} catch (e) {
 				numberOfRequests += 1;
 				// eslint-disable-next-line no-continue
@@ -595,10 +600,12 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const forkStatus = await this.processorModule.forkStatus(peersTip);
 
-		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+		const tipHasPreference = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
-		if (!inDifferentChain) {
-			throw new Error('Violation of fork choice rule');
+		if (!tipHasPreference) {
+			throw new AbortError(
+				`Peer tip does not have preference over current tip. Fork status: ${forkStatus}`,
+			);
 		}
 
 		const bestPeer =
