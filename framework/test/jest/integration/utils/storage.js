@@ -14,10 +14,10 @@
 
 'use strict';
 
-const child_process = require('child_process');
+const childProcess = require('child_process');
 const { Storage } = require('../../../../src/components/storage');
 
-// Custom entitties
+// Custom entities
 const {
 	Account,
 	Block,
@@ -93,13 +93,13 @@ class StorageSandbox extends Storage {
 
 	_dropDB() {
 		return new Promise(resolve => {
-			child_process.exec(`dropdb ${this.options.database}`, () => resolve());
+			childProcess.exec(`dropdb ${this.options.database}`, () => resolve());
 		});
 	}
 
 	_createDB() {
 		return new Promise((resolve, reject) => {
-			child_process.exec(`createdb ${this.options.database}`, error => {
+			childProcess.exec(`createdb ${this.options.database}`, error => {
 				if (error) {
 					return reject(error);
 				}

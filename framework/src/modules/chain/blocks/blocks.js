@@ -132,7 +132,9 @@ class Blocks extends EventEmitter {
 
 	async init() {
 		// check mem tables
-		const { genesisBlock } = await this.storage.entities.Block.begin(
+		const {
+			genesisBlock,
+		} = await this.storage.entities.Block.begin(
 			'loader:checkMemTables',
 			async tx => blocksUtils.loadMemTables(this.storage, tx),
 		);
@@ -363,7 +365,7 @@ class Blocks extends EventEmitter {
 				transactionResponse =>
 					transactionResponse.status === TransactionStatus.OK,
 			)
-			.map(transactionReponse => transactionReponse.id);
+			.map(transactionResponse => transactionResponse.id);
 
 		const allowedTransactions = transactions.filter(transaction =>
 			allowedTransactionsIds.includes(transaction.id),

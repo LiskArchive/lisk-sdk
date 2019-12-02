@@ -52,7 +52,7 @@ describe('Bus', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should create the Bus istance with given arguments.', () => {
+		it('should create the Bus instance with given arguments.', () => {
 			// Assert
 			expect(bus.actions).toEqual({});
 			expect(bus.events).toEqual({});
@@ -143,47 +143,31 @@ describe('Bus', () => {
 		it('should throw error if action was not registered', async () => {
 			// Arrange
 			const actionData = {
-				name: 'nonexistentaction',
+				name: 'nonExistentAction',
 				module: 'app',
 				source: 'chain',
 				params: 'logger',
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invoke(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invoke(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
+			);
 		});
 
 		it('should throw error if module does not exist', async () => {
 			// Arrange
 			const actionData = {
 				name: 'getComponentConfig',
-				module: 'invalidmodule',
+				module: 'invalidModule',
 				source: 'chain',
 				params: 'logger',
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invoke(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invoke(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
+			);
 		});
 	});
 
@@ -191,47 +175,31 @@ describe('Bus', () => {
 		it('should throw error if action was not registered', async () => {
 			// Arrange
 			const actionData = {
-				name: 'nonexistentaction',
+				name: 'nonExistentAction',
 				module: 'app',
 				source: 'chain',
 				params: 'logger',
 			};
 
 			// Act && Assert
-			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invokePublic(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invokePublic(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
+			);
 		});
 
 		it('should throw error if module does not exist', async () => {
 			// Arrange
 			const actionData = {
 				name: 'getComponentConfig',
-				module: 'invalidmodule',
+				module: 'invalidModule',
 				source: 'chain',
 				params: 'logger',
 			};
 
 			// Act && Assert
-			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invokePublic(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not registered to bus.`,
-				);
-			}
+			await expect(bus.invokePublic(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
+			);
 		});
 
 		it('should throw error if action is not public', async () => {
@@ -253,17 +221,9 @@ describe('Bus', () => {
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
-			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
-
-			try {
-				await bus.invokePublic(actionData);
-			} catch (err) {
-				expect(err.message).toEqual(
-					`Action '${actionData.module}:${
-						actionData.name
-					}' is not allowed because it's not public.`,
-				);
-			}
+			await expect(bus.invokePublic(actionData)).rejects.toThrow(
+				`Action '${actionData.module}:${actionData.name}' is not allowed because it's not public.`,
+			);
 		});
 	});
 

@@ -249,7 +249,7 @@ describe('finality_manager', () => {
 					maxHeightPreviouslyForged: 1,
 				});
 				bft.addBlockHeader(header1).addBlockHeader(header2);
-				expect(bft.headers.length).toEqual(2);
+				expect(bft.headers).toHaveLength(2);
 				expect(bft.headers.items).toEqual([header1, header2]);
 			});
 

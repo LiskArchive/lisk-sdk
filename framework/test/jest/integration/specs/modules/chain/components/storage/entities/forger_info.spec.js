@@ -68,7 +68,7 @@ describe('ForgerInfo', () => {
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(ForgerInfo.prototype.constructor.length).toEqual(1);
+			expect(ForgerInfo.prototype.constructor).toHaveLength(1);
 		});
 
 		it('should have called super', async () => {
@@ -167,7 +167,7 @@ describe('ForgerInfo', () => {
 		});
 
 		it('should resolve with error when invoked without key', async () => {
-			expect(ForgerInfoEntity.getKey()).rejects.toThrow(
+			await expect(ForgerInfoEntity.getKey()).rejects.toThrow(
 				'Must provide the key to get',
 			);
 		});
@@ -183,13 +183,13 @@ describe('ForgerInfo', () => {
 
 	describe('setKey', () => {
 		it('should resolve with error when invoked without key', async () => {
-			expect(ForgerInfoEntity.setKey()).rejects.toThrow(
+			await expect(ForgerInfoEntity.setKey()).rejects.toThrow(
 				'Must provide the key to set',
 			);
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			expect(ForgerInfoEntity.setKey('myKey')).rejects.toThrow(
+			await expect(ForgerInfoEntity.setKey('myKey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});

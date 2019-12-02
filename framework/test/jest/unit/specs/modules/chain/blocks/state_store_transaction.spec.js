@@ -92,49 +92,35 @@ describe('state store / transactions', () => {
 		});
 
 		it('should throw an error if not exist', async () => {
-			// Act
-			expect.assertions(1);
-			try {
-				stateStore.transaction.get('123');
-			} catch (err) {
-				expect(err.message).toContain('does not exist');
-			}
+			// Act && Assert
+			expect(() => stateStore.transaction.get('123')).toThrow('does not exist');
 		});
 	});
 
 	describe('getOrDefault', () => {
 		it('should throw an error', async () => {
-			// Act
-			expect.assertions(1);
-			try {
-				stateStore.transaction.getOrDefault('123');
-			} catch (err) {
-				expect(err.message).toContain('cannot be called');
-			}
+			// Act && Assert
+			expect(() => stateStore.transaction.getOrDefault('123')).toThrow(
+				'cannot be called',
+			);
 		});
 	});
 
 	describe('set', () => {
 		it('should throw an error', async () => {
-			// Act
-			expect.assertions(1);
-			try {
-				stateStore.transaction.set('123', { id: '456' });
-			} catch (err) {
-				expect(err.message).toContain('cannot be called');
-			}
+			// Act && Assert
+			expect(() => stateStore.transaction.set('123', { id: '456' })).toThrow(
+				'cannot be called',
+			);
 		});
 	});
 
 	describe('finalize', () => {
 		it('should throw an error', async () => {
-			// Act
-			expect.assertions(1);
-			try {
-				await stateStore.transaction.finalize();
-			} catch (err) {
-				expect(err.message).toContain('cannot be called');
-			}
+			// Act && Assert
+			expect(() => stateStore.transaction.finalize()).toThrow(
+				'cannot be called',
+			);
 		});
 	});
 });

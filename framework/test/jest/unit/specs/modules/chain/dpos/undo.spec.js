@@ -90,7 +90,7 @@ describe('dpos.undo()', () => {
 
 		it('should throw exception and NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
 			// Act && Assert
-			expect(dpos.undo(genesisBlock, { tx: stubs.tx })).rejects.toThrow(
+			await expect(dpos.undo(genesisBlock, { tx: stubs.tx })).rejects.toThrow(
 				'Cannot undo genesis block',
 			);
 
