@@ -330,7 +330,6 @@ describe('block_synchronization_mechanism', () => {
 			jest.clearAllMocks();
 			// Independently of the correct execution of the mechanisms, `active` property should be always
 			// set to false upon finishing the execution
-			// @todo discuss this with @dani
 			// eslint-disable-next-line jest/no-standalone-expect
 			expect(blockSynchronizationMechanism.active).toBeFalsy();
 		});

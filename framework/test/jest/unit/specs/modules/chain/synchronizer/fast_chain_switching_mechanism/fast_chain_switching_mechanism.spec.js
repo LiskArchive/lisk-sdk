@@ -255,7 +255,6 @@ describe('fast_chain_switching_mechanism', () => {
 			jest.clearAllMocks();
 			// Independently of the correct execution of the mechanisms, `active` property should be always
 			// set to false upon finishing the execution
-			// @todo discuss this with @dani
 			// eslint-disable-next-line jest/no-standalone-expect
 			expect(fastChainSwitchingMechanism.active).toBeFalsy();
 		});
@@ -304,7 +303,6 @@ describe('fast_chain_switching_mechanism', () => {
 					aPeerId,
 					"Peer didn't return a common block",
 				);
-				expect(fastChainSwitchingMechanism.active).toBeFalsy();
 			});
 		});
 
