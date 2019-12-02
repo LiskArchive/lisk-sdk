@@ -149,7 +149,7 @@ describe('HeadersList', () => {
 				.add(header5);
 		});
 
-		it('should contain list items', () => {
+		it('should contain list of block headers', () => {
 			expect(list.items).toEqual([header1, header2, header3, header4, header5]);
 		});
 
@@ -233,7 +233,7 @@ describe('HeadersList', () => {
 				.add(header5);
 		});
 
-		it('should contain list items', () => {
+		it('should contain list of block headers', () => {
 			expect(list.items).toEqual([header1, header2, header3, header4, header5]);
 		});
 
@@ -276,7 +276,7 @@ describe('HeadersList', () => {
 				.add(header5);
 		});
 
-		it('should contain list items', () => {
+		it('should contain list of block headers', () => {
 			expect(list.items).toEqual([header1, header2, header3, header4, header5]);
 		});
 
@@ -320,7 +320,7 @@ describe('HeadersList', () => {
 				.add(header5);
 		});
 
-		it('should contain list items', () => {
+		it('should contain list of block headers', () => {
 			expect(list.items).toEqual([header1, header2, header3, header4, header5]);
 		});
 

@@ -52,7 +52,7 @@ describe('Bus', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should create the Bus istance with given arguments.', () => {
+		it('should create the Bus instance with given arguments.', () => {
 			// Assert
 			expect(bus.actions).toEqual({});
 			expect(bus.events).toEqual({});
@@ -143,7 +143,7 @@ describe('Bus', () => {
 		it('should throw error if action was not registered', async () => {
 			// Arrange
 			const actionData = {
-				name: 'nonexistentaction',
+				name: 'nonExistentAction',
 				module: 'app',
 				source: 'chain',
 				params: 'logger',
@@ -151,9 +151,7 @@ describe('Bus', () => {
 
 			// Act && Assert
 			await expect(bus.invoke(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${
-					actionData.name
-				}' is not registered to bus.`,
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
 			);
 		});
 
@@ -161,16 +159,14 @@ describe('Bus', () => {
 			// Arrange
 			const actionData = {
 				name: 'getComponentConfig',
-				module: 'invalidmodule',
+				module: 'invalidModule',
 				source: 'chain',
 				params: 'logger',
 			};
 
 			// Act && Assert
 			await expect(bus.invoke(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${
-					actionData.name
-				}' is not registered to bus.`,
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
 			);
 		});
 	});
@@ -179,7 +175,7 @@ describe('Bus', () => {
 		it('should throw error if action was not registered', async () => {
 			// Arrange
 			const actionData = {
-				name: 'nonexistentaction',
+				name: 'nonExistentAction',
 				module: 'app',
 				source: 'chain',
 				params: 'logger',
@@ -187,9 +183,7 @@ describe('Bus', () => {
 
 			// Act && Assert
 			await expect(bus.invokePublic(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${
-					actionData.name
-				}' is not registered to bus.`,
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
 			);
 		});
 
@@ -197,16 +191,14 @@ describe('Bus', () => {
 			// Arrange
 			const actionData = {
 				name: 'getComponentConfig',
-				module: 'invalidmodule',
+				module: 'invalidModule',
 				source: 'chain',
 				params: 'logger',
 			};
 
 			// Act && Assert
 			await expect(bus.invokePublic(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${
-					actionData.name
-				}' is not registered to bus.`,
+				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
 			);
 		});
 
@@ -230,9 +222,7 @@ describe('Bus', () => {
 
 			// Assert
 			await expect(bus.invokePublic(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${
-					actionData.name
-				}' is not allowed because it's not public.`,
+				`Action '${actionData.module}:${actionData.name}' is not allowed because it's not public.`,
 			);
 		});
 	});
