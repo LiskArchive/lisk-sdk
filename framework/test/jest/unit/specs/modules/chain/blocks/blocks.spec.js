@@ -126,11 +126,12 @@ describe('blocks', () => {
 				expect(blocksInstance[stubName]).toEqual(stubValue);
 			});
 			// Assert constants
-			Object.entries(blocksInstance.constants).forEach(
-				([constantName, constantValue]) =>
-					expect(constants[constantName]).toEqual(constantValue),
+			Object.entries(
+				blocksInstance.constants,
+			).forEach(([constantName, constantValue]) =>
+				expect(constants[constantName]).toEqual(constantValue),
 			);
-			// Assert miscellanious
+			// Assert miscellaneous
 			expect(slots).toEqual(blocksInstance.slots);
 			expect(blocksInstance.blockReward).toBeDefined();
 			expect(blocksInstance.blocksVerify).toBeDefined();
@@ -279,7 +280,7 @@ describe('blocks', () => {
 			});
 			// TODO: The tests are minimal due to the changes we expect as part of https://github.com/LiskHQ/lisk-sdk/issues/4131
 			describe('when Block.get returns rows', () => {
-				it('should return the storage read of the first row', async () => {
+				it('should return the first record from storage entity', async () => {
 					// Arrange
 					stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 						genesisBlock,
@@ -289,8 +290,7 @@ describe('blocks', () => {
 					await blocksInstance.init();
 
 					// Assert
-					// @TODO discuss
-					expect(true).toBeTruthy();
+					expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
 				});
 			});
 		});
@@ -416,7 +416,7 @@ describe('blocks', () => {
 			// Arrange
 			const block = newBlock({
 				reward: new BigNum('0'),
-				totolAmount: new BigNum('0'),
+				totalAmount: new BigNum('0'),
 				totalFee: new BigNum('0'),
 			});
 			const blockJSON = blocksInstance.serialize(block);
