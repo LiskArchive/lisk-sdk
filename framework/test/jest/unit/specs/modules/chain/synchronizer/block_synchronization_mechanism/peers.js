@@ -27,6 +27,8 @@ module.exports = {
 			maxHeightPrevoted: 1,
 			height: 66,
 			peerId: '127.0.0.2:5000',
+			ipAddress: '127.0.0.2',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
@@ -34,6 +36,8 @@ module.exports = {
 			blockVersion: 2,
 			height: 67,
 			peerId: '127.0.0.3:5000',
+			ipAddress: '127.0.0.3',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
@@ -41,6 +45,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 68,
 			peerId: '127.0.0.3:5000',
+			ipAddress: '127.0.0.3',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
@@ -48,6 +54,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.4:5000',
+			ipAddress: '127.0.0.4',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
@@ -55,6 +63,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.5:5000',
+			ipAddress: '127.0.0.5',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
@@ -62,6 +72,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.6:5000',
+			ipAddress: '127.0.0.6',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343246',
@@ -69,6 +81,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.7:5000',
+			ipAddress: '127.0.0.7',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343246',
@@ -76,6 +90,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.8:5000',
+			ipAddress: '127.0.0.8',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343246',
@@ -83,24 +99,32 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.9:5000',
+			ipAddress: '127.0.0.9',
+			wsPort: '5000',
 		}, // Next three are incompatible peers (No height or blockVersion or maxHeightPrevoted properties are present
 		{
 			lastBlockId: '12343246',
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.10:5000',
+			ipAddress: '127.0.0.10',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343246',
 			blockVersion: 2,
 			height: 69,
 			peerId: '127.0.0.11:5000',
+			ipAddress: '127.0.0.11',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343246',
 			blockVersion: 2,
 			maxHeightPrevoted: 2,
 			peerId: '127.0.0.12:5000',
+			ipAddress: '127.0.0.12',
+			wsPort: '5000',
 		},
 	],
 	expectedSelection: [
@@ -110,6 +134,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.4:5000',
+			ipAddress: '127.0.0.4',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
@@ -117,6 +143,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.5:5000',
+			ipAddress: '127.0.0.5',
+			wsPort: '5000',
 		},
 		{
 			lastBlockId: '12343245',
@@ -124,6 +152,8 @@ module.exports = {
 			maxHeightPrevoted: 2,
 			height: 69,
 			peerId: '127.0.0.6:5000',
+			ipAddress: '127.0.0.6',
+			wsPort: '5000',
 		},
 	],
 };
