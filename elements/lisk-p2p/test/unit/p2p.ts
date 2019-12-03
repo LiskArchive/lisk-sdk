@@ -14,6 +14,7 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../src/p2p';
+import { constructPeerId } from '../../src/utils';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
@@ -60,7 +61,7 @@ describe('p2p', () => {
 		it('should load PeerBook with correct fixedPeer hierarchy', async () => {
 			const expectedFixedPeers = generatedPeers
 				.slice(0, 6)
-				.map(peer => `${peer.ipAddress}:${peer.wsPort}`);
+				.map(peer => constructPeerId(peer.ipAddress, peer.wsPort));
 
 			expect(expectedFixedPeers).to.have.members(
 				P2PNode['_peerBook'].allPeers
