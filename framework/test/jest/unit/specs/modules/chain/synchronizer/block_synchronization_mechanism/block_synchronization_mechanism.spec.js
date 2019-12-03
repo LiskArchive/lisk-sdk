@@ -459,7 +459,7 @@ describe('block_synchronization_mechanism', () => {
 						reason:
 							'Peer tip does not have preference over current tip. Fork status: 6',
 					},
-					'Aborting synchronization mechanism with reason: Peer tip does not have preference over current tip. Fork status: 6',
+					'Aborting synchronization mechanism',
 				);
 				expect(
 					blockSynchronizationMechanism._requestAndValidateLastBlock,

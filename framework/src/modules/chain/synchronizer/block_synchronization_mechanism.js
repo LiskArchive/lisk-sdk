@@ -83,7 +83,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			if (error instanceof AbortError) {
 				return this.logger.info(
 					{ error, reason: error.reason },
-					`Aborting synchronization mechanism with reason: ${error.reason}`,
+					'Aborting synchronization mechanism',
 				);
 			}
 
