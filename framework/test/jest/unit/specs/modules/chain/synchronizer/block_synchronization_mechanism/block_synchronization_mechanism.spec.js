@@ -31,6 +31,10 @@ const {
 	computeBlockHeightsList,
 } = require('../../../../../../../../src/modules/chain/synchronizer/utils');
 
+const {
+	AbortError,
+} = require('../../../../../../../../src/modules/chain/synchronizer/errors');
+
 const { Slots } = require('../../../../../../../../src/modules/chain/dpos');
 const {
 	Sequence,
@@ -445,8 +449,17 @@ describe('block_synchronization_mechanism', () => {
 						})),
 					]);
 
-				await expect(blockSynchronizationMechanism.run(aBlock)).rejects.toThrow(
-					'Abort synchronization mechanism with reason: Peer tip does not have preference over current tip. Fork status: 6',
+				await blockSynchronizationMechanism.run(aBlock);
+
+				expect(loggerMock.info).toHaveBeenCalledWith(
+					{
+						error: new AbortError(
+							'Peer tip does not have preference over current tip. Fork status: 6',
+						),
+						reason:
+							'Peer tip does not have preference over current tip. Fork status: 6',
+					},
+					'Aborting synchronization mechanism with reason: Peer tip does not have preference over current tip. Fork status: 6',
 				);
 				expect(
 					blockSynchronizationMechanism._requestAndValidateLastBlock,
