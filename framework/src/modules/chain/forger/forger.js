@@ -22,16 +22,6 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const { sortTransactions } = require('./sort');
 
-/**
- * Gets the assigned delegate to current slot and returns its keypair if present.
- *
- * @private
- * @param {number} slot
- * @param {number} round
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err, {time, keypair}
- * @todo Add description for the params
- */
 const getDelegateKeypairForCurrentSlot = async (
 	dposModule,
 	keypairs,
@@ -51,18 +41,6 @@ const getDelegateKeypairForCurrentSlot = async (
 	return null;
 };
 
-/**
- * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
- *
- * @class
- * @memberof modules
- * @see Parent: {@link modules}
- * @requires async
- * @requires lodash
- * @param {scope} scope - App instance
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err, self
- */
 class Forger {
 	constructor({
 		// components
@@ -108,26 +86,11 @@ class Forger {
 		this.blocksModule = blocksModule;
 	}
 
-	/**
-	 * Returns true if at least one delegate is enabled.
-	 *
-	 * @returns {boolean}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	delegatesEnabled() {
 		return Object.keys(this.keypairs).length > 0;
 	}
 
-	/**
-	 * Updates the forging status of an account, valid actions are enable and disable.
-	 *
-	 * @param {publicKey} publicKey - Public key of delegate
-	 * @param {string} password - Password used to decrypt encrypted passphrase
-	 * @param {boolean} forging - Forging status of a delegate to update
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the return value
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async updateForgingStatus(publicKey, password, forging) {
 		const encryptedList = this.config.forging.delegates;
@@ -187,13 +150,6 @@ class Forger {
 		throw new Error('Delegate not found');
 	}
 
-	/**
-	 * Loads delegates from config and stores in private `keypairs`.
-	 *
-	 * @private
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the return value
-	 */
 	async loadDelegates() {
 		const encryptedList = this.config.forging.delegates;
 
@@ -269,24 +225,11 @@ class Forger {
 		}
 	}
 
-	/**
-	 * Before forge, fill transaction pool
-	 *
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the return value
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async beforeForge() {
 		await this.transactionPoolModule.fillPool();
 	}
 
-	/**
-	 * Generates new block, once delegates
-	 * are enabled, client is ready to forge and is the correct slot.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async forge() {
 		const currentSlot = this.slots.getSlotNumber();
@@ -386,11 +329,6 @@ class Forger {
 		);
 	}
 
-	/**
-	 * Get an object of key pairs for delegates enabled for forging.
-	 *
-	 * @returns {object} Of delegate key pairs
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	getForgersKeyPairs() {
 		return this.keypairs;

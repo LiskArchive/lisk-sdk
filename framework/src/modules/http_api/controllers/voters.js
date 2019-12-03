@@ -21,7 +21,6 @@ const swaggerHelper = require('../helpers/swagger');
 const { MAX_VOTES_PER_ACCOUNT } = global.constants;
 const { generateParamsErrorObject } = swaggerHelper;
 
-// Private Fields
 let storage;
 
 const getFilterAndOptionsFormParams = params => {
@@ -76,30 +75,11 @@ const validateFilters = (filters, params) => {
 	return undefined;
 };
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiCodes.NOT_FOUND
- * @requires helpers/apiError
- * @requires helpers/swagger.generateParamsErrorObject
- * @param {Object} scope - App instance
- * @todo Add description of VotersController
- */
 function VotersController(scope) {
 	({ storage } = scope.components);
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-VotersController.getVoters = async function(context, next) {
+VotersController.getVoters = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -167,14 +147,7 @@ VotersController.getVoters = async function(context, next) {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-VotersController.getVotes = async function(context, next) {
+VotersController.getVotes = async (context, next) => {
 	const { params } = context.request.swagger;
 
 	const { filters, options } = getFilterAndOptionsFormParams(params);

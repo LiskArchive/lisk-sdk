@@ -78,45 +78,7 @@ const registerProcessHooks = app => {
 	process.once('exit', (error, code) => app.shutdown(code, error));
 };
 
-/**
- * Application class to start the block chain instance
- *
- * @class
- * @memberof framework.controller
- * @requires assert
- * @requires Controller
- * @requires module.defaults
- * @requires validator
- * @requires schema/application
- * @requires components/logger
- * @requires components/storage
- */
 class Application {
-	/**
-	 * Create the application object
-	 *
-	 * @example
-	 *    const app = new Application(myGenesisBlock)
-	 * @example
-	 *    const app = new Application(myGenesisBlock, {app: {label: 'myApp'}})
-	 *
-	 * @param {Object} genesisBlock - Genesis block object
-	 * @param {Object} [config] - Main configuration object
-	 * @param {string} [config.app.label] - Label of the application
-	 * @param {Object} [config.app.genesisConfig] - Configuration for applicationState
-	 * @param {string} [config.app.version] - Version of the application
-	 * @param {string} [config.app.minVersion] - Minimum compatible version on the network
-	 * @param {string} [config.app.protocolVersion] - Compatible protocol version application is using
-	 * @param {string} [config.app.lastCommitId] - Last commit id coming from application repository
-	 * @param {string} [config.app.buildVersion] - Build version of the application
-	 * @param {Object} [config.components] - Configurations for components
-	 * @param {Object} [config.components.logger] - Configuration for logger component
-	 * @param {Object} [config.components.cache] - Configuration for cache component
-	 * @param {Object} [config.components.storage] - Configuration for storage component
-	 * @param {Object} [config.modules] - Configurations for modules
-	 *
-	 * @throws Framework.errors.SchemaValidationError
-	 */
 	constructor(genesisBlock, config = {}) {
 		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
 		if (errors.length) {
@@ -186,14 +148,6 @@ class Application {
 		});
 	}
 
-	/**
-	 * Register module with the application
-	 *
-	 * @param {Object} moduleKlass - Module specification
-	 *  @see {@link '../modules/README.md'}
-	 * @param {Object} [options] - Modules configuration object. Provided options will override `moduleKlass.defaults` to generate final configuration used for the module
-	 * @param {string} [alias] - Will use this alias or fallback to `moduleKlass.alias`
-	 */
 	registerModule(moduleKlass, options = {}, alias = undefined) {
 		assert(moduleKlass, 'ModuleSpec is required');
 		assert(
@@ -219,12 +173,6 @@ class Application {
 		this.registerMigrations(moduleKlass.alias, moduleKlass.migrations);
 	}
 
-	/**
-	 * Override the module's configuration
-	 *
-	 * @param {string} alias - Alias of module used during registration
-	 * @param {Object} options - Override configurations, these will override existing configurations.
-	 */
 	overrideModuleOptions(alias, options) {
 		const modules = this.getModules();
 		assert(
@@ -237,12 +185,6 @@ class Application {
 		};
 	}
 
-	/**
-	 * Register a transaction
-	 *
-	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
-	 * @param [matcher]
-	 */
 	registerTransaction(Transaction, { matcher } = {}) {
 		assert(Transaction, 'Transaction implementation is required');
 
@@ -271,12 +213,6 @@ class Application {
 		__private.transactions.set(this, transactions);
 	}
 
-	/**
-	 * Register migrations with the application
-	 *
-	 * @param {Object} namespace - Migration namespace
-	 * @param {Array} migrations - Migrations list. Format ['/path/to/migration/yyyyMMddHHmmss_name_of_migration.sql']
-	 */
 	registerMigrations(namespace, migrations) {
 		assert(namespace, 'Namespace is required');
 		assert(Array.isArray(migrations), 'Migrations list should be an array');
@@ -290,59 +226,26 @@ class Application {
 		__private.migrations.set(this, currentMigrations);
 	}
 
-	/**
-	 * Get list of all transactions registered with the application
-	 *
-	 * @return {Object}
-	 */
 	getTransactions() {
 		return __private.transactions.get(this);
 	}
 
-	/**
-	 * Get one transaction for provided type
-	 *
-	 * @param {number} transactionType - Unique integer that identifies the transaction type
-	 * @return {constructor|undefined}
-	 */
 	getTransaction(transactionType) {
 		return __private.transactions.get(this)[transactionType];
 	}
 
-	/**
-	 * Get one module for provided alias
-	 *
-	 * @param {string} alias - Alias for module used during registration
-	 * @return {{klass: Object, options: Object}}
-	 */
 	getModule(alias) {
 		return __private.modules.get(this)[alias];
 	}
 
-	/**
-	 * Get all registered modules
-	 *
-	 * @return {Array.<Object>}
-	 */
 	getModules() {
 		return __private.modules.get(this);
 	}
 
-	/**
-	 * Get all registered migrations
-	 *
-	 * @return {Array.<Object>}
-	 */
 	getMigrations() {
 		return __private.migrations.get(this);
 	}
 
-	/**
-	 * Run the application
-	 *
-	 * @async
-	 * @return {Promise.<void>}
-	 */
 	async run() {
 		this.logger.info(`Booting the application with Lisk Framework(${version})`);
 
@@ -374,13 +277,6 @@ class Application {
 		);
 	}
 
-	/**
-	 * Stop the running application
-	 *
-	 * @param {number} [errorCode=0] - Error code
-	 * @param {string} [message] - Message specifying exit reason
-	 * @return {Promise.<void>}
-	 */
 	async shutdown(errorCode = 0, message = '') {
 		if (this.controller) {
 			await this.controller.cleanup(errorCode, message);

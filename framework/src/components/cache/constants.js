@@ -14,18 +14,6 @@
 
 'use strict';
 
-/**
- * Description of the namespace.
- *
- * @namespace constants
- * @memberof config
- * @see Parent: {@link component/cache}
- * @property {number} CACHE_KEYS_BLOCKS
- * @property {number} CACHE_KEYS_DELEGATES
- * @property {number} CACHE_KEYS_TRANSACTIONS
- * @property {number} CACHE_KEYS_TRANSACTION_COUNT
- * @todo Add description for the namespace and the properties.
- */
 module.exports = {
 	CACHE_KEYS_BLOCKS: '/api/blocks*',
 	CACHE_KEYS_DELEGATES: '/api/delegates*',

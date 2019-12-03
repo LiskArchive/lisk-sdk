@@ -17,31 +17,10 @@
 const util = require('util');
 const debug = require('debug')('swagger:lisk:error_handler');
 
-/**
- * Description of the function.
- *
- * @func create_error_handler
- * @memberof api.fittings
- * @requires debug
- * @requires util
- * @param {Object} fittingDef
- * @param {Object} bagpipes
- * @returns {function} {@link api.fittings.lisk_error_handler}
- * @todo Add description for the function and the params
- */
 module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 
-	/**
-	 * Description of the function.
-	 *
-	 * @func lisk_error_handler
-	 * @memberof api.fittings
-	 * @param {Object} context
-	 * @param {function} cb
-	 * @todo Add description for the function and the params
-	 */
-	return function lisk_error_handler(context, next) {
+	return function liskErrorHandler(context, next) {
 		if (!util.isError(context.error)) {
 			return next();
 		}

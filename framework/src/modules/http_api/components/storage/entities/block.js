@@ -25,11 +25,6 @@ const sqlFiles = {
 };
 
 class ApiBlock extends BlockEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -42,17 +37,6 @@ class ApiBlock extends BlockEntity {
 		};
 	}
 
-	/**
-	 * Get blocks rewards of delegate for time period.
-	 * TODO: move this method to Delegate entity once implemented
-	 *
-	 * @param {Object} filters = {} - Filters to filter data
-	 * @param {string} filters.generatorPublicKey - Delegate Public Key to calculate reward
-	 * @param {Number} [filters.fromTimestamp] - WHERE timestamp >= fromTimestamp
-	 * @param {Number} [filters.toTimestamp] - WHERE timestamp <= toTimestamp
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<DatabaseRow, Error>}
-	 */
 	delegateBlocksRewards(filters, tx) {
 		assert(
 			filters && filters.generatorPublicKey,

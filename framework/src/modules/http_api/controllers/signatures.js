@@ -17,31 +17,13 @@
 const ApiError = require('../api_error');
 const apiCodes = require('../api_codes');
 
-// Private Fields
 let channel;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiError
- * @param {Object} scope - App instance
- * @todo Add description of SignaturesController
- */
 function SignaturesController(scope) {
 	({ channel } = scope);
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-SignaturesController.postSignature = async function(context, next) {
+SignaturesController.postSignature = async (context, next) => {
 	const signature = context.request.swagger.params.signature.value;
 	let error;
 

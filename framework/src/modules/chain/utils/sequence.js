@@ -23,17 +23,6 @@ const defaultConfig = {
 
 const defaultTickInterval = 3;
 
-/**
- * Creates a FIFO queue array and default settings with config values.
- * Calls __tick with 3
- *
- * @class
- * @memberof utils
- * @requires util
- * @param {string} config
- * @see Parent: {@link utils}
- * @todo Add description for the params
- */
 class Sequence {
 	constructor({ onWarning, warningLimit } = defaultConfig) {
 		this.queue = [];
@@ -56,13 +45,6 @@ class Sequence {
 		nextSequence();
 	}
 
-	/**
-	 * Removes the first task from queue and execute it with args.
-	 *
-	 * @param {function} cb
-	 * @returns {setImmediateCallback} With cb or task.done
-	 * @todo Add description for the params
-	 */
 	async _tick() {
 		const task = this.queue.shift();
 		if (!task) {
@@ -76,15 +58,6 @@ class Sequence {
 		}
 	}
 
-	/**
-	 * Adds a new task to queue.
-	 * Promise will resolve when the task has been completed.
-	 *
-	 * @param {function} worker
-	 * @param {Array} args
-	 * @param {function} done
-	 * @todo Add description for the params
-	 */
 	add(worker) {
 		if (!util.types.isAsyncFunction(worker)) {
 			throw new Error('Worker must be an async function.');
@@ -98,11 +71,6 @@ class Sequence {
 		return workerPromise;
 	}
 
-	/**
-	 * Gets pending task in queue.
-	 *
-	 * @returns {number} Sequence length
-	 */
 	count() {
 		return this.queue.length;
 	}

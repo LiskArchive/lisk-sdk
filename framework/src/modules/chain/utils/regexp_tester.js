@@ -14,18 +14,7 @@
 
 'use strict';
 
-/**
- * Provide predefined regular expression to test characters with a special meaning
- *
- */
 module.exports = {
-	/**
-	 * Test presence of NULL character in a given string
-	 * NULL characters list: ['\0', '\x00', '\u0000', '\U00000000']
-	 *
-	 * @param {string} string - String to be tested.
-	 * @returns {boolean} True is Null character is present in the string. False otherwise.
-	 */
 	isNullByteIncluded(string) {
 		const metacharacter = new RegExp(/\0|\\u0000|\\x00/);
 		return metacharacter.test(string);

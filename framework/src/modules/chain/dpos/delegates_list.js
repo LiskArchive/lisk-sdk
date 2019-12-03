@@ -47,8 +47,6 @@ class DelegatesList {
 	/**
 	 * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
 	 * The list of delegates used is the one computed at the end of the round `r - delegateListRoundOffset`
-	 * @param {number} round
-	 * @param {number} delegateListRoundOffset
 	 */
 	async getForgerPublicKeysForRound(round, delegateListRoundOffset, tx) {
 		// Delegate list is generated from round 1 hence `roundWithOffset` can't be less than 1
@@ -82,8 +80,6 @@ class DelegatesList {
 	/**
 	 * Generate list of delegate public keys for the next round in database
 	 * WARNING: This function should only be called from `apply()` as we don't allow future rounds to be created
-	 * @param {number} round
-	 * @param {Object} tx - Database transaction object
 	 */
 	async createRoundDelegateList(round, tx) {
 		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight(
@@ -128,14 +124,6 @@ class DelegatesList {
 		);
 	}
 
-	/**
-	 * Validates if block was forged by correct delegate
-	 *
-	 * @param {Object} block
-	 * @param {Number} delegateListRoundOffset - use delegate list generated at the end of `delegateListRoundOffset` before the current round
-	 * @return {Boolean} - `true`
-	 * @throw {Error} Failed to verify slot
-	 */
 	async verifyBlockForger(block, { tx, delegateListRoundOffset }) {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.slots.calcRound(block.height);

@@ -30,35 +30,7 @@ const sqlFiles = {
 	getActiveDelegatesForRound: 'round_delegates/get_round_delegates.sql',
 };
 
-/**
- * Round
- * @typedef {Object} Round
- * @property {string} address
- * @property {number} amount
- * @property {string} delegate
- * @property {number} round
- */
-
-/**
- * Round Filters
- * @typedef {Object} filters.Round
- * @property {number} [round]
- * @property {number} [round_eql]
- * @property {number} [round_ne]
- * @property {number} [round_gt]
- * @property {number} [round_gte]
- * @property {number} [round_lt]
- * @property {number} [round_lte]
- * @property {number} [round_in]
- * @property {json} [delegatePublicKeys]
- */
-
 class RoundDelegates extends BaseEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
-	 * @param {filters.Round} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -72,9 +44,6 @@ class RoundDelegates extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('dpos', sqlFiles, this.sqlDirectory);
 	}
 
-	/**
-	 * @returns {string[]} delegatePublicKeys
-	 */
 	async getActiveDelegatesForRound(round, tx) {
 		const [result] = await this.adapter.executeFile(
 			this.SQLs.getActiveDelegatesForRound,
@@ -92,14 +61,6 @@ class RoundDelegates extends BaseEntity {
 		return result ? result.delegatePublicKeys : [];
 	}
 
-	/**
-	 * Create round object
-	 *
-	 * @param {Object} data
-	 * @param {Object} [_options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {null}
-	 */
 	// eslint-disable-next-line no-unused-vars
 	create({ round, delegatePublicKeys }, _options = {}, tx = null) {
 		assert(round && Number.isInteger(round), 'Round must be a number');
@@ -126,14 +87,6 @@ class RoundDelegates extends BaseEntity {
 		);
 	}
 
-	/**
-	 * Delete records with following conditions
-	 *
-	 * @param {filters.Round} filters
-	 * @param {Object} [options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	delete(filters, _options, tx = null) {
 		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
@@ -149,43 +102,15 @@ class RoundDelegates extends BaseEntity {
 			.then(result => result);
 	}
 
-	/**
-	 * Get a list of RoundDelegates entries
-	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} filters
-	 * @param {Object} [options]
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} [tx] - Transaction object
-	 * @return {Promise} Promise object which represents the response returned from the database
-	 */
 	async get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
 
-	/**
-	 * Get one entry of RoundDelegates
-	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} filters
-	 * @param {Object} [options]
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} [tx] - Transaction object
-	 * @return {Promise} Promise object which represents the response returned from the database
-	 */
 	async getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
-	/**
-	 * Get list of RoundDelegates
-	 *
-	 * @param {filters.RoundDelegates|filters.RoundDelegates[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<RoundDelegates[], Error>}
-	 */
 	_getResults(filters, options, tx, expectedResultCount) {
 		this.validateFilters(filters);
 		this.validateOptions(options);

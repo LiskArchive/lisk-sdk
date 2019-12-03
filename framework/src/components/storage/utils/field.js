@@ -19,16 +19,6 @@ const { filterGenerator } = require('./filters');
 const inputSerializers = require('./input_serializers');
 
 class Field {
-	/**
-	 *
-	 * @param {String} name
-	 * @param {String} type
-	 * @param {Object} [options={}]
-	 * @param {string} [options.fieldName] - Real name of the field
-	 * @param {string} [options.filter] - Filter type
-	 * @param {string} [options.filterCondition] - Filter condition
-	 * @param {Function} [inputSerializer] - Serializer function
-	 */
 	constructor(name, type, options = {}, inputSerializer) {
 		assert(name, 'Name is required to initialize field.');
 		assert(type, 'Type is required to initialize field.');

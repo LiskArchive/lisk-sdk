@@ -27,11 +27,6 @@ const { filterGenerator } = require('../utils/filters');
 const { defaultInput } = require('../utils/input_serializers');
 
 class BaseEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
-	 * @param {Object} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		this.adapter = adapter;
 		this.fields = {};
@@ -46,29 +41,11 @@ class BaseEntity {
 		this.sortingFields = [];
 	}
 
-	/**
-	 * Get one object from persistence layer
-	 *
-	 * @param {string | Object} filters - Multiple filters or just primary key
-	 * @param {Object} options - Extended options
-	 * @param {Object} tx - transaction object
-	 *
-	 * @return {Promise}
-	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
 	getOne(filters, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
-	/**
-	 * Get multiple objects from persistence layer
-	 *
-	 * @param {string | Object} filters - Multiple filters or just primary key
-	 * @param {Object} options - Extended options
-	 * @param {Object} tx - transaction object
-	 *
-	 * @return {Promise}
-	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
 	get(filters, options, tx) {
 		throw new ImplementationPendingError();
@@ -79,45 +56,16 @@ class BaseEntity {
 		throw new ImplementationPendingError();
 	}
 
-	/**
-	 * Create an object and store it
-	 *
-	 * @param {Object} data - Data for the object
-	 * @param {Object} options - Extended options
-	 * @param {Object} tx - transaction object
-	 *
-	 * @return {Promise}
-	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
 	create(data, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
-	/**
-	 * Update already persisted object
-	 *
-	 * @param {string | Object} filters - Multiple filters or just primary key
-	 * @param {Object} data - Data for the object
-	 * @param {Object} options - Extended options
-	 * @param {Object} tx - transaction object
-	 *
-	 * @return {Promise}
-	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
 	update(filters, data, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
-	/**
-	 * Update already persisted object
-	 *
-	 * @param {string | Object} filters - Multiple filters or just primary key
-	 * @param {Object} data - Data for the object
-	 * @param {Object} options - Extended options
-	 * @param {Object} tx - transaction object
-	 *
-	 * @return {Promise}
-	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
 	updateOne(filters, data, options, tx) {
 		throw new ImplementationPendingError();
@@ -132,28 +80,10 @@ class BaseEntity {
 		return Object.keys(this.filters);
 	}
 
-	/**
-	 * Update the default options to be used in all methods
-	 *
-	 * @param {Object} options - Options object
-	 */
 	extendDefaultOptions(options) {
 		this.defaultOptions = { ...this.defaultOptions, ...options };
 	}
 
-	/**
-	 * Add a field for manipulation
-	 *
-	 * @param {string} name - Name of the field
-	 * @param {string} type - JSON-Schema type
-	 * @param {Object} [options={}]
-	 * @param {string} [options.fieldName] - Real name of the field
-	 * @param {string} [options.filter] - Filter type
-	 * @param {string} [options.filterCondition] - Filter condition
-	 * @param {string} [options.format] - JSON-Schema format for provided type
-	 * @param {*} [options.default] - Default value for insertion
-	 * @param {function} [writer] - Writer encode writing logic
-	 */
 	addField(name, type, options, writer) {
 		// TODO: The dynamic generated json-schema should be implemented for validation
 
@@ -187,15 +117,6 @@ class BaseEntity {
 		);
 	}
 
-	/**
-	 * Generate value set
-	 *
-	 * @param {Array.<Object>} data - Data objects
-	 * @param {Array.<string>} [attributes] - Attributes to save from objects
-	 * @param {Object} [options] - Options object
-	 * @param {Boolean} [options.useRawObject] - Use raw object instead of fields
-	 * @return {*}
-	 */
 	getValuesSet(data, attributes = undefined, options = {}) {
 		if (Array.isArray(data)) {
 			return data
@@ -206,43 +127,16 @@ class BaseEntity {
 		return this._getValueSetForObject(data, attributes);
 	}
 
-	/**
-	 * Load given SQL files to given entity
-	 *
-	 * @param {string} entityLabel - Namespace of the entity
-	 * @param {Object} sqlFiles - Object with SQL label as key and path to load as value
-	 * @return {Object}
-	 */
 	loadSQLFiles(entityLabel, sqlFiles, sqlDirectory) {
 		return this.adapter.loadSQLFiles(entityLabel, sqlFiles, sqlDirectory);
 	}
 
-	/**
-	 * Begin a database transaction
-	 *
-	 * @param {string} transactionName - Name of the transaction
-	 * @param {function} cb - Callback function transaction
-	 * @param {Object} [options]
-	 * @param {Boolean} [options.noTransaction] - Don't use begin/commit block
-	 * @param {Object} [tx] - A parent transaction object
-	 * @return {*}
-	 */
 	begin(transactionName, cb, options = {}, tx) {
 		return options.noTransaction
 			? this.adapter.task(transactionName, cb, tx)
 			: this.adapter.transaction(transactionName, cb, tx);
 	}
 
-	/**
-	 * Setup the filters for getters
-	 *
-	 * @param {string} filterName
-	 * @param {string} filterType
-	 * @param {Object} options
-	 * @param {string} [options.fieldName] - Actual name of the field
-	 * @param {string} [options.condition] - custom condition in case of CUSTOM filter type
-	 * @param {Function} [options.inputSerializer] - Method to serialize the value to SQL
-	 */
 	addFilter(filterName, filterType = filterTypes.NUMBER, options = {}) {
 		// TODO: The dynamic generated json-schema for filters should be implemented for validation
 
@@ -258,12 +152,6 @@ class BaseEntity {
 		};
 	}
 
-	/**
-	 * Validate allowed filters
-	 * @param {Array.<Object>|Object} filters
-	 * @param {Boolean} atLeastOneRequired
-	 * @return {Boolean|Object} true or NonSupportedFilterTypeError
-	 */
 	validateFilters(filters = {}, atLeastOneRequired = false) {
 		if (atLeastOneRequired && (!filters || !Object.keys(filters).length)) {
 			throw new NonSupportedFilterTypeError(
@@ -297,12 +185,6 @@ class BaseEntity {
 		return true;
 	}
 
-	/**
-	 * Validate allowed options
-	 * @param {Object} options
-	 * @param {Boolean} atLeastOneRequired
-	 * @return {Boolean|Object} true or NonSupportedFilterTypeError
-	 */
 	validateOptions(options = {}, atLeastOneRequired = false) {
 		if (atLeastOneRequired && (!options || !Object.keys(options).length)) {
 			throw new NonSupportedOptionError(
@@ -356,11 +238,6 @@ class BaseEntity {
 			: `${options.filterPrefix} ${subQueries.join(' OR ')}`;
 	}
 
-	/**
-	 * Merge multiple filters together
-	 * @param {Array.<Object>|Object} filters
-	 * @return {*}
-	 */
 	mergeFilters(filters) {
 		if (Array.isArray(filters)) {
 			return filters.map(item => ({ ...item, ...this.defaultFilters }));
@@ -382,11 +259,6 @@ class BaseEntity {
 		)})`;
 	}
 
-	/**
-	 * Parse sort option
-	 * @param {Array.<String>|String} sortOption
-	 * @return {string}
-	 */
 	parseSort(sortOption = this.defaultOptions.sort) {
 		const sortString = Array.isArray(sortOption)
 			? sortOption.map(parseSortString).join(', ')
