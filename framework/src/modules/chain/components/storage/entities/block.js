@@ -51,11 +51,6 @@ const sqlFiles = {
 };
 
 class ChainBlock extends BlockEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
-	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -68,14 +63,6 @@ class ChainBlock extends BlockEntity {
 		};
 	}
 
-	/**
-	 * Create object record
-	 *
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
-	 * @return {*}
-	 */
 	create(data, _options, tx) {
 		assert(data, 'Must provide data to create block');
 		assert(
@@ -110,36 +97,16 @@ class ChainBlock extends BlockEntity {
 		);
 	}
 
-	/**
-	 * Update operation is not supported for Blocks
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	update() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update operation is not supported for Blocks
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	updateOne() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Delete records with following conditions
-	 *
-	 * @param {filters.Block} filters
-	 * @param {Object} [options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	delete(filters, _options, tx = null) {
 		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
@@ -159,17 +126,6 @@ class ChainBlock extends BlockEntity {
 			.then(result => result);
 	}
 
-	/**
-	 * Get IDs of first block of last (n) rounds, descending order
-	 * EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
-	 *
-	 * @param {Object} filters = {} - Filters to filter data
-	 * @param {string} filters.height - Block height
-	 * @param {Number} [filters.numberOfDelegates] - Total number of delegates
-	 * @param {Number} [filters.numberOfRounds = 5] - Last # of rounds
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<DatabaseRow, Error>}
-	 */
 	getFirstBlockIdOfLastRounds(filters) {
 		assert(
 			filters && filters.height && filters.numberOfDelegates,

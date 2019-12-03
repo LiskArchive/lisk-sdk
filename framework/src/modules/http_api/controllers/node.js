@@ -21,16 +21,8 @@ const swaggerHelper = require('../helpers/swagger');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
-// Private Fields
 let library;
 
-/**
- * Get the forging status of a delegate.
- *
- * @param {string} publicKey - Public key of delegate
- * @returns {Promise<object>}
- * @private
- */
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
 		'chain:getForgingStatusForAllDelegates',
@@ -48,20 +40,6 @@ async function _getForgingStatus(publicKey) {
 	return fullList;
 }
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiCodes.FORBIDDEN
- * @requires helpers/apiCodes.NOT_FOUND
- * @requires helpers/checkIpInList
- * @requires helpers/swagger.generateParamsErrorObject
- * @requires helpers/swagger.invalidParams
- * @param {Object} scope - App instance
- * @todo Add description of NodeController
- */
 function NodeController(scope) {
 	library = {
 		components: {
@@ -77,13 +55,6 @@ function NodeController(scope) {
 	};
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
 NodeController.getConstants = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
@@ -131,13 +102,6 @@ NodeController.getConstants = async (context, next) => {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
 NodeController.getStatus = async (context, next) => {
 	try {
 		const {
@@ -161,13 +125,6 @@ NodeController.getStatus = async (context, next) => {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
 NodeController.getForgingStatus = async (context, next) => {
 	if (
 		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
@@ -188,13 +145,6 @@ NodeController.getForgingStatus = async (context, next) => {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
 NodeController.updateForgingStatus = async (context, next) => {
 	if (
 		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
@@ -220,14 +170,7 @@ NodeController.updateForgingStatus = async (context, next) => {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-NodeController.getPooledTransactions = async function(context, next) {
+NodeController.getPooledTransactions = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {

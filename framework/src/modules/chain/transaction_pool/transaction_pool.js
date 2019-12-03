@@ -47,18 +47,6 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	return addTransactionResponse;
 };
 
-/**
- * Transaction pool logic. Initializes variables,
- *
- * @class
- * @memberof logic
- * @see Parent: {@link logic}
- * @requires async
- * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling
- * @param {number} releaseLimit - Release limit for transactions broadcasts, used for bundling
- * @param {Object} logger - Logger instance
- * @param {Object} config - config variable
- */
 class TransactionPool extends EventEmitter {
 	constructor({
 		storage,
@@ -205,69 +193,26 @@ class TransactionPool extends EventEmitter {
 		return this.pool.queues[pendingQueue].index[id];
 	}
 
-	/**
-	 * Gets unconfirmed transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getUnconfirmedTransactionList(reverse, limit) {
 		return this.getTransactionsList(readyQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets bundled transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getBundledTransactionList(reverse, limit) {
 		return this.getTransactionsList(receivedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets queued transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getQueuedTransactionList(reverse, limit) {
 		return this.getTransactionsList(verifiedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets validated transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getValidatedTransactionList(reverse, limit) {
 		return this.getTransactionsList(validatedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets received transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getReceivedTransactionList(reverse, limit) {
 		return this.getTransactionsList(receivedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets multisignature transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @param {boolean} ready - Limits results to transactions deemed "ready"
-	 * @returns {Object[]} Of multisignature transactions
-	 */
 	getMultisignatureTransactionList(reverse, limit, ready) {
 		if (ready) {
 			return this.getTransactionsList(pendingQueue, reverse).filter(
@@ -310,14 +255,6 @@ class TransactionPool extends EventEmitter {
 		await this.pool.processVerifiedTransactions();
 	}
 
-	/**
-	 * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of unconfirmed, multisignatures, queued transactions
-	 * @todo Limit is only implemented with queued transactions, reverse param is unused
-	 */
 	getMergedTransactionList(
 		reverse = false,
 		limit = this.maxSharedTransactions,

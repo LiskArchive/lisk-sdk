@@ -18,19 +18,6 @@ const debug = require('debug')('swagger:lisk:cors');
 const CORS = require('cors');
 const modules = require('../helpers/swagger_module_registry');
 
-/**
- * Description of the function.
- *
- * @func create_cors
- * @memberof api.fittings
- * @requires cors
- * @requires debug
- * @requires lodash
- * @param {Object} fittingDef
- * @param {Object} bagpipes
- * @returns {function} {@link api.fittings.lisk_cors}
- * @todo Add description for the function and the params
- */
 module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 	const config = modules.getConfig();
@@ -40,16 +27,7 @@ module.exports = function create(fittingDef) {
 		methods: config.options.cors.methods,
 	});
 
-	/**
-	 * Description of the function.
-	 *
-	 * @func lisk_cors
-	 * @memberof api.fittings
-	 * @param {Object} context
-	 * @param {function} cb
-	 * @todo Add description for the function and the params
-	 */
-	return function lisk_cors(context, cb) {
+	return function liskCors(context, cb) {
 		debug('exec');
 		middleware(context.request, context.response, cb);
 	};

@@ -25,16 +25,6 @@ const { setupProcessHandlers } = require('./child_process');
 
 const SOCKET_TIMEOUT_TIME = 2000;
 
-/**
- * Channel responsible to communicate with bus for modules running in child process
- *
- * @class
- * @memberof framework.controller.channels
- * @requires module.Event
- * @requires module.Action
- * @requires channels/base_channel
- * @type {module.ChildProcessChannel}
- */
 class ChildProcessChannel extends BaseChannel {
 	constructor(moduleAlias, events, actions, options = {}) {
 		super(moduleAlias, events, actions, options);
@@ -135,14 +125,6 @@ class ChildProcessChannel extends BaseChannel {
 		}
 	}
 
-	/**
-	 * Invoke specific action.
-	 *
-	 * @async
-	 * @param {string} actionName - Name of action to invoke
-	 * @param {array} params - Params associated with the action
-	 * @return {Promise<string>} Data returned by bus.
-	 */
 	async invoke(actionName, params) {
 		const action =
 			typeof actionName === 'string'
@@ -164,14 +146,6 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
-	/**
-	 * Invoke specific public defined action.
-	 *
-	 * @async
-	 * @param {string} actionName - Name of action to invoke
-	 * @param {array} params - Params associated with the action
-	 * @return {Promise<string>} Data returned by bus.
-	 */
 	async invokePublic(actionName, params) {
 		const action =
 			typeof actionName === 'string'
@@ -203,11 +177,6 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
-	/**
-	 * Close all sockets and perform cleanup operations
-	 *
-	 * @returns {Promise<void>}
-	 */
 	async cleanup() {
 		if (this.pubSocket) {
 			this.pubSocket.close();
@@ -223,12 +192,6 @@ class ChildProcessChannel extends BaseChannel {
 		}
 	}
 
-	/**
-	 * Wait for all sockets to bind and then resolve the main promise.
-	 *
-	 * @returns {Promise}
-	 * @private
-	 */
 	async _resolveWhenAllSocketsBound() {
 		const promises = [];
 
@@ -287,12 +250,6 @@ class ChildProcessChannel extends BaseChannel {
 		return Promise.all(promises);
 	}
 
-	/**
-	 * Reject if any of the sockets fails to bind
-	 *
-	 * @returns {Promise}
-	 * @private
-	 */
 	async _rejectWhenAnySocketFailsToBind() {
 		const promises = [];
 
@@ -329,13 +286,6 @@ class ChildProcessChannel extends BaseChannel {
 		return Promise.race(promises);
 	}
 
-	/**
-	 * Reject if time out
-	 *
-	 * @param {number} timeInMillis
-	 * @returns {Promise}
-	 * @private
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async _rejectWhenTimeout(timeInMillis) {
 		return new Promise((_, reject) => {
@@ -345,10 +295,6 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
-	/**
-	 * Remove all listeners from all sockets
-	 * @private
-	 */
 	_removeAllListeners() {
 		if (this.subSocket) {
 			this.subSocket.sock.removeAllListeners('connect');

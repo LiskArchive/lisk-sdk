@@ -20,18 +20,6 @@ const {
 	FORK_STATUS_VALID_BLOCK,
 } = require('../bft');
 
-/**
- * Restore blocks from temp table and re-apply to chain
- * Steps:
- * 1. Read all blocks from temp_block table
- * 2. Apply blocks one by one to current chain
- * 3. Each block gets deleted from temp_block table when its being applied
- *
- * @param {Object} blocksModule - injection of blocks module object
- * @param {Object} processorModule - injection of processor module object
- * @param {Object} tx - database transaction
- * @return {Promise<Boolean>} - returns true when successfully restoring blocks, returns false if no blocks were found
- */
 const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	const tempBlocks = await blocksModule.getTempBlocks(
 		{},
@@ -55,23 +43,9 @@ const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	return true;
 };
 
-/**
- * Clear the content of the blocks temporary table
- * @param {object} storageModule
- * @return {Promise<void>}
- */
 const clearBlocksTempTable = storageModule =>
 	storageModule.entities.TempBlock.truncate();
 
-/**
- * Deletes blocks of the current chain after the desired height exclusive and optionally
- * backs them up in temp_block database table.
- * @param {Object} processorModule
- * @param {Object} blocksModule
- * @param {Number} desiredHeight - The height desired to delete blocks after.
- * @param {boolean} backup - If true, backs the blocks up in a temporary table
- * @return {Promise<void>} - Promise is resolved when blocks are successfully deleted
- */
 const deleteBlocksAfterHeight = async (
 	processorModule,
 	blocksModule,
@@ -108,11 +82,6 @@ const deleteBlocksAfterHeight = async (
  * 3. Uses next block with fork choice rule - if fork status indicates we should switch to different chain
  * we continue applying blocks using the `restoreBlocks` function.
  * Otherwise we truncate the temp_block table.
- *
- * @param {Object} blocksModule - injection of blocks module object
- * @param {Object} processorModule - injection of processor module object
- * @param {Object} storageModule - injection of storage module object
- * @return {Promise<void>}
  */
 const restoreBlocksUponStartup = async (
 	logger,
@@ -158,17 +127,6 @@ const restoreBlocksUponStartup = async (
 	}
 };
 
-/**
- * Returns a list of block heights corresponding to the first block of a defined number
- * of rounds (listSizeLimit)
- *
- * @param finalizedHeight
- * @param activeDelegates
- * @param listSizeLimit - The size of the array to be computed
- * @param currentRound
- * @return {Array<string>}
- * @private
- */
 const computeBlockHeightsList = (
 	finalizedHeight,
 	activeDelegates,
@@ -188,22 +146,6 @@ const computeBlockHeightsList = (
 		: heightListAfterFinalized;
 };
 
-/**
- * Computes the largest subset of an array of object literals by the maximum
- * value of the property returned in `condition` function
- *
- * @param {Array<Object>} arrayOfObjects
- * @param {Function} propertySelectorFunc
- * @return {Array<Object>}
- * @private
- *
- * @example
- *
- * const input = [{id: 1, height: 2}, {id: 2, height: 3}, {id: 3, height: 3}]
- * const output = _computeLargestSubsetMaxBy(input, item => item.height);
- *
- * `output` equals to: [{id: 2, height: 3}, {id: 3, height: 3}]
- */
 // eslint-disable-next-line class-methods-use-this
 const computeLargestSubsetMaxBy = (arrayOfObjects, propertySelectorFunc) => {
 	const maximumBy = maxBy(arrayOfObjects, propertySelectorFunc);

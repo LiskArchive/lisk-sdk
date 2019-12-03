@@ -34,40 +34,7 @@ const sqlFiles = {
 	defineSchema: 'define_schema.sql',
 };
 
-/**
- * Migration
- * @typedef {Object} Migration
- * @property {string} id
- * @property {string} name
- * @property {string} namespace
- */
-
-/**
- * Migration Filters
- * @typedef {Object} filters.Migration
- * @property {string} [id]
- * @property {string} [id_eql]
- * @property {string} [id_ne]
- * @property {string} [id_in]
- * @property {string} [id_like]
- * @property {string} [name]
- * @property {string} [name_eql]
- * @property {string} [name_ne]
- * @property {string} [name_in]
- * @property {string} [name_like]
- * @property {string} [namespace]
- * @property {string} [namespace_eql]
- * @property {string} [namespace_ne]
- * @property {string} [namespace_in]
- * @property {string} [namespace_like]
- */
-
 class MigrationEntity extends BaseEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
-	 * @param {filters.Migration} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -82,31 +49,11 @@ class MigrationEntity extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('migration', sqlFiles, this.sqlDirectory);
 	}
 
-	/**
-	 * Get one Migration
-	 *
-	 * @param {filters.Migration|filters.Migration[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<Migration, Error>}
-	 */
 	getOne(filters, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
-	/**
-	 * Get list of Migrations
-	 *
-	 * @param {filters.Migration|filters.Migration[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<Migration[], Error>}
-	 */
 	get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
@@ -139,14 +86,6 @@ class MigrationEntity extends BaseEntity {
 		);
 	}
 
-	/**
-	 * Create migration object
-	 *
-	 * @param {Object} data
-	 * @param {Object} [_options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {null}
-	 */
 	// eslint-disable-next-line no-unused-vars
 	create(data, _options = {}, tx = null) {
 		const objectData = defaults(data, defaultCreateValues);
@@ -163,47 +102,21 @@ class MigrationEntity extends BaseEntity {
 		);
 	}
 
-	/**
-	 * Update operation is not supported for Migrations
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	update() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * UpdateOne operation is not supported for Migrations
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	updateOne() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Delete operation is not supported for Migrations
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	delete() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Check if the record exists with following conditions
-	 *
-	 * @param {filters.Migration} filters
-	 * @param {Object} [options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	isPersisted(filters, _options, tx = null) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
@@ -220,14 +133,6 @@ class MigrationEntity extends BaseEntity {
 			.then(result => result.exists);
 	}
 
-	/**
-	 * Creates an array of objects with `{id, name, namespace, path}`, remove the ones already executed, sorts by ID ascending and add the file property
-	 *
-	 * @param {Objec} migrationsObj - Object where the key is the migrations namespace and the value an array of migration's path
-	 * @param {Array} savedMigrations - Array of objects with all migrations already executed before
-	 * @returns {Promise<Array<Object>>}
-	 * Promise object that resolves with an array of objects `{id, name, namespace, path, file}`.
-	 */
 	async readPending(migrationsObj, savedMigrations) {
 		return Object.keys(migrationsObj).reduce((prev, namespace) => {
 			const curr = migrationsObj[namespace]
@@ -276,12 +181,6 @@ class MigrationEntity extends BaseEntity {
 		);
 	}
 
-	/**
-	 * Applies a cumulative update: all migrations passed as argument except the ones present in the migrations table.
-	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
-	 *
-	 * @returns {Promise} Promise object that resolves with `undefined`.
-	 */
 	async applyAll(migrationsObj) {
 		const savedMigrations = await this.get({}, { limit: null });
 
@@ -298,11 +197,6 @@ class MigrationEntity extends BaseEntity {
 		}
 	}
 
-	/**
-	 * Define migrations schema
-	 *
-	 * @returns {Promise} Promise object that resolves with `undefined`.
-	 */
 	async defineSchema() {
 		return this.adapter.executeFile(this.SQLs.defineSchema);
 	}

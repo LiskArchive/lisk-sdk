@@ -26,137 +26,7 @@ const sqlFiles = {
 	isPersisted: 'accounts/is_persisted.sql',
 };
 
-/**
- * Basic Account
- * @typedef {Object} BasicAccount
- * @property {string} address
- * @property {string} publicKey
- * @property {string} secondPublicKey
- * @property {string} username
- * @property {Boolean} isDelegate
- * @property {Boolean} secondSignature
- * @property {string} balance
- * @property {number} multiMin
- * @property {number} multiLifetime
- * @property {Boolean} nameExist
- * @property {number} missedBlocks
- * @property {number} producedBlocks
- * @property {string} fees
- * @property {string} rewards
- * @property {string} voteWeight
- * @property {number} productivity
- */
-
-/**
- * Extended Account
- * @typedef {BasicAccount} ExtendedAccount
- * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
- * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
- * @property {json} asset
- */
-
-/**
- * Account Filters
- * @typedef {Object} filters.Account
- * @property {string} [address]
- * @property {string} [address_eql]
- * @property {string} [address_ne]
- * @property {Array.<string>} [address_in]
- * @property {string} [address_like]
- * @property {string} [publicKey]
- * @property {string} [publicKey_eql]
- * @property {string} [publicKey_ne]
- * @property {Array.<string>} [publicKey_in]
- * @property {string} [secondPublicKey]
- * @property {string} [secondPublicKey_eql]
- * @property {string} [secondPublicKey_ne]
- * @property {Array.<string>} [secondPublicKey_in]
- * @property {string} [username]
- * @property {string} [username_eql]
- * @property {string} [username_ne]
- * @property {Array.<string>} [username_in]
- * @property {string} [username_like]
- * @property {Boolean} [isDelegate]
- * @property {Boolean} [isDelegate_eql]
- * @property {Boolean} [isDelegate_ne]
- * @property {string} [secondSignature]
- * @property {string} [secondSignature_eql]
- * @property {string} [secondSignature_ne]
- * @property {string} [balance]
- * @property {string} [balance_eql]
- * @property {string} [balance_ne]
- * @property {string} [balance_gt]
- * @property {string} [balance_gte]
- * @property {string} [balance_lt]
- * @property {string} [balance_lte]
- * @property {Array.<string>} [balance_in]
- * @property {string} [multiMin]
- * @property {string} [multiMin_eql]
- * @property {string} [multiMin_ne]
- * @property {string} [multiMin_gt]
- * @property {string} [multiMin_gte]
- * @property {string} [multiMin_lt]
- * @property {string} [multiMin_lte]
- * @property {Array.<string>} [multiMin_in]
- * @property {string} [multiLifetime]
- * @property {string} [multiLifetime_eql]
- * @property {string} [multiLifetime_ne]
- * @property {string} [multiLifetime_gt]
- * @property {string} [multiLifetime_gte]
- * @property {string} [multiLifetime_lt]
- * @property {string} [multiLifetime_lte]
- * @property {Array.<string>} [multiLifetime_in]
- * @property {string} [nameExist]
- * @property {string} [nameExist_eql]
- * @property {string} [nameExist_ne]
- * @property {string} [fees]
- * @property {string} [fees_eql]
- * @property {string} [fees_ne]
- * @property {string} [fees_gt]
- * @property {string} [fees_gte]
- * @property {string} [fees_lt]
- * @property {string} [fees_lte]
- * @property {Array.<string>} [fees_in]
- * @property {string} [rewards]
- * @property {string} [rewards_eql]
- * @property {string} [rewards_ne]
- * @property {string} [rewards_gt]
- * @property {string} [rewards_gte]
- * @property {string} [rewards_lt]
- * @property {string} [rewards_lte]
- * @property {Array.<string>} [rewards_in]
- * @property {string} [producedBlocks]
- * @property {string} [producedBlocks_eql]
- * @property {string} [producedBlocks_ne]
- * @property {string} [producedBlocks_gt]
- * @property {string} [producedBlocks_gte]
- * @property {string} [producedBlocks_lt]
- * @property {string} [producedBlocks_lte]
- * @property {Array.<string>} [producedBlocks_in]
- * @property {string} [missedBlocks]
- * @property {string} [missedBlocks_eql]
- * @property {string} [missedBlocks_ne]
- * @property {string} [missedBlocks_gt]
- * @property {string} [missedBlocks_gte]
- * @property {string} [missedBlocks_lt]
- * @property {string} [missedBlocks_lte]
- * @property {Array.<string>} [missedBlocks_in]
- * @property {string} [voteWeight]
- * @property {string} [voteWeight_eql]
- * @property {string} [voteWeight_ne]
- * @property {string} [voteWeight_gt]
- * @property {string} [voteWeight_gte]
- * @property {string} [voteWeight_lt]
- * @property {string} [voteWeight_lte]
- * @property {string} [voteWeight_in]
- */
-
 class Account extends BaseEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -250,89 +120,35 @@ class Account extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('account', sqlFiles);
 	}
 
-	/**
-	 * Create object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	create() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	update() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Update object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	updateOne() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Delete object record
-	 *
-	 * @override
-	 * @throws {NonSupportedOperationError}
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	delete() {
 		throw new NonSupportedOperationError();
 	}
 
-	/**
-	 * Get one account
-	 *
-	 * @param {filters.Account|filters.Account[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
-	 */
 	getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
-	/**
-	 * Get list of accounts
-	 *
-	 * @param {filters.Account|filters.Account[]} [filters = {}]
-	 * @param {Object} [options = {}] - Options to filter data
-	 * @param {Number} [options.limit=10] - Number of records to fetch
-	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
-	 * @param {string | Array.<string>} [options.sort] - Sort keys for results
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
-	 */
 	get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
 	}
 
-	/**
-	 * Count total entries based on filters
-	 *
-	 * @param {filters.Account|filters.Account[]} [filters = {}]
-	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
-	 */
 	count(filters = {}) {
 		this.validateFilters(filters);
 
@@ -345,14 +161,6 @@ class Account extends BaseEntity {
 			.then(result => +result.count);
 	}
 
-	/**
-	 * Check if the record exists with following conditions
-	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} [_options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	isPersisted(filters, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);

@@ -14,37 +14,12 @@
 
 'use strict';
 
-/**
- * Util module for creating a jobs queue
- *
- * @module
- * @see Parent: {@link utils}
- * @requires child_process
- */
-
 const assert = require('assert');
 const util = require('util');
 
-/**
- * Description of the namespace.
- *
- * @namespace jobsQueue
- * @memberof module:utils/jobs_queue
- * @see Parent: {@link utils~jobsQueue}
- */
 const jobsQueue = {
 	jobs: {},
 
-	/**
-	 * Returns hash of the last git commit if available.
-	 *
-	 * @param {string} name
-	 * @param { } job
-	 * @param {number} time
-	 * @throws {Error} If cannot get last git commit
-	 * @returns {string} Hash of last git commit
-	 * @todo Add description for the params
-	 */
 	register(name, job, time) {
 		// Check if job is already registered - we check only if property exists, because value can be undefined
 		if (hasOwnProperty.call(this.jobs, name)) {

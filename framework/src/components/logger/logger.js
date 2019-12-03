@@ -26,15 +26,6 @@ const createDirIfNotExist = filePath => {
 	fs.mkdirSync(dir, { recursive: true });
 };
 
-/**
- * Creates a logger object with bunyan
- *
- * @param {Object} config
- * @param {string} config.module Name of the module logs are written for
- * @param {string} config.logFileName
- * @param {string} config.fileLogLevel
- * @param {string} config.consoleLogLevel
- */
 const createLogger = ({
 	fileLogLevel,
 	consoleLogLevel,

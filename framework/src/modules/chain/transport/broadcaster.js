@@ -17,20 +17,6 @@
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 const ENDPOINT_BROADCAST_SIGNATURES = 'postSignatures';
 
-/**
- * Main Broadcaster logic.
- * Initializes variables, sets Broadcast routes and timer based on
- * broadcast interval from config file.
- *
- * @class
- * @memberof logic
- * @see Parent: {@link logic}
- * @requires lodash
- * @requires utils/jobs_queue
- * @param {Object} broadcasts
- * @param {Object} logger
- * @todo Add description for the params
- */
 class Broadcaster {
 	constructor({ broadcasts, transactionPool, logger, channel }) {
 		this.logger = logger;
@@ -57,10 +43,6 @@ class Broadcaster {
 		}
 	}
 
-	/**
-	 * Enqueue transactionId into queue if not exists
-	 * @param {string} transactionId  transaction id as string
-	 */
 	enqueueTransactionId(transactionId) {
 		if (
 			this.transactionIdQueue.find(id => id === transactionId) !== undefined
@@ -71,10 +53,6 @@ class Broadcaster {
 		return true;
 	}
 
-	/**
-	 * Enqueue signature object without duplicate signature
-	 * @param {Object} signatureObject with all required parameters
-	 */
 	enqueueSignatureObject(signatureObject) {
 		if (
 			this.signatureObjectQueue.find(
@@ -87,9 +65,6 @@ class Broadcaster {
 		return true;
 	}
 
-	/**
-	 * broadcast to network.
-	 */
 	async _broadcast() {
 		this.transactionIdQueue = this.transactionIdQueue.filter(id =>
 			this.transactionPool.transactionInPool(id),

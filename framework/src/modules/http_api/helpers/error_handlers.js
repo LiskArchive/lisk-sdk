@@ -16,15 +16,6 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 
-/**
- * Converts array of errors into string
- *
- * @class
- * @memberof helpers
- * @param {array | object} e
- * @see Parent: {@link helpers}
- * @todo Add description for the params
- */
 // TODO: Move this functionality to logger component
 function convertErrorsToString(e) {
 	if (Array.isArray(e) && e.length > 0) {

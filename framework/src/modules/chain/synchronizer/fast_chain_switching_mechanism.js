@@ -110,13 +110,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return true;
 	}
 
-	/**
-	 * Check if this sync mechanism is valid for the received block
-	 *
-	 * @param {Object} receivedBlock - The blocked received from the network
-	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
-	 * @throws {Error} - In case want to abort the sync pipeline
-	 */
 	async isValidFor(receivedBlock) {
 		const { lastBlock } = this.blocks;
 
@@ -134,14 +127,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return delegateList.includes(receivedBlock.generatorPublicKey);
 	}
 
-	/**
-	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer`
-	 *
-	 * @param {object} peerId - The ID of the peer to target
-	 * @param {string} fromId - The starting block ID to fetch from
-	 * @param {string} toId - The ending block ID
-	 * @return {Promise<Array<object>>}
-	 */
 	async _requestBlocksWithinIDs(peerId, fromId, toId) {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		const blocks = [];
@@ -175,16 +160,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return blocks;
 	}
 
-	/**
-	 * Queries the blocks from the selected peer.
-	 * @param {Object} receivedBlock
-	 * @param {Object} highestCommonBlock
-	 * @param {string} peerId
-	 * @return {Promise<Array<Object>>}
-	 * @throws {ApplyPenaltyAndRestartError} - In case peer didn't return highest common block or its height is lower than the finalized height
-	 * @throws {AbortError} - If the height difference between both chains is higher than ACTIVE_DELEGATES * 2
-	 * @private
-	 */
 	async _queryBlocks(receivedBlock, highestCommonBlock, peerId) {
 		if (!highestCommonBlock) {
 			throw new ApplyPenaltyAndRestartError(
@@ -243,15 +218,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return blocks;
 	}
 
-	/**
-	 * Validates a set of blocks
-	 * @param {Array<Object>} blocks - The array of blocks to validate
-	 * @param {object} commonBlock
-	 * @param {string} peerId
-	 * @return {Promise<void>}
-	 * @throws {ApplyPenaltyAndAbortError} - In case any of the blocks fails to validate
-	 * @private
-	 */
 	async _validateBlocks(blocks, commonBlock, peerId) {
 		this.logger.debug(
 			{
@@ -287,13 +253,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		this.logger.debug('Successfully validated blocks');
 	}
 
-	/**
-	 * Applies blocks to current chain
-	 * @param {Array<ExtendedBlock>} blocksToApply
-	 * @return {Promise<void>}
-	 * @throws {BlockProcessingError}
-	 * @private
-	 */
 	async _applyBlocks(blocksToApply) {
 		try {
 			for (const block of blocksToApply) {
@@ -332,13 +291,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		);
 	}
 
-	/**
-	 * Switches to desired chain
-	 * @param {Object} highestCommonBlock
-	 * @param {Array<Object>} blocksToApply
-	 * @return {Promise<void>}
-	 * @private
-	 */
 	async _switchChain(highestCommonBlock, blocksToApply, peerId) {
 		this.logger.info('Switching chain');
 		this.logger.debug(
@@ -388,11 +340,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 	}
 
-	/**
-	 * Computes the height values for the last two rounds
-	 * @return {Array<number>}
-	 * @private
-	 */
 	_computeLastTwoRoundsHeights() {
 		return new Array(
 			Math.min(
@@ -408,10 +355,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * Requests the last common block in common with the targeted peer.
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
-	 *
-	 * @param {string} peerId - The ID of the peer to target.
-	 * @return {Promise<Object | undefined>}
-	 * @private
 	 */
 	async _requestLastCommonBlock(peerId) {
 		this.logger.debug({ peerId }, 'Requesting the last common block with peer');

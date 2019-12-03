@@ -20,19 +20,6 @@ const { validator } = require('@liskhq/lisk-validator');
 const { CommonBlockError } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
 
-/**
- * Main loader methods. Initializes this with scope content.
- * Calls private function initialize.
- *
- * @class
- * @memberof modules
- * @see Parent: {@link modules}
- * @requires async
- * @requires utils/jobs_queue
- * @requires logic/peer
- * @param {function} cb - Callback function
- * @param {scope} scope - App instance
- */
 class Loader {
 	constructor({
 		// components
@@ -64,9 +51,6 @@ class Loader {
 		this.blocksModule = blocksModule;
 	}
 
-	/**
-	 * Pulls Transactions
-	 */
 	async loadUnconfirmedTransactions() {
 		await new Promise(resolve => {
 			async.retry(
@@ -89,10 +73,6 @@ class Loader {
 	 * Loads transactions from the network:
 	 * - Validates each transaction from the network and applies a penalty if invalid.
 	 * - Calls processUnconfirmedTransaction for each transaction.
-	 *
-	 * @private
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
 	 */
 	async _getUnconfirmedTransactionsFromNetwork() {
 		this.logger.info('Loading transactions from the network');
@@ -157,13 +137,6 @@ class Loader {
 		}
 	}
 
-	/**
-	 * Loads blocks from network.
-	 *
-	 * @private
-	 * @returns {Promise} void
-	 * @todo Add description for the params
-	 */
 	async _getBlocksFromNetwork() {
 		const { lastBlock } = this.blocksModule;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
@@ -188,13 +161,6 @@ class Loader {
 		return data.blocks;
 	}
 
-	/**
-	 * Validate blocks from the network.
-	 *
-	 * @private
-	 * @returns {Promise} void
-	 * @todo Add description for the params
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async _validateBlocks(blocks) {
 		const errors = validator.validate(definitions.WSBlocksList, blocks);
@@ -206,13 +172,6 @@ class Loader {
 		return blocks;
 	}
 
-	/**
-	 * Loads valided blocks from network.
-	 *
-	 * @private
-	 * @returns {Promise} void
-	 * @todo Add description for the params
-	 */
 	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
@@ -227,13 +186,6 @@ class Loader {
 		return lastValidBlock.id === lastBlock.id;
 	}
 
-	/**
-	 * Loads blocks from network.
-	 *
-	 * @private
-	 * @returns {Promise} void
-	 * @todo Add description for the params
-	 */
 	async _loadBlocksFromNetwork() {
 		// Number of failed attempts to load from the network.
 		let failedAttemptsToLoad = 0;

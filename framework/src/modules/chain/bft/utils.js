@@ -17,12 +17,6 @@
 const blockHeaderSchema = require('./block_header_schema');
 const { validate } = require('../../../../src/controller/validator');
 
-/**
- * Validate schema of block header
- *
- * @param {BlockHeader} blockHeader
- * @return {boolean}
- */
 const validateBlockHeader = blockHeader =>
 	validate(blockHeaderSchema, blockHeader);
 

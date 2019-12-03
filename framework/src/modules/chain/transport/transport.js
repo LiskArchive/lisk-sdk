@@ -24,20 +24,6 @@ const schemas = require('./schemas');
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
 
-/**
- * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
- *
- * @class
- * @memberof modules
- * @see Parent: {@link modules}
- * @requires async
- * @requires api/ws/rpc/failure_codes
- * @requires api/ws/rpc/failure_codes
- * @requires api/ws/workers/rules
- * @requires api/ws/rpc/ws_rpc
- * @requires logic/broadcaster
- * @param {scope} scope - App instance
- */
 class Transport {
 	constructor({
 		// components
@@ -87,39 +73,16 @@ class Transport {
 		}, DEFAULT_RATE_RESET_TIME);
 	}
 
-	/**
-	 * Calls enqueue signatures and emits a 'signature/change' socket message.
-	 *
-	 * @param {signature} signature
-	 * @param {Object} broadcast
-	 * @emits signature/change
-	 * @todo Add description for the params
-	 */
 	handleBroadcastSignature(signature) {
 		this.broadcaster.enqueueSignatureObject(signature);
 		this.channel.publish('chain:signature:change', signature);
 	}
 
-	/**
-	 * Calls enqueue transactions and emits a 'transactions/change' socket message.
-	 *
-	 * @param {transaction} transaction
-	 * @param {Object} broadcast
-	 * @emits transactions/change
-	 * @todo Add description for the params
-	 */
 	handleBroadcastTransaction(transaction) {
 		this.broadcaster.enqueueTransactionId(transaction.id);
 		this.channel.publish('chain:transactions:change', transaction.toJSON());
 	}
 
-	/**
-	 * Calls broadcast blocks and emits a 'blocks/change' socket message.
-	 *
-	 * @param {Object} block - Reduced block object
-	 * @param {boolean} broadcast - Signal flag for broadcast
-	 * @emits blocks/change
-	 */
 	async handleBroadcastBlock(blockJSON) {
 		if (this.synchronizer.isActive) {
 			this.logger.debug(
@@ -135,28 +98,6 @@ class Transport {
 		});
 	}
 
-	/**
-	 * @property {function} blocks
-	 * @property {function} postBlock
-	 * @property {function} list
-	 * @property {function} height
-	 * @property {function} status
-	 * @property {function} postSignatures
-	 * @property {function} getSignatures
-	 * @property {function} getTransactions
-	 * @property {function} postTransactionsAnnouncement
-	 * @todo Add description for the functions
-	 * @todo Implement API comments with apidoc.
-	 * @see {@link http://apidocjs.com/}
-	 */
-
-	/**
-	 * Returns a set of full blocks starting from the ID defined in the data up to
-	 * the current tip of the chain.
-	 * @param {object} data
-	 * @param {string} data.blockId - The ID of the starting block
-	 * @return {Promise<Array<object>>}
-	 */
 	async handleRPCGetBlocksFromId(data, peerId) {
 		validator.validate(schemas.getBlocksFromIdRequest, data);
 
@@ -206,13 +147,6 @@ class Transport {
 		return commonBlock;
 	}
 
-	/**
-	 * Description of postBlock.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
 	async handleEventPostBlock(data, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
@@ -251,13 +185,6 @@ class Transport {
 		return this.processorModule.process(block, { peerId });
 	}
 
-	/**
-	 * Description of postSignature.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
 	async handleEventPostSignature(data) {
 		const errors = validator.validate(schemas.signatureObject, data.signature);
 
@@ -282,13 +209,6 @@ class Transport {
 		}
 	}
 
-	/**
-	 * Description of postSignatures.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
 	async handleEventPostSignatures(data, peerId) {
 		await this._addRateLimit(
 			'postSignatures',
@@ -326,13 +246,6 @@ class Transport {
 		}
 	}
 
-	/**
-	 * Description of getSignatures.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
 	async handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
@@ -353,13 +266,6 @@ class Transport {
 		};
 	}
 
-	/**
-	 * Get default number of transactions or by ids.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
 	async handleRPCGetTransactions(data = {}, peerId) {
 		await this._addRateLimit(
 			'getTransactions',
@@ -432,13 +338,6 @@ class Transport {
 		};
 	}
 
-	/**
-	 * Description of postTransaction.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
 	async handleEventPostTransaction(data) {
 		try {
 			const id = await this._receiveTransaction(data.transaction);
@@ -456,10 +355,6 @@ class Transport {
 	/**
 	 * Process transactions IDs announcement. First validates, filter the known transactions
 	 * and finally ask to the emitter the ones that are unknown.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
 	 */
 	async handleEventPostTransactionsAnnouncement(data, peerId) {
 		await this._addRateLimit(
@@ -515,13 +410,6 @@ class Transport {
 		return null;
 	}
 
-	/**
-	 * It filters the known transaction IDs because they are either in the queues or exist in the database.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
 	async _obtainUnknownTransactionIDs(ids) {
 		// Check if any transaction is in the queues.
 		const unknownTransactionsIDs = ids.filter(
@@ -550,15 +438,6 @@ class Transport {
 		return unknownTransactionsIDs;
 	}
 
-	/**
-	 * Normalizes transaction
-	 * processUnconfirmedTransaction to confirm it.
-	 *
-	 * @private
-	 * @param {transaction} transaction
-	 * @returns {Promise.<boolean, Error>}
-	 * @todo Add description for the params
-	 */
 	async _receiveTransaction(transactionJSON) {
 		const id = transactionJSON ? transactionJSON.id : 'null';
 		let transaction;
