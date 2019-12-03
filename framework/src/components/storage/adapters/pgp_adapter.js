@@ -34,13 +34,6 @@ const _private = {
 };
 
 class PgpAdapter extends BaseAdapter {
-	/**
-	 *
-	 * @param {Object} options
-	 * @param {Boolean} options.inTest
-	 * @param {string} options.logger
-	 * @param {string} options.sqlDirectory
-	 */
 	constructor(options) {
 		super({
 			engineName: 'pgp',
@@ -56,9 +49,6 @@ class PgpAdapter extends BaseAdapter {
 		this.SQLs = {};
 	}
 
-	/**
-	 * @return {Promise}
-	 */
 	connect() {
 		if (monitor.isAttached()) {
 			monitor.detach();
@@ -124,16 +114,6 @@ class PgpAdapter extends BaseAdapter {
 		}
 	}
 
-	/**
-	 * Execute an SQL file
-	 *
-	 * @param {string} file
-	 * @param {Object} params
-	 * @param {Object} options
-	 * @param {Number} [options.expectedResultCount]
-	 * @param {Object} tx
-	 * @return {*}
-	 */
 	executeFile(file, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			file,
@@ -141,16 +121,6 @@ class PgpAdapter extends BaseAdapter {
 		);
 	}
 
-	/**
-	 * Execute an SQL file
-	 *
-	 * @param {string} sql
-	 * @param {Object} [params]
-	 * @param {Object} [options]
-	 * @param {Number} [options.expectedResultCount]
-	 * @param {Object} [tx]
-	 * @return {*}
-	 */
 	execute(sql, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			sql,

@@ -42,15 +42,6 @@ const extractBFTBlockHeaderFromBlock = block => ({
  * BFT class responsible to hold integration logic for finality manager with the framework
  */
 class BFT extends EventEmitter {
-	/**
-	 * Create BFT module instance
-	 *
-	 * @param {Object} storage - Storage component instance
-	 * @param {Object} logger - Logger component instance
-	 * @param {Object} slots - Slots class
-	 * @param {integer} activeDelegates - Number of delegates
-	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
-	 */
 	constructor({ storage, logger, slots, activeDelegates, startingHeight }) {
 		super();
 		this.finalityManager = null;
@@ -67,13 +58,6 @@ class BFT extends EventEmitter {
 		this.chainStateEntity = this.storage.entities.ChainState;
 	}
 
-	/**
-	 * Initialize the BFT module
-	 *
-	 * @param {Object} stateStore - State store which has been initialized
-	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
-	 * @return {Promise<void>}
-	 */
 	async init(stateStore, minActiveHeightsOfDelegates = {}) {
 		this.finalityManager = await this._initFinalityManager(stateStore);
 
@@ -99,11 +83,6 @@ class BFT extends EventEmitter {
 		});
 	}
 
-	/**
-	 * Serialize common properties to the JSON format
-	 * @param {*} blockInstance Instance of the block
-	 * @returns JSON format of the block
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	serialize(blockInstance) {
 		return {
@@ -113,13 +92,6 @@ class BFT extends EventEmitter {
 		};
 	}
 
-	/**
-	 * When blocks deleted send those to BFT to update BFT state
-	 *
-	 * @param {Array.<Object>} blocks - List of all blocks
-	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
-	 * @return {Promise<void>}
-	 */
 	async deleteBlocks(blocks, minActiveHeightsOfDelegates = {}) {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
@@ -156,13 +128,6 @@ class BFT extends EventEmitter {
 		}
 	}
 
-	/**
-	 * Load new block to BFT
-	 *
-	 * @param {Object} block - The block which is forged
-	 * @param {Object} stateStore - database transaction
-	 * @return {Promise<void>}
-	 */
 	async addNewBlock(block, stateStore) {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 		const { finalizedHeight } = this.finalityManager;
@@ -223,12 +188,6 @@ class BFT extends EventEmitter {
 		return forkChoiceRule.FORK_STATUS_DISCARD;
 	}
 
-	/**
-	 * Initialize the consensus manager and return the finalize height
-	 *
-	 * @return {Promise<number>} - Return the finalize height
-	 * @private
-	 */
 	async _initFinalityManager(stateStore) {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
@@ -250,12 +209,6 @@ class BFT extends EventEmitter {
 		});
 	}
 
-	/**
-	 * Get the last block height from storage
-	 *
-	 * @return {Promise<number>}
-	 * @private
-	 */
 	async _getLastBlockHeight() {
 		const lastBlock = await this.blockEntity.get(
 			{},
@@ -264,14 +217,6 @@ class BFT extends EventEmitter {
 		return lastBlock.length ? lastBlock[0].height : 0;
 	}
 
-	/**
-	 * Load blocks into consensus manager fetching from storage
-	 *
-	 * @param {int} fromHeight - The start height to fetch and load
-	 * @param {int} tillHeight - The end height to fetch and load
-	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
-	 * @return {Promise<void>}
-	 */
 	async _loadBlocksFromStorage({
 		fromHeight,
 		tillHeight,
@@ -343,13 +288,6 @@ class BFT extends EventEmitter {
 		validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
 	}
 
-	/**
-	 * Verify if block forger is following the BFT Protocol
-	 * See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#incentivizing-lisk-bft-protocol-participation
-	 *
-	 * @param {ExtendedBlock} block
-	 * @return {boolean}
-	 */
 	isBFTProtocolCompliant(block) {
 		assert(block, 'No block was provided to be verified');
 

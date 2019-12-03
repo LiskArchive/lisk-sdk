@@ -16,12 +16,6 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 
-/**
- * Executes each step from left to right and pipes the transactions that succeed to the next
- * step. Finally collects all responses and formats them accordingly.
- * @param steps
- * @returns {function(*=): {transactionsResponses: *[]}}
- */
 const composeTransactionSteps = (...steps) => async (
 	transactions,
 	stateStore,

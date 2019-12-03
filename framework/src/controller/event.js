@@ -18,21 +18,7 @@ const assert = require('assert');
 
 const { eventWithModuleNameReg } = require('./channels/base/constants');
 
-/**
- * An event class which instance will be received by every event listener
- *
- * @class
- * @memberof framework.controller
- * @requires assert
- * @type {module.Event}
- */
 class Event {
-	/**
-	 * Create Event object.
-	 *
-	 * @param {string} name - Combination of module:event
-	 * @param {string|Object} [data] - Data associated with the event
-	 */
 	constructor(name, data = null) {
 		assert(
 			eventWithModuleNameReg.test(name),
@@ -44,11 +30,6 @@ class Event {
 		this.name = this.name.substring(1);
 	}
 
-	/**
-	 * Gets serialized data object for Event object.
-	 *
-	 * @return {Object}
-	 */
 	serialize() {
 		return {
 			name: this.name,
@@ -57,30 +38,14 @@ class Event {
 		};
 	}
 
-	/**
-	 * Getter function for event label data.
-	 *
-	 * @return {string} stringified event object
-	 */
 	toString() {
 		return `${this.module}:${this.name}`;
 	}
 
-	/**
-	 * Getter function for event label data.
-	 *
-	 * @return {string} event label: key
-	 */
 	key() {
 		return `${this.module}:${this.name}`;
 	}
 
-	/**
-	 * Converts data to Event object.
-	 *
-	 * @param {Object|string} data - Data for Event object serialized or as object.
-	 * @return {module.Event}
-	 */
 	static deserialize(data) {
 		let parsedEvent = null;
 		if (typeof data === 'string') {

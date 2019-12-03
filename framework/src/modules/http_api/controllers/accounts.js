@@ -19,21 +19,9 @@ const Promise = require('bluebird');
 const swaggerHelper = require('../helpers/swagger');
 const { calculateApproval } = require('../helpers/utils');
 
-// Private Fields
 let storage;
 let channel;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiError
- * @requires helpers/swagger.generateParamsErrorObject
- * @param {Object} scope - App instance
- * @todo Add description of AccountsController
- */
 function AccountsController(scope) {
 	({ storage } = scope.components);
 	({ channel } = scope);
@@ -71,14 +59,7 @@ function accountFormatter(totalSupply, account) {
 	return formattedAccount;
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getAccounts = async function(context, next) {
+AccountsController.getAccounts = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -158,14 +139,7 @@ async function multiSigAccountFormatter(account) {
 	return result;
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getMultisignatureGroups = async function(context, next) {
+AccountsController.getMultisignatureGroups = async (context, next) => {
 	const address = context.request.swagger.params.address.value;
 
 	if (!address) {
@@ -207,17 +181,7 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getMultisignatureMemberships = async function(
-	context,
-	next,
-) {
+AccountsController.getMultisignatureMemberships = async (context, next) => {
 	const address = context.request.swagger.params.address.value;
 
 	if (!address) {

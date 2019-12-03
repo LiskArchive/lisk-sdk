@@ -53,23 +53,10 @@ const ADDITIONAL_DATA = {
  */
 
 const validationFormats = {
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
 	id(str) {
 		return str === '' || /^[0-9]+$/g.test(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	additionalData(str) {
 		/**
 		 * This deconstruction has to take place here because
@@ -80,13 +67,7 @@ const validationFormats = {
 		}
 		return Buffer.from(str).length <= ADDITIONAL_DATA.MAX_LENGTH;
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	address(str) {
 		if (str === '') {
 			return true;
@@ -109,13 +90,7 @@ const validationFormats = {
 
 		return true;
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	username(str) {
 		if (typeof str !== 'string') {
 			return false;
@@ -124,33 +99,14 @@ const validationFormats = {
 		return /^[a-z0-9!@$&_.]*$/gi.test(str);
 	},
 
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
 	hex(str) {
 		return str === '' || /^[a-f0-9]+$/i.test(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	publicKey(str) {
 		return str === '' || /^[a-f0-9]{64}$/i.test(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
 	csv(str) {
 		if (typeof str !== 'string') {
@@ -164,23 +120,11 @@ const validationFormats = {
 		}
 		return false;
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	signature(str) {
 		return str === '' || /^[a-f0-9]{128}$/i.test(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	encryptedPassphrase(str) {
 		// Explanation of regex structure:
 		// - 1 or more 'key=value' pairs delimited with '&'
@@ -198,13 +142,7 @@ const validationFormats = {
 		);
 		return encryptedPassphraseRegExp.test(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {Object} obj
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	queryList(obj) {
 		if (!_.isObject(obj) || Array.isArray(obj)) {
 			return false;
@@ -213,13 +151,7 @@ const validationFormats = {
 		obj.limit = 100;
 		return true;
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {Object} obj
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	delegatesList(obj) {
 		if (!_.isObject(obj) || Array.isArray(obj)) {
 			return false;
@@ -229,13 +161,6 @@ const validationFormats = {
 		return true;
 	},
 
-	/**
-	 * Description of the function.
-	 *
-	 * @param {number} value
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
 	parsedInt(value) {
 		if (
 			Number.isNaN(value) ||
@@ -248,34 +173,15 @@ const validationFormats = {
 		return true;
 	},
 
-	/**
-	 * Check if value is a valid file system path.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 */
 	path(str) {
 		const pathRegExp = new RegExp('^(/[^/]+)+$');
 		return pathRegExp.test(str);
 	},
 
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
 	ip(str) {
 		return ip.isV4Format(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	os(str) {
 		if (typeof str !== 'string') {
 			return false;
@@ -283,13 +189,7 @@ const validationFormats = {
 
 		return /^[a-z0-9-_.+]*$/gi.test(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	version(str) {
 		return (
 			str === '' ||
@@ -298,21 +198,11 @@ const validationFormats = {
 			)
 		);
 	},
-	/**
-	 * Validation for the protocol version format.
-	 * @param str
-	 * @returns {boolean}
-	 */
+
 	protocolVersion(str) {
 		return str === '' || /^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(str);
 	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 * @todo Add description for the function, the params and the return value
-	 */
+
 	ipOrFQDN(str) {
 		if (typeof str !== 'string') {
 			return false;
@@ -320,13 +210,7 @@ const validationFormats = {
 
 		return ip.isV4Format(str) || HOSTNAME.test(str);
 	},
-	/**
-	 * Transaction amount/fee.
-	 * Also validate string amount to be lower than TOTAL_AMOUNT constant
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
+
 	amount(value) {
 		if (typeof value === 'string' && /^[0-9]*$/.test(value)) {
 			const bigNumber = new BigNum(value);
@@ -350,31 +234,16 @@ const validationFormats = {
 
 		return false;
 	},
-	/**
-	 * Returns true for integer or null.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
+
 	integerOrNull(value) {
 		return Number.isInteger(value) || value === null;
 	},
-	/**
-	 * Returns true if integer is odd.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
+
 	oddInteger: {
 		type: 'number',
 		validate: value => Number.isInteger(value) && /^\d*[13579]$/.test(value),
 	},
-	/**
-	 * Returns true if value is lower than or equal to `TOTAL_AMOUNT`.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
+
 	numAmount: {
 		type: 'number',
 		validate: value => {

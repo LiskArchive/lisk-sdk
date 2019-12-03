@@ -39,10 +39,6 @@ class Synchronizer {
 		this._checkMechanismsInterfaces();
 	}
 
-	/**
-	 * Checks whether the registered mechanisms implement mandatory interfaces
-	 * @private
-	 */
 	_checkMechanismsInterfaces() {
 		for (const mechanism of this.mechanisms) {
 			assert(
@@ -58,12 +54,6 @@ class Synchronizer {
 		}
 	}
 
-	/**
-	 * Verify if blocks are left in temp_block table
-	 * If blocks are left, we want to attempt to restore those
-	 *
-	 * @return {Promise<void>}
-	 */
 	async init() {
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
@@ -83,12 +73,6 @@ class Synchronizer {
 		}
 	}
 
-	/**
-	 * Start the syncing mechanism
-	 * @param {Object} receivedBlock - The block you received from network, used to choose sync mechanism
-	 * @param {string} peerId - The ID of the peer that is sending the block
-	 * @return {*}
-	 */
 	async run(receivedBlock, peerId) {
 		if (this.isActive) {
 			throw new Error('Synchronizer is already running');
@@ -145,18 +129,10 @@ class Synchronizer {
 		}
 	}
 
-	/**
-	 * Check if the current syncing mechanism is active
-	 * @return {*|never|boolean}
-	 */
 	get isActive() {
 		return this.active;
 	}
 
-	/**
-	 * Determine and return the syncing mechanism strategy to follow
-	 * @private
-	 */
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	async _determineSyncMechanism(receivedBlock) {
 		for (const mechanism of this.mechanisms) {

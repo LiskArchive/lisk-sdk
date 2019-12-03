@@ -21,22 +21,9 @@ const apiCodes = require('../api_codes');
 
 const TRANSACTION_TYPES_DELEGATE = [2, 10];
 
-// Private Fields
 let storage;
 let channel;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiError
- * @requires helpers/swagger.generateParamsErrorObject
- * @requires helpers/swagger.invalidParams
- * @param {Object} scope - App instance
- * @todo Add description of TransactionsController
- */
 function TransactionsController(scope) {
 	({
 		components: { storage },
@@ -57,14 +44,7 @@ function transactionFormatter(transaction) {
 	return result;
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-TransactionsController.getTransactions = async function(context, next) {
+TransactionsController.getTransactions = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -125,14 +105,7 @@ TransactionsController.getTransactions = async function(context, next) {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-TransactionsController.postTransaction = async function(context, next) {
+TransactionsController.postTransaction = async (context, next) => {
 	const transaction = context.request.swagger.params.transaction.value;
 	let error;
 

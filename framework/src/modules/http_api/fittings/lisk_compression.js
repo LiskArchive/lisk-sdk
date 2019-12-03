@@ -18,35 +18,13 @@ const debug = require('debug')('swagger:lisk:compression');
 const _ = require('lodash');
 const compression = require('compression');
 
-/**
- * Description of the function.
- *
- * @func create_compression
- * @memberof api.fittings
- * @requires compression
- * @requires debug
- * @requires lodash
- * @param {Object} fittingDef
- * @param {Object} bagpipes
- * @returns {function} {@link api.fittings.lisk_compression}
- * @todo Add description for the function and the params
- */
 module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 
 	const validCorsOptions = ['level', 'chunkSize', 'memLevel'];
 	const middleware = compression(_.pick(fittingDef, validCorsOptions));
 
-	/**
-	 * Description of the function.
-	 *
-	 * @func lisk_compression
-	 * @memberof api.fittings
-	 * @param {Object} context
-	 * @param {function} cb
-	 * @todo Add description for the function and the params
-	 */
-	return function lisk_compression(context, cb) {
+	return function liskCompression(context, cb) {
 		debug('exec');
 		middleware(context.request, context.response, cb);
 	};

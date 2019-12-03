@@ -19,14 +19,6 @@ const transactionsModule = require('./transactions');
 
 const TRANSACTION_TYPES_VOTE = [3, 11];
 
-/**
- * Save block with transactions to database.
- *
- * @param {Object} block - Full normalized block
- * @param {function} cb - Callback function
- * @returns {Function|afterSave} cb - If SQL transaction was OK - returns safterSave execution, if not returns callback function from params (through setImmediate)
- * @returns {string} cb.err - Error if occurred
- */
 const saveBlock = async (storage, blockJSON, tx) => {
 	if (!tx) {
 		throw new Error('Block should only be saved in a database tx');
@@ -43,14 +35,6 @@ const saveBlock = async (storage, blockJSON, tx) => {
 	return tx.batch(promises);
 };
 
-/**
- * Deletes last block.
- *
- * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.obj - New last block
- */
 const deleteLastBlock = async (storage, lastBlock, tx) => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
@@ -69,12 +53,6 @@ const deleteLastBlock = async (storage, lastBlock, tx) => {
 	return storageBlock;
 };
 
-/**
- * Deletes all blocks with height >= supplied block ID.
- *
- * @param storage - Storage module dependency
- * @param {number} blockId - ID of block to begin with
- */
 const deleteFromBlockId = async (storage, blockId) => {
 	const block = await storage.entities.Block.getOne({
 		id: blockId,
@@ -84,14 +62,6 @@ const deleteFromBlockId = async (storage, blockId) => {
 	});
 };
 
-/**
- * Calls applyConfirmed from transactions module for each transaction in block
- *
- * @private
- * @param {Object} block - Block object
- * @param {function} tx - Database transaction
- * @returns {Promise<reject|resolve>}
- */
 const applyConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 	if (blockInstance.transactions.length <= 0) {
 		return;
@@ -116,14 +86,6 @@ const applyConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 	await stateStore.finalize();
 };
 
-/**
- * Apply genesis block's transactions to blockchain.
- *
- * @param {Object} block - Full normalized genesis block
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- */
 const applyConfirmedGenesisStep = async (blockInstance, stateStore) => {
 	const sortedTransactionInstances = blockInstance.transactions.sort(a => {
 		if (TRANSACTION_TYPES_VOTE.includes(a.type)) {
@@ -140,11 +102,6 @@ const applyConfirmedGenesisStep = async (blockInstance, stateStore) => {
 	return blockInstance;
 };
 
-/**
- * Reverts confirmed transactions due to block deletion
- * @param {Object} block - secondLastBlock
- * @param {Object} tx - database transaction
- */
 const undoConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 	if (blockInstance.transactions.length === 0) {
 		return;

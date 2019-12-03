@@ -36,9 +36,6 @@ class Storage {
 		this.entities = {};
 	}
 
-	/**
-	 * @return Promise
-	 */
 	bootstrap() {
 		return this.adapter.connect().then(status => {
 			if (status) {
@@ -54,17 +51,6 @@ class Storage {
 		this.isReady = false;
 	}
 
-	/**
-	 * Register an entity by initializing its object.
-	 * It will be accessible through `storage.entities.[identifier]
-	 *
-	 * @param {string} identifier - Identifier used to access the object from stoage.entities.* namespace
-	 * @param {BaseEntity} Entity - A class constructor extended from BaseEntity
-	 * @param {Object} [options]
-	 * @param {Boolean} [options.replaceExisting] - Replace the existing entity
-	 * @param {Array.<*>} [options.initParams] - Extra parameters to pass to initialization of entity
-	 * @returns {BaseEntity}
-	 */
 	registerEntity(identifier, Entity, options = {}) {
 		assert(identifier, 'Identifier is required to register an entity.');
 		assert(Entity, 'Entity is required to register it.');

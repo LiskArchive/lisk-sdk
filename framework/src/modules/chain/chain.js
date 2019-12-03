@@ -49,12 +49,6 @@ const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
 const forgeInterval = 1000;
 
-/**
- * Chain Module
- *
- * @namespace Framework.modules.chain
- * @type {module.Chain}
- */
 module.exports = class Chain {
 	constructor(channel, options) {
 		this.channel = channel;

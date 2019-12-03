@@ -23,12 +23,6 @@ const swaggerHelper = require('../helpers/swagger');
 
 let library;
 
-/**
- * Parse raw block data from database into expected API response type for blocks
- *
- * @param {Object} raw Raw block data from database
- * @return {block} Block formatted according to API specification
- */
 const _parseBlock = raw => {
 	if (!raw.id) {
 		return null;
@@ -85,15 +79,6 @@ const _parseOptions = params => ({
 	sort: params.sort || 'height:desc',
 });
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of BlocksController
- */
 function BlocksController(scope) {
 	library = {
 		storage: scope.components.storage,
@@ -102,13 +87,6 @@ function BlocksController(scope) {
 	};
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
 BlocksController.getBlocks = (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 

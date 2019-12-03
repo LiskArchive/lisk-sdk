@@ -19,17 +19,6 @@ const { promisify } = require('util');
 
 const errorCacheDisabled = 'Cache Disabled';
 
-/**
- * Cache component.
- *
- * @class
- * @memberof components
- * @see Parent: {@link components}
- * @requires redis
- * @requires util
- * @param {Object} options - Cache options
- * @param {Object} logger
- */
 class Cache {
 	constructor(options, logger) {
 		this.options = options;
@@ -75,36 +64,19 @@ class Cache {
 		});
 	}
 
-	/**
-	 * Gets redis connection status.
-	 *
-	 * @return {boolean}
-	 */
 	isReady() {
 		// Use client.ready because this constant is updated on client connection
 		return this.client && this.client.ready && this.ready;
 	}
 
-	/**
-	 * Enables cache client
-	 */
 	enable() {
 		this.ready = true;
 	}
 
-	/**
-	 * Disables cache client
-	 */
 	disable() {
 		this.ready = false;
 	}
 
-	/**
-	 * Gets json value for a key from redis.
-	 *
-	 * @param {string} key
-	 * @return {Promise.<value, Error>}
-	 */
 	async getJsonForKey(key) {
 		this.logger.debug(
 			['Cache - Get value for key:', key, '| Status:', this.isReady()].join(
@@ -119,13 +91,6 @@ class Cache {
 		return JSON.parse(value);
 	}
 
-	/**
-	 * Sets json value for a key in redis.
-	 *
-	 * @param {string} key
-	 * @param {Object} value
-	 * @return {Promise.<null, Error>}
-	 */
 	async setJsonForKey(key, value) {
 		this.logger.debug(
 			['Cache - Set value for key:', key, '| Status:', this.isReady()].join(
@@ -140,12 +105,6 @@ class Cache {
 		return this.setAsync(key, JSON.stringify(value));
 	}
 
-	/**
-	 * Deletes json value for a key in redis.
-	 *
-	 * @param {string} key
-	 * @return {Promise.<Integer, Error>} 0 if key doesn't exist or 1 if key was found and successfully deleted.
-	 */
 	async deleteJsonForKey(key) {
 		this.logger.debug(
 			['Cache - Delete value for key:', key, '| Status:', this.isReady()].join(
@@ -159,12 +118,6 @@ class Cache {
 		return this.delAsync(key);
 	}
 
-	/**
-	 * Scans keys with provided pattern in redis db and deletes the entries matching the given pattern.
-	 *
-	 * @param {string} pattern
-	 * @return {Promise.<null, Error>}
-	 */
 	async removeByPattern(pattern) {
 		this.logger.trace(
 			['Cache - removeByPattern', pattern, '| Status:', this.isReady()].join(
@@ -199,11 +152,6 @@ class Cache {
 		return scan();
 	}
 
-	/**
-	 * Removes all entries from redis db.
-	 *
-	 * @return {Promise.<null, Error>}
-	 */
 	async flushDb() {
 		this.logger.debug('Cache: Flush database');
 		if (!this.isReady()) {
@@ -212,21 +160,11 @@ class Cache {
 		return this.flushdbAsync();
 	}
 
-	/**
-	 * Quits established redis connection upon process exit.
-	 *
-	 * @return {Promise.<null, Error>}
-	 */
 	async cleanup() {
 		this.logger.debug('Cache: Clean up database');
 		return this.quit();
 	}
 
-	/**
-	 * Quits established redis connection.
-	 *
-	 * @return {Promise.<null, Error>}
-	 */
 	async quit() {
 		this.logger.debug('Cache: Quit database');
 		if (!this.isReady()) {
