@@ -58,12 +58,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		this.active = true;
 		try {
 			const bestPeer = await this._computeBestPeer();
-			await this._requestAndValidateLastBlock(bestPeer.id);
-			const lastCommonBlock = await this._revertToLastCommonBlock(bestPeer.id);
+			await this._requestAndValidateLastBlock(bestPeer.peerId);
+			const lastCommonBlock = await this._revertToLastCommonBlock(
+				bestPeer.peerId,
+			);
 			await this._requestAndApplyBlocksToCurrentChain(
 				receivedBlock,
 				lastCommonBlock,
-				bestPeer.id,
+				bestPeer.peerId,
 			);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
@@ -286,8 +288,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		this.logger.debug(
 			{
 				peerId,
-				fromBlockId: lastCommonBlock.id,
-				toBlockId: receivedBlock.id,
+				from: {
+					blockId: lastCommonBlock.id,
+					height: lastCommonBlock.height,
+				},
+				to: {
+					blockId: receivedBlock.id,
+					height: receivedBlock.height,
+				},
 			},
 			'Requesting blocks within ID range from peer',
 		);
@@ -542,7 +550,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		this.logger.trace(
-			{ peers: peers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			{ peers: peers.map(peer => peer.peerId) },
 			'List of connected peers',
 		);
 
@@ -557,7 +565,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		this.logger.trace(
-			{ peers: compatiblePeers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			{ peers: compatiblePeers.map(peer => peer.peerId) },
 			'List of compatible peers connected peers',
 		);
 		this.logger.debug('Computing the best peer to synchronize from');
@@ -618,7 +626,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const bestPeer =
 			selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
-		bestPeer.id = `${bestPeer.ip}:${bestPeer.wsPort}`;
 
 		this.logger.debug(
 			{ peer: bestPeer },

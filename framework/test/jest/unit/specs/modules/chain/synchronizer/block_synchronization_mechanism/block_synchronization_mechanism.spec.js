@@ -250,7 +250,7 @@ describe('block_synchronization_mechanism', () => {
 		];
 
 		for (const expectedPeer of peersList.expectedSelection) {
-			const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+			const { peerId } = expectedPeer;
 			when(channelMock.invoke)
 				.calledWith('network:requestFromPeer', {
 					procedure: 'getHighestCommonBlock',
@@ -344,9 +344,7 @@ describe('block_synchronization_mechanism', () => {
 
 				expect(loggerMock.trace).toHaveBeenCalledWith(
 					{
-						peers: peersList.connectedPeers.map(
-							peer => `${peer.ip}:${peer.wsPort}`,
-						),
+						peers: peersList.connectedPeers.map(peer => peer.peerId),
 					},
 					'List of connected peers',
 				);
@@ -365,9 +363,7 @@ describe('block_synchronization_mechanism', () => {
 				).toHaveBeenCalledWith(
 					expect.stringMatching(
 						new RegExp(
-							peersList.expectedSelection
-								.map(peer => `${peer.ip}:${peer.wsPort}`)
-								.join('|'),
+							peersList.expectedSelection.map(peer => peer.peerId).join('|'),
 						),
 					),
 				);
@@ -377,9 +373,7 @@ describe('block_synchronization_mechanism', () => {
 				).toHaveBeenCalledWith(
 					expect.stringMatching(
 						new RegExp(
-							peersList.expectedSelection
-								.map(peer => `${peer.ip}:${peer.wsPort}`)
-								.join('|'),
+							peersList.expectedSelection.map(peer => peer.peerId).join('|'),
 						),
 					),
 				);
@@ -518,7 +512,7 @@ describe('block_synchronization_mechanism', () => {
 				];
 
 				for (const expectedPeer of peersList.expectedSelection) {
-					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					const { peerId } = expectedPeer;
 					when(channelMock.invoke)
 						.calledWith('network:requestFromPeer', {
 							procedure: 'getLastBlock',
@@ -555,7 +549,7 @@ describe('block_synchronization_mechanism', () => {
 
 			it('should apply penalty and restart the mechanism if the peer does not provide the last block', async () => {
 				for (const expectedPeer of peersList.expectedSelection) {
-					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					const { peerId } = expectedPeer;
 					when(channelMock.invoke)
 						.calledWith('network:requestFromPeer', {
 							procedure: 'getLastBlock',
@@ -605,7 +599,7 @@ describe('block_synchronization_mechanism', () => {
 					});
 
 					for (const expectedPeer of peersList.expectedSelection) {
-						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						const { peerId } = expectedPeer;
 						when(channelMock.invoke)
 							.calledWith('network:requestFromPeer', {
 								procedure: 'getHighestCommonBlock',
@@ -713,7 +707,7 @@ describe('block_synchronization_mechanism', () => {
 					];
 
 					for (const expectedPeer of peersList.expectedSelection) {
-						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						const { peerId } = expectedPeer;
 						when(channelMock.invoke)
 							.calledWith('network:requestFromPeer', {
 								procedure: 'getHighestCommonBlock',
@@ -809,7 +803,7 @@ describe('block_synchronization_mechanism', () => {
 				];
 
 				for (const expectedPeer of peersList.expectedSelection) {
-					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					const { peerId } = expectedPeer;
 					when(channelMock.invoke)
 						.calledWith('network:requestFromPeer', {
 							procedure: 'getBlocksFromId',
@@ -862,7 +856,7 @@ describe('block_synchronization_mechanism', () => {
 
 			it('should give up after 10 times requesting blocks, ban the peer and restart the mechanism', async () => {
 				for (const expectedPeer of peersList.expectedSelection) {
-					const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+					const { peerId } = expectedPeer;
 					when(channelMock.invoke)
 						.calledWith('network:requestFromPeer', {
 							procedure: 'getBlocksFromId',
@@ -932,7 +926,7 @@ describe('block_synchronization_mechanism', () => {
 					];
 
 					for (const expectedPeer of peersList.expectedSelection) {
-						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						const { peerId } = expectedPeer;
 						when(channelMock.invoke)
 							.calledWith('network:requestFromPeer', {
 								procedure: 'getBlocksFromId',
@@ -1061,7 +1055,7 @@ describe('block_synchronization_mechanism', () => {
 					];
 
 					for (const expectedPeer of peersList.expectedSelection) {
-						const peerId = `${expectedPeer.ip}:${expectedPeer.wsPort}`;
+						const { peerId } = expectedPeer;
 
 						when(channelMock.invoke)
 							.calledWith('network:requestFromPeer', {
