@@ -30,6 +30,7 @@ class RestartError extends SynchronizerError {
 class AbortError extends SynchronizerError {
 	constructor(reason) {
 		super(`Abort synchronization mechanism with reason: ${reason}`);
+		this.reason = reason;
 	}
 }
 

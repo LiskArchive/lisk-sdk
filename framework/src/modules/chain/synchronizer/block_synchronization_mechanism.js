@@ -25,6 +25,7 @@ const {
 } = require('./utils');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../bft');
 const {
+	AbortError,
 	ApplyPenaltyAndRestartError,
 	RestartError,
 	BlockProcessingError,
@@ -80,6 +81,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 					block: receivedBlock,
 				});
 			}
+
+			if (error instanceof AbortError) {
+				return this.logger.info(
+					{ error, reason: error.reason },
+					'Aborting synchronization mechanism',
+				);
+			}
+
 			throw error; // If the error is none of the mentioned above, throw.
 		} finally {
 			this.active = false;
@@ -552,10 +561,12 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const forkStatus = await this.processorModule.forkStatus(peersTip);
 
-		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+		const tipHasPreference = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
-		if (!inDifferentChain) {
-			throw new Error('Violation of fork choice rule');
+		if (!tipHasPreference) {
+			throw new AbortError(
+				`Peer tip does not have preference over current tip. Fork status: ${forkStatus}`,
+			);
 		}
 
 		const bestPeer =
