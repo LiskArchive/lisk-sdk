@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { StateStore } = require('../../../../../../../src/modules/chain/blocks');
+const { StateStore } = require('../../src');
 
 describe('state store / chain_state', () => {
 	let stateStore;

@@ -21,13 +21,11 @@ const {
 	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const { Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
-const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
-const { genesisAccount } = require('./default_account');
-const {
-	registeredTransactions,
-} = require('../../../../../../utils/registered_transactions');
+const { Slots } = require('@liskhq/lisk-dpos');
+const { Blocks } = require('../../src');
+const genesisBlock = require('../fixtures/genesis_block.json');
+const { genesisAccount } = require('../fixtures/default_account');
+const { registeredTransactions } = require('../utils/registered_transactions');
 
 jest.mock('events');
 

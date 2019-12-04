@@ -17,21 +17,20 @@
 const { when } = require('jest-when');
 const BigNum = require('@liskhq/bignum');
 const { TransferTransaction } = require('@liskhq/lisk-transactions');
-const { Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
-const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
-const { newBlock } = require('./utils.js');
-const {
-	registeredTransactions,
-} = require('../../../../../../utils/registered_transactions');
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
+const { Slots } = require('@liskhq/lisk-dpos');
+const { Blocks } = require('../../src');
+const genesisBlock = require('../fixtures/genesis_block.json');
+const { newBlock } = require('../utils/block');
+const { registeredTransactions } = require('../utils/registered_transactions');
+const randomUtils = require('../utils/random');
 
 jest.mock('events');
 
-// TODO: Share fixture generation b/w mocha and jest
-const randomUtils = require('../../../../../../utils/random.js');
-const {
-	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../../../utils/network_identifier');
+const networkIdentifier = getNetworkIdentifier(
+	genesisBlock.payloadHash,
+	'Lisk',
+);
 
 describe('blocks', () => {
 	const stubs = {};

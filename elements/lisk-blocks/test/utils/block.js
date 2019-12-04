@@ -15,16 +15,122 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
-const { hash, signDataWithPrivateKey } = require('@liskhq/lisk-cryptography');
-const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
-// TODO: Move it out of mocha and put it in test main directory
-const randomUtil = require('../../../../../../utils/random.js');
 const {
-	getBytes,
-} = require('../../../../../../../src/modules/chain/block_processor_v2');
+	hash,
+	signDataWithPrivateKey,
+	getPrivateAndPublicKeyBytesFromPassphrase,
+	BIG_ENDIAN,
+	hexToBuffer,
+	intToBuffer,
+	LITTLE_ENDIAN,
+} = require('@liskhq/lisk-cryptography');
+const { Mnemonic } = require('@liskhq/lisk-passphrase');
+const genesisBlock = require('../fixtures/genesis_block.json');
+
+const SIZE_INT32 = 4;
+const SIZE_INT64 = 8;
+
+const getBytes = block => {
+	const blockVersionBuffer = intToBuffer(
+		block.version,
+		SIZE_INT32,
+		LITTLE_ENDIAN,
+	);
+
+	const timestampBuffer = intToBuffer(
+		block.timestamp,
+		SIZE_INT32,
+		LITTLE_ENDIAN,
+	);
+
+	const previousBlockBuffer = block.previousBlockId
+		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
+		: Buffer.alloc(SIZE_INT64);
+
+	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
+
+	const maxHeightPreviouslyForgedBuffer = intToBuffer(
+		block.maxHeightPreviouslyForged,
+		SIZE_INT32,
+		LITTLE_ENDIAN,
+	);
+
+	const maxHeightPrevotedBuffer = intToBuffer(
+		block.maxHeightPrevoted,
+		SIZE_INT32,
+		LITTLE_ENDIAN,
+	);
+
+	const numTransactionsBuffer = intToBuffer(
+		block.numberOfTransactions,
+		SIZE_INT32,
+		LITTLE_ENDIAN,
+	);
+
+	const totalAmountBuffer = intToBuffer(
+		block.totalAmount.toString(),
+		SIZE_INT64,
+		LITTLE_ENDIAN,
+	);
+
+	const totalFeeBuffer = intToBuffer(
+		block.totalFee.toString(),
+		SIZE_INT64,
+		LITTLE_ENDIAN,
+	);
+
+	const rewardBuffer = intToBuffer(
+		block.reward.toString(),
+		SIZE_INT64,
+		LITTLE_ENDIAN,
+	);
+
+	const payloadLengthBuffer = intToBuffer(
+		block.payloadLength,
+		SIZE_INT32,
+		LITTLE_ENDIAN,
+	);
+
+	const payloadHashBuffer = hexToBuffer(block.payloadHash);
+
+	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
+
+	const blockSignatureBuffer = block.blockSignature
+		? hexToBuffer(block.blockSignature)
+		: Buffer.alloc(0);
+
+	return Buffer.concat([
+		blockVersionBuffer,
+		timestampBuffer,
+		previousBlockBuffer,
+		heightBuffer,
+		maxHeightPreviouslyForgedBuffer,
+		maxHeightPrevotedBuffer,
+		numTransactionsBuffer,
+		totalAmountBuffer,
+		totalFeeBuffer,
+		rewardBuffer,
+		payloadLengthBuffer,
+		payloadHashBuffer,
+		generatorPublicKeyBuffer,
+		blockSignatureBuffer,
+	]);
+};
 
 const sortTransactions = transactions =>
 	transactions.sort((a, b) => a.type > b.type || a.id > b.id);
+
+const getKeyPair = () => {
+	const passphrase = Mnemonic.generateMnemonic();
+	const {
+		publicKeyBytes: publicKey,
+		privateKeyBytes: privateKey,
+	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+	return {
+		publicKey,
+		privateKey,
+	};
+};
 
 const calculateTransactionsInfo = block => {
 	const sortedTransactions = sortTransactions(block.transactions);
@@ -68,7 +174,7 @@ const newBlock = block => {
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
 		previousBlockId: genesisBlock.id,
-		keypair: randomUtil.account().keypair,
+		keypair: getKeyPair(),
 		transactions: [],
 		reward: '0',
 		timestamp: 1000,
