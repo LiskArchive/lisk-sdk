@@ -202,6 +202,14 @@ module.exports = class Chain {
 			// After binding, it should immediately load blockchain
 			await this.processor.init(this.options.genesisBlock);
 
+			// Update Application State after processor is initialized
+			this.channel.invoke('app:updateApplicationState', {
+				height: this.blocks.lastBlock.height,
+				lastBlockId: this.blocks.lastBlock.id,
+				maxHeightPrevoted: this.blocks.lastBlock.maxHeightPrevoted || 0,
+				blockVersion: this.blocks.lastBlock.version,
+			});
+
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
