@@ -15,10 +15,10 @@
 'use strict';
 
 const blockHeaderSchema = require('./block_header_schema');
-const { validate } = require('../../../../src/controller/validator');
+const { validator } = require('@liskhq/lisk-validator');
 
 const validateBlockHeader = blockHeader =>
-	validate(blockHeaderSchema, blockHeader);
+	validator.validate(blockHeaderSchema, blockHeader);
 
 module.exports = {
 	validateBlockHeader,

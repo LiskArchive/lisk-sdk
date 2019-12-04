@@ -15,9 +15,7 @@
 
 'use strict';
 
-const { FrameworkError } = require('../../../errors');
-
-class BFTError extends FrameworkError {}
+class BFTError extends Error {}
 
 class BFTChainDisjointError extends BFTError {
 	constructor() {

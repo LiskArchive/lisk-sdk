@@ -3,7 +3,8 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"outDir": "dist-node",
-		"rootDir": "./src"
+		"rootDir": "./src",
+		"types": ["node", "jest"]
 	},
 	"include": ["src/**/*", "types/**/*"]
 }
