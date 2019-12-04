@@ -18,11 +18,26 @@ module.exports = ({ channel }, { wsServer }) => {
 	channel.subscribe('chain:blocks:change', event => {
 		wsServer.sockets.emit('blocks/change', event.data);
 	});
+	channel.subscribe('chain:blocks:add', event => {
+		wsServer.sockets.emit('blocks/add', event.data);
+	});
+	channel.subscribe('chain:blocks:remove', event => {
+		wsServer.sockets.emit('blocks/remove', event.data);
+	});
 	channel.subscribe('chain:signature:change', event => {
 		wsServer.sockets.emit('signature/change', event.data);
 	});
 	channel.subscribe('chain:transactions:change', event => {
 		wsServer.sockets.emit('transactions/change', event.data);
+	});
+	channel.subscribe('chain:transactions:confirmed:change', event => {
+		wsServer.sockets.emit('transactions/confirmed/change', event.data);
+	});
+	channel.subscribe('chain:transactions:confirmed:add', event => {
+		wsServer.sockets.emit('transactions/confirmed/add', event.data);
+	});
+	channel.subscribe('chain:transactions:confirmed:remove', event => {
+		wsServer.sockets.emit('transactions/confirmed/remove', event.data);
 	});
 	channel.subscribe('chain:rounds:change', event => {
 		wsServer.sockets.emit('rounds/change', event.data);

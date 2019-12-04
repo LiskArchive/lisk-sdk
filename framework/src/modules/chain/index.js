@@ -52,7 +52,11 @@ class ChainModule extends BaseModule {
 		return [
 			'bootstrap',
 			'blocks:change',
+			'blocks:add',
+			'blocks:remove',
 			'transactions:confirmed:change',
+			'transactions:confirmed:add',
+			'transactions:confirmed:remove',
 			'signature:change',
 			'transactions:change',
 			'rounds:change',

@@ -96,11 +96,7 @@ module.exports = class Chain {
 				this.options.forging.waitThreshold >= this.options.constants.BLOCK_TIME
 			) {
 				throw Error(
-					`modules.chain.forging.waitThreshold=${
-						this.options.forging.waitThreshold
-					} is greater or equal to app.genesisConfig.BLOCK_TIME=${
-						this.options.constants.BLOCK_TIME
-					}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
+					`modules.chain.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.BLOCK_TIME=${this.options.constants.BLOCK_TIME}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
 				);
 			}
 
@@ -563,12 +559,17 @@ module.exports = class Chain {
 						'chain:transactions:confirmed:change',
 						block.transactions,
 					);
+					this.channel.publish(
+						'chain:transactions:confirmed:remove',
+						block.transactions,
+					);
 				}
 				this.logger.info(
 					{ id: block.id, height: block.height },
 					'Deleted a block from the chain',
 				);
 				this.channel.publish('chain:blocks:change', block);
+				this.channel.publish('chain:blocks:remove', block);
 			},
 		);
 
@@ -585,6 +586,10 @@ module.exports = class Chain {
 						'chain:transactions:confirmed:change',
 						block.transactions,
 					);
+					this.channel.publish(
+						'chain:transactions:confirmed:add',
+						block.transactions,
+					);
 				}
 				this.logger.info(
 					{
@@ -595,6 +600,7 @@ module.exports = class Chain {
 					'New block added to the chain',
 				);
 				this.channel.publish('chain:blocks:change', block);
+				this.channel.publish('chain:blocks:add', block);
 
 				if (!this.synchronizer.isActive) {
 					this.channel.invoke('app:updateApplicationState', {
