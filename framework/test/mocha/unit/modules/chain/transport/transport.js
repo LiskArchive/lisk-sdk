@@ -411,9 +411,7 @@ describe('transport', () => {
 				let processUnconfirmedTransactionError;
 
 				beforeEach(async () => {
-					processUnconfirmedTransactionError = `Transaction is already processed: ${
-						transaction.id
-					}`;
+					processUnconfirmedTransactionError = `Transaction is already processed: ${transaction.id}`;
 
 					transportModule.transactionPoolModule.processUnconfirmedTransaction.rejects(
 						[new Error(processUnconfirmedTransactionError)],
@@ -614,12 +612,23 @@ describe('transport', () => {
 					describe('when query is undefined', () => {
 						it('should throw a validation error', async () => {
 							query = {};
+							const defaultPeerId = 'peer-id';
 
 							try {
-								await transportModule.handleRPCGetBlocksFromId(query);
+								await transportModule.handleRPCGetBlocksFromId(
+									query,
+									defaultPeerId,
+								);
 							} catch (e) {
 								expect(e[0].message).to.equal(
 									"should have required property 'blockId'",
+								);
+								expect(channelStub.invoke).toHaveBeenCalledWith(
+									'network:applyPenalty',
+									{
+										peerId: defaultPeerId,
+										penalty: 100,
+									},
 								);
 							}
 						});
@@ -662,6 +671,7 @@ describe('transport', () => {
 
 				describe('handleEventPostBlock', () => {
 					let postBlockQuery;
+					const defaultPeerId = 'peer-id';
 
 					beforeEach(async () => {
 						postBlockQuery = {
@@ -672,7 +682,10 @@ describe('transport', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							await transportModule.handleEventPostBlock(postBlockQuery);
+							await transportModule.handleEventPostBlock(
+								postBlockQuery,
+								defaultPeerId,
+							);
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -699,6 +712,13 @@ describe('transport', () => {
 									await transportModule.handleEventPostBlock(postBlockQuery);
 								} catch (err) {
 									expect(err[0].message).to.equal(blockValidationError);
+									expect(channelStub.invoke).toHaveBeenCalledWith(
+										'network:applyPenalty',
+										{
+											peerId: defaultPeerId,
+											penalty: 100,
+										},
+									);
 								}
 							});
 						});
