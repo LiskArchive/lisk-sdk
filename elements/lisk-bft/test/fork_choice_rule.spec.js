@@ -5,8 +5,8 @@ const {
 	isDuplicateBlock,
 	isTieBreak,
 	isValidBlock,
-} = require('../../../../../../../src/modules/chain/bft/fork_choice_rule');
-const { Slots } = require('../../../../../../../src/modules/chain/dpos');
+} = require('../src/fork_choice_rule');
+const { Slots } = require('@liskhq/lisk-dpos');
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;

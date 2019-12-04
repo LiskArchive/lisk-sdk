@@ -62,6 +62,8 @@
 	"devDependencies": {
 		"@types/jest": "24.0.23",
 		"@types/jquery": "3.3.29",
+		"@liskhq/lisk-blocks": "0.1.0",
+		"@liskhq/lisk-dpos": "0.1.0",
 		"browserify": "16.2.3",
 		"cypress": "3.4.1",
 		"http-server": "0.11.1",
@@ -75,6 +77,9 @@
 		"tslint-config-prettier": "1.18.0",
 		"tslint-immutable": "6.0.1",
 		"typescript": "3.7.2",
+		"faker": "4.1.0",
+		"randomstring": "1.1.5",
+		"stampit": "4.2.0",
 		"uglify-es": "3.3.9",
 		"wait-on": "3.2.0"
 	}

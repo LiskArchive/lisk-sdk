@@ -19,21 +19,15 @@ const {
 	BFTLowerChainBranchError,
 	BFTForkChoiceRuleError,
 	BFTInvalidAttributeError,
-} = require('../../../../../../../src/modules/chain/bft/errors');
-const utils = require('../../../../../../../src/modules/chain/bft/utils');
-const {
-	FinalityManager,
-} = require('../../../../../../../src/modules/chain/bft/finality_manager');
+} = require('../src/errors');
+const utils = require('../src/utils');
+const { FinalityManager } = require('../src/finality_manager');
 
-jest.mock('../../../../../../../src/modules/chain/bft/utils');
+jest.mock('../src/utils');
 
-const {
-	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../fixtures/blocks');
+const { BlockHeader: blockHeaderFixture } = require('./fixtures/blocks');
 
-const {
-	Account: accountFixture,
-} = require('../../../../../../fixtures/accounts');
+const { Account: accountFixture } = require('./fixtures/accounts');
 
 const generateValidHeaders = count => {
 	return [...Array(count)].map((_, index) => {
@@ -219,6 +213,10 @@ describe('finality_manager', () => {
 		});
 
 		describe('addBlockHeader', () => {
+			beforeEach(async () => {
+				jest.spyOn(utils, 'validateBlockHeader');
+			});
+
 			it('should call validateBlockHeader with the provided header', async () => {
 				const header1 = blockHeaderFixture({
 					height: 1,

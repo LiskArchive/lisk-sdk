@@ -28,9 +28,7 @@ const bftScenarios = [
 	scenario11DelegatesPartialSwitch,
 ];
 
-const {
-	FinalityManager,
-} = require('../../../../../../../src/modules/chain/bft/finality_manager');
+const { FinalityManager } = require('../src/finality_manager');
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {

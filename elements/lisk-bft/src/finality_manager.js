@@ -18,7 +18,7 @@ const assert = require('assert');
 const debug = require('debug')('lisk:bft:consensus_manager');
 const EventEmitter = require('events');
 const { HeadersList } = require('./headers_list');
-const { validateBlockHeader } = require('./utils');
+const utils = require('./utils');
 const {
 	BFTChainDisjointError,
 	BFTLowerChainBranchError,
@@ -69,7 +69,7 @@ class FinalityManager extends EventEmitter {
 		debug('validateBlockHeader invoked');
 		// Validate the schema of the header
 		// To spy exported function in same module we have to call it as this
-		validateBlockHeader(blockHeader);
+		utils.validateBlockHeader(blockHeader);
 
 		// Verify the integrity of the header with chain
 		try {

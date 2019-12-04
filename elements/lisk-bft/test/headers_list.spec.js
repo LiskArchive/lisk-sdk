@@ -14,12 +14,8 @@
 
 'use strict';
 
-const {
-	HeadersList,
-} = require('../../../../../../../src/modules/chain/bft/headers_list');
-const {
-	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../fixtures/blocks');
+const { HeadersList } = require('../src/headers_list');
+const { BlockHeader: blockHeaderFixture } = require('./fixtures/blocks');
 
 describe('HeadersList', () => {
 	let list;

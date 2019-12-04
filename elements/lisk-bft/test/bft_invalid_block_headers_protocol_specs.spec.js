@@ -16,9 +16,7 @@
 
 const invalidBlockHeaderSpec = require('./bft_specs/bft_invalid_block_headers.json');
 
-const {
-	FinalityManager,
-} = require('../../../../../../../src/modules/chain/bft/finality_manager');
+const { FinalityManager } = require('../src/finality_manager');
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {

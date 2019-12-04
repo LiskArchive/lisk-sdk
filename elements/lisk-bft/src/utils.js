@@ -17,8 +17,13 @@
 const blockHeaderSchema = require('./block_header_schema');
 const { validator } = require('@liskhq/lisk-validator');
 
-const validateBlockHeader = blockHeader =>
-	validator.validate(blockHeaderSchema, blockHeader);
+const validateBlockHeader = blockHeader => {
+	const errors = validator.validate(blockHeaderSchema, blockHeader);
+	if (errors.length) {
+		throw new Error(errors[0].message);
+	}
+	return true;
+};
 
 module.exports = {
 	validateBlockHeader,

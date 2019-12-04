@@ -14,12 +14,10 @@
 
 'use strict';
 
-const { Block: blockFixture } = require('../../../../../../fixtures/blocks');
-const {
-	FinalityManager,
-} = require('../../../../../../../src/modules/chain/bft/finality_manager');
-const { Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { StateStore } = require('../../../../../../../src/modules/chain/blocks');
+const { Block: blockFixture } = require('./fixtures/blocks');
+const { FinalityManager } = require('../src/finality_manager');
+const { Slots } = require('@liskhq/lisk-dpos');
+const { StateStore } = require('@liskhq/lisk-blocks');
 
 const {
 	BFT,
@@ -30,9 +28,13 @@ const {
 	FORK_STATUS_TIE_BREAK,
 	FORK_STATUS_IDENTICAL_BLOCK,
 	FORK_STATUS_DOUBLE_FORGING,
-} = require('../../../../../../../src/modules/chain/bft');
+} = require('../src');
 
-const { constants } = require('../../../../../../utils');
+const constants = {
+	ACTIVE_DELEGATES: 101,
+	EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+	BLOCK_TIME: 10,
+};
 
 const generateBlocks = ({ startHeight, numberOfBlocks }) =>
 	new Array(numberOfBlocks)

@@ -14,14 +14,10 @@
 
 'use strict';
 
-const { SchemaValidationError } = require('../../../../../../../src/errors');
-const {
-	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../fixtures/blocks');
+const { SchemaValidationError } = require('../src/errors');
+const { BlockHeader: blockHeaderFixture } = require('./fixtures/blocks');
 
-const {
-	validateBlockHeader,
-} = require('../../../../../../../src/modules/chain/bft/utils');
+const { validateBlockHeader } = require('../src/utils');
 
 describe('utils', () => {
 	describe('validateBlockHeader', () => {
