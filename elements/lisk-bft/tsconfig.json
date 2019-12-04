@@ -1,0 +1,9 @@
+{
+	"extends": "../../tsconfig",
+	"compilerOptions": {
+		"allowJs": true,
+		"outDir": "dist-node",
+		"rootDir": "./src"
+	},
+	"include": ["src/**/*", "types/**/*"]
+}
