@@ -20,8 +20,9 @@ const {
 	Dpos,
 	Slots,
 	constants: { EVENT_ROUND_CHANGED },
-} = require('../../../../../../../src/modules/chain/dpos');
-const { constants, randomInt } = require('../../../../../../utils');
+} = require('../src');
+const constants = require('./utils/constants');
+const { randomInt } = require('./utils/random_int');
 const {
 	delegateAccounts,
 	delegatePublicKeys,

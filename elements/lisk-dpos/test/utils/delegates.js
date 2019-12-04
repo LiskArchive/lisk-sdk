@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const { deepFreeze } = require('../../../../../../../utils/deep_freeze');
+const { deepFreeze } = require('./deep_freeze');
 
 const delegateLists = deepFreeze([
 	{ round: 15, delegatePublicKeys: ['a', 'b', 'c'] },

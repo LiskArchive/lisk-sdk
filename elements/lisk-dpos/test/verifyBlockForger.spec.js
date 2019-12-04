@@ -14,8 +14,8 @@
 
 'use strict';
 
-const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { constants } = require('../../../../../../utils');
+const { Dpos, Slots } = require('../src');
+const constants = require('./utils/constants');
 const { delegatePublicKeys } = require('./round_delegates');
 
 describe('dpos.verifyBlockForger()', () => {

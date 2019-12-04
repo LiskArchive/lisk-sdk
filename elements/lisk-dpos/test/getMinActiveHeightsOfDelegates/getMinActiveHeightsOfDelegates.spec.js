@@ -15,12 +15,9 @@
 'use strict';
 
 const { when } = require('jest-when');
-const {
-	Dpos,
-	Slots,
-} = require('../../../../../../../../src/modules/chain/dpos');
-const { constants } = require('../../../../../../../utils');
-const { generateDelegateLists } = require('./helpers');
+const { Dpos, Slots } = require('../../src');
+const constants = require('../utils/constants');
+const { generateDelegateLists } = require('../utils/delegates');
 
 const roundsDelegatesGetResolves = (lists, { stubs, limit }) => {
 	when(stubs.storage.entities.RoundDelegates.get)
