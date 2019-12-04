@@ -15,14 +15,14 @@
 'use strict';
 
 const {
-	restoreBlocks,
-	restoreBlocksUponStartup,
-} = require('../../../../../../../src/modules/chain/synchronizer/utils');
-const {
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_VALID_BLOCK,
 	FORK_STATUS_DISCARD,
-} = require('../../../../../../../src/modules/chain/bft');
+} = require('@liskhq/lisk-bft');
+const {
+	restoreBlocks,
+	restoreBlocksUponStartup,
+} = require('../../../../../../../src/modules/chain/synchronizer/utils');
 
 describe('#synchronizer/utils', () => {
 	let blocksMock;

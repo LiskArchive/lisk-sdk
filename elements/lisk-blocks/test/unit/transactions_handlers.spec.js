@@ -14,25 +14,18 @@
 
 'use strict';
 
+const { when } = require('jest-when');
 const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionHandlers = require('../../../../../../src/modules/chain/blocks/transactions/transactions_handlers');
-const votesWeightHandler = require('../../../../../../src/modules/chain/blocks/transactions/votes_weight');
-const exceptionHandlers = require('../../../../../../src/modules/chain/blocks/transactions/exceptions_handlers');
-const {
-	Transaction: transactionFixture,
-} = require('../../../../../fixtures//transactions');
-const {
-	Account: accountFixture,
-} = require('../../../../../fixtures//accounts');
+const transactionHandlers = require('../../src/transactions/transactions_handlers');
+const votesWeightHandler = require('../../src/transactions/votes_weight');
+const exceptionHandlers = require('../../src/transactions/exceptions_handlers');
+const randomUtils = require('../utils/random');
 
-// TODO: re-implement for new transaction processing
 describe('transactions', () => {
-	afterEach(() => sinonSandbox.restore());
-
-	const trs1 = transactionFixture();
-	const trs2 = transactionFixture();
+	const trs1 = randomUtils.transferInstance();
+	const trs2 = randomUtils.transferInstance();
 
 	const dummyState = {
 		version: 1,
@@ -49,38 +42,38 @@ describe('transactions', () => {
 		trs2.matcher = () => true;
 
 		// Add prepare steps to transactions
-		trs1.prepare = sinonSandbox.stub();
-		trs2.prepare = sinonSandbox.stub();
+		trs1.prepare = jest.fn();
+		trs2.prepare = jest.fn();
 
 		// Add apply steps to transactions
-		trs1.apply = sinonSandbox.stub();
-		trs2.apply = sinonSandbox.stub();
+		trs1.apply = jest.fn();
+		trs2.apply = jest.fn();
 
 		// Add undo steps to transactions
-		trs1.undo = sinonSandbox.stub();
-		trs2.undo = sinonSandbox.stub();
+		trs1.undo = jest.fn();
+		trs2.undo = jest.fn();
 
 		stateStoreMock = {
-			createSnapshot: sinonSandbox.stub(),
-			restoreSnapshot: sinonSandbox.stub(),
+			createSnapshot: jest.fn(),
+			restoreSnapshot: jest.fn(),
 			account: {
-				get: sinonSandbox.stub().returns({ balance: '100000000000' }),
-				getOrDefault: sinonSandbox.stub().returns({}),
-				createSnapshot: sinonSandbox.stub(),
-				restoreSnapshot: sinonSandbox.stub(),
+				get: jest.fn().mockReturnValue({ balance: '100000000000' }),
+				getOrDefault: jest.fn().mockReturnValue({}),
+				createSnapshot: jest.fn(),
+				restoreSnapshot: jest.fn(),
 			},
 			transaction: {
-				add: sinonSandbox.stub(),
+				add: jest.fn(),
 			},
 		};
 
 		storageMock = {
 			entities: {
 				Transaction: {
-					get: sinonSandbox.stub(),
+					get: jest.fn(),
 				},
 				Account: {
-					get: sinonSandbox.stub().returns([]),
+					get: jest.fn().mockReturnValue([]),
 				},
 			},
 		};
@@ -94,7 +87,7 @@ describe('transactions', () => {
 			)([trs1]);
 
 			// Assert
-			expect(response).to.have.deep.property('transactionsResponses', [
+			expect(response).toHaveProperty('transactionsResponses', [
 				{
 					id: trs1.id,
 					status: 1,
@@ -116,20 +109,18 @@ describe('transactions', () => {
 			)([disallowedTransaction]);
 
 			// Assert
-			expect(response.transactionsResponses.length).to.equal(1);
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses.length).toBe(1);
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'id',
 				disallowedTransaction.id,
 			);
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'status',
 				TransactionStatus.FAIL,
 			);
-			expect(response.transactionsResponses[0].errors.length).to.equal(1);
-			expect(response.transactionsResponses[0].errors[0]).to.be.instanceOf(
-				Error,
-			);
-			expect(response.transactionsResponses[0].errors[0].message).to.equal(
+			expect(response.transactionsResponses[0].errors.length).toBe(1);
+			expect(response.transactionsResponses[0].errors[0]).toBeInstanceOf(Error);
+			expect(response.transactionsResponses[0].errors[0].message).toBe(
 				`Transaction type ${disallowedTransaction.type} is currently not allowed.`,
 			);
 		});
@@ -144,16 +135,16 @@ describe('transactions', () => {
 			)([transactionWithoutMatcherImpl]);
 
 			// Assert
-			expect(response.transactionsResponses.length).to.equal(1);
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses.length).toBe(1);
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'id',
 				transactionWithoutMatcherImpl.id,
 			);
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'status',
 				TransactionStatus.OK,
 			);
-			expect(response.transactionsResponses[0].errors.length).to.equal(0);
+			expect(response.transactionsResponses[0].errors.length).toBe(0);
 		});
 
 		it('in case of allowed transactions, it should return responses with TransactionStatus.OK and no errors', async () => {
@@ -169,16 +160,16 @@ describe('transactions', () => {
 			)([allowedTransaction]);
 
 			// Assert
-			expect(response.transactionsResponses.length).to.equal(1);
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses.length).toBe(1);
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'id',
 				allowedTransaction.id,
 			);
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'status',
 				TransactionStatus.OK,
 			);
-			expect(response.transactionsResponses[0].errors.length).to.equal(0);
+			expect(response.transactionsResponses[0].errors.length).toBe(0);
 		});
 
 		it('should return a mix of responses including allowed and disallowed transactions', async () => {
@@ -197,32 +188,30 @@ describe('transactions', () => {
 			);
 
 			// Assert
-			expect(response.transactionsResponses.length).to.equal(2);
+			expect(response.transactionsResponses.length).toBe(2);
 			// Allowed transaction formatted response check
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'id',
 				testTransactions[0].id,
 			);
-			expect(response.transactionsResponses[0]).to.have.property(
+			expect(response.transactionsResponses[0]).toHaveProperty(
 				'status',
 				TransactionStatus.OK,
 			);
-			expect(response.transactionsResponses[0].errors.length).to.equal(0);
+			expect(response.transactionsResponses[0].errors.length).toBe(0);
 
 			// Allowed transaction formatted response check
-			expect(response.transactionsResponses[1]).to.have.property(
+			expect(response.transactionsResponses[1]).toHaveProperty(
 				'id',
 				testTransactions[1].id,
 			);
-			expect(response.transactionsResponses[1]).to.have.property(
+			expect(response.transactionsResponses[1]).toHaveProperty(
 				'status',
 				TransactionStatus.FAIL,
 			);
-			expect(response.transactionsResponses[1].errors.length).to.equal(1);
-			expect(response.transactionsResponses[1].errors[0]).to.be.instanceOf(
-				Error,
-			);
-			expect(response.transactionsResponses[1].errors[0].message).to.equal(
+			expect(response.transactionsResponses[1].errors.length).toBe(1);
+			expect(response.transactionsResponses[1].errors[0]).toBeInstanceOf(Error);
+			expect(response.transactionsResponses[1].errors[0].message).toBe(
 				`Transaction type ${testTransactions[1].type} is currently not allowed.`,
 			);
 		});
@@ -233,19 +222,19 @@ describe('transactions', () => {
 		const invalidResponse = { status: TransactionStatus.FAIL, id: trs2.id };
 
 		beforeEach(async () => {
-			trs1.validate = sinonSandbox.stub().returns(validResponse);
-			trs2.validate = sinonSandbox.stub().returns(invalidResponse);
+			trs1.validate = jest.fn().mockReturnValue(validResponse);
+			trs2.validate = jest.fn().mockReturnValue(invalidResponse);
 		});
 
 		it('should invoke validate() on each transaction', async () => {
 			transactionHandlers.validateTransactions()([trs1, trs2]);
 
-			expect(trs1.validate).to.be.calledOnce;
-			expect(trs2.validate).to.be.calledOnce;
+			expect(trs1.validate).toHaveBeenCalledTimes(1);
+			expect(trs2.validate).toHaveBeenCalledTimes(1);
 		});
 
 		it('should update responses for exceptions for invalid responses', async () => {
-			sinonSandbox.stub(
+			jest.spyOn(
 				exceptionHandlers,
 				'updateTransactionResponseForExceptionTransactions',
 			);
@@ -253,16 +242,16 @@ describe('transactions', () => {
 
 			expect(
 				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).to.be.calledOnce;
+			).toHaveBeenCalledTimes(1);
 			expect(
 				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).to.be.calledWithExactly([invalidResponse], [trs1, trs2], undefined);
+			).toHaveBeenCalledWith([invalidResponse], [trs1, trs2], undefined);
 		});
 
 		it('should return transaction responses', async () => {
 			const result = transactionHandlers.validateTransactions()([trs1, trs2]);
 
-			expect(result).to.be.eql({
+			expect(result).toEqual({
 				transactionsResponses: [validResponse, invalidResponse],
 			});
 		});
@@ -274,26 +263,26 @@ describe('transactions', () => {
 				storageMock,
 			)([]);
 
-			expect(result).to.be.eql({ transactionsResponses: [] });
+			expect(result).toEqual({ transactionsResponses: [] });
 		});
 
 		it('should invoke entities.Transaction to check persistence of transactions', async () => {
-			storageMock.entities.Transaction.get.resolves([trs1, trs2]);
+			storageMock.entities.Transaction.get.mockResolvedValue([trs1, trs2]);
 
 			await transactionHandlers.checkPersistedTransactions(storageMock)([
 				trs1,
 				trs2,
 			]);
 
-			expect(storageMock.entities.Transaction.get).to.be.calledOnce;
-			expect(storageMock.entities.Transaction.get).to.be.calledWithExactly({
+			expect(storageMock.entities.Transaction.get).toHaveBeenCalledTimes(1);
+			expect(storageMock.entities.Transaction.get).toHaveBeenCalledWith({
 				id_in: [trs1.id, trs2.id],
 			});
 		});
 
 		it('should return TransactionStatus.OK for non-persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			storageMock.entities.Transaction.get.resolves([trs1]);
+			storageMock.entities.Transaction.get.mockResolvedValue([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
 				storageMock,
@@ -303,13 +292,13 @@ describe('transactions', () => {
 				({ id }) => id === trs2.id,
 			);
 
-			expect(transactionResponse.status).to.be.eql(TransactionStatus.OK);
-			expect(transactionResponse.errors).to.be.eql([]);
+			expect(transactionResponse.status).toEqual(TransactionStatus.OK);
+			expect(transactionResponse.errors).toEqual([]);
 		});
 
 		it('should return TransactionStatus.FAIL for persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			storageMock.entities.Transaction.get.resolves([trs1]);
+			storageMock.entities.Transaction.get.mockResolvedValue([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
 				storageMock,
@@ -319,9 +308,9 @@ describe('transactions', () => {
 				({ id }) => id === trs1.id,
 			);
 
-			expect(transactionResponse.status).to.be.eql(TransactionStatus.FAIL);
-			expect(transactionResponse.errors).have.lengthOf(1);
-			expect(transactionResponse.errors[0].message).to.be.eql(
+			expect(transactionResponse.status).toEqual(TransactionStatus.FAIL);
+			expect(transactionResponse.errors).toHaveLength(1);
+			expect(transactionResponse.errors[0].message).toEqual(
 				`Transaction is already confirmed: ${trs1.id}`,
 			);
 		});
@@ -338,10 +327,10 @@ describe('transactions', () => {
 		};
 
 		beforeEach(async () => {
-			trs1.apply.returns(trs1Response);
-			trs2.apply.returns(trs2Response);
-			sinonSandbox.stub(votesWeightHandler, 'prepare');
-			sinonSandbox.stub(votesWeightHandler, 'apply');
+			trs1.apply.mockReturnValue(trs1Response);
+			trs2.apply.mockReturnValue(trs2Response);
+			jest.spyOn(votesWeightHandler, 'prepare');
+			jest.spyOn(votesWeightHandler, 'apply');
 		});
 
 		it('should prepare all transactions', async () => {
@@ -350,8 +339,8 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(trs1.prepare).to.be.calledOnce;
-			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs1.prepare).toHaveBeenCalledTimes(1);
+			expect(trs2.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		it('should apply all transactions', async () => {
@@ -360,8 +349,8 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(trs1.apply).to.be.calledOnce;
-			expect(trs2.apply).to.be.calledOnce;
+			expect(trs1.apply).toHaveBeenCalledTimes(1);
+			expect(trs2.apply).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call transaction to vote.apply', async () => {
@@ -370,7 +359,7 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(votesWeightHandler.apply).to.be.calledTwice;
+			expect(votesWeightHandler.apply).toHaveBeenCalledTimes(2);
 		});
 
 		it('should add transaction to state store', async () => {
@@ -379,12 +368,12 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(stateStoreMock.transaction.add).to.be.calledWithExactly(trs1);
-			expect(stateStoreMock.transaction.add).to.be.calledWithExactly(trs2);
+			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs1);
+			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs2);
 		});
 
 		it('should override the status of transaction to TransactionStatus.OK', async () => {
-			trs1.apply.returns({
+			trs1.apply.mockReturnValue({
 				status: TransactionStatus.FAIL,
 				id: trs1.id,
 			});
@@ -394,7 +383,7 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result.transactionsResponses[0].status).to.be.eql(
+			expect(result.transactionsResponses[0].status).toEqual(
 				TransactionStatus.OK,
 			);
 		});
@@ -406,7 +395,7 @@ describe('transactions', () => {
 			);
 
 			// expect(result.stateStore).to.be.eql(stateStoreMock);
-			expect(result.transactionsResponses).to.be.eql([
+			expect(result.transactionsResponses).toEqual([
 				trs1Response,
 				trs2Response,
 			]);
@@ -427,16 +416,16 @@ describe('transactions', () => {
 				id: trs2.id,
 			};
 
-			trs1.apply.returns(trs1Response);
-			trs2.apply.returns(trs2Response);
+			trs1.apply.mockReturnValue(trs1Response);
+			trs2.apply.mockReturnValue(trs2Response);
 
-			sinonSandbox.stub(votesWeightHandler, 'prepare');
-			sinonSandbox.stub(votesWeightHandler, 'apply');
-			sinonSandbox
-				.stub(transactionHandlers, 'verifyTotalSpending')
-				.returns([trs1Response, trs2Response]);
+			jest.spyOn(votesWeightHandler, 'prepare');
+			jest.spyOn(votesWeightHandler, 'apply');
+			// sinonSandbox
+			// jest.spyOn(transactionHandlers, 'verifyTotalSpending')
+			// 	.mockReturnValue([trs1Response, trs2Response]);
 
-			sinonSandbox.stub(
+			jest.spyOn(
 				exceptionHandlers,
 				'updateTransactionResponseForExceptionTransactions',
 			);
@@ -448,8 +437,8 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(trs1.prepare).to.be.calledOnce;
-			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs1.prepare).toHaveBeenCalledTimes(1);
+			expect(trs2.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		describe('when transactions have conflict on total spending', () => {
@@ -473,10 +462,13 @@ describe('transactions', () => {
 						amount: '100000000000000',
 					},
 				};
-				stateStoreMock.account.get.withArgs(senderId).returns({
-					address: senderId,
-					balance: new BigNum(trs3.fee).add(trs4.fee).toString(),
-				});
+
+				when(stateStoreMock.account.get)
+					.calledWith(senderId)
+					.mockReturnValue({
+						address: senderId,
+						balance: new BigNum(trs3.fee).add(trs4.fee).toString(),
+					});
 			});
 
 			it('should return transaction error with amount', async () => {
@@ -486,18 +478,32 @@ describe('transactions', () => {
 					[trs3, trs4, trs5],
 					stateStoreMock,
 				);
-				expect(transactionsResponses[0].errors).not.to.be.empty;
-				expect(transactionsResponses[0].errors[0].dataPath).to.eql('.amount');
+				expect(transactionsResponses[0].errors).toHaveLength(1);
+				expect(transactionsResponses[0].errors[0].dataPath).toEqual('.amount');
 			});
 		});
 
 		describe('when transactions have no conflict on total spending', () => {
 			beforeEach(async () => {
 				const senderId = getAddressFromPublicKey(trs1.senderPublicKey);
-				stateStoreMock.account.get.withArgs(senderId).returns({
-					address: senderId,
-					balance: '10000000000',
-				});
+				when(stateStoreMock.account.get)
+					.calledWith(senderId)
+					.mockReturnValue({
+						address: senderId,
+						balance: '10000000000',
+					});
+				when(stateStoreMock.account.get)
+					.calledWith(trs1.asset.recipientId)
+					.mockReturnValue({
+						address: trs1.asset.recipientId,
+						balance: '0',
+					});
+				when(stateStoreMock.account.get)
+					.calledWith(trs2.asset.recipientId)
+					.mockReturnValue({
+						address: trs2.asset.recipientId,
+						balance: '0',
+					});
 			});
 
 			it('should return transaction responses', async () => {
@@ -506,7 +512,7 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(result.transactionsResponses).to.be.eql([
+				expect(result.transactionsResponses).toEqual([
 					trs1Response,
 					trs2Response,
 				]);
@@ -518,7 +524,7 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(stateStoreMock.account.createSnapshot).to.be.calledTwice;
+				expect(stateStoreMock.account.createSnapshot).toHaveBeenCalledTimes(2);
 			});
 
 			it('should apply transaction', async () => {
@@ -527,15 +533,15 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(trs1.apply).to.be.calledOnce;
-				expect(trs2.apply).to.be.calledOnce;
-				expect(trs1.apply).to.be.calledWithExactly(stateStoreMock);
-				expect(trs2.apply).to.be.calledWithExactly(stateStoreMock);
+				expect(trs1.apply).toHaveBeenCalledTimes(1);
+				expect(trs2.apply).toHaveBeenCalledTimes(1);
+				expect(trs1.apply).toHaveBeenCalledWith(stateStoreMock);
+				expect(trs2.apply).toHaveBeenCalledWith(stateStoreMock);
 			});
 
 			it('should update response for exceptions if response is not OK', async () => {
 				trs1Response.status = TransactionStatus.FAIL;
-				trs1.apply.returns(trs1Response);
+				trs1.apply.mockReturnValue(trs1Response);
 
 				await transactionHandlers.applyTransactions()(
 					[trs1, trs2],
@@ -544,12 +550,12 @@ describe('transactions', () => {
 
 				expect(
 					exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-				).to.be.calledOnce;
+				).toHaveBeenCalledTimes(1);
 			});
 
 			it('should not update response for exceptions if response is OK', async () => {
 				trs1Response.status = TransactionStatus.OK;
-				trs1.apply.returns(trs1Response);
+				trs1.apply.mockReturnValue(trs1Response);
 
 				await transactionHandlers.applyTransactions()(
 					[trs1, trs2],
@@ -558,7 +564,7 @@ describe('transactions', () => {
 
 				expect(
 					exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-				).to.not.be.called;
+				).not.toBeCalled();
 			});
 
 			it('should add to state store if transaction response is OK', async () => {
@@ -567,23 +573,23 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(stateStoreMock.transaction.add).to.be.calledTwice;
-				expect(stateStoreMock.transaction.add).to.be.calledWithExactly(trs1);
-				expect(stateStoreMock.transaction.add).to.be.calledWithExactly(trs2);
+				expect(stateStoreMock.transaction.add).toHaveBeenCalledTimes(2);
+				expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs1);
+				expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs2);
 			});
 
 			it('should not add to state store if transaction response is not OK', async () => {
 				trs1Response.status = TransactionStatus.FAIL;
-				trs1.apply.returns(trs1Response);
+				trs1.apply.mockReturnValue(trs1Response);
 				trs2Response.status = TransactionStatus.FAIL;
-				trs2.apply.returns(trs2Response);
+				trs2.apply.mockReturnValue(trs2Response);
 
 				await transactionHandlers.applyTransactions()(
 					[trs1, trs2],
 					stateStoreMock,
 				);
 
-				expect(stateStoreMock.transaction.add).to.not.be.called;
+				expect(stateStoreMock.transaction.add).not.toBeCalled();
 			});
 
 			it('should not restore snapshot if transaction response is Ok', async () => {
@@ -592,19 +598,19 @@ describe('transactions', () => {
 					stateStoreMock,
 				);
 
-				expect(stateStoreMock.account.restoreSnapshot).to.not.be.called;
+				expect(stateStoreMock.account.restoreSnapshot).not.toBeCalled();
 			});
 
 			it('should restore snapshot if transaction response is not Ok', async () => {
 				trs1Response.status = TransactionStatus.FAIL;
-				trs1.apply.returns(trs1Response);
+				trs1.apply.mockReturnValue(trs1Response);
 
 				await transactionHandlers.applyTransactions()(
 					[trs1, trs2],
 					stateStoreMock,
 				);
 
-				expect(stateStoreMock.account.restoreSnapshot).to.be.calledOnce;
+				expect(stateStoreMock.account.restoreSnapshot).toHaveBeenCalledTimes(1);
 			});
 		});
 	});
@@ -623,11 +629,11 @@ describe('transactions', () => {
 				id: trs2.id,
 			};
 
-			trs1.undo.returns(trs1Response);
-			trs2.undo.returns(trs2Response);
+			trs1.undo.mockReturnValue(trs1Response);
+			trs2.undo.mockReturnValue(trs2Response);
 
-			sinonSandbox.stub(votesWeightHandler, 'undo');
-			sinonSandbox.stub(
+			jest.spyOn(votesWeightHandler, 'undo');
+			jest.spyOn(
 				exceptionHandlers,
 				'updateTransactionResponseForExceptionTransactions',
 			);
@@ -639,8 +645,8 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(trs1.prepare).to.be.calledOnce;
-			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs1.prepare).toHaveBeenCalledTimes(1);
+			expect(trs2.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		it('should undo for every transaction', async () => {
@@ -649,8 +655,8 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(trs1.undo).to.be.calledOnce;
-			expect(trs2.undo).to.be.calledOnce;
+			expect(trs1.undo).toHaveBeenCalledTimes(1);
+			expect(trs2.undo).toHaveBeenCalledTimes(1);
 		});
 
 		it('should undo round information for every transaction', async () => {
@@ -659,12 +665,12 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(votesWeightHandler.undo).to.be.calledTwice;
+			expect(votesWeightHandler.undo).toHaveBeenCalledTimes(2);
 		});
 
 		it('should update exceptions for responses which are not OK', async () => {
 			trs1Response.status = TransactionStatus.FAIL;
-			trs1.undo.returns(trs1Response);
+			trs1.undo.mockReturnValue(trs1Response);
 
 			await transactionHandlers.undoTransactions()(
 				[trs1, trs2],
@@ -673,10 +679,10 @@ describe('transactions', () => {
 
 			expect(
 				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).to.be.calledOnce;
+			).toHaveBeenCalledTimes(1);
 			// expect(
 			// 	exceptionHandlers.updateTransactionResponseForExceptionTransactions
-			// ).to.be.calledWithExactly([trs1Response], [trs1, trs2]);
+			// ).toHaveBeenCalledWith([trs1Response], [trs1, trs2]);
 		});
 
 		it('should return transaction responses and state store', async () => {
@@ -686,7 +692,7 @@ describe('transactions', () => {
 			);
 
 			// expect(result.stateStore).to.be.eql(stateStoreMock);
-			expect(result.transactionsResponses).to.be.eql([
+			expect(result.transactionsResponses).toEqual([
 				trs1Response,
 				trs2Response,
 			]);
@@ -710,14 +716,14 @@ describe('transactions', () => {
 				errors: [],
 			};
 
-			trs1.apply.returns(trs1Response);
-			trs2.apply.returns(trs2Response);
+			trs1.apply.mockReturnValue(trs1Response);
+			trs2.apply.mockReturnValue(trs2Response);
 
 			slotsMock = {
-				getSlotNumber: sinonSandbox.stub(),
+				getSlotNumber: jest.fn(),
 			};
 
-			sinonSandbox.stub(
+			jest.spyOn(
 				exceptionHandlers,
 				'updateTransactionResponseForExceptionTransactions',
 			);
@@ -729,8 +735,8 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			// expect(StateStoreStub).to.be.calledOnce;
-			// expect(StateStoreStub).to.be.calledWithExactly(storageMock, {
+			// expect(StateStoreStub).toHaveBeenCalledTimes(1);
+			// expect(StateStoreStub).toHaveBeenCalledWith(storageMock, {
 			// 	mutate: false,
 			// });
 		});
@@ -741,8 +747,8 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(trs1.prepare).to.be.calledOnce;
-			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs1.prepare).toHaveBeenCalledTimes(1);
+			expect(trs2.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		it('should create snapshot for every transaction', async () => {
@@ -751,7 +757,7 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(stateStoreMock.createSnapshot).to.be.calledTwice;
+			expect(stateStoreMock.createSnapshot).toHaveBeenCalledTimes(2);
 		});
 
 		it('should apply all transaction', async () => {
@@ -760,14 +766,17 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(trs1.apply).to.be.calledOnce;
-			expect(trs2.apply).to.be.calledOnce;
+			expect(trs1.apply).toHaveBeenCalledTimes(1);
+			expect(trs2.apply).toHaveBeenCalledTimes(1);
 		});
 
 		it('should override response if transaction is in future', async () => {
 			// const futureDate = new Date() + 3600;
-			slotsMock.getSlotNumber.withArgs(10).returns(10);
-			slotsMock.getSlotNumber.returns(5);
+
+			when(slotsMock.getSlotNumber)
+				.mockReturnValue(5)
+				.calledWith(10)
+				.mockReturnValueOnce(10);
 			trs1.timestamp = 10;
 
 			const result = await transactionHandlers.verifyTransactions(slotsMock)(
@@ -775,11 +784,11 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result.transactionsResponses).to.lengthOf(1);
-			expect(result.transactionsResponses[0].status).to.be.eql(
+			expect(result.transactionsResponses).toHaveLength(1);
+			expect(result.transactionsResponses[0].status).toEqual(
 				TransactionStatus.FAIL,
 			);
-			expect(result.transactionsResponses[0].errors[0].message).to.be.eql(
+			expect(result.transactionsResponses[0].errors[0].message).toEqual(
 				'Invalid transaction timestamp. Timestamp is in the future',
 			);
 		});
@@ -790,12 +799,12 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(stateStoreMock.restoreSnapshot).to.be.calledTwice;
+			expect(stateStoreMock.restoreSnapshot).toHaveBeenCalledTimes(2);
 		});
 
 		it('should update response for exceptions if response is not OK', async () => {
 			trs1Response.status = TransactionStatus.FAIL;
-			trs1.apply.returns(trs1Response);
+			trs1.apply.mockReturnValue(trs1Response);
 
 			await transactionHandlers.verifyTransactions(slotsMock)(
 				[trs1, trs2],
@@ -804,10 +813,10 @@ describe('transactions', () => {
 
 			expect(
 				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).to.be.calledOnce;
+			).toHaveBeenCalledTimes(1);
 			expect(
 				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).to.be.calledWithExactly([trs1Response], [trs1, trs2], undefined);
+			).toHaveBeenCalledWith([trs1Response], [trs1, trs2], undefined);
 		});
 
 		it('should return transaction responses', async () => {
@@ -816,7 +825,7 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result.transactionsResponses).to.be.eql([
+			expect(result.transactionsResponses).toEqual([
 				trs1Response,
 				trs2Response,
 			]);
@@ -828,7 +837,7 @@ describe('transactions', () => {
 		let addMultisignatureStub;
 
 		beforeEach(async () => {
-			addMultisignatureStub = sinonSandbox.stub();
+			addMultisignatureStub = jest.fn();
 
 			trs1.addMultisignature = addMultisignatureStub;
 		});
@@ -836,20 +845,20 @@ describe('transactions', () => {
 		it('should prepare transaction', async () => {
 			await transactionHandlers.processSignature(storageMock)(trs1, signature);
 
-			expect(trs1.prepare).to.be.calledOnce;
+			expect(trs1.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		it('should add signature to transaction', async () => {
 			await transactionHandlers.processSignature(storageMock)(trs1, signature);
 
-			expect(addMultisignatureStub).to.be.calledOnce;
+			expect(addMultisignatureStub).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('#verifyTotalSpending', () => {
 		it('should not perform any check if there is only one transaction per sender', async () => {
-			const account1 = accountFixture();
-			const account2 = accountFixture();
+			const account1 = randomUtils.account();
+			const account2 = randomUtils.account();
 			trs1.senderId = account1.address;
 			trs2.senderId = account2.address;
 
@@ -858,26 +867,28 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result).to.be.eql([]);
+			expect(result).toEqual([]);
 		});
 
 		it('should return error response if total spending is more than account balance', async () => {
 			const accountBalance = '6';
 
-			const account = accountFixture({ balance: accountBalance });
-			stateStoreMock.account.get.withArgs(account.address).returns(account);
+			const account = randomUtils.account(accountBalance);
+			when(stateStoreMock.account.get)
+				.calledWith(account.address)
+				.mockReturnValue(account);
 
-			const validTransaction = transactionFixture();
+			const validTransaction = randomUtils.transferInstance();
 			validTransaction.senderId = account.address;
 			validTransaction.asset.amount = '3';
 			validTransaction.fee = '2';
 
-			const inValidTransaction1 = transactionFixture();
+			const inValidTransaction1 = randomUtils.transferInstance();
 			inValidTransaction1.senderId = account.address;
 			inValidTransaction1.asset.amount = '3';
 			inValidTransaction1.fee = '2';
 
-			const inValidTransaction2 = transactionFixture();
+			const inValidTransaction2 = randomUtils.transferInstance();
 			inValidTransaction2.senderId = account.address;
 			inValidTransaction2.asset.amount = '1';
 			inValidTransaction2.fee = '1';
@@ -894,17 +905,17 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result).to.be.lengthOf(2);
+			expect(result).toHaveLength(2);
 
-			expect(result[0].id).to.be.eql(inValidTransaction1.id);
-			expect(result[0].status).to.be.eql(TransactionStatus.FAIL);
-			expect(result[0].errors[0].message).to.be.eql(
+			expect(result[0].id).toEqual(inValidTransaction1.id);
+			expect(result[0].status).toEqual(TransactionStatus.FAIL);
+			expect(result[0].errors[0].message).toEqual(
 				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 10`,
 			);
 
-			expect(result[1].id).to.be.eql(inValidTransaction2.id);
-			expect(result[1].status).to.be.eql(TransactionStatus.FAIL);
-			expect(result[1].errors[0].message).to.be.eql(
+			expect(result[1].id).toEqual(inValidTransaction2.id);
+			expect(result[1].status).toEqual(TransactionStatus.FAIL);
+			expect(result[1].errors[0].message).toEqual(
 				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 7`,
 			);
 		});
@@ -912,15 +923,17 @@ describe('transactions', () => {
 		it('should not return error response if total spending equal to account balance', async () => {
 			const accountBalance = '8';
 
-			const account = accountFixture({ balance: accountBalance });
-			stateStoreMock.account.get.withArgs(account.address).returns(account);
+			const account = randomUtils.account(accountBalance);
+			when(stateStoreMock.account.get)
+				.calledWith(account.address)
+				.mockReturnValue(account);
 
-			const validTransaction1 = transactionFixture();
+			const validTransaction1 = randomUtils.transferInstance();
 			validTransaction1.senderId = account.address;
 			validTransaction1.asset.amount = '2';
 			validTransaction1.fee = '2';
 
-			const validTransaction2 = transactionFixture();
+			const validTransaction2 = randomUtils.transferInstance();
 			validTransaction2.senderId = account.address;
 			validTransaction2.asset.amount = '2';
 			validTransaction2.fee = '2';
@@ -934,21 +947,23 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result).to.be.eql([]);
+			expect(result).toEqual([]);
 		});
 
 		it('should not return error response if total spending is less than account balance', async () => {
 			const accountBalance = '10';
 
-			const account = accountFixture({ balance: accountBalance });
-			stateStoreMock.account.get.withArgs(account.address).returns(account);
+			const account = randomUtils.account(accountBalance);
+			when(stateStoreMock.account.get)
+				.calledWith(account.address)
+				.mockReturnValue(account);
 
-			const validTransaction1 = transactionFixture();
+			const validTransaction1 = randomUtils.transferInstance();
 			validTransaction1.senderId = account.address;
 			validTransaction1.asset.amount = '2';
 			validTransaction1.fee = '2';
 
-			const validTransaction2 = transactionFixture();
+			const validTransaction2 = randomUtils.transferInstance();
 			validTransaction2.senderId = account.address;
 			validTransaction2.asset.amount = '2';
 			validTransaction2.fee = '2';
@@ -962,7 +977,7 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result).to.be.eql([]);
+			expect(result).toEqual([]);
 		});
 	});
 });

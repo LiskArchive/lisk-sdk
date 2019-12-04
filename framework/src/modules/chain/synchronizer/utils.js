@@ -18,7 +18,7 @@ const { maxBy } = require('lodash');
 const {
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_VALID_BLOCK,
-} = require('../bft');
+} = require('@liskhq/lisk-bft');
 
 const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	const tempBlocks = await blocksModule.getTempBlocks(

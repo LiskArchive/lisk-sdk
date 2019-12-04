@@ -15,7 +15,7 @@
 'use strict';
 
 const { cloneDeep } = require('lodash');
-const { StateStore } = require('../blocks');
+const { StateStore } = require('@liskhq/lisk-blocks');
 const {
 	FORK_STATUS_IDENTICAL_BLOCK,
 	FORK_STATUS_VALID_BLOCK,
@@ -23,7 +23,7 @@ const {
 	FORK_STATUS_TIE_BREAK,
 	FORK_STATUS_DIFFERENT_CHAIN,
 	FORK_STATUS_DISCARD,
-} = require('../bft');
+} = require('@liskhq/lisk-bft');
 const { Sequence } = require('../utils/sequence');
 
 const forkStatusList = [

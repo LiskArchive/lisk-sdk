@@ -21,7 +21,6 @@ const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
-const blocksChainModule = require('../../../../../src/modules/chain/blocks/chain');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');
@@ -223,101 +222,6 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					]);
 				});
 				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
-			});
-
-			describe('when block contains invalid transaction - timestamp out of postgres integer range', () => {
-				let auxBlock;
-				beforeEach(async () => {
-					auxBlock = {
-						blockSignature:
-							'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-						generatorPublicKey:
-							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-						numberOfTransactions: 2,
-						payloadHash:
-							'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-						payloadLength: 494,
-						previousBlockId: __testContext.config.genesisBlock.id,
-						height: 2,
-						reward: 0,
-						timestamp: 32578370,
-						totalAmount: 10000000000000000,
-						totalFee: 0,
-						transactions: [
-							{
-								type: 8,
-								fee: 0,
-								networkIdentifier,
-								timestamp: -3704634000,
-								senderPublicKey:
-									'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
-								signature:
-									'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
-								id: '1465651642158264048',
-								asset: {
-									recipientId: '11237980039345381032L',
-									amount: '10000000000000000',
-								},
-							},
-						].map(transaction =>
-							library.modules.blocks.deserializeTransaction(transaction),
-						),
-						version: 0,
-						id: '884740302254229983',
-					};
-				});
-
-				it('should call a callback with proper error', async () => {
-					try {
-						await storage.entities.Block.begin(tx =>
-							blocksChainModule.saveBlock(
-								library.components.storage,
-								auxBlock,
-								tx,
-							),
-						);
-					} catch (error) {
-						expect(error.message).to.equal('integer out of range');
-					}
-				});
-			});
-
-			describe('when block is invalid - previousBlockId not exists', () => {
-				const auxBlock = {
-					blockSignature:
-						'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-					generatorPublicKey:
-						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					numberOfTransactions: 2,
-					payloadHash:
-						'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-					payloadLength: 494,
-					previousBlockId: '123',
-					height: 2,
-					reward: 0,
-					timestamp: 32578370,
-					totalAmount: 10000000000000000,
-					totalFee: 0,
-					version: 0,
-					id: '884740302254229983',
-					transactions: [],
-				};
-
-				it('should call a callback with proper error', async () => {
-					try {
-						await storage.entities.Block.begin(tx =>
-							blocksChainModule.saveBlock(
-								library.components.storage,
-								auxBlock,
-								tx,
-							),
-						);
-					} catch (error) {
-						expect(error.message).to.equal(
-							'insert or update on table "blocks" violates foreign key constraint "blocks_previousBlock_fkey"',
-						);
-					}
-				});
 			});
 		});
 

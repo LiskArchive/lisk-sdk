@@ -15,15 +15,15 @@
 'use strict';
 
 const { when } = require('jest-when');
-const { Blocks } = require('../../../../../../../src/modules/chain/blocks');
-const { BFT } = require('../../../../../../../src/modules/chain/bft');
+const { Blocks } = require('@liskhq/lisk-blocks');
+const { BFT } = require('@liskhq/lisk-bft');
+const { Slots } = require('@liskhq/lisk-dpos');
 const {
 	BlockProcessorV2,
 } = require('../../../../../../../src/modules/chain/block_processor_v2');
 const {
 	Synchronizer,
 } = require('../../../../../../../src/modules/chain/synchronizer/synchronizer');
-const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 const {
 	Sequence,
 } = require('../../../../../../../src/modules/chain/utils/sequence');

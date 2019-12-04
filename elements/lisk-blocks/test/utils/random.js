@@ -15,6 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
+const BigNum = require('@liskhq/bignum');
 const {
 	getKeys,
 	getAddressFromPassphrase,
@@ -45,11 +46,11 @@ const delegateName = () => {
 	return randomLetter.concat(username);
 };
 
-const account = nonDelegate => {
+const account = (balance = '0', nonDelegate = false) => {
 	const passphrase = Mnemonic.generateMnemonic();
 	const secondPassphrase = Mnemonic.generateMnemonic();
 	return {
-		balance: '0',
+		balance,
 		passphrase,
 		keypair: getKeys(passphrase),
 		secondPassphrase,
@@ -69,7 +70,20 @@ const transaction = offset =>
 		timeOffset: offset,
 	});
 
+const transferInstance = offset => {
+	const tx = transaction(offset);
+	return {
+		...tx,
+		fee: new BigNum(tx.fee),
+		asset: {
+			...tx.asset,
+			amount: new BigNum(tx.asset.amount),
+		},
+	};
+};
+
 module.exports = {
 	account,
 	transaction,
+	transferInstance,
 };

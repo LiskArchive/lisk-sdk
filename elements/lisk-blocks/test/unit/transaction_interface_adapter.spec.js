@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const {
 	TransferTransaction,
 	SecondSignatureTransaction,
@@ -23,15 +24,16 @@ const {
 } = require('@liskhq/lisk-transactions');
 const {
 	TransactionInterfaceAdapter,
-} = require('../../../../../../src/modules/chain/blocks/transaction_interface_adapter');
-const {
-	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../../utils/network_identifier');
+} = require('../../src/transaction_interface_adapter');
+const genesisBlock = require('../fixtures/genesis_block.json');
+
+const networkIdentifier = getNetworkIdentifier(
+	genesisBlock.payloadHash,
+	genesisBlock.communityIdentifier,
+);
 
 // TODO: re-implement for new transaction processing
 describe('transactions', () => {
-	afterEach(() => sinonSandbox.restore());
-
 	describe('TransactionInterfaceAdapter', () => {
 		const registeredTransactions = {
 			8: TransferTransaction,
@@ -53,11 +55,11 @@ describe('transactions', () => {
 
 		describe('constructor', () => {
 			it('should create initTransaction with correct properties', async () => {
-				expect(transactions).to.have.property('transactionClassMap');
+				expect(transactions).toHaveProperty('transactionClassMap');
 			});
 
 			it('should have transactionClassMap property with Lisk transaction types', async () => {
-				expect([...transactions.transactionClassMap.keys()]).to.be.eql([
+				expect([...transactions.transactionClassMap.keys()]).toEqual([
 					8,
 					9,
 					10,
@@ -69,7 +71,7 @@ describe('transactions', () => {
 
 		describe('fromJSON', () => {
 			it('should throw an error if transaction type is not registered', async () => {
-				expect(() => transactions.fromJSON({ type: 1 })).to.throw(
+				expect(() => transactions.fromJSON({ type: 1 })).toThrow(
 					'Transaction type not found.',
 				);
 			});
@@ -89,7 +91,7 @@ describe('transactions', () => {
 					id: '7507990258936015021',
 				};
 
-				expect(transactions.fromJSON(transfer)).to.be.instanceof(
+				expect(transactions.fromJSON(transfer)).toBeInstanceOf(
 					TransferTransaction,
 				);
 			});
@@ -111,7 +113,7 @@ describe('transactions', () => {
 					id: '6998015087494860094',
 				};
 
-				expect(transactions.fromJSON(secondSignature)).to.be.instanceof(
+				expect(transactions.fromJSON(secondSignature)).toBeInstanceOf(
 					SecondSignatureTransaction,
 				);
 			});
@@ -134,7 +136,7 @@ describe('transactions', () => {
 					id: '5337978774712629501',
 				};
 
-				expect(transactions.fromJSON(delegate)).to.be.instanceof(
+				expect(transactions.fromJSON(delegate)).toBeInstanceOf(
 					DelegateTransaction,
 				);
 			});
@@ -159,7 +161,7 @@ describe('transactions', () => {
 					id: '9048233810524582722',
 				};
 
-				expect(transactions.fromJSON(vote)).to.be.instanceof(VoteTransaction);
+				expect(transactions.fromJSON(vote)).toBeInstanceOf(VoteTransaction);
 			});
 
 			it('should initialize a multisignature transaction', async () => {
@@ -184,7 +186,7 @@ describe('transactions', () => {
 					id: '15911083597203956215',
 				};
 
-				expect(transactions.fromJSON(multisignature)).to.be.instanceof(
+				expect(transactions.fromJSON(multisignature)).toBeInstanceOf(
 					MultisignatureTransaction,
 				);
 			});

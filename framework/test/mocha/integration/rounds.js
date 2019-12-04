@@ -23,10 +23,10 @@ const {
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
+const { Slots } = require('@liskhq/lisk-dpos');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const { hexToBuffer } = require('@liskhq/lisk-cryptography');
-const { Slots } = require('../../../src/modules/chain/dpos');
 const accountsFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');

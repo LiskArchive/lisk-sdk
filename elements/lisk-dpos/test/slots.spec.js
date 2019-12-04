@@ -14,31 +14,33 @@
 
 'use strict';
 
-const { Slots } = require('../../../../../../src/modules/chain/dpos');
+const { Slots } = require('../src');
+
+const constants = require('./utils/constants');
 
 describe('Slots', () => {
 	let slots;
 
 	beforeEach(async () => {
 		slots = new Slots({
-			epochTime: __testContext.config.constants.EPOCH_TIME,
-			interval: __testContext.config.constants.BLOCK_TIME,
-			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+			epochTime: constants.EPOCH_TIME,
+			interval: constants.BLOCK_TIME,
+			blocksPerRound: constants.ACTIVE_DELEGATES,
 		});
 	});
 
 	describe('calc', () => {
 		it('should calculate round number from given block height', async () => {
-			expect(slots.calcRound(100)).equal(1);
-			expect(slots.calcRound(200)).equal(2);
-			expect(slots.calcRound(303)).equal(3);
-			return expect(slots.calcRound(304)).equal(4);
+			expect(slots.calcRound(100)).toEqual(1);
+			expect(slots.calcRound(200)).toEqual(2);
+			expect(slots.calcRound(303)).toEqual(3);
+			return expect(slots.calcRound(304)).toEqual(4);
 		});
 
 		it('should calculate round number from Number.MAX_VALUE', async () => {
 			const res = slots.calcRound(Number.MAX_VALUE);
-			expect(_.isNumber(res)).to.be.ok;
-			return expect(res).to.be.below(Number.MAX_VALUE);
+			expect(typeof res === 'number').toBe(true);
+			return expect(res).toBeLessThan(Number.MAX_VALUE);
 		});
 	});
 });

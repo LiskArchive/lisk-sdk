@@ -15,6 +15,7 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
+const { baseBlockSchema } = require('@liskhq/lisk-blocks');
 const { validator } = require('@liskhq/lisk-validator');
 const {
 	BIG_ENDIAN,
@@ -24,7 +25,6 @@ const {
 	intToBuffer,
 	LITTLE_ENDIAN,
 } = require('@liskhq/lisk-cryptography');
-const { baseBlockSchema } = require('./blocks');
 const { BaseBlockProcessor } = require('./processor');
 
 const FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED =

@@ -16,13 +16,13 @@
 
 /* eslint-disable mocha/no-pending-tests */
 const rewire = require('rewire');
+const { BFT } = require('@liskhq/lisk-bft');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
 const {
 	Synchronizer,
 } = require('../../../../../src/modules/chain/synchronizer/synchronizer');
 const { Processor } = require('../../../../../src/modules/chain/processor');
-const { BFT } = require('../../../../../src/modules/chain/bft');
 const {
 	loggerConfig,
 	cacheConfig,

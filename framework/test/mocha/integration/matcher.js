@@ -23,6 +23,7 @@ const {
 	TransferTransaction,
 	transfer,
 } = require('@liskhq/lisk-transactions');
+const { Slots } = require('@liskhq/lisk-dpos');
 const {
 	addTransaction,
 	forge: commonForge,
@@ -32,7 +33,6 @@ const {
 const commonApplication = require('../../utils/legacy/application');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../utils/random');
-const { Slots } = require('../../../src/modules/chain/dpos');
 const { getNetworkIdentifier } = require('../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(

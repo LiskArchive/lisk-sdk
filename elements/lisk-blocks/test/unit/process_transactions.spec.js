@@ -17,7 +17,7 @@
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	composeTransactionSteps,
-} = require('../../../../../../src/modules/chain/blocks/transactions/compose_transaction_steps');
+} = require('../../src/transactions/compose_transaction_steps');
 
 describe('#composeTransactionSteps', () => {
 	const testTransactions = [
@@ -51,8 +51,8 @@ describe('#composeTransactionSteps', () => {
 		],
 	};
 
-	const step1 = sinonSandbox.stub().returns(step1Response);
-	const step2 = sinonSandbox.stub().returns(step2Response);
+	const step1 = jest.fn().mockReturnValue(step1Response);
+	const step2 = jest.fn().mockReturnValue(step2Response);
 	const composedFunction = composeTransactionSteps(step1, step2);
 	let result;
 
@@ -62,7 +62,7 @@ describe('#composeTransactionSteps', () => {
 
 	it('should return a combination of the result of executing both steps', async () => {
 		// Assert
-		expect(result).to.deep.equal({
+		expect(result).toEqual({
 			transactionsResponses: [
 				...step1Response.transactionsResponses,
 				...step2Response.transactionsResponses,
@@ -72,6 +72,6 @@ describe('#composeTransactionSteps', () => {
 
 	it('should only pass successfull transactions to the next step', async () => {
 		// Assert
-		expect(step2).to.have.been.calledWith([]);
+		expect(step2).toHaveBeenCalledWith([], undefined);
 	});
 });
