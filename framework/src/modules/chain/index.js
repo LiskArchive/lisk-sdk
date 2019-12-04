@@ -58,7 +58,11 @@ module.exports = class ChainModule extends BaseModule {
 		return [
 			'bootstrap',
 			'blocks:change',
+			'blocks:change:added',
+			'blocks:change:removed',
 			'transactions:confirmed:change',
+			'transactions:confirmed:added',
+			'transactions:confirmed:removed',
 			'signature:change',
 			'transactions:change',
 			'rounds:change',

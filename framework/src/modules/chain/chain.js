@@ -500,12 +500,17 @@ module.exports = class Chain {
 					'chain:transactions:confirmed:change',
 					block.transactions,
 				);
+				this.channel.publish(
+					'chain:transactions:confirmed:change:removed',
+					block.transactions,
+				);
 			}
 			this.logger.info(
 				{ id: block.id, height: block.height },
 				'Deleted a block from the chain',
 			);
 			this.channel.publish('chain:blocks:change', block);
+			this.channel.publish('chain:blocks:change:removed', block);
 		});
 
 		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
@@ -513,6 +518,10 @@ module.exports = class Chain {
 				this.transactionPool.onConfirmedTransactions(block.transactions);
 				this.channel.publish(
 					'chain:transactions:confirmed:change',
+					block.transactions,
+				);
+				this.channel.publish(
+					'chain:transactions:confirmed:change:added',
 					block.transactions,
 				);
 			}
@@ -525,6 +534,7 @@ module.exports = class Chain {
 				'New block added to the chain',
 			);
 			this.channel.publish('chain:blocks:change', block);
+			this.channel.publish('chain:blocks:change:added', block);
 		});
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
