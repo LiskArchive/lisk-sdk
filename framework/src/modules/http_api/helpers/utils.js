@@ -148,10 +148,10 @@ const consolidatePeers = (connectedPeers = [], disconnectedPeers = []) => {
 			blockVersion,
 			maxHeightPrevoted,
 			lastBlockId,
-			...peerWithoutIp
+			...restOfPeerObject
 		} = peer;
 
-		return { ip: ipAddress, ...peerWithoutIp, state: PEER_STATE_CONNECTED };
+		return { ip: ipAddress, ...restOfPeerObject, state: PEER_STATE_CONNECTED };
 	});
 	const disconnectedList = [...disconnectedPeers].map(peer => {
 		const {
@@ -163,12 +163,12 @@ const consolidatePeers = (connectedPeers = [], disconnectedPeers = []) => {
 			blockVersion,
 			maxHeightPrevoted,
 			lastBlockId,
-			...peerWithoutIp
+			...restOfPeerObject
 		} = peer;
 
 		return {
 			ip: ipAddress,
-			...peerWithoutIp,
+			...restOfPeerObject,
 			state: PEER_STATE_DISCONNECTED,
 		};
 	});
