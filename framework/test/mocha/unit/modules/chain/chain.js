@@ -109,6 +109,19 @@ describe('Chain', () => {
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('jobQueue', stubs.jobsQueue);
 
+		const Blocks = Chain.__get__('Blocks');
+		Object.defineProperty(Blocks.prototype, 'lastBlock', {
+			get: () => {
+				return {
+					height: 1,
+					id: 2,
+					version: 3,
+					maxHeightPrevoted: 4,
+				};
+			},
+		});
+		Chain.__set__('Blocks', Blocks);
+
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
 	});
@@ -331,6 +344,19 @@ describe('Chain', () => {
 
 		it('should invoke Processor.init', async () => {
 			expect(chain.processor.init).to.have.been.calledOnce;
+		});
+
+		it('should invoke "app:updateApplicationState" with correct params', () => {
+			// Assert
+			return expect(chain.channel.invoke).to.have.been.calledWith(
+				'app:updateApplicationState',
+				{
+					height: 1,
+					lastBlockId: 2,
+					blockVersion: 3,
+					maxHeightPrevoted: 4,
+				},
+			);
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {
