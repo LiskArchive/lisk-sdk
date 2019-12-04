@@ -123,27 +123,6 @@ export const sanitizePeerLists = (
 
 	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
 
-	const seedPeers = lists.seedPeers
-		.filter(peerInfo => {
-			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
-				return false;
-			}
-
-			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
-				return false;
-			}
-
-			return true;
-		})
-		.map(peer => {
-			const peerInternalInfo = assignInternalInfo(peer, secret);
-
-			return {
-				...peer,
-				internalState: { ...peerInternalInfo, peerKind: PeerKind.SEED_PEER },
-			};
-		});
-
 	const fixedPeers = lists.fixedPeers
 		.filter(peerInfo => {
 			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
@@ -162,6 +141,31 @@ export const sanitizePeerLists = (
 			return {
 				...peer,
 				internalState: { ...peerInternalInfo, peerKind: PeerKind.FIXED_PEER },
+			};
+		});
+
+	const seedPeers = lists.seedPeers
+		.filter(peerInfo => {
+			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+				return false;
+			}
+
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+				return false;
+			}
+
+			if (fixedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+				return false;
+			}
+
+			return true;
+		})
+		.map(peer => {
+			const peerInternalInfo = assignInternalInfo(peer, secret);
+
+			return {
+				...peer,
+				internalState: { ...peerInternalInfo, peerKind: PeerKind.SEED_PEER },
 			};
 		});
 
@@ -203,6 +207,18 @@ export const sanitizePeerLists = (
 		}
 
 		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		if (fixedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+			return false;
+		}
+
+		if (seedPeers.map(peer => peer.peerId).includes(peerInfo.peerId)) {
+			return false;
+		}
+
+		if (whitelisted.map(peer => peer.peerId).includes(peerInfo.peerId)) {
 			return false;
 		}
 
