@@ -202,7 +202,7 @@ module.exports = {
 						'200000000', // Milestone 3
 						'100000000', // Milestone 4
 					],
-					OFFSET: 2160, // Start rewards at first block of the second round
+					OFFSET: 2160, // Start rewards at 39th block of 21st round
 					DISTANCE: 3000000, // Distance between each milestone
 				},
 			},
