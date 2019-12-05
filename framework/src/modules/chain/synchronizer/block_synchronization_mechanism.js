@@ -25,12 +25,11 @@ const {
 } = require('./utils');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../bft');
 const {
+	AbortError,
 	ApplyPenaltyAndRestartError,
 	RestartError,
 	BlockProcessingError,
 } = require('./errors');
-
-const PEER_STATE_CONNECTED = 2;
 
 class BlockSynchronizationMechanism extends BaseSynchronizer {
 	constructor({
@@ -59,12 +58,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		this.active = true;
 		try {
 			const bestPeer = await this._computeBestPeer();
-			await this._requestAndValidateLastBlock(bestPeer.id);
-			const lastCommonBlock = await this._revertToLastCommonBlock(bestPeer.id);
+			await this._requestAndValidateLastBlock(bestPeer.peerId);
+			const lastCommonBlock = await this._revertToLastCommonBlock(
+				bestPeer.peerId,
+			);
 			await this._requestAndApplyBlocksToCurrentChain(
 				receivedBlock,
 				lastCommonBlock,
-				bestPeer.id,
+				bestPeer.peerId,
 			);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
@@ -80,18 +81,20 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 					block: receivedBlock,
 				});
 			}
+
+			if (error instanceof AbortError) {
+				return this.logger.info(
+					{ error, reason: error.reason },
+					'Aborting synchronization mechanism',
+				);
+			}
+
 			throw error; // If the error is none of the mentioned above, throw.
 		} finally {
 			this.active = false;
 		}
 	}
 
-	/**
-	 * Check if this sync mechanism is valid for the received block
-	 *
-	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
-	 * @throws {Error} - In case want to abort the sync pipeline
-	 */
 	// eslint-disable-next-line no-unused-vars
 	async isValidFor() {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
@@ -107,14 +110,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
 
-	/**
-	 * Request blocks from `fromID` ID to `toID` ID from an specific peer `peer` and applies them
-	 *
-	 * @param {object} peerId - The ID of the peer to target
-	 * @param {string} fromId - The starting block ID to fetch from
-	 * @param {string} toId - The ending block ID
-	 * @throws {ApplyPenaltyAndRestartError} - In case the peer hasn't returned any block
-	 */
 	async _requestAndApplyBlocksWithinIDs(peerId, fromId, toId) {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
@@ -176,9 +171,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * it's needede to check whether the tip of the temp block chain has
 	 * preference over the current tip. If so, the temporary chain is restored
 	 * on top of the current chain and the blocks temp table is cleaned up
-	 * @param {ExtendedBlock} lastCommonBlock
-	 * @return {Promise<void>}
-	 * @private
 	 */
 	async _handleBlockProcessingError(lastCommonBlock, peerId) {
 		// If the list of blocks has not been fully applied
@@ -258,19 +250,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 	}
 
-	/**
-	 * Requests blocks from startingBlockID to an specific peer until endingBlockID
-	 * is met and applies them on top of the current chain.
-	 *
-	 * @param {ExtendedBlock} receivedBlock
-	 * @param {ExtendedBlock} lastCommonBlock
-	 * @param {string} peerId - The ID of the peer to target
-	 * @return {Promise<void | boolean>}
-	 * @throws {ApplyPenaltyAndRestartError} - In case peer didn't return any blocks after a number of retries
-	 * @throws {ApplyPenaltyAndRestartError} - If the new tip of the chain has no preference over the previous tip of the chain before synchronizing
-	 * @throws {RestartError} - If any of the blocks fail to apply
-	 * @private
-	 */
 	async _requestAndApplyBlocksToCurrentChain(
 		receivedBlock,
 		lastCommonBlock,
@@ -279,8 +258,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		this.logger.debug(
 			{
 				peerId,
-				fromBlockId: lastCommonBlock.id,
-				toBlockId: receivedBlock.id,
+				from: {
+					blockId: lastCommonBlock.id,
+					height: lastCommonBlock.height,
+				},
+				to: {
+					blockId: receivedBlock.id,
+					height: receivedBlock.height,
+				},
 			},
 			'Requesting blocks within ID range from peer',
 		);
@@ -309,16 +294,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		return true;
 	}
 
-	/**
-	 * Reverts the current chain so the new tip of the chain corresponds to the
-	 * last common block.
-	 *
-	 * @param {string} peerId - The ID of the selected peer to target.
-	 * @return {Promise<ExtendedBlock>} - Returns the last common block
-	 * @throws {ApplyPenaltyAndRestartError} - In case no common block has been found
-	 * @throws {ApplyPenaltyAndRestartError} - In case the common block height is lower than the finalized height
-	 * @private
-	 */
 	async _revertToLastCommonBlock(peerId) {
 		this.logger.debug(
 			{ peerId },
@@ -372,10 +347,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * Requests the last common block in common with the targeted peer.
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
-	 *
-	 * @param {string} peerId - The ID of the peer to target.
-	 * @return {Promise<ExtendedBlock | undefined>}
-	 * @private
 	 */
 	async _requestLastCommonBlock(peerId) {
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
@@ -398,28 +369,32 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				currentRound,
 			);
 
-			const blockIds = (await this.storage.entities.Block.get(
-				{
-					height_in: heightList,
-				},
-				{
-					sort: 'height:asc',
-					limit: heightList.length,
-				},
-			)).map(block => block.id);
+			const blockIds = (
+				await this.storage.entities.Block.get(
+					{
+						height_in: heightList,
+					},
+					{
+						sort: 'height:asc',
+						limit: heightList.length,
+					},
+				)
+			).map(block => block.id);
 
 			let data;
 
 			try {
 				// Request the highest common block with the previously computed list
 				// to the given peer
-				data = (await this.channel.invoke('network:requestFromPeer', {
-					procedure: 'getHighestCommonBlock',
-					peerId,
-					data: {
-						ids: blockIds,
-					},
-				})).data;
+				data = (
+					await this.channel.invoke('network:requestFromPeer', {
+						procedure: 'getHighestCommonBlock',
+						peerId,
+						data: {
+							ids: blockIds,
+						},
+					})
+				).data;
 			} catch (e) {
 				numberOfRequests += 1;
 				// eslint-disable-next-line no-continue
@@ -449,11 +424,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 *
 	 * This behavior is defined in section `2. Step: Obtain tip of chain` in LIP-0014
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
-	 * @param {string} peerId - Peer ID, used to target an specific peer
-	 * the peer specifically to request its last block of its chain.
-	 * @return {Promise<void>}
-	 * @throws {ApplyPenaltyAndRestartError} - in case the tip of the chain of the peer is not valid or is not a different chain
-	 * @private
 	 */
 	async _requestAndValidateLastBlock(peerId) {
 		this.logger.debug({ peerId }, 'Requesting tip of the chain from peer');
@@ -501,10 +471,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * The original method works well in the context
 	 * of the Pipeline but not in other cases
 	 * that's why we wrap it here.
-	 *
-	 * @param {ExtendedBlock} networkLastBlock
-	 * @return {Promise<{valid: boolean, err: null}|{valid: boolean, err: *}>}
-	 * @private
 	 */
 	async _blockDetachedStatus(networkLastBlock) {
 		try {
@@ -520,20 +486,16 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * according to the set of rules defined in Step 1. of Block Synchronization Mechanism
 	 *
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
-	 * @return {Array<Object>}
-	 * @private
 	 */
 	async _computeBestPeer() {
-		const peers = await this.channel.invoke('network:getPeers', {
-			state: PEER_STATE_CONNECTED,
-		});
+		const peers = await this.channel.invoke('network:getConnectedPeers');
 
 		if (!peers || peers.length === 0) {
 			throw new Error('List of connected peers is empty');
 		}
 
 		this.logger.trace(
-			{ peers: peers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			{ peers: peers.map(peer => peer.peerId) },
 			'List of connected peers',
 		);
 
@@ -548,7 +510,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		this.logger.trace(
-			{ peers: compatiblePeers.map(peer => `${peer.ip}:${peer.wsPort}`) },
+			{ peers: compatiblePeers.map(peer => peer.peerId) },
 			'List of compatible peers connected peers',
 		);
 		this.logger.debug('Computing the best peer to synchronize from');
@@ -599,15 +561,16 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const forkStatus = await this.processorModule.forkStatus(peersTip);
 
-		const inDifferentChain = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+		const tipHasPreference = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
 
-		if (!inDifferentChain) {
-			throw new Error('Violation of fork choice rule');
+		if (!tipHasPreference) {
+			throw new AbortError(
+				`Peer tip does not have preference over current tip. Fork status: ${forkStatus}`,
+			);
 		}
 
 		const bestPeer =
 			selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
-		bestPeer.id = `${bestPeer.ip}:${bestPeer.wsPort}`;
 
 		this.logger.debug(
 			{ peer: bestPeer },

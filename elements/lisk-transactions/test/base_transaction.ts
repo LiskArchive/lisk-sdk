@@ -555,6 +555,15 @@ describe('Base transaction class', () => {
 				.and.to.have.property('dataPath', '.signatures');
 			expect(status).to.eql(Status.FAIL);
 		});
+
+		it('should throw when networkIdentifier is not provided', async () => {
+			const trsWithoutNetworkIdentifier = new TransferTransaction({
+				...defaultTransaction,
+			});
+			expect(() => trsWithoutNetworkIdentifier.validate()).to.throw(
+				'Network identifier is required to validate a transaction ',
+			);
+		});
 	});
 
 	describe('#verifyAgainstOtherTransactions', () => {

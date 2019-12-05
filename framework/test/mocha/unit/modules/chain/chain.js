@@ -109,6 +109,19 @@ describe('Chain', () => {
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('jobQueue', stubs.jobsQueue);
 
+		const Blocks = Chain.__get__('Blocks');
+		Object.defineProperty(Blocks.prototype, 'lastBlock', {
+			get: () => {
+				return {
+					height: 1,
+					id: 2,
+					version: 3,
+					maxHeightPrevoted: 4,
+				};
+			},
+		});
+		Chain.__set__('Blocks', Blocks);
+
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
 	});
@@ -333,6 +346,19 @@ describe('Chain', () => {
 			expect(chain.processor.init).to.have.been.calledOnce;
 		});
 
+		it('should invoke "app:updateApplicationState" with correct params', () => {
+			// Assert
+			return expect(chain.channel.invoke).to.have.been.calledWith(
+				'app:updateApplicationState',
+				{
+					height: 1,
+					lastBlockId: 2,
+					blockVersion: 3,
+					maxHeightPrevoted: 4,
+				},
+			);
+		});
+
 		it('should subscribe to "app:state:updated" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
 				'app:state:updated',
@@ -440,6 +466,7 @@ describe('Chain', () => {
 			await chain.bootstrap();
 			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
 			sinonSandbox.stub(chain.forger, 'forge');
+			sinonSandbox.stub(chain.forger, 'beforeForge');
 			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
@@ -458,6 +485,7 @@ describe('Chain', () => {
 				'No delegates are enabled',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.beforeForge).to.not.be.called;
 			expect(chain.forger.forge).to.not.be.called;
 		});
 
@@ -473,6 +501,7 @@ describe('Chain', () => {
 				'Client not ready to forge',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.beforeForge).to.not.be.called;
 			expect(chain.forger.forge).to.not.be.called;
 		});
 
@@ -480,6 +509,7 @@ describe('Chain', () => {
 			await chain._forgingTask();
 
 			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.beforeForge).to.be.called;
 			expect(chain.forger.forge).to.be.called;
 		});
 	});

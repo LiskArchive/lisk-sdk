@@ -47,10 +47,6 @@ const validateTransactions = exceptions => transactions => {
  * One user can't spend more than its balance even thought if block contains
  * credit transactions settling the balance. In one block total speding must be
  * less than the total balance
- *
- * @param {Array.<Object>} transactions - List of transactions in a block
- * @param {StateStore} stateStore - State store instance with prepared account
- * @return {Array}
  */
 const verifyTotalSpending = (transactions, stateStore) => {
 	const spendingErrors = [];

@@ -22,6 +22,7 @@ import * as url from 'url';
 import {
 	ConnectionKind,
 	DEFAULT_BAN_TIME,
+	DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -55,8 +56,9 @@ import {
 	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
+	PeerKind,
 } from './constants';
-import { ExistingPeerError, PeerInboundHandshakeError } from './errors';
+import { PeerInboundHandshakeError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -87,6 +89,7 @@ import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
+	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -99,6 +102,7 @@ import {
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
 import {
+	assignInternalInfo,
 	constructPeerId,
 	getByteSize,
 	sanitizeInitialPeerInfo,
@@ -199,10 +203,13 @@ export class P2P extends EventEmitter {
 	private readonly _peerBook: PeerBook;
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
+	private _nextSeedPeerDiscovery: number;
+	private readonly _fallbackSeedPeerDiscoveryInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
+	private readonly _secret: number;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
@@ -233,6 +240,7 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
+		this._secret = config.secret ? config.secret : DEFAULT_RANDOM_SECRET;
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers
@@ -259,13 +267,14 @@ export class P2P extends EventEmitter {
 				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
 				wsPort: config.nodeInfo.wsPort,
 			},
+			this._secret,
 		);
 
 		this._config = config;
 		this._isActive = false;
 		this._hasConnected = false;
 		this._peerBook = new PeerBook({
-			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
+			secret: this._secret,
 		});
 		this._initializePeerBook();
 		this._bannedPeers = new Set();
@@ -295,24 +304,11 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
-			try {
-				this._peerBook.addPeer(peerInfo);
-				// Should be added to newPeer list first and since it is connected so we will upgrade it
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-
-				const updatedPeerInfo = {
-					internalState: error.peerInfo.internalState,
-					sharedState: peerInfo.sharedState,
-					peerId: peerInfo.peerId,
-					ipAddress: peerInfo.ipAddress,
-					wsPort: peerInfo.wsPort,
-				};
-				this._peerBook.upgradePeer(updatedPeerInfo);
+			if (!this._peerBook.hasPeer(peerInfo)) {
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 			}
+
+			this._peerBook.upgradePeer(peerInfo);
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
@@ -322,10 +318,11 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-				peer => peer.peerId === peerInfo.peerId,
-			);
-			if (this._peerBook.getPeer(peerInfo) && !isWhitelisted) {
+			if (
+				this._peerBook.hasPeer(peerInfo) &&
+				(peerInfo.internalState as P2PInternalState).peerKind !==
+					PeerKind.WHITELISTED_PEER
+			) {
 				this._peerBook.downgradePeer(peerInfo);
 			}
 
@@ -334,11 +331,31 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
+			const { peerInfo } = closePacket;
+			// Update connection kind when closing connection
+			if (this._peerBook.getPeer(closePacket.peerInfo)) {
+				const updatedPeer = {
+					...peerInfo,
+					internalState: assignInternalInfo(peerInfo, this._secret),
+				};
+
+				this._peerBook.updatePeer(updatedPeer);
+			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+			const { peerInfo } = closePacket;
+			// Update connection kind when closing connection
+			if (this._peerBook.getPeer(closePacket.peerInfo)) {
+				const updatedPeer = {
+					...peerInfo,
+					internalState: assignInternalInfo(peerInfo, this._secret),
+				};
+
+				this._peerBook.updatePeer(updatedPeer);
+			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
@@ -349,29 +366,17 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
-			try {
-				this._peerBook.addPeer(peerInfo);
-				// Since the connection is tried already hence upgrade the peer
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-
-				const updatedPeerInfo = {
-					...error.peerInfo,
-					sharedState: peerInfo.sharedState
-						? { ...peerInfo.sharedState }
-						: error.peerInfo.sharedState,
-				};
-				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
-				if (isUpdated) {
-					// If found and updated successfully then upgrade the peer
-					this._peerBook.upgradePeer(updatedPeerInfo);
-				}
+			if (!this._peerBook.hasPeer(peerInfo)) {
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 			}
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
+
+			const isUpdated = this._peerBook.updatePeer(peerInfo);
+			if (isUpdated) {
+				// If found and updated successfully then upgrade the peer
+				this._peerBook.upgradePeer(peerInfo);
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
+			}
 		};
 
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
@@ -406,7 +411,7 @@ export class P2P extends EventEmitter {
 			};
 
 			if (
-				this._peerBook.getPeer({
+				this._peerBook.hasPeer({
 					ipAddress: bannedPeerInfo.ipAddress,
 					wsPort: bannedPeerInfo.wsPort,
 					peerId,
@@ -431,35 +436,21 @@ export class P2P extends EventEmitter {
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
-			// Check blacklist to avoid incoming connections from backlisted ips
+			// Check blacklist to avoid incoming connections from blacklisted ips
 			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
 				peer => peer.peerId === detailedPeerInfo.peerId,
 			);
+			if (!this._peerBook.hasPeer(detailedPeerInfo) && !isBlacklisted) {
+				this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				// Only emit event when a peer is discovered for the first time.
+				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 
-			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
-				try {
-					this._peerBook.addPeer(detailedPeerInfo);
-					// Re-emit the message to allow it to bubble up the class hierarchy.
-					// Only emit event when a peer is discovered for the first time.
-					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
-
-					// Don't update peerInfo when we already have connection with that peer
-					if (!this._peerPool.hasPeer(error.peerInfo.peerId)) {
-						const updatedPeerInfo = {
-							...detailedPeerInfo,
-							sharedState: detailedPeerInfo.sharedState
-								? { ...detailedPeerInfo.sharedState }
-								: error.peerInfo.sharedState,
-						};
-						const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
-						if (isUpdated) {
-							// If found and updated successfully then upgrade the peer
-							this._peerBook.upgradePeer(updatedPeerInfo);
-						}
+				if (!this._peerPool.hasPeer(detailedPeerInfo.peerId)) {
+					const isUpdated = this._peerBook.updatePeer(detailedPeerInfo);
+					if (isUpdated) {
+						// If found and updated successfully then upgrade the peer
+						this._peerBook.upgradePeer(detailedPeerInfo);
 					}
 				}
 			}
@@ -502,6 +493,13 @@ export class P2P extends EventEmitter {
 		this._populatorInterval = config.populatorInterval
 			? config.populatorInterval
 			: DEFAULT_POPULATOR_INTERVAL;
+
+		this._fallbackSeedPeerDiscoveryInterval = config.fallbackSeedPeerDiscoveryInterval
+			? config.fallbackSeedPeerDiscoveryInterval
+			: DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL;
+
+		this._nextSeedPeerDiscovery =
+			Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 
 		this._peerHandshakeCheck = config.peerHandshakeCheck
 			? config.peerHandshakeCheck
@@ -641,24 +639,102 @@ export class P2P extends EventEmitter {
 		);
 	}
 
+	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
+		if (
+			this._sanitizedPeerLists.blacklistedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.BLACKLISTED_PEER,
+				},
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.fixedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.FIXED_PEER,
+				},
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.whitelisted.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.WHITELISTED_PEER,
+				},
+			};
+		}
+
+		if (
+			this._sanitizedPeerLists.seedPeers.find(
+				peer => peer.ipAddress === peerInfo.ipAddress,
+			)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.SEED_PEER,
+				},
+			};
+		}
+
+		return {
+			...peerInfo,
+			internalState: {
+				...assignInternalInfo(peerInfo, this._secret),
+				peerKind: PeerKind.NONE,
+			},
+		};
+	}
+
 	private async _startPeerServer(): Promise<void> {
-		this._scServer.on(
-			'handshake',
-			(socket: SCServerSocket): void => {
-				// Terminate the connection the moment it receive ping frame
-				(socket as any).socket.on('ping', () => {
-					(socket as any).socket.terminate();
+		this._scServer.on('handshake', (socket: SCServerSocket): void => {
+			// Terminate the connection the moment it receive ping frame
+			(socket as any).socket.on('ping', () => {
+				(socket as any).socket.terminate();
 
-					return;
-				});
-				// Terminate the connection the moment it receive pong frame
-				(socket as any).socket.on('pong', () => {
-					(socket as any).socket.terminate();
+				return;
+			});
+			// Terminate the connection the moment it receive pong frame
+			(socket as any).socket.on('pong', () => {
+				(socket as any).socket.terminate();
 
-					return;
-				});
+				return;
+			});
 
-				if (this._bannedPeers.has(socket.remoteAddress)) {
+			if (this._bannedPeers.has(socket.remoteAddress)) {
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					FORBIDDEN_CONNECTION,
+					FORBIDDEN_CONNECTION_REASON,
+				);
+
+				return;
+			}
+			// Check blacklist to avoid incoming connections from blacklisted ips
+			if (this._sanitizedPeerLists.blacklistedPeers) {
+				const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
+					peer => peer.ipAddress,
+				);
+				if (blacklist.includes(socket.remoteAddress)) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
 						FORBIDDEN_CONNECTION,
@@ -667,176 +743,180 @@ export class P2P extends EventEmitter {
 
 					return;
 				}
-				// Check blacklist to avoid incoming connections from backlisted ips
-				if (this._sanitizedPeerLists.blacklistedPeers) {
-					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
-						peer => peer.ipAddress,
-					);
-					if (blacklist.includes(socket.remoteAddress)) {
-						this._disconnectSocketDueToFailedHandshake(
-							socket,
-							FORBIDDEN_CONNECTION,
-							FORBIDDEN_CONNECTION_REASON,
-						);
+			}
+		});
 
-						return;
-					}
-				}
-			},
-		);
-
-		this._scServer.on(
-			'connection',
-			(socket: SCServerSocket): void => {
-				if (!socket.request.url) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_URL_CODE,
-						INVALID_CONNECTION_URL_REASON,
-					);
-
-					return;
-				}
-				const queryObject = url.parse(socket.request.url, true).query;
-
-				if (queryObject.nonce === this._nodeInfo.nonce) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_SELF_CODE,
-						INVALID_CONNECTION_SELF_REASON,
-					);
-
-					const selfWSPort = queryObject.wsPort
-						? +queryObject.wsPort
-						: this._nodeInfo.wsPort;
-
-					// Delete you peerinfo from both the lists
-					this._peerBook.removePeer({
-						peerId: constructPeerId(socket.remoteAddress, selfWSPort),
-						ipAddress: socket.remoteAddress,
-						wsPort: selfWSPort,
-					});
-
-					return;
-				}
-
-				if (
-					typeof queryObject.wsPort !== 'string' ||
-					typeof queryObject.version !== 'string' ||
-					typeof queryObject.nethash !== 'string'
-				) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_QUERY_CODE,
-						INVALID_CONNECTION_QUERY_REASON,
-					);
-
-					return;
-				}
-
-				const remoteWSPort: number = parseInt(
-					queryObject.wsPort,
-					BASE_10_RADIX,
+		this._scServer.on('connection', (socket: SCServerSocket): void => {
+			if (!socket.request.url) {
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					INVALID_CONNECTION_URL_CODE,
+					INVALID_CONNECTION_URL_REASON,
 				);
-				const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
 
-				// tslint:disable-next-line no-let
-				let queryOptions;
+				return;
+			}
+			const queryObject = url.parse(socket.request.url, true).query;
 
-				try {
-					queryOptions =
-						typeof queryObject.options === 'string'
-							? JSON.parse(queryObject.options)
-							: undefined;
-				} catch (error) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_QUERY_CODE,
-						INVALID_CONNECTION_QUERY_REASON,
-					);
+			if (queryObject.nonce === this._nodeInfo.nonce) {
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					INVALID_CONNECTION_SELF_CODE,
+					INVALID_CONNECTION_SELF_REASON,
+				);
 
-					return;
-				}
+				const selfWSPort = queryObject.wsPort
+					? +queryObject.wsPort
+					: this._nodeInfo.wsPort;
 
-				// Remove these wsPort and ip from the query object
-				const {
-					wsPort,
-					ipAddress,
-					advertiseAddress,
-					...restOfQueryObject
-				} = queryObject;
-
-				const incomingPeerInfo: P2PPeerInfo = {
-					sharedState: {
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
-					},
-					internalState: {
-						advertiseAddress: advertiseAddress !== 'false',
-						connectionKind: ConnectionKind.INBOUND,
-					},
-					peerId: constructPeerId(socket.remoteAddress, remoteWSPort),
+				// Delete you peerinfo from both the lists
+				this._peerBook.removePeer({
+					peerId: constructPeerId(socket.remoteAddress, selfWSPort),
 					ipAddress: socket.remoteAddress,
-					wsPort: remoteWSPort,
-				};
+					wsPort: selfWSPort,
+				});
 
-				try {
-					validatePeerInfo(
-						incomingPeerInfo,
-						this._config.maxPeerInfoSize
-							? this._config.maxPeerInfoSize
-							: DEFAULT_MAX_PEER_INFO_SIZE,
-					);
-				} catch (error) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INCOMPATIBLE_PEER_INFO_CODE,
-						error,
-					);
-				}
+				return;
+			}
 
-				const { success, error } = this._peerHandshakeCheck(
-					incomingPeerInfo,
-					this._nodeInfo,
+			if (
+				typeof queryObject.wsPort !== 'string' ||
+				typeof queryObject.version !== 'string' ||
+				typeof queryObject.nethash !== 'string'
+			) {
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					INVALID_CONNECTION_QUERY_CODE,
+					INVALID_CONNECTION_QUERY_REASON,
 				);
 
-				if (!success) {
-					const incompatibilityReason =
-						error || INCOMPATIBLE_PEER_UNKNOWN_REASON;
+				return;
+			}
 
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INCOMPATIBLE_PEER_CODE,
-						incompatibilityReason,
-					);
+			const remoteWSPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+			const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
 
-					return;
-				}
+			// tslint:disable-next-line no-let
+			let queryOptions;
 
-				const existingPeer = this._peerPool.getPeer(peerId);
+			try {
+				queryOptions =
+					typeof queryObject.options === 'string'
+						? JSON.parse(queryObject.options)
+						: undefined;
+			} catch (error) {
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					INVALID_CONNECTION_QUERY_CODE,
+					INVALID_CONNECTION_QUERY_REASON,
+				);
 
-				if (existingPeer) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						DUPLICATE_CONNECTION,
-						DUPLICATE_CONNECTION_REASON,
-					);
-				} else {
-					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
-					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-				}
+				return;
+			}
 
-				try {
-					this._peerBook.addPeer(incomingPeerInfo);
-				} catch (error) {
-					if (!(error instanceof ExistingPeerError)) {
-						throw error;
-					}
-				}
-			},
-		);
+			// Remove these wsPort and ip from the query object
+			const {
+				wsPort,
+				ipAddress,
+				advertiseAddress,
+				...restOfQueryObject
+			} = queryObject;
+
+			const peerInPeerBook = this._peerBook.getPeer({
+				peerId,
+				ipAddress: socket.remoteAddress,
+				wsPort: remoteWSPort,
+			});
+
+			const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
+				? {
+						...peerInPeerBook,
+						internalState: {
+							...(peerInPeerBook.internalState
+								? peerInPeerBook.internalState
+								: assignInternalInfo(peerInPeerBook, this._secret)),
+							advertiseAddress: advertiseAddress !== 'false',
+							connectionKind: ConnectionKind.INBOUND,
+						},
+				  }
+				: this._assignPeerKind({
+						sharedState: {
+							...restOfQueryObject,
+							...queryOptions,
+							height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+							protocolVersion: queryObject.protocolVersion,
+						},
+						internalState: {
+							...assignInternalInfo(
+								{
+									peerId,
+									ipAddress: socket.remoteAddress,
+									wsPort: remoteWSPort,
+								},
+								this._secret,
+							),
+							advertiseAddress: advertiseAddress !== 'false',
+							connectionKind: ConnectionKind.INBOUND,
+						},
+						peerId,
+						ipAddress: socket.remoteAddress,
+						wsPort: remoteWSPort,
+				  });
+
+			try {
+				validatePeerInfo(
+					incomingPeerInfo,
+					this._config.maxPeerInfoSize
+						? this._config.maxPeerInfoSize
+						: DEFAULT_MAX_PEER_INFO_SIZE,
+				);
+			} catch (error) {
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					INCOMPATIBLE_PEER_INFO_CODE,
+					error,
+				);
+			}
+
+			const { success, error } = this._peerHandshakeCheck(
+				incomingPeerInfo,
+				this._nodeInfo,
+			);
+
+			if (!success) {
+				const incompatibilityReason = error || INCOMPATIBLE_PEER_UNKNOWN_REASON;
+
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					INCOMPATIBLE_PEER_CODE,
+					incompatibilityReason,
+				);
+
+				return;
+			}
+
+			try {
+				this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+				this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+			} catch (err) {
+				this._disconnectSocketDueToFailedHandshake(
+					socket,
+					DUPLICATE_CONNECTION,
+					DUPLICATE_CONNECTION_REASON,
+				);
+
+				return;
+			}
+
+			if (this._peerBook.hasPeer(incomingPeerInfo)) {
+				return;
+			}
+
+			this._peerBook.addPeer({
+				...incomingPeerInfo,
+				sourceAddress: socket.remoteAddress,
+			});
+		});
 
 		this._httpServer.listen(
 			this._nodeInfo.wsPort,
@@ -886,6 +966,16 @@ export class P2P extends EventEmitter {
 				this._peerBook.newPeers,
 				this._peerBook.triedPeers,
 			);
+
+			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
+			if (
+				this._nextSeedPeerDiscovery < Date.now() &&
+				this._peerPool.getFreeOutboundSlots() > 0
+			) {
+				this._peerPool.discoverFromSeedPeers();
+				this._nextSeedPeerDiscovery =
+					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+			}
 		}, this._populatorInterval);
 
 		// Initial Populator
@@ -916,22 +1006,23 @@ export class P2P extends EventEmitter {
 			.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
-			? this._config.peerDiscoveryResponseLength
+		const maxPeerDiscoveryResponseLength = this._config
+			.maxPeerDiscoveryResponseLength
+			? this._config.maxPeerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 		const wsMaxPayload = this._config.wsMaxPayload
 			? this._config.wsMaxPayload
 			: DEFAULT_WS_MAX_PAYLOAD;
-		const maxPeerInforSize = this._config.maxPeerInfoSize
+		const maxPeerInfoSize = this._config.maxPeerInfoSize
 			? this._config.maxPeerInfoSize
 			: DEFAULT_MAX_PEER_INFO_SIZE;
 
 		const safeMaxPeerInfoLength =
-			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInforSize) - 1;
+			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInfoSize) - 1;
 
 		const selectedPeers = this._peerBook.getRandomizedPeerList(
 			minimumPeerDiscoveryThreshold,
-			peerDiscoveryResponseLength,
+			maxPeerDiscoveryResponseLength,
 		);
 
 		// Remove internal state to check byte size
@@ -972,24 +1063,19 @@ export class P2P extends EventEmitter {
 
 	private _initializePeerBook(): void {
 		const newPeersToAdd = [
-			...this._sanitizedPeerLists.previousPeers,
-			...this._sanitizedPeerLists.whitelisted,
 			...this._sanitizedPeerLists.fixedPeers,
+			...this._sanitizedPeerLists.whitelisted,
+			...this._sanitizedPeerLists.previousPeers,
 		];
 
 		// Add peers to tried peers if want to re-use previously tried peers
 		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
 		newPeersToAdd.forEach(peerInfo => {
-			try {
-				this._peerBook.addPeer(peerInfo);
-				this._peerBook.upgradePeer(peerInfo);
-			} catch (error) {
-				if (!(error instanceof ExistingPeerError)) {
-					throw error;
-				}
-
-				this._peerBook.upgradePeer(error.peerInfo);
+			if (!this._peerBook.hasPeer(peerInfo)) {
+				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
 			}
+
+			this._peerBook.upgradePeer(peerInfo);
 		});
 	}
 
@@ -1004,7 +1090,9 @@ export class P2P extends EventEmitter {
 		if (this._isActive) {
 			// Initial discovery and disconnect from SeedPeers (LIP-0004)
 			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
-				this._peerPool.discoverSeedPeers();
+				this._peerPool.discoverFromSeedPeers();
+				this._nextSeedPeerDiscovery =
+					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 			}
 
 			this._startPopulator();

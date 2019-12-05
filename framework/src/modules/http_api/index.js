@@ -20,12 +20,6 @@ const { config: defaultConfig } = require('./defaults');
 
 /* eslint-disable class-methods-use-this */
 
-/**
- * Http API module specification
- *
- * @namespace Framework.Modules
- * @type {module.HttpAPIModule}
- */
 class HttpAPIModule extends BaseModule {
 	constructor(options) {
 		super(options);

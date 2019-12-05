@@ -16,30 +16,15 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
+const { consolidatePeers, filterByParams } = require('../helpers/utils');
 // Private Fields
 let channel;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of PeersController
- */
 function PeersController(scope) {
 	({ channel } = scope);
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-PeersController.getPeers = async function getPeers(context, next) {
+PeersController.getPeers = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -66,8 +51,23 @@ PeersController.getPeers = async function getPeers(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const peersByFilters = await channel.invoke('network:getPeers', filters);
-		const peersCount = await channel.invoke('network:getPeersCount', filters);
+		const connectedPeers = await channel.invoke('network:getConnectedPeers');
+		const disconnectedPeers = await channel.invoke(
+			'network:getDisconnectedPeers',
+		);
+
+		const peersByFilters = filterByParams(
+			consolidatePeers(connectedPeers, disconnectedPeers),
+			filters,
+		);
+
+		const { limit, offset, ...filterWithoutLimitOffset } = filters;
+
+		const peersCount = filterByParams(
+			consolidatePeers(connectedPeers, disconnectedPeers),
+			filterWithoutLimitOffset,
+		).length;
+
 		const peersWithoutPeerId = peersByFilters.map(peer => {
 			const { peerId, ...restOfPeer } = peer;
 			return restOfPeer;

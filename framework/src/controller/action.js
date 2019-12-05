@@ -19,21 +19,7 @@ const assert = require('assert');
 const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*:[a-zA-Z][a-zA-Z0-9]*$/;
 
-/**
- * An action class which instance will be received by every event listener
- *
- * @class
- * @memberof framework.controller
- * @requires assert
- */
 class Action {
-	/**
-	 * Create Action object.
-	 *
-	 * @param {string} name - Can be simple event or be combination of module:event
-	 * @param {Array} [params] - Params associated with the action
-	 * @param {string} [source] - Module name if event name does not have its prefix
-	 */
 	constructor(name, params = null, source = null) {
 		assert(
 			actionWithModuleNameReg.test(name),
@@ -51,11 +37,6 @@ class Action {
 		}
 	}
 
-	/**
-	 * Gets serialized data object for Action object.
-	 *
-	 * @return {Object}
-	 */
 	serialize() {
 		return {
 			name: this.name,
@@ -65,12 +46,6 @@ class Action {
 		};
 	}
 
-	/**
-	 * Converts data to Action object.
-	 *
-	 * @param {Object|string} data - Data for Action object serialized or as object.
-	 * @return {module.Action}
-	 */
 	static deserialize(data) {
 		const parsedAction = typeof data === 'string' ? JSON.parse(data) : data;
 		return new Action(
@@ -80,20 +55,10 @@ class Action {
 		);
 	}
 
-	/**
-	 * Getter function for source and action label data.
-	 *
-	 * @return {string} stringified action object
-	 */
 	toString() {
 		return `${this.source} -> ${this.module}:${this.name}`;
 	}
 
-	/**
-	 * Getter function for action label data.
-	 *
-	 * @return {string} action label: key
-	 */
 	key() {
 		return `${this.module}:${this.name}`;
 	}

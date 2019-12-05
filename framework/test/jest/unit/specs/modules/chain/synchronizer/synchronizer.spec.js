@@ -208,11 +208,14 @@ describe('Synchronizer', () => {
 				await synchronizer.init();
 
 				// Assert
-				expect(loggerMock.info).nthCalledWith(
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
 					1,
 					'Restoring blocks from temporary table',
 				);
-				expect(loggerMock.info).nthCalledWith(2, 'Chain successfully restored');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
+					2,
+					'Chain successfully restored',
+				);
 				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 				expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(2);
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
@@ -223,7 +226,7 @@ describe('Synchronizer', () => {
 				expect.assertions(blocksTempTableEntries.length + 5);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
-					expect(processorModule.processValidated).nthCalledWith(
+					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
 						await processorModule.deserialize(tempBlock),
 						{
@@ -267,11 +270,14 @@ describe('Synchronizer', () => {
 				await synchronizer.init();
 
 				// Assert
-				expect(loggerMock.info).nthCalledWith(
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
 					1,
 					'Restoring blocks from temporary table',
 				);
-				expect(loggerMock.info).nthCalledWith(2, 'Chain successfully restored');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(
+					2,
+					'Chain successfully restored',
+				);
 				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksTempTableEntries.length,
@@ -281,7 +287,7 @@ describe('Synchronizer', () => {
 				expect.assertions(blocksTempTableEntries.length + 4);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
-					expect(processorModule.processValidated).nthCalledWith(
+					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
 						await processorModule.deserialize(tempBlock),
 						{
@@ -400,16 +406,12 @@ describe('Synchronizer', () => {
 				run: jest.fn().mockResolvedValue({}),
 			};
 
-			try {
-				// eslint-disable-next-line no-unused-vars
-				const aSynchronizer = new Synchronizer({
-					mechanisms: [aSyncingMechanism],
-				});
-			} catch (error) {
-				expect(error.message).toEqual(
-					'Mechanism Object should implement "isValidFor" method',
-				);
-			}
+			expect(
+				() =>
+					new Synchronizer({
+						mechanisms: [aSyncingMechanism],
+					}),
+			).toThrow('Mechanism Object should implement "isValidFor" method');
 		});
 
 		it('should enforce mandatory interfaces for passed mechanisms (run)', () => {
@@ -417,16 +419,12 @@ describe('Synchronizer', () => {
 				isValidFor: jest.fn().mockResolvedValue(false),
 			};
 
-			try {
-				// eslint-disable-next-line no-unused-vars
-				const aSynchronizer = new Synchronizer({
-					mechanisms: [aSyncingMechanism],
-				});
-			} catch (error) {
-				expect(error.message).toEqual(
-					'Mechanism Object should implement "run" method',
-				);
-			}
+			expect(
+				() =>
+					new Synchronizer({
+						mechanisms: [aSyncingMechanism],
+					}),
+			).toThrow('Mechanism Object should implement "run" method');
 		});
 	});
 
@@ -482,18 +480,21 @@ describe('Synchronizer', () => {
 		});
 
 		it('should reject with error if block validation failed', async () => {
-			try {
-				await synchronizer.run(
+			await expect(
+				synchronizer.run(
 					{
 						...aReceivedBlock,
 						blockSignature: '12312334534536645656',
 					},
 					aPeerId,
-				);
-			} catch (error) {
-				expect(error[0].message).toEqual('should match format "signature"');
-				expect(synchronizer.active).toBeFalsy();
-			}
+				),
+			).rejects.toMatchObject([
+				expect.objectContaining({
+					message: 'should match format "signature"',
+				}),
+			]);
+
+			expect(synchronizer.active).toBeFalsy();
 		});
 
 		it('should determine the sync mechanism for received block and run it', async () => {
@@ -508,8 +509,8 @@ describe('Synchronizer', () => {
 				aPeerId,
 			);
 			expect(syncMechanism2.run).not.toHaveBeenCalled();
-			expect(loggerMock.info).nthCalledWith(2, 'Triggering: Object');
-			expect(loggerMock.info).nthCalledWith(
+			expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Triggering: Object');
+			expect(loggerMock.info).toHaveBeenNthCalledWith(
 				3,
 				{
 					lastBlockHeight: blocksModule.lastBlock.height,

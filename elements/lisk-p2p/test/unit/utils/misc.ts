@@ -33,6 +33,8 @@ describe('utils/misc', () => {
 	const MAX_PEER_ADDRESSES = 65025;
 	const secret = DEFAULT_RANDOM_SECRET;
 	const IPv4Address = '1.160.10.240';
+	const secondIPv4Address = '1.161.10.240';
+	const sourceIPv4Address = '1.165.10.240';
 	const privateAddress = '10.0.0.0';
 	const localAddress = '127.0.0.1';
 
@@ -150,19 +152,6 @@ describe('utils/misc', () => {
 	});
 
 	describe('#getBucketId', () => {
-		it(`should throw an error if network is equal to ${
-			NETWORK.NET_OTHER
-		}`, () => {
-			expect(() =>
-				getBucketId({
-					secret,
-					targetAddress: 'wrong ipAddress',
-					peerType: PEER_TYPE.NEW_PEER,
-					bucketCount: MAX_NEW_BUCKETS,
-				}),
-			).to.throw('IP address is unsupported.');
-		});
-
 		it('should return a bucket number', () => {
 			expect(
 				getBucketId({
@@ -176,17 +165,46 @@ describe('utils/misc', () => {
 				.within(0, MAX_NEW_BUCKETS);
 		});
 
+		it('should return a bucket number with source address', () => {
+			expect(
+				getBucketId({
+					secret,
+					targetAddress: IPv4Address,
+					sourceAddress: secondIPv4Address,
+					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
+				}),
+			)
+				.to.be.a('number')
+				.within(0, MAX_NEW_BUCKETS);
+		});
+
+		it(`should throw an error if network is equal to ${
+			NETWORK.NET_OTHER
+		}`, () => {
+			expect(() =>
+				getBucketId({
+					secret,
+					targetAddress: 'wrong ipAddress',
+					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
+				}),
+			).to.throw('IP address is unsupported.');
+		});
+
 		it('should return different buckets for different target addresses', () => {
 			const secondIPv4Address = '1.161.10.240';
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: IPv4Address,
+				sourceAddress: IPv4Address,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondBucket = getBucketId({
 				secret,
 				targetAddress: secondIPv4Address,
+				sourceAddress: secondIPv4Address,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
@@ -198,6 +216,7 @@ describe('utils/misc', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,
+				sourceAddress: localAddress,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
@@ -205,6 +224,7 @@ describe('utils/misc', () => {
 			const secondBucket = getBucketId({
 				secret,
 				targetAddress: secondLocalAddress,
+				sourceAddress: secondLocalAddress,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
@@ -216,6 +236,7 @@ describe('utils/misc', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: privateAddress,
+				sourceAddress: privateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
@@ -223,6 +244,7 @@ describe('utils/misc', () => {
 			const secondBucket = getBucketId({
 				secret,
 				targetAddress: secondPrivateAddress,
+				sourceAddress: secondPrivateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
@@ -234,12 +256,14 @@ describe('utils/misc', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,
+				sourceAddress: localAddress,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 			const secondBucket = getBucketId({
 				secret,
 				targetAddress: privateAddress,
+				sourceAddress: privateAddress,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
@@ -255,6 +279,7 @@ describe('utils/misc', () => {
 					getBucketId({
 						secret,
 						targetAddress: address,
+						sourceAddress: address,
 						peerType: PEER_TYPE.NEW_PEER,
 						bucketCount: MAX_NEW_BUCKETS,
 					}),
@@ -268,10 +293,71 @@ describe('utils/misc', () => {
 			const bucketId = getBucketId({
 				secret,
 				targetAddress: '61.26.254.123',
+				sourceAddress: '61.26.254.123',
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: 0,
 			});
 			expect(bucketId).is.NaN;
+		});
+
+		it('should return different buckets for different target addresses given a single source address', () => {
+			const firstBucket = getBucketId({
+				secret,
+				targetAddress: IPv4Address,
+				sourceAddress: sourceIPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			const secondBucket = getBucketId({
+				secret,
+				targetAddress: secondIPv4Address,
+				sourceAddress: sourceIPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			return expect(firstBucket).to.not.eql(secondBucket);
+		});
+
+		it('should return different buckets for same target addresses given different source address', () => {
+			const firstBucket = getBucketId({
+				secret,
+				targetAddress: IPv4Address,
+				sourceAddress: sourceIPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			const secondBucket = getBucketId({
+				secret,
+				targetAddress: IPv4Address,
+				sourceAddress: secondIPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			return expect(firstBucket).to.not.eql(secondBucket);
+		});
+
+		it('should return different buckets for same target address and source address but different peerType', () => {
+			const firstBucket = getBucketId({
+				secret,
+				targetAddress: IPv4Address,
+				sourceAddress: sourceIPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			const secondBucket = getBucketId({
+				secret,
+				targetAddress: IPv4Address,
+				sourceAddress: sourceIPv4Address,
+				peerType: PEER_TYPE.TRIED_PEER,
+				bucketCount: MAX_NEW_BUCKETS,
+			});
+
+			return expect(firstBucket).to.not.eql(secondBucket);
 		});
 
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
@@ -288,6 +374,7 @@ describe('utils/misc', () => {
 					const bucket = getBucketId({
 						secret,
 						targetAddress,
+						sourceAddress: targetAddress,
 						peerType: PEER_TYPE.TRIED_PEER,
 						bucketCount: MAX_TRIED_BUCKETS,
 					});
@@ -324,6 +411,7 @@ describe('utils/misc', () => {
 					const bucket = getBucketId({
 						secret,
 						targetAddress,
+						sourceAddress: targetAddress,
 						peerType: PEER_TYPE.NEW_PEER,
 						bucketCount: MAX_NEW_BUCKETS,
 					});

@@ -45,17 +45,31 @@ export interface P2PSharedState {
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
-
+// Disable readonly properties as its going to change
+// tslint:disable:readonly-keyword
 export interface P2PInternalState {
-	readonly dateAdded?: Date;
-	readonly peerKind?: PeerKind;
-	readonly isBanned?: boolean;
-	readonly productivity?: number;
-	readonly reputation?: number;
-	readonly connectionKind?: ConnectionKind;
-	readonly advertiseAddress: boolean;
+	dateAdded?: Date;
+	peerKind: PeerKind;
+	productivity: {
+		requestCounter: number;
+		responseCounter: number;
+		responseRate: number;
+		lastResponded: number;
+	};
+	reputation: number;
+	netgroup: number;
+	latency: number;
+	connectTime: number;
+	messageCounter: Map<string, number>;
+	messageRates: Map<string, number>;
+	rpcCounter: Map<string, number>;
+	rpcRates: Map<string, number>;
+	wsMessageCount: number;
+	wsMessageRate: number;
+	connectionKind: ConnectionKind;
+	advertiseAddress: boolean;
 }
-
+// tslint:enable:readonly-keyword
 export interface P2PPeerInfo {
 	// String to uniquely identify each peer
 	readonly peerId: string;
@@ -64,6 +78,13 @@ export interface P2PPeerInfo {
 	readonly sharedState?: P2PSharedState;
 	readonly internalState?: P2PInternalState;
 }
+
+export type P2PEnhancedPeerInfo = {
+	readonly dateAdded?: Date;
+	readonly numOfConnectionFailures?: number;
+	readonly sourceAddress?: string;
+	readonly bucketId?: number;
+} & P2PPeerInfo;
 
 export interface P2PPeersCount {
 	readonly outboundCount: number;
@@ -100,10 +121,9 @@ export interface P2PConfig {
 	readonly previousPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
-	readonly hostAddress?: string;
 	readonly nodeInfo: P2PNodeInfo;
-	readonly wsEngine?: string;
 	readonly populatorInterval?: number;
+	readonly fallbackSeedPeerDiscoveryInterval?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
 	readonly wsMaxPayload?: number;
@@ -123,7 +143,6 @@ export interface P2PConfig {
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
 	readonly minimumPeerDiscoveryThreshold?: number;
-	readonly peerDiscoveryResponseLength?: number;
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;

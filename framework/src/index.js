@@ -20,10 +20,6 @@ const defaultConfigurator = require('./controller/default_configurator');
 const systemDirs = require('./controller/system_dirs');
 const BaseModule = require('./modules/base_module');
 
-/**
- * @namespace framework
- * @type {{constants, Application: (module.Application|*), version: string}}
- */
 module.exports = {
 	Application,
 	version,

@@ -21,12 +21,6 @@ const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */
 
-/**
- * Chain module specification
- *
- * @namespace Framework.Modules
- * @type {module.ChainModule}
- */
 class ChainModule extends BaseModule {
 	constructor(options) {
 		super(options);

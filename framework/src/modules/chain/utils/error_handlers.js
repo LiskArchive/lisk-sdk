@@ -21,15 +21,6 @@ class CommonBlockError extends Error {
 	}
 }
 
-/**
- * Converts array of errors into string
- *
- * @class
- * @memberof utils
- * @param {array | object} errors
- * @see Parent: {@link utils}
- * @todo Add description for the params
- */
 // TODO: Move this functionality to logger component
 function convertErrorsToString(errors) {
 	if (Array.isArray(errors) && errors.length > 0) {

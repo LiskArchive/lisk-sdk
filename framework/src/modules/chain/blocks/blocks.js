@@ -132,7 +132,9 @@ class Blocks extends EventEmitter {
 
 	async init() {
 		// check mem tables
-		const { genesisBlock } = await this.storage.entities.Block.begin(
+		const {
+			genesisBlock,
+		} = await this.storage.entities.Block.begin(
 			'loader:checkMemTables',
 			async tx => blocksUtils.loadMemTables(this.storage, tx),
 		);
@@ -154,11 +156,6 @@ class Blocks extends EventEmitter {
 		this._lastBlock = this.deserialize(storageLastBlock);
 	}
 
-	/**
-	 * Serialize common properties to the JSON format
-	 * @param {*} blockInstance Instance of the block
-	 * @returns JSON format of the block
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	serialize(blockInstance) {
 		const blockJSON = {
@@ -174,10 +171,6 @@ class Blocks extends EventEmitter {
 		return blockJSON;
 	}
 
-	/**
-	 * Deserialize common properties to instance format
-	 * @param {*} blockJSON JSON format of the block
-	 */
 	deserialize(blockJSON) {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
 			this._transactionAdapter.fromJSON(transaction),
@@ -297,19 +290,10 @@ class Blocks extends EventEmitter {
 		this._lastBlock = secondLastBlock;
 	}
 
-	/**
-	 * Remove one block from temp_block table
-	 * @param {string} blockId
-	 * @param {Object} tx - database transaction
-	 */
 	async removeBlockFromTempTable(blockId, tx) {
 		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
 	}
 
-	/**
-	 * Get all blocks from temp_block table
-	 * @param {Object} tx - database transaction
-	 */
 	async getTempBlocks(filter = {}, options = {}, tx) {
 		return this.storage.entities.TempBlock.get(filter, options, tx);
 	}
@@ -354,11 +338,6 @@ class Blocks extends EventEmitter {
 		);
 	}
 
-	/**
-	 * Returns the highest common block between ids and the database blocks table
-	 * @param {Array<String>} ids - An array of block ids
-	 * @return {Promise<BasicBlock|undefined>}
-	 */
 	// TODO: Unit tests written in mocha, which should be migrated to jest.
 	async getHighestCommonBlock(ids) {
 		try {
@@ -386,7 +365,7 @@ class Blocks extends EventEmitter {
 				transactionResponse =>
 					transactionResponse.status === TransactionStatus.OK,
 			)
-			.map(transactionReponse => transactionReponse.id);
+			.map(transactionResponse => transactionResponse.id);
 
 		const allowedTransactions = transactions.filter(transaction =>
 			allowedTransactionsIds.includes(transaction.id),

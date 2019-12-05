@@ -23,10 +23,7 @@ const {
 const forkChoiceRule = require('./fork_choice_rule');
 const { validateBlockHeader } = require('./utils');
 
-const META_KEYS = {
-	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
-	LAST_BLOCK_FORGED: 'BFT.maxHeightPreviouslyForged',
-};
+const CHAIN_STATE_FINALIZED_HEIGHT = 'BFT.finalizedHeight';
 const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 const extractBFTBlockHeaderFromBlock = block => ({
@@ -45,15 +42,6 @@ const extractBFTBlockHeaderFromBlock = block => ({
  * BFT class responsible to hold integration logic for finality manager with the framework
  */
 class BFT extends EventEmitter {
-	/**
-	 * Create BFT module instance
-	 *
-	 * @param {Object} storage - Storage component instance
-	 * @param {Object} logger - Logger component instance
-	 * @param {Object} slots - Slots class
-	 * @param {integer} activeDelegates - Number of delegates
-	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
-	 */
 	constructor({ storage, logger, slots, activeDelegates, startingHeight }) {
 		super();
 		this.finalityManager = null;
@@ -67,17 +55,11 @@ class BFT extends EventEmitter {
 		};
 
 		this.blockEntity = this.storage.entities.Block;
-		this.chainMetaEntity = this.storage.entities.ChainMeta;
+		this.chainStateEntity = this.storage.entities.ChainState;
 	}
 
-	/**
-	 * Initialize the BFT module
-	 *
-	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
-	 * @return {Promise<void>}
-	 */
-	async init(minActiveHeightsOfDelegates = {}) {
-		this.finalityManager = await this._initFinalityManager();
+	async init(stateStore, minActiveHeightsOfDelegates = {}) {
+		this.finalityManager = await this._initFinalityManager(stateStore);
 
 		this.finalityManager.on(
 			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
@@ -101,11 +83,6 @@ class BFT extends EventEmitter {
 		});
 	}
 
-	/**
-	 * Serialize common properties to the JSON format
-	 * @param {*} blockInstance Instance of the block
-	 * @returns JSON format of the block
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	serialize(blockInstance) {
 		return {
@@ -115,13 +92,6 @@ class BFT extends EventEmitter {
 		};
 	}
 
-	/**
-	 * When blocks deleted send those to BFT to update BFT state
-	 *
-	 * @param {Array.<Object>} blocks - List of all blocks
-	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
-	 * @return {Promise<void>}
-	 */
 	async deleteBlocks(blocks, minActiveHeightsOfDelegates = {}) {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
@@ -158,69 +128,18 @@ class BFT extends EventEmitter {
 		}
 	}
 
-	/**
-	 * Load new block to BFT
-	 *
-	 * @param {Object} block - The block which is forged
-	 * @param {Object} tx - database transaction
-	 * @return {Promise<void>}
-	 */
-	async addNewBlock(block, tx) {
+	async addNewBlock(block, stateStore) {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 		const { finalizedHeight } = this.finalityManager;
-		// TODO: this should be memory operation in the state store
-		return this.chainMetaEntity.setKey(
-			META_KEYS.FINALIZED_HEIGHT,
+		return stateStore.chainState.set(
+			CHAIN_STATE_FINALIZED_HEIGHT,
 			finalizedHeight,
-			tx,
 		);
 	}
 
 	async verifyNewBlock(block) {
 		return this.finalityManager.verifyBlockHeaders(
 			extractBFTBlockHeaderFromBlock(block),
-		);
-	}
-
-	/**
-	 * Computes maxHeightPreviouslyForged and maxHeightPrevoted properties that are necessary
-	 * for creating a new block
-	 * @param delegatePublicKey
-	 * @return {Promise<{maxHeightPrevoted: number, maxHeightPreviouslyForged: (number|*)}>}
-	 */
-	async computeBFTHeaderProperties(delegatePublicKey) {
-		const previouslyForged = await this._getPreviouslyForgedMap();
-		const maxHeightPreviouslyForged = previouslyForged[delegatePublicKey] || 0;
-
-		return {
-			// maxHeightPrevoted is up till height - 1
-			maxHeightPrevoted: this.finalityManager.prevotedConfirmedHeight,
-			maxHeightPreviouslyForged,
-		};
-	}
-
-	/**
-	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
-	 * so it needs to be outside of the DB transaction
-	 * @param delegatePublicKey
-	 * @param height
-	 */
-	async saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
-		const previouslyForgedMap = await this._getPreviouslyForgedMap();
-		const previouslyForgedHeightByDelegate =
-			previouslyForgedMap[delegatePublicKey] || 0;
-		// previously forged height only saves maximum forged height
-		if (height <= previouslyForgedHeightByDelegate) {
-			return;
-		}
-		const updatedPreviouslyForged = {
-			...previouslyForgedMap,
-			[delegatePublicKey]: height,
-		};
-		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
-		await this.chainMetaEntity.setKey(
-			META_KEYS.LAST_BLOCK_FORGED,
-			previouslyForgedStr,
 		);
 	}
 
@@ -269,26 +188,11 @@ class BFT extends EventEmitter {
 		return forkChoiceRule.FORK_STATUS_DISCARD;
 	}
 
-	async _getPreviouslyForgedMap() {
-		const previouslyForgedStr = await this.chainMetaEntity.getKey(
-			META_KEYS.LAST_BLOCK_FORGED,
-		);
-		return previouslyForgedStr ? JSON.parse(previouslyForgedStr) : {};
-	}
-
-	/**
-	 * Initialize the consensus manager and return the finalize height
-	 *
-	 * @return {Promise<number>} - Return the finalize height
-	 * @private
-	 */
-	async _initFinalityManager() {
+	async _initFinalityManager(stateStore) {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
-			parseInt(
-				await this.chainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT),
-				10,
-			) || 1;
+			parseInt(stateStore.chainState.get(CHAIN_STATE_FINALIZED_HEIGHT), 10) ||
+			1;
 
 		// Check BFT migration height
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
@@ -305,12 +209,6 @@ class BFT extends EventEmitter {
 		});
 	}
 
-	/**
-	 * Get the last block height from storage
-	 *
-	 * @return {Promise<number>}
-	 * @private
-	 */
 	async _getLastBlockHeight() {
 		const lastBlock = await this.blockEntity.get(
 			{},
@@ -319,14 +217,6 @@ class BFT extends EventEmitter {
 		return lastBlock.length ? lastBlock[0].height : 0;
 	}
 
-	/**
-	 * Load blocks into consensus manager fetching from storage
-	 *
-	 * @param {int} fromHeight - The start height to fetch and load
-	 * @param {int} tillHeight - The end height to fetch and load
-	 * @param {Object} minActiveHeightsOfDelegates - Minimum active heights of a delegate
-	 * @return {Promise<void>}
-	 */
 	async _loadBlocksFromStorage({
 		fromHeight,
 		tillHeight,
@@ -398,13 +288,6 @@ class BFT extends EventEmitter {
 		validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
 	}
 
-	/**
-	 * Verify if block forger is following the BFT Protocol
-	 * See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#incentivizing-lisk-bft-protocol-participation
-	 *
-	 * @param {ExtendedBlock} block
-	 * @return {boolean}
-	 */
 	isBFTProtocolCompliant(block) {
 		assert(block, 'No block was provided to be verified');
 
@@ -439,6 +322,10 @@ class BFT extends EventEmitter {
 
 	get finalizedHeight() {
 		return this.finalityManager.finalizedHeight;
+	}
+
+	get maxHeightPrevoted() {
+		return this.finalityManager.prevotedConfirmedHeight;
 	}
 }
 

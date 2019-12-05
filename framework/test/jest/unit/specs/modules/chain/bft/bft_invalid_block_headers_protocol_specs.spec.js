@@ -34,13 +34,13 @@ describe('FinalityManager', () => {
 				});
 
 				// Arrange - Verify initial state is set
-				expect(finalityManager.headers.length).toEqual(
+				expect(finalityManager.headers).toHaveLength(
 					testCase.initialState.length,
 				);
 
 				// Act & Assert
 				expect(() => finalityManager.addBlockHeader(testCase.input)).toThrow();
-				expect(finalityManager.headers.length).toEqual(testCase.output.length);
+				expect(finalityManager.headers).toHaveLength(testCase.output.length);
 			});
 		});
 	});

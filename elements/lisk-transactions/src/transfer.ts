@@ -13,17 +13,17 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	isValidTransferAmount,
+	validateAddress,
+	validateNetworkIdentifier,
+	validatePublicKey,
+} from '@liskhq/lisk-validator';
 
 import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
 import { TransactionJSON } from './transaction_types';
-import {
-	createBaseTransaction,
-	validateAddress,
-	validateNetworkIdentifier,
-	validatePublicKey,
-	validateTransferAmount,
-} from './utils';
+import { createBaseTransaction } from './utils';
 
 export interface TransferInputs {
 	readonly amount: string;
@@ -43,7 +43,7 @@ const validateInputs = ({
 	data,
 	networkIdentifier,
 }: TransferInputs): void => {
-	if (!validateTransferAmount(amount)) {
+	if (!isValidTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
 	}
 

@@ -30,26 +30,7 @@ const { MigrationEntity } = require('./migrations');
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
 
-/**
- * Controller logic responsible to run the application instance
- *
- * @class
- * @memberof framework.controller
- * @requires assert
- * @requires bluebird
- * @requires fs-extra
- * @requires config
- * @requires channels/event_emitter
- * @requires module.Bus
- */
 class Controller {
-	/**
-	 * Controller responsible to run the application
-	 *
-	 * @param {string} appLabel - Application label
-	 * @param {Object} config - Controller configurations
-	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
-	 */
 	constructor(appLabel, config, initialState, logger) {
 		this.logger = logger;
 		this.appLabel = appLabel;
@@ -78,13 +59,6 @@ class Controller {
 		this.storage.registerEntity('Migration', MigrationEntity);
 	}
 
-	/**
-	 * Load the initial state and start listening for events or triggering actions.
-	 * Publishes 'app:ready' state on the bus.
-	 *
-	 * @param modules
-	 * @async
-	 */
 	async load(modules, moduleOptions, migrations = {}) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
@@ -100,11 +74,6 @@ class Controller {
 		this.channel.publish('app:ready');
 	}
 
-	/**
-	 * Verify existence of required directories.
-	 *
-	 * @async
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async _setupDirectories() {
 		// Make sure all directories exists
@@ -134,11 +103,6 @@ class Controller {
 		await fs.writeFile(pidPath, process.pid);
 	}
 
-	/**
-	 * Initiate application state
-	 *
-	 * @async
-	 */
 	async _initState() {
 		this.applicationState = new ApplicationState({
 			initialState: this.initialState,
@@ -146,11 +110,6 @@ class Controller {
 		});
 	}
 
-	/**
-	 * Initialize bus
-	 *
-	 * @async
-	 */
 	async _setupBus() {
 		this.bus = new Bus(
 			{

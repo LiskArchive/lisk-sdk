@@ -57,9 +57,6 @@ class DelegatesInfo {
 		return this._update(block, { undo, tx, delegateListRoundOffset });
 	}
 
-	/**
-	 * @param {Block} block
-	 */
 	async _update(block, { undo, tx, delegateListRoundOffset }) {
 		await this._updateProducedBlocks(block, undo, tx);
 
@@ -211,14 +208,6 @@ class DelegatesInfo {
 	/**
 	 * Return an object that contains the summary of round information
 	 * as delegates who forged, their earnings and accounts
-	 *
-	 * @private
-	 * @param {block} block - Current block
-	 * @param {Object} [tx] - SQL transaction
-	 * @returns {Object} { round, totalFee, uniqForgersInfo }
-	 * @returns {Object} { uniqForgersInfo: [{ publicKey, reward, blocksForged, isGettingRemainingFees, earnings, delegateAccount }] }
-	 * @returns {Object} { earnings: { fee, reward } }
-	 * @returns {Object} { delegateAccount: AccountEntity }
 	 */
 	async _summarizeRound(block, { tx, delegateListRoundOffset }) {
 		const round = this.slots.calcRound(block.height);

@@ -30,17 +30,6 @@ class BaseSynchronizer {
 		throw new Error('#isValidFor method must be implemented');
 	}
 
-	/**
-	 * Helper function that encapsulates:
-	 * 1. applying a penalty to a peer.
-	 * 2. restarting sync.
-	 * 3. throwing the reason.
-	 *
-	 * @param {object} peerId - The peer ID to target
-	 * @param {object} receivedBlock
-	 * @param {string} reason
-	 * a penalty and restarting sync
-	 */
 	async _applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
 		this.logger.info(
 			{ peerId, reason },

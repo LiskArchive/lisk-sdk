@@ -20,101 +20,6 @@ const {
 	entities: { Transaction: TransactionEntity },
 } = require('../../../../../components/storage');
 
-/**
- * Basic Transaction
- * @typedef {Object} BasicTransaction
- * @property {string} id
- * @property {string} blockId
- * @property {Integer} [height]
- * @property {Integer} [confirmations]
- * @property {Integer} type
- * @property {Number} timestamp
- * @property {string} senderPublicKey
- * @property {string} senderId
- * @property {string} recipientId
- * @property {string} amount
- * @property {string} fee
- * @property {string} signature
- * @property {string} signSignature
- * @property {Array.<string>} signatures
- * @property {Object} asset
- */
-
-/**
- * Transfer Transaction
- * @typedef {BasicTransaction} TransferTransaction
- * @property {string} asset.data
- * @property {string} asset.amount
- * @property {string} asset.recipientId
- */
-
-/**
- * Second Passphrase Transaction
- * @typedef {BasicTransaction} SecondPassphraseTransaction
- * @property {string} asset.publicKey
- */
-
-/**
- * Delegate Transaction
- * @typedef {BasicTransaction} DelegateTransaction
- * @property {Object} asset
- * @property {string} asset.username
- */
-
-/**
- * Vote Transaction
- * @typedef {BasicTransaction} VoteTransaction
- * @property {Array.<string>} asset.votes
- */
-
-/**
- * Multisig Registration Transaction
- * @typedef {BasicTransaction} MultisigRegistrationTransaction
- * @property {Integer} asset.min
- * @property {Integer} asset.lifetime
- * @property {Array.<string>} asset.keysgroup
- */
-
-/**
- * Dapp Registration Transaction
- * @typedef {BasicTransaction} DappRegistrationTransaction
- * @property {Object} asset.dapp
- * @property {Integer} asset.dapp.type
- * @property {string} asset.dapp.name
- * @property {string} asset.dapp.description
- * @property {string} asset.dapp.tags
- * @property {string} asset.dapp.link
- * @property {string} asset.dapp.icon
- * @property {Integer} asset.dapp.category
- */
-
-/**
- * InTransfer Transaction
- * @typedef {BasicTransaction} InTransferTransaction
- * @property {Object} asset
- * @property {Object} asset.inTransfer
- * @property {string} asset.inTransfer.dappId
- */
-
-/**
- * OutTransfer Transaction
- * @typedef {BasicTransaction} OutTransferTransaction
- * @property {Object} asset
- * @property {Object} asset.outTransfer
- * @property {string} asset.outTransfer.dappId
- * @property {string} asset.outTransfer.transactionId
- */
-
-/**
- * Transaction
- * @typedef {(TransferTransaction|SecondPassphraseTransaction|DelegateTransaction|VoteTransaction|MultisigRegistrationTransaction|DappRegistrationTransaction|InTransferTransaction|OutTransferTransaction)} Transaction
- */
-
-/**
- * Transaction Filters
- * @typedef {Object} filters.Transaction
- */
-
 const sqlFiles = {
 	create: 'transactions/create.sql',
 };
@@ -137,11 +42,6 @@ const trsCreateFields = [
 ];
 
 class ChainTransaction extends TransactionEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.Transaction} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -150,14 +50,6 @@ class ChainTransaction extends TransactionEntity {
 		this.SQLs = this.loadSQLFiles('transaction', sqlFiles, this.sqlDirectory);
 	}
 
-	/**
-	 * Create transactions object
-	 *
-	 * @param {Transaction|Array.<Transaction>} data
-	 * @param {Object} [_options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
-	 */
 	create(data, _options, tx) {
 		const transactions = ChainTransaction._sanitizeCreateData(data);
 

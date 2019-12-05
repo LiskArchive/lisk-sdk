@@ -59,8 +59,8 @@ describe('GET /peers', () => {
 			checkResponse: true,
 		},
 		state: {
-			valid: [0, 1, 2],
-			invalid: [-1, 3],
+			valid: ['connected', 'disconnected'],
+			invalid: ['invalid', 'banned'],
 			checkResponse: true,
 		},
 		version: {
@@ -87,7 +87,7 @@ describe('GET /peers', () => {
 		},
 	};
 	/**
-	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different apporach to setup the functional test
+	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different approach to setup the functional test
 	 */
 	Object.keys(paramSet).forEach(param => {
 		// Describe each param
@@ -121,6 +121,8 @@ describe('GET /peers', () => {
 	});
 
 	describe('pass data from a real peer', () => {
+		const PEER_STATE_CONNECTED = 'connected';
+
 		it(`using a valid httpPort = ${
 			validHeaders.httpPort
 		} should return the result`, async () => {
@@ -135,9 +137,9 @@ describe('GET /peers', () => {
 			validHeaders.state
 		} should return the result`, async () => {
 			return peersEndpoint
-				.makeRequest({ state: validHeaders.state }, 200)
+				.makeRequest({ state: PEER_STATE_CONNECTED }, 200)
 				.then(res => {
-					expect(res.body.data[0].state).to.be.eql(2);
+					expect(res.body.data[0].state).to.be.eql('connected');
 				});
 		});
 

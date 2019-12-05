@@ -14,16 +14,6 @@
 
 'use strict';
 
-/**
- * Extends standard Error with a code field and toJson function.
- *
- * @class
- * @memberof helpers
- * @param {string} message
- * @param {number} code
- * @see Parent: {@link helpers}
- * @todo Add description for the params
- */
 class ApiError extends Error {
 	constructor(message, code, errors = []) {
 		super();
@@ -32,11 +22,6 @@ class ApiError extends Error {
 		this.errors = errors;
 	}
 
-	/**
-	 * Returns an ApiError instance message
-	 *
-	 * @returns {string}
-	 */
 	toJson() {
 		return {
 			message: this.message,

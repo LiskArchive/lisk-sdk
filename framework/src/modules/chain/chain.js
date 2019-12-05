@@ -49,12 +49,6 @@ const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
 const forgeInterval = 1000;
 
-/**
- * Chain Module
- *
- * @namespace Framework.modules.chain
- * @type {module.Chain}
- */
 module.exports = class Chain {
 	constructor(channel, options) {
 		this.channel = channel;
@@ -149,6 +143,7 @@ module.exports = class Chain {
 				blocksModule: this.blocks,
 				bftModule: this.bft,
 				dposModule: this.dpos,
+				storage: this.storage,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
@@ -206,6 +201,14 @@ module.exports = class Chain {
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
 			await this.processor.init(this.options.genesisBlock);
+
+			// Update Application State after processor is initialized
+			this.channel.invoke('app:updateApplicationState', {
+				height: this.blocks.lastBlock.height,
+				lastBlockId: this.blocks.lastBlock.id,
+				maxHeightPrevoted: this.blocks.lastBlock.maxHeightPrevoted || 0,
+				blockVersion: this.blocks.lastBlock.version,
+			});
 
 			this._subscribeToEvents();
 
@@ -519,7 +522,6 @@ module.exports = class Chain {
 	async _forgingTask() {
 		return this.scope.sequence.add(async () => {
 			try {
-				await this.forger.beforeForge();
 				if (!this.forger.delegatesEnabled()) {
 					this.logger.debug('No delegates are enabled');
 					return;
@@ -528,6 +530,7 @@ module.exports = class Chain {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
+				await this.forger.beforeForge();
 				await this.forger.forge();
 			} catch (err) {
 				this.logger.error({ err });

@@ -14,17 +14,24 @@
  */
 import { expect } from 'chai';
 import { P2P } from '../../src/p2p';
+import { constructPeerId } from '../../src/utils';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
+		const generatedPeers = [...Array(10)].map((_e, i) => {
+			return {
+				ipAddress: '120.0.0.' + i,
+				wsPort: 5000 + i,
+			};
+		});
+
 		const P2PNode = new P2P({
 			seedPeers: [],
-			blacklistedPeers: [],
-			fixedPeers: [],
-			whitelistedPeers: [],
-			previousPeers: [],
+			blacklistedPeers: generatedPeers.slice(6),
+			fixedPeers: generatedPeers.slice(0, 6),
+			whitelistedPeers: generatedPeers.slice(2, 3),
+			previousPeers: generatedPeers.slice(4, 5),
 			connectTimeout: 5000,
-			wsEngine: 'ws',
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
@@ -49,6 +56,18 @@ describe('p2p', () => {
 			return expect(P2PNode)
 				.to.be.an('object')
 				.and.be.instanceof(P2P);
+		});
+
+		it('should load PeerBook with correct fixedPeer hierarchy', async () => {
+			const expectedFixedPeers = generatedPeers
+				.slice(0, 6)
+				.map(peer => constructPeerId(peer.ipAddress, peer.wsPort));
+
+			expect(expectedFixedPeers).to.have.members(
+				P2PNode['_peerBook'].allPeers
+					.filter(peer => peer.internalState?.peerKind == 'fixedPeer')
+					.map(peer => peer.peerId),
+			);
 		});
 
 		it('should reject at multiple start attempt', async () => {

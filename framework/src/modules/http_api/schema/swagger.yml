@@ -1051,10 +1051,10 @@ parameters:
     name: state
     in: query
     description: Current state of the network
-    type: integer
-    format: int32
-    minimum: 0
-    maximum: 2
+    type: string
+    enum:
+      - connected
+      - disconnected
   height:
     name: height
     in: query
@@ -2069,27 +2069,19 @@ definitions:
         format: protocolVersion
         description: The protocol version of Lisk Core that the peer node runs on.
       state:
-        type: integer
-        example: 2
-        format: int32
-        minimum: 0
-        maximum: 2
+        type: string
+        example: 'connected'
+        enum:
+          - connected
+          - disconnected
         description: |
           The state of the Peer.
-          Available values: Connected, Disconnected, Banned
       height:
         type: integer
         example: 123
         description: |
           Network height on the peer node.
           Represents the current number of blocks in the chain on the peer node.
-      nonce:
-        type: string
-        example: sYHEDBKcScaAAAYg
-        minLength: 1
-        description: |
-          Unique Identifier for the peer.
-          Random string.
 
   Fees:
     type: object

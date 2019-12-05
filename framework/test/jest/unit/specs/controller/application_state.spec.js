@@ -29,7 +29,7 @@ describe('Application State', () => {
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
-		nethash: 'test broadhash',
+		nethash: 'test nethash',
 		maxHeightPrevoted: 0,
 		height: 1,
 		os: 'platformrelease',
@@ -42,7 +42,7 @@ describe('Application State', () => {
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
-		nethash: 'test broadhash',
+		nethash: 'test nethash',
 		maxHeightPrevoted: 0,
 		height: 1,
 	};
@@ -67,7 +67,7 @@ describe('Application State', () => {
 		it('should initiate the application state', () => {
 			// Assert
 			expect(applicationState.logger).toBe(logger);
-			expect(applicationState.stateChannel).toBe(undefined);
+			expect(applicationState.stateChannel).toBeUndefined();
 			expect(applicationState.state).toEqual(mockedState);
 		});
 	});
@@ -109,20 +109,19 @@ describe('Application State', () => {
 				};
 			});
 
-			it('should throw an error', () => {
+			it('should throw an error', async () => {
 				// Act && Assert
-				return expect(applicationState.update(newState)).rejects.toThrow(
+				await expect(applicationState.update(newState)).rejects.toThrow(
 					errorMessage,
 				);
 			});
 
 			it('should log the error stack', async () => {
-				try {
-					await applicationState.update(newState);
-				} catch (error) {
-					expect(logger.error).toHaveBeenCalled();
-					expect(logger.error).toHaveBeenLastCalledWith(error.stack);
-				}
+				// Act && Assert
+				await expect(applicationState.update(newState)).rejects.toThrow(
+					errorMessage,
+				);
+				expect(logger.error).toHaveBeenLastCalledWith(errorMessage.stack);
 			});
 		});
 

@@ -36,7 +36,7 @@ const {
 } = require('@liskhq/lisk-p2p');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
+const { lookupPeersIPs } = require('./utils');
 const { NetworkInfo } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
@@ -45,12 +45,6 @@ const NETWORK_INFO_KEY_NODE_SECRET = 'node_secret';
 const NETWORK_INFO_KEY_TRIED_PEERS = 'tried_peers_list';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
-/**
- * Network Module
- *
- * @namespace Framework.modules.network
- * @type {module.Network}
- */
 module.exports = class Network {
 	constructor(options) {
 		this.options = options;
@@ -119,7 +113,6 @@ module.exports = class Network {
 
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
-			state: 2, // TODO: Delete state property
 			wsPort: this.options.wsPort,
 			advertiseAddress: this.options.advertiseAddress,
 		});
@@ -147,7 +140,7 @@ module.exports = class Network {
 
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
-			hostAddress: this.options.address,
+			hostIp: this.options.hostIp,
 			blacklistedPeers,
 			fixedPeers,
 			whitelistedPeers,
@@ -156,13 +149,11 @@ module.exports = class Network {
 				wsPort: peer.wsPort,
 			})),
 			previousPeers,
-			discoveryInterval: this.options.discoveryInterval,
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,
 			peerBanTime: this.options.peerBanTime,
 			populatorInterval: this.options.populatorInterval,
-			sendPeerLimit: this.options.emitPeerLimit,
-			peerDiscoveryResponseLength: this.options.peerDiscoveryResponseLength,
+			sendPeerLimit: this.options.sendPeerLimit,
 			maxPeerDiscoveryResponseLength: this.options
 				.maxPeerDiscoveryResponseLength,
 			maxPeerInfoSize: this.options.maxPeerInfoSize,
@@ -393,24 +384,8 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
-			getPeers: action => {
-				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getConnectedPeers(),
-					disconnectedPeers: this.p2p.getDisconnectedPeers(),
-				});
-
-				return filterByParams(peers, action.params);
-			},
-			getPeersCount: action => {
-				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getConnectedPeers(),
-					disconnectedPeers: this.p2p.getDisconnectedPeers(),
-				});
-
-				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
-
-				return filterByParams(peers, filterWithoutLimitOffset).length;
-			},
+			getConnectedPeers: () => this.p2p.getConnectedPeers(),
+			getDisconnectedPeers: () => this.p2p.getDisconnectedPeers(),
 			applyPenalty: action =>
 				this.p2p.applyPenalty({
 					peerId: action.params.peerId,

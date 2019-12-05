@@ -17,14 +17,6 @@
 const BigNum = require('@liskhq/bignum');
 const { hash, verifyData } = require('@liskhq/lisk-cryptography');
 
-/**
- Validate block signature.
- *
- * @private
- * @func validateSignature
- * @param {Object} block - Target block
- * @param {Buffer} blockBytes - bytes of block
- */
 const validateSignature = (block, blockBytes) => {
 	const signatureLength = 64;
 	const dataWithoutSignature = blockBytes.slice(
@@ -44,13 +36,6 @@ const validateSignature = (block, blockBytes) => {
 	}
 };
 
-/**
- * Validate previous block property.
- *
- * @func validatePreviousBlockProperty
- * @param {Object} block - Target block
- * @param {Object} genesisBlock
- */
 const validatePreviousBlockProperty = (block, genesisBlock) => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
@@ -67,14 +52,6 @@ const validatePreviousBlockProperty = (block, genesisBlock) => {
 	}
 };
 
-/**
- * Validate block reward.
- *
- * @func validateReward
- * @param {Object} block - Target block
- * @param {Object} expectedReward - expected block reward
- * @param {Object} exceptions
- */
 const validateReward = (block, expectedReward, exceptions) => {
 	expectedReward = new BigNum(expectedReward);
 
@@ -89,12 +66,6 @@ const validateReward = (block, expectedReward, exceptions) => {
 	}
 };
 
-/**
- Validate block payload (transactions).
- *
- * @func validatePayload
- * @param {Object} block - Target block
- */
 const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
 	if (block.payloadLength > maxPayloadLength) {
 		throw new Error('Payload length is too long');
@@ -146,14 +117,6 @@ const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
 	}
 };
 
-/**
- * Validate block slot according to timestamp.
- *
- * @private
- * @func validateBlockSlot
- * @param {Object} block - Target block
- * @param {Object} lastBlock - Last block
- */
 // TODO: Move to DPOS validation
 const validateBlockSlot = (block, lastBlock, slots) => {
 	const blockSlotNumber = slots.getSlotNumber(block.timestamp);

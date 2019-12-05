@@ -22,7 +22,7 @@ import {
 	DEFAULT_TRIED_BUCKET_SIZE,
 } from '../constants';
 import { ExistingPeerError } from '../errors';
-import { P2PPeerInfo } from '../p2p_types';
+import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
 
 import { NewList, NewListConfig } from './new_list';
@@ -47,8 +47,8 @@ export class PeerBook {
 				? newListConfig
 				: {
 						secret,
-						peerBucketCount: DEFAULT_NEW_BUCKET_COUNT,
-						peerBucketSize: DEFAULT_NEW_BUCKET_SIZE,
+						numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
+						bucketSize: DEFAULT_NEW_BUCKET_SIZE,
 						peerType: PEER_TYPE.NEW_PEER,
 				  },
 		);
@@ -57,8 +57,8 @@ export class PeerBook {
 				? triedListConfig
 				: {
 						secret,
-						peerBucketCount: DEFAULT_TRIED_BUCKET_COUNT,
-						peerBucketSize: DEFAULT_TRIED_BUCKET_SIZE,
+						numOfBuckets: DEFAULT_TRIED_BUCKET_COUNT,
+						bucketSize: DEFAULT_TRIED_BUCKET_SIZE,
 						peerType: PEER_TYPE.TRIED_PEER,
 				  },
 		);
@@ -78,16 +78,16 @@ export class PeerBook {
 
 	public getRandomizedPeerList(
 		minimumPeerDiscoveryThreshold: number,
-		peerDiscoveryResponseLength: number,
+		maxPeerDiscoveryResponseLength: number,
 	): ReadonlyArray<P2PPeerInfo> {
 		const allPeers = [...this.newPeers, ...this.triedPeers];
 
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
-			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.25),
+			Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.25),
 		);
 		const max = Math.floor(
-			Math.min(peerDiscoveryResponseLength, allPeers.length * 0.5),
+			Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.5),
 		);
 
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
@@ -100,16 +100,23 @@ export class PeerBook {
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const triedPeer = this._triedPeers.getPeer(peerInfo);
-		if (this._triedPeers.getPeer(peerInfo)) {
+		const triedPeer = this._triedPeers.getPeer(peerInfo.peerId);
+		if (triedPeer) {
 			return triedPeer;
 		}
 
-		return this._newPeers.getPeer(peerInfo);
+		return this._newPeers.getPeer(peerInfo.peerId);
 	}
 
-	public addPeer(peerInfo: P2PPeerInfo): void {
-		if (this._triedPeers.getPeer(peerInfo)) {
+	public hasPeer(peerInfo: P2PPeerInfo): boolean {
+		return (
+			this._triedPeers.hasPeer(peerInfo.peerId) ||
+			this._newPeers.hasPeer(peerInfo.peerId)
+		);
+	}
+
+	public addPeer(peerInfo: P2PEnhancedPeerInfo): void {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			throw new ExistingPeerError(peerInfo);
 		}
 
@@ -117,11 +124,11 @@ export class PeerBook {
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			return this._triedPeers.updatePeer(peerInfo);
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
 			return this._newPeers.updatePeer(peerInfo);
 		}
 
@@ -129,24 +136,23 @@ export class PeerBook {
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			return this._triedPeers.removePeer(peerInfo);
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
 			return this._newPeers.removePeer(peerInfo);
 		}
 
 		return false;
 	}
 
-	// Move a peer from newList to triedList on events like on successful connection.
-	public upgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo)) {
+	public upgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
+		if (this._triedPeers.hasPeer(peerInfo.peerId)) {
 			return true;
 		}
 
-		if (this._newPeers.getPeer(peerInfo)) {
+		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			this._newPeers.removePeer(peerInfo);
 			this._triedPeers.addPeer(peerInfo);
 
@@ -156,18 +162,12 @@ export class PeerBook {
 		return false;
 	}
 
-	/**
-	 * Description: When a peer is downgraded for some reasons then new/triedPeers will trigger their failedConnectionAction,
-	 * if the peer is deleted from newList that means the peer is completely deleted from the peer lists and need to inform the calling entity by returning true.
-	 */
-	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._newPeers.getPeer(peerInfo)) {
-			if (this._newPeers.failedConnectionAction(peerInfo)) {
-				return true;
-			}
+	public downgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
+		if (this._newPeers.hasPeer(peerInfo.peerId)) {
+			return this._newPeers.failedConnectionAction(peerInfo);
 		}
 
-		if (this._triedPeers.getPeer(peerInfo)) {
+		if (this._triedPeers.hasPeer(peerInfo.peerId)) {
 			const failed = this._triedPeers.failedConnectionAction(peerInfo);
 			if (failed) {
 				this.addPeer(peerInfo);

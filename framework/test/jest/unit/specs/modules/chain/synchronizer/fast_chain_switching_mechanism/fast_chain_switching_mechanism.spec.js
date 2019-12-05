@@ -15,7 +15,10 @@
 'use strict';
 
 const { when } = require('jest-when');
-const { Blocks } = require('../../../../../../../../src/modules/chain/blocks');
+const {
+	Blocks,
+	StateStore,
+} = require('../../../../../../../../src/modules/chain/blocks');
 const { BFT } = require('../../../../../../../../src/modules/chain/bft');
 const {
 	BlockProcessorV2,
@@ -76,8 +79,8 @@ describe('fast_chain_switching_mechanism', () => {
 				Account: {
 					get: jest.fn(),
 				},
-				ChainMeta: {
-					getKey: jest.fn(),
+				ChainState: {
+					get: jest.fn(),
 				},
 			},
 		};
@@ -223,10 +226,10 @@ describe('fast_chain_switching_mechanism', () => {
 				)
 				.mockResolvedValue([genesisBlockDevnet, lastBlock]);
 
-			// Simulate finalized height stored in ChainMeta table is 0
-			when(storageMock.entities.ChainMeta.getKey)
-				.calledWith('BFT.finalizedHeight')
-				.mockResolvedValue(0);
+			// Simulate finalized height stored in ChainState table is 0
+			storageMock.entities.ChainState.get.mockResolvedValue([
+				{ key: 'BFT.finalizedHeight', value: 0 },
+			]);
 			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks');
 			jest.spyOn(fastChainSwitchingMechanism, '_switchChain');
 			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks');
@@ -243,13 +246,16 @@ describe('fast_chain_switching_mechanism', () => {
 			}, {});
 
 			await blocksModule.init();
-			await bftModule.init(minActiveHeightsOfDelegates);
+			const stateStore = new StateStore(storageMock);
+			await stateStore.chainState.cache();
+			await bftModule.init(stateStore, minActiveHeightsOfDelegates);
 		});
 
 		afterEach(() => {
 			jest.clearAllMocks();
 			// Independently of the correct execution of the mechanisms, `active` property should be always
 			// set to false upon finishing the execution
+			// eslint-disable-next-line jest/no-standalone-expect
 			expect(fastChainSwitchingMechanism.active).toBeFalsy();
 		});
 
@@ -297,7 +303,6 @@ describe('fast_chain_switching_mechanism', () => {
 					aPeerId,
 					"Peer didn't return a common block",
 				);
-				expect(fastChainSwitchingMechanism.active).toBeFalsy();
 			});
 		});
 
@@ -447,7 +452,9 @@ describe('fast_chain_switching_mechanism', () => {
 				}, {});
 
 				await blocksModule.init(); // Loads last block among other checks
-				await bftModule.init(minActiveHeightsOfDelegates); // Loads block headers
+				const stateStore = new StateStore(storageMock);
+				await stateStore.chainState.cache();
+				await bftModule.init(stateStore, minActiveHeightsOfDelegates); // Loads block headers
 
 				const heightList = new Array(
 					Math.min(

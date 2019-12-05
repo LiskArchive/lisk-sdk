@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,15 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-const { configurator } = require('../../../../../../../src');
-
-const devConfig = require('../../../../../../fixtures/config/devnet/config');
-
-// To compile and have one unified config along with defaults
-configurator.loadConfig(devConfig);
-
-module.exports = {
-	config: configurator.getConfig({}, { failOnInvalidArg: false }),
-};
+INSERT INTO "chain_state" ("key", "value")
+VALUES(${key},${value})
+ON CONFLICT ON CONSTRAINT chain_state_pkey
+DO
+	UPDATE SET "value" = ${value};
