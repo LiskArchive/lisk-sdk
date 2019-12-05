@@ -134,8 +134,6 @@ describe(`Connection Create`, () => {
 				os: 'darwin',
 				height: 0,
 				httpPort: 0,
-				broadhash:
-					'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 				nonce: `O2wTkjqplHII500${index}`,
 			});
 

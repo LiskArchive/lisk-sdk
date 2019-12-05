@@ -29,7 +29,7 @@ describe('Application State', () => {
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
-		nethash: 'test broadhash',
+		nethash: 'test nethash',
 		maxHeightPrevoted: 0,
 		height: 1,
 		os: 'platformrelease',
@@ -42,7 +42,7 @@ describe('Application State', () => {
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
-		nethash: 'test broadhash',
+		nethash: 'test nethash',
 		maxHeightPrevoted: 0,
 		height: 1,
 	};
