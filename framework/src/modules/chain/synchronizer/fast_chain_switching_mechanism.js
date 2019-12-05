@@ -16,11 +16,6 @@
 
 const { BaseSynchronizer } = require('./base_synchronizer');
 const {
-	clearBlocksTempTable,
-	restoreBlocks,
-	deleteBlocksAfterHeight,
-} = require('./utils');
-const {
 	ApplyPenaltyAndAbortError,
 	ApplyPenaltyAndRestartError,
 	AbortError,
@@ -40,7 +35,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		dpos,
 		activeDelegates,
 	}) {
-		super(storage, logger, channel);
+		super(storage, logger, channel, processor, blocks);
 		this.slots = slots;
 		this.dpos = dpos;
 		this.blocks = blocks;
@@ -171,11 +166,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		if (highestCommonBlock.height < this.bft.finalizedHeight) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
-				`Common block height ${
-					highestCommonBlock.height
-				} is lower than the finalized height of the chain ${
-					this.bft.finalizedHeight
-				}`,
+				`Common block height ${highestCommonBlock.height} is lower than the finalized height of the chain ${this.bft.finalizedHeight}`,
 			);
 		}
 
@@ -209,9 +200,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		if (!blocks || !blocks.length) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
-				`Peer didn't return any requested block within IDs ${
-					highestCommonBlock.id
-				} and ${receivedBlock.id}`,
+				`Peer didn't return any requested block within IDs ${highestCommonBlock.id} and ${receivedBlock.id}`,
 			);
 		}
 
@@ -277,14 +266,9 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			{ height: highestCommonBlock.height },
 			'Deleting blocks after height',
 		);
-		await deleteBlocksAfterHeight(
-			this.processor,
-			this.blocks,
-			this.logger,
-			highestCommonBlock.height,
-		);
+		await this._deleteBlocksAfterHeight(highestCommonBlock.height);
 		this.logger.debug('Restoring blocks from temporary table');
-		await restoreBlocks(this.blocks, this.processor);
+		await this._restoreBlocks();
 		throw new ApplyPenaltyAndRestartError(
 			peerId,
 			'Detected invalid block while processing list of requested blocks',
@@ -298,13 +282,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			`Deleting blocks after height ${highestCommonBlock.height}`,
 		);
 
-		await deleteBlocksAfterHeight(
-			this.processor,
-			this.blocks,
-			this.logger,
-			highestCommonBlock.height,
-			true,
-		);
+		await this._deleteBlocksAfterHeight(highestCommonBlock.height, true);
 
 		try {
 			this.logger.debug(
@@ -336,7 +314,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			}
 		} finally {
 			this.logger.debug('Cleaning blocks temp table');
-			await clearBlocksTempTable(this.storage);
+			await this._clearBlocksTempTable();
 		}
 	}
 
@@ -364,15 +342,17 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const heightList = this._computeLastTwoRoundsHeights();
 
 		while (numberOfRequests < requestLimit) {
-			const blockIds = (await this.storage.entities.Block.get(
-				{
-					height_in: heightList,
-				},
-				{
-					sort: 'height:asc',
-					limit: heightList.length,
-				},
-			)).map(block => block.id);
+			const blockIds = (
+				await this.storage.entities.Block.get(
+					{
+						height_in: heightList,
+					},
+					{
+						sort: 'height:asc',
+						limit: heightList.length,
+					},
+				)
+			).map(block => block.id);
 
 			// Request the highest common block with the previously computed list
 			// to the given peer

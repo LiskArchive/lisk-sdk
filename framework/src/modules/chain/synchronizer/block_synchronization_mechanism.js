@@ -19,9 +19,6 @@ const { BaseSynchronizer } = require('./base_synchronizer');
 const {
 	computeLargestSubsetMaxBy,
 	computeBlockHeightsList,
-	deleteBlocksAfterHeight,
-	restoreBlocks,
-	clearBlocksTempTable,
 } = require('./utils');
 const { FORK_STATUS_DIFFERENT_CHAIN } = require('../bft');
 const {
@@ -42,7 +39,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		processorModule,
 		activeDelegates,
 	}) {
-		super(storage, logger, channel);
+		super(storage, logger, channel, processorModule, blocks);
 		this.bft = bft;
 		this.slots = slots;
 		this.blocks = blocks;
@@ -209,17 +206,12 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 					{ height: lastCommonBlock.height },
 					'Deleting blocks after height',
 				);
-				await deleteBlocksAfterHeight(
-					this.processorModule,
-					this.blocks,
-					this.logger,
-					lastCommonBlock.height,
-				);
+				await this._deleteBlocksAfterHeight(lastCommonBlock.height);
 				this.logger.debug('Restoring blocks from temporary table');
-				await restoreBlocks(this.blocks, this.processorModule);
+				await this._restoreBlocks();
 
 				this.logger.debug('Cleaning blocks temp table');
-				await clearBlocksTempTable(this.storage);
+				await this._clearBlocksTempTable();
 			} catch (error) {
 				this.logger.error(
 					{ err: error },
@@ -241,7 +233,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 
 		this.logger.debug('Cleaning blocks temporary table');
-		await clearBlocksTempTable(this.storage);
+		await this._clearBlocksTempTable();
 
 		this.logger.info('Restarting block synchronization');
 
@@ -284,7 +276,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		this.logger.debug('Cleaning up blocks temporary table');
-		await clearBlocksTempTable(this.storage);
+		await this._clearBlocksTempTable();
 
 		this.logger.debug(
 			{ peerId },
@@ -327,13 +319,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Deleting blocks after common block',
 		);
 
-		await deleteBlocksAfterHeight(
-			this.processorModule,
-			this.blocks,
-			this.logger,
-			lastCommonBlock.height,
-			true,
-		);
+		await this._deleteBlocksAfterHeight(lastCommonBlock.height, true);
 
 		this.logger.debug(
 			{ lastBlockId: this.blocks.lastBlock.id },
