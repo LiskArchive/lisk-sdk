@@ -85,8 +85,12 @@ class Transport {
 
 	async handleBroadcastBlock(blockJSON) {
 		if (this.synchronizer.isActive) {
-			this.logger.debug(
-				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
+			this.logger.trace(
+				{
+					blockId: blockJSON.id,
+					height: blockJSON.height,
+				},
+				'Skipping broadcasting block, blockchain synchronization is in progress',
 			);
 			return null;
 		}

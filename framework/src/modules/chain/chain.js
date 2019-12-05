@@ -96,11 +96,7 @@ module.exports = class Chain {
 				this.options.forging.waitThreshold >= this.options.constants.BLOCK_TIME
 			) {
 				throw Error(
-					`modules.chain.forging.waitThreshold=${
-						this.options.forging.waitThreshold
-					} is greater or equal to app.genesisConfig.BLOCK_TIME=${
-						this.options.constants.BLOCK_TIME
-					}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
+					`modules.chain.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.BLOCK_TIME=${this.options.constants.BLOCK_TIME}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
 				);
 			}
 
@@ -515,11 +511,11 @@ module.exports = class Chain {
 		return this.scope.sequence.add(async () => {
 			try {
 				if (!this.forger.delegatesEnabled()) {
-					this.logger.debug('No delegates are enabled');
+					this.logger.trace('No delegates are enabled');
 					return;
 				}
 				if (this.synchronizer.isActive) {
-					this.logger.debug('Client not ready to forge');
+					this.logger.debug('Syncing is in process, can not forge');
 					return;
 				}
 				await this.forger.beforeForge();
