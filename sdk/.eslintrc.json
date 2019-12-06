@@ -24,18 +24,6 @@
 		"operator-linebreak": "off",
 		"prefer-destructuring": "off",
 		"radix": "off",
-		"require-jsdoc": [
-			"error",
-			{
-				"require": {
-					"FunctionDeclaration": false,
-					"MethodDefinition": false,
-					"ClassDeclaration": false,
-					"ArrowFunctionExpression": false,
-					"FunctionExpression": false
-				}
-			}
-		],
 		"strict": "off",
 		"import/no-extraneous-dependencies": [
 			"error",
