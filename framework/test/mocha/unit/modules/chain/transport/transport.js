@@ -147,7 +147,7 @@ describe('transport', () => {
 		};
 
 		sinonSandbox.stub(jobsQueue, 'register');
-		sinonSandbox.stub(validator, 'validate').returns(true);
+		sinonSandbox.spy(validator, 'validate');
 
 		transportModule = new TransportModule({
 			channel: channelStub,
@@ -612,12 +612,24 @@ describe('transport', () => {
 					describe('when query is undefined', () => {
 						it('should throw a validation error', async () => {
 							query = {};
+							const defaultPeerId = 'peer-id';
 
 							try {
-								await transportModule.handleRPCGetBlocksFromId(query);
+								await transportModule.handleRPCGetBlocksFromId(
+									query,
+									defaultPeerId,
+								);
+								expect('should not reach').to.equal('here');
 							} catch (e) {
-								expect(e[0].message).to.equal(
+								expect(e.message).to.equal(
 									"should have required property 'blockId'",
+								);
+								expect(channelStub.invoke).to.be.calledOnceWith(
+									'network:applyPenalty',
+									{
+										peerId: defaultPeerId,
+										penalty: 100,
+									},
 								);
 							}
 						});
@@ -660,6 +672,7 @@ describe('transport', () => {
 
 				describe('handleEventPostBlock', () => {
 					let postBlockQuery;
+					const defaultPeerId = 'peer-id';
 
 					beforeEach(async () => {
 						postBlockQuery = {
@@ -670,7 +683,10 @@ describe('transport', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = false;
-							await transportModule.handleEventPostBlock(postBlockQuery);
+							await transportModule.handleEventPostBlock(
+								postBlockQuery,
+								defaultPeerId,
+							);
 						});
 
 						it('should call transportModule.logger.debug', async () =>
@@ -694,9 +710,20 @@ describe('transport', () => {
 
 							it('should throw an error', async () => {
 								try {
-									await transportModule.handleEventPostBlock(postBlockQuery);
+									await transportModule.handleEventPostBlock(
+										postBlockQuery,
+										defaultPeerId,
+									);
+									expect('should not reach').to.equal('here');
 								} catch (err) {
 									expect(err[0].message).to.equal(blockValidationError);
+									expect(channelStub.invoke).to.be.calledOnceWith(
+										'network:applyPenalty',
+										{
+											peerId: defaultPeerId,
+											penalty: 100,
+										},
+									);
 								}
 							});
 						});
