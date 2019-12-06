@@ -24,6 +24,7 @@ import {
 } from '../../../src/utils/select';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
+import sinon = require('sinon');
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
@@ -352,9 +353,17 @@ describe('peer selector', () => {
 		});
 
 		describe('when there are less than 100 peers', () => {
+			beforeEach(function() {
+				sinon.stub(Math, 'random').returns(0.499);
+			});
+
+			afterEach(function() {
+				sandbox.restore();
+			});
+
 			it('should return peers uniformly from both lists', () => {
-				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 75);
-				const newPeers = initPeerInfoListWithSuffix('111.112.114', 25);
+				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
+				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
 				const selectedPeers = selectPeersForConnection({
 					triedPeers,
@@ -367,11 +376,19 @@ describe('peer selector', () => {
 
 				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
 
-				const verifyNewPeers = selectedPeers.filter(peerInfo =>
-					newPeers.find(newPeerInfo => newPeerInfo.peerId === peerInfo.peerId),
-				);
+				let triedCount = 0;
+				let newCount = 0;
 
-				expect(verifyNewPeers).to.be.not.empty;
+				for (const peer of selectedPeers) {
+					if (triedPeers.find(triedPeer => peer.peerId === triedPeer.peerId)) {
+						triedCount++;
+					} else {
+						newCount++;
+					}
+				}
+
+				expect(triedCount).to.eql(25);
+				expect(newCount).to.eql(25);
 			});
 		});
 
