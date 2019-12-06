@@ -29,5 +29,44 @@ module.exports = {
 				statements: 50,
 			},
 		},
-*/
+	*/
+
+	/**
+	 * restoreMocks [boolean]
+	 *
+	 * Default: false
+	 *
+	 * Automatically restore mock state between every test.
+	 * Equivalent to calling jest.restoreAllMocks() between each test.
+	 * This will lead to any mocks having their fake implementations removed
+	 * and restores their initial implementation.
+	 *
+	 * IMPORTANT: Beware that mockFn.mockRestore only works when the mock was
+	 * created with jest.spyOn. Thus you have to take care of restoration yourself
+	 * when manually assigning jest.fn().
+	 */
+	restoreMocks: true,
+
+	/**
+	 * clearMocks [boolean]
+	 *
+	 * Default: false
+	 *
+	 * Automatically clear mock calls and instances between every test.
+	 * Equivalent to calling jest.clearAllMocks() between each test.
+	 * This does not remove any mock implementation that may have been provided.
+	 */
+	clearMocks: true,
+
+	/**
+	 * resetModules [boolean]
+	 *
+	 * Default: false
+	 *
+	 * By default, each test file gets its own independent module registry.
+	 * Enabling resetModules goes a step further and resets the module registry before running each individual test.
+	 * This is useful to isolate modules for every test so that local module state doesn't conflict between tests.
+	 * This can be done programmatically using jest.resetModules().
+	 */
+	resetModules: true,
 };
