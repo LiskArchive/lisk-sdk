@@ -62,7 +62,6 @@ describe.skip('validator.js', () => {
 
 		it('should load lisk validation formats after initialized.', () => {
 			// Assert
-			// console.log('asd', validatorInterface.validator.addFormat.mock.calls);
 			Object.keys(validatorInterface.ZSchema.formatsCache).forEach(
 				zSchemaType => {
 					expect(validatorInterface.validator.addFormat).toHaveBeenCalledWith(
