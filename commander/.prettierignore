@@ -2,6 +2,7 @@
 LICENSE
 .gitkeep
 mocha.opts
+tsconfig.tsbuildinfo
 
 # rc files
 .*rc
@@ -20,3 +21,4 @@ mocha.opts
 .nyc_output/
 coverage/
 dist/
+tmp/
