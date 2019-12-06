@@ -145,9 +145,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 					it('adding to pool delegate registration with already registered username should fail', done => {
 						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal(
-								`Transaction: ${
-									transaction2.id
-								} failed at .asset.username: Username is not unique.`,
+								`Transaction: ${transaction2.id} failed at .asset.username: Username is not unique.`,
 							);
 							done();
 						});
@@ -162,9 +160,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 						});
 						localCommon.addTransaction(library, transaction3, err => {
 							expect(err).to.equal(
-								`Transaction: ${
-									transaction3.id
-								} failed at .asset.username: Account is already a delegate`,
+								`Transaction: ${transaction3.id} failed at .asset.username: Account is already a delegate`,
 							);
 							done();
 						});

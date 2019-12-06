@@ -380,9 +380,7 @@ export abstract class BaseTransaction {
 		) {
 			return createResponse(this.id, [
 				new TransactionError(
-					`Public Key '${
-						signatureObject.publicKey
-					}' is not a member for account '${account.address}'.`,
+					`Public Key '${signatureObject.publicKey}' is not a member for account '${account.address}'.`,
 					this.id,
 				),
 			]);
@@ -392,9 +390,7 @@ export abstract class BaseTransaction {
 		if (this.signatures.includes(signatureObject.signature)) {
 			return createResponse(this.id, [
 				new TransactionError(
-					`Signature '${
-						signatureObject.signature
-					}' already present in transaction.`,
+					`Signature '${signatureObject.signature}' already present in transaction.`,
 					this.id,
 				),
 			]);

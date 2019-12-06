@@ -99,12 +99,14 @@ class Transport {
 	}
 
 	async handleRPCGetBlocksFromId(data, peerId) {
-		validator.validate(schemas.getBlocksFromIdRequest, data);
+		const errors = validator.validate(schemas.getBlocksFromIdRequest, data);
 
-		if (validator.validator.errors) {
+		if (errors.length) {
+			const error = `${errors[0].message}`;
+
 			this.logger.warn(
 				{
-					err: validator.validator.errors,
+					err: error,
 					req: data,
 				},
 				'getBlocksFromID request validation failed',
@@ -113,7 +115,7 @@ class Transport {
 				peerId,
 				penalty: 100,
 			});
-			throw validator.validator.errors;
+			throw new Error(error);
 		}
 
 		return this.blocksModule.loadBlocksFromLastBlockId(data.blockId, 34);

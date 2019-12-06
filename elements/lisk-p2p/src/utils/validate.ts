@@ -132,9 +132,7 @@ export const validatePeerInfo = (
 		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
 	) {
 		throw new InvalidPeerInfoError(
-			`Invalid peer ipAddress or port for peer with ip: ${
-				peerInfo.ipAddress
-			} and wsPort ${peerInfo.wsPort}`,
+			`Invalid peer ipAddress or port for peer with ip: ${peerInfo.ipAddress} and wsPort ${peerInfo.wsPort}`,
 		);
 	}
 

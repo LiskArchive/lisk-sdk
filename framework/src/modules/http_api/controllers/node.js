@@ -137,7 +137,10 @@ NodeController.getForgingStatus = async (context, next) => {
 	try {
 		const forgingStatus = await _getForgingStatus(publicKey.value);
 		if (forging && typeof forging.value === 'boolean') {
-			return next(null, forgingStatus.filter(f => f.forging === forging.value));
+			return next(
+				null,
+				forgingStatus.filter(f => f.forging === forging.value),
+			);
 		}
 		return next(null, forgingStatus);
 	} catch (err) {

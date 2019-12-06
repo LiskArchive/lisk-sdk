@@ -247,9 +247,9 @@ const extractProcessDetails = (
 	};
 };
 
-export const listApplication = async (): Promise<
-	ReadonlyArray<PM2ProcessInstance>
-> => {
+export const listApplication = async (): Promise<ReadonlyArray<
+	PM2ProcessInstance
+>> => {
 	await connectPM2();
 	const applications = (await listPM2()) as ReadonlyArray<PM2ProcessInstance>;
 	disconnect();

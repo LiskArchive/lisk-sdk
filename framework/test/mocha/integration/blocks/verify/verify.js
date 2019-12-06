@@ -428,9 +428,7 @@ describe('blocks/verify', () => {
 					await library.modules.processor.process(block2);
 				} catch (err) {
 					expect(err.message).equal(
-						`Failed to verify slot: 3377288. Block ID: ${
-							block2.id
-						}. Block Height: ${block2.height}`,
+						`Failed to verify slot: 3377288. Block ID: ${block2.id}. Block Height: ${block2.height}`,
 					);
 				}
 			});
@@ -515,9 +513,7 @@ describe('blocks/verify', () => {
 						await library.modules.processor.process(firstBlock);
 					} catch (err) {
 						expect(err[0].message).to.equal(
-							`Account does not have enough LSK: ${
-								account.address
-							}, balance: 0`,
+							`Account does not have enough LSK: ${account.address}, balance: 0`,
 						);
 					}
 				});

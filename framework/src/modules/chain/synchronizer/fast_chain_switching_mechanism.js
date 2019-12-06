@@ -171,11 +171,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		if (highestCommonBlock.height < this.bft.finalizedHeight) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
-				`Common block height ${
-					highestCommonBlock.height
-				} is lower than the finalized height of the chain ${
-					this.bft.finalizedHeight
-				}`,
+				`Common block height ${highestCommonBlock.height} is lower than the finalized height of the chain ${this.bft.finalizedHeight}`,
 			);
 		}
 
@@ -209,9 +205,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		if (!blocks || !blocks.length) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
-				`Peer didn't return any requested block within IDs ${
-					highestCommonBlock.id
-				} and ${receivedBlock.id}`,
+				`Peer didn't return any requested block within IDs ${highestCommonBlock.id} and ${receivedBlock.id}`,
 			);
 		}
 
@@ -364,15 +358,17 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const heightList = this._computeLastTwoRoundsHeights();
 
 		while (numberOfRequests < requestLimit) {
-			const blockIds = (await this.storage.entities.Block.get(
-				{
-					height_in: heightList,
-				},
-				{
-					sort: 'height:asc',
-					limit: heightList.length,
-				},
-			)).map(block => block.id);
+			const blockIds = (
+				await this.storage.entities.Block.get(
+					{
+						height_in: heightList,
+					},
+					{
+						sort: 'height:asc',
+						limit: heightList.length,
+					},
+				)
+			).map(block => block.id);
 
 			// Request the highest common block with the previously computed list
 			// to the given peer
