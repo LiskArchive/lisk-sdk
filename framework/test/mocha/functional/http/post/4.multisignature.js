@@ -477,9 +477,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				});
 			});
 
-			it(`using min greater than maximum(${
-				MULTISIG_CONSTRAINTS.MIN.MAXIMUM
-			}) should fail`, async () => {
+			it(`using min greater than maximum(${MULTISIG_CONSTRAINTS.MIN.MAXIMUM}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
 					networkIdentifier,
 					passphrase: scenarios.max_members_max_min.account.passphrase,
@@ -504,9 +502,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				});
 			});
 
-			it(`using min less than minimum(${
-				MULTISIG_CONSTRAINTS.MIN.MINIMUM
-			}) should fail`, async () => {
+			it(`using min less than minimum(${MULTISIG_CONSTRAINTS.MIN.MINIMUM}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
 					networkIdentifier,
 					passphrase: scenarios.max_members.account.passphrase,
@@ -533,9 +529,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		describe('lifetime', () => {
-			it(`using greater than maximum(${
-				MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
-			}) should fail`, async () => {
+			it(`using greater than maximum(${MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
 					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
@@ -560,9 +554,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				});
 			});
 
-			it(`using less than minimum(${
-				MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM
-			}) should fail`, async () => {
+			it(`using less than minimum(${MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM}) should fail`, async () => {
 				transaction = createInvalidRegisterMultisignatureTransaction({
 					networkIdentifier,
 					passphrase: scenarios.regular.account.passphrase,
@@ -602,9 +594,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${
-						scenarios.no_funds.account.address
-					}, balance: 0`,
+					`Account does not have enough LSK: ${scenarios.no_funds.account.address}, balance: 0`,
 				);
 				badTransactions.push(scenario.multiSigTransaction);
 			});

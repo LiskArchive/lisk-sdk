@@ -117,9 +117,7 @@ describe('p2p_request', () => {
 		it('should throw error when sending another request', () =>
 			expect(() => request.end('hello')).to.throw(
 				RPCResponseAlreadySentError,
-				`A response has already been sent for the request procedure <<${
-					requestOptions.procedure
-				}>>`,
+				`A response has already been sent for the request procedure <<${requestOptions.procedure}>>`,
 			));
 	});
 
