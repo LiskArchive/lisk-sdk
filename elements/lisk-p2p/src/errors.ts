@@ -106,9 +106,7 @@ export class RequestFailError extends Error {
 		this.peerId = peerId || '';
 		this.peerVersion = peerVersion || '';
 		this.message = peerId
-			? `${this.message}: Peer Id: ${this.peerId}: Peer Version: ${
-					this.peerVersion
-			  }`
+			? `${this.message}: Peer Id: ${this.peerId}: Peer Version: ${this.peerVersion}`
 			: message;
 	}
 }

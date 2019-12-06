@@ -127,26 +127,23 @@ export class VoteTransaction extends BaseTransaction {
 			.map(tx => new VoteTransaction(tx));
 		const publicKeys = this.asset.votes.map(vote => vote.substring(1));
 
-		return sameTypeTransactions.reduce(
-			(previous, tx) => {
-				const conflictingVotes = tx.asset.votes
-					.map(vote => vote.substring(1))
-					.filter(publicKey => publicKeys.includes(publicKey));
-				if (conflictingVotes.length > 0) {
-					return [
-						...previous,
-						new TransactionError(
-							`Transaction includes conflicting votes: ${conflictingVotes.toString()}`,
-							this.id,
-							'.asset.votes',
-						),
-					];
-				}
+		return sameTypeTransactions.reduce((previous, tx) => {
+			const conflictingVotes = tx.asset.votes
+				.map(vote => vote.substring(1))
+				.filter(publicKey => publicKeys.includes(publicKey));
+			if (conflictingVotes.length > 0) {
+				return [
+					...previous,
+					new TransactionError(
+						`Transaction includes conflicting votes: ${conflictingVotes.toString()}`,
+						this.id,
+						'.asset.votes',
+					),
+				];
+			}
 
-				return previous;
-			},
-			[] as ReadonlyArray<TransactionError>,
-		);
+			return previous;
+		}, [] as ReadonlyArray<TransactionError>);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
@@ -223,9 +220,7 @@ export class VoteTransaction extends BaseTransaction {
 		if (votedDelegatesPublicKeys.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${
-						votedDelegatesPublicKeys.length
-					}.`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votedDelegatesPublicKeys.length}.`,
 					this.id,
 					'.asset.votes',
 					votedDelegatesPublicKeys.length.toString(),
@@ -260,9 +255,7 @@ export class VoteTransaction extends BaseTransaction {
 		if (votedDelegatesPublicKeys.length > MAX_VOTE_PER_ACCOUNT) {
 			errors.push(
 				new TransactionError(
-					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${
-						votedDelegatesPublicKeys.length
-					}.`,
+					`Vote cannot exceed ${MAX_VOTE_PER_ACCOUNT} but has ${votedDelegatesPublicKeys.length}.`,
 					this.id,
 					'.asset.votes',
 					votedDelegatesPublicKeys.length.toString(),

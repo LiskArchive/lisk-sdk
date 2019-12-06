@@ -95,10 +95,12 @@ async function _getForgers(filters) {
 		}
 	}
 
-	const forgers = (await storage.entities.Account.get(
-		{ isDelegate: true, publicKey_in: forgerKeys },
-		{ limit: null },
-	))
+	const forgers = (
+		await storage.entities.Account.get(
+			{ isDelegate: true, publicKey_in: forgerKeys },
+			{ limit: null },
+		)
+	)
 		.map(({ username, address, publicKey }) => ({
 			username,
 			address,

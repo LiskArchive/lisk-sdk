@@ -66,9 +66,7 @@ class InMemoryChannel extends BaseChannel {
 		if (action.module === this.moduleAlias) {
 			if (!this.actions[action.name]) {
 				throw new Error(
-					`The action '${action.name}' on module '${
-						this.moduleAlias
-					}' does not exist.`,
+					`The action '${action.name}' on module '${this.moduleAlias}' does not exist.`,
 				);
 			}
 			return this.actions[action.name].handler(action);

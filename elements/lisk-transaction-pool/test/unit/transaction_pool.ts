@@ -152,8 +152,9 @@ describe('transaction pool', () => {
 			existsInPoolStub.returns(false);
 			receviedQueueSizeStub.returns(maxTransactionsPerQueue - 1);
 			addTransactionToQueue(queueName, transactions[0]);
-			expect(transactionPool.queues.received
-				.enqueueOne as sinon.SinonStub).to.be.calledWith(transactions[0]);
+			expect(
+				transactionPool.queues.received.enqueueOne as sinon.SinonStub,
+			).to.be.calledWith(transactions[0]);
 		});
 
 		it('should return false for isFull and alreadyExists if the transaction does not exist and queue is not full', async () => {
@@ -557,10 +558,9 @@ describe('transaction pool', () => {
 			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
 				validTransactions,
 			);
-			expect(transactionPool.queues.received
-				.removeFor as sinon.SinonStub).to.be.calledWith(
-				checkForTransactionValidTransactionId,
-			);
+			expect(
+				transactionPool.queues.received.removeFor as sinon.SinonStub,
+			).to.be.calledWith(checkForTransactionValidTransactionId);
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				validTransactions,
 			);
@@ -658,10 +658,9 @@ describe('transaction pool', () => {
 			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
 				verifiableTransactions,
 			);
-			expect(transactionPool.queues.validated
-				.removeFor as sinon.SinonStub).to.be.calledWith(
-				checkForTransactionVerifiableTransactionId,
-			);
+			expect(
+				transactionPool.queues.validated.removeFor as sinon.SinonStub,
+			).to.be.calledWith(checkForTransactionVerifiableTransactionId);
 			expect(transactionPool.queues.verified.enqueueMany).to.be.calledWith(
 				verifiableTransactions,
 			);
@@ -694,10 +693,9 @@ describe('transaction pool', () => {
 			expect(checkerStubs.checkTransactionForId.getCall(2)).to.be.calledWith(
 				pendingTransactions,
 			);
-			expect(transactionPool.queues.validated
-				.removeFor as sinon.SinonStub).to.be.calledWith(
-				checkForTransactionPendingTransactionId,
-			);
+			expect(
+				transactionPool.queues.validated.removeFor as sinon.SinonStub,
+			).to.be.calledWith(checkForTransactionPendingTransactionId);
 			expect(transactionPool.queues.pending.enqueueMany).to.be.calledWith(
 				pendingTransactions,
 			);

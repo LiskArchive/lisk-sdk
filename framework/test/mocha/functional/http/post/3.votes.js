@@ -303,9 +303,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 			});
-			transaction.asset.votes[0] = `+1${
-				accountFixtures.existingDelegate.publicKey
-			}`;
+			transaction.asset.votes[0] = `+1${accountFixtures.existingDelegate.publicKey}`;
 			transaction = elements.redoVoteTransactionSignature(
 				transaction,
 				networkIdentifier,
@@ -428,9 +426,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${
-						accountNoFunds.address
-					}, balance: 0`,
+					`Account does not have enough LSK: ${accountNoFunds.address}, balance: 0`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -472,9 +468,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.errors[0].message).to.include(
-					`Failed to validate signature ${
-						transactionFromDifferentNetwork.signature
-					}`,
+					`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
 				);
 				badTransactions.push(transactionFromDifferentNetwork);
 			});

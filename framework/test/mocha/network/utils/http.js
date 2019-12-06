@@ -158,9 +158,7 @@ module.exports = {
 			.then(res => {
 				if (res.status !== apiCodes.OK) {
 					throw new Error(
-						`Failed to enable forging for delegate with publicKey: ${
-							keys.publicKey
-						}`,
+						`Failed to enable forging for delegate with publicKey: ${keys.publicKey}`,
 					);
 				}
 				return JSON.parse(res.body).data[0];

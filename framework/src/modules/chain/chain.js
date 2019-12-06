@@ -96,11 +96,7 @@ module.exports = class Chain {
 				this.options.forging.waitThreshold >= this.options.constants.BLOCK_TIME
 			) {
 				throw Error(
-					`modules.chain.forging.waitThreshold=${
-						this.options.forging.waitThreshold
-					} is greater or equal to app.genesisConfig.BLOCK_TIME=${
-						this.options.constants.BLOCK_TIME
-					}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
+					`modules.chain.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.BLOCK_TIME=${this.options.constants.BLOCK_TIME}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
 				);
 			}
 

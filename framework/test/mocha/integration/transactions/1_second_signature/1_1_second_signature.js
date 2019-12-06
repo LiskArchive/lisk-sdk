@@ -118,12 +118,8 @@ describe('integration test (type 1) - double second signature registrations', ()
 		it('adding to pool second signature registration for same account should fail', done => {
 			localCommon.addTransaction(library, transaction2, err => {
 				const expectedErrors = [
-					`Transaction: ${
-						transaction2.id
-					} failed at .signSignature: Missing signSignature`,
-					`Transaction: ${
-						transaction2.id
-					} failed at .secondPublicKey: Register second signature only allowed once per account.`,
+					`Transaction: ${transaction2.id} failed at .signSignature: Missing signSignature`,
+					`Transaction: ${transaction2.id} failed at .secondPublicKey: Register second signature only allowed once per account.`,
 				];
 				expect(err).to.equal(expectedErrors.join(','));
 				done();

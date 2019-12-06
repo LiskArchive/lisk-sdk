@@ -16,6 +16,8 @@ mocha.opts
 
 # project specific paths
 test/mocha/.coverage-unit/
+logs/
+tmp/
 
 .DS_Store
 .log
