@@ -139,16 +139,36 @@ const filterByParams = (peers, filters) => {
 const consolidatePeers = (connectedPeers = [], disconnectedPeers = []) => {
 	// Assign state 2 to the connected peers
 	const connectedList = [...connectedPeers].map(peer => {
-		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;
+		const {
+			ipAddress,
+			options,
+			minVersion,
+			nethash,
+			nonce,
+			blockVersion,
+			maxHeightPrevoted,
+			lastBlockId,
+			...restOfPeerObject
+		} = peer;
 
-		return { ip: ipAddress, ...peerWithoutIp, state: PEER_STATE_CONNECTED };
+		return { ip: ipAddress, ...restOfPeerObject, state: PEER_STATE_CONNECTED };
 	});
 	const disconnectedList = [...disconnectedPeers].map(peer => {
-		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;
+		const {
+			ipAddress,
+			options,
+			minVersion,
+			nethash,
+			nonce,
+			blockVersion,
+			maxHeightPrevoted,
+			lastBlockId,
+			...restOfPeerObject
+		} = peer;
 
 		return {
 			ip: ipAddress,
-			...peerWithoutIp,
+			...restOfPeerObject,
 			state: PEER_STATE_DISCONNECTED,
 		};
 	});
