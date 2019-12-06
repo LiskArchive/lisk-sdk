@@ -244,25 +244,18 @@ describe('peerBook', () => {
 		});
 
 		describe('when peer exists in the tried peers list', () => {
-			it('should return true', () => {
+			it('should be removed', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
-				expect(peerBook.removePeer(samplePeers[0])).to.be.true;
+				peerBook.removePeer(samplePeers[0]);
 				expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 			});
 		});
 
 		describe('when peer exists in the new peers list', () => {
-			it('should return true', () => {
+			it('should be removed', () => {
 				peerBook.addPeer(samplePeers[0]);
-				expect(peerBook.removePeer(samplePeers[0])).to.be.true;
-				expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
-			});
-		});
-
-		describe('when peer does not exists in any of the peer book lists', () => {
-			it('should return false', () => {
-				expect(peerBook.removePeer(samplePeers[0])).to.be.false;
+				peerBook.removePeer(samplePeers[0]);
 				expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 			});
 		});
@@ -400,6 +393,33 @@ describe('peerBook', () => {
 				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength)
 					.length,
 			).to.be.lt(maxPeerListLength + 1);
+		});
+	});
+
+	describe('when PeerBook populated and cleaned up', () => {
+		beforeEach(() => {
+			samplePeers = initPeerInfoListWithSuffix('204.123.64', 3500);
+			peerBook = new PeerBook(peerBookConfig);
+
+			samplePeers.forEach(samplePeer => {
+				if (!peerBook.hasPeer(samplePeer)) {
+					peerBook.addPeer(samplePeer);
+				}
+
+				peerBook.upgradePeer(samplePeer);
+			});
+		});
+
+		it('should return empty Peer lists', () => {
+			const AllPeers = peerBook.allPeers;
+
+			AllPeers.forEach(peer => {
+				peerBook.removePeer(peer);
+			});
+
+			expect(peerBook.newPeers).to.be.empty;
+			expect(peerBook.triedPeers).to.be.empty;
+			expect(peerBook.allPeers).to.be.empty;
 		});
 	});
 });

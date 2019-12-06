@@ -42,8 +42,6 @@ export class TriedList extends BaseList {
 		this._maxReconnectTries = maxReconnectTries
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
-
-		this.initBuckets(this.bucketIdToBucket);
 	}
 
 	public get triedPeerConfig(): TriedListConfig {
