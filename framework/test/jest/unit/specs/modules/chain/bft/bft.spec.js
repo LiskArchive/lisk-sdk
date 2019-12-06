@@ -44,11 +44,6 @@ const generateBlocks = ({ startHeight, numberOfBlocks }) =>
 		);
 
 describe('bft', () => {
-	beforeEach(async () => {
-		jest.resetAllMocks();
-		jest.clearAllMocks();
-	});
-
 	describe('extractBFTBlockHeaderFromBlock', () => {
 		it('should extract particular headers for bft', async () => {
 			// Arrange,

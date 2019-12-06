@@ -2,6 +2,7 @@
 
 exports[`config/unit/jest.config.js unit test config must match to the snapshot. 1`] = `
 Object {
+  "clearMocks": true,
   "collectCoverage": true,
   "collectCoverageFrom": Array [
     "framework/src/controller/**",
