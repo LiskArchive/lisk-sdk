@@ -147,7 +147,7 @@ describe('transport', () => {
 		};
 
 		sinonSandbox.stub(jobsQueue, 'register');
-		sinonSandbox.stub(validator, 'validate').returns(true);
+		sinonSandbox.spy(validator, 'validate');
 
 		transportModule = new TransportModule({
 			channel: channelStub,
@@ -619,11 +619,12 @@ describe('transport', () => {
 									query,
 									defaultPeerId,
 								);
+								expect('should not reach').to.equal('here');
 							} catch (e) {
-								expect(e[0].message).to.equal(
+								expect(e.message).to.equal(
 									"should have required property 'blockId'",
 								);
-								expect(channelStub.invoke).toHaveBeenCalledWith(
+								expect(channelStub.invoke).to.be.calledOnceWith(
 									'network:applyPenalty',
 									{
 										peerId: defaultPeerId,
@@ -709,10 +710,14 @@ describe('transport', () => {
 
 							it('should throw an error', async () => {
 								try {
-									await transportModule.handleEventPostBlock(postBlockQuery);
+									await transportModule.handleEventPostBlock(
+										postBlockQuery,
+										defaultPeerId,
+									);
+									expect('should not reach').to.equal('here');
 								} catch (err) {
 									expect(err[0].message).to.equal(blockValidationError);
-									expect(channelStub.invoke).toHaveBeenCalledWith(
+									expect(channelStub.invoke).to.be.calledOnceWith(
 										'network:applyPenalty',
 										{
 											peerId: defaultPeerId,
