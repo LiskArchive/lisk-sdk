@@ -109,12 +109,8 @@ describe('integration test (type 1) - checking validated second signature regist
 			});
 			localCommon.addTransaction(library, auxTransaction, err => {
 				const expectedErrors = [
-					`Transaction: ${
-						auxTransaction.id
-					} failed at .signSignature: Missing signSignature`,
-					`Transaction: ${
-						auxTransaction.id
-					} failed at .secondPublicKey: Register second signature only allowed once per account.`,
+					`Transaction: ${auxTransaction.id} failed at .signSignature: Missing signSignature`,
+					`Transaction: ${auxTransaction.id} failed at .secondPublicKey: Register second signature only allowed once per account.`,
 				];
 				expect(err).to.equal(expectedErrors.join(','));
 				done();
@@ -139,18 +135,12 @@ describe('integration test (type 1) - checking validated second signature regist
 								localCommon.addTransaction(library, loadedTransaction, err => {
 									if (key !== 'MULTI') {
 										expect(err).to.equal(
-											`Transaction: ${
-												loadedTransaction.id
-											} failed at .signSignature: Missing signSignature`,
+											`Transaction: ${loadedTransaction.id} failed at .signSignature: Missing signSignature`,
 										);
 									} else {
 										const expectedErrors = [
-											`Transaction: ${
-												loadedTransaction.id
-											} failed at .signSignature: Missing signSignature`,
-											`Transaction: ${
-												loadedTransaction.id
-											} failed at .signatures: Missing signatures `,
+											`Transaction: ${loadedTransaction.id} failed at .signSignature: Missing signSignature`,
+											`Transaction: ${loadedTransaction.id} failed at .signatures: Missing signatures `,
 										];
 										expect(err).to.equal(expectedErrors.join(','));
 									}

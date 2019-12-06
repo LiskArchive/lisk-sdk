@@ -411,9 +411,7 @@ describe('transport', () => {
 				let processUnconfirmedTransactionError;
 
 				beforeEach(async () => {
-					processUnconfirmedTransactionError = `Transaction is already processed: ${
-						transaction.id
-					}`;
+					processUnconfirmedTransactionError = `Transaction is already processed: ${transaction.id}`;
 
 					transportModule.transactionPoolModule.processUnconfirmedTransaction.rejects(
 						[new Error(processUnconfirmedTransactionError)],

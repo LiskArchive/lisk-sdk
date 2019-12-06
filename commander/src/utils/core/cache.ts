@@ -48,7 +48,9 @@ export const startCache = async (
 ): Promise<string> => {
 	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
-	const { stderr }: ExecResult = await exec(
+	const {
+		stderr,
+	}: ExecResult = await exec(
 		`${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
 		{ cwd: installDir },
 	);

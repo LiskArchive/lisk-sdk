@@ -123,9 +123,7 @@ const config = {
 		const configReducer = (pm2Config, configuration) => {
 			const index = pm2Config.apps.length;
 			// eslint-disable-next-line no-param-reassign
-			configuration.components.storage.database = `${
-				configuration.components.storage.database
-			}_${index}`;
+			configuration.components.storage.database = `${configuration.components.storage.database}_${index}`;
 			try {
 				if (!fs.existsSync(`${__dirname}/../configs/`)) {
 					fs.mkdirSync(`${__dirname}/../configs/`);
@@ -136,9 +134,7 @@ const config = {
 				);
 			} catch (ex) {
 				throw new Error(
-					`Failed to write PM2 config for node ${index} to file system because of exception: ${
-						ex.message
-					}`,
+					`Failed to write PM2 config for node ${index} to file system because of exception: ${ex.message}`,
 				);
 			}
 

@@ -84,9 +84,7 @@ testContext.config.genesisBlock = _.cloneDeep(app.genesisBlock);
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
 
-testContext.baseUrl = `http://${config.modules.http_api.address}:${
-	config.modules.http_api.httpPort
-}`;
+testContext.baseUrl = `http://${config.modules.http_api.address}:${config.modules.http_api.httpPort}`;
 testContext.api = supertest(testContext.baseUrl);
 
 _.mixin(

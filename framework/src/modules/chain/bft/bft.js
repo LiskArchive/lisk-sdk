@@ -255,9 +255,7 @@ class BFT extends EventEmitter {
 			const activeHeights = minActiveHeightsOfDelegates[row.generatorPublicKey];
 			if (!activeHeights) {
 				throw new Error(
-					`Minimum active heights were not found for delegate "${
-						row.generatorPublicKey
-					}".`,
+					`Minimum active heights were not found for delegate "${row.generatorPublicKey}".`,
 				);
 			}
 

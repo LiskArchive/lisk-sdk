@@ -213,9 +213,7 @@ function forge(library, cb) {
 						last_block = library.modules.blocks.lastBlock;
 						library.modules.transactionPool._resetPool();
 						__testContext.debug(
-							`		New last block height: ${last_block.height} New last block ID: ${
-								last_block.id
-							}`,
+							`		New last block height: ${last_block.height} New last block ID: ${last_block.id}`,
 						);
 						seriesCb();
 					})
@@ -248,11 +246,7 @@ function addTransaction(library, transaction, cb) {
 		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
 	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
 	__testContext.debug(
-		`Enqueue transaction ID: ${
-			transaction.id
-		}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${
-			transaction.senderId
-		}, Recipient: ${transaction.recipientId}`,
+		`Enqueue transaction ID: ${transaction.id}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${transaction.senderId}, Recipient: ${transaction.recipientId}`,
 	);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)

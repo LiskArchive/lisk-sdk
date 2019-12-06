@@ -139,9 +139,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 						});
 						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal(
-								`Transaction: ${
-									transaction2.id
-								} failed at .asset.username: Account is already a delegate`,
+								`Transaction: ${transaction2.id} failed at .asset.username: Account is already a delegate`,
 							);
 							done();
 						});

@@ -56,9 +56,7 @@ class StorageSandbox extends Storage {
 	constructor(dbConfig) {
 		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
 			throw new Error(
-				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
-					process.env.NODE_ENV
-				}`,
+				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${process.env.NODE_ENV}`,
 			);
 		}
 		super(dbConfig, {});

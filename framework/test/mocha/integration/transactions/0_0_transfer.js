@@ -126,11 +126,7 @@ describe('integration test (type 0) - double transfers', () => {
 				it('adding to pool transfer for same account should fail', done => {
 					localCommon.addTransaction(library, transaction2, err => {
 						expect(err).to.be.equal(
-							`Transaction: ${
-								transaction2.id
-							} failed at .balance: Account does not have enough LSK: ${
-								account.address
-							}, balance: 99.9`,
+							`Transaction: ${transaction2.id} failed at .balance: Account does not have enough LSK: ${account.address}, balance: 99.9`,
 						);
 						done();
 					});
