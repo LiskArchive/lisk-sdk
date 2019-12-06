@@ -510,9 +510,7 @@ describe('duplicate_signatures', () => {
 							});
 							expect(results[valueIndex].value).to.be.undefined;
 							expect(results[errorIndex].error[0].message).to.eql(
-								`Signature '${
-									signatures[0].signature
-								}' already present in transaction.`,
+								`Signature '${signatures[0].signature}' already present in transaction.`,
 							);
 							expect(results[2].value).to.be.undefined;
 

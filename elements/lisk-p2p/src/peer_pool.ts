@@ -475,9 +475,11 @@ export class PeerPool extends EventEmitter {
 			peerLimit,
 		});
 
-		[...peersToConnect, ...disconnectedFixedPeers].forEach(
-			(peerInfo: P2PPeerInfo) =>
-				this._addOutboundPeer(peerInfo, this._nodeInfo as P2PNodeInfo),
+		[
+			...peersToConnect,
+			...disconnectedFixedPeers,
+		].forEach((peerInfo: P2PPeerInfo) =>
+			this._addOutboundPeer(peerInfo, this._nodeInfo as P2PNodeInfo),
 		);
 	}
 

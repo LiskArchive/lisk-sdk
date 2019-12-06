@@ -43,9 +43,7 @@ class Synchronizer {
 		for (const mechanism of this.mechanisms) {
 			assert(
 				typeof mechanism.isValidFor === 'function',
-				`Mechanism ${
-					mechanism.constructor.name
-				} should implement "isValidFor" method`,
+				`Mechanism ${mechanism.constructor.name} should implement "isValidFor" method`,
 			);
 			assert(
 				typeof mechanism.run === 'function',

@@ -126,12 +126,8 @@ describe('integration test (type 4) - checking registered multisignature transac
 			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
 				const expectedErrors = [
-					`Transaction: ${
-						multiSignatureToSameAccount.id
-					} failed at .signatures: Missing signatures `,
-					`Transaction: ${
-						multiSignatureToSameAccount.id
-					} failed at .signatures: Register multisignature only allowed once per account.`,
+					`Transaction: ${multiSignatureToSameAccount.id} failed at .signatures: Missing signatures `,
+					`Transaction: ${multiSignatureToSameAccount.id} failed at .signatures: Register multisignature only allowed once per account.`,
 				];
 				expect(err).to.equal(expectedErrors.join(','));
 				done();

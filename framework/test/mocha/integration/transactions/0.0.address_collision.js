@@ -185,11 +185,7 @@ describe('integration test (type 0) - address collision', () => {
 									expect(res).to.be.undefined;
 									expect(err).to.be.not.null;
 									expect(err).to.equal(
-										`Transaction: ${
-											secondTransactionWithData.id
-										} failed at .senderPublicKey: Invalid sender publicKey, actual: ${
-											publicKeys[1]
-										}, expected: ${publicKeys[0]}`,
+										`Transaction: ${secondTransactionWithData.id} failed at .senderPublicKey: Invalid sender publicKey, actual: ${publicKeys[1]}, expected: ${publicKeys[0]}`,
 									);
 									seriesCb();
 								},

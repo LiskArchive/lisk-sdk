@@ -94,9 +94,7 @@ describe('utils/misc', () => {
 	});
 
 	describe('#getNetgroup', () => {
-		it(`should throw an error if network is equal to ${
-			NETWORK.NET_OTHER
-		}`, () => {
+		it(`should throw an error if network is equal to ${NETWORK.NET_OTHER}`, () => {
 			expect(() =>
 				getNetgroup('wrong ipAddress', DEFAULT_RANDOM_SECRET),
 			).to.throw('IP address is unsupported.');
@@ -179,9 +177,7 @@ describe('utils/misc', () => {
 				.within(0, MAX_NEW_BUCKETS);
 		});
 
-		it(`should throw an error if network is equal to ${
-			NETWORK.NET_OTHER
-		}`, () => {
+		it(`should throw an error if network is equal to ${NETWORK.NET_OTHER}`, () => {
 			expect(() =>
 				getBucketId({
 					secret,

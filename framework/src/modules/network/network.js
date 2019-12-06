@@ -268,9 +268,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
 			this.logger.trace(
-				`EVENT_REQUEST_RECEIVED: Received inbound request for procedure ${
-					request.procedure
-				}`,
+				`EVENT_REQUEST_RECEIVED: Received inbound request for procedure ${request.procedure}`,
 			);
 			// If the request has already been handled internally by the P2P library, we ignore.
 			if (request.wasResponseSent) {
@@ -287,9 +285,7 @@ module.exports = class Network {
 					peerId: request.peerId,
 				});
 				this.logger.trace(
-					`Peer request fulfilled event: Responded to peer request ${
-						request.procedure
-					}`,
+					`Peer request fulfilled event: Responded to peer request ${request.procedure}`,
 				);
 				request.end(result); // Send the response back to the peer.
 			} catch (error) {
@@ -304,9 +300,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
 			this.logger.trace(
-				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${
-					packet.peerId
-				} for event ${packet.event}`,
+				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${packet.peerId} for event ${packet.event}`,
 			);
 			this.channel.publish('network:event', packet);
 		});

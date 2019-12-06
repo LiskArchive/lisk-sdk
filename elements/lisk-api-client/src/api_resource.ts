@@ -71,27 +71,25 @@ export class APIResource {
 	): Promise<APIResponse> {
 		const request = Axios.request(req)
 			.then((res: AxiosResponse) => res.data)
-			.catch(
-				(error: AxiosError): void => {
-					if (error.response) {
-						const { status } = error.response;
-						if (error.response.data) {
-							const {
-								error: errorString,
-								errors,
-								message,
-							}: APIErrorResponse = error.response.data;
-							throw new APIError(
-								message || errorString || 'An unknown error has occurred.',
-								status,
-								errors,
-							);
-						}
-						throw new APIError('An unknown error has occurred.', status);
+			.catch((error: AxiosError): void => {
+				if (error.response) {
+					const { status } = error.response;
+					if (error.response.data) {
+						const {
+							error: errorString,
+							errors,
+							message,
+						}: APIErrorResponse = error.response.data;
+						throw new APIError(
+							message || errorString || 'An unknown error has occurred.',
+							status,
+							errors,
+						);
 					}
-					throw error;
-				},
-			);
+					throw new APIError('An unknown error has occurred.', status);
+				}
+				throw error;
+			});
 
 		if (retry) {
 			return request.catch(async (err: Error) =>
