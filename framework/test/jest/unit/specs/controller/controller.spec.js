@@ -41,7 +41,7 @@ describe('Controller Class', () => {
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
-		nethash: 'test broadhash',
+		nethash: 'test nethash',
 	};
 	const systemDirs = {
 		temp: `${config.tempPath}/${appLabel}/`,
