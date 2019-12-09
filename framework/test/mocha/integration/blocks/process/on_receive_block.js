@@ -168,9 +168,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						.then(() => {
 							last_block = library.modules.blocks.lastBlock;
 							__testContext.debug(
-								`New last block height: ${
-									last_block.height
-								} New last block ID: ${last_block.id}`,
+								`New last block height: ${last_block.height} New last block ID: ${last_block.id}`,
 							);
 							return waterFallCb();
 						})

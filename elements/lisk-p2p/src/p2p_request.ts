@@ -58,9 +58,7 @@ export class P2PRequest {
 		) => {
 			if (this._wasResponseSent) {
 				throw new RPCResponseAlreadySentError(
-					`A response has already been sent for the request procedure <<${
-						options.procedure
-					}>>`,
+					`A response has already been sent for the request procedure <<${options.procedure}>>`,
 				);
 			}
 			this._wasResponseSent = true;

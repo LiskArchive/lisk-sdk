@@ -167,9 +167,7 @@ describe('transaction:sign', () => {
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
 				`--passphrase=pass:${defaultInputs.passphrase}`,
-				`--second-passphrase=pass:${
-					defaultInputsWithSecondPassphrase.secondPassphrase
-				}`,
+				`--second-passphrase=pass:${defaultInputsWithSecondPassphrase.secondPassphrase}`,
 			])
 			.it(
 				'should take transaction from arg and passphrase and second passphrase from flag to sign',
@@ -180,9 +178,7 @@ describe('transaction:sign', () => {
 							repeatPrompt: true,
 						},
 						secondPassphrase: {
-							source: `pass:${
-								defaultInputsWithSecondPassphrase.secondPassphrase
-							}`,
+							source: `pass:${defaultInputsWithSecondPassphrase.secondPassphrase}`,
 							repeatPrompt: true,
 						},
 					});

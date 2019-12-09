@@ -252,7 +252,6 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		afterEach(() => {
-			jest.clearAllMocks();
 			// Independently of the correct execution of the mechanisms, `active` property should be always
 			// set to false upon finishing the execution
 			// eslint-disable-next-line jest/no-standalone-expect

@@ -226,9 +226,7 @@ describe('GET /api/transactions', () => {
 							blockId: '1',
 							senderId: `${accountFixtures.genesis.address},${account.address}`,
 							senderPublicKey: accountFixtures.genesis.publicKey,
-							recipientPublicKey: `${accountFixtures.genesis.publicKey},${
-								account.publicKey
-							}`,
+							recipientPublicKey: `${accountFixtures.genesis.publicKey},${account.publicKey}`,
 							sort: 'amount:asc',
 						},
 						400,

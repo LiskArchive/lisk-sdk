@@ -21,7 +21,7 @@ const { createLoggerComponent } = require('../../../src/components/logger');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 
 // TODO: Remove this file
-const modulesLoader = new function() {
+const modulesLoader = new (function() {
 	this.storage = null;
 	this.logger = createLoggerComponent(__testContext.config.components.logger);
 
@@ -186,6 +186,6 @@ const modulesLoader = new function() {
 			cb,
 		);
 	};
-}();
+})();
 
 module.exports = modulesLoader;

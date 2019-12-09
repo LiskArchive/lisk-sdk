@@ -1140,9 +1140,7 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${
-						accountNoFunds.address
-					}, balance: 0`,
+					`Account does not have enough LSK: ${accountNoFunds.address}, balance: 0`,
 				);
 				badTransactions.push(transaction);
 			});

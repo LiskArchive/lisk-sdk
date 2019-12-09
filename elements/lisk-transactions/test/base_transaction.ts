@@ -710,9 +710,7 @@ describe('Base transaction class', () => {
 				store,
 				multisigMember,
 			);
-			const expectedError = `Signature '${
-				multisignatureFixture.testCases.output.signatures[0]
-			}' already present in transaction.`;
+			const expectedError = `Signature '${multisignatureFixture.testCases.output.signatures[0]}' already present in transaction.`;
 
 			expect(status).to.eql(Status.FAIL);
 			expect(errors[0].message).to.be.eql(expectedError);
@@ -744,11 +742,7 @@ describe('Base transaction class', () => {
 				multisigMember,
 			);
 
-			const expectedError = `Public Key '${
-				multisigMember.publicKey
-			}' is not a member for account '${
-				defaultMultisignatureAccount.address
-			}'.`;
+			const expectedError = `Public Key '${multisigMember.publicKey}' is not a member for account '${defaultMultisignatureAccount.address}'.`;
 
 			expect(status).to.eql(Status.FAIL);
 			expect(errors[0].message).to.be.eql(expectedError);
@@ -810,9 +804,7 @@ describe('Base transaction class', () => {
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property(
 					'message',
-					`Account does not have enough LSK: ${
-						defaultSenderAccount.address
-					}, balance: 0`,
+					`Account does not have enough LSK: ${defaultSenderAccount.address}, balance: 0`,
 				);
 		});
 	});

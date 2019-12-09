@@ -549,9 +549,7 @@ describe('rounds', () => {
 					}
 
 					__testContext.debug(
-						`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
-							transactions.length
-						} transactions`,
+						`	Processing block ${blocksProcessed} of ${blocksToForge} with ${transactions.length} transactions`,
 					);
 					tickAndValidate(transactions);
 					untilCb();
@@ -1037,9 +1035,7 @@ describe('rounds', () => {
 						}
 
 						__testContext.debug(
-							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
-								transactions.length
-							} transactions`,
+							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${transactions.length} transactions`,
 						);
 						tickAndValidate(transactions);
 						untilCb();
@@ -1093,9 +1089,7 @@ describe('rounds', () => {
 						}
 
 						__testContext.debug(
-							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
-								transactions.length
-							} transactions`,
+							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${transactions.length} transactions`,
 						);
 						tickAndValidate(transactions);
 

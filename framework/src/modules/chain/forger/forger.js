@@ -162,9 +162,7 @@ class Forger {
 			return;
 		}
 		this.logger.info(
-			`Loading ${
-				encryptedList.length
-			} delegates using encrypted passphrases from config`,
+			`Loading ${encryptedList.length} delegates using encrypted passphrases from config`,
 		);
 
 		for (const encryptedItem of encryptedList) {
@@ -175,9 +173,7 @@ class Forger {
 					this.config.forging.defaultPassword,
 				);
 			} catch (error) {
-				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${
-					encryptedItem.publicKey
-				}. ${error.message}`;
+				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. ${error.message}`;
 				this.logger.error(decryptionError);
 				throw decryptionError;
 			}
@@ -194,9 +190,7 @@ class Forger {
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 				throw new Error(
-					`Invalid encryptedPassphrase for publicKey: ${
-						encryptedItem.publicKey
-					}. Public keys do not match`,
+					`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. Public keys do not match`,
 				);
 			}
 

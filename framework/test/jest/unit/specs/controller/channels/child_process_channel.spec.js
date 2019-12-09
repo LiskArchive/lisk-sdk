@@ -243,9 +243,7 @@ describe('ChildProcessChannel Channel', () => {
 			expect(() =>
 				childProcessChannel.publish(invalidEventName, () => {}),
 			).toThrow(
-				`Event "${invalidEventName}" not registered in "${
-					params.moduleAlias
-				}" module.`,
+				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
 

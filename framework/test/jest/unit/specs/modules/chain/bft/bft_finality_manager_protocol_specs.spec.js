@@ -42,11 +42,7 @@ describe('FinalityManager', () => {
 				});
 
 				scenario.testCases.forEach(testCase => {
-					it(`should have accurate information when ${
-						testCase.input.delegateName
-					} forge block at height = ${
-						testCase.input.blockHeader.height
-					}`, async () => {
+					it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
 						myBft.addBlockHeader(testCase.input.blockHeader);
 
 						expect(myBft.preCommits).toEqual(testCase.output.preCommits);
