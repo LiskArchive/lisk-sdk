@@ -83,8 +83,10 @@ const accounts = [
 
 const sortKeysDescending = publicKeys =>
 	publicKeys.sort((publicKeyA, publicKeyB) => {
-		if (publicKeyA < publicKeyB) return 1;
-		if (publicKeyA > publicKeyB) return -1;
+		// eslint-disable-next-line no-undef, new-cap
+		if (BigInt(`0x${publicKeyA}`) < BigInt(`0x${publicKeyB}`)) return 1;
+		// eslint-disable-next-line no-undef, new-cap
+		if (BigInt(`0x${publicKeyA}`) > BigInt(`0x${publicKeyB}`)) return -1;
 		return 0;
 	});
 
@@ -204,8 +206,6 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 		output: signedRegistrationTx,
 	};
 };
-
-generateValidMultisignatureRegistrationTransaction();
 
 const validTransferSuite = () => ({
 	title: 'Valid multi-signature registration',
