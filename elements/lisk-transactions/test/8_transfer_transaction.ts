@@ -147,6 +147,22 @@ describe('Transfer transaction class', () => {
 				);
 		});
 
+		it('should return error if recipientId exceed uint64 limit', async () => {
+			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
+				{
+					...validTransferTransaction,
+					asset: {
+						...validTransferTransaction.asset,
+						recipientId: '19961131544040416558',
+					},
+				},
+			);
+			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
+
+			expect(errors).to.be.lengthOf(1);
+			expect(errors[0]).to.be.instanceof(TransactionError);
+		});
+
 		it('should return error with invalid amount', async () => {
 			const transferTransactionWithInvalidAmount = new TransferTransaction({
 				...validTransferTransaction,
@@ -182,15 +198,17 @@ describe('Transfer transaction class', () => {
 			expect(errors[0]).to.be.instanceof(TransactionError);
 		});
 
-		it('should not return error if asset data containing null string', async () => {
+		it('should return error if asset data containing null string', async () => {
 			const transferTransactionWithValiddAsset = new TransferTransaction({
 				...validTransferTransaction,
 				asset: {
+					...validTransferTransaction.asset,
 					data: '\u0000hey:)',
 				},
 			});
 			const errors = (transferTransactionWithValiddAsset as any).validateAsset();
 
+			expect(errors).to.be.lengthOf(1);
 			expect(errors[0]).to.be.instanceof(TransactionError);
 		});
 
