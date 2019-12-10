@@ -40,30 +40,6 @@ It will start a node that is available on `5001` websocket port.
 P2P node has started!
 ```
 
-### Connect to Lisk Testnet network
-
-```typescript
-const { P2P } = require('@liskhq/lisk-p2p');
-
-const p2p = new P2P({
-	nodeInfo: {
-		wsPort: 5001,
-	},
-});
-
-const run = async () => {
-	await p2p.start();
-};
-
-run()
-	.then(() => console.log('P2P node has started!'))
-	.catch(err => {
-		console.log(`Error occurred while running p2p node: ${err}`);
-		p2p.stop();
-		process.exit(1);
-	});
-```
-
 ### Actions
 
 It provides simple interface to send, request, broadcast information and many more functions to interact with the network.
