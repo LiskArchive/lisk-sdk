@@ -129,6 +129,55 @@ const createSignatureObject = (txBuffer, account) => ({
 const findAccountByKey = key =>
 	accounts.filter(account => account.publicKey === key);
 
+const serializeBasicProperties = tx => {
+	const transactionTimestamp = Buffer.alloc(4);
+	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
+	return Buffer.concat([
+		Buffer.alloc(1, tx.type),
+		transactionTimestamp,
+		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.asset.numberOfSignatures, 1),
+		assetToBytes(tx),
+	]);
+};
+
+const createMembersSignatures = (tx, txBuffer) => {
+	let index = 0;
+	// Mandatory keys sign
+	tx.asset.mandatoryKeys.forEach(aKey => {
+		const account = findAccountByKey(aKey).pop();
+		tx.signatures.push({
+			...createSignatureObject(txBuffer, account),
+			index,
+		});
+		index += 1;
+	});
+
+	// Optional keys sign
+	tx.asset.optionalKeys.forEach(aKey => {
+		const account = findAccountByKey(aKey).pop();
+		tx.signatures.push({
+			...createSignatureObject(txBuffer, account),
+			index,
+		});
+		index += 1;
+	});
+};
+
+const serializeMemberSignatures = (tx, txBuffer) => {
+	let txBufferCopy = Buffer.alloc(txBuffer.length);
+	txBuffer.copy(txBufferCopy);
+
+	tx.signatures.forEach(aSignature => {
+		const signatureBuffer = Buffer.concat([
+			Buffer.alloc(1, aSignature.index),
+			hexToBuffer(aSignature.signature),
+		]);
+		txBufferCopy = Buffer.concat([txBufferCopy, signatureBuffer]);
+	});
+	return txBufferCopy;
+};
+
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const tx = {
@@ -140,58 +189,25 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 			optionalKeys: [accounts[4].publicKey, accounts[5].publicKey],
 			numberOfSignatures: 3,
 		},
+		signatures: [],
 	};
 
 	sortKeysDescending(tx.asset.mandatoryKeys);
 	sortKeysDescending(tx.asset.optionalKeys);
 
-	const { signatures, ...registrationTx } = tx;
-	// Start building buffer
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
-	let txBuffer = Buffer.concat([
-		Buffer.alloc(1, registrationTx.type),
-		transactionTimestamp,
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(registrationTx.asset.numberOfSignatures, 1),
-		assetToBytes(registrationTx),
-	]);
+	let txBuffer = serializeBasicProperties(tx);
 
-	registrationTx.signatures = [];
-	let index = 0;
-	// Mandatory keys sign
-	registrationTx.asset.mandatoryKeys.forEach(aKey => {
-		const account = findAccountByKey(aKey).pop();
-		registrationTx.signatures.push({
-			...createSignatureObject(txBuffer, account),
-			index,
-		});
-		index += 1;
-	});
-	// Optional keys sign
-	registrationTx.asset.optionalKeys.forEach(aKey => {
-		const account = findAccountByKey(aKey).pop();
-		registrationTx.signatures.push({
-			...createSignatureObject(txBuffer, account),
-			index,
-		});
-		index += 1;
-	});
-	// Serialize all signatures
-	registrationTx.signatures.forEach(aSignature => {
-		const signatureBuffer = Buffer.concat([
-			Buffer.alloc(1, aSignature.index),
-			hexToBuffer(aSignature.signature),
-		]);
-		txBuffer = Buffer.concat([txBuffer, signatureBuffer]);
-	});
+	createMembersSignatures(tx, txBuffer);
+
+	txBuffer = serializeMemberSignatures(tx, txBuffer);
+
 	// Sender signs whole transaction
 	const signature = signData(
 		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
 		accounts[0].passphrase,
 	);
 
-	const signedRegistrationTx = { ...registrationTx, signature };
+	const signedRegistrationTx = { ...tx, signature };
 
 	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
 	signedRegistrationTx.id = id;
@@ -201,7 +217,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 			account: accounts[1],
 			networkIdentifier,
 			coSigners: [accounts[2], accounts[3], accounts[4], accounts[5]],
-			transaction: registrationTx,
+			transaction: tx,
 		},
 		output: signedRegistrationTx,
 	};
