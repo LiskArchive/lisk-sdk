@@ -1,12 +1,72 @@
 # @liskhq/lisk-p2p
 
-@liskhq/lisk-p2p is containing unstructured P2P library for use with Lisk-related software
+@liskhq/lisk-p2p is containing unstructured P2P library for creating and running unstructured P2P networks. The aim of this library is to make it easier for developers to create P2P projects without thinking about security, discovery, selection and eviction mechanisms and concentrate more on developing use cases and P2P projects on top of it. A developer can leverage underlying robust security, discovery and selections mechanisms and use the easy to use interface to use the library. This library implements features proposed in [LIP: 0004: Introduce robust peer selection and banning mechanism](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md).
 
 ## Installation
 
 ```sh
 $ npm install --save @liskhq/lisk-p2p
 ```
+
+To run a P2P node.
+
+```typescript
+const { P2P } = require('@liskhq/lisk-p2p');
+
+const p2p = new P2P({
+	nodeInfo: {
+		wsPort: 5001,
+	},
+});
+
+const run = async () => {
+	await p2p.start();
+};
+
+run()
+	.then(() => console.log('P2P node has started!'))
+	.catch(err => {
+		console.log(`Error occurred while running p2p node: ${err}`);
+		p2p.stop();
+		process.exit(1);
+	});
+```
+
+It will start a node that is available on `5001` websocket port.
+
+```shell
+P2P node has started!
+```
+
+Note: The above P2P node has missing configuration to connect to some node because we need `protocolversion` and `nethash` for handshake and compatibility check that you can also tweak by passing your own custom handshake function to the P2P constructor.
+
+### Connect to Lisk Testnet network
+
+```typescript
+const { P2P } = require('@liskhq/lisk-p2p');
+
+const p2p = new P2P({
+	nodeInfo: {
+		wsPort: 5001,
+	},
+});
+
+const run = async () => {
+	await p2p.start();
+};
+
+run()
+	.then(() => console.log('P2P node has started!'))
+	.catch(err => {
+		console.log(`Error occurred while running p2p node: ${err}`);
+		p2p.stop();
+		process.exit(1);
+	});
+```
+
+### Examples
+
+Check it under `lisk-p2p/examples` folder for a few examples to demonstrate P2P library usage and some use cases.
 
 ## License
 
