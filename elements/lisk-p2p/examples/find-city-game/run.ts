@@ -17,7 +17,7 @@ import { p2p as firstP2P, run as runNode1 } from './node1';
 import { p2p as secondP2P, run as runNode2 } from './node2';
 import { p2p as thirdP2P, run as runNode3 } from './node3';
 
-// It will 3 nodes that will change their city randomly and also tell the other nodes in which city they are, if they find out that they are in the same city then they stop changing city. The app will stop when all 3 nodes are in the same city.
+// It will run 3 nodes that will change their city randomly and also tell the other nodes in which city they are, if they find out that they are in the same city then they stop changing city. The app will stop when all 3 nodes are in the same city.
 const runP2PScenario = async () => {
 	await runNode1();
 	await runNode2();

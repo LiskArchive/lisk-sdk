@@ -63,7 +63,7 @@ It provides simple interface to send, request, broadcast information and many mo
 We can listen to various events on the network to observe the network activities more closely and take appropriate actions if needed.
 
 ```typescript
-p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
+p2p.on(EVENT_CONNECT_OUTBOUND, (peerInfo: P2PPeerInfo) => {
 	// Take any action based on outbound connect event
 });
 ```
@@ -96,6 +96,10 @@ p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
 ### Examples
 
 Check it under `lisk-p2p/examples` folder for a few examples to demonstrate P2P library usage and some use cases.
+
+- [echo](examples/echo): This example will run 3 nodes that will connect to each other and will say "`hi`" to each other that will be responded by peers when they receive.
+- [find-city-game](examples/find-city-game): It will run 3 nodes that will change their city randomly and also tell the other nodes in which city they are, if they find out that they are in the same city then they stop changing their city. The app will stop when all 3 nodes are in the same city.
+- [Connect to Lisk networks](examples/lisk-networks): Example to create a lightweight p2p client that can connect to lisk networks like [testnet](examples/lisk-networks/connect_to_testnet.ts), [mainnet](examples/lisk-networks/connect_to_mainnet.ts) and [devnet](examples/lisk-networks/connect_to_devnet.ts) and listen to various events and request data on connect event.
 
 ## License
 
