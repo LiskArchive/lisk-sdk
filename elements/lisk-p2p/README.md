@@ -64,6 +64,24 @@ run()
 	});
 ```
 
+### Actions
+
+It provides simple interface to send, request, broadcast information and many more functions to interact with the network.
+
+- `p2p.start()` to start a P2P node after creating an instance.
+- `p2p.stop()` to stop a P2P node.
+- `p2p.config` to get the config of the node.
+- `p2p.isActive` to check the status if the node is up and running.
+- `p2p.nodeInfo` to check the node status and information.
+- `applyNodeInfo(nodeInfo: P2PNodeInfo)` to broadcast your updated `nodeInfo` to the network.
+- `p2p.getConnectedPeers()` to get all the connected peers that are connected to your node in the network.
+- `p2p.getDisconnectedPeers` to get all the disconnected peers that are part of the network but not connected to you.
+- `p2p.request(packet: P2PRequestPacket)` to request information from the network that will run the peer selection and finds an appropriate peer for you to request information.
+- `p2p.send(message: P2PMessagePacket)` it will send the information to 16 connected peers choosen by peer selection for send.
+- `broadcast(message: P2PMessagePacket)` to broadcast information to all the connected peers.
+- `requestFromPeer(packet: P2PRequestPacket,peerId: string)` to request from a specific peers in the network.
+- `sendToPeer(message: P2PMessagePacket, peerId: string)` to send information to a specific peer in the connected peers.
+
 ### Examples
 
 Check it under `lisk-p2p/examples` folder for a few examples to demonstrate P2P library usage and some use cases.
