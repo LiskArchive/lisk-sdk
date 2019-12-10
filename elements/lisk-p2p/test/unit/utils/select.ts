@@ -353,15 +353,17 @@ describe('peer selector', () => {
 		});
 
 		describe('when there are less than 100 peers', () => {
-			beforeEach(function() {
-				sinon.stub(Math, 'random').returns(0.499);
+			let mathRandom: sinon.SinonStub;
+			before(function() {
+				mathRandom = sinon.stub(Math, 'random');
 			});
 
-			afterEach(function() {
+			after(function() {
 				sandbox.restore();
 			});
 
 			it('should return peers uniformly from both lists', () => {
+				mathRandom.returns(0.499);
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
@@ -390,18 +392,9 @@ describe('peer selector', () => {
 				expect(triedCount).to.eql(25);
 				expect(newCount).to.eql(25);
 			});
-		});
-
-		describe('when math random returns above 50', () => {
-			beforeEach(function() {
-				sinon.stub(Math, 'random').returns(0.5);
-			});
-
-			afterEach(function() {
-				sandbox.restore();
-			});
 
 			it('should return only new peer list', () => {
+				mathRandom.returns(0.5);
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
