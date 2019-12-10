@@ -163,6 +163,22 @@ describe('Transfer transaction class', () => {
 			expect(errors[0]).to.be.instanceof(TransactionError);
 		});
 
+		it('should return error if recipientId contains leading zeros', async () => {
+			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
+				{
+					...validTransferTransaction,
+					asset: {
+						...validTransferTransaction.asset,
+						recipientId: '000123',
+					},
+				},
+			);
+			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
+
+			expect(errors).to.be.lengthOf(1);
+			expect(errors[0]).to.be.instanceof(TransactionError);
+		});
+
 		it('should return error with invalid amount', async () => {
 			const transferTransactionWithInvalidAmount = new TransferTransaction({
 				...validTransferTransaction,
