@@ -38,7 +38,7 @@ export interface BucketInfo {
 export class BaseList {
 	protected bucketIdToBucket: Map<number, Bucket>;
 	/* 
-		Auxilliary map for direct peerId => peerInfo lookups
+		Auxillary map for direct peerId => peerInfo lookups
 		Required because peerLists may be provided by discrete sources
 	*/
 	protected peerIdToPeerInfo: Map<string, P2PEnhancedPeerInfo>;
@@ -58,17 +58,8 @@ export class BaseList {
 			secret,
 		};
 		this.bucketIdToBucket = new Map();
-		this.initBuckets(this.bucketIdToBucket);
+		this._initBuckets();
 		this.peerIdToPeerInfo = new Map();
-	}
-
-	public initBuckets(bucketIdToBucket: Map<number, Bucket>): void {
-		// Init the Map with all the buckets
-		for (const bucketId of [
-			...new Array(this.peerListConfig.numOfBuckets).keys(),
-		]) {
-			bucketIdToBucket.set(bucketId, new Map<string, P2PEnhancedPeerInfo>());
-		}
 	}
 
 	public get peerList(): ReadonlyArray<P2PPeerInfo> {
@@ -192,7 +183,7 @@ export class BaseList {
 	protected getBucket(peerId: string): Bucket | undefined {
 		const internalPeerInfo = this.peerIdToPeerInfo.get(peerId);
 
-		if (!internalPeerInfo?.bucketId) {
+		if (typeof internalPeerInfo?.bucketId !== 'number') {
 			return undefined;
 		}
 
@@ -203,5 +194,17 @@ export class BaseList {
 		}
 
 		return bucket;
+	}
+
+	private _initBuckets(): void {
+		// Init the Map with all the buckets
+		for (const bucketId of [
+			...new Array(this.peerListConfig.numOfBuckets).keys(),
+		]) {
+			this.bucketIdToBucket.set(
+				bucketId,
+				new Map<string, P2PEnhancedPeerInfo>(),
+			);
+		}
 	}
 }
