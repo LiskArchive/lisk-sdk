@@ -135,16 +135,9 @@ export class PeerBook {
 		return false;
 	}
 
-	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo.peerId)) {
-			return this._triedPeers.removePeer(peerInfo);
-		}
-
-		if (this._newPeers.getPeer(peerInfo.peerId)) {
-			return this._newPeers.removePeer(peerInfo);
-		}
-
-		return false;
+	public removePeer(peerInfo: P2PPeerInfo): void {
+		this._newPeers.removePeer(peerInfo);
+		this._triedPeers.removePeer(peerInfo);
 	}
 
 	public upgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
@@ -153,7 +146,7 @@ export class PeerBook {
 		}
 
 		if (this._newPeers.hasPeer(peerInfo.peerId)) {
-			this._newPeers.removePeer(peerInfo);
+			this.removePeer(peerInfo);
 			this._triedPeers.addPeer(peerInfo);
 
 			return true;

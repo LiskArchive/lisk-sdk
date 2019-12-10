@@ -238,9 +238,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -256,9 +254,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -275,9 +271,7 @@ describe('forge', () => {
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -314,9 +308,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -353,9 +345,7 @@ describe('forge', () => {
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -392,9 +382,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -431,9 +419,7 @@ describe('forge', () => {
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -470,9 +456,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -509,9 +493,7 @@ describe('forge', () => {
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -548,9 +530,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -586,9 +566,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Tag must be 16 bytes.`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Tag must be 16 bytes.`,
 				);
 			});
 
@@ -623,9 +601,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
-					`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
-					}. Public keys do not match`,
+					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Public keys do not match`,
 				);
 			});
 

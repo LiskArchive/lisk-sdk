@@ -123,9 +123,7 @@ describe('GET /peers', () => {
 	describe('pass data from a real peer', () => {
 		const PEER_STATE_CONNECTED = 'connected';
 
-		it(`using a valid httpPort = ${
-			validHeaders.httpPort
-		} should return the result`, async () => {
+		it(`using a valid httpPort = ${validHeaders.httpPort} should return the result`, async () => {
 			return peersEndpoint
 				.makeRequest({ httpPort: validHeaders.httpPort }, 200)
 				.then(res => {
@@ -133,9 +131,7 @@ describe('GET /peers', () => {
 				});
 		});
 
-		it(`using state = ${
-			validHeaders.state
-		} should return the result`, async () => {
+		it(`using state = ${validHeaders.state} should return the result`, async () => {
 			return peersEndpoint
 				.makeRequest({ state: PEER_STATE_CONNECTED }, 200)
 				.then(res => {
@@ -143,9 +139,7 @@ describe('GET /peers', () => {
 				});
 		});
 
-		it(`using version = "${
-			validHeaders.version
-		}" should return the result`, async () => {
+		it(`using version = "${validHeaders.version}" should return the result`, async () => {
 			return peersEndpoint
 				.makeRequest({ version: validHeaders.version }, 200)
 				.then(res => {
@@ -153,9 +147,7 @@ describe('GET /peers', () => {
 				});
 		});
 
-		it(`using protocolVersion = "${
-			validHeaders.protocolVersion
-		}" should return the result`, async () => {
+		it(`using protocolVersion = "${validHeaders.protocolVersion}" should return the result`, async () => {
 			return peersEndpoint
 				.makeRequest({ protocolVersion: validHeaders.protocolVersion }, 200)
 				.then(res => {

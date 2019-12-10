@@ -321,9 +321,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		it('should not be possible to ban them', async () => {
 			const peerPenalty = {
-				peerId: `${whitelistedPeers[0].ipAddress}:${
-					whitelistedPeers[0].wsPort
-				}`,
+				peerId: `${whitelistedPeers[0].ipAddress}:${whitelistedPeers[0].wsPort}`,
 				penalty: 100,
 			};
 

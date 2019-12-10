@@ -136,9 +136,7 @@ class DelegatesList {
 
 		if (!delegateList.length) {
 			throw new Error(
-				`Failed to verify slot: ${currentSlot} for block ID: ${
-					block.id
-				} - No delegateList was found`,
+				`Failed to verify slot: ${currentSlot} for block ID: ${block.id} - No delegateList was found`,
 			);
 		}
 
@@ -162,9 +160,7 @@ class DelegatesList {
 			}
 
 			throw new Error(
-				`Failed to verify slot: ${currentSlot}. Block ID: ${
-					block.id
-				}. Block Height: ${block.height}`,
+				`Failed to verify slot: ${currentSlot}. Block ID: ${block.id}. Block Height: ${block.height}`,
 			);
 		}
 

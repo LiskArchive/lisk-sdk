@@ -128,9 +128,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 				it('adding to pool upvoting transaction to same delegate from same account should fail', done => {
 					localCommon.addTransaction(library, transaction2, err => {
 						expect(err).to.equal(
-							`Transaction: ${transaction2.id} failed at .asset.votes: ${
-								accountFixtures.existingDelegate.publicKey
-							} is already voted.`,
+							`Transaction: ${transaction2.id} failed at .asset.votes: ${accountFixtures.existingDelegate.publicKey} is already voted.`,
 						);
 						done();
 					});
@@ -216,9 +214,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 						});
 						localCommon.addTransaction(library, transaction5, err => {
 							expect(err).to.equal(
-								`Transaction: ${transaction5.id} failed at .asset.votes: ${
-									accountFixtures.existingDelegate.publicKey
-								} is not voted.`,
+								`Transaction: ${transaction5.id} failed at .asset.votes: ${accountFixtures.existingDelegate.publicKey} is not voted.`,
 							);
 							done();
 						});

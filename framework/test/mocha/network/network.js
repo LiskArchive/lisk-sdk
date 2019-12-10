@@ -248,9 +248,7 @@ class Network {
 			waitFor.blockchainReady(
 				retries,
 				timeout,
-				`http://${configuration.modules.http_api.address}:${
-					configuration.modules.http_api.httpPort
-				}`,
+				`http://${configuration.modules.http_api.address}:${configuration.modules.http_api.httpPort}`,
 				!logRetries,
 				err => {
 					if (err) {
@@ -299,9 +297,7 @@ class Network {
 		return new Promise((resolve, reject) => {
 			waitFor.blocks(
 				blocksToWait,
-				`http://${configuration.modules.http_api.address}:${
-					configuration.modules.http_api.httpPort
-				}`,
+				`http://${configuration.modules.http_api.address}:${configuration.modules.http_api.httpPort}`,
 				err => {
 					if (err) {
 						return reject(

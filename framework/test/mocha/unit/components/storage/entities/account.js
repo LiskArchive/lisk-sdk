@@ -518,9 +518,7 @@ describe('Account', () => {
 			it('should always return "publicKey" as "encode(publicKey, \'hex\')"', async () => {
 				const accounts = await AccountEntity.get(filters, options);
 				const rawKey = await adapter.execute(
-					`SELECT "publicKey" FROM mem_accounts WHERE "address" = '${
-						validAccount.address
-					}'`,
+					`SELECT "publicKey" FROM mem_accounts WHERE "address" = '${validAccount.address}'`,
 				);
 
 				expect(accounts[0].publicKey).to.be.eql(
@@ -531,9 +529,7 @@ describe('Account', () => {
 			it('should always return "secondPublicKey" as "encode(secondPublicKey, \'hex\')"', async () => {
 				const accounts = await AccountEntity.get(filters, options);
 				const rawKey = await adapter.execute(
-					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${
-						validAccount.address
-					}'`,
+					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${validAccount.address}'`,
 				);
 
 				expect(accounts[0].secondPublicKey).to.be.eql(

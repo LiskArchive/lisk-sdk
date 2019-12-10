@@ -171,9 +171,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 		// Act && Assert
 		const error = new Error(
-			`Failed to verify slot: ${expectedSlot}. Block ID: ${
-				block.id
-			}. Block Height: ${block.height}`,
+			`Failed to verify slot: ${expectedSlot}. Block ID: ${block.id}. Block Height: ${block.height}`,
 		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
 	});
