@@ -182,6 +182,18 @@ describe('Transfer transaction class', () => {
 			expect(errors[0]).to.be.instanceof(TransactionError);
 		});
 
+		it('should not return error if asset data containing null string', async () => {
+			const transferTransactionWithValiddAsset = new TransferTransaction({
+				...validTransferTransaction,
+				asset: {
+					data: '\u0000hey:)',
+				},
+			});
+			const errors = (transferTransactionWithValiddAsset as any).validateAsset();
+
+			expect(errors[0]).to.be.instanceof(TransactionError);
+		});
+
 		it('should return error with asset data containing overflowed string', async () => {
 			const transferTransactionWithInvalidAsset = new TransferTransaction({
 				...validTransferTransaction,
