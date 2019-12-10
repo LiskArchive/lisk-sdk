@@ -16,6 +16,8 @@ const { P2P } = require('@liskhq/lisk-p2p');
 const p2p = new P2P({
 	nodeInfo: {
 		wsPort: 5001,
+		nethash: '123xyz', // network identifier
+		protocolVersion: '1.1',
 	},
 });
 
@@ -37,8 +39,6 @@ It will start a node that is available on `5001` websocket port.
 ```shell
 P2P node has started!
 ```
-
-Note: The above P2P node has missing configuration to connect to some node because we need `protocolversion` and `nethash` for handshake and compatibility check that you can also tweak by passing your own custom handshake function to the P2P constructor.
 
 ### Connect to Lisk Testnet network
 
