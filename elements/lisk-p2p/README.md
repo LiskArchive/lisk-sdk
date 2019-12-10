@@ -82,6 +82,41 @@ It provides simple interface to send, request, broadcast information and many mo
 - `requestFromPeer(packet: P2PRequestPacket,peerId: string)` to request from a specific peers in the network.
 - `sendToPeer(message: P2PMessagePacket, peerId: string)` to send information to a specific peer in the connected peers.
 
+### Events
+
+We can listen to various events on the network to observe the network activities more closely and take appropriate actions if needed.
+
+```typescript
+p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
+	// Take any action based on outbound connect event
+});
+```
+
+#### Available events
+
+- `EVENT_BAN_PEER` - When a peer is banned
+- `EVENT_CLOSE_INBOUND`
+- `EVENT_CLOSE_OUTBOUND`
+- `EVENT_CONNECT_ABORT_OUTBOUND`
+- `EVENT_CONNECT_OUTBOUND`
+- `EVENT_DISCOVERED_PEER`
+- `EVENT_FAILED_PEER_INFO_UPDATE`
+- `EVENT_FAILED_TO_ADD_INBOUND_PEER`
+- `EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT`
+- `EVENT_FAILED_TO_FETCH_PEER_INFO`
+- `EVENT_FAILED_TO_FETCH_PEERS`
+- `EVENT_FAILED_TO_PUSH_NODE_INFO`
+- `EVENT_FAILED_TO_SEND_MESSAGE`
+- `EVENT_INBOUND_SOCKET_ERROR`
+- `EVENT_MESSAGE_RECEIVED`
+- `EVENT_NETWORK_READY`
+- `EVENT_NEW_INBOUND_PEER`
+- `EVENT_OUTBOUND_SOCKET_ERROR`
+- `EVENT_REMOVE_PEER`
+- `EVENT_REQUEST_RECEIVED`
+- `EVENT_UNBAN_PEER`
+- `EVENT_UPDATED_PEER_INFO`
+
 ### Examples
 
 Check it under `lisk-p2p/examples` folder for a few examples to demonstrate P2P library usage and some use cases.
