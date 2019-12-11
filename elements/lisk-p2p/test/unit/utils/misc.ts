@@ -359,8 +359,8 @@ describe('utils/misc', () => {
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
 			const expectedPeerCountPerBucketLowerBound =
 				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
-			// const expectedPeerCountPerBucketUpperBound =
-			// 	(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
+			const expectedPeerCountPerBucketUpperBound =
+				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
 			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
 				.fill(0)
 				.reduce((collectedBuckets: any) => {
@@ -386,9 +386,9 @@ describe('utils/misc', () => {
 				expect(bucketCount).to.be.greaterThan(
 					expectedPeerCountPerBucketLowerBound,
 				);
-				// expect(bucketCount).to.be.lessThan(
-				// 	expectedPeerCountPerBucketUpperBound,
-				// );
+				expect(bucketCount).to.be.lessThan(
+					expectedPeerCountPerBucketUpperBound,
+				);
 			});
 		});
 
