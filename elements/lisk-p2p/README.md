@@ -1,6 +1,6 @@
 # @liskhq/lisk-p2p
 
-@liskhq/lisk-p2p is containing unstructured P2P library for creating and running unstructured P2P networks. The aim of this library is to make it easier for developers to create P2P projects without thinking about security, discovery, selection and eviction mechanisms and concentrate more on developing use cases and P2P projects on top of it. A developer can leverage underlying robust security, discovery and selections mechanisms and use the easy to use interface to use the library. This library implements features proposed in [LIP: 0004: Introduce robust peer selection and banning mechanism](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md).
+@liskhq/lisk-p2p is a library for creating unstructured P2P networks. The library in abstraction enables peer discovery, network security, and reliability. A developer can leverage all the underlying specifications proposed in [LIP: 0004: Introduce robust peer selection and banning mechanism](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md) and use the library for building p2p use cases.
 
 ## Installation
 
@@ -16,7 +16,7 @@ const { P2P } = require('@liskhq/lisk-p2p');
 const p2p = new P2P({
 	nodeInfo: {
 		wsPort: 5001,
-		nethash: '123xyz', // network identifier
+		nethash: '123xyz',
 		protocolVersion: '1.1',
 	},
 });
@@ -44,33 +44,44 @@ P2P node has started!
 
 It provides simple interface to send, request, broadcast information and many more functions to interact with the network.
 
-- `p2p.start()` to start a P2P node after creating an instance.
-- `p2p.stop()` to stop a P2P node.
-- `p2p.config` to get the config of the node.
-- `p2p.isActive` to check the status if the node is up and running.
-- `p2p.nodeInfo` to check the node status and information.
-- `applyNodeInfo(nodeInfo: P2PNodeInfo)` to broadcast your updated `nodeInfo` to the network.
-- `p2p.getConnectedPeers()` to get all the connected peers that are connected to your node in the network.
-- `p2p.getDisconnectedPeers` to get all the disconnected peers that are part of the network but not connected to you.
-- `p2p.request(packet: P2PRequestPacket)` to request information from the network that will run the peer selection and finds an appropriate peer for you to request information.
-- `p2p.send(message: P2PMessagePacket)` it will send the information to 16 connected peers choosen by peer selection for send.
-- `p2p.broadcast(message: P2PMessagePacket)` to broadcast information to all the connected peers.
-- `p2p.requestFromPeer(packet: P2PRequestPacket,peerId: string)` to request from a specific peers in the network.
-- `p2p.sendToPeer(message: P2PMessagePacket, peerId: string)` to send information to a specific peer in the connected peers.
+- `p2p.start()`: start a P2P node after creating an instance.
+- `p2p.stop()`: stop a P2P node.
+- `p2p.config`: get the config of the node.
+- `p2p.isActive`: check the status if the node is up and running.
+- `p2p.nodeInfo`: check the node status and information.
+- `applyNodeInfo(nodeInfo: P2PNodeInfo)`: broadcast updated `nodeInfo` to the network.
+- `p2p.getConnectedPeers()`: get all the connected peers that are connected to your node in the network.
+- `p2p.getDisconnectedPeers()`: get all the disconnected peers that are part of the network but not connected to you.
+- `p2p.request(packet: P2PRequestPacket)`: request information from the network that will run the peer selection and finds an appropriate peer for you to request information.
+- `p2p.send(message: P2PMessagePacket)`: sends information to 16 connected peers choosen by peer selection for send.
+- `p2p.broadcast(message: P2PMessagePacket)`: broadcast information to all the connected peers.
+- `p2p.requestFromPeer(packet: P2PRequestPacket,peerId: string)`: request from a specific peers in the network.
+- `p2p.sendToPeer(message: P2PMessagePacket, peerId: string)`: sends information to a specific peer in the connected peers.
 
 ### Events
 
-We can listen to various events on the network to observe the network activities more closely and take appropriate actions if needed.
+Listen to various events on the network to observe the network activities more closely and take appropriate actions if needed.
 
 ```typescript
-p2p.on(EVENT_CONNECT_OUTBOUND, (peerInfo: P2PPeerInfo) => {
-	// Take any action based on outbound connect event
+// When a peer updates its information
+p2p.on(EVENT_UPDATED_PEER_INFO, (peerInfo: P2PPeerInfo) => {
+	// Take any action based peer update event
+});
+// When a peer sends any information
+p2p.on(EVENT_MESSAGE_RECEIVED, (message: P2PMessagePacket) => {
+	// Take any action based on message received
+	const { event, data, peerId } = message;
+});
+// When a peer requests any information
+p2p.on(EVENT_REQUEST_RECEIVED, async (request: P2PRequest) => {
+	// Take any action based on request received and respond with `end(results)` with results or return an error by `error(new Error('Request was not processed successfully'))`
+	const { procedure, data, peerId, end, error } = request;
 });
 ```
 
 #### Available events
 
-- `EVENT_BAN_PEER` - When a peer is banned
+- `EVENT_BAN_PEER`
 - `EVENT_CLOSE_INBOUND`
 - `EVENT_CLOSE_OUTBOUND`
 - `EVENT_CONNECT_ABORT_OUTBOUND`
@@ -95,7 +106,7 @@ p2p.on(EVENT_CONNECT_OUTBOUND, (peerInfo: P2PPeerInfo) => {
 
 ### Examples
 
-Check it under `lisk-p2p/examples` folder for a few examples to demonstrate P2P library usage and some use cases.
+Check [examples](examples/) folder for a few examples to demonstrate P2P library usage with some use cases.
 
 - [echo](examples/echo): This example will run 3 nodes that will connect to each other and will say "`hi`" to each other that will be responded by peers when they receive.
 - [find-city-game](examples/find-city-game): It will run 3 nodes that will change their city randomly and also tell the other nodes in which city they are, if they find out that they are in the same city then they stop changing their city. The app will stop when all 3 nodes are in the same city.
