@@ -302,9 +302,9 @@ describe('blocks/header', () => {
 				// Arrange
 				block = newBlock({ previousBlockId: '123' });
 				// Act & assert
-				await expect(
+				await expect(() =>
 					blocksInstance.verifyInMemory(block, blocksInstance.lastBlock),
-				).rejects.toThrow('Invalid previous block');
+				).toThrow('Invalid previous block');
 			});
 		});
 
@@ -315,9 +315,9 @@ describe('blocks/header', () => {
 				block = newBlock({ timestamp: futureTimestamp });
 				expect.assertions(1);
 				// Act & Assert
-				await expect(
+				await expect(() =>
 					blocksInstance.verifyInMemory(block, genesisBlock),
-				).rejects.toThrow('Invalid block timestamp');
+				).toThrow('Invalid block timestamp');
 			});
 
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
@@ -325,9 +325,9 @@ describe('blocks/header', () => {
 				block = newBlock({ timestamp: 0 });
 				expect.assertions(1);
 				// Act & Assert
-				await expect(
+				await expect(() =>
 					blocksInstance.verifyInMemory(block, genesisBlock),
-				).rejects.toThrow('Invalid block timestamp');
+				).toThrow('Invalid block timestamp');
 			});
 
 			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
@@ -339,9 +339,9 @@ describe('blocks/header', () => {
 				});
 				expect.assertions(1);
 				// Act & Assert
-				await expect(
+				await expect(() =>
 					blocksInstance.verifyInMemory(block, lastBlock),
-				).rejects.toThrow('Invalid block timestamp');
+				).toThrow('Invalid block timestamp');
 			});
 		});
 

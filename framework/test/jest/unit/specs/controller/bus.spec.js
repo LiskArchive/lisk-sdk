@@ -87,9 +87,9 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			await expect(
+			await expect(() =>
 				bus.registerChannel(moduleAlias, events, [], channelOptions),
-			).rejects.toBeInstanceOf(Error);
+			).toThrow(Error);
 		});
 
 		it('should register actions.', async () => {
@@ -130,9 +130,9 @@ describe('Bus', () => {
 
 			// Act && Assert
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
-			await expect(
+			await expect(() =>
 				bus.registerChannel(moduleAlias, [], actions, channelOptions),
-			).rejects.toBeInstanceOf(Error);
+			).toThrow(Error);
 		});
 	});
 
