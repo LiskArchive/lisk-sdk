@@ -63,7 +63,7 @@ module.exports = class NetworkModule extends BaseModule {
 				handler: () => this.network.actions.getDisconnectedPeers(),
 			},
 			requestFromPeer: {
-				handler: action => this.network.actions.requestFromPeer(action),
+				handler: async action => this.network.actions.requestFromPeer(action),
 			},
 			applyPenalty: {
 				handler: action => this.network.actions.applyPenalty(action),

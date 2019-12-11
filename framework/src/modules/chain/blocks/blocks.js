@@ -226,7 +226,7 @@ class Blocks extends EventEmitter {
 		block.id = blocksUtils.getId(blockBytes);
 	}
 
-	async verifyInMemory(block, lastBlock) {
+	verifyInMemory(block, lastBlock) {
 		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
 		validateBlockSlot(block, lastBlock, this.slots);
 	}

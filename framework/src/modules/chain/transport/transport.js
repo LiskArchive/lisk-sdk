@@ -83,7 +83,7 @@ class Transport {
 		this.channel.publish('chain:transactions:change', transaction.toJSON());
 	}
 
-	async handleBroadcastBlock(blockJSON) {
+	handleBroadcastBlock(blockJSON) {
 		if (this.synchronizer.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
@@ -248,7 +248,7 @@ class Transport {
 		}
 	}
 
-	async handleRPCGetSignatures() {
+	handleRPCGetSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
 			this.constants.broadcasts.releaseLimit,

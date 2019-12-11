@@ -158,7 +158,7 @@ module.exports = class HttpApi {
 		subscribeToEvents(this.scope, { wsServer });
 	}
 
-	async cleanup(code, error) {
+	cleanup(code, error) {
 		const { components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());

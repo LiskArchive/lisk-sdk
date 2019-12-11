@@ -133,7 +133,7 @@ class MigrationEntity extends BaseEntity {
 			.then(result => result.exists);
 	}
 
-	async readPending(migrationsObj, savedMigrations) {
+	readPending(migrationsObj, savedMigrations) {
 		return Object.keys(migrationsObj).reduce((prev, namespace) => {
 			const curr = migrationsObj[namespace]
 				.map(migrationFile => {

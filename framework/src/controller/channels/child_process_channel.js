@@ -175,7 +175,7 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
-	async cleanup() {
+	cleanup() {
 		if (this.pubSocket) {
 			this.pubSocket.close();
 		}

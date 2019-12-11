@@ -81,7 +81,7 @@ class ChainModule extends BaseModule {
 				handler: action => this.chain.actions.calculateReward(action),
 			},
 			getForgerPublicKeysForRound: {
-				handler: action =>
+				handler: async action =>
 					this.chain.actions.getForgerPublicKeysForRound(action),
 			},
 			updateForgingStatus: {

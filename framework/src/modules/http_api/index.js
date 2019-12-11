@@ -50,7 +50,7 @@ class HttpAPIModule extends BaseModule {
 		return {};
 	}
 
-	async load(channel) {
+	load(channel) {
 		this.httpApi = new HttpApi(channel, this.options);
 
 		channel.once('app:ready', async () => {
@@ -58,7 +58,7 @@ class HttpAPIModule extends BaseModule {
 		});
 	}
 
-	async unload() {
+	unload() {
 		return this.httpApi ? this.httpApi.cleanup(0) : true;
 	}
 }

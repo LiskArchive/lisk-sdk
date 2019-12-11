@@ -303,7 +303,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		return 2;
 	}
 
-	async _create({
+	_create({
 		transactions,
 		previousBlock,
 		keypair,

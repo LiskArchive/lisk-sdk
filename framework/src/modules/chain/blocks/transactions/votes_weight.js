@@ -199,7 +199,7 @@ const undo = (stateStore, transaction, exceptions = {}) => {
 	updateDelegateVotes(stateStore, transaction, true);
 };
 
-const prepare = async (stateStore, transactions) => {
+const prepare = (stateStore, transactions) => {
 	const publicKeys = transactions.map(transaction => {
 		// Get delegate public keys whom sender voted for
 		const senderVotedPublicKeys =

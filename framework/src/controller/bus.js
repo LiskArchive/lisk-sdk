@@ -80,7 +80,7 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
-	async registerChannel(
+	registerChannel(
 		moduleAlias,
 		events,
 		actions,
@@ -226,7 +226,7 @@ class Bus extends EventEmitter2 {
 		return Object.keys(this.events);
 	}
 
-	async cleanup() {
+	cleanup() {
 		if (this.pubSocket) {
 			this.pubSocket.close();
 		}

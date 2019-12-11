@@ -16,7 +16,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const child_process = require('child_process');
+const childProcess = require('child_process');
 const psList = require('ps-list');
 const systemDirs = require('./system_dirs');
 const { InMemoryChannel } = require('./channels');
@@ -103,7 +103,7 @@ class Controller {
 		await fs.writeFile(pidPath, process.pid);
 	}
 
-	async _initState() {
+	_initState() {
 		this.applicationState = new ApplicationState({
 			initialState: this.initialState,
 			logger: this.logger,
@@ -252,7 +252,7 @@ class Controller {
 			];
 		}
 
-		const child = child_process.fork(program, parameters, forkedProcessOptions);
+		const child = childProcess.fork(program, parameters, forkedProcessOptions);
 
 		// TODO: Check which config and options are actually required to avoid sending large data
 		child.send({
@@ -307,7 +307,7 @@ class Controller {
 		this.childrenList.forEach(child => child.kill());
 
 		try {
-			await this.bus.cleanup();
+			this.bus.cleanup();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (err) {

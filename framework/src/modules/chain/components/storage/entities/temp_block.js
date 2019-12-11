@@ -68,11 +68,11 @@ class TempBlock extends BaseEntity {
 		);
 	}
 
-	async get(filters = {}, options = {}, tx = null) {
+	get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
 
-	async getOne(filters = {}, options = {}, tx = null) {
+	getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
