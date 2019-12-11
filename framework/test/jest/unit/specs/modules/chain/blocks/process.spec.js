@@ -127,14 +127,14 @@ describe('blocks/header', () => {
 
 	describe('#validateBlockHeader', () => {
 		describe('when previous block property is invalid', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				// Arrange
 				block = newBlock({ previousBlockId: undefined, height: 3 });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).rejects.toThrow('Invalid previous block');
+				).toThrow('Invalid previous block');
 			});
 		});
 		describe('when signature is invalid', () => {
@@ -143,9 +143,9 @@ describe('blocks/header', () => {
 				block = newBlock({ blockSignature: 'aaaa' });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).rejects.toThrow('Invalid block signature');
+				).toThrow('Invalid block signature');
 			});
 		});
 
@@ -155,9 +155,9 @@ describe('blocks/header', () => {
 				block = newBlock();
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, 5),
-				).rejects.toThrow('Invalid block reward');
+				).toThrow('Invalid block reward');
 			});
 		});
 
@@ -176,9 +176,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: [invalidTx] });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).rejects.toHaveLength(1);
+				).toThrow();
 			});
 		});
 
@@ -199,9 +199,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).rejects.toThrow('Payload length is too long');
+				).toThrow('Payload length is too long');
 			});
 		});
 
@@ -221,9 +221,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).rejects.toThrow('Number of transactions exceeds maximum per block');
+				).toThrow('Number of transactions exceeds maximum per block');
 			});
 		});
 
@@ -243,9 +243,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs, numberOfTransactions: 10 });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).rejects.toThrow(
+				).toThrow(
 					'Included transactions do not match block transactions count',
 				);
 			});
@@ -267,9 +267,9 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs, payloadHash: '1234567890' });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).rejects.toThrow('Invalid payload hash');
+				).toThrow('Invalid payload hash');
 			});
 		});
 
@@ -289,7 +289,7 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: txs });
 				blockBytes = getBytes(block);
 				// Act & assert
-				await expect(
+				expect(() =>
 					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toResolve();
 			});

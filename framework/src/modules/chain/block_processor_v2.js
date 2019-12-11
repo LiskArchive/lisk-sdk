@@ -211,7 +211,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			async ({ block }) =>
+			({ block }) =>
 				this.blocksModule.validateBlockHeader(
 					block,
 					getBytes(block),
