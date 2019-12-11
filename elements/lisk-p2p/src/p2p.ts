@@ -681,8 +681,10 @@ export class P2P extends EventEmitter {
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
-			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
-				this._handleIncomingHandshake(req, next),
+			async (
+				req: http.IncomingMessage,
+				next: SCServer.nextMiddlewareFunction,
+			) => this._handleIncomingHandshake(req, next),
 		);
 		this._scServer.on(
 			'handshake',
