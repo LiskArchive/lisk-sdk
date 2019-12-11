@@ -619,6 +619,12 @@ export class P2P extends EventEmitter {
 				...this._sanitizedPeerLists.blacklistedPeers,
 				{ ipAddress: socket.remoteAddress, wsPort: socket.remotePort },
 			];
+			this.emit(
+				EVENT_INBOUND_SOCKET_ERROR,
+				`Blacklisted peer with Ip ${socket.remoteAddress} and wsPort ${
+					socket.remotePort
+				} because of malicious control frames`,
+			);
 		}
 	}
 
