@@ -105,7 +105,7 @@ const applyGenesisTransactions = () => async (transactions, stateStore) => {
 		await transaction.prepare(stateStore);
 	}
 
-	votesWeight.prepare(stateStore, transactions);
+	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {
 		// Fee is handled by Elements now so we set it to zero here. LIP-0012
@@ -250,7 +250,7 @@ const undoTransactions = exceptions => async (transactions, stateStore) => {
 		await transaction.prepare(stateStore);
 	}
 
-	votesWeight.prepare(stateStore, transactions);
+	await votesWeight.prepare(stateStore, transactions);
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
