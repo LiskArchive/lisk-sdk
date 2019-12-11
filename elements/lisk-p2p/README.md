@@ -54,9 +54,9 @@ It provides simple interface to send, request, broadcast information and many mo
 - `p2p.getDisconnectedPeers` to get all the disconnected peers that are part of the network but not connected to you.
 - `p2p.request(packet: P2PRequestPacket)` to request information from the network that will run the peer selection and finds an appropriate peer for you to request information.
 - `p2p.send(message: P2PMessagePacket)` it will send the information to 16 connected peers choosen by peer selection for send.
-- `broadcast(message: P2PMessagePacket)` to broadcast information to all the connected peers.
-- `requestFromPeer(packet: P2PRequestPacket,peerId: string)` to request from a specific peers in the network.
-- `sendToPeer(message: P2PMessagePacket, peerId: string)` to send information to a specific peer in the connected peers.
+- `p2p.broadcast(message: P2PMessagePacket)` to broadcast information to all the connected peers.
+- `p2p.requestFromPeer(packet: P2PRequestPacket,peerId: string)` to request from a specific peers in the network.
+- `p2p.sendToPeer(message: P2PMessagePacket, peerId: string)` to send information to a specific peer in the connected peers.
 
 ### Events
 
