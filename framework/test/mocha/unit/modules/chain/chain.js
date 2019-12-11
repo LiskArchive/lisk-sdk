@@ -438,29 +438,6 @@ describe('Chain', () => {
 		});
 	});
 
-	describe('#_startLoader', () => {
-		beforeEach(async () => {
-			await chain.bootstrap();
-			sinonSandbox.stub(chain.loader, 'loadUnconfirmedTransactions');
-		});
-
-		it('should return if syncing.active in config is set to false', async () => {
-			// Arrange
-			chain.options.syncing.active = false;
-
-			// Act
-			chain._startLoader();
-
-			// Assert
-			expect(stubs.jobsQueue.register).to.not.be.called;
-		});
-
-		it('should load transactions and signatures', async () => {
-			chain._startLoader();
-			expect(chain.loader.loadUnconfirmedTransactions).to.be.called;
-		});
-	});
-
 	describe('#_forgingTask', () => {
 		beforeEach(async () => {
 			await chain.bootstrap();

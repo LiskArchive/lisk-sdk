@@ -298,17 +298,17 @@ describe('ChainAccount', () => {
 				foo: 'bar',
 			};
 			// Act & Assert
-			return expect(
-				AccountEntity.update(invalidFilter, {}),
-			).to.eventually.be.rejectedWith(NonSupportedFilterTypeError);
+			return expect(() => AccountEntity.update(invalidFilter, {})).to.throw(
+				NonSupportedFilterTypeError,
+			);
 		});
 
 		it('should throw error for in-valid filters', async () => {
 			const account = new accountFixtures.Account();
 
-			return expect(
+			return expect(() =>
 				AccountEntity.update({ myAddress: '123' }, account),
-			).to.eventually.be.rejectedWith(
+			).to.throw(
 				NonSupportedFilterTypeError,
 				'One or more filters are not supported.',
 			);
