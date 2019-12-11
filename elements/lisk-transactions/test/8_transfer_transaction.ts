@@ -153,7 +153,7 @@ describe('Transfer transaction class', () => {
 					...validTransferTransaction,
 					asset: {
 						...validTransferTransaction.asset,
-						recipientId: '19961131544040416558',
+						recipientId: '19961131544040416558L',
 					},
 				},
 			);
@@ -169,7 +169,7 @@ describe('Transfer transaction class', () => {
 					...validTransferTransaction,
 					asset: {
 						...validTransferTransaction.asset,
-						recipientId: '000123',
+						recipientId: '000123L',
 					},
 				},
 			);
