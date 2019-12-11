@@ -610,26 +610,84 @@ export class P2P extends EventEmitter {
 		);
 	}
 
+	private _terminateSocket(socket: SCServerSocket, blacklist?: boolean): void {
+		(socket as any).socket.terminate();
+
+		// If the socket needs to be blacklisted
+		if (blacklist) {
+			this._sanitizedPeerLists.blacklistedPeers = [
+				...this._sanitizedPeerLists.blacklistedPeers,
+				{ ipAddress: socket.remoteAddress, wsPort: socket.remotePort },
+			];
+		}
+	}
+
+	private _inspectSocket(socket: SCServerSocket): void {
+		// Terminate the connection the moment it receive ping frame
+		(socket as any).socket.on('ping', () => {
+			this._terminateSocket(socket, true);
+		});
+		// Terminate the connection the moment it receive pong frame
+		(socket as any).socket.on('pong', () => {
+			this._terminateSocket(socket, true);
+		});
+	}
+
+	public async _handleIncomingHandshake(
+		req: http.IncomingMessage,
+		next: SCServer.nextMiddlewareFunction,
+	): Promise<void> {
+		// Check blacklist to avoid incoming connections from blacklisted ips
+		if (this._sanitizedPeerLists.blacklistedPeers) {
+			const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
+				peer => peer.ipAddress,
+			);
+			if (blacklist.includes(req.socket.remoteAddress as string)) {
+				next(
+					new PeerInboundHandshakeError(
+						FORBIDDEN_CONNECTION_REASON,
+						FORBIDDEN_CONNECTION,
+						req.socket.remoteAddress as string,
+					),
+				);
+
+				return;
+			}
+		}
+
+		// Check for banned peers
+		if (this._bannedPeers.has(req.socket.remoteAddress as string)) {
+			next(
+				new PeerInboundHandshakeError(
+					FORBIDDEN_CONNECTION_REASON,
+					FORBIDDEN_CONNECTION,
+					req.socket.remoteAddress as string,
+				),
+			);
+
+			return;
+		}
+		next();
+
+		return;
+	}
+
 	private async _startPeerServer(): Promise<void> {
+		this._scServer.addMiddleware(
+			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
+			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
+				this._handleIncomingHandshake(req, next),
+		);
+		this._scServer.on(
+			'handshake',
+			(socket: SCServerSocket): void => {
+				this._inspectSocket(socket);
+			},
+		);
+
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
-				// Check blacklist to avoid incoming connections from backlisted ips
-				if (this._sanitizedPeerLists.blacklistedPeers) {
-					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
-						peer => peer.ipAddress,
-					);
-					if (blacklist.includes(socket.remoteAddress)) {
-						this._disconnectSocketDueToFailedHandshake(
-							socket,
-							FORBIDDEN_CONNECTION,
-							FORBIDDEN_CONNECTION_REASON,
-						);
-
-						return;
-					}
-				}
-
 				if (!socket.request.url) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
@@ -694,16 +752,6 @@ export class P2P extends EventEmitter {
 						socket,
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
-					);
-
-					return;
-				}
-
-				if (this._bannedPeers.has(socket.remoteAddress)) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						FORBIDDEN_CONNECTION,
-						FORBIDDEN_CONNECTION_REASON,
 					);
 
 					return;
@@ -965,4 +1013,5 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
 		peerPool.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 	}
+	// tslint:disable-next-line:max-file-line-count
 }

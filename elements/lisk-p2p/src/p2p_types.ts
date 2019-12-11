@@ -213,7 +213,8 @@ export interface ProtocolMessagePacket {
 }
 
 export interface PeerLists {
-	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
+	// tslint:disable-next-line:readonly-keyword
+	blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
