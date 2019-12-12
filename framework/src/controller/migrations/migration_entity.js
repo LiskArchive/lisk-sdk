@@ -133,7 +133,7 @@ class MigrationEntity extends BaseEntity {
 			.then(result => result.exists);
 	}
 
-	readPending(migrationsObj, savedMigrations) {
+	async readPending(migrationsObj, savedMigrations) {
 		return Object.keys(migrationsObj).reduce((prev, namespace) => {
 			const curr = migrationsObj[namespace]
 				.map(migrationFile => {
@@ -184,7 +184,10 @@ class MigrationEntity extends BaseEntity {
 	async applyAll(migrationsObj) {
 		const savedMigrations = await this.get({}, { limit: null });
 
-		const pendingMigrations = this.readPending(migrationsObj, savedMigrations);
+		const pendingMigrations = await this.readPending(
+			migrationsObj,
+			savedMigrations,
+		);
 
 		if (pendingMigrations.length > 0) {
 			for (const migration of pendingMigrations) {
