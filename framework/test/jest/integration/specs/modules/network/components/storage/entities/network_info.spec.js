@@ -182,14 +182,14 @@ describe('NetworkInfo', () => {
 	});
 
 	describe('setKey', () => {
-		it('should resolve with error when invoked without key', () => {
-			expect(() => NetworkInfoEntity.setKey()).toThrow(
+		it('should resolve with error when invoked without key', async () => {
+			await expect(NetworkInfoEntity.setKey()).rejects.toThrow(
 				'Must provide the key to set',
 			);
 		});
 
-		it('should resolve with error when invoked without value', () => {
-			expect(() => NetworkInfoEntity.setKey('myKey')).toThrow(
+		it('should resolve with error when invoked without value', async () => {
+			await expect(NetworkInfoEntity.setKey('myKey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});

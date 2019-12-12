@@ -182,14 +182,14 @@ describe('ForgerInfo', () => {
 	});
 
 	describe('setKey', () => {
-		it('should resolve with error when invoked without key', () => {
-			expect(() => ForgerInfoEntity.setKey()).toThrow(
+		it('should resolve with error when invoked without key', async () => {
+			await expect(ForgerInfoEntity.setKey()).rejects.toThrow(
 				'Must provide the key to set',
 			);
 		});
 
-		it('should resolve with error when invoked without value', () => {
-			expect(() => ForgerInfoEntity.setKey('myKey')).toThrow(
+		it('should resolve with error when invoked without value', async () => {
+			await expect(ForgerInfoEntity.setKey('mykey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
