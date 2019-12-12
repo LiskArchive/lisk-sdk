@@ -49,10 +49,13 @@ class PgHelper {
 
 	_dropDB() {
 		return new Promise(resolve => {
-			childProcess.exec(`dropdb ${this.database}`, err => {
+			childProcess.exec(`dropdb --if-exists  ${this.database}`, err => {
 				if (err) {
 					// eslint-disable-next-line no-console
-					console.log(`dropdb ${this.database} failed`, err.message);
+					console.log(
+						`dropdb --if-exists  ${this.database} failed`,
+						err.message,
+					);
 				}
 				resolve();
 			});

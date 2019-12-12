@@ -90,8 +90,17 @@ class StorageSandbox extends Storage {
 	}
 
 	_dropDB() {
-		return new Promise(resolve => {
-			childProcess.exec(`dropdb ${this.options.database}`, () => resolve());
+		return new Promise((resolve, reject) => {
+			childProcess.exec(
+				`dropdb --if-exists ${this.options.database}`,
+				error => {
+					if (error) {
+						return reject(error);
+					}
+
+					return resolve();
+				},
+			);
 		});
 	}
 
