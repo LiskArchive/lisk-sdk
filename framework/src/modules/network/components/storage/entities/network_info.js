@@ -62,7 +62,7 @@ class NetworkInfo extends BaseEntity {
 		});
 	}
 
-	setKey(key, value, tx) {
+	async setKey(key, value, tx) {
 		assert(key, 'Must provide the key to set');
 		assert(
 			value !== null && value !== undefined,

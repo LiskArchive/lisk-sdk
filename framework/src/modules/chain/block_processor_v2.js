@@ -283,7 +283,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				const delegatePublicKey = data.keypair.publicKey.toString('hex');
 				const maxHeightPreviouslyForged =
 					previouslyForged[delegatePublicKey] || 0;
-				const block = await this._create({
+				const block = this._create({
 					...data,
 					maxHeightPreviouslyForged,
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,

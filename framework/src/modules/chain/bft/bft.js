@@ -59,7 +59,7 @@ class BFT extends EventEmitter {
 	}
 
 	async init(stateStore, minActiveHeightsOfDelegates = {}) {
-		this.finalityManager = await this._initFinalityManager(stateStore);
+		this.finalityManager = this._initFinalityManager(stateStore);
 
 		this.finalityManager.on(
 			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,

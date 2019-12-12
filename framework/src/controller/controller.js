@@ -63,7 +63,7 @@ class Controller {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
-		await this._initState();
+		this._initState();
 		await this._setupBus();
 		await this._loadMigrations(migrations);
 		await this._loadModules(modules, moduleOptions);
@@ -140,7 +140,7 @@ class Controller {
 			{ skipInternalEvents: true },
 		);
 
-		await this.channel.registerToBus(this.bus);
+		this.channel.registerToBus(this.bus);
 
 		this.applicationState.channel = this.channel;
 
@@ -204,7 +204,7 @@ class Controller {
 			module.actions,
 		);
 
-		await channel.registerToBus(this.bus);
+		channel.registerToBus(this.bus);
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);

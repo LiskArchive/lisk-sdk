@@ -184,10 +184,7 @@ class MigrationEntity extends BaseEntity {
 	async applyAll(migrationsObj) {
 		const savedMigrations = await this.get({}, { limit: null });
 
-		const pendingMigrations = await this.readPending(
-			migrationsObj,
-			savedMigrations,
-		);
+		const pendingMigrations = this.readPending(migrationsObj, savedMigrations);
 
 		if (pendingMigrations.length > 0) {
 			for (const migration of pendingMigrations) {

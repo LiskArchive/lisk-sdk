@@ -111,7 +111,7 @@ class ChainAccount extends AccountEntity {
 		return accounts;
 	}
 
-	update(filters, data, _options, tx) {
+	async update(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 
 		this.validateFilters(filters, atLeastOneRequired);

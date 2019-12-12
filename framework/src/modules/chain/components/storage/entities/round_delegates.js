@@ -102,11 +102,11 @@ class RoundDelegates extends BaseEntity {
 			.then(result => result);
 	}
 
-	get(filters = {}, options = {}, tx = null) {
+	async get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
 
-	getOne(filters = {}, options = {}, tx = null) {
+	async getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
