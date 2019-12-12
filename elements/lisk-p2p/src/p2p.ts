@@ -694,6 +694,27 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleIncomingConnection(socket: SCServerSocket): void {
+		if (
+			this._sanitizedPeerLists.blacklistedPeers.find(
+				peer => peer.ipAddress === socket.remoteAddress,
+			)
+		) {
+			const existingBlacklistPeer = this._peerBook
+				.getAllPeers()
+				.find(peer => peer.ipAddress === socket.remoteAddress);
+			if (existingBlacklistPeer) {
+				this._peerBook.removePeer(existingBlacklistPeer);
+			}
+
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				FORBIDDEN_CONNECTION,
+				FORBIDDEN_CONNECTION_REASON,
+			);
+
+			return;
+		}
+
 		if (!socket.request.url) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -740,20 +761,7 @@ export class P2P extends EventEmitter {
 		}
 
 		const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-		if (
-			this._sanitizedPeerLists.blacklistedPeers.find(
-				peer =>
-					peer.ipAddress === socket.remoteAddress && peer.wsPort === wsPort,
-			)
-		) {
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				FORBIDDEN_CONNECTION,
-				FORBIDDEN_CONNECTION_REASON,
-			);
 
-			return;
-		}
 		const peerId = constructPeerIdFromPeerInfo({
 			ipAddress: socket.remoteAddress,
 			wsPort,
@@ -844,6 +852,7 @@ export class P2P extends EventEmitter {
 
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
+			/* tslint:disable promise-function-async*/
 			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
 				this._handleIncomingHandshake(req, next),
 		);
