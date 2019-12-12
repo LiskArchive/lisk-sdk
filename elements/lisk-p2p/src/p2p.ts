@@ -610,9 +610,11 @@ export class P2P extends EventEmitter {
 		);
 	}
 
-	private _terminateSocket(socket: SCServerSocket, blacklist?: boolean): void {
+	private _terminateIncomingSocket(
+		socket: SCServerSocket,
+		blacklist?: boolean,
+	): void {
 		(socket as any).socket.terminate();
-
 		// If the socket needs to be blacklisted
 		if (blacklist) {
 			this._sanitizedPeerLists.blacklistedPeers = [
@@ -621,8 +623,8 @@ export class P2P extends EventEmitter {
 			];
 			this.emit(
 				EVENT_INBOUND_SOCKET_ERROR,
-				`Blacklisted peer with Ip ${socket.remoteAddress} and wsPort ${
-					socket.remotePort
+				`Blacklisted peer with Ip ${
+					socket.remoteAddress
 				} because of malicious control frames`,
 			);
 		}
@@ -631,15 +633,15 @@ export class P2P extends EventEmitter {
 	private _inspectSocket(socket: SCServerSocket): void {
 		// Terminate the connection the moment it receive ping frame
 		(socket as any).socket.on('ping', () => {
-			this._terminateSocket(socket, true);
+			this._terminateIncomingSocket(socket, true);
 		});
 		// Terminate the connection the moment it receive pong frame
 		(socket as any).socket.on('pong', () => {
-			this._terminateSocket(socket, true);
+			this._terminateIncomingSocket(socket, true);
 		});
 	}
 
-	public async _handleIncomingHandshake(
+	private async _handleIncomingHandshake(
 		req: http.IncomingMessage,
 		next: SCServer.nextMiddlewareFunction,
 	): Promise<void> {
@@ -648,7 +650,15 @@ export class P2P extends EventEmitter {
 			const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
 				peer => peer.ipAddress,
 			);
+
 			if (blacklist.includes(req.socket.remoteAddress as string)) {
+				const existingPeer = this._peerBook
+					.getAllPeers()
+					.find(peer => peer.ipAddress === req.socket.remoteAddress);
+				if (existingPeer) {
+					this._peerBook.removePeer(existingPeer);
+				}
+
 				next(
 					new PeerInboundHandshakeError(
 						FORBIDDEN_CONNECTION_REASON,
@@ -663,6 +673,13 @@ export class P2P extends EventEmitter {
 
 		// Check for banned peers
 		if (this._bannedPeers.has(req.socket.remoteAddress as string)) {
+			const existingPeer = this._peerBook
+				.getAllPeers()
+				.find(peer => peer.ipAddress === req.socket.remoteAddress);
+			if (existingPeer) {
+				this._peerBook.removePeer(existingPeer);
+			}
+
 			next(
 				new PeerInboundHandshakeError(
 					FORBIDDEN_CONNECTION_REASON,
@@ -674,16 +691,150 @@ export class P2P extends EventEmitter {
 			return;
 		}
 		next();
+	}
+
+	private _handleIncomingConnection(socket: SCServerSocket): void {
+		if (!socket.request.url) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_URL_CODE,
+				INVALID_CONNECTION_URL_REASON,
+			);
+
+			return;
+		}
+		const queryObject = url.parse(socket.request.url, true).query;
+
+		if (queryObject.nonce === this._nodeInfo.nonce) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_SELF_CODE,
+				INVALID_CONNECTION_SELF_REASON,
+			);
+
+			const selfWSPort = queryObject.wsPort
+				? +queryObject.wsPort
+				: this._nodeInfo.wsPort;
+
+			// Delete you peerinfo from both the lists
+			this._peerBook.removePeer({
+				ipAddress: socket.remoteAddress,
+				wsPort: selfWSPort,
+			});
+
+			return;
+		}
+
+		if (
+			typeof queryObject.wsPort !== 'string' ||
+			typeof queryObject.version !== 'string' ||
+			typeof queryObject.nethash !== 'string'
+		) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_QUERY_CODE,
+				INVALID_CONNECTION_QUERY_REASON,
+			);
+
+			return;
+		}
+
+		const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+		if (
+			this._sanitizedPeerLists.blacklistedPeers.find(
+				peer =>
+					peer.ipAddress === socket.remoteAddress && peer.wsPort === wsPort,
+			)
+		) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				FORBIDDEN_CONNECTION,
+				FORBIDDEN_CONNECTION_REASON,
+			);
+
+			return;
+		}
+		const peerId = constructPeerIdFromPeerInfo({
+			ipAddress: socket.remoteAddress,
+			wsPort,
+		});
+
+		// tslint:disable-next-line no-let
+		let queryOptions;
+
+		try {
+			queryOptions =
+				typeof queryObject.options === 'string'
+					? JSON.parse(queryObject.options)
+					: undefined;
+		} catch (error) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_QUERY_CODE,
+				INVALID_CONNECTION_QUERY_REASON,
+			);
+
+			return;
+		}
+
+		const incomingPeerInfo: P2PDiscoveredPeerInfo = {
+			...queryObject,
+			...queryOptions,
+			ipAddress: socket.remoteAddress,
+			wsPort,
+			height: queryObject.height ? +queryObject.height : 0,
+			version: queryObject.version,
+		};
+
+		const { success, errors } = this._peerHandshakeCheck(
+			incomingPeerInfo,
+			this._nodeInfo,
+		);
+
+		if (!success) {
+			const incompatibilityReason =
+				errors && Array.isArray(errors)
+					? errors.join(',')
+					: INCOMPATIBLE_PEER_UNKNOWN_REASON;
+
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INCOMPATIBLE_PEER_CODE,
+				incompatibilityReason,
+			);
+
+			return;
+		}
+
+		const existingPeer = this._peerPool.getPeer(peerId);
+
+		if (existingPeer) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				DUPLICATE_CONNECTION,
+				DUPLICATE_CONNECTION_REASON,
+			);
+		} else {
+			this._peerPool.addInboundPeer(incomingPeerInfo, socket);
+			this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
+			this.emit(EVENT_NEW_PEER, incomingPeerInfo);
+		}
+
+		if (!this._peerBook.getPeer(incomingPeerInfo)) {
+			this._peerBook.addPeer(incomingPeerInfo);
+		}
 
 		return;
 	}
 
 	private async _startPeerServer(): Promise<void> {
-		this._scServer.addMiddleware(
-			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
-			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
-				this._handleIncomingHandshake(req, next),
+		this._scServer.on(
+			'connection',
+			(socket: SCServerSocket): void => {
+				this._handleIncomingConnection(socket);
+			},
 		);
+
 		this._scServer.on(
 			'handshake',
 			(socket: SCServerSocket): void => {
@@ -691,125 +842,10 @@ export class P2P extends EventEmitter {
 			},
 		);
 
-		this._scServer.on(
-			'connection',
-			(socket: SCServerSocket): void => {
-				if (!socket.request.url) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_URL_CODE,
-						INVALID_CONNECTION_URL_REASON,
-					);
-
-					return;
-				}
-				const queryObject = url.parse(socket.request.url, true).query;
-
-				if (queryObject.nonce === this._nodeInfo.nonce) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_SELF_CODE,
-						INVALID_CONNECTION_SELF_REASON,
-					);
-
-					const selfWSPort = queryObject.wsPort
-						? +queryObject.wsPort
-						: this._nodeInfo.wsPort;
-
-					// Delete you peerinfo from both the lists
-					this._peerBook.removePeer({
-						ipAddress: socket.remoteAddress,
-						wsPort: selfWSPort,
-					});
-
-					return;
-				}
-
-				if (
-					typeof queryObject.wsPort !== 'string' ||
-					typeof queryObject.version !== 'string' ||
-					typeof queryObject.nethash !== 'string'
-				) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_QUERY_CODE,
-						INVALID_CONNECTION_QUERY_REASON,
-					);
-
-					return;
-				}
-
-				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-				const peerId = constructPeerIdFromPeerInfo({
-					ipAddress: socket.remoteAddress,
-					wsPort,
-				});
-
-				// tslint:disable-next-line no-let
-				let queryOptions;
-
-				try {
-					queryOptions =
-						typeof queryObject.options === 'string'
-							? JSON.parse(queryObject.options)
-							: undefined;
-				} catch (error) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INVALID_CONNECTION_QUERY_CODE,
-						INVALID_CONNECTION_QUERY_REASON,
-					);
-
-					return;
-				}
-
-				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
-					...queryObject,
-					...queryOptions,
-					ipAddress: socket.remoteAddress,
-					wsPort,
-					height: queryObject.height ? +queryObject.height : 0,
-					version: queryObject.version,
-				};
-
-				const { success, errors } = this._peerHandshakeCheck(
-					incomingPeerInfo,
-					this._nodeInfo,
-				);
-
-				if (!success) {
-					const incompatibilityReason =
-						errors && Array.isArray(errors)
-							? errors.join(',')
-							: INCOMPATIBLE_PEER_UNKNOWN_REASON;
-
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						INCOMPATIBLE_PEER_CODE,
-						incompatibilityReason,
-					);
-
-					return;
-				}
-
-				const existingPeer = this._peerPool.getPeer(peerId);
-
-				if (existingPeer) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						DUPLICATE_CONNECTION,
-						DUPLICATE_CONNECTION_REASON,
-					);
-				} else {
-					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
-					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
-				}
-
-				if (!this._peerBook.getPeer(incomingPeerInfo)) {
-					this._peerBook.addPeer(incomingPeerInfo);
-				}
-			},
+		this._scServer.addMiddleware(
+			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
+			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
+				this._handleIncomingHandshake(req, next),
 		);
 
 		this._httpServer.listen(

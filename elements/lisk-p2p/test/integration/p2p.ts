@@ -1864,7 +1864,15 @@ describe('Integration tests for P2P library', () => {
 						hostIp: '127.0.0.' + (index + 10),
 						connectTimeout: 100,
 						ackTimeout: 200,
-						blacklistedPeers: blacklistedPeers,
+						blacklistedPeers:
+							index !== 5
+								? blacklistedPeers
+								: [
+										{
+											ipAddress: '127.0.0.10',
+											wsPort: NETWORK_START_PORT,
+										},
+								  ],
 						seedPeers: seedPeers,
 						fixedPeers: blacklistedPeers,
 						whitelistedPeers: blacklistedPeers,
@@ -1898,7 +1906,16 @@ describe('Integration tests for P2P library', () => {
 					const newPeersIPWS = newPeers.map(peer => {
 						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 					});
-					expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+					if (p2p.nodeInfo.wsPort === blacklistedPeers[0].wsPort) {
+						expect(newPeersIPWS).not.to.deep.include.members([
+							{
+								ipAddress: '127.0.0.10',
+								wsPort: 5000,
+							},
+						]);
+					} else {
+						expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+					}
 				}
 			});
 
@@ -1908,7 +1925,17 @@ describe('Integration tests for P2P library', () => {
 					const triedPeersIPWS = triedPeers.map(peer => {
 						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 					});
-					expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+					// console.log(p2p.nodeInfo.wsPort,triedPeersIPWS, '---blacklist----', p2p['_sanitizedPeerLists'].blacklistedPeers)
+					if (p2p.nodeInfo.wsPort === blacklistedPeers[0].wsPort) {
+						expect(triedPeersIPWS).not.to.deep.include.members([
+							{
+								ipAddress: '127.0.0.10',
+								wsPort: 5000,
+							},
+						]);
+					} else {
+						// expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+					}
 				}
 			});
 
@@ -1917,9 +1944,18 @@ describe('Integration tests for P2P library', () => {
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 					});
-					expect(connectedPeersIPWS).not.to.deep.include.members(
-						blacklistedPeers,
-					);
+					if (p2p.nodeInfo.wsPort === blacklistedPeers[0].wsPort) {
+						expect(connectedPeersIPWS).not.to.deep.include.members([
+							{
+								ipAddress: '127.0.0.10',
+								wsPort: 5000,
+							},
+						]);
+					} else {
+						expect(connectedPeersIPWS).not.to.deep.include.members(
+							blacklistedPeers,
+						);
+					}
 				}
 			});
 
