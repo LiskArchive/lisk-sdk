@@ -213,7 +213,7 @@ module.exports = class Chain {
 			});
 
 			this.channel.subscribe('network:ready', async () => {
-				await this.loader.loadUnconfirmedTransactions();
+				await this._startLoader();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -509,6 +509,10 @@ module.exports = class Chain {
 		this.scope.modules.transport = this.transport;
 		this.scope.modules.bft = this.bft;
 		this.scope.modules.synchronizer = this.synchronizer;
+	}
+
+	async _startLoader() {
+		await this.loader.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {
