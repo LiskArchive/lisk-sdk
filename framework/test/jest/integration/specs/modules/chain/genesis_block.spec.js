@@ -28,6 +28,7 @@ describe('genesis block', () => {
 	beforeAll(async () => {
 		storage = new storageUtils.StorageSandbox(
 			configUtils.storageConfig({ database: dbName }),
+			dbName,
 		);
 		await storage.bootstrap();
 	});

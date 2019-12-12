@@ -15,35 +15,26 @@
 const pgpLib = require('pg-promise');
 const childProcess = require('child_process');
 const { createStorageComponent } = require('./storage');
+const { storageConfig } = require('../configs');
 
-this.pgpOptions = {
+const pgpOptions = {
 	capSQL: true,
 	promiseLib: Promise,
 	noLocking: false,
 };
-const pgp = pgpLib(this.pgpOptions);
+const pgp = pgpLib(pgpOptions);
 
 class PgHelper {
 	constructor(options) {
-		const defaultOptions = {
-			host: 'localhost',
-			port: 5432,
-			user: 'lisk',
-			password: 'password',
-			min: 1,
-			max: 2,
-		};
+		const connOptions = storageConfig(options);
 
-		if (!options.database) {
+		if (!connOptions.database) {
 			throw new Error('Please define a database name');
 		}
 
-		// eslint-disable-next-line no-param-reassign
-		options = { ...defaultOptions, ...options };
+		this.database = connOptions.database;
 
-		this.database = options.database;
-
-		this.pgp = pgp(options);
+		this.pgp = pgp(connOptions);
 		this.storage = null;
 	}
 
@@ -90,19 +81,12 @@ class PgHelper {
 	}
 
 	async createStorage(options = {}, logger) {
-		const storageOptions = {
+		const storageOptions = storageConfig({
 			database: this.database,
-			user: 'lisk',
-			password: 'password',
-			min: 1,
-			max: 2,
 			logFileName: `logs/devnet/lisk_${this.database}.log`,
 			noWarnings: true,
-			poolIdleTimeout: 30000,
-			reapIntervalMillis: 1000,
-			logEvents: ['error'],
 			...options,
-		};
+		});
 		this.storage = await createStorageComponent(storageOptions, logger);
 
 		return this.storage;
