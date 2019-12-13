@@ -82,6 +82,7 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from './events';
 import { P2PRequest } from './p2p_request';
@@ -289,8 +290,13 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
+			// Process protocol messages
 			if (request.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
 				this._handleGetPeersRequest(request);
+			}
+
+			if (request.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+				request.end(this._nodeInfo);
 			}
 
 			// Re-emit the request for external use.

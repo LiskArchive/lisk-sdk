@@ -31,12 +31,11 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	REMOTE_EVENT_POST_NODE_INFO,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
-import { P2PNodeInfo, P2PPeerInfo } from '../../../src';
+import { P2PPeerInfo } from '../../../src';
 
 const createSocketStubInstance = () => <SCServerSocket>({
 		emit: sandbox.stub(),
@@ -46,7 +45,6 @@ const createSocketStubInstance = () => <SCServerSocket>({
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
-	let nodeInfo: P2PNodeInfo;
 	let p2pDiscoveredPeerInfo: P2PPeerInfo;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
@@ -80,16 +78,6 @@ describe('peer/base', () => {
 				nonce: 'nonce',
 				advertiseAddress: true,
 			},
-		};
-		nodeInfo = {
-			os: 'os',
-			version: '1.2.0',
-			protocolVersion: '1.2',
-			nethash: 'nethash',
-			wsPort: 6001,
-			height: 100,
-			nonce: 'nonce',
-			advertiseAddress: true,
 		};
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerId(
@@ -196,24 +184,6 @@ describe('peer/base', () => {
 				defaultPeerInfo.sharedState,
 			)));
 
-	describe('#nodeInfo', () => {
-		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'request').resolves();
-		});
-
-		it('should get node info', () => {
-			const socket = createSocketStubInstance();
-			(defaultPeer as any)._socket = socket;
-			defaultPeer.applyNodeInfo(nodeInfo);
-
-			expect(defaultPeer.nodeInfo).to.eql(nodeInfo);
-			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
-				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: nodeInfo,
-			});
-		});
-	});
-
 	describe('#updatePeerInfo', () =>
 		it('should update peer info', () => {
 			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo);
@@ -222,23 +192,6 @@ describe('peer/base', () => {
 				p2pDiscoveredPeerInfo.sharedState,
 			);
 		}));
-
-	describe('#applyNodeInfo', async () => {
-		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'send').resolves();
-		});
-
-		it('should apply node info', async () => {
-			const socket = createSocketStubInstance();
-			(defaultPeer as any)._socket = socket;
-			defaultPeer.applyNodeInfo(nodeInfo);
-
-			expect(defaultPeer.send).to.be.calledOnceWithExactly({
-				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: nodeInfo,
-			});
-		});
-	});
 
 	describe('#connect', () => {
 		it('should throw error if socket does not exist', () => {

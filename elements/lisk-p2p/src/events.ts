@@ -40,6 +40,8 @@ export const EVENT_FAILED_TO_SEND_MESSAGE = 'failedToSendMessage';
 // Peer base
 export const REMOTE_SC_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_SC_EVENT_MESSAGE = 'remote-message';
+
+// P2P Protocol messages
 export const REMOTE_EVENT_POST_NODE_INFO = 'postNodeInfo';
 export const REMOTE_EVENT_RPC_GET_NODE_INFO = 'getNodeInfo';
 export const REMOTE_EVENT_RPC_GET_PEERS_LIST = 'getPeers';

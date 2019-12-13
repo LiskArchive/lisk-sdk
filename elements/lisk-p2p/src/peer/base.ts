@@ -24,6 +24,7 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
+	RCP_REQUEST_TYPE,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -110,9 +111,10 @@ export class Peer extends EventEmitter {
 	protected _peerInfo: ConnectedPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
-	protected _nodeInfo: P2PNodeInfo | undefined;
 	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _rateInterval: number;
+	protected _protocolRCPCounter: number;
+	protected _protocolRCPEvents: Set<string>;
 
 	protected readonly _handleRawRPC: (
 		packet: unknown,
@@ -136,6 +138,11 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._serverNodeInfo = peerConfig.serverNodeInfo;
+		this._protocolRCPCounter = 0;
+		this._protocolRCPEvents = new Set([
+			REMOTE_EVENT_RPC_GET_NODE_INFO,
+			REMOTE_EVENT_RPC_GET_PEERS_LIST,
+		]);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -157,6 +164,15 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
+			// Protocol RCP request limiter LIP-0004
+			if (this._protocolRCPEvents.has(rawRequest?.procedure)) {
+				if (this._protocolRCPCounter <= this._protocolRCPEvents.size) {
+					this._protocolRCPCounter += 1;
+				} else {
+					return;
+				}
+			}
+
 			this._updateRPCCounter(rawRequest);
 			const rate = this._getRPCRate(rawRequest);
 
@@ -172,10 +188,6 @@ export class Peer extends EventEmitter {
 				},
 				respond,
 			);
-
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				request.end(this._nodeInfo);
-			}
 
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
@@ -253,10 +265,6 @@ export class Peer extends EventEmitter {
 		return this._peerInfo;
 	}
 
-	public get nodeInfo(): P2PNodeInfo | undefined {
-		return this._nodeInfo;
-	}
-
 	private _initializeInternalState(peerInfo: P2PPeerInfo): P2PPeerInfo {
 		return peerInfo.internalState
 			? peerInfo
@@ -275,18 +283,6 @@ export class Peer extends EventEmitter {
 			wsPort: this.wsPort,
 			peerId: this.id,
 		};
-	}
-
-	/**
-	 * Updates the node latest status and sends the same information to all other peers.
-	 * @param nodeInfo information about the node latest status
-	 */
-	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		this._nodeInfo = nodeInfo;
-		this.send({
-			event: REMOTE_EVENT_POST_NODE_INFO,
-			data: nodeInfo,
-		});
 	}
 
 	public connect(): void {
@@ -329,7 +325,7 @@ export class Peer extends EventEmitter {
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
-						type: '/RPCRequest',
+						type: RCP_REQUEST_TYPE,
 						procedure: packet.procedure,
 						data: packet.data,
 					},
@@ -448,15 +444,27 @@ export class Peer extends EventEmitter {
 		this._peerInfo.internalState.wsMessageRate =
 			(this.peerInfo.internalState.wsMessageCount * RATE_NORMALIZATION_FACTOR) /
 			this._rateInterval;
+
 		this._peerInfo.internalState.wsMessageCount = 0;
 
 		if (
 			this.peerInfo.internalState.wsMessageRate >
-			this._peerConfig.wsMaxMessageRate
+				this._peerConfig.wsMaxMessageRate ||
+			this._protocolRCPCounter > this._protocolRCPEvents.size
 		) {
-			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
+			// Allow to increase penalty to reduce 10 second attack window length
+			const messageRateCoeff =
+				this.peerInfo.internalState.wsMessageRate /
+				this._peerConfig.wsMaxMessageRate;
 
-			return;
+			const penaltyRateMultiplier =
+				messageRateCoeff > 1
+					? messageRateCoeff / this._peerConfig.wsMaxMessageRate
+					: 1;
+
+			this.applyPenalty(
+				this._peerConfig.wsMaxMessageRatePenalty * penaltyRateMultiplier,
+			);
 		}
 
 		this._peerInfo.internalState.rpcRates = new Map(
@@ -475,7 +483,13 @@ export class Peer extends EventEmitter {
 				return [key, rate] as any;
 			}),
 		);
+
 		this._peerInfo.internalState.messageCounter = new Map();
+
+		// Protocol request limiter LIP-0004
+		this._protocolRCPCounter = 0;
+
+		return;
 	}
 
 	private _resetProductivity(): void {
