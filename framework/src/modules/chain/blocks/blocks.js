@@ -198,7 +198,7 @@ class Blocks extends EventEmitter {
 		return this._transactionAdapter.fromJSON(transactionJSON);
 	}
 
-	async validateBlockHeader(block, blockBytes, expectedReward) {
+	validateBlockHeader(block, blockBytes, expectedReward) {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes);
 		validateReward(block, expectedReward, this.exceptions);
@@ -226,7 +226,7 @@ class Blocks extends EventEmitter {
 		block.id = blocksUtils.getId(blockBytes);
 	}
 
-	async verifyInMemory(block, lastBlock) {
+	verifyInMemory(block, lastBlock) {
 		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
 		validateBlockSlot(block, lastBlock, this.slots);
 	}
