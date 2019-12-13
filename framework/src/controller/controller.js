@@ -140,7 +140,7 @@ class Controller {
 			{ skipInternalEvents: true },
 		);
 
-		this.channel.registerToBus(this.bus);
+		await this.channel.registerToBus(this.bus);
 
 		this.applicationState.channel = this.channel;
 
@@ -204,7 +204,7 @@ class Controller {
 			module.actions,
 		);
 
-		channel.registerToBus(this.bus);
+		await channel.registerToBus(this.bus);
 
 		channel.publish(`${moduleAlias}:registeredToBus`);
 		channel.publish(`${moduleAlias}:loading:started`);
@@ -307,7 +307,7 @@ class Controller {
 		this.childrenList.forEach(child => child.kill());
 
 		try {
-			this.bus.cleanup();
+			await this.bus.cleanup();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (err) {

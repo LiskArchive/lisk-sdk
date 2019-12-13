@@ -23,9 +23,9 @@ class InMemoryChannel extends BaseChannel {
 		super(moduleAlias, events, actions, options);
 	}
 
-	registerToBus(bus) {
+	async registerToBus(bus) {
 		this.bus = bus;
-		this.bus.registerChannel(
+		await this.bus.registerChannel(
 			this.moduleAlias,
 			this.eventsList.map(event => event.name),
 			this.actions,
