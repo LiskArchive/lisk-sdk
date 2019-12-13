@@ -512,7 +512,7 @@ module.exports = class Chain {
 	}
 
 	async _startLoader() {
-		await this.loader.loadUnconfirmedTransactions();
+		this.loader.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {
