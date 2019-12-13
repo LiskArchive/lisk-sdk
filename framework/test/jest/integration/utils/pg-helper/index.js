@@ -69,8 +69,18 @@ class PgHelper {
 	async bootstrap() {
 		await this._dropDB();
 		await this._createDB();
-		this.conn = await this.pgp.connect();
-		return this.conn;
+
+		// As of the nature of pg-promise the connection is acquired either a query is started to execute.
+		// So to actually verify the connection works fine
+		// based on the provided options, we need to test it by acquiring
+		// the connection a manually
+
+		this.conn = null;
+
+		return this.pgp.connect().then(co => {
+			this.conn = co;
+			return this.conn;
+		});
 	}
 
 	async cleanup() {
