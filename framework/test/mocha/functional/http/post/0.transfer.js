@@ -229,9 +229,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
-					`Failed to validate signature ${
-						transactionFromDifferentNetwork.signature
-					}`,
+					`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
 				);
 				badTransactions.push(transactionFromDifferentNetwork);
 			});

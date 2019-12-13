@@ -182,9 +182,7 @@ describe('InMemoryChannel Channel', () => {
 			expect(() => {
 				inMemoryChannel.publish(eventName);
 			}).toThrow(
-				`Event "${eventName}" not registered in "${
-					inMemoryChannel.moduleAlias
-				}" module.`,
+				`Event "${eventName}" not registered in "${inMemoryChannel.moduleAlias}" module.`,
 			);
 		});
 

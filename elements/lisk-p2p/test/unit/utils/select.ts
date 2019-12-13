@@ -24,6 +24,7 @@ import {
 } from '../../../src/utils/select';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
+import sinon = require('sinon');
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
@@ -352,7 +353,17 @@ describe('peer selector', () => {
 		});
 
 		describe('when there are less than 100 peers', () => {
+			let mathRandom: sinon.SinonStub;
+			before(function() {
+				mathRandom = sinon.stub(Math, 'random');
+			});
+
+			after(function() {
+				sandbox.restore();
+			});
+
 			it('should return peers uniformly from both lists', () => {
+				mathRandom.returns(0.499);
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
@@ -369,14 +380,48 @@ describe('peer selector', () => {
 
 				let triedCount = 0;
 				let newCount = 0;
+
 				for (const peer of selectedPeers) {
 					if (triedPeers.find(triedPeer => peer.peerId === triedPeer.peerId)) {
 						triedCount++;
+					} else {
+						newCount++;
 					}
-					newCount++;
 				}
-				expect(triedCount).to.gte(23);
-				expect(newCount).to.gte(23);
+
+				expect(triedCount).to.eql(25);
+				expect(newCount).to.eql(25);
+			});
+
+			it('should return only new peer list', () => {
+				mathRandom.returns(0.5);
+				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
+				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
+
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 50,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(50);
+
+				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
+
+				let triedCount = 0;
+				let newCount = 0;
+
+				for (const peer of selectedPeers) {
+					if (triedPeers.find(triedPeer => peer.peerId === triedPeer.peerId)) {
+						triedCount++;
+					} else {
+						newCount++;
+					}
+				}
+
+				expect(triedCount).to.eql(0);
+				expect(newCount).to.eql(50);
 			});
 		});
 

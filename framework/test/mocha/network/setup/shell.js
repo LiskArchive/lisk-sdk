@@ -23,9 +23,7 @@ module.exports = {
 			configurations,
 			(configuration, index, eachCb) => {
 				child_process.exec(
-					`dropdb ${configuration.components.storage.database}; createdb ${
-						configuration.components.storage.database
-					}`,
+					`dropdb ${configuration.components.storage.database}; createdb ${configuration.components.storage.database}`,
 					eachCb,
 				);
 			},
