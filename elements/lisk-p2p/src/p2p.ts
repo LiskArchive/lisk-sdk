@@ -612,6 +612,7 @@ export class P2P extends EventEmitter {
 
 	private _terminateIncomingSocket(
 		socket: SCServerSocket,
+		error: Error | string,
 		blacklist?: boolean,
 	): void {
 		(socket as any).socket.terminate();
@@ -621,24 +622,65 @@ export class P2P extends EventEmitter {
 				...this._sanitizedPeerLists.blacklistedPeers,
 				{ ipAddress: socket.remoteAddress, wsPort: socket.remotePort },
 			];
-			this.emit(
-				EVENT_INBOUND_SOCKET_ERROR,
-				`Blacklisted peer with Ip ${
-					socket.remoteAddress
-				} because of malicious control frames`,
-			);
+			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		}
 	}
 
 	private _inspectSocket(socket: SCServerSocket): void {
 		// Terminate the connection the moment it receive ping frame
 		(socket as any).socket.on('ping', () => {
-			this._terminateIncomingSocket(socket, true);
+			this._terminateIncomingSocket(
+				socket,
+				`Blacklisted peer with Ip ${
+					socket.remoteAddress
+				} because of malicious control frames`,
+				true,
+			);
 		});
 		// Terminate the connection the moment it receive pong frame
 		(socket as any).socket.on('pong', () => {
-			this._terminateIncomingSocket(socket, true);
+			this._terminateIncomingSocket(
+				socket,
+				`Blacklisted peer with Ip ${
+					socket.remoteAddress
+				} because of malicious control frames`,
+				true,
+			);
 		});
+	}
+
+	private async _handleEmit(
+		req: SCServer.EmitRequest,
+		next: SCServer.nextMiddlewareFunction,
+	): Promise<void> {
+		if (!req.data) {
+			this._terminateIncomingSocket(
+				req.socket,
+				`Blacklisted peer with Ip ${
+					req.socket.remoteAddress
+				} because invalid emit event with missing data.`,
+			);
+			next(new Error('Rejecting connection due to missing data.'));
+
+			return;
+		}
+
+		// tslint:disable-next-line:no-magic-numbers
+		if (req.event.length > 128) {
+			this._terminateIncomingSocket(
+				req.socket,
+				`Blacklisted peer with Ip ${
+					req.socket.remoteAddress
+				} because invalid emit event name length.`,
+			);
+
+			next(new Error('Rejecting connection due invalid event name'));
+
+			return;
+		}
+		next();
+
+		return;
 	}
 
 	private async _handleIncomingHandshake(
@@ -835,6 +877,29 @@ export class P2P extends EventEmitter {
 		return;
 	}
 
+	private _handleIncomingPayload(ws: any, req: any): void {
+		ws.on('message', (message: any) => {
+			try {
+				const parsed = JSON.parse(message);
+				if (
+					typeof parsed.event !== 'string' ||
+					typeof parsed.data !== 'object' ||
+					parsed.event === '#disconnect'
+				) {
+					throw new Error('Invalid payload sent by incoming connection');
+				}
+			} catch (error) {
+				ws.terminate();
+				this.emit(
+					EVENT_INBOUND_SOCKET_ERROR,
+					`Blacklisted peer with Ip ${
+						req.headers.host
+					} because of invalid payload`,
+				);
+			}
+		});
+	}
+
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
 			'connection',
@@ -842,6 +907,11 @@ export class P2P extends EventEmitter {
 				this._handleIncomingConnection(socket);
 			},
 		);
+
+		// Handle incoming invalid payload
+		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
+			this._handleIncomingPayload(ws, req);
+		});
 
 		this._scServer.on(
 			'handshake',
@@ -855,6 +925,12 @@ export class P2P extends EventEmitter {
 			/* tslint:disable promise-function-async*/
 			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
 				this._handleIncomingHandshake(req, next),
+		);
+		/* tslint:disable promise-function-async*/
+		this._scServer.addMiddleware(
+			this._scServer.MIDDLEWARE_EMIT,
+			(req: SCServer.EmitRequest, next: SCServer.nextMiddlewareFunction) =>
+				this._handleEmit(req, next),
 		);
 
 		this._httpServer.listen(
