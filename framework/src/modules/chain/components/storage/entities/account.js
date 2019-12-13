@@ -134,7 +134,7 @@ class ChainAccount extends AccountEntity {
 		};
 
 		if (_.isEmpty(objectData)) {
-			return Promise.resolve(false);
+			return false;
 		}
 
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
