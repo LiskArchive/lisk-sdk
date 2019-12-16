@@ -34,6 +34,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	PROTOCOL_REMOTE_EVENT_RCP_EVENTS,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
@@ -705,7 +706,7 @@ describe('peer/base', () => {
 					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 				};
 				const expectedHandledEventCount =
-					(defaultPeer as any)._protocolRCPEvents.size + 1;
+					PROTOCOL_REMOTE_EVENT_RCP_EVENTS.size + 1;
 				const requestCount = 10;
 
 				//Act
@@ -729,7 +730,7 @@ describe('peer/base', () => {
 			it('should apply penalty for messagesRate exceeded', () => {
 				// Arrange
 				const reputation = defaultPeer.peerInfo.internalState.reputation;
-				const messageCount = 1001;
+				const messageCount = 101;
 
 				//Act
 				for (let i = 0; i < messageCount; i++) {
@@ -746,7 +747,7 @@ describe('peer/base', () => {
 			it('should increase penalty based on rate limit exceeded', () => {
 				// Arrange
 				const reputation = defaultPeer.peerInfo.internalState.reputation;
-				const messageCount = 2001;
+				const messageCount = 201;
 				const expectedPenalty =
 					DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY *
 					Math.floor(messageCount / DEFAULT_WS_MAX_MESSAGE_RATE);

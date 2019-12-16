@@ -50,6 +50,7 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	DEFAULT_SEND_PEER_LIMIT,
 	PeerKind,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
 import { RequestFailError, SendFailError } from '../../src';
@@ -63,7 +64,7 @@ describe('peerPool', () => {
 		peerSelectionForSend: selectPeersForSend,
 		sendPeerLimit: DEFAULT_SEND_PEER_LIMIT,
 		wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD,
-		wsMaxMessageRate: 100,
+		wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 		wsMaxMessageRatePenalty: 10,
 		rateCalculationInterval: 1000,
 		peerBanTime: DEFAULT_BAN_TIME,

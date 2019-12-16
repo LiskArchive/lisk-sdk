@@ -42,6 +42,7 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
+	PROTOCOL_REMOTE_EVENT_RCP_EVENTS,
 	REMOTE_EVENT_POST_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
@@ -114,7 +115,6 @@ export class Peer extends EventEmitter {
 	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _rateInterval: number;
 	protected _protocolRCPCounter: number;
-	protected _protocolRCPEvents: Set<string>;
 
 	protected readonly _handleRawRPC: (
 		packet: unknown,
@@ -139,17 +139,12 @@ export class Peer extends EventEmitter {
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._serverNodeInfo = peerConfig.serverNodeInfo;
 		this._protocolRCPCounter = 0;
-		this._protocolRCPEvents = new Set([
-			REMOTE_EVENT_RPC_GET_NODE_INFO,
-			REMOTE_EVENT_RPC_GET_PEERS_LIST,
-		]);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
 			packet: unknown,
 			respond: (responseError?: Error, responseData?: unknown) => void,
 		): void => {
-			// TODO later: Switch to LIP protocol format.
 			// tslint:disable-next-line:no-let
 			let rawRequest;
 			try {
@@ -165,8 +160,8 @@ export class Peer extends EventEmitter {
 			}
 
 			// Protocol RCP request limiter LIP-0004
-			if (this._protocolRCPEvents.has(rawRequest?.procedure)) {
-				if (this._protocolRCPCounter <= this._protocolRCPEvents.size) {
+			if (PROTOCOL_REMOTE_EVENT_RCP_EVENTS.has(rawRequest?.procedure)) {
+				if (this._protocolRCPCounter <= PROTOCOL_REMOTE_EVENT_RCP_EVENTS.size) {
 					this._protocolRCPCounter += 1;
 				} else {
 					return;
@@ -198,7 +193,6 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown) => {
-			// TODO later: Switch to LIP protocol format.
 			// tslint:disable-next-line:no-let
 			let message;
 			try {
@@ -450,7 +444,7 @@ export class Peer extends EventEmitter {
 		if (
 			this.peerInfo.internalState.wsMessageRate >
 				this._peerConfig.wsMaxMessageRate ||
-			this._protocolRCPCounter > this._protocolRCPEvents.size
+			this._protocolRCPCounter > PROTOCOL_REMOTE_EVENT_RCP_EVENTS.size
 		) {
 			// Allow to increase penalty based on message rate limit exceeded
 			const messageRateExceedCoeff = Math.floor(

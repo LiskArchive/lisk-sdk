@@ -13,7 +13,11 @@
  *
  */
 import { expect } from 'chai';
-import { P2P, EVENT_BAN_PEER } from '../../src/index';
+import {
+	P2P,
+	EVENT_BAN_PEER,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
+} from '../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
@@ -32,7 +36,7 @@ describe('P2P protocol message limit', () => {
 			maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 			fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
 			rateCalculationInterval: 1000,
-			wsMaxMessageRatePenalty: 100,
+			wsMaxMessageRatePenalty: DEFAULT_WS_MAX_MESSAGE_RATE,
 			populatorInterval: index === 2 ? 100 : 10000,
 		});
 
@@ -58,9 +62,7 @@ describe('P2P protocol message limit', () => {
 	});
 
 	it(`should apply penalty for limit exceed`, async () => {
-		// Arrange
-
-		// Act
+		// Arrange & Act
 		await wait(100);
 
 		// Assert

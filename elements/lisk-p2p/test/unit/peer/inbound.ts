@@ -19,6 +19,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PING_INTERVAL_MAX,
 	DEFAULT_PING_INTERVAL_MIN,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
 } from '../../../src/constants';
 import {
 	REMOTE_SC_EVENT_MESSAGE,
@@ -49,7 +50,7 @@ describe('peer/inbound', () => {
 		};
 		defaultPeerConfig = {
 			rateCalculationInterval: 1000,
-			wsMaxMessageRate: 1000,
+			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 			wsMaxMessageRatePenalty: 10,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
