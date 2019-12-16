@@ -42,7 +42,7 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
-	PROTOCOL_REMOTE_EVENT_RCP_EVENTS,
+	PROTOCOL_EVENTS_TO_RATE_LIMIT,
 	REMOTE_EVENT_POST_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
@@ -160,12 +160,12 @@ export class Peer extends EventEmitter {
 			}
 
 			// Protocol RCP request limiter LIP-0004
-			if (PROTOCOL_REMOTE_EVENT_RCP_EVENTS.has(rawRequest?.procedure)) {
-				if (this._protocolRCPCounter <= PROTOCOL_REMOTE_EVENT_RCP_EVENTS.size) {
-					this._protocolRCPCounter += 1;
-				} else {
+			if (PROTOCOL_EVENTS_TO_RATE_LIMIT.has(rawRequest?.procedure)) {
+				if (this._protocolRCPCounter > PROTOCOL_EVENTS_TO_RATE_LIMIT.size) {
 					return;
 				}
+
+				this._protocolRCPCounter += 1;
 			}
 
 			this._updateRPCCounter(rawRequest);
@@ -444,16 +444,16 @@ export class Peer extends EventEmitter {
 		if (
 			this.peerInfo.internalState.wsMessageRate >
 				this._peerConfig.wsMaxMessageRate ||
-			this._protocolRCPCounter > PROTOCOL_REMOTE_EVENT_RCP_EVENTS.size
+			this._protocolRCPCounter > PROTOCOL_EVENTS_TO_RATE_LIMIT.size
 		) {
 			// Allow to increase penalty based on message rate limit exceeded
-			const messageRateExceedCoeff = Math.floor(
+			const messageRateExceedCoefficient = Math.floor(
 				this.peerInfo.internalState.wsMessageRate /
 					this._peerConfig.wsMaxMessageRate,
 			);
 
 			const penaltyRateMultiplier =
-				messageRateExceedCoeff > 1 ? messageRateExceedCoeff : 1;
+				messageRateExceedCoefficient > 1 ? messageRateExceedCoefficient : 1;
 
 			this.applyPenalty(
 				this._peerConfig.wsMaxMessageRatePenalty * penaltyRateMultiplier,

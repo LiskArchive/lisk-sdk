@@ -23,6 +23,7 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_RATE_CALCULATION_INTERVAL,
+	RCP_REQUEST_TYPE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -34,7 +35,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	PROTOCOL_REMOTE_EVENT_RCP_EVENTS,
+	PROTOCOL_EVENTS_TO_RATE_LIMIT,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
@@ -282,7 +283,7 @@ describe('peer/base', () => {
 			(defaultPeer as any)._socket = socket;
 			defaultPeer.request(p2pPacket);
 			expect(socket.emit).to.be.calledOnceWith(REMOTE_SC_EVENT_RPC_REQUEST, {
-				type: '/RPCRequest',
+				type: RCP_REQUEST_TYPE,
 				procedure: p2pPacket.procedure,
 				data: p2pPacket.data,
 			});
@@ -706,7 +707,7 @@ describe('peer/base', () => {
 					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 				};
 				const expectedHandledEventCount =
-					PROTOCOL_REMOTE_EVENT_RCP_EVENTS.size + 1;
+					PROTOCOL_EVENTS_TO_RATE_LIMIT.size + 1;
 				const requestCount = 10;
 
 				//Act

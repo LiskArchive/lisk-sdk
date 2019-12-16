@@ -49,7 +49,7 @@ export const REMOTE_EVENT_PING = 'ping';
 export const REMOTE_EVENT_PONG = 'pong';
 
 // P2P Protocol messages list
-export const PROTOCOL_REMOTE_EVENT_RCP_EVENTS: Set<string> = new Set([
+export const PROTOCOL_EVENTS_TO_RATE_LIMIT: Set<string> = new Set([
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 ]);
