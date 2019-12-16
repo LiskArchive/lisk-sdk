@@ -711,7 +711,7 @@ describe('transport', () => {
 							it('should throw an error', async () => {
 								try {
 									await transportModule.handleEventPostBlock(
-										postBlockQuery,
+										{ block: { ...postBlockQuery.block, id: 'dummy' } },
 										defaultPeerId,
 									);
 									expect('should not reach').to.equal('here');

@@ -203,7 +203,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		return 0;
 	}
 
-	async _create({ transactions, previousBlock, keypair, timestamp }) {
+	_create({ transactions, previousBlock, keypair, timestamp }) {
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
 		let totalFee = new BigNum(0);

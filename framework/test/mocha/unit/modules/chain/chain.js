@@ -449,14 +449,14 @@ describe('Chain', () => {
 			chain.options.syncing.active = false;
 
 			// Act
-			chain._startLoader();
+			await chain._startLoader();
 
 			// Assert
 			expect(stubs.jobsQueue.register).to.not.be.called;
 		});
 
 		it('should load transactions and signatures', async () => {
-			chain._startLoader();
+			await chain._startLoader();
 			expect(chain.loader.loadUnconfirmedTransactions).to.be.called;
 		});
 	});
