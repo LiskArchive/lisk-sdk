@@ -148,7 +148,7 @@ export class Peer extends EventEmitter {
 		this._handleRawRPC = (
 			packet: unknown,
 			respond: (responseError?: Error, responseData?: unknown) => void,
-		) => {
+		): void => {
 			// TODO later: Switch to LIP protocol format.
 			// tslint:disable-next-line:no-let
 			let rawRequest;
@@ -452,15 +452,14 @@ export class Peer extends EventEmitter {
 				this._peerConfig.wsMaxMessageRate ||
 			this._protocolRCPCounter > this._protocolRCPEvents.size
 		) {
-			// Allow to increase penalty to reduce 10 second attack window length
-			const messageRateCoeff =
+			// Allow to increase penalty based on message rate limit exceeded
+			const messageRateExceedCoeff = Math.floor(
 				this.peerInfo.internalState.wsMessageRate /
-				this._peerConfig.wsMaxMessageRate;
+					this._peerConfig.wsMaxMessageRate,
+			);
 
 			const penaltyRateMultiplier =
-				messageRateCoeff > 1
-					? messageRateCoeff / this._peerConfig.wsMaxMessageRate
-					: 1;
+				messageRateExceedCoeff > 1 ? messageRateExceedCoeff : 1;
 
 			this.applyPenalty(
 				this._peerConfig.wsMaxMessageRatePenalty * penaltyRateMultiplier,

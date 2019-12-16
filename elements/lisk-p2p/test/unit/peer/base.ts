@@ -20,6 +20,9 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
+	DEFAULT_RATE_CALCULATION_INTERVAL,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -63,9 +66,9 @@ describe('peer/base', () => {
 			},
 		};
 		peerConfig = {
-			rateCalculationInterval: 1000,
-			wsMaxMessageRate: 1000,
-			wsMaxMessageRatePenalty: 10,
+			rateCalculationInterval: DEFAULT_RATE_CALCULATION_INTERVAL,
+			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
+			wsMaxMessageRatePenalty: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
@@ -664,6 +667,99 @@ describe('peer/base', () => {
 				expect(defaultPeer.disconnect).to.be.calledOnceWithExactly(
 					FORBIDDEN_CONNECTION,
 					FORBIDDEN_CONNECTION_REASON,
+				);
+			});
+		});
+	});
+
+	describe('MessageRate and limiters', () => {
+		describe('when protocol messages limit exceed', () => {
+			beforeEach(() => {
+				sandbox.spy(defaultPeer as any, 'applyPenalty');
+				sandbox.spy(defaultPeer, 'emit');
+			});
+
+			it('should apply penalty for getPeers flood', () => {
+				// Arrange
+				const rawMessageRCP = {
+					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
+				};
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const requestCount = 10;
+
+				//Act
+				for (let i = 0; i < requestCount; i++) {
+					(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+				}
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+				);
+			});
+
+			it('should silent the request events after limit exceed', () => {
+				// Arrange
+				const rawMessageRCP = {
+					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
+				};
+				const expectedHandledEventCount =
+					(defaultPeer as any)._protocolRCPEvents.size + 1;
+				const requestCount = 10;
+
+				//Act
+				for (let i = 0; i < requestCount; i++) {
+					(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+				}
+
+				//Assert
+				expect((defaultPeer as any)._protocolRCPCounter).to.be.equal(
+					expectedHandledEventCount,
+				);
+			});
+		});
+
+		describe('when messagesRate limit exceed', () => {
+			beforeEach(() => {
+				sandbox.spy(defaultPeer as any, 'applyPenalty');
+				sandbox.spy(defaultPeer, 'emit');
+			});
+
+			it('should apply penalty for messagesRate exceeded', () => {
+				// Arrange
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const messageCount = 1001;
+
+				//Act
+				for (let i = 0; i < messageCount; i++) {
+					(defaultPeer as any)._handleWSMessage();
+				}
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+				);
+			});
+
+			it('should increase penalty based on rate limit exceeded', () => {
+				// Arrange
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const messageCount = 2001;
+				const expectedPenalty =
+					DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY *
+					Math.floor(messageCount / DEFAULT_WS_MAX_MESSAGE_RATE);
+
+				//Act
+				for (let i = 0; i < messageCount; i++) {
+					(defaultPeer as any)._handleWSMessage();
+				}
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation - expectedPenalty,
 				);
 			});
 		});

@@ -275,6 +275,7 @@ describe('Network discovery', () => {
 			const customConfig = (index: number) => ({
 				maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 				fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
+				rateCalculationInterval: 100,
 				populatorInterval:
 					index === 2 ? CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL : 10000,
 			});
