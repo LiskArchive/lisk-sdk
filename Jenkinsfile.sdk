@@ -317,6 +317,9 @@ pipeline {
 				}
 				stage('Integration tests') {
 					agent { node { label 'lisk-framework' }}
+					options {
+						timeout(time: 10, unit: 'MINUTES')
+					}
 					steps {
 						setup()
 						run_mocha('integration')
