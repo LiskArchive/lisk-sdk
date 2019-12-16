@@ -59,7 +59,7 @@ class BFT extends EventEmitter {
 	}
 
 	async init(stateStore, minActiveHeightsOfDelegates = {}) {
-		this.finalityManager = await this._initFinalityManager(stateStore);
+		this.finalityManager = this._initFinalityManager(stateStore);
 
 		this.finalityManager.on(
 			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
@@ -128,7 +128,7 @@ class BFT extends EventEmitter {
 		}
 	}
 
-	async addNewBlock(block, stateStore) {
+	addNewBlock(block, stateStore) {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 		const { finalizedHeight } = this.finalityManager;
 		return stateStore.chainState.set(
@@ -137,7 +137,7 @@ class BFT extends EventEmitter {
 		);
 	}
 
-	async verifyNewBlock(block) {
+	verifyNewBlock(block) {
 		return this.finalityManager.verifyBlockHeaders(
 			extractBFTBlockHeaderFromBlock(block),
 		);
@@ -188,7 +188,7 @@ class BFT extends EventEmitter {
 		return forkChoiceRule.FORK_STATUS_DISCARD;
 	}
 
-	async _initFinalityManager(stateStore) {
+	_initFinalityManager(stateStore) {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
 			parseInt(stateStore.chainState.get(CHAIN_STATE_FINALIZED_HEIGHT), 10) ||

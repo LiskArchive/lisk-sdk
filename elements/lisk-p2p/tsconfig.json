@@ -3,7 +3,8 @@
 	"compilerOptions": {
 		"declaration": true,
 		"outDir": "dist-node",
-		"rootDir": "./src"
+		"rootDir": "./src",
+		"target": "es2019"
 	},
 	"include": ["../../types/**/*", "types/**/*", "src/**/*"]
 }

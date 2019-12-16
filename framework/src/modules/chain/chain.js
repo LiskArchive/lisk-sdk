@@ -213,7 +213,7 @@ module.exports = class Chain {
 			});
 
 			this.channel.subscribe('network:ready', async () => {
-				this._startLoader();
+				await this._startLoader();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -282,7 +282,7 @@ module.exports = class Chain {
 					action.params.data,
 					action.params.peerId,
 				),
-			getSignatures: async () => this.transport.handleRPCGetSignatures(),
+			getSignatures: () => this.transport.handleRPCGetSignatures(),
 			postSignature: async action =>
 				this.transport.handleEventPostSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
@@ -511,8 +511,8 @@ module.exports = class Chain {
 		this.scope.modules.synchronizer = this.synchronizer;
 	}
 
-	_startLoader() {
-		this.loader.loadUnconfirmedTransactions();
+	async _startLoader() {
+		return this.loader.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {

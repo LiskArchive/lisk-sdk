@@ -189,7 +189,7 @@ describe('ForgerInfo', () => {
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			await expect(ForgerInfoEntity.setKey('myKey')).rejects.toThrow(
+			await expect(ForgerInfoEntity.setKey('mykey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
