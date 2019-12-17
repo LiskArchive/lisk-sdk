@@ -681,6 +681,22 @@ describe('peer/base', () => {
 				sandbox.spy(defaultPeer, 'emit');
 			});
 
+			it('should not apply penalty inside rate limit', () => {
+				// Arrange
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+
+				//Act
+				[...PROTOCOL_EVENTS_TO_RATE_LIMIT.keys()].forEach(procedure => {
+					(defaultPeer as any)._handleRawRPC({ procedure }, () => {});
+				});
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation,
+				);
+			});
+
 			it('should apply penalty for getPeers flood', () => {
 				// Arrange
 				const rawMessageRCP = {
@@ -706,8 +722,6 @@ describe('peer/base', () => {
 				const rawMessageRCP = {
 					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 				};
-				const expectedHandledEventCount =
-					PROTOCOL_EVENTS_TO_RATE_LIMIT.size + 1;
 				const requestCount = 10;
 
 				//Act
@@ -716,9 +730,7 @@ describe('peer/base', () => {
 				}
 
 				//Assert
-				expect((defaultPeer as any)._protocolRCPCounter).to.be.equal(
-					expectedHandledEventCount,
-				);
+				expect(defaultPeer.emit).to.be.calledOnce;
 			});
 		});
 

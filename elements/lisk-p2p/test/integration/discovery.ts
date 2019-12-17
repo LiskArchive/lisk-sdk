@@ -54,6 +54,7 @@ describe('Network discovery', () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			const customConfig = () => ({
 				fallbackSeedPeerDiscoveryInterval: CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL,
+				rateCalculationInterval: 100,
 			});
 
 			p2pNodeList = await createNetwork({

@@ -114,7 +114,6 @@ export class Peer extends EventEmitter {
 	protected readonly _peerConfig: PeerConfig;
 	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _rateInterval: number;
-	protected _protocolRCPCounter: number;
 
 	protected readonly _handleRawRPC: (
 		packet: unknown,
@@ -138,7 +137,6 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._serverNodeInfo = peerConfig.serverNodeInfo;
-		this._protocolRCPCounter = 0;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -159,15 +157,16 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			// Protocol RCP request limiter LIP-0004
-			if (PROTOCOL_EVENTS_TO_RATE_LIMIT.has(rawRequest?.procedure)) {
-				if (this._protocolRCPCounter > PROTOCOL_EVENTS_TO_RATE_LIMIT.size) {
-					return;
-				}
+			if (
+				PROTOCOL_EVENTS_TO_RATE_LIMIT.has(rawRequest.procedure) &&
+				this._peerInfo.internalState.rpcCounter.has(rawRequest.procedure)
+			) {
+				this._updateRPCCounter(rawRequest);
 
-				this._protocolRCPCounter += 1;
+				return;
 			}
 
+			// Protocol RCP request limiter LIP-0004
 			this._updateRPCCounter(rawRequest);
 			const rate = this._getRPCRate(rawRequest);
 
@@ -443,8 +442,7 @@ export class Peer extends EventEmitter {
 
 		if (
 			this.peerInfo.internalState.wsMessageRate >
-				this._peerConfig.wsMaxMessageRate ||
-			this._protocolRCPCounter > PROTOCOL_EVENTS_TO_RATE_LIMIT.size
+			this._peerConfig.wsMaxMessageRate
 		) {
 			// Allow to increase penalty based on message rate limit exceeded
 			const messageRateExceedCoefficient = Math.floor(
@@ -464,9 +462,15 @@ export class Peer extends EventEmitter {
 			[...this.internalState.rpcCounter.entries()].map(([key, value]) => {
 				const rate = value / this._rateInterval;
 
+				// Protocol RCP request limiter LIP-0004
+				if (PROTOCOL_EVENTS_TO_RATE_LIMIT.has(key) && value > 1) {
+					this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
+				}
+
 				return [key, rate] as any;
 			}),
 		);
+
 		this._peerInfo.internalState.rpcCounter = new Map();
 
 		this._peerInfo.internalState.messageRates = new Map(
@@ -478,9 +482,6 @@ export class Peer extends EventEmitter {
 		);
 
 		this._peerInfo.internalState.messageCounter = new Map();
-
-		// Protocol request limiter LIP-0004
-		this._protocolRCPCounter = 0;
 
 		return;
 	}
