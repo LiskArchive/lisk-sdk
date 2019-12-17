@@ -613,15 +613,13 @@ export class P2P extends EventEmitter {
 	private _terminateIncomingSocket(
 		socket: SCServerSocket,
 		error: Error | string,
-		blacklist?: boolean,
+		addToBannedPeers?: boolean,
 	): void {
 		(socket as any).socket.terminate();
 		// If the socket needs to be blacklisted
-		if (blacklist) {
-			this._sanitizedPeerLists.blacklistedPeers = [
-				...this._sanitizedPeerLists.blacklistedPeers,
-				{ ipAddress: socket.remoteAddress, wsPort: socket.remotePort },
-			];
+		if (addToBannedPeers) {
+			this._bannedPeers.add(socket.remoteAddress);
+
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		}
 	}
@@ -659,6 +657,7 @@ export class P2P extends EventEmitter {
 				`Blacklisted peer with Ip ${
 					req.socket.remoteAddress
 				} because invalid emit event with missing data.`,
+				true,
 			);
 			next(new Error('Rejecting connection due to missing data.'));
 
@@ -672,6 +671,7 @@ export class P2P extends EventEmitter {
 				`Blacklisted peer with Ip ${
 					req.socket.remoteAddress
 				} because invalid emit event name length.`,
+				true,
 			);
 
 			next(new Error('Rejecting connection due invalid event name'));
@@ -683,14 +683,64 @@ export class P2P extends EventEmitter {
 		return;
 	}
 
+	private _handleIncomingPayload(ws: any, req: any): void {
+		ws.on('message', (message: any) => {
+			try {
+				const parsed = JSON.parse(message);
+
+				if (
+					(parsed.event && typeof parsed.event !== 'string') ||
+					typeof parsed.data !== 'object' ||
+					parsed.event === '#disconnect'
+				) {
+					throw new Error('Invalid payload sent by incoming connection');
+				}
+			} catch (error) {
+				ws.terminate();
+
+				this._bannedPeers.add(req.headers.host);
+
+				this.emit(
+					EVENT_INBOUND_SOCKET_ERROR,
+					`Blacklisted peer with Ip ${
+						req.headers.host
+					} because of invalid payload`,
+				);
+			}
+		});
+	}
+
+	private async _handleSubscribe(
+		req: SCServer.SubscribeRequest,
+		next: SCServer.nextMiddlewareFunction,
+	): Promise<void> {
+		if (req) {
+			this._terminateIncomingSocket(
+				req.socket,
+				`Blacklisted peer with Ip ${
+					req.socket.remoteAddress
+				} because invalid subscribe event call`,
+			);
+
+			next(new Error('Rejecting connection due invalid subscribe event call'));
+
+			return;
+		}
+
+		next();
+
+		return;
+	}
+
 	private async _handleIncomingHandshake(
 		req: http.IncomingMessage,
 		next: SCServer.nextMiddlewareFunction,
 	): Promise<void> {
 		// Check blacklist to avoid incoming connections from blacklisted ips
+
 		if (this._sanitizedPeerLists.blacklistedPeers) {
 			const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
-				peer => peer.ipAddress,
+				peer => peer.ip,
 			);
 
 			if (blacklist.includes(req.socket.remoteAddress as string)) {
@@ -738,7 +788,7 @@ export class P2P extends EventEmitter {
 	private _handleIncomingConnection(socket: SCServerSocket): void {
 		if (
 			this._sanitizedPeerLists.blacklistedPeers.find(
-				peer => peer.ipAddress === socket.remoteAddress,
+				peer => peer.ip === socket.remoteAddress,
 			)
 		) {
 			const existingBlacklistPeer = this._peerBook
@@ -877,41 +927,18 @@ export class P2P extends EventEmitter {
 		return;
 	}
 
-	private _handleIncomingPayload(ws: any, req: any): void {
-		ws.on('message', (message: any) => {
-			try {
-				const parsed = JSON.parse(message);
-				if (
-					typeof parsed.event !== 'string' ||
-					typeof parsed.data !== 'object' ||
-					parsed.event === '#disconnect'
-				) {
-					throw new Error('Invalid payload sent by incoming connection');
-				}
-			} catch (error) {
-				ws.terminate();
-				this.emit(
-					EVENT_INBOUND_SOCKET_ERROR,
-					`Blacklisted peer with Ip ${
-						req.headers.host
-					} because of invalid payload`,
-				);
-			}
-		});
-	}
-
 	private async _startPeerServer(): Promise<void> {
+		// Handle incoming invalid payload
+		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
+			this._handleIncomingPayload(ws, req);
+		});
+
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
 				this._handleIncomingConnection(socket);
 			},
 		);
-
-		// Handle incoming invalid payload
-		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
-			this._handleIncomingPayload(ws, req);
-		});
 
 		this._scServer.on(
 			'handshake',
@@ -920,13 +947,17 @@ export class P2P extends EventEmitter {
 			},
 		);
 
+		/* tslint:disable promise-function-async*/
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
-			/* tslint:disable promise-function-async*/
 			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
 				this._handleIncomingHandshake(req, next),
 		);
-		/* tslint:disable promise-function-async*/
+		this._scServer.addMiddleware(
+			this._scServer.MIDDLEWARE_SUBSCRIBE,
+			(req: SCServer.SubscribeRequest, next: SCServer.nextMiddlewareFunction) =>
+				this._handleSubscribe(req, next),
+		);
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_EMIT,
 			(req: SCServer.EmitRequest, next: SCServer.nextMiddlewareFunction) =>

@@ -52,9 +52,22 @@ const defaultConfig = {
 		blacklistedPeers: {
 			type: 'array',
 			items: {
-				type: 'string',
-				format: 'ip',
+				type: 'object',
+				properties: {
+					ip: {
+						type: 'string',
+						format: 'ip',
+					},
+					wsPort: {
+						type: 'integer',
+						minimum: 1,
+						maximum: 65535,
+					},
+				},
 			},
+			maximum: 4,
+			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
+			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
 		// Warning! The connectivity of the node might be negatively impacted if using this option.
 		fixedPeers: {
