@@ -755,6 +755,8 @@ export class P2P extends EventEmitter {
 		}
 
 		next();
+
+		return;
 	}
 
 	private _handleIncomingConnection(socket: SCServerSocket): void {
@@ -925,7 +927,11 @@ export class P2P extends EventEmitter {
 			(
 				req: http.IncomingMessage,
 				next: SCServer.nextMiddlewareFunction,
-			): void => this._handleIncomingHandshake(req, next),
+			): void => {
+				this._handleIncomingHandshake(req, next);
+
+				return;
+			},
 		);
 
 		this._scServer.addMiddleware(
@@ -933,7 +939,11 @@ export class P2P extends EventEmitter {
 			(
 				req: SCServer.EmitRequest,
 				next: SCServer.nextMiddlewareFunction,
-			): void => this._handleEmit(req, next),
+			): void => {
+				this._handleEmit(req, next);
+
+				return;
+			},
 		);
 
 		this._httpServer.listen(
