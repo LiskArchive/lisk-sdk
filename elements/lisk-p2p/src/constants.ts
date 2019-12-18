@@ -21,6 +21,8 @@ export const DEFAULT_BAN_TIME = 86400000; // Milliseconds in a day -> hours*minu
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_SEND_PEER_LIMIT = 16;
+// Message types
+export const RCP_REQUEST_TYPE = '/RPCRequest';
 // Max rate of WebSocket messages per second per peer.
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
