@@ -24,6 +24,7 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
+	RCP_REQUEST_TYPE,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -41,6 +42,7 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
+	PROTOCOL_EVENTS_TO_RATE_LIMIT,
 	REMOTE_EVENT_POST_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
@@ -110,7 +112,6 @@ export class Peer extends EventEmitter {
 	protected _peerInfo: ConnectedPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
-	protected _nodeInfo: P2PNodeInfo | undefined;
 	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _rateInterval: number;
 
@@ -141,8 +142,7 @@ export class Peer extends EventEmitter {
 		this._handleRawRPC = (
 			packet: unknown,
 			respond: (responseError?: Error, responseData?: unknown) => void,
-		) => {
-			// TODO later: Switch to LIP protocol format.
+		): void => {
 			// tslint:disable-next-line:no-let
 			let rawRequest;
 			try {
@@ -157,6 +157,16 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
+			if (
+				PROTOCOL_EVENTS_TO_RATE_LIMIT.has(rawRequest.procedure) &&
+				this._peerInfo.internalState.rpcCounter.has(rawRequest.procedure)
+			) {
+				this._updateRPCCounter(rawRequest);
+
+				return;
+			}
+
+			// Protocol RCP request limiter LIP-0004
 			this._updateRPCCounter(rawRequest);
 			const rate = this._getRPCRate(rawRequest);
 
@@ -173,10 +183,6 @@ export class Peer extends EventEmitter {
 				respond,
 			);
 
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				request.end(this._nodeInfo);
-			}
-
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
@@ -186,7 +192,6 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown) => {
-			// TODO later: Switch to LIP protocol format.
 			// tslint:disable-next-line:no-let
 			let message;
 			try {
@@ -253,10 +258,6 @@ export class Peer extends EventEmitter {
 		return this._peerInfo;
 	}
 
-	public get nodeInfo(): P2PNodeInfo | undefined {
-		return this._nodeInfo;
-	}
-
 	private _initializeInternalState(peerInfo: P2PPeerInfo): P2PPeerInfo {
 		return peerInfo.internalState
 			? peerInfo
@@ -275,18 +276,6 @@ export class Peer extends EventEmitter {
 			wsPort: this.wsPort,
 			peerId: this.id,
 		};
-	}
-
-	/**
-	 * Updates the node latest status and sends the same information to all other peers.
-	 * @param nodeInfo information about the node latest status
-	 */
-	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		this._nodeInfo = nodeInfo;
-		this.send({
-			event: REMOTE_EVENT_POST_NODE_INFO,
-			data: nodeInfo,
-		});
 	}
 
 	public connect(): void {
@@ -329,7 +318,7 @@ export class Peer extends EventEmitter {
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
-						type: '/RPCRequest',
+						type: RCP_REQUEST_TYPE,
 						procedure: packet.procedure,
 						data: packet.data,
 					},
@@ -448,24 +437,40 @@ export class Peer extends EventEmitter {
 		this._peerInfo.internalState.wsMessageRate =
 			(this.peerInfo.internalState.wsMessageCount * RATE_NORMALIZATION_FACTOR) /
 			this._rateInterval;
+
 		this._peerInfo.internalState.wsMessageCount = 0;
 
 		if (
 			this.peerInfo.internalState.wsMessageRate >
 			this._peerConfig.wsMaxMessageRate
 		) {
-			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
+			// Allow to increase penalty based on message rate limit exceeded
+			const messageRateExceedCoefficient = Math.floor(
+				this.peerInfo.internalState.wsMessageRate /
+					this._peerConfig.wsMaxMessageRate,
+			);
 
-			return;
+			const penaltyRateMultiplier =
+				messageRateExceedCoefficient > 1 ? messageRateExceedCoefficient : 1;
+
+			this.applyPenalty(
+				this._peerConfig.wsMaxMessageRatePenalty * penaltyRateMultiplier,
+			);
 		}
 
 		this._peerInfo.internalState.rpcRates = new Map(
 			[...this.internalState.rpcCounter.entries()].map(([key, value]) => {
 				const rate = value / this._rateInterval;
 
+				// Protocol RCP request limiter LIP-0004
+				if (PROTOCOL_EVENTS_TO_RATE_LIMIT.has(key) && value > 1) {
+					this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
+				}
+
 				return [key, rate] as any;
 			}),
 		);
+
 		this._peerInfo.internalState.rpcCounter = new Map();
 
 		this._peerInfo.internalState.messageRates = new Map(
@@ -475,7 +480,10 @@ export class Peer extends EventEmitter {
 				return [key, rate] as any;
 			}),
 		);
+
 		this._peerInfo.internalState.messageCounter = new Map();
+
+		return;
 	}
 
 	private _resetProductivity(): void {

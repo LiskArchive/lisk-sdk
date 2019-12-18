@@ -51,6 +51,7 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_POST_NODE_INFO,
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
@@ -303,7 +304,7 @@ export class PeerPool extends EventEmitter {
 		this._nodeInfo = nodeInfo;
 		const peerList = this.getPeers();
 		peerList.forEach(peer => {
-			this._applyNodeInfoOnPeer(peer, nodeInfo);
+			this._applyNodeInfoOnPeer(peer);
 		});
 	}
 
@@ -502,7 +503,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer);
 		}
 		peer.connect();
 
@@ -538,7 +539,7 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
-			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
+			this._applyNodeInfoOnPeer(peer);
 		}
 
 		return true;
@@ -665,9 +666,12 @@ export class PeerPool extends EventEmitter {
 		return openOutboundSlots;
 	}
 
-	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
+	private _applyNodeInfoOnPeer(peer: Peer): void {
 		try {
-			peer.applyNodeInfo(nodeInfo);
+			peer.send({
+				event: REMOTE_EVENT_POST_NODE_INFO,
+				data: this._nodeInfo,
+			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		}
