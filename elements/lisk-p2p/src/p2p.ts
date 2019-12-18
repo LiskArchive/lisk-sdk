@@ -685,7 +685,7 @@ export class P2P extends EventEmitter {
 		return;
 	}
 
-	private _handleIncomingPayload(ws: any, req: any): void {
+	private _handleIncomingPayload(ws: any, _req: any): void {
 		ws.on('message', (message: any) => {
 			try {
 				const parsed = JSON.parse(message);
@@ -698,13 +698,17 @@ export class P2P extends EventEmitter {
 					throw new Error('Invalid payload sent by incoming connection');
 				}
 			} catch (error) {
+				const peerIpAddress = ws._socket._peername.address;
+
 				ws.terminate();
 
-				this._bannedPeers.add(req.headers.host);
+				if (peerIpAddress) {
+					this._bannedPeers.add(ws._socket._peername.address);
+				}
 
 				this.emit(
 					EVENT_INBOUND_SOCKET_ERROR,
-					`Banned peer with Ip ${req.headers.host} because of invalid payload`,
+					`Banned peer with Ip ${peerIpAddress} because of invalid payload`,
 				);
 			}
 		});
