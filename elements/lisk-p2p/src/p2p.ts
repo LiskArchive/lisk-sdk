@@ -82,6 +82,7 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
+	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from './events';
 import { P2PRequest } from './p2p_request';
@@ -289,8 +290,15 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
-				this._handleGetPeersRequest(request);
+			// Process protocol messages
+			switch (request.procedure) {
+				case REMOTE_EVENT_RPC_GET_PEERS_LIST:
+					this._handleGetPeersRequest(request);
+					break;
+				case REMOTE_EVENT_RPC_GET_NODE_INFO:
+					this._handleGetNodeInfo(request);
+					break;
+				default:
 			}
 
 			// Re-emit the request for external use.
@@ -1043,6 +1051,10 @@ export class P2P extends EventEmitter {
 					? sanitizedPeerInfoList
 					: sanitizedPeerInfoList.slice(0, safeMaxPeerInfoLength),
 		});
+	}
+
+	private _handleGetNodeInfo(request: P2PRequest): void {
+		request.end(this._nodeInfo);
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {

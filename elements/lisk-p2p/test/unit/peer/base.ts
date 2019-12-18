@@ -20,6 +20,10 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
+	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
+	DEFAULT_RATE_CALCULATION_INTERVAL,
+	RCP_REQUEST_TYPE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -31,12 +35,12 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	REMOTE_EVENT_POST_NODE_INFO,
+	PROTOCOL_EVENTS_TO_RATE_LIMIT,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
-import { P2PNodeInfo, P2PPeerInfo } from '../../../src';
+import { P2PPeerInfo } from '../../../src';
 
 const createSocketStubInstance = () => <SCServerSocket>({
 		emit: sandbox.stub(),
@@ -46,7 +50,6 @@ const createSocketStubInstance = () => <SCServerSocket>({
 describe('peer/base', () => {
 	let defaultPeerInfo: P2PPeerInfo;
 	let peerConfig: PeerConfig;
-	let nodeInfo: P2PNodeInfo;
 	let p2pDiscoveredPeerInfo: P2PPeerInfo;
 	let defaultPeer: Peer;
 	let clock: sinon.SinonFakeTimers;
@@ -65,9 +68,9 @@ describe('peer/base', () => {
 			},
 		};
 		peerConfig = {
-			rateCalculationInterval: 1000,
-			wsMaxMessageRate: 1000,
-			wsMaxMessageRatePenalty: 10,
+			rateCalculationInterval: DEFAULT_RATE_CALCULATION_INTERVAL,
+			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
+			wsMaxMessageRatePenalty: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
@@ -80,16 +83,6 @@ describe('peer/base', () => {
 				nonce: 'nonce',
 				advertiseAddress: true,
 			},
-		};
-		nodeInfo = {
-			os: 'os',
-			version: '1.2.0',
-			protocolVersion: '1.2',
-			nethash: 'nethash',
-			wsPort: 6001,
-			height: 100,
-			nonce: 'nonce',
-			advertiseAddress: true,
 		};
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerId(
@@ -196,24 +189,6 @@ describe('peer/base', () => {
 				defaultPeerInfo.sharedState,
 			)));
 
-	describe('#nodeInfo', () => {
-		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'request').resolves();
-		});
-
-		it('should get node info', () => {
-			const socket = createSocketStubInstance();
-			(defaultPeer as any)._socket = socket;
-			defaultPeer.applyNodeInfo(nodeInfo);
-
-			expect(defaultPeer.nodeInfo).to.eql(nodeInfo);
-			expect(socket.emit).to.be.calledOnceWithExactly(REMOTE_SC_EVENT_MESSAGE, {
-				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: nodeInfo,
-			});
-		});
-	});
-
 	describe('#updatePeerInfo', () =>
 		it('should update peer info', () => {
 			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo);
@@ -222,23 +197,6 @@ describe('peer/base', () => {
 				p2pDiscoveredPeerInfo.sharedState,
 			);
 		}));
-
-	describe('#applyNodeInfo', async () => {
-		beforeEach(() => {
-			sandbox.stub(defaultPeer, 'send').resolves();
-		});
-
-		it('should apply node info', async () => {
-			const socket = createSocketStubInstance();
-			(defaultPeer as any)._socket = socket;
-			defaultPeer.applyNodeInfo(nodeInfo);
-
-			expect(defaultPeer.send).to.be.calledOnceWithExactly({
-				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: nodeInfo,
-			});
-		});
-	});
 
 	describe('#connect', () => {
 		it('should throw error if socket does not exist', () => {
@@ -325,7 +283,7 @@ describe('peer/base', () => {
 			(defaultPeer as any)._socket = socket;
 			defaultPeer.request(p2pPacket);
 			expect(socket.emit).to.be.calledOnceWith(REMOTE_SC_EVENT_RPC_REQUEST, {
-				type: '/RPCRequest',
+				type: RCP_REQUEST_TYPE,
 				procedure: p2pPacket.procedure,
 				data: p2pPacket.data,
 			});
@@ -711,6 +669,111 @@ describe('peer/base', () => {
 				expect(defaultPeer.disconnect).to.be.calledOnceWithExactly(
 					FORBIDDEN_CONNECTION,
 					FORBIDDEN_CONNECTION_REASON,
+				);
+			});
+		});
+	});
+
+	describe('MessageRate and limiters', () => {
+		describe('when protocol messages limit exceed', () => {
+			beforeEach(() => {
+				sandbox.spy(defaultPeer as any, 'applyPenalty');
+				sandbox.spy(defaultPeer, 'emit');
+			});
+
+			it('should not apply penalty inside rate limit', () => {
+				// Arrange
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+
+				//Act
+				[...PROTOCOL_EVENTS_TO_RATE_LIMIT.keys()].forEach(procedure => {
+					(defaultPeer as any)._handleRawRPC({ procedure }, () => {});
+				});
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation,
+				);
+			});
+
+			it('should apply penalty for getPeers flood', () => {
+				// Arrange
+				const rawMessageRCP = {
+					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
+				};
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const requestCount = 10;
+
+				//Act
+				for (let i = 0; i < requestCount; i++) {
+					(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+				}
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+				);
+			});
+
+			it('should silent the request events after limit exceed', () => {
+				// Arrange
+				const rawMessageRCP = {
+					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
+				};
+				const requestCount = 10;
+
+				//Act
+				for (let i = 0; i < requestCount; i++) {
+					(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+				}
+
+				//Assert
+				expect(defaultPeer.emit).to.be.calledOnce;
+			});
+		});
+
+		describe('when messagesRate limit exceed', () => {
+			beforeEach(() => {
+				sandbox.spy(defaultPeer as any, 'applyPenalty');
+				sandbox.spy(defaultPeer, 'emit');
+			});
+
+			it('should apply penalty for messagesRate exceeded', () => {
+				// Arrange
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const messageCount = 101;
+
+				//Act
+				for (let i = 0; i < messageCount; i++) {
+					(defaultPeer as any)._handleWSMessage();
+				}
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+				);
+			});
+
+			it('should increase penalty based on rate limit exceeded', () => {
+				// Arrange
+				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const messageCount = 201;
+				const expectedPenalty =
+					DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY *
+					Math.floor(messageCount / DEFAULT_WS_MAX_MESSAGE_RATE);
+
+				//Act
+				for (let i = 0; i < messageCount; i++) {
+					(defaultPeer as any)._handleWSMessage();
+				}
+				clock.tick(peerConfig.rateCalculationInterval + 1);
+
+				//Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).to.be.equal(
+					reputation - expectedPenalty,
 				);
 			});
 		});

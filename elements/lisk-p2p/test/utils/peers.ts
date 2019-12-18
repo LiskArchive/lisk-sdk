@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { ConnectionKind, DEFAULT_RANDOM_SECRET } from '../../src/constants';
+import {
+	ConnectionKind,
+	DEFAULT_RANDOM_SECRET,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
+} from '../../src/constants';
 import { Peer } from '../../src/peer';
 import { P2PPeerInfo } from '../../src/p2p_types';
 import { assignInternalInfo } from '../../src/utils';
@@ -120,7 +124,7 @@ export const initPeerList = (): ReadonlyArray<Peer> =>
 		(peerInfo: P2PPeerInfo) =>
 			new Peer(peerInfo, {
 				rateCalculationInterval: 1000,
-				wsMaxMessageRate: 1000,
+				wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 				wsMaxMessageRatePenalty: 10,
 				secret: DEFAULT_RANDOM_SECRET,
 				maxPeerInfoSize: 10000,

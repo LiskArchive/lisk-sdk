@@ -40,11 +40,19 @@ export const EVENT_FAILED_TO_SEND_MESSAGE = 'failedToSendMessage';
 // Peer base
 export const REMOTE_SC_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_SC_EVENT_MESSAGE = 'remote-message';
+
+// P2P Protocol messages
 export const REMOTE_EVENT_POST_NODE_INFO = 'postNodeInfo';
 export const REMOTE_EVENT_RPC_GET_NODE_INFO = 'getNodeInfo';
 export const REMOTE_EVENT_RPC_GET_PEERS_LIST = 'getPeers';
 export const REMOTE_EVENT_PING = 'ping';
 export const REMOTE_EVENT_PONG = 'pong';
+
+// P2P Protocol messages list
+export const PROTOCOL_EVENTS_TO_RATE_LIMIT: Set<string> = new Set([
+	REMOTE_EVENT_RPC_GET_NODE_INFO,
+	REMOTE_EVENT_RPC_GET_PEERS_LIST,
+]);
 
 // Inbound peer
 export const EVENT_CLOSE_INBOUND = 'closeInbound';

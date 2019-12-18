@@ -25,6 +25,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_CONNECT_TIMEOUT,
 	DEFAULT_ACK_TIMEOUT,
+	DEFAULT_WS_MAX_MESSAGE_RATE,
 } from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 
@@ -48,7 +49,7 @@ describe('peer/outbound', () => {
 		};
 		defaultOutboundPeerConfig = {
 			rateCalculationInterval: 1000,
-			wsMaxMessageRate: 1000,
+			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 			wsMaxMessageRatePenalty: 10,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
