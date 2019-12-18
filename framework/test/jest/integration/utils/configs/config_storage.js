@@ -14,10 +14,12 @@
 
 'use strict';
 
+const {
+	components: { storage: devNetStorageConfig },
+} = require('../../../../fixtures/config/devnet/config.json');
+
 const storageConfig = (overriddenConfigProperties = {}) => ({
-	host: 'localhost',
-	port: 5432,
-	database: 'lisk_dev',
+	...devNetStorageConfig,
 	user: 'lisk',
 	password: 'password',
 	min: 1,
@@ -27,7 +29,6 @@ const storageConfig = (overriddenConfigProperties = {}) => ({
 	poolIdleTimeout: 30000,
 	reapIntervalMillis: 1000,
 	logEvents: ['error'],
-	logFileName: 'logs/lisk_db.log',
 	...overriddenConfigProperties,
 });
 
