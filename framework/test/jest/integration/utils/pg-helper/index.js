@@ -15,44 +15,38 @@
 const pgpLib = require('pg-promise');
 const childProcess = require('child_process');
 const { createStorageComponent } = require('./storage');
+const { storageConfig } = require('../configs');
 
-this.pgpOptions = {
+const pgpOptions = {
 	capSQL: true,
 	promiseLib: Promise,
 	noLocking: false,
 };
-const pgp = pgpLib(this.pgpOptions);
+const pgp = pgpLib(pgpOptions);
 
 class PgHelper {
 	constructor(options) {
-		const defaultOptions = {
-			host: 'localhost',
-			port: 5432,
-			user: 'lisk',
-			password: 'password',
-			min: 1,
-			max: 2,
-		};
+		const connOptions = storageConfig(options);
 
-		if (!options.database) {
+		if (!connOptions.database) {
 			throw new Error('Please define a database name');
 		}
 
-		// eslint-disable-next-line no-param-reassign
-		options = { ...defaultOptions, ...options };
+		this.database = connOptions.database;
 
-		this.database = options.database;
-
-		this.pgp = pgp(options);
+		this.pgp = pgp(connOptions);
 		this.storage = null;
 	}
 
 	_dropDB() {
 		return new Promise(resolve => {
-			childProcess.exec(`dropdb ${this.database}`, err => {
+			childProcess.exec(`dropdb --if-exists  ${this.database}`, err => {
 				if (err) {
 					// eslint-disable-next-line no-console
-					console.log(`dropdb ${this.database} failed`, err.message);
+					console.log(
+						`dropdb --if-exists  ${this.database} failed`,
+						err.message,
+					);
 				}
 				resolve();
 			});
@@ -75,8 +69,18 @@ class PgHelper {
 	async bootstrap() {
 		await this._dropDB();
 		await this._createDB();
-		this.conn = await this.pgp.connect();
-		return this.conn;
+
+		// As of the nature of pg-promise the connection is acquired either a query is started to execute.
+		// So to actually verify the connection works fine
+		// based on the provided options, we need to test it by acquiring
+		// the connection a manually
+
+		this.conn = null;
+
+		return this.pgp.connect().then(co => {
+			this.conn = co;
+			return this.conn;
+		});
 	}
 
 	async cleanup() {
@@ -87,19 +91,12 @@ class PgHelper {
 	}
 
 	async createStorage(options = {}, logger) {
-		const storageOptions = {
+		const storageOptions = storageConfig({
 			database: this.database,
-			user: 'lisk',
-			password: 'password',
-			min: 1,
-			max: 2,
 			logFileName: `logs/devnet/lisk_${this.database}.log`,
 			noWarnings: true,
-			poolIdleTimeout: 30000,
-			reapIntervalMillis: 1000,
-			logEvents: ['error'],
 			...options,
-		};
+		});
 		this.storage = await createStorageComponent(storageOptions, logger);
 
 		return this.storage;

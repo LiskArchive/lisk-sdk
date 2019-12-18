@@ -18,6 +18,7 @@ const base = require('../config/jest.config.base');
 
 module.exports = {
 	...base,
+	setupFilesAfterEnv: ['<rootDir>/framework/test/jest/integration/setup.js'],
 	testMatch: [
 		'<rootDir>/framework/test/jest/integration/specs/**/*.(spec|test).js',
 	],

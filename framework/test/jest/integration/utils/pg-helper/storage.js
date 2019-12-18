@@ -39,9 +39,9 @@ const createStorageComponent = async (options, logger = console) => {
 	);
 	const storage = new Storage(storageOptions, logger);
 
-	await storage.bootstrap();
-
 	storage.registerEntity('Migration', Migration);
+
+	await storage.bootstrap();
 
 	// apply migrations
 	await storage.entities.Migration.defineSchema();
