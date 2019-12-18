@@ -22,7 +22,7 @@ const {
 
 describe('formatters', () => {
 	describe('stringToIpPortSet', () => {
-		it('should return empty array if given argument is not string', async () => {
+		it('should return empty array if given argument is not string', () => {
 			// Arrange
 			const input = 123;
 			const expectedOutput = [];
@@ -34,7 +34,7 @@ describe('formatters', () => {
 			expect(output).toEqual(expectedOutput);
 		});
 
-		it('should return list of "ip" and "wsPort" objects for given string value', async () => {
+		it('should return list of "ip" and "wsPort" objects for given string value', () => {
 			// Arrange
 			const input = '127.0.0.1:123,192.168.0.1:8000';
 			const expectedOutput = [
@@ -49,7 +49,7 @@ describe('formatters', () => {
 			expect(output).toEqual(expectedOutput);
 		});
 
-		it('should return use 5000 was wsPort if not available in given argument', async () => {
+		it('should return use 5000 was wsPort if not available in given argument', () => {
 			// Arrange
 			const input = '127.0.0.1,192.168.0.1:';
 			const expectedOutput = [
@@ -66,7 +66,7 @@ describe('formatters', () => {
 	});
 
 	describe('stringToIpList', () => {
-		it('should return empty array if given argument is not string', async () => {
+		it('should return empty array if given argument is not string', () => {
 			// Arrange
 			const input = 123;
 			const expectedOutput = [];
@@ -78,7 +78,7 @@ describe('formatters', () => {
 			expect(output).toEqual(expectedOutput);
 		});
 
-		it('should return list IPs for given string value', async () => {
+		it('should return list IPs for given string value', () => {
 			// Arrange
 			const input = '127.0.0.1,192.168.0.1';
 			const expectedOutput = ['127.0.0.1', '192.168.0.1'];
@@ -92,7 +92,7 @@ describe('formatters', () => {
 	});
 
 	describe('stringToDelegateList', () => {
-		it('should return empty array if given argument is not string', async () => {
+		it('should return empty array if given argument is not string', () => {
 			// Arrange
 			const input = 123;
 			const expectedOutput = [];
@@ -104,7 +104,7 @@ describe('formatters', () => {
 			expect(output).toEqual(expectedOutput);
 		});
 
-		it('should return list of "publicKey" and "encryptedPassphrase" objects for given string value', async () => {
+		it('should return list of "publicKey" and "encryptedPassphrase" objects for given string value', () => {
 			// Arrange
 			const input = 'key1|pass1,key2|pass2';
 			const expectedOutput = [
