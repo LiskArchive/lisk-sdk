@@ -703,10 +703,10 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	private async _handleIncomingHandshake(
+	private _handleIncomingHandshake(
 		req: http.IncomingMessage,
 		next: SCServer.nextMiddlewareFunction,
-	): Promise<void> {
+	): void {
 		// Check blacklist to avoid incoming connections from blacklisted ips
 
 		if (this._sanitizedPeerLists.blacklistedPeers) {
@@ -922,14 +922,18 @@ export class P2P extends EventEmitter {
 		/* tslint:disable promise-function-async*/
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
-			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction) =>
-				this._handleIncomingHandshake(req, next),
+			(
+				req: http.IncomingMessage,
+				next: SCServer.nextMiddlewareFunction,
+			): void => this._handleIncomingHandshake(req, next),
 		);
 
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_EMIT,
-			(req: SCServer.EmitRequest, next: SCServer.nextMiddlewareFunction) =>
-				this._handleEmit(req, next),
+			(
+				req: SCServer.EmitRequest,
+				next: SCServer.nextMiddlewareFunction,
+			): void => this._handleEmit(req, next),
 		);
 
 		this._httpServer.listen(
