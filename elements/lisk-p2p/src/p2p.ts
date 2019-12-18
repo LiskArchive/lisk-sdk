@@ -615,14 +615,14 @@ export class P2P extends EventEmitter {
 		error: Error | string,
 		addToBannedPeers?: boolean,
 	): void {
-		if ((socket as any).socket && (socket as any).socket.terminate) {
+		if ((socket as any).socket) {
 			(socket as any).socket.terminate();
-			// If the socket needs to be blacklisted
-			if (addToBannedPeers) {
-				this._bannedPeers.add(socket.remoteAddress);
+		}
+		// If the socket needs to be blacklisted
+		if (addToBannedPeers) {
+			this._bannedPeers.add(socket.remoteAddress);
 
-				this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
-			}
+			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		}
 	}
 
@@ -700,10 +700,11 @@ export class P2P extends EventEmitter {
 			} catch (error) {
 				ws.terminate();
 
-				this._terminateIncomingSocket(
-					req.headers.host,
+				this._bannedPeers.add(req.headers.host);
+
+				this.emit(
+					EVENT_INBOUND_SOCKET_ERROR,
 					`Banned peer with Ip ${req.headers.host} because of invalid payload`,
-					true,
 				);
 			}
 		});
@@ -782,6 +783,7 @@ export class P2P extends EventEmitter {
 
 			return;
 		}
+
 		next();
 	}
 
