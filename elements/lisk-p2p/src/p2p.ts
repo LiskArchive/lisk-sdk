@@ -655,19 +655,6 @@ export class P2P extends EventEmitter {
 	): void {
 		const MAX_EVENT_NAME_LENGTH = 128;
 
-		if (!req.data) {
-			this._terminateIncomingSocket(
-				req.socket,
-				`Banned peer with Ip ${
-					req.socket.remoteAddress
-				} because invalid emit event with missing data.`,
-				true,
-			);
-			next(new Error('Rejecting connection due to missing data.'));
-
-			return;
-		}
-
 		if (req.event.length > MAX_EVENT_NAME_LENGTH) {
 			this._terminateIncomingSocket(
 				req.socket,
@@ -695,9 +682,8 @@ export class P2P extends EventEmitter {
 					(parsed.event && typeof parsed.event !== 'string') ||
 					parsed.event === '#disconnect' ||
 					parsed.event === '#subscribe';
-				const invalidData = typeof parsed.data !== 'object';
 
-				if (invalidEvent || invalidData) {
+				if (invalidEvent) {
 					throw new Error('Invalid payload sent');
 				}
 			} catch (error) {
