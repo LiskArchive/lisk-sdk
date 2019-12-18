@@ -201,6 +201,8 @@ export class P2P extends EventEmitter {
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
+	protected _controlMessageInterval: NodeJS.Timer | undefined;
+	protected _controlMessageCounter: Map<string, number>;
 
 	// tslint:disable-next-line: cyclomatic-complexity
 	public constructor(config: P2PConfig) {
@@ -233,6 +235,8 @@ export class P2P extends EventEmitter {
 					: DEFAULT_WS_MAX_PAYLOAD,
 			},
 		}) as SCServerUpdated;
+
+		this._controlMessageCounter = new Map();
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -675,20 +679,33 @@ export class P2P extends EventEmitter {
 
 	private _handleIncomingPayload(ws: any, _req: any): void {
 		ws.on('message', (message: any) => {
+			if (message === '#2') {
+				return;
+			}
+
+			const peerIpAddress = ws._socket._peername.address;
+
 			try {
 				const parsed = JSON.parse(message);
 
 				const invalidEvent =
 					(parsed.event && typeof parsed.event !== 'string') ||
-					parsed.event === '#disconnect' ||
 					parsed.event === '#subscribe';
 
 				if (invalidEvent) {
 					throw new Error('Invalid payload sent');
 				}
-			} catch (error) {
-				const peerIpAddress = ws._socket._peername.address;
 
+				if (parsed.event === '#disconnect') {
+					const count =
+						(this._controlMessageCounter.get(peerIpAddress) || 0) + 1;
+					this._controlMessageCounter.set(peerIpAddress, count);
+
+					if (count > 1) {
+						throw new Error('Invalid payload sent');
+					}
+				}
+			} catch (error) {
 				ws.terminate();
 
 				if (peerIpAddress) {
@@ -697,7 +714,7 @@ export class P2P extends EventEmitter {
 
 				this.emit(
 					EVENT_INBOUND_SOCKET_ERROR,
-					`Banned peer with Ip ${peerIpAddress} reason ${error}`,
+					`Banned peer with Ip: ${peerIpAddress}, reason: ${error}, message: ${message}`,
 				);
 			}
 		});
@@ -902,6 +919,10 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _startPeerServer(): Promise<void> {
+		this._controlMessageInterval = setInterval(() => {
+			this._controlMessageCounter = new Map();
+		}, DEFAULT_RATE_CALCULATION_INTERVAL);
+
 		// Handle incoming invalid payload
 		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
 			this._handleIncomingPayload(ws, req);
@@ -981,6 +1002,10 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _stopPeerServer(): Promise<void> {
+		if (this._controlMessageInterval) {
+			clearInterval(this._controlMessageInterval);
+		}
+
 		await this._stopWSServer();
 		await this._stopHTTPServer();
 	}
