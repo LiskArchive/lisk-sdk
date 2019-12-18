@@ -615,12 +615,14 @@ export class P2P extends EventEmitter {
 		error: Error | string,
 		addToBannedPeers?: boolean,
 	): void {
-		(socket as any).socket.terminate();
-		// If the socket needs to be blacklisted
-		if (addToBannedPeers) {
-			this._bannedPeers.add(socket.remoteAddress);
+		if ((socket as any).socket && (socket as any).socket.terminate) {
+			(socket as any).socket.terminate();
+			// If the socket needs to be blacklisted
+			if (addToBannedPeers) {
+				this._bannedPeers.add(socket.remoteAddress);
 
-			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
+				this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
+			}
 		}
 	}
 
@@ -629,7 +631,7 @@ export class P2P extends EventEmitter {
 		(socket as any).socket.on('ping', () => {
 			this._terminateIncomingSocket(
 				socket,
-				`Blacklisted peer with Ip ${
+				`Banned peer with Ip ${
 					socket.remoteAddress
 				} because of malicious control frames`,
 				true,
@@ -639,7 +641,7 @@ export class P2P extends EventEmitter {
 		(socket as any).socket.on('pong', () => {
 			this._terminateIncomingSocket(
 				socket,
-				`Blacklisted peer with Ip ${
+				`Banned peer with Ip ${
 					socket.remoteAddress
 				} because of malicious control frames`,
 				true,
@@ -654,7 +656,7 @@ export class P2P extends EventEmitter {
 		if (!req.data) {
 			this._terminateIncomingSocket(
 				req.socket,
-				`Blacklisted peer with Ip ${
+				`Banned peer with Ip ${
 					req.socket.remoteAddress
 				} because invalid emit event with missing data.`,
 				true,
@@ -668,7 +670,7 @@ export class P2P extends EventEmitter {
 		if (req.event.length > 128) {
 			this._terminateIncomingSocket(
 				req.socket,
-				`Blacklisted peer with Ip ${
+				`Banned peer with Ip ${
 					req.socket.remoteAddress
 				} because invalid emit event name length.`,
 				true,
@@ -698,13 +700,10 @@ export class P2P extends EventEmitter {
 			} catch (error) {
 				ws.terminate();
 
-				this._bannedPeers.add(req.headers.host);
-
-				this.emit(
-					EVENT_INBOUND_SOCKET_ERROR,
-					`Blacklisted peer with Ip ${
-						req.headers.host
-					} because of invalid payload`,
+				this._terminateIncomingSocket(
+					req.headers.host,
+					`Banned peer with Ip ${req.headers.host} because of invalid payload`,
+					true,
 				);
 			}
 		});
@@ -717,9 +716,10 @@ export class P2P extends EventEmitter {
 		if (req) {
 			this._terminateIncomingSocket(
 				req.socket,
-				`Blacklisted peer with Ip ${
+				`Banned peer with Ip ${
 					req.socket.remoteAddress
 				} because invalid subscribe event call`,
+				true,
 			);
 
 			next(new Error('Rejecting connection due invalid subscribe event call'));
@@ -740,7 +740,7 @@ export class P2P extends EventEmitter {
 
 		if (this._sanitizedPeerLists.blacklistedPeers) {
 			const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
-				peer => peer.ip,
+				peer => peer.ipAddress,
 			);
 
 			if (blacklist.includes(req.socket.remoteAddress as string)) {
@@ -788,7 +788,7 @@ export class P2P extends EventEmitter {
 	private _handleIncomingConnection(socket: SCServerSocket): void {
 		if (
 			this._sanitizedPeerLists.blacklistedPeers.find(
-				peer => peer.ip === socket.remoteAddress,
+				peer => peer.ipAddress === socket.remoteAddress,
 			)
 		) {
 			const existingBlacklistPeer = this._peerBook
