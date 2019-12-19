@@ -2019,7 +2019,7 @@ describe('Integration tests for P2P library', () => {
 				await wait(1000);
 			});
 
-			it.skip('everyone but itself should have a permanent connection to the fixed peer', () => {
+			it('everyone but itself should have a permanent connection to the fixed peer', () => {
 				p2pNodeList.forEach((p2p, index) => {
 					if (index != 0) {
 						const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
@@ -2089,7 +2089,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it.skip('should not be possible to ban them', () => {
+			it('should not be possible to ban them', () => {
 				const peerPenalty = {
 					peerId: `${whitelistedPeers[0].ipAddress}:${
 						whitelistedPeers[0].wsPort

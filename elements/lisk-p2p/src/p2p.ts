@@ -623,13 +623,14 @@ export class P2P extends EventEmitter {
 		if ((socket as any).socket) {
 			(socket as any).socket.terminate();
 		}
+		// Re-emit the message to allow it to bubble up the class hierarchy.
+		this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
+
 		// If the socket needs to be permanently banned
 		if (addToBannedPeers) {
-			this._bannedPeers.add(socket.remoteAddress);
+			const peerId = `${socket.remoteAddress}:${socket.remotePort}`;
 
-			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
-			// Construct PeerId manually and re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_BAN_PEER, `${socket.remoteAddress}:${socket.remotePort}`);
+			this._handleBanPeer(peerId);
 		}
 	}
 
@@ -638,9 +639,9 @@ export class P2P extends EventEmitter {
 		(socket as any).socket.on('ping', () => {
 			this._terminateIncomingSocket(
 				socket,
-				`Banned peer with Ip ${
+				`Terminated connection peer: ${
 					socket.remoteAddress
-				} because of malicious control frames`,
+				}, reason: malicious ping control frames`,
 				true,
 			);
 		});
@@ -648,9 +649,9 @@ export class P2P extends EventEmitter {
 		(socket as any).socket.on('pong', () => {
 			this._terminateIncomingSocket(
 				socket,
-				`Banned peer with Ip ${
+				`Terminated connection peer: ${
 					socket.remoteAddress
-				} because of malicious control frames`,
+				}, reason: malicious pong control frames`,
 				true,
 			);
 		});
@@ -665,9 +666,13 @@ export class P2P extends EventEmitter {
 		if (req.event.length > MAX_EVENT_NAME_LENGTH) {
 			this._terminateIncomingSocket(
 				req.socket,
-				`Banned peer with Ip ${
+
+				`Terminated connection peer: ${
 					req.socket.remoteAddress
-				} because invalid emit event name length.`,
+				}, reason: Unsupported event name: ${req.event}, length ${
+					req.event.length
+				}, max supported event name length is: ${MAX_EVENT_NAME_LENGTH}`,
+
 				true,
 			);
 
@@ -689,10 +694,12 @@ export class P2P extends EventEmitter {
 
 			const peerIpAddress = ws._socket._peername.address;
 
+			const peerId = `${peerIpAddress}:${ws._socket._peername.port}`;
+
 			try {
 				const parsed = JSON.parse(message);
 
-				const invalidEvent: Set<string> = new Set([
+				const invalidEvents: Set<string> = new Set([
 					'#authenticate',
 					'#removeAuthToken',
 					'#subscribe',
@@ -702,9 +709,9 @@ export class P2P extends EventEmitter {
 
 				if (
 					(parsed.event && typeof parsed.event !== 'string') ||
-					invalidEvent.has(parsed.event)
+					invalidEvents.has(parsed.event)
 				) {
-					throw new Error('Invalid payload sent');
+					throw new Error('Received invalid payload');
 				}
 
 				if (parsed.event === '#disconnect') {
@@ -713,15 +720,13 @@ export class P2P extends EventEmitter {
 					this._invalidMessageCounter.set(peerIpAddress, count);
 
 					if (count > DEFAULT_CONTROL_MESSAGE_LIMIT) {
-						throw new Error('Invalid payload sent');
+						throw new Error('Received invalid payload');
 					}
 				}
 			} catch (error) {
 				ws.terminate();
 
-				if (peerIpAddress) {
-					this._bannedPeers.add(ws._socket._peername.address);
-				}
+				this._handleBanPeer(peerId);
 
 				this.emit(
 					EVENT_INBOUND_SOCKET_ERROR,
