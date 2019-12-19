@@ -17,7 +17,7 @@
 // eslint-disable-next-line mocha/no-top-level-hooks
 before(done => {
 	// Retry 20 times with 3 second gap
-	require('../common/utils/wait_for').blockchainReady(
+	require('../../utils/wait_for').blockchainReady(
 		20,
 		3000,
 		null,

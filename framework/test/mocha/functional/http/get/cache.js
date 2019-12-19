@@ -23,7 +23,7 @@ const {
 } = require('../../../../../src/components/logger');
 const { createCacheComponent } = require('../../../../../src/components/cache');
 const apiHelpers = require('../../../common/helpers/api');
-const waitFor = require('../../../common/utils/wait_for');
+const waitFor = require('../../../../utils/wait_for');
 
 const waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 const onNewRoundPromise = Promise.promisify(waitFor.newRound);

@@ -17,15 +17,15 @@
 const popsicle = require('popsicle');
 const async = require('async');
 const Promise = require('bluebird');
-const apiHelpers = require('../helpers/api');
-const { Slots } = require('../../../../src/modules/chain/dpos');
+const apiHelpers = require('../mocha/common/helpers/api');
+const { Slots } = require('../../src/modules/chain/dpos');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
 const slots = new Slots({
-	epochTime: __testContext.config.constants.EPOCH_TIME,
-	interval: __testContext.config.constants.BLOCK_TIME,
-	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	epochTime: global.__testContext.config.constants.EPOCH_TIME,
+	interval: global.__testContext.config.constants.BLOCK_TIME,
+	blocksPerRound: global.__testContext.config.constants.ACTIVE_DELEGATES,
 });
 
 /**
@@ -49,7 +49,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 
 	const totalRetries = retries;
 
-	baseUrl = baseUrl || __testContext.baseUrl;
+	baseUrl = baseUrl || global.__testContext.baseUrl;
 
 	// eslint-disable-next-line wrap-iife
 	(function fetchBlockchainStatus() {
@@ -60,7 +60,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 				res = JSON.parse(res.body);
 				if (res.data.syncing && retries >= 0) {
 					if (!doNotLogRetries) {
-						__testContext.debug(
+						global.__testContext.debug(
 							`Retrying ${totalRetries -
 								retries} time loading blockchain in next ${timeout /
 								1000.0} seconds...`,
@@ -79,7 +79,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 				retries -= 1;
 				if (retries >= 0) {
 					if (!doNotLogRetries) {
-						__testContext.debug(
+						global.__testContext.debug(
 							`Retrying ${totalRetries -
 								retries} time loading blockchain in next ${timeout /
 								1000.0} seconds...`,
@@ -105,7 +105,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 	return async.doWhilst(
 		doWhilstCb => {
 			const request = popsicle.get(
-				`${baseUrl || __testContext.baseUrl}/api/node/status`,
+				`${baseUrl || global.__testContext.baseUrl}/api/node/status`,
 			);
 
 			request.use(popsicle.plugins.parse(['json']));
@@ -116,15 +116,16 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 						['Received bad response code', res.status, res.url].join(' '),
 					);
 				}
-				__testContext.debug(
+				global.__testContext.debug(
 					'Waiting for block:'.grey,
 					'Height:'.grey,
 					res.body.data.height,
 					'Target:'.grey,
 					target,
 					'Second:'.grey,
-					counter++,
+					counter,
 				);
+				counter += 1;
 				height = res.body.data.height;
 				return setTimeout(doWhilstCb, 1000);
 			});
@@ -143,7 +144,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 
 function nodeStatus(baseUrl, cb) {
 	const request = popsicle.get(
-		`${baseUrl || __testContext.baseUrl}/api/node/status`,
+		`${baseUrl || global.__testContext.baseUrl}/api/node/status`,
 	);
 
 	request.use(popsicle.plugins.parse(['json']));
@@ -178,7 +179,7 @@ function newRound(baseUrl, cb) {
 		}
 		const nextRound = slots.calcRound(height);
 		const blocksToWait = nextRound * ACTIVE_DELEGATES - height;
-		__testContext.debug('blocks to wait: '.grey, blocksToWait);
+		global.__testContext.debug('blocks to wait: '.grey, blocksToWait);
 		return newBlock(height, blocksToWait, null, cb);
 	});
 }

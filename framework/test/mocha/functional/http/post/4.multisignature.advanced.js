@@ -18,7 +18,7 @@ require('../../functional');
 
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
-const waitFor = require('../../../common/utils/wait_for');
+const waitFor = require('../../../../utils/wait_for');
 const randomUtil = require('../../../../utils/random');
 const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');

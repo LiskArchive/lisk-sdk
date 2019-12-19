@@ -25,7 +25,7 @@ const apiHelpers = require('../../../../common/helpers/api');
 const randomUtil = require('../../../../../utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
-const waitFor = require('../../../../common/utils/wait_for');
+const waitFor = require('../../../../../utils/wait_for');
 const {
 	getNetworkIdentifier,
 } = require('../../../../common/network_identifier');

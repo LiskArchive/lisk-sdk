@@ -17,7 +17,7 @@
 require('../functional/functional');
 const Promise = require('bluebird');
 const apiHelpers = require('./helpers/api');
-const waitFor = require('./utils/wait_for');
+const waitFor = require('../../utils/wait_for');
 
 function confirmation(
 	goodTransactions,

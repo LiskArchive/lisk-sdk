@@ -15,7 +15,7 @@
 'use strict';
 
 const childProcess = require('child_process');
-const waitFor = require('../common/utils/wait_for');
+const waitFor = require('../../utils/wait_for');
 const utils = require('./utils');
 const shell = require('./setup/shell');
 const config = require('./setup/config');

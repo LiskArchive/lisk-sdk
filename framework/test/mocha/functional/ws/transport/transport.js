@@ -18,7 +18,7 @@ require('../../functional');
 const { P2P } = require('@liskhq/lisk-p2p');
 const { transfer } = require('@liskhq/lisk-transactions');
 const { generatePeerHeader } = require('../../../common/generatePeerHeader');
-const waitFor = require('../../../common/utils/wait_for');
+const waitFor = require('../../../../utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const randomUtil = require('../../../../utils/random');
 const accountFixtures = require('../../../fixtures/accounts');

@@ -18,7 +18,7 @@ require('../../functional');
 
 const { transfer } = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
-const waitFor = require('../../../common/utils/wait_for');
+const waitFor = require('../../../../utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');

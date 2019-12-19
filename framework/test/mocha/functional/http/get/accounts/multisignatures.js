@@ -19,7 +19,7 @@ require('../../../functional');
 const Scenarios = require('../../../../common/scenarios');
 const accountFixtures = require('../../../../fixtures/accounts');
 const apiHelpers = require('../../../../common/helpers/api');
-const waitFor = require('../../../../common/utils/wait_for');
+const waitFor = require('../../../../../utils/wait_for');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
