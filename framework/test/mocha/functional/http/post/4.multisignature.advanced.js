@@ -20,7 +20,7 @@ const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../../utils/wait_for');
 const randomUtil = require('../../../../utils/random');
-const apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../../utils/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;

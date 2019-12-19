@@ -19,7 +19,7 @@ require('../../functional');
 const { transfer } = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../../utils/wait_for');
-const apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../../utils/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');

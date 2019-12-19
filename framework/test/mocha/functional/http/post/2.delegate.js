@@ -23,7 +23,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const accountFixtures = require('../../../fixtures/accounts');
-const apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../../utils/api');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');

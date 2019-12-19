@@ -20,20 +20,22 @@ const {
 	createSignatureObject: createSignatureObjectElements,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
-const accountFixtures = require('../../fixtures/accounts');
+const accountFixtures = require('../mocha/fixtures/accounts');
 const {
 	calculateApproval,
-} = require('../../../../src/modules/http_api/helpers/utils');
-const SwaggerSpec = require('../swagger_spec');
-const { getNetworkIdentifier } = require('../network_identifier');
+} = require('../../src/modules/http_api/helpers/utils');
+const SwaggerSpec = require('../mocha/common/swagger_spec');
+const { getNetworkIdentifier } = require('./network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
-	__testContext.config.genesisBlock,
+	global.__testContext.config.genesisBlock,
 );
 
 const http = {
 	abstractRequest(options, done) {
-		const request = __testContext.api[options.verb.toLowerCase()](options.path);
+		const request = global.__testContext.api[options.verb.toLowerCase()](
+			options.path,
+		);
 
 		request.set('Accept', 'application/json');
 		request.expect(response => {
@@ -53,20 +55,20 @@ const http = {
 		}
 
 		const verb = options.verb.toUpperCase();
-		__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
+		global.__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
-			__testContext.debug(
+			global.__testContext.debug(
 				['> Data:'.grey, JSON.stringify(options.params)].join(' '),
 			);
 		}
 
 		if (done) {
 			return request.end((err, res) => {
-				__testContext.debug(
+				global.__testContext.debug(
 					'> Status:'.grey,
 					JSON.stringify(res ? res.statusCode : ''),
 				);
-				__testContext.debug(
+				global.__testContext.debug(
 					'> Response:'.grey,
 					JSON.stringify(res ? res.body : err),
 				);

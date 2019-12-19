@@ -22,7 +22,7 @@ const {
 	createLoggerComponent,
 } = require('../../../../../src/components/logger');
 const { createCacheComponent } = require('../../../../../src/components/cache');
-const apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../../utils/api');
 const waitFor = require('../../../../utils/wait_for');
 
 const waitForBlocksPromise = Promise.promisify(waitFor.blocks);

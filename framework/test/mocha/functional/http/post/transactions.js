@@ -19,7 +19,7 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const SwaggerSpec = require('../../../common/swagger_spec');
 const randomUtil = require('../../../../utils/random');
 const accountFixtures = require('../../../fixtures/accounts');
-const sendTransactionPromise = require('../../../common/helpers/api')
+const sendTransactionPromise = require('../../../../utils/api')
 	.sendTransactionPromise;
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const phases = require('../../../common/phases');

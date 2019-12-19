@@ -16,7 +16,7 @@
 
 require('../../../functional');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
-const apiHelpers = require('../../../../common/helpers/api');
+const apiHelpers = require('../../../../../utils/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 

@@ -23,7 +23,7 @@ const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
 const elements = require('../../../../utils/elements');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
-const apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../../utils/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 const {

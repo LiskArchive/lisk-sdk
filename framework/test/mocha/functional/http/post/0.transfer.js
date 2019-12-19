@@ -21,7 +21,7 @@ const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../fixtures/accounts');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const phases = require('../../../common/phases');
-const sendTransactionPromise = require('../../../common/helpers/api')
+const sendTransactionPromise = require('../../../../utils/api')
 	.sendTransactionPromise;
 const randomUtil = require('../../../../utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');

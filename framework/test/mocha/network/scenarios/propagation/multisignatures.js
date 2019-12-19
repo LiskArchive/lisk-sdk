@@ -25,7 +25,7 @@ const {
 	createSignatureObject,
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
-} = require('../../../common/helpers/api');
+} = require('../../../../utils/api');
 const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 const { getNetworkIdentifier } = require('../../../common/network_identifier');

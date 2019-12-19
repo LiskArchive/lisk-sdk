@@ -21,7 +21,7 @@ const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../../utils/wait_for');
 const randomUtil = require('../../../../utils/random');
-const apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../../utils/api');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(

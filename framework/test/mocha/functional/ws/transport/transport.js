@@ -22,7 +22,7 @@ const waitFor = require('../../../../utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const randomUtil = require('../../../../utils/random');
 const accountFixtures = require('../../../fixtures/accounts');
-const apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../../utils/api');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
 const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
