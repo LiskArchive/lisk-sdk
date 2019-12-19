@@ -202,7 +202,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
-	private _unbanTimers: Array<NodeJS.Timer | undefined>;
+	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 	protected _invalidMessageInterval: NodeJS.Timer | undefined;
 	protected _invalidMessageCounter: Map<string, number>;
 
