@@ -18,16 +18,14 @@ const util = require('util');
 const Promise = require('bluebird');
 const { transfer } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const random = require('../../../utils/random');
-const localCommon = require('../../integration/common');
-const accountFixtures = require('../../fixtures/accounts');
-const {
-	sortTransactions,
-} = require('../../../../src/modules/chain/forger/sort');
-const { getNetworkIdentifier } = require('../../common/network_identifier');
+const random = require('./random');
+const localCommon = require('../mocha/integration/common');
+const accountFixtures = require('../mocha/fixtures/accounts');
+const { sortTransactions } = require('../../src/modules/chain/forger/sort');
+const { getNetworkIdentifier } = require('../mocha/common/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
-	__testContext.config.genesisBlock,
+	global.__testContext.config.genesisBlock,
 );
 
 const { NORMALIZER } = global.__testContext.config;
@@ -115,7 +113,7 @@ class BlocksTransactionsHelper {
 	}
 
 	getTransactionsInLastBlock() {
-		const lastBlock = this._library.modules.blocks.lastBlock;
+		const { lastBlock } = this._library.modules.blocks;
 
 		// We return only transaction ID, amount (in string format), sender and recipient
 		return lastBlock.transactions.map(formatTransaction);
@@ -192,7 +190,7 @@ class BlocksTransactionsHelper {
 		const keypairs = this._library.modules.forger.getForgersKeyPairs();
 		const delegate = await promisifyGetNextForger(this._library, null);
 
-		const lastBlock = this._library.modules.blocks.lastBlock;
+		const { lastBlock } = this._library.modules.blocks;
 		const lastBlockSlot = this._library.slots.getSlotNumber(
 			lastBlock.timestamp,
 		);
@@ -229,9 +227,10 @@ class BlocksTransactionsHelper {
 	getTotalSpending() {
 		const totalSpending = this._transactions
 			.filter(t => t.type === TYPE.SPEND)
-			.reduce((total, t) => {
-				return total.plus(t.data.asset.amount).plus(t.data.fee);
-			}, new BigNum(0));
+			.reduce(
+				(total, t) => total.plus(t.data.asset.amount).plus(t.data.fee),
+				new BigNum(0),
+			);
 		return totalSpending.toFixed();
 	}
 
