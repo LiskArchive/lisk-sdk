@@ -21,7 +21,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
-const { getNetworkIdentifier } = require('../../common/network_identifier');
+const { getNetworkIdentifier } = require('../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

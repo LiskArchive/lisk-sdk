@@ -33,7 +33,7 @@ const {
 	BlockProcessorV2,
 } = require('../../../src/modules/chain/block_processor_v2');
 const { BFT } = require('../../../src/modules/chain/bft');
-const { getNetworkIdentifier } = require('./network_identifier');
+const { getNetworkIdentifier } = require('../../utils/network_identifier');
 
 let currentAppScope;
 

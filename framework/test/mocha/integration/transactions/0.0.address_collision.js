@@ -22,7 +22,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../fixtures/accounts');
 const localCommon = require('../common');
-const { getNetworkIdentifier } = require('../../common/network_identifier');
+const { getNetworkIdentifier } = require('../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

@@ -22,7 +22,7 @@ const {
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../../utils/random');
-const { getNetworkIdentifier } = require('../common/network_identifier');
+const { getNetworkIdentifier } = require('../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

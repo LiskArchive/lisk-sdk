@@ -31,7 +31,7 @@ jest.mock('events');
 const randomUtils = require('../../../../../../utils/random.js');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../../../mocha/common/network_identifier');
+} = require('../../../../../../utils/network_identifier');
 
 describe('blocks', () => {
 	const stubs = {};

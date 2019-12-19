@@ -22,7 +22,9 @@ const waitFor = require('../../../../utils/wait_for');
 const apiHelpers = require('../../../../utils/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

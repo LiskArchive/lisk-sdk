@@ -27,7 +27,7 @@ const {
 const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../common/network_identifier');
+} = require('../../../../../utils/network_identifier');
 
 const expect = chai.expect;
 

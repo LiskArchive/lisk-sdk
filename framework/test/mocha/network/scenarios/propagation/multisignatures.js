@@ -28,7 +28,9 @@ const {
 } = require('../../../../utils/api');
 const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

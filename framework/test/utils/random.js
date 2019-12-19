@@ -29,7 +29,7 @@ const accountFixtures = require('../mocha/fixtures/accounts');
 const {
 	getNetworkIdentifier,
 	devnetNetworkIdentifier,
-} = require('../mocha/common/network_identifier');
+} = require('./network_identifier');
 
 const networkIdentifier = global.__testContext
 	? getNetworkIdentifier(global.__testContext.config.genesisBlock)

@@ -28,7 +28,7 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const waitFor = require('../../../../../utils/wait_for');
 const {
 	getNetworkIdentifier,
-} = require('../../../../common/network_identifier');
+} = require('../../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

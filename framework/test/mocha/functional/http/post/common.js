@@ -27,7 +27,9 @@ const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../../utils/api');
 const randomUtil = require('../../../../utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

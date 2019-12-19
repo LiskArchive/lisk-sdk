@@ -22,7 +22,7 @@ const random = require('./random');
 const localCommon = require('../mocha/integration/common');
 const accountFixtures = require('../mocha/fixtures/accounts');
 const { sortTransactions } = require('../../src/modules/chain/forger/sort');
-const { getNetworkIdentifier } = require('../mocha/common/network_identifier');
+const { getNetworkIdentifier } = require('./network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	global.__testContext.config.genesisBlock,

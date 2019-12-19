@@ -26,7 +26,9 @@ const elements = require('../../../../utils/elements');
 const apiHelpers = require('../../../../utils/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

@@ -19,7 +19,9 @@ const async = require('async');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

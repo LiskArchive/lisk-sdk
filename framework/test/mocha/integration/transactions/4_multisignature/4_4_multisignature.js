@@ -20,7 +20,9 @@ const {
 } = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
