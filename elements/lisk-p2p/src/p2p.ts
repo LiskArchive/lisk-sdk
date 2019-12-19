@@ -202,8 +202,8 @@ export class P2P extends EventEmitter {
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
-	protected _controlMessageInterval: NodeJS.Timer | undefined;
-	protected _controlMessageCounter: Map<string, number>;
+	protected _invalidMessageInterval: NodeJS.Timer | undefined;
+	protected _invalidMessageCounter: Map<string, number>;
 
 	// tslint:disable-next-line: cyclomatic-complexity
 	public constructor(config: P2PConfig) {
@@ -237,7 +237,7 @@ export class P2P extends EventEmitter {
 			},
 		}) as SCServerUpdated;
 
-		this._controlMessageCounter = new Map();
+		this._invalidMessageCounter = new Map();
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -623,7 +623,7 @@ export class P2P extends EventEmitter {
 		if ((socket as any).socket) {
 			(socket as any).socket.terminate();
 		}
-		// If the socket needs to be blacklisted
+		// If the socket needs to be permanently banned
 		if (addToBannedPeers) {
 			this._bannedPeers.add(socket.remoteAddress);
 
@@ -707,8 +707,8 @@ export class P2P extends EventEmitter {
 
 				if (parsed.event === '#disconnect') {
 					const count =
-						(this._controlMessageCounter.get(peerIpAddress) || 0) + 1;
-					this._controlMessageCounter.set(peerIpAddress, count);
+						(this._invalidMessageCounter.get(peerIpAddress) || 0) + 1;
+					this._invalidMessageCounter.set(peerIpAddress, count);
 
 					if (count > DEFAULT_CONTROL_MESSAGE_LIMIT) {
 						throw new Error('Invalid payload sent');
@@ -928,8 +928,8 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _startPeerServer(): Promise<void> {
-		this._controlMessageInterval = setInterval(() => {
-			this._controlMessageCounter = new Map();
+		this._invalidMessageInterval = setInterval(() => {
+			this._invalidMessageCounter = new Map();
 		}, DEFAULT_RATE_CALCULATION_INTERVAL);
 
 		// Handle incoming invalid payload
@@ -1011,8 +1011,8 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _stopPeerServer(): Promise<void> {
-		if (this._controlMessageInterval) {
-			clearInterval(this._controlMessageInterval);
+		if (this._invalidMessageInterval) {
+			clearInterval(this._invalidMessageInterval);
 		}
 
 		await this._stopWSServer();
