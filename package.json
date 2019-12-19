@@ -18,8 +18,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0 <=12",
-		"npm": ">=6.12.0"
+		"node": ">=12.14.0 <=12",
+		"npm": ">=6.13.4"
 	},
 	"scripts": {
 		"bootstrap": "lerna bootstrap --hoist",
