@@ -628,6 +628,8 @@ export class P2P extends EventEmitter {
 			this._bannedPeers.add(socket.remoteAddress);
 
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
+			// Construct PeerId manually and re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_BAN_PEER, `${socket.remoteAddress}:${socket.remotePort}`);
 		}
 	}
 
