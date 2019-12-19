@@ -20,7 +20,7 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const random = require('./random');
 const localCommon = require('../mocha/integration/common');
-const accountFixtures = require('../mocha/fixtures/accounts');
+const accountFixtures = require('../fixtures/accounts');
 const { sortTransactions } = require('../../src/modules/chain/forger/sort');
 const { getNetworkIdentifier } = require('./network_identifier');
 

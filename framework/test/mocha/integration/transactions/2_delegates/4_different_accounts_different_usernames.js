@@ -16,7 +16,7 @@
 
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const async = require('async');
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
 const {

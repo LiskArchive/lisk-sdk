@@ -20,7 +20,7 @@ const {
 	registerSecondPassphrase,
 } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../../utils/random');
 const {

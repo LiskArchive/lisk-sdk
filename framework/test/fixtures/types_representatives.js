@@ -15,7 +15,7 @@
 'use strict';
 
 const faker = require('faker');
-const difference = require('lodash').difference;
+const { difference } = require('lodash');
 
 const { ADDITIONAL_DATA } = global.__testContext.config;
 

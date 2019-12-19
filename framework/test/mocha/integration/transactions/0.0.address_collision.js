@@ -20,7 +20,7 @@ const {
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const accountFixtures = require('../../fixtures/accounts');
+const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../common');
 const { getNetworkIdentifier } = require('../../../utils/network_identifier');
 

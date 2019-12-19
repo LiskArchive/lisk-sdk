@@ -24,7 +24,7 @@ const {
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 const seeder = require('../../../../../../../utils/storage/storage_seed');
-const accountFixtures = require('../../../../../../fixtures').accounts;
+const accountFixtures = require('../../../../../../../fixtures/').accounts;
 
 const defaultCreateValues = {
 	publicKey: null,

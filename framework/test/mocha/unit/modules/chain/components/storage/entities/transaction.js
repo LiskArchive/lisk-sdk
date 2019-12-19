@@ -23,7 +23,8 @@ const {
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 const seeder = require('../../../../../../../utils/storage/storage_seed');
-const transactionsFixtures = require('../../../../../../fixtures').transactions;
+const transactionsFixtures = require('../../../../../../../fixtures/')
+	.transactions;
 
 const TRANSACTION_TYPES = {
 	SEND: 8,

@@ -20,12 +20,12 @@ const {
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../mocha/fixtures/accounts');
+const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('./random');
 const { getNetworkIdentifier } = require('./network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
-	__testContext.config.genesisBlock,
+	global.__testContext.config.genesisBlock,
 );
 
 const { FEES } = global.constants;
@@ -44,7 +44,7 @@ function Multisig(options) {
 	}
 	let i;
 	let auxAccount;
-	for (i = 0; i < options.members - 1; i++) {
+	for (i = 0; i < options.members - 1; i += 1) {
 		auxAccount = randomUtil.account();
 		this.members.push(auxAccount);
 		this.keysgroup.push(`${auxAccount.publicKey}`);

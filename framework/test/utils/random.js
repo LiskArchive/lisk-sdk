@@ -25,7 +25,7 @@ const {
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../mocha/fixtures/accounts');
+const accountFixtures = require('../fixtures/accounts');
 const {
 	getNetworkIdentifier,
 	devnetNetworkIdentifier,

@@ -20,7 +20,7 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const apiHelpers = require('../../../../../utils/api');
 const randomUtil = require('../../../../../utils/random');
 const SwaggerEndpoint = require('../../../../../utils/swagger_spec');
-const accountFixtures = require('../../../../fixtures/accounts');
+const accountFixtures = require('../../../../../fixtures/accounts');
 const {
 	getNetworkIdentifier,
 } = require('../../../../../utils/network_identifier');

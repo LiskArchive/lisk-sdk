@@ -27,7 +27,7 @@ const {
 } = require('../../../../utils/storage/storage_sandbox');
 const modulesLoader = require('../../../../utils/modules_loader');
 const random = require('../../../../utils/random');
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const { Slots } = require('../../../../../src/modules/chain/dpos');

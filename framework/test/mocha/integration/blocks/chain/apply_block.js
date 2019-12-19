@@ -18,7 +18,7 @@ const async = require('async');
 const expect = require('chai').expect;
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
 const blocksChainModule = require('../../../../../src/modules/chain/blocks/chain');

@@ -18,7 +18,7 @@ require('../../functional');
 const { registerMultisignature } = require('@liskhq/lisk-transactions');
 const phases = require('../../../../utils/transaction_confirmation');
 const Scenarios = require('../../../../utils/multisig_scenarios');
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
 const elements = require('../../../../utils/elements');

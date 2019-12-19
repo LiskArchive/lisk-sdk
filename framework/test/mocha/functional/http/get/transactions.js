@@ -22,7 +22,7 @@ const {
 	castVotes,
 } = require('@liskhq/lisk-transactions');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
 const apiHelpers = require('../../../../utils/api');

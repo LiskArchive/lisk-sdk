@@ -18,8 +18,8 @@ require('../../functional');
 const crypto = require('crypto');
 const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../../../fixtures/accounts');
-const typesRepresentatives = require('../../../fixtures/types_representatives');
+const accountFixtures = require('../../../../fixtures/accounts');
+const typesRepresentatives = require('../../../../fixtures/types_representatives');
 const phases = require('../../../../utils/transaction_confirmation');
 const sendTransactionPromise = require('../../../../utils/api')
 	.sendTransactionPromise;

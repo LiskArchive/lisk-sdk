@@ -17,7 +17,7 @@
 const Promise = require('bluebird');
 const { transfer } = require('@liskhq/lisk-transactions');
 const randomUtil = require('../../utils/random');
-const accountsFixtures = require('../fixtures/accounts');
+const accountsFixtures = require('../../fixtures/accounts');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
 const { getNetworkIdentifier } = require('../../utils/network_identifier');

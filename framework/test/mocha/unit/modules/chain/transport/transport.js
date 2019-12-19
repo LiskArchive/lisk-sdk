@@ -19,8 +19,8 @@ const { TransferTransaction } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const accountFixtures = require('../../../../fixtures/accounts');
-const { Block, GenesisBlock } = require('../../../../fixtures/blocks');
+const accountFixtures = require('../../../../../fixtures//accounts');
+const { Block, GenesisBlock } = require('../../../../../fixtures//blocks');
 const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');

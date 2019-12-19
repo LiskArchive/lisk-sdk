@@ -18,8 +18,8 @@ const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const application = require('../../utils/application');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
-const accountsFixtures = require('../fixtures/accounts');
-const roundsFixtures = require('../fixtures/rounds').rounds;
+const accountsFixtures = require('../../fixtures/accounts');
+const roundsFixtures = require('../../fixtures/rounds').rounds;
 
 describe('app', () => {
 	let library;

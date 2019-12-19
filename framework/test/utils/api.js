@@ -20,7 +20,7 @@ const {
 	createSignatureObject: createSignatureObjectElements,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
-const accountFixtures = require('../mocha/fixtures/accounts');
+const accountFixtures = require('../fixtures/accounts');
 const {
 	calculateApproval,
 } = require('../../src/modules/http_api/helpers/utils');

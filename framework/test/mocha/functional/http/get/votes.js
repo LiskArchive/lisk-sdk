@@ -22,7 +22,7 @@ const {
 	castVotes,
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const SwaggerEndpoint = require('../../../../utils/swagger_spec');
 const waitFor = require('../../../../utils/wait_for');

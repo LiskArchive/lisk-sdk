@@ -21,7 +21,7 @@ const {
 	registerMultisignature,
 	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
-const accountsFixtures = require('../../../fixtures/accounts');
+const accountsFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
 const {

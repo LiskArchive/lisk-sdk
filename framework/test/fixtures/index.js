@@ -14,11 +14,18 @@
 
 'use strict';
 
+const accounts = require('./accounts');
+const peers = require('./peers');
+const blocks = require('./blocks');
+const dapps = require('./dapps');
+const transactions = require('./transactions');
+const rounds = require('./rounds');
+
 module.exports = {
-	accounts: require('./accounts'),
-	peers: require('./peers'),
-	blocks: require('./blocks'),
-	dapps: require('./dapps'),
-	transactions: require('./transactions'),
-	rounds: require('./rounds'),
+	accounts,
+	peers,
+	blocks,
+	dapps,
+	transactions,
+	rounds,
 };

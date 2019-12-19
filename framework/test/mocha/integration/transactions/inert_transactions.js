@@ -6,7 +6,7 @@ const {
 	castVotes,
 } = require('@liskhq/lisk-transactions');
 const localCommon = require('../common');
-const accountFixtures = require('../../fixtures/accounts');
+const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../utils/random');
 const { getNetworkIdentifier } = require('../../../utils/network_identifier');
 

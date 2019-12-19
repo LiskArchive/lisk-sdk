@@ -25,7 +25,7 @@ const {
 } = require('../../../../../../src/components/storage');
 const storageSandbox = require('../../../../../utils/storage/storage_sandbox');
 const seeder = require('../../../../../utils/storage/storage_seed');
-const transactionsFixtures = require('../../../../fixtures').transactions;
+const transactionsFixtures = require('../../../../../fixtures/').transactions;
 
 const numSeedRecords = 5;
 const NON_EXISTENT_ID = '1234';

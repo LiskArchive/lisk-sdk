@@ -17,7 +17,7 @@
 const randomstring = require('randomstring');
 const stampit = require('stampit');
 const faker = require('faker');
-const genesisBlock = require('../../fixtures/config/devnet/genesis_block.json');
+const genesisBlock = require('./config/devnet/genesis_block.json');
 
 const Block = stampit({
 	props: {

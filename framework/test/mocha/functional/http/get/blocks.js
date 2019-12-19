@@ -16,7 +16,7 @@
 
 require('../../functional');
 
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const waitFor = require('../../../../utils/wait_for');
 const SwaggerEndpoint = require('../../../../utils/swagger_spec');
 const apiHelpers = require('../../../../utils/api');

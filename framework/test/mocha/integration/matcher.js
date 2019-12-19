@@ -30,7 +30,7 @@ const {
 	createValidBlock: createBlock,
 } = require('./common');
 const commonApplication = require('../../utils/application');
-const accountFixtures = require('../fixtures/accounts');
+const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../utils/random');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const { getNetworkIdentifier } = require('../../utils/network_identifier');

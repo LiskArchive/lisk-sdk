@@ -17,7 +17,7 @@
 require('../../../functional');
 
 const Scenarios = require('../../../../../utils/multisig_scenarios');
-const accountFixtures = require('../../../../fixtures/accounts');
+const accountFixtures = require('../../../../../fixtures/accounts');
 const apiHelpers = require('../../../../../utils/api');
 const waitFor = require('../../../../../utils/wait_for');
 const SwaggerEndpoint = require('../../../../../utils/swagger_spec');
