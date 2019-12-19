@@ -14,17 +14,17 @@
 
 const {
 	MigrationEntity: Migration,
-} = require('../../../../../src/controller/migrations');
+} = require('../../../src/controller/migrations');
 
-const Storage = require('../../../../../src/components/storage/storage');
+const Storage = require('../../../src/components/storage/storage');
 const {
 	config: defaultConfig,
-} = require('../../../../../src/components/storage/defaults');
-const validator = require('../../../../../src/controller/validator');
+} = require('../../../src/components/storage/defaults');
+const validator = require('../../../src/controller/validator');
 
-const ChainModule = require('../../../../../src/modules/chain');
-const NetworkModule = require('../../../../../src/modules/network');
-const HttpAPIModule = require('../../../../../src/modules/http_api');
+const ChainModule = require('../../../src/modules/chain');
+const NetworkModule = require('../../../src/modules/network');
+const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {
 	[ChainModule.alias]: ChainModule.migrations,

@@ -17,7 +17,7 @@
 const {
 	StorageSandbox,
 	clearDatabaseTable,
-} = require('../../../utils/storage/storage_sandbox');
+} = require('./storage_sandbox');
 
 const getAccount = async (storage, address) =>
 	storage.entities.Account.getOne({ address }, { extended: true });

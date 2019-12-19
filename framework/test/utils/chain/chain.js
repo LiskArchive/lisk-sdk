@@ -16,17 +16,19 @@
 'use strict';
 
 const { constantsConfig } = require('../configs');
-const { defaultTransactions } = require('../default_transactions');
+const {
+	registeredTransactions,
+} = require('../../utils/registered_transactions');
 const { createMockChannel } = require('../channel');
-const ChainModule = require('../../../../../src/modules/chain');
-const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
+const ChainModule = require('../../../src/modules/chain');
+const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
 
 const createChainModule = () => {
 	const options = {
 		...ChainModule.defaults.default,
 		constants: constantsConfig(),
 		genesisBlock,
-		registeredTransactions: defaultTransactions(),
+		registeredTransactions: { ...registeredTransactions },
 	};
 	const chainModule = new ChainModule(options);
 

@@ -14,14 +14,24 @@
 
 'use strict';
 
-const { defaultTransactions } = require('./default_transactions');
-const storageUtils = require('./storage');
-const configUtils = require('./configs');
-const chainUtils = require('./chain');
+const {
+	components: { storage: devNetStorageConfig },
+} = require('../../fixtures/config/devnet/config.json');
+
+const storageConfig = (overriddenConfigProperties = {}) => ({
+	...devNetStorageConfig,
+	user: 'lisk',
+	password: 'password',
+	min: 1,
+	// genesis_block.spec.js is using 2 Storage instance,
+	// That's why max can't be less than 2
+	max: 2,
+	poolIdleTimeout: 30000,
+	reapIntervalMillis: 1000,
+	logEvents: ['error'],
+	...overriddenConfigProperties,
+});
 
 module.exports = {
-	defaultTransactions,
-	storageUtils,
-	chainUtils,
-	configUtils,
+	storageConfig,
 };
