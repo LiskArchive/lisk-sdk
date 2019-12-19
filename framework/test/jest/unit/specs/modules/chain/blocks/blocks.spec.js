@@ -23,12 +23,12 @@ const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_b
 const { newBlock } = require('./utils.js');
 const {
 	registeredTransactions,
-} = require('../../../../../utils/registered_transactions');
+} = require('../../../../../../utils/registered_transactions');
 
 jest.mock('events');
 
 // TODO: Share fixture generation b/w mocha and jest
-const randomUtils = require('../../../../../../mocha/common/utils/random.js');
+const randomUtils = require('../../../../../../utils/random.js');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
 } = require('../../../../../../mocha/common/network_identifier');

@@ -18,7 +18,7 @@ const expect = require('chai').expect;
 const { transfer } = require('@liskhq/lisk-transactions');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
+const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 

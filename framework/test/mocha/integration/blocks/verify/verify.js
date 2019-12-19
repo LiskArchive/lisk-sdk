@@ -24,7 +24,7 @@ const BigNum = require('@liskhq/bignum');
 const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
-const random = require('../../../common/utils/random');
+const random = require('../../../../utils/random');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;

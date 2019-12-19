@@ -25,7 +25,7 @@ const {
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
-const randomUtil = require('../../../common/utils/random');
+const randomUtil = require('../../../../utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 

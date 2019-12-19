@@ -20,7 +20,7 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
-const randomUtil = require('../../../common/utils/random');
+const randomUtil = require('../../../../utils/random');
 const apiHelpers = require('../../../common/helpers/api');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 

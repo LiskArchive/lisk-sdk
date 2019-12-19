@@ -25,14 +25,14 @@ const {
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../../fixtures/accounts');
+const accountFixtures = require('../mocha/fixtures/accounts');
 const {
 	getNetworkIdentifier,
 	devnetNetworkIdentifier,
-} = require('../../common/network_identifier');
+} = require('../mocha/common/network_identifier');
 
 const networkIdentifier = global.__testContext
-	? getNetworkIdentifier(__testContext.config.genesisBlock)
+	? getNetworkIdentifier(global.__testContext.config.genesisBlock)
 	: devnetNetworkIdentifier;
 
 const random = {};

@@ -22,7 +22,7 @@ const {
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
-const randomUtil = require('../../../../common/utils/random');
+const randomUtil = require('../../../../../utils/random');
 const waitFor = require('../../../../common/utils/wait_for');
 const apiHelpers = require('../../../../common/helpers/api');
 const {

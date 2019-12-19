@@ -18,7 +18,7 @@ const util = require('util');
 const Promise = require('bluebird');
 const { transfer } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const random = require('../../common/utils/random');
+const random = require('../../../utils/random');
 const localCommon = require('../../integration/common');
 const accountFixtures = require('../../fixtures/accounts');
 const {

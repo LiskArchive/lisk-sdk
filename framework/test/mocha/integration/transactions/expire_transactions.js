@@ -22,7 +22,7 @@ const {
 const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
-const randomUtil = require('../../common/utils/random');
+const randomUtil = require('../../../utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
 const QueriesHelper = require('../../common/integration/sql/queries_helper');
 const localCommon = require('../common');

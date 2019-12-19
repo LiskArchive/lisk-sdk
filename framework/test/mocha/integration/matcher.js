@@ -31,7 +31,7 @@ const {
 } = require('./common');
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
-const randomUtil = require('../common/utils/random');
+const randomUtil = require('../../utils/random');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const { getNetworkIdentifier } = require('../common/network_identifier');
 

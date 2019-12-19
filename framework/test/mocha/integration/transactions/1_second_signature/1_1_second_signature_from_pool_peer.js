@@ -22,7 +22,7 @@ const {
 const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
-const randomUtil = require('../../../common/utils/random');
+const randomUtil = require('../../../../utils/random');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(

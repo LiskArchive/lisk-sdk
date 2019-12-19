@@ -18,7 +18,7 @@ require('../../../functional');
 const Promise = require('bluebird');
 const { transfer } = require('@liskhq/lisk-transactions');
 const apiHelpers = require('../../../../common/helpers/api');
-const randomUtil = require('../../../../common/utils/random');
+const randomUtil = require('../../../../../utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
 const {

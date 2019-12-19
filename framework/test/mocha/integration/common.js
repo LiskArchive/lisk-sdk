@@ -27,7 +27,7 @@ const {
 const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
-const randomUtil = require('../common/utils/random');
+const randomUtil = require('../../utils/random');
 const accountFixtures = require('../fixtures/accounts');
 const { getNetworkIdentifier } = require('../common/network_identifier');
 

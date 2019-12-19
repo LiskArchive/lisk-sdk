@@ -18,7 +18,7 @@
 require('../setup');
 
 const testConfig = __testContext.config;
-const random = require('./utils/random');
+const random = require('../../utils/random');
 
 const generatePeerHeader = function(headers = {}) {
 	const operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];

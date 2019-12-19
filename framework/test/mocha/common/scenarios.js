@@ -21,7 +21,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../fixtures/accounts');
-const randomUtil = require('./utils/random');
+const randomUtil = require('../../utils/random');
 const { getNetworkIdentifier } = require('../common/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(

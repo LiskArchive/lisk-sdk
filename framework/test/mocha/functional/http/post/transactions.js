@@ -17,7 +17,7 @@
 require('../../functional');
 const { transfer } = require('@liskhq/lisk-transactions');
 const SwaggerSpec = require('../../../common/swagger_spec');
-const randomUtil = require('../../../common/utils/random');
+const randomUtil = require('../../../../utils/random');
 const accountFixtures = require('../../../fixtures/accounts');
 const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
