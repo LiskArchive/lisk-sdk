@@ -25,7 +25,6 @@ const defaultConfig = {
 		},
 		logFileName: {
 			type: 'string',
-			env: 'LISK_REDIS_HOST',
 		},
 		consoleLogLevel: {
 			type: 'string',
