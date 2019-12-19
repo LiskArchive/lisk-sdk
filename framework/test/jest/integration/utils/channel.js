@@ -32,9 +32,7 @@ const createMockChannel = databaseName => {
 			}
 			return {};
 		}),
-		subscribe: jest.fn((event, listener) => {
-			listener({ data: {} });
-		}),
+		subscribe: jest.fn(),
 	};
 	return channel;
 };
