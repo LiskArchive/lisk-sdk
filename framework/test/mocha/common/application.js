@@ -23,7 +23,7 @@ const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { Slots } = require('../../../src/modules/chain/dpos');
 const { createCacheComponent } = require('../../../src/components/cache');
-const { StorageSandbox } = require('./storage_sandbox');
+const { StorageSandbox } = require('../../utils/storage/storage_sandbox');
 const { Processor } = require('../../../src/modules/chain/processor');
 const { Rebuilder } = require('../../../src/modules/chain/rebuilder');
 const {

@@ -22,7 +22,9 @@ const _ = require('lodash');
 const async = require('async');
 const BigNum = require('@liskhq/bignum');
 const application = require('../../../common/application');
-const { clearDatabaseTable } = require('../../../common/storage_sandbox');
+const {
+	clearDatabaseTable,
+} = require('../../../../utils/storage/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../../utils/random');
 const accountFixtures = require('../../../fixtures/accounts');

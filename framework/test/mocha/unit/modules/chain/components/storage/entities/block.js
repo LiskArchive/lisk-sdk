@@ -22,7 +22,7 @@ const {
 const {
 	Block,
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');
-const storageSandbox = require('../../../../../../common/storage_sandbox');
+const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 const blocksFixtures = require('../../../../../../fixtures/blocks');
 
 describe('Block', () => {
