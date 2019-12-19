@@ -26,7 +26,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
 const { Slots } = require('../../../src/modules/chain/dpos');
-const application = require('../common/application');
+const application = require('../../utils/application');
 const randomUtil = require('../../utils/random');
 const accountFixtures = require('../fixtures/accounts');
 const { getNetworkIdentifier } = require('../../utils/network_identifier');

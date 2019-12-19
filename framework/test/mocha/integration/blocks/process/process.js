@@ -15,8 +15,8 @@
 'use strict';
 
 const async = require('async');
-const application = require('../../../common/application');
-const modulesLoader = require('../../../common/modules_loader');
+const application = require('../../../../utils/application');
+const modulesLoader = require('../../../../utils/modules_loader');
 const clearDatabaseTable = require('../../../../utils/storage/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');

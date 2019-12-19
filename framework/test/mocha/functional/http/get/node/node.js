@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../../functional');
-const SwaggerEndpoint = require('../../../../common/swagger_spec');
+const SwaggerEndpoint = require('../../../../../utils/swagger_spec');
 const apiHelpers = require('../../../../../utils/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;

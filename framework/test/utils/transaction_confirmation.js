@@ -14,10 +14,10 @@
 
 'use strict';
 
-require('../functional/functional');
+require('../mocha/functional/functional');
 const Promise = require('bluebird');
-const apiHelpers = require('../../utils/api');
-const waitFor = require('../../utils/wait_for');
+const apiHelpers = require('./api');
+const waitFor = require('./wait_for');
 
 function confirmation(
 	goodTransactions,

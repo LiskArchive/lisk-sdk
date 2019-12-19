@@ -15,7 +15,7 @@
 'use strict';
 
 const { transfer } = require('@liskhq/lisk-transactions');
-const Scenarios = require('../../../common/scenarios');
+const Scenarios = require('../../../../utils/multisig_scenarios');
 const localCommon = require('../../common');
 const {
 	getNetworkIdentifier,

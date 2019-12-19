@@ -20,7 +20,7 @@ const {
 	registerSecondPassphrase,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
-const phases = require('../../../common/phases');
+const phases = require('../../../../utils/transaction_confirmation');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../../utils/api');
 const randomUtil = require('../../../../utils/random');

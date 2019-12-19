@@ -20,7 +20,7 @@ const {
 	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const randomUtil = require('../../../../utils/random');
-const Scenarios = require('../../../common/scenarios');
+const Scenarios = require('../../../../utils/multisig_scenarios');
 const localCommon = require('../../common');
 const {
 	getNetworkIdentifier,

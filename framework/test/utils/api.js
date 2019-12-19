@@ -24,7 +24,7 @@ const accountFixtures = require('../mocha/fixtures/accounts');
 const {
 	calculateApproval,
 } = require('../../src/modules/http_api/helpers/utils');
-const SwaggerSpec = require('../mocha/common/swagger_spec');
+const SwaggerSpec = require('./swagger_spec');
 const { getNetworkIdentifier } = require('./network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(

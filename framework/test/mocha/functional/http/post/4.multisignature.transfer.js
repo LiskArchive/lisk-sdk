@@ -17,8 +17,8 @@
 require('../../functional');
 
 const { transfer } = require('@liskhq/lisk-transactions');
-const phases = require('../../../common/phases');
-const Scenarios = require('../../../common/scenarios');
+const phases = require('../../../../utils/transaction_confirmation');
+const Scenarios = require('../../../../utils/multisig_scenarios');
 const waitFor = require('../../../../utils/wait_for');
 const randomUtil = require('../../../../utils/random');
 const apiHelpers = require('../../../../utils/api');

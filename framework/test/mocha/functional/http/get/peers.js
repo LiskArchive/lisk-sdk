@@ -16,8 +16,8 @@
 
 require('../../functional');
 const { P2P } = require('@liskhq/lisk-p2p');
-const { generatePeerHeader } = require('../../../common/generatePeerHeader');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
+const { generatePeerHeader } = require('../../../../utils/generatePeerHeader');
+const SwaggerEndpoint = require('../../../../utils/swagger_spec');
 const apiHelpers = require('../../../../utils/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;

@@ -26,9 +26,9 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
 const apiHelpers = require('../../../../utils/api');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
+const SwaggerEndpoint = require('../../../../utils/swagger_spec');
 const { Slots } = require('../../../../../src/modules/chain/dpos');
-const Scenarios = require('../../../common/scenarios');
+const Scenarios = require('../../../../utils/multisig_scenarios');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');

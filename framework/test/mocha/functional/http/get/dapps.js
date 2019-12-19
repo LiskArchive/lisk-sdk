@@ -20,7 +20,7 @@ const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
+const SwaggerEndpoint = require('../../../../utils/swagger_spec');
 const apiHelpers = require('../../../../utils/api');
 const {
 	getNetworkIdentifier,

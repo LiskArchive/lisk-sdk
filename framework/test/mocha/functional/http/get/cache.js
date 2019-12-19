@@ -16,7 +16,7 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
+const SwaggerEndpoint = require('../../../../utils/swagger_spec');
 const accountFixtures = require('../../../fixtures/accounts');
 const {
 	createLoggerComponent,

@@ -16,13 +16,13 @@
 
 require('../../functional');
 const { registerMultisignature } = require('@liskhq/lisk-transactions');
-const phases = require('../../../common/phases');
-const Scenarios = require('../../../common/scenarios');
+const phases = require('../../../../utils/transaction_confirmation');
+const Scenarios = require('../../../../utils/multisig_scenarios');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
 const elements = require('../../../../utils/elements');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
+const SwaggerEndpoint = require('../../../../utils/swagger_spec');
 const apiHelpers = require('../../../../utils/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');

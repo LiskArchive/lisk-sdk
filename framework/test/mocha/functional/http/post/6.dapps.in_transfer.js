@@ -18,7 +18,7 @@ require('../../functional');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const Promise = require('bluebird');
-const phases = require('../../../common/phases');
+const phases = require('../../../../utils/transaction_confirmation');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
