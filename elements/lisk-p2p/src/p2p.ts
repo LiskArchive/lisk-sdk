@@ -128,6 +128,7 @@ export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_SEND_PEER_LIMIT = 24;
 // Max rate of WebSocket messages per second per peer.
+export const DEFAULT_CONTROL_MESSAGE_LIMIT = 10;
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 100;
 export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
@@ -679,6 +680,7 @@ export class P2P extends EventEmitter {
 
 	private _handleIncomingPayload(ws: any, _req: any): void {
 		ws.on('message', (message: any) => {
+			// Pong message
 			if (message === '#2') {
 				return;
 			}
@@ -688,11 +690,18 @@ export class P2P extends EventEmitter {
 			try {
 				const parsed = JSON.parse(message);
 
-				const invalidEvent =
-					(parsed.event && typeof parsed.event !== 'string') ||
-					parsed.event === '#subscribe';
+				const invalidEvent: Set<string> = new Set([
+					'#authenticate',
+					'#removeAuthToken',
+					'#subscribe',
+					'#unsubscribe',
+					'#publish',
+				]);
 
-				if (invalidEvent) {
+				if (
+					(parsed.event && typeof parsed.event !== 'string') ||
+					invalidEvent.has(parsed.event)
+				) {
 					throw new Error('Invalid payload sent');
 				}
 
@@ -701,7 +710,7 @@ export class P2P extends EventEmitter {
 						(this._controlMessageCounter.get(peerIpAddress) || 0) + 1;
 					this._controlMessageCounter.set(peerIpAddress, count);
 
-					if (count > 1) {
+					if (count > DEFAULT_CONTROL_MESSAGE_LIMIT) {
 						throw new Error('Invalid payload sent');
 					}
 				}
