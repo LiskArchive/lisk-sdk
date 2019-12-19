@@ -309,11 +309,6 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 		};
 		this._handleBanPeer = (peerId: string) => {
-			// Unban peer after peerBanTime
-			setTimeout(
-				this._handleUnbanPeer.bind(this, peerId),
-				this._peerPoolConfig.peerBanTime,
-			);
 			// Re-emit the peerId to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};

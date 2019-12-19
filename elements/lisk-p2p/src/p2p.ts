@@ -124,7 +124,7 @@ export const EVENT_NETWORK_READY = 'networkReady';
 
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
-export const DEFAULT_BAN_TIME = 86400;
+export const DEFAULT_BAN_TIME = 86400000;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_SEND_PEER_LIMIT = 24;
 // Max rate of WebSocket messages per second per peer.
@@ -202,6 +202,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
+	private _unbanTimers: Array<NodeJS.Timer | undefined>;
 	protected _invalidMessageInterval: NodeJS.Timer | undefined;
 	protected _invalidMessageCounter: Map<string, number>;
 
@@ -238,6 +239,7 @@ export class P2P extends EventEmitter {
 		}) as SCServerUpdated;
 
 		this._invalidMessageCounter = new Map();
+		this._unbanTimers = [];
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -362,6 +364,19 @@ export class P2P extends EventEmitter {
 			if (this._peerBook.getPeer(bannedPeerInfo) && !isWhitelisted) {
 				this._peerBook.removePeer(bannedPeerInfo);
 			}
+
+			const peerBanTime = config.peerBanTime
+				? config.peerBanTime
+				: DEFAULT_BAN_TIME;
+
+			// Unban peer after peerBanTime
+			const unbanTimeout = setTimeout(
+				this._handleUnbanPeer.bind(this, peerId),
+				peerBanTime,
+			);
+
+			this._unbanTimers.push(unbanTimeout);
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
@@ -1020,6 +1035,14 @@ export class P2P extends EventEmitter {
 	private async _stopPeerServer(): Promise<void> {
 		if (this._invalidMessageInterval) {
 			clearInterval(this._invalidMessageInterval);
+		}
+
+		if (this._unbanTimers.length > 0) {
+			this._unbanTimers.forEach(timer => {
+				if (timer) {
+					clearTimeout(timer);
+				}
+			});
 		}
 
 		await this._stopWSServer();
