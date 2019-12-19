@@ -21,14 +21,14 @@ const Scenarios = require('../../../common/scenarios');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/wait_for');
-const elements = require('../../../common/utils/elements');
+const elements = require('../../../../utils/elements');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 const {
 	createInvalidRegisterMultisignatureTransaction,
-} = require('../../../common/utils/elements');
+} = require('../../../../utils/elements');
 const { getNetworkIdentifier } = require('../../../common/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
