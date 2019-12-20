@@ -105,7 +105,7 @@ describe('#synchronizer/utils', () => {
 			);
 		});
 
-		it('should return false when temp_block table is empty', async () => {
+		it('should return false when temp_blocks table is empty', async () => {
 			// Arrange
 			blocksMock.getTempBlocks = jest.fn().mockReturnValue([]);
 
@@ -186,7 +186,7 @@ describe('#synchronizer/utils', () => {
 			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 		});
 
-		it('should truncate temp_block table if fork status != FORK_STATUS_DIFFERENT_CHAIN || != FORK_STATUS_VALID_BLOCK', async () => {
+		it('should truncate s table if fork status != FORK_STATUS_DIFFERENT_CHAIN || != FORK_STATUS_VALID_BLOCK', async () => {
 			// Arrange
 			processorMock.forkStatus.mockResolvedValue(FORK_STATUS_DISCARD);
 			processorMock.deleteLastBlock.mockResolvedValue({ height: 0 });
