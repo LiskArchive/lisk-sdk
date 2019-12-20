@@ -370,10 +370,9 @@ export class P2P extends EventEmitter {
 				: DEFAULT_BAN_TIME;
 
 			// Unban peer after peerBanTime
-			const unbanTimeout = setTimeout(
-				this._handleUnbanPeer.bind(this, peerId),
-				peerBanTime,
-			);
+			const unbanTimeout = setTimeout(() => {
+				this._handleUnbanPeer(peerId);
+			}, peerBanTime);
 
 			this._unbanTimers.push(unbanTimeout);
 
