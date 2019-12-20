@@ -20,7 +20,7 @@ const {
 
 const storageConfig = (overriddenConfigProperties = {}) => ({
 	...devNetStorageConfig,
-	user: 'postgres',
+	user: 'lisk',
 	password: 'password',
 	min: 1,
 	// genesis_block.spec.js is using 2 Storage instance,
