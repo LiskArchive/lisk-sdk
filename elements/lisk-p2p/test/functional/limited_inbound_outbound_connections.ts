@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import {
 	createNetwork,
@@ -52,14 +51,14 @@ describe('Limited number of outbound/inbound connections', () => {
 	it(`should not create more than ${LIMITED_CONNECTIONS} outbound connections`, async () => {
 		for (let p2p of p2pNodeList) {
 			const { outboundCount } = (p2p as any)._peerPool.getPeersCountPerKind();
-			expect(outboundCount).to.be.at.most(LIMITED_CONNECTIONS);
+			expect(outboundCount).toBeLessThanOrEqual(LIMITED_CONNECTIONS);
 		}
 	});
 
 	it(`should not create more than ${LIMITED_CONNECTIONS} inbound connections`, async () => {
 		for (let p2p of p2pNodeList) {
 			const { inboundCount } = (p2p as any)._peerPool.getPeersCountPerKind();
-			expect(inboundCount).to.be.at.most(LIMITED_CONNECTIONS);
+			expect(inboundCount).toBeLessThanOrEqual(LIMITED_CONNECTIONS);
 		}
 	});
 
@@ -68,7 +67,7 @@ describe('Limited number of outbound/inbound connections', () => {
 			const allPeers = p2p['_peerBook'].allPeers;
 			const peerPorts = allPeers.map(peerInfo => peerInfo.wsPort);
 
-			expect(ALL_NODE_PORTS_WITH_LIMIT).to.include.members(peerPorts);
+			expect(ALL_NODE_PORTS_WITH_LIMIT).toEqual(peerPorts);
 		}
 	});
 
@@ -86,7 +85,9 @@ describe('Limited number of outbound/inbound connections', () => {
 			const disconnectedPeers = p2p.getDisconnectedPeers();
 
 			for (const connectedPeer of connectedPeers) {
-				expect(disconnectedPeers).to.not.deep.include(connectedPeer);
+				expect(disconnectedPeers).toEqual(
+					expect.not.arrayContaining([connectedPeer]),
+				);
 			}
 		}
 	});

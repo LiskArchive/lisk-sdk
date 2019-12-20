@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	initPeerInfoList,
 	initPeerInfoListWithSuffix,
@@ -53,7 +52,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				).to.be.an('array'));
+				).toBeInstanceOf('array'));
 
 			it('should return an array', () =>
 				expect(
@@ -63,7 +62,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				).to.be.an('array'));
+				).toBeInstanceOf('array'));
 
 			it('returned array should contain good peers according to algorithm', () =>
 				expect(
@@ -75,7 +74,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(5));
+					.toHaveLength(5));
 
 			it('return empty peer list for no peers as an argument', () =>
 				expect(
@@ -86,8 +85,8 @@ describe('peer selector', () => {
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
 				)
-					.and.be.an('array')
-					.and.to.be.eql([]));
+					.toBeInstanceOf('array')
+					.and.toEqual([]));
 
 			it('should return an array having one good peer', () =>
 				expect(
@@ -99,7 +98,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(1));
+					.toHaveLength(1));
 
 			it('should return an array having 2 good peers', () =>
 				expect(
@@ -111,7 +110,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(2));
+					.toHaveLength(2));
 
 			it('should return an array having all good peers', () =>
 				expect(
@@ -123,7 +122,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(5));
+					.toHaveLength(5));
 
 			it('should return an array of equal length equal to requested number of peers', () =>
 				expect(
@@ -135,7 +134,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(3));
+					.toHaveLength(3));
 		});
 
 		describe('peers with lower blockheight', () => {
@@ -158,7 +157,7 @@ describe('peer selector', () => {
 					}),
 				)
 					.and.be.an('array')
-					.and.of.length(1);
+					.toHaveLength(1);
 			});
 		});
 	});
@@ -190,7 +189,7 @@ describe('peer selector', () => {
 
 			expect(peerKindCounts.inbound)
 				.to.equal(peerKindCounts.outbound)
-				.to.equal(DEFAULT_SEND_PEER_LIMIT / 2);
+				.toBe(DEFAULT_SEND_PEER_LIMIT / 2);
 		});
 	});
 
@@ -205,7 +204,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 20,
 				});
-				expect(selectedPeers).to.be.an('array').empty;
+				expect(selectedPeers).toBeInstanceOf('array').empty;
 			});
 		});
 
@@ -218,8 +217,8 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(numberOfPeers);
-				return expect(peerList).to.deep.eq(selectedPeers);
+					.toHaveLength(numberOfPeers);
+				return expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -230,7 +229,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 0,
 				});
-				expect(selectedPeers).to.be.an('array').empty;
+				expect(selectedPeers).toBeInstanceOf('array').empty;
 			});
 		});
 
@@ -243,7 +242,7 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(1);
+					.toHaveLength(1);
 			});
 		});
 
@@ -256,7 +255,7 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(3);
+					.toHaveLength(3);
 			});
 		});
 
@@ -269,8 +268,8 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(peerList.length);
-				expect(peerList).to.include.members(selectedPeers);
+					.toHaveLength(peerList.length);
+				expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -283,8 +282,8 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(3);
-				expect(peerList).to.include.members(selectedPeers);
+					.toHaveLength(3);
+				expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -297,11 +296,11 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(4);
-				expect(peerList).to.contain.members(selectedPeers);
+					.toHaveLength(4);
+				expect(peerList).toEqual(selectedPeers);
 				for (const peer of selectedPeers) {
 					const foundPeers = selectedPeers.filter(x => x === peer);
-					expect(foundPeers).to.have.length(1);
+					expect(foundPeers).toHaveLength(1);
 				}
 			});
 		});
@@ -315,8 +314,8 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(peerList.length);
-				expect(peerList).to.include.members(selectedPeers);
+					.toHaveLength(peerList.length);
+				expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -331,8 +330,8 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(4);
-				expect(peerList).to.contain.members(selectedPeers);
+					.toHaveLength(4);
+				expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -347,8 +346,8 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(3);
-				expect(peerList).to.include.members(selectedPeers);
+					.toHaveLength(3);
+				expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -374,9 +373,9 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(50);
+					.toHaveLength(50);
 
-				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
+				expect([...triedPeers, ...newPeers]).toEqual(selectedPeers);
 
 				let triedCount = 0;
 				let newCount = 0;
@@ -389,8 +388,8 @@ describe('peer selector', () => {
 					}
 				}
 
-				expect(triedCount).to.eql(25);
-				expect(newCount).to.eql(25);
+				expect(triedCount).toEqual(25);
+				expect(newCount).toEqual(25);
 			});
 
 			it('should return only new peer list', () => {
@@ -405,9 +404,9 @@ describe('peer selector', () => {
 				});
 				expect(selectedPeers)
 					.to.be.an('array')
-					.of.length(50);
+					.toHaveLength(50);
 
-				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
+				expect([...triedPeers, ...newPeers]).toEqual(selectedPeers);
 
 				let triedCount = 0;
 				let newCount = 0;
@@ -420,8 +419,8 @@ describe('peer selector', () => {
 					}
 				}
 
-				expect(triedCount).to.eql(0);
-				expect(newCount).to.eql(50);
+				expect(triedCount).toEqual(0);
+				expect(newCount).toEqual(50);
 			});
 		});
 
@@ -464,10 +463,8 @@ describe('peer selector', () => {
 
 				selectedPeers.map(peer => uniqIpAddresses.push(peer.ipAddress));
 
-				expect(selectedPeers).to.be.not.empty;
-				expect(selectedPeers.length).to.equal(
-					[...new Set(uniqIpAddresses)].length,
-				);
+				expect(Object.keys(selectedPeers)).not.toHaveLength(0);
+				expect(selectedPeers.length).toBe([...new Set(uniqIpAddresses)].length);
 			});
 		});
 	});

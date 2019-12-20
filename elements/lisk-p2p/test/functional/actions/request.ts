@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_REQUEST_RECEIVED } from '../../../src/index';
 import {
 	createNetwork,
@@ -51,19 +50,19 @@ describe('P2P.request', () => {
 			procedure: 'foo',
 			data: 'bar',
 		});
-		expect(response).to.have.property('data');
+		expect(response).toHaveProperty('data');
 		expect(response.data)
 			.to.have.property('nodePort')
-			.which.is.a('number');
+			.toBeInstanceOf('number');
 		expect(response.data)
 			.to.have.property('requestProcedure')
-			.which.is.a('string');
+			.toBeInstanceOf('string');
 		expect(response.data)
 			.to.have.property('requestData')
-			.which.is.equal('bar');
+			.toBe('bar');
 		expect(response.data)
 			.to.have.property('requestPeerId')
-			.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
+			.toBe(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
 	});
 
 	// Check for even distribution of requests across the network. Account for an error margin.
@@ -90,11 +89,11 @@ describe('P2P.request', () => {
 		}
 
 		for (let requestsHandled of Object.values(nodePortToResponsesMap) as any) {
-			expect(requestsHandled).to.be.an('array');
-			expect(requestsHandled.length).to.be.greaterThan(
+			expect(requestsHandled).toBeInstanceOf('array');
+			expect(requestsHandled.length).toBeGreaterThan(
 				expectedRequestsLowerBound,
 			);
-			expect(requestsHandled.length).to.be.lessThan(expectedRequestsUpperBound);
+			expect(requestsHandled.length).toBeLessThan(expectedRequestsUpperBound);
 		}
 	}).timeout(5000);
 });

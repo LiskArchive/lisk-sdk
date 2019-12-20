@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	InvalidPeerInfoError,
 	PeerInboundHandshakeError,
@@ -44,15 +43,15 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of PeerInboundHandshakeError', async () => {
-			expect(peerTransportError).to.be.instanceof(PeerInboundHandshakeError);
+			expect(peerTransportError).toBeInstanceOf(PeerInboundHandshakeError);
 		});
 
 		it('should set error name to `PeerInboundHandshakeError`', async () => {
-			expect(peerTransportError.name).to.eql('PeerInboundHandshakeError');
+			expect(peerTransportError.name).toEqual('PeerInboundHandshakeError');
 		});
 
 		it('should set error property remoteAddress when passed as an argument', async () => {
-			expect(peerTransportError.remoteAddress).to.eql(remoteAddress);
+			expect(peerTransportError.remoteAddress).toEqual(remoteAddress);
 		});
 	});
 
@@ -66,17 +65,17 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of RPCResponseError', async () => {
-			expect(rpcGetPeersFailed).to.be.instanceof(RPCResponseError);
+			expect(rpcGetPeersFailed).toBeInstanceOf(RPCResponseError);
 		});
 
 		it('should set error name to `RPCResponseError`', async () => {
-			expect(rpcGetPeersFailed.name).to.eql('RPCResponseError');
+			expect(rpcGetPeersFailed.name).toEqual('RPCResponseError');
 		});
 
 		it('should set error property peer Id when passed as an argument', async () => {
 			expect(rpcGetPeersFailed)
 				.and.to.have.property('peerId')
-				.which.is.eql(peerId);
+				.toEqual(peerId);
 		});
 	});
 
@@ -89,15 +88,15 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidPeerInfoError', async () => {
-			expect(invalidPeer).to.be.instanceof(InvalidPeerInfoError);
+			expect(invalidPeer).toBeInstanceOf(InvalidPeerInfoError);
 		});
 
 		it('should set error name to `InvalidPeerInfoError`', async () => {
-			expect(invalidPeer.name).to.eql('InvalidPeerInfoError');
+			expect(invalidPeer.name).toEqual('InvalidPeerInfoError');
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(invalidPeer.message).to.eql(defaultMessage);
+			expect(invalidPeer.message).toEqual(defaultMessage);
 		});
 	});
 
@@ -115,19 +114,19 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of ExistingPeerError', async () => {
-			expect(existingPeer).to.be.instanceof(ExistingPeerError);
+			expect(existingPeer).toBeInstanceOf(ExistingPeerError);
 		});
 
 		it('should set error name to `ExistingPeerError`', async () => {
-			expect(existingPeer.name).to.eql('ExistingPeerError');
+			expect(existingPeer.name).toEqual('ExistingPeerError');
 		});
 
 		it(`should set error message to ${existingPeerErrorMessagge}`, async () => {
-			expect(existingPeer.message).to.eql(existingPeerErrorMessagge);
+			expect(existingPeer.message).toEqual(existingPeerErrorMessagge);
 		});
 
 		it(`should set peerInfo parameter when passing an argument`, async () => {
-			expect(existingPeer.peerInfo).to.eql(peerInfo);
+			expect(existingPeer.peerInfo).toEqual(peerInfo);
 		});
 	});
 
@@ -140,15 +139,15 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidNodeInfoError', async () => {
-			expect(invalidNodeInfo).to.be.instanceof(InvalidNodeInfoError);
+			expect(invalidNodeInfo).toBeInstanceOf(InvalidNodeInfoError);
 		});
 
 		it('should set error name to `InvalidNodeInfoError`', async () => {
-			expect(invalidNodeInfo.name).to.eql('InvalidNodeInfoError');
+			expect(invalidNodeInfo.name).toEqual('InvalidNodeInfoError');
 		});
 
 		it(`should set error message to ${InvalidNodeInfoError}`, async () => {
-			expect(invalidNodeInfo.message).to.eql(InvalidNodeInfoErrorMessagge);
+			expect(invalidNodeInfo.message).toEqual(InvalidNodeInfoErrorMessagge);
 		});
 	});
 
@@ -161,15 +160,15 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidRPCResponse', async () => {
-			expect(invalidRPCResponse).to.be.instanceof(InvalidRPCResponseError);
+			expect(invalidRPCResponse).toBeInstanceOf(InvalidRPCResponseError);
 		});
 
 		it('should set error name to `InvalidRPCResponseError`', async () => {
-			expect(invalidRPCResponse.name).to.eql('InvalidRPCResponseError');
+			expect(invalidRPCResponse.name).toEqual('InvalidRPCResponseError');
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(invalidRPCResponse.message).to.eql(defaultMessage);
+			expect(invalidRPCResponse.message).toEqual(defaultMessage);
 		});
 	});
 
@@ -184,19 +183,19 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidProtocolMessageError', async () => {
-			expect(invalidProtocolMessageError).to.be.instanceof(
+			expect(invalidProtocolMessageError).toBeInstanceOf(
 				InvalidProtocolMessageError,
 			);
 		});
 
 		it('should set error name to `InvalidProtocolMessageError`', async () => {
-			expect(invalidProtocolMessageError.name).to.eql(
+			expect(invalidProtocolMessageError.name).toEqual(
 				'InvalidProtocolMessageError',
 			);
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(invalidProtocolMessageError.message).to.eql(defaultMessage);
+			expect(invalidProtocolMessageError.message).toEqual(defaultMessage);
 		});
 	});
 
@@ -209,15 +208,15 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidRPCRequestError', async () => {
-			expect(invalidRPCRequestError).to.be.instanceof(InvalidRPCRequestError);
+			expect(invalidRPCRequestError).toBeInstanceOf(InvalidRPCRequestError);
 		});
 
 		it('should set error name to `InvalidRPCRequestError`', async () => {
-			expect(invalidRPCRequestError.name).to.eql('InvalidRPCRequestError');
+			expect(invalidRPCRequestError.name).toEqual('InvalidRPCRequestError');
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(invalidRPCRequestError.message).to.eql(defaultMessage);
+			expect(invalidRPCRequestError.message).toEqual(defaultMessage);
 		});
 	});
 
@@ -232,19 +231,19 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of RPCResponseAlreadySentError', async () => {
-			expect(rpcResponseAlreadySentError).to.be.instanceof(
+			expect(rpcResponseAlreadySentError).toBeInstanceOf(
 				RPCResponseAlreadySentError,
 			);
 		});
 
 		it('should set error name to `RPCResponseAlreadySentError`', async () => {
-			expect(rpcResponseAlreadySentError.name).to.eql(
+			expect(rpcResponseAlreadySentError.name).toEqual(
 				'ResponseAlreadySentError',
 			);
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(rpcResponseAlreadySentError.message).to.eql(defaultMessage);
+			expect(rpcResponseAlreadySentError.message).toEqual(defaultMessage);
 		});
 	});
 
@@ -268,24 +267,24 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of RequestFailError', async () => {
-			expect(requestFailError).to.be.instanceof(RequestFailError);
+			expect(requestFailError).toBeInstanceOf(RequestFailError);
 		});
 
 		it('should set error name to `RequestFailError`', async () => {
-			expect(requestFailError.name).to.eql('RequestFailError');
+			expect(requestFailError.name).toEqual('RequestFailError');
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(requestFailError.message).to.eql(
+			expect(requestFailError.message).toEqual(
 				`${defaultMessage}: Peer Id: ${peerId}: Peer Version: ${peerVersion}`,
 			);
 		});
 
 		it('should set response object within this custom error', async () => {
 			expect(requestFailError.response)
-				.to.eql(response)
+				.toEqual(response)
 				.to.have.property('message')
-				.eql(errorResponseMessage);
+				.toEqual(errorResponseMessage);
 		});
 	});
 });

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
@@ -125,15 +124,15 @@ describe('Custom peer selection', () => {
 
 	it('should start all the nodes with custom selection functions without fail', async () => {
 		for (let p2p of p2pNodeList) {
-			expect(p2p).to.have.property('isActive', true);
+			expect(p2p).toHaveProperty('isActive', true);
 		}
 	});
 
 	describe('Peer Discovery', () => {
 		it('should run peer discovery successfully', async () => {
 			for (let p2p of p2pNodeList) {
-				expect(p2p.isActive).to.be.true;
-				expect(p2p.getConnectedPeers().length).to.gt(1);
+				expect(p2p.isActive).toBe(true);
+				expect(p2p.getConnectedPeers().length).toBeGreaterThan(1);
 			}
 		});
 	});
@@ -161,16 +160,16 @@ describe('Custom peer selection', () => {
 				data: 'bar',
 			});
 
-			expect(response).to.have.property('data');
+			expect(response).toHaveProperty('data');
 			expect(response.data)
 				.to.have.property('nodePort')
-				.which.is.a('number');
+				.toBeInstanceOf('number');
 			expect(response.data)
 				.to.have.property('requestProcedure')
-				.which.is.a('string');
+				.toBeInstanceOf('string');
 			expect(response.data)
 				.to.have.property('requestData')
-				.which.is.equal('bar');
+				.toBe('bar');
 		});
 	});
 
@@ -205,7 +204,7 @@ describe('Custom peer selection', () => {
 
 			await wait(100);
 
-			expect(collectedMessages).to.not.to.be.empty;
+			expect(Object.keys(collectedMessages)).toHaveLength(0);
 			for (let receivedMessageData of collectedMessages) {
 				if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 					nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -215,15 +214,15 @@ describe('Custom peer selection', () => {
 				);
 			}
 
-			expect(nodePortToMessagesMap).to.not.to.be.empty;
+			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
 			for (let receivedMessages of Object.values(
 				nodePortToMessagesMap,
 			) as any) {
-				expect(receivedMessages).to.be.an('array');
-				expect(receivedMessages.length).to.be.greaterThan(
+				expect(receivedMessages).toBeInstanceOf('array');
+				expect(receivedMessages.length).toBeGreaterThan(
 					expectedMessagesLowerBound,
 				);
-				expect(receivedMessages.length).to.be.lessThan(
+				expect(receivedMessages.length).toBeLessThan(
 					expectedMessagesUpperBound,
 				);
 			}

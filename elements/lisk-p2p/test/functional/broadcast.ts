@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_MESSAGE_RECEIVED } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
@@ -55,7 +54,7 @@ describe('P2P.broadcast', () => {
 		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 		await wait(100);
 
-		expect(collectedMessages).to.not.to.be.empty;
+		expect(Object.keys(collectedMessages)).toHaveLength(0);
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -65,11 +64,11 @@ describe('P2P.broadcast', () => {
 			);
 		}
 
-		expect(nodePortToMessagesMap).to.not.to.be.empty;
+		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages)
 				.to.be.an('array')
-				.to.have.lengthOf(1);
+				.toHaveLength(1);
 		}
 	});
 
@@ -79,17 +78,17 @@ describe('P2P.broadcast', () => {
 
 		await wait(100);
 
-		expect(collectedMessages).to.be.an('array');
-		expect(collectedMessages.length).to.be.eql(NETWORK_PEER_COUNT - 1);
-		expect(collectedMessages[0]).to.have.property('message');
+		expect(collectedMessages).toBeInstanceOf('array');
+		expect(collectedMessages.length).toEqual(NETWORK_PEER_COUNT - 1);
+		expect(collectedMessages[0]).toHaveProperty('message');
 		expect(collectedMessages[0].message)
 			.to.have.property('event')
-			.which.is.equal(BROADCAST_EVENT);
+			.toBe(BROADCAST_EVENT);
 		expect(collectedMessages[0].message)
 			.to.have.property('data')
-			.which.is.equal(BROADCAST_DATA);
+			.toBe(BROADCAST_DATA);
 		expect(collectedMessages[0].message)
 			.to.have.property('peerId')
-			.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+			.toBe(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
 	});
 });

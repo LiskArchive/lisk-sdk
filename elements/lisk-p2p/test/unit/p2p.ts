@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
 
@@ -49,13 +48,13 @@ describe('p2p', () => {
 		});
 
 		it('should be an object', () => {
-			return expect(P2PNode).to.be.an('object');
+			return expect(P2PNode).toBeInstanceOf('object');
 		});
 
 		it('should be an instance of P2P blockchain', () => {
 			return expect(P2PNode)
 				.to.be.an('object')
-				.and.be.instanceof(P2P);
+				.toBeInstanceOf(P2P);
 		});
 
 		it('should load PeerBook with correct fixedPeer hierarchy', async () => {
@@ -63,7 +62,7 @@ describe('p2p', () => {
 				.slice(0, 6)
 				.map(peer => constructPeerId(peer.ipAddress, peer.wsPort));
 
-			expect(expectedFixedPeers).to.have.members(
+			expect(expectedFixedPeers).toEqual(
 				P2PNode['_peerBook'].allPeers
 					.filter(peer => peer.internalState?.peerKind == 'fixedPeer')
 					.map(peer => peer.peerId),
@@ -73,13 +72,13 @@ describe('p2p', () => {
 		it('should reject at multiple start attempt', async () => {
 			await P2PNode.start();
 
-			expect(P2PNode.start()).to.be.rejected;
+			expect(P2PNode.start()).rejects;
 		});
 
 		it('should reject at multiple stop attempt', async () => {
 			await P2PNode.stop();
 
-			expect(P2PNode.stop()).to.be.rejected;
+			expect(P2PNode.stop()).rejects;
 		});
 	});
 });

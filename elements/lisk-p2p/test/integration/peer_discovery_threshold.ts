@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_DISCOVERED_PEER } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
@@ -71,6 +70,6 @@ describe('Peer discovery threshold', () => {
 		expect(
 			listOfPeers.length >= MINIMUM_PEER_DISCOVERY_THRESHOLD &&
 				listOfPeers.length <= MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-		).to.be.eql(true);
+		).toEqual(true);
 	});
 });

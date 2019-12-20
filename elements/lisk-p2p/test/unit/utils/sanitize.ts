@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	sanitizeIncomingPeerInfo,
 	sanitizeInitialPeerInfo,
@@ -31,7 +30,9 @@ describe('utils/sanitize', () => {
 					...sharedState,
 				};
 
-				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).eql(samplePeers[0]);
+				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
+					samplePeers[0],
+				);
 			});
 		});
 		describe('when rawPeerInfo is falsy', () => {
@@ -39,8 +40,8 @@ describe('utils/sanitize', () => {
 				const undefinedPeerInfo = undefined;
 				const nullPeerInfo = null;
 
-				expect(sanitizeIncomingPeerInfo(undefinedPeerInfo)).eql(undefined);
-				expect(sanitizeIncomingPeerInfo(nullPeerInfo)).eql(undefined);
+				expect(sanitizeIncomingPeerInfo(undefinedPeerInfo)).toEqual(undefined);
+				expect(sanitizeIncomingPeerInfo(nullPeerInfo)).toEqual(undefined);
 			});
 		});
 	});
@@ -54,7 +55,7 @@ describe('utils/sanitize', () => {
 				...samplePeers[0],
 			};
 
-			expect(sanitizeInitialPeerInfo(protocolPeerInfo)).eql({
+			expect(sanitizeInitialPeerInfo(protocolPeerInfo)).toEqual({
 				peerId,
 				ipAddress,
 				wsPort,
@@ -70,7 +71,9 @@ describe('utils/sanitize', () => {
 				...sharedState,
 			};
 
-			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).eql(samplePeers[0]);
+			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
+				samplePeers[0],
+			);
 		});
 	});
 

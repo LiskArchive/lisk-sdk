@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
@@ -80,7 +79,7 @@ describe('Outbound IP limit', () => {
 				.getPeers(OutboundPeer)
 				.map(peer => uniqIpAddresses.push(peer.ipAddress));
 
-			expect([...new Set(uniqIpAddresses)].length).to.equal(
+			expect([...new Set(uniqIpAddresses)].length).toBe(
 				p2p['_peerPool'].getPeers(OutboundPeer).length,
 			);
 		}

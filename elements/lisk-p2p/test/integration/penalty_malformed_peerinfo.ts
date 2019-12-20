@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_BAN_PEER } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
@@ -55,6 +54,6 @@ describe('penalty sending malformed peerInfo', () => {
 	});
 
 	it(`should fire ${EVENT_BAN_PEER} event`, async () => {
-		expect(collectedEvents.get(EVENT_BAN_PEER)).to.be.equal('127.0.0.1:5000');
+		expect(collectedEvents.get(EVENT_BAN_PEER)).toBe('127.0.0.1:5000');
 	});
 });

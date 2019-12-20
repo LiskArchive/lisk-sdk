@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_MESSAGE_RECEIVED } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import {
@@ -59,7 +58,7 @@ describe('P2P.send', () => {
 
 		await wait(100);
 
-		expect(collectedMessages).to.not.to.be.empty;
+		expect(Object.keys(collectedMessages)).toHaveLength(0);
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -69,15 +68,13 @@ describe('P2P.send', () => {
 			);
 		}
 
-		expect(nodePortToMessagesMap).to.not.to.be.empty;
+		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
-			expect(receivedMessages).to.be.an('array');
-			expect(receivedMessages.length).to.be.greaterThan(
+			expect(receivedMessages).toBeInstanceOf('array');
+			expect(receivedMessages.length).toBeGreaterThan(
 				expectedMessagesLowerBound,
 			);
-			expect(receivedMessages.length).to.be.lessThan(
-				expectedMessagesUpperBound,
-			);
+			expect(receivedMessages.length).toBeLessThan(expectedMessagesUpperBound);
 		}
 	});
 
@@ -90,18 +87,18 @@ describe('P2P.send', () => {
 
 		await wait(100);
 
-		expect(collectedMessages).to.be.an('array');
-		expect(collectedMessages.length).to.be.eql(numOfConnectedPeers);
-		expect(collectedMessages[0]).to.have.property('message');
+		expect(collectedMessages).toBeInstanceOf('array');
+		expect(collectedMessages.length).toEqual(numOfConnectedPeers);
+		expect(collectedMessages[0]).toHaveProperty('message');
 		expect(collectedMessages[0].message)
 			.to.have.property('event')
-			.which.is.equal('bar');
+			.toBe('bar');
 		expect(collectedMessages[0].message)
 			.to.have.property('data')
-			.which.is.equal('test');
+			.toBe('test');
 		expect(collectedMessages[0].message)
 			.to.have.property('peerId')
-			.which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
+			.toBe(`127.0.0.1:${NETWORK_START_PORT}`);
 	});
 
 	describe('when peers are at different heights', () => {
@@ -136,7 +133,7 @@ describe('P2P.send', () => {
 			}
 			await wait(100);
 
-			expect(collectedMessages).to.not.to.be.empty;
+			expect(Object.keys(collectedMessages)).toHaveLength(0);
 			for (let receivedMessageData of collectedMessages) {
 				if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 					nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -146,15 +143,15 @@ describe('P2P.send', () => {
 				);
 			}
 
-			expect(nodePortToMessagesMap).to.not.to.be.empty;
+			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
 			for (let receivedMessages of Object.values(
 				nodePortToMessagesMap,
 			) as any) {
-				expect(receivedMessages).to.be.an('array');
-				expect(receivedMessages.length).to.be.greaterThan(
+				expect(receivedMessages).toBeInstanceOf('array');
+				expect(receivedMessages.length).toBeGreaterThan(
 					expectedMessagesLowerBound,
 				);
-				expect(receivedMessages.length).to.be.lessThan(
+				expect(receivedMessages.length).toBeLessThan(
 					expectedMessagesUpperBound,
 				);
 			}

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
@@ -44,43 +43,43 @@ describe('Custom nodeInfo', () => {
 			for (let peer of triedPeers) {
 				expect(peer)
 					.has.property('sharedState')
-					.has.property('modules')
+					.toHaveProperty('modules')
 					.has.property('names')
-					.is.an('array');
+					.toBeInstanceOf('array');
 
 				expect(peer)
 					.has.property('sharedState')
-					.has.property('modules')
+					.toHaveProperty('modules')
 					.has.property('active')
-					.is.a('boolean');
+					.toBeInstanceOf('boolean');
 			}
 
 			for (let peer of newPeers) {
 				if (peer.modules) {
 					expect(peer)
 						.has.property('sharedState')
-						.has.property('modules')
+						.toHaveProperty('modules')
 						.has.property('names')
-						.is.an('array');
+						.toBeInstanceOf('array');
 
 					expect(peer)
 						.has.property('sharedState')
-						.has.property('modules')
+						.toHaveProperty('modules')
 						.has.property('active')
-						.is.a('boolean');
+						.toBeInstanceOf('boolean');
 				}
 			}
 
 			for (let peer of p2p.getConnectedPeers()) {
 				expect(peer)
-					.has.property('modules')
+					.toHaveProperty('modules')
 					.has.property('names')
-					.is.an('array');
+					.toBeInstanceOf('array');
 
 				expect(peer)
-					.has.property('modules')
+					.toHaveProperty('modules')
 					.has.property('active')
-					.is.a('boolean');
+					.toBeInstanceOf('boolean');
 			}
 		}
 	});

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_MESSAGE_RECEIVED,
@@ -80,10 +79,7 @@ describe('P2P.applyNodeInfo', () => {
 				nonce: 'nonce',
 				advertiseAddress: true,
 			}),
-		).to.throw(
-			InvalidNodeInfoError,
-			'NodeInfo was larger than the maximum allowed 20480 bytes',
-		);
+		).toThrowError(InvalidNodeInfoError);
 	});
 
 	it('should send the node info to peers', async () => {
@@ -93,7 +89,7 @@ describe('P2P.applyNodeInfo', () => {
 		const connectedPeerCount = firstP2PNode.getConnectedPeers().length;
 
 		// Each peer of firstP2PNode should receive a message.
-		expect(collectedMessages.length).to.equal(connectedPeerCount);
+		expect(collectedMessages.length).toBe(connectedPeerCount);
 
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
@@ -113,11 +109,11 @@ describe('P2P.applyNodeInfo', () => {
 					receivedMessages[0].nodePort !== firstP2PNode.nodeInfo.wsPort,
 			)
 			.forEach((receivedMessages: any) => {
-				expect(receivedMessages.length).to.be.equal(1);
-				expect(receivedMessages[0].request).to.have.property('data');
+				expect(receivedMessages.length).toBe(1);
+				expect(receivedMessages[0].request).toHaveProperty('data');
 				expect(receivedMessages[0].request.data)
 					.to.have.property('height')
-					.which.equals(10);
+					.toBe(10);
 			});
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
@@ -125,10 +121,10 @@ describe('P2P.applyNodeInfo', () => {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
-			expect(firstP2PNodePeerInfo).to.exist;
+			expect(firstP2PNodePeerInfo).toBeDefined();
 			expect(firstP2PNodePeerInfo)
 				.to.have.property('height')
-				.which.equals(10);
+				.toBe(10);
 		}
 	});
 
@@ -150,9 +146,9 @@ describe('P2P.applyNodeInfo', () => {
 			// Check if the peerinfo is updated in new peer list
 			if (firstNodeInAllPeersList) {
 				expect(firstNodeInAllPeersList)
-					.to.have.property('sharedState')
+					.toHaveProperty('sharedState')
 					.to.have.property('height')
-					.which.equals(10);
+					.toBe(10);
 				expect(firstNodeInAllPeersList)
 					.to.have.property('sharedState')
 					.to.have.property('networkId')
@@ -165,7 +161,7 @@ describe('P2P.applyNodeInfo', () => {
 			if (firstNodeInConnectedPeer) {
 				expect(firstNodeInConnectedPeer)
 					.to.have.property('height')
-					.which.equals(10);
+					.toBe(10);
 				expect(firstNodeInConnectedPeer)
 					.to.have.property('networkId')
 					.which.equals(

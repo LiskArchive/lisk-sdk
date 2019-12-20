@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_BAN_PEER,
@@ -66,7 +65,7 @@ describe('P2P protocol message limit', () => {
 		await wait(100);
 
 		// Assert
-		expect(bannedPeer).to.be.equal(
+		expect(bannedPeer).toBe(
 			constructPeerId(SEED_PEER_IP, p2pNodeList[2].config.nodeInfo.wsPort),
 		);
 	});

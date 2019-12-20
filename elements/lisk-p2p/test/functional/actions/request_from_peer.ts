@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
@@ -62,10 +61,10 @@ describe('P2P.requestFromPeer', () => {
 			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
 
-		expect(collectedMessages.length).to.equal(1);
-		expect(collectedMessages[0]).to.have.property('request');
-		expect(collectedMessages[0].request.procedure).to.equal('foo');
-		expect(collectedMessages[0].request.data).to.equal(123456);
+		expect(collectedMessages.length).toBe(1);
+		expect(collectedMessages[0]).toHaveProperty('request');
+		expect(collectedMessages[0].request.procedure).toBe('foo');
+		expect(collectedMessages[0].request.data).toBe(123456);
 	});
 
 	it('should receive response from a specific peer within the network', async () => {
@@ -81,9 +80,7 @@ describe('P2P.requestFromPeer', () => {
 			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
 
-		expect(response).to.have.property('data');
-		expect(response.data).to.equal(
-			`Hello world from peer ${targetPeer.wsPort}`,
-		);
+		expect(response).toHaveProperty('data');
+		expect(response.data).toBe(`Hello world from peer ${targetPeer.wsPort}`);
 	});
 });

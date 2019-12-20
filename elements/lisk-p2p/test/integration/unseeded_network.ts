@@ -13,7 +13,6 @@
  *
  */
 
-import { expect } from 'chai';
 import { P2P, RequestFailError } from '../../src/index';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
 
@@ -36,7 +35,7 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 
 	it('should set the isActive property to true for all nodes', async () => {
 		for (let p2p of p2pNodeList) {
-			expect(p2p).to.have.property('isActive', true);
+			expect(p2p).toHaveProperty('isActive', true);
 		}
 	});
 
@@ -47,9 +46,6 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 			data: 'bar',
 		});
 
-		return expect(response).to.eventually.be.rejectedWith(
-			RequestFailError,
-			'Request failed due to no peers found in peer selection',
-		);
+		return expect(response).rejects.toThrow(RequestFailError);
 	});
 });

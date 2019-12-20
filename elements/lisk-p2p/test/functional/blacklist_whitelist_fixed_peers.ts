@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_CLOSE_OUTBOUND,
@@ -123,7 +122,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				expect(newPeersIPWS).not.toEqual(blacklistedPeers);
 			}
 		});
 
@@ -136,7 +135,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				expect(triedPeersIPWS).not.toEqual(blacklistedPeers);
 			}
 		});
 
@@ -148,9 +147,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(connectedPeersIPWS).not.to.deep.include.members(
-					blacklistedPeers,
-				);
+				expect(connectedPeersIPWS).not.toEqual(blacklistedPeers);
 			}
 		});
 
@@ -161,7 +158,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					(p2p as any)._config.hostIp === blacklistedPeers[0].ipAddress
 				) {
 					const connectedPeers = (p2p as any)._peerPool.getConnectedPeers();
-					expect(connectedPeers.length).to.equal(0);
+					expect(connectedPeers.length).toBe(0);
 				}
 			}
 		});
@@ -246,13 +243,13 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
+					expect(connectedPeersIPWS).toEqual(fixedPeers);
 				}
 			});
 		});
 
 		it('should not disconnect from fixed seed peers', async () => {
-			expect(collectedEvents).to.be.empty;
+			expect(Object.keys(collectedEvents)).toHaveLength(0);
 		});
 	});
 
@@ -314,7 +311,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(triedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					expect(triedPeersIPWS).toEqual(whitelistedPeers);
 				}
 			});
 		});
@@ -334,7 +331,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					expect(connectedPeersIPWS).toEqual(whitelistedPeers);
 				}
 			});
 		});

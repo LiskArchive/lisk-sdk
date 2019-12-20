@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import * as socketClusterClient from 'socketcluster-client';
 import { OutboundPeer, PeerConfig } from '../../../src/peer';
 import {
@@ -75,7 +74,7 @@ describe('peer/outbound', () => {
 
 	describe('#constructor', () => {
 		it('should be an instance of OutboundPeer class', () =>
-			expect(defaultOutboundPeer).to.be.instanceof(OutboundPeer));
+			expect(defaultOutboundPeer).toBeInstanceOf(OutboundPeer));
 	});
 
 	describe('#set socket', () => {
@@ -85,7 +84,7 @@ describe('peer/outbound', () => {
 				'_unbindHandlersFromOutboundSocket',
 			);
 
-			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 			defaultOutboundPeer.socket = outboundSocket;
 			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
 				.not.called;
@@ -98,16 +97,16 @@ describe('peer/outbound', () => {
 			);
 
 			(defaultOutboundPeer as any)._socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
+			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 			defaultOutboundPeer.socket = outboundSocket;
 			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
 				.be.calledOnce;
 		});
 
 		it('should set new socket', () => {
-			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
+			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 		});
 
 		it('should call _bindHandlersToOutboundSocket with outbound socket', () => {
@@ -115,12 +114,12 @@ describe('peer/outbound', () => {
 			defaultOutboundPeer.socket = outboundSocket;
 			expect(
 				(defaultOutboundPeer as any)._bindHandlersToOutboundSocket,
-			).to.be.calledOnceWithExactly(outboundSocket);
+			).toHaveBeenCalledWith(outboundSocket);
 		});
 
 		it('should bind handlers to an outbound socket', () => {
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._socket.on.callCount).to.eql(8);
+			expect((defaultOutboundPeer as any)._socket.on.callCount).toEqual(8);
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('error');
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
 				'connect',
@@ -129,18 +128,18 @@ describe('peer/outbound', () => {
 				'connectAbort',
 			);
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('close');
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'message',
 				(defaultOutboundPeer as any)._handleWSMessage,
 			);
 			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
 				REMOTE_EVENT_PING,
 			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_RPC_REQUEST,
 				(defaultOutboundPeer as any)._handleRawRPC,
 			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWithExactly(
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_MESSAGE,
 				(defaultOutboundPeer as any)._handleRawMessage,
 			);
@@ -168,11 +167,11 @@ describe('peer/outbound', () => {
 					.stub(defaultOutboundPeer as any, '_createOutboundSocket')
 					.returns(outboundSocket);
 
-				expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+				expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 				defaultOutboundPeer.connect();
 				expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
 					.calledOnce;
-				expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
+				expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 			});
 
 			it('should call socketClusterClient create method', () => {
@@ -189,9 +188,7 @@ describe('peer/outbound', () => {
 				};
 				sandbox.spy(socketClusterClient, 'create');
 				defaultOutboundPeer.connect();
-				expect(socketClusterClient.create).to.be.calledOnceWithExactly(
-					clientOptions,
-				);
+				expect(socketClusterClient.create).toHaveBeenCalledWith(clientOptions);
 			});
 
 			it('should bind handlers to the just created outbound socket', () => {
@@ -199,11 +196,11 @@ describe('peer/outbound', () => {
 					defaultOutboundPeer as any,
 					'_bindHandlersToOutboundSocket',
 				);
-				expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+				expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 				defaultOutboundPeer.connect();
 				expect(
 					(defaultOutboundPeer as any)._bindHandlersToOutboundSocket,
-				).to.be.calledOnceWithExactly((defaultOutboundPeer as any)._socket);
+				).toHaveBeenCalledWith((defaultOutboundPeer as any)._socket);
 			});
 		});
 	});
@@ -212,7 +209,9 @@ describe('peer/outbound', () => {
 		it('should call disconnect and destroy socket', () => {
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.disconnect();
-			expect(outboundSocket.destroy).to.be.calledOnceWith(1000);
+
+			expect(outboundSocket.destroy).toHaveBeenCalledTimes(1);
+			expect(outboundSocket.destroy).toHaveBeenCalledWith(1000);
 		});
 
 		it('should not unbind handlers if outbound socket does not exist', () => {
@@ -241,31 +240,25 @@ describe('peer/outbound', () => {
 			it('should unbind handlers from inbound socket', () => {
 				(defaultOutboundPeer as any)._socket = outboundSocket;
 				defaultOutboundPeer.disconnect();
-				expect((defaultOutboundPeer as any)._socket.off.callCount).to.eql(7);
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly('connect');
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly('connectAbort');
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly('close');
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly(
+				expect((defaultOutboundPeer as any)._socket.off.callCount).toEqual(7);
+				expect((defaultOutboundPeer as any)._socket.off).toHaveBeenCalledWith(
+					'connect',
+				);
+				expect((defaultOutboundPeer as any)._socket.off).toHaveBeenCalledWith(
+					'connectAbort',
+				);
+				expect((defaultOutboundPeer as any)._socket.off).toHaveBeenCalledWith(
+					'close',
+				);
+				expect((defaultOutboundPeer as any)._socket.off).toHaveBeenCalledWith(
 					'message',
 					(defaultOutboundPeer as any)._handleWSMessage,
 				);
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly(
+				expect((defaultOutboundPeer as any)._socket.off).toHaveBeenCalledWith(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					(defaultOutboundPeer as any)._handleRawRPC,
 				);
-				expect(
-					(defaultOutboundPeer as any)._socket.off,
-				).to.be.calledWithExactly(
+				expect((defaultOutboundPeer as any)._socket.off).toHaveBeenCalledWith(
 					REMOTE_SC_EVENT_MESSAGE,
 					(defaultOutboundPeer as any)._handleRawMessage,
 				);
@@ -296,11 +289,11 @@ describe('peer/outbound', () => {
 				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
 				.returns(outboundSocket);
 
-			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 			defaultOutboundPeer.send(packet);
 			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
 				.calledOnce;
-			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
+			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 		});
 
 		it('should emit event', () => {
@@ -310,7 +303,9 @@ describe('peer/outbound', () => {
 			};
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.send(packet);
-			expect(outboundSocket.emit).to.be.calledOnceWith(
+
+			expect(outboundSocket.emit).toHaveBeenCalledTimes(1);
+			expect(outboundSocket.emit).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_MESSAGE,
 				packet,
 			);
@@ -340,11 +335,11 @@ describe('peer/outbound', () => {
 				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
 				.returns(outboundSocket);
 
-			expect((defaultOutboundPeer as any)._socket).to.be.undefined;
+			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 			defaultOutboundPeer.request(packet);
 			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
 				.calledOnce;
-			expect((defaultOutboundPeer as any)._socket).to.eql(outboundSocket);
+			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 		});
 
 		it('should emit event', () => {

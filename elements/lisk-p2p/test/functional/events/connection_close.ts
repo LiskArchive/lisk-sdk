@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_CLOSE_INBOUND,
@@ -63,12 +62,12 @@ describe(`Events on Connection Close`, () => {
 
 		expect(payload)
 			.to.have.property('code')
-			.which.equals(INTENTIONAL_DISCONNECT_CODE);
-		expect(payload).to.have.property('peerInfo');
+			.toBe(INTENTIONAL_DISCONNECT_CODE);
+		expect(payload).toHaveProperty('peerInfo');
 		expect(payload.peerInfo)
 			.to.have.property('wsPort')
-			.which.equals(secondNode.nodeInfo.wsPort);
-		expect(payload.peerInfo).to.have.property('sharedState');
+			.toBe(secondNode.nodeInfo.wsPort);
+		expect(payload.peerInfo).toHaveProperty('sharedState');
 	});
 
 	it(`should handle ${EVENT_CLOSE_OUTBOUND} event and payload`, async () => {
@@ -81,11 +80,11 @@ describe(`Events on Connection Close`, () => {
 
 		expect(payload)
 			.to.have.property('code')
-			.which.equals(SOCKET_HUNG_UP_CODE);
-		expect(payload).to.have.property('peerInfo');
+			.toBe(SOCKET_HUNG_UP_CODE);
+		expect(payload).toHaveProperty('peerInfo');
 		expect(payload.peerInfo)
 			.to.have.property('wsPort')
-			.which.equals(firstNode.nodeInfo.wsPort);
-		expect(payload.peerInfo).to.have.property('sharedState');
+			.toBe(firstNode.nodeInfo.wsPort);
+		expect(payload.peerInfo).toHaveProperty('sharedState');
 	});
 });

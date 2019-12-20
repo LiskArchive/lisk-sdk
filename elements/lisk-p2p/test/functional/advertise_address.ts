@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import {
 	createNetwork,
@@ -67,7 +66,7 @@ describe('Advertise Address', () => {
 				.getConnectedPeers()
 				.filter(p => p.wsPort === advertisePeerPort);
 
-			expect(connectedPeers[0].wsPort).to.be.eql(advertisePeerPort);
+			expect(connectedPeers[0].wsPort).toEqual(advertisePeerPort);
 		}
 		await p2pNode.stop();
 	});
@@ -85,8 +84,8 @@ describe('Advertise Address', () => {
 			const disConnectedPeers = p2p
 				.getDisconnectedPeers()
 				.filter(p => p.wsPort === advertisePeerPort);
-			expect(connectedPeers).to.be.empty;
-			expect(disConnectedPeers).to.be.empty;
+			expect(Object.keys(connectedPeers)).toHaveLength(0);
+			expect(Object.keys(disConnectedPeers)).toHaveLength(0);
 		}
 
 		await p2pNode.stop();

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2PRequest, RequestOptions } from '../../src/p2p_request';
 import { RPCResponseAlreadySentError } from '../../src/errors';
 
@@ -40,41 +39,41 @@ describe('p2p_request', () => {
 
 	describe('#constructor', () => {
 		it('should increment the productivity.requestCounter by 1', () =>
-			expect(requestOptions.productivity.requestCounter).to.equal(1));
+			expect(requestOptions.productivity.requestCounter).toBe(1));
 
 		it('should increment the productivity.requestCounter by 2 if a second P2PRequest instance is created with the same productivity tracker', () => {
 			// P2PRequest instance can mutate the productivity tracker object.
 			new P2PRequest(requestOptions, respondCallback);
-			expect(requestOptions.productivity.requestCounter).to.equal(2);
+			expect(requestOptions.productivity.requestCounter).toBe(2);
 		});
 
 		it('should initiate productivity.responseCounter with the value specified in the constructor', () =>
-			expect(requestOptions.productivity.responseCounter).to.equal(0));
+			expect(requestOptions.productivity.responseCounter).toBe(0));
 	});
 
 	describe('#procedure', () => {
 		it('should have a procedure property which is set to the value specified in the constructor', () =>
-			expect(request.procedure).to.eql('foo'));
+			expect(request.procedure).toEqual('foo'));
 	});
 
 	describe('#data', () => {
 		it('should have a data property which is set to the value specified in the constructor', () =>
-			expect(request.data).to.eql(123));
+			expect(request.data).toEqual(123));
 	});
 
 	describe('#rate', () => {
 		it('should have a rate property which is set to the value specified in the constructor', () =>
-			expect(request.rate).to.eql(0));
+			expect(request.rate).toEqual(0));
 	});
 
 	describe('#peerId', () => {
 		it('should have a peerId property which is set to the value specified in the constructor', () =>
-			expect(request.peerId).to.eql('abc123'));
+			expect(request.peerId).toEqual('abc123'));
 	});
 
 	describe('#wasResponseSent', () => {
 		it('should have a wasResponseSent property which is false', () =>
-			expect(request.wasResponseSent).to.eql(false));
+			expect(request.wasResponseSent).toEqual(false));
 	});
 
 	describe('#end', () => {
@@ -84,40 +83,41 @@ describe('p2p_request', () => {
 			request.end('hello');
 		});
 
-		it('should send data back to callback in correct format', () =>
-			expect(respondCallback).to.be.calledOnceWith(undefined, {
+		it('should send data back to callback in correct format', () => {
+			expect(respondCallback).toHaveBeenCalledTimes(1);
+			expect(respondCallback).toHaveBeenCalledWith(undefined, {
 				data: 'hello',
 				peerId: requestOptions.id,
-			}));
+			});
+		});
 
 		it('should increment the productivity.responseCounter by 1', () =>
-			expect(requestOptions.productivity.responseCounter).to.equal(1));
+			expect(requestOptions.productivity.responseCounter).toBe(1));
 
 		it('should have a productivity.responseRate of 1; this indicates a success rate of 100%', () =>
-			expect(requestOptions.productivity.responseRate).to.equal(1));
+			expect(requestOptions.productivity.responseRate).toBe(1));
 
 		it('should increment the productivity.responseCounter by 2 if a second P2PRequest instance is ended', () => {
 			// P2PRequest instance can mutate the productivity tracker object.
 			const secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
 			secondP2PRequest.end('world');
 
-			expect(requestOptions.productivity.responseCounter).to.equal(2);
+			expect(requestOptions.productivity.responseCounter).toBe(2);
 		});
 
 		it('should have a productivity.lastResponded which represents the time of the last successful response in milliseconds', () =>
-			expect(requestOptions.productivity.lastResponded).to.gte(
+			expect(requestOptions.productivity.lastResponded).toBeGreaterThanOrEqual(
 				timeBeforeLastResponse,
 			));
 
 		it('should set wasResponseSent property to true', () =>
 			expect(request)
 				.to.have.property('wasResponseSent')
-				.which.equals(true));
+				.toBe(true));
 
 		it('should throw error when sending another request', () =>
-			expect(() => request.end('hello')).to.throw(
+			expect(() => request.end('hello')).toThrowError(
 				RPCResponseAlreadySentError,
-				`A response has already been sent for the request procedure <<${requestOptions.procedure}>>`,
 			));
 	});
 
@@ -127,14 +127,16 @@ describe('p2p_request', () => {
 		describe('when there was not a previous success', () => {
 			beforeEach(() => request.error(err));
 
-			it('should send data back to callback in correct format', () =>
-				expect(respondCallback).to.be.calledOnceWith(err));
+			it('should send data back to callback in correct format', () => {
+				expect(respondCallback).toHaveBeenCalledTimes(1);
+				expect(respondCallback).toHaveBeenCalledWith(err);
+			});
 
 			it('should not increment the productivity.responseCounter', () =>
-				expect(requestOptions.productivity.responseCounter).to.equal(0));
+				expect(requestOptions.productivity.responseCounter).toBe(0));
 
 			it('should have a productivity.responseRate of 0; this indicates a success rate of 0%', () =>
-				expect(requestOptions.productivity.responseRate).to.equal(0));
+				expect(requestOptions.productivity.responseRate).toBe(0));
 		});
 
 		describe('when there was a previous success', () => {
@@ -146,7 +148,7 @@ describe('p2p_request', () => {
 				);
 				secondP2PRequest.error(err);
 
-				expect(requestOptions.productivity.responseRate).to.equal(0.5);
+				expect(requestOptions.productivity.responseRate).toBe(0.5);
 			});
 		});
 	});

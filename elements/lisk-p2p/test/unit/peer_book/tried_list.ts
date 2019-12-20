@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
 import { TriedList, TriedListConfig } from '../../../src/peer_book/tried_list';
 import { initPeerInfoList } from '../../utils/peers';
@@ -41,11 +40,11 @@ describe('Tried Peers List', () => {
 		});
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
-			expect(triedPeersList.triedPeerConfig).to.be.eql(triedPeerConfig);
-			expect(triedPeersList.triedPeerConfig.bucketSize).to.be.equal(
+			expect(triedPeersList.triedPeerConfig).toEqual(triedPeerConfig);
+			expect(triedPeersList.triedPeerConfig.bucketSize).toBe(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
-			expect(triedPeersList.triedPeerConfig.numOfBuckets).to.be.equal(
+			expect(triedPeersList.triedPeerConfig.numOfBuckets).toBe(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
 		});
@@ -63,7 +62,7 @@ describe('Tried Peers List', () => {
 		});
 
 		it('should get tried peer config', () => {
-			expect(triedPeersList.triedPeerConfig).to.eql({
+			expect(triedPeersList.triedPeerConfig).toEqual({
 				...(triedPeersList as any).peerListConfig,
 				maxReconnectTries: DEFAULT_MAX_RECONNECT_TRIES,
 			});
@@ -92,7 +91,7 @@ describe('Tried Peers List', () => {
 
 			it('should return false', () => {
 				const success = triedPeersList.failedConnectionAction(samplePeers[1]);
-				expect(success).to.be.false;
+				expect(success).toBe(false);
 			});
 		});
 
@@ -111,8 +110,8 @@ describe('Tried Peers List', () => {
 
 			it('should remove the peer from the triedPeerList', () => {
 				const success = triedPeersList.failedConnectionAction(samplePeers[0]);
-				expect(success).to.be.true;
-				expect(triedPeersList.getPeer(samplePeers[0].peerId)).to.be.undefined;
+				expect(success).toBe(true);
+				expect(triedPeersList.getPeer(samplePeers[0].peerId)).toBeUndefined();
 			});
 		});
 
@@ -131,14 +130,14 @@ describe('Tried Peers List', () => {
 
 			it('should not remove the peer after the first call and remove it after second failed connection', () => {
 				const success1 = triedPeersList.failedConnectionAction(samplePeers[0]);
-				expect(success1).to.be.false;
-				expect(triedPeersList.getPeer(samplePeers[0].peerId)).to.be.eql(
+				expect(success1).toBe(false);
+				expect(triedPeersList.getPeer(samplePeers[0].peerId)).toEqual(
 					samplePeers[0],
 				);
 
 				const success2 = triedPeersList.failedConnectionAction(samplePeers[0]);
-				expect(success2).to.be.true;
-				expect(triedPeersList.getPeer(samplePeers[0].peerId)).to.be.undefined;
+				expect(success2).toBe(true);
+				expect(triedPeersList.getPeer(samplePeers[0].peerId)).toBeUndefined();
 			});
 		});
 	});

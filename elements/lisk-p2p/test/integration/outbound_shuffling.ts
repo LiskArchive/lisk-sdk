@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_CLOSE_OUTBOUND, EVICTED_PEER_CODE } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from 'utils/network_setup';
@@ -66,7 +65,7 @@ describe('Outbound peer shuffling', () => {
 		p2pNodeList.forEach(p2p => {
 			const evictedConnections = collectedEventsCount.get(p2p.nodeInfo.wsPort);
 
-			expect(evictedConnections).to.be.gt(0);
+			expect(evictedConnections).toBeGreaterThan(0);
 		});
 	});
 });
