@@ -14,9 +14,9 @@
 
 
 /*
-  DESCRIPTION: Return false if temp_block contains records, otherwise true.
+  DESCRIPTION: Return false if temp_blocks contains records, otherwise true.
 
   PARAMETERS: none
 */
 
-SELECT false FROM temp_block LIMIT 1;
+SELECT false FROM temp_blocks LIMIT 1;

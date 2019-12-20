@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO temp_block (
+INSERT INTO temp_blocks (
 	${fields:raw}
 ) VALUES
 	${createSet:raw}
