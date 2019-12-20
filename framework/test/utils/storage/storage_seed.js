@@ -15,7 +15,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const fixtures = require('../../mocha/fixtures');
+const fixtures = require('../../fixtures');
 
 let accounts = [];
 let blocks = [];

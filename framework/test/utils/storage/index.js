@@ -14,10 +14,7 @@
 
 'use strict';
 
-const {
-	StorageSandbox,
-	clearDatabaseTable,
-} = require('./storage_sandbox');
+const { StorageSandbox, clearDatabaseTable } = require('./storage_sandbox');
 
 const getAccount = async (storage, address) =>
 	storage.entities.Account.getOne({ address }, { extended: true });
