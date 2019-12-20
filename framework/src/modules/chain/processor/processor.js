@@ -323,7 +323,7 @@ class Processor {
 				await this.blocksModule.removeBlockFromTempTable(block.id, tx);
 				this.logger.debug(
 					{ id: block.id, height: block.height },
-					'Removed block from temp_block table',
+					'Removed block from temp_blocks table',
 				);
 			}
 
