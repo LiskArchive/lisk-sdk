@@ -1013,7 +1013,7 @@ describe('processor', () => {
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 			});
 
-			it('should remove block from temp_block table', async () => {
+			it('should remove block from temp_blocks table', async () => {
 				expect(blocksModuleStub.removeBlockFromTempTable).toHaveBeenCalledWith(
 					blockV0.id,
 					txStub,
@@ -1067,7 +1067,7 @@ describe('processor', () => {
 				);
 			});
 
-			it('should not save block in temp_block table', async () => {
+			it('should not save block in temp_blocks table', async () => {
 				expect(
 					blocksModuleStub.removeBlockFromTempTable,
 				).not.toHaveBeenCalled();

@@ -47,7 +47,7 @@ const defaultConfig = {
 					type: 'array',
 					env: {
 						variable: 'LISK_API_WHITELIST',
-						formatter: 'stringToIpPortSet',
+						formatter: 'stringToIpList',
 					},
 				},
 			},
@@ -144,7 +144,7 @@ const defaultConfig = {
 							type: 'array',
 							env: {
 								variable: 'LISK_FORGING_WHITELIST',
-								formatter: 'stringToIpPortSet',
+								formatter: 'stringToIpList',
 							},
 						},
 					},
