@@ -617,7 +617,7 @@ describe('blocks', () => {
 	});
 
 	describe('getTempBlocks()', () => {
-		it('should retrieve all blocks from temp_block table', async () => {
+		it('should retrieve all blocks from temp_blocks table', async () => {
 			// Act
 			await blocksInstance.getTempBlocks({}, {}, stubs.tx);
 

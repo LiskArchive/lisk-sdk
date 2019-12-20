@@ -139,7 +139,7 @@ class StorageSeed {
 			'forger_info',
 			'trs',
 			'chain_state',
-			'temp_block',
+			'temp_blocks',
 		];
 
 		return storage.adapter
