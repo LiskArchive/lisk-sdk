@@ -112,6 +112,18 @@ class PgpAdapter extends BaseAdapter {
 		if (monitor.isAttached()) {
 			monitor.detach();
 		}
+
+		// Add physical termination of postgres connection on cleanup.
+		// By ending all connection pools created through this library initialization
+		//
+		// Pg-promise internally use the connection-pool which keeps the reference to
+		// physical connections. Multiple connection to databases can create different connection pools
+		//
+		// this.db.$pool.end()
+		//
+		// Above will trigger ending connection pool associated to instance of database
+
+		this.db.$pool.end();
 	}
 
 	executeFile(file, params = {}, options = {}, tx) {

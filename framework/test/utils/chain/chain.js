@@ -38,7 +38,7 @@ const createChainModule = () => {
 const createAndLoadChainModule = async databaseName => {
 	const chainModule = createChainModule();
 	await chainModule.load(createMockChannel(databaseName));
-	return chainModule.chain;
+	return chainModule;
 };
 
 module.exports = {

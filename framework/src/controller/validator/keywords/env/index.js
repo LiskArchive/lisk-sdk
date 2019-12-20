@@ -55,7 +55,7 @@ const compile = (schema, parentSchema) => {
 			}
 		}
 
-		if (variableValue) {
+		if (variableValue !== undefined) {
 			object[key] = envVariable.formatter
 				? envVariable.formatter(variableValue)
 				: variableValue;
