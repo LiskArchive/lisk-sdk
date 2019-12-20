@@ -19,9 +19,9 @@ const Promise = require('bluebird');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
-const waitFor = require('../../../../utils/wait_for');
-const SwaggerEndpoint = require('../../../../utils/swagger_spec');
-const apiHelpers = require('../../../../utils/api');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const apiHelpers = require('../../../../utils/http/api');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');

@@ -29,7 +29,7 @@ const {
 	getDelegateForSlot,
 	createValidBlock: createBlock,
 } = require('./common');
-const commonApplication = require('../../utils/application');
+const commonApplication = require('../../utils/legacy/application');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../utils/random');
 const { Slots } = require('../../../src/modules/chain/dpos');

@@ -25,7 +25,7 @@ const {
 	createSignatureObject,
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
-} = require('../../../../utils/api');
+} = require('../../../../utils/http/api');
 const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 const {

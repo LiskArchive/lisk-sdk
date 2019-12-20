@@ -16,13 +16,13 @@
 
 require('../../functional');
 const { transfer } = require('@liskhq/lisk-transactions');
-const SwaggerSpec = require('../../../../utils/swagger_spec');
+const SwaggerSpec = require('../../../../utils/http/swagger_spec');
 const randomUtil = require('../../../../utils/random');
 const accountFixtures = require('../../../../fixtures/accounts');
-const sendTransactionPromise = require('../../../../utils/api')
+const sendTransactionPromise = require('../../../../utils/http/api')
 	.sendTransactionPromise;
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
-const phases = require('../../../../utils/transaction_confirmation');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');

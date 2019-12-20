@@ -15,10 +15,10 @@
 'use strict';
 
 // Initialize global variables
-require('../mocha/setup');
+require('../../mocha/setup');
 
 const testConfig = __testContext.config;
-const random = require('./random');
+const random = require('../random');
 
 const generatePeerHeader = function(headers = {}) {
 	const operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];

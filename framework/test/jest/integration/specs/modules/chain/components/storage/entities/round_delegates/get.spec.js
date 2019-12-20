@@ -15,7 +15,9 @@
 const {
 	RoundDelegates,
 } = require('../../../../../../../../../../src/modules/chain/components/storage/entities');
-const { PgHelper } = require('../../../../../../../../../utils/pg-helper');
+const {
+	PgHelper,
+} = require('../../../../../../../../../utils/storage/pg-helper');
 
 describe('storage.entities.RoundDelegates.get', () => {
 	let pgHelper;

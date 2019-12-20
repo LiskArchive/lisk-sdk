@@ -15,7 +15,7 @@
 const pgpLib = require('pg-promise');
 const childProcess = require('child_process');
 const { createStorageComponent } = require('./storage');
-const { storageConfig } = require('../configs');
+const { storageConfig } = require('../../configs');
 
 const pgpOptions = {
 	capSQL: true,

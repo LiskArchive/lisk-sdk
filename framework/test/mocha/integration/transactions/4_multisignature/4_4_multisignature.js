@@ -18,7 +18,7 @@ const {
 	registerMultisignature,
 	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
-const Scenarios = require('../../../../utils/multisig_scenarios');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
 const localCommon = require('../../common');
 const {
 	getNetworkIdentifier,

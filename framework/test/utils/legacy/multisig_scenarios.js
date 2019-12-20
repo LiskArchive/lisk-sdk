@@ -20,9 +20,9 @@ const {
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../fixtures/accounts');
-const randomUtil = require('./random');
-const { getNetworkIdentifier } = require('./network_identifier');
+const accountFixtures = require('../../fixtures/accounts');
+const randomUtil = require('../random');
+const { getNetworkIdentifier } = require('../network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	global.__testContext.config.genesisBlock,

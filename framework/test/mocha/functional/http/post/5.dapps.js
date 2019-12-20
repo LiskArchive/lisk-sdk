@@ -18,11 +18,11 @@ require('../../functional');
 const Promise = require('bluebird');
 const randomstring = require('randomstring');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
-const phases = require('../../../../utils/transaction_confirmation');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
-const waitFor = require('../../../../utils/wait_for');
-const apiHelpers = require('../../../../utils/api');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 const {

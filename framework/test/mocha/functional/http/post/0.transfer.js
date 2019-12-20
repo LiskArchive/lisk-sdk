@@ -20,8 +20,8 @@ const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const typesRepresentatives = require('../../../../fixtures/types_representatives');
-const phases = require('../../../../utils/transaction_confirmation');
-const sendTransactionPromise = require('../../../../utils/api')
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const sendTransactionPromise = require('../../../../utils/http/api')
 	.sendTransactionPromise;
 const randomUtil = require('../../../../utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');

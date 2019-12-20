@@ -21,11 +21,11 @@ const {
 	registerSecondPassphrase,
 	registerMultisignature,
 } = require('@liskhq/lisk-transactions');
-const apiHelpers = require('../../../../../utils/api');
+const apiHelpers = require('../../../../../utils/http/api');
 const randomUtil = require('../../../../../utils/random');
-const SwaggerEndpoint = require('../../../../../utils/swagger_spec');
+const SwaggerEndpoint = require('../../../../../utils/http/swagger_spec');
 const accountFixtures = require('../../../../../fixtures/accounts');
-const waitFor = require('../../../../../utils/wait_for');
+const waitFor = require('../../../../../utils/legacy/wait_for');
 const {
 	getNetworkIdentifier,
 } = require('../../../../../utils/network_identifier');

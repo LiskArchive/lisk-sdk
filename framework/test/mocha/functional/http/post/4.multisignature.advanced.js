@@ -16,11 +16,11 @@
 
 require('../../functional');
 
-const phases = require('../../../../utils/transaction_confirmation');
-const Scenarios = require('../../../../utils/multisig_scenarios');
-const waitFor = require('../../../../utils/wait_for');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
+const waitFor = require('../../../../utils/legacy/wait_for');
 const randomUtil = require('../../../../utils/random');
-const apiHelpers = require('../../../../utils/api');
+const apiHelpers = require('../../../../utils/http/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;

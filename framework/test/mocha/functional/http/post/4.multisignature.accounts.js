@@ -17,10 +17,10 @@
 require('../../functional');
 
 const { transfer } = require('@liskhq/lisk-transactions');
-const Scenarios = require('../../../../utils/multisig_scenarios');
-const waitFor = require('../../../../utils/wait_for');
-const apiHelpers = require('../../../../utils/api');
-const SwaggerEndpoint = require('../../../../utils/swagger_spec');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
 const {
 	getNetworkIdentifier,

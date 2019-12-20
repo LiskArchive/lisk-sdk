@@ -18,11 +18,11 @@ const util = require('util');
 const Promise = require('bluebird');
 const { transfer } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const random = require('./random');
-const localCommon = require('../mocha/integration/common');
-const accountFixtures = require('../fixtures/accounts');
-const { sortTransactions } = require('../../src/modules/chain/forger/sort');
-const { getNetworkIdentifier } = require('./network_identifier');
+const random = require('../random');
+const localCommon = require('../../mocha/integration/common');
+const accountFixtures = require('../../fixtures/accounts');
+const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
+const { getNetworkIdentifier } = require('../network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	global.__testContext.config.genesisBlock,

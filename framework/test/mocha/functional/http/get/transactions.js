@@ -24,11 +24,11 @@ const {
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
-const waitFor = require('../../../../utils/wait_for');
-const apiHelpers = require('../../../../utils/api');
-const SwaggerEndpoint = require('../../../../utils/swagger_spec');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
 const { Slots } = require('../../../../../src/modules/chain/dpos');
-const Scenarios = require('../../../../utils/multisig_scenarios');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');

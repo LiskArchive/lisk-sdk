@@ -24,7 +24,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const typesRepresentatives = require('../../../../fixtures/types_representatives');
 const accountFixtures = require('../../../../fixtures/accounts');
-const apiHelpers = require('../../../../utils/api');
+const apiHelpers = require('../../../../utils/http/api');
 const randomUtil = require('../../../../utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const {

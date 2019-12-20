@@ -16,9 +16,9 @@
 
 const express = require('express');
 const async = require('async');
-const { Sequence } = require('../../src/modules/chain/utils/sequence');
-const { createLoggerComponent } = require('../../src/components/logger');
-const jobsQueue = require('../../src/modules/chain/utils/jobs_queue');
+const { Sequence } = require('../../../src/modules/chain/utils/sequence');
+const { createLoggerComponent } = require('../../../src/components/logger');
+const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 
 // TODO: Remove this file
 const modulesLoader = new (function() {
@@ -175,10 +175,10 @@ const modulesLoader = new (function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ blocks: require('../../src/modules/chain/blocks/blocks') },
-				{ loader: require('../../src/modules/chain/loader') },
+				{ blocks: require('../../../src/modules/chain/blocks/blocks') },
+				{ loader: require('../../../src/modules/chain/loader') },
 				{
-					transport: require('../../src/modules/chain/transport'),
+					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
 			[],

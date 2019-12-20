@@ -17,11 +17,11 @@
 require('../../functional');
 
 const { transfer } = require('@liskhq/lisk-transactions');
-const phases = require('../../../../utils/transaction_confirmation');
-const Scenarios = require('../../../../utils/multisig_scenarios');
-const waitFor = require('../../../../utils/wait_for');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
+const waitFor = require('../../../../utils/legacy/wait_for');
 const randomUtil = require('../../../../utils/random');
-const apiHelpers = require('../../../../utils/api');
+const apiHelpers = require('../../../../utils/http/api');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');

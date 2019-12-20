@@ -21,11 +21,11 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
 const BigNum = require('@liskhq/bignum');
-const application = require('../../../../utils/application');
+const application = require('../../../../utils/legacy/application');
 const {
 	clearDatabaseTable,
 } = require('../../../../utils/storage/storage_sandbox');
-const modulesLoader = require('../../../../utils/modules_loader');
+const modulesLoader = require('../../../../utils/legacy/modules_loader');
 const random = require('../../../../utils/random');
 const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')

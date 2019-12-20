@@ -18,28 +18,28 @@
 const rewire = require('rewire');
 const async = require('async');
 const _ = require('lodash');
-const { registeredTransactions } = require('./registered_transactions');
-const jobsQueue = require('../../src/modules/chain/utils/jobs_queue');
-const { Sequence } = require('../../src/modules/chain/utils/sequence');
-const { Slots } = require('../../src/modules/chain/dpos');
-const { createCacheComponent } = require('../../src/components/cache');
-const { StorageSandbox } = require('./storage/storage_sandbox');
-const { Processor } = require('../../src/modules/chain/processor');
-const { Rebuilder } = require('../../src/modules/chain/rebuilder');
+const { registeredTransactions } = require('../registered_transactions');
+const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
+const { Sequence } = require('../../../src/modules/chain/utils/sequence');
+const { Slots } = require('../../../src/modules/chain/dpos');
+const { createCacheComponent } = require('../../../src/components/cache');
+const { StorageSandbox } = require('../storage/storage_sandbox');
+const { Processor } = require('../../../src/modules/chain/processor');
+const { Rebuilder } = require('../../../src/modules/chain/rebuilder');
 const {
 	BlockProcessorV1,
-} = require('../../src/modules/chain/block_processor_v1');
+} = require('../../../src/modules/chain/block_processor_v1');
 const {
 	BlockProcessorV2,
-} = require('../../src/modules/chain/block_processor_v2');
-const { BFT } = require('../../src/modules/chain/bft');
-const { getNetworkIdentifier } = require('./network_identifier');
+} = require('../../../src/modules/chain/block_processor_v2');
+const { BFT } = require('../../../src/modules/chain/bft');
+const { getNetworkIdentifier } = require('../network_identifier');
 
 let currentAppScope;
 
-const ChainModule = require('../../src/modules/chain');
-const NetworkModule = require('../../src/modules/network');
-const HttpAPIModule = require('../../src/modules/http_api');
+const ChainModule = require('../../../src/modules/chain');
+const NetworkModule = require('../../../src/modules/network');
+const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
 modulesMigrations[ChainModule.alias] = ChainModule.migrations;
@@ -57,7 +57,7 @@ const initStepsForTest = {
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
 
-		const { Dpos } = require('../../src/modules/chain/dpos');
+		const { Dpos } = require('../../../src/modules/chain/dpos');
 		modules.dpos = new Dpos({
 			logger: scope.components.logger,
 			slots: scope.slots,

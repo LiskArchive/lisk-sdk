@@ -16,14 +16,14 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const SwaggerEndpoint = require('../../../../utils/swagger_spec');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
 const {
 	createLoggerComponent,
 } = require('../../../../../src/components/logger');
 const { createCacheComponent } = require('../../../../../src/components/cache');
-const apiHelpers = require('../../../../utils/api');
-const waitFor = require('../../../../utils/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
+const waitFor = require('../../../../utils/legacy/wait_for');
 
 const waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 const onNewRoundPromise = Promise.promisify(waitFor.newRound);

@@ -21,10 +21,10 @@ const {
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../../fixtures/accounts');
-const SwaggerEndpoint = require('../../../../../utils/swagger_spec');
+const SwaggerEndpoint = require('../../../../../utils/http/swagger_spec');
 const randomUtil = require('../../../../../utils/random');
-const waitFor = require('../../../../../utils/wait_for');
-const apiHelpers = require('../../../../../utils/api');
+const waitFor = require('../../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../../utils/http/api');
 const {
 	getNetworkIdentifier,
 } = require('../../../../../utils/network_identifier');

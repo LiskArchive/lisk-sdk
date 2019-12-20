@@ -18,7 +18,7 @@ const chai = require('chai');
 const supertest = require('supertest');
 const _ = require('lodash');
 const Promise = require('bluebird');
-const swaggerHelper = require('../../src/modules/http_api/helpers/swagger');
+const swaggerHelper = require('../../../src/modules/http_api/helpers/swagger');
 
 let apiSpec = swaggerHelper.getSchema();
 let refsResolved = false;

@@ -14,9 +14,9 @@
 
 'use strict';
 
-require('../mocha/functional/functional');
+require('../../mocha/functional/functional');
 const Promise = require('bluebird');
-const apiHelpers = require('./api');
+const apiHelpers = require('../http/api');
 const waitFor = require('./wait_for');
 
 // To keep test framework dependency in utils, for now need to disable these

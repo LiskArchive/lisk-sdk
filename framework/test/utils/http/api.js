@@ -20,12 +20,12 @@ const {
 	createSignatureObject: createSignatureObjectElements,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
-const accountFixtures = require('../fixtures/accounts');
+const accountFixtures = require('../../fixtures/accounts');
 const {
 	calculateApproval,
-} = require('../../src/modules/http_api/helpers/utils');
+} = require('../../../src/modules/http_api/helpers/utils');
 const SwaggerSpec = require('./swagger_spec');
-const { getNetworkIdentifier } = require('./network_identifier');
+const { getNetworkIdentifier } = require('../network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	global.__testContext.config.genesisBlock,
