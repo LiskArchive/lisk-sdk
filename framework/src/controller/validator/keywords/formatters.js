@@ -21,9 +21,16 @@ module.exports = {
 				const [ip, wsPort] = peer.split(':');
 				return {
 					ip,
-					wsPort: wsPort || 5000,
+					wsPort: parseInt(wsPort, 10) || 5000,
 				};
 			});
+		}
+		return [];
+	},
+
+	stringToIpList: value => {
+		if (typeof value === 'string') {
+			return value.split(',');
 		}
 		return [];
 	},
