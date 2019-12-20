@@ -24,6 +24,9 @@ let apiSpec = swaggerHelper.getSchema();
 let refsResolved = false;
 const validator = swaggerHelper.getValidator();
 
+// To keep test framework dependency in utils, for now need to disable these
+/* eslint-disable jest/no-standalone-expect, jest/valid-expect */
+
 // Make sure no additional attributes are passed in response
 validator.options.assumeAdditional = true;
 

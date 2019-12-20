@@ -15,6 +15,7 @@
 'use strict';
 
 const faker = require('faker');
+const _ = require('lodash');
 const stampit = require('stampit');
 
 const NormalizedPeer = stampit({

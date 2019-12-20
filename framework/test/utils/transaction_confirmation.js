@@ -19,6 +19,9 @@ const Promise = require('bluebird');
 const apiHelpers = require('./api');
 const waitFor = require('./wait_for');
 
+// To keep test framework dependency in utils, for now need to disable these
+/* eslint-disable no-undef, jest/valid-expect, jest/no-export */
+
 function confirmation(
 	goodTransactions,
 	badTransactions,

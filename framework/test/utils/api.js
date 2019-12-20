@@ -31,6 +31,9 @@ const networkIdentifier = getNetworkIdentifier(
 	global.__testContext.config.genesisBlock,
 );
 
+// To keep test framework dependency in utils, for now need to disable these
+/* eslint-disable jest/valid-expect */
+
 const http = {
 	abstractRequest(options, done) {
 		const request = global.__testContext.api[options.verb.toLowerCase()](
