@@ -33,7 +33,7 @@ describe('p2p_request', () => {
 				lastResponded: 0,
 			},
 		};
-		respondCallback = sandbox.stub();
+		respondCallback = jest.fn();
 		request = new P2PRequest(requestOptions, respondCallback);
 	});
 
@@ -110,10 +110,9 @@ describe('p2p_request', () => {
 				timeBeforeLastResponse,
 			));
 
-		it('should set wasResponseSent property to true', () =>
-			expect(request)
-				.to.have.property('wasResponseSent')
-				.toBe(true));
+		it('should set wasResponseSent property to true', () => {
+			expect(request).toMatchSnapshot();
+		});
 
 		it('should throw error when sending another request', () =>
 			expect(() => request.end('hello')).toThrowError(
@@ -129,7 +128,7 @@ describe('p2p_request', () => {
 
 			it('should send data back to callback in correct format', () => {
 				expect(respondCallback).toHaveBeenCalledTimes(1);
-				expect(respondCallback).toHaveBeenCalledWith(err);
+				expect(respondCallback).toHaveBeenCalledWith(err, undefined);
 			});
 
 			it('should not increment the productivity.responseCounter', () =>

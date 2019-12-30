@@ -56,11 +56,11 @@ describe('peer/outbound', () => {
 			wsMaxPayload: 1000,
 		};
 		outboundSocket = <SCClientSocket>({
-			on: sandbox.stub(),
-			emit: sandbox.stub(),
-			destroy: sandbox.stub(),
-			off: sandbox.stub(),
-			connect: sandbox.stub(),
+			on: jest.fn(),
+			emit: jest.fn(),
+			destroy: jest.fn(),
+			off: jest.fn(),
+			connect: jest.fn(),
 		} as any);
 		defaultOutboundPeer = new OutboundPeer(
 			defaultPeerInfo,
@@ -79,19 +79,19 @@ describe('peer/outbound', () => {
 
 	describe('#set socket', () => {
 		it('should not unbind handlers from the outbound socket if it does not exist', () => {
-			sandbox.stub(
+			jest.spyOn(
 				defaultOutboundPeer as any,
 				'_unbindHandlersFromOutboundSocket',
 			);
 
 			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
-				.not.called;
+			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).not
+				.toBeCalled;
 		});
 
 		it('should unbind handlers from outbound socket if it exists', () => {
-			sandbox.stub(
+			jest.spyOn(
 				defaultOutboundPeer as any,
 				'_unbindHandlersFromOutboundSocket',
 			);
@@ -99,8 +99,8 @@ describe('peer/outbound', () => {
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
-				.be.calledOnce;
+			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket)
+				.toBeCalled;
 		});
 
 		it('should set new socket', () => {
@@ -110,7 +110,7 @@ describe('peer/outbound', () => {
 		});
 
 		it('should call _bindHandlersToOutboundSocket with outbound socket', () => {
-			sandbox.stub(defaultOutboundPeer as any, '_bindHandlersToOutboundSocket');
+			jest.spyOn(defaultOutboundPeer as any, '_bindHandlersToOutboundSocket');
 			defaultOutboundPeer.socket = outboundSocket;
 			expect(
 				(defaultOutboundPeer as any)._bindHandlersToOutboundSocket,
@@ -119,21 +119,30 @@ describe('peer/outbound', () => {
 
 		it('should bind handlers to an outbound socket', () => {
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._socket.on.callCount).toEqual(8);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('error');
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
+			expect((defaultOutboundPeer as any)._socket.on).toBeCalledTimes(8);
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
+				'error',
+				expect.any(Function),
+			);
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'connect',
+				expect.any(Function),
 			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'connectAbort',
+				expect.any(Function),
 			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith('close');
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
+				'close',
+				expect.any(Function),
+			);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'message',
 				(defaultOutboundPeer as any)._handleWSMessage,
 			);
-			expect((defaultOutboundPeer as any)._socket.on).to.be.calledWith(
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_EVENT_PING,
+				expect.any(Function),
 			);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_RPC_REQUEST,
@@ -148,29 +157,27 @@ describe('peer/outbound', () => {
 
 	describe('#connect', () => {
 		it('should not create outbound socket if one already exists', () => {
-			sandbox.stub(defaultOutboundPeer as any, '_createOutboundSocket');
+			jest.spyOn(defaultOutboundPeer as any, '_createOutboundSocket');
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.connect();
-			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be.not
-				.called;
+			expect((defaultOutboundPeer as any)._createOutboundSocket).not.toBeCalled;
 		});
 
 		it('should call connect', () => {
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.connect();
-			expect(outboundSocket.connect).to.be.calledOnce;
+			expect(outboundSocket.connect).toBeCalled;
 		});
 
 		describe('when no outbound socket exists', () => {
 			it('should call _createOutboundSocket', () => {
-				sandbox
-					.stub(defaultOutboundPeer as any, '_createOutboundSocket')
-					.returns(outboundSocket);
+				jest
+					.spyOn(defaultOutboundPeer as any, '_createOutboundSocket')
+					.mockReturnValue(outboundSocket);
 
 				expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 				defaultOutboundPeer.connect();
-				expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
-					.calledOnce;
+				expect((defaultOutboundPeer as any)._createOutboundSocket).toBeCalled;
 				expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 			});
 
@@ -186,16 +193,13 @@ describe('peer/outbound', () => {
 					autoReconnect: false,
 					maxPayload: defaultOutboundPeerConfig.wsMaxPayload,
 				};
-				sandbox.spy(socketClusterClient, 'create');
+				jest.spyOn(socketClusterClient, 'create');
 				defaultOutboundPeer.connect();
 				expect(socketClusterClient.create).toHaveBeenCalledWith(clientOptions);
 			});
 
 			it('should bind handlers to the just created outbound socket', () => {
-				sandbox.stub(
-					defaultOutboundPeer as any,
-					'_bindHandlersToOutboundSocket',
-				);
+				jest.spyOn(defaultOutboundPeer as any, '_bindHandlersToOutboundSocket');
 				expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 				defaultOutboundPeer.connect();
 				expect(
@@ -211,36 +215,36 @@ describe('peer/outbound', () => {
 			defaultOutboundPeer.disconnect();
 
 			expect(outboundSocket.destroy).toHaveBeenCalledTimes(1);
-			expect(outboundSocket.destroy).toHaveBeenCalledWith(1000);
+			expect(outboundSocket.destroy).toHaveBeenCalledWith(1000, undefined);
 		});
 
 		it('should not unbind handlers if outbound socket does not exist', () => {
-			sandbox.stub(
+			jest.spyOn(
 				defaultOutboundPeer as any,
 				'_unbindHandlersFromOutboundSocket',
 			);
 
 			defaultOutboundPeer.disconnect();
-			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).to
-				.be.not.called;
+			expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket).not
+				.toBeCalled;
 		});
 
 		describe('when a socket exists', () => {
 			it('should call _unbindHandlersFromOutboundSocket', () => {
-				sandbox.stub(
+				jest.spyOn(
 					defaultOutboundPeer as any,
 					'_unbindHandlersFromOutboundSocket',
 				);
 				(defaultOutboundPeer as any)._socket = outboundSocket;
 				defaultOutboundPeer.disconnect();
 				expect((defaultOutboundPeer as any)._unbindHandlersFromOutboundSocket)
-					.to.be.calledOnce;
+					.toBeCalled;
 			});
 
 			it('should unbind handlers from inbound socket', () => {
 				(defaultOutboundPeer as any)._socket = outboundSocket;
 				defaultOutboundPeer.disconnect();
-				expect((defaultOutboundPeer as any)._socket.off.callCount).toEqual(7);
+				expect((defaultOutboundPeer as any)._socket.off).toBeCalledTimes(7);
 				expect((defaultOutboundPeer as any)._socket.off).toHaveBeenCalledWith(
 					'connect',
 				);
@@ -273,11 +277,10 @@ describe('peer/outbound', () => {
 				data: 'myData',
 				event: 'myEent',
 			};
-			sandbox.stub(defaultOutboundPeer as any, '_createOutboundSocket');
+			jest.spyOn(defaultOutboundPeer as any, '_createOutboundSocket');
 
 			defaultOutboundPeer.send(packet);
-			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be.not
-				.called;
+			expect((defaultOutboundPeer as any)._createOutboundSocket).not.toBeCalled;
 		});
 
 		it('should create outbound socket if it does not exist any', () => {
@@ -285,14 +288,14 @@ describe('peer/outbound', () => {
 				data: 'myData',
 				event: 'myEent',
 			};
-			sandbox
-				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
-				.returns(outboundSocket);
+
+			jest
+				.spyOn(defaultOutboundPeer as any, '_createOutboundSocket')
+				.mockReturnValue(outboundSocket);
 
 			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
 			defaultOutboundPeer.send(packet);
-			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
-				.calledOnce;
+			expect((defaultOutboundPeer as any)._createOutboundSocket).toBeCalled;
 			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 		});
 
@@ -318,27 +321,31 @@ describe('peer/outbound', () => {
 				data: 'myData',
 				procedure: 'myProcedure',
 			};
-			sandbox.stub(defaultOutboundPeer as any, '_createOutboundSocket');
+			jest.spyOn(defaultOutboundPeer as any, '_createOutboundSocket');
 
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			defaultOutboundPeer.request(packet);
-			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be.not
-				.called;
+			expect((defaultOutboundPeer as any)._createOutboundSocket).not.toBeCalled;
 		});
 
 		it('should create outbound socket if it does not exist any', () => {
+			// Arrange
+			(defaultOutboundPeer as any)._socket = undefined;
+
 			const packet = {
 				data: 'myData',
 				procedure: 'myProcedure',
 			};
-			sandbox
-				.stub(defaultOutboundPeer as any, '_createOutboundSocket')
-				.returns(outboundSocket);
 
-			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
+			jest
+				.spyOn(defaultOutboundPeer as any, '_createOutboundSocket')
+				.mockReturnValue(outboundSocket);
+
+			// Act
 			defaultOutboundPeer.request(packet);
-			expect((defaultOutboundPeer as any)._createOutboundSocket).to.be
-				.calledOnce;
+
+			// Assert
+			expect((defaultOutboundPeer as any)._createOutboundSocket).toBeCalled;
 			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 		});
 
@@ -350,7 +357,7 @@ describe('peer/outbound', () => {
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 
 			defaultOutboundPeer.request(packet);
-			expect(outboundSocket.emit).to.be.called;
+			expect(outboundSocket.emit).toBeCalled;
 		});
 	});
 });

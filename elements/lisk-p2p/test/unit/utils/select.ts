@@ -23,7 +23,6 @@ import {
 } from '../../../src/utils/select';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
-import sinon = require('sinon');
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
@@ -52,7 +51,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				).toBeInstanceOf('array'));
+				).toEqual(expect.any(Array)));
 
 			it('should return an array', () =>
 				expect(
@@ -62,7 +61,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				).toBeInstanceOf('array'));
+				).toEqual(expect.any(Array)));
 
 			it('returned array should contain good peers according to algorithm', () =>
 				expect(
@@ -72,9 +71,7 @@ describe('peer selector', () => {
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.toHaveLength(5));
+				).toHaveLength(5));
 
 			it('return empty peer list for no peers as an argument', () =>
 				expect(
@@ -84,9 +81,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.toBeInstanceOf('array')
-					.and.toEqual([]));
+				).toEqual([]));
 
 			it('should return an array having one good peer', () =>
 				expect(
@@ -96,9 +91,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.toHaveLength(1));
+				).toHaveLength(1));
 
 			it('should return an array having 2 good peers', () =>
 				expect(
@@ -108,9 +101,7 @@ describe('peer selector', () => {
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.toHaveLength(2));
+				).toHaveLength(2));
 
 			it('should return an array having all good peers', () =>
 				expect(
@@ -120,9 +111,7 @@ describe('peer selector', () => {
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.toHaveLength(5));
+				).toHaveLength(5));
 
 			it('should return an array of equal length equal to requested number of peers', () =>
 				expect(
@@ -132,9 +121,7 @@ describe('peer selector', () => {
 						peerLimit: 3,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.toHaveLength(3));
+				).toHaveLength(3));
 		});
 
 		describe('peers with lower blockheight', () => {
@@ -155,9 +142,7 @@ describe('peer selector', () => {
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.toHaveLength(1);
+				).toHaveLength(1);
 			});
 		});
 	});
@@ -187,9 +172,9 @@ describe('peer selector', () => {
 				{},
 			);
 
-			expect(peerKindCounts.inbound)
-				.to.equal(peerKindCounts.outbound)
-				.toBe(DEFAULT_SEND_PEER_LIMIT / 2);
+			// Assert
+			expect(peerKindCounts.inbound).toEqual(peerKindCounts.outbound);
+			expect(peerKindCounts.inbound).toBe(DEFAULT_SEND_PEER_LIMIT / 2);
 		});
 	});
 
@@ -204,7 +189,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 20,
 				});
-				expect(selectedPeers).toBeInstanceOf('array').empty;
+				expect(selectedPeers).toBeEmpty;
 			});
 		});
 
@@ -215,9 +200,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 20,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(numberOfPeers);
+				expect(selectedPeers).toHaveLength(numberOfPeers);
 				return expect(peerList).toEqual(selectedPeers);
 			});
 		});
@@ -229,7 +212,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 0,
 				});
-				expect(selectedPeers).toBeInstanceOf('array').empty;
+				expect(selectedPeers).toBeEmpty;
 			});
 		});
 
@@ -240,9 +223,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 1,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(1);
+				expect(selectedPeers).toHaveLength(1);
 			});
 		});
 
@@ -253,9 +234,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 3,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(3);
+				expect(selectedPeers).toHaveLength(3);
 			});
 		});
 
@@ -266,9 +245,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: peerList.length + 1,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(peerList.length);
+				expect(selectedPeers).toHaveLength(peerList.length);
 				expect(peerList).toEqual(selectedPeers);
 			});
 		});
@@ -280,10 +257,8 @@ describe('peer selector', () => {
 					newPeers: peerList,
 					peerLimit: 3,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(3);
-				expect(peerList).toEqual(selectedPeers);
+				expect(selectedPeers).toHaveLength(3);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
@@ -294,10 +269,8 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 4,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(4);
-				expect(peerList).toEqual(selectedPeers);
+				expect(selectedPeers).toHaveLength(4);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 				for (const peer of selectedPeers) {
 					const foundPeers = selectedPeers.filter(x => x === peer);
 					expect(foundPeers).toHaveLength(1);
@@ -312,10 +285,8 @@ describe('peer selector', () => {
 					newPeers: [peerList[1], peerList[2], peerList[3], peerList[4]],
 					peerLimit: peerList.length,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(peerList.length);
-				expect(peerList).toEqual(selectedPeers);
+				expect(selectedPeers).toHaveLength(peerList.length);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
@@ -328,10 +299,8 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 4,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(4);
-				expect(peerList).toEqual(selectedPeers);
+				expect(selectedPeers).toHaveLength(4);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
@@ -344,25 +313,15 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 3,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(3);
-				expect(peerList).toEqual(selectedPeers);
+				expect(selectedPeers).toHaveLength(3);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
 		describe('when there are less than 100 peers', () => {
-			let mathRandom: sinon.SinonStub;
-			before(function() {
-				mathRandom = sinon.stub(Math, 'random');
-			});
-
-			after(function() {
-				sandbox.restore();
-			});
-
 			it('should return peers uniformly from both lists', () => {
-				mathRandom.returns(0.499);
+				jest.spyOn(Math, 'random').mockReturnValue(0.499);
+
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
@@ -371,11 +330,12 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 50,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(50);
 
-				expect([...triedPeers, ...newPeers]).toEqual(selectedPeers);
+				expect(selectedPeers).toHaveLength(50);
+
+				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(
+					selectedPeers as any,
+				);
 
 				let triedCount = 0;
 				let newCount = 0;
@@ -393,7 +353,7 @@ describe('peer selector', () => {
 			});
 
 			it('should return only new peer list', () => {
-				mathRandom.returns(0.5);
+				jest.spyOn(Math, 'random').mockReturnValue(0.5);
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
@@ -402,11 +362,12 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 50,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.toHaveLength(50);
 
-				expect([...triedPeers, ...newPeers]).toEqual(selectedPeers);
+				expect(selectedPeers).toHaveLength(50);
+
+				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(
+					selectedPeers as any,
+				);
 
 				let triedCount = 0;
 				let newCount = 0;

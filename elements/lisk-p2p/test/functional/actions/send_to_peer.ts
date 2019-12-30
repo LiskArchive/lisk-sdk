@@ -46,13 +46,13 @@ describe('P2P.sendToPeer', () => {
 
 		p2pNodeList[1].on('messageReceived', msg => {
 			expect(msg)
-				.to.have.property('peerId')
+				.toHaveProperty('peerId')
 				.toBe(constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort));
 			expect(msg)
-				.to.have.property('event')
+				.toHaveProperty('event')
 				.toBe('foo');
 			expect(msg)
-				.to.have.property('data')
+				.toHaveProperty('data')
 				.toBe(123);
 		});
 	});

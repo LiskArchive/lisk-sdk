@@ -57,9 +57,8 @@ describe('utils/validate', () => {
 			};
 
 			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000))
-					.to.be.an('object')
-					.toEqual({
+				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual(
+					{
 						peerId: '12.23.54.3:5393',
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
@@ -70,7 +69,8 @@ describe('utils/validate', () => {
 							protocolVersion: '1.1',
 							httpPort: 2000,
 						},
-					});
+					},
+				);
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', async () => {
@@ -79,20 +79,18 @@ describe('utils/validate', () => {
 						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
 						10000,
 					),
-				)
-					.to.be.an('object')
-					.toEqual({
-						peerId: '12.23.54.3:5393',
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						sharedState: {
-							height: 0,
-							os: '778',
-							version: '3.4.5-alpha.9',
-							protocolVersion: '1.1',
-							httpPort: 2000,
-						},
-					});
+				).toEqual({
+					peerId: '12.23.54.3:5393',
+					ipAddress: '12.23.54.3',
+					wsPort: 5393,
+					sharedState: {
+						height: 0,
+						os: '778',
+						version: '3.4.5-alpha.9',
+						protocolVersion: '1.1',
+						httpPort: 2000,
+					},
+				});
 			});
 		});
 
@@ -343,12 +341,16 @@ describe('utils/validate', () => {
 		});
 
 		it('should pass and return an object', async () => {
-			expect(validatedRPCRequest).toBeInstanceOf('object');
+			expect(validatedRPCRequest).toEqual(expect.any(Object));
 		});
 
 		it('should return a valid rpc request', async () => {
 			expect(validatedRPCRequest).toHaveProperty('procedure');
 			expect(validatedRPCRequest).toHaveProperty('data');
+			expect(validatedRPCRequest).toMatchSnapshot({
+				data: expect.any(Object),
+				procedure: expect.any(String),
+			});
 		});
 	});
 
@@ -380,17 +382,13 @@ describe('utils/validate', () => {
 		});
 
 		it('should return an object', async () => {
-			expect(returnedValidatedMessage).toBeInstanceOf('object');
+			expect(returnedValidatedMessage).toEqual(expect.any(Object));
 		});
 
 		it('should return a valid protocol message object', async () => {
-			expect(returnedValidatedMessage)
-				.to.be.an('object')
-				.toHaveProperty('data');
-
-			expect(returnedValidatedMessage)
-				.to.be.an('object')
-				.toHaveProperty('data').to.be.string;
+			expect(returnedValidatedMessage).toMatchSnapshot({
+				data: expect.any(Object),
+			});
 		});
 	});
 });

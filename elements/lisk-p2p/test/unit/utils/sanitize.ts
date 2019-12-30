@@ -16,7 +16,7 @@ import {
 	sanitizeIncomingPeerInfo,
 	sanitizeInitialPeerInfo,
 } from '../../../src/utils';
-import { initPeerInfoList } from 'utils/peers';
+import { initPeerInfoList } from '../../utils/peers';
 
 describe('utils/sanitize', () => {
 	describe('#sanitizeIncomingPeerInfo', () => {
@@ -77,7 +77,7 @@ describe('utils/sanitize', () => {
 		});
 	});
 
-	describe('#sanitizePeerLists', () => {
+	describe.skip('#sanitizePeerLists', () => {
 		it('should return an object with several peer lists');
 	});
 });

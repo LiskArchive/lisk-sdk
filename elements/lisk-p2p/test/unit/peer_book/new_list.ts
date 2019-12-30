@@ -75,9 +75,7 @@ describe('New Peers List', () => {
 
 	describe('#makeSpace', () => {
 		let samplePeers: ReadonlyArray<P2PEnhancedPeerInfo>;
-		let clock: sinon.SinonFakeTimers;
 		let bucket: Map<string, P2PEnhancedPeerInfo>;
-		let calculateBucketStub: any;
 		beforeEach(() => {
 			jest.useFakeTimers();
 			samplePeers = initPeerInfoList().map(peerInfo => ({
@@ -92,7 +90,6 @@ describe('New Peers List', () => {
 			});
 			bucket = new Map<string, P2PEnhancedPeerInfo>();
 			bucket.set(samplePeers[1].peerId, samplePeers[2]);
-			calculateBucketStub = sandbox.stub(newPeersList, 'calculateBucket');
 		});
 
 		describe('when bucket is full', () => {
@@ -100,7 +97,10 @@ describe('New Peers List', () => {
 				it('should evict just one of them', () => {
 					jest.advanceTimersByTime(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
 
-					calculateBucketStub.returns({ bucketId: 0, bucket });
+					jest
+						.spyOn(newPeersList, 'calculateBucket')
+						.mockReturnValue({ bucketId: 0, bucket });
+
 					const evictedPeer = newPeersList.makeSpace(bucket);
 
 					expect(evictedPeer as any).toEqual(samplePeers[2]);
@@ -129,7 +129,6 @@ describe('New Peers List', () => {
 	});
 
 	describe('when there is a large sample of peers', () => {
-		let clock: sinon.SinonFakeTimers;
 		const samplePeersA = initPeerInfoListWithSuffix(
 			'1.222.123',
 			DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT * 2,

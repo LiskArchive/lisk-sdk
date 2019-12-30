@@ -50,19 +50,7 @@ describe('P2P.request', () => {
 			procedure: 'foo',
 			data: 'bar',
 		});
-		expect(response).toHaveProperty('data');
-		expect(response.data)
-			.to.have.property('nodePort')
-			.toBeInstanceOf('number');
-		expect(response.data)
-			.to.have.property('requestProcedure')
-			.toBeInstanceOf('string');
-		expect(response.data)
-			.to.have.property('requestData')
-			.toBe('bar');
-		expect(response.data)
-			.to.have.property('requestPeerId')
-			.toBe(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
+		expect(response).toMatchSnapshot();
 	});
 
 	// Check for even distribution of requests across the network. Account for an error margin.

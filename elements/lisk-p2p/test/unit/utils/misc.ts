@@ -102,7 +102,9 @@ describe('utils/misc', () => {
 		});
 
 		it('should return a number netgroup', () => {
-			return expect(getNetgroup(IPv4Address, secret)).toBeInstanceOf('number');
+			return expect(getNetgroup(IPv4Address, secret)).toEqual(
+				expect.any(Number),
+			);
 		});
 
 		it('should return different netgroup for different addresses', () => {
@@ -137,11 +139,11 @@ describe('utils/misc', () => {
 		});
 	});
 
-	describe('#evictPeerRandomlyFromBucket', () => {
+	describe.skip('#evictPeerRandomlyFromBucket', () => {
 		it('must return the evicted peer info');
 	});
 
-	describe('#expirePeerFromBucket', () => {
+	describe.skip('#expirePeerFromBucket', () => {
 		describe('when bucket contains old peers', () => {
 			it('should return the evicted peer info');
 		});
@@ -159,20 +161,7 @@ describe('utils/misc', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			)
-				.to.be.a('number')
-				.toBeGreaterThanOrEqual(0);
-
-			expect(
-				getBucketId({
-					secret,
-					targetAddress: IPv4Address,
-					peerType: PEER_TYPE.NEW_PEER,
-					bucketCount: MAX_NEW_BUCKETS,
-				}),
-			)
-				.to.be.a('number')
-				.toBeLessThanOrEqual(MAX_NEW_BUCKETS);
+			).toSatisfy((n: number) => n >= 0 && n <= MAX_NEW_BUCKETS);
 		});
 
 		it('should return a bucket number with source address', () => {
@@ -184,21 +173,7 @@ describe('utils/misc', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			)
-				.to.be.a('number')
-				.toBeGreaterThanOrEqual(0);
-
-			expect(
-				getBucketId({
-					secret,
-					targetAddress: IPv4Address,
-					sourceAddress: secondIPv4Address,
-					peerType: PEER_TYPE.NEW_PEER,
-					bucketCount: MAX_NEW_BUCKETS,
-				}),
-			)
-				.to.be.a('number')
-				.toBeLessThanOrEqual(MAX_NEW_BUCKETS);
+			).toSatisfy((n: number) => n >= 0 && n <= MAX_NEW_BUCKETS);
 		});
 
 		it(`should throw an error if network is equal to ${NETWORK.NET_OTHER}`, () => {

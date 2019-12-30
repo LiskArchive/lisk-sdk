@@ -48,13 +48,11 @@ describe('p2p', () => {
 		});
 
 		it('should be an object', () => {
-			return expect(P2PNode).toBeInstanceOf('object');
+			return expect(P2PNode).toEqual(expect.any(Object));
 		});
 
 		it('should be an instance of P2P blockchain', () => {
-			return expect(P2PNode)
-				.to.be.an('object')
-				.toBeInstanceOf(P2P);
+			return expect(P2PNode).toBeInstanceOf(P2P);
 		});
 
 		it('should load PeerBook with correct fixedPeer hierarchy', async () => {
@@ -62,7 +60,7 @@ describe('p2p', () => {
 				.slice(0, 6)
 				.map(peer => constructPeerId(peer.ipAddress, peer.wsPort));
 
-			expect(expectedFixedPeers).toEqual(
+			expect(expectedFixedPeers).toIncludeSameMembers(
 				P2PNode['_peerBook'].allPeers
 					.filter(peer => peer.internalState?.peerKind == 'fixedPeer')
 					.map(peer => peer.peerId),
@@ -72,13 +70,13 @@ describe('p2p', () => {
 		it('should reject at multiple start attempt', async () => {
 			await P2PNode.start();
 
-			expect(P2PNode.start()).rejects;
+			expect(P2PNode.start()).rejects.toThrow();
 		});
 
 		it('should reject at multiple stop attempt', async () => {
 			await P2PNode.stop();
 
-			expect(P2PNode.stop()).rejects;
+			expect(P2PNode.stop()).rejects.toThrow();
 		});
 	});
 });

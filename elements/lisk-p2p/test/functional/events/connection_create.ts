@@ -74,7 +74,7 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
 			expect(payload)
-				.to.have.property('wsPort')
+				.toHaveProperty('wsPort')
 				.toBe(secondNode.nodeInfo.wsPort);
 			expect(payload).toHaveProperty('sharedState');
 		});
@@ -84,7 +84,7 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
 			expect(payload)
-				.to.have.property('wsPort')
+				.toHaveProperty('wsPort')
 				.toBe(firstNode.nodeInfo.wsPort);
 			expect(payload).toHaveProperty('sharedState');
 		});
@@ -94,7 +94,7 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
 			expect(payload)
-				.to.have.property('wsPort')
+				.toHaveProperty('wsPort')
 				.toBe(firstNode.nodeInfo.wsPort);
 			expect(payload).toHaveProperty('sharedState');
 		});
@@ -104,7 +104,7 @@ describe(`Connection Create`, () => {
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
 			expect(payload)
-				.to.have.property('wsPort')
+				.toHaveProperty('wsPort')
 				.toBe(secondNode.nodeInfo.wsPort);
 			expect(payload).toHaveProperty('sharedState');
 		});

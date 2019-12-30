@@ -73,9 +73,9 @@ describe('errors', () => {
 		});
 
 		it('should set error property peer Id when passed as an argument', async () => {
-			expect(rpcGetPeersFailed)
-				.and.to.have.property('peerId')
-				.toEqual(peerId);
+			expect(rpcGetPeersFailed).toMatchSnapshot({
+				peerId: peerId,
+			});
 		});
 	});
 
@@ -281,10 +281,9 @@ describe('errors', () => {
 		});
 
 		it('should set response object within this custom error', async () => {
-			expect(requestFailError.response)
-				.toEqual(response)
-				.to.have.property('message')
-				.toEqual(errorResponseMessage);
+			expect(requestFailError.response).toMatchSnapshot({
+				message: errorResponseMessage,
+			});
 		});
 	});
 });

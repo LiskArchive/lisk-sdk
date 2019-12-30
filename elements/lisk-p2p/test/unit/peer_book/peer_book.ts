@@ -38,7 +38,7 @@ describe('peerBook', () => {
 	describe('#constructor', () => {
 		it('should intialize blank peer lists and set the secret', () => {
 			peerBook = new PeerBook(peerBookConfig);
-			expect(peerBook).toBeInstanceOf('object');
+			expect(peerBook).toEqual(expect.any(Object));
 			expect(peerBook.newPeers).toHaveLength(0);
 			expect(peerBook.triedPeers).toHaveLength(0);
 			expect((peerBook as any)._newPeers.peerListConfig.secret).toEqual(
@@ -82,7 +82,7 @@ describe('peerBook', () => {
 			};
 			const secret = 33333;
 			peerBook = new PeerBook({ secret, newListConfig, triedListConfig });
-			expect(peerBook).toBeInstanceOf('object');
+			expect(peerBook).toEqual(expect.any(Object));
 			expect((peerBook as any)._newPeers.peerListConfig).toEqual(newListConfig);
 			expect((peerBook as any)._triedPeers.peerListConfig).toEqual(
 				triedListConfig,
@@ -184,9 +184,9 @@ describe('peerBook', () => {
 		describe('when peer exists in the new peers list', () => {
 			it('should throw ExistingPeerError', () => {
 				// 'Peer already exists'
-				expect(() => peerBook.addPeer(samplePeers[0]))
-					.to.throw(ExistingPeerError)
-					.toHaveProperty('peerInfo', samplePeers[0]);
+				expect(() => peerBook.addPeer(samplePeers[0])).toThrow(
+					ExistingPeerError,
+				);
 			});
 		});
 
@@ -196,9 +196,7 @@ describe('peerBook', () => {
 				expect(() => {
 					peerBook.upgradePeer(samplePeers[0]);
 					peerBook.addPeer(samplePeers[0]);
-				})
-					.to.throw(ExistingPeerError)
-					.toHaveProperty('peerInfo', samplePeers[0]);
+				}).toThrow(ExistingPeerError);
 			});
 		});
 
@@ -345,10 +343,16 @@ describe('peerBook', () => {
 
 		describe('when peer exists in the new peers list', () => {
 			it('should return false if disconnection was not successful', () => {
-				sandbox
-					.stub((peerBook as any)._newPeers, 'failedConnectionAction')
-					.returns(false);
+				//Arrange
+				jest
+					.spyOn((peerBook as any)._newPeers, 'failedConnectionAction')
+					.mockReturnValue(false);
+
+				//Act
 				peerBook.addPeer(samplePeers[0]);
+
+				//Assert
+
 				expect(peerBook.newPeers).toHaveLength(1);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
 				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);

@@ -55,10 +55,10 @@ describe('peer/inbound', () => {
 			maxPeerDiscoveryResponseLength: 1000,
 		};
 		inboundSocket = <SCServerSocket>({
-			on: sandbox.stub(),
-			off: sandbox.stub(),
-			emit: sandbox.stub(),
-			destroy: sandbox.stub(),
+			on: jest.fn(),
+			off: jest.fn(),
+			emit: jest.fn(),
+			destroy: jest.fn(),
 		} as any);
 		defaultInboundPeer = new InboundPeer(
 			defaultPeerInfo,
@@ -77,26 +77,24 @@ describe('peer/inbound', () => {
 			expect(defaultInboundPeer).toBeInstanceOf(InboundPeer));
 
 		it('should have a function named _handleInboundSocketError', () =>
-			expect(
-				(defaultInboundPeer as any)._handleInboundSocketError,
-			).toBeInstanceOf('function'));
+			expect((defaultInboundPeer as any)._handleInboundSocketError).toEqual(
+				expect.any(Function),
+			));
 
 		it('should have a function named _handleInboundSocketClose ', () =>
-			expect(
-				(defaultInboundPeer as any)._handleInboundSocketClose,
-			).toBeInstanceOf('function'));
+			expect((defaultInboundPeer as any)._handleInboundSocketClose).toEqual(
+				expect.any(Function),
+			));
 
 		it('should set ping timeout', () => {
-			expect((defaultInboundPeer as any)._pingTimeoutId).toBeInstanceOf(
-				'object',
-			);
+			expect((defaultInboundPeer as any)._pingTimeoutId).toBeDefined;
 		});
 
 		it('should get socket property', () =>
 			expect((defaultInboundPeer as any)._socket).toBe(inboundSocket));
 
 		it('should send ping at least once after some time', () => {
-			sandbox.stub(defaultInboundPeer as any, '_sendPing');
+			jest.spyOn(defaultInboundPeer as any, '_sendPing');
 			expect((defaultInboundPeer as any)._sendPing).not.toBeCalled;
 
 			jest.advanceTimersByTime(
@@ -115,11 +113,12 @@ describe('peer/inbound', () => {
 			expect((defaultInboundPeer as any)._socket.emit).toHaveBeenCalledWith(
 				REMOTE_EVENT_PING,
 				undefined,
+				expect.any(Function),
 			);
 		});
 
 		it('should bind handlers to inbound socket', () => {
-			expect((defaultInboundPeer as any)._socket.on.callCount).toEqual(5);
+			expect((defaultInboundPeer as any)._socket.on).toBeCalledTimes(5);
 			expect((defaultInboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'close',
 				(defaultInboundPeer as any)._handleInboundSocketClose,
@@ -148,18 +147,15 @@ describe('peer/inbound', () => {
 
 		beforeEach(() => {
 			newInboundSocket = <SCServerSocket>({
-				on: sandbox.stub(),
-				off: sandbox.stub(),
-				emit: sandbox.stub(),
-				destroy: sandbox.stub(),
+				on: jest.fn(),
+				off: jest.fn(),
+				emit: jest.fn(),
+				destroy: jest.fn(),
 			} as any);
 		});
 
 		it('should unbind handlers from a former inbound socket', () => {
-			sandbox.stub(
-				defaultInboundPeer as any,
-				'_unbindHandlersFromInboundSocket',
-			);
+			jest.spyOn(defaultInboundPeer as any, '_unbindHandlersFromInboundSocket');
 			defaultInboundPeer.socket = newInboundSocket;
 			expect(
 				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
@@ -173,7 +169,7 @@ describe('peer/inbound', () => {
 		});
 
 		it('should bind handlers to a new inbound socket', () => {
-			sandbox.stub(defaultInboundPeer as any, '_bindHandlersToInboundSocket');
+			jest.spyOn(defaultInboundPeer as any, '_bindHandlersToInboundSocket');
 			defaultInboundPeer.socket = newInboundSocket;
 
 			expect(
@@ -190,11 +186,11 @@ describe('peer/inbound', () => {
 			defaultInboundPeer.disconnect();
 
 			expect(inboundSocket.destroy).toHaveBeenCalledTimes(1);
-			expect(inboundSocket.destroy).toHaveBeenCalledWith(1000);
+			expect(inboundSocket.destroy).toHaveBeenCalledWith(1000, undefined);
 		});
 
 		it('should not send ping anymore', () => {
-			sandbox.stub(defaultInboundPeer as any, '_sendPing');
+			jest.spyOn(defaultInboundPeer as any, '_sendPing');
 			defaultInboundPeer.disconnect();
 			jest.advanceTimersByTime(
 				DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1,
@@ -203,10 +199,7 @@ describe('peer/inbound', () => {
 		});
 
 		it('should call _unbindHandlersFromInboundSocket with inbound socket', () => {
-			sandbox.stub(
-				defaultInboundPeer as any,
-				'_unbindHandlersFromInboundSocket',
-			);
+			jest.spyOn(defaultInboundPeer as any, '_unbindHandlersFromInboundSocket');
 			defaultInboundPeer.disconnect();
 			expect(
 				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
@@ -215,7 +208,7 @@ describe('peer/inbound', () => {
 
 		it('should unbind handlers from an inbound socket', () => {
 			defaultInboundPeer.disconnect();
-			expect((defaultInboundPeer as any)._socket.off.callCount).toEqual(4);
+			expect((defaultInboundPeer as any)._socket.off).toBeCalledTimes(4);
 			expect((defaultInboundPeer as any)._socket.off).toHaveBeenCalledWith(
 				'close',
 				(defaultInboundPeer as any)._handleInboundSocketClose,

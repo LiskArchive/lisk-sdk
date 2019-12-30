@@ -110,10 +110,8 @@ describe('P2P.applyNodeInfo', () => {
 			)
 			.forEach((receivedMessages: any) => {
 				expect(receivedMessages.length).toBe(1);
-				expect(receivedMessages[0].request).toHaveProperty('data');
-				expect(receivedMessages[0].request.data)
-					.to.have.property('height')
-					.toBe(10);
+				expect(receivedMessages[0].request).toMatchSnapshot();
+				expect(receivedMessages[0].request.data.height).toBe(10);
 			});
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
@@ -121,10 +119,8 @@ describe('P2P.applyNodeInfo', () => {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
-			expect(firstP2PNodePeerInfo).toBeDefined();
-			expect(firstP2PNodePeerInfo)
-				.to.have.property('height')
-				.toBe(10);
+			expect(firstP2PNodePeerInfo).toMatchSnapshot();
+			expect(firstP2PNodePeerInfo?.height).toBe(10);
 		}
 	});
 
@@ -155,6 +151,7 @@ describe('P2P.applyNodeInfo', () => {
 					.which.equals(
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					);
+				expect(firstNodeInAllPeersList).toMatchSnapshot();
 			}
 
 			// Check if the peerinfo is updated in connected peer list
@@ -167,6 +164,7 @@ describe('P2P.applyNodeInfo', () => {
 					.which.equals(
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					);
+				expect(firstNodeInConnectedPeer).toMatchSnapshot();
 			}
 		}
 	});

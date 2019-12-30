@@ -82,13 +82,13 @@ describe('P2P.broadcast', () => {
 		expect(collectedMessages.length).toEqual(NETWORK_PEER_COUNT - 1);
 		expect(collectedMessages[0]).toHaveProperty('message');
 		expect(collectedMessages[0].message)
-			.to.have.property('event')
+			.toHaveProperty('event')
 			.toBe(BROADCAST_EVENT);
 		expect(collectedMessages[0].message)
-			.to.have.property('data')
+			.toHaveProperty('data')
 			.toBe(BROADCAST_DATA);
 		expect(collectedMessages[0].message)
-			.to.have.property('peerId')
+			.toHaveProperty('peerId')
 			.toBe(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
 	});
 });

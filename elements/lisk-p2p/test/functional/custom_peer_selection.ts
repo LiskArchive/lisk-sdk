@@ -162,13 +162,13 @@ describe('Custom peer selection', () => {
 
 			expect(response).toHaveProperty('data');
 			expect(response.data)
-				.to.have.property('nodePort')
+				.toHaveProperty('nodePort')
 				.toBeInstanceOf('number');
 			expect(response.data)
-				.to.have.property('requestProcedure')
+				.toHaveProperty('requestProcedure')
 				.toBeInstanceOf('string');
 			expect(response.data)
-				.to.have.property('requestData')
+				.toHaveProperty('requestData')
 				.toBe('bar');
 		});
 	});

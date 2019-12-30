@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as sinon from 'sinon';
 import {
 	PeerPool,
 	PROTECT_BY,
@@ -25,7 +24,11 @@ import {
 	selectPeersForSend,
 } from '../../src/utils';
 // For stubbing
-import { P2PPeerInfo, P2PNodeInfo } from '../../src/p2p_types';
+import {
+	P2PPeerInfo,
+	P2PNodeInfo,
+	P2PResponsePacket,
+} from '../../src/p2p_types';
 import { initPeerList } from '../utils/peers';
 import {
 	Peer,
@@ -97,7 +100,6 @@ describe('peerPool', () => {
 	let peerObject: any;
 	let messagePacket: any;
 	let requestPacket: any;
-	let clock: sinon.SinonFakeTimers;
 
 	beforeEach(async () => {
 		jest.useFakeTimers();
@@ -129,18 +131,18 @@ describe('peerPool', () => {
 		peerObject = {
 			...peerInfo,
 			id: peerId,
-			send: sandbox.stub(),
-			request: sandbox.stub(),
-			connect: sandbox.stub(),
-			applyPenalty: sandbox.stub(),
-			disconnect: sandbox.stub(),
-			removeListener: sandbox.stub(),
-			on: sandbox.stub(),
-			off: sandbox.stub(),
-			emit: sandbox.stub(),
-			destroy: sandbox.stub(),
+			send: jest.fn(),
+			request: jest.fn(),
+			connect: jest.fn(),
+			applyPenalty: jest.fn(),
+			disconnect: jest.fn(),
+			removeListener: jest.fn(),
+			on: jest.fn(),
+			off: jest.fn(),
+			emit: jest.fn(),
+			destroy: jest.fn(),
 		} as any;
-		peerPool.emit = sandbox.stub().resolves();
+		peerPool.emit = jest.fn();
 	});
 
 	afterEach(async () => {
@@ -152,16 +154,11 @@ describe('peerPool', () => {
 			expect(peerPool).toBeInstanceOf(PeerPool);
 		});
 
-		it('should have a _peerMap property which is a Map', async () => {
-			expect(peerPool)
-				.to.have.property('_peerMap')
-				.toBeInstanceOf(Map);
-		});
-
-		it('should have a _peerPoolConfig property which is set to the value specified in the constructor', async () => {
-			expect(peerPool)
-				.to.have.property('_peerPoolConfig')
-				.toBe(peerPoolConfig);
+		it('should have a _peerMap property which is a Map and _peerPoolConfig property which is set to the value specified in the constructor', async () => {
+			expect(peerPool).toMatchObject({
+				_peerMap: expect.any(Map),
+				_peerPoolConfig: peerPoolConfig,
+			});
 		});
 
 		it('should have a _peerConfig property which is set to the value specified in the constructor', async () => {
@@ -182,50 +179,16 @@ describe('peerPool', () => {
 			expect(actualConfig).toEqual(expectedConfig);
 		});
 
-		it('should set _peerLists property', async () => {
-			expect(peerPool)
-				.to.have.property('_peerLists')
-				.toBe(peerPoolConfig.peerLists);
-		});
-
-		it('should set _peerSelectForSend property', async () => {
-			expect(peerPool)
-				.to.have.property('_peerSelectForSend')
-				.toBe(peerPoolConfig.peerSelectionForSend);
-		});
-
-		it('should set _peerSelectForRequest property', async () => {
-			expect(peerPool)
-				.to.have.property('_peerSelectForRequest')
-				.toBe(peerPoolConfig.peerSelectionForRequest);
-		});
-
-		it('should set _peerSelectForConnection property', async () => {
-			expect(peerPool)
-				.to.have.property('_peerSelectForConnection')
-				.toBe(peerPoolConfig.peerSelectionForConnection);
-		});
-
-		it('should set _maxOutboundConnections property', async () => {
-			expect(peerPool)
-				.to.have.property('_maxOutboundConnections')
-				.toBe(peerPoolConfig.maxOutboundConnections);
-		});
-
-		it('should set _maxInboundConnections property', async () => {
-			expect(peerPool)
-				.to.have.property('_maxInboundConnections')
-				.toBe(peerPoolConfig.maxInboundConnections);
-		});
-
-		it('should set _sendPeerLimit property', async () => {
-			expect(peerPool)
-				.to.have.property('_sendPeerLimit')
-				.toBe(peerPoolConfig.sendPeerLimit);
-		});
-
-		it('should have a _outboundShuffleIntervalId property', async () => {
-			expect(peerPool).toHaveProperty('_outboundShuffleIntervalId');
+		it('should have all Config properties', async () => {
+			expect(peerPool).toMatchObject({
+				_peerSelectForSend: peerPoolConfig.peerSelectionForSend,
+				_peerSelectForRequest: peerPoolConfig.peerSelectionForRequest,
+				_peerSelectForConnection: peerPoolConfig.peerSelectionForConnection,
+				_maxOutboundConnections: peerPoolConfig.maxOutboundConnections,
+				_maxInboundConnections: peerPoolConfig.maxInboundConnections,
+				_sendPeerLimit: peerPoolConfig.sendPeerLimit,
+				_outboundShuffleIntervalId: expect.any(Number),
+			});
 		});
 	});
 
@@ -237,44 +200,49 @@ describe('peerPool', () => {
 		});
 
 		it('should call getPeers', async () => {
-			const getPeersStub = sandbox.stub(peerPool, 'getPeers').callThrough();
+			const getPeersStub = jest.spyOn(peerPool, 'getPeers');
 			peerPool.applyNodeInfo(nodeInfo);
 
-			expect(getPeersStub).to.be.calledOnce;
+			expect(getPeersStub).toBeCalled;
 		});
 
 		it('should call _applyNodeInfoOnPeer for each peer in peerMap', async () => {
-			const applyNodeInfoOnPeerStub = sandbox
-				.stub(peerPool as any, '_applyNodeInfoOnPeer')
-				.callThrough();
-			const applyNodeInfoOnPeerCalls = applyNodeInfoOnPeerStub.getCalls()
-				.length;
+			jest.spyOn(peerPool as any, '_applyNodeInfoOnPeer');
 
-			expect(applyNodeInfoOnPeerCalls).toEqual(peerPool.getPeers().length);
+			expect((peerPool as any)._applyNodeInfoOnPeer).toBeCalledTimes(
+				peerPool.getPeers().length,
+			);
 		});
 	});
 
 	describe('#request', () => {
 		it('should call getAllConnectedPeerInfos(OutboundPeer)', async () => {
-			sandbox.stub(peerPool, 'requestFromPeer').resolves();
-			const getAllConnectedPeerInfosStub = sandbox
-				.stub(peerPool, 'getAllConnectedPeerInfos')
-				.returns([peerInfo]);
-			await peerPool.request(requestPacket);
+			jest.spyOn(peerPool, 'requestFromPeer');
 
-			expect(getAllConnectedPeerInfosStub).to.be.calledOnce;
+			jest
+				.spyOn(peerPool, 'getAllConnectedPeerInfos')
+				.mockReturnValue([peerInfo]);
+
+			try {
+				await peerPool.request(requestPacket);
+			} catch (e) {
+				expect(peerPool.getAllConnectedPeerInfos).toBeCalled;
+			}
 		});
 
 		it('should call _peerSelectForRequest', async () => {
-			sandbox.stub(peerPool, 'requestFromPeer').resolves();
+			jest
+				.spyOn(peerPool, 'requestFromPeer')
+				.mockResolvedValue({} as P2PResponsePacket);
+
 			const peers = peerPool.getAllConnectedPeerInfos(OutboundPeer);
-			const _peerSelectForRequestStub = sandbox
-				.stub(peerPool as any, '_peerSelectForRequest')
-				.returns([peerInfo]);
+			const _peerSelectForRequestStub = jest
+				.spyOn(peerPool as any, '_peerSelectForRequest')
+				.mockReturnValue([peerInfo]);
 
 			await peerPool.request(requestPacket);
 
-			expect(_peerSelectForRequestStub).to.be.calledWith({
+			expect(_peerSelectForRequestStub).toHaveBeenCalledWith({
 				peers,
 				nodeInfo: peerPool.nodeInfo,
 				peerLimit: 1,
@@ -283,7 +251,7 @@ describe('peerPool', () => {
 		});
 
 		it('should throw error if no peers selected', async () => {
-			sandbox.stub(peerPool as any, '_peerSelectForRequest').returns([]);
+			jest.spyOn(peerPool as any, '_peerSelectForRequest').mockReturnValue([]);
 
 			return expect(peerPool.request(requestPacket)).rejects.toThrow(
 				RequestFailError,
@@ -291,15 +259,17 @@ describe('peerPool', () => {
 		});
 
 		it('should call requestFromPeer', async () => {
-			const requestFromPeerStub = sandbox
-				.stub(peerPool, 'requestFromPeer')
-				.resolves();
-			sandbox
-				.stub(peerPool as any, '_peerSelectForRequest')
-				.returns([peerInfo]);
+			const requestFromPeerStub = jest
+				.spyOn(peerPool, 'requestFromPeer')
+				.mockResolvedValue({} as P2PResponsePacket);
+
+			jest
+				.spyOn(peerPool as any, '_peerSelectForRequest')
+				.mockReturnValue([peerInfo]);
+
 			await peerPool.request(requestPacket);
 
-			expect(requestFromPeerStub).to.be.calledOnce;
+			expect(requestFromPeerStub).toBeCalled;
 		});
 	});
 
@@ -308,16 +278,16 @@ describe('peerPool', () => {
 		let sendToPeer: any;
 
 		beforeEach(async () => {
-			_peerSelectForSendStub = sandbox
-				.stub(peerPool as any, '_peerSelectForSend')
-				.returns([peerInfo]);
-			sendToPeer = sandbox.stub(peerPool, 'sendToPeer').resolves();
+			_peerSelectForSendStub = jest
+				.spyOn(peerPool as any, '_peerSelectForSend')
+				.mockReturnValue([peerInfo]);
+			sendToPeer = jest.spyOn(peerPool, 'sendToPeer');
 		});
 
 		it('should call _peerSelectForSend', async () => {
 			await peerPool.send(messagePacket);
 
-			expect(_peerSelectForSendStub).to.be.calledOnce;
+			expect(_peerSelectForSendStub).toBeCalled;
 		});
 
 		it('should call sendToPeer for each selected peer', async () => {
@@ -330,10 +300,15 @@ describe('peerPool', () => {
 		});
 
 		it(`should emit event if sendToPeer fails`, async () => {
-			sendToPeer.throws();
-			await peerPool.send(1 as any);
+			sendToPeer = jest.spyOn(peerPool, 'sendToPeer').mockImplementation(() => {
+				throw new Error();
+			});
 
-			expect(peerPool.emit).to.be.calledOnce;
+			try {
+				await peerPool.send(1 as any);
+			} catch (error) {
+				expect(peerPool.emit).toBeCalled;
+			}
 		});
 	});
 
@@ -365,7 +340,7 @@ describe('peerPool', () => {
 
 		it('should call peer send with message packet', async () => {
 			const peerStub = {
-				send: sandbox.stub(),
+				send: jest.fn(),
 			};
 			(peerPool as any)._peerMap = new Map([[peerId, peerStub]]);
 			await peerPool.sendToPeer(messagePacket, peerId);
@@ -376,11 +351,11 @@ describe('peerPool', () => {
 
 	describe('#discoverFromSeedPeers', () => {
 		beforeEach(async () => {
-			(peerPool['_addOutboundPeer'] as any) = sandbox
-				.stub()
-				.returns(true as boolean);
+			(peerPool['_addOutboundPeer'] as any) = jest
+				.fn()
+				.mockReturnValue(true as boolean);
 
-			sandbox.stub(peerPool, 'getPeersCountPerKind').returns({
+			jest.spyOn(peerPool, 'getPeersCountPerKind').mockReturnValue({
 				outboundCount: 0,
 				inboundCount: 0,
 			});
@@ -388,16 +363,16 @@ describe('peerPool', () => {
 		});
 
 		it('should call _addOutboundPeer with Seed Peer', async () => {
-			expect(peerPool['_addOutboundPeer']).to.be.called;
+			expect(peerPool['_addOutboundPeer']).toBeCalled;
 		});
 	});
 
 	describe('#triggerNewConnections', () => {
 		beforeEach(async () => {
-			(peerPool['_peerSelectForConnection'] as any) = sandbox
-				.stub()
-				.returns([] as ReadonlyArray<P2PPeerInfo>);
-			sandbox.stub(peerPool, 'getPeersCountPerKind').returns({
+			(peerPool['_peerSelectForConnection'] as any) = jest
+				.fn()
+				.mockReturnValue([] as ReadonlyArray<P2PPeerInfo>);
+			jest.spyOn(peerPool, 'getPeersCountPerKind').mockReturnValue({
 				outboundCount: 0,
 				inboundCount: 0,
 			});
@@ -405,7 +380,7 @@ describe('peerPool', () => {
 		});
 
 		it('should call _peerSelectForConnection with all the necessary options', async () => {
-			expect(peerPool['_peerSelectForConnection']).to.be.calledWith({
+			expect(peerPool['_peerSelectForConnection']).toHaveBeenCalledWith({
 				newPeers: [],
 				triedPeers: [],
 				nodeInfo: peerPool.nodeInfo,
@@ -418,7 +393,9 @@ describe('peerPool', () => {
 		let getPeersStub: any;
 
 		beforeEach(async () => {
-			getPeersStub = sandbox.stub(peerPool, 'getPeers').returns([peerObject]);
+			getPeersStub = jest
+				.spyOn(peerPool, 'getPeers')
+				.mockReturnValue([peerObject]);
 		});
 
 		it('should call getPeers with InboundPeer class', async () => {
@@ -429,7 +406,7 @@ describe('peerPool', () => {
 
 		it('should call _evictPeer if max inbound connections reached', async () => {
 			(peerPool as any)._maxInboundConnections = 0;
-			sandbox.stub(peerPool as any, '_evictPeer');
+			jest.spyOn(peerPool as any, '_evictPeer').mockImplementation(() => {});
 			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
 			expect((peerPool as any)._evictPeer).toHaveBeenCalledWith(InboundPeer);
@@ -443,13 +420,13 @@ describe('peerPool', () => {
 		});
 
 		it('should call _bindHandlersToPeer', async () => {
-			let _bindHandlersToPeerStub = sandbox.stub(
+			let _bindHandlersToPeerStub = jest.spyOn(
 				peerPool as any,
 				'_bindHandlersToPeer',
 			);
 			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
-			expect(_bindHandlersToPeerStub).to.be.calledOnce;
+			expect(_bindHandlersToPeerStub).toBeCalled;
 		});
 
 		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
@@ -458,13 +435,13 @@ describe('peerPool', () => {
 				protocolVersion: '1.0.1',
 				version: '1.1',
 			};
-			let _applyNodeInfoOnPeerStub = sandbox.stub(
+			let _applyNodeInfoOnPeerStub = jest.spyOn(
 				peerPool as any,
 				'_applyNodeInfoOnPeer',
 			);
 			peerPool.addInboundPeer(peerInfo, peerObject as any);
 
-			expect(_applyNodeInfoOnPeerStub).to.have.been.calledOnce;
+			expect(_applyNodeInfoOnPeerStub).toBeCalled;
 		});
 
 		it('should return peer object', async () => {
@@ -480,9 +457,11 @@ describe('peerPool', () => {
 		let _bindHandlersToPeerStub: any;
 
 		beforeEach(async () => {
-			hasPeerStub = sandbox.stub(peerPool, 'hasPeer').returns(true);
+			hasPeerStub = jest.spyOn(peerPool, 'hasPeer').mockReturnValue(true);
 
-			getPeersStub = sandbox.stub(peerPool, 'getPeers').returns([] as Peer[]);
+			getPeersStub = jest
+				.spyOn(peerPool, 'getPeers')
+				.mockReturnValue([] as Peer[]);
 		});
 
 		it('should call hasPeer with peerId', async () => {
@@ -492,10 +471,10 @@ describe('peerPool', () => {
 		});
 
 		it('should call getAllConnectedPeerInfos with OutboundPeer', async () => {
-			hasPeerStub.returns(false);
+			hasPeerStub.mockReturnValue(false);
 			(peerPool as any)._addOutboundPeer(peerObject as any);
 
-			expect(getPeersStub).to.be.calledOnce;
+			expect(getPeersStub).toBeCalled;
 		});
 
 		it('should add peer to peerMap', async () => {
@@ -506,32 +485,32 @@ describe('peerPool', () => {
 		});
 
 		it('should call _bindHandlersToPeer', async () => {
-			hasPeerStub.returns(false);
-			getPeersStub.returns([]);
-			_bindHandlersToPeerStub = sandbox.stub(
+			hasPeerStub.mockReturnValue(false);
+			getPeersStub.mockReturnValue([]);
+			_bindHandlersToPeerStub = jest.spyOn(
 				peerPool as any,
 				'_bindHandlersToPeer',
 			);
 			(peerPool as any)._addOutboundPeer(peerObject as any);
 
-			expect(_bindHandlersToPeerStub).to.be.calledOnce;
+			expect(_bindHandlersToPeerStub).toBeCalled;
 		});
 
 		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', async () => {
-			hasPeerStub.returns(false);
-			getPeersStub.returns([]);
+			hasPeerStub.mockReturnValue(false);
+			getPeersStub.mockReturnValue([]);
 			(peerPool as any)._nodeInfo = {
 				os: 'darwin',
 				protocolVersion: '1.0.1',
 				version: '1.1',
 			};
-			let _applyNodeInfoOnPeerStub = sandbox.stub(
+			let _applyNodeInfoOnPeerStub = jest.spyOn(
 				peerPool as any,
 				'_applyNodeInfoOnPeer',
 			);
 			(peerPool as any)._addOutboundPeer(peerObject as any);
 
-			expect(_applyNodeInfoOnPeerStub).to.have.been.calledOnce;
+			expect(_applyNodeInfoOnPeerStub).toBeCalled;
 		});
 
 		it('should return peer object', async () => {
@@ -558,7 +537,7 @@ describe('peerPool', () => {
 
 		beforeEach(async () => {
 			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
-			removePeerStub = sandbox.stub(peerPool, 'removePeer');
+			removePeerStub = jest.spyOn(peerPool, 'removePeer');
 		});
 
 		it('should call removePeer for all peers in peerMap', async () => {
@@ -590,15 +569,25 @@ describe('peerPool', () => {
 			let activePeersInfoList: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
-				sandbox.stub(peerList[0], 'state').get(() => ConnectionState.OPEN);
-				sandbox.stub(peerList[1], 'state').get(() => ConnectionState.OPEN);
-				sandbox.stub(peerList[2], 'state').get(() => ConnectionState.CLOSED);
+				Object.defineProperty(peerList[0] as any, 'state', {
+					get: jest.fn(() => ConnectionState.OPEN),
+					set: jest.fn(),
+				});
+				Object.defineProperty(peerList[1] as any, 'state', {
+					get: jest.fn(() => ConnectionState.OPEN),
+					set: jest.fn(),
+				});
+				Object.defineProperty(peerList[2] as any, 'state', {
+					get: jest.fn(() => ConnectionState.CLOSED),
+					set: jest.fn(),
+				});
 
-				sandbox
-					.stub(peerPool, 'getConnectedPeers')
-					.returns(
+				jest
+					.spyOn(peerPool, 'getConnectedPeers')
+					.mockReturnValue(
 						peerList.filter(peer => peer.state === ConnectionState.OPEN),
 					);
+
 				activePeersInfoList = [peerList[0], peerList[1]].map(
 					peer => peer.peerInfo,
 				);
@@ -616,15 +605,25 @@ describe('peerPool', () => {
 			let activePeersInfoList: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
-				sandbox.stub(peerList[0], 'state').get(() => ConnectionState.OPEN);
-				sandbox.stub(peerList[1], 'state').get(() => ConnectionState.OPEN);
-				sandbox.stub(peerList[2], 'state').get(() => ConnectionState.CLOSED);
+				Object.defineProperty(peerList[0] as any, 'state', {
+					get: jest.fn(() => ConnectionState.OPEN),
+					set: jest.fn(),
+				});
+				Object.defineProperty(peerList[1] as any, 'state', {
+					get: jest.fn(() => ConnectionState.OPEN),
+					set: jest.fn(),
+				});
+				Object.defineProperty(peerList[2] as any, 'state', {
+					get: jest.fn(() => ConnectionState.CLOSED),
+					set: jest.fn(),
+				});
 
-				sandbox
-					.stub(peerPool, 'getConnectedPeers')
-					.returns(
+				jest
+					.spyOn(peerPool, 'getConnectedPeers')
+					.mockReturnValue(
 						peerList.filter(peer => peer.state === ConnectionState.OPEN),
 					);
+
 				activePeersInfoList = [peerList[0], peerList[1]].map(
 					peer => peer.peerInfo,
 				);
@@ -642,15 +641,25 @@ describe('peerPool', () => {
 			let activePeersInfoList: ReadonlyArray<P2PPeerInfo>;
 
 			beforeEach(async () => {
-				sandbox.stub(peerList[0], 'state').get(() => ConnectionState.OPEN);
-				sandbox.stub(peerList[1], 'state').get(() => ConnectionState.OPEN);
-				sandbox.stub(peerList[2], 'state').get(() => ConnectionState.CLOSED);
+				Object.defineProperty(peerList[0] as any, 'state', {
+					get: jest.fn(() => ConnectionState.OPEN),
+					set: jest.fn(),
+				});
+				Object.defineProperty(peerList[1] as any, 'state', {
+					get: jest.fn(() => ConnectionState.OPEN),
+					set: jest.fn(),
+				});
+				Object.defineProperty(peerList[2] as any, 'state', {
+					get: jest.fn(() => ConnectionState.CLOSED),
+					set: jest.fn(),
+				});
 
-				sandbox
-					.stub(peerPool, 'getConnectedPeers')
-					.returns(
+				jest
+					.spyOn(peerPool, 'getConnectedPeers')
+					.mockReturnValue(
 						peerList.filter(peer => peer.state === ConnectionState.OPEN),
 					);
+
 				activePeersInfoList = [peerList[0], peerList[1]].map(
 					peer => peer.peerInfo,
 				);
@@ -667,13 +676,16 @@ describe('peerPool', () => {
 			const peerList: ReadonlyArray<Peer> = initPeerList();
 
 			beforeEach(async () => {
-				peerList.forEach(peer =>
-					sandbox.stub(peer, 'state').get(() => ConnectionState.CLOSED),
-				);
+				peerList.forEach(peer => {
+					Object.defineProperty(peer as any, 'state', {
+						get: jest.fn(() => ConnectionState.CLOSED),
+						set: jest.fn(),
+					});
+				});
 
-				sandbox
-					.stub(peerPool, 'getConnectedPeers')
-					.returns(
+				jest
+					.spyOn(peerPool, 'getConnectedPeers')
+					.mockReturnValue(
 						peerList.filter(peer => peer.state === ConnectionState.OPEN),
 					);
 			});
@@ -769,7 +781,7 @@ describe('peerPool', () => {
 				'Disconnect peer',
 			);
 
-			expect(peerObject.disconnect).to.be.calledOnce;
+			expect(peerObject.disconnect).toBeCalled;
 		});
 
 		it('should remove peer from peerMap', async () => {
@@ -792,7 +804,7 @@ describe('peerPool', () => {
 			const penalty = 50;
 			peerPool.applyPenalty({ peerId, penalty });
 
-			expect(peerObject.applyPenalty).to.be.calledOnce;
+			expect(peerObject.applyPenalty).toBeCalled;
 		});
 	});
 
@@ -893,9 +905,9 @@ describe('peerPool', () => {
 			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
 			(peerPool as any)._peerPoolConfig.longevityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LONGEVITY;
 
-			getPeersStub = sandbox
-				.stub(peerPool, 'getPeers')
-				.returns(originalPeers as Peer[]);
+			getPeersStub = jest
+				.spyOn(peerPool, 'getPeers')
+				.mockReturnValue(originalPeers as Peer[]);
 		});
 
 		describe('when node using default protection ratio values has 100 inbound peers', () => {
@@ -918,7 +930,7 @@ describe('peerPool', () => {
 						peerKind: PeerKind.NONE,
 					},
 				}));
-				getPeersStub.returns(originalPeers as Peer[]);
+				getPeersStub.mockReturnValue(originalPeers as Peer[]);
 			});
 
 			it('should return expected amount of eviction candidates', async () => {
@@ -940,7 +952,7 @@ describe('peerPool', () => {
 						peerKind: PeerKind.NONE,
 					},
 				}));
-				getPeersStub.returns(originalPeers as Peer[]);
+				getPeersStub.mockReturnValue(originalPeers as Peer[]);
 			});
 
 			it('should return expected amount of eviction candidates', async () => {
@@ -953,7 +965,7 @@ describe('peerPool', () => {
 		describe('when node using default protection ratio values has 0 inbound peers', () => {
 			beforeEach(() => {
 				originalPeers = [];
-				getPeersStub.returns(originalPeers as Peer[]);
+				getPeersStub.mockReturnValue(originalPeers as Peer[]);
 			});
 
 			it('should return expected amount of eviction candidates', async () => {
@@ -1027,13 +1039,13 @@ describe('peerPool', () => {
 						peerKind: PeerKind.NONE,
 					},
 				}));
-				getPeersStub.returns(originalPeers as Peer[]);
+				getPeersStub.mockReturnValue(originalPeers as Peer[]);
 			});
 
 			it('should not evict any candidates', async () => {
 				const selectedPeersForEviction = (peerPool as any)._selectPeersForEviction();
 
-				expect(selectedPeersForEviction.length).toEqual(10);
+				expect(selectedPeersForEviction.length).toEqual(originalPeers.length);
 			});
 		});
 	});
@@ -1075,16 +1087,16 @@ describe('peerPool', () => {
 				latencyProtectionRatio: 0,
 				productivityProtectionRatio: 0,
 			};
-			sandbox.stub(peerPool as any, 'getPeers').returns(defaultPeers);
-			sandbox.stub(peerPool, 'removePeer');
+			jest.spyOn(peerPool as any, 'getPeers').mockReturnValue(defaultPeers);
+			jest.spyOn(peerPool, 'removePeer');
 		});
 
 		it('should not evict whitelisted peer', async () => {
 			(peerPool as any)._evictPeer(InboundPeer);
 			expect(peerPool.removePeer).not.toHaveBeenCalledWith(
 				whitelistedPeers[0].ipAddress,
-				sinon.match.any,
-				sinon.match.any,
+				expect.any(Number),
+				expect.any(String),
 			);
 		});
 
@@ -1092,8 +1104,8 @@ describe('peerPool', () => {
 			(peerPool as any)._evictPeer(InboundPeer);
 			expect(peerPool.removePeer).not.toHaveBeenCalledWith(
 				fixedPeers[0].ipAddress,
-				sinon.match.any,
-				sinon.match.any,
+				expect.any(Number),
+				expect.any(String),
 			);
 		});
 
@@ -1101,8 +1113,8 @@ describe('peerPool', () => {
 			(peerPool as any)._evictPeer(InboundPeer);
 			expect(peerPool.removePeer).toHaveBeenCalledWith(
 				defaultPeers[0].peerId,
-				sinon.match.any,
-				sinon.match.any,
+				expect.any(Number),
+				expect.any(String),
 			);
 		});
 	});

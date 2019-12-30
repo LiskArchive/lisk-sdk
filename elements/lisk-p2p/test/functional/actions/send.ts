@@ -91,13 +91,13 @@ describe('P2P.send', () => {
 		expect(collectedMessages.length).toEqual(numOfConnectedPeers);
 		expect(collectedMessages[0]).toHaveProperty('message');
 		expect(collectedMessages[0].message)
-			.to.have.property('event')
+			.toHaveProperty('event')
 			.toBe('bar');
 		expect(collectedMessages[0].message)
-			.to.have.property('data')
+			.toHaveProperty('data')
 			.toBe('test');
 		expect(collectedMessages[0].message)
-			.to.have.property('peerId')
+			.toHaveProperty('peerId')
 			.toBe(`127.0.0.1:${NETWORK_START_PORT}`);
 	});
 
