@@ -14,6 +14,4 @@
 
 'use strict';
 
-const { StateStore } = require('./state_store');
-
-module.exports = { StateStore };
+export { StateStore } from './state_store';
