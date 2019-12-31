@@ -28,7 +28,7 @@ const SwaggerSpec = require('./swagger_spec');
 const { getNetworkIdentifier } = require('../network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
-	global.__testContext.config.genesisBlock,
+	__testContext.config.genesisBlock,
 );
 
 // To keep test framework dependency in utils, for now need to disable these
@@ -36,9 +36,7 @@ const networkIdentifier = getNetworkIdentifier(
 
 const http = {
 	abstractRequest(options, done) {
-		const request = global.__testContext.api[options.verb.toLowerCase()](
-			options.path,
-		);
+		const request = __testContext.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
 		request.expect(response => {
@@ -58,20 +56,20 @@ const http = {
 		}
 
 		const verb = options.verb.toUpperCase();
-		global.__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
+		__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
-			global.__testContext.debug(
+			__testContext.debug(
 				['> Data:'.grey, JSON.stringify(options.params)].join(' '),
 			);
 		}
 
 		if (done) {
 			return request.end((err, res) => {
-				global.__testContext.debug(
+				__testContext.debug(
 					'> Status:'.grey,
 					JSON.stringify(res ? res.statusCode : ''),
 				);
-				global.__testContext.debug(
+				__testContext.debug(
 					'> Response:'.grey,
 					JSON.stringify(res ? res.body : err),
 				);
