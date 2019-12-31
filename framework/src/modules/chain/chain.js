@@ -247,7 +247,7 @@ module.exports = class Chain {
 				);
 			}
 
-			// Check if blocks are left in temp_block table
+			// Check if blocks are left in temp_blocks table
 			await this.synchronizer.init();
 		} catch (error) {
 			this.logger.fatal(

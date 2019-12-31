@@ -75,7 +75,26 @@ describe('validator keyword "env"', () => {
 		expect(data.prop1).toBe(999);
 	});
 
-	it('should accept env variable if specified as boolean and format accordingly', () => {
+	it('should accept env variable if specified as boolean "true" and format accordingly', () => {
+		const envSchemaWithOutFormatter = {
+			type: 'object',
+			properties: {
+				prop1: {
+					type: 'boolean',
+					env: 'PROP1',
+				},
+			},
+		};
+
+		const data = { prop1: 'false' };
+		process.env.PROP1 = 'true';
+
+		validator.validate(envSchemaWithOutFormatter, data);
+
+		expect(data.prop1).toBe(true);
+	});
+
+	it('should accept env variable if specified as boolean "false" and format accordingly', () => {
 		const envSchemaWithOutFormatter = {
 			type: 'object',
 			properties: {
@@ -87,11 +106,11 @@ describe('validator keyword "env"', () => {
 		};
 
 		const data = { prop1: 'true' };
-		process.env.PROP1 = 'true';
+		process.env.PROP1 = 'false';
 
 		validator.validate(envSchemaWithOutFormatter, data);
 
-		expect(data.prop1).toBe(true);
+		expect(data.prop1).toBe(false);
 	});
 
 	it('should format the value of env variable if specified as an object', () => {
