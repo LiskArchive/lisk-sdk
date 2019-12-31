@@ -18,7 +18,7 @@ import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_PEER_COUNT,
-} from 'utils/network_setup';
+} from '../utils/network_setup';
 
 describe('P2P.broadcast', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -54,7 +54,7 @@ describe('P2P.broadcast', () => {
 		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 		await wait(100);
 
-		expect(Object.keys(collectedMessages)).toHaveLength(0);
+		expect(Object.keys(collectedMessages)).toHaveLength(NETWORK_PEER_COUNT - 1);
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -64,11 +64,11 @@ describe('P2P.broadcast', () => {
 			);
 		}
 
-		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
+		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
+			NETWORK_PEER_COUNT - 1,
+		);
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
-			expect(receivedMessages)
-				.to.be.an('array')
-				.toHaveLength(1);
+			expect(receivedMessages).toHaveLength(1);
 		}
 	});
 
@@ -78,17 +78,16 @@ describe('P2P.broadcast', () => {
 
 		await wait(100);
 
-		expect(collectedMessages).toBeInstanceOf('array');
+		expect(collectedMessages).toEqual(expect.any(Array));
+
 		expect(collectedMessages.length).toEqual(NETWORK_PEER_COUNT - 1);
-		expect(collectedMessages[0]).toHaveProperty('message');
-		expect(collectedMessages[0].message)
-			.toHaveProperty('event')
-			.toBe(BROADCAST_EVENT);
-		expect(collectedMessages[0].message)
-			.toHaveProperty('data')
-			.toBe(BROADCAST_DATA);
-		expect(collectedMessages[0].message)
-			.toHaveProperty('peerId')
-			.toBe(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+
+		expect(collectedMessages[0]).toMatchObject({
+			message: {
+				event: BROADCAST_EVENT,
+				data: BROADCAST_DATA,
+				peerId: `127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`,
+			},
+		});
 	});
 });

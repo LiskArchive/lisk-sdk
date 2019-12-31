@@ -57,7 +57,7 @@ describe('Peer inbound eviction for connection time', () => {
 		const inboundPeers = firstNode['_peerPool']
 			.getPeers(InboundPeer)
 			.map(peer => peer.wsPort);
-		expect(inboundPeers).to.satisfy(
+		expect(inboundPeers).toSatisfy(
 			(n: Number[]) => n.includes(5001) || n.includes(5002),
 		);
 	});

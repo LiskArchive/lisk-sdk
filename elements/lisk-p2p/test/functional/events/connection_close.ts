@@ -60,14 +60,13 @@ describe(`Events on Connection Close`, () => {
 
 		const payload = collectedEvents.get('EVENT_CLOSE_INBOUND');
 
-		expect(payload)
-			.toHaveProperty('code')
-			.toBe(INTENTIONAL_DISCONNECT_CODE);
-		expect(payload).toHaveProperty('peerInfo');
-		expect(payload.peerInfo)
-			.toHaveProperty('wsPort')
-			.toBe(secondNode.nodeInfo.wsPort);
-		expect(payload.peerInfo).toHaveProperty('sharedState');
+		expect(payload).toMatchObject({
+			code: INTENTIONAL_DISCONNECT_CODE,
+			peerInfo: {
+				wsPort: secondNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			},
+		});
 	});
 
 	it(`should handle ${EVENT_CLOSE_OUTBOUND} event and payload`, async () => {
@@ -78,13 +77,12 @@ describe(`Events on Connection Close`, () => {
 
 		const payload = collectedEvents.get('EVENT_CLOSE_OUTBOUND');
 
-		expect(payload)
-			.toHaveProperty('code')
-			.toBe(SOCKET_HUNG_UP_CODE);
-		expect(payload).toHaveProperty('peerInfo');
-		expect(payload.peerInfo)
-			.toHaveProperty('wsPort')
-			.toBe(firstNode.nodeInfo.wsPort);
-		expect(payload.peerInfo).toHaveProperty('sharedState');
+		expect(payload).toMatchObject({
+			code: SOCKET_HUNG_UP_CODE,
+			peerInfo: {
+				wsPort: firstNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			},
+		});
 	});
 });

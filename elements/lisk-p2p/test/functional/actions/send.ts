@@ -19,7 +19,7 @@ import {
 	destroyNetwork,
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
-} from 'utils/network_setup';
+} from '../../utils/network_setup';
 
 describe('P2P.send', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -58,7 +58,9 @@ describe('P2P.send', () => {
 
 		await wait(100);
 
-		expect(Object.keys(collectedMessages)).toHaveLength(0);
+		expect(Object.keys(collectedMessages)).toHaveLength(
+			TOTAL_SENDS * (NETWORK_PEER_COUNT - 1),
+		);
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -68,9 +70,12 @@ describe('P2P.send', () => {
 			);
 		}
 
-		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
+		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
+			NETWORK_PEER_COUNT - 1,
+		);
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
-			expect(receivedMessages).toBeInstanceOf('array');
+			expect(receivedMessages).toEqual(expect.any(Array));
+
 			expect(receivedMessages.length).toBeGreaterThan(
 				expectedMessagesLowerBound,
 			);
@@ -87,18 +92,16 @@ describe('P2P.send', () => {
 
 		await wait(100);
 
-		expect(collectedMessages).toBeInstanceOf('array');
+		expect(collectedMessages).toEqual(expect.any(Array));
+
 		expect(collectedMessages.length).toEqual(numOfConnectedPeers);
 		expect(collectedMessages[0]).toHaveProperty('message');
-		expect(collectedMessages[0].message)
-			.toHaveProperty('event')
-			.toBe('bar');
-		expect(collectedMessages[0].message)
-			.toHaveProperty('data')
-			.toBe('test');
-		expect(collectedMessages[0].message)
-			.toHaveProperty('peerId')
-			.toBe(`127.0.0.1:${NETWORK_START_PORT}`);
+
+		expect(collectedMessages[0].message).toMatchObject({
+			event: 'bar',
+			data: 'test',
+			peerId: `127.0.0.1:${NETWORK_START_PORT}`,
+		});
 	});
 
 	describe('when peers are at different heights', () => {
@@ -133,7 +136,9 @@ describe('P2P.send', () => {
 			}
 			await wait(100);
 
-			expect(Object.keys(collectedMessages)).toHaveLength(0);
+			expect(Object.keys(collectedMessages)).toHaveLength(
+				TOTAL_SENDS * (NETWORK_PEER_COUNT - 1),
+			);
 			for (let receivedMessageData of collectedMessages) {
 				if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 					nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -143,11 +148,14 @@ describe('P2P.send', () => {
 				);
 			}
 
-			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
+			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
+				NETWORK_PEER_COUNT - 1,
+			);
 			for (let receivedMessages of Object.values(
 				nodePortToMessagesMap,
 			) as any) {
-				expect(receivedMessages).toBeInstanceOf('array');
+				expect(receivedMessages).toEqual(expect.any(Array));
+
 				expect(receivedMessages.length).toBeGreaterThan(
 					expectedMessagesLowerBound,
 				);

@@ -161,15 +161,14 @@ describe('Custom peer selection', () => {
 			});
 
 			expect(response).toHaveProperty('data');
-			expect(response.data)
-				.toHaveProperty('nodePort')
-				.toBeInstanceOf('number');
-			expect(response.data)
-				.toHaveProperty('requestProcedure')
-				.toBeInstanceOf('string');
-			expect(response.data)
-				.toHaveProperty('requestData')
-				.toBe('bar');
+
+			expect(response).toMatchObject({
+				data: {
+					nodePort: expect.any(Number),
+					requestProcedure: expect.any(String),
+					requestData: 'bar',
+				},
+			});
 		});
 	});
 
@@ -204,7 +203,7 @@ describe('Custom peer selection', () => {
 
 			await wait(100);
 
-			expect(Object.keys(collectedMessages)).toHaveLength(0);
+			expect(Object.keys(collectedMessages)).toHaveLength(400);
 			for (let receivedMessageData of collectedMessages) {
 				if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 					nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -214,11 +213,13 @@ describe('Custom peer selection', () => {
 				);
 			}
 
-			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(0);
+			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
+				NETWORK_PEER_COUNT / 2 - 1,
+			);
 			for (let receivedMessages of Object.values(
 				nodePortToMessagesMap,
 			) as any) {
-				expect(receivedMessages).toBeInstanceOf('array');
+				expect(receivedMessages).toEqual(expect.any(Array));
 				expect(receivedMessages.length).toBeGreaterThan(
 					expectedMessagesLowerBound,
 				);

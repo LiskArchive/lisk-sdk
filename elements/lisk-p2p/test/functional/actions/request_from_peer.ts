@@ -13,7 +13,7 @@
  *
  */
 import { P2P } from '../../../src/index';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
 describe('P2P.requestFromPeer', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

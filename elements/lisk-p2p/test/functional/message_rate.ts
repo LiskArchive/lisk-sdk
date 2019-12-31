@@ -22,7 +22,7 @@ import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_START_PORT,
-} from 'utils/network_setup';
+} from '../utils/network_setup';
 
 describe('Message rate limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

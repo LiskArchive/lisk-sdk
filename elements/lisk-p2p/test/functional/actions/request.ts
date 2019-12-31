@@ -17,7 +17,7 @@ import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_PEER_COUNT,
-} from 'utils/network_setup';
+} from '../../utils/network_setup';
 
 describe('P2P.request', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -77,11 +77,12 @@ describe('P2P.request', () => {
 		}
 
 		for (let requestsHandled of Object.values(nodePortToResponsesMap) as any) {
-			expect(requestsHandled).toBeInstanceOf('array');
+			expect(requestsHandled).toEqual(expect.any(Array));
+
 			expect(requestsHandled.length).toBeGreaterThan(
 				expectedRequestsLowerBound,
 			);
 			expect(requestsHandled.length).toBeLessThan(expectedRequestsUpperBound);
 		}
-	}).timeout(5000);
+	});
 });

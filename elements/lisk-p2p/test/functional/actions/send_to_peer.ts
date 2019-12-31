@@ -17,7 +17,7 @@ import {
 	createNetwork,
 	destroyNetwork,
 	SEED_PEER_IP,
-} from 'utils/network_setup';
+} from '../../utils/network_setup';
 import { constructPeerId } from '../../../src/utils';
 
 describe('P2P.sendToPeer', () => {
@@ -45,15 +45,11 @@ describe('P2P.sendToPeer', () => {
 		);
 
 		p2pNodeList[1].on('messageReceived', msg => {
-			expect(msg)
-				.toHaveProperty('peerId')
-				.toBe(constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort));
-			expect(msg)
-				.toHaveProperty('event')
-				.toBe('foo');
-			expect(msg)
-				.toHaveProperty('data')
-				.toBe(123);
+			expect(msg).toMatchObject({
+				peerId: constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
+				event: 'foo',
+				data: 123,
+			});
 		});
 	});
 });

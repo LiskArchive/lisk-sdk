@@ -20,7 +20,7 @@ import {
 	EVENT_CLOSE_OUTBOUND,
 } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Backup and Restore', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

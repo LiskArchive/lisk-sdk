@@ -41,45 +41,30 @@ describe('Custom nodeInfo', () => {
 			const newPeers = (p2p as any)._peerBook.newPeers;
 
 			for (let peer of triedPeers) {
-				expect(peer)
-					.has.property('sharedState')
-					.toHaveProperty('modules')
-					.has.property('names')
-					.toBeInstanceOf('array');
-
-				expect(peer)
-					.has.property('sharedState')
-					.toHaveProperty('modules')
-					.has.property('active')
-					.toBeInstanceOf('boolean');
+				expect(peer).toMatchObject({
+					sharedState: {
+						modules: { names: expect.any(Array), active: expect.any(Boolean) },
+					},
+				});
 			}
 
 			for (let peer of newPeers) {
 				if (peer.modules) {
-					expect(peer)
-						.has.property('sharedState')
-						.toHaveProperty('modules')
-						.has.property('names')
-						.toBeInstanceOf('array');
-
-					expect(peer)
-						.has.property('sharedState')
-						.toHaveProperty('modules')
-						.has.property('active')
-						.toBeInstanceOf('boolean');
+					expect(peer).toMatchObject({
+						sharedState: {
+							modules: {
+								names: expect.any(Array),
+								active: expect.any(Boolean),
+							},
+						},
+					});
 				}
 			}
 
 			for (let peer of p2p.getConnectedPeers()) {
-				expect(peer)
-					.toHaveProperty('modules')
-					.has.property('names')
-					.toBeInstanceOf('array');
-
-				expect(peer)
-					.toHaveProperty('modules')
-					.has.property('active')
-					.toBeInstanceOf('boolean');
+				expect(peer).toMatchObject({
+					modules: { names: expect.any(Array), active: expect.any(Boolean) },
+				});
 			}
 		}
 	});

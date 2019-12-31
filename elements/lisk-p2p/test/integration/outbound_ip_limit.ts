@@ -16,14 +16,14 @@ import { P2P } from '../../src/index';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 import { OutboundPeer } from '../../src/peer';
 
-describe('Outbound IP limit', () => {
+describe.skip('Outbound IP limit', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	before(async () => {
+	beforeAll(async () => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
@@ -85,7 +85,7 @@ describe('Outbound IP limit', () => {
 		}
 	});
 
-	after(async () => {
+	afterAll(async () => {
 		SCServerSocket.prototype = serverSocketPrototypeBackup;
 	});
 });

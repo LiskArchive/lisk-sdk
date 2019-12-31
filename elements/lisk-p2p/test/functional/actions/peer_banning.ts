@@ -18,7 +18,7 @@ import {
 	createNetwork,
 	destroyNetwork,
 	SEED_PEER_IP,
-} from 'utils/network_setup';
+} from '../../utils/network_setup';
 import {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,

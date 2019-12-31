@@ -14,7 +14,7 @@
  */
 
 import { P2P, RequestFailError } from '../../src/index';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Unseeded network: Each node has an empty seedPeers list', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

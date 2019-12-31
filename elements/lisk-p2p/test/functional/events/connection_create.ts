@@ -73,40 +73,40 @@ describe(`Connection Create`, () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
-			expect(payload)
-				.toHaveProperty('wsPort')
-				.toBe(secondNode.nodeInfo.wsPort);
-			expect(payload).toHaveProperty('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: secondNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
-			expect(payload)
-				.toHaveProperty('wsPort')
-				.toBe(firstNode.nodeInfo.wsPort);
-			expect(payload).toHaveProperty('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: firstNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
-			expect(payload)
-				.toHaveProperty('wsPort')
-				.toBe(firstNode.nodeInfo.wsPort);
-			expect(payload).toHaveProperty('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: firstNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
-			expect(payload)
-				.toHaveProperty('wsPort')
-				.toBe(secondNode.nodeInfo.wsPort);
-			expect(payload).toHaveProperty('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: secondNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should update peerBook with connected peer`, async () => {

@@ -23,7 +23,7 @@ import {
 	NETWORK_CREATION_WAIT_TIME,
 	SEED_PEER_IP,
 } from '../utils/network_setup';
-import { wait } from 'utils/helpers';
+import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
 
 describe('P2P protocol message limit', () => {

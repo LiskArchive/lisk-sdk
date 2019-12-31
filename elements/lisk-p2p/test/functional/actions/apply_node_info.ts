@@ -110,8 +110,10 @@ describe('P2P.applyNodeInfo', () => {
 			)
 			.forEach((receivedMessages: any) => {
 				expect(receivedMessages.length).toBe(1);
-				expect(receivedMessages[0].request).toMatchSnapshot();
-				expect(receivedMessages[0].request.data.height).toBe(10);
+
+				expect(receivedMessages[0].request).toMatchObject({
+					data: { height: 10 },
+				});
 			});
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
@@ -119,8 +121,18 @@ describe('P2P.applyNodeInfo', () => {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
-			expect(firstP2PNodePeerInfo).toMatchSnapshot();
-			expect(firstP2PNodePeerInfo?.height).toBe(10);
+			expect(firstP2PNodePeerInfo).toMatchObject({
+				advertiseAddress: true,
+				height: 10,
+				ipAddress: '127.0.0.1',
+				nethash:
+					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				os: 'darwin',
+				peerId: '127.0.0.1:5000',
+				protocolVersion: '1.1',
+				version: '1.0.1',
+				wsPort: 5000,
+			});
 		}
 	});
 
@@ -152,6 +164,21 @@ describe('P2P.applyNodeInfo', () => {
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					);
 				expect(firstNodeInAllPeersList).toMatchSnapshot();
+				expect(firstNodeInAllPeersList).toMatchObject({
+					sharedState: {
+						height: 10,
+						os: 'darwin',
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.1',
+						protocolVersion: '1.1',
+						nonce: expect.any(String),
+						advertiseAddress: true,
+					},
+					ipAddress: '127.0.0.1',
+					wsPort: 5000,
+					peerId: '127.0.0.1:5000',
+				});
 			}
 
 			// Check if the peerinfo is updated in connected peer list
@@ -165,6 +192,19 @@ describe('P2P.applyNodeInfo', () => {
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					);
 				expect(firstNodeInConnectedPeer).toMatchSnapshot();
+				expect(firstNodeInConnectedPeer).toMatchObject({
+					height: 10,
+					os: 'darwin',
+					nethash:
+						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					version: '1.0.1',
+					protocolVersion: '1.1',
+					nonce: expect.any(String),
+					advertiseAddress: true,
+					ipAddress: '127.0.0.1',
+					wsPort: 5000,
+					peerId: '127.0.0.1:5000',
+				});
 			}
 		}
 	});

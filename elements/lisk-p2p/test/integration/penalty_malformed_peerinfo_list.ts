@@ -18,7 +18,7 @@ import {
 	destroyNetwork,
 	SEED_PEER_IP,
 } from '../utils/network_setup';
-import { wait } from 'utils/helpers';
+import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
 
 describe('penalty sending malformed Peer List', () => {

@@ -14,7 +14,7 @@
  */
 import { P2P, EVENT_DISCOVERED_PEER } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Peer discovery threshold', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

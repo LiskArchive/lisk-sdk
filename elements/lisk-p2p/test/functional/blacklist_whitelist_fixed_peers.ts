@@ -22,7 +22,7 @@ import { wait } from '../utils/helpers';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
@@ -39,7 +39,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	];
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 
-	before(async () => {
+	beforeAll(async () => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
@@ -51,7 +51,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		};
 	});
 
-	after(async () => {
+	afterAll(async () => {
 		SCServerSocket.prototype = serverSocketPrototypeBackup;
 	});
 
@@ -243,7 +243,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).toEqual(fixedPeers);
+					expect(connectedPeersIPWS).toIncludeAllMembers(fixedPeers);
 				}
 			});
 		});
@@ -311,7 +311,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(triedPeersIPWS).toEqual(whitelistedPeers);
+					expect(triedPeersIPWS).toIncludeAllMembers(whitelistedPeers);
 				}
 			});
 		});
@@ -331,7 +331,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).toEqual(whitelistedPeers);
+					expect(connectedPeersIPWS).toIncludeAllMembers(whitelistedPeers);
 				}
 			});
 		});

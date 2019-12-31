@@ -100,7 +100,7 @@ describe('Network discovery', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		after(async () => {
+		afterAll(async () => {
 			await disconnectedNode.stop();
 			await wait(200);
 		});
@@ -127,7 +127,7 @@ describe('Network discovery', () => {
 
 				const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
-				expect(ALL_NODE_PORTS).toEqual(peerPorts);
+				expect(ALL_NODE_PORTS).toIncludeAllMembers(peerPorts);
 			}
 		});
 

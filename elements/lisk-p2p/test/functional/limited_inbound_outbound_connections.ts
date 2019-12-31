@@ -67,7 +67,7 @@ describe('Limited number of outbound/inbound connections', () => {
 			const allPeers = p2p['_peerBook'].allPeers;
 			const peerPorts = allPeers.map(peerInfo => peerInfo.wsPort);
 
-			expect(ALL_NODE_PORTS_WITH_LIMIT).toEqual(peerPorts);
+			expect(ALL_NODE_PORTS_WITH_LIMIT).toIncludeAllMembers(peerPorts);
 		}
 	});
 
@@ -75,7 +75,7 @@ describe('Limited number of outbound/inbound connections', () => {
 		for (let p2p of p2pNodeList) {
 			const connectedPeers = p2p.getConnectedPeers();
 
-			expect(connectedPeers).is.not.empty;
+			expect(connectedPeers).not.toBeEmpty;
 		}
 	});
 
