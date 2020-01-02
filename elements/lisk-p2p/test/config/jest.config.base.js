@@ -19,7 +19,7 @@ module.exports = {
 	collectCoverage: true,
 	coverageReporters: ['json', 'lcov', 'cobertura'],
 	rootDir: '../../../../',
-	setupFilesAfterEnv: ['<rootDir>/framework/test/jest/config/setup.js'],
+	setupFilesAfterEnv: ['<rootDir>/elements/lisk-p2p/test/config/setup.js'],
 
 	/**
 	 * restoreMocks [boolean]

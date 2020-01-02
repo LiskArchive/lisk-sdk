@@ -6,7 +6,25 @@
 		"esModuleInterop": true,
 		"importHelpers": true,
 		"rootDir": "src",
-		"outDir": "dist"
+		"outDir": "dist",
+		"types": [
+			"bip39",
+			"chai",
+			"chai-as-promised",
+			"expect",
+			"fs-extra",
+			"inquirer",
+			"jquery",
+			"listr",
+			"lockfile",
+			"mocha",
+			"node",
+			"semver",
+			"sinon",
+			"sinon-chai",
+			"strip-ansi",
+			"tar"
+		]
 	},
 	"include": ["src/**/*", "types/**/*", "../types/**/*"],
 	"files": ["src/default_config.json"]
