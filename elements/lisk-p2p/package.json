@@ -63,6 +63,7 @@
 	},
 	"devDependencies": {
 		"@types/component-emitter": "1.2.7",
+		"@types/jest": "24.0.25",
 		"@types/jsonwebtoken": "8.3.0",
 		"@types/lodash.clonedeep": "4.5.0",
 		"@types/lodash.shuffle": "4.2.6",
