@@ -48,12 +48,15 @@ describe('P2P.broadcast', () => {
 	});
 
 	it('should send a message to every connected peer', async () => {
+		// Arrange
 		const firstP2PNode = p2pNodeList[0];
 		const nodePortToMessagesMap: any = {};
 
+		// Act
 		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 		await wait(100);
 
+		// Assert
 		expect(Object.keys(collectedMessages)).toHaveLength(NETWORK_PEER_COUNT - 1);
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
@@ -68,19 +71,22 @@ describe('P2P.broadcast', () => {
 			NETWORK_PEER_COUNT - 1,
 		);
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
+			expect(receivedMessages).toEqual(expect.any(Array));
 			expect(receivedMessages).toHaveLength(1);
 		}
 	});
 
 	it('should receive a message in the correct format', async () => {
+		// Arrange
 		const firstP2PNode = p2pNodeList[0];
-		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 
+		// Act
+		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 		await wait(100);
 
+		// Assert
 		expect(collectedMessages).toEqual(expect.any(Array));
-
-		expect(collectedMessages.length).toEqual(NETWORK_PEER_COUNT - 1);
+		expect(collectedMessages).toHaveLength(NETWORK_PEER_COUNT - 1);
 
 		expect(collectedMessages[0]).toMatchObject({
 			message: {
