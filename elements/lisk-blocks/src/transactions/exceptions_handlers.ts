@@ -12,14 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import {
+	BaseTransaction,
+	Status as TransactionStatus,
+	TransactionResponse,
+} from '@liskhq/lisk-transactions';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+import { ExceptionOptions, WriteableTransactionResponse } from '../types';
 
 const checkSenderPublicKeyException = (
-	transactionResponse,
-	_,
-	exceptions = {},
+	transactionResponse: TransactionResponse,
+	_: BaseTransaction,
+	exceptions: ExceptionOptions = {},
 ) => {
 	if (
 		!exceptions.senderPublicKey ||
@@ -28,7 +32,7 @@ const checkSenderPublicKeyException = (
 		return false;
 	}
 
-	if (!transactionResponse.errors.length > 1) {
+	if (!(transactionResponse.errors.length > 1)) {
 		return false;
 	}
 
@@ -39,7 +43,11 @@ const checkSenderPublicKeyException = (
 	return true;
 };
 
-const checkSignature = (transactionResponse, transaction, exceptions = {}) => {
+const checkSignature = (
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
+) => {
 	if (
 		!exceptions.signatures ||
 		!exceptions.signatures.includes(transaction.id)
@@ -47,7 +55,7 @@ const checkSignature = (transactionResponse, transaction, exceptions = {}) => {
 		return false;
 	}
 
-	if (!transactionResponse.errors.length > 1) {
+	if (!(transactionResponse.errors.length > 1)) {
 		return false;
 	}
 
@@ -59,9 +67,9 @@ const checkSignature = (transactionResponse, transaction, exceptions = {}) => {
 };
 
 const checkSignSignature = (
-	transactionResponse,
-	transaction,
-	exceptions = {},
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
 ) => {
 	if (
 		!exceptions.signSignature ||
@@ -70,7 +78,7 @@ const checkSignSignature = (
 		return false;
 	}
 
-	if (!transactionResponse.errors.length > 1) {
+	if (!(transactionResponse.errors.length > 1)) {
 		return false;
 	}
 
@@ -81,7 +89,11 @@ const checkSignSignature = (
 	return true;
 };
 
-const checkNullByte = (transactionResponse, transaction, exceptions = {}) => {
+const checkNullByte = (
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
+) => {
 	if (
 		!exceptions.transactionWithNullByte ||
 		!exceptions.transactionWithNullByte.includes(transaction.id)
@@ -100,7 +112,11 @@ const checkNullByte = (transactionResponse, transaction, exceptions = {}) => {
 	return true;
 };
 
-const checkMultisig = (transactionResponse, transaction, exceptions = {}) => {
+const checkMultisig = (
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
+) => {
 	if (
 		!exceptions.multisignatures ||
 		!exceptions.multisignatures.includes(transaction.id)
@@ -119,12 +135,16 @@ const checkMultisig = (transactionResponse, transaction, exceptions = {}) => {
 	return true;
 };
 
-const checkVotes = (transactionResponse, transaction, exceptions = {}) => {
+const checkVotes = (
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
+) => {
 	if (!exceptions.votes || !exceptions.votes.includes(transaction.id)) {
 		return false;
 	}
 
-	if (!transactionResponse.errors.length > 1) {
+	if (!(transactionResponse.errors.length > 1)) {
 		return false;
 	}
 
@@ -136,15 +156,15 @@ const checkVotes = (transactionResponse, transaction, exceptions = {}) => {
 };
 
 const checkVoteTransactionAmount = (
-	transactionResponse,
-	transaction,
-	exceptions = {},
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
 ) => {
 	if (!exceptions.votes || !exceptions.votes.includes(transaction.id)) {
 		return false;
 	}
 
-	if (!transactionResponse.errors.length > 1) {
+	if (!(transactionResponse.errors.length > 1)) {
 		return false;
 	}
 
@@ -156,9 +176,9 @@ const checkVoteTransactionAmount = (
 };
 
 const checkRecipientLeadingZero = (
-	transactionResponse,
-	transaction,
-	exceptions = {},
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
 ) => {
 	if (
 		!exceptions.recipientLeadingZero ||
@@ -167,7 +187,7 @@ const checkRecipientLeadingZero = (
 		return false;
 	}
 
-	if (!transactionResponse.errors.length > 1) {
+	if (!(transactionResponse.errors.length > 1)) {
 		return false;
 	}
 	if (transactionResponse.errors[0].dataPath !== '.recipientId') {
@@ -176,7 +196,8 @@ const checkRecipientLeadingZero = (
 
 	if (
 		exceptions.recipientLeadingZero[transactionResponse.id] !==
-		transaction.asset.recipientId
+		// tslint:disable-next-line no-any
+		(transaction.asset as any).recipientId
 	) {
 		return false;
 	}
@@ -185,9 +206,9 @@ const checkRecipientLeadingZero = (
 };
 
 const checkRecipientExceedingUint64 = (
-	transactionResponse,
-	transaction,
-	exceptions = {},
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
 ) => {
 	if (
 		!exceptions.recipientExceedingUint64 ||
@@ -205,7 +226,8 @@ const checkRecipientExceedingUint64 = (
 
 	if (
 		exceptions.recipientExceedingUint64[transactionResponse.id] !==
-		transaction.asset.recipientId
+		// tslint:disable-next-line no-any
+		(transaction.asset as any).recipientId
 	) {
 		return false;
 	}
@@ -214,9 +236,9 @@ const checkRecipientExceedingUint64 = (
 };
 
 const checkDuplicateSignatures = (
-	transactionResponse,
-	transaction,
-	exceptions = {},
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
 ) => {
 	if (
 		!exceptions.duplicatedSignatures ||
@@ -225,7 +247,7 @@ const checkDuplicateSignatures = (
 		return false;
 	}
 
-	// in case of signatures, we have more than 1 error
+	// In case of signatures, we have more than 1 error
 	if (
 		!transactionResponse.errors.every(error => error.dataPath === '.signatures')
 	) {
@@ -235,10 +257,10 @@ const checkDuplicateSignatures = (
 	return true;
 };
 
-const checkIfTransactionIsException = (
-	transactionResponse,
-	transaction,
-	exceptions = {},
+export const checkIfTransactionIsException = (
+	transactionResponse: TransactionResponse,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
 ) =>
 	[
 		checkSenderPublicKeyException,
@@ -255,14 +277,17 @@ const checkIfTransactionIsException = (
 		.map(fn => fn(transactionResponse, transaction, exceptions))
 		.some(isException => isException);
 
-const checkIfTransactionIsInert = (transaction, exceptions = {}) =>
+export const checkIfTransactionIsInert = (
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
+) =>
 	exceptions.inertTransactions &&
 	exceptions.inertTransactions.includes(transaction.id);
 
-const updateTransactionResponseForExceptionTransactions = (
-	unprocessableTransactionResponses,
-	transactions,
-	exceptions,
+export const updateTransactionResponseForExceptionTransactions = (
+	unprocessableTransactionResponses: TransactionResponse[],
+	transactions: ReadonlyArray<BaseTransaction>,
+	exceptions: ExceptionOptions,
 ) => {
 	const unprocessableTransactionAndResponsePairs = unprocessableTransactionResponses.map(
 		unprocessableTransactionResponse => ({
@@ -277,27 +302,15 @@ const updateTransactionResponseForExceptionTransactions = (
 		({ transactionResponse, transaction }) =>
 			checkIfTransactionIsException(
 				transactionResponse,
-				transaction,
+				transaction as BaseTransaction,
 				exceptions,
 			),
 	);
 
 	// Update the transaction response for exception transactions
 	exceptionTransactionsAndResponsePairs.forEach(({ transactionResponse }) => {
-		transactionResponse.status = TransactionStatus.OK;
-		transactionResponse.errors = [];
+		(transactionResponse as WriteableTransactionResponse).status =
+			TransactionStatus.OK;
+		(transactionResponse as WriteableTransactionResponse).errors = [];
 	});
-};
-
-module.exports = {
-	checkSenderPublicKeyException,
-	checkSignature,
-	checkSignSignature,
-	checkDuplicateSignatures,
-	checkMultisig,
-	checkVotes,
-	checkNullByte,
-	checkIfTransactionIsException,
-	checkIfTransactionIsInert,
-	updateTransactionResponseForExceptionTransactions,
 };

@@ -14,10 +14,28 @@
 
 'use strict';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionsModule = require('./transactions');
+import {
+	Status as TransactionStatus,
+	TransactionResponse,
+} from '@liskhq/lisk-transactions';
 
-const verifyBlockNotExists = async (storage, block) => {
+import { StateStore } from './state_store';
+import * as transactionsModule from './transactions';
+import {
+	BlockHeader,
+	BlockHeaderJSON,
+	BlockInstance,
+	Context,
+	ExceptionOptions,
+	MatcherTransaction,
+	Slots,
+	Storage,
+} from './types';
+
+export const verifyBlockNotExists = async (
+	storage: Storage,
+	block: BlockHeaderJSON,
+) => {
 	const isPersisted = await storage.entities.Block.isPersisted({
 		id: block.id,
 	});
@@ -26,7 +44,11 @@ const verifyBlockNotExists = async (storage, block) => {
 	}
 };
 
-const verifyPreviousBlockId = (block, lastBlock, genesisBlock) => {
+export const verifyPreviousBlockId = (
+	block: BlockHeaderJSON,
+	lastBlock: BlockHeaderJSON,
+	genesisBlock: BlockHeaderJSON,
+) => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
 		!block.previousBlockId &&
@@ -41,15 +63,32 @@ const verifyPreviousBlockId = (block, lastBlock, genesisBlock) => {
 	}
 };
 
-class BlocksVerify {
-	constructor({ storage, exceptions, slots, genesisBlock }) {
+interface BlockVerifyInput {
+	readonly storage: Storage;
+	readonly slots: Slots;
+	readonly exceptions: ExceptionOptions;
+	readonly genesisBlock: BlockHeader;
+}
+
+export class BlocksVerify {
+	private readonly storage: Storage;
+	private readonly slots: Slots;
+	private readonly exceptions: ExceptionOptions;
+	private readonly genesisBlock: BlockHeader;
+
+	public constructor({
+		storage,
+		exceptions,
+		slots,
+		genesisBlock,
+	}: BlockVerifyInput) {
 		this.storage = storage;
 		this.slots = slots;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 	}
 
-	async checkExists(block) {
+	public async checkExists(block: BlockHeaderJSON): Promise<void> {
 		const isPersisted = await this.storage.entities.Block.isPersisted({
 			id: block.id,
 		});
@@ -70,12 +109,15 @@ class BlocksVerify {
 		}
 	}
 
-	async checkTransactions(blockInstance, stateStore) {
+	public async checkTransactions(
+		blockInstance: BlockInstance,
+		stateStore: StateStore,
+	): Promise<void> {
 		const { version, height, timestamp, transactions } = blockInstance;
 		if (transactions.length === 0) {
 			return;
 		}
-		const context = {
+		const context: Context = {
 			blockVersion: version,
 			blockHeight: height,
 			blockTimestamp: timestamp,
@@ -90,9 +132,11 @@ class BlocksVerify {
 		);
 
 		const nonAllowedTxResponses = transactionsModule
-			.checkAllowedTransactions(context)(nonInertTransactions)
+			.checkAllowedTransactions(context)(
+				nonInertTransactions as MatcherTransaction[],
+			)
 			.transactionsResponses.find(
-				transactionResponse =>
+				(transactionResponse: TransactionResponse) =>
 					transactionResponse.status !== TransactionStatus.OK,
 			);
 
@@ -108,7 +152,7 @@ class BlocksVerify {
 		)(nonInertTransactions, stateStore);
 
 		const unverifiableTransactionsResponse = transactionsResponses.filter(
-			transactionResponse =>
+			(transactionResponse: TransactionResponse) =>
 				transactionResponse.status !== TransactionStatus.OK,
 		);
 
@@ -117,17 +161,11 @@ class BlocksVerify {
 		}
 	}
 
-	matchGenesisBlock(block) {
+	public matchGenesisBlock(block: BlockHeaderJSON): boolean {
 		return (
 			block.id === this.genesisBlock.id &&
-			block.payloadHash.toString('hex') === this.genesisBlock.payloadHash &&
-			block.blockSignature.toString('hex') === this.genesisBlock.blockSignature
+			block.payloadHash === this.genesisBlock.payloadHash &&
+			block.blockSignature === this.genesisBlock.blockSignature
 		);
 	}
 }
-
-module.exports = {
-	BlocksVerify,
-	verifyPreviousBlockId,
-	verifyBlockNotExists,
-};

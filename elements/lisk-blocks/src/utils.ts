@@ -11,15 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as BigNum from '@liskhq/bignum';
+import { hash } from '@liskhq/lisk-cryptography';
 
-'use strict';
+import {
+	BlockHeader,
+	BlockHeaderJSON,
+	Storage,
+	StorageTransaction,
+} from './types';
 
-const _ = require('lodash');
-const { hash } = require('@liskhq/lisk-cryptography');
-const BigNum = require('@liskhq/bignum');
-
-// eslint-disable-next-line class-methods-use-this
-const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
+export const loadBlocksFromLastBlockId = async (
+	storage: Storage,
+	lastBlockId: string,
+	limit: number,
+) => {
 	if (!lastBlockId) {
 		throw new Error('lastBlockId needs to be specified');
 	}
@@ -50,16 +56,18 @@ const loadBlocksFromLastBlockId = async (storage, lastBlockId, limit) => {
 	});
 };
 
-const getIdSequence = async (
-	storage,
-	height,
-	lastBlock,
-	genesisBlock,
-	numberOfDelegates,
+export const getIdSequence = async (
+	storage: Storage,
+	height: number,
+	lastBlock: BlockHeader,
+	genesisBlock: BlockHeader,
+	numberOfDelegates: number,
 ) => {
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
-	const rows = await storage.entities.Block.getFirstBlockIdOfLastRounds({
+	const rows: Array<Partial<
+		BlockHeaderJSON
+	>> = await storage.entities.Block.getFirstBlockIdOfLastRounds({
 		height,
 		numberOfRounds: 5,
 		numberOfDelegates,
@@ -68,22 +76,22 @@ const getIdSequence = async (
 		throw new Error(`Failed to get id sequence for height: ${height}`);
 	}
 
-	const ids = [];
+	const ids: string[] = [];
 
 	// Add genesis block at the end if the set doesn't contain it already
 	if (genesisBlock) {
-		const __genesisBlock = {
+		const partialGenesis = {
 			id: genesisBlock.id,
 			height: genesisBlock.height,
 		};
 
-		if (!_.includes(rows, __genesisBlock.id)) {
-			rows.push(__genesisBlock);
+		if (!rows.map(r => r.id).includes(partialGenesis.id)) {
+			rows.push(partialGenesis);
 		}
 	}
 
 	// Add last block at the beginning if the set doesn't contain it already
-	if (lastBlock && !_.includes(rows, lastBlock.id)) {
+	if (lastBlock && !rows.map(r => r.id).includes(lastBlock.id)) {
 		rows.unshift({
 			id: lastBlock.id,
 			height: lastBlock.height,
@@ -93,8 +101,8 @@ const getIdSequence = async (
 	// Extract blocks IDs
 	rows.forEach(row => {
 		// FIXME: Looks like double check
-		if (!_.includes(ids, row.id)) {
-			ids.push(row.id);
+		if (!ids.includes(row.id as string)) {
+			ids.push(row.id as string);
 		}
 	});
 
@@ -104,7 +112,7 @@ const getIdSequence = async (
 	};
 };
 
-const addBlockProperties = block => {
+export const addBlockProperties = (block: BlockHeaderJSON) => {
 	block.totalAmount = new BigNum(block.totalAmount || 0);
 	block.totalFee = new BigNum(block.totalFee || 0);
 	block.reward = new BigNum(block.reward || 0);
@@ -113,11 +121,8 @@ const addBlockProperties = block => {
 		block.version = 0;
 	}
 	if (block.numberOfTransactions === undefined) {
-		if (block.transactions === undefined) {
-			block.numberOfTransactions = 0;
-		} else {
-			block.numberOfTransactions = block.transactions.length;
-		}
+		block.numberOfTransactions =
+			block.transactions === undefined ? 0 : block.transactions.length;
 	}
 	if (block.payloadLength === undefined) {
 		block.payloadLength = 0;
@@ -125,57 +130,73 @@ const addBlockProperties = block => {
 	if (block.transactions === undefined) {
 		block.transactions = [];
 	}
+
 	return block;
 };
 
-const deleteBlockProperties = block => {
+export const deleteBlockProperties = (block: BlockHeader) => {
 	const reducedBlock = {
 		...block,
 	};
+	/* tslint:disable:no-delete */
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
 	}
-	// verifyBlock ensures numberOfTransactions is transactions.length
+	// VerifyBlock ensures numberOfTransactions is transactions.length
 	if (typeof reducedBlock.numberOfTransactions === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
-	if (reducedBlock.totalAmount.equals(0)) {
+	if (reducedBlock.totalAmount.eq(0)) {
 		delete reducedBlock.totalAmount;
 	}
-	if (reducedBlock.totalFee.equals(0)) {
+	if (reducedBlock.totalFee.eq(0)) {
 		delete reducedBlock.totalFee;
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
 	}
-	if (reducedBlock.reward.equals(0)) {
+	if (reducedBlock.reward.eq(0)) {
 		delete reducedBlock.reward;
 	}
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
 		delete reducedBlock.transactions;
 	}
+	/* tslint:enable:no-delete */
+
 	return reducedBlock;
 };
 
-const getId = blockBytes => {
+export const getId = (blockBytes: Buffer): string => {
 	const hashedBlock = hash(blockBytes);
+	// tslint:disable-next-line no-magic-numbers
 	const temp = Buffer.alloc(8);
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < 8; i++) {
+	// tslint:disable-next-line no-magic-numbers no-let
+	for (let i = 0; i < 8; i += 1) {
+		// tslint:disable-next-line no-magic-numbers
 		temp[i] = hashedBlock[7 - i];
 	}
 
-	// eslint-disable-next-line new-cap
-	const id = new BigNum.fromBuffer(temp).toString();
+	const id = BigNum.fromBuffer(temp).toString();
+
 	return id;
 };
 
-const setHeight = (block, lastBlock) => {
+export const setHeight = (
+	block: BlockHeader,
+	lastBlock: BlockHeader,
+): BlockHeader => {
 	block.height = lastBlock.height + 1;
+
 	return block;
 };
 
-const loadMemTables = async (storage, tx) => {
+export const loadMemTables = async (
+	storage: Storage,
+	tx: StorageTransaction,
+): Promise<{
+	readonly blocksCount: number;
+	readonly genesisBlock: BlockHeaderJSON;
+}> => {
 	const promises = [
 		storage.entities.Block.count({}, {}, tx),
 		storage.entities.Block.getOne({ height: 1 }, {}, tx),
@@ -187,14 +208,4 @@ const loadMemTables = async (storage, tx) => {
 		blocksCount,
 		genesisBlock,
 	};
-};
-
-module.exports = {
-	getId,
-	getIdSequence,
-	loadBlocksFromLastBlockId,
-	loadMemTables,
-	setHeight,
-	addBlockProperties,
-	deleteBlockProperties,
 };

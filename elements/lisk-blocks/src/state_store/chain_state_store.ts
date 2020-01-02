@@ -25,7 +25,10 @@ export class ChainStateStore {
 	private readonly _tx: StorageTransaction | undefined;
 	private readonly _chainState: ChainStateEntity;
 
-	public constructor(chainStateEntity: ChainStateEntity, { tx }: { readonly tx?: StorageTransaction } = { tx: undefined }) {
+	public constructor(
+		chainStateEntity: ChainStateEntity,
+		{ tx }: { readonly tx?: StorageTransaction } = { tx: undefined },
+	) {
 		this._chainState = chainStateEntity;
 		this._data = {};
 		this._originalData = {};

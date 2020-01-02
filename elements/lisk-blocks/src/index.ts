@@ -14,20 +14,7 @@
 
 'use strict';
 
-const {
-	calculateMilestone,
-	calculateReward,
-	calculateSupply,
-} = require('./block_reward');
-const { Blocks } = require('./blocks');
-const { baseBlockSchema } = require('./schema');
-const { StateStore } = require('./state_store');
-
-module.exports = {
-	Blocks,
-	StateStore,
-	baseBlockSchema,
-	calculateMilestone,
-	calculateReward,
-	calculateSupply,
-};
+export * from './block_reward';
+export { Blocks } from './blocks';
+export { baseBlockSchema } from './schema';
+export { StateStore } from './state_store';

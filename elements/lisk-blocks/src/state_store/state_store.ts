@@ -25,9 +25,15 @@ export class StateStore {
 	public readonly transaction: TransactionStore;
 	public readonly chainState: ChainStateStore;
 
-	public constructor(storage: Storage, options: { readonly tx?: StorageTransaction | undefined } = {}) {
+	public constructor(
+		storage: Storage,
+		options: { readonly tx?: StorageTransaction | undefined } = {},
+	) {
 		this.account = new AccountStore(storage.entities.Account, options);
-		this.transaction = new TransactionStore(storage.entities.Transaction, options);
+		this.transaction = new TransactionStore(
+			storage.entities.Transaction,
+			options,
+		);
 		this.chainState = new ChainStateStore(storage.entities.ChainState, options);
 	}
 

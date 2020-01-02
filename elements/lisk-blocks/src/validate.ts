@@ -12,12 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as BigNum from '@liskhq/bignum';
+import { hash, verifyData } from '@liskhq/lisk-cryptography';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
 
-const BigNum = require('@liskhq/bignum');
-const { hash, verifyData } = require('@liskhq/lisk-cryptography');
+import { BlockHeaderJSON, ExceptionOptions, Slots } from './types';
 
-const validateSignature = (block, blockBytes) => {
+export const validateSignature = (
+	block: BlockHeaderJSON,
+	blockBytes: Buffer,
+): void => {
 	const signatureLength = 64;
 	const dataWithoutSignature = blockBytes.slice(
 		0,
@@ -36,7 +40,10 @@ const validateSignature = (block, blockBytes) => {
 	}
 };
 
-const validatePreviousBlockProperty = (block, genesisBlock) => {
+export const validatePreviousBlockProperty = (
+	block: BlockHeaderJSON,
+	genesisBlock: BlockHeaderJSON,
+): void => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
 		!block.previousBlockId &&
@@ -52,21 +59,29 @@ const validatePreviousBlockProperty = (block, genesisBlock) => {
 	}
 };
 
-const validateReward = (block, expectedReward, exceptions) => {
-	expectedReward = new BigNum(expectedReward);
+export const validateReward = (
+	block: BlockHeaderJSON,
+	expectedReward: string,
+	exceptions: ExceptionOptions,
+): void => {
+	const expectedRewardBigNum = new BigNum(expectedReward);
 
 	if (
 		block.height !== 1 &&
-		!expectedReward.equals(block.reward) &&
+		!expectedRewardBigNum.eq(block.reward) &&
 		(!exceptions.blockRewards || !exceptions.blockRewards.includes(block.id))
 	) {
 		throw new Error(
-			`Invalid block reward: ${block.reward} expected: ${expectedReward}`,
+			`Invalid block reward: ${block.reward as string} expected: ${expectedReward}`,
 		);
 	}
 };
 
-const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
+export const validatePayload = (
+	block: BlockHeaderJSON,
+	maxTransactionsPerBlock: number,
+	maxPayloadLength: number,
+): void => {
 	if (block.payloadLength > maxPayloadLength) {
 		throw new Error('Payload length is too long');
 	}
@@ -81,10 +96,13 @@ const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
 		throw new Error('Number of transactions exceeds maximum per block');
 	}
 
+	// tslint:disable-next-line no-let
 	let totalAmount = new BigNum(0);
+	// tslint:disable-next-line no-let
 	let totalFee = new BigNum(0);
-	const transactionsBytesArray = [];
-	const appliedTransactions = {};
+	const transactionsBytesArray: Buffer[] = [];
+	// tslint:disable-next-line readonly-keyword
+	const appliedTransactions: { [id: string]: BaseTransaction } = {};
 
 	block.transactions.forEach(transaction => {
 		const transactionBytes = transaction.getBytes();
@@ -108,17 +126,21 @@ const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
 		throw new Error('Invalid payload hash');
 	}
 
-	if (!totalAmount.equals(block.totalAmount)) {
+	if (!totalAmount.eq(block.totalAmount)) {
 		throw new Error('Invalid total amount');
 	}
 
-	if (!totalFee.equals(block.totalFee)) {
+	if (!totalFee.eq(block.totalFee)) {
 		throw new Error('Invalid total fee');
 	}
 };
 
 // TODO: Move to DPOS validation
-const validateBlockSlot = (block, lastBlock, slots) => {
+export const validateBlockSlot = (
+	block: BlockHeaderJSON,
+	lastBlock: BlockHeaderJSON,
+	slots: Slots,
+): void => {
 	const blockSlotNumber = slots.getSlotNumber(block.timestamp);
 	const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
@@ -128,12 +150,4 @@ const validateBlockSlot = (block, lastBlock, slots) => {
 	) {
 		throw new Error('Invalid block timestamp');
 	}
-};
-
-module.exports = {
-	validateSignature,
-	validatePreviousBlockProperty,
-	validateReward,
-	validatePayload,
-	validateBlockSlot,
 };

@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const baseBlockSchema = {
+export const baseBlockSchema = {
 	type: 'object',
 	properties: {
 		id: {
@@ -87,8 +85,4 @@ const baseBlockSchema = {
 		'transactions',
 		'version',
 	],
-};
-
-module.exports = {
-	baseBlockSchema,
 };

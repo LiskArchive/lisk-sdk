@@ -12,24 +12,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 import { cloneDeep, isEqual, pick, uniq, uniqBy } from 'lodash';
 
-import { Account, StorageEntity, StorageFilters, StorageTransaction } from "../types";
+import {
+	Account,
+	StorageEntity,
+	StorageFilters,
+	StorageTransaction,
+} from '../types';
 
 type AccountWithoutAddress = Omit<Account, 'address'>;
 // tslint:disable-next-line no-null-keyword no-null-undefined-union
-type AccountKeys = Account & { readonly [key: string]: string | number | boolean | null | undefined };
+type AccountKeys = Account & {
+	readonly [key: string]: string | number | boolean | null;
+};
 
 const defaultAccount: AccountWithoutAddress = {
-    // tslint:disable-next-line no-null-keyword
-	publicKey: null,
-    // tslint:disable-next-line no-null-keyword
+	publicKey: undefined,
+	// tslint:disable-next-line no-null-keyword
 	secondPublicKey: null,
-	secondSignature: false,
-    // tslint:disable-next-line no-null-keyword
+	secondSignature: 0,
+	// tslint:disable-next-line no-null-keyword
 	username: null,
-	isDelegate: false,
+	isDelegate: 0,
 	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
@@ -39,6 +44,7 @@ const defaultAccount: AccountWithoutAddress = {
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
+	votedDelegatesPublicKeys: [],
 	asset: {},
 };
 
@@ -48,11 +54,14 @@ export class AccountStore {
 	private _originalData: Account[];
 	private _updatedKeys: { [key: number]: string[] } = {};
 	private _originalUpdatedKeys: { [key: number]: string[] } = {};
-	private readonly _primaryKey  = 'address';
-	private readonly _name  = 'Account';
+	private readonly _primaryKey = 'address';
+	private readonly _name = 'Account';
 	private readonly _tx: StorageTransaction | undefined;
 
-	public constructor(accountEntity: StorageEntity<Account>, { tx }: { readonly tx?: StorageTransaction } = { tx: undefined }) {
+	public constructor(
+		accountEntity: StorageEntity<Account>,
+		{ tx }: { readonly tx?: StorageTransaction } = { tx: undefined },
+	) {
 		this._account = accountEntity;
 		this._data = [];
 		this._updatedKeys = {};
@@ -63,12 +72,12 @@ export class AccountStore {
 		this._tx = tx;
 	}
 
-	public async cache(filter: StorageFilters): Promise<Account[]> {
-    	// tslint:disable-next-line no-null-keyword
+	public async cache(filter: StorageFilters): Promise<ReadonlyArray<Account>> {
+		// tslint:disable-next-line no-null-keyword
 		const result = await this._account.get(filter, { limit: null }, this._tx);
 		this._data = uniqBy([...this._data, ...result], this._primaryKey);
 
-		return cloneDeep(result);
+		return cloneDeep(result) as ReadonlyArray<Account>;
 	}
 
 	public createSnapshot(): void {
@@ -114,7 +123,9 @@ export class AccountStore {
 		return cloneDeep(defaultElement);
 	}
 
-	public find(fn: (value: Account, index: number, obj: Account[]) => unknown): Account | undefined {
+	public find(
+		fn: (value: Account, index: number, obj: Account[]) => unknown,
+	): Account | undefined {
 		return this._data.find(fn);
 	}
 
@@ -160,7 +171,7 @@ export class AccountStore {
 				const filter = { [this._primaryKey]: updatedItem[this._primaryKey] };
 				const updatedData = pick(updatedItem, updatedKeys);
 
-    			// tslint:disable-next-line no-null-keyword
+				// tslint:disable-next-line no-null-keyword
 				return this._account.upsert(filter, updatedData, null, this._tx);
 			},
 		);

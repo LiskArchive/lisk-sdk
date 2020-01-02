@@ -12,17 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const BigNum = require('@liskhq/bignum');
-const {
-	Status: TransactionStatus,
+import * as BigNum from '@liskhq/bignum';
+import {
+	BaseTransaction,
+	Status as TransactionStatus,
 	TransactionError,
-} = require('@liskhq/lisk-transactions');
-const votesWeight = require('./votes_weight');
-const exceptionsHandlers = require('./exceptions_handlers');
+	TransactionJSON,
+	TransactionResponse,
+} from '@liskhq/lisk-transactions';
 
-const validateTransactions = exceptions => transactions => {
+import { StateStore } from '../state_store';
+import {
+	Contexter,
+	ExceptionOptions,
+	MatcherTransaction,
+	Slots,
+	Storage,
+	WriteableTransactionResponse,
+} from '../types';
+
+import { TransactionHandledResult } from './compose_transaction_steps';
+import * as exceptionsHandlers from './exceptions_handlers';
+import * as votesWeight from './votes_weight';
+
+export const validateTransactions = (exceptions: ExceptionOptions) => (
+	transactions: ReadonlyArray<BaseTransaction>,
+): TransactionHandledResult => {
 	const transactionsResponses = transactions.map(transaction =>
 		transaction.validate(),
 	);
@@ -48,21 +63,28 @@ const validateTransactions = exceptions => transactions => {
  * credit transactions settling the balance. In one block total speding must be
  * less than the total balance
  */
-const verifyTotalSpending = (transactions, stateStore) => {
-	const spendingErrors = [];
+export const verifyTotalSpending = (
+	transactions: ReadonlyArray<BaseTransaction>,
+	stateStore: StateStore,
+) => {
+	const spendingErrors: TransactionResponse[] = [];
 
 	// Group the transactions per senderId to calculate total spending
 	const senderTransactions = transactions.reduce((rv, x) => {
 		(rv[x.senderId] = rv[x.senderId] || []).push(x);
+
 		return rv;
-	}, {});
+		// tslint:disable-next-line readonly-keyword no-object-literal-type-assertion
+	}, {} as { [key: string]: BaseTransaction[] });
 
 	// We need to get the transaction id which cause exceeding the sufficient balance
 	// So we can't sum up all transactions together at once
-	const senderSpending = {};
+	// tslint:disable-next-line readonly-keyword
+	const senderSpending: { [key: string]: BigNum } = {};
 	Object.keys(senderTransactions).forEach(senderId => {
 		// We don't need to perform spending check if account have only one transaction
 		// Its balance check will be performed by transaction processing
+		// tslint:disable-next-line no-magic-numbers
 		if (senderTransactions[senderId].length < 2) {
 			return;
 		}
@@ -75,7 +97,8 @@ const verifyTotalSpending = (transactions, stateStore) => {
 
 		senderTransactions[senderId].forEach(transaction => {
 			const senderTotalSpending = senderSpending[senderId]
-				.plus(transaction.asset.amount || 0)
+				// tslint:disable-next-line no-any
+				.plus((transaction.asset as any).amount || 0)
 				.plus(transaction.fee);
 
 			if (senderBalance.lt(senderTotalSpending)) {
@@ -99,7 +122,10 @@ const verifyTotalSpending = (transactions, stateStore) => {
 	return spendingErrors;
 };
 
-const applyGenesisTransactions = () => async (transactions, stateStore) => {
+export const applyGenesisTransactions = () => async (
+	transactions: ReadonlyArray<BaseTransaction>,
+	stateStore: StateStore,
+) => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	for (const transaction of transactions) {
 		await transaction.prepare(stateStore);
@@ -113,10 +139,12 @@ const applyGenesisTransactions = () => async (transactions, stateStore) => {
 		const transactionResponse = transaction.apply(stateStore);
 
 		votesWeight.apply(stateStore, transaction);
-		stateStore.transaction.add(transaction);
+		stateStore.transaction.add(transaction as TransactionJSON);
 
 		// We are overriding the status of transaction because it's from genesis block
-		transactionResponse.status = TransactionStatus.OK;
+		(transactionResponse as WriteableTransactionResponse).status =
+			TransactionStatus.OK;
+
 		return transactionResponse;
 	});
 
@@ -125,7 +153,10 @@ const applyGenesisTransactions = () => async (transactions, stateStore) => {
 	};
 };
 
-const applyTransactions = exceptions => async (transactions, stateStore) => {
+export const applyTransactions = (exceptions: ExceptionOptions) => async (
+	transactions: ReadonlyArray<BaseTransaction>,
+	stateStore: StateStore,
+): Promise<TransactionHandledResult> => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	for (const transaction of transactions) {
 		await transaction.prepare(stateStore);
@@ -151,7 +182,7 @@ const applyTransactions = exceptions => async (transactions, stateStore) => {
 			stateStore.account.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			if (transactionResponse.status !== TransactionStatus.OK) {
-				// update transaction response mutates the transaction response object
+				// Update transaction response mutates the transaction response object
 				exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 					[transactionResponse],
 					transactionsWithoutSpendingErrors,
@@ -161,7 +192,7 @@ const applyTransactions = exceptions => async (transactions, stateStore) => {
 
 			if (transactionResponse.status === TransactionStatus.OK) {
 				votesWeight.apply(stateStore, transaction, exceptions);
-				stateStore.transaction.add(transaction);
+				stateStore.transaction.add(transaction as TransactionJSON);
 			}
 
 			if (transactionResponse.status !== TransactionStatus.OK) {
@@ -180,7 +211,9 @@ const applyTransactions = exceptions => async (transactions, stateStore) => {
 	};
 };
 
-const checkPersistedTransactions = storage => async transactions => {
+export const checkPersistedTransactions = (storage: Storage) => async (
+	transactions: ReadonlyArray<BaseTransaction>,
+) => {
 	if (!transactions.length) {
 		return {
 			transactionsResponses: [],
@@ -224,10 +257,14 @@ const checkPersistedTransactions = storage => async transactions => {
 	};
 };
 
-const checkAllowedTransactions = contexter => transactions => ({
+export const checkAllowedTransactions = (contexter: Contexter) => (
+	transactions: ReadonlyArray<BaseTransaction>,
+): TransactionHandledResult => ({
 	transactionsResponses: transactions.map(transaction => {
 		const context = typeof contexter === 'function' ? contexter() : contexter;
-		const allowed = !transaction.matcher || transaction.matcher(context);
+		const allowed =
+			!(transaction as MatcherTransaction).matcher ||
+			(transaction as MatcherTransaction).matcher(context);
 
 		return {
 			id: transaction.id,
@@ -244,7 +281,10 @@ const checkAllowedTransactions = contexter => transactions => ({
 	}),
 });
 
-const undoTransactions = exceptions => async (transactions, stateStore) => {
+export const undoTransactions = (exceptions: ExceptionOptions) => async (
+	transactions: ReadonlyArray<BaseTransaction>,
+	stateStore: StateStore,
+): Promise<TransactionHandledResult> => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	for (const transaction of transactions) {
 		await transaction.prepare(stateStore);
@@ -255,6 +295,7 @@ const undoTransactions = exceptions => async (transactions, stateStore) => {
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
 		votesWeight.undo(stateStore, transaction, exceptions);
+
 		return transactionResponse;
 	});
 
@@ -273,18 +314,22 @@ const undoTransactions = exceptions => async (transactions, stateStore) => {
 	};
 };
 
-const verifyTransactions = (slots, exceptions) => async (
-	transactions,
-	stateStore,
-) => {
+export const verifyTransactions = (
+	slots: Slots,
+	exceptions: ExceptionOptions,
+) => async (
+	transactions: ReadonlyArray<BaseTransaction>,
+	stateStore: StateStore,
+): Promise<TransactionHandledResult> => {
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		stateStore.createSnapshot();
 		const transactionResponse = transaction.apply(stateStore);
 		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
-			transactionResponse.status = TransactionStatus.FAIL;
-			transactionResponse.errors.push(
+			(transactionResponse as WriteableTransactionResponse).status =
+				TransactionStatus.FAIL;
+			(transactionResponse.errors as TransactionError[]).push(
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
 					transaction.id,
@@ -293,6 +338,7 @@ const verifyTransactions = (slots, exceptions) => async (
 			);
 		}
 		stateStore.restoreSnapshot();
+
 		return transactionResponse;
 	});
 
@@ -311,20 +357,19 @@ const verifyTransactions = (slots, exceptions) => async (
 	};
 };
 
-const processSignature = () => async (transaction, signature, stateStore) => {
+interface SingatureObject {
+	readonly signature: string;
+	readonly transactionId: string;
+	readonly publicKey: string;
+}
+
+export const processSignature = () => async (
+	transaction: BaseTransaction,
+	signature: SingatureObject,
+	stateStore: StateStore,
+) => {
 	await transaction.prepare(stateStore);
+
 	// Add multisignature to transaction and process
 	return transaction.addMultisignature(stateStore, signature);
-};
-
-module.exports = {
-	validateTransactions,
-	applyTransactions,
-	checkPersistedTransactions,
-	checkAllowedTransactions,
-	undoTransactions,
-	verifyTransactions,
-	processSignature,
-	applyGenesisTransactions,
-	verifyTotalSpending,
 };

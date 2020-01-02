@@ -29,7 +29,10 @@ export class TransactionStore {
 	private readonly _tx: StorageTransaction | undefined;
 	private readonly _transaction: StorageEntity<TransactionJSON>;
 
-	public constructor(transactionEntity: StorageEntity<TransactionJSON>, { tx }: { readonly tx?: StorageTransaction } = { tx: undefined }) {
+	public constructor(
+		transactionEntity: StorageEntity<TransactionJSON>,
+		{ tx }: { readonly tx?: StorageTransaction } = { tx: undefined },
+	) {
 		this._transaction = transactionEntity;
 		this._data = [];
 		this._originalData = [];
@@ -41,7 +44,7 @@ export class TransactionStore {
 	public async cache(filter: StorageFilters): Promise<TransactionJSON[]> {
 		const result = await this._transaction.get(
 			filter,
-    		// tslint:disable-next-line no-null-keyword
+			// tslint:disable-next-line no-null-keyword
 			{ extended: true, limit: null },
 			this._tx,
 		);
@@ -81,7 +84,13 @@ export class TransactionStore {
 		throw new Error(`getOrDefault cannot be called for ${this._name}`);
 	}
 
-	public find(fn: (value: TransactionJSON, index: number, obj: TransactionJSON[]) => unknown): TransactionJSON | undefined {
+	public find(
+		fn: (
+			value: TransactionJSON,
+			index: number,
+			obj: TransactionJSON[],
+		) => unknown,
+	): TransactionJSON | undefined {
 		return this._data.find(fn);
 	}
 

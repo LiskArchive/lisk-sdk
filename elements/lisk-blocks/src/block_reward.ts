@@ -14,26 +14,31 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
+import * as BigNum from '@liskhq/bignum';
 
-const parseHeight = height => {
+import { BlockRewardOptions } from './types';
+
+const parseHeight = (height: number): number => {
 	if (
 		typeof height === 'undefined' ||
 		height === null ||
 		Number.isNaN(height)
 	) {
 		throw new TypeError('Invalid block height');
-	} else {
-		return Math.abs(height);
 	}
+
+	return Math.abs(height);
 };
 
-const calculateMilestone = (height, blockRewardArgs) => {
-	height = parseHeight(height);
+export const calculateMilestone = (
+	height: number,
+	blockRewardArgs: BlockRewardOptions,
+): number => {
+	const parsedHeight = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
 
 	const location = Math.trunc(
-		(height - blockRewardArgs.rewardOffset) / distance,
+		(parsedHeight - blockRewardArgs.rewardOffset) / distance,
 	);
 	const lastMile =
 		blockRewardArgs.milestones[blockRewardArgs.milestones.length - 1];
@@ -41,54 +46,68 @@ const calculateMilestone = (height, blockRewardArgs) => {
 	if (location > blockRewardArgs.milestones.length - 1) {
 		return blockRewardArgs.milestones.lastIndexOf(lastMile);
 	}
+
 	return location;
 };
 
-const calculateReward = (height, blockRewardArgs) => {
-	height = parseHeight(height);
+export const calculateReward = (
+	height: number,
+	blockRewardArgs: BlockRewardOptions,
+) => {
+	const parsedHeight = parseHeight(height);
 
-	if (height < blockRewardArgs.rewardOffset) {
+	if (parsedHeight < blockRewardArgs.rewardOffset) {
 		return new BigNum(0);
 	}
+
 	return new BigNum(
-		blockRewardArgs.milestones[calculateMilestone(height, blockRewardArgs)],
+		blockRewardArgs.milestones[
+			calculateMilestone(parsedHeight, blockRewardArgs)
+		],
 	);
 };
 
-const calculateSupply = (height, blockRewardArgs) => {
-	height = parseHeight(height);
+export const calculateSupply = (
+	height: number,
+	blockRewardArgs: BlockRewardOptions,
+) => {
+	// tslint:disable-next-line no-let
+	let parsedHeight = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
+	// tslint:disable-next-line no-let
 	let supply = new BigNum(blockRewardArgs.totalAmount);
 
-	if (height < blockRewardArgs.rewardOffset) {
+	if (parsedHeight < blockRewardArgs.rewardOffset) {
 		// Rewards not started yet
 		return supply;
 	}
 
-	const milestone = calculateMilestone(height, blockRewardArgs);
+	const milestone = calculateMilestone(parsedHeight, blockRewardArgs);
 	const rewards = [];
 
+	// tslint:disable-next-line no-let
 	let amount = 0;
+	// tslint:disable-next-line no-let
 	let multiplier = 0;
 
 	// Remove offset from height
-	height -= blockRewardArgs.rewardOffset - 1;
+	parsedHeight -= blockRewardArgs.rewardOffset - 1;
 
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < blockRewardArgs.milestones.length; i++) {
+	// tslint:disable-next-line prefer-for-of no-let
+	for (let i = 0; i < blockRewardArgs.milestones.length; i += 1) {
 		if (milestone >= i) {
 			multiplier = blockRewardArgs.milestones[i];
 
-			if (height < distance) {
+			if (parsedHeight < distance) {
 				// Measure distance thus far
-				amount = height % distance;
+				amount = parsedHeight % distance;
 			} else {
 				amount = distance; // Assign completed milestone
-				height -= distance; // Deduct from total height
+				parsedHeight -= distance; // Deduct from total height
 
 				// After last milestone
-				if (height > 0 && i === blockRewardArgs.milestones.length - 1) {
-					amount += height;
+				if (parsedHeight > 0 && i === blockRewardArgs.milestones.length - 1) {
+					amount += parsedHeight;
 				}
 			}
 
@@ -98,13 +117,11 @@ const calculateSupply = (height, blockRewardArgs) => {
 		}
 	}
 
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < rewards.length; i++) {
+	// tslint:disable-next-line prefer-for-of no-let
+	for (let i = 0; i < rewards.length; i += 1) {
 		const reward = rewards[i];
-		supply = supply.plus(new BigNum(reward[0]).times(reward[1]));
+		supply = supply.plus(new BigNum(reward[0]).mul(reward[1]));
 	}
 
 	return supply;
 };
-
-module.exports = { calculateMilestone, calculateReward, calculateSupply };

@@ -14,9 +14,9 @@
 
 'use strict';
 
-const { checkIfTransactionIsInert } = require('./exceptions_handlers');
-const { composeTransactionSteps } = require('./compose_transaction_steps');
-const {
+export { checkIfTransactionIsInert } from './exceptions_handlers';
+export { composeTransactionSteps } from './compose_transaction_steps';
+export {
 	validateTransactions,
 	applyTransactions,
 	checkPersistedTransactions,
@@ -25,17 +25,4 @@ const {
 	verifyTransactions,
 	processSignature,
 	applyGenesisTransactions,
-} = require('./transactions_handlers');
-
-module.exports = {
-	composeTransactionSteps,
-	checkIfTransactionIsInert,
-	validateTransactions,
-	applyTransactions,
-	applyGenesisTransactions,
-	checkPersistedTransactions,
-	checkAllowedTransactions,
-	undoTransactions,
-	verifyTransactions,
-	processSignature,
-};
+} from './transactions_handlers';

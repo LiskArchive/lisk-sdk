@@ -11,15 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Status as TransactionStatus } from '@liskhq/lisk-transactions';
 
-'use strict';
+import { StateStore } from './state_store';
+import * as transactionsModule from './transactions';
+import {
+	BlockHeaderJSON,
+	BlockInstance,
+	ExceptionOptions,
+	Storage,
+	StorageTransaction,
+} from './types';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionsModule = require('./transactions');
-
+// tslint:disable-next-line no-magic-numbers
 const TRANSACTION_TYPES_VOTE = [3, 11];
 
-const saveBlock = async (storage, blockJSON, tx) => {
+export const saveBlock = async (
+	storage: Storage,
+	blockJSON: BlockHeaderJSON,
+	tx: StorageTransaction,
+): Promise<void> => {
 	if (!tx) {
 		throw new Error('Block should only be saved in a database tx');
 	}
@@ -35,12 +46,16 @@ const saveBlock = async (storage, blockJSON, tx) => {
 	return tx.batch(promises);
 };
 
-const deleteLastBlock = async (storage, lastBlock, tx) => {
+export const deleteLastBlock = async (
+	storage: Storage,
+	lastBlock: BlockHeaderJSON,
+	tx: StorageTransaction,
+): Promise<BlockHeaderJSON> => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
 	}
 	const [storageBlock] = await storage.entities.Block.get(
-		{ id: lastBlock.previousBlockId },
+		{ id: lastBlock.previousBlockId as string },
 		{ extended: true },
 		tx,
 	);
@@ -50,19 +65,25 @@ const deleteLastBlock = async (storage, lastBlock, tx) => {
 	}
 
 	await storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
+
 	return storageBlock;
 };
 
-const deleteFromBlockId = async (storage, blockId) => {
+export const deleteFromBlockId = async (storage: Storage, blockId: string) => {
 	const block = await storage.entities.Block.getOne({
 		id: blockId,
 	});
+
 	return storage.entities.Block.delete({
 		height_gt: block.height,
 	});
 };
 
-const applyConfirmedStep = async (blockInstance, stateStore, exceptions) => {
+export const applyConfirmedStep = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+	exceptions: ExceptionOptions,
+) => {
 	if (blockInstance.transactions.length <= 0) {
 		return;
 	}
@@ -86,11 +107,15 @@ const applyConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 	await stateStore.finalize();
 };
 
-const applyConfirmedGenesisStep = async (blockInstance, stateStore) => {
+export const applyConfirmedGenesisStep = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+): Promise<BlockInstance> => {
 	const sortedTransactionInstances = blockInstance.transactions.sort(a => {
 		if (TRANSACTION_TYPES_VOTE.includes(a.type)) {
 			return 1;
 		}
+
 		return 0;
 	});
 	await transactionsModule.applyGenesisTransactions()(
@@ -102,7 +127,11 @@ const applyConfirmedGenesisStep = async (blockInstance, stateStore) => {
 	return blockInstance;
 };
 
-const undoConfirmedStep = async (blockInstance, stateStore, exceptions) => {
+export const undoConfirmedStep = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+	exceptions: ExceptionOptions,
+): Promise<void> => {
 	if (blockInstance.transactions.length === 0) {
 		return;
 	}
@@ -126,13 +155,4 @@ const undoConfirmedStep = async (blockInstance, stateStore, exceptions) => {
 	}
 
 	await stateStore.finalize();
-};
-
-module.exports = {
-	saveBlock,
-	deleteLastBlock,
-	deleteFromBlockId,
-	applyConfirmedStep,
-	applyConfirmedGenesisStep,
-	undoConfirmedStep,
 };

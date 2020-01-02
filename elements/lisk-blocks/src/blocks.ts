@@ -14,52 +14,118 @@
 
 'use strict';
 
-const EventEmitter = require('events');
-const BigNum = require('@liskhq/bignum');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const {
+import * as BigNum from '@liskhq/bignum';
+import {
+	BaseTransaction,
+	Status as TransactionStatus,
+	TransactionJSON,
+	TransactionResponse,
+} from '@liskhq/lisk-transactions';
+import { EventEmitter } from 'events';
+
+import {
+	calculateMilestone,
+	calculateReward,
+	calculateSupply,
+} from './block_reward';
+import {
+	applyConfirmedGenesisStep,
+	applyConfirmedStep,
+	deleteFromBlockId,
+	deleteLastBlock,
+	saveBlock,
+	undoConfirmedStep,
+} from './chain';
+import { StateStore } from './state_store';
+import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
+import {
 	applyTransactions,
-	composeTransactionSteps,
-	checkPersistedTransactions,
 	checkAllowedTransactions,
+	checkPersistedTransactions,
+	composeTransactionSteps,
+	processSignature,
 	validateTransactions,
 	verifyTransactions,
-	processSignature,
-} = require('./transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('./transaction_interface_adapter');
-const { StateStore } = require('./state_store');
-const blocksUtils = require('./utils');
-const {
+} from './transactions';
+import { TransactionHandledResult } from './transactions/compose_transaction_steps';
+import {
+	BlockHeaderJSON,
+	BlockInstance,
+	BlockRewardOptions,
+	Contexter,
+	ExceptionOptions,
+	Logger,
+	MatcherTransaction,
+	Slots,
+	Storage,
+	StorageFilter,
+	StorageOptions,
+	StorageTransaction,
+	TempBlock,
+} from './types';
+import * as blocksUtils from './utils';
+import {
+	validateBlockSlot,
+	validatePayload,
+	validatePreviousBlockProperty,
+	validateReward,
+	validateSignature,
+} from './validate';
+import {
 	BlocksVerify,
 	verifyBlockNotExists,
 	verifyPreviousBlockId,
-} = require('./verify');
-const {
-	applyConfirmedStep,
-	applyConfirmedGenesisStep,
-	deleteLastBlock,
-	deleteFromBlockId,
-	undoConfirmedStep,
-	saveBlock,
-} = require('./chain');
-const {
-	calculateSupply,
-	calculateReward,
-	calculateMilestone,
-} = require('./block_reward');
-const {
-	validateSignature,
-	validatePreviousBlockProperty,
-	validateReward,
-	validatePayload,
-	validateBlockSlot,
-} = require('./validate');
+} from './verify';
 
-class Blocks extends EventEmitter {
-	constructor({
-		// components
+interface BlocksConfig {
+	// Components
+	readonly logger: Logger;
+	readonly storage: Storage;
+	// Unique requirements
+	readonly genesisBlock: BlockInstance;
+	readonly slots: Slots;
+	readonly exceptions: ExceptionOptions;
+	// Modules
+	readonly registeredTransactions: { readonly [key: number]: BaseTransaction };
+	// Constants
+	readonly networkIdentifier: string;
+	readonly blockReceiptTimeout: number; // Set default
+	readonly loadPerIteration: number;
+	readonly maxPayloadLength: number;
+	readonly maxTransactionsPerBlock: number;
+	readonly activeDelegates: number;
+	readonly rewardDistance: number;
+	readonly rewardOffset: number;
+	readonly rewardMileStones: ReadonlyArray<number>;
+	readonly totalAmount: string;
+	readonly blockSlotWindow: number;
+}
+
+export class Blocks extends EventEmitter {
+	private _lastBlock: BlockInstance;
+	private readonly blocksVerify: BlocksVerify;
+	private readonly _transactionAdapter: TransactionInterfaceAdapter;
+	private readonly logger: Logger;
+	private readonly storage: Storage;
+	private readonly slots: Slots;
+	private readonly blockRewardArgs: BlockRewardOptions;
+	private readonly exceptions: ExceptionOptions;
+	private readonly genesisBlock: BlockInstance;
+	private readonly constants: {
+		readonly blockReceiptTimeout: number;
+		readonly maxPayloadLength: number;
+		readonly maxTransactionsPerBlock: number;
+		readonly loadPerIteration: number;
+		readonly activeDelegates: number;
+		readonly blockSlotWindow: number;
+	};
+
+	public readonly blockReward: {
+		readonly [key: string]: (height: number) => number | BigNum;
+	};
+
+	public constructor({
+		// Components
 		logger,
 		storage,
 		// Unique requirements
@@ -68,9 +134,9 @@ class Blocks extends EventEmitter {
 		exceptions,
 		// Modules
 		registeredTransactions,
-		// constants
+		// Constants
 		networkIdentifier,
-		blockReceiptTimeout, // set default
+		blockReceiptTimeout, // Set default
 		loadPerIteration,
 		maxPayloadLength,
 		maxTransactionsPerBlock,
@@ -80,9 +146,9 @@ class Blocks extends EventEmitter {
 		rewardMileStones,
 		totalAmount,
 		blockSlotWindow,
-	}) {
+	}: BlocksConfig) {
 		super();
-		this._lastBlock = {};
+		this._lastBlock = genesisBlock;
 		this._transactionAdapter = new TransactionInterfaceAdapter(
 			networkIdentifier,
 			registeredTransactions,
@@ -120,18 +186,17 @@ class Blocks extends EventEmitter {
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
 		});
-
-		this.blocksUtils = blocksUtils;
 	}
 
-	get lastBlock() {
+	public get lastBlock(): BlockInstance {
 		// Remove receivedAt property..
 		const { receivedAt, ...block } = this._lastBlock;
+
 		return block;
 	}
 
-	async init() {
-		// check mem tables
+	public async init(): Promise<void> {
+		// Check mem tables
 		const {
 			genesisBlock,
 		} = await this.storage.entities.Block.begin(
@@ -156,8 +221,8 @@ class Blocks extends EventEmitter {
 		this._lastBlock = this.deserialize(storageLastBlock);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	serialize(blockInstance) {
+	// tslint:disable-next-line prefer-function-over-method
+	public serialize(blockInstance: BlockInstance): BlockHeaderJSON {
 		const blockJSON = {
 			...blockInstance,
 			totalAmount: blockInstance.totalAmount.toString(),
@@ -168,13 +233,15 @@ class Blocks extends EventEmitter {
 				blockId: blockInstance.id,
 			})),
 		};
+
 		return blockJSON;
 	}
 
-	deserialize(blockJSON) {
+	public deserialize(blockJSON: BlockHeaderJSON): BlockInstance {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
 			this._transactionAdapter.fromJSON(transaction),
 		);
+
 		return {
 			...blockJSON,
 			totalAmount: new BigNum(blockJSON.totalAmount || 0),
@@ -194,16 +261,22 @@ class Blocks extends EventEmitter {
 		};
 	}
 
-	deserializeTransaction(transactionJSON) {
+	public deserializeTransaction(
+		transactionJSON: TransactionJSON,
+	): BaseTransaction {
 		return this._transactionAdapter.fromJSON(transactionJSON);
 	}
 
-	validateBlockHeader(block, blockBytes, expectedReward) {
+	public validateBlockHeader(
+		block: BlockInstance,
+		blockBytes: Buffer,
+		expectedReward: string,
+	): void {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes);
 		validateReward(block, expectedReward, this.exceptions);
 
-		// validate transactions
+		// Validate transactions
 		const { transactionsResponses } = validateTransactions(this.exceptions)(
 			block.transactions,
 		);
@@ -226,13 +299,17 @@ class Blocks extends EventEmitter {
 		block.id = blocksUtils.getId(blockBytes);
 	}
 
-	verifyInMemory(block, lastBlock) {
+	public verifyInMemory(block: BlockInstance, lastBlock: BlockInstance): void {
 		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
 		validateBlockSlot(block, lastBlock, this.slots);
 	}
 
-	async verify(blockInstance, stateStore, { skipExistingCheck }) {
-		if (skipExistingCheck !== true) {
+	public async verify(
+		blockInstance: BlockInstance,
+		stateStore: StateStore,
+		{ skipExistingCheck }: { readonly skipExistingCheck: boolean },
+	): Promise<void> {
+		if (!skipExistingCheck) {
 			await verifyBlockNotExists(this.storage, blockInstance);
 			const {
 				transactionsResponses: persistedResponse,
@@ -250,32 +327,44 @@ class Blocks extends EventEmitter {
 		await this.blocksVerify.checkTransactions(blockInstance, stateStore);
 	}
 
-	async apply(blockInstance, stateStore) {
+	public async apply(
+		blockInstance: BlockInstance,
+		stateStore: StateStore,
+	): Promise<void> {
 		await applyConfirmedStep(blockInstance, stateStore, this.exceptions);
 
 		this._lastBlock = blockInstance;
 	}
 
-	async applyGenesis(blockInstance, stateStore) {
+	public async applyGenesis(
+		blockInstance: BlockInstance,
+		stateStore: StateStore,
+	): Promise<void> {
 		await applyConfirmedGenesisStep(blockInstance, stateStore);
 
 		this._lastBlock = blockInstance;
 	}
 
-	async save(blockJSON, tx) {
+	public async save(
+		blockJSON: BlockHeaderJSON,
+		tx: StorageTransaction,
+	): Promise<void> {
 		await saveBlock(this.storage, blockJSON, tx);
 	}
 
-	async undo(blockInstance, stateStore) {
+	public async undo(
+		blockInstance: BlockInstance,
+		stateStore: StateStore,
+	): Promise<void> {
 		await undoConfirmedStep(blockInstance, stateStore, this.exceptions);
 	}
 
-	async remove(
-		block,
-		blockJSON,
-		tx,
+	public async remove(
+		block: BlockInstance,
+		blockJSON: BlockHeaderJSON,
+		tx: StorageTransaction,
 		{ saveTempBlock } = { saveTempBlock: false },
-	) {
+	): Promise<void> {
 		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
 		const secondLastBlock = this.deserialize(storageRowOfBlock);
 
@@ -290,28 +379,39 @@ class Blocks extends EventEmitter {
 		this._lastBlock = secondLastBlock;
 	}
 
-	async removeBlockFromTempTable(blockId, tx) {
+	public async removeBlockFromTempTable(
+		blockId: string,
+		tx: StorageTransaction,
+	): Promise<void> {
 		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
 	}
 
-	async getTempBlocks(filter = {}, options = {}, tx) {
+	public async getTempBlocks(
+		filter: StorageFilter = {},
+		options: StorageOptions = {},
+		tx: StorageTransaction,
+	): Promise<TempBlock[]> {
 		return this.storage.entities.TempBlock.get(filter, options, tx);
 	}
 
-	async exists(block) {
+	public async exists(block: BlockInstance): Promise<boolean> {
 		try {
 			await verifyBlockNotExists(this.storage, block);
+
 			return false;
 		} catch (err) {
 			return true;
 		}
 	}
 
-	async deleteAfter(block) {
+	public async deleteAfter(block: BlockInstance): Promise<void> {
 		return deleteFromBlockId(this.storage, block.id);
 	}
 
-	async getJSONBlocksWithLimitAndOffset(limit, offset = 0) {
+	public async getJSONBlocksWithLimitAndOffset(
+		limit: number,
+		offset: number = 0,
+	): Promise<BlockHeaderJSON[]> {
 		// Calculate toHeight
 		const toHeight = offset + limit;
 
@@ -321,6 +421,7 @@ class Blocks extends EventEmitter {
 		};
 
 		const options = {
+			// tslint:disable-next-line no-null-keyword
 			limit: null,
 			sort: ['height:asc', 'rowId:asc'],
 			extended: true,
@@ -330,7 +431,10 @@ class Blocks extends EventEmitter {
 		return this.storage.entities.Block.get(filters, options);
 	}
 
-	async loadBlocksFromLastBlockId(lastBlockId, limit = 1) {
+	public async loadBlocksFromLastBlockId(
+		lastBlockId: string,
+		limit: number = 1,
+	): Promise<BlockHeaderJSON[]> {
 		return blocksUtils.loadBlocksFromLastBlockId(
 			this.storage,
 			lastBlockId,
@@ -339,7 +443,7 @@ class Blocks extends EventEmitter {
 	}
 
 	// TODO: Unit tests written in mocha, which should be migrated to jest.
-	async getHighestCommonBlock(ids) {
+	public async getHighestCommonBlock(ids: string[]): Promise<BlockHeaderJSON> {
 		try {
 			const [block] = await this.storage.entities.Block.get(
 				{
@@ -347,6 +451,7 @@ class Blocks extends EventEmitter {
 				},
 				{ sort: 'height:desc', limit: 1 },
 			);
+
 			return block;
 		} catch (e) {
 			const errMessage = 'Failed to fetch the highest common block';
@@ -356,10 +461,13 @@ class Blocks extends EventEmitter {
 	}
 
 	// TODO: Unit tests written in mocha, which should be migrated to jest.
-	async filterReadyTransactions(transactions, context) {
+	public async filterReadyTransactions(
+		transactions: BaseTransaction[],
+		context: Contexter,
+	): Promise<BaseTransaction[]> {
 		const stateStore = new StateStore(this.storage);
 		const allowedTransactionsIds = checkAllowedTransactions(context)(
-			transactions,
+			transactions as MatcherTransaction[],
 		)
 			.transactionsResponses.filter(
 				transactionResponse =>
@@ -379,22 +487,33 @@ class Blocks extends EventEmitter {
 				.map(response => response.id)
 				.includes(transaction.id),
 		);
+
 		return readyTransactions;
 	}
 
-	async validateTransactions(transactions) {
+	public async validateTransactions(
+		transactions: BaseTransaction[],
+	): Promise<TransactionHandledResult> {
 		return composeTransactionSteps(
-			checkAllowedTransactions(this.lastBlock),
+			checkAllowedTransactions({
+				blockVersion: this.lastBlock.version,
+				blockHeight: this.lastBlock.height,
+				blockTimestamp: this.lastBlock.timestamp,
+			}),
 			validateTransactions(this.exceptions),
 			// Composed transaction checks are all static, so it does not need state store
 		)(transactions, undefined);
 	}
 
-	async verifyTransactions(transactions) {
+	public async verifyTransactions(
+		transactions: BaseTransaction[],
+	): Promise<TransactionHandledResult> {
 		const stateStore = new StateStore(this.storage);
+
 		return composeTransactionSteps(
 			checkAllowedTransactions(() => {
 				const { version, height, timestamp } = this._lastBlock;
+
 				return {
 					blockVersion: version,
 					blockHeight: height,
@@ -406,20 +525,23 @@ class Blocks extends EventEmitter {
 		)(transactions, stateStore);
 	}
 
-	async processTransactions(transactions) {
+	public async processTransactions(
+		transactions: BaseTransaction[],
+	): Promise<TransactionHandledResult> {
 		const stateStore = new StateStore(this.storage);
+
 		return composeTransactionSteps(
 			checkPersistedTransactions(this.storage),
 			applyTransactions(this.exceptions),
 		)(transactions, stateStore);
 	}
 
-	async processSignature(transaction, signature) {
+	public async processSignature(
+		transaction: BaseTransaction,
+		signature: string,
+	): Promise<TransactionResponse> {
 		const stateStore = new StateStore(this.storage);
+
 		return processSignature()(transaction, signature, stateStore);
 	}
 }
-
-module.exports = {
-	Blocks,
-};

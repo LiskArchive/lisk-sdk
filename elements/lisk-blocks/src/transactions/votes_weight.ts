@@ -12,26 +12,52 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as BigNum from '@liskhq/bignum';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
 
-const BigNum = require('@liskhq/bignum');
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
+import { StateStore } from '../state_store';
+import { ExceptionOptions } from '../types';
+
+interface VoteAsset {
+	readonly votes: ReadonlyArray<string>;
+}
+
+interface TransferAsset {
+	readonly amount: string;
+	readonly recipientId: string;
+}
+
+interface InTransferAsset {
+	readonly inTransfer: {
+		readonly dappId: string;
+	};
+}
+
+interface DelegateCalculateInput {
+	readonly delegatePublicKey: string;
+	readonly amount: string | BigNum;
+	readonly method: 'add' | 'sub';
+}
 
 // TODO: change to more generic way
+/* tslint:disable:no-magic-numbers */
 const TRANSACTION_TYPES_SEND = [0, 8];
 const TRANSACTION_TYPES_VOTE = [3, 11];
 const TRANSACTION_TYPES_IN_TRANSFER = [6];
 const TRANSACTION_TYPES_OUT_TRANSFER = [7];
+/* tslint:enable:no-magic-numbers */
 
-const revertVotes = votes =>
+const revertVotes = (votes: ReadonlyArray<string>) =>
 	votes.map(vote => {
 		const sign = vote[0] === '+' ? '-' : '+';
+
 		return `${sign}${vote.slice(1)}`;
 	});
 
 const updateDelegateVote = (
-	stateStore,
-	{ delegatePublicKey, amount, method },
+	stateStore: StateStore,
+	{ delegatePublicKey, amount, method }: DelegateCalculateInput,
 ) => {
 	const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
 	const delegateAccount = stateStore.account.get(delegateAddress);
@@ -41,7 +67,10 @@ const updateDelegateVote = (
 	stateStore.account.set(delegateAddress, delegateAccount);
 };
 
-const getRecipientAddress = (stateStore, transaction) => {
+const getRecipientAddress = (
+	stateStore: StateStore,
+	transaction: BaseTransaction,
+): string | undefined => {
 	if (
 		[
 			...TRANSACTION_TYPES_SEND,
@@ -49,7 +78,7 @@ const getRecipientAddress = (stateStore, transaction) => {
 			...TRANSACTION_TYPES_VOTE,
 		].includes(transaction.type)
 	) {
-		return transaction.asset.recipientId;
+		return (transaction.asset as TransferAsset).recipientId;
 	}
 
 	/**
@@ -58,22 +87,23 @@ const getRecipientAddress = (stateStore, transaction) => {
 	 */
 	if (TRANSACTION_TYPES_IN_TRANSFER.includes(transaction.type)) {
 		const dappTransaction = stateStore.transaction.get(
-			transaction.asset.inTransfer.dappId,
+			(transaction.asset as InTransferAsset).inTransfer.dappId,
 		);
-		return dappTransaction.senderId;
+
+		return getAddressFromPublicKey(dappTransaction.senderPublicKey);
 	}
 
-	return null;
+	return undefined;
 };
 
 const revertVotedDelegatePublicKeys = (
-	votedDelegatesPublicKeys,
-	transaction,
-	undo = false,
+	votedDelegatesPublicKeys: string[],
+	transaction: BaseTransaction,
+	isUndo = false,
 ) => {
-	const newVotes = undo
-		? revertVotes(transaction.asset.votes)
-		: transaction.asset.votes;
+	const newVotes = isUndo
+		? revertVotes((transaction.asset as VoteAsset).votes)
+		: (transaction.asset as VoteAsset).votes;
 	const unvotedPublicKeys = newVotes
 		.filter(vote => vote[0] === '-')
 		.map(vote => vote.slice(1));
@@ -91,8 +121,8 @@ const revertVotedDelegatePublicKeys = (
 };
 
 const updateRecipientDelegateVotes = (
-	stateStore,
-	transaction,
+	stateStore: StateStore,
+	transaction: BaseTransaction,
 	isUndo = false,
 ) => {
 	const address = getRecipientAddress(stateStore, transaction);
@@ -101,28 +131,34 @@ const updateRecipientDelegateVotes = (
 		return false;
 	}
 
-	const {
-		asset: { amount },
-	} = transaction;
 	const account = stateStore.account.get(address);
 	const method = isUndo ? 'sub' : 'add';
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
 
-	return votedDelegatesPublicKeys.forEach(delegatePublicKey =>
-		updateDelegateVote(stateStore, { delegatePublicKey, amount, method }),
-	);
+	votedDelegatesPublicKeys.forEach(delegatePublicKey => {
+		updateDelegateVote(stateStore, {
+			delegatePublicKey,
+			amount: (transaction.asset as TransferAsset).amount,
+			method,
+		});
+	});
+
+	return true;
 };
 
 const updateSenderDelegateVotes = (
-	stateStore,
-	transaction,
-	exceptions,
+	stateStore: StateStore,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions,
 	isUndo = false,
 ) => {
-	// use the ammount or default to zero as LIP-0012 removes the 'amount' property from all transactions but transfer
-	const amount = transaction.fee.plus(transaction.asset.amount || 0);
+	// Use the ammount or default to zero as LIP-0012 removes the 'amount' property from all transactions but transfer
+	const amount = transaction.fee.plus(
+		(transaction.asset as TransferAsset).amount || 0,
+	);
 	const method = isUndo ? 'add' : 'sub';
 	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
+	// tslint:disable-next-line no-let
 	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];
 
 	/**
@@ -153,12 +189,18 @@ const updateSenderDelegateVotes = (
 		);
 	}
 
-	return votedDelegatesPublicKeys.forEach(delegatePublicKey =>
-		updateDelegateVote(stateStore, { delegatePublicKey, amount, method }),
-	);
+	votedDelegatesPublicKeys.forEach(delegatePublicKey => {
+		updateDelegateVote(stateStore, { delegatePublicKey, amount, method });
+	});
+
+	return true;
 };
 
-const updateDelegateVotes = (stateStore, transaction, isUndo = false) => {
+const updateDelegateVotes = (
+	stateStore: StateStore,
+	transaction: BaseTransaction,
+	isUndo = false,
+) => {
 	/**
 	 * If transaction is not VOTE transaction,
 	 */
@@ -167,11 +209,11 @@ const updateDelegateVotes = (stateStore, transaction, isUndo = false) => {
 	}
 
 	const votes = isUndo
-		? revertVotes(transaction.asset.votes)
-		: transaction.asset.votes;
+		? revertVotes((transaction.asset as VoteAsset).votes)
+		: (transaction.asset as VoteAsset).votes;
 
-	return votes
-		.map(vote => {
+	votes
+		.map<DelegateCalculateInput>(vote => {
 			const method = vote[0] === '+' ? 'add' : 'sub';
 			const delegatePublicKey = vote.slice(1);
 
@@ -184,22 +226,37 @@ const updateDelegateVotes = (stateStore, transaction, isUndo = false) => {
 				method,
 			};
 		})
-		.forEach(data => updateDelegateVote(stateStore, data));
+		.forEach(data => {
+			updateDelegateVote(stateStore, data);
+		});
+
+	return true;
 };
 
-const apply = (stateStore, transaction, exceptions = {}) => {
+export const apply = (
+	stateStore: StateStore,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
+) => {
 	updateRecipientDelegateVotes(stateStore, transaction);
 	updateSenderDelegateVotes(stateStore, transaction, exceptions);
 	updateDelegateVotes(stateStore, transaction);
 };
 
-const undo = (stateStore, transaction, exceptions = {}) => {
+export const undo = (
+	stateStore: StateStore,
+	transaction: BaseTransaction,
+	exceptions: ExceptionOptions = {},
+) => {
 	updateRecipientDelegateVotes(stateStore, transaction, true);
 	updateSenderDelegateVotes(stateStore, transaction, exceptions, true);
 	updateDelegateVotes(stateStore, transaction, true);
 };
 
-const prepare = async (stateStore, transactions) => {
+export const prepare = async (
+	stateStore: StateStore,
+	transactions: ReadonlyArray<BaseTransaction>,
+) => {
 	const publicKeys = transactions.map(transaction => {
 		// Get delegate public keys whom sender voted for
 		const senderVotedPublicKeys =
@@ -214,13 +271,14 @@ const prepare = async (stateStore, transactions) => {
 				stateStore.account.getOrDefault(recipientId)
 					.votedDelegatesPublicKeys) ||
 			[];
+
 		return {
 			senderVotedPublicKeys,
 			recipientVotedPublicKeys,
 		};
 	});
 
-	const publicKeySet = new Set();
+	const publicKeySet = new Set<string>();
 	for (const publicKey of publicKeys) {
 		for (const sender of publicKey.senderVotedPublicKeys) {
 			publicKeySet.add(sender);
@@ -242,13 +300,4 @@ const prepare = async (stateStore, transactions) => {
 	}));
 
 	return stateStore.account.cache(cacheFilter);
-};
-
-module.exports = {
-	updateRecipientDelegateVotes,
-	updateSenderDelegateVotes,
-	updateDelegateVotes,
-	apply,
-	undo,
-	prepare,
 };
