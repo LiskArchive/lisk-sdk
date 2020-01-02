@@ -19,7 +19,7 @@ import * as url from 'url';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 import { OutboundPeer } from '../../src/peer';
 
-describe.skip('Outbound IP limit', () => {
+describe('Outbound IP limit', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
