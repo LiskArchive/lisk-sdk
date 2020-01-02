@@ -14,6 +14,7 @@
  */
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
+import { DEFAULT_WS_MAX_PAYLOAD } from '../../src/constants';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
@@ -31,6 +32,7 @@ describe('p2p', () => {
 			whitelistedPeers: generatedPeers.slice(2, 3),
 			previousPeers: generatedPeers.slice(4, 5),
 			connectTimeout: 5000,
+			wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
@@ -65,6 +67,14 @@ describe('p2p', () => {
 					.filter(peer => peer.internalState?.peerKind == 'fixedPeer')
 					.map(peer => peer.peerId),
 			);
+		});
+
+		it('should configure Websocket options', async () => {
+			const websocketOptions = (P2PNode as any)._scServer.wsServer.options;
+
+			expect(websocketOptions).toMatchObject({
+				maxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
+			});
 		});
 
 		it('should reject at multiple start attempt', async () => {

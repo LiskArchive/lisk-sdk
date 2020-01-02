@@ -18,10 +18,9 @@ import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_START_PORT,
-	NETWORK_PEER_COUNT,
 } from '../utils/network_setup';
 
-describe.skip('Maximum payload', () => {
+describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 	let disconnectReasons: Array<any> = [];
@@ -29,12 +28,12 @@ describe.skip('Maximum payload', () => {
 
 	beforeEach(async () => {
 		dataLargerThanMaxPayload = [];
-		for (let i = 0; i < 6000; i++) {
+		for (let i = 0; i < 1000; i++) {
 			dataLargerThanMaxPayload.push(`message${i}`);
 		}
 
-		const customConfig = () => ({
-			wsMaxPayload: 5000,
+		const customConfig = (_index: number) => ({
+			wsMaxPayload: 100,
 		});
 		p2pNodeList = await createNetwork({ customConfig });
 
@@ -72,7 +71,7 @@ describe.skip('Maximum payload', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should not send a package larger than the ws max payload', async () => {
+	it.skip('should not send a package larger than the ws max payload', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.send({
@@ -81,7 +80,7 @@ describe.skip('Maximum payload', () => {
 		});
 		await wait(100);
 
-		expect(Object.keys(collectedMessages)).toHaveLength(NETWORK_PEER_COUNT - 1);
+		expect(Object.keys(collectedMessages)).toHaveLength(0);
 	});
 
 	it('should disconnect the peer which has sent the message', async () => {
