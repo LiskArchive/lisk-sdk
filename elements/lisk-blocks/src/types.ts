@@ -228,3 +228,9 @@ export interface Logger {
 	// tslint:disable-next-line no-any
 	readonly error: (...input: any[]) => void;
 }
+
+export interface SingatureObject {
+	readonly signature: string;
+	readonly transactionId: string;
+	readonly publicKey: string;
+}

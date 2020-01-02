@@ -56,6 +56,7 @@ import {
 	ExceptionOptions,
 	Logger,
 	MatcherTransaction,
+	SingatureObject,
 	Slots,
 	Storage,
 	StorageFilter,
@@ -538,7 +539,7 @@ export class Blocks extends EventEmitter {
 
 	public async processSignature(
 		transaction: BaseTransaction,
-		signature: string,
+		signature: SingatureObject,
 	): Promise<TransactionResponse> {
 		const stateStore = new StateStore(this.storage);
 

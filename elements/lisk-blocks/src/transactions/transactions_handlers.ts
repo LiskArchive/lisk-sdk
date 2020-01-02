@@ -26,6 +26,7 @@ import {
 	Contexter,
 	ExceptionOptions,
 	MatcherTransaction,
+	SingatureObject,
 	Slots,
 	Storage,
 	WriteableTransactionResponse,
@@ -356,12 +357,6 @@ export const verifyTransactions = (
 		transactionsResponses,
 	};
 };
-
-interface SingatureObject {
-	readonly signature: string;
-	readonly transactionId: string;
-	readonly publicKey: string;
-}
 
 export const processSignature = () => async (
 	transaction: BaseTransaction,
