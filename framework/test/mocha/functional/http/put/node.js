@@ -16,8 +16,8 @@
 
 require('../../functional');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const apiHelpers = require('../../../common/helpers/api');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const apiHelpers = require('../../../../utils/http/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 

@@ -26,7 +26,7 @@ const {
 } = require('../../../../../../src/modules/chain/blocks/transaction_interface_adapter');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../common/network_identifier');
+} = require('../../../../../utils/network_identifier');
 
 // TODO: re-implement for new transaction processing
 describe('transactions', () => {

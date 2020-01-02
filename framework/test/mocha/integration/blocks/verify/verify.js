@@ -21,15 +21,19 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
 const BigNum = require('@liskhq/bignum');
-const application = require('../../../common/application');
-const { clearDatabaseTable } = require('../../../common/storage_sandbox');
-const modulesLoader = require('../../../common/modules_loader');
-const random = require('../../../common/utils/random');
-const accountFixtures = require('../../../fixtures/accounts');
+const application = require('../../../../utils/legacy/application');
+const {
+	clearDatabaseTable,
+} = require('../../../../utils/storage/storage_sandbox');
+const modulesLoader = require('../../../../utils/legacy/modules_loader');
+const random = require('../../../../utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const { Slots } = require('../../../../../src/modules/chain/dpos');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

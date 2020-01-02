@@ -20,14 +20,14 @@ const {
 	registerSecondPassphrase,
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../../../../fixtures/accounts');
-const SwaggerEndpoint = require('../../../../common/swagger_spec');
-const randomUtil = require('../../../../common/utils/random');
-const waitFor = require('../../../../common/utils/wait_for');
-const apiHelpers = require('../../../../common/helpers/api');
+const accountFixtures = require('../../../../../fixtures/accounts');
+const SwaggerEndpoint = require('../../../../../utils/http/swagger_spec');
+const randomUtil = require('../../../../../utils/random');
+const waitFor = require('../../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../../utils/http/api');
 const {
 	getNetworkIdentifier,
-} = require('../../../../common/network_identifier');
+} = require('../../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

@@ -21,14 +21,16 @@ const {
 	registerDelegate,
 	DelegateTransaction,
 } = require('@liskhq/lisk-transactions');
-const phases = require('../../../common/phases');
-const accountFixtures = require('../../../fixtures/accounts');
-const apiHelpers = require('../../../common/helpers/api');
-const randomUtil = require('../../../common/utils/random');
-const waitFor = require('../../../common/utils/wait_for');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const accountFixtures = require('../../../../fixtures/accounts');
+const apiHelpers = require('../../../../utils/http/api');
+const randomUtil = require('../../../../utils/random');
+const waitFor = require('../../../../utils/legacy/wait_for');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

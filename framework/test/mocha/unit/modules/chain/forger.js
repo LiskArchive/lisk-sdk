@@ -20,7 +20,7 @@ const {
 const forger = require('../../../../../src/modules/chain/forger/forger');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures//accounts');
 
 const { Forger, getDelegateKeypairForCurrentSlot } = forger;
 

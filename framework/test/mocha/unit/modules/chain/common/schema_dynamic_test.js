@@ -15,7 +15,7 @@
 'use strict';
 
 const util = require('util');
-const typesRepresentatives = require('../../../../fixtures/types_representatives');
+const typesRepresentatives = require('../../../../../fixtures//types_representatives');
 
 const assign = _.assign;
 const difference = _.difference;

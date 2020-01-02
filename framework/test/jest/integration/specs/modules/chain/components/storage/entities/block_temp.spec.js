@@ -16,8 +16,8 @@
 
 const {
 	StorageSandbox,
-} = require('../../../../../../../../mocha/common/storage_sandbox');
-const seeder = require('../../../../../../../../mocha/common/storage_seed');
+} = require('../../../../../../../../utils/storage/storage_sandbox');
+const seeder = require('../../../../../../../../utils/storage/storage_seed');
 const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');

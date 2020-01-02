@@ -19,7 +19,7 @@ const {
 	Dpos,
 	Slots,
 } = require('../../../../../../../../src/modules/chain/dpos');
-const { constants } = require('../../../../../../utils');
+const { constants } = require('../../../../../../../utils');
 const { generateDelegateLists } = require('./helpers');
 
 const roundsDelegatesGetResolves = (lists, { stubs, limit }) => {

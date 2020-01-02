@@ -15,7 +15,11 @@
 'use strict';
 
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const { chainUtils, storageUtils, configUtils } = require('../../../utils');
+const {
+	chainUtils,
+	storageUtils,
+	configUtils,
+} = require('../../../../../utils');
 const delegateListForTheFirstRound = require('../../../../../fixtures/config/devnet/delegates_for_first_round.json');
 const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
 

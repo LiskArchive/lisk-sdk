@@ -22,12 +22,14 @@ const {
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const waitFor = require('../../../common/utils/wait_for');
-const apiHelpers = require('../../../common/helpers/api');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
