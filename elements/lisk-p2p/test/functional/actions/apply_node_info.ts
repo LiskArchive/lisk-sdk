@@ -127,10 +127,7 @@ describe('P2P.applyNodeInfo', () => {
 				ipAddress: '127.0.0.1',
 				nethash:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				os: 'darwin',
 				peerId: '127.0.0.1:5000',
-				protocolVersion: '1.1',
-				version: '1.0.1',
 				wsPort: 5000,
 			});
 		}
@@ -167,11 +164,8 @@ describe('P2P.applyNodeInfo', () => {
 				expect(firstNodeInAllPeersList).toMatchObject({
 					sharedState: {
 						height: 10,
-						os: 'darwin',
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.1',
-						protocolVersion: '1.1',
 						nonce: expect.any(String),
 						advertiseAddress: true,
 					},
@@ -194,11 +188,8 @@ describe('P2P.applyNodeInfo', () => {
 				expect(firstNodeInConnectedPeer).toMatchSnapshot();
 				expect(firstNodeInConnectedPeer).toMatchObject({
 					height: 10,
-					os: 'darwin',
 					nethash:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					version: '1.0.1',
-					protocolVersion: '1.1',
 					nonce: expect.any(String),
 					advertiseAddress: true,
 					ipAddress: '127.0.0.1',
