@@ -51,7 +51,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		};
 	});
 
-	afterAll(async () => {
+	afterAll(() => {
 		SCServerSocket.prototype = serverSocketPrototypeBackup;
 	});
 
@@ -102,15 +102,9 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			p2pNodeList = await createNetwork({ customConfig });
 		});
 
-		afterEach(async () => {
+		afterEach(async done => {
 			await destroyNetwork(p2pNodeList);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
-			);
-			await wait(1000);
+			done();
 		});
 
 		it('should not add any blacklisted peer to newPeers', async () => {
@@ -221,17 +215,9 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await wait(1000);
 		});
 
-		afterEach(async () => {
+		afterEach(async done => {
 			await destroyNetwork(p2pNodeList);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(1000);
+			done();
 		});
 
 		it('everyone but itself should have a permanent connection to the fixed peer', async () => {
@@ -288,17 +274,9 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			p2pNodeList = await createNetwork({ customConfig });
 		});
 
-		afterEach(async () => {
+		afterEach(async done => {
 			await destroyNetwork(p2pNodeList);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(1000);
+			done();
 		});
 
 		it('should add every whitelisted peer to triedPeers', async () => {

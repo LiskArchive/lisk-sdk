@@ -35,7 +35,7 @@
 		"format": "prettier --write '**/*'",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "jest --runInBand --collectCoverage",
+		"test": "jest --runInBand --forceExit --collectCoverage",
 		"test:unit": "jest --config=./test/unit/jest.config.js",
 		"test:integration": "jest --config=./test/integration/jest.config.js --runInBand",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand",
