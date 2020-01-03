@@ -187,7 +187,7 @@ describe('peerPool', () => {
 				_maxOutboundConnections: peerPoolConfig.maxOutboundConnections,
 				_maxInboundConnections: peerPoolConfig.maxInboundConnections,
 				_sendPeerLimit: peerPoolConfig.sendPeerLimit,
-				_outboundShuffleIntervalId: expect.any(Number),
+				_outboundShuffleIntervalId: expect.any(Object),
 			});
 		});
 	});

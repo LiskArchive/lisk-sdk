@@ -33,7 +33,7 @@ describe('Maximum payload', () => {
 		}
 
 		const customConfig = (_index: number) => ({
-			wsMaxPayload: 100,
+			wsMaxPayload: 5000,
 		});
 		p2pNodeList = await createNetwork({ customConfig });
 
@@ -71,7 +71,7 @@ describe('Maximum payload', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it.skip('should not send a package larger than the ws max payload', async () => {
+	it('should not send a package larger than the ws max payload', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.send({
