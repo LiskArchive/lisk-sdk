@@ -345,11 +345,9 @@ describe('utils/validate', () => {
 		});
 
 		it('should return a valid rpc request', async () => {
-			expect(validatedRPCRequest).toHaveProperty('procedure');
-			expect(validatedRPCRequest).toHaveProperty('data');
-			expect(validatedRPCRequest).toMatchSnapshot({
-				data: expect.any(Object),
+			expect(validatedRPCRequest).toMatchObject({
 				procedure: expect.any(String),
+				data: expect.any(Object),
 			});
 		});
 	});
@@ -386,8 +384,9 @@ describe('utils/validate', () => {
 		});
 
 		it('should return a valid protocol message object', async () => {
-			expect(returnedValidatedMessage).toMatchSnapshot({
+			expect(returnedValidatedMessage).toMatchObject({
 				data: expect.any(Object),
+				event: 'newPeer',
 			});
 		});
 	});

@@ -36,7 +36,7 @@ describe(`Connection Create`, () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
-		beforeEach(async () => {
+		beforeAll(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
@@ -65,7 +65,7 @@ describe(`Connection Create`, () => {
 			await wait(1000);
 		});
 
-		afterEach(async () => {
+		afterAll(async () => {
 			await destroyNetwork(p2pNodeList);
 		});
 

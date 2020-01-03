@@ -111,7 +111,14 @@ describe('p2p_request', () => {
 			));
 
 		it('should set wasResponseSent property to true', () => {
-			expect(request).toMatchSnapshot();
+			expect(request).toMatchObject({
+				_data: 123,
+				_peerId: 'abc123',
+				_procedure: 'foo',
+				_rate: 0,
+				_respondCallback: expect.any(Function),
+				_wasResponseSent: true,
+			});
 		});
 
 		it('should throw error when sending another request', () =>

@@ -29,7 +29,7 @@ describe('Limited number of outbound/inbound connections', () => {
 	].map(index => NETWORK_START_PORT + index);
 	const POPULATOR_INTERVAL_WITH_LIMIT = 50;
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		const customConfig = () => ({
 			populatorInterlatencyProtectionRatio: 0,
 			productivityProtectionRatio: 0,
@@ -44,7 +44,7 @@ describe('Limited number of outbound/inbound connections', () => {
 		});
 	});
 
-	afterEach(async () => {
+	afterAll(async () => {
 		await destroyNetwork(p2pNodeList);
 	});
 

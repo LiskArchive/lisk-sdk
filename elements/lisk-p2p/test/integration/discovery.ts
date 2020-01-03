@@ -49,7 +49,7 @@ describe('Network discovery', () => {
 			...new Array(NETWORK_PEER_COUNT).keys(),
 		].map(index => NETWORK_START_PORT + index);
 
-		beforeEach(async () => {
+		beforeAll(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			const customConfig = () => ({
 				fallbackSeedPeerDiscoveryInterval: CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL,
@@ -96,11 +96,8 @@ describe('Network discovery', () => {
 			await wait(1000);
 		});
 
-		afterEach(async () => {
-			await destroyNetwork(p2pNodeList);
-		});
-
 		afterAll(async () => {
+			await destroyNetwork(p2pNodeList);
 			await disconnectedNode.stop();
 			await wait(200);
 		});

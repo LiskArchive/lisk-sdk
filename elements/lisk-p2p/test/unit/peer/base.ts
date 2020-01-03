@@ -681,7 +681,7 @@ describe('peer/base', () => {
 
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
-					expect(peerInfo.sharedState).toMatchSnapshot({
+					expect(peerInfo.sharedState).toMatchObject({
 						height: 0,
 						nethash: 'nethash',
 						protocolVersion: '1.2',

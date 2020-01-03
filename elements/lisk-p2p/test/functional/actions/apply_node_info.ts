@@ -26,7 +26,7 @@ describe('P2P.applyNodeInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	let collectedMessages: Array<any> = [];
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		p2pNodeList = await createNetwork();
 
 		collectedMessages = [];
@@ -59,7 +59,7 @@ describe('P2P.applyNodeInfo', () => {
 		await wait(200);
 	});
 
-	afterEach(async () => {
+	afterAll(async () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
