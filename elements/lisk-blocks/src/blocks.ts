@@ -83,11 +83,13 @@ interface BlocksConfig {
 	readonly logger: Logger;
 	readonly storage: Storage;
 	// Unique requirements
-	readonly genesisBlock: BlockInstance;
+	readonly genesisBlock: BlockHeaderJSON;
 	readonly slots: Slots;
 	readonly exceptions: ExceptionOptions;
 	// Modules
-	readonly registeredTransactions: { readonly [key: number]: BaseTransaction };
+	readonly registeredTransactions: {
+		readonly [key: number]: typeof BaseTransaction;
+	};
 	// Constants
 	readonly networkIdentifier: string;
 	readonly blockReceiptTimeout: number; // Set default
@@ -97,7 +99,7 @@ interface BlocksConfig {
 	readonly activeDelegates: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
-	readonly rewardMileStones: ReadonlyArray<number>;
+	readonly rewardMileStones: ReadonlyArray<string>;
 	readonly totalAmount: string;
 	readonly blockSlotWindow: number;
 }
@@ -149,16 +151,17 @@ export class Blocks extends EventEmitter {
 		blockSlotWindow,
 	}: BlocksConfig) {
 		super();
-		this._lastBlock = genesisBlock;
 		this._transactionAdapter = new TransactionInterfaceAdapter(
 			networkIdentifier,
 			registeredTransactions,
 		);
+		const genesisInstance = this.deserialize(genesisBlock);
+		this._lastBlock = genesisInstance;
 
 		this.logger = logger;
 		this.storage = storage;
 		this.exceptions = exceptions;
-		this.genesisBlock = genesisBlock;
+		this.genesisBlock = genesisInstance;
 		this.slots = slots;
 		this.blockRewardArgs = {
 			distance: rewardDistance,

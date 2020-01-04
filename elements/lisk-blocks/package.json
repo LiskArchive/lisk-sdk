@@ -66,6 +66,7 @@
 	"devDependencies": {
 		"@types/jest": "24.0.23",
 		"@types/jquery": "3.3.29",
+		"@types/jest-when": "2.7.0",
 		"@liskhq/lisk-dpos": "0.1.0",
 		"@liskhq/lisk-passphrase": "3.0.0-alpha.1",
 		"browserify": "16.2.3",

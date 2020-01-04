@@ -11,32 +11,30 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import {
+	Status as TransactionStatus,
+	BaseTransaction,
+} from '@liskhq/lisk-transactions';
 
-'use strict';
-
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const {
-	composeTransactionSteps,
-} = require('../../src/transactions/compose_transaction_steps');
+import { TransactionHandledResult } from '../../src/transactions/compose_transaction_steps';
+import { composeTransactionSteps } from '../../src/transactions/compose_transaction_steps';
 
 describe('#composeTransactionSteps', () => {
 	const testTransactions = [
 		{
 			id: 'anId',
-			matcher: () => true,
 			type: 0,
 		},
 		{
 			id: 'anotherId',
-			matcher: () => false,
 			type: 1,
 		},
-	];
+	] as BaseTransaction[];
 
 	const step1Response = {
 		transactionsResponses: [
 			{
-				id: 'id1',
+				id: 'anId',
 				status: TransactionStatus.FAIL,
 			},
 		],
@@ -45,7 +43,7 @@ describe('#composeTransactionSteps', () => {
 	const step2Response = {
 		transactionsResponses: [
 			{
-				id: 'id2',
+				id: 'anotherId',
 				status: TransactionStatus.OK,
 			},
 		],
@@ -54,10 +52,10 @@ describe('#composeTransactionSteps', () => {
 	const step1 = jest.fn().mockReturnValue(step1Response);
 	const step2 = jest.fn().mockReturnValue(step2Response);
 	const composedFunction = composeTransactionSteps(step1, step2);
-	let result;
+	let result: TransactionHandledResult;
 
 	beforeEach(async () => {
-		result = await composedFunction(testTransactions);
+		result = await composedFunction(testTransactions, {} as any);
 	});
 
 	it('should return a combination of the result of executing both steps', async () => {
@@ -72,6 +70,6 @@ describe('#composeTransactionSteps', () => {
 
 	it('should only pass successfull transactions to the next step', async () => {
 		// Assert
-		expect(step2).toHaveBeenCalledWith([], undefined);
+		expect(step2).toHaveBeenCalledWith([testTransactions[1]], {});
 	});
 });

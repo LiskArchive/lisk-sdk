@@ -88,7 +88,7 @@ export const calculateSupply = (
 	// tslint:disable-next-line no-let
 	let amount = 0;
 	// tslint:disable-next-line no-let
-	let multiplier = 0;
+	let multiplier = '0';
 
 	// Remove offset from height
 	parsedHeight -= blockRewardArgs.rewardOffset - 1;

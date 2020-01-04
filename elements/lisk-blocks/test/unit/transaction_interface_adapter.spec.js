@@ -55,11 +55,11 @@ describe('transactions', () => {
 
 		describe('constructor', () => {
 			it('should create initTransaction with correct properties', async () => {
-				expect(transactions).toHaveProperty('transactionClassMap');
+				expect(transactions).toHaveProperty('_transactionClassMap');
 			});
 
 			it('should have transactionClassMap property with Lisk transaction types', async () => {
-				expect([...transactions.transactionClassMap.keys()]).toEqual([
+				expect([...transactions._transactionClassMap.keys()]).toEqual([
 					8,
 					9,
 					10,

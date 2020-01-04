@@ -12,24 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const {
+import {
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
-} = require('@liskhq/lisk-transactions');
+	BaseTransaction,
+} from '@liskhq/lisk-transactions';
 
-const registeredTransactions = {
+export const registeredTransactions: {
+	[key: number]: typeof BaseTransaction;
+} = {
 	8: TransferTransaction,
 	9: SecondSignatureTransaction,
 	10: DelegateTransaction,
 	11: VoteTransaction,
 	12: MultisignatureTransaction,
-};
-
-module.exports = {
-	registeredTransactions,
 };

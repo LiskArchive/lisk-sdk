@@ -14,14 +14,26 @@
 
 'use strict';
 
-const { transfer, castVotes } = require('@liskhq/lisk-transactions');
-const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
+import {
+	transfer,
+	castVotes,
+	TransactionJSON,
+	BaseTransaction,
+} from '@liskhq/lisk-transactions';
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { newBlock, getBytes } from '../utils/block';
+import { Blocks, StateStore } from '../../src';
+import * as genesisBlock from '../fixtures/genesis_block.json';
+import { genesisAccount } from '../fixtures/default_account';
+import { registeredTransactions } from '../utils/registered_transactions';
+import {
+	BlockInstance,
+	ExceptionOptions,
+	Slots,
+	Logger,
+} from '../../src/types';
+
 const { Slots } = require('@liskhq/lisk-dpos');
-const { newBlock, getBytes } = require('../utils/block');
-const { Blocks, StateStore } = require('../../src');
-const genesisBlock = require('../fixtures/genesis_block.json');
-const { genesisAccount } = require('../fixtures/default_account');
-const { registeredTransactions } = require('../utils/registered_transactions');
 
 jest.mock('events');
 
@@ -46,26 +58,25 @@ describe('blocks/header', () => {
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
-	const defaultReward = 0;
+	const defaultReward = '0';
 	const networkIdentifier = getNetworkIdentifier(
 		genesisBlock.payloadHash,
 		genesisBlock.communityIdentifier,
 	);
 
-	let exceptions = {};
-	let blocksInstance;
-	let storageStub;
-	let loggerStub;
-	let slots;
-	let block;
-	let blockBytes;
+	let exceptions: ExceptionOptions = {};
+	let blocksInstance: Blocks;
+	let storageStub: any;
+	let loggerStub: Logger;
+	let slots: Slots;
+	let block: BlockInstance;
+	let blockBytes: Buffer;
 
 	beforeEach(async () => {
 		storageStub = {
 			entities: {
 				Account: {
 					get: jest.fn(),
-					update: jest.fn(),
 					upsert: jest.fn(),
 				},
 				Block: {
@@ -89,8 +100,7 @@ describe('blocks/header', () => {
 			},
 		};
 		loggerStub = {
-			debug: jest.fn(),
-			log: jest.fn(),
+			info: jest.fn(),
 			error: jest.fn(),
 		};
 		slots = new Slots({
@@ -98,9 +108,7 @@ describe('blocks/header', () => {
 			interval: constants.blockTime,
 			blocksPerRound: constants.activeDelegates,
 		});
-		exceptions = {
-			transactions: [],
-		};
+		exceptions = {};
 
 		blocksInstance = new Blocks({
 			storage: storageStub,
@@ -112,7 +120,7 @@ describe('blocks/header', () => {
 			exceptions,
 			...constants,
 		});
-		blocksInstance._lastBlock = {
+		(blocksInstance as any)._lastBlock = {
 			...genesisBlock,
 			receivedAt: new Date(),
 		};
@@ -151,7 +159,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, 5),
+					blocksInstance.validateBlockHeader(block, blockBytes, '5'),
 				).toThrow('Invalid block reward');
 			});
 		});
@@ -165,9 +173,9 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
-				invalidTx._signature = '1234567890';
+				(invalidTx as any)._signature = '1234567890';
 				block = newBlock({ transactions: [invalidTx] });
 				blockBytes = getBytes(block);
 				// Act & assert
@@ -180,7 +188,7 @@ describe('blocks/header', () => {
 		describe('when payload length exceeds maximum allowed', () => {
 			it('should throw error', async () => {
 				// Arrange
-				blocksInstance.constants.maxPayloadLength = 100;
+				(blocksInstance as any).constants.maxPayloadLength = 100;
 				const txs = new Array(200).fill(0).map((_, v) =>
 					blocksInstance.deserializeTransaction(
 						transfer({
@@ -188,7 +196,7 @@ describe('blocks/header', () => {
 							recipientId: `${v + 1}L`,
 							amount: '100',
 							networkIdentifier,
-						}),
+						}) as TransactionJSON,
 					),
 				);
 				block = newBlock({ transactions: txs });
@@ -210,7 +218,7 @@ describe('blocks/header', () => {
 							recipientId: `${v + 1}L`,
 							amount: '100',
 							networkIdentifier,
-						}),
+						}) as TransactionJSON,
 					),
 				);
 				block = newBlock({ transactions: txs });
@@ -232,7 +240,7 @@ describe('blocks/header', () => {
 							recipientId: `${v + 1}L`,
 							amount: '100',
 							networkIdentifier,
-						}),
+						}) as TransactionJSON,
 					),
 				);
 				block = newBlock({ transactions: txs, numberOfTransactions: 10 });
@@ -256,7 +264,7 @@ describe('blocks/header', () => {
 							recipientId: `${v + 1}L`,
 							amount: '100',
 							networkIdentifier,
-						}),
+						}) as TransactionJSON,
 					),
 				);
 				block = newBlock({ transactions: txs, payloadHash: '1234567890' });
@@ -278,7 +286,7 @@ describe('blocks/header', () => {
 							recipientId: `${v + 1}L`,
 							amount: '100',
 							networkIdentifier,
-						}),
+						}) as TransactionJSON,
 					),
 				);
 				block = newBlock({ transactions: txs });
@@ -311,7 +319,7 @@ describe('blocks/header', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(() =>
-					blocksInstance.verifyInMemory(block, genesisBlock),
+					blocksInstance.verifyInMemory(block, genesisBlock as any),
 				).toThrow('Invalid block timestamp');
 			});
 
@@ -321,7 +329,7 @@ describe('blocks/header', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(() =>
-					blocksInstance.verifyInMemory(block, genesisBlock),
+					blocksInstance.verifyInMemory(block, genesisBlock as any),
 				).toThrow('Invalid block timestamp');
 			});
 
@@ -359,7 +367,7 @@ describe('blocks/header', () => {
 	describe('#verify', () => {
 		describe('when skip existing check is true and a transaction is inert', () => {
 			let validTx;
-			let txApplySpy;
+			let txApplySpy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrage
@@ -369,10 +377,10 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				txApplySpy = jest.spyOn(validTx, 'apply');
-				blocksInstance.exceptions.inertTransactions = [validTx.id];
+				(blocksInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
 				// Act
 				const stateStore = new StateStore(storageStub);
@@ -396,8 +404,8 @@ describe('blocks/header', () => {
 
 		describe('when skip existing check is true and a transaction is not allowed', () => {
 			let notAllowedTx;
-			let txApplySpy;
-			let originalClass;
+			let txApplySpy: jest.SpyInstance;
+			let originalClass: typeof BaseTransaction;
 
 			beforeEach(async () => {
 				// Arrage
@@ -407,9 +415,9 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
-				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
+				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				originalClass = transactionClass;
@@ -417,7 +425,7 @@ describe('blocks/header', () => {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._transactionAdapter.transactionClassMap.set(
+				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -464,7 +472,7 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [invalidTx] });
 			});
@@ -501,7 +509,7 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [invalidTx] });
 			});
@@ -534,7 +542,7 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [validTx] });
 			});
@@ -564,7 +572,7 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([validTx]);
 				block = newBlock({ transactions: [validTx] });
@@ -613,7 +621,7 @@ describe('blocks/header', () => {
 		describe('when transaction is inert', () => {
 			let validTx;
 			let stateStore;
-			let txApplySpy;
+			let txApplySpy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrage
@@ -623,10 +631,10 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				txApplySpy = jest.spyOn(validTx, 'apply');
-				blocksInstance.exceptions.inertTransactions = [validTx.id];
+				(blocksInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
 				// Act
 				stateStore = new StateStore(storageStub);
@@ -644,7 +652,7 @@ describe('blocks/header', () => {
 
 		describe('when transaction is not applicable', () => {
 			let validTx;
-			let stateStore;
+			let stateStore: StateStore;
 
 			beforeEach(async () => {
 				// Arrage
@@ -657,7 +665,7 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [validTx] });
 				// Act
@@ -682,11 +690,11 @@ describe('blocks/header', () => {
 		});
 
 		describe('when transactions are all valid', () => {
-			let stateStore;
-			let delegate1;
-			let delegate2;
-			let validTxApplySpy;
-			let validTx2ApplySpy;
+			let stateStore: StateStore;
+			let delegate1: any;
+			let delegate2: any;
+			let validTxApplySpy: jest.SpyInstance;
+			let validTx2ApplySpy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrage
@@ -725,7 +733,7 @@ describe('blocks/header', () => {
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
-					}),
+					}) as TransactionJSON,
 				);
 				const validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -733,7 +741,7 @@ describe('blocks/header', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
@@ -768,7 +776,7 @@ describe('blocks/header', () => {
 						recipientId: genesisAccount.address,
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const nextBlock = newBlock({ transactions: [newTx] });
 				await blocksInstance.apply(nextBlock, stateStore);
@@ -789,8 +797,8 @@ describe('blocks/header', () => {
 	});
 
 	describe('#applyGenesis', () => {
-		let stateStore;
-		let genesisInstance;
+		let stateStore: StateStore;
+		let genesisInstance: BlockInstance;
 
 		beforeEach(async () => {
 			// Arrage
@@ -838,7 +846,7 @@ describe('blocks/header', () => {
 		describe('when transaction is inert', () => {
 			let validTx;
 			let stateStore;
-			let txUndoSpy;
+			let txUndoSpy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrage
@@ -848,10 +856,10 @@ describe('blocks/header', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				txUndoSpy = jest.spyOn(validTx, 'undo');
-				blocksInstance.exceptions.inertTransactions = [validTx.id];
+				(blocksInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
 				// Act
 				stateStore = new StateStore(storageStub);
@@ -864,11 +872,11 @@ describe('blocks/header', () => {
 		});
 
 		describe('when transactions are all valid', () => {
-			let stateStore;
-			let delegate1;
-			let delegate2;
-			let validTxUndoSpy;
-			let validTx2UndoSpy;
+			let stateStore: StateStore;
+			let delegate1: any;
+			let delegate2: any;
+			let validTxUndoSpy: jest.SpyInstance;
+			let validTx2UndoSpy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrage
@@ -914,7 +922,7 @@ describe('blocks/header', () => {
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
-					}),
+					}) as TransactionJSON,
 				);
 				const validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -922,7 +930,7 @@ describe('blocks/header', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				validTxUndoSpy = jest.spyOn(validTx, 'undo');
 				validTx2UndoSpy = jest.spyOn(validTx2, 'undo');

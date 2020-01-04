@@ -53,7 +53,7 @@ export interface BlockHeaderJSON {
 	height: number;
 	version: number;
 	timestamp: number;
-	previousBlockId?: string;
+	previousBlockId?: string | null;
 	blockSignature: string;
 	generatorPublicKey: string;
 	numberOfTransactions: number;
@@ -77,7 +77,7 @@ export interface BlockRewardOptions {
 	readonly totalAmount: string;
 	readonly distance: number;
 	readonly rewardOffset: number;
-	readonly milestones: ReadonlyArray<number>;
+	readonly milestones: ReadonlyArray<string>;
 }
 
 export interface BlockInstance extends BlockHeader {
@@ -97,6 +97,8 @@ export type MatcherTransaction = BaseTransaction & {
 
 export interface Slots {
 	readonly getSlotNumber: (timestamp?: number) => number;
+	readonly getSlotTime: (timestamp: number) => number;
+	readonly getNextSlot: () => number;
 }
 
 export interface ChainState {
