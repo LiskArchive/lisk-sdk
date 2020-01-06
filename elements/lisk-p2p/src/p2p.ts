@@ -790,7 +790,7 @@ export class P2P extends EventEmitter {
 			if (
 				typeof queryObject.wsPort !== 'string' ||
 				typeof queryObject.version !== 'string' ||
-				typeof queryObject.nethash !== 'string'
+				typeof queryObject.networkId !== 'string'
 			) {
 				this._disconnectSocketDueToFailedHandshake(
 					socket,

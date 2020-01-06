@@ -211,7 +211,7 @@ describe('Network discovery', () => {
 				maxInboundConnections: 0,
 				nodeInfo: {
 					wsPort: 5020,
-					nethash: 'aaa',
+					networkId: 'aaa',
 					version: '9.9.9',
 					protocolVersion: '9.9',
 					minVersion: '9.9.9',

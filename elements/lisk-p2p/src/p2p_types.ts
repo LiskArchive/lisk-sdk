@@ -96,7 +96,7 @@ export interface P2PPeersCount {
 export interface P2PNodeInfo extends P2PSharedState {
 	readonly protocolVersion: string;
 	readonly os: string;
-	readonly nethash: string;
+	readonly networkId: string;
 	readonly wsPort: number;
 	readonly advertiseAddress: boolean;
 	readonly nonce: string;

@@ -46,7 +46,7 @@ describe('P2P.applyNodeInfo', () => {
 
 		firstP2PNode.applyNodeInfo({
 			os: platform(),
-			nethash:
+			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			version: firstP2PNode.nodeInfo.version,
 			protocolVersion: '1.1',
@@ -70,7 +70,7 @@ describe('P2P.applyNodeInfo', () => {
 		expect(() =>
 			firstP2PNode.applyNodeInfo({
 				os: platform(),
-				nethash:
+				networkId:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				version: firstP2PNode.nodeInfo.version,
 				protocolVersion: '1.1',
@@ -155,7 +155,7 @@ describe('P2P.applyNodeInfo', () => {
 					.which.equals(10);
 				expect(firstNodeInAllPeersList)
 					.to.have.property('sharedState')
-					.to.have.property('nethash')
+					.to.have.property('networkId')
 					.which.equals(
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					);
@@ -167,7 +167,7 @@ describe('P2P.applyNodeInfo', () => {
 					.to.have.property('height')
 					.which.equals(10);
 				expect(firstNodeInConnectedPeer)
-					.to.have.property('nethash')
+					.to.have.property('networkId')
 					.which.equals(
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					);

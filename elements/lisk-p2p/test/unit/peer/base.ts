@@ -76,7 +76,7 @@ describe('peer/base', () => {
 			maxPeerDiscoveryResponseLength: 1000,
 			serverNodeInfo: {
 				os: 'os',
-				nethash: 'nethash',
+				networkId: 'networkId',
 				version: '1.2.0',
 				protocolVersion: '1.2',
 				wsPort: 6001,
@@ -532,7 +532,7 @@ describe('peer/base', () => {
 					wsPort: 1111,
 					version: '1.1.2',
 					protocolVersion: '9.2',
-					nethash: 'nethash',
+					networkId: 'networkId',
 				};
 				beforeEach(() => {
 					sandbox.stub(defaultPeer, 'request').resolves({
@@ -568,7 +568,7 @@ describe('peer/base', () => {
 					wsPort: 1111,
 					version: '1.1.2',
 					protocolVersion: '1.2',
-					nethash: 'nethash',
+					networkId: 'networkId',
 				};
 
 				beforeEach(() => {
@@ -591,7 +591,7 @@ describe('peer/base', () => {
 							version: peer.version,
 							height: 0,
 							protocolVersion: '1.2',
-							nethash: 'nethash',
+							networkId: 'networkId',
 						},
 					};
 					await defaultPeer.fetchAndUpdateStatus();

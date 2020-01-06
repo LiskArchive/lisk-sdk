@@ -119,7 +119,7 @@ describe('peerPool', () => {
 			os: 'darwin',
 			version: '1.1',
 			protocolVersion: '1.0.1',
-			nethash: 'abc',
+			networkId: 'abc',
 			wsPort: 5000,
 			height: 1000,
 			nonce: 'nonce',

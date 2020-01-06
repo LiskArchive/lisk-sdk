@@ -29,7 +29,7 @@ import sinon = require('sinon');
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
 		height: 545777,
-		nethash: '73458irc3yb7rg37r7326dbt7236',
+		networkId: '73458irc3yb7rg37r7326dbt7236',
 		os: 'linux',
 		version: '1.1.1',
 		protocolVersion: '1.1',
