@@ -24,7 +24,6 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
-	RCP_REQUEST_TYPE,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -318,7 +317,6 @@ export class Peer extends EventEmitter {
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
-						type: RCP_REQUEST_TYPE,
 						procedure: packet.procedure,
 						data: packet.data,
 					},
