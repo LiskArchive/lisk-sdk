@@ -70,7 +70,7 @@
 		"ip": "1.1.5",
 		"js-yaml": "3.13.1",
 		"json-refs": "3.0.12",
-		"lodash": "4.17.11",
+		"lodash": "4.17.15",
 		"method-override": "3.0.0",
 		"pg-monitor": "1.1.0",
 		"pg-promise": "8.5.4",
