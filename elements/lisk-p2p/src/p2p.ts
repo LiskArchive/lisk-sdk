@@ -247,9 +247,7 @@ export class P2P extends EventEmitter {
 				seedPeers: config.seedPeers
 					? config.seedPeers.map(sanitizeInitialPeerInfo)
 					: [],
-				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers.map(sanitizeInitialPeerInfo)
-					: [],
+				blacklistedIps: config.blacklistedPeers ? config.blacklistedPeers : [],
 				fixedPeers: config.fixedPeers
 					? config.fixedPeers.map(sanitizeInitialPeerInfo)
 					: [],
@@ -445,8 +443,8 @@ export class P2P extends EventEmitter {
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			// Check blacklist to avoid incoming connections from blacklisted ips
-			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
-				peer => peer.peerId === detailedPeerInfo.peerId,
+			const isBlacklisted = this._sanitizedPeerLists.blacklistedIps.find(
+				blacklistedIp => blacklistedIp === detailedPeerInfo.ipAddress,
 			);
 			if (!this._peerBook.hasPeer(detailedPeerInfo) && !isBlacklisted) {
 				this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
@@ -649,8 +647,8 @@ export class P2P extends EventEmitter {
 
 	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
 		if (
-			this._sanitizedPeerLists.blacklistedPeers.find(
-				peer => peer.ipAddress === peerInfo.ipAddress,
+			this._sanitizedPeerLists.blacklistedIps.find(
+				blacklistedIp => blacklistedIp === peerInfo.ipAddress,
 			)
 		) {
 			return {
@@ -738,11 +736,10 @@ export class P2P extends EventEmitter {
 				return;
 			}
 			// Check blacklist to avoid incoming connections from blacklisted ips
-			if (this._sanitizedPeerLists.blacklistedPeers) {
-				const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
-					peer => peer.ipAddress,
-				);
-				if (blacklist.includes(socket.remoteAddress)) {
+			if (this._sanitizedPeerLists.blacklistedIps) {
+				if (
+					this._sanitizedPeerLists.blacklistedIps.includes(socket.remoteAddress)
+				) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
 						FORBIDDEN_CONNECTION,

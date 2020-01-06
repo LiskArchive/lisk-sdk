@@ -101,27 +101,13 @@ export const sanitizePeerLists = (
 	nodeInfo: P2PPeerInfo,
 	secret: number,
 ): PeerLists => {
-	const blacklistedPeers = lists.blacklistedPeers
-		.filter(peerInfo => {
-			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
-				return false;
-			}
+	const blacklistedIps = lists.blacklistedIps.filter(blacklistedIp => {
+		if (blacklistedIp === nodeInfo.ipAddress) {
+			return false;
+		}
 
-			return true;
-		})
-		.map(peer => {
-			const peerInternalInfo = assignInternalInfo(peer, secret);
-
-			return {
-				...peer,
-				internalState: {
-					...peerInternalInfo,
-					peerKind: PeerKind.BLACKLISTED_PEER,
-				},
-			};
-		});
-
-	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
+		return true;
+	});
 
 	const fixedPeers = lists.fixedPeers
 		.filter(peerInfo => {
@@ -129,7 +115,7 @@ export const sanitizePeerLists = (
 				return false;
 			}
 
-			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			if (blacklistedIps.includes(peerInfo.ipAddress)) {
 				return false;
 			}
 
@@ -150,7 +136,7 @@ export const sanitizePeerLists = (
 				return false;
 			}
 
-			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			if (blacklistedIps.includes(peerInfo.ipAddress)) {
 				return false;
 			}
 
@@ -175,7 +161,7 @@ export const sanitizePeerLists = (
 				return false;
 			}
 
-			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			if (blacklistedIps.includes(peerInfo.ipAddress)) {
 				return false;
 			}
 
@@ -206,7 +192,7 @@ export const sanitizePeerLists = (
 			return false;
 		}
 
-		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+		if (blacklistedIps.includes(peerInfo.ipAddress)) {
 			return false;
 		}
 
@@ -226,7 +212,7 @@ export const sanitizePeerLists = (
 	});
 
 	return {
-		blacklistedPeers,
+		blacklistedIps,
 		seedPeers,
 		fixedPeers,
 		whitelisted,
