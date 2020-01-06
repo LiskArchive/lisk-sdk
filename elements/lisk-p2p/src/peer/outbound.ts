@@ -119,8 +119,8 @@ export class OutboundPeer extends Peer {
 			hostname: this.ipAddress,
 			port: this.wsPort,
 			query: querystring.stringify({
-				...this._nodeInfo,
-				options: JSON.stringify(this._nodeInfo),
+				...this._serverNodeInfo,
+				options: JSON.stringify(this._serverNodeInfo),
 			}),
 			connectTimeout,
 			ackTimeout,

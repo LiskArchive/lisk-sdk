@@ -17,7 +17,7 @@
 const { SchemaValidationError } = require('../../../../../../../src/errors');
 const {
 	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../mocha/fixtures/blocks');
+} = require('../../../../../../fixtures/blocks');
 
 const {
 	validateBlockHeader,

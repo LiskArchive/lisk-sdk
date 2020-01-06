@@ -16,8 +16,8 @@
 
 const {
 	StorageSandbox,
-} = require('../../../../../../../../mocha/common/storage_sandbox');
-const seeder = require('../../../../../../../../mocha/common/storage_seed');
+} = require('../../../../../../../../utils/storage/storage_sandbox');
+const seeder = require('../../../../../../../../utils/storage/storage_seed');
 const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
@@ -189,7 +189,7 @@ describe('ForgerInfo', () => {
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			await expect(ForgerInfoEntity.setKey('myKey')).rejects.toThrow(
+			await expect(ForgerInfoEntity.setKey('mykey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});

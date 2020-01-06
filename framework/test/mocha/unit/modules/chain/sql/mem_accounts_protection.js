@@ -16,7 +16,7 @@
 
 const randomstring = require('randomstring');
 const sql = require('../common/sql/mem_accounts');
-const storageSandbox = require('../../../../common/storage_sandbox');
+const storageSandbox = require('../../../../../utils/storage/storage_sandbox');
 
 let storage;
 

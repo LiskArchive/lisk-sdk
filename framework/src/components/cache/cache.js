@@ -18,12 +18,19 @@ const redis = require('redis');
 const { promisify } = require('util');
 
 const errorCacheDisabled = 'Cache Disabled';
+const CACHE_CONNECTION_TIMEOUT = 5000; // Five seconds
 
 class Cache {
 	constructor(options, logger) {
 		this.options = options;
 		this.logger = logger;
 		this.ready = false;
+
+		// When connect to redis server running on local machine client tries to connect
+		// through unix socket, which failed immediately if server is not running.
+		// For remote host, it connect over TCP and wait for timeout
+		// Default value for connect_timeout was 3600000, which was not triggering connection error
+		this.options.connect_timeout = CACHE_CONNECTION_TIMEOUT;
 	}
 
 	async bootstrap() {

@@ -330,7 +330,7 @@ describe('ChildProcessChannel Channel', () => {
 			await childProcessChannel.registerToBus(socketsPath);
 
 			// Act
-			await childProcessChannel.cleanup();
+			childProcessChannel.cleanup();
 
 			// Assert
 			expect(childProcessChannel.rpcSocket.close).toHaveBeenCalled();

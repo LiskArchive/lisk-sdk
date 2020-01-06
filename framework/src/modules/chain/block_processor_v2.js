@@ -211,7 +211,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			async ({ block }) =>
+			({ block }) =>
 				this.blocksModule.validateBlockHeader(
 					block,
 					getBytes(block),
@@ -283,7 +283,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				const delegatePublicKey = data.keypair.publicKey.toString('hex');
 				const maxHeightPreviouslyForged =
 					previouslyForged[delegatePublicKey] || 0;
-				const block = await this._create({
+				const block = this._create({
 					...data,
 					maxHeightPreviouslyForged,
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
@@ -303,7 +303,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		return 2;
 	}
 
-	async _create({
+	_create({
 		transactions,
 		previousBlock,
 		keypair,

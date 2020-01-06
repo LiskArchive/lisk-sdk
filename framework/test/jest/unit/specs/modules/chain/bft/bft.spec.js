@@ -14,9 +14,7 @@
 
 'use strict';
 
-const {
-	Block: blockFixture,
-} = require('../../../../../../mocha/fixtures/blocks');
+const { Block: blockFixture } = require('../../../../../../fixtures/blocks');
 const {
 	FinalityManager,
 } = require('../../../../../../../src/modules/chain/bft/finality_manager');
@@ -34,7 +32,7 @@ const {
 	FORK_STATUS_DOUBLE_FORGING,
 } = require('../../../../../../../src/modules/chain/bft');
 
-const { constants } = require('../../../../../utils');
+const { constants } = require('../../../../../../utils');
 
 const generateBlocks = ({ startHeight, numberOfBlocks }) =>
 	new Array(numberOfBlocks)

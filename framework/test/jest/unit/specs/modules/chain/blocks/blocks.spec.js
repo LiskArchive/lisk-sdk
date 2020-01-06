@@ -23,15 +23,15 @@ const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_b
 const { newBlock } = require('./utils.js');
 const {
 	registeredTransactions,
-} = require('../../../../../utils/registered_transactions');
+} = require('../../../../../../utils/registered_transactions');
 
 jest.mock('events');
 
 // TODO: Share fixture generation b/w mocha and jest
-const randomUtils = require('../../../../../../mocha/common/utils/random.js');
+const randomUtils = require('../../../../../../utils/random.js');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../../../mocha/common/network_identifier');
+} = require('../../../../../../utils/network_identifier');
 
 describe('blocks', () => {
 	const stubs = {};
@@ -617,7 +617,7 @@ describe('blocks', () => {
 	});
 
 	describe('getTempBlocks()', () => {
-		it('should retrieve all blocks from temp_block table', async () => {
+		it('should retrieve all blocks from temp_blocks table', async () => {
 			// Act
 			await blocksInstance.getTempBlocks({}, {}, stubs.tx);
 

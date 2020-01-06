@@ -17,13 +17,13 @@
 require('../../../functional');
 const Promise = require('bluebird');
 const { transfer } = require('@liskhq/lisk-transactions');
-const apiHelpers = require('../../../../common/helpers/api');
-const randomUtil = require('../../../../common/utils/random');
-const SwaggerEndpoint = require('../../../../common/swagger_spec');
-const accountFixtures = require('../../../../fixtures/accounts');
+const apiHelpers = require('../../../../../utils/http/api');
+const randomUtil = require('../../../../../utils/random');
+const SwaggerEndpoint = require('../../../../../utils/http/swagger_spec');
+const accountFixtures = require('../../../../../fixtures/accounts');
 const {
 	getNetworkIdentifier,
-} = require('../../../../common/network_identifier');
+} = require('../../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

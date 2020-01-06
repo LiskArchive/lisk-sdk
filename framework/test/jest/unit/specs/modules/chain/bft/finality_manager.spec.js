@@ -29,11 +29,11 @@ jest.mock('../../../../../../../src/modules/chain/bft/utils');
 
 const {
 	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../mocha/fixtures/blocks');
+} = require('../../../../../../fixtures/blocks');
 
 const {
 	Account: accountFixture,
-} = require('../../../../../../mocha/fixtures/accounts');
+} = require('../../../../../../fixtures/accounts');
 
 const generateValidHeaders = count => {
 	return [...Array(count)].map((_, index) => {

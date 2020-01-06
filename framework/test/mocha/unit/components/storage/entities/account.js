@@ -24,9 +24,9 @@ const {
 		NonSupportedOperationError,
 	},
 } = require('../../../../../../src/components/storage');
-const storageSandbox = require('../../../../common/storage_sandbox');
-const seeder = require('../../../../common/storage_seed');
-const accountFixtures = require('../../../../fixtures').accounts;
+const storageSandbox = require('../../../../../utils/storage/storage_sandbox');
+const seeder = require('../../../../../utils/storage/storage_seed');
+const accountFixtures = require('../../../../../fixtures/').accounts;
 
 describe('Account', () => {
 	let adapter;

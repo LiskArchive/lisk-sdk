@@ -27,11 +27,11 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const { hexToBuffer } = require('@liskhq/lisk-cryptography');
 const { Slots } = require('../../../src/modules/chain/dpos');
-const accountsFixtures = require('../fixtures/accounts');
-const randomUtil = require('../common/utils/random');
+const accountsFixtures = require('../../fixtures/accounts');
+const randomUtil = require('../../utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
-const { getNetworkIdentifier } = require('../common/network_identifier');
+const { getNetworkIdentifier } = require('../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

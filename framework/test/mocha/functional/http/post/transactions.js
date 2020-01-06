@@ -16,14 +16,16 @@
 
 require('../../functional');
 const { transfer } = require('@liskhq/lisk-transactions');
-const SwaggerSpec = require('../../../common/swagger_spec');
-const randomUtil = require('../../../common/utils/random');
-const accountFixtures = require('../../../fixtures/accounts');
-const sendTransactionPromise = require('../../../common/helpers/api')
+const SwaggerSpec = require('../../../../utils/http/swagger_spec');
+const randomUtil = require('../../../../utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const sendTransactionPromise = require('../../../../utils/http/api')
 	.sendTransactionPromise;
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
-const phases = require('../../../common/phases');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

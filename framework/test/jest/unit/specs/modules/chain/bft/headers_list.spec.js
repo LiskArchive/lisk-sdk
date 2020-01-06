@@ -19,7 +19,7 @@ const {
 } = require('../../../../../../../src/modules/chain/bft/headers_list');
 const {
 	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../mocha/fixtures/blocks');
+} = require('../../../../../../fixtures/blocks');
 
 describe('HeadersList', () => {
 	let list;

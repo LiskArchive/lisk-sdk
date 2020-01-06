@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT *  FROM temp_block
+SELECT *  FROM temp_blocks
 
 ${parsedFilters:raw}
 

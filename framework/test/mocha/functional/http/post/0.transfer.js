@@ -18,14 +18,16 @@ require('../../functional');
 const crypto = require('crypto');
 const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
-const accountFixtures = require('../../../fixtures/accounts');
-const typesRepresentatives = require('../../../fixtures/types_representatives');
-const phases = require('../../../common/phases');
-const sendTransactionPromise = require('../../../common/helpers/api')
+const accountFixtures = require('../../../../fixtures/accounts');
+const typesRepresentatives = require('../../../../fixtures/types_representatives');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const sendTransactionPromise = require('../../../../utils/http/api')
 	.sendTransactionPromise;
-const randomUtil = require('../../../common/utils/random');
+const randomUtil = require('../../../../utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

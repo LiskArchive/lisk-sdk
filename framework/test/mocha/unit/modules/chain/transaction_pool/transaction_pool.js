@@ -26,7 +26,9 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 } = require('../../../../../../src/modules/chain/transaction_pool/transaction_pool');
 const transactionsModule = require('../../../../../../src/modules/chain/blocks/transactions');
-const { transactions: transactionsFixtures } = require('../../../../fixtures');
+const {
+	transactions: transactionsFixtures,
+} = require('../../../../../fixtures/');
 
 describe('transactionPool', () => {
 	const broadcastInterval = 5;

@@ -19,15 +19,15 @@ const { TransferTransaction } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const accountFixtures = require('../../../../fixtures/accounts');
-const { Block, GenesisBlock } = require('../../../../fixtures/blocks');
+const accountFixtures = require('../../../../../fixtures//accounts');
+const { Block, GenesisBlock } = require('../../../../../fixtures//blocks');
 const {
 	Transport: TransportModule,
 } = require('../../../../../../src/modules/chain/transport');
 const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
-} = require('../../../../common/network_identifier');
+} = require('../../../../../utils/network_identifier');
 
 const expect = chai.expect;
 
@@ -711,7 +711,7 @@ describe('transport', () => {
 							it('should throw an error', async () => {
 								try {
 									await transportModule.handleEventPostBlock(
-										postBlockQuery,
+										{ block: { ...postBlockQuery.block, id: 'dummy' } },
 										defaultPeerId,
 									);
 									expect('should not reach').to.equal('here');

@@ -162,7 +162,7 @@ class Loader {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	async _validateBlocks(blocks) {
+	_validateBlocks(blocks) {
 		const errors = validator.validate(definitions.WSBlocksList, blocks);
 
 		if (errors.length) {
@@ -194,22 +194,20 @@ class Loader {
 		while (!loaded && failedAttemptsToLoad < 5) {
 			try {
 				const blocksFromNetwork = await this._getBlocksFromNetwork();
-				const blocksAfterValidate = await this._validateBlocks(
-					blocksFromNetwork,
-				);
+				const blocksAfterValidate = this._validateBlocks(blocksFromNetwork);
 				loaded = await this._getValidatedBlocksFromNetwork(blocksAfterValidate);
 				// Reset counter after a batch of blocks was successfully loaded from the network
 				failedAttemptsToLoad = 0;
 			} catch (err) {
 				failedAttemptsToLoad += 1;
-				await this._handleCommonBlockError(err);
+				this._handleCommonBlockError(err);
 				this.logger.warn({ err }, 'Failed to load blocks from the network.');
 			}
 		}
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	async _handleCommonBlockError(error) {
+	_handleCommonBlockError(error) {
 		if (!(error instanceof CommonBlockError)) {
 			return;
 		}

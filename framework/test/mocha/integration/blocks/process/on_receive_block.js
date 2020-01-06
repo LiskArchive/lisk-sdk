@@ -22,11 +22,11 @@ const PQ = require('pg-promise').ParameterizedQuery;
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const accountFixtures = require('../../../fixtures/accounts');
+const accountFixtures = require('../../../../fixtures/accounts');
 const { Slots } = require('../../../../../src/modules/chain/dpos');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const application = require('../../../common/application');
+const application = require('../../../../utils/legacy/application');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 

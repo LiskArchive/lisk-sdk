@@ -15,7 +15,11 @@
 'use strict';
 
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const { chainUtils, storageUtils, configUtils } = require('../../../utils');
+const {
+	chainUtils,
+	storageUtils,
+	configUtils,
+} = require('../../../../../utils');
 const delegateListForTheFirstRound = require('../../../../../fixtures/config/devnet/delegates_for_first_round.json');
 const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
 
@@ -28,25 +32,19 @@ describe('genesis block', () => {
 	beforeAll(async () => {
 		storage = new storageUtils.StorageSandbox(
 			configUtils.storageConfig({ database: dbName }),
+			dbName,
 		);
 		await storage.bootstrap();
+		chainModule = await chainUtils.createAndLoadChainModule(dbName);
 	});
 
 	afterAll(async () => {
-		await chainModule.cleanup();
+		await chainModule.unload();
 		await storage.cleanup();
 	});
 
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
-			beforeAll(async () => {
-				chainModule = await chainUtils.createAndLoadChainModule(dbName);
-			});
-
-			afterAll(async () => {
-				await chainModule.unload();
-			});
-
 			it('should save genesis block to the database', async () => {
 				const block = await storageUtils.getBlock(storage, genesisBlock.id);
 				expect(block.id).toEqual(genesisBlock.id);
@@ -117,7 +115,7 @@ describe('genesis block', () => {
 
 			it('should have correct delegate list', async () => {
 				const delegateListFromChain = await chainUtils.getDelegateList(
-					chainModule,
+					chainModule.chain,
 					1,
 				);
 				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
@@ -127,10 +125,6 @@ describe('genesis block', () => {
 
 	describe('given the application has been initialized previously', () => {
 		describe('when chain module is bootstrapped', () => {
-			beforeAll(async () => {
-				chainModule = await chainUtils.createAndLoadChainModule(dbName);
-			});
-
 			it('should have genesis transactions in database', async () => {
 				const block = await storageUtils.getBlock(storage, genesisBlock.id);
 				const ids = genesisBlock.transactions.map(t => t.id);
@@ -195,7 +189,7 @@ describe('genesis block', () => {
 
 			it('should have correct delegate list', async () => {
 				const delegateListFromChain = await chainUtils.getDelegateList(
-					chainModule,
+					chainModule.chain,
 					1,
 				);
 				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);

@@ -74,14 +74,14 @@ const deleteBlocksAfterHeight = async (
 };
 
 /**
- * Allows to restore blocks if there are blocks left upon startup in temp_block table (e.g. node crashed)
+ * Allows to restore blocks if there are blocks left upon startup in temp_blocks table (e.g. node crashed)
  * Depends upon fork choice rule if blocks will be applied
  *
- * 1. Gets all blocks from temp_block table
+ * 1. Gets all blocks from temp_blocks table
  * 2. Sort blocks according to height as we want to lowest height (the next block to be applied)
  * 3. Uses next block with fork choice rule - if fork status indicates we should switch to different chain
  * we continue applying blocks using the `restoreBlocks` function.
- * Otherwise we truncate the temp_block table.
+ * Otherwise we truncate the temp_blocks table.
  */
 const restoreBlocksUponStartup = async (
 	logger,
@@ -118,11 +118,11 @@ const restoreBlocksUponStartup = async (
 			blockLowestHeight.height - 1,
 			false,
 		);
-		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_block table
+		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_blocks table
 		await restoreBlocks(blocksModule, processorModule);
 		logger.info('Chain successfully restored');
 	} else {
-		// Not different chain - Delete remaining blocks from temp_block table
+		// Not different chain - Delete remaining blocks from temp_blocks table
 		await clearBlocksTempTable(storageModule);
 	}
 };
