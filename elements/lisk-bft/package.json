@@ -58,7 +58,7 @@
 	},
 	"dependencies": {
 		"@types/node": "12.12.11",
-		"@liskhq/lisk-validator": "0.3.0-alpha.0"
+		"@liskhq/lisk-validator": "0.3.0-alpha.1"
 	},
 	"devDependencies": {
 		"@types/jest": "24.0.23",
