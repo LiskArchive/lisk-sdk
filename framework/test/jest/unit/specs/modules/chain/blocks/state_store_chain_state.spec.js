@@ -92,5 +92,18 @@ describe('state store / chain_state', () => {
 				undefined,
 			);
 		});
+
+		it('should handle promise rejection', async () => {
+			// Prepare
+			storageStub.entities.ChainState.setKey.mockImplementation(() =>
+				Promise.reject(new Error('Fake storage layer error')),
+			);
+			// Act
+			await stateStore.chainState.set('key3', 'value3');
+			// Assert
+			return expect(stateStore.chainState.finalize()).rejects.toThrow(
+				'Fake storage layer error',
+			);
+		});
 	});
 });

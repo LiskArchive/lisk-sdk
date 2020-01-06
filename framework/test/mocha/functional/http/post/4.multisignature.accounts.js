@@ -17,12 +17,14 @@
 require('../../functional');
 
 const { transfer } = require('@liskhq/lisk-transactions');
-const Scenarios = require('../../../common/scenarios');
-const waitFor = require('../../../common/utils/wait_for');
-const apiHelpers = require('../../../common/helpers/api');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const accountFixtures = require('../../../fixtures/accounts');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const accountFixtures = require('../../../../fixtures/accounts');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

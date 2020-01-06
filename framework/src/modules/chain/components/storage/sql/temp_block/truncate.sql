@@ -13,10 +13,10 @@
  */
 
 /*
-  DESCRIPTION: Clear table temp_block
+  DESCRIPTION: Clear table temp_blocks
   ONLY makes sure that only this table gets truncated
 
   PARAMETERS: none
 */
 
-TRUNCATE TABLE ONLY temp_block
+TRUNCATE TABLE ONLY temp_blocks

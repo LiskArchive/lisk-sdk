@@ -22,8 +22,10 @@ const votesWeightHandler = require('../../../../../../src/modules/chain/blocks/t
 const exceptionHandlers = require('../../../../../../src/modules/chain/blocks/transactions/exceptions_handlers');
 const {
 	Transaction: transactionFixture,
-} = require('../../../../fixtures/transactions');
-const { Account: accountFixture } = require('../../../../fixtures/accounts');
+} = require('../../../../../fixtures//transactions');
+const {
+	Account: accountFixture,
+} = require('../../../../../fixtures//accounts');
 
 // TODO: re-implement for new transaction processing
 describe('transactions', () => {

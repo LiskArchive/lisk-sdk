@@ -26,7 +26,7 @@ const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_b
 const { genesisAccount } = require('./default_account');
 const {
 	registeredTransactions,
-} = require('../../../../../utils/registered_transactions');
+} = require('../../../../../../utils/registered_transactions');
 
 jest.mock('events');
 

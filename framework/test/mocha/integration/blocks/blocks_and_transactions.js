@@ -19,7 +19,7 @@ const {
 	BlocksTransactionsHelper,
 	TYPE,
 	EXPECT,
-} = require('../../common/utils/blocks_and_transactions_helper');
+} = require('../../../utils/legacy/blocks_and_transactions_helper');
 
 describe('blocks processing & transactions pool consistency', () => {
 	let library;

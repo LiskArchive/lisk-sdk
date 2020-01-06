@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const localCommon = require('../common');
-const accountFixtures = require('../../fixtures/accounts');
+const accountFixtures = require('../../../fixtures/accounts');
 
 describe('delegates', () => {
 	let library;

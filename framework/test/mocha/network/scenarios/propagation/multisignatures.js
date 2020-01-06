@@ -19,16 +19,18 @@ const {
 	transfer,
 	registerMultisignature,
 } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
 const {
 	createSignatureObject,
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
-} = require('../../../common/helpers/api');
+} = require('../../../../utils/http/api');
 const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

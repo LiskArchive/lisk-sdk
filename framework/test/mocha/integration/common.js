@@ -26,10 +26,10 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
 const { Slots } = require('../../../src/modules/chain/dpos');
-const application = require('../common/application');
-const randomUtil = require('../common/utils/random');
-const accountFixtures = require('../fixtures/accounts');
-const { getNetworkIdentifier } = require('../common/network_identifier');
+const application = require('../../utils/legacy/application');
+const randomUtil = require('../../utils/random');
+const accountFixtures = require('../../fixtures/accounts');
+const { getNetworkIdentifier } = require('../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
