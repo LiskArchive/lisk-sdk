@@ -101,8 +101,8 @@ export const sanitizePeerLists = (
 	nodeInfo: P2PPeerInfo,
 	secret: number,
 ): PeerLists => {
-	const blacklistedIps = lists.blacklistedIps.filter(blacklistedIp => {
-		if (blacklistedIp === nodeInfo.ipAddress) {
+	const blacklistedIPs = lists.blacklistedIPs.filter(blacklistedIP => {
+		if (blacklistedIP === nodeInfo.ipAddress) {
 			return false;
 		}
 
@@ -115,7 +115,7 @@ export const sanitizePeerLists = (
 				return false;
 			}
 
-			if (blacklistedIps.includes(peerInfo.ipAddress)) {
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 				return false;
 			}
 
@@ -136,7 +136,7 @@ export const sanitizePeerLists = (
 				return false;
 			}
 
-			if (blacklistedIps.includes(peerInfo.ipAddress)) {
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 				return false;
 			}
 
@@ -161,7 +161,7 @@ export const sanitizePeerLists = (
 				return false;
 			}
 
-			if (blacklistedIps.includes(peerInfo.ipAddress)) {
+			if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 				return false;
 			}
 
@@ -192,7 +192,7 @@ export const sanitizePeerLists = (
 			return false;
 		}
 
-		if (blacklistedIps.includes(peerInfo.ipAddress)) {
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
 			return false;
 		}
 
@@ -212,7 +212,7 @@ export const sanitizePeerLists = (
 	});
 
 	return {
-		blacklistedIps,
+		blacklistedIPs,
 		seedPeers,
 		fixedPeers,
 		whitelisted,

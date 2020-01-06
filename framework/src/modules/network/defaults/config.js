@@ -49,7 +49,7 @@ const defaultConfig = {
 			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
 			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 		},
-		blacklistedIps: {
+		blacklistedIPs: {
 			type: 'array',
 			items: {
 				type: 'string',
