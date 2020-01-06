@@ -94,7 +94,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			) => ({
 				hostIp: '127.0.0.' + (index + 10),
 				seedPeers: customSeedPeers(index, startPort, networkSize),
-				blacklistedPeers,
+				blacklistedIps: blacklistedPeers.map(p => p.ipAddress),
 				fixedPeers: blacklistedPeers,
 				whitelistedPeers: blacklistedPeers,
 				previousPeers: previousPeersBlacklisted,

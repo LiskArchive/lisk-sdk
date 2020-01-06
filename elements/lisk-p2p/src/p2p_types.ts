@@ -114,7 +114,7 @@ export interface ProtocolPeerInfo {
 }
 
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<string>;
+	readonly blacklistedIps?: ReadonlyArray<string>;
 	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly fixedPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly whitelistedPeers?: ReadonlyArray<ProtocolPeerInfo>;

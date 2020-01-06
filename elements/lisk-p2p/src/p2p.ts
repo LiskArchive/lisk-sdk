@@ -247,7 +247,7 @@ export class P2P extends EventEmitter {
 				seedPeers: config.seedPeers
 					? config.seedPeers.map(sanitizeInitialPeerInfo)
 					: [],
-				blacklistedIps: config.blacklistedPeers ? config.blacklistedPeers : [],
+				blacklistedIps: config.blacklistedIps ? config.blacklistedIps : [],
 				fixedPeers: config.fixedPeers
 					? config.fixedPeers.map(sanitizeInitialPeerInfo)
 					: [],

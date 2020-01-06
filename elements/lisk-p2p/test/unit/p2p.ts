@@ -27,7 +27,7 @@ describe('p2p', () => {
 
 		const P2PNode = new P2P({
 			seedPeers: [],
-			blacklistedPeers: generatedPeers.slice(6),
+			blacklistedIps: generatedPeers.slice(6).map(peer => peer.ipAddress),
 			fixedPeers: generatedPeers.slice(0, 6),
 			whitelistedPeers: generatedPeers.slice(2, 3),
 			previousPeers: generatedPeers.slice(4, 5),
