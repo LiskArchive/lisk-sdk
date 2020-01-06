@@ -24,9 +24,9 @@ const {
 	},
 } = require('../../../../../../src/components/storage');
 
-const storageSandbox = require('../../../../common/storage_sandbox');
-const transactionsFixtures = require('../../../../fixtures').transactions;
-const blocksFixtures = require('../../../../fixtures/blocks');
+const storageSandbox = require('../../../../../utils/storage/storage_sandbox');
+const transactionsFixtures = require('../../../../../fixtures/').transactions;
+const blocksFixtures = require('../../../../../fixtures//blocks');
 
 describe('Block', () => {
 	let adapter;

@@ -22,12 +22,14 @@ const {
 	createDapp,
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
-const typesRepresentatives = require('../../../fixtures/types_representatives');
-const accountFixtures = require('../../../fixtures/accounts');
-const apiHelpers = require('../../../common/helpers/api');
-const randomUtil = require('../../../common/utils/random');
+const typesRepresentatives = require('../../../../fixtures/types_representatives');
+const accountFixtures = require('../../../../fixtures/accounts');
+const apiHelpers = require('../../../../utils/http/api');
+const randomUtil = require('../../../../utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,

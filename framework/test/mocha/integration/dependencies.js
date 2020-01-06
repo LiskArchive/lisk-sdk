@@ -16,7 +16,7 @@
 
 const fs = require('fs');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
-const { StorageSandbox } = require('../common/storage_sandbox');
+const { StorageSandbox } = require('../../utils/storage/storage_sandbox');
 
 describe('Dependency versions', () => {
 	describe('node version', () => {

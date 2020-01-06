@@ -17,13 +17,17 @@
 require('../../functional');
 const { P2P } = require('@liskhq/lisk-p2p');
 const { transfer } = require('@liskhq/lisk-transactions');
-const { generatePeerHeader } = require('../../../common/generatePeerHeader');
-const waitFor = require('../../../common/utils/wait_for');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const randomUtil = require('../../../common/utils/random');
-const accountFixtures = require('../../../fixtures/accounts');
-const apiHelpers = require('../../../common/helpers/api');
-const { getNetworkIdentifier } = require('../../../common/network_identifier');
+const {
+	generatePeerHeader,
+} = require('../../../../utils/p2p/generatePeerHeader');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const randomUtil = require('../../../../utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const apiHelpers = require('../../../../utils/http/api');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
 
 const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
 

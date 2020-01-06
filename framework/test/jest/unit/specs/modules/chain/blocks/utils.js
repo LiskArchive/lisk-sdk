@@ -18,7 +18,7 @@ const BigNum = require('@liskhq/bignum');
 const { hash, signDataWithPrivateKey } = require('@liskhq/lisk-cryptography');
 const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 // TODO: Move it out of mocha and put it in test main directory
-const randomUtil = require('../../../../../../mocha/common/utils/random.js');
+const randomUtil = require('../../../../../../utils/random.js');
 const {
 	getBytes,
 } = require('../../../../../../../src/modules/chain/block_processor_v2');

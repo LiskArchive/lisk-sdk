@@ -27,7 +27,7 @@ const {
 const {
 	MigrationEntity,
 } = require('../../../../../../../../src/controller/migrations');
-const storageSandbox = require('../../../../../../common/storage_sandbox');
+const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 
 const ChainModule = require('../../../../../../../../src/modules/chain');
 const NetworkModule = require('../../../../../../../../src/modules/network');
