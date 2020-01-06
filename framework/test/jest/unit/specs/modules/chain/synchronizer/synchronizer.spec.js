@@ -31,7 +31,7 @@ const {
 	Processor,
 } = require('../../../../../../../src/modules/chain/processor');
 const { constants } = require('../../../../../../utils');
-const { newBlock } = require('../../chain/blocks/utils');
+const { newBlock } = require('./block');
 const synchronizerUtils = require('../../../../../../../src/modules/chain/synchronizer/utils');
 
 const genesisBlockDevnet = require('../../../../../../fixtures/config/devnet/genesis_block');
