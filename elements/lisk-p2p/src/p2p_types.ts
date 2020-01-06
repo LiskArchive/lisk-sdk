@@ -192,7 +192,7 @@ export type P2PCheckPeerCompatibility = (
 ) => P2PCompatibilityCheckReturnType;
 
 export interface PeerLists {
-	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly blacklistedIps: ReadonlyArray<string>;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
