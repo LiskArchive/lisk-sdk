@@ -23,7 +23,6 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_RATE_CALCULATION_INTERVAL,
-	RCP_REQUEST_TYPE,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -283,7 +282,6 @@ describe('peer/base', () => {
 			(defaultPeer as any)._socket = socket;
 			defaultPeer.request(p2pPacket);
 			expect(socket.emit).to.be.calledOnceWith(REMOTE_SC_EVENT_RPC_REQUEST, {
-				type: RCP_REQUEST_TYPE,
 				procedure: p2pPacket.procedure,
 				data: p2pPacket.data,
 			});
