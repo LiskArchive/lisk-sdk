@@ -383,8 +383,24 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
-			getConnectedPeers: () => this.p2p.getConnectedPeers(),
-			getDisconnectedPeers: () => this.p2p.getDisconnectedPeers(),
+			getConnectedPeers: () =>
+				this.p2p.getConnectedPeers().map(peerInfo => {
+					const { networkId, ...peerInfoNethash } = peerInfo;
+
+					return {
+						...peerInfoNethash,
+						nethash: networkId,
+					};
+				}),
+			getDisconnectedPeers: () =>
+				this.p2p.getDisconnectedPeers().map(peerInfo => {
+					const { networkId, ...peerInfoNethash } = peerInfo;
+
+					return {
+						...peerInfoNethash,
+						nethash: networkId,
+					};
+				}),
 			applyPenalty: action =>
 				this.p2p.applyPenalty({
 					peerId: action.params.peerId,
