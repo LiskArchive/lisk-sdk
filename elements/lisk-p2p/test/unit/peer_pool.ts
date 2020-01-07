@@ -24,11 +24,7 @@ import {
 	selectPeersForSend,
 } from '../../src/utils';
 // For stubbing
-import {
-	P2PPeerInfo,
-	P2PNodeInfo,
-	P2PResponsePacket,
-} from '../../src/p2p_types';
+import { P2PPeerInfo, P2PNodeInfo } from '../../src/p2p_types';
 import { initPeerList } from '../utils/peers';
 import {
 	Peer,
@@ -231,9 +227,9 @@ describe('peerPool', () => {
 		});
 
 		it('should call _peerSelectForRequest', async () => {
-			jest
-				.spyOn(peerPool, 'requestFromPeer')
-				.mockResolvedValue({} as P2PResponsePacket);
+			(peerPool as any)._peerMap = new Map([['127.0.0.1:5000', peerObject]]);
+
+			jest.spyOn(peerPool, 'requestFromPeer');
 
 			const peers = peerPool.getAllConnectedPeerInfos(OutboundPeer);
 			const _peerSelectForRequestStub = jest
@@ -259,9 +255,9 @@ describe('peerPool', () => {
 		});
 
 		it('should call requestFromPeer', async () => {
-			const requestFromPeerStub = jest
-				.spyOn(peerPool, 'requestFromPeer')
-				.mockResolvedValue({} as P2PResponsePacket);
+			(peerPool as any)._peerMap = new Map([['127.0.0.1:5000', peerObject]]);
+
+			const requestFromPeerStub = jest.spyOn(peerPool, 'requestFromPeer');
 
 			jest
 				.spyOn(peerPool as any, '_peerSelectForRequest')
