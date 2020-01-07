@@ -125,7 +125,7 @@ describe('P2P.applyNodeInfo', () => {
 				advertiseAddress: true,
 				height: 10,
 				ipAddress: '127.0.0.1',
-				nethash:
+				networkId:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				peerId: '127.0.0.1:5000',
 				wsPort: 5000,
@@ -150,21 +150,10 @@ describe('P2P.applyNodeInfo', () => {
 
 			// Check if the peerinfo is updated in new peer list
 			if (firstNodeInAllPeersList) {
-				expect(firstNodeInAllPeersList)
-					.toHaveProperty('sharedState')
-					.to.have.property('height')
-					.toBe(10);
-				expect(firstNodeInAllPeersList)
-					.to.have.property('sharedState')
-					.to.have.property('networkId')
-					.which.equals(
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					);
-				expect(firstNodeInAllPeersList).toMatchSnapshot();
 				expect(firstNodeInAllPeersList).toMatchObject({
 					sharedState: {
 						height: 10,
-						nethash:
+						networkId:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						nonce: expect.any(String),
 						advertiseAddress: true,
@@ -177,18 +166,9 @@ describe('P2P.applyNodeInfo', () => {
 
 			// Check if the peerinfo is updated in connected peer list
 			if (firstNodeInConnectedPeer) {
-				expect(firstNodeInConnectedPeer)
-					.to.have.property('height')
-					.toBe(10);
-				expect(firstNodeInConnectedPeer)
-					.to.have.property('networkId')
-					.which.equals(
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					);
-				expect(firstNodeInConnectedPeer).toMatchSnapshot();
 				expect(firstNodeInConnectedPeer).toMatchObject({
 					height: 10,
-					nethash:
+					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					nonce: expect.any(String),
 					advertiseAddress: true,

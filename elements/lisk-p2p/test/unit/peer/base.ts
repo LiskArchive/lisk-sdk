@@ -332,12 +332,14 @@ describe('peer/base', () => {
 
 	describe('#fetchPeers', () => {
 		it('should call request', async () => {
-			const peerRequest = jest.spyOn(defaultPeer, 'request').mockResolvedValue({
-				data: {
-					peers: [],
-					success: true,
-				},
-			});
+			const peerRequest = jest
+				.spyOn(defaultPeer as any, 'request')
+				.mockResolvedValue({
+					data: {
+						peers: [],
+						success: true,
+					},
+				});
 
 			await defaultPeer.fetchPeers();
 
@@ -425,7 +427,7 @@ describe('peer/base', () => {
 						},
 					},
 				];
-				jest.spyOn(defaultPeer, 'request').mockResolvedValue({
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
 					data: {
 						peers: peers.map(peer => ({
 							...peer.sharedState,
@@ -449,7 +451,7 @@ describe('peer/base', () => {
 					},
 				}));
 
-				jest.spyOn(defaultPeer, 'request').mockResolvedValue({
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
 					data: {
 						peers: malformedPeerList.map(peer => ({
 							...peer.sharedState,
@@ -482,7 +484,7 @@ describe('peer/base', () => {
 					},
 				];
 
-				jest.spyOn(defaultPeer, 'request').mockResolvedValue({
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
 					data: {
 						peers: malformedPeerList.map(peer => ({
 							...peer.sharedState,
@@ -532,7 +534,9 @@ describe('peer/base', () => {
 					},
 				},
 			];
-			jest.spyOn(defaultPeer, 'fetchPeers').mockResolvedValue(discoveredPeers);
+			jest
+				.spyOn(defaultPeer as any, 'fetchPeers')
+				.mockResolvedValue(discoveredPeers);
 			jest.spyOn(defaultPeer, 'emit');
 		});
 
@@ -602,7 +606,7 @@ describe('peer/base', () => {
 					networkId: 'networkId',
 				};
 				beforeEach(() => {
-					jest.spyOn(defaultPeer, 'request').mockResolvedValue({
+					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
 						data: peer,
 					});
 					jest.spyOn(defaultPeer, 'emit');
@@ -638,7 +642,7 @@ describe('peer/base', () => {
 				};
 
 				beforeEach(() => {
-					jest.spyOn(defaultPeer, 'request').mockResolvedValue({
+					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
 						data: peerSharedState,
 					});
 					jest.spyOn(defaultPeer, 'updatePeerInfo');
@@ -683,7 +687,7 @@ describe('peer/base', () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo.sharedState).toMatchObject({
 						height: 0,
-						nethash: 'nethash',
+						networkId: 'networkId',
 						protocolVersion: '1.2',
 						version: '1.1.2',
 					});
