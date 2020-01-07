@@ -287,7 +287,7 @@ export const checkIfTransactionIsInert = (
 export const updateTransactionResponseForExceptionTransactions = (
 	unprocessableTransactionResponses: TransactionResponse[],
 	transactions: ReadonlyArray<BaseTransaction>,
-	exceptions: ExceptionOptions,
+	exceptions?: ExceptionOptions,
 ) => {
 	const unprocessableTransactionAndResponsePairs = unprocessableTransactionResponses.map(
 		unprocessableTransactionResponse => ({

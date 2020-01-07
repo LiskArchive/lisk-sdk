@@ -44,7 +44,8 @@ export const composeTransactionSteps = (
 	const successfulResponses: TransactionResponse[] = [];
 	const failedResponses: TransactionResponse[] = [];
 
-	for (const fn of steps) {
+	// tslint:disable-next-line no-let
+	for (let i = 0; i < steps.length; i += 1) {
 		const filteredTransactions =
 			failedResponses.length > 0
 				? transactions.filter(
@@ -53,12 +54,13 @@ export const composeTransactionSteps = (
 				  )
 				: transactions;
 		const { transactionsResponses } = stateStore
-			? await fn(filteredTransactions, stateStore)
-			: (fn as TransactionSyncFn)(filteredTransactions);
+			? await steps[i](filteredTransactions, stateStore)
+			: (steps[i] as TransactionSyncFn)(filteredTransactions);
 		for (const response of transactionsResponses) {
 			if (response.status !== TransactionStatus.OK) {
 				failedResponses.push(response);
-			} else {
+			}
+			if (i === steps.length - 1 && response.status === TransactionStatus.OK) {
 				successfulResponses.push(response);
 			}
 		}

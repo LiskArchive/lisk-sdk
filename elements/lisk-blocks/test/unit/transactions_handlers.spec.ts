@@ -12,29 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { when } = require('jest-when');
-const BigNum = require('@liskhq/bignum');
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const transactionHandlers = require('../../src/transactions/transactions_handlers');
-const votesWeightHandler = require('../../src/transactions/votes_weight');
-const exceptionHandlers = require('../../src/transactions/exceptions_handlers');
-const randomUtils = require('../utils/random');
+import { when } from 'jest-when';
+import * as BigNum from '@liskhq/bignum';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	Status as TransactionStatus,
+	TransactionResponse,
+	BaseTransaction,
+} from '@liskhq/lisk-transactions';
+import * as transactionHandlers from '../../src/transactions/transactions_handlers';
+import * as votesWeightHandler from '../../src/transactions/votes_weight';
+import * as exceptionHandlers from '../../src/transactions/exceptions_handlers';
+import * as randomUtils from '../utils/random';
+import { Context } from '../../src/types';
 
 describe('transactions', () => {
-	const trs1 = randomUtils.transferInstance();
-	const trs2 = randomUtils.transferInstance();
+	const trs1 = randomUtils.transferInstance() as any;
+	const trs2 = randomUtils.transferInstance() as any;
 
-	const dummyState = {
-		version: 1,
-		height: 1,
-		timestamp: 'aTimestamp',
+	const dummyState: Context = {
+		blockVersion: 1,
+		blockHeight: 1,
+		blockTimestamp: 123,
 	};
 
-	let storageMock;
-	let stateStoreMock;
+	let storageMock: any;
+	let stateStoreMock: any;
 
 	beforeEach(async () => {
 		// Add matcher to transactions
@@ -292,8 +295,8 @@ describe('transactions', () => {
 				({ id }) => id === trs2.id,
 			);
 
-			expect(transactionResponse.status).toEqual(TransactionStatus.OK);
-			expect(transactionResponse.errors).toEqual([]);
+			expect((transactionResponse as any).status).toEqual(TransactionStatus.OK);
+			expect((transactionResponse as any).errors).toEqual([]);
 		});
 
 		it('should return TransactionStatus.FAIL for persisted transactions', async () => {
@@ -308,9 +311,11 @@ describe('transactions', () => {
 				({ id }) => id === trs1.id,
 			);
 
-			expect(transactionResponse.status).toEqual(TransactionStatus.FAIL);
-			expect(transactionResponse.errors).toHaveLength(1);
-			expect(transactionResponse.errors[0].message).toEqual(
+			expect((transactionResponse as any).status).toEqual(
+				TransactionStatus.FAIL,
+			);
+			expect((transactionResponse as any).errors).toHaveLength(1);
+			expect((transactionResponse as any).errors[0].message).toEqual(
 				`Transaction is already confirmed: ${trs1.id}`,
 			);
 		});
@@ -403,17 +408,19 @@ describe('transactions', () => {
 	});
 
 	describe('#applyTransactions', () => {
-		let trs1Response;
-		let trs2Response;
+		let trs1Response: TransactionResponse;
+		let trs2Response: TransactionResponse;
 
 		beforeEach(async () => {
 			trs1Response = {
 				status: TransactionStatus.OK,
 				id: trs1.id,
+				errors: [],
 			};
 			trs2Response = {
 				status: TransactionStatus.OK,
 				id: trs2.id,
+				errors: [],
 			};
 
 			trs1.apply.mockReturnValue(trs1Response);
@@ -442,9 +449,9 @@ describe('transactions', () => {
 		});
 
 		describe('when transactions have conflict on total spending', () => {
-			let trs3;
-			let trs4;
-			let trs5;
+			let trs3: BaseTransaction;
+			let trs4: BaseTransaction;
+			let trs5: BaseTransaction;
 
 			beforeEach(async () => {
 				const senderId = getAddressFromPublicKey(trs1.senderPublicKey);
@@ -540,7 +547,7 @@ describe('transactions', () => {
 			});
 
 			it('should update response for exceptions if response is not OK', async () => {
-				trs1Response.status = TransactionStatus.FAIL;
+				(trs1Response as any).status = TransactionStatus.FAIL;
 				trs1.apply.mockReturnValue(trs1Response);
 
 				await transactionHandlers.applyTransactions()(
@@ -554,7 +561,7 @@ describe('transactions', () => {
 			});
 
 			it('should not update response for exceptions if response is OK', async () => {
-				trs1Response.status = TransactionStatus.OK;
+				(trs1Response as any).status = TransactionStatus.OK;
 				trs1.apply.mockReturnValue(trs1Response);
 
 				await transactionHandlers.applyTransactions()(
@@ -579,9 +586,9 @@ describe('transactions', () => {
 			});
 
 			it('should not add to state store if transaction response is not OK', async () => {
-				trs1Response.status = TransactionStatus.FAIL;
+				(trs1Response as any).status = TransactionStatus.FAIL;
 				trs1.apply.mockReturnValue(trs1Response);
-				trs2Response.status = TransactionStatus.FAIL;
+				(trs2Response as any).status = TransactionStatus.FAIL;
 				trs2.apply.mockReturnValue(trs2Response);
 
 				await transactionHandlers.applyTransactions()(
@@ -602,7 +609,7 @@ describe('transactions', () => {
 			});
 
 			it('should restore snapshot if transaction response is not Ok', async () => {
-				trs1Response.status = TransactionStatus.FAIL;
+				(trs1Response as any).status = TransactionStatus.FAIL;
 				trs1.apply.mockReturnValue(trs1Response);
 
 				await transactionHandlers.applyTransactions()(
@@ -616,17 +623,19 @@ describe('transactions', () => {
 	});
 
 	describe('#undoTransactions', () => {
-		let trs1Response;
-		let trs2Response;
+		let trs1Response: TransactionResponse;
+		let trs2Response: TransactionResponse;
 
 		beforeEach(async () => {
 			trs1Response = {
 				status: TransactionStatus.OK,
 				id: trs1.id,
+				errors: [],
 			};
 			trs2Response = {
 				status: TransactionStatus.OK,
 				id: trs2.id,
+				errors: [],
 			};
 
 			trs1.undo.mockReturnValue(trs1Response);
@@ -669,7 +678,7 @@ describe('transactions', () => {
 		});
 
 		it('should update exceptions for responses which are not OK', async () => {
-			trs1Response.status = TransactionStatus.FAIL;
+			(trs1Response as any).status = TransactionStatus.FAIL;
 			trs1.undo.mockReturnValue(trs1Response);
 
 			await transactionHandlers.undoTransactions()(
@@ -700,9 +709,9 @@ describe('transactions', () => {
 	});
 
 	describe('#verifyTransactions', () => {
-		let trs1Response;
-		let trs2Response;
-		let slotsMock;
+		let trs1Response: TransactionResponse;
+		let trs2Response: TransactionResponse;
+		let slotsMock: any;
 
 		beforeEach(async () => {
 			trs1Response = {
@@ -803,7 +812,7 @@ describe('transactions', () => {
 		});
 
 		it('should update response for exceptions if response is not OK', async () => {
-			trs1Response.status = TransactionStatus.FAIL;
+			(trs1Response as any).status = TransactionStatus.FAIL;
 			trs1.apply.mockReturnValue(trs1Response);
 
 			await transactionHandlers.verifyTransactions(slotsMock)(
@@ -833,8 +842,12 @@ describe('transactions', () => {
 	});
 
 	describe('#processSignature', () => {
-		const signature = '12356677';
-		let addMultisignatureStub;
+		const signature = {
+			publicKey: '12356677',
+			signature: 'signagure',
+			transactionId: '123',
+		};
+		let addMultisignatureStub: any;
 
 		beforeEach(async () => {
 			addMultisignatureStub = jest.fn();
@@ -843,13 +856,21 @@ describe('transactions', () => {
 		});
 
 		it('should prepare transaction', async () => {
-			await transactionHandlers.processSignature(storageMock)(trs1, signature);
+			await transactionHandlers.processSignature()(
+				trs1,
+				signature,
+				stateStoreMock,
+			);
 
 			expect(trs1.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		it('should add signature to transaction', async () => {
-			await transactionHandlers.processSignature(storageMock)(trs1, signature);
+			await transactionHandlers.processSignature()(
+				trs1,
+				signature,
+				stateStoreMock,
+			);
 
 			expect(addMultisignatureStub).toHaveBeenCalledTimes(1);
 		});
@@ -879,19 +900,19 @@ describe('transactions', () => {
 				.mockReturnValue(account);
 
 			const validTransaction = randomUtils.transferInstance();
-			validTransaction.senderId = account.address;
-			validTransaction.asset.amount = '3';
-			validTransaction.fee = '2';
+			(validTransaction as any).senderId = account.address;
+			(validTransaction as any).asset.amount = '3';
+			(validTransaction as any).fee = '2';
 
 			const inValidTransaction1 = randomUtils.transferInstance();
-			inValidTransaction1.senderId = account.address;
-			inValidTransaction1.asset.amount = '3';
-			inValidTransaction1.fee = '2';
+			(inValidTransaction1 as any).senderId = account.address;
+			(inValidTransaction1 as any).asset.amount = '3';
+			(inValidTransaction1 as any).fee = '2';
 
 			const inValidTransaction2 = randomUtils.transferInstance();
-			inValidTransaction2.senderId = account.address;
-			inValidTransaction2.asset.amount = '1';
-			inValidTransaction2.fee = '1';
+			(inValidTransaction2 as any).senderId = account.address;
+			(inValidTransaction2 as any).asset.amount = '1';
+			(inValidTransaction2 as any).fee = '1';
 
 			// First transaction is valid, while second and third exceed the balance
 			const transactions = [
@@ -901,7 +922,7 @@ describe('transactions', () => {
 			];
 
 			const result = transactionHandlers.verifyTotalSpending(
-				transactions,
+				transactions as any,
 				stateStoreMock,
 			);
 
@@ -929,21 +950,21 @@ describe('transactions', () => {
 				.mockReturnValue(account);
 
 			const validTransaction1 = randomUtils.transferInstance();
-			validTransaction1.senderId = account.address;
-			validTransaction1.asset.amount = '2';
-			validTransaction1.fee = '2';
+			(validTransaction1 as any).senderId = account.address;
+			(validTransaction1 as any).asset.amount = '2';
+			(validTransaction1 as any).fee = '2';
 
 			const validTransaction2 = randomUtils.transferInstance();
-			validTransaction2.senderId = account.address;
-			validTransaction2.asset.amount = '2';
-			validTransaction2.fee = '2';
+			(validTransaction2 as any).senderId = account.address;
+			(validTransaction2 as any).asset.amount = '2';
+			(validTransaction2 as any).fee = '2';
 
 			const transactions = [
 				validTransaction1, // Valid: Spend 4 while balance 8
 				validTransaction2, // Valid: Spend 4 + 4 while balance 8
 			];
 			const result = transactionHandlers.verifyTotalSpending(
-				transactions,
+				transactions as any,
 				stateStoreMock,
 			);
 
@@ -959,21 +980,21 @@ describe('transactions', () => {
 				.mockReturnValue(account);
 
 			const validTransaction1 = randomUtils.transferInstance();
-			validTransaction1.senderId = account.address;
-			validTransaction1.asset.amount = '2';
-			validTransaction1.fee = '2';
+			(validTransaction1 as any).senderId = account.address;
+			(validTransaction1 as any).asset.amount = '2';
+			(validTransaction1 as any).fee = '2';
 
 			const validTransaction2 = randomUtils.transferInstance();
-			validTransaction2.senderId = account.address;
-			validTransaction2.asset.amount = '2';
-			validTransaction2.fee = '2';
+			(validTransaction2 as any).senderId = account.address;
+			(validTransaction2 as any).asset.amount = '2';
+			(validTransaction2 as any).fee = '2';
 
 			const transactions = [
 				validTransaction1, // Valid: Spend 4 while balance 10
 				validTransaction2, // Valid: Spend 4 + 4 while balance 10
 			];
 			const result = transactionHandlers.verifyTotalSpending(
-				transactions,
+				transactions as any,
 				stateStoreMock,
 			);
 

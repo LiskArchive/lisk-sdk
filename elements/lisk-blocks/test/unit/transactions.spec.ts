@@ -11,21 +11,23 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
-const {
+import {
 	transfer,
 	castVotes,
 	registerSecondPassphrase,
 	createSignatureObject,
-} = require('@liskhq/lisk-transactions');
-const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
+	TransactionJSON,
+	BaseTransaction,
+	TransactionResponse,
+} from '@liskhq/lisk-transactions';
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { Blocks } from '../../src';
+import * as genesisBlock from '../fixtures/genesis_block.json';
+import { genesisAccount } from '../fixtures/default_account';
+import { registeredTransactions } from '../utils/registered_transactions';
+import { Logger, Slots } from '../../src/types';
+
 const { Slots } = require('@liskhq/lisk-dpos');
-const { Blocks } = require('../../src');
-const genesisBlock = require('../fixtures/genesis_block.json');
-const { genesisAccount } = require('../fixtures/default_account');
-const { registeredTransactions } = require('../utils/registered_transactions');
 
 jest.mock('events');
 
@@ -56,10 +58,10 @@ describe('blocks/transactions', () => {
 	);
 
 	let exceptions = {};
-	let blocksInstance;
-	let storageStub;
-	let loggerStub;
-	let slots;
+	let blocksInstance: Blocks;
+	let storageStub: any;
+	let loggerStub: Logger;
+	let slots: Slots;
 
 	beforeEach(async () => {
 		storageStub = {
@@ -89,8 +91,7 @@ describe('blocks/transactions', () => {
 			},
 		};
 		loggerStub = {
-			debug: jest.fn(),
-			log: jest.fn(),
+			info: jest.fn(),
 			error: jest.fn(),
 		};
 		slots = new Slots({
@@ -112,7 +113,7 @@ describe('blocks/transactions', () => {
 			exceptions,
 			...constants,
 		});
-		blocksInstance._lastBlock = {
+		(blocksInstance as any)._lastBlock = {
 			...genesisBlock,
 			receivedAt: new Date(),
 		};
@@ -131,30 +132,30 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const notAllowedTx = blocksInstance.deserializeTransaction(
 					registerSecondPassphrase({
 						passphrase: genesisAccount.passphrase,
 						secondPassphrase: 'second-passphrase',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
-				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
+				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._transactionAdapter.transactionClassMap.set(
+				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
 				// Act
 				const result = await blocksInstance.filterReadyTransactions(
 					[validTx, notAllowedTx],
-					{ blockTimestamp: 0 },
+					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
 				);
 				// Assert
 				expect(result).toHaveLength(1);
@@ -174,7 +175,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const notAllowedTx = blocksInstance.deserializeTransaction(
 					transfer({
@@ -182,12 +183,12 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				// Act
 				const result = await blocksInstance.filterReadyTransactions(
 					[validTx, notAllowedTx],
-					{ blockTimestamp: 0 },
+					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
 				);
 				// Assert
 				expect(result).toHaveLength(1);
@@ -196,11 +197,11 @@ describe('blocks/transactions', () => {
 		});
 
 		describe('when all transactions are allowed and applicable', () => {
-			let result;
-			let validTx;
-			let validTxSpy;
-			let validTx2;
-			let validTx2Spy;
+			let result: BaseTransaction[];
+			let validTx: BaseTransaction;
+			let validTxSpy: jest.SpyInstance;
+			let validTx2: BaseTransaction;
+			let validTx2Spy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrange
@@ -213,7 +214,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -221,14 +222,14 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				validTxSpy = jest.spyOn(validTx, 'apply');
 				validTx2Spy = jest.spyOn(validTx2, 'apply');
 				// Act
 				result = await blocksInstance.filterReadyTransactions(
 					[validTx, validTx2],
-					{ blockTimestamp: 0 },
+					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
 				);
 			});
 
@@ -260,23 +261,23 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const notAllowedTx = blocksInstance.deserializeTransaction(
 					registerSecondPassphrase({
 						passphrase: genesisAccount.passphrase,
 						secondPassphrase: 'second-passphrase',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
-				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
+				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._transactionAdapter.transactionClassMap.set(
+				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -288,10 +289,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === notAllowedTx.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -311,7 +312,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const notAllowedTx = blocksInstance.deserializeTransaction(
 					transfer({
@@ -319,9 +320,9 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
-				notAllowedTx._signature = 'invalid-signature';
+				(notAllowedTx as any)._signature = 'invalid-signature';
 				// Act
 				const {
 					transactionsResponses,
@@ -330,10 +331,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === notAllowedTx.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -342,9 +343,9 @@ describe('blocks/transactions', () => {
 		});
 
 		describe('when all transactions are valid', () => {
-			let responses;
-			let validTxValidateSpy;
-			let validTx2ValidateSpy;
+			let responses: TransactionResponse[];
+			let validTxValidateSpy: jest.SpyInstance;
+			let validTx2ValidateSpy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrange
@@ -357,7 +358,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -365,7 +366,7 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				validTxValidateSpy = jest.spyOn(validTx, 'validate');
 				validTx2ValidateSpy = jest.spyOn(validTx2, 'validate');
@@ -373,7 +374,7 @@ describe('blocks/transactions', () => {
 				const {
 					transactionsResponses,
 				} = await blocksInstance.validateTransactions([validTx, validTx2]);
-				responses = transactionsResponses;
+				responses = transactionsResponses as TransactionResponse[];
 			});
 
 			it('should return all transactions response which are all ok', async () => {
@@ -404,23 +405,23 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const notAllowedTx = blocksInstance.deserializeTransaction(
 					registerSecondPassphrase({
 						passphrase: genesisAccount.passphrase,
 						secondPassphrase: 'second-passphrase',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
-				const transactionClass = blocksInstance._transactionAdapter.transactionClassMap.get(
+				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				blocksInstance._transactionAdapter.transactionClassMap.set(
+				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -432,10 +433,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === notAllowedTx.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -455,7 +456,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -463,7 +464,7 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([validTx2]);
 				// Act
@@ -474,10 +475,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === validTx2.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -497,7 +498,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const invalidTx = blocksInstance.deserializeTransaction(
 					transfer({
@@ -505,7 +506,7 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '500',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
 				// Act
@@ -516,10 +517,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === invalidTx.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -537,7 +538,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const invalidTx = blocksInstance.deserializeTransaction(
 					transfer({
@@ -546,7 +547,7 @@ describe('blocks/transactions', () => {
 						amount: '500',
 						networkIdentifier,
 						timeOffset: 114748364,
-					}),
+					}) as TransactionJSON,
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
 				// Act
@@ -557,10 +558,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === invalidTx.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -569,9 +570,9 @@ describe('blocks/transactions', () => {
 		});
 
 		describe('when all transactions are new and verifiable', () => {
-			let responses;
-			let validTxApplySpy;
-			let validTx2ApplySpy;
+			let responses: TransactionResponse[];
+			let validTxApplySpy: jest.SpyInstance;
+			let validTx2ApplySpy: jest.SpyInstance;
 
 			beforeEach(async () => {
 				// Arrange
@@ -586,7 +587,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -594,7 +595,7 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
@@ -602,7 +603,7 @@ describe('blocks/transactions', () => {
 				const {
 					transactionsResponses,
 				} = await blocksInstance.verifyTransactions([validTx, validTx2]);
-				responses = transactionsResponses;
+				responses = transactionsResponses as TransactionResponse[];
 			});
 
 			it('should return transaction with all status 1', async () => {
@@ -631,7 +632,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -639,7 +640,7 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([validTx2]);
 				// Act
@@ -650,10 +651,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === validTx2.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -673,7 +674,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const invalidTx = blocksInstance.deserializeTransaction(
 					transfer({
@@ -681,7 +682,7 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '500',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
 				// Act
@@ -692,10 +693,10 @@ describe('blocks/transactions', () => {
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
 					res => res.id === validTx.id,
-				);
+				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === invalidTx.id,
-				);
+				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
@@ -704,9 +705,9 @@ describe('blocks/transactions', () => {
 		});
 
 		describe('when all transactions are new and veriable', () => {
-			let responses;
-			let validTxApplySpy;
-			let validTx2ApplySpy;
+			let responses: TransactionResponse[];
+			let validTxApplySpy: jest.SpyInstance;
+			let validTx2ApplySpy: jest.SpyInstance;
 			let delegate1;
 			let delegate2;
 
@@ -742,7 +743,7 @@ describe('blocks/transactions', () => {
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
-					}),
+					}) as TransactionJSON,
 				);
 				const validTx2 = blocksInstance.deserializeTransaction(
 					transfer({
@@ -750,7 +751,7 @@ describe('blocks/transactions', () => {
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
@@ -758,7 +759,7 @@ describe('blocks/transactions', () => {
 				const {
 					transactionsResponses,
 				} = await blocksInstance.processTransactions([validTx, validTx2]);
-				responses = transactionsResponses;
+				responses = transactionsResponses as TransactionResponse[];
 			});
 
 			it('should return transaction with all status 1', async () => {
@@ -787,7 +788,7 @@ describe('blocks/transactions', () => {
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
-					}),
+					}) as TransactionJSON,
 				);
 				const signatureObject = {
 					transactionId: validTx.id,
@@ -834,9 +835,11 @@ describe('blocks/transactions', () => {
 					amount: '100',
 					networkIdentifier,
 				});
-				const validTx = blocksInstance.deserializeTransaction(transactionJSON);
+				const validTx = blocksInstance.deserializeTransaction(
+					transactionJSON as TransactionJSON,
+				);
 				const signatureObject = createSignatureObject({
-					transaction: transactionJSON,
+					transaction: transactionJSON as TransactionJSON,
 					passphrase: defaultSecondPassphrase.passphrase,
 					networkIdentifier,
 				});

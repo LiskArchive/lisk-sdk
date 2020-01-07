@@ -36,7 +36,7 @@ import { TransactionHandledResult } from './compose_transaction_steps';
 import * as exceptionsHandlers from './exceptions_handlers';
 import * as votesWeight from './votes_weight';
 
-export const validateTransactions = (exceptions: ExceptionOptions) => (
+export const validateTransactions = (exceptions?: ExceptionOptions) => (
 	transactions: ReadonlyArray<BaseTransaction>,
 ): TransactionHandledResult => {
 	const transactionsResponses = transactions.map(transaction =>
@@ -154,7 +154,7 @@ export const applyGenesisTransactions = () => async (
 	};
 };
 
-export const applyTransactions = (exceptions: ExceptionOptions) => async (
+export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<TransactionHandledResult> => {
@@ -282,7 +282,7 @@ export const checkAllowedTransactions = (contexter: Contexter) => (
 	}),
 });
 
-export const undoTransactions = (exceptions: ExceptionOptions) => async (
+export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<TransactionHandledResult> => {
@@ -317,7 +317,7 @@ export const undoTransactions = (exceptions: ExceptionOptions) => async (
 
 export const verifyTransactions = (
 	slots: Slots,
-	exceptions: ExceptionOptions,
+	exceptions?: ExceptionOptions,
 ) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,

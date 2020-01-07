@@ -12,20 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const {
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import {
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
-} = require('@liskhq/lisk-transactions');
-const {
-	TransactionInterfaceAdapter,
-} = require('../../src/transaction_interface_adapter');
-const genesisBlock = require('../fixtures/genesis_block.json');
+} from '@liskhq/lisk-transactions';
+import { TransactionInterfaceAdapter } from '../../src/transaction_interface_adapter';
+import * as genesisBlock from '../fixtures/genesis_block.json';
 
 const networkIdentifier = getNetworkIdentifier(
 	genesisBlock.payloadHash,
@@ -43,7 +39,7 @@ describe('transactions', () => {
 			12: MultisignatureTransaction,
 		};
 
-		let transactions;
+		let transactions: TransactionInterfaceAdapter;
 
 		beforeEach(async () => {
 			// Act
@@ -59,7 +55,7 @@ describe('transactions', () => {
 			});
 
 			it('should have transactionClassMap property with Lisk transaction types', async () => {
-				expect([...transactions._transactionClassMap.keys()]).toEqual([
+				expect([...(transactions as any)._transactionClassMap.keys()]).toEqual([
 					8,
 					9,
 					10,
@@ -71,7 +67,7 @@ describe('transactions', () => {
 
 		describe('fromJSON', () => {
 			it('should throw an error if transaction type is not registered', async () => {
-				expect(() => transactions.fromJSON({ type: 1 })).toThrow(
+				expect(() => transactions.fromJSON({ type: 1 } as any)).toThrow(
 					'Transaction type not found.',
 				);
 			});
