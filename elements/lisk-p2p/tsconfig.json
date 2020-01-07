@@ -16,7 +16,8 @@
 			"socketcluster-client",
 			"socketcluster-server",
 			"validator",
-			"ws"
+			"ws",
+			"jest-extended"
 		]
 	},
 	"include": ["src/**/*"]

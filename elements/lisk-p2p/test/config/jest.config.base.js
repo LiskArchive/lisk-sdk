@@ -19,9 +19,9 @@ module.exports = {
 	verbose: true,
 	collectCoverage: true,
 	coverageReporters: ['json', 'lcov', 'cobertura'],
-	rootDir: '../../../../',
-	setupFilesAfterEnv: ['<rootDir>/elements/lisk-p2p/test/config/setup.js'],
-	collectCoverageFrom: ['<rootDir>/elements/lisk-p2p/src/**'],
+	rootDir: '../../',
+	setupFilesAfterEnv: ['<rootDir>/test/config/setup.js'],
+	collectCoverageFrom: ['<rootDir>/src/**'],
 	coveragePathIgnorePatterns: ['/dist-node/', '/test/'],
 
 	transform: {

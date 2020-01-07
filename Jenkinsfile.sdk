@@ -185,7 +185,11 @@ pipeline {
 								rm -rf coverage_elements; mkdir -p coverage_elements
 								for d in elements/*; do
 									if [ -d $d  ] && [ -d $d/.nyc_output  ]; then
-										cp -r $d/.nyc_output/* ./coverage_elements
+										if [$d = "lisk-p2p"]; then
+											cp -r $d/.coverage/* ./coverage_elements
+										else
+											cp -r $d/.nyc_output/* ./coverage_elements
+										if
 									fi
 								done
 							'''
