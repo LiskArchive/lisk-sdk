@@ -189,7 +189,7 @@ pipeline {
 											cp -r $d/.coverage/* ./coverage_elements
 										else
 											cp -r $d/.nyc_output/* ./coverage_elements
-										if
+										fi
 									fi
 								done
 							'''
