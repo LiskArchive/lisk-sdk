@@ -245,7 +245,7 @@ describe('utils/validate', () => {
 
 			const NodeInfo: P2PNodeInfo = {
 				os: '12.23.54.3',
-				nethash: '12.23.54.3',
+				networkId: '12.23.54.3',
 				wsPort: 5393,
 				version: '1.1.2',
 				protocolVersion: '1.1',

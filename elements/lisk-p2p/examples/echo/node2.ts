@@ -27,7 +27,7 @@ const nodeInfo: P2PNodeInfo = {
 	os: platform(),
 	nonce: randomBytes(8).toString('hex'),
 	wsPort: 6001,
-	nethash: '123456',
+	networkId: '123456',
 	version: '2.0.0',
 	protocolVersion: '1.1',
 	advertiseAddress: false,
