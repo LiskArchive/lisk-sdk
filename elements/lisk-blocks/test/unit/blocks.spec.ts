@@ -14,17 +14,18 @@
 
 'use strict';
 
-const { when } = require('jest-when');
-const BigNum = require('@liskhq/bignum');
-const { TransferTransaction } = require('@liskhq/lisk-transactions');
-const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const { Slots } = require('@liskhq/lisk-dpos');
-const { Blocks } = require('../../src');
-const genesisBlock = require('../fixtures/genesis_block.json');
-const { newBlock } = require('../utils/block');
-const { registeredTransactions } = require('../utils/registered_transactions');
-const randomUtils = require('../utils/random');
+import { when } from 'jest-when';
+import * as BigNum from '@liskhq/bignum';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { Blocks } from '../../src';
+import * as genesisBlock from '../fixtures/genesis_block.json';
+import { newBlock } from '../utils/block';
+import { registeredTransactions } from '../utils/registered_transactions';
+import * as randomUtils from '../utils/random';
+import { Slots } from '../../src/types';
 
+const { Slots } = require('@liskhq/lisk-dpos');
 jest.mock('events');
 
 const networkIdentifier = getNetworkIdentifier(
@@ -33,7 +34,7 @@ const networkIdentifier = getNetworkIdentifier(
 );
 
 describe('blocks', () => {
-	const stubs = {};
+	const stubs = {} as any;
 	const constants = {
 		blockReceiptTimeout: 20,
 		loadPerIteration: 1000,
@@ -55,8 +56,8 @@ describe('blocks', () => {
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	let exceptions = {};
-	let blocksInstance;
-	let slots;
+	let blocksInstance: Blocks;
+	let slots: Slots;
 
 	beforeEach(() => {
 		// Arrange
@@ -122,32 +123,31 @@ describe('blocks', () => {
 		it('should initialize private variables correctly', async () => {
 			// Assert stubbed values are assigned
 			Object.entries(stubs.dependencies).forEach(([stubName, stubValue]) => {
-				expect(blocksInstance[stubName]).toEqual(stubValue);
+				expect((blocksInstance as any)[stubName]).toEqual(stubValue);
 			});
 			// Assert constants
 			Object.entries(
-				blocksInstance.constants,
+				(blocksInstance as any).constants,
 			).forEach(([constantName, constantValue]) =>
-				expect(constants[constantName]).toEqual(constantValue),
+				expect((constants as any)[constantName]).toEqual(constantValue),
 			);
 			// Assert miscellaneous
-			expect(slots).toEqual(blocksInstance.slots);
+			expect(slots).toEqual((blocksInstance as any).slots);
 			expect(blocksInstance.blockReward).toBeDefined();
-			expect(blocksInstance.blocksVerify).toBeDefined();
-			return expect(blocksInstance.blocksUtils).toBeDefined();
+			expect((blocksInstance as any).blocksVerify).toBeDefined();
 		});
 	});
 
 	describe('lastBlock', () => {
 		beforeEach(() => {
-			blocksInstance._lastBlock = {
+			(blocksInstance as any)._lastBlock = {
 				...genesisBlock,
 				receivedAt: new Date(),
 			};
 		});
 		it('return the _lastBlock without the receivedAt property', async () => {
 			// Arrange
-			const { receivedAt, ...block } = genesisBlock;
+			const { receivedAt, ...block } = genesisBlock as any;
 			// Assert
 			expect(blocksInstance.lastBlock).toEqual(block);
 		});
@@ -156,7 +156,7 @@ describe('blocks', () => {
 	describe('init', () => {
 		beforeEach(async () => {
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
-				(_, callback) => callback.call(blocksInstance, stubs.tx),
+				(_: any, callback: any) => callback.call(blocksInstance, stubs.tx),
 			);
 			stubs.dependencies.storage.entities.Block.count.mockResolvedValue(5);
 			stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
@@ -165,7 +165,9 @@ describe('blocks', () => {
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 				genesisBlock,
 			]);
-			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
+			stubs.tx.batch.mockImplementation((promises: any) =>
+				Promise.all(promises),
+			);
 			const random101DelegateAccounts = new Array(101)
 				.fill('')
 				.map(() => randomUtils.account());
@@ -255,7 +257,7 @@ describe('blocks', () => {
 
 			it('should not throw when genesis block matches', async () => {
 				// Act & Assert
-				await expect(blocksInstance.init()).resolves.toEqual();
+				await expect(blocksInstance.init()).resolves.toEqual(undefined);
 			});
 		});
 
@@ -377,7 +379,9 @@ describe('blocks', () => {
 
 	describe('save', () => {
 		beforeEach(async () => {
-			stubs.tx.batch.mockImplementation(promises => Promise.all(promises));
+			stubs.tx.batch.mockImplementation((promises: any) =>
+				Promise.all(promises),
+			);
 		});
 
 		it('should throw error when block create fails', async () => {
@@ -447,7 +451,7 @@ describe('blocks', () => {
 			// Arrange
 			const transaction = new TransferTransaction(randomUtils.transaction());
 			const block = newBlock({ transactions: [transaction] });
-			transaction.blockId = block.id;
+			(transaction as any).blockId = block.id;
 			const transactionJSON = transaction.toJSON();
 
 			// Act
@@ -468,7 +472,7 @@ describe('blocks', () => {
 
 			await expect(
 				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
-			).resolves.toEqual();
+			).resolves.toEqual(undefined);
 		});
 
 		it('should throw error when storage create fails', async () => {
@@ -578,7 +582,7 @@ describe('blocks', () => {
 				// Arrange
 				const transaction = new TransferTransaction(randomUtils.transaction());
 				const block = newBlock({ transactions: [transaction] });
-				transaction.blockId = block.id;
+				(transaction as any).blockId = block.id;
 				const blockJSON = blocksInstance.serialize(block);
 				// Act
 				await blocksInstance.remove(block, blockJSON, stubs.tx, {
@@ -670,7 +674,7 @@ describe('blocks', () => {
 		describe('when called without lastBlockId', () => {
 			it('should reject with error', async () => {
 				await expect(
-					blocksInstance.loadBlocksFromLastBlockId(),
+					blocksInstance.loadBlocksFromLastBlockId(undefined as any),
 				).rejects.toThrow('lastBlockId needs to be specified');
 			});
 		});
@@ -707,7 +711,7 @@ describe('blocks', () => {
 
 		describe('when called with invalid lastBlockId', () => {
 			beforeEach(async () => {
-				when(stubs.dependencies.storage.entities.Block.get)
+				when<any, any>(stubs.dependencies.storage.entities.Block.get)
 					.calledWith({ id: 'block-id' })
 					.mockResolvedValue([]);
 			});
@@ -734,10 +738,10 @@ describe('blocks', () => {
 			];
 
 			beforeEach(async () => {
-				when(stubs.dependencies.storage.entities.Block.get)
+				when<any, any>(stubs.dependencies.storage.entities.Block.get)
 					.calledWith({ id: 'block-id' })
 					.mockResolvedValue([validLastBlock]);
-				when(stubs.dependencies.storage.entities.Block.get)
+				when<any, any>(stubs.dependencies.storage.entities.Block.get)
 					.calledWith(
 						{
 							height_gt: 100,
