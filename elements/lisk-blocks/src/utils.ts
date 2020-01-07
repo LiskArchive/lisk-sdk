@@ -14,12 +14,7 @@
 import * as BigNum from '@liskhq/bignum';
 import { hash } from '@liskhq/lisk-cryptography';
 
-import {
-	BlockHeader,
-	BlockHeaderJSON,
-	Storage,
-	StorageTransaction,
-} from './types';
+import { BlockHeader, BlockJSON, Storage, StorageTransaction } from './types';
 
 export const loadBlocksFromLastBlockId = async (
 	storage: Storage,
@@ -66,7 +61,7 @@ export const getIdSequence = async (
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	const rows: Array<Partial<
-		BlockHeaderJSON
+		BlockJSON
 	>> = await storage.entities.Block.getFirstBlockIdOfLastRounds({
 		height,
 		numberOfRounds: 5,
@@ -112,7 +107,7 @@ export const getIdSequence = async (
 	};
 };
 
-export const addBlockProperties = (block: BlockHeaderJSON) => {
+export const addBlockProperties = (block: BlockJSON) => {
 	block.totalAmount = new BigNum(block.totalAmount || 0);
 	block.totalFee = new BigNum(block.totalFee || 0);
 	block.reward = new BigNum(block.reward || 0);
@@ -195,7 +190,7 @@ export const loadMemTables = async (
 	tx: StorageTransaction,
 ): Promise<{
 	readonly blocksCount: number;
-	readonly genesisBlock: BlockHeaderJSON;
+	readonly genesisBlock: BlockJSON;
 }> => {
 	const promises = [
 		storage.entities.Block.count({}, {}, tx),

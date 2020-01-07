@@ -24,13 +24,13 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import * as genesisBlock from '../fixtures/genesis_block.json';
-import { BlockHeaderJSON, BlockInstance } from '../../src/types.js';
+import { BlockJSON, BlockInstance } from '../../src/types.js';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
-export const getBytes = (block: BlockHeaderJSON): Buffer => {
+export const getBytes = (block: BlockJSON): Buffer => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
@@ -132,7 +132,7 @@ const getKeyPair = () => {
 	};
 };
 
-const calculateTransactionsInfo = (block: BlockHeaderJSON) => {
+const calculateTransactionsInfo = (block: BlockJSON) => {
 	const sortedTransactions = sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
 	let totalFee = new BigNum(0);
@@ -167,7 +167,7 @@ const calculateTransactionsInfo = (block: BlockHeaderJSON) => {
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-export const newBlock = (block?: Partial<BlockHeaderJSON>): BlockInstance => {
+export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
@@ -185,7 +185,7 @@ export const newBlock = (block?: Partial<BlockHeaderJSON>): BlockInstance => {
 	};
 
 	const transactionsInfo = calculateTransactionsInfo(
-		blockWithDefaultValues as BlockHeaderJSON,
+		blockWithDefaultValues as BlockJSON,
 	);
 	const blockWithCalculatedProperties = {
 		...transactionsInfo,
@@ -202,13 +202,11 @@ export const newBlock = (block?: Partial<BlockHeaderJSON>): BlockInstance => {
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(getBytes(blockWithCalculatedProperties as BlockHeaderJSON)),
+			hash(getBytes(blockWithCalculatedProperties as BlockJSON)),
 			keypair.privateKey,
 		),
 	};
-	const hashedBlockBytes = hash(
-		getBytes(blockWithSignature as BlockHeaderJSON),
-	);
+	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockJSON));
 
 	const temp = Buffer.alloc(8);
 	// eslint-disable-next-line no-plusplus

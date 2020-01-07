@@ -16,8 +16,8 @@ import { Status as TransactionStatus } from '@liskhq/lisk-transactions';
 import { StateStore } from './state_store';
 import * as transactionsModule from './transactions';
 import {
-	BlockHeaderJSON,
 	BlockInstance,
+	BlockJSON,
 	ExceptionOptions,
 	Storage,
 	StorageTransaction,
@@ -28,7 +28,7 @@ const TRANSACTION_TYPES_VOTE = [3, 11];
 
 export const saveBlock = async (
 	storage: Storage,
-	blockJSON: BlockHeaderJSON,
+	blockJSON: BlockJSON,
 	tx: StorageTransaction,
 ): Promise<void> => {
 	if (!tx) {
@@ -48,9 +48,9 @@ export const saveBlock = async (
 
 export const deleteLastBlock = async (
 	storage: Storage,
-	lastBlock: BlockHeaderJSON,
+	lastBlock: BlockJSON,
 	tx: StorageTransaction,
-): Promise<BlockHeaderJSON> => {
+): Promise<BlockJSON> => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
 	}

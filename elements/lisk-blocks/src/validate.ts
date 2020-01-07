@@ -16,10 +16,10 @@ import * as BigNum from '@liskhq/bignum';
 import { hash, verifyData } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
-import { BlockHeaderJSON, ExceptionOptions, Slots } from './types';
+import { BlockJSON, ExceptionOptions, Slots } from './types';
 
 export const validateSignature = (
-	block: BlockHeaderJSON,
+	block: BlockJSON,
 	blockBytes: Buffer,
 ): void => {
 	const signatureLength = 64;
@@ -41,8 +41,8 @@ export const validateSignature = (
 };
 
 export const validatePreviousBlockProperty = (
-	block: BlockHeaderJSON,
-	genesisBlock: BlockHeaderJSON,
+	block: BlockJSON,
+	genesisBlock: BlockJSON,
 ): void => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
@@ -60,7 +60,7 @@ export const validatePreviousBlockProperty = (
 };
 
 export const validateReward = (
-	block: BlockHeaderJSON,
+	block: BlockJSON,
 	expectedReward: string,
 	exceptions: ExceptionOptions,
 ): void => {
@@ -78,7 +78,7 @@ export const validateReward = (
 };
 
 export const validatePayload = (
-	block: BlockHeaderJSON,
+	block: BlockJSON,
 	maxTransactionsPerBlock: number,
 	maxPayloadLength: number,
 ): void => {
@@ -137,8 +137,8 @@ export const validatePayload = (
 
 // TODO: Move to DPOS validation
 export const validateBlockSlot = (
-	block: BlockHeaderJSON,
-	lastBlock: BlockHeaderJSON,
+	block: BlockJSON,
+	lastBlock: BlockJSON,
 	slots: Slots,
 ): void => {
 	const blockSlotNumber = slots.getSlotNumber(block.timestamp);

@@ -23,7 +23,7 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { newBlock } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
 import * as randomUtils from '../utils/random';
-import { Slots, BlockHeaderJSON } from '../../src/types';
+import { Slots, BlockJSON } from '../../src/types';
 
 const { Slots } = require('@liskhq/lisk-dpos');
 jest.mock('events');
@@ -357,7 +357,7 @@ describe('blocks', () => {
 				'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
 			id: '7360015088758644957',
 			previousBlockId: '10620616195853047363',
-		} as BlockHeaderJSON;
+		} as BlockJSON;
 
 		it('should convert big number field to be instance', () => {
 			const blockInstance = blocksInstance.deserialize(blockJSON);

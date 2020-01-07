@@ -23,8 +23,8 @@ import { StateStore } from './state_store';
 import * as transactionsModule from './transactions';
 import {
 	BlockHeader,
-	BlockHeaderJSON,
 	BlockInstance,
+	BlockJSON,
 	Context,
 	ExceptionOptions,
 	MatcherTransaction,
@@ -34,7 +34,7 @@ import {
 
 export const verifyBlockNotExists = async (
 	storage: Storage,
-	block: BlockHeaderJSON,
+	block: BlockJSON,
 ) => {
 	const isPersisted = await storage.entities.Block.isPersisted({
 		id: block.id,
@@ -45,9 +45,9 @@ export const verifyBlockNotExists = async (
 };
 
 export const verifyPreviousBlockId = (
-	block: BlockHeaderJSON,
-	lastBlock: BlockHeaderJSON,
-	genesisBlock: BlockHeaderJSON,
+	block: BlockJSON,
+	lastBlock: BlockJSON,
+	genesisBlock: BlockJSON,
 ) => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
@@ -88,7 +88,7 @@ export class BlocksVerify {
 		this.genesisBlock = genesisBlock;
 	}
 
-	public async checkExists(block: BlockHeaderJSON): Promise<void> {
+	public async checkExists(block: BlockJSON): Promise<void> {
 		const isPersisted = await this.storage.entities.Block.isPersisted({
 			id: block.id,
 		});
@@ -161,7 +161,7 @@ export class BlocksVerify {
 		}
 	}
 
-	public matchGenesisBlock(block: BlockHeaderJSON): boolean {
+	public matchGenesisBlock(block: BlockJSON): boolean {
 		return (
 			block.id === this.genesisBlock.id &&
 			block.payloadHash === this.genesisBlock.payloadHash &&

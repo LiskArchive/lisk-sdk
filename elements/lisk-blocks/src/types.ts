@@ -47,7 +47,7 @@ export interface Context {
 }
 export type Contexter = (() => Context) | Context;
 
-export interface BlockHeaderJSON {
+export interface BlockJSON {
 	/* tslint:disable:readonly-keyword */
 	id: string;
 	height: number;
@@ -69,7 +69,7 @@ export interface BlockHeaderJSON {
 	/* tslint:enable:readonly-keyword */
 }
 
-export interface BlockHeader extends BlockHeaderJSON {
+export interface BlockHeader extends BlockJSON {
 	readonly totalAmount: BigNum;
 	readonly totalFee: BigNum;
 	readonly reward: BigNum;
@@ -90,7 +90,7 @@ export interface BlockInstance extends BlockHeader {
 export interface TempBlock {
 	readonly height: number;
 	readonly id: string;
-	readonly fullBlock: BlockHeaderJSON;
+	readonly fullBlock: BlockJSON;
 }
 
 export type MatcherTransaction = BaseTransaction & {
@@ -185,12 +185,12 @@ export interface StorageEntity<T> {
 	) => Promise<void>;
 }
 
-export interface BlockStorageEntity extends StorageEntity<BlockHeaderJSON> {
+export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 	readonly getFirstBlockIdOfLastRounds: (input: {
 		readonly height: number;
 		readonly numberOfRounds: number;
 		readonly numberOfDelegates: number;
-	}) => Promise<BlockHeaderJSON[]>;
+	}) => Promise<BlockJSON[]>;
 	readonly begin: <T>(
 		name: string,
 		fn: (tx: StorageTransaction) => Promise<T>,

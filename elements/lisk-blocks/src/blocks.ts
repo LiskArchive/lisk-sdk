@@ -49,8 +49,8 @@ import {
 } from './transactions';
 import { TransactionHandledResult } from './transactions/compose_transaction_steps';
 import {
-	BlockHeaderJSON,
 	BlockInstance,
+	BlockJSON,
 	BlockRewardOptions,
 	Contexter,
 	ExceptionOptions,
@@ -83,7 +83,7 @@ interface BlocksConfig {
 	readonly logger: Logger;
 	readonly storage: Storage;
 	// Unique requirements
-	readonly genesisBlock: BlockHeaderJSON;
+	readonly genesisBlock: BlockJSON;
 	readonly slots: Slots;
 	readonly exceptions: ExceptionOptions;
 	// Modules
@@ -226,7 +226,7 @@ export class Blocks extends EventEmitter {
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
-	public serialize(blockInstance: BlockInstance): BlockHeaderJSON {
+	public serialize(blockInstance: BlockInstance): BlockJSON {
 		const blockJSON = {
 			...blockInstance,
 			totalAmount: blockInstance.totalAmount.toString(),
@@ -241,7 +241,7 @@ export class Blocks extends EventEmitter {
 		return blockJSON;
 	}
 
-	public deserialize(blockJSON: BlockHeaderJSON): BlockInstance {
+	public deserialize(blockJSON: BlockJSON): BlockInstance {
 		const transactions = (blockJSON.transactions || []).map(transaction =>
 			this._transactionAdapter.fromJSON(transaction),
 		);
@@ -350,7 +350,7 @@ export class Blocks extends EventEmitter {
 	}
 
 	public async save(
-		blockJSON: BlockHeaderJSON,
+		blockJSON: BlockJSON,
 		tx: StorageTransaction,
 	): Promise<void> {
 		await saveBlock(this.storage, blockJSON, tx);
@@ -365,7 +365,7 @@ export class Blocks extends EventEmitter {
 
 	public async remove(
 		block: BlockInstance,
-		blockJSON: BlockHeaderJSON,
+		blockJSON: BlockJSON,
 		tx: StorageTransaction,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
@@ -415,7 +415,7 @@ export class Blocks extends EventEmitter {
 	public async getJSONBlocksWithLimitAndOffset(
 		limit: number,
 		offset: number = 0,
-	): Promise<BlockHeaderJSON[]> {
+	): Promise<BlockJSON[]> {
 		// Calculate toHeight
 		const toHeight = offset + limit;
 
@@ -438,7 +438,7 @@ export class Blocks extends EventEmitter {
 	public async loadBlocksFromLastBlockId(
 		lastBlockId: string,
 		limit: number = 1,
-	): Promise<BlockHeaderJSON[]> {
+	): Promise<BlockJSON[]> {
 		return blocksUtils.loadBlocksFromLastBlockId(
 			this.storage,
 			lastBlockId,
@@ -447,7 +447,7 @@ export class Blocks extends EventEmitter {
 	}
 
 	// TODO: Unit tests written in mocha, which should be migrated to jest.
-	public async getHighestCommonBlock(ids: string[]): Promise<BlockHeaderJSON> {
+	public async getHighestCommonBlock(ids: string[]): Promise<BlockJSON> {
 		try {
 			const [block] = await this.storage.entities.Block.get(
 				{

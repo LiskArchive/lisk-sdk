@@ -64,7 +64,7 @@
 		"lodash": "4.17.11"
 	},
 	"devDependencies": {
-		"@types/jest": "24.0.23",
+		"@types/jest": "24.0.1",
 		"@types/jquery": "3.3.29",
 		"@types/jest-when": "2.7.0",
 		"@liskhq/lisk-dpos": "0.1.0",
