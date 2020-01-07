@@ -62,6 +62,8 @@ export interface BlockHeaderJSON {
 	totalAmount: string | BigNum;
 	totalFee: string | BigNum;
 	reward: string | BigNum;
+	maxHeightPreviouslyForged: number;
+	maxHeightPrevoted: number;
 	// tslint:disable-next-line no-any
 	transactions: any[];
 	/* tslint:enable:readonly-keyword */

@@ -12,19 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const randomstring = require('randomstring');
-const BigNum = require('@liskhq/bignum');
-const {
+import * as randomstring from 'randomstring';
+import * as BigNum from '@liskhq/bignum';
+import {
 	getKeys,
 	getAddressFromPassphrase,
 	getNetworkIdentifier,
-} = require('@liskhq/lisk-cryptography');
-const { transfer } = require('@liskhq/lisk-transactions');
-const { Mnemonic } = require('@liskhq/lisk-passphrase');
-const genesisBlock = require('../fixtures/genesis_block.json');
-const { genesisAccount } = require('../fixtures/default_account');
+} from '@liskhq/lisk-cryptography';
+import { transfer, TransactionJSON } from '@liskhq/lisk-transactions';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
+import * as genesisBlock from '../fixtures/genesis_block.json';
+import { genesisAccount } from '../fixtures/default_account';
 
 const networkIdentifier = getNetworkIdentifier(
 	genesisBlock.payloadHash,
@@ -46,7 +44,7 @@ const delegateName = () => {
 	return randomLetter.concat(username);
 };
 
-const account = (balance = '0', nonDelegate = false) => {
+export const account = (balance = '0', nonDelegate = false) => {
 	const passphrase = Mnemonic.generateMnemonic();
 	const secondPassphrase = Mnemonic.generateMnemonic();
 	return {
@@ -61,29 +59,23 @@ const account = (balance = '0', nonDelegate = false) => {
 	};
 };
 
-const transaction = offset =>
+export const transaction = (offset?: number): TransactionJSON =>
 	transfer({
 		networkIdentifier,
 		amount: '1',
 		passphrase: genesisAccount.passphrase,
 		recipientId: account().address,
 		timeOffset: offset,
-	});
+	}) as TransactionJSON;
 
-const transferInstance = offset => {
+export const transferInstance = (offset?: number) => {
 	const tx = transaction(offset);
 	return {
 		...tx,
-		fee: new BigNum(tx.fee),
+		fee: new BigNum((tx as any).fee),
 		asset: {
 			...tx.asset,
-			amount: new BigNum(tx.asset.amount),
+			amount: new BigNum((tx as any).asset.amount),
 		},
 	};
-};
-
-module.exports = {
-	account,
-	transaction,
-	transferInstance,
 };

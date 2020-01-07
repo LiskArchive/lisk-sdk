@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const BigNum = require('@liskhq/bignum');
-const {
+import * as BigNum from '@liskhq/bignum';
+import {
 	hash,
 	signDataWithPrivateKey,
 	getPrivateAndPublicKeyBytesFromPassphrase,
@@ -23,14 +21,16 @@ const {
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
-} = require('@liskhq/lisk-cryptography');
-const { Mnemonic } = require('@liskhq/lisk-passphrase');
-const genesisBlock = require('../fixtures/genesis_block.json');
+} from '@liskhq/lisk-cryptography';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
+import * as genesisBlock from '../fixtures/genesis_block.json';
+import { BlockHeaderJSON, BlockInstance } from '../../src/types.js';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
-const getBytes = block => {
+export const getBytes = (block: BlockHeaderJSON): Buffer => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
@@ -117,8 +117,8 @@ const getBytes = block => {
 	]);
 };
 
-const sortTransactions = transactions =>
-	transactions.sort((a, b) => a.type > b.type || a.id > b.id);
+const sortTransactions = (transactions: BaseTransaction[]) =>
+	transactions.sort((a, b) => (a.type > b.type || a.id > b.id) as any);
 
 const getKeyPair = () => {
 	const passphrase = Mnemonic.generateMnemonic();
@@ -132,7 +132,7 @@ const getKeyPair = () => {
 	};
 };
 
-const calculateTransactionsInfo = block => {
+const calculateTransactionsInfo = (block: BlockHeaderJSON) => {
 	const sortedTransactions = sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
 	let totalFee = new BigNum(0);
@@ -142,10 +142,10 @@ const calculateTransactionsInfo = block => {
 	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < sortedTransactions.length; i++) {
 		const transaction = sortedTransactions[i];
-		const transactionBytes = transaction.getBytes(transaction);
+		const transactionBytes = transaction.getBytes();
 
 		totalFee = totalFee.plus(transaction.fee);
-		totalAmount = totalAmount.plus(transaction.asset.amount || '0');
+		totalAmount = totalAmount.plus((transaction as any).asset.amount || '0');
 
 		payloadLength += transactionBytes.length;
 		transactionsBytesArray.push(transactionBytes);
@@ -167,7 +167,7 @@ const calculateTransactionsInfo = block => {
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-const newBlock = block => {
+export const newBlock = (block?: Partial<BlockHeaderJSON>): BlockInstance => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
@@ -184,7 +184,9 @@ const newBlock = block => {
 		...block,
 	};
 
-	const transactionsInfo = calculateTransactionsInfo(blockWithDefaultValues);
+	const transactionsInfo = calculateTransactionsInfo(
+		blockWithDefaultValues as BlockHeaderJSON,
+	);
 	const blockWithCalculatedProperties = {
 		...transactionsInfo,
 		...blockWithDefaultValues,
@@ -200,11 +202,13 @@ const newBlock = block => {
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(getBytes(blockWithCalculatedProperties)),
-			Buffer.from(keypair.privateKey, 'hex'),
+			hash(getBytes(blockWithCalculatedProperties as BlockHeaderJSON)),
+			keypair.privateKey,
 		),
 	};
-	const hashedBlockBytes = hash(getBytes(blockWithSignature));
+	const hashedBlockBytes = hash(
+		getBytes(blockWithSignature as BlockHeaderJSON),
+	);
 
 	const temp = Buffer.alloc(8);
 	// eslint-disable-next-line no-plusplus
@@ -215,10 +219,5 @@ const newBlock = block => {
 	return {
 		...blockWithSignature,
 		id: BigNum.fromBuffer(temp).toString(),
-	};
-};
-
-module.exports = {
-	newBlock,
-	getBytes,
+	} as BlockInstance;
 };
