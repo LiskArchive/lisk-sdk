@@ -111,11 +111,16 @@ module.exports = class Network {
 			this.secret = Number(secret);
 		}
 
-		const sanitizeNodeInfo = nodeInfo => ({
-			...nodeInfo,
-			wsPort: this.options.wsPort,
-			advertiseAddress: this.options.advertiseAddress,
-		});
+		const sanitizeNodeInfo = nodeInfo => {
+			const { nethash, ...restOfNodeInfo } = nodeInfo;
+
+			return {
+				...restOfNodeInfo,
+				networkId: nethash,
+				wsPort: this.options.wsPort,
+				advertiseAddress: this.options.advertiseAddress,
+			};
+		};
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('app:getApplicationState'),
