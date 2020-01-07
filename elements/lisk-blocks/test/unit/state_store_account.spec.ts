@@ -11,10 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
-const { StateStore } = require('../../src');
+import { StateStore } from '../../src';
 
 describe('state store / account', () => {
 	const defaultAccounts = [
@@ -22,8 +19,8 @@ describe('state store / account', () => {
 		{ address: '11237980039345381032L', balance: '555' },
 	];
 
-	let stateStore;
-	let storageStub;
+	let stateStore: StateStore;
+	let storageStub: any;
 
 	beforeEach(async () => {
 		storageStub = {
@@ -66,7 +63,7 @@ describe('state store / account', () => {
 			];
 			await stateStore.account.cache(filter);
 			// Assert
-			expect(stateStore.account.data).toStrictEqual(defaultAccounts);
+			expect((stateStore.account as any)._data).toStrictEqual(defaultAccounts);
 		});
 	});
 
@@ -123,8 +120,8 @@ describe('state store / account', () => {
 	});
 
 	describe('set', () => {
-		let secondPublicKey;
-		let secondSignature;
+		let secondPublicKey: string;
+		let secondSignature: boolean;
 
 		beforeEach(async () => {
 			// Arrange
@@ -143,8 +140,8 @@ describe('state store / account', () => {
 			// Act
 			const updatedAccount = stateStore.account.get(defaultAccounts[0].address);
 
-			updatedAccount.secondPublicKey = secondPublicKey;
-			updatedAccount.secondSignature = secondSignature;
+			(updatedAccount as any).secondPublicKey = secondPublicKey;
+			(updatedAccount as any).secondSignature = secondSignature;
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
 			// Assert
@@ -157,19 +154,21 @@ describe('state store / account', () => {
 			const updatedKeys = ['secondPublicKey', 'secondSignature'];
 			const updatedAccount = stateStore.account.get(defaultAccounts[0].address);
 
-			updatedAccount.secondPublicKey = secondPublicKey;
-			updatedAccount.secondSignature = secondSignature;
+			(updatedAccount as any).secondPublicKey = secondPublicKey;
+			(updatedAccount as any).secondSignature = secondSignature;
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
 
-			expect(stateStore.account.updatedKeys[0]).toStrictEqual(updatedKeys);
+			expect((stateStore.account as any)._updatedKeys[0]).toStrictEqual(
+				updatedKeys,
+			);
 		});
 	});
 
 	describe('finalize', () => {
 		let updatedAccount;
-		let secondPublicKey;
-		let secondSignature;
+		let secondPublicKey: string;
+		let secondSignature: boolean;
 
 		beforeEach(async () => {
 			secondPublicKey =
@@ -186,8 +185,8 @@ describe('state store / account', () => {
 
 			updatedAccount = stateStore.account.get(defaultAccounts[0].address);
 
-			updatedAccount.secondPublicKey = secondPublicKey;
-			updatedAccount.secondSignature = secondSignature;
+			(updatedAccount as any).secondPublicKey = secondPublicKey;
+			(updatedAccount as any).secondSignature = secondSignature;
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);
 		});

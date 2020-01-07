@@ -11,14 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
-const { StateStore } = require('../../src');
+import { StateStore } from '../../src';
 
 describe('state store / chain_state', () => {
-	let stateStore;
-	let storageStub;
+	let stateStore: StateStore;
+	let storageStub: any;
 
 	beforeEach(async () => {
 		storageStub = {
@@ -53,7 +50,7 @@ describe('state store / chain_state', () => {
 			await stateStore.chainState.set('key3', 'value3');
 			// Assert
 			expect(stateStore.chainState.get('key3')).toBe('value3');
-			expect(stateStore.chainState.updatedKeys.size).toBe(1);
+			expect((stateStore.chainState as any)._updatedKeys.size).toBe(1);
 		});
 
 		it('should set value to data and set the updated keys only once', async () => {
@@ -62,7 +59,7 @@ describe('state store / chain_state', () => {
 			await stateStore.chainState.set('key3', 'value4');
 			// Assert
 			expect(stateStore.chainState.get('key3')).toBe('value4');
-			expect(stateStore.chainState.updatedKeys.size).toBe(1);
+			expect((stateStore.chainState as any)._updatedKeys.size).toBe(1);
 		});
 	});
 

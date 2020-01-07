@@ -11,10 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
-const { StateStore } = require('../../src');
+import { StateStore } from '../../src';
 
 describe('state store / transactions', () => {
 	const defaultTransactions = [
@@ -22,8 +19,8 @@ describe('state store / transactions', () => {
 		{ id: '9912090348171005050', senderPublicKey: 'public-key-2' },
 	];
 
-	let stateStore;
-	let storageStub;
+	let stateStore: StateStore;
+	let storageStub: any;
 
 	beforeEach(async () => {
 		storageStub = {
@@ -67,7 +64,9 @@ describe('state store / transactions', () => {
 			];
 			await stateStore.transaction.cache(filter);
 			// Assert
-			expect(stateStore.transaction.data).toStrictEqual(defaultTransactions);
+			expect((stateStore.transaction as any)._data).toStrictEqual(
+				defaultTransactions,
+			);
 		});
 	});
 
@@ -100,7 +99,7 @@ describe('state store / transactions', () => {
 	describe('getOrDefault', () => {
 		it('should throw an error', async () => {
 			// Act && Assert
-			expect(() => stateStore.transaction.getOrDefault('123')).toThrow(
+			expect(() => stateStore.transaction.getOrDefault()).toThrow(
 				'cannot be called',
 			);
 		});
@@ -109,9 +108,7 @@ describe('state store / transactions', () => {
 	describe('set', () => {
 		it('should throw an error', async () => {
 			// Act && Assert
-			expect(() => stateStore.transaction.set('123', { id: '456' })).toThrow(
-				'cannot be called',
-			);
+			expect(() => stateStore.transaction.set()).toThrow('cannot be called');
 		});
 	});
 
