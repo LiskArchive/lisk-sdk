@@ -21,7 +21,12 @@ module.exports = {
 	coverageReporters: ['json', 'lcov', 'cobertura'],
 	rootDir: '../../../../',
 	setupFilesAfterEnv: ['<rootDir>/elements/lisk-p2p/test/config/setup.js'],
+	collectCoverageFrom: ['<rootDir>/elements/lisk-p2p/src/**'],
+	coveragePathIgnorePatterns: ['/dist-node/', '/test/'],
 
+	transform: {
+		'^.+\\.(ts|tsx)$': 'ts-jest',
+	},
 	/**
 	 * restoreMocks [boolean]
 	 *

@@ -19,11 +19,4 @@ const base = require('../config/jest.config.base');
 module.exports = {
 	...base,
 	testMatch: ['<rootDir>/elements/lisk-p2p/test/integration/**/**.ts'],
-
-	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
-	},
-
-	coverageDirectory: '.coverage/integration',
-	collectCoverageFrom: ['elements/lisk-p2p/src/**'],
 };

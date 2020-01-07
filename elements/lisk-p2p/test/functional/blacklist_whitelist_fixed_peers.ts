@@ -102,9 +102,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			p2pNodeList = await createNetwork({ customConfig });
 		});
 
-		afterEach(async done => {
+		afterEach(async () => {
 			await destroyNetwork(p2pNodeList);
-			done();
 		});
 
 		it('should not add any blacklisted peer to newPeers', async () => {
@@ -215,9 +214,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await wait(1000);
 		});
 
-		afterEach(async done => {
+		afterEach(async () => {
 			await destroyNetwork(p2pNodeList);
-			done();
 		});
 
 		it('everyone but itself should have a permanent connection to the fixed peer', async () => {
@@ -274,9 +272,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			p2pNodeList = await createNetwork({ customConfig });
 		});
 
-		afterEach(async done => {
+		afterEach(async () => {
 			await destroyNetwork(p2pNodeList);
-			done();
 		});
 
 		it('should add every whitelisted peer to triedPeers', async () => {
