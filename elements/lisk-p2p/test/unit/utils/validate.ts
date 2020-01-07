@@ -317,7 +317,6 @@ describe('utils/validate', () => {
 		const validRPCRequest: unknown = {
 			data: {},
 			procedure: 'list',
-			type: '',
 		};
 		let validatedRPCRequest: P2PRequestPacket;
 
@@ -354,10 +353,6 @@ describe('utils/validate', () => {
 			expect(validatedRPCRequest)
 				.to.be.an('object')
 				.has.property('procedure').to.be.string;
-
-			expect(validatedRPCRequest)
-				.to.be.an('object')
-				.has.property('type').to.be.string;
 		});
 	});
 
