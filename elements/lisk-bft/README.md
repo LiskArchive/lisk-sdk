@@ -1,11 +1,11 @@
-# @liskhq/{PACKAGE}
+# @liskhq/lisk-bft
 
-@liskhq/{PACKAGE} is x.
+@liskhq/lisk-bft is byzantine fault tolerance implementation according to the Lisk protocol.
 
 ## Installation
 
 ```sh
-$ npm install --save @liskhq/{PACKAGE}
+$ npm install --save @liskhq/lisk-bft
 ```
 
 ## License

@@ -1,11 +1,11 @@
-# @liskhq/{PACKAGE}
+# @liskhq/lisk-blocks
 
-@liskhq/{PACKAGE} is x.
+@liskhq/lisk-blocks implements blocks and state management that are used for block processing according to the Lisk protocol.
 
 ## Installation
 
 ```sh
-$ npm install --save @liskhq/{PACKAGE}
+$ npm install --save @liskhq/lisk-blocks
 ```
 
 ## License

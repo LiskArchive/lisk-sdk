@@ -1,11 +1,11 @@
-# @liskhq/{PACKAGE}
+# @liskhq/lisk-dpos
 
-@liskhq/{PACKAGE} is x.
+@liskhq/lisk-dpos is DPoS consensus algorithm implementation according to the Lisk protocol.
 
 ## Installation
 
 ```sh
-$ npm install --save @liskhq/{PACKAGE}
+$ npm install --save @liskhq/lisk-dpos
 ```
 
 ## License
