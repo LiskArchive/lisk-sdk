@@ -57,6 +57,7 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 	PeerKind,
+	DEFAULT_HTTP_PATH,
 } from './constants';
 import { PeerInboundHandshakeError } from './errors';
 import {
@@ -279,6 +280,7 @@ export class P2P extends EventEmitter {
 		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
+			path: DEFAULT_HTTP_PATH,
 			wsEngineServerOptions: {
 				maxPayload: config.wsMaxPayload
 					? config.wsMaxPayload
