@@ -14,7 +14,7 @@
  */
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
-import { DEFAULT_WS_MAX_PAYLOAD } from '../../src/constants';
+import { DEFAULT_WS_MAX_PAYLOAD, DEFAULT_HTTP_PATH } from '../../src/constants';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
@@ -51,6 +51,12 @@ describe('p2p', () => {
 
 		it('should be an object', () => {
 			return expect(P2PNode).toEqual(expect.any(Object));
+		});
+
+		it('should set the path to the default http path', () => {
+			return expect((P2PNode as any)._scServer.options.path).toEqual(
+				DEFAULT_HTTP_PATH,
+			);
 		});
 
 		it('should be an instance of P2P blockchain', () => {

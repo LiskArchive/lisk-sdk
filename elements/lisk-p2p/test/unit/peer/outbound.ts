@@ -25,6 +25,7 @@ import {
 	DEFAULT_CONNECT_TIMEOUT,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_WS_MAX_MESSAGE_RATE,
+	DEFAULT_HTTP_PATH,
 } from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 
@@ -186,6 +187,7 @@ describe('peer/outbound', () => {
 					hostname: defaultOutboundPeer.ipAddress,
 					port: defaultOutboundPeer.wsPort,
 					query: 'options=',
+					path: DEFAULT_HTTP_PATH,
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,
 					multiplex: false,

@@ -23,6 +23,7 @@ import {
 	ConnectionKind,
 	DEFAULT_BAN_TIME,
 	DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL,
+	DEFAULT_HTTP_PATH,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -279,6 +280,7 @@ export class P2P extends EventEmitter {
 		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
+			path: DEFAULT_HTTP_PATH,
 			wsEngineServerOptions: {
 				maxPayload: config.wsMaxPayload
 					? config.wsMaxPayload
