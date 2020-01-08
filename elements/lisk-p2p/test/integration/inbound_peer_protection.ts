@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { InboundPeer } from '../../src/peer';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
@@ -58,7 +57,7 @@ describe('Peer inbound eviction for connection time', () => {
 		const inboundPeers = firstNode['_peerPool']
 			.getPeers(InboundPeer)
 			.map(peer => peer.wsPort);
-		expect(inboundPeers).to.satisfy(
+		expect(inboundPeers).toSatisfy(
 			(n: Number[]) => n.includes(5001) || n.includes(5002),
 		);
 	});

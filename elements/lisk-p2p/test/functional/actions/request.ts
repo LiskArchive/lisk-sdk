@@ -12,18 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_REQUEST_RECEIVED } from '../../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_PEER_COUNT,
-} from 'utils/network_setup';
+} from '../../utils/network_setup';
 
 describe('P2P.request', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		p2pNodeList = await createNetwork();
 
 		for (let p2p of p2pNodeList) {
@@ -41,33 +40,35 @@ describe('P2P.request', () => {
 		}
 	});
 
-	afterEach(async () => {
+	afterAll(async () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
 	it('should make request to the network; it should reach a single peer', async () => {
+		// Arrange
 		const secondP2PNode = p2pNodeList[1];
+
+		//Act
 		const response = await secondP2PNode.request({
 			procedure: 'foo',
 			data: 'bar',
 		});
-		expect(response).to.have.property('data');
-		expect(response.data)
-			.to.have.property('nodePort')
-			.which.is.a('number');
-		expect(response.data)
-			.to.have.property('requestProcedure')
-			.which.is.a('string');
-		expect(response.data)
-			.to.have.property('requestData')
-			.which.is.equal('bar');
-		expect(response.data)
-			.to.have.property('requestPeerId')
-			.which.is.equal(`127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`);
+
+		// Assert
+		expect(response).toMatchObject({
+			data: {
+				nodePort: 5000,
+				requestData: 'bar',
+				requestPeerId: '127.0.0.1:5001',
+				requestProcedure: 'foo',
+			},
+			peerId: '127.0.0.1:5001',
+		});
 	});
 
 	// Check for even distribution of requests across the network. Account for an error margin.
 	it('requests made to the network should be distributed randomly', async () => {
+		// Arrange
 		const TOTAL_REQUESTS = 1000;
 		const lastP2PNode = p2pNodeList[NETWORK_PEER_COUNT - 1];
 		const { outboundCount } = lastP2PNode['_peerPool'].getPeersCountPerKind();
@@ -77,6 +78,7 @@ describe('P2P.request', () => {
 		const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
 		const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
 
+		//Act
 		for (let i = 0; i < TOTAL_REQUESTS; i++) {
 			const response = await lastP2PNode.request({
 				procedure: 'foo',
@@ -89,12 +91,14 @@ describe('P2P.request', () => {
 			nodePortToResponsesMap[resultData.nodePort].push(resultData);
 		}
 
+		// Assert
 		for (let requestsHandled of Object.values(nodePortToResponsesMap) as any) {
-			expect(requestsHandled).to.be.an('array');
-			expect(requestsHandled.length).to.be.greaterThan(
+			expect(requestsHandled).toEqual(expect.any(Array));
+
+			expect(requestsHandled.length).toBeGreaterThan(
 				expectedRequestsLowerBound,
 			);
-			expect(requestsHandled.length).to.be.lessThan(expectedRequestsUpperBound);
+			expect(requestsHandled.length).toBeLessThan(expectedRequestsUpperBound);
 		}
-	}).timeout(5000);
+	});
 });

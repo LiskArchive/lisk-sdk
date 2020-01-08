@@ -23,6 +23,7 @@ import {
 	ConnectionKind,
 	DEFAULT_BAN_TIME,
 	DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL,
+	DEFAULT_HTTP_PATH,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -247,9 +248,7 @@ export class P2P extends EventEmitter {
 				seedPeers: config.seedPeers
 					? config.seedPeers.map(sanitizeInitialPeerInfo)
 					: [],
-				blacklistedPeers: config.blacklistedPeers
-					? config.blacklistedPeers.map(sanitizeInitialPeerInfo)
-					: [],
+				blacklistedIPs: config.blacklistedIPs ? config.blacklistedIPs : [],
 				fixedPeers: config.fixedPeers
 					? config.fixedPeers.map(sanitizeInitialPeerInfo)
 					: [],
@@ -281,6 +280,7 @@ export class P2P extends EventEmitter {
 		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
+			path: DEFAULT_HTTP_PATH,
 			wsEngineServerOptions: {
 				maxPayload: config.wsMaxPayload
 					? config.wsMaxPayload
@@ -445,8 +445,8 @@ export class P2P extends EventEmitter {
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			// Check blacklist to avoid incoming connections from blacklisted ips
-			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
-				peer => peer.peerId === detailedPeerInfo.peerId,
+			const isBlacklisted = this._sanitizedPeerLists.blacklistedIPs.find(
+				blacklistedIP => blacklistedIP === detailedPeerInfo.ipAddress,
 			);
 			if (!this._peerBook.hasPeer(detailedPeerInfo) && !isBlacklisted) {
 				this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
@@ -649,8 +649,8 @@ export class P2P extends EventEmitter {
 
 	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
 		if (
-			this._sanitizedPeerLists.blacklistedPeers.find(
-				peer => peer.ipAddress === peerInfo.ipAddress,
+			this._sanitizedPeerLists.blacklistedIPs.find(
+				blacklistedIP => blacklistedIP === peerInfo.ipAddress,
 			)
 		) {
 			return {
@@ -738,11 +738,10 @@ export class P2P extends EventEmitter {
 				return;
 			}
 			// Check blacklist to avoid incoming connections from blacklisted ips
-			if (this._sanitizedPeerLists.blacklistedPeers) {
-				const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
-					peer => peer.ipAddress,
-				);
-				if (blacklist.includes(socket.remoteAddress)) {
+			if (this._sanitizedPeerLists.blacklistedIPs) {
+				if (
+					this._sanitizedPeerLists.blacklistedIPs.includes(socket.remoteAddress)
+				) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
 						FORBIDDEN_CONNECTION,
@@ -790,7 +789,7 @@ export class P2P extends EventEmitter {
 			if (
 				typeof queryObject.wsPort !== 'string' ||
 				typeof queryObject.version !== 'string' ||
-				typeof queryObject.nethash !== 'string'
+				typeof queryObject.networkId !== 'string'
 			) {
 				this._disconnectSocketDueToFailedHandshake(
 					socket,

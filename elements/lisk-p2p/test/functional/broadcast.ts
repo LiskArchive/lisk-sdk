@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_MESSAGE_RECEIVED } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_PEER_COUNT,
-} from 'utils/network_setup';
+} from '../utils/network_setup';
 
 describe('P2P.broadcast', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -49,13 +48,16 @@ describe('P2P.broadcast', () => {
 	});
 
 	it('should send a message to every connected peer', async () => {
+		// Arrange
 		const firstP2PNode = p2pNodeList[0];
 		const nodePortToMessagesMap: any = {};
 
+		// Act
 		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 		await wait(100);
 
-		expect(collectedMessages).to.not.to.be.empty;
+		// Assert
+		expect(Object.keys(collectedMessages)).toHaveLength(NETWORK_PEER_COUNT - 1);
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -65,31 +67,33 @@ describe('P2P.broadcast', () => {
 			);
 		}
 
-		expect(nodePortToMessagesMap).to.not.to.be.empty;
+		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
+			NETWORK_PEER_COUNT - 1,
+		);
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
-			expect(receivedMessages)
-				.to.be.an('array')
-				.to.have.lengthOf(1);
+			expect(receivedMessages).toEqual(expect.any(Array));
+			expect(receivedMessages).toHaveLength(1);
 		}
 	});
 
 	it('should receive a message in the correct format', async () => {
+		// Arrange
 		const firstP2PNode = p2pNodeList[0];
-		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 
+		// Act
+		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
 		await wait(100);
 
-		expect(collectedMessages).to.be.an('array');
-		expect(collectedMessages.length).to.be.eql(NETWORK_PEER_COUNT - 1);
-		expect(collectedMessages[0]).to.have.property('message');
-		expect(collectedMessages[0].message)
-			.to.have.property('event')
-			.which.is.equal(BROADCAST_EVENT);
-		expect(collectedMessages[0].message)
-			.to.have.property('data')
-			.which.is.equal(BROADCAST_DATA);
-		expect(collectedMessages[0].message)
-			.to.have.property('peerId')
-			.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+		// Assert
+		expect(collectedMessages).toEqual(expect.any(Array));
+		expect(collectedMessages).toHaveLength(NETWORK_PEER_COUNT - 1);
+
+		expect(collectedMessages[0]).toMatchObject({
+			message: {
+				event: BROADCAST_EVENT,
+				data: BROADCAST_DATA,
+				peerId: `127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`,
+			},
+		});
 	});
 });

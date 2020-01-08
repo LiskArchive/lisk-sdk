@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import {
 	createNetwork,
@@ -49,7 +48,7 @@ describe('PeerPool actions', () => {
 				return port !== firstNode.nodeInfo.wsPort;
 			});
 
-			expect(peerPorts).to.be.eql(expectedPeerPorts);
+			expect(peerPorts).toEqual(expectedPeerPorts);
 		});
 	});
 
@@ -95,7 +94,9 @@ describe('PeerPool actions', () => {
 				const disconnectedPeers = p2p.getDisconnectedPeers();
 
 				for (const connectedPeer of connectedPeers) {
-					expect(disconnectedPeers).to.not.deep.include(connectedPeer);
+					expect(disconnectedPeers).toEqual(
+						expect.not.arrayContaining([connectedPeer]),
+					);
 				}
 			}
 		});

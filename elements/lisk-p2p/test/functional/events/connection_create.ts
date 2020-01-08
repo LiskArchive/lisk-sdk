@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_CONNECT_OUTBOUND,
@@ -37,7 +36,7 @@ describe(`Connection Create`, () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
-		beforeEach(async () => {
+		beforeAll(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
@@ -66,7 +65,7 @@ describe(`Connection Create`, () => {
 			await wait(1000);
 		});
 
-		afterEach(async () => {
+		afterAll(async () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
@@ -74,47 +73,47 @@ describe(`Connection Create`, () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
-			expect(payload)
-				.to.have.property('wsPort')
-				.which.equals(secondNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: secondNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
-			expect(payload)
-				.to.have.property('wsPort')
-				.which.equals(firstNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: firstNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
-			expect(payload)
-				.to.have.property('wsPort')
-				.which.equals(firstNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: firstNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
-			expect(payload)
-				.to.have.property('wsPort')
-				.which.equals(secondNode.nodeInfo.wsPort);
-			expect(payload).to.have.property('sharedState');
+			expect(payload).toMatchObject({
+				wsPort: secondNode.nodeInfo.wsPort,
+				sharedState: expect.any(Object),
+			});
 		});
 
 		it(`should update peerBook with connected peer`, async () => {
 			const firstNode = p2pNodeList[0];
 			const disconnectedPeers = firstNode.getDisconnectedPeers();
 
-			expect(disconnectedPeers).to.be.empty;
+			expect(Object.keys(disconnectedPeers)).toHaveLength(0);
 		});
 	});
 
@@ -124,7 +123,7 @@ describe(`Connection Create`, () => {
 
 		beforeEach(async () => {
 			const customNodeInfo = (index: number) => ({
-				nethash:
+				networkId:
 					index === 1
 						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
 						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -166,9 +165,15 @@ describe(`Connection Create`, () => {
 		});
 
 		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, async () => {
-			expect(collectedErrors).to.include(INVALID_CONNECTION_SELF_REASON);
-			expect(collectedErrors).to.include(INCOMPATIBLE_NETWORK_REASON);
-			expect(collectedErrors).to.include(INCOMPATIBLE_PROTOCOL_VERSION_REASON);
+			expect(collectedErrors).toEqual(
+				expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]),
+			);
+			expect(collectedErrors).toEqual(
+				expect.arrayContaining([INCOMPATIBLE_NETWORK_REASON]),
+			);
+			expect(collectedErrors).toEqual(
+				expect.arrayContaining([INCOMPATIBLE_PROTOCOL_VERSION_REASON]),
+			);
 		});
 	});
 });

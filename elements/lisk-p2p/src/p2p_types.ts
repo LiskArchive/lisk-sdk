@@ -96,7 +96,7 @@ export interface P2PPeersCount {
 export interface P2PNodeInfo extends P2PSharedState {
 	readonly protocolVersion: string;
 	readonly os: string;
-	readonly nethash: string;
+	readonly networkId: string;
 	readonly wsPort: number;
 	readonly advertiseAddress: boolean;
 	readonly nonce: string;
@@ -114,7 +114,7 @@ export interface ProtocolPeerInfo {
 }
 
 export interface P2PConfig {
-	readonly blacklistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
+	readonly blacklistedIPs?: ReadonlyArray<string>;
 	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly fixedPeers?: ReadonlyArray<ProtocolPeerInfo>;
 	readonly whitelistedPeers?: ReadonlyArray<ProtocolPeerInfo>;
@@ -192,7 +192,7 @@ export type P2PCheckPeerCompatibility = (
 ) => P2PCompatibilityCheckReturnType;
 
 export interface PeerLists {
-	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly blacklistedIPs: ReadonlyArray<string>;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;

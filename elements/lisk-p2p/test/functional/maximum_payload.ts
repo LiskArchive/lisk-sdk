@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
@@ -29,11 +28,11 @@ describe('Maximum payload', () => {
 
 	beforeEach(async () => {
 		dataLargerThanMaxPayload = [];
-		for (let i = 0; i < 6000; i++) {
+		for (let i = 0; i < 1000; i++) {
 			dataLargerThanMaxPayload.push(`message${i}`);
 		}
 
-		const customConfig = () => ({
+		const customConfig = (_index: number) => ({
 			wsMaxPayload: 5000,
 		});
 		p2pNodeList = await createNetwork({ customConfig });
@@ -81,7 +80,7 @@ describe('Maximum payload', () => {
 		});
 		await wait(100);
 
-		expect(collectedMessages).to.be.empty;
+		expect(Object.keys(collectedMessages)).toHaveLength(0);
 	});
 
 	it('should disconnect the peer which has sent the message', async () => {
@@ -101,13 +100,11 @@ describe('Maximum payload', () => {
 				packet.peerPort === NETWORK_START_PORT,
 		);
 
-		expect(disconnectMaxPayload).length.gt(0);
-		expect(disconnectMaxPayload[0])
-			.is.an('object')
-			.has.property('code')
-			.eql(1009);
-		expect(disconnectMaxPayload[0])
-			.has.property('reason')
-			.eql('Message was too big to process');
+		expect(disconnectMaxPayload.length).toBeGreaterThan(0);
+
+		expect(disconnectMaxPayload[0]).toMatchObject({
+			code: 1009,
+			reason: 'Message was too big to process',
+		});
 	});
 });

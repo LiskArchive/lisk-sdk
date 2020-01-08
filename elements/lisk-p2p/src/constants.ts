@@ -21,8 +21,6 @@ export const DEFAULT_BAN_TIME = 86400000; // Milliseconds in a day -> hours*minu
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_SEND_PEER_LIMIT = 16;
-// Message types
-export const RCP_REQUEST_TYPE = '/RPCRequest';
 // Max rate of WebSocket messages per second per peer.
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
@@ -58,6 +56,8 @@ export const DEFAULT_PRODUCTIVITY = {
 	lastResponded: 0,
 };
 
+export const DEFAULT_HTTP_PATH = '/rpc/';
+
 // Penalty constants
 export const INVALID_PEER_LIST_PENALTY = 100;
 export const INVALID_PEER_INFO_PENALTY = 100;
@@ -83,11 +83,12 @@ export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';
 export const INVALID_CONNECTION_QUERY_CODE = 4502;
 export const INVALID_CONNECTION_QUERY_REASON =
-	'Peer did not provide valid query parameters as part of the WebSocket onnection';
+	'Peer did not provide valid query parameters as part of the WebSocket connection';
 export const INVALID_CONNECTION_SELF_CODE = 4101;
 export const INVALID_CONNECTION_SELF_REASON = 'Peer cannot connect to itself';
 export const INCOMPATIBLE_NETWORK_CODE = 4102;
-export const INCOMPATIBLE_NETWORK_REASON = 'Peer nethash did not match our own';
+export const INCOMPATIBLE_NETWORK_REASON =
+	'Peer networkId did not match our own';
 export const INCOMPATIBLE_PROTOCOL_VERSION_CODE = 4103;
 export const INCOMPATIBLE_PROTOCOL_VERSION_REASON =
 	'Peer has incompatible protocol version';

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
@@ -43,7 +42,7 @@ describe('Cleanup unresponsive peers', () => {
 			.map(peerInfo => peerInfo.wsPort)
 			.sort();
 
-		expect(initialPeerPorts).to.be.eql(
+		expect(initialPeerPorts).toEqual(
 			ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 		);
 
@@ -71,6 +70,6 @@ describe('Cleanup unresponsive peers', () => {
 			},
 		);
 
-		expect(peerPortsAfterPeerCrash).to.be.eql(expectedPeerPortsAfterPeerCrash);
+		expect(peerPortsAfterPeerCrash).toEqual(expectedPeerPortsAfterPeerCrash);
 	});
 });

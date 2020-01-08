@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	initPeerInfoList,
 	initPeerInfoListWithSuffix,
@@ -24,12 +23,11 @@ import {
 } from '../../../src/utils/select';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
-import sinon = require('sinon');
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
 		height: 545777,
-		nethash: '73458irc3yb7rg37r7326dbt7236',
+		networkId: '73458irc3yb7rg37r7326dbt7236',
 		os: 'linux',
 		version: '1.1.1',
 		protocolVersion: '1.1',
@@ -53,7 +51,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				).to.be.an('array'));
+				).toEqual(expect.any(Array)));
 
 			it('should return an array', () =>
 				expect(
@@ -63,7 +61,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				).to.be.an('array'));
+				).toEqual(expect.any(Array)));
 
 			it('returned array should contain good peers according to algorithm', () =>
 				expect(
@@ -73,9 +71,7 @@ describe('peer selector', () => {
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.and.of.length(5));
+				).toHaveLength(5));
 
 			it('return empty peer list for no peers as an argument', () =>
 				expect(
@@ -85,9 +81,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.and.to.be.eql([]));
+				).toEqual([]));
 
 			it('should return an array having one good peer', () =>
 				expect(
@@ -97,9 +91,7 @@ describe('peer selector', () => {
 						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.and.of.length(1));
+				).toHaveLength(1));
 
 			it('should return an array having 2 good peers', () =>
 				expect(
@@ -109,9 +101,7 @@ describe('peer selector', () => {
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.and.of.length(2));
+				).toHaveLength(2));
 
 			it('should return an array having all good peers', () =>
 				expect(
@@ -121,9 +111,7 @@ describe('peer selector', () => {
 						peerLimit: 5,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.and.of.length(5));
+				).toHaveLength(5));
 
 			it('should return an array of equal length equal to requested number of peers', () =>
 				expect(
@@ -133,9 +121,7 @@ describe('peer selector', () => {
 						peerLimit: 3,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.and.of.length(3));
+				).toHaveLength(3));
 		});
 
 		describe('peers with lower blockheight', () => {
@@ -156,9 +142,7 @@ describe('peer selector', () => {
 						peerLimit: 2,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
-				)
-					.and.be.an('array')
-					.and.of.length(1);
+				).toHaveLength(1);
 			});
 		});
 	});
@@ -188,9 +172,9 @@ describe('peer selector', () => {
 				{},
 			);
 
-			expect(peerKindCounts.inbound)
-				.to.equal(peerKindCounts.outbound)
-				.to.equal(DEFAULT_SEND_PEER_LIMIT / 2);
+			// Assert
+			expect(peerKindCounts.inbound).toEqual(peerKindCounts.outbound);
+			expect(peerKindCounts.inbound).toBe(DEFAULT_SEND_PEER_LIMIT / 2);
 		});
 	});
 
@@ -205,7 +189,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 20,
 				});
-				expect(selectedPeers).to.be.an('array').empty;
+				expect(selectedPeers).toBeEmpty;
 			});
 		});
 
@@ -216,10 +200,8 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 20,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(numberOfPeers);
-				return expect(peerList).to.deep.eq(selectedPeers);
+				expect(selectedPeers).toHaveLength(numberOfPeers);
+				return expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -230,7 +212,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 0,
 				});
-				expect(selectedPeers).to.be.an('array').empty;
+				expect(selectedPeers).toBeEmpty;
 			});
 		});
 
@@ -241,9 +223,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 1,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(1);
+				expect(selectedPeers).toHaveLength(1);
 			});
 		});
 
@@ -254,9 +234,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 3,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(3);
+				expect(selectedPeers).toHaveLength(3);
 			});
 		});
 
@@ -267,10 +245,8 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: peerList.length + 1,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(peerList.length);
-				expect(peerList).to.include.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(peerList.length);
+				expect(peerList).toEqual(selectedPeers);
 			});
 		});
 
@@ -281,10 +257,8 @@ describe('peer selector', () => {
 					newPeers: peerList,
 					peerLimit: 3,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(3);
-				expect(peerList).to.include.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(3);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
@@ -295,13 +269,11 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 4,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(4);
-				expect(peerList).to.contain.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(4);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 				for (const peer of selectedPeers) {
 					const foundPeers = selectedPeers.filter(x => x === peer);
-					expect(foundPeers).to.have.length(1);
+					expect(foundPeers).toHaveLength(1);
 				}
 			});
 		});
@@ -313,10 +285,8 @@ describe('peer selector', () => {
 					newPeers: [peerList[1], peerList[2], peerList[3], peerList[4]],
 					peerLimit: peerList.length,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(peerList.length);
-				expect(peerList).to.include.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(peerList.length);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
@@ -329,10 +299,8 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 4,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(4);
-				expect(peerList).to.contain.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(4);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
@@ -345,25 +313,15 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 3,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(3);
-				expect(peerList).to.include.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(3);
+				expect(peerList).toIncludeAllMembers(selectedPeers as any);
 			});
 		});
 
 		describe('when there are less than 100 peers', () => {
-			let mathRandom: sinon.SinonStub;
-			before(function() {
-				mathRandom = sinon.stub(Math, 'random');
-			});
-
-			after(function() {
-				sandbox.restore();
-			});
-
 			it('should return peers uniformly from both lists', () => {
-				mathRandom.returns(0.499);
+				jest.spyOn(Math, 'random').mockReturnValue(0.499);
+
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
@@ -372,11 +330,12 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 50,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(50);
 
-				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(50);
+
+				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(
+					selectedPeers as any,
+				);
 
 				let triedCount = 0;
 				let newCount = 0;
@@ -389,12 +348,12 @@ describe('peer selector', () => {
 					}
 				}
 
-				expect(triedCount).to.eql(25);
-				expect(newCount).to.eql(25);
+				expect(triedCount).toEqual(25);
+				expect(newCount).toEqual(25);
 			});
 
 			it('should return only new peer list', () => {
-				mathRandom.returns(0.5);
+				jest.spyOn(Math, 'random').mockReturnValue(0.5);
 				const triedPeers = initPeerInfoListWithSuffix('111.112.113', 25);
 				const newPeers = initPeerInfoListWithSuffix('111.112.114', 75);
 
@@ -403,11 +362,12 @@ describe('peer selector', () => {
 					newPeers,
 					peerLimit: 50,
 				});
-				expect(selectedPeers)
-					.to.be.an('array')
-					.of.length(50);
 
-				expect([...triedPeers, ...newPeers]).to.include.members(selectedPeers);
+				expect(selectedPeers).toHaveLength(50);
+
+				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(
+					selectedPeers as any,
+				);
 
 				let triedCount = 0;
 				let newCount = 0;
@@ -420,8 +380,8 @@ describe('peer selector', () => {
 					}
 				}
 
-				expect(triedCount).to.eql(0);
-				expect(newCount).to.eql(50);
+				expect(triedCount).toEqual(0);
+				expect(newCount).toEqual(50);
 			});
 		});
 
@@ -464,10 +424,8 @@ describe('peer selector', () => {
 
 				selectedPeers.map(peer => uniqIpAddresses.push(peer.ipAddress));
 
-				expect(selectedPeers).to.be.not.empty;
-				expect(selectedPeers.length).to.equal(
-					[...new Set(uniqIpAddresses)].length,
-				);
+				expect(Object.keys(selectedPeers)).not.toHaveLength(0);
+				expect(selectedPeers.length).toBe([...new Set(uniqIpAddresses)].length);
 			});
 		});
 	});
