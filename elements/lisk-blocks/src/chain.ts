@@ -111,13 +111,14 @@ export const applyConfirmedGenesisStep = async (
 	blockInstance: BlockInstance,
 	stateStore: StateStore,
 ): Promise<BlockInstance> => {
-	const sortedTransactionInstances = blockInstance.transactions.sort(a => {
+	blockInstance.transactions.sort(a => {
 		if (TRANSACTION_TYPES_VOTE.includes(a.type)) {
 			return 1;
 		}
 
 		return 0;
 	});
+	const sortedTransactionInstances = [...blockInstance.transactions];
 	await transactionsModule.applyGenesisTransactions()(
 		sortedTransactionInstances,
 		stateStore,

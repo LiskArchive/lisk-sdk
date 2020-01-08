@@ -29,11 +29,9 @@ type AccountKeys = Account & {
 
 const defaultAccount: AccountWithoutAddress = {
 	publicKey: undefined,
-	// tslint:disable-next-line no-null-keyword
-	secondPublicKey: null,
+	secondPublicKey: undefined,
 	secondSignature: 0,
-	// tslint:disable-next-line no-null-keyword
-	username: null,
+	username: undefined,
 	isDelegate: 0,
 	balance: '0',
 	missedBlocks: 0,

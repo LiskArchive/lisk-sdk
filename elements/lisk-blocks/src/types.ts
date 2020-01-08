@@ -23,11 +23,11 @@ export interface Account {
 	readonly balance: string;
 	readonly missedBlocks: number;
 	readonly producedBlocks: number;
-	readonly publicKey: string | undefined;
-	readonly secondPublicKey: string | null;
-	readonly secondSignature: number | undefined;
-	readonly username: string | null;
-	readonly isDelegate: number | undefined;
+	readonly publicKey?: string;
+	readonly secondPublicKey?: string;
+	readonly secondSignature?: number;
+	readonly username?: string;
+	readonly isDelegate?: number;
 	readonly fees: string;
 	readonly rewards: string;
 	// tslint:disable-next-line readonly-keyword
@@ -233,7 +233,7 @@ export interface Logger {
 	readonly error: (...input: any[]) => void;
 }
 
-export interface SingatureObject {
+export interface SignatureObject {
 	readonly signature: string;
 	readonly transactionId: string;
 	readonly publicKey: string;

@@ -26,7 +26,7 @@ import {
 	Contexter,
 	ExceptionOptions,
 	MatcherTransaction,
-	SingatureObject,
+	SignatureObject,
 	Slots,
 	Storage,
 	WriteableTransactionResponse,
@@ -360,7 +360,7 @@ export const verifyTransactions = (
 
 export const processSignature = () => async (
 	transaction: BaseTransaction,
-	signature: SingatureObject,
+	signature: SignatureObject,
 	stateStore: StateStore,
 ) => {
 	await transaction.prepare(stateStore);
