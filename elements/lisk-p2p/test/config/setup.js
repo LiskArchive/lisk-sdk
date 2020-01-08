@@ -13,6 +13,6 @@
  *
  */
 
-afterEach(() => {
-	sandbox.restore();
-});
+require('jest-extended');
+
+process.env.NODE_ENV = 'test';

@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
-import { DEFAULT_HTTP_PATH } from '../../src/constants';
+import { DEFAULT_WS_MAX_PAYLOAD, DEFAULT_HTTP_PATH } from '../../src/constants';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
@@ -33,6 +32,7 @@ describe('p2p', () => {
 			whitelistedPeers: generatedPeers.slice(2, 3),
 			previousPeers: generatedPeers.slice(4, 5),
 			connectTimeout: 5000,
+			wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
@@ -50,19 +50,17 @@ describe('p2p', () => {
 		});
 
 		it('should be an object', () => {
-			return expect(P2PNode).to.be.an('object');
+			return expect(P2PNode).toEqual(expect.any(Object));
 		});
 
 		it('should set the path to the default http path', () => {
-			return expect((P2PNode as any)._scServer.options.path).to.eql(
+			return expect((P2PNode as any)._scServer.options.path).toEqual(
 				DEFAULT_HTTP_PATH,
 			);
 		});
 
 		it('should be an instance of P2P blockchain', () => {
-			return expect(P2PNode)
-				.to.be.an('object')
-				.and.be.instanceof(P2P);
+			return expect(P2PNode).toBeInstanceOf(P2P);
 		});
 
 		it('should load PeerBook with correct fixedPeer hierarchy', async () => {
@@ -70,23 +68,31 @@ describe('p2p', () => {
 				.slice(0, 6)
 				.map(peer => constructPeerId(peer.ipAddress, peer.wsPort));
 
-			expect(expectedFixedPeers).to.have.members(
+			expect(expectedFixedPeers).toIncludeSameMembers(
 				P2PNode['_peerBook'].allPeers
 					.filter(peer => peer.internalState?.peerKind == 'fixedPeer')
 					.map(peer => peer.peerId),
 			);
 		});
 
+		it('should configure Websocket options', async () => {
+			const websocketOptions = (P2PNode as any)._scServer.wsServer.options;
+
+			expect(websocketOptions).toMatchObject({
+				maxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
+			});
+		});
+
 		it('should reject at multiple start attempt', async () => {
 			await P2PNode.start();
 
-			expect(P2PNode.start()).to.be.rejected;
+			expect(P2PNode.start()).rejects.toThrow();
 		});
 
 		it('should reject at multiple stop attempt', async () => {
 			await P2PNode.stop();
 
-			expect(P2PNode.stop()).to.be.rejected;
+			expect(P2PNode.stop()).rejects.toThrow();
 		});
 	});
 });

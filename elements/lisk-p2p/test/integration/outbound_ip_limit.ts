@@ -12,19 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 import { OutboundPeer } from '../../src/peer';
 
 describe('Outbound IP limit', () => {
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	before(async () => {
+	beforeAll(async () => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
@@ -80,13 +79,13 @@ describe('Outbound IP limit', () => {
 				.getPeers(OutboundPeer)
 				.map(peer => uniqIpAddresses.push(peer.ipAddress));
 
-			expect([...new Set(uniqIpAddresses)].length).to.equal(
+			expect([...new Set(uniqIpAddresses)].length).toBe(
 				p2p['_peerPool'].getPeers(OutboundPeer).length,
 			);
 		}
 	});
 
-	after(async () => {
+	afterAll(async () => {
 		SCServerSocket.prototype = serverSocketPrototypeBackup;
 	});
 });

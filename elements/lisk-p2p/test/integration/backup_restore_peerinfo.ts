@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_MESSAGE_RECEIVED,
@@ -21,7 +20,7 @@ import {
 	EVENT_CLOSE_OUTBOUND,
 } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Backup and Restore', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -90,7 +89,7 @@ describe('Backup and Restore', () => {
 			// Disconnect after sending few messages
 			getFirstConnectedPeer.disconnect(4009, CUSTOM_DISCONNECT_MESSAGE);
 
-			expect(messageCounter).to.be.greaterThan(TOTAL_SENDS - 2);
+			expect(messageCounter).toBeGreaterThan(TOTAL_SENDS - 2);
 
 			const disconnectFirstPeer = secondNode['_peerBook'].getPeer({
 				ipAddress: '127.0.0.1',
@@ -101,7 +100,7 @@ describe('Backup and Restore', () => {
 				// Should capture message counter if a peer disconnects
 				expect(
 					(disconnectFirstPeer.internalState as any).messageCounter.get('foo'),
-				).to.equal(TOTAL_SENDS);
+				).toBe(TOTAL_SENDS);
 			}
 
 			await wait(10);
@@ -110,7 +109,7 @@ describe('Backup and Restore', () => {
 				disconnectMessages
 					.map(msg => msg.reason)
 					.includes(CUSTOM_DISCONNECT_MESSAGE),
-			).to.true;
+			).toBe(true);
 
 			const getFirstNodeSecondTime = secondNode['_peerPool']['_peerMap'].get(
 				`127.0.0.1:${firstNode.nodeInfo.wsPort}`,
@@ -135,10 +134,10 @@ describe('Backup and Restore', () => {
 				expect(
 					(getFirstNodeSecondTime.peerInfo
 						.internalState as any).messageCounter.get('foo'),
-				).to.equal(TOTAL_SENDS * 2);
+				).toBe(TOTAL_SENDS * 2);
 			}
 
-			expect(removedPeer.length).to.be.greaterThan(0);
+			expect(removedPeer.length).toBeGreaterThan(0);
 			// Now send more messages to get banned
 			for (let i = 0; i < 200; i++) {
 				await wait(1);
@@ -154,7 +153,7 @@ describe('Backup and Restore', () => {
 			}
 			await wait(200);
 
-			expect(bannedMessages.length).to.equal(1);
+			expect(bannedMessages.length).toBe(1);
 		}
 	});
 });

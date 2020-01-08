@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	getIPGroup,
 	isPrivate,
@@ -31,7 +30,7 @@ describe('utils/misc', () => {
 	const MAX_NEW_BUCKETS = 128;
 	const MAX_TRIED_BUCKETS = 64;
 	const MAX_PEER_ADDRESSES = 65025;
-	const secret = DEFAULT_RANDOM_SECRET;
+	const secret = 3944604511; // Use fixed valued instead DEFAULT_RANDOM_SECRET for expectation
 	const IPv4Address = '1.160.10.240';
 	const secondIPv4Address = '1.161.10.240';
 	const sourceIPv4Address = '1.165.10.240';
@@ -41,55 +40,57 @@ describe('utils/misc', () => {
 	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
 			const byte = getIPGroup(IPv4Address, 0);
-			return expect(byte).to.eql(1);
+			return expect(byte).toEqual(1);
 		});
 
 		it('should throw an error for second argument greater than 3', () => {
-			expect(() => getIPGroup(IPv4Address, 4)).to.throw('Invalid IP group.');
+			expect(() => getIPGroup(IPv4Address, 4)).toThrowError(
+				'Invalid IP group.',
+			);
 		});
 	});
 
 	describe('#getIPBytes', () => {
 		it('should return an object with property groupABytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('aBytes');
+			return expect(getIPBytes(IPv4Address)).toHaveProperty('aBytes');
 		});
 
 		it('should return an object with property groupBBytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('bBytes');
+			return expect(getIPBytes(IPv4Address)).toHaveProperty('bBytes');
 		});
 
 		it('should return an object with property groupBBytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('cBytes');
+			return expect(getIPBytes(IPv4Address)).toHaveProperty('cBytes');
 		});
 
 		it('should return an object with property groupBBytes', () => {
-			return expect(getIPBytes(IPv4Address)).to.have.property('dBytes');
+			return expect(getIPBytes(IPv4Address)).toHaveProperty('dBytes');
 		});
 	});
 
 	describe('#isPrivate', () => {
 		it('should return true for private IP address', () => {
-			return expect(isPrivate(privateAddress)).to.be.true;
+			return expect(isPrivate(privateAddress)).toBe(true);
 		});
 	});
 
 	describe('#isLocal', () => {
 		it('should return true for local IP address', () => {
-			return expect(isLocal(localAddress)).to.be.true;
+			return expect(isLocal(localAddress)).toBe(true);
 		});
 	});
 
 	describe('#getNetwork', () => {
 		it(`should return ${NETWORK.NET_IPV4} for IPv4 address`, () => {
-			return expect(getNetwork(IPv4Address)).to.eql(NETWORK.NET_IPV4);
+			return expect(getNetwork(IPv4Address)).toEqual(NETWORK.NET_IPV4);
 		});
 
 		it(`should return ${NETWORK.NET_PRIVATE} for private address`, () => {
-			return expect(getNetwork(privateAddress)).to.eql(NETWORK.NET_PRIVATE);
+			return expect(getNetwork(privateAddress)).toEqual(NETWORK.NET_PRIVATE);
 		});
 
 		it(`should return ${NETWORK.NET_LOCAL} for local address`, () => {
-			return expect(getNetwork(localAddress)).to.eql(NETWORK.NET_LOCAL);
+			return expect(getNetwork(localAddress)).toEqual(NETWORK.NET_LOCAL);
 		});
 	});
 
@@ -97,11 +98,13 @@ describe('utils/misc', () => {
 		it(`should throw an error if network is equal to ${NETWORK.NET_OTHER}`, () => {
 			expect(() =>
 				getNetgroup('wrong ipAddress', DEFAULT_RANDOM_SECRET),
-			).to.throw('IP address is unsupported.');
+			).toThrowError('IP address is unsupported.');
 		});
 
 		it('should return a number netgroup', () => {
-			return expect(getNetgroup(IPv4Address, secret)).to.be.a('number');
+			return expect(getNetgroup(IPv4Address, secret)).toEqual(
+				expect.any(Number),
+			);
 		});
 
 		it('should return different netgroup for different addresses', () => {
@@ -109,7 +112,7 @@ describe('utils/misc', () => {
 			const firstNetgroup = getNetgroup(IPv4Address, secret);
 			const secondNetgroup = getNetgroup(secondIPv4Address, secret);
 
-			return expect(firstNetgroup).to.not.eql(secondNetgroup);
+			return expect(firstNetgroup).not.toEqual(secondNetgroup);
 		});
 
 		it('should return same netgroup for unique local addresses', () => {
@@ -117,7 +120,7 @@ describe('utils/misc', () => {
 			const secondLocalAddress = '127.0.1.1';
 			const secondNetgroup = getNetgroup(secondLocalAddress, secret);
 
-			return expect(firstNetgroup).to.eql(secondNetgroup);
+			return expect(firstNetgroup).toEqual(secondNetgroup);
 		});
 
 		it('should return same netgroup for unique private addresses', () => {
@@ -125,22 +128,22 @@ describe('utils/misc', () => {
 			const secondPrivateAddress = '10.0.0.1';
 			const secondNetgroup = getNetgroup(secondPrivateAddress, secret);
 
-			return expect(firstNetgroup).to.eql(secondNetgroup);
+			return expect(firstNetgroup).toEqual(secondNetgroup);
 		});
 
 		it('should return different netgroups for local and private addresses', () => {
 			const firstNetgroup = getNetgroup(localAddress, secret);
 			const secondNetgroup = getNetgroup(privateAddress, secret);
 
-			return expect(firstNetgroup).to.not.eql(secondNetgroup);
+			return expect(firstNetgroup).not.toEqual(secondNetgroup);
 		});
 	});
 
-	describe('#evictPeerRandomlyFromBucket', () => {
+	describe.skip('#evictPeerRandomlyFromBucket', () => {
 		it('must return the evicted peer info');
 	});
 
-	describe('#expirePeerFromBucket', () => {
+	describe.skip('#expirePeerFromBucket', () => {
 		describe('when bucket contains old peers', () => {
 			it('should return the evicted peer info');
 		});
@@ -158,9 +161,7 @@ describe('utils/misc', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			)
-				.to.be.a('number')
-				.within(0, MAX_NEW_BUCKETS);
+			).toSatisfy((n: number) => n >= 0 && n <= MAX_NEW_BUCKETS);
 		});
 
 		it('should return a bucket number with source address', () => {
@@ -172,9 +173,7 @@ describe('utils/misc', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			)
-				.to.be.a('number')
-				.within(0, MAX_NEW_BUCKETS);
+			).toSatisfy((n: number) => n >= 0 && n <= MAX_NEW_BUCKETS);
 		});
 
 		it(`should throw an error if network is equal to ${NETWORK.NET_OTHER}`, () => {
@@ -185,7 +184,7 @@ describe('utils/misc', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			).to.throw('IP address is unsupported.');
+			).toThrowError('IP address is unsupported.');
 		});
 
 		it('should return different buckets for different target addresses', () => {
@@ -205,7 +204,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			expect(firstBucket).to.not.eql(secondBucket);
+			expect(firstBucket).not.toEqual(secondBucket);
 		});
 
 		it('should return same bucket for unique local target addresses', () => {
@@ -225,7 +224,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			expect(firstBucket).to.eql(secondBucket);
+			expect(firstBucket).toEqual(secondBucket);
 		});
 
 		it('should return same bucket for unique private target addresses', () => {
@@ -245,7 +244,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			expect(firstBucket).to.eql(secondBucket);
+			expect(firstBucket).toEqual(secondBucket);
 		});
 
 		it('should return ifferent buckets for local and private target addresses', () => {
@@ -264,7 +263,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			expect(firstBucket).to.not.eql(secondBucket);
+			expect(firstBucket).not.toEqual(secondBucket);
 		});
 
 		it('should return the same bucket given random ip addresses in the same group for new peers', () => {
@@ -281,8 +280,9 @@ describe('utils/misc', () => {
 					}),
 				);
 			const firstBucket = collectedBuckets[0];
-			expect(collectedBuckets.every(bucket => bucket === firstBucket)).to.be
-				.true;
+			expect(collectedBuckets.every(bucket => bucket === firstBucket)).toBe(
+				true,
+			);
 		});
 
 		it('should return NaN if bucketCount is 0', () => {
@@ -293,7 +293,7 @@ describe('utils/misc', () => {
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: 0,
 			});
-			expect(bucketId).is.NaN;
+			expect(bucketId).toBeNaN();
 		});
 
 		it('should return different buckets for different target addresses given a single source address', () => {
@@ -313,7 +313,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			return expect(firstBucket).to.not.eql(secondBucket);
+			return expect(firstBucket).not.toEqual(secondBucket);
 		});
 
 		it('should return different buckets for same target addresses given different source address', () => {
@@ -333,7 +333,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			return expect(firstBucket).to.not.eql(secondBucket);
+			return expect(firstBucket).not.toEqual(secondBucket);
 		});
 
 		it('should return different buckets for same target address and source address but different peerType', () => {
@@ -353,7 +353,7 @@ describe('utils/misc', () => {
 				bucketCount: MAX_NEW_BUCKETS,
 			});
 
-			return expect(firstBucket).to.not.eql(secondBucket);
+			return expect(firstBucket).not.toEqual(secondBucket);
 		});
 
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
@@ -383,12 +383,10 @@ describe('utils/misc', () => {
 				}, {});
 
 			Object.values(collectedBuckets).forEach((bucketCount: any) => {
-				expect(bucketCount).to.be.greaterThan(
+				expect(bucketCount).toBeGreaterThan(
 					expectedPeerCountPerBucketLowerBound,
 				);
-				expect(bucketCount).to.be.lessThan(
-					expectedPeerCountPerBucketUpperBound,
-				);
+				expect(bucketCount).toBeLessThan(expectedPeerCountPerBucketUpperBound);
 			});
 		});
 
@@ -419,12 +417,10 @@ describe('utils/misc', () => {
 					return collectedBuckets;
 				}, {});
 			Object.values(collectedBuckets).forEach((bucketCount: any) => {
-				expect(bucketCount).to.be.greaterThan(
+				expect(bucketCount).toBeGreaterThan(
 					expectedPeerCountPerBucketLowerBound,
 				);
-				expect(bucketCount).to.be.lessThan(
-					expectedPeerCountPerBucketUpperBound,
-				);
+				expect(bucketCount).toBeLessThan(expectedPeerCountPerBucketUpperBound);
 			});
 		});
 	});

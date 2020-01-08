@@ -10,9 +10,13 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-beforeEach(() => {
-	sandbox.restore();
-});
+'use strict';
+
+const base = require('../config/jest.config.base');
+
+module.exports = {
+	...base,
+	testMatch: ['<rootDir>/test/functional/**/**.ts'],
+};

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_CLOSE_OUTBOUND,
@@ -23,7 +22,7 @@ import { wait } from '../utils/helpers';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
@@ -40,7 +39,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	];
 	const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 
-	before(async () => {
+	beforeAll(async () => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
@@ -52,7 +51,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		};
 	});
 
-	after(async () => {
+	afterAll(() => {
 		SCServerSocket.prototype = serverSocketPrototypeBackup;
 	});
 
@@ -107,13 +106,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
-			);
-			await wait(1000);
-		});
-
 		it('should not add any blacklisted peer to newPeers', async () => {
 			for (let p2p of p2pNodeList) {
 				const newPeers = p2p['_peerBook'].newPeers;
@@ -123,7 +115,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				expect(newPeersIPWS).not.toEqual(blacklistedPeers);
 			}
 		});
 
@@ -136,7 +128,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				expect(triedPeersIPWS).not.toEqual(blacklistedPeers);
 			}
 		});
 
@@ -148,9 +140,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 						wsPort: peer.wsPort,
 					};
 				});
-				expect(connectedPeersIPWS).not.to.deep.include.members(
-					blacklistedPeers,
-				);
+				expect(connectedPeersIPWS).not.toEqual(blacklistedPeers);
 			}
 		});
 
@@ -161,7 +151,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					(p2p as any)._config.hostIp === blacklistedPeers[0].ipAddress
 				) {
 					const connectedPeers = (p2p as any)._peerPool.getConnectedPeers();
-					expect(connectedPeers.length).to.equal(0);
+					expect(connectedPeers.length).toBe(0);
 				}
 			}
 		});
@@ -228,15 +218,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(1000);
-		});
-
 		it('everyone but itself should have a permanent connection to the fixed peer', async () => {
 			p2pNodeList.forEach((p2p, index) => {
 				if (index != 0) {
@@ -246,13 +227,13 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
+					expect(connectedPeersIPWS).toIncludeAllMembers(fixedPeers);
 				}
 			});
 		});
 
 		it('should not disconnect from fixed seed peers', async () => {
-			expect(collectedEvents).to.be.empty;
+			expect(Object.keys(collectedEvents)).toHaveLength(0);
 		});
 	});
 
@@ -295,15 +276,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(1000);
-		});
-
 		it('should add every whitelisted peer to triedPeers', async () => {
 			p2pNodeList.forEach((p2p, index) => {
 				if (![0, 9].includes(index)) {
@@ -314,7 +286,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(triedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					expect(triedPeersIPWS).toIncludeAllMembers(whitelistedPeers);
 				}
 			});
 		});
@@ -334,7 +306,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 							wsPort: peer.wsPort,
 						};
 					});
-					expect(connectedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					expect(connectedPeersIPWS).toIncludeAllMembers(whitelistedPeers);
 				}
 			});
 		});

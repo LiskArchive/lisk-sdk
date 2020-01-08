@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
 	SEED_PEER_IP,
-} from 'utils/network_setup';
+} from '../../utils/network_setup';
 import { constructPeerId } from '../../../src/utils';
 
 describe('P2P.sendToPeer', () => {
@@ -46,17 +45,11 @@ describe('P2P.sendToPeer', () => {
 		);
 
 		p2pNodeList[1].on('messageReceived', msg => {
-			expect(msg)
-				.to.have.property('peerId')
-				.which.is.equal(
-					constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
-				);
-			expect(msg)
-				.to.have.property('event')
-				.which.is.equal('foo');
-			expect(msg)
-				.to.have.property('data')
-				.which.is.equal(123);
+			expect(msg).toMatchObject({
+				peerId: constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
+				event: 'foo',
+				data: 123,
+			});
 		});
 	});
 });

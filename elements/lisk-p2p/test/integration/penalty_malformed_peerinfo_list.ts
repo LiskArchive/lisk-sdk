@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P, EVENT_BAN_PEER } from '../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
 	SEED_PEER_IP,
 } from '../utils/network_setup';
-import { wait } from 'utils/helpers';
+import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
 
 describe('penalty sending malformed Peer List', () => {
@@ -68,7 +67,7 @@ describe('penalty sending malformed Peer List', () => {
 		});
 
 		it(`should ban the emitter`, async () => {
-			expect(collectedEvents.get(EVENT_BAN_PEER)).to.eql(
+			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
 				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
 			);
 		});
@@ -106,7 +105,7 @@ describe('penalty sending malformed Peer List', () => {
 		});
 
 		it(`should ban the emitter`, async () => {
-			expect(collectedEvents.get(EVENT_BAN_PEER)).to.eql(
+			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
 				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
 			);
 		});

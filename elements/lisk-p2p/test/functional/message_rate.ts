@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	P2P,
 	EVENT_MESSAGE_RECEIVED,
@@ -23,7 +22,7 @@ import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_START_PORT,
-} from 'utils/network_setup';
+} from '../utils/network_setup';
 
 describe('Message rate limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -114,8 +113,8 @@ describe('Message rate limit', () => {
 			const secondPeerRates = messageRates.get(targetPeerPort) || [];
 			const lastRate = secondPeerRates[secondPeerRates.length - 1];
 
-			expect(lastRate).to.be.gt(ratePerSecondLowerBound);
-			expect(lastRate).to.be.lt(ratePerSecondUpperBound);
+			expect(lastRate).toBeGreaterThan(ratePerSecondLowerBound);
+			expect(lastRate).toBeLessThan(ratePerSecondUpperBound);
 		});
 
 		it('should disconnect the peer if it tries to send messages at a rate above wsMaxMessageRate', async () => {
@@ -139,8 +138,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(secondP2PNode.nodeInfo.wsPort)).to.contain(
-				firstP2PNode.nodeInfo.wsPort.toString(),
+			expect(removedPeers.get(secondP2PNode.nodeInfo.wsPort)).toEqual(
+				expect.arrayContaining([firstP2PNode.nodeInfo.wsPort.toString()]),
 			);
 		});
 	});
@@ -198,8 +197,8 @@ describe('Message rate limit', () => {
 			const secondPeerRates = requestRates.get(targetPeerPort) || [];
 			const lastRate = secondPeerRates[secondPeerRates.length - 1];
 
-			expect(lastRate).to.be.gt(ratePerSecondLowerBound);
-			expect(lastRate).to.be.lt(ratePerSecondUpperBound);
+			expect(lastRate).toBeGreaterThan(ratePerSecondLowerBound);
+			expect(lastRate).toBeLessThan(ratePerSecondUpperBound);
 		});
 
 		it('should disconnect the peer if it tries to send responses at a rate above wsMaxMessageRate', async () => {
@@ -226,8 +225,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(thirdP2PNode.nodeInfo.wsPort)).to.contain(
-				firstP2PNode.nodeInfo.wsPort.toString(),
+			expect(removedPeers.get(thirdP2PNode.nodeInfo.wsPort)).toEqual(
+				expect.arrayContaining([firstP2PNode.nodeInfo.wsPort.toString()]),
 			);
 		});
 	});
