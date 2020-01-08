@@ -1,0 +1,9 @@
+{
+	"extends": "../tsconfig",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"declaration": false,
+		"target": "es2019"
+	},
+	"include": ["./**/*"]
+}

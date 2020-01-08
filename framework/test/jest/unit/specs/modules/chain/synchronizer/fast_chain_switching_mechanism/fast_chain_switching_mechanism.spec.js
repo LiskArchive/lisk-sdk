@@ -15,11 +15,9 @@
 'use strict';
 
 const { when } = require('jest-when');
-const {
-	Blocks,
-	StateStore,
-} = require('../../../../../../../../src/modules/chain/blocks');
-const { BFT } = require('../../../../../../../../src/modules/chain/bft');
+const { Blocks, StateStore } = require('@liskhq/lisk-blocks');
+const { BFT } = require('@liskhq/lisk-bft');
+const { Slots } = require('@liskhq/lisk-dpos');
 const {
 	BlockProcessorV2,
 } = require('../../../../../../../../src/modules/chain/block_processor_v2');
@@ -27,7 +25,6 @@ const {
 	FastChainSwitchingMechanism,
 	Errors,
 } = require('../../../../../../../../src/modules/chain/synchronizer');
-const { Slots } = require('../../../../../../../../src/modules/chain/dpos');
 const {
 	Sequence,
 } = require('../../../../../../../../src/modules/chain/utils/sequence');
@@ -35,7 +32,7 @@ const {
 	Processor,
 } = require('../../../../../../../../src/modules/chain/processor');
 const { constants } = require('../../../../../../../utils');
-const { newBlock } = require('../../../chain/blocks/utils');
+const { newBlock } = require('../block');
 
 const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block');
 

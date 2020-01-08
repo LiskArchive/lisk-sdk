@@ -18,10 +18,11 @@
 const rewire = require('rewire');
 const async = require('async');
 const _ = require('lodash');
+const { BFT } = require('@liskhq/lisk-bft');
+const { Slots } = require('@liskhq/lisk-dpos');
 const { registeredTransactions } = require('../registered_transactions');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const { Sequence } = require('../../../src/modules/chain/utils/sequence');
-const { Slots } = require('../../../src/modules/chain/dpos');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('../storage/storage_sandbox');
 const { Processor } = require('../../../src/modules/chain/processor');
@@ -32,7 +33,6 @@ const {
 const {
 	BlockProcessorV2,
 } = require('../../../src/modules/chain/block_processor_v2');
-const { BFT } = require('../../../src/modules/chain/bft');
 const { getNetworkIdentifier } = require('../network_identifier');
 
 let currentAppScope;
@@ -57,7 +57,7 @@ const initStepsForTest = {
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
 
-		const { Dpos } = require('../../../src/modules/chain/dpos');
+		const { Dpos } = require('@liskhq/lisk-dpos');
 		modules.dpos = new Dpos({
 			logger: scope.components.logger,
 			slots: scope.slots,
@@ -69,9 +69,7 @@ const initStepsForTest = {
 			exceptions: __testContext.config.modules.chain.exceptions,
 		});
 
-		const { Blocks: RewiredBlocks } = rewire(
-			'../../../src/modules/chain/blocks',
-		);
+		const { Blocks: RewiredBlocks } = rewire('@liskhq/lisk-blocks');
 		modules.blocks = new RewiredBlocks({
 			logger: scope.components.logger,
 			storage: scope.components.storage,

@@ -21,6 +21,7 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
 const BigNum = require('@liskhq/bignum');
+const { Slots } = require('@liskhq/lisk-dpos');
 const application = require('../../../../utils/legacy/application');
 const {
 	clearDatabaseTable,
@@ -30,7 +31,6 @@ const random = require('../../../../utils/random');
 const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const { Slots } = require('../../../../../src/modules/chain/dpos');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');

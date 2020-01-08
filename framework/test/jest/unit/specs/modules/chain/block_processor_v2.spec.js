@@ -14,10 +14,10 @@
 
 'use strict';
 
+const { StateStore } = require('@liskhq/lisk-blocks');
 const {
 	BlockProcessorV2,
 } = require('../../../../../../src/modules/chain/block_processor_v2');
-const { StateStore } = require('../../../../../../src/modules/chain/blocks');
 
 describe('block processor v2', () => {
 	const defaultKeyPair = {

@@ -15,6 +15,7 @@
 'use strict';
 
 const { groupBy } = require('lodash');
+const { FORK_STATUS_DIFFERENT_CHAIN } = require('@liskhq/lisk-bft');
 const { BaseSynchronizer } = require('./base_synchronizer');
 const {
 	computeLargestSubsetMaxBy,
@@ -23,7 +24,6 @@ const {
 	restoreBlocks,
 	clearBlocksTempTable,
 } = require('./utils');
-const { FORK_STATUS_DIFFERENT_CHAIN } = require('../bft');
 const {
 	AbortError,
 	ApplyPenaltyAndRestartError,

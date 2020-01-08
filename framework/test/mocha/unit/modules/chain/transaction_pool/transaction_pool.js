@@ -25,7 +25,6 @@ const {
 	EVENT_UNCONFIRMED_TRANSACTION,
 	EVENT_MULTISIGNATURE_SIGNATURE,
 } = require('../../../../../../src/modules/chain/transaction_pool/transaction_pool');
-const transactionsModule = require('../../../../../../src/modules/chain/blocks/transactions');
 const {
 	transactions: transactionsFixtures,
 } = require('../../../../../fixtures/');
@@ -68,9 +67,6 @@ describe('transactionPool', () => {
 	let dummyTransactions;
 
 	beforeEach(async () => {
-		sinonSandbox
-			.stub(transactionsModule, 'composeTransactionSteps')
-			.returns(sinonSandbox.stub());
 		transactionPool = new TransactionPool({
 			storage,
 			blocks: blocksStub,
@@ -410,7 +406,7 @@ describe('transactionPool', () => {
 
 		describe('when signature already exists in transaction', () => {
 			beforeEach(async () => {
-				sinonSandbox.stub(transactionsModule, 'processSignature').returns(
+				blocksStub.processSignature.returns(
 					sinonSandbox.stub().resolves({
 						...transactionResponse,
 						status: 0,
@@ -433,7 +429,7 @@ describe('transactionPool', () => {
 					).to.have.been.calledWith(signatureObject.transactionId);
 					expect(transactionPool.getMultisignatureTransaction).to.have.been
 						.calledOnce;
-					expect(transactionsModule.processSignature).to.have.been.calledOnce;
+					expect(blocksStub.processSignature).to.have.been.calledOnce;
 					expect(errors[0]).to.be.an.instanceof(TransactionError);
 					expect(errors[0].message).to.eql(
 						'Signature already present in transaction.',
@@ -444,7 +440,7 @@ describe('transactionPool', () => {
 
 		describe('events', () => {
 			beforeEach(async () => {
-				sinonSandbox.stub(transactionsModule, 'processSignature').returns(
+				blocksStub.processSignature.returns(
 					sinonSandbox.stub().resolves({
 						...transactionResponse,
 						status: 2,

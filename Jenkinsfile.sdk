@@ -183,7 +183,10 @@ pipeline {
 							// Save all the test results
 							sh '''
 								rm -rf coverage_elements; mkdir -p coverage_elements
-								cp -rf elements/*/.nyc_output/* elements/*/.coverage/* coverage_elements/
+								cp -rf elements/*/.nyc_output/* coverage_elements/
+								for f in $( find elements/*/.coverage/ -type f ); do
+								  cp $f coverage_elements/$( sha1sum $f | cut -d ' ' -f 1 )_$( basename $f )
+								done
 							'''
 							stash name: "coverage_elements", includes: "coverage_elements/*", allowEmpty: true
 						}

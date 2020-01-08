@@ -22,8 +22,8 @@ const PQ = require('pg-promise').ParameterizedQuery;
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
+const { Slots } = require('@liskhq/lisk-dpos');
 const accountFixtures = require('../../../../fixtures/accounts');
-const { Slots } = require('../../../../../src/modules/chain/dpos');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../../utils/legacy/application');

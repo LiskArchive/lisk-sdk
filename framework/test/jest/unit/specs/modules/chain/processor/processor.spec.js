@@ -15,6 +15,14 @@
 'use strict';
 
 const {
+	FORK_STATUS_IDENTICAL_BLOCK,
+	FORK_STATUS_DOUBLE_FORGING,
+	FORK_STATUS_TIE_BREAK,
+	FORK_STATUS_DIFFERENT_CHAIN,
+	FORK_STATUS_DISCARD,
+	FORK_STATUS_VALID_BLOCK,
+} = require('@liskhq/lisk-bft');
+const {
 	FakeBlockProcessorV0,
 	FakeBlockProcessorV1,
 } = require('./block_processor');
@@ -24,14 +32,6 @@ const {
 const {
 	Sequence,
 } = require('../../../../../../../src/modules/chain/utils/sequence');
-const {
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_DISCARD,
-	FORK_STATUS_VALID_BLOCK,
-} = require('../../../../../../../src/modules/chain/bft');
 
 describe('processor', () => {
 	const defaultLastBlock = {

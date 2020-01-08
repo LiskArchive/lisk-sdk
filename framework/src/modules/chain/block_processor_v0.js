@@ -15,6 +15,7 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
+const { baseBlockSchema } = require('@liskhq/lisk-blocks');
 const {
 	BIG_ENDIAN,
 	hash,
@@ -25,7 +26,6 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const { validator } = require('@liskhq/lisk-validator');
 const { BaseBlockProcessor } = require('./processor');
-const { baseBlockSchema } = require('./blocks');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;

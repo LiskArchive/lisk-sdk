@@ -14,6 +14,13 @@
 
 'use strict';
 
+const { Blocks } = require('@liskhq/lisk-blocks');
+const {
+	Slots,
+	Dpos,
+	constants: { EVENT_ROUND_CHANGED },
+} = require('@liskhq/lisk-dpos');
+const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
@@ -26,13 +33,6 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const {
-	Slots,
-	Dpos,
-	constants: { EVENT_ROUND_CHANGED },
-} = require('./dpos');
-const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
-const { Blocks } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
