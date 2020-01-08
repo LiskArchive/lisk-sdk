@@ -61,7 +61,7 @@
 	"dependencies": {
 		"@liskhq/lisk-api-client": "3.0.0-alpha.1",
 		"@liskhq/lisk-constants": "1.3.0-alpha.1",
-		"@liskhq/lisk-cryptography": "2.4.0-alpha.1",
+		"@liskhq/lisk-cryptography": "2.4.0-alpha.2",
 		"@liskhq/lisk-passphrase": "3.0.0-alpha.1",
 		"@liskhq/lisk-transactions": "3.0.0-alpha.1",
 		"@types/node": "12.12.11"
