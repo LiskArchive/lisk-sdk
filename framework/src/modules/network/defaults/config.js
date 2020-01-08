@@ -51,10 +51,7 @@ const defaultConfig = {
 		},
 		blacklistedPeers: {
 			type: 'array',
-			items: {
-				type: 'string',
-				format: 'ip',
-			},
+			items: { type: 'string', format: 'ip' },
 		},
 		// Warning! The connectivity of the node might be negatively impacted if using this option.
 		fixedPeers: {
@@ -148,7 +145,7 @@ const defaultConfig = {
 		wsPort: 5000,
 		address: '0.0.0.0',
 		discoveryInterval: 30000,
-		peerBanTime: 86400,
+		peerBanTime: 86400000,
 		populatorInterval: 10000,
 		seedPeers: [],
 		blacklistedPeers: [],
