@@ -56,6 +56,8 @@ export const DEFAULT_PRODUCTIVITY = {
 	lastResponded: 0,
 };
 
+export const DEFAULT_HTTP_PATH = '/rpc/';
+
 // Penalty constants
 export const INVALID_PEER_LIST_PENALTY = 100;
 export const INVALID_PEER_INFO_PENALTY = 100;

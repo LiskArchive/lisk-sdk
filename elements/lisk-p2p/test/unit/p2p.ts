@@ -15,6 +15,7 @@
 import { expect } from 'chai';
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
+import { DEFAULT_HTTP_PATH } from '../../src/constants';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
@@ -50,6 +51,12 @@ describe('p2p', () => {
 
 		it('should be an object', () => {
 			return expect(P2PNode).to.be.an('object');
+		});
+
+		it('should set the path to the default http path', () => {
+			return expect((P2PNode as any)._scServer.options.path).to.eql(
+				DEFAULT_HTTP_PATH,
+			);
 		});
 
 		it('should be an instance of P2P blockchain', () => {
