@@ -183,7 +183,7 @@ pipeline {
 							// Save all the test results
 							sh '''
 								rm -rf coverage_elements; mkdir -p coverage_elements
-								cp -f elements/*/.nyc_output/* elements/*/.coverage/* coverage_elements/
+								cp -rf elements/*/.nyc_output/* elements/*/.coverage/* coverage_elements/
 								done
 							'''
 							stash name: "coverage_elements", includes: "coverage_elements/*", allowEmpty: true
