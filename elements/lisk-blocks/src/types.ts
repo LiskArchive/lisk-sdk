@@ -37,7 +37,7 @@ export interface Account {
 	readonly multiLifetime: number;
 	readonly asset: object;
 	// tslint:disable-next-line readonly-keyword
-	votedDelegatesPublicKeys: string[];
+	votedDelegatesPublicKeys?: string[];
 }
 
 export interface Context {

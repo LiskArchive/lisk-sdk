@@ -42,7 +42,7 @@ const defaultAccount: AccountWithoutAddress = {
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
-	votedDelegatesPublicKeys: [],
+	votedDelegatesPublicKeys: undefined,
 	asset: {},
 };
 
