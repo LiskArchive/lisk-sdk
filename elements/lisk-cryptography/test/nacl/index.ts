@@ -104,6 +104,11 @@ describe('nacl index.js', () => {
 			return Promise.resolve();
 		});
 
+		it('should set process.env.NACL_FAST to disable', () => {
+			require('../../src/nacl');
+			return expect(process.env.NACL_FAST).to.eql('disable');
+		});
+
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			process.env.NACL_FAST = 'disable';
 			const loadedLibrary = require('../../src/nacl');
