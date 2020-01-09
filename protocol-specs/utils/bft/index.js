@@ -105,7 +105,7 @@ const generateBlockForBFT = ({
 				.generate({ charset: '0123456789ABCDE', length: 64 })
 				.toLowerCase(),
 		height,
-		previousBlockId: previousBlockId || null,
+		previousBlockId,
 		maxHeightPrevoted:
 			maxHeightPrevoted ||
 			parseInt(randomstring.generate({ charset: 'numeric', length: 3 }), 10),
