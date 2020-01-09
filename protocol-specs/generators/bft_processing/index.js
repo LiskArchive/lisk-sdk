@@ -391,8 +391,8 @@ const bftForkChoiceTestSuiteGenerator = () => {
 					'DISCARD: Received invalid block for current state of chain',
 				initialState,
 				input: {
-					// Any block with lower height than last block is invalid
-					// to current state of chain
+					// Any block with lower height than last block is invalid to current
+					// state of chain if maxHeightPrevoted is less or same
 					receivedBlock: generateBlockForBFT({
 						height: lastBlock.height - 1,
 						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
