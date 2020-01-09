@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { apiMethod } from '../src/api_method';
 import { Resource, APIHandler } from '../src/api_types';
 
@@ -60,7 +59,7 @@ describe('API method module', () => {
 			});
 
 			it('should return function', () => {
-				return expect(handler).to.be.a('function');
+				return expect(handler).toBeInstanceOf('function');
 			});
 
 			it('should request GET with default URL', () => {
@@ -100,7 +99,7 @@ describe('API method module', () => {
 			});
 
 			it('should return function', () => {
-				return expect(handler).to.be.a('function');
+				return expect(handler).toBeInstanceOf('function');
 			});
 
 			it('should be rejected with error without param', () => {
@@ -166,7 +165,7 @@ describe('API method module', () => {
 			});
 
 			it('should return a function', () => {
-				return expect(handler).to.be.a('function');
+				return expect(handler).toBeInstanceOf('function');
 			});
 
 			it('should be rejected with error without parameters', () => {

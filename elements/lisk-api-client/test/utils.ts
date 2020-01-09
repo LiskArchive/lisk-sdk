@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { toQueryString, solveURLParams } from '../src/utils';
 
 describe('api utils module', () => {
@@ -25,38 +24,33 @@ describe('api utils module', () => {
 				key2: 'value2',
 				key3: 'value3',
 			});
-			return expect(queryString).to.be.equal(
-				'key1=value1&key2=value2&key3=value3',
-			);
+			return expect(queryString).toBe('key1=value1&key2=value2&key3=value3');
 		});
 
 		it('should escape invalid special characters', () => {
 			const queryString = toQueryString({
 				'key:/;?': 'value:/;?',
 			});
-			return expect(queryString).to.be.equal(
-				'key%3A%2F%3B%3F=value%3A%2F%3B%3F',
-			);
+			return expect(queryString).toBe('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
 		});
 	});
 
 	describe('#solveURLParams', () => {
 		it('should return original URL with no param', () => {
 			const solvedURL = solveURLParams(defaultURL);
-			return expect(solvedURL).to.be.equal(defaultURL);
+			return expect(solvedURL).toBe(defaultURL);
 		});
 
 		it('should throw error if url has variable but no param', () => {
-			return expect(solveURLParams.bind(null, `${defaultURL}/{id}`)).to.throw(
-				Error,
-				'URL is not completely solved',
-			);
+			return expect(
+				solveURLParams.bind(null, `${defaultURL}/{id}`),
+			).toThrowError(Error);
 		});
 
 		it('should throw error if url has variable but not matching params', () => {
 			return expect(
 				solveURLParams.bind(null, `${defaultURL}/{id}`, { accountId: '123' }),
-			).to.throw(Error, 'URL is not completely solved');
+			).toThrowError(Error);
 		});
 
 		it('should replace variable with correct id', () => {
@@ -64,7 +58,7 @@ describe('api utils module', () => {
 				id: '456',
 				accountId: '123',
 			});
-			return expect(solvedURL).to.be.equal(`${defaultURL}/456`);
+			return expect(solvedURL).toBe(`${defaultURL}/456`);
 		});
 
 		it('should replace multiple variables with correct id and accountId', () => {
@@ -72,7 +66,7 @@ describe('api utils module', () => {
 				id: '456',
 				accountId: '123',
 			});
-			return expect(solvedURL).to.be.equal(`${defaultURL}/123/456`);
+			return expect(solvedURL).toBe(`${defaultURL}/123/456`);
 		});
 
 		it('should replace variable with correct id and encode special characters', () => {
@@ -80,7 +74,7 @@ describe('api utils module', () => {
 				id: '456ß1234sd',
 				accountId: '123',
 			});
-			return expect(solvedURL).to.be.equal(`${defaultURL}/456%C3%9F1234sd`);
+			return expect(solvedURL).toBe(`${defaultURL}/456%C3%9F1234sd`);
 		});
 	});
 });

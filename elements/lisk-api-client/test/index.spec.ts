@@ -13,12 +13,11 @@
  *
  */
 import { APIClient } from '../src';
-import { expect } from 'chai';
 
 describe('api client', () => {
 	describe('exports', () => {
 		it('should have APIClient as a function', () => {
-			return expect(APIClient).to.be.a('function');
+			return expect(APIClient).toBeInstanceOf('function');
 		});
 	});
 });

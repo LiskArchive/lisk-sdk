@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { DelegatesResource } from '../../src/resources/delegates';
@@ -32,41 +31,41 @@ describe('DelegatesResource', () => {
 
 	describe('#constructor', () => {
 		it('should be instance of APIResource', () => {
-			return expect(resource).to.be.instanceOf(APIResource);
+			return expect(resource).toBeInstanceOf(APIResource);
 		});
 
 		it('should have correct full path', () => {
-			return expect(resource.resourcePath).to.eql(
+			return expect(resource.resourcePath).toEqual(
 				`${defaultBasePath}/api${path}`,
 			);
 		});
 
 		it('should set resource path', () => {
-			return expect(resource.path).to.equal(path);
+			return expect(resource.path).toBe(path);
 		});
 
 		it('should have a "get" function', () => {
 			return expect(resource)
 				.to.have.property('get')
-				.which.is.a('function');
+				.toBeInstanceOf('function');
 		});
 
 		it('should have a "getStandby" function', () => {
 			return expect(resource)
 				.to.have.property('getStandby')
-				.which.is.a('function');
+				.toBeInstanceOf('function');
 		});
 
 		it('should have a "getForgers" function', () => {
 			return expect(resource)
 				.to.have.property('getForgers')
-				.which.is.a('function');
+				.toBeInstanceOf('function');
 		});
 
 		it('should have a "getForgingStatistics" function', () => {
 			return expect(resource)
 				.to.have.property('getForgingStatistics')
-				.which.is.a('function');
+				.toBeInstanceOf('function');
 		});
 	});
 });

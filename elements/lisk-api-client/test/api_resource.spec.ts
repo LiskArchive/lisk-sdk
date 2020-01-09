@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
 import * as sinon from 'sinon';
@@ -71,24 +70,24 @@ describe('API resource module', () => {
 
 	describe('#constructor', () => {
 		it('should create an API resource instance', () => {
-			return expect(resource).to.be.instanceOf(APIResource);
+			return expect(resource).toBeInstanceOf(APIResource);
 		});
 	});
 
 	describe('get headers', () => {
 		it('should return header set to apiClient', () => {
-			return expect(resource.headers).to.eql(defaultHeaders);
+			return expect(resource.headers).toEqual(defaultHeaders);
 		});
 	});
 
 	describe('get resourcePath', () => {
 		it('should return the resource’s full path', () => {
-			return expect(resource.resourcePath).to.equal(`${defaultBasePath}/api`);
+			return expect(resource.resourcePath).toBe(`${defaultBasePath}/api`);
 		});
 
 		it('should return the resource’s full path with set path', () => {
 			resource.path = defaultResourcePath;
-			return expect(resource.resourcePath).to.equal(
+			return expect(resource.resourcePath).toBe(
 				`${defaultBasePath}/api${defaultResourcePath}`,
 			);
 		});
@@ -114,7 +113,7 @@ describe('API resource module', () => {
 					expect(requestStub).to.be.calledOnce;
 					expect(requestStub).to.be.calledWithExactly(defaultRequest);
 					expect(handleRetryStub).not.to.be.called;
-					return expect(res).to.eql(sendRequestResult);
+					return expect(res).toEqual(sendRequestResult);
 				});
 		});
 
@@ -125,7 +124,7 @@ describe('API resource module', () => {
 					expect(requestStub).to.be.calledOnce;
 					expect(requestStub).to.be.calledWithExactly(defaultRequest);
 					expect(handleRetryStub).not.to.be.called;
-					return expect(res).to.eql(sendRequestResult);
+					return expect(res).toEqual(sendRequestResult);
 				});
 		});
 
@@ -142,7 +141,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.errno).to.equal(statusCode);
+						return expect(err.errno).toBe(statusCode);
 					});
 			});
 
@@ -158,9 +157,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.equal(
-							'An unknown error has occurred.',
-						);
+						return expect(err.message).toBe('An unknown error has occurred.');
 					});
 			});
 
@@ -176,9 +173,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.equal(
-							'An unknown error has occurred.',
-						);
+						return expect(err.message).toBe('An unknown error has occurred.');
 					});
 			});
 
@@ -195,7 +190,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.eql(serverErrorMessage);
+						return expect(err.message).toEqual(serverErrorMessage);
 					});
 			});
 
@@ -212,7 +207,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.eql(serverErrorMessage);
+						return expect(err.message).toEqual(serverErrorMessage);
 					});
 			});
 
@@ -239,7 +234,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.errors).to.eql(errors);
+						return expect(err.errors).toEqual(errors);
 					});
 			});
 
@@ -249,7 +244,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err).to.eql(clientError);
+						return expect(err).toEqual(clientError);
 					});
 			});
 
@@ -306,7 +301,7 @@ describe('API resource module', () => {
 				return req.then(res => {
 					expect(apiClient.banActiveNodeAndSelect).to.be.calledOnce;
 					expect(requestStub).to.be.calledWith(defaultRequest, true);
-					return expect(res).to.be.eql(sendRequestResult.body);
+					return expect(res).toEqual(sendRequestResult.body);
 				});
 			});
 
@@ -321,7 +316,7 @@ describe('API resource module', () => {
 				return req.then(res => {
 					expect(apiClient.banActiveNodeAndSelect).not.to.be.called;
 					expect(requestStub).to.be.calledWith(defaultRequest, true);
-					return expect(res).to.be.eql(sendRequestResult.body);
+					return expect(res).toEqual(sendRequestResult.body);
 				});
 			});
 
