@@ -14,16 +14,18 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
-const { EVENT_ROUND_CHANGED } = require('./constants');
+import * as BigNum from '@liskhq/bignum';
 
-const _isGenesisBlock = block => block.height === 1;
+import { EVENT_ROUND_CHANGED } from './constants';
+import { BlockHeader } from './interfaces';
+
+const _isGenesisBlock = (block: BlockHeader) => block.height === 1;
 
 const _hasVotedDelegatesPublicKeys = ({
 	delegateAccount: { votedDelegatesPublicKeys },
 }) => !!votedDelegatesPublicKeys && votedDelegatesPublicKeys.length > 0;
 
-class DelegatesInfo {
+export class DelegatesInfo {
 	constructor({
 		storage,
 		slots,
@@ -364,5 +366,3 @@ class DelegatesInfo {
 		};
 	}
 }
-
-module.exports = { DelegatesInfo, EVENT_ROUND_CHANGED };

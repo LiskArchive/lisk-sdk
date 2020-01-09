@@ -14,8 +14,4 @@
 
 'use strict';
 
-const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';
-
-module.exports = {
-	EVENT_ROUND_CHANGED,
-};
+export const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';

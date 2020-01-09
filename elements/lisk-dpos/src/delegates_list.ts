@@ -14,17 +14,20 @@
 
 'use strict';
 
-const { hash } = require('@liskhq/lisk-cryptography');
+import { hash } from '@liskhq/lisk-cryptography';
 
-const shuffleDelegateListForRound = (round, list) => {
+import { DelegatesConstructor, RoundDelegates, SlotsConstructor, Storage, StorageTransaction, } from './interfaces';
+
+export const shuffleDelegateListForRound = (round: number, list: string[]) => {
 	const seedSource = round.toString();
 	const delegateList = [...list];
+	// tslint:disable-next-line:no-let
 	let currentSeed = hash(seedSource, 'utf8');
 
-	// eslint-disable-next-line no-plusplus
+	// tslint:disable-next-line one-variable-per-declaration no-let increment-decrement
 	for (let i = 0, delCount = delegateList.length; i < delCount; i++) {
-		// eslint-disable-next-line no-plusplus
-		for (let x = 0; x < 4 && i < delCount; i++, x++) {
+		// tslint:disable-next-line no-let increment-decrement no-magic-numbers
+		for (let x = 0; x < 4 && i < delCount; i++ , x++) {
 			const newIndex = currentSeed[x] % delCount;
 			const b = delegateList[newIndex];
 			delegateList[newIndex] = delegateList[i];
@@ -36,11 +39,17 @@ const shuffleDelegateListForRound = (round, list) => {
 	return delegateList;
 };
 
-class DelegatesList {
-	constructor({ storage, activeDelegates, slots, exceptions }) {
+export class DelegatesList {
+	private readonly storage: Storage;
+	private readonly slots: SlotsConstructor;
+	private readonly activeDelegates: number;
+	// tslint:disable-next-line:no-any
+	private readonly exceptions: any;
+
+	public constructor({ storage, activeDelegates, slots, exceptions }: DelegatesConstructor) {
 		this.storage = storage;
-		this.slots = slots;
 		this.activeDelegates = activeDelegates;
+		this.slots = slots;
 		this.exceptions = exceptions;
 	}
 
@@ -48,7 +57,7 @@ class DelegatesList {
 	 * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
 	 * The list of delegates used is the one computed at the end of the round `r - delegateListRoundOffset`
 	 */
-	async getForgerPublicKeysForRound(round, delegateListRoundOffset, tx) {
+	public async getForgerPublicKeysForRound(round: number, delegateListRoundOffset: number, tx: StorageTransaction): Promise<string[]> {
 		// Delegate list is generated from round 1 hence `roundWithOffset` can't be less than 1
 		const roundWithOffset = Math.max(round - delegateListRoundOffset, 1);
 		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
@@ -63,7 +72,7 @@ class DelegatesList {
 		return shuffleDelegateListForRound(round, delegatePublicKeys);
 	}
 
-	async getDelegatePublicKeysSortedByVoteWeight(tx) {
+	public async getDelegatePublicKeysSortedByVoteWeight(tx: StorageTransaction): Promise<string[]> {
 		const filters = { isDelegate: true };
 		const options = {
 			limit: this.activeDelegates,
@@ -74,6 +83,7 @@ class DelegatesList {
 			options,
 			tx,
 		);
+
 		return accounts.map(account => account.publicKey);
 	}
 
@@ -81,7 +91,7 @@ class DelegatesList {
 	 * Generate list of delegate public keys for the next round in database
 	 * WARNING: This function should only be called from `apply()` as we don't allow future rounds to be created
 	 */
-	async createRoundDelegateList(round, tx) {
+	public async createRoundDelegateList(round: number, tx: StorageTransaction): Promise<void> {
 		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight(
 			tx,
 		);
@@ -104,7 +114,7 @@ class DelegatesList {
 		);
 	}
 
-	async deleteDelegateListUntilRound(round, tx) {
+	public async deleteDelegateListUntilRound(round: number, tx: StorageTransaction): Promise<void> {
 		await this.storage.entities.RoundDelegates.delete(
 			{
 				round_lt: round,
@@ -114,7 +124,7 @@ class DelegatesList {
 		);
 	}
 
-	async deleteDelegateListAfterRound(round, tx) {
+	public async deleteDelegateListAfterRound(round: number, tx: StorageTransaction): Promise<void> {
 		await this.storage.entities.RoundDelegates.delete(
 			{
 				round_gt: round,
@@ -124,7 +134,7 @@ class DelegatesList {
 		);
 	}
 
-	async verifyBlockForger(block, { tx, delegateListRoundOffset }) {
+	public async verifyBlockForger(block, { tx, delegateListRoundOffset }): Promise<boolean> {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.slots.calcRound(block.height);
 
@@ -166,9 +176,4 @@ class DelegatesList {
 
 		return true;
 	}
-}
-
-module.exports = {
-	DelegatesList,
-	shuffleDelegateListForRound,
 };

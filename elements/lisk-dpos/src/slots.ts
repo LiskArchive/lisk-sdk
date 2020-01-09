@@ -13,68 +13,64 @@
  */
 
 'use strict';
+import { SlotsConstructor } from './interfaces';
 
-class Slots {
-	constructor({ epochTime, interval, blocksPerRound }) {
+export class Slots {
+	private readonly epochTime: string;
+	private readonly interval: number;
+	private readonly blocksPerRound: number;
+
+	public constructor({ epochTime, interval, blocksPerRound }: SlotsConstructor) {
 		this.epochTime = epochTime;
 		this.interval = interval;
 		this.blocksPerRound = blocksPerRound;
 	}
 
-	getEpochTime(time) {
-		const parsedTime = time === undefined ? Date.now() : time;
-
-		return Math.floor((parsedTime - new Date(this.epochTime).getTime()) / 1000);
+	public getEpochTime(time: number = Date.now()): number {
+		// tslint:disable-next-line:no-magic-numbers
+		return Math.floor((time - new Date(this.epochTime).getTime()) / 1000);
 	}
 
-	getRealTime(epochTime) {
-		const parsedEpochTime =
-			epochTime === undefined ? this.getEpochTime() : epochTime;
-
+	public getRealTime(epochTime: number = this.getEpochTime()): number {
 		return (
+			// tslint:disable-next-line:no-magic-numbers
 			Math.floor(new Date(this.epochTime).getTime() / 1000) * 1000 +
-			parsedEpochTime * 1000
+			// tslint:disable-next-line:no-magic-numbers
+			epochTime * 1000
 		);
 	}
 
-	getSlotNumber(epochTime) {
-		const parsedEpochTime =
-			epochTime === undefined ? this.getEpochTime() : epochTime;
-
-		return Math.floor(parsedEpochTime / this.interval);
+	public getSlotNumber(epochTime: number = this.getEpochTime()): number {
+		return Math.floor(epochTime / this.interval);
 	}
 
-	getSlotTime(slot) {
+	public getSlotTime(slot: number): number {
 		return slot * this.interval;
 	}
 
-	getNextSlot() {
+	public getNextSlot(): number {
 		const slot = this.getSlotNumber();
 
 		return slot + 1;
 	}
 
-	getLastSlot(nextSlot) {
+	public getLastSlot(nextSlot: number): number {
 		return nextSlot + this.blocksPerRound;
 	}
 
-	isWithinTimeslot(slot, time) {
+	public isWithinTimeslot(slot: number, time: number): boolean {
 		return this.getSlotNumber(time) === slot;
 	}
 
-	calcRound(height) {
+	public calcRound(height: number): number {
 		return Math.ceil(height / this.blocksPerRound);
 	}
 
-	calcRoundStartHeight(round) {
+	public calcRoundStartHeight(round: number): number {
 		return (round < 1 ? 0 : round - 1) * this.blocksPerRound + 1;
 	}
 
-	calcRoundEndHeight(round) {
+	public calcRoundEndHeight(round: number): number {
 		return (round < 1 ? 1 : round) * this.blocksPerRound;
 	}
 }
-
-module.exports = {
-	Slots,
-};

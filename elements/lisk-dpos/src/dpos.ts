@@ -14,24 +14,35 @@
 
 'use strict';
 
-const EventEmitter = require('events');
-const { EVENT_ROUND_CHANGED } = require('./constants');
-const { DelegatesList } = require('./delegates_list');
-const { DelegatesInfo } = require('./delegates_info');
+import * as  EventEmitter from 'events';
 
-module.exports = class Dpos {
-	constructor({
+import { EVENT_ROUND_CHANGED } from './constants';
+import { DelegatesInfo } from './delegates_info';
+import { DelegatesList } from './delegates_list';
+import { DelegatesConstructor, DposConstructor, SlotsConstructor, Storage, } from './interfaces';
+
+
+export class Dpos {
+	private readonly events: EventEmitter;
+	private readonly delegateListRoundOffset: number;
+	private readonly finalizedBlockRound: number;
+	private readonly delegateActiveRoundLimit: number;
+	private readonly slots: SlotsConstructor;
+	private readonly storage: Storage;
+
+	public constructor({
 		storage,
 		slots,
 		activeDelegates,
 		delegateListRoundOffset,
 		logger,
 		exceptions = {},
-	}) {
+	}: DposConstructor) {
 		this.events = new EventEmitter();
 		this.delegateListRoundOffset = delegateListRoundOffset;
 		this.finalizedBlockRound = 0;
 		// @todo consider making this a constant and reuse it in BFT module.
+		// tslint:disable-next-line:no-magic-numbers
 		this.delegateActiveRoundLimit = 3;
 		this.slots = slots;
 		this.storage = storage;

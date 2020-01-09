@@ -14,12 +14,6 @@
 
 'use strict';
 
-const { Slots } = require('./slots');
-const Dpos = require('./dpos');
-const constants = require('./constants');
-
-module.exports = {
-	Slots,
-	Dpos,
-	constants,
-};
+export { Slots } from './slots';
+export { Dpos } from './dpos';
+export { EVENT_ROUND_CHANGED } from './constants';
