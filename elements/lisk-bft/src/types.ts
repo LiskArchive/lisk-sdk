@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,44 +11,44 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* eslint-disable max-classes-per-file */
 
-'use strict';
+export interface BlockHeader {
+	readonly blockId: string;
+	readonly height: number;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+	readonly delegateMinHeightActive: number;
+	readonly delegatePublicKey: string;
+}
 
-class BFTError extends Error {}
+export class BFTError extends Error {}
 
-class BFTChainDisjointError extends BFTError {
-	constructor() {
+/* tslint:disable:max-classes-per-file */
+
+export class BFTChainDisjointError extends BFTError {
+	public constructor() {
 		super(
 			'Violation of disjointness condition. If delegate forged a block of higher height earlier and later the block with lower height',
 		);
 	}
 }
 
-class BFTLowerChainBranchError extends BFTError {
-	constructor() {
+export class BFTLowerChainBranchError extends BFTError {
+	public constructor() {
 		super(
 			'Violation of the condition that delegate must choose the branch with largest maxHeightPrevoted',
 		);
 	}
 }
 
-class BFTForkChoiceRuleError extends BFTError {
-	constructor() {
+export class BFTForkChoiceRuleError extends BFTError {
+	public constructor() {
 		super('Violation of fork choice rule, delegate moved to a different chain');
 	}
 }
 
-class BFTInvalidAttributeError extends BFTError {
-	constructor() {
+export class BFTInvalidAttributeError extends BFTError {
+	public constructor() {
 		super('Invalid BFT attribute');
 	}
 }
-
-module.exports = {
-	BFTError,
-	BFTChainDisjointError,
-	BFTLowerChainBranchError,
-	BFTForkChoiceRuleError,
-	BFTInvalidAttributeError,
-};

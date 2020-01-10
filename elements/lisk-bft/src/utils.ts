@@ -14,17 +14,16 @@
 
 'use strict';
 
-const blockHeaderSchema = require('./block_header_schema');
-const { validator } = require('@liskhq/lisk-validator');
+import { validator } from '@liskhq/lisk-validator';
 
-const validateBlockHeader = blockHeader => {
+import { blockHeaderSchema } from './schema';
+import { BlockHeader } from './types';
+
+export const validateBlockHeader = (blockHeader: BlockHeader): boolean => {
 	const errors = validator.validate(blockHeaderSchema, blockHeader);
 	if (errors.length) {
 		throw new Error(errors[0].message);
 	}
-	return true;
-};
 
-module.exports = {
-	validateBlockHeader,
+	return true;
 };

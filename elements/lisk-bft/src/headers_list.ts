@@ -14,33 +14,33 @@
 
 'use strict';
 
-const assert = require('assert');
+import * as assert from 'assert';
 
-class HeadersList {
-	constructor({ size }) {
+import { BlockHeader } from './types';
+
+export class HeadersList {
+	private _size: number;
+	private _items: BlockHeader[];
+
+	public constructor({ size }: { readonly size: number }) {
 		assert(size, 'Must provide size of the queue');
 		this._items = [];
 		this._size = size;
 	}
 
-	get items() {
+	public get items(): BlockHeader[] {
 		return this._items;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	set items(value) {
-		throw new Error('You can\'t set the items directly use "list.add"');
-	}
-
-	get length() {
+	public get length(): number {
 		return this.items.length;
 	}
 
-	get size() {
+	public get size(): number {
 		return this._size;
 	}
 
-	set size(newSize) {
+	public set size(newSize: number) {
 		const currentSize = this.size;
 		if (currentSize > newSize) {
 			this.items.splice(0, currentSize - newSize);
@@ -49,16 +49,17 @@ class HeadersList {
 		this._size = newSize;
 	}
 
-	get first() {
+	public get first(): BlockHeader {
 		return this.items[0];
 	}
 
-	get last() {
+	public get last(): BlockHeader {
 		return this.items[this.length - 1];
 	}
 
-	add(blockHeader) {
-		const { first, last } = this;
+	public add(blockHeader: BlockHeader): HeadersList {
+		const first = this.first;
+		const last = this.last;
 
 		if (this.items.length) {
 			assert(
@@ -87,17 +88,17 @@ class HeadersList {
 		return this;
 	}
 
-	remove({ aboveHeight } = {}) {
+	public remove({ aboveHeight }: { readonly aboveHeight?: number } = {}):
+		| BlockHeader[]
+		| undefined {
 		// If list is empty just return
 		if (this.length === 0) {
 			return undefined;
 		}
 
-		if (!aboveHeight) {
-			aboveHeight = this.last.height - 1;
-		}
+		const _aboveHeight = aboveHeight || this.last.height - 1;
 
-		const removeItemsCount = this.last.height - aboveHeight;
+		const removeItemsCount = this.last.height - _aboveHeight;
 
 		if (removeItemsCount < 0 || removeItemsCount >= this.items.length) {
 			return this.items.splice(0, this.items.length);
@@ -109,21 +110,18 @@ class HeadersList {
 		);
 	}
 
-	top(size) {
-		assert(size, 'Please provide the size');
-
+	public top(size: number): BlockHeader[] {
 		return this.items.slice(this.length - size, this.length + 1);
 	}
 
-	empty() {
+	public empty(): BlockHeader[] {
 		const items = [...this.items];
 		this._items = [];
+
 		return items;
 	}
 
-	get(height) {
-		return this._items[height - this.first.height];
+	public get(height: number): BlockHeader {
+		return this.items[height - this.first.height];
 	}
 }
-
-module.exports = { HeadersList };

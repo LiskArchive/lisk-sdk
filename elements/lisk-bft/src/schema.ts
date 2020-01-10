@@ -14,7 +14,7 @@
 
 'use strict';
 
-module.exports = {
+export const blockHeaderSchema = {
 	type: 'object',
 	properties: {
 		blockId: {
