@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-'use strict';
-
 import {
 	EPOCH_TIME,
 	EPOCH_TIME_SECONDS,
