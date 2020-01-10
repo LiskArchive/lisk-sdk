@@ -48,8 +48,8 @@ describe('validator', () => {
 				validator.validate(signatureSchema, {
 					target:
 						'd5bdb0577f53fe5d79009c42facdf295a555e9542c851ec49feef1680f824a1ebae00733d935f078c3ef621bc20ee88d81390f9c97f75adb14731504861b7304',
-				}).length,
-			).toEqual(0);
+				}),
+			).toHaveLength(0);
 		});
 
 		it('should validate to false when non-hex character is in the signature', async () => {
