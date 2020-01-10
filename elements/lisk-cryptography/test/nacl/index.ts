@@ -43,12 +43,12 @@ const stripConstants = (library: naclLibrary) => {
 
 describe('nacl index.js', () => {
 	let initialEnvVar: string | undefined;
-	before(() => {
+	beforeAll(() => {
 		initialEnvVar = process.env.NACL_FAST;
 		return Promise.resolve();
 	});
 
-	after(() => {
+	afterAll(() => {
 		if (initialEnvVar) {
 			process.env.NACL_FAST = initialEnvVar;
 		} else {
@@ -96,8 +96,9 @@ describe('nacl index.js', () => {
 			resetTest();
 
 			// "require" is a wrapper around Module._load which handles the actual loading
-			sandbox
-				.stub(moduleLibrary, '_load')
+			jest
+				.spyOn(moduleLibrary, '_load')
+				.mockReturnValue(moduleNotFoundError)
 				.callThrough()
 				.withArgs('./fast')
 				.throws(moduleNotFoundError);

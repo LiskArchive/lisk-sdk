@@ -4,7 +4,15 @@
 		"baseUrl": ".",
 		"declaration": false,
 		"target": "es2017",
-		"types": ["node", "mocha", "chai", "globals", "buffer-reverse", "sodium-native", "varuint-bitcoin"],
+		"types": [
+			"node",
+			"jest",
+			"jest-extended",
+			"globals",
+			"buffer-reverse",
+			"sodium-native",
+			"varuint-bitcoin"
+		],
 		"typeRoots": [
 			"../types",
 			"../../../types",

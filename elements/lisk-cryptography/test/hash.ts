@@ -13,7 +13,6 @@
  *
  */
 import { hash as hashFunction, getNetworkIdentifier } from '../src/hash';
-import { expect } from 'chai';
 
 describe('hash', () => {
 	describe('#hash', () => {
@@ -30,31 +29,31 @@ describe('hash', () => {
 			return Promise.resolve();
 		});
 
-		it('should generate a sha256 hash from a Buffer', () => {
+		test('should generate a sha256 hash from a Buffer', () => {
 			const testBuffer = Buffer.from(defaultText);
 			const hash = hashFunction(testBuffer);
-			return expect(hash).to.be.eql(defaultHash);
+			expect(hash).toEqual(defaultHash);
 		});
 
-		it('should generate a sha256 hash from a utf8 string', () => {
+		test('should generate a sha256 hash from a utf8 string', () => {
 			const hash = hashFunction(defaultText, 'utf8');
-			return expect(hash).to.be.eql(defaultHash);
+			expect(hash).toEqual(defaultHash);
 		});
 
-		it('should generate a sha256 hash from a hex string', () => {
+		test('should generate a sha256 hash from a hex string', () => {
 			const testHex = Buffer.from(defaultText).toString('hex');
 			const hash = hashFunction(testHex, 'hex');
-			return expect(hash).to.be.eql(defaultHash);
+			expect(hash).toEqual(defaultHash);
 		});
 
-		it('should throw on unknown format when trying a string with format "utf32"', () => {
-			return expect(hashFunction.bind(null, defaultText, 'utf32')).to.throw(
+		test('should throw on unknown format when trying a string with format "utf32"', () => {
+			expect(hashFunction.bind(null, defaultText, 'utf32')).toThrowError(
 				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
 			);
 		});
 
-		it('should throw on unknown format when using an array', () => {
-			return expect(hashFunction.bind(null, arrayToHash as any)).to.throw(
+		test('should throw on unknown format when using an array', () => {
+			expect(hashFunction.bind(null, arrayToHash as any)).toThrowError(
 				'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 			);
 		});
@@ -67,13 +66,13 @@ describe('hash', () => {
 		const expectedHash =
 			'30d7505655f5a04d9238aa324b38ef729d1139791b67815c5e6306328b6a44a2';
 
-		it('should generate a sha256 hash from nethash and community identifier', () => {
+		test('should generate a sha256 hash from nethash and community identifier', () => {
 			const networkIdentifier = getNetworkIdentifier(
 				nethash,
 				communityIdentifier,
 			);
 
-			return expect(networkIdentifier).to.be.eql(expectedHash);
+			expect(networkIdentifier).toEqual(expectedHash);
 		});
 	});
 });
