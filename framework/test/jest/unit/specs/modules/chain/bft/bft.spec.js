@@ -24,12 +24,6 @@ const { StateStore } = require('../../../../../../../src/modules/chain/blocks');
 const {
 	BFT,
 	extractBFTBlockHeaderFromBlock,
-	FORK_STATUS_DISCARD,
-	FORK_STATUS_VALID_BLOCK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
 } = require('../../../../../../../src/modules/chain/bft');
 
 const { constants } = require('../../../../../../utils');
@@ -650,118 +644,6 @@ describe('bft', () => {
 					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
 				});
-			});
-		});
-
-		describe('#forkChoice', () => {
-			const defaults = {};
-			let bftInstance;
-
-			beforeEach(async () => {
-				bftInstance = new BFT(bftParams);
-				defaults.lastBlock = {
-					id: '1',
-					height: 1,
-					version: 2,
-					generatorPublicKey: 'abcdef',
-					maxHeightPrevoted: 1,
-					timestamp: slots.getEpochTime(Date.now()),
-				};
-
-				defaults.newBlock = {
-					id: '2',
-					height: 2,
-					version: 2,
-					generatorPublicKey: 'ghijkl',
-					maxHeightPrevoted: 1,
-					timestamp: slots.getEpochTime(Date.now()),
-				};
-			});
-
-			it('should return FORK_STATUS_IDENTICAL_BLOCK if isIdenticalBlock evaluates to true', () => {
-				const aNewBlock = {
-					...defaults.newBlock,
-					id: defaults.lastBlock.id,
-				};
-
-				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					FORK_STATUS_IDENTICAL_BLOCK,
-				);
-			});
-
-			it('should return FORK_STATUS_VALID_BLOCK if isValidBlock evaluates to true', () => {
-				const aNewBlock = {
-					...defaults.newBlock,
-					height: defaults.lastBlock.height + 1,
-					previousBlockId: defaults.lastBlock.id,
-				};
-
-				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					FORK_STATUS_VALID_BLOCK,
-				);
-			});
-
-			it('should return FORK_STATUS_DOUBLE_FORGING if isDoubleForging evaluates to true', () => {
-				const aNewBlock = {
-					...defaults.newBlock,
-					height: defaults.lastBlock.height,
-					maxHeightPrevoted: defaults.lastBlock.maxHeightPrevoted,
-					previousBlockId: defaults.lastBlock.previousBlockId,
-					generatorPublicKey: defaults.lastBlock.generatorPublicKey,
-				};
-
-				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					FORK_STATUS_DOUBLE_FORGING,
-				);
-			});
-
-			it('should return FORK_STATUS_TIE_BREAK if isTieBreak evaluates to true', () => {
-				const aNewBlock = {
-					...defaults.newBlock,
-					height: defaults.lastBlock.height,
-					maxHeightPrevoted: defaults.lastBlock.maxHeightPrevoted,
-					previousBlockId: defaults.lastBlock.previousBlockId,
-					timestamp: defaults.lastBlock.timestamp + 1000,
-				};
-
-				slots.getEpochTime = jest.fn(() => defaults.lastBlock.timestamp + 1000); // It will get assigned to newBlock.receivedAt
-
-				const lastBlock = {
-					...defaults.lastBlock,
-					receivedAt: defaults.lastBlock.timestamp + 1000, // Received late
-				};
-
-				expect(bftInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
-					FORK_STATUS_TIE_BREAK,
-				);
-			});
-
-			it('should return FORK_STATUS_DIFFERENT_CHAIN if isDifferentChain evaluates to true', () => {
-				const aNewBlock = {
-					...defaults.newBlock,
-					maxHeightPrevoted: defaults.lastBlock.maxHeightPrevoted,
-					height: defaults.lastBlock.height + 1,
-				};
-
-				expect(bftInstance.forkChoice(aNewBlock, defaults.lastBlock)).toEqual(
-					FORK_STATUS_DIFFERENT_CHAIN,
-				);
-			});
-
-			it('should return FORK_STATUS_DISCARD if no conditions are met', () => {
-				const aNewBlock = {
-					...defaults.newBlock,
-					height: defaults.lastBlock.height, // This way, none of the conditions are met
-				};
-
-				const lastBlock = {
-					...defaults.lastBlock,
-					height: 2,
-				};
-
-				expect(bftInstance.forkChoice(aNewBlock, lastBlock)).toEqual(
-					FORK_STATUS_DISCARD,
-				);
 			});
 		});
 
