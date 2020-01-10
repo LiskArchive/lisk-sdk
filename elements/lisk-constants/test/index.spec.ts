@@ -55,11 +55,11 @@ describe('lisk-constants', () => {
 		return expect(TESTNET_NETHASH).toBeString();
 	});
 
-	test('MAINNET_NETHASH should be a string', () => {
+	it('MAINNET_NETHASH should be a string', () => {
 		return expect(MAINNET_NETHASH).toBeString();
 	});
 
-	test('SIGNED_MESSAGE_PREFIX should be a string', () => {
+	it('SIGNED_MESSAGE_PREFIX should be a string', () => {
 		return expect(SIGNED_MESSAGE_PREFIX).toBeString();
 	});
 });
