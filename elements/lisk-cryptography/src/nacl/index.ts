@@ -17,8 +17,9 @@ import { NaclInterface } from './nacl_types';
 // tslint:disable-next-line no-let
 let lib: NaclInterface;
 
+// Use try/catch for browser fallback support
 try {
-	if (process.env.NACL_FAST === 'disable') {
+	if (process.env?.NACL_FAST === 'disable') {
 		throw new Error('Use tweetnacl');
 	}
 	// Require used for conditional importing
