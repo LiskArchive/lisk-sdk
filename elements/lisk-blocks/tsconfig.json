@@ -4,7 +4,7 @@
 		"allowJs": true,
 		"outDir": "dist-node",
 		"rootDir": "./src",
-		"types": ["node", "jest"]
+		"types": ["node", "jest", "jest-extended"]
 	},
 	"include": ["src/**/*", "types/**/*"]
 }
