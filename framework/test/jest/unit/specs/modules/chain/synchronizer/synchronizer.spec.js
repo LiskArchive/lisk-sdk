@@ -33,6 +33,9 @@ const {
 const { constants } = require('../../../../../../utils');
 const { newBlock } = require('./block');
 const synchronizerUtils = require('../../../../../../../src/modules/chain/synchronizer/utils');
+const {
+	registeredTransactions,
+} = require('../../../../../../utils/registered_transactions');
 
 const genesisBlockDevnet = require('../../../../../../fixtures/config/devnet/genesis_block');
 
@@ -103,7 +106,7 @@ describe('Synchronizer', () => {
 			slots,
 			genesisBlock: genesisBlockDevnet,
 			sequence: new Sequence(),
-
+			registeredTransactions,
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,

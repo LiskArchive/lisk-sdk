@@ -33,6 +33,9 @@ const {
 } = require('../../../../../../../../src/modules/chain/processor');
 const { constants } = require('../../../../../../../utils');
 const { newBlock } = require('../block');
+const {
+	registeredTransactions,
+} = require('../../../../../../../utils/registered_transactions');
 
 const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block');
 
@@ -101,6 +104,7 @@ describe('fast_chain_switching_mechanism', () => {
 			logger: loggerMock,
 			storage: storageMock,
 			slots,
+			registeredTransactions,
 			genesisBlock: genesisBlockDevnet,
 			sequence: new Sequence(),
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
