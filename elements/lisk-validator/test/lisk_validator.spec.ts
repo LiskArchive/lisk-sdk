@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { validator } from '../src/lisk_validator';
 
 describe('validator', () => {
 	const baseSchemaId = 'test/schema';
 	let baseSchema: object;
 
-	before(async () => {
+	beforeAll(async () => {
 		baseSchema = {
 			$id: baseSchemaId,
 			type: 'object',
@@ -49,8 +48,8 @@ describe('validator', () => {
 				validator.validate(signatureSchema, {
 					target:
 						'd5bdb0577f53fe5d79009c42facdf295a555e9542c851ec49feef1680f824a1ebae00733d935f078c3ef621bc20ee88d81390f9c97f75adb14731504861b7304',
-				}),
-			).to.be.an('array').that.is.empty;
+				}).length,
+			).toEqual(0);
 		});
 
 		it('should validate to false when non-hex character is in the signature', async () => {
@@ -69,7 +68,7 @@ describe('validator', () => {
 					target:
 						'zzzzzzzzzzzzzzzzzzzzzzzzzzzzf295a555e9542c851ec49feef1680f824a1ebae00733d935f078c3ef621bc20ee88d81390f9c97f75adb14731504861b7304',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when the signature is under 128 characters', async () => {
@@ -88,7 +87,7 @@ describe('validator', () => {
 					target:
 						'd5bdb0577f53fe5d79009c42facdf295a555e9542c851ec49feef1680f824a1ebae00733d935f078c3ef621bc20ee88d81390f9c97f75adb14731504861b730',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when the signature is over 128 characters', async () => {
@@ -107,7 +106,7 @@ describe('validator', () => {
 					target:
 						'd5bdb0577f53fe5d79009c42facdf295a555e9542c851ec49feef1680f824a1ebae00733d935f078c3ef621bc20ee88d81390f9c97f75adb14731504861b7304a',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 	});
 
@@ -132,11 +131,11 @@ describe('validator', () => {
 		it('should validate to true when valid id is provided', async () => {
 			expect(
 				validator.validate(idSchema, { target: '3543510233978718399' }),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to true when valid id with leading zeros is provided', async () => {
-			expect(validator.validate(idSchema, { target: '00123' })).to.be.eql([]);
+			expect(validator.validate(idSchema, { target: '00123' })).toEqual([]);
 		});
 
 		it('should validate to false when number greater than maximum is provided', async () => {
@@ -152,7 +151,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(idSchema, { target: '18446744073709551616' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when number is provided', async () => {
@@ -168,7 +167,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(idSchema, { target: 3543510233978718399 }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when it is empty', async () => {
@@ -181,7 +180,7 @@ describe('validator', () => {
 					message: 'should match format "id"',
 				},
 			];
-			expect(validator.validate(idSchema, { target: '' })).to.be.eql(
+			expect(validator.validate(idSchema, { target: '' })).toEqual(
 				expectedError,
 			);
 		});
@@ -209,7 +208,7 @@ describe('validator', () => {
 		it('should validate to true when valid address is provided', async () => {
 			expect(
 				validator.validate(addressSchema, { target: '14815133512790761431L' }),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when address with leading zeros is provided', async () => {
@@ -225,7 +224,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(addressSchema, { target: '00015133512790761431L' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when address including `.` is provided', async () => {
@@ -241,7 +240,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(addressSchema, { target: '14.15133512790761431L' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when number greater than maximum is provided', async () => {
@@ -257,7 +256,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(addressSchema, { target: '18446744073709551616L' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when the address does not end with "L"', async () => {
@@ -273,7 +272,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(addressSchema, { target: '14815133512790761431X' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when the address only contains numbers', async () => {
@@ -288,7 +287,7 @@ describe('validator', () => {
 			];
 			expect(
 				validator.validate(addressSchema, { target: '18446744073709551616' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when the address is less than 2 characters', async () => {
@@ -302,7 +301,7 @@ describe('validator', () => {
 				},
 			];
 
-			expect(validator.validate(addressSchema, { target: 'L' })).to.be.eql(
+			expect(validator.validate(addressSchema, { target: 'L' })).toEqual(
 				expectedError,
 			);
 		});
@@ -318,7 +317,7 @@ describe('validator', () => {
 				},
 			];
 
-			expect(validator.validate(addressSchema, { target: '' })).to.be.eql(
+			expect(validator.validate(addressSchema, { target: '' })).toEqual(
 				expectedError,
 			);
 		});
@@ -346,7 +345,7 @@ describe('validator', () => {
 		it('should validate to true when valid amount is provided', async () => {
 			expect(
 				validator.validate(nonTransferAmountSchema, { target: '0' }),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when invalid amount with leading zeros is provided', async () => {
@@ -362,7 +361,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(nonTransferAmountSchema, { target: '000001' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when number greater than maximum is provided', async () => {
@@ -380,7 +379,7 @@ describe('validator', () => {
 				validator.validate(nonTransferAmountSchema, {
 					target: '9223372036854775808',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when decimal number is provided', async () => {
@@ -396,7 +395,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(nonTransferAmountSchema, { target: '190.105310' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when number is provided', async () => {
@@ -412,7 +411,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(nonTransferAmountSchema, { target: 190105310 }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when it is empty', async () => {
@@ -428,7 +427,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(nonTransferAmountSchema, { target: '' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 	});
 
@@ -453,13 +452,13 @@ describe('validator', () => {
 		it('should validate to true when valid amount is provided', async () => {
 			expect(
 				validator.validate(transferAmountSchema, { target: '100' }),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to true when valid amount with leading zeros is provided', async () => {
 			expect(
 				validator.validate(transferAmountSchema, { target: '000000100' }),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when amount is 0', async () => {
@@ -473,9 +472,9 @@ describe('validator', () => {
 				},
 			];
 
-			expect(
-				validator.validate(transferAmountSchema, { target: '0' }),
-			).to.be.eql(expectedError);
+			expect(validator.validate(transferAmountSchema, { target: '0' })).toEqual(
+				expectedError,
+			);
 		});
 
 		it('should validate to false when number greater than maximum is provided', async () => {
@@ -493,7 +492,7 @@ describe('validator', () => {
 				validator.validate(transferAmountSchema, {
 					target: '9223372036854775808',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when decimal number is provided', async () => {
@@ -509,7 +508,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(transferAmountSchema, { target: '190.105310' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when number is provided', async () => {
@@ -525,7 +524,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(transferAmountSchema, { target: 190105310 }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when it is empty', async () => {
@@ -539,9 +538,9 @@ describe('validator', () => {
 				},
 			];
 
-			expect(
-				validator.validate(transferAmountSchema, { target: '' }),
-			).to.be.eql(expectedError);
+			expect(validator.validate(transferAmountSchema, { target: '' })).toEqual(
+				expectedError,
+			);
 		});
 	});
 
@@ -564,11 +563,11 @@ describe('validator', () => {
 		});
 
 		it('should validate to true when valid fee is provided', async () => {
-			expect(validator.validate(feeSchema, { target: '100' })).to.be.eql([]);
+			expect(validator.validate(feeSchema, { target: '100' })).toEqual([]);
 		});
 
 		it('should validate to true when valid fee with leading zeros is provided', async () => {
-			expect(validator.validate(feeSchema, { target: '000000100' })).to.be.eql(
+			expect(validator.validate(feeSchema, { target: '000000100' })).toEqual(
 				[],
 			);
 		});
@@ -584,7 +583,7 @@ describe('validator', () => {
 				},
 			];
 
-			expect(validator.validate(feeSchema, { target: '0' })).to.be.eql(
+			expect(validator.validate(feeSchema, { target: '0' })).toEqual(
 				expectedError,
 			);
 		});
@@ -602,7 +601,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(feeSchema, { target: '9223372036854775808' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when decimal number is provided', async () => {
@@ -616,7 +615,7 @@ describe('validator', () => {
 				},
 			];
 
-			expect(validator.validate(feeSchema, { target: '190.105310' })).to.be.eql(
+			expect(validator.validate(feeSchema, { target: '190.105310' })).toEqual(
 				expectedError,
 			);
 		});
@@ -631,7 +630,7 @@ describe('validator', () => {
 					message: 'should be string',
 				},
 			];
-			expect(validator.validate(feeSchema, { target: 190105310 })).to.be.eql(
+			expect(validator.validate(feeSchema, { target: 190105310 })).toEqual(
 				expectedError,
 			);
 		});
@@ -647,7 +646,7 @@ describe('validator', () => {
 				},
 			];
 
-			expect(validator.validate(feeSchema, { target: '' })).to.be.eql(
+			expect(validator.validate(feeSchema, { target: '' })).toEqual(
 				expectedError,
 			);
 		});
@@ -677,7 +676,7 @@ describe('validator', () => {
 					target:
 						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to true when null is provided', async () => {
@@ -685,7 +684,7 @@ describe('validator', () => {
 				validator.validate(emptyOrPublicKeySchema, {
 					target: null,
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to true when undefined is provided', async () => {
@@ -693,7 +692,7 @@ describe('validator', () => {
 				validator.validate(emptyOrPublicKeySchema, {
 					target: undefined,
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to true when empty string is provided', async () => {
@@ -701,7 +700,7 @@ describe('validator', () => {
 				validator.validate(emptyOrPublicKeySchema, {
 					target: '',
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when non-hex character is in the publicKey', async () => {
@@ -720,7 +719,7 @@ describe('validator', () => {
 					target:
 						'zzzzze75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 	});
 
@@ -748,7 +747,7 @@ describe('validator', () => {
 					target:
 						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when non-hex character is in the publicKey', async () => {
@@ -767,7 +766,7 @@ describe('validator', () => {
 					target:
 						'zzzzze75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when publicKey is shorter', async () => {
@@ -786,7 +785,7 @@ describe('validator', () => {
 					target:
 						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when publicKey is longer', async () => {
@@ -805,7 +804,7 @@ describe('validator', () => {
 					target:
 						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when signed publicKey is provided', async () => {
@@ -824,7 +823,7 @@ describe('validator', () => {
 					target:
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when it is empty', async () => {
@@ -838,7 +837,7 @@ describe('validator', () => {
 				},
 			];
 
-			expect(validator.validate(publicKeySchema, { target: '' })).to.be.eql(
+			expect(validator.validate(publicKeySchema, { target: '' })).toEqual(
 				expectedError,
 			);
 		});
@@ -868,7 +867,7 @@ describe('validator', () => {
 					target:
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to true when valid - and publicKey is provided', async () => {
@@ -877,7 +876,7 @@ describe('validator', () => {
 					target:
 						'-05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when non-hex character is in the publicKey', async () => {
@@ -896,7 +895,7 @@ describe('validator', () => {
 					target:
 						'+zzzzze75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when publicKey is shorter', async () => {
@@ -915,7 +914,7 @@ describe('validator', () => {
 					target:
 						'-05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when publicKey is longer', async () => {
@@ -934,7 +933,7 @@ describe('validator', () => {
 					target:
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when non-signed publicKey is provided', async () => {
@@ -953,7 +952,7 @@ describe('validator', () => {
 					target:
 						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when it is empty', async () => {
@@ -967,9 +966,9 @@ describe('validator', () => {
 				},
 			];
 
-			expect(
-				validator.validate(signedPublicKeySchema, { target: '' }),
-			).to.be.eql(expectedError);
+			expect(validator.validate(signedPublicKeySchema, { target: '' })).toEqual(
+				expectedError,
+			);
 		});
 	});
 
@@ -997,7 +996,7 @@ describe('validator', () => {
 					target:
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when valid - and publicKey is provided', async () => {
@@ -1016,7 +1015,7 @@ describe('validator', () => {
 					target:
 						'-05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when non-hex character is in the publicKey', async () => {
@@ -1035,7 +1034,7 @@ describe('validator', () => {
 					target:
 						'+zzzzze75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when publicKey is shorter', async () => {
@@ -1054,7 +1053,7 @@ describe('validator', () => {
 					target:
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when publicKey is longer', async () => {
@@ -1073,7 +1072,7 @@ describe('validator', () => {
 					target:
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when non-signed publicKey is provided', async () => {
@@ -1092,7 +1091,7 @@ describe('validator', () => {
 					target:
 						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when it is empty', async () => {
@@ -1108,7 +1107,7 @@ describe('validator', () => {
 
 			expect(
 				validator.validate(additionPublicKeySchema, { target: '' }),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 	});
 
@@ -1138,7 +1137,7 @@ describe('validator', () => {
 						'+278a9aecf13e324c42d73cae7e21e5efc1520afb1abcda084d086d24441ed2b4',
 					],
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to false when publicKeys are duplicated without the sign', async () => {
@@ -1158,7 +1157,7 @@ describe('validator', () => {
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 					],
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 
 		it('should validate to false when publicKeys are duplicated with the same sign', async () => {
@@ -1179,7 +1178,7 @@ describe('validator', () => {
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 					],
 				}),
-			).to.be.eql(expectedError);
+			).toEqual(expectedError);
 		});
 	});
 
@@ -1206,13 +1205,13 @@ describe('validator', () => {
 				validator.validate(noNullCharacterSchema, {
 					target: 'some normal string',
 				}),
-			).to.be.eql([]);
+			).toEqual([]);
 		});
 
 		it('should validate to true when it is empty', async () => {
-			expect(
-				validator.validate(noNullCharacterSchema, { target: '' }),
-			).to.be.eql([]);
+			expect(validator.validate(noNullCharacterSchema, { target: '' })).toEqual(
+				[],
+			);
 		});
 
 		it('should validate to false when string with null byte is provided', async () => {
@@ -1232,7 +1231,7 @@ describe('validator', () => {
 					validator.validate(noNullCharacterSchema, {
 						target: `${nullChar} hey \x01 :)`,
 					}),
-				).to.be.eql(expectedError);
+				).toEqual(expectedError);
 			});
 		});
 	});
