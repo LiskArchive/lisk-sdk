@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { APIError, APIErrorData } from '../src/errors';
 
 describe('api errors module', () => {
@@ -27,19 +26,19 @@ describe('api errors module', () => {
 
 	describe('#constructor', () => {
 		it('should create a new instance of APIError', () => {
-			return expect(apiError).to.be.instanceof(APIError);
+			return expect(apiError).toBeInstanceOf(APIError);
 		});
 
 		it('should set error name to `APIError`', () => {
-			return expect(apiError.name).to.eql('APIError');
+			return expect(apiError.name).toEqual('APIError');
 		});
 
 		it('should set error message to empty string by default', () => {
-			return expect(apiError.message).to.eql('');
+			return expect(apiError.message).toEqual('');
 		});
 
 		it('should set errno to 500 by default', () => {
-			return expect(apiError.errno).to.eql(500);
+			return expect(apiError.errno).toEqual(500);
 		});
 
 		describe('when passed errno', () => {
@@ -49,11 +48,11 @@ describe('api errors module', () => {
 			});
 
 			it('should set error message when passed through first argument', () => {
-				return expect(apiError.message).to.eql(defaultMessage);
+				return expect(apiError.message).toEqual(defaultMessage);
 			});
 
 			it('should set errno when passed through second argument', () => {
-				return expect(apiError.errno).to.eql(defaultErrno);
+				return expect(apiError.errno).toEqual(defaultErrno);
 			});
 		});
 
@@ -75,18 +74,18 @@ describe('api errors module', () => {
 			});
 
 			it('should set error message when passed through first argument', () => {
-				return expect(apiError.message).to.eql(defaultMessage);
+				return expect(apiError.message).toEqual(defaultMessage);
 			});
 
 			it('should set errno when passed through second argument', () => {
-				return expect(apiError.errno).to.eql(defaultErrno);
+				return expect(apiError.errno).toEqual(defaultErrno);
 			});
 
 			it('should set errors when passed through third argument', () => {
-				expect(apiError.errors).to.have.lengthOf(2);
+				expect(apiError.errors).toHaveLength(2);
 				const errorData = apiError.errors as ReadonlyArray<APIErrorData>;
-				expect(errorData[0].code).to.equal(errors[0].code);
-				return expect(errorData[0].message).to.equal(errors[0].message);
+				expect(errorData[0].code).toBe(errors[0].code);
+				return expect(errorData[0].message).toBe(errors[0].message);
 			});
 		});
 	});

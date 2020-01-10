@@ -10,18 +10,10 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import 'chai/register-expect';
-import * as sinonChai from 'sinon-chai';
-import * as sinon from 'sinon';
+
+require('jest-extended');
+
+// @todo extend jest to have "toHaveBeenCalledOnceWith" matcher.
 
 process.env.NODE_ENV = 'test';
-
-[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
-
-global.sandbox = sinon.createSandbox({
-	useFakeTimers: true,
-});

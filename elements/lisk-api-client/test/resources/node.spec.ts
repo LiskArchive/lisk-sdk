@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { NodeResource } from '../../src/resources/node';
@@ -32,47 +31,37 @@ describe('NodeResource', () => {
 
 	describe('#constructor', () => {
 		it('should be instance of APIResource', () => {
-			return expect(resource).to.be.instanceOf(APIResource);
+			return expect(resource).toBeInstanceOf(APIResource);
 		});
 
 		it('should have correct full path', () => {
-			return expect(resource.resourcePath).to.eql(
+			return expect(resource.resourcePath).toEqual(
 				`${defaultBasePath}/api${path}`,
 			);
 		});
 
 		it('should set resource path', () => {
-			return expect(resource.path).to.equal(path);
+			return expect(resource.path).toBe(path);
 		});
 
 		it('should have a "getConstants" function', () => {
-			return expect(resource)
-				.to.have.property('getConstants')
-				.which.is.a('function');
+			return expect((resource as any).getConstants).toBeFunction();
 		});
 
 		it('should have a "getStatus" function', () => {
-			return expect(resource)
-				.to.have.property('getStatus')
-				.which.is.a('function');
+			return expect((resource as any).getStatus).toBeFunction();
 		});
 
 		it('should have a "getForgingStatus" function', () => {
-			return expect(resource)
-				.to.have.property('getForgingStatus')
-				.which.is.a('function');
+			return expect((resource as any).getForgingStatus).toBeFunction();
 		});
 
 		it('should have a "updateForgingStatus" function', () => {
-			return expect(resource)
-				.to.have.property('updateForgingStatus')
-				.which.is.a('function');
+			return expect((resource as any).updateForgingStatus).toBeFunction();
 		});
 
 		it('should have a "getTransactions" function', () => {
-			return expect(resource)
-				.to.have.property('getTransactions')
-				.which.is.a('function');
+			return expect((resource as any).getTransactions).toBeFunction();
 		});
 	});
 });

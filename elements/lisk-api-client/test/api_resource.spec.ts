@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
-import * as sinon from 'sinon';
 import { AxiosRequestConfig } from 'axios';
 // Required for stub
 const axios = require('axios');
@@ -63,7 +61,7 @@ describe('API resource module', () => {
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => true,
 			randomizeNodes: false,
-			banActiveNodeAndSelect: sandbox.stub(),
+			banActiveNodeAndSelect: jest.fn(),
 		};
 		resource = new APIResource(apiClient as APIClient);
 		return Promise.resolve();
@@ -71,39 +69,39 @@ describe('API resource module', () => {
 
 	describe('#constructor', () => {
 		it('should create an API resource instance', () => {
-			return expect(resource).to.be.instanceOf(APIResource);
+			return expect(resource).toBeInstanceOf(APIResource);
 		});
 	});
 
 	describe('get headers', () => {
 		it('should return header set to apiClient', () => {
-			return expect(resource.headers).to.eql(defaultHeaders);
+			return expect(resource.headers).toEqual(defaultHeaders);
 		});
 	});
 
 	describe('get resourcePath', () => {
 		it('should return the resource’s full path', () => {
-			return expect(resource.resourcePath).to.equal(`${defaultBasePath}/api`);
+			return expect(resource.resourcePath).toBe(`${defaultBasePath}/api`);
 		});
 
 		it('should return the resource’s full path with set path', () => {
 			resource.path = defaultResourcePath;
-			return expect(resource.resourcePath).to.equal(
+			return expect(resource.resourcePath).toBe(
 				`${defaultBasePath}/api${defaultResourcePath}`,
 			);
 		});
 	});
 
 	describe('#request', () => {
-		let requestStub: sinon.SinonStub;
-		let handleRetryStub: () => Promise<void>;
+		let requestStub: jest.SpyInstance;
+		let handleRetryStub: jest.SpyInstance;
 
 		beforeEach(() => {
-			requestStub = sandbox.stub(axios, 'request').resolves({
+			requestStub = jest.spyOn(axios, 'request').mockResolvedValue({
 				status: 200,
 				data: sendRequestResult,
 			} as any);
-			handleRetryStub = sandbox.stub(resource, 'handleRetry');
+			handleRetryStub = jest.spyOn(resource, 'handleRetry');
 			return Promise.resolve();
 		});
 
@@ -111,10 +109,10 @@ describe('API resource module', () => {
 			return resource
 				.request(defaultRequest as AxiosRequestConfig, false)
 				.then(res => {
-					expect(requestStub).to.be.calledOnce;
-					expect(requestStub).to.be.calledWithExactly(defaultRequest);
-					expect(handleRetryStub).not.to.be.called;
-					return expect(res).to.eql(sendRequestResult);
+					expect(requestStub).toHaveBeenCalledTimes(1);
+					expect(requestStub).toHaveBeenCalledWith(defaultRequest);
+					expect(handleRetryStub).not.toHaveBeenCalled();
+					return expect(res).toEqual(sendRequestResult);
 				});
 		});
 
@@ -122,17 +120,17 @@ describe('API resource module', () => {
 			return resource
 				.request(defaultRequest as AxiosRequestConfig, true)
 				.then(res => {
-					expect(requestStub).to.be.calledOnce;
-					expect(requestStub).to.be.calledWithExactly(defaultRequest);
-					expect(handleRetryStub).not.to.be.called;
-					return expect(res).to.eql(sendRequestResult);
+					expect(requestStub).toHaveBeenCalledTimes(1);
+					expect(requestStub).toHaveBeenCalledWith(defaultRequest);
+					expect(handleRetryStub).not.toHaveBeenCalled();
+					return expect(res).toEqual(sendRequestResult);
 				});
 		});
 
 		describe('when response status is greater than 300', () => {
 			it('should reject with errno if status code is supplied', () => {
 				const statusCode = 300;
-				requestStub.rejects({
+				requestStub.mockRejectedValue({
 					response: {
 						status: statusCode,
 						data: undefined,
@@ -142,13 +140,13 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.errno).to.equal(statusCode);
+						return expect(err.errno).toBe(statusCode);
 					});
 			});
 
 			it('should reject with "An unknown error has occured." message if there is no data is supplied', () => {
 				const statusCode = 300;
-				requestStub.rejects({
+				requestStub.mockRejectedValue({
 					response: {
 						status: statusCode,
 						data: undefined,
@@ -158,15 +156,13 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.equal(
-							'An unknown error has occurred.',
-						);
+						return expect(err.message).toBe('An unknown error has occurred.');
 					});
 			});
 
 			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
 				const statusCode = 300;
-				requestStub.rejects({
+				requestStub.mockRejectedValue({
 					response: {
 						status: statusCode,
 						data: sendRequestResult,
@@ -176,16 +172,14 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.equal(
-							'An unknown error has occurred.',
-						);
+						return expect(err.message).toBe('An unknown error has occurred.');
 					});
 			});
 
 			it('should reject with error message from server if message is supplied', () => {
 				const serverErrorMessage = 'validation error';
 				const statusCode = 300;
-				requestStub.rejects({
+				requestStub.mockRejectedValue({
 					response: {
 						status: statusCode,
 						data: { message: serverErrorMessage },
@@ -195,14 +189,14 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.eql(serverErrorMessage);
+						return expect(err.message).toEqual(serverErrorMessage);
 					});
 			});
 
 			it('should reject with error message from server if message is undefined and error is supplied', () => {
 				const serverErrorMessage = 'error from server';
 				const statusCode = 300;
-				requestStub.rejects({
+				requestStub.mockRejectedValue({
 					response: {
 						status: statusCode,
 						data: { message: undefined, error: serverErrorMessage },
@@ -212,7 +206,7 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.message).to.eql(serverErrorMessage);
+						return expect(err.message).toEqual(serverErrorMessage);
 					});
 			});
 
@@ -229,7 +223,7 @@ describe('API resource module', () => {
 						message: 'message2',
 					},
 				];
-				requestStub.rejects({
+				requestStub.mockRejectedValue({
 					response: {
 						status: statusCode,
 						data: { message: serverErrorMessage, errors },
@@ -239,23 +233,23 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err.errors).to.eql(errors);
+						return expect(err.errors).toEqual(errors);
 					});
 			});
 
 			it('should reject with error if client rejects with plain error', () => {
 				const clientError = new Error('client error');
-				requestStub.rejects(clientError);
+				requestStub.mockRejectedValue(clientError);
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, false)
 					.catch(err => {
-						return expect(err).to.eql(clientError);
+						return expect(err).toEqual(clientError);
 					});
 			});
 
 			it('should make a request to API with calling retry', () => {
 				const statusCode = 300;
-				requestStub.rejects({
+				requestStub.mockRejectedValue({
 					response: {
 						status: statusCode,
 						data: sendRequestResult,
@@ -264,35 +258,29 @@ describe('API resource module', () => {
 				return resource
 					.request(defaultRequest as AxiosRequestConfig, true)
 					.catch(() => {
-						expect(requestStub).to.be.calledOnce;
-						return expect(handleRetryStub).to.be.calledOnce;
+						expect(requestStub).toHaveBeenCalled();
+						return expect(handleRetryStub).toHaveBeenCalled();
 					});
 			});
 		});
 	});
 
 	describe('#handleRetry', () => {
-		let requestStub: sinon.SinonStub;
+		let requestStub: jest.SpyInstance;
 		let defaultError: Error;
 		beforeEach(() => {
 			defaultError = new Error('could not connect to a node');
-			requestStub = sandbox
-				.stub(resource, 'request')
-				.returns(Promise.resolve(sendRequestResult.body) as any);
+			requestStub = jest
+				.spyOn(resource, 'request')
+				.mockResolvedValue(sendRequestResult.body as any);
 			return Promise.resolve();
 		});
 
 		describe('when there is available node', () => {
-			let clock: sinon.SinonFakeTimers;
-
 			beforeEach(() => {
-				clock = sinon.useFakeTimers();
+				jest.useFakeTimers();
 				apiClient.hasAvailableNodes = () => true;
 				return Promise.resolve();
-			});
-
-			afterEach(() => {
-				return clock.restore();
 			});
 
 			it('should call banActiveNode when randomizeNodes is true', () => {
@@ -302,11 +290,15 @@ describe('API resource module', () => {
 					defaultRequest as AxiosRequestConfig,
 					1,
 				);
-				clock.tick(1000);
+				jest.advanceTimersByTime(1000);
 				return req.then(res => {
-					expect(apiClient.banActiveNodeAndSelect).to.be.calledOnce;
-					expect(requestStub).to.be.calledWith(defaultRequest, true);
-					return expect(res).to.be.eql(sendRequestResult.body);
+					expect(apiClient.banActiveNodeAndSelect).toHaveBeenCalledTimes(1);
+					expect(requestStub).toHaveBeenCalledWith(
+						defaultRequest,
+						true,
+						expect.anything(),
+					);
+					return expect(res).toEqual(sendRequestResult.body);
 				});
 			});
 
@@ -317,11 +309,15 @@ describe('API resource module', () => {
 					defaultRequest as AxiosRequestConfig,
 					1,
 				);
-				clock.tick(1000);
+				jest.advanceTimersByTime(1000);
 				return req.then(res => {
-					expect(apiClient.banActiveNodeAndSelect).not.to.be.called;
-					expect(requestStub).to.be.calledWith(defaultRequest, true);
-					return expect(res).to.be.eql(sendRequestResult.body);
+					expect(apiClient.banActiveNodeAndSelect).not.toHaveBeenCalled();
+					expect(requestStub).toHaveBeenCalledWith(
+						defaultRequest,
+						true,
+						expect.anything(),
+					);
+					return expect(res).toEqual(sendRequestResult.body);
 				});
 			});
 
@@ -332,8 +328,8 @@ describe('API resource module', () => {
 					defaultRequest as AxiosRequestConfig,
 					4,
 				);
-				clock.tick(1000);
-				return expect(req).to.be.rejectedWith(defaultError);
+				jest.advanceTimersByTime(1000);
+				return expect(req).rejects.toEqual(defaultError);
 			});
 		});
 
@@ -349,7 +345,7 @@ describe('API resource module', () => {
 					defaultRequest as AxiosRequestConfig,
 					1,
 				);
-				return expect(res).to.be.rejectedWith(defaultError);
+				return expect(res).rejects.toEqual(defaultError);
 			});
 		});
 	});
