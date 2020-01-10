@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { addTransactionFields } from '../helpers';
 import { TransferTransaction } from '../../src';
@@ -27,13 +26,13 @@ describe('#getId', () => {
 	const defaultTransactionBytes = (validTestTransaction as any).getBytes();
 
 	it('should return a valid id', async () => {
-		expect(getId(defaultTransactionBytes)).to.be.eql(validTestTransaction.id);
+		expect(getId(defaultTransactionBytes)).toEqual(validTestTransaction.id);
 	});
 
 	it('should call cryptography hash', async () => {
-		const cryptographyHashStub = sandbox
-			.stub(cryptography, 'hash')
-			.returns(
+		const cryptographyHashStub = jest
+			.spyOn(cryptography, 'hash')
+			.mockReturnValue(
 				Buffer.from(
 					'da63e78daf2096db8316a157a839c8b9a616d3ce6692cfe61d6d380a623a1902',
 					'hex',
@@ -41,24 +40,24 @@ describe('#getId', () => {
 			);
 
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
-		expect(cryptographyHashStub).to.be.calledOnce;
+		expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
 	});
 
 	it('should call cryptography getFirstEightBytesReversed', async () => {
-		const cryptographygetFirstEightBytesReversedStub = sandbox
-			.stub(cryptography, 'getFirstEightBytesReversed')
-			.returns('db9620af8de763da' as any);
+		const cryptographygetFirstEightBytesReversedStub = jest
+			.spyOn(cryptography, 'getFirstEightBytesReversed')
+			.mockReturnValue('db9620af8de763da' as any);
 
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
-		expect(cryptographygetFirstEightBytesReversedStub).to.be.calledOnce;
+		expect(cryptographygetFirstEightBytesReversedStub).toHaveBeenCalledTimes(1);
 	});
 
 	it('should call cryptography bufferToIntAsString', async () => {
-		const cryptographybufferToIntAsStringStub = sandbox
-			.stub(cryptography, 'bufferToIntAsString')
-			.returns('15822870279184933850');
+		const cryptographybufferToIntAsStringStub = jest
+			.spyOn(cryptography, 'bufferToIntAsString')
+			.mockReturnValue('15822870279184933850');
 
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
-		expect(cryptographybufferToIntAsStringStub).to.be.calledOnce;
+		expect(cryptographybufferToIntAsStringStub).toHaveBeenCalledTimes(1);
 	});
 });

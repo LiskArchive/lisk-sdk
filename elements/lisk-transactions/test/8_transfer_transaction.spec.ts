@@ -13,7 +13,6 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { expect } from 'chai';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../src/constants';
 import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/transaction_types';
@@ -28,10 +27,10 @@ describe('Transfer transaction class', () => {
 	let validTransferTestTransaction: TransferTransaction;
 	let sender: Account;
 	let recipient: Account;
-	let storeAccountCacheStub: sinon.SinonStub;
-	let storeAccountGetStub: sinon.SinonStub;
-	let storeAccountGetOrDefaultStub: sinon.SinonStub;
-	let storeAccountSetStub: sinon.SinonStub;
+	let storeAccountCacheStub: jest.SpyInstance;
+	let storeAccountGetStub: jest.SpyInstance;
+	let storeAccountGetOrDefaultStub: jest.SpyInstance;
+	let storeAccountSetStub: jest.SpyInstance;
 
 	beforeEach(async () => {
 		validTransferTestTransaction = new TransferTransaction(
@@ -39,41 +38,41 @@ describe('Transfer transaction class', () => {
 		);
 		sender = { ...validTransferAccount, balance: '10000000000' };
 		recipient = { ...validTransferAccount, balance: '10000000000' };
-		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
-		storeAccountGetStub = sandbox.stub(store.account, 'get').returns(sender);
-		storeAccountGetOrDefaultStub = sandbox
-			.stub(store.account, 'getOrDefault')
-			.returns(recipient);
-		storeAccountSetStub = sandbox.stub(store.account, 'set');
+		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
+		storeAccountGetStub = jest
+			.spyOn(store.account, 'get')
+			.mockReturnValue(sender);
+		storeAccountGetOrDefaultStub = jest
+			.spyOn(store.account, 'getOrDefault')
+			.mockReturnValue(recipient);
+		storeAccountSetStub = jest.spyOn(store.account, 'set');
 	});
 
 	describe('#constructor', () => {
 		it('should create instance of TransferTransaction', async () => {
-			expect(validTransferTestTransaction)
-				.to.be.an('object')
-				.and.be.instanceof(TransferTransaction);
+			expect(validTransferTestTransaction).toBeInstanceOf(TransferTransaction);
 		});
 
 		it('should set transfer asset data', async () => {
-			expect(validTransferTestTransaction.asset.data).to.eql(
+			expect(validTransferTestTransaction.asset.data).toEqual(
 				validTransferTestTransaction.asset.data,
 			);
 		});
 
 		it('should set transfer asset amount', async () => {
-			expect(validTransferTestTransaction.asset.amount.toString()).to.eql(
+			expect(validTransferTestTransaction.asset.amount.toString()).toEqual(
 				validTransferTransaction.asset.amount,
 			);
 		});
 
 		it('should set transfer asset recipientId', async () => {
-			expect(validTransferTestTransaction.asset.recipientId).to.eql(
+			expect(validTransferTestTransaction.asset.recipientId).toEqual(
 				validTransferTransaction.asset.recipientId,
 			);
 		});
 
 		it('should set fee to transfer transaction fee amount', async () => {
-			expect(validTransferTestTransaction.fee.toString()).to.eql(
+			expect(validTransferTestTransaction.fee.toString()).toEqual(
 				TRANSFER_FEE.toString(),
 			);
 		});
@@ -85,7 +84,7 @@ describe('Transfer transaction class', () => {
 		it('should return a buffer', async () => {
 			const basicBytes = (validTransferTestTransaction as any).getBasicBytes();
 
-			expect(basicBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
+			expect(basicBytes).toEqual(Buffer.from(expectedBytes, 'hex'));
 		});
 	});
 
@@ -96,25 +95,24 @@ describe('Transfer transaction class', () => {
 				status,
 				errors,
 			} = validTransferTestTransaction.verifyAgainstOtherTransactions([]);
-			expect(id).to.be.eql(validTransferTransaction.id);
-			expect(errors).to.be.empty;
-			expect(status).to.eql(Status.OK);
+			expect(id).toEqual(validTransferTransaction.id);
+			expect(Object.keys(errors)).toHaveLength(0);
+			expect(status).toEqual(Status.OK);
 		});
 	});
 
-	describe('#assetToJSON', async () => {
+	describe('#assetToJSON', () => {
 		it('should return an object of type transfer asset', async () => {
-			expect(validTransferTestTransaction.assetToJSON())
-				.to.be.an('object')
-				.and.to.have.property('data')
-				.that.is.a('string');
+			expect(
+				(validTransferTestTransaction.assetToJSON() as any).data,
+			).toBeString();
 		});
 	});
 
-	describe('#prepare', async () => {
+	describe('#prepare', () => {
 		it('should call state store', async () => {
 			await validTransferTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
+			expect(storeAccountCacheStub).toHaveBeenCalledWith([
 				{ address: validTransferTestTransaction.senderId },
 				{ address: validTransferTestTransaction.asset.recipientId },
 			]);
@@ -124,7 +122,7 @@ describe('Transfer transaction class', () => {
 	describe('#validateAsset', () => {
 		it('should return no errors with a valid transfer transaction', async () => {
 			const errors = (validTransferTestTransaction as any).validateAsset();
-			expect(errors).to.be.empty;
+			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
 		it('should return error with invalid recipientId', async () => {
@@ -139,12 +137,10 @@ describe('Transfer transaction class', () => {
 			);
 			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
 
-			expect(errors[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					'\'.recipientId\' should match format "address"',
-				);
+			expect(errors[0]).toBeInstanceOf(TransactionError);
+			expect(errors[0].message).toContain(
+				'\'.recipientId\' should match format "address"',
+			);
 		});
 
 		it('should return error if recipientId exceed uint64 limit', async () => {
@@ -159,8 +155,8 @@ describe('Transfer transaction class', () => {
 			);
 			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
 
-			expect(errors).to.be.lengthOf(1);
-			expect(errors[0]).to.be.instanceof(TransactionError);
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
 		it('should return error if recipientId contains leading zeros', async () => {
@@ -175,8 +171,8 @@ describe('Transfer transaction class', () => {
 			);
 			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
 
-			expect(errors).to.be.lengthOf(1);
-			expect(errors[0]).to.be.instanceof(TransactionError);
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
 		it('should return error with invalid amount', async () => {
@@ -189,15 +185,11 @@ describe('Transfer transaction class', () => {
 			});
 			const errors = (transferTransactionWithInvalidAmount as any).validateAsset();
 
-			expect(errors[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					`Amount must be a valid number in string format.`,
-				);
-			expect(errors[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property('dataPath', `.asset.amount`);
+			expect(errors[0]).toBeInstanceOf(TransactionError);
+			expect(errors[0].message).toEqual(
+				'Amount must be a valid number in string format.',
+			);
+			expect(errors[0].dataPath).toEqual('.asset.amount');
 		});
 
 		it('should return error with invalid asset', async () => {
@@ -211,7 +203,7 @@ describe('Transfer transaction class', () => {
 			});
 			const errors = (transferTransactionWithInvalidAsset as any).validateAsset();
 
-			expect(errors[0]).to.be.instanceof(TransactionError);
+			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
 		it('should return error if asset data containing null string', async () => {
@@ -224,8 +216,8 @@ describe('Transfer transaction class', () => {
 			});
 			const errors = (transferTransactionWithValiddAsset as any).validateAsset();
 
-			expect(errors).to.be.lengthOf(1);
-			expect(errors[0]).to.be.instanceof(TransactionError);
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
 		it('should return error with asset data containing overflowed string', async () => {
@@ -238,7 +230,7 @@ describe('Transfer transaction class', () => {
 			});
 			const errors = (transferTransactionWithInvalidAsset as any).validateAsset();
 
-			expect(errors[0]).to.be.instanceof(TransactionError);
+			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 	});
 
@@ -246,102 +238,94 @@ describe('Transfer transaction class', () => {
 		it('should return no errors', async () => {
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
 
-			expect(errors).to.be.empty;
+			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
 		it('should call state store', async () => {
 			(validTransferTestTransaction as any).applyAsset(store);
-			expect(storeAccountGetStub).to.be.calledWithExactly(
+			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
-			expect(
-				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
-					...sender,
-					balance: new BigNum(sender.balance)
-						.sub(validTransferTestTransaction.asset.amount)
-						.toString(),
-				}),
-			);
-			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
+			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
+				...sender,
+				balance: new BigNum(sender.balance)
+					.sub(validTransferTestTransaction.asset.amount)
+					.toString(),
+			});
+			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(
-				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
-					...recipient,
-					balance: new BigNum(recipient.balance)
-						.add(validTransferTestTransaction.asset.amount)
-						.toString(),
-				}),
-			);
+			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
+				...recipient,
+				balance: new BigNum(recipient.balance)
+					.add(validTransferTestTransaction.asset.amount)
+					.toString(),
+			});
 		});
 
 		it('should return error when sender balance is insufficient', async () => {
-			storeAccountGetStub.returns({
+			storeAccountGetStub.mockReturnValue({
 				...sender,
 				balance: new BigNum(10000000),
 			});
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
-			expect(errors).to.have.length(1);
-			expect(errors[0].message).to.equal(
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toBe(
 				`Account does not have enough LSK: ${sender.address}, balance: 0.2`,
 			);
 		});
 
 		it('should return error when recipient balance is over maximum amount', async () => {
-			storeAccountGetOrDefaultStub.returns({
+			storeAccountGetOrDefaultStub.mockReturnValue({
 				...sender,
 				balance: new BigNum(MAX_TRANSACTION_AMOUNT),
 			});
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
-			expect(errors[0]).and.to.have.property('message', 'Invalid amount');
+			expect(errors[0].message).toEqual('Invalid amount');
 		});
 	});
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
 			(validTransferTestTransaction as any).undoAsset(store);
-			expect(storeAccountGetStub).to.be.calledWithExactly(
+			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
-			expect(
-				storeAccountSetStub.getCall(0).calledWithExactly(sender.address, {
-					...sender,
-					balance: new BigNum(sender.balance)
-						.add(validTransferTestTransaction.asset.amount)
-						.toString(),
-				}),
-			);
-			expect(storeAccountGetOrDefaultStub).to.be.calledWithExactly(
+			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
+				...sender,
+				balance: new BigNum(sender.balance)
+					.add(validTransferTestTransaction.asset.amount)
+					.toString(),
+			});
+			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(
-				storeAccountSetStub.getCall(1).calledWithExactly(recipient.address, {
-					...recipient,
-					balance: new BigNum(recipient.balance)
-						.sub(validTransferTestTransaction.asset.amount)
-						.toString(),
-				}),
-			);
+			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
+				...recipient,
+				balance: new BigNum(recipient.balance)
+					.sub(validTransferTestTransaction.asset.amount)
+					.toString(),
+			});
 		});
 
 		it('should return error when recipient balance is insufficient', async () => {
-			storeAccountGetOrDefaultStub.returns({
+			storeAccountGetOrDefaultStub.mockReturnValue({
 				...recipient,
 				balance: new BigNum('0'),
 			});
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
-			expect(errors[0].message).to.equal(
+			expect(errors[0].message).toBe(
 				`Account does not have enough LSK: ${recipient.address}, balance: 0`,
 			);
 		});
 
 		it('should return error when sender balance is over maximum amount', async () => {
-			storeAccountGetStub.returns({
+			storeAccountGetStub.mockReturnValue({
 				...recipient,
 				balance: new BigNum(MAX_TRANSACTION_AMOUNT),
 			});
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
-			expect(errors[0]).and.to.have.property('message', 'Invalid amount');
+			expect(errors[0].message).toEqual('Invalid amount');
 		});
 	});
 });

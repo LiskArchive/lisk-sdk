@@ -12,36 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
 } from '../../src/utils/time';
 
 describe('time module', () => {
-	const nowRealTime = new Date(1464109220000);
 	const nowEpochTime = 20;
 
 	beforeEach(() => {
-		return sandbox.useFakeTimers(nowRealTime.getTime());
-	});
-
-	afterEach(() => {
-		return sandbox.clock.restore();
+		jest.spyOn(Date.prototype, 'getTime').mockReturnValue(1464109220000);
 	});
 
 	describe('#getTimeFromBlockchainEpoch', () => {
 		it('should return current time as number', () => {
 			const time = getTimeFromBlockchainEpoch();
 
-			return expect(time).to.be.equal(nowEpochTime);
+			return expect(time).toBe(nowEpochTime);
 		});
 
 		it('should return epoch time for provided time as number, equal to 10', () => {
 			const realTime = 1464109210001;
 			const time = getTimeFromBlockchainEpoch(realTime);
 
-			return expect(time).to.be.equal(10);
+			return expect(time).toBe(10);
 		});
 	});
 
@@ -49,21 +43,21 @@ describe('time module', () => {
 		it('should get time with undefined offset', () => {
 			const time = getTimeWithOffset();
 
-			return expect(time).to.be.equal(nowEpochTime);
+			return expect(time).toBe(nowEpochTime);
 		});
 
 		it('should get time with positive offset', () => {
 			const offset = 3;
 			const time = getTimeWithOffset(offset);
 
-			return expect(time).to.be.equal(23);
+			return expect(time).toBe(23);
 		});
 
 		it('should get time with negative offset', () => {
 			const offset = -3;
 			const time = getTimeWithOffset(offset);
 
-			return expect(time).to.be.equal(17);
+			return expect(time).toBe(17);
 		});
 	});
 });

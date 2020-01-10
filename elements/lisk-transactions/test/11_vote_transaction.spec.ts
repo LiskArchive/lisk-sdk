@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { MockStateStore as store } from './helpers';
 import { VoteTransaction } from '../src/11_vote_transaction';
 import { validVoteTransactions } from '../fixtures';
@@ -22,10 +21,10 @@ import { generateRandomPublicKeys } from './helpers/cryptography';
 
 describe('Vote transaction class', () => {
 	let validTestTransaction: VoteTransaction;
-	let storeAccountCacheStub: sinon.SinonStub;
-	let storeAccountGetStub: sinon.SinonStub;
-	let storeAccountSetStub: sinon.SinonStub;
-	let storeAccountFindStub: sinon.SinonStub;
+	let storeAccountCacheStub: jest.SpyInstance;
+	let storeAccountGetStub: jest.SpyInstance;
+	let storeAccountSetStub: jest.SpyInstance;
+	let storeAccountFindStub: jest.SpyInstance;
 
 	const defaultValidSender = {
 		address: '8004805717140184627L',
@@ -172,23 +171,23 @@ describe('Vote transaction class', () => {
 			...validVoteTransactions[2],
 			networkIdentifier,
 		});
-		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
-		storeAccountGetStub = sandbox
-			.stub(store.account, 'get')
-			.returns(defaultValidSender);
-		storeAccountSetStub = sandbox.stub(store.account, 'set');
-		storeAccountFindStub = sandbox
-			.stub(store.account, 'find')
-			.returns(defaultValidDependentAccounts[0]);
+		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
+		storeAccountGetStub = jest
+			.spyOn(store.account, 'get')
+			.mockReturnValue(defaultValidSender);
+		storeAccountSetStub = jest.spyOn(store.account, 'set');
+		storeAccountFindStub = jest
+			.spyOn(store.account, 'find')
+			.mockReturnValue(defaultValidDependentAccounts[0]);
 	});
 
 	describe('#constructor', () => {
 		it('should create instance of VoteTransaction', async () => {
-			expect(validTestTransaction).to.be.instanceOf(VoteTransaction);
+			expect(validTestTransaction).toBeInstanceOf(VoteTransaction);
 		});
 
 		it('should set the vote asset', async () => {
-			expect(validTestTransaction.asset.votes).to.be.an('array');
+			expect(validTestTransaction.asset.votes).toBeArray();
 		});
 
 		it('should not throw TransactionMultiError when asset is not string array', async () => {
@@ -200,7 +199,7 @@ describe('Vote transaction class', () => {
 			};
 			expect(
 				() => new VoteTransaction(invalidVoteTransactionData),
-			).not.to.throw();
+			).not.toThrowError();
 		});
 	});
 
@@ -210,7 +209,7 @@ describe('Vote transaction class', () => {
 		it('should return valid buffer', async () => {
 			const getBasicBytes = (validTestTransaction as any).getBasicBytes();
 
-			expect(getBasicBytes).to.eql(Buffer.from(expectedBytes, 'hex'));
+			expect(getBasicBytes).toEqual(Buffer.from(expectedBytes, 'hex'));
 		});
 	});
 
@@ -222,10 +221,8 @@ describe('Vote transaction class', () => {
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				validVoteTransactions[1],
 			] as ReadonlyArray<TransactionJSON>);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(0);
-			expect(status).to.equal(Status.OK);
+			expect(errors).toHaveLength(0);
+			expect(status).toBe(Status.OK);
 		});
 
 		it('should return status true with non related transactions', async () => {
@@ -235,10 +232,8 @@ describe('Vote transaction class', () => {
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				validVoteTransactions[0],
 			] as any);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(0);
-			expect(status).to.equal(Status.OK);
+			expect(errors).toHaveLength(0);
+			expect(status).toBe(Status.OK);
 		});
 
 		it('should return TransactionResponse with error when other transaction has the same addition public key', async () => {
@@ -257,10 +252,8 @@ describe('Vote transaction class', () => {
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				conflictTransaction,
 			] as ReadonlyArray<TransactionJSON>);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(1);
-			expect(status).to.equal(Status.FAIL);
+			expect(errors).toHaveLength(1);
+			expect(status).toBe(Status.FAIL);
 		});
 
 		it('should return TransactionResponse with error when other transaction has the same deletion public key', async () => {
@@ -279,26 +272,21 @@ describe('Vote transaction class', () => {
 			} = validTestTransaction.verifyAgainstOtherTransactions([
 				conflictTransaction,
 			] as ReadonlyArray<TransactionJSON>);
-			expect(errors)
-				.to.be.an('array')
-				.of.length(1);
-			expect(status).to.equal(Status.FAIL);
+			expect(errors).toHaveLength(1);
+			expect(status).toBe(Status.FAIL);
 		});
 	});
 
-	describe('#assetToJSON', async () => {
+	describe('#assetToJSON', () => {
 		it('should return an object of type transfer asset', async () => {
-			expect(validTestTransaction.assetToJSON())
-				.to.be.an('object')
-				.and.to.have.property('votes')
-				.that.is.a('array');
+			expect((validTestTransaction.assetToJSON() as any).votes).toBeArray();
 		});
 	});
 
-	describe('#prepare', async () => {
+	describe('#prepare', () => {
 		it('should call state store', async () => {
 			await validTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
+			expect(storeAccountCacheStub).toHaveBeenCalledWith([
 				{ address: validTestTransaction.senderId },
 				{
 					publicKey:
@@ -312,7 +300,7 @@ describe('Vote transaction class', () => {
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).validateAsset();
 
-			expect(errors).to.be.empty;
+			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when asset includes unsigned public key', async () => {
@@ -327,7 +315,7 @@ describe('Vote transaction class', () => {
 			};
 			const transaction = new VoteTransaction(invalidTransaction);
 			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
+			expect(errors).toHaveLength(1);
 		});
 
 		it('should return error when asset includes more than 33 signed public key', async () => {
@@ -375,7 +363,7 @@ describe('Vote transaction class', () => {
 			const transaction = new VoteTransaction(invalidTransaction);
 
 			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
+			expect(errors).toHaveLength(1);
 		});
 
 		it('should return error when asset includes null', async () => {
@@ -387,7 +375,7 @@ describe('Vote transaction class', () => {
 			};
 			const transaction = new VoteTransaction(invalidTransaction);
 			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
+			expect(errors).toHaveLength(2);
 		});
 
 		it('should return error when asset is an empty array', async () => {
@@ -399,19 +387,19 @@ describe('Vote transaction class', () => {
 			const transaction = new VoteTransaction(invalidTransaction);
 
 			const errors = (transaction as any).validateAsset();
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.be.equal('.votes');
+			expect(errors).toHaveLength(1);
+			expect(errors[0].dataPath).toBe('.votes');
 		});
 	});
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
 			(validTestTransaction as any).applyAsset(store);
-			expect(storeAccountGetStub).to.be.calledWithExactly(
+			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
-			expect(storeAccountFindStub).to.be.calledOnce;
-			expect(storeAccountSetStub).to.be.calledWithExactly(
+			expect(storeAccountFindStub).toHaveBeenCalledTimes(1);
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
 				defaultValidSender.address,
 				{
 					...defaultValidSender,
@@ -432,9 +420,9 @@ describe('Vote transaction class', () => {
 						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				},
 			];
-			storeAccountFindStub.returns(nonDelegateAccount[0]);
+			storeAccountFindStub.mockReturnValue(nonDelegateAccount[0]);
 			const errors = (validTestTransaction as any).applyAsset(store);
-			expect(errors).not.to.be.empty;
+			expect(errors).toHaveLength(1);
 		});
 
 		it('should return error when the delegate is already voted', async () => {
@@ -448,11 +436,11 @@ describe('Vote transaction class', () => {
 					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				],
 			};
-			storeAccountGetStub.returns(invalidSender);
+			storeAccountGetStub.mockReturnValue(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].message).to.contain('is already voted.');
-			expect(errors[0].dataPath).equal('.asset.votes');
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toContain('is already voted.');
+			expect(errors[0].dataPath).toBe('.asset.votes');
 		});
 
 		it('should return error when vote exceeds maximum votes', async () => {
@@ -463,24 +451,24 @@ describe('Vote transaction class', () => {
 					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
 				votedDelegatesPublicKeys: generateRandomPublicKeys(101),
 			};
-			storeAccountGetStub.returns(invalidSender);
+			storeAccountGetStub.mockReturnValue(invalidSender);
 			const errors = (validTestTransaction as any).applyAsset(store);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].message).to.contains(
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toContain(
 				'Vote cannot exceed 101 but has 102.',
 			);
-			expect(errors[0].dataPath).equal('.asset.votes');
+			expect(errors[0].dataPath).toBe('.asset.votes');
 		});
 	});
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
 			(validTestTransaction as any).undoAsset(store);
-			expect(storeAccountGetStub).to.be.calledWithExactly(
+			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
 
-			expect(storeAccountSetStub).to.be.calledWithExactly(
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
 				defaultValidSender.address,
 				defaultValidSender,
 			);
@@ -488,17 +476,15 @@ describe('Vote transaction class', () => {
 
 		it('should return no errors', async () => {
 			const errors = (validTestTransaction as any).undoAsset(store);
-			expect(errors).to.be.empty;
+			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when account voted for more than 101 delegates', async () => {
-			storeAccountGetStub.returns(invalidVotesAccount);
+			storeAccountGetStub.mockReturnValue(invalidVotesAccount);
 			const errors = (validTestTransaction as any).undoAsset(store);
 
-			expect(errors).not.to.be.empty;
-			expect(errors[0].message).to.be.eql(
-				'Vote cannot exceed 101 but has 104.',
-			);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toEqual('Vote cannot exceed 101 but has 104.');
 		});
 	});
 });
