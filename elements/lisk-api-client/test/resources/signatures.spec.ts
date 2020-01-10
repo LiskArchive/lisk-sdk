@@ -45,9 +45,7 @@ describe('SignaturesResource', () => {
 		});
 
 		it('should have a "broadcast" function', () => {
-			return expect(resource)
-				.to.have.property('broadcast')
-				.toBeInstanceOf('function');
+			return expect((resource as any).broadcast).toBeFunction();
 		});
 	});
 });

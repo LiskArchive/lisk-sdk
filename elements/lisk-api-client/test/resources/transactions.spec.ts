@@ -45,15 +45,11 @@ describe('TransactionsResource', () => {
 		});
 
 		it('should have a "get" function', () => {
-			return expect(resource)
-				.to.have.property('get')
-				.toBeInstanceOf('function');
+			return expect((resource as any).get).toBeFunction();
 		});
 
 		it('should have a "broadcast" function', () => {
-			return expect(resource)
-				.to.have.property('broadcast')
-				.toBeInstanceOf('function');
+			return expect((resource as any).broadcast).toBeFunction();
 		});
 	});
 });

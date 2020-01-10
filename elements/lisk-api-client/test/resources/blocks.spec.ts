@@ -45,9 +45,7 @@ describe('BlocksResource', () => {
 		});
 
 		it('should have a "get" function', () => {
-			return expect(resource)
-				.to.have.property('get')
-				.toBeInstanceOf('function');
+			return expect((resource as any).get).toBeFunction();
 		});
 	});
 });

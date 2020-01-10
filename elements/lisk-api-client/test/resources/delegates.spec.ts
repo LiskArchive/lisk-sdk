@@ -45,27 +45,19 @@ describe('DelegatesResource', () => {
 		});
 
 		it('should have a "get" function', () => {
-			return expect(resource)
-				.to.have.property('get')
-				.toBeInstanceOf('function');
+			return expect((resource as any).get).toBeFunction();
 		});
 
 		it('should have a "getStandby" function', () => {
-			return expect(resource)
-				.to.have.property('getStandby')
-				.toBeInstanceOf('function');
+			return expect((resource as any).getStandby).toBeFunction();
 		});
 
 		it('should have a "getForgers" function', () => {
-			return expect(resource)
-				.to.have.property('getForgers')
-				.toBeInstanceOf('function');
+			return expect((resource as any).getForgers).toBeFunction();
 		});
 
 		it('should have a "getForgingStatistics" function', () => {
-			return expect(resource)
-				.to.have.property('getForgingStatistics')
-				.toBeInstanceOf('function');
+			return expect((resource as any).getForgingStatistics).toBeFunction();
 		});
 	});
 });

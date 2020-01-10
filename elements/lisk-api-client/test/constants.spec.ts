@@ -16,24 +16,24 @@ import { GET, POST, PUT, TESTNET_NODES, MAINNET_NODES } from '../src/constants';
 
 describe('api constants module', () => {
 	it('GET should be a string', () => {
-		return expect(GET).toBeInstanceOf('string');
+		return expect(GET).toBeString();
 	});
 
 	it('POST should be a string', () => {
-		return expect(POST).toBeInstanceOf('string');
+		return expect(POST).toBeString();
 	});
 
 	it('PUT should be a string', () => {
-		return expect(PUT).toBeInstanceOf('string');
+		return expect(PUT).toBeString();
 	});
 
 	it('TESTNET_NODES should be an array of strings', () => {
-		expect(TESTNET_NODES).toBeInstanceOf('array');
-		return TESTNET_NODES.forEach(node => expect(node).toBeInstanceOf('string'));
+		expect(TESTNET_NODES).toBeArray();
+		return TESTNET_NODES.forEach(node => expect(node).toBeString());
 	});
 
 	it('MAINNET_NODES should be an array of strings', () => {
-		expect(MAINNET_NODES).toBeInstanceOf('array');
-		return MAINNET_NODES.forEach(node => expect(node).toBeInstanceOf('string'));
+		expect(MAINNET_NODES).toBeArray();
+		return MAINNET_NODES.forEach(node => expect(node).toBeString());
 	});
 });

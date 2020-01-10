@@ -72,22 +72,20 @@ describe('APIClient module', () => {
 	});
 
 	describe('#constructor', () => {
-		let initializeStub: () => void;
+		let initializeStub: jest.SpyInstance;
 
 		beforeEach(() => {
-			initializeStub = sandbox.stub(APIClient.prototype, 'initialize');
+			initializeStub = jest.spyOn(APIClient.prototype, 'initialize');
 			return Promise.resolve();
 		});
 
 		it('should create a new instance of APIClient', () => {
-			return expect(apiClient)
-				.to.be.an('object')
-				.toBeInstanceOf(APIClient);
+			return expect(apiClient).toBeInstanceOf(APIClient);
 		});
 
 		it('should call initialize with the nodes and default options', () => {
 			apiClient = new APIClient(defaultNodes);
-			return expect(initializeStub).to.be.calledWithExactly(defaultNodes, {});
+			return expect(initializeStub).toHaveBeenCalledWith(defaultNodes, {});
 		});
 
 		it('should call initialize with the nodes and provided options', () => {
@@ -96,7 +94,7 @@ describe('APIClient module', () => {
 					'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 			};
 			apiClient = new APIClient(defaultNodes, providedOptions);
-			return expect(initializeStub).to.be.calledWithExactly(
+			return expect(initializeStub).toHaveBeenCalledWith(
 				defaultNodes,
 				providedOptions,
 			);
@@ -145,7 +143,7 @@ describe('APIClient module', () => {
 
 	describe('#constants', () => {
 		it('should expose API constants', () => {
-			return expect(APIClient.constants).toBeInstanceOf('object');
+			return expect(APIClient.constants).toBeObject();
 		});
 	});
 
@@ -184,9 +182,7 @@ describe('APIClient module', () => {
 
 		describe('headers', () => {
 			it('should set with passed nethash, with default options', () => {
-				return expect(apiClient)
-					.to.have.property('headers')
-					.toEqual(defaultHeaders);
+				return expect(apiClient.headers).toEqual(defaultHeaders);
 			});
 
 			it('should set custom headers with supplied options', () => {
@@ -198,9 +194,7 @@ describe('APIClient module', () => {
 						engine: '+https://github.com/LiskHQ/lisk-hub',
 					},
 				});
-				return expect(apiClient)
-					.to.have.property('headers')
-					.toEqual(customHeaders);
+				return expect(apiClient.headers).toEqual(customHeaders);
 			});
 
 			it('should not set User-Agent header when client options were not given', () => {
@@ -213,25 +207,19 @@ describe('APIClient module', () => {
 
 		describe('nodes', () => {
 			it('should have nodes supplied to constructor', () => {
-				return expect(apiClient)
-					.to.have.property('nodes')
-					.toBe(defaultNodes);
+				return expect(apiClient.nodes).toBe(defaultNodes);
 			});
 		});
 
 		describe('bannedNodes', () => {
 			it('should set empty array if no option is passed', () => {
-				return expect(apiClient)
-					.to.have.property('bannedNodes')
-					.toEqual([]);
+				return expect(apiClient.bannedNodes).toEqual([]);
 			});
 
 			it('should set bannedNodes when passed as an option', () => {
 				const bannedNodes = ['a', 'b'];
 				apiClient = new APIClient(defaultNodes, { bannedNodes });
-				return expect(apiClient)
-					.to.have.property('bannedNodes')
-					.toEqual(bannedNodes);
+				return expect(apiClient.bannedNodes).toEqual(bannedNodes);
 			});
 		});
 
@@ -244,9 +232,7 @@ describe('APIClient module', () => {
 				apiClient = new APIClient(defaultNodes, {
 					node: externalTestnetNode,
 				});
-				return expect(apiClient)
-					.to.have.property('currentNode')
-					.toBe(externalTestnetNode);
+				return expect(apiClient.currentNode).toBe(externalTestnetNode);
 			});
 		});
 
@@ -255,21 +241,21 @@ describe('APIClient module', () => {
 				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: undefined,
 				});
-				return expect(apiClient).toBe(true);
+				return expect(apiClient.randomizeNodes).toBe(true);
 			});
 
 			it('should set randomizeNodes to true on initialization when passed as an option', () => {
 				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: true,
 				});
-				return expect(apiClient).toBe(true);
+				return expect(apiClient.randomizeNodes).toBe(true);
 			});
 
 			it('should set randomizeNodes to false on initialization when passed as an option', () => {
 				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: false,
 				});
-				return expect(apiClient).toBe(false);
+				return expect(apiClient.randomizeNodes).toBe(false);
 			});
 		});
 	});
@@ -341,14 +327,13 @@ describe('APIClient module', () => {
 
 	describe('#banActiveNodeAndSelect', () => {
 		let currentNode: string;
-		let getNewNodeStub: () => string;
+		let getNewNodeStub: jest.SpyInstance;
 
 		beforeEach(() => {
 			({ currentNode } = apiClient);
-			getNewNodeStub = sandbox
-				.stub(apiClient, 'getNewNode')
-				.returns(defaultSelectedNode);
-			return Promise.resolve();
+			getNewNodeStub = jest
+				.spyOn(apiClient, 'getNewNode')
+				.mockReturnValue(defaultSelectedNode);
 		});
 
 		it('should call ban current node', () => {
@@ -358,14 +343,14 @@ describe('APIClient module', () => {
 
 		it('should call selectNewNode when the node is banned', () => {
 			apiClient.banActiveNodeAndSelect();
-			return expect(getNewNodeStub).to.be.calledOnce;
+			return expect(getNewNodeStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should not call selectNewNode when the node is not banned', () => {
 			const bannedNodes = [currentNode];
 			apiClient.bannedNodes = bannedNodes;
 			apiClient.banActiveNodeAndSelect();
-			return expect(getNewNodeStub).not.to.be.called;
+			return expect(getNewNodeStub).not.toHaveBeenCalled();
 		});
 	});
 

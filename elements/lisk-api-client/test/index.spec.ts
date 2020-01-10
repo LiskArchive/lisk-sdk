@@ -17,7 +17,7 @@ import { APIClient } from '../src';
 describe('api client', () => {
 	describe('exports', () => {
 		it('should have APIClient as a function', () => {
-			return expect(APIClient).toBeInstanceOf('function');
+			return expect(APIClient).toBeFunction();
 		});
 	});
 });

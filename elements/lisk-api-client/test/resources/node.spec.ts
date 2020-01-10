@@ -45,33 +45,23 @@ describe('NodeResource', () => {
 		});
 
 		it('should have a "getConstants" function', () => {
-			return expect(resource)
-				.to.have.property('getConstants')
-				.toBeInstanceOf('function');
+			return expect((resource as any).getConstants).toBeFunction();
 		});
 
 		it('should have a "getStatus" function', () => {
-			return expect(resource)
-				.to.have.property('getStatus')
-				.toBeInstanceOf('function');
+			return expect((resource as any).getStatus).toBeFunction();
 		});
 
 		it('should have a "getForgingStatus" function', () => {
-			return expect(resource)
-				.to.have.property('getForgingStatus')
-				.toBeInstanceOf('function');
+			return expect((resource as any).getForgingStatus).toBeFunction();
 		});
 
 		it('should have a "updateForgingStatus" function', () => {
-			return expect(resource)
-				.to.have.property('updateForgingStatus')
-				.toBeInstanceOf('function');
+			return expect((resource as any).updateForgingStatus).toBeFunction();
 		});
 
 		it('should have a "getTransactions" function', () => {
-			return expect(resource)
-				.to.have.property('getTransactions')
-				.toBeInstanceOf('function');
+			return expect((resource as any).getTransactions).toBeFunction();
 		});
 	});
 });
