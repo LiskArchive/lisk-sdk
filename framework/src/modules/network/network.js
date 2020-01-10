@@ -229,7 +229,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_INBOUND_SOCKET_ERROR, error => {
-			this.logger.error(error.message || error);
+			this.logger.debug(error.message || error);
 		});
 
 		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
