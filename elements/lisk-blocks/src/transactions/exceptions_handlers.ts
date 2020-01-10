@@ -32,7 +32,7 @@ const checkSenderPublicKeyException = (
 		return false;
 	}
 
-	if (!(transactionResponse.errors.length > 1)) {
+	if (transactionResponse.errors.length <= 1) {
 		return false;
 	}
 
@@ -55,7 +55,7 @@ const checkSignature = (
 		return false;
 	}
 
-	if (!(transactionResponse.errors.length > 1)) {
+	if (transactionResponse.errors.length <= 1) {
 		return false;
 	}
 
@@ -78,7 +78,7 @@ const checkSignSignature = (
 		return false;
 	}
 
-	if (!(transactionResponse.errors.length > 1)) {
+	if (transactionResponse.errors.length <= 1) {
 		return false;
 	}
 
@@ -144,7 +144,7 @@ const checkVotes = (
 		return false;
 	}
 
-	if (!(transactionResponse.errors.length > 1)) {
+	if (transactionResponse.errors.length <= 1) {
 		return false;
 	}
 
@@ -164,7 +164,7 @@ const checkVoteTransactionAmount = (
 		return false;
 	}
 
-	if (!(transactionResponse.errors.length > 1)) {
+	if (transactionResponse.errors.length <= 1) {
 		return false;
 	}
 
@@ -187,7 +187,7 @@ const checkRecipientLeadingZero = (
 		return false;
 	}
 
-	if (!(transactionResponse.errors.length > 1)) {
+	if (transactionResponse.errors.length <= 1) {
 		return false;
 	}
 	if (transactionResponse.errors[0].dataPath !== '.recipientId') {

@@ -27,7 +27,7 @@ export class StateStore {
 
 	public constructor(
 		storage: Storage,
-		options: { readonly tx?: StorageTransaction | undefined } = {},
+		options: { readonly tx?: StorageTransaction } = {},
 	) {
 		this.account = new AccountStore(storage.entities.Account, options);
 		this.transaction = new TransactionStore(

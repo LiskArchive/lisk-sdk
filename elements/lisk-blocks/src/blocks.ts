@@ -506,7 +506,7 @@ export class Blocks extends EventEmitter {
 			}),
 			validateTransactions(this.exceptions),
 			// Composed transaction checks are all static, so it does not need state store
-		)(transactions, undefined);
+		)(transactions);
 	}
 
 	public async verifyTransactions(
