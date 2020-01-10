@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '../src';
 
-describe('cryptography index.js', () => {
-	test('should export an object', () => {
-		expect(cryptography).toEqual(expect.any(Object));
-	});
-});
+require('jest-extended');
+
+process.env.NODE_ENV = 'test';

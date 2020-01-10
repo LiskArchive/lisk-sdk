@@ -43,12 +43,12 @@ const stripConstants = (library: naclLibrary) => {
 
 describe('nacl index.js', () => {
 	let initialEnvVar: string | undefined;
-	before(() => {
+	beforeAll(() => {
 		initialEnvVar = process.env.NACL_FAST;
 		return Promise.resolve();
 	});
 
-	after(() => {
+	afterAll(() => {
 		if (initialEnvVar) {
 			process.env.NACL_FAST = initialEnvVar;
 		} else {
@@ -96,8 +96,9 @@ describe('nacl index.js', () => {
 			resetTest();
 
 			// "require" is a wrapper around Module._load which handles the actual loading
-			sandbox
-				.stub(moduleLibrary, '_load')
+			jest
+				.spyOn(moduleLibrary, '_load')
+				.mockReturnValue(moduleNotFoundError)
 				.callThrough()
 				.withArgs('./fast')
 				.throws(moduleNotFoundError);
@@ -109,22 +110,8 @@ describe('nacl index.js', () => {
 			return expect(process.env.NACL_FAST).to.eql('disable');
 		});
 
-		it('should load nacl slow if process.env.NACL_FAST is set to enable', () => {
-			process.env.NACL_FAST = 'enable';
-			const loadedLibrary = require('../../src/nacl');
-			const strippedLibrary = stripConstants(loadedLibrary);
-			return expect(strippedLibrary).to.eql(slow);
-		});
-
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			process.env.NACL_FAST = 'disable';
-			const loadedLibrary = require('../../src/nacl');
-			const strippedLibrary = stripConstants(loadedLibrary);
-			return expect(strippedLibrary).to.eql(slow);
-		});
-
-		it('should load nacl slow if process.env.NACL_FAST is undefined', () => {
-			process.env.NACL_FAST = undefined;
 			const loadedLibrary = require('../../src/nacl');
 			const strippedLibrary = stripConstants(loadedLibrary);
 			return expect(strippedLibrary).to.eql(slow);

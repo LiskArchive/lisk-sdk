@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	Keypair,
 	KeypairBytes,
@@ -41,19 +40,12 @@ describe('keys', () => {
 		address: defaultAddress,
 	};
 
-	let bufferToHexStub;
-
 	beforeEach(() => {
-		bufferToHexStub = sandbox.stub(buffer, 'bufferToHex');
-		bufferToHexStub
-			.withArgs(Buffer.from(defaultPrivateKey, 'hex'))
-			.returns(defaultPrivateKey);
-		bufferToHexStub
-			.withArgs(Buffer.from(defaultPublicKey, 'hex'))
-			.returns(defaultPublicKey);
-		return sandbox
-			.stub(hashModule, 'hash')
-			.returns(Buffer.from(defaultPassphraseHash, 'hex'));
+		jest.spyOn(buffer, 'bufferToHex');
+
+		jest
+			.spyOn(hashModule, 'hash')
+			.mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
 
 	describe('#getPrivateAndPublicKeyBytesFromPassphrase', () => {
@@ -61,19 +53,18 @@ describe('keys', () => {
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyBytesFromPassphrase(defaultPassphrase);
-			return Promise.resolve();
 		});
 
-		it('should create buffer publicKey', () => {
-			return expect(
-				Buffer.from(keyPair.publicKeyBytes).toString('hex'),
-			).to.be.equal(defaultPublicKey);
+		test('should create buffer publicKey', () => {
+			expect(Buffer.from(keyPair.publicKeyBytes).toString('hex')).toBe(
+				defaultPublicKey,
+			);
 		});
 
-		it('should create buffer privateKey', () => {
-			return expect(
-				Buffer.from(keyPair.privateKeyBytes).toString('hex'),
-			).to.be.equal(defaultPrivateKey);
+		test('should create buffer privateKey', () => {
+			expect(Buffer.from(keyPair.privateKeyBytes).toString('hex')).toBe(
+				defaultPrivateKey,
+			);
 		});
 	});
 
@@ -82,19 +73,14 @@ describe('keys', () => {
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
-			return Promise.resolve();
 		});
 
-		it('should generate the correct publicKey from a passphrase', () => {
-			return expect(keyPair)
-				.to.have.property('publicKey')
-				.and.be.equal(defaultPublicKey);
+		test('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
 		});
 
-		it('should generate the correct privateKey from a passphrase', () => {
-			return expect(keyPair)
-				.to.have.property('privateKey')
-				.and.be.equal(defaultPrivateKey);
+		test('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
 		});
 	});
 
@@ -103,43 +89,36 @@ describe('keys', () => {
 
 		beforeEach(() => {
 			keyPair = getKeys(defaultPassphrase);
-			return Promise.resolve();
 		});
 
-		it('should generate the correct publicKey from a passphrase', () => {
-			return expect(keyPair)
-				.to.have.property('publicKey')
-				.and.be.equal(defaultPublicKey);
+		test('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
 		});
 
-		it('should generate the correct privateKey from a passphrase', () => {
-			return expect(keyPair)
-				.to.have.property('privateKey')
-				.and.be.equal(defaultPrivateKey);
+		test('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
 		});
 	});
 
 	describe('#getAddressAndPublicKeyFromPassphrase', () => {
-		it('should create correct address and publicKey', () => {
-			return expect(
-				getAddressAndPublicKeyFromPassphrase(defaultPassphrase),
-			).to.eql(defaultAddressAndPublicKey);
-		});
-	});
-
-	describe('#getAddressFromPassphrase', () => {
-		it('should create correct address', () => {
-			return expect(getAddressFromPassphrase(defaultPassphrase)).to.equal(
-				defaultAddress,
+		test('should create correct address and publicKey', () => {
+			expect(getAddressAndPublicKeyFromPassphrase(defaultPassphrase)).toEqual(
+				defaultAddressAndPublicKey,
 			);
 		});
 	});
 
+	describe('#getAddressFromPassphrase', () => {
+		test('should create correct address', () => {
+			expect(getAddressFromPassphrase(defaultPassphrase)).toBe(defaultAddress);
+		});
+	});
+
 	describe('#getAddressFromPrivateKey', () => {
-		it('should create correct address', () => {
-			return expect(
-				getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64)),
-			).to.equal(defaultAddress);
+		test('should create correct address', () => {
+			expect(getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64))).toBe(
+				defaultAddress,
+			);
 		});
 	});
 });
