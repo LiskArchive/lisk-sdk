@@ -20,7 +20,6 @@ const {
 	loadCSVFile,
 	generateBlockHeader,
 	generateBlockHeadersSeries,
-	generateBlockForBFT,
 } = require('../../utils/bft');
 
 const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
@@ -331,11 +330,29 @@ const bftForkChoiceTestSuiteGenerator = () => {
 	const epochTime = Math.floor(new Date('2016-05-24T17:00:00.000Z').getTime());
 
 	// All times are epoch time
-	const lastBlock = generateBlockForBFT({
-		height: 10,
+	const lastBlock = {
+		id: '4787605425910193884',
+		height: lastBlockHeight,
+		version: 2,
+		generatorPublicKey:
+			'774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534',
+		maxHeightPrevoted: 1,
 		timestamp: (lastBlockHeight - 1) * blockInterval, // Block slot time was height * blockInterval
 		receivedAt: (lastBlockHeight - 1) * blockInterval + 2, // Block received 2 seconds after its slot time started
-	});
+		previousBlockId: '10639113266773617352',
+	};
+
+	const receivedBlock = {
+		id: '5687604425910193884',
+		height: lastBlockHeight + 1,
+		version: 2,
+		generatorPublicKey:
+			'544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435',
+		maxHeightPrevoted: 1,
+		timestamp: lastBlockHeight * blockInterval, // Block slot time was height * blockInterval
+		receivedAt: lastBlockHeight * blockInterval + 2, // Block received 2 seconds after
+		previousBlockId: '4787605425910193884',
+	};
 
 	const initialState = {
 		blockInterval,
@@ -377,10 +394,7 @@ const bftForkChoiceTestSuiteGenerator = () => {
 				initialState,
 				input: {
 					// Valid blocks are always one step ahead and linked to previous block
-					receivedBlock: generateBlockForBFT({
-						height: lastBlock.height + 1,
-						previousBlockId: lastBlock.id,
-					}),
+					receivedBlock,
 				},
 				output: {
 					forkStatus: FORK_STATUS_VALID_BLOCK,
@@ -393,10 +407,11 @@ const bftForkChoiceTestSuiteGenerator = () => {
 				input: {
 					// Any block with lower height than last block is invalid to current
 					// state of chain if maxHeightPrevoted is less or same
-					receivedBlock: generateBlockForBFT({
+					receivedBlock: {
+						...receivedBlock,
 						height: lastBlock.height - 1,
 						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
-					}),
+					},
 				},
 				output: {
 					forkStatus: FORK_STATUS_DISCARD,
@@ -417,12 +432,13 @@ const bftForkChoiceTestSuiteGenerator = () => {
 					// - different block id
 					//
 
-					receivedBlock: generateBlockForBFT({
+					receivedBlock: {
+						...receivedBlock,
 						height: lastBlock.height,
 						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
 						previousBlockId: lastBlock.previousBlockId,
 						generatorPublicKey: lastBlock.generatorPublicKey,
-					}),
+					},
 				},
 				output: {
 					forkStatus: FORK_STATUS_DOUBLE_FORGING,
@@ -452,13 +468,14 @@ const bftForkChoiceTestSuiteGenerator = () => {
 					// - last block in chain was not received within its forging slot time
 					//
 
-					receivedBlock: generateBlockForBFT({
+					receivedBlock: {
+						...receivedBlock,
 						height: lastBlock.height,
 						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
 						previousBlockId: lastBlock.previousBlockId,
 						timestamp: lastBlock.timestamp, // Latest block time
 						receivedAt: lastBlock.receivedAt,
-					}),
+					},
 				},
 				output: {
 					forkStatus: FORK_STATUS_TIE_BREAK,
@@ -473,12 +490,15 @@ const bftForkChoiceTestSuiteGenerator = () => {
 					// Block identified from different chain if following conditions meet
 					// when compared with last block in chain
 					//
+					// - Not met the condition of valid block and
 					// - maxHeightPrevoted of last block is less than received block maxHeightPrevoted
 					//
 
-					receivedBlock: generateBlockForBFT({
+					receivedBlock: {
+						...receivedBlock,
 						maxHeightPrevoted: lastBlock.maxHeightPrevoted + 5,
-					}),
+						previousBlockId: '18084359649202066469',
+					},
 				},
 				output: {
 					forkStatus: FORK_STATUS_DIFFERENT_CHAIN,
@@ -493,14 +513,17 @@ const bftForkChoiceTestSuiteGenerator = () => {
 					// Block identified from different chain if following conditions meet
 					// when compared with last block in chain
 					//
+					// - Not met the condition of a valid block and
 					// - last block height less than current block height and
 					// - maxHeightPrevoted is same for both blocks
 					//
 
-					receivedBlock: generateBlockForBFT({
+					receivedBlock: {
+						...receivedBlock,
 						height: lastBlock.height + 1,
 						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
-					}),
+						previousBlockId: '18084359649202066469',
+					},
 				},
 				output: {
 					forkStatus: FORK_STATUS_DIFFERENT_CHAIN,
