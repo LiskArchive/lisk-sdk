@@ -20,13 +20,13 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+import { Slots } from '../slots';
 import { StateStore } from '../state_store';
 import {
 	Contexter,
 	ExceptionOptions,
 	MatcherTransaction,
 	SignatureObject,
-	Slots,
 	Storage,
 	WriteableTransactionResponse,
 } from '../types';
