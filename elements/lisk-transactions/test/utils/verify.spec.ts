@@ -13,7 +13,6 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
-import { expect } from 'chai';
 import {
 	verifySenderPublicKey,
 	verifyBalance,
@@ -30,40 +29,45 @@ describe('#verify', () => {
 	describe('#verifySenderPublicKey', () => {
 		it('should return undefined when sender public key and public key is the same', async () => {
 			const publicKey = 'sender-public-key';
-			expect(verifySenderPublicKey(defaultId, { publicKey } as any, publicKey))
-				.to.be.undefined;
+			expect(
+				verifySenderPublicKey(defaultId, { publicKey } as any, publicKey),
+			).toBeUndefined();
 		});
 
 		it('should return TransactionError when sender public key and account public key is not the same', async () => {
 			const publicKey = 'sender-public-key';
-			expect(
-				verifySenderPublicKey(
-					defaultId,
-					{ publicKey } as any,
-					'different public key',
-				),
-			)
-				.to.be.instanceOf(TransactionError)
-				.and.have.property('dataPath', '.senderPublicKey');
+			const result = verifySenderPublicKey(
+				defaultId,
+				{ publicKey } as any,
+				'different public key',
+			);
+			expect(result).toBeInstanceOf(TransactionError);
+			expect(result).toHaveProperty('dataPath', '.senderPublicKey');
 		});
 	});
 
 	describe('#verifyBalance', () => {
 		const defaultAccount = { balance: '1000000000' } as any;
 		it('should return undefined when sender has exact amount', async () => {
-			expect(verifyBalance(defaultId, defaultAccount, new BigNum('1000000000')))
-				.to.be.undefined;
+			expect(
+				verifyBalance(defaultId, defaultAccount, new BigNum('1000000000')),
+			).toBeUndefined();
 		});
 
 		it('should return undefined when sender has enoguh balance', async () => {
-			expect(verifyBalance(defaultId, defaultAccount, new BigNum('100'))).to.be
-				.undefined;
+			expect(
+				verifyBalance(defaultId, defaultAccount, new BigNum('100')),
+			).toBeUndefined();
 		});
 
 		it('should return TransactionError when sender does not have enoguh balance', async () => {
-			expect(verifyBalance(defaultId, defaultAccount, new BigNum('1000000001')))
-				.to.be.instanceOf(TransactionError)
-				.and.have.property('dataPath', '.balance');
+			const result = verifyBalance(
+				defaultId,
+				defaultAccount,
+				new BigNum('1000000001'),
+			);
+			expect(result).toBeInstanceOf(TransactionError);
+			expect(result).toHaveProperty('dataPath', '.balance');
 		});
 	});
 
@@ -82,21 +86,19 @@ describe('#verify', () => {
 		const failResult = { valid: false, error: new TransactionError('fail') };
 
 		beforeEach(async () => {
-			sandbox.stub(validator, 'validateSignature').returns(successResult);
+			jest.spyOn(validator, 'validateSignature').mockReturnValue(successResult);
 		});
 
 		it('should return TransactionError when sender does not have second signature but signSignature is provided', async () => {
 			const { secondPublicKey, ...invalidAccount } = defaultAccount;
-			expect(
-				verifySecondSignature(
-					defaultId,
-					invalidAccount,
-					defaultSignSignature,
-					fakeTransactionBuffer,
-				),
-			)
-				.to.be.instanceOf(TransactionError)
-				.and.have.property('dataPath', '.signSignature');
+			const result = verifySecondSignature(
+				defaultId,
+				invalidAccount,
+				defaultSignSignature,
+				fakeTransactionBuffer,
+			);
+			expect(result).toBeInstanceOf(TransactionError);
+			expect(result).toHaveProperty('dataPath', '.signSignature');
 		});
 
 		it('should return undefined when sender does not have second public key and signSignature is not provided', async () => {
@@ -108,7 +110,7 @@ describe('#verify', () => {
 					undefined,
 					fakeTransactionBuffer,
 				),
-			).to.be.undefined;
+			).toBeUndefined();
 		});
 
 		it('should call validateSignature with currect arguments', async () => {
@@ -118,7 +120,7 @@ describe('#verify', () => {
 				defaultSignSignature,
 				fakeTransactionBuffer,
 			);
-			expect(validator.validateSignature).to.be.calledWithExactly(
+			expect(validator.validateSignature).toHaveBeenCalledWith(
 				defaultPublicKey,
 				defaultSignSignature,
 				fakeTransactionBuffer,
@@ -134,11 +136,11 @@ describe('#verify', () => {
 					defaultSignSignature,
 					fakeTransactionBuffer,
 				),
-			).to.be.undefined;
+			).toBeUndefined();
 		});
 
 		it('should return error from validateSignature when not valid', async () => {
-			(validator.validateSignature as any).returns(failResult);
+			(validator.validateSignature as any).mockReturnValue(failResult);
 			expect(
 				verifySecondSignature(
 					defaultId,
@@ -146,20 +148,18 @@ describe('#verify', () => {
 					defaultSignSignature,
 					fakeTransactionBuffer,
 				),
-			).to.equal(failResult.error);
+			).toBe(failResult.error);
 		});
 
 		it('should return TransactionError when sender have second public key but signSignature is not provided', async () => {
-			expect(
-				verifySecondSignature(
-					defaultId,
-					defaultAccount,
-					undefined,
-					fakeTransactionBuffer,
-				),
-			)
-				.to.be.instanceOf(TransactionError)
-				.and.have.property('dataPath', '.signSignature');
+			const result = verifySecondSignature(
+				defaultId,
+				defaultAccount,
+				undefined,
+				fakeTransactionBuffer,
+			);
+			expect(result).toBeInstanceOf(TransactionError);
+			expect(result).toHaveProperty('dataPath', '.signSignature');
 		});
 	});
 
@@ -190,7 +190,9 @@ describe('#verify', () => {
 		);
 
 		beforeEach(async () => {
-			sandbox.stub(validator, 'validateMultisignatures').returns(successResult);
+			jest
+				.spyOn(validator, 'validateMultisignatures')
+				.mockReturnValue(successResult);
 		});
 
 		it('should return FAIL status with error if sender is not multi-signature account but signatures are provided', async () => {
@@ -200,9 +202,9 @@ describe('#verify', () => {
 				signatures,
 				fakeTransactionBuffer,
 			);
-			expect(status).to.equal(MultisignatureStatus.FAIL);
-			expect(errors).not.to.be.empty;
-			expect(errors[0].dataPath).to.equal('.signatures');
+			expect(status).toBe(MultisignatureStatus.FAIL);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].dataPath).toBe('.signatures');
 		});
 
 		it('should return NONMULTISIGNATURE status without error if sender is not multi-signature account and signatures are not provided', async () => {
@@ -212,8 +214,8 @@ describe('#verify', () => {
 				[],
 				fakeTransactionBuffer,
 			);
-			expect(status).to.equal(MultisignatureStatus.NONMULTISIGNATURE);
-			expect(errors).to.be.empty;
+			expect(status).toBe(MultisignatureStatus.NONMULTISIGNATURE);
+			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
 		it('should call validateMultisignature with correct argument', async () => {
@@ -223,7 +225,7 @@ describe('#verify', () => {
 				signatures,
 				fakeTransactionBuffer,
 			);
-			expect(validator.validateMultisignatures).to.be.calledWithExactly(
+			expect(validator.validateMultisignatures).toHaveBeenCalledWith(
 				defaultAccount.membersPublicKeys,
 				signatures,
 				defaultAccount.multiMin,
@@ -239,33 +241,33 @@ describe('#verify', () => {
 				signatures,
 				fakeTransactionBuffer,
 			);
-			expect(status).to.equal(MultisignatureStatus.READY);
-			expect(errors).to.be.empty;
+			expect(status).toBe(MultisignatureStatus.READY);
+			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
 		it('should return PENDING status with pending error if only error is the pending error', async () => {
-			(validator.validateMultisignatures as any).returns(pendingResult);
+			(validator.validateMultisignatures as any).mockReturnValue(pendingResult);
 			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				defaultAccount as any,
 				signatures,
 				fakeTransactionBuffer,
 			);
-			expect(status).to.equal(MultisignatureStatus.PENDING);
-			expect(errors).not.to.be.empty;
-			expect(errors[0]).to.be.instanceOf(TransactionPendingError);
+			expect(status).toBe(MultisignatureStatus.PENDING);
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toBeInstanceOf(TransactionPendingError);
 		});
 
 		it('should return FAIL status with errors', async () => {
-			(validator.validateMultisignatures as any).returns(failResult);
+			(validator.validateMultisignatures as any).mockReturnValue(failResult);
 			const { status, errors } = verifyMultiSignatures(
 				defaultId,
 				defaultAccount as any,
 				signatures,
 				fakeTransactionBuffer,
 			);
-			expect(status).to.equal(MultisignatureStatus.FAIL);
-			expect(errors).to.eql(failResult.errors);
+			expect(status).toBe(MultisignatureStatus.FAIL);
+			expect(errors).toEqual(failResult.errors);
 		});
 	});
 });
