@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { apiMethod } from '../src/api_method';
 import { Resource, APIHandler } from '../src/api_types';
 
@@ -45,7 +44,7 @@ describe('API method module', () => {
 			path: defaultResourcePath,
 			resourcePath: defaultFullPath,
 			headers: defaultHeaders,
-			request: sandbox.stub().resolves(requestResult),
+			request: jest.fn().mockResolvedValue(requestResult),
 		};
 		validationError = new Error('No data');
 		return Promise.resolve();
@@ -60,13 +59,13 @@ describe('API method module', () => {
 			});
 
 			it('should return function', () => {
-				return expect(handler).to.be.a('function');
+				return expect(handler).toBeFunction();
 			});
 
 			it('should request GET with default URL', () => {
 				return handler().then(() => {
-					expect(resource.request).to.be.calledOnce;
-					return expect(resource.request).to.be.calledWithExactly(
+					expect(resource.request).toHaveBeenCalledTimes(1);
+					return expect(resource.request).toHaveBeenCalledWith(
 						{
 							method: GET,
 							url: defaultFullPath,
@@ -100,16 +99,15 @@ describe('API method module', () => {
 			});
 
 			it('should return function', () => {
-				return expect(handler).to.be.a('function');
+				return expect(handler).toBeFunction();
 			});
 
 			it('should be rejected with error without param', () => {
-				return expect(handler()).to.be.rejectedWith(Error, errorArgumentNumber);
+				return expect(handler()).rejects.toThrowError(errorArgumentNumber);
 			});
 
 			it('should be rejected with error without enough param', () => {
-				return expect(handler(firstURLParam)).to.be.rejectedWith(
-					Error,
+				return expect(handler(firstURLParam)).rejects.toThrowError(
 					errorArgumentNumber,
 				);
 			});
@@ -117,20 +115,20 @@ describe('API method module', () => {
 			it('should throw an error if input is not a string or a number', () => {
 				return expect(
 					handler({ num: 3 }, secondURLParam, { needed: true }),
-				).to.be.rejectedWith(Error, parameterStringError);
+				).rejects.toEqual(new Error(parameterStringError));
 			});
 
 			it('should be rejected with no data', () => {
-				return expect(
-					handler(firstURLParam, secondURLParam),
-				).to.be.rejectedWith(validationError);
+				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(
+					validationError,
+				);
 			});
 
 			it('should call request with the given data', () => {
 				return handler(firstURLParam, secondURLParam, { needed: true }).then(
 					() => {
-						expect(resource.request).to.be.calledOnce;
-						return expect(resource.request).to.be.calledWithExactly(
+						expect(resource.request).toHaveBeenCalledTimes(1);
+						return expect(resource.request).toHaveBeenCalledWith(
 							{
 								method: POST,
 								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam}`,
@@ -166,31 +164,32 @@ describe('API method module', () => {
 			});
 
 			it('should return a function', () => {
-				return expect(handler).to.be.a('function');
+				return expect(handler).toBeFunction();
 			});
 
 			it('should be rejected with error without parameters', () => {
-				return expect(handler()).to.be.rejectedWith(Error, errorArgumentNumber);
+				return expect(handler()).rejects.toEqual(
+					new Error(errorArgumentNumber),
+				);
 			});
 
 			it('should be rejected with error without enough parameters', () => {
-				return expect(handler(firstURLParam)).to.be.rejectedWith(
-					Error,
-					errorArgumentNumber,
+				return expect(handler(firstURLParam)).rejects.toEqual(
+					new Error(errorArgumentNumber),
 				);
 			});
 
 			it('should be rejected with no data', () => {
-				return expect(
-					handler(firstURLParam, secondURLParam),
-				).to.be.rejectedWith(validationError);
+				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(
+					validationError,
+				);
 			});
 
 			it('should be request with the given data', () => {
 				return handler(firstURLParam, secondURLParam, { needed: true }).then(
 					() => {
-						expect(resource.request).to.be.calledOnce;
-						return expect(resource.request).to.be.calledWithExactly(
+						expect(resource.request).toHaveBeenCalledTimes(1);
+						return expect(resource.request).toHaveBeenCalledWith(
 							{
 								method: GET,
 								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam}?sort=id&needed=true`,

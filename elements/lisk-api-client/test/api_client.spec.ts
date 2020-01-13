@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import * as os from 'os';
 import { APIClient } from '../src/api_client';
 
@@ -73,22 +72,20 @@ describe('APIClient module', () => {
 	});
 
 	describe('#constructor', () => {
-		let initializeStub: () => void;
+		let initializeStub: jest.SpyInstance;
 
 		beforeEach(() => {
-			initializeStub = sandbox.stub(APIClient.prototype, 'initialize');
+			initializeStub = jest.spyOn(APIClient.prototype, 'initialize');
 			return Promise.resolve();
 		});
 
 		it('should create a new instance of APIClient', () => {
-			return expect(apiClient)
-				.to.be.an('object')
-				.and.be.instanceof(APIClient);
+			return expect(apiClient).toBeInstanceOf(APIClient);
 		});
 
 		it('should call initialize with the nodes and default options', () => {
 			apiClient = new APIClient(defaultNodes);
-			return expect(initializeStub).to.be.calledWithExactly(defaultNodes, {});
+			return expect(initializeStub).toHaveBeenCalledWith(defaultNodes, {});
 		});
 
 		it('should call initialize with the nodes and provided options', () => {
@@ -97,7 +94,7 @@ describe('APIClient module', () => {
 					'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 			};
 			apiClient = new APIClient(defaultNodes, providedOptions);
-			return expect(initializeStub).to.be.calledWithExactly(
+			return expect(initializeStub).toHaveBeenCalledWith(
 				defaultNodes,
 				providedOptions,
 			);
@@ -112,15 +109,15 @@ describe('APIClient module', () => {
 		});
 
 		it('should return APIClient instance', () => {
-			return expect(client).to.be.instanceof(APIClient);
+			return expect(client).toBeInstanceOf(APIClient);
 		});
 
 		it('should contain mainnet nodes', () => {
-			return expect(client.nodes).to.eql(mainnetNodes);
+			return expect(client.nodes).toEqual(mainnetNodes);
 		});
 
 		it('should be set to mainnet hash', () => {
-			return expect(client.headers.nethash).to.equal(mainnetHash);
+			return expect(client.headers.nethash).toBe(mainnetHash);
 		});
 	});
 
@@ -132,42 +129,38 @@ describe('APIClient module', () => {
 		});
 
 		it('should return APIClient instance', () => {
-			return expect(client).to.be.instanceof(APIClient);
+			return expect(client).toBeInstanceOf(APIClient);
 		});
 
 		it('should contain testnet nodes', () => {
-			return expect(client.nodes).to.eql(testnetNodes);
+			return expect(client.nodes).toEqual(testnetNodes);
 		});
 
 		it('should be set to testnet hash', () => {
-			return expect(client.headers.nethash).to.equal(testnetHash);
+			return expect(client.headers.nethash).toBe(testnetHash);
 		});
 	});
 
 	describe('#constants', () => {
 		it('should expose API constants', () => {
-			return expect(APIClient.constants).to.be.an('object');
+			return expect(APIClient.constants).toBeObject();
 		});
 	});
 
 	describe('#initialize', () => {
 		it('should throw an error if no arguments are passed to constructor', () => {
-			return expect(apiClient.initialize.bind(apiClient)).to.throw(
-				Error,
-				'APIClient requires nodes for initialization.',
-			);
+			return expect(apiClient.initialize.bind(apiClient)).toThrowError(Error);
 		});
 
 		it('should throw an error if first argument passed to constructor is not array', () => {
 			return expect(
 				apiClient.initialize.bind(apiClient, 'non-array' as any),
-			).to.throw(Error, 'APIClient requires nodes for initialization.');
+			).toThrowError(Error);
 		});
 
 		it('should throw an error if first argument passed to constructor is empty array', () => {
-			return expect(apiClient.initialize.bind(apiClient, [])).to.throw(
+			return expect(apiClient.initialize.bind(apiClient, [])).toThrowError(
 				Error,
-				'APIClient requires nodes for initialization.',
 			);
 		});
 
@@ -178,26 +171,18 @@ describe('APIClient module', () => {
 					defaultNodes,
 					'option string' as any,
 				),
-			).to.throw(
-				Error,
-				'APIClient takes an optional object as the second parameter.',
-			);
+			).toThrowError(Error);
 		});
 
 		it('should throw an error if second argument passed to constructor is an array', () => {
 			return expect(
 				apiClient.initialize.bind(apiClient, defaultNodes, [] as any),
-			).to.throw(
-				Error,
-				'APIClient takes an optional object as the second parameter.',
-			);
+			).toThrowError(Error);
 		});
 
 		describe('headers', () => {
 			it('should set with passed nethash, with default options', () => {
-				return expect(apiClient)
-					.to.have.property('headers')
-					.and.eql(defaultHeaders);
+				return expect(apiClient.headers).toEqual(defaultHeaders);
 			});
 
 			it('should set custom headers with supplied options', () => {
@@ -209,56 +194,45 @@ describe('APIClient module', () => {
 						engine: '+https://github.com/LiskHQ/lisk-hub',
 					},
 				});
-				return expect(apiClient)
-					.to.have.property('headers')
-					.and.eql(customHeaders);
+				return expect(apiClient.headers).toEqual(customHeaders);
 			});
 
 			it('should not set User-Agent header when client options were not given', () => {
 				apiClient = new APIClient(defaultNodes, {
 					nethash: testnetHash,
 				});
-				return expect(apiClient.headers).to.not.have.property('User-Agent');
+				return expect(apiClient.headers).not.toHaveProperty('User-Agent');
 			});
 		});
 
 		describe('nodes', () => {
 			it('should have nodes supplied to constructor', () => {
-				return expect(apiClient)
-					.to.have.property('nodes')
-					.and.equal(defaultNodes);
+				return expect(apiClient.nodes).toBe(defaultNodes);
 			});
 		});
 
 		describe('bannedNodes', () => {
 			it('should set empty array if no option is passed', () => {
-				return expect(apiClient)
-					.to.have.property('bannedNodes')
-					.be.eql([]);
+				return expect(apiClient.bannedNodes).toEqual([]);
 			});
 
 			it('should set bannedNodes when passed as an option', () => {
 				const bannedNodes = ['a', 'b'];
 				apiClient = new APIClient(defaultNodes, { bannedNodes });
-				return expect(apiClient)
-					.to.have.property('bannedNodes')
-					.be.eql(bannedNodes);
+				return expect(apiClient.bannedNodes).toEqual(bannedNodes);
 			});
 		});
 
 		describe('currentNode', () => {
 			it('should set with random node with initialized setup if no node is specified by options', () => {
-				return expect(apiClient).to.have.property('currentNode').and.not.be
-					.empty;
+				return expect(Object.keys(apiClient)).not.toHaveLength(0);
 			});
 
 			it('should set with supplied node if node is specified by options', () => {
 				apiClient = new APIClient(defaultNodes, {
 					node: externalTestnetNode,
 				});
-				return expect(apiClient)
-					.to.have.property('currentNode')
-					.and.equal(externalTestnetNode);
+				return expect(apiClient.currentNode).toBe(externalTestnetNode);
 			});
 		});
 
@@ -267,21 +241,21 @@ describe('APIClient module', () => {
 				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: undefined,
 				});
-				return expect(apiClient).to.have.property('randomizeNodes').be.true;
+				return expect(apiClient.randomizeNodes).toBe(true);
 			});
 
 			it('should set randomizeNodes to true on initialization when passed as an option', () => {
 				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: true,
 				});
-				return expect(apiClient).to.have.property('randomizeNodes').be.true;
+				return expect(apiClient.randomizeNodes).toBe(true);
 			});
 
 			it('should set randomizeNodes to false on initialization when passed as an option', () => {
 				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: false,
 				});
-				return expect(apiClient).to.have.property('randomizeNodes').be.false;
+				return expect(apiClient.randomizeNodes).toBe(false);
 			});
 		});
 	});
@@ -289,14 +263,14 @@ describe('APIClient module', () => {
 	describe('#getNewNode', () => {
 		it('should throw an error if all relevant nodes are banned', () => {
 			apiClient.bannedNodes = [...defaultNodes];
-			return expect(apiClient.getNewNode.bind(apiClient)).to.throw(
+			return expect(apiClient.getNewNode.bind(apiClient)).toThrowError(
 				'Cannot get new node: all nodes have been banned.',
 			);
 		});
 
 		it('should return a node', () => {
 			const result = apiClient.getNewNode();
-			return expect(defaultNodes).to.contain(result);
+			return expect(defaultNodes).toEqual(expect.arrayContaining([result]));
 		});
 
 		it('should randomly select the node', () => {
@@ -313,8 +287,8 @@ describe('APIClient module', () => {
 	describe('#banNode', () => {
 		it('should add node to banned nodes', () => {
 			const banned = apiClient.banNode(localNode);
-			expect(banned).to.be.true;
-			return expect(apiClient.isBanned(localNode)).to.be.true;
+			expect(banned).toBe(true);
+			return expect(apiClient.isBanned(localNode)).toBe(true);
 		});
 
 		it('should not duplicate a banned node', () => {
@@ -322,8 +296,8 @@ describe('APIClient module', () => {
 			apiClient.bannedNodes = bannedNodes;
 			const banned = apiClient.banNode(localNode);
 
-			expect(banned).to.be.false;
-			return expect(apiClient.bannedNodes).to.be.eql(bannedNodes);
+			expect(banned).toBe(false);
+			return expect(apiClient.bannedNodes).toEqual(bannedNodes);
 		});
 	});
 
@@ -337,8 +311,8 @@ describe('APIClient module', () => {
 
 		it('should add current node to banned nodes', () => {
 			const banned = apiClient.banActiveNode();
-			expect(banned).to.be.true;
-			return expect(apiClient.isBanned(currentNode)).to.be.true;
+			expect(banned).toBe(true);
+			return expect(apiClient.isBanned(currentNode)).toBe(true);
 		});
 
 		it('should not duplicate a banned node', () => {
@@ -346,49 +320,48 @@ describe('APIClient module', () => {
 			apiClient.bannedNodes = bannedNodes;
 			const banned = apiClient.banActiveNode();
 
-			expect(banned).to.be.false;
-			return expect(apiClient.bannedNodes).to.be.eql(bannedNodes);
+			expect(banned).toBe(false);
+			return expect(apiClient.bannedNodes).toEqual(bannedNodes);
 		});
 	});
 
 	describe('#banActiveNodeAndSelect', () => {
 		let currentNode: string;
-		let getNewNodeStub: () => string;
+		let getNewNodeStub: jest.SpyInstance;
 
 		beforeEach(() => {
 			({ currentNode } = apiClient);
-			getNewNodeStub = sandbox
-				.stub(apiClient, 'getNewNode')
-				.returns(defaultSelectedNode);
-			return Promise.resolve();
+			getNewNodeStub = jest
+				.spyOn(apiClient, 'getNewNode')
+				.mockReturnValue(defaultSelectedNode);
 		});
 
 		it('should call ban current node', () => {
 			apiClient.banActiveNodeAndSelect();
-			return expect(apiClient.isBanned(currentNode)).to.be.true;
+			return expect(apiClient.isBanned(currentNode)).toBe(true);
 		});
 
 		it('should call selectNewNode when the node is banned', () => {
 			apiClient.banActiveNodeAndSelect();
-			return expect(getNewNodeStub).to.be.calledOnce;
+			return expect(getNewNodeStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should not call selectNewNode when the node is not banned', () => {
 			const bannedNodes = [currentNode];
 			apiClient.bannedNodes = bannedNodes;
 			apiClient.banActiveNodeAndSelect();
-			return expect(getNewNodeStub).not.to.be.called;
+			return expect(getNewNodeStub).not.toHaveBeenCalled();
 		});
 	});
 
 	describe('#isBanned', () => {
 		it('should return true when provided node is banned', () => {
 			apiClient.bannedNodes = [...apiClient.bannedNodes, localNode];
-			return expect(apiClient.isBanned(localNode)).to.be.true;
+			return expect(apiClient.isBanned(localNode)).toBe(true);
 		});
 
 		it('should return false when provided node is not banned', () => {
-			return expect(apiClient.isBanned(localNode)).to.be.false;
+			return expect(apiClient.isBanned(localNode)).toBe(false);
 		});
 	});
 
@@ -396,12 +369,12 @@ describe('APIClient module', () => {
 		it('should return false without nodes left', () => {
 			apiClient.bannedNodes = [...defaultNodes];
 			const result = apiClient.hasAvailableNodes();
-			return expect(result).to.be.false;
+			return expect(result).toBe(false);
 		});
 
 		it('should return true if nodes are available', () => {
 			const result = apiClient.hasAvailableNodes();
-			return expect(result).to.be.true;
+			return expect(result).toBe(true);
 		});
 	});
 });

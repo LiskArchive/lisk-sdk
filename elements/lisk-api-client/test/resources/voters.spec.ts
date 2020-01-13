@@ -12,49 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
-import { TransactionsResource } from '../../src/resources/transactions';
+import { VotersResource } from '../../src/resources/voters';
 
-describe('TransactionsResource', () => {
+describe('VotersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/transactions';
+	const path = '/voters';
 
 	let apiClient: APIClient;
 	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = new APIClient([defaultBasePath]);
-		resource = new TransactionsResource(apiClient);
+		resource = new VotersResource(apiClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should be instance of APIResource', () => {
-			return expect(resource).to.be.instanceOf(APIResource);
+			return expect(resource).toBeInstanceOf(APIResource);
 		});
 
 		it('should have correct full path', () => {
-			return expect(resource.resourcePath).to.eql(
+			return expect(resource.resourcePath).toEqual(
 				`${defaultBasePath}/api${path}`,
 			);
 		});
 
 		it('should set resource path', () => {
-			return expect(resource.path).to.equal(path);
+			return expect(resource.path).toBe(path);
 		});
 
 		it('should have a "get" function', () => {
-			return expect(resource)
-				.to.have.property('get')
-				.which.is.a('function');
-		});
-
-		it('should have a "broadcast" function', () => {
-			return expect(resource)
-				.to.have.property('broadcast')
-				.which.is.a('function');
+			return expect((resource as any).get).toBeFunction();
 		});
 	});
 });
