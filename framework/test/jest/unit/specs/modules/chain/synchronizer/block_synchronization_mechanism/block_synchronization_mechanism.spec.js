@@ -41,6 +41,9 @@ const {
 } = require('../../../../../../../../src/modules/chain/processor');
 const { constants } = require('../../../../../../../utils');
 const { newBlock } = require('../block');
+const {
+	registeredTransactions,
+} = require('../../../../../../../utils/registered_transactions');
 
 const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block');
 const peersList = require('./peers');
@@ -121,6 +124,7 @@ describe('block_synchronization_mechanism', () => {
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
+			registeredTransactions,
 			maxTransactionsPerBlock: constants.MAX_TRANSACTIONS_PER_BLOCK,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			rewardDistance: constants.REWARDS.DISTANCE,
