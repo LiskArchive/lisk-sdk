@@ -48,7 +48,7 @@ export class BFTForkChoiceRuleError extends BFTError {
 }
 
 export class BFTInvalidAttributeError extends BFTError {
-	public constructor() {
-		super('Invalid BFT attribute');
+	public constructor(message: string) {
+		super(`Invalid BFT attribute: ${message}`);
 	}
 }
