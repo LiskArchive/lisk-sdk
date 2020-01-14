@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { NaclInterface } from '../../src/nacl/nacl_types';
-import * as fast from '../../src/nacl/fast';
-import * as slow from '../../src/nacl/slow';
+import { when } from 'jest-when';
 // Require is used for stubbing
 const moduleLibrary = require('module');
 
@@ -26,26 +23,11 @@ const resetTest = () => {
 	delete require.cache[require.resolve('../../src/nacl')];
 };
 
-interface naclLibrary extends NaclInterface {
-	NACL_SIGN_PUBLICKEY_LENGTH: number;
-	NACL_SIGN_SIGNATURE_LENGTH: number;
-}
-
-const stripConstants = (library: naclLibrary) => {
-	// Constants are added in ../../src/nacl/index.js
-	const {
-		NACL_SIGN_PUBLICKEY_LENGTH,
-		NACL_SIGN_SIGNATURE_LENGTH,
-		...strippedLib
-	} = library;
-	return strippedLib;
-};
-
 describe('nacl index.js', () => {
 	let initialEnvVar: string | undefined;
+
 	beforeAll(() => {
 		initialEnvVar = process.env.NACL_FAST;
-		return Promise.resolve();
 	});
 
 	afterAll(() => {
@@ -54,67 +36,84 @@ describe('nacl index.js', () => {
 		} else {
 			delete process.env.NACL_FAST;
 		}
-		return Promise.resolve();
 	});
 
 	beforeEach(() => {
 		resetTest();
-		return Promise.resolve();
 	});
 
 	describe('nacl fast installed', () => {
 		beforeEach(() => {
 			resetTest();
-			return Promise.resolve();
 		});
 
-		it('should load nacl fast if process.env.NACL_FAST is set to enable', () => {
+		it('should load nacl fast if process.env.NACL_FAST is set to enable', async () => {
+			// Arrange
 			process.env.NACL_FAST = 'enable';
-			const loadedLibrary = require('../../src/nacl');
-			const strippedLibrary = stripConstants(loadedLibrary);
-			return expect(strippedLibrary).to.be.eql(fast);
+			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+			// Act
+			require('../../src/nacl');
+			// Assert
+			// Loading chain of Sodium-native module
+			expect(requireMock).toBeCalledWith('fs');
+			expect(requireMock).toBeCalledWith('path');
+			expect(requireMock).toBeCalledWith('os');
 		});
 
-		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
+		it('should load nacl slow if process.env.NACL_FAST is set to disable', async () => {
+			// Arrange
 			process.env.NACL_FAST = 'disable';
-			const loadedLibrary = require('../../src/nacl');
-			const strippedLibrary = stripConstants(loadedLibrary);
-			return expect(strippedLibrary).to.be.eql(slow);
+			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+			// Act
+			require('../../src/nacl');
+			// Assert
+			expect(requireMock).toBeCalledWith('crypto');
 		});
 
-		it('should load nacl fast if process.env.NACL_FAST is undefined', () => {
+		it('should load nacl fast if process.env.NACL_FAST is undefined', async () => {
+			// Arrange
 			process.env.NACL_FAST = undefined;
-			const loadedLibrary = require('../../src/nacl');
-			const strippedLibrary = stripConstants(loadedLibrary);
-			return expect(strippedLibrary).to.be.eql(fast);
+			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+			// Act
+			require('../../src/nacl');
+			// Assert
+			// Loading chain of Sodium-native module
+			expect(requireMock).toBeCalledWith('fs');
+			expect(requireMock).toBeCalledWith('path');
+			expect(requireMock).toBeCalledWith('os');
 		});
 	});
 
 	describe('nacl fast not installed', () => {
 		const moduleNotFoundError = new Error('MODULE_NOT_FOUND');
+
 		beforeEach(() => {
 			resetTest();
-
-			// "require" is a wrapper around Module._load which handles the actual loading
-			jest
-				.spyOn(moduleLibrary, '_load')
-				.mockReturnValue(moduleNotFoundError)
-				.callThrough()
-				.withArgs('./fast')
-				.throws(moduleNotFoundError);
-			return Promise.resolve();
 		});
 
-		it('should set process.env.NACL_FAST to disable', () => {
+		it('should set process.env.NACL_FAST to disable', async () => {
+			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+
+			when(requireMock)
+				.calledWith('fs')
+				.mockImplementation(() => {
+					throw moduleNotFoundError;
+				});
+
 			require('../../src/nacl');
-			return expect(process.env.NACL_FAST).to.eql('disable');
+			expect(process.env.NACL_FAST).toEqual('disable');
 		});
 
-		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
+		it('should load nacl slow if process.env.NACL_FAST is set to disable', async () => {
+			// Arrange
 			process.env.NACL_FAST = 'disable';
-			const loadedLibrary = require('../../src/nacl');
-			const strippedLibrary = stripConstants(loadedLibrary);
-			return expect(strippedLibrary).to.eql(slow);
+			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+
+			// Act
+			require('../../src/nacl');
+
+			// Assert
+			expect(requireMock).toBeCalledWith('crypto');
 		});
 	});
 });
