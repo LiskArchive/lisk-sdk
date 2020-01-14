@@ -388,6 +388,10 @@ export class P2P extends EventEmitter {
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
+			// Ignore peerInfo of the node coming from other peers
+			if (detailedPeerInfo.nonce === this.nodeInfo.nonce) {
+				return;
+			}
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 			// Check blacklist to avoid incoming connections from backlisted ips
 			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
