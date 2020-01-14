@@ -15,11 +15,7 @@
 'use strict';
 
 const { Blocks } = require('@liskhq/lisk-blocks');
-const {
-	Slots,
-	Dpos,
-	constants: { EVENT_ROUND_CHANGED },
-} = require('@liskhq/lisk-dpos');
+const { Slots, Dpos, EVENT_ROUND_CHANGED } = require('@liskhq/lisk-dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { convertErrorsToString } = require('./utils/error_handlers');
