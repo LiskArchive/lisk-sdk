@@ -19,14 +19,14 @@ import * as EventEmitter from 'events';
 import { EVENT_ROUND_CHANGED } from './constants';
 import { DelegatesInfo } from './delegates_info';
 import { DelegatesList } from './delegates_list';
+import { Slots } from './slots';
 import {
 	BlockJSON,
 	DPoSProcessingOptions,
 	Logger,
 	RoundDelegates,
 	Storage,
-} from './interfaces';
-import { Slots } from './slots';
+} from './types';
 
 interface ActiveDelegates {
 	// tslint:disable-next-line:readonly-keyword

@@ -16,13 +16,13 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 
+import { Slots } from './slots';
 import {
 	BlockJSON,
 	DPoSProcessingOptions,
 	Storage,
 	StorageTransaction,
-} from './interfaces';
-import { Slots } from './slots';
+} from './types';
 
 interface DelegatesListConstructor {
 	readonly storage: Storage;

@@ -19,6 +19,7 @@ import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
 import { DelegatesList } from './delegates_list';
+import { Slots } from './slots';
 import {
 	Account,
 	BigNumExtended,
@@ -29,8 +30,7 @@ import {
 	Logger,
 	Storage,
 	StorageTransaction,
-} from './interfaces';
-import { Slots } from './slots';
+} from './types';
 
 const _isGenesisBlock = (block: BlockJSON) => block.height === 1;
 
