@@ -21,6 +21,24 @@ export interface BlockHeader {
 	readonly delegatePublicKey: string;
 }
 
+export interface Block {
+	readonly height: number;
+	readonly id: string;
+	readonly generatorPublicKey: string;
+	readonly previousBlockId: string;
+	readonly timestamp: number;
+	readonly receivedAt?: number;
+	readonly maxHeightPrevoted: number;
+}
+
+export interface Slots {
+	readonly getSlotNumber: (timestamp: number) => number;
+	readonly isWithinTimeslot: (
+		slotNumber: number,
+		receivedAt: number | undefined,
+	) => boolean;
+}
+
 export class BFTError extends Error {}
 
 /* tslint:disable:max-classes-per-file */
