@@ -13,14 +13,23 @@
  */
 
 'use strict';
-import { SlotsConstructor } from './interfaces';
+
+interface SlotsConstructor {
+	readonly epochTime: string;
+	readonly interval: number;
+	readonly blocksPerRound: number;
+}
 
 export class Slots {
 	private readonly epochTime: string;
 	private readonly interval: number;
 	private readonly blocksPerRound: number;
 
-	public constructor({ epochTime, interval, blocksPerRound }: SlotsConstructor) {
+	public constructor({
+		epochTime,
+		interval,
+		blocksPerRound,
+	}: SlotsConstructor) {
 		this.epochTime = epochTime;
 		this.interval = interval;
 		this.blocksPerRound = blocksPerRound;

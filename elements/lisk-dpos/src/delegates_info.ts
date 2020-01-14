@@ -15,18 +15,99 @@
 'use strict';
 
 import * as BigNum from '@liskhq/bignum';
+import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
-import { BlockHeader } from './interfaces';
+import { DelegatesList } from './delegates_list';
+import {
+	Account,
+	BigNumExtended,
+	BlockJSON,
+	DPoSProcessingOptions,
+	DPoSProcessingUndoOptions,
+	Earnings,
+	Logger,
+	Storage,
+	StorageTransaction,
+} from './interfaces';
+import { Slots } from './slots';
 
-const _isGenesisBlock = (block: BlockHeader) => block.height === 1;
+const _isGenesisBlock = (block: BlockJSON) => block.height === 1;
 
-const _hasVotedDelegatesPublicKeys = ({
-	delegateAccount: { votedDelegatesPublicKeys },
-}) => !!votedDelegatesPublicKeys && votedDelegatesPublicKeys.length > 0;
+const _hasVotedDelegatesPublicKeys = (forgerInfo: UniqForgerInfo) =>
+	!!forgerInfo.delegateAccount?.votedDelegatesPublicKeys &&
+	forgerInfo.delegateAccount?.votedDelegatesPublicKeys.length > 0;
+
+interface DelegatesInfoConstructor {
+	readonly storage: Storage;
+	readonly slots: Slots;
+	readonly activeDelegates: number;
+	readonly logger: Logger;
+	readonly events: EventEmitter;
+	readonly delegatesList: DelegatesList;
+	// tslint:disable-next-line:no-any
+	readonly exceptions: any;
+}
+
+interface UniqForgerInfo {
+	/* tslint:disable:readonly-keyword */
+	delegateAccount?: Account;
+	earnings: Earnings;
+	publicKey: string;
+}
+
+interface RoundSummary {
+	readonly round: number;
+	readonly delegateListRoundOffset?: number;
+	readonly uniqForgersInfo: UniqForgerInfo[];
+	readonly totalFee: BigNum;
+	readonly tx?: StorageTransaction;
+}
+
+interface ForgerInfo {
+	/* tslint:disable:readonly-keyword */
+	publicKey: string;
+	reward: BigNum;
+	blocksForged: number;
+	isGettingRemainingFees: boolean;
+}
+
+interface RewardOptions {
+	readonly forgerInfo: ForgerInfo;
+	readonly totalFee: BigNum;
+	readonly round: number;
+}
+
+interface AccountSummary {
+	readonly delegatePublicKeys: string[];
+	readonly uniqDelegateListWithRewardsInfo: ForgerInfo[];
+	// tslint:disable-next-line:readonly-keyword
+	totalFee: BigNum;
+}
+
+interface AccountFees {
+	// tslint:disable-next-line:readonly-keyword
+	[key: string]: BigNum;
+}
+
+interface RoundException {
+	readonly rewards_factor: number;
+	readonly fees_factor: number;
+	readonly fees_bonus: number;
+}
 
 export class DelegatesInfo {
-	constructor({
+	private readonly storage: Storage;
+	private readonly slots: Slots;
+	private readonly activeDelegates: number;
+	private readonly logger: Logger;
+	private readonly events: EventEmitter;
+	private readonly delegatesList: DelegatesList;
+	private readonly exceptions: {
+		readonly rounds?: { readonly [key: string]: RoundException };
+	};
+
+	public constructor({
 		storage,
 		slots,
 		activeDelegates,
@@ -34,7 +115,7 @@ export class DelegatesInfo {
 		events,
 		delegatesList,
 		exceptions,
-	}) {
+	}: DelegatesInfoConstructor) {
 		this.storage = storage;
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
@@ -44,22 +125,33 @@ export class DelegatesInfo {
 		this.exceptions = exceptions;
 	}
 
-	async apply(block, { tx, delegateListRoundOffset }) {
+	public async apply(
+		block: BlockJSON,
+		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
+	): Promise<boolean> {
 		const undo = false;
+
 		return this._update(block, { undo, tx, delegateListRoundOffset });
 	}
 
-	async undo(block, { tx, delegateListRoundOffset }) {
+	public async undo(
+		block: BlockJSON,
+		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
+	): Promise<boolean> {
 		const undo = true;
 
 		// Never undo genesis block
 		if (_isGenesisBlock(block)) {
 			throw new Error('Cannot undo genesis block');
 		}
+
 		return this._update(block, { undo, tx, delegateListRoundOffset });
 	}
 
-	async _update(block, { undo, tx, delegateListRoundOffset }) {
+	private async _update(
+		block: BlockJSON,
+		{ undo, tx, delegateListRoundOffset }: DPoSProcessingUndoOptions,
+	): Promise<boolean> {
 		await this._updateProducedBlocks(block, undo, tx);
 
 		/**
@@ -68,6 +160,7 @@ export class DelegatesInfo {
 		if (_isGenesisBlock(block)) {
 			const round = 1;
 			await this.delegatesList.createRoundDelegateList(round, tx);
+
 			return false;
 		}
 
@@ -113,7 +206,11 @@ export class DelegatesInfo {
 		return true;
 	}
 
-	async _updateProducedBlocks(block, undo, tx) {
+	private async _updateProducedBlocks(
+		block: BlockJSON,
+		undo?: boolean,
+		tx?: StorageTransaction,
+	): Promise<Account[]> {
 		const filters = { publicKey: block.generatorPublicKey };
 		const field = 'producedBlocks';
 		const value = '1';
@@ -122,14 +219,17 @@ export class DelegatesInfo {
 		return this.storage.entities.Account[method](filters, field, value, tx);
 	}
 
-	async _updateMissedBlocks(roundSummary, undo, tx) {
+	private async _updateMissedBlocks(
+		roundSummary: RoundSummary,
+		undo?: boolean,
+		tx?: StorageTransaction,
+	): Promise<void> {
 		const missedBlocksDelegatePublicKeys = await this._getMissedBlocksDelegatePublicKeys(
 			roundSummary,
-			tx,
 		);
 
 		if (!missedBlocksDelegatePublicKeys.length) {
-			return false;
+			return;
 		}
 
 		const filters = { publicKey_in: missedBlocksDelegatePublicKeys };
@@ -138,27 +238,30 @@ export class DelegatesInfo {
 
 		const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
 
-		return this.storage.entities.Account[method](filters, field, value, tx);
+		await this.storage.entities.Account[method](filters, field, value, tx);
 	}
 
-	// update balance, rewards and fees to the forging delegates
-	async _updateBalanceRewardsAndFees({ uniqForgersInfo }, undo, tx) {
+	// Update balance, rewards and fees to the forging delegates
+	private async _updateBalanceRewardsAndFees(
+		{ uniqForgersInfo }: RoundSummary,
+		undo?: boolean,
+		tx?: StorageTransaction,
+	): Promise<void> {
 		const updateDelegatesPromise = uniqForgersInfo.map(
-			({ delegateAccount, earnings: { fee, reward } }) => {
+			async ({
+				delegateAccount,
+				earnings: { fee, reward },
+			}: UniqForgerInfo) => {
 				const factor = undo ? -1 : 1;
 				const amount = fee.plus(reward);
 				const data = {
-					balance: delegateAccount.balance
-						.plus(amount.times(factor))
-						.toString(),
-					fees: delegateAccount.fees.plus(fee.times(factor)).toString(),
-					rewards: delegateAccount.rewards
-						.plus(reward.times(factor))
-						.toString(),
+					balance: delegateAccount?.balance.plus(amount.mul(factor)).toString(),
+					fees: delegateAccount?.fees.plus(fee.mul(factor)).toString(),
+					rewards: delegateAccount?.rewards.plus(reward.mul(factor)).toString(),
 				};
 
 				return this.storage.entities.Account.update(
-					{ publicKey: delegateAccount.publicKey },
+					{ publicKey: delegateAccount?.publicKey },
 					data,
 					{},
 					tx,
@@ -166,26 +269,35 @@ export class DelegatesInfo {
 			},
 		);
 
-		return Promise.all(updateDelegatesPromise);
+		await Promise.all(updateDelegatesPromise);
 	}
 
-	// update VoteWeight to accounts voted by delegates who forged
-	async _updateVotedDelegatesVoteWeight({ uniqForgersInfo }, undo, tx) {
+	// Update VoteWeight to accounts voted by delegates who forged
+	private async _updateVotedDelegatesVoteWeight(
+		{ uniqForgersInfo }: RoundSummary,
+		undo?: boolean,
+		tx?: StorageTransaction,
+	): Promise<void> {
 		const publicKeysToUpdate = uniqForgersInfo
 			.filter(_hasVotedDelegatesPublicKeys)
-			.reduce((acc, { delegateAccount, earnings: { fee, reward } }) => {
-				delegateAccount.votedDelegatesPublicKeys.forEach(publicKey => {
-					if (acc[publicKey]) {
-						acc[publicKey] = acc[publicKey].plus(fee.plus(reward));
-					} else {
-						acc[publicKey] = fee.plus(reward);
-					}
-				});
-				return acc;
-			}, {});
+			.reduce(
+				(
+					acc: AccountFees,
+					{ delegateAccount, earnings: { fee, reward } }: UniqForgerInfo,
+				) => {
+					delegateAccount?.votedDelegatesPublicKeys.forEach(publicKey => {
+						acc[publicKey] = acc[publicKey]
+							? acc[publicKey].plus(fee.plus(reward))
+							: fee.plus(reward);
+					});
 
-		return Promise.all(
-			Object.keys(publicKeysToUpdate).map(publicKey => {
+					return acc;
+				},
+				{},
+			);
+
+		await Promise.all(
+			Object.keys(publicKeysToUpdate).map(async publicKey => {
 				const field = 'voteWeight';
 				const value = publicKeysToUpdate[publicKey].toString();
 				const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
@@ -200,7 +312,7 @@ export class DelegatesInfo {
 		);
 	}
 
-	_isLastBlockOfTheRound(block) {
+	private _isLastBlockOfTheRound(block: BlockJSON): boolean {
 		const round = this.slots.calcRound(block.height);
 		const nextRound = this.slots.calcRound(block.height + 1);
 
@@ -211,7 +323,10 @@ export class DelegatesInfo {
 	 * Return an object that contains the summary of round information
 	 * as delegates who forged, their earnings and accounts
 	 */
-	async _summarizeRound(block, { tx, delegateListRoundOffset }) {
+	private async _summarizeRound(
+		block: BlockJSON,
+		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
+	): Promise<RoundSummary> {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
@@ -224,7 +339,7 @@ export class DelegatesInfo {
 			tx,
 		);
 
-		// the blocksInRounds does not contain the last block
+		// The blocksInRounds does not contain the last block
 		blocksInRounds.push(block);
 
 		if (blocksInRounds.length !== this.activeDelegates) {
@@ -238,7 +353,7 @@ export class DelegatesInfo {
 			uniqDelegateListWithRewardsInfo,
 			totalFee,
 		} = blocksInRounds.reduce(
-			(acc, fetchedBlock, i) => {
+			(acc: AccountSummary, fetchedBlock: BlockJSON, i) => {
 				acc.totalFee = acc.totalFee.add(fetchedBlock.totalFee);
 
 				const delegate = acc.uniqDelegateListWithRewardsInfo.find(
@@ -253,11 +368,14 @@ export class DelegatesInfo {
 						isGettingRemainingFees: i === blocksInRounds.length - 1,
 					});
 					acc.delegatePublicKeys.push(fetchedBlock.generatorPublicKey);
+
 					return acc;
 				}
+
 				delegate.reward = delegate.reward.add(fetchedBlock.reward);
 				delegate.blocksForged += 1;
 				delegate.isGettingRemainingFees = i === blocksInRounds.length - 1;
+
 				return acc;
 			},
 			{
@@ -274,16 +392,18 @@ export class DelegatesInfo {
 				tx,
 			);
 
-			const parsedDelegateAccounts = delegateAccounts.map(account => ({
-				...account,
-				balance: new BigNum(account.balance),
-				rewards: new BigNum(account.rewards),
-				fees: new BigNum(account.fees),
-			}));
+			const parsedDelegateAccounts = delegateAccounts.map(
+				(account: Account) => ({
+					...account,
+					balance: new BigNum(account.balance),
+					rewards: new BigNum(account.rewards),
+					fees: new BigNum(account.fees),
+				}),
+			);
 
 			// Aggregate forger infor into one object
 			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
-				forgerInfo => ({
+				(forgerInfo: ForgerInfo) => ({
 					...forgerInfo,
 					earnings: this._calculateRewardAndFeeForDelegate({
 						totalFee,
@@ -308,12 +428,12 @@ export class DelegatesInfo {
 		}
 	}
 
-	async _getMissedBlocksDelegatePublicKeys({
+	private async _getMissedBlocksDelegatePublicKeys({
 		round,
 		delegateListRoundOffset,
 		uniqForgersInfo,
 		tx,
-	}) {
+	}: RoundSummary): Promise<string[]> {
 		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
 			round,
 			delegateListRoundOffset,
@@ -334,28 +454,37 @@ export class DelegatesInfo {
 	 * `_calculateRewardAndFeePerDelegate` method. `round` argument
 	 * can be safely removed when the exception on testnet was fixed.
 	 */
-	_calculateRewardAndFeeForDelegate({ forgerInfo, totalFee, round }) {
+	private _calculateRewardAndFeeForDelegate({
+		forgerInfo,
+		totalFee,
+		round,
+	}: RewardOptions): Earnings {
 		const { rounds: exceptionsRounds = {} } = this.exceptions;
 		const exceptionRound = exceptionsRounds[round.toString()];
 
+		// tslint:disable-next-line:no-let
 		let { reward: delegateReward } = forgerInfo;
+		// tslint:disable-next-line:no-let
 		let calculatedTotalFee = totalFee;
 
 		if (exceptionRound) {
 			// Multiply with rewards factor
-			delegateReward = delegateReward.times(exceptionRound.rewards_factor);
+			delegateReward = delegateReward.mul(exceptionRound.rewards_factor);
 			// Multiply with fees factor and add bonus
 			calculatedTotalFee = calculatedTotalFee
-				.times(exceptionRound.fees_factor)
+				.mul(exceptionRound.fees_factor)
 				.plus(exceptionRound.fees_bonus);
 		}
 
-		const feePerDelegate = calculatedTotalFee.div(this.activeDelegates).floor();
-		let fee = feePerDelegate.times(forgerInfo.blocksForged);
+		const feePerDelegate = (calculatedTotalFee.div(
+			this.activeDelegates,
+		) as BigNumExtended).floor();
+		// tslint:disable-next-line:no-let
+		let fee = feePerDelegate.mul(forgerInfo.blocksForged);
 
 		if (forgerInfo.isGettingRemainingFees) {
-			const feesRemaining = calculatedTotalFee.minus(
-				feePerDelegate.times(this.activeDelegates),
+			const feesRemaining = calculatedTotalFee.sub(
+				feePerDelegate.mul(this.activeDelegates),
 			);
 			fee = fee.plus(feesRemaining);
 		}

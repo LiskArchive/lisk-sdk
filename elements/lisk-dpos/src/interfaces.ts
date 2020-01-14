@@ -1,5 +1,3 @@
-import { EventEmitter } from "events";
-
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -13,49 +11,29 @@ import { EventEmitter } from "events";
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as BigNum from '@liskhq/bignum';
 
-export interface SlotsConstructor {
-	readonly epochTime: string;
-	readonly interval: number;
-	readonly blocksPerRound: number;
+// Storage
+export interface StorageFilter {
+	readonly [key: string]:
+		| string
+		| number
+		| boolean
+		| string[]
+		| number[]
+		| undefined;
 }
 
-export interface DposConstructor {
-	readonly storage: Storage;
-	readonly slots: SlotsConstructor;
-	readonly activeDelegates: number;
-	readonly delegateListRoundOffset: number;
-	readonly logger: Logger;
-	// tslint:disable-next-line:no-any
-	readonly exceptions: any;
-}
+export type StorageFilters =
+	| StorageFilter
+	| StorageFilter[]
+	| ReadonlyArray<StorageFilter>;
 
-export interface DelegatesConstructor {
-	readonly storage: Storage;
-	readonly slots: SlotsConstructor;
-	readonly activeDelegates: number;
-	// tslint:disable-next-line:no-any
-	readonly exceptions: any;
-}
-
-export interface DelegatesInfoConstructor {
-	readonly storage: Storage;
-	readonly slots: SlotsConstructor;
-	readonly activeDelegates: number;
-	readonly logger: Logger;
-	readonly events: EventEmitter;
-	readonly delegatesList: DelegatesList;
-	// tslint:disable-next-line:no-any
-	readonly exceptions: any;
-}
-
-export interface DelegatesList {
-	readonly getForgerPublicKeysForRound: (round: number, delegateListRoundOffset: number, tx: StorageTransaction) => Promise<readonly string[]>
-	readonly getDelegatePublicKeysSortedByVoteWeight: () =>
-	readonly createRoundDelegateList: () =>
-	readonly deleteDelegateListUntilRound: () =>
-	readonly deleteDelegateListAfterRound: () =>
-	readonly verifyBlockForger: () =>
+export interface StorageOptions {
+	readonly limit?: number | null;
+	readonly extended?: boolean;
+	readonly offset?: number;
+	readonly sort?: string | string[];
 }
 
 export interface StorageTransaction {
@@ -63,19 +41,106 @@ export interface StorageTransaction {
 	readonly batch: <T = any>(input: any[]) => Promise<T>;
 }
 
-export interface RoundDelegates {
-	readonly round: number;
-	readonly delegatePublicKeys: string[];
-}
-
-export interface RoundDelegatesEntity {
-	readonly getActiveDelegatesForRound: (roundWithOffset: number, tx: StorageTransaction) => Promise<RoundDelegates[]>;
+export interface StorageEntity<T> {
+	readonly get: (
+		filters?: StorageFilters,
+		options?: StorageOptions,
+		tx?: StorageTransaction,
+	) => Promise<T[]>;
+	readonly create: (
+		filters?: StorageFilters,
+		options?: StorageOptions,
+		tx?: StorageTransaction,
+	) => Promise<T[]>;
+	readonly delete: (
+		filters?: StorageFilters,
+		options?: StorageOptions,
+		tx?: StorageTransaction,
+	) => Promise<T[]>;
 }
 
 export interface Storage {
 	readonly entities: {
 		readonly RoundDelegates: RoundDelegatesEntity;
+		readonly Account: AccountEntity;
+		readonly Block: BlockEntity;
 	};
+}
+
+// Entity
+export interface BlockEntity {
+	readonly get: (
+		filters: StorageFilters,
+		_options: StorageOptions,
+		tx?: StorageTransaction,
+	) => Promise<BlockJSON[]>;
+}
+
+export interface AccountEntity extends StorageEntity<Account> {
+	readonly decreaseFieldBy: (
+		filters: StorageFilters,
+		field: string,
+		value: string,
+		tx?: StorageTransaction,
+	) => Promise<Account[]>;
+	readonly increaseFieldBy: (
+		filters: StorageFilters,
+		field: string,
+		value: string,
+		tx?: StorageTransaction,
+	) => Promise<Account[]>;
+	readonly update: (
+		filters: StorageFilters,
+		data: UpdateAccountData,
+		_options: StorageOptions,
+		tx?: StorageTransaction,
+	) => Promise<Account[]>;
+}
+
+export interface RoundDelegates {
+	readonly round: number;
+	readonly delegatePublicKeys: string[];
+}
+
+export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
+	readonly getActiveDelegatesForRound: (
+		roundWithOffset: number,
+		tx?: StorageTransaction,
+	) => Promise<string[]>;
+}
+
+// Typedefs
+export interface BigNumExtended extends BigNum {
+	readonly floor: () => BigNum;
+}
+
+export interface Earnings {
+	readonly fee: BigNum;
+	readonly reward: BigNum;
+}
+
+export interface BlockJSON extends Earnings {
+	readonly id: number;
+	readonly height: number;
+	readonly generatorPublicKey: string;
+	readonly totalFee: BigNum;
+	readonly timestamp: number;
+}
+
+export interface Account {
+	readonly id: string;
+	readonly balance: BigNum;
+	readonly fees: BigNum;
+	readonly rewards: BigNum;
+	readonly displayName: string;
+	readonly publicKey: string;
+	readonly votedDelegatesPublicKeys: string[];
+}
+
+interface UpdateAccountData {
+	readonly balance?: string;
+	readonly fees?: string;
+	readonly rewards?: string;
 }
 
 export interface Logger {
@@ -83,4 +148,12 @@ export interface Logger {
 	readonly debug: (...input: any[]) => void;
 	// tslint:disable-next-line no-any
 	readonly error: (...input: any[]) => void;
+}
+
+export interface DPoSProcessingOptions {
+	readonly tx?: StorageTransaction;
+	readonly delegateListRoundOffset?: number;
+}
+export interface DPoSProcessingUndoOptions extends DPoSProcessingOptions {
+	readonly undo?: boolean;
 }
