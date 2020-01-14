@@ -13,7 +13,8 @@
  */
 
 'use strict';
+import * as constants from './constants';
 
 export { Slots } from './slots';
 export { Dpos } from './dpos';
-export { EVENT_ROUND_CHANGED } from './constants';
+export { constants };
