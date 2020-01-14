@@ -1,5 +1,6 @@
 module.exports = {
 	testMatch: ['<rootDir>/test/**/**.ts'],
+	testPathIgnorePatterns: ['/test/utils/', '/test/integration/helpers'],
 	setupFilesAfterEnv: ['<rootDir>/test/_setup.js'],
 	transform: {
 		'^.+\\.(ts|tsx)$': 'ts-jest',
