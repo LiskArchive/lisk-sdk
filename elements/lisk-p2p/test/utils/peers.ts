@@ -15,6 +15,7 @@
 import { DEFAULT_RANDOM_SECRET } from '../../src/p2p';
 import { Peer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { PEER_KIND_OUTBOUND, PEER_KIND_INBOUND } from '../../src/peer_pool';
 
 export const initializePeerInfoList = (): ReadonlyArray<
 	P2PDiscoveredPeerInfo
@@ -79,6 +80,25 @@ export const initializeLongPeerInfoList = (): ReadonlyArray<
 			wsPort: 5001,
 			height: 645980,
 			kind: i % 4 === 0 ? 'outbound' : 'inbound',
+			isDiscoveredPeer: false,
+			version: '1.1.1',
+			protocolVersion: '1.1',
+		});
+	}
+	return peerInfos;
+};
+
+export const initializePeerInfoListWithSuffix = (
+	ipSuffix: string,
+	qty: number,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	let peerInfos = [];
+	for (let i = 0; i < qty; i++) {
+		peerInfos.push({
+			ipAddress: `${i % 255}.${ipSuffix}`,
+			wsPort: 5000 + (i % 40000),
+			height: 645980,
+			kind: i % 4 === 0 ? PEER_KIND_OUTBOUND : PEER_KIND_INBOUND,
 			isDiscoveredPeer: false,
 			version: '1.1.1',
 			protocolVersion: '1.1',
