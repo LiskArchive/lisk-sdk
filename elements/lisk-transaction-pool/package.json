@@ -43,7 +43,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"devDependencies": {
-		"@types/node": "^12.12.11",
+		"@types/node": "12.12.11",
 		"@types/jest": "24.0.1",
 		"jest": "24.5.0",
 		"ts-jest": "24.2.0",
