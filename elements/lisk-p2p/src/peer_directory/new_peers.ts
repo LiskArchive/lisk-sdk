@@ -212,7 +212,7 @@ export class NewPeers {
 		}
 
 		// Second eviction strategy
-		return this._evictionRandom(bucketId);
+		return this._evictRandomly(bucketId);
 	}
 	// Evict a peer when a bucket is full based on the time of residence in a peerlist
 	private _evictPeerBasedOnTimeInBucket(
@@ -238,7 +238,7 @@ export class NewPeers {
 		return undefined;
 	}
 	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
-	private _evictionRandom(bucketId: number): NewPeerInfo | undefined {
+	private _evictRandomly(bucketId: number): NewPeerInfo | undefined {
 		const bucket = this._newPeerMap.get(bucketId);
 		if (!bucket) {
 			return undefined;
