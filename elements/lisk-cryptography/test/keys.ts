@@ -55,13 +55,13 @@ describe('keys', () => {
 			keyPair = getPrivateAndPublicKeyBytesFromPassphrase(defaultPassphrase);
 		});
 
-		test('should create buffer publicKey', () => {
+		it('should create buffer publicKey', () => {
 			expect(Buffer.from(keyPair.publicKeyBytes).toString('hex')).toBe(
 				defaultPublicKey,
 			);
 		});
 
-		test('should create buffer privateKey', () => {
+		it('should create buffer privateKey', () => {
 			expect(Buffer.from(keyPair.privateKeyBytes).toString('hex')).toBe(
 				defaultPrivateKey,
 			);
@@ -75,11 +75,11 @@ describe('keys', () => {
 			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
 		});
 
-		test('should generate the correct publicKey from a passphrase', () => {
+		it('should generate the correct publicKey from a passphrase', () => {
 			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
 		});
 
-		test('should generate the correct privateKey from a passphrase', () => {
+		it('should generate the correct privateKey from a passphrase', () => {
 			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
 		});
 	});
@@ -91,17 +91,17 @@ describe('keys', () => {
 			keyPair = getKeys(defaultPassphrase);
 		});
 
-		test('should generate the correct publicKey from a passphrase', () => {
+		it('should generate the correct publicKey from a passphrase', () => {
 			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
 		});
 
-		test('should generate the correct privateKey from a passphrase', () => {
+		it('should generate the correct privateKey from a passphrase', () => {
 			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
 		});
 	});
 
 	describe('#getAddressAndPublicKeyFromPassphrase', () => {
-		test('should create correct address and publicKey', () => {
+		it('should create correct address and publicKey', () => {
 			expect(getAddressAndPublicKeyFromPassphrase(defaultPassphrase)).toEqual(
 				defaultAddressAndPublicKey,
 			);
@@ -109,13 +109,13 @@ describe('keys', () => {
 	});
 
 	describe('#getAddressFromPassphrase', () => {
-		test('should create correct address', () => {
+		it('should create correct address', () => {
 			expect(getAddressFromPassphrase(defaultPassphrase)).toBe(defaultAddress);
 		});
 	});
 
 	describe('#getAddressFromPrivateKey', () => {
-		test('should create correct address', () => {
+		it('should create correct address', () => {
 			expect(getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64))).toBe(
 				defaultAddress,
 			);

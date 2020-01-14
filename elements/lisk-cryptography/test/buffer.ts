@@ -26,59 +26,59 @@ describe('buffer', () => {
 	const defaultHex = 'c3a5c3a4c3b6';
 
 	describe('#bufferToHex', () => {
-		test('should create a hex string from a Buffer', () => {
+		it('should create a hex string from a Buffer', () => {
 			const hex = bufferToHex(defaultBuffer);
 			expect(hex).toBe(defaultHex);
 		});
 	});
 
 	describe('#hexToBuffer', () => {
-		test('should create a Buffer from a hex string', () => {
+		it('should create a Buffer from a hex string', () => {
 			const buffer = hexToBuffer(defaultHex);
 			expect(buffer).toEqual(defaultBuffer);
 		});
 
-		test('should throw TypeError with number', () => {
+		it('should throw TypeError with number', () => {
 			expect(hexToBuffer.bind(null, 123 as any)).toThrowError(TypeError);
 		});
 
-		test('should throw TypeError with object', () => {
+		it('should throw TypeError with object', () => {
 			expect(hexToBuffer.bind(null, {} as any)).toThrowError(TypeError);
 		});
 
-		test('should throw an error for a non-string input with custom argument name', () => {
+		it('should throw an error for a non-string input with custom argument name', () => {
 			expect(hexToBuffer.bind(null, {} as any, 'Custom')).toThrowError(
 				'Custom must be a string.',
 			);
 		});
 
-		test('should throw TypeError with non hex string', () => {
+		it('should throw TypeError with non hex string', () => {
 			expect(hexToBuffer.bind(null, 'yKJj')).toThrowError(TypeError);
 		});
 
-		test('should throw TypeError with partially correct hex string', () => {
+		it('should throw TypeError with partially correct hex string', () => {
 			expect(hexToBuffer.bind(null, 'Abxzzzz')).toThrowError(TypeError);
 		});
 
-		test('should throw TypeError with odd number of string with partially correct hex string', () => {
+		it('should throw TypeError with odd number of string with partially correct hex string', () => {
 			expect(hexToBuffer.bind(null, 'Abxzzab')).toThrowError(TypeError);
 		});
 
-		test('should throw TypeError with odd number hex string with invalid hex', () => {
+		it('should throw TypeError with odd number hex string with invalid hex', () => {
 			expect(hexToBuffer.bind(null, '123xxxx')).toThrowError(TypeError);
 		});
 
-		test('should throw an error for a non-hex string input with custom argument name', () => {
+		it('should throw an error for a non-hex string input with custom argument name', () => {
 			expect(hexToBuffer.bind(null, 'yKJj', 'Custom')).toThrowError(
 				'Custom must be a valid hex string.',
 			);
 		});
 
-		test('should throw TypeError with odd-length hex string', () => {
+		it('should throw TypeError with odd-length hex string', () => {
 			expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a')).toThrowError(TypeError);
 		});
 
-		test('should throw an error for an odd-length hex string input with custom argument name', () => {
+		it('should throw an error for an odd-length hex string input with custom argument name', () => {
 			expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a', 'Custom')).toThrowError(
 				'Custom must have a valid length of hex string.',
 			);
@@ -86,7 +86,7 @@ describe('buffer', () => {
 	});
 
 	describe('#bigNumberToBuffer', () => {
-		test('should convert a big number to a buffer', () => {
+		it('should convert a big number to a buffer', () => {
 			const bigNumber = '58191285901858109';
 			const addressSize = 8;
 			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
@@ -95,7 +95,7 @@ describe('buffer', () => {
 	});
 
 	describe('#bufferToBigNumberString', () => {
-		test('should convert a buffer to a big number', () => {
+		it('should convert a buffer to a big number', () => {
 			const bigNumber = '58191285901858109';
 			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
 			expect(bufferToBigNumberString(buffer)).toBe(bigNumber);
@@ -103,7 +103,7 @@ describe('buffer', () => {
 	});
 
 	describe('#intToBuffer', () => {
-		test('should convert a integer to a 1 byte buffer when size=1, endian=big', () => {
+		it('should convert a integer to a 1 byte buffer when size=1, endian=big', () => {
 			const value = 127;
 			const size = 1;
 			const endian = 'big';
@@ -114,7 +114,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 1 byte buffer when size=1, endian=little', () => {
+		it('should convert a integer to a 1 byte buffer when size=1, endian=little', () => {
 			const value = 127;
 			const size = 1;
 			const endian = 'little';
@@ -125,7 +125,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 2 bytes big endian buffer when size=2, endian=big', () => {
+		it('should convert a integer to a 2 bytes big endian buffer when size=2, endian=big', () => {
 			const value = 32767;
 			const size = 2;
 			const endian = 'big';
@@ -136,7 +136,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 2 bytes little endian buffer when size=2, endian=little', () => {
+		it('should convert a integer to a 2 bytes little endian buffer when size=2, endian=little', () => {
 			const value = 3276;
 			const size = 2;
 			const endian = 'little';
@@ -147,7 +147,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 4 bytes big endian buffer when size=4, endian=big', () => {
+		it('should convert a integer to a 4 bytes big endian buffer when size=4, endian=big', () => {
 			const value = 2147483647;
 			const size = 4;
 			const endian = 'big';
@@ -158,7 +158,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 4 bytes little endian buffer when size=4, endian=little', () => {
+		it('should convert a integer to a 4 bytes little endian buffer when size=4, endian=little', () => {
 			const value = 2147483647;
 			const size = 4;
 			const endian = 'little';
@@ -169,7 +169,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 4 bytes big endian buffer when no size or endian is given', () => {
+		it('should convert a integer to a 4 bytes big endian buffer when no size or endian is given', () => {
 			const value = 2147483647;
 			const size = 4;
 
@@ -179,7 +179,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 8 bytes big endian buffer when size=8, endian=big', () => {
+		it('should convert a integer to a 8 bytes big endian buffer when size=8, endian=big', () => {
 			const value = '58191285901858109';
 			const size = 8;
 			const endian = 'big';
@@ -189,7 +189,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 8 bytes little endian buffer when size=8, endian=little', () => {
+		it('should convert a integer to a 8 bytes little endian buffer when size=8, endian=little', () => {
 			const value = '58191285901858109';
 			const size = 8;
 			const endian = 'little';
@@ -199,7 +199,7 @@ describe('buffer', () => {
 			expect(intToBuffer(value, size, endian)).toEqual(expectedBuffer);
 		});
 
-		test('should convert a integer to a 8 bytes big endian buffer when size=8 and endian is not given', () => {
+		it('should convert a integer to a 8 bytes big endian buffer when size=8 and endian is not given', () => {
 			const value = '58191285901858109';
 			const size = 8;
 
@@ -210,7 +210,7 @@ describe('buffer', () => {
 	});
 
 	describe('#bufferToIntAsString', () => {
-		test('should convert a 1 byte buffer to a integer as string', () => {
+		it('should convert a 1 byte buffer to a integer as string', () => {
 			const value = 127;
 
 			const size = 1;
@@ -220,7 +220,7 @@ describe('buffer', () => {
 			expect(bufferToIntAsString(buffer)).toBe(value.toString());
 		});
 
-		test('should convert a 2 bytes buffer to a integer as string', () => {
+		it('should convert a 2 bytes buffer to a integer as string', () => {
 			const value = 32767;
 
 			const size = 2;
@@ -230,7 +230,7 @@ describe('buffer', () => {
 			expect(bufferToIntAsString(buffer)).toBe(value.toString());
 		});
 
-		test('should convert a 4 bytes buffer to a integer as string', () => {
+		it('should convert a 4 bytes buffer to a integer as string', () => {
 			const value = 2147483647;
 
 			const size = 4;
@@ -240,7 +240,7 @@ describe('buffer', () => {
 			expect(bufferToIntAsString(buffer)).toBe(value.toString());
 		});
 
-		test('should convert a 8 bytes buffer to a integer as string', () => {
+		it('should convert a 8 bytes buffer to a integer as string', () => {
 			const value = '58191285901858109';
 
 			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');

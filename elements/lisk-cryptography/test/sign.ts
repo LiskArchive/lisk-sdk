@@ -115,7 +115,7 @@ ${defaultSecondSignature}
 	describe('#digestMessage', () => {
 		const strGenerator = (len: number, chr: string): string => chr.repeat(len);
 
-		test('should create message digest for message with length = 0', () => {
+		it('should create message digest for message with length = 0', () => {
 			const msgBytes = digestMessage('');
 			const expectedMessageBytes = Buffer.from(
 				'3fdb82ac2a879b647f4f27f3fbd1c27e0d4e278f830b76295604035330163b79',
@@ -123,7 +123,7 @@ ${defaultSecondSignature}
 			);
 			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
-		test('should create message digest for message in length range 1 - 253', () => {
+		it('should create message digest for message in length range 1 - 253', () => {
 			const msgBytes = digestMessage(strGenerator(250, 'a'));
 			const expectedMessageBytes = Buffer.from(
 				'12832c687d950513aa5db6198b84809eb8fd7ff1c8963dca48ea57278523ec67',
@@ -131,7 +131,7 @@ ${defaultSecondSignature}
 			);
 			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
-		test('should create message digest for message in length range 254 - 65536', () => {
+		it('should create message digest for message in length range 254 - 65536', () => {
 			const msgBytes = digestMessage(strGenerator(65535, 'a'));
 			const expectedMessageBytes = Buffer.from(
 				'73da94220312e71eb5c55c94fdddca3c06a6c18cb74a4a4a2cee1a82875c2450',
@@ -139,7 +139,7 @@ ${defaultSecondSignature}
 			);
 			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
-		test('should create message digest for message in length range 65537 - 4294967296', () => {
+		it('should create message digest for message in length range 65537 - 4294967296', () => {
 			const msgBytes = digestMessage(strGenerator(6710886, 'a'));
 			const expectedMessageBytes = Buffer.from(
 				'7c51817b5c31c4d04e9ffcf2e78859d6522b124f218c789a8f721b5f3e6b295d',
@@ -152,7 +152,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signMessageWithPassphrase', () => {
-		test('should create a signed message using a secret passphrase', () => {
+		it('should create a signed message using a secret passphrase', () => {
 			const signedMessage = signMessageWithPassphrase(
 				defaultMessage,
 				defaultPassphrase,
@@ -162,7 +162,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#verifyMessageWithPublicKey', () => {
-		test('should detect invalid publicKeys', () => {
+		it('should detect invalid publicKeys', () => {
 			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
@@ -172,7 +172,7 @@ ${defaultSecondSignature}
 			).toThrowError('Invalid publicKey, expected 32-byte publicKey');
 		});
 
-		test('should detect invalid signatures', () => {
+		it('should detect invalid signatures', () => {
 			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
@@ -182,7 +182,7 @@ ${defaultSecondSignature}
 			).toThrowError('Invalid signature length, expected 64-byte signature');
 		});
 
-		test('should return false if the signature is invalid', () => {
+		it('should return false if the signature is invalid', () => {
 			const verification = verifyMessageWithPublicKey({
 				message: defaultMessage,
 				signature: makeInvalid(defaultSignature),
@@ -191,14 +191,14 @@ ${defaultSecondSignature}
 			expect(verification).toBe(false);
 		});
 
-		test('should return true if the signature is valid', () => {
+		it('should return true if the signature is valid', () => {
 			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
 			expect(verification).toBe(true);
 		});
 	});
 
 	describe('#signMessageWithTwoPassphrases', () => {
-		test('should create a message signed by two secret passphrases', () => {
+		it('should create a message signed by two secret passphrases', () => {
 			const signature = signMessageWithTwoPassphrases(
 				defaultMessage,
 				defaultPassphrase,
@@ -210,7 +210,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#verifyMessageWithTwoPublicKeys', () => {
-		test('should throw on invalid first publicKey length', () => {
+		it('should throw on invalid first publicKey length', () => {
 			const {
 				publicKey,
 				...messageWithoutPublicKey
@@ -223,7 +223,7 @@ ${defaultSecondSignature}
 			).toThrowError('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
-		test('should throw on invalid second publicKey length', () => {
+		it('should throw on invalid second publicKey length', () => {
 			const {
 				secondPublicKey,
 				...messageWithoutSecondPublicKey
@@ -236,7 +236,7 @@ ${defaultSecondSignature}
 			).toThrowError('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
-		test('should throw on invalid primary signature length', () => {
+		it('should throw on invalid primary signature length', () => {
 			const {
 				signature,
 				...messageWithoutSignature
@@ -251,7 +251,7 @@ ${defaultSecondSignature}
 			);
 		});
 
-		test('should throw on invalid secondary signature length', () => {
+		it('should throw on invalid secondary signature length', () => {
 			const {
 				secondSignature,
 				...messageWithoutSecondSignature
@@ -266,7 +266,7 @@ ${defaultSecondSignature}
 			);
 		});
 
-		test('should return false for incorrect first signature', () => {
+		it('should return false for incorrect first signature', () => {
 			const {
 				signature,
 				...messageWithoutSignature
@@ -278,7 +278,7 @@ ${defaultSecondSignature}
 			expect(verified).toBe(false);
 		});
 
-		test('should return false for incorrect second signature', () => {
+		it('should return false for incorrect second signature', () => {
 			const {
 				secondSignature,
 				...messageWithoutSecondSignature
@@ -290,7 +290,7 @@ ${defaultSecondSignature}
 			expect(verified).toBe(false);
 		});
 
-		test('should return true for two valid signatures', () => {
+		it('should return true for two valid signatures', () => {
 			const verified = verifyMessageWithTwoPublicKeys(
 				defaultDoubleSignedMessage,
 			);
@@ -299,7 +299,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#printSignedMessage', () => {
-		test('should wrap a single signed message into a printed Lisk template', () => {
+		it('should wrap a single signed message into a printed Lisk template', () => {
 			const printedMessage = printSignedMessage({
 				message: defaultMessage,
 				signature: defaultSignature,
@@ -308,7 +308,7 @@ ${defaultSecondSignature}
 			expect(printedMessage).toBe(defaultPrintedMessage);
 		});
 
-		test('should wrap a second signed message into a printed Lisk template', () => {
+		it('should wrap a second signed message into a printed Lisk template', () => {
 			const printedMessage = printSignedMessage({
 				message: defaultMessage,
 				signature: defaultSignature,
@@ -321,7 +321,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signAndPrintMessage', () => {
-		test('should sign the message once and wrap it into a printed Lisk template', () => {
+		it('should sign the message once and wrap it into a printed Lisk template', () => {
 			const signedAndPrintedMessage = signAndPrintMessage(
 				defaultMessage,
 				defaultPassphrase,
@@ -329,7 +329,7 @@ ${defaultSecondSignature}
 			expect(signedAndPrintedMessage).toBe(defaultPrintedMessage);
 		});
 
-		test('should sign the message twice and wrap it into a printed Lisk template', () => {
+		it('should sign the message twice and wrap it into a printed Lisk template', () => {
 			const signedAndPrintedMessage = signAndPrintMessage(
 				defaultMessage,
 				defaultPassphrase,
@@ -347,7 +347,7 @@ ${defaultSecondSignature}
 			return Promise.resolve();
 		});
 
-		test('should sign a transaction', () => {
+		it('should sign a transaction', () => {
 			expect(signature).toBe(defaultDataSignature);
 		});
 	});
@@ -360,7 +360,7 @@ ${defaultSecondSignature}
 			return Promise.resolve();
 		});
 
-		test('should sign a transaction', () => {
+		it('should sign a transaction', () => {
 			expect(signature).toBe(defaultDataSignature);
 		});
 	});
@@ -376,13 +376,13 @@ ${defaultSecondSignature}
 			return Promise.resolve();
 		});
 
-		test('should sign a transaction', () => {
+		it('should sign a transaction', () => {
 			expect(signature).toBe(defaultDataSignature);
 		});
 	});
 
 	describe('#verifyData', () => {
-		test('should return false for an invalid signature', () => {
+		it('should return false for an invalid signature', () => {
 			const verification = verifyData(
 				defaultData,
 				makeInvalid(defaultDataSignature),
@@ -391,7 +391,7 @@ ${defaultSecondSignature}
 			expect(verification).toBe(false);
 		});
 
-		test('should return true for a valid signature', () => {
+		it('should return true for a valid signature', () => {
 			const verification = verifyData(
 				defaultData,
 				defaultDataSignature,

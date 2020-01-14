@@ -75,13 +75,13 @@ describe('nacl', () => {
 					return Promise.resolve();
 				});
 
-				test('should return an uint8array', () => {
+				it('should return an uint8array', () => {
 					expect(Object.prototype.toString.call(randomBuffer)).toEqual(
 						'[object Uint8Array]',
 					);
 				});
 
-				test('should return an uint8array of size 24', () => {
+				it('should return an uint8array of size 24', () => {
 					expect(randomBuffer.length).toEqual(24);
 				});
 			});
@@ -94,25 +94,25 @@ describe('nacl', () => {
 					return Promise.resolve();
 				});
 
-				test('should create a publicKey', () => {
+				it('should create a publicKey', () => {
 					expect(
 						Buffer.from(signedKeys.publicKeyBytes).toString('hex'),
 					).toEqual(defaultPublicKey);
 				});
 
-				test('should create a publicKey of type uint8array', () => {
+				it('should create a publicKey of type uint8array', () => {
 					expect(
 						Object.prototype.toString.call(signedKeys.publicKeyBytes),
 					).toEqual('[object Uint8Array]');
 				});
 
-				test('should create a privateKey', () => {
+				it('should create a privateKey', () => {
 					expect(
 						Buffer.from(signedKeys.privateKeyBytes).toString('hex'),
 					).toEqual(defaultPrivateKey);
 				});
 
-				test('should create a privateKey of type uint8array', () => {
+				it('should create a privateKey of type uint8array', () => {
 					expect(
 						Object.prototype.toString.call(signedKeys.privateKeyBytes),
 					).toEqual('[object Uint8Array]');
@@ -128,13 +128,13 @@ describe('nacl', () => {
 					return Promise.resolve();
 				});
 
-				test('should create a publicKey', () => {
+				it('should create a publicKey', () => {
 					expect(Buffer.from(publicKey).toString('hex')).toEqual(
 						defaultPublicKey,
 					);
 				});
 
-				test('should create a publicKey when private key is 32 bytes', () => {
+				it('should create a publicKey when private key is 32 bytes', () => {
 					publicKey = getPublicKey(
 						Buffer.from(defaultPrivateKey, 'hex').slice(0, 32),
 					);
@@ -143,7 +143,7 @@ describe('nacl', () => {
 					);
 				});
 
-				test('should create a publicKey of type uint8array', () => {
+				it('should create a publicKey of type uint8array', () => {
 					expect(Object.prototype.toString.call(publicKey)).toEqual(
 						'[object Uint8Array]',
 					);
@@ -161,13 +161,13 @@ describe('nacl', () => {
 					return Promise.resolve();
 				});
 
-				test('should create a signature', () => {
+				it('should create a signature', () => {
 					expect(Buffer.from(signatureBytes).toString('hex')).toEqual(
 						defaultSignature,
 					);
 				});
 
-				test('should create a signature of type uint8array', () => {
+				it('should create a signature of type uint8array', () => {
 					expect(Object.prototype.toString.call(signatureBytes)).toEqual(
 						'[object Uint8Array]',
 					);
@@ -175,7 +175,7 @@ describe('nacl', () => {
 			});
 
 			describe('#verifyDetached', () => {
-				test('should return false if the signature is invalid', () => {
+				it('should return false if the signature is invalid', () => {
 					const verification = verifyDetached(
 						Buffer.from(defaultDigest, 'hex'),
 						Buffer.from(makeInvalid(defaultSignature), 'hex'),
@@ -184,7 +184,7 @@ describe('nacl', () => {
 					expect(verification).toBe(false);
 				});
 
-				test('should return true if the signature is valid', () => {
+				it('should return true if the signature is valid', () => {
 					const verification = verifyDetached(
 						Buffer.from(defaultDigest, 'hex'),
 						Buffer.from(defaultSignature, 'hex'),
@@ -207,7 +207,7 @@ describe('nacl', () => {
 					return Promise.resolve();
 				});
 
-				test('should encrypt a message', () => {
+				it('should encrypt a message', () => {
 					expect(Buffer.from(encryptedMessageBytes).toString('hex')).toEqual(
 						defaultEncryptedMessage,
 					);
@@ -227,13 +227,13 @@ describe('nacl', () => {
 					return Promise.resolve();
 				});
 
-				test('should decrypt a message', () => {
+				it('should decrypt a message', () => {
 					expect(Buffer.from(decryptedMessageBytes).toString('utf8')).toEqual(
 						defaultMessage,
 					);
 				});
 
-				test('should throw an error for an invalid message', () => {
+				it('should throw an error for an invalid message', () => {
 					expect(
 						openBox.bind(
 							null,
@@ -250,7 +250,7 @@ describe('nacl', () => {
 			});
 
 			describe('integration tests', () => {
-				test('should encrypt a given message with a nonce and converted key pair, and decrypt it back to the original message', () => {
+				it('should encrypt a given message with a nonce and converted key pair, and decrypt it back to the original message', () => {
 					const encryptedMessageBytes = box(
 						Buffer.from(defaultMessage, 'utf8'),
 						Buffer.from(defaultNonce, 'hex'),
@@ -268,7 +268,7 @@ describe('nacl', () => {
 					);
 				});
 
-				test('should sign a given message and verify it using the same signature', () => {
+				it('should sign a given message and verify it using the same signature', () => {
 					const signatureBytes = signDetached(
 						Buffer.from(defaultDigest, 'hex'),
 						Buffer.from(defaultPrivateKey, 'hex'),

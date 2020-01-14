@@ -15,7 +15,7 @@
 import * as cryptography from '../src';
 
 describe('cryptography index.js', () => {
-	test('should export an object', () => {
+	it('should export an object', () => {
 		expect(cryptography).toEqual(expect.any(Object));
 	});
 });

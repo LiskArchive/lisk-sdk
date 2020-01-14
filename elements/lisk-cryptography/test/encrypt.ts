@@ -109,13 +109,13 @@ describe('encrypt', () => {
 			return Promise.resolve();
 		});
 
-		test('should encrypt a message', () => {
+		it('should encrypt a message', () => {
 			// TODO: Add Hex string assertion check
 			expect(encryptedMessage).toHaveProperty('encryptedMessage');
 			expect(regHexadecimal.test(encryptedMessage.encryptedMessage)).toBe(true);
 		});
 
-		test('should output the nonce', () => {
+		it('should output the nonce', () => {
 			// TODO: Add Hex string assertion check
 			expect(encryptedMessage);
 			expect(encryptedMessage).toHaveProperty('nonce');
@@ -124,7 +124,7 @@ describe('encrypt', () => {
 	});
 
 	describe('#decryptMessageWithPassphrase', () => {
-		test('should be able to decrypt the message correctly using the receiver’s secret passphrase', () => {
+		it('should be able to decrypt the message correctly using the receiver’s secret passphrase', () => {
 			const decryptedMessage = decryptMessageWithPassphrase(
 				defaultEncryptedMessageWithNonce.encryptedMessage,
 				defaultEncryptedMessageWithNonce.nonce,
@@ -135,7 +135,7 @@ describe('encrypt', () => {
 			expect(decryptedMessage).toBe(defaultMessage);
 		});
 
-		test('should inform the user if the nonce is the wrong length', () => {
+		it('should inform the user if the nonce is the wrong length', () => {
 			expect(
 				decryptMessageWithPassphrase.bind(
 					null,
@@ -147,7 +147,7 @@ describe('encrypt', () => {
 			).toThrowError('Expected nonce to be 24 bytes.');
 		});
 
-		test('should inform the user if something goes wrong during decryption', () => {
+		it('should inform the user if something goes wrong during decryption', () => {
 			expect(
 				decryptMessageWithPassphrase.bind(
 					null,
@@ -185,7 +185,7 @@ describe('encrypt', () => {
 				return Promise.resolve();
 			});
 
-			test('should encrypt a passphrase', () => {
+			it('should encrypt a passphrase', () => {
 				// TODO: Add Hex string assertion check
 				expect(encryptedPassphrase).toMatchObject({
 					cipherText: expect.any(String),
@@ -195,46 +195,46 @@ describe('encrypt', () => {
 				expect(encryptedPassphrase.iv).toHaveLength(24);
 			});
 
-			test('should output the IV', () => {
+			it('should output the IV', () => {
 				expect(encryptedPassphrase).toHaveProperty('iv');
 				expect(encryptedPassphrase.iv).toHaveLength(24);
 			});
 
-			test('should output the salt', () => {
+			it('should output the salt', () => {
 				expect(encryptedPassphrase).toHaveProperty('salt');
 				expect(encryptedPassphrase.salt).toHaveLength(32);
 			});
 
-			test('should output the tag', () => {
+			it('should output the tag', () => {
 				expect(encryptedPassphrase).toHaveProperty('tag');
 				expect(encryptedPassphrase.tag).toHaveLength(32);
 			});
 
-			test('should output the current version of Lisk Elements', () => {
+			it('should output the current version of Lisk Elements', () => {
 				expect(encryptedPassphrase).toHaveProperty(
 					'version',
 					ENCRYPTION_VERSION,
 				);
 			});
 
-			test('should output the default number of iterations', () => {
+			it('should output the default number of iterations', () => {
 				expect(encryptedPassphrase).toHaveProperty(
 					'iterations',
 					PBKDF2_ITERATIONS,
 				);
 			});
 
-			test('should take more than 0.25 seconds @node-only', () => {
+			it('should take more than 0.25 seconds @node-only', () => {
 				const endTime = Date.now();
 				expect(endTime - startTime).toBeGreaterThan(250);
 			});
 
-			test('should take less than 2 seconds @node-only', () => {
+			it('should take less than 2 seconds @node-only', () => {
 				const endTime = Date.now();
 				expect(endTime - startTime).toBeLessThan(2e3);
 			});
 
-			test('should accept and output a custom number of iterations', () => {
+			it('should accept and output a custom number of iterations', () => {
 				const encryptedPassphraseWithIterations = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
@@ -258,7 +258,7 @@ describe('encrypt', () => {
 				version: '1',
 			};
 
-			test('should decrypt a passphrase with a password', () => {
+			it('should decrypt a passphrase with a password', () => {
 				const decrypted = decryptPassphraseWithPassword(
 					encryptedPassphrase,
 					defaultPassword,
@@ -266,7 +266,7 @@ describe('encrypt', () => {
 				expect(decrypted).toBe(defaultPassphrase);
 			});
 
-			test('should inform the user if cipherText is missing', () => {
+			it('should inform the user if cipherText is missing', () => {
 				const {
 					cipherText,
 					...encryptedPassphraseWithoutCipherText
@@ -280,7 +280,7 @@ describe('encrypt', () => {
 				).toThrowError('Cipher text must be a string.');
 			});
 
-			test('should inform the user if iv is missing', () => {
+			it('should inform the user if iv is missing', () => {
 				const { iv, ...encryptedPassphraseWithoutIv } = encryptedPassphrase;
 				expect(
 					decryptPassphraseWithPassword.bind(
@@ -291,7 +291,7 @@ describe('encrypt', () => {
 				).toThrowError('IV must be a string.');
 			});
 
-			test('should inform the user if salt is missing', () => {
+			it('should inform the user if salt is missing', () => {
 				const { salt, ...encryptedPassphraseWithoutSalt } = encryptedPassphrase;
 				expect(
 					decryptPassphraseWithPassword.bind(
@@ -302,7 +302,7 @@ describe('encrypt', () => {
 				).toThrowError('Salt must be a string.');
 			});
 
-			test('should inform the user if tag is missing', () => {
+			it('should inform the user if tag is missing', () => {
 				const { tag, ...encryptedPassphraseWithoutTag } = encryptedPassphrase;
 				expect(
 					decryptPassphraseWithPassword.bind(
@@ -313,7 +313,7 @@ describe('encrypt', () => {
 				).toThrowError('Tag must be a string.');
 			});
 
-			test('should inform the user if the salt has been altered', () => {
+			it('should inform the user if the salt has been altered', () => {
 				const { salt, ...encryptedPassphraseWithoutSalt } = encryptedPassphrase;
 				const encryptedPassphraseWithAlteredSalt = {
 					salt: `00${encryptedPassphrase.salt.slice(2)}`,
@@ -328,7 +328,7 @@ describe('encrypt', () => {
 				).toThrowError('Unsupported state or unable to authenticate data');
 			});
 
-			test('should inform the user if the tag has been shortened', () => {
+			it('should inform the user if the tag has been shortened', () => {
 				const { tag, ...encryptedPassphraseWithoutTag } = encryptedPassphrase;
 				const encryptedPassphraseWithAlteredTag = {
 					tag: encryptedPassphrase.tag.slice(0, 30),
@@ -343,7 +343,7 @@ describe('encrypt', () => {
 				).toThrowError('Tag must be 16 bytes.');
 			});
 
-			test('should inform the user if the tag is not a hex string', () => {
+			it('should inform the user if the tag is not a hex string', () => {
 				const { tag, ...encryptedPassphraseWithoutTag } = encryptedPassphrase;
 				const encryptedPassphraseWithAlteredTag = {
 					tag: `${encryptedPassphrase.tag.slice(0, 30)}gg`,
@@ -358,7 +358,7 @@ describe('encrypt', () => {
 				).toThrowError('Tag must be a valid hex string.');
 			});
 
-			test('should inform the user if the tag has been altered', () => {
+			it('should inform the user if the tag has been altered', () => {
 				const { tag, ...encryptedPassphraseWithoutTag } = encryptedPassphrase;
 				const encryptedPassphraseWithAlteredTag = {
 					tag: `00${encryptedPassphrase.tag.slice(2)}`,
@@ -373,7 +373,7 @@ describe('encrypt', () => {
 				).toThrowError('Unsupported state or unable to authenticate data');
 			});
 
-			test('should decrypt a passphrase with a password and a custom number of iterations', () => {
+			it('should decrypt a passphrase with a password and a custom number of iterations', () => {
 				const encryptedPassphraseWithCustomIterations = {
 					iterations: 12,
 					cipherText:
@@ -392,7 +392,7 @@ describe('encrypt', () => {
 		});
 
 		describe('integration test', () => {
-			test('should encrypt a given passphrase with a password and decrypt it back to the original passphrase @node-only', () => {
+			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase @node-only', () => {
 				const encryptedPassphrase = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
@@ -404,7 +404,7 @@ describe('encrypt', () => {
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 
-			test('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase @node-only', () => {
+			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase @node-only', () => {
 				const encryptedPassphrase = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
