@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const BigNum = require('@liskhq/bignum');
-const { randomInt } = require('./utils/random_int');
-const delegatePublicKeys = require('./delegate_publickeys.json');
+import BigNum from '@liskhq/bignum';
+import { randomInt } from './random_int';
+const delegatePublicKeys from'./d elegate_publick eys.json';
 
 const delegateAccounts = delegatePublicKeys.map((pk, index) => {
 	const balance = new BigNum(randomInt(100, 1000));

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 module.exports = {
 	ACTIVE_DELEGATES: 101,
 	EPOCH_TIME: '2016-05-24T17:00:00.000Z',

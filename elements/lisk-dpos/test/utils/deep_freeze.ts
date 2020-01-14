@@ -14,7 +14,7 @@
 
 'use strict';
 
-const deepFreeze = o => {
+export const deepFreeze = o => {
 	Object.freeze(o);
 	if (o === undefined) {
 		return o;
@@ -31,8 +31,4 @@ const deepFreeze = o => {
 	});
 
 	return o;
-};
-
-module.exports = {
-	deepFreeze,
 };
