@@ -182,7 +182,7 @@ export class TriedPeers {
 				evicted: false,
 			};
 		}
-		const evictedPeer = this._evictRandomly(bucketId);
+		const evictedPeer = this._evictRandomly(bucket);
 		bucket.set(incomingPeerId, newTriedPeerInfo);
 		this._triedPeerMap.set(bucketId, bucket);
 
@@ -228,12 +228,10 @@ export class TriedPeers {
 	}
 
 	// If the bucket is full when we add a new peer then choose a peer randomly from the bucket and evict.
-	private _evictRandomly(bucketId: number): TriedPeerInfo | undefined {
-		const bucket = this._triedPeerMap.get(bucketId);
-		if (!bucket) {
-			return undefined;
-		}
-
+	// tslint:disable-next-line:prefer-function-over-method
+	private _evictRandomly(
+		bucket: Map<string, TriedPeerInfo>,
+	): TriedPeerInfo | undefined {
 		const bucketPeerIds = Array.from(bucket.keys());
 		const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
 		const randomPeerId = bucketPeerIds[randomPeerIndex];
