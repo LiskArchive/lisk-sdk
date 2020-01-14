@@ -284,8 +284,17 @@ const generateTestCasesInvalidBlockVoteNoDelegateTx = () => {
 
 	// Forge the block so as to have all delegates in the store
 	chainStateBuilder.forge();
-
-	const notAdelegate = ChainStateBuilder.createAccount();
+	// this is ok to not be in the input for the spec as is just a random/invalid account
+	const notAdelegate = {
+		passphrase:
+			'finish key enact banner crouch rice legal scan palm noise gain claw',
+		privateKey:
+			'223a1d5dafe7bb019855929b010ddebc3326ffbf0ddb4dc32779d0b41e47f9f1b2b98de6f89d708a11af0bf5866db860f0889161e27af5b6bd7bbc9ad2cd797b',
+		publicKey:
+			'b2b98de6f89d708a11af0bf5866db860f0889161e27af5b6bd7bbc9ad2cd797b',
+		address: '4786496342079411836L',
+		balance: '0',
+	};
 	// Vote for an account is not a delegate
 	chainStateBuilder
 		.castVotesFrom('2222471382442610527L')
