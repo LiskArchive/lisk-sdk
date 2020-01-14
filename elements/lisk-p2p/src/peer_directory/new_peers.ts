@@ -186,7 +186,7 @@ export class NewPeers {
 		return {
 			success: true,
 			isEvicted: true,
-			evictedPeer: evictedPeer.peerInfo,
+			evictedPeer: evictedPeer ? evictedPeer.peerInfo : undefined,
 		};
 	}
 
@@ -197,7 +197,7 @@ export class NewPeers {
 		return success;
 	}
 
-	private _evictPeer(bucketId: number): NewPeerInfo {
+	private _evictPeer(bucketId: number): NewPeerInfo | undefined {
 		const peerList = this._newPeerMap.get(bucketId);
 
 		if (!peerList) {
@@ -205,10 +205,7 @@ export class NewPeers {
 		}
 
 		// First eviction strategy
-		const evictedPeerBasedOnTime = this._evictionBasedOnTimeInBucket(
-			bucketId,
-			peerList,
-		);
+		const evictedPeerBasedOnTime = this._evictPeerBasedOnTimeInBucket(bucketId);
 
 		if (evictedPeerBasedOnTime) {
 			return evictedPeerBasedOnTime;
@@ -218,47 +215,40 @@ export class NewPeers {
 		return this._evictionRandom(bucketId);
 	}
 	// Evict a peer when a bucket is full based on the time of residence in a peerlist
-	private _evictionBasedOnTimeInBucket(
+	private _evictPeerBasedOnTimeInBucket(
 		bucketId: number,
-		peerList: Map<string, NewPeerInfo>,
 	): NewPeerInfo | undefined {
-		// tslint:disable-next-line:no-let
-		let evictedPeer: NewPeerInfo | undefined;
-
-		[...this._newPeerMap.values()].forEach(peersMap => {
-			[...peersMap.keys()].forEach(peerId => {
-				const peer = peersMap.get(peerId);
-
-				if (!peer) {
-					return;
-				}
-
-				const timeDifference = Math.round(
-					Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
-				);
-
-				if (timeDifference >= this._evictionThresholdTime) {
-					peerList.delete(peerId);
-					this._newPeerMap.set(bucketId, peerList);
-					evictedPeer = peer;
-				}
-			});
-		});
-
-		return evictedPeer;
-	}
-	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
-	private _evictionRandom(bucketId: number): NewPeerInfo {
-		const peerList = this._newPeerMap.get(bucketId);
-		if (!peerList) {
-			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
+		const bucket = this._newPeerMap.get(bucketId);
+		if (!bucket) {
+			return undefined;
 		}
 
-		const randomPeerIndex = Math.floor(Math.random() * this._newPeerBucketSize);
-		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
-		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
-		peerList.delete(randomPeerId);
-		this._newPeerMap.set(bucketId, peerList);
+		for (const [peerId, peer] of bucket) {
+			const timeDifference = Math.round(
+				Math.abs(peer.dateAdded.getTime() - new Date().getTime()),
+			);
+
+			if (timeDifference >= this._evictionThresholdTime) {
+				bucket.delete(peerId);
+
+				return peer;
+			}
+		}
+
+		return undefined;
+	}
+	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
+	private _evictionRandom(bucketId: number): NewPeerInfo | undefined {
+		const bucket = this._newPeerMap.get(bucketId);
+		if (!bucket) {
+			return undefined;
+		}
+
+		const bucketPeerIds = Array.from(bucket.keys());
+		const randomPeerIndex = Math.floor(Math.random() * bucketPeerIds.length);
+		const randomPeerId = bucketPeerIds[randomPeerIndex];
+		const randomPeer = bucket.get(randomPeerId);
+		bucket.delete(randomPeerId);
 
 		return randomPeer;
 	}
