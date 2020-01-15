@@ -4,7 +4,7 @@
 		"declaration": true,
 		"outDir": "dist-node",
 		"rootDir": "./src",
-		"types": ["node", "jest", "jest-extended"]
+		"types": ["node", "jest"]
 	},
 	"include": ["types/**/*", "src/**/*"]
 }

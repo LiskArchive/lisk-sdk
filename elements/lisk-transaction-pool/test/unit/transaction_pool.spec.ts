@@ -2,7 +2,7 @@ import * as transactionObjects from '../../fixtures/transactions.json';
 import { Job } from '../../src/job';
 import { Transaction, TransactionPool } from '../../src/transaction_pool';
 import * as checkTransactions from '../../src/check_transactions';
-import { wrapTransaction } from './../utils/add_transaction_functions';
+import { wrapTransaction } from '../utils/add_transaction_functions';
 import * as queueCheckers from '../../src/queue_checkers';
 import { Status } from '../../../lisk-transactions/dist-node/index.js';
 
