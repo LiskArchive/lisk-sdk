@@ -15,11 +15,11 @@ describe('queue', () => {
 	});
 
 	describe('#enqueueOne', () => {
-		it('should enqueue 1000 transactions in under 100 milliseconds', async () => {
+		it('should enqueue 1000 transactions in under 1000 milliseconds', async () => {
 			const startTime = new Date().getTime();
 			transactions.forEach(transaction => queue.enqueueOne(transaction));
 			const endTime = new Date().getTime();
-			expect(endTime - startTime).toBeLessThan(100);
+			expect(endTime - startTime).toBeLessThan(1000);
 		});
 	});
 
@@ -28,11 +28,11 @@ describe('queue', () => {
 			transactions.forEach(transaction => queue.enqueueOne(transaction));
 		});
 
-		it('should dequeue 1000 transactions in under 100 milliseconds', async () => {
+		it('should dequeue 1000 transactions in under 1000 milliseconds', async () => {
 			const startTime = new Date().getTime();
 			queue.dequeueUntil(returnTrueUntilLimit(1000));
 			const endTime = new Date().getTime();
-			expect(endTime - startTime).toBeLessThan(100);
+			expect(endTime - startTime).toBeLessThan(1000);
 		});
 	});
 

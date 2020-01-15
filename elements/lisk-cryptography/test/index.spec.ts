@@ -13,10 +13,9 @@
  *
  */
 import * as cryptography from '../src';
-import { expect } from 'chai';
 
 describe('cryptography index.js', () => {
 	it('should export an object', () => {
-		return expect(cryptography).to.be.an('object');
+		expect(cryptography).toEqual(expect.any(Object));
 	});
 });

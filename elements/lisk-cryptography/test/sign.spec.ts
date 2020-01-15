@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { makeInvalid } from './helpers';
 import {
 	SignedMessageWithOnePassphrase,
@@ -82,8 +81,6 @@ ${defaultSecondSignature}
 	let defaultSignedMessage: SignedMessageWithOnePassphrase;
 	let defaultDoubleSignedMessage: SignedMessageWithTwoPassphrases;
 
-	let getPrivateAndPublicKeyBytesFromPassphraseStub;
-
 	beforeEach(() => {
 		defaultSignedMessage = {
 			message: defaultMessage,
@@ -98,21 +95,20 @@ ${defaultSecondSignature}
 			secondSignature: defaultSecondSignature,
 		};
 
-		getPrivateAndPublicKeyBytesFromPassphraseStub = sandbox.stub(
-			keys,
-			'getPrivateAndPublicKeyBytesFromPassphrase',
-		);
-		getPrivateAndPublicKeyBytesFromPassphraseStub
-			.withArgs(defaultPassphrase)
-			.returns({
-				privateKeyBytes: Buffer.from(defaultPrivateKey, 'hex'),
-				publicKeyBytes: Buffer.from(defaultPublicKey, 'hex'),
-			});
-		return getPrivateAndPublicKeyBytesFromPassphraseStub
-			.withArgs(defaultSecondPassphrase)
-			.returns({
-				privateKeyBytes: Buffer.from(defaultSecondPrivateKey, 'hex'),
-				publicKeyBytes: Buffer.from(defaultSecondPublicKey, 'hex'),
+		jest
+			.spyOn(keys, 'getPrivateAndPublicKeyBytesFromPassphrase')
+			.mockImplementation((passphrase: any) => {
+				if (passphrase === defaultPassphrase) {
+					return {
+						privateKeyBytes: Buffer.from(defaultPrivateKey, 'hex'),
+						publicKeyBytes: Buffer.from(defaultPublicKey, 'hex'),
+					};
+				}
+
+				return {
+					privateKeyBytes: Buffer.from(defaultSecondPrivateKey, 'hex'),
+					publicKeyBytes: Buffer.from(defaultSecondPublicKey, 'hex'),
+				};
 			});
 	});
 
@@ -125,7 +121,7 @@ ${defaultSecondSignature}
 				'3fdb82ac2a879b647f4f27f3fbd1c27e0d4e278f830b76295604035330163b79',
 				'hex',
 			);
-			return expect(msgBytes).to.be.eql(expectedMessageBytes);
+			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
 		it('should create message digest for message in length range 1 - 253', () => {
 			const msgBytes = digestMessage(strGenerator(250, 'a'));
@@ -133,7 +129,7 @@ ${defaultSecondSignature}
 				'12832c687d950513aa5db6198b84809eb8fd7ff1c8963dca48ea57278523ec67',
 				'hex',
 			);
-			return expect(msgBytes).to.be.eql(expectedMessageBytes);
+			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
 		it('should create message digest for message in length range 254 - 65536', () => {
 			const msgBytes = digestMessage(strGenerator(65535, 'a'));
@@ -141,7 +137,7 @@ ${defaultSecondSignature}
 				'73da94220312e71eb5c55c94fdddca3c06a6c18cb74a4a4a2cee1a82875c2450',
 				'hex',
 			);
-			return expect(msgBytes).to.be.eql(expectedMessageBytes);
+			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
 		it('should create message digest for message in length range 65537 - 4294967296', () => {
 			const msgBytes = digestMessage(strGenerator(6710886, 'a'));
@@ -149,7 +145,7 @@ ${defaultSecondSignature}
 				'7c51817b5c31c4d04e9ffcf2e78859d6522b124f218c789a8f721b5f3e6b295d',
 				'hex',
 			);
-			return expect(msgBytes).to.be.eql(expectedMessageBytes);
+			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
 		// higest range (length > 4294967296) is not practical to test
 		// but it is covered by `varuint-bitcoin` library
@@ -161,29 +157,29 @@ ${defaultSecondSignature}
 				defaultMessage,
 				defaultPassphrase,
 			);
-			return expect(signedMessage).to.be.eql(defaultSignedMessage);
+			expect(signedMessage).toEqual(defaultSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithPublicKey', () => {
 		it('should detect invalid publicKeys', () => {
-			return expect(
+			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
 					signature: defaultSignature,
 					publicKey: changeLength(defaultPublicKey),
 				}),
-			).to.throw('Invalid publicKey, expected 32-byte publicKey');
+			).toThrowError('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect invalid signatures', () => {
-			return expect(
+			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
 					signature: changeLength(defaultSignature),
 					publicKey: defaultPublicKey,
 				}),
-			).to.throw('Invalid signature length, expected 64-byte signature');
+			).toThrowError('Invalid signature length, expected 64-byte signature');
 		});
 
 		it('should return false if the signature is invalid', () => {
@@ -192,12 +188,12 @@ ${defaultSecondSignature}
 				signature: makeInvalid(defaultSignature),
 				publicKey: defaultPublicKey,
 			});
-			return expect(verification).to.be.false;
+			expect(verification).toBe(false);
 		});
 
 		it('should return true if the signature is valid', () => {
 			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
-			return expect(verification).to.be.true;
+			expect(verification).toBe(true);
 		});
 	});
 
@@ -209,7 +205,7 @@ ${defaultSecondSignature}
 				defaultSecondPassphrase,
 			);
 
-			return expect(signature).to.be.eql(defaultDoubleSignedMessage);
+			expect(signature).toEqual(defaultDoubleSignedMessage);
 		});
 	});
 
@@ -219,12 +215,12 @@ ${defaultSecondSignature}
 				publicKey,
 				...messageWithoutPublicKey
 			} = defaultDoubleSignedMessage;
-			return expect(
+			expect(
 				verifyMessageWithTwoPublicKeys.bind(null, {
 					publicKey: changeLength(defaultPublicKey),
 					...messageWithoutPublicKey,
 				}),
-			).to.throw('Invalid first publicKey, expected 32-byte publicKey');
+			).toThrowError('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid second publicKey length', () => {
@@ -232,12 +228,12 @@ ${defaultSecondSignature}
 				secondPublicKey,
 				...messageWithoutSecondPublicKey
 			} = defaultDoubleSignedMessage;
-			return expect(
+			expect(
 				verifyMessageWithTwoPublicKeys.bind(null, {
 					secondPublicKey: changeLength(defaultSecondPublicKey),
 					...messageWithoutSecondPublicKey,
 				}),
-			).to.throw('Invalid second publicKey, expected 32-byte publicKey');
+			).toThrowError('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid primary signature length', () => {
@@ -245,12 +241,14 @@ ${defaultSecondSignature}
 				signature,
 				...messageWithoutSignature
 			} = defaultDoubleSignedMessage;
-			return expect(
+			expect(
 				verifyMessageWithTwoPublicKeys.bind(null, {
 					signature: changeLength(defaultSignature),
 					...messageWithoutSignature,
 				}),
-			).to.throw('Invalid first signature length, expected 64-byte signature');
+			).toThrowError(
+				'Invalid first signature length, expected 64-byte signature',
+			);
 		});
 
 		it('should throw on invalid secondary signature length', () => {
@@ -258,12 +256,14 @@ ${defaultSecondSignature}
 				secondSignature,
 				...messageWithoutSecondSignature
 			} = defaultDoubleSignedMessage;
-			return expect(
+			expect(
 				verifyMessageWithTwoPublicKeys.bind(null, {
 					secondSignature: changeLength(defaultSecondSignature),
 					...messageWithoutSecondSignature,
 				}),
-			).to.throw('Invalid second signature length, expected 64-byte signature');
+			).toThrowError(
+				'Invalid second signature length, expected 64-byte signature',
+			);
 		});
 
 		it('should return false for incorrect first signature', () => {
@@ -275,7 +275,7 @@ ${defaultSecondSignature}
 				signature: makeInvalid(defaultSignature),
 				...messageWithoutSignature,
 			});
-			return expect(verified).to.be.false;
+			expect(verified).toBe(false);
 		});
 
 		it('should return false for incorrect second signature', () => {
@@ -287,14 +287,14 @@ ${defaultSecondSignature}
 				secondSignature: makeInvalid(defaultSecondSignature),
 				...messageWithoutSecondSignature,
 			});
-			return expect(verified).to.be.false;
+			expect(verified).toBe(false);
 		});
 
 		it('should return true for two valid signatures', () => {
 			const verified = verifyMessageWithTwoPublicKeys(
 				defaultDoubleSignedMessage,
 			);
-			return expect(verified).to.be.true;
+			expect(verified).toBe(true);
 		});
 	});
 
@@ -305,7 +305,7 @@ ${defaultSecondSignature}
 				signature: defaultSignature,
 				publicKey: defaultPublicKey,
 			});
-			return expect(printedMessage).to.be.equal(defaultPrintedMessage);
+			expect(printedMessage).toBe(defaultPrintedMessage);
 		});
 
 		it('should wrap a second signed message into a printed Lisk template', () => {
@@ -316,9 +316,7 @@ ${defaultSecondSignature}
 				secondSignature: defaultSecondSignature,
 				secondPublicKey: defaultSecondPublicKey,
 			});
-			return expect(printedMessage).to.be.equal(
-				defaultSecondSignedPrintedMessage,
-			);
+			expect(printedMessage).toBe(defaultSecondSignedPrintedMessage);
 		});
 	});
 
@@ -328,7 +326,7 @@ ${defaultSecondSignature}
 				defaultMessage,
 				defaultPassphrase,
 			);
-			return expect(signedAndPrintedMessage).to.be.equal(defaultPrintedMessage);
+			expect(signedAndPrintedMessage).toBe(defaultPrintedMessage);
 		});
 
 		it('should sign the message twice and wrap it into a printed Lisk template', () => {
@@ -337,9 +335,7 @@ ${defaultSecondSignature}
 				defaultPassphrase,
 				defaultSecondPassphrase,
 			);
-			return expect(signedAndPrintedMessage).to.be.equal(
-				defaultSecondSignedPrintedMessage,
-			);
+			expect(signedAndPrintedMessage).toBe(defaultSecondSignedPrintedMessage);
 		});
 	});
 
@@ -352,7 +348,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should sign a transaction', () => {
-			return expect(signature).to.be.equal(defaultDataSignature);
+			expect(signature).toBe(defaultDataSignature);
 		});
 	});
 
@@ -365,7 +361,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should sign a transaction', () => {
-			return expect(signature).to.be.equal(defaultDataSignature);
+			expect(signature).toBe(defaultDataSignature);
 		});
 	});
 
@@ -381,7 +377,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should sign a transaction', () => {
-			return expect(signature).to.be.equal(defaultDataSignature);
+			expect(signature).toBe(defaultDataSignature);
 		});
 	});
 
@@ -392,7 +388,7 @@ ${defaultSecondSignature}
 				makeInvalid(defaultDataSignature),
 				defaultPublicKey,
 			);
-			return expect(verification).to.be.false;
+			expect(verification).toBe(false);
 		});
 
 		it('should return true for a valid signature', () => {
@@ -401,7 +397,7 @@ ${defaultSecondSignature}
 				defaultDataSignature,
 				defaultPublicKey,
 			);
-			return expect(verification).to.be.true;
+			expect(verification).toBe(true);
 		});
 	});
 });
