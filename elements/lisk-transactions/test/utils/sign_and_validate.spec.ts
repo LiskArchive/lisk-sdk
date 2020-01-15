@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { addTransactionFields } from '../helpers';
 import { validateMultisignatures, validateSignature } from '../../src/utils';
@@ -43,9 +42,9 @@ describe('signAndVerify module', () => {
 		);
 
 		it('should call cryptography hash', async () => {
-			const cryptographyHashStub = sandbox
-				.stub(cryptography, 'hash')
-				.returns(
+			const cryptographyHashStub = jest
+				.spyOn(cryptography, 'hash')
+				.mockReturnValue(
 					Buffer.from(
 						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c',
 						'hex',
@@ -58,13 +57,13 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(cryptographyHashStub).to.be.calledOnce;
+			expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call cryptography verifyData', async () => {
-			const cryptographyVerifyDataStub = sandbox
-				.stub(cryptography, 'verifyData')
-				.returns(true);
+			const cryptographyVerifyDataStub = jest
+				.spyOn(cryptography, 'verifyData')
+				.mockReturnValue(true);
 
 			validateSignature(
 				defaultSecondSignatureTransaction.senderPublicKey,
@@ -72,7 +71,7 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(cryptographyVerifyDataStub).to.be.calledOnce;
+			expect(cryptographyVerifyDataStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return a valid response with valid signature', async () => {
@@ -82,7 +81,7 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(valid).to.be.true;
+			expect(valid).toBe(true);
 		});
 
 		it('should return an unvalid response with invalid signature', async () => {
@@ -92,16 +91,15 @@ describe('signAndVerify module', () => {
 				Buffer.from(defaultTransactionBytes),
 			);
 
-			expect(valid).to.be.false;
-			expect(error)
-				.to.be.instanceof(TransactionError)
-				.and.have.property(
-					'message',
-					`Failed to validate signature ${defaultSecondSignatureTransaction.signature.replace(
-						'1',
-						'0',
-					)}`,
-				);
+			expect(valid).toBe(false);
+			expect(error).toBeInstanceOf(TransactionError);
+			expect(error).toHaveProperty(
+				'message',
+				`Failed to validate signature ${defaultSecondSignatureTransaction.signature.replace(
+					'1',
+					'0',
+				)}`,
+			);
 		});
 
 		it('should return a valid response with valid signSignature', async () => {
@@ -111,7 +109,7 @@ describe('signAndVerify module', () => {
 				defaultSecondSignatureTransactionBytes,
 			);
 
-			expect(valid).to.be.true;
+			expect(valid).toBe(true);
 		});
 
 		it('should return an unvalid response with invalid signSignature', async () => {
@@ -121,16 +119,15 @@ describe('signAndVerify module', () => {
 				defaultSecondSignatureTransactionBytes,
 			);
 
-			expect(valid).to.be.false;
-			expect(error)
-				.to.be.instanceof(TransactionError)
-				.and.have.property(
-					'message',
-					`Failed to validate signature ${defaultSecondSignatureTransaction.signSignature.replace(
-						'1',
-						'0',
-					)}`,
-				);
+			expect(valid).toBe(false);
+			expect(error).toBeInstanceOf(TransactionError);
+			expect(error).toHaveProperty(
+				'message',
+				`Failed to validate signature ${defaultSecondSignatureTransaction.signSignature.replace(
+					'1',
+					'0',
+				)}`,
+			);
 		});
 	});
 
@@ -155,7 +152,7 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(valid).to.be.true;
+			expect(valid).toBe(true);
 		});
 
 		it('should return a verification fail response with invalid signatures', async () => {
@@ -168,16 +165,15 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(valid).to.be.false;
+			expect(valid).toBe(false);
 			(errors as ReadonlyArray<TransactionError>).forEach((error, i) => {
-				expect(error)
-					.to.be.instanceof(TransactionError)
-					.and.have.property(
-						'message',
-						`Failed to validate signature ${defaultMultisignatureTransaction.signatures[
-							i
-						].replace('1', '0')}`,
-					);
+				expect(error).toBeInstanceOf(TransactionError);
+				expect(error).toHaveProperty(
+					'message',
+					`Failed to validate signature ${defaultMultisignatureTransaction.signatures[
+						i
+					].replace('1', '0')}`,
+				);
 			});
 		});
 
@@ -192,9 +188,9 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(valid).to.be.false;
+			expect(valid).toBe(false);
 			(errors as ReadonlyArray<TransactionError>).forEach(error => {
-				expect(error).to.be.instanceof(TransactionError);
+				expect(error).toBeInstanceOf(TransactionError);
 			});
 		});
 
@@ -209,9 +205,9 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(valid).to.be.false;
+			expect(valid).toBe(false);
 			(errors as ReadonlyArray<TransactionError>).forEach(error => {
-				expect(error).to.be.instanceof(TransactionError);
+				expect(error).toBeInstanceOf(TransactionError);
 			});
 		});
 
@@ -223,11 +219,10 @@ describe('signAndVerify module', () => {
 				defaultTransactionBytes,
 			);
 
-			expect(valid).to.be.false;
+			expect(valid).toBe(false);
 			(errors as ReadonlyArray<TransactionError>).forEach(error => {
-				expect(error)
-					.to.be.instanceof(TransactionPendingError)
-					.and.have.property('message', 'Missing signatures');
+				expect(error).toBeInstanceOf(TransactionPendingError);
+				expect(error).toHaveProperty('message', 'Missing signatures');
 			});
 		});
 	});

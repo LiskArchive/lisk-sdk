@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { registerSecondPassphrase } from '../src/register_second_passphrase';
 import { SecondSignatureAsset } from '../src/9_second_signature_transaction';
 import { TransactionJSON } from '../src/transaction_types';
@@ -34,13 +33,13 @@ describe('#registerSecondPassphrase transaction', () => {
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
-	let getTimeWithOffsetStub: sinon.SinonStub;
+	let getTimeWithOffsetStub: jest.SpyInstance;
 	let registerSecondPassphraseTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox
-			.stub(time, 'getTimeWithOffset')
-			.returns(timeWithOffset);
+		getTimeWithOffsetStub = jest
+			.spyOn(time, 'getTimeWithOffset')
+			.mockReturnValue(timeWithOffset);
 		registerSecondPassphraseTransaction = registerSecondPassphrase({
 			networkIdentifier,
 			passphrase,
@@ -50,11 +49,11 @@ describe('#registerSecondPassphrase transaction', () => {
 	});
 
 	it('should create a register second passphrase transaction', () => {
-		return expect(registerSecondPassphraseTransaction).to.be.ok;
+		return expect(registerSecondPassphraseTransaction).toBeTruthy();
 	});
 
 	it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-		return expect(getTimeWithOffsetStub).to.be.calledWithExactly(undefined);
+		return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
 	});
 
 	it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
@@ -66,79 +65,78 @@ describe('#registerSecondPassphrase transaction', () => {
 			timeOffset: offset,
 		});
 
-		return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
+		return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 	});
 
 	describe('returned register second passphrase transaction', () => {
 		it('should be an object', () => {
-			return expect(registerSecondPassphraseTransaction).to.be.an('object');
+			return expect(registerSecondPassphraseTransaction).toBeObject();
 		});
 
 		it('should have an id string', () => {
-			return expect(registerSecondPassphraseTransaction)
-				.to.have.property('id')
-				.and.be.a('string');
+			return expect(registerSecondPassphraseTransaction.id).toBeString();
 		});
 
 		it('should have type number equal to 1', () => {
-			return expect(registerSecondPassphraseTransaction)
-				.to.have.property('type')
-				.and.be.a('number')
-				.and.equal(transactionType);
+			return expect(registerSecondPassphraseTransaction).toHaveProperty(
+				'type',
+				transactionType,
+			);
 		});
 
 		it('should have fee string equal to second passphrase fee', () => {
-			return expect(registerSecondPassphraseTransaction)
-				.to.have.property('fee')
-				.and.be.a('string')
-				.and.equal(secondPassphraseFee);
+			return expect(registerSecondPassphraseTransaction).toHaveProperty(
+				'fee',
+				secondPassphraseFee,
+			);
 		});
 
 		it('should have senderPublicKey hex string equal to sender public key', () => {
-			return expect(registerSecondPassphraseTransaction)
-				.to.have.property('senderPublicKey')
-				.and.be.hexString.and.equal(publicKey);
+			return expect(registerSecondPassphraseTransaction).toHaveProperty(
+				'senderPublicKey',
+				publicKey,
+			);
 		});
 
 		it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-			return expect(registerSecondPassphraseTransaction)
-				.to.have.property('timestamp')
-				.and.be.a('number')
-				.and.equal(timeWithOffset);
+			return expect(registerSecondPassphraseTransaction).toHaveProperty(
+				'timestamp',
+				timeWithOffset,
+			);
 		});
 
 		it('should have signature hex string', () => {
-			return expect(registerSecondPassphraseTransaction).to.have.property(
-				'signature',
-			).and.be.hexString;
+			return expect(registerSecondPassphraseTransaction.signature).toBeString();
 		});
 
 		it('should have asset object', () => {
-			return expect(registerSecondPassphraseTransaction).to.have.property(
-				'asset',
-			).and.not.be.empty;
+			return expect(
+				Object.keys(registerSecondPassphraseTransaction),
+			).not.toHaveLength(0);
 		});
 
 		it('should have an undefined signSignature property', () => {
-			return expect(registerSecondPassphraseTransaction.signSignature).to.be
-				.undefined;
+			return expect(
+				registerSecondPassphraseTransaction.signSignature,
+			).toBeUndefined();
 		});
 
 		describe('signature asset', () => {
 			it('should have a 32-byte publicKey hex string', () => {
-				expect(registerSecondPassphraseTransaction.asset).to.have.property(
-					'publicKey',
-				).and.be.hexString;
+				expect(
+					(registerSecondPassphraseTransaction.asset as any).publicKey,
+				).toBeString();
 				const {
 					publicKey,
 				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(Buffer.from(publicKey, 'hex')).to.have.length(32);
+				return expect(Buffer.from(publicKey, 'hex')).toHaveLength(32);
 			});
 
 			it('should have a publicKey equal to the public key for the provided second passphrase', () => {
-				return expect(registerSecondPassphraseTransaction.asset)
-					.to.have.property('publicKey')
-					.and.equal(secondPublicKey);
+				return expect(registerSecondPassphraseTransaction.asset).toHaveProperty(
+					'publicKey',
+					secondPublicKey,
+				);
 			});
 
 			it('should have the correct publicKey if the provided second passphrase is an empty string', () => {
@@ -150,7 +148,7 @@ describe('#registerSecondPassphrase transaction', () => {
 				const {
 					publicKey,
 				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(publicKey).to.be.equal(emptyStringPublicKey);
+				return expect(publicKey).toBe(emptyStringPublicKey);
 			});
 		});
 	});
@@ -166,9 +164,9 @@ describe('#registerSecondPassphrase transaction', () => {
 			});
 
 			it('should throw error when secondPassphrase was not provided', () => {
-				return expect(registerSecondPassphrase.bind(null, {} as any)).to.throw(
-					'Please provide a secondPassphrase. Expected string.',
-				);
+				return expect(
+					registerSecondPassphrase.bind(null, {} as any),
+				).toThrowError('Please provide a secondPassphrase. Expected string.');
 			});
 
 			it('should not throw error when secondPassphrase is empty string', () => {
@@ -177,42 +175,43 @@ describe('#registerSecondPassphrase transaction', () => {
 						networkIdentifier,
 						secondPassphrase: '',
 					}),
-				).to.not.throw();
+				).not.toThrowError();
 			});
 
 			it('should have the type', () => {
-				return expect(registerSecondPassphraseTransaction)
-					.to.have.property('type')
-					.equal(transactionType);
+				return expect(registerSecondPassphraseTransaction).toHaveProperty(
+					'type',
+					transactionType,
+				);
 			});
 
 			it('should have the sender public key', () => {
-				return expect(registerSecondPassphraseTransaction)
-					.to.have.property('senderPublicKey')
-					.equal(undefined);
+				return expect(registerSecondPassphraseTransaction).toHaveProperty(
+					'senderPublicKey',
+					undefined,
+				);
 			});
 
 			it('should have the timestamp', () => {
-				return expect(registerSecondPassphraseTransaction).to.have.property(
+				return expect(registerSecondPassphraseTransaction).toHaveProperty(
 					'timestamp',
 				);
 			});
 
 			it('should have the asset with the signature with the public key', () => {
-				return expect(registerSecondPassphraseTransaction)
-					.to.have.property('asset')
-					.with.property('publicKey')
-					.of.a('string');
+				return expect(
+					(registerSecondPassphraseTransaction.asset as any).publicKey,
+				).toBeString();
 			});
 
 			it('should not have the signature', () => {
-				return expect(registerSecondPassphraseTransaction).not.to.have.property(
+				return expect(registerSecondPassphraseTransaction).not.toHaveProperty(
 					'signature',
 				);
 			});
 
 			it('should not have the id', () => {
-				return expect(registerSecondPassphraseTransaction).not.to.have.property(
+				return expect(registerSecondPassphraseTransaction).not.toHaveProperty(
 					'id',
 				);
 			});

@@ -40,8 +40,9 @@ class PgpAdapter extends BaseAdapter {
 			inTest: options.inTest,
 		});
 
-		this.options = options;
-		this.logger = options.logger;
+		const { logger, ...optionsWithoutLogger } = options;
+		this.options = optionsWithoutLogger;
+		this.logger = logger;
 		this.sqlDirectory = options.sqlDirectory;
 
 		this.pgp = pgp;
