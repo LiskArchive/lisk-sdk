@@ -20,7 +20,6 @@ const {
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
-const BigNum = require('@liskhq/bignum');
 const { Slots } = require('@liskhq/lisk-dpos');
 const application = require('../../../../utils/legacy/application');
 const {
@@ -364,7 +363,7 @@ describe('blocks/verify', () => {
 				const account = random.account();
 				const transaction = transfer({
 					networkIdentifier,
-					amount: new BigNum(NORMALIZER).times(1000).toString(),
+					amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 					recipientId: accountFixtures.genesis.address,
 					passphrase: account.passphrase,
 				});
@@ -447,7 +446,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transferTransaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -480,7 +479,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -526,7 +525,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});

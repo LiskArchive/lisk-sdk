@@ -16,11 +16,10 @@
 
 const ip = require('ip');
 const _ = require('lodash');
-const BigNum = require('@liskhq/bignum');
 
 const HOSTNAME = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
 
-const UINT64_MAX = new BigNum('18446744073709551615');
+const UINT64_MAX = BigInt('18446744073709551615');
 
 const ADDITIONAL_DATA = {
 	MIN_LENGTH: 1,
@@ -35,7 +34,7 @@ const ADDITIONAL_DATA = {
  * - id
  * - address
  * - amount
- * - BigNum
+ * - BigInt
  * - username
  * - hex
  * - publicKey
@@ -84,7 +83,7 @@ const validationFormats = {
 		}
 
 		// Address can not exceed the max limit
-		if (new BigNum(str.slice(0, -1)).greaterThan(UINT64_MAX)) {
+		if (BigInt(str.slice(0, -1)) > BigInt(UINT64_MAX)) {
 			return false;
 		}
 
@@ -213,23 +212,18 @@ const validationFormats = {
 
 	amount(value) {
 		if (typeof value === 'string' && /^[0-9]*$/.test(value)) {
-			const bigNumber = new BigNum(value);
-			return (
-				bigNumber.greaterThanOrEqualTo(0) &&
-				bigNumber.lessThanOrEqualTo(UINT64_MAX)
-			);
+			const bigNumber = BigInt(value);
+			return bigNumber >= BigInt(0) && bigNumber <= BigInt(UINT64_MAX);
 		}
 
 		/**
 		 * This deconstruction has to take place here because
 		 * global.constants will be defined in test/setup.js.
 		 */
-		if (value instanceof BigNum) {
+		if (typeof value === 'bigint') {
 			const { TOTAL_AMOUNT } = global.constants;
 
-			return (
-				value.greaterThanOrEqualTo(0) && value.lessThanOrEqualTo(TOTAL_AMOUNT)
-			);
+			return value >= BigInt(0) && value <= BigInt(TOTAL_AMOUNT);
 		}
 
 		return false;
@@ -248,8 +242,8 @@ const validationFormats = {
 		type: 'number',
 		validate: value => {
 			const { TOTAL_AMOUNT } = global.constants;
-			if (new BigNum(value).isPositive()) {
-				return new BigNum(value).lessThanOrEqualTo(TOTAL_AMOUNT);
+			if (BigInt(value) >= 0) {
+				return BigInt(value) <= BigInt(TOTAL_AMOUNT);
 			}
 
 			return false;

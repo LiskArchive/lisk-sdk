@@ -21,7 +21,6 @@ const {
 	registerSecondPassphrase,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const { Slots } = require('@liskhq/lisk-dpos');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -173,9 +172,9 @@ describe('GET /delegates', () => {
 
 			const creditTransaction = transfer({
 				networkIdentifier,
-				amount: new BigNum(FEES.SECOND_SIGNATURE)
-					.plus(FEES.DELEGATE)
-					.toString(),
+				amount: (
+					BigInt(FEES.SECOND_SIGNATURE) + BigInt(FEES.DELEGATE)
+				).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,
 			});

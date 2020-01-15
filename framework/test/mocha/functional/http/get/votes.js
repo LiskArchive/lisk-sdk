@@ -21,7 +21,6 @@ const {
 	registerDelegate,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
@@ -440,7 +439,7 @@ describe('GET /api/votes', () => {
 				const account = randomUtil.account();
 				const creditTransaction = transfer({
 					networkIdentifier,
-					amount: new BigNum(FEES.DELEGATE).plus(FEES.VOTE).toString(),
+					amount: (BigInt(FEES.DELEGATE) + BigInt(FEES.VOTE)).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});

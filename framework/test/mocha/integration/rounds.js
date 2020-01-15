@@ -22,7 +22,6 @@ const {
 	castVotes,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const { Slots } = require('@liskhq/lisk-dpos');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
@@ -108,13 +107,11 @@ describe('rounds', () => {
 			// If account with address exists - set expected values
 			if (accounts[address]) {
 				// Update sender
-				accounts[address].balance = new BigNum(accounts[address].balance)
-					.minus(
-						new BigNum(transaction.fee).plus(
-							new BigNum(transaction.asset.amount || 0),
-						),
-					)
-					.toString();
+				accounts[address].balance = (
+					BigInt(accounts[address].balance) -
+					BigInt(transaction.fee) +
+					BigInt(transaction.asset.amount || 0)
+				).toString();
 
 				// Set public key if not present
 				if (!accounts[address].publicKey) {
@@ -156,14 +153,15 @@ describe('rounds', () => {
 				// If account with address exists - set expected values
 				if (accounts[address]) {
 					// Update recipient
-					accounts[address].balance = new BigNum(accounts[address].balance)
-						.plus(new BigNum(transaction.asset.amount || 0))
-						.toString();
+					accounts[address].balance = (
+						BigInt(accounts[address].balance) +
+						BigInt(transaction.asset.amount || 0)
+					).toString();
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
-						balance: new BigNum(transaction.asset.amount || 0).toString(),
+						balance: BigInt(transaction.asset.amount || 0).toString(),
 					});
 				}
 			}
@@ -177,7 +175,7 @@ describe('rounds', () => {
 		const feesTotal = _.reduce(
 			blocks,
 			(fees, block) => {
-				return new BigNum(fees).plus(block.totalFee);
+				return BigInt(fees) + BigInt(block.totalFee);
 			},
 			0,
 		);
@@ -185,17 +183,16 @@ describe('rounds', () => {
 		const rewardsTotal = _.reduce(
 			blocks,
 			(reward, block) => {
-				return new BigNum(reward).plus(block.reward);
+				return BigInt(reward) + BigInt(block.reward);
 			},
 			0,
 		);
 
-		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
-			.dividedBy(ACTIVE_DELEGATES)
-			.floor();
-		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.times(ACTIVE_DELEGATES),
-		);
+		const feesPerDelegate =
+			BigInt(feesTotal.toPrecision(15)) / BigInt(ACTIVE_DELEGATES);
+		const feesRemaining =
+			BigInt(feesTotal.toPrecision(15)) -
+			feesPerDelegate * BigInt(ACTIVE_DELEGATES);
 
 		__testContext.debug(
 			`	Total fees: ${feesTotal} Fees per delegates: ${feesPerDelegate} Remaining fees: ${feesRemaining} Total rewards: ${rewardsTotal}`,
@@ -211,14 +208,14 @@ describe('rounds', () => {
 			} else {
 				rewards[publicKey] = {
 					publicKey,
-					fees: new BigNum(feesPerDelegate),
-					rewards: new BigNum(block.reward),
+					fees: BigInt(feesPerDelegate),
+					rewards: BigInt(block.reward),
 				};
 			}
 
 			if (index === blocks.length - 1) {
 				// Apply remaining fees to last delegate
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
+				rewards[publicKey].fees += BigInt(feesRemaining);
 			}
 		});
 
@@ -238,16 +235,15 @@ describe('rounds', () => {
 				publicKey: hexToBuffer(reward.publicKey),
 			});
 			if (found) {
-				found.fees = new BigNum(found.fees)
-					.plus(new BigNum(reward.fees))
-					.toString();
-				found.rewards = new BigNum(found.rewards)
-					.plus(new BigNum(reward.rewards))
-					.toString();
-				found.balance = new BigNum(found.balance)
-					.plus(new BigNum(reward.fees))
-					.plus(new BigNum(reward.rewards))
-					.toString();
+				found.fees = (BigInt(found.fees) + BigInt(reward.fees)).toString();
+				found.rewards = (
+					BigInt(found.rewards) + BigInt(reward.rewards)
+				).toString();
+				found.balance = (
+					BigInt(found.balance) +
+					BigInt(reward.fees) +
+					BigInt(reward.rewards)
+				).toString();
 			}
 		});
 
@@ -273,9 +269,7 @@ describe('rounds', () => {
 				const foundAccount = _.find(accounts, {
 					address: voter,
 				});
-				votes = new BigNum(votes)
-					.plus(new BigNum(foundAccount.balance))
-					.toString();
+				votes = (BigInt(votes) + BigInt(foundAccount.balance)).toString();
 			});
 			found.voteWeight = votes;
 		});

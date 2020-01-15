@@ -21,7 +21,6 @@ const {
 	castVotes,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
@@ -328,10 +327,11 @@ describe('GET /api/voters', () => {
 			const validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				const amount = new BigNum(FEES.DELEGATE)
-					.plus(FEES.VOTE)
-					.plus(FEES.SECOND_SIGNATURE)
-					.toString();
+				const amount = (
+					BigInt(FEES.DELEGATE) +
+					BigInt(FEES.VOTE) +
+					BigInt(FEES.SECOND_SIGNATURE)
+				).toString();
 				const enrichExtraDelegateVoterTransaction = transfer({
 					networkIdentifier,
 					amount,
@@ -451,7 +451,7 @@ describe('GET /api/voters', () => {
 								);
 								expect(
 									_.map(res.body.data.voters, 'balance').sort((a, b) =>
-										new BigNum(a).minus(b).toNumber(),
+										Number(BigInt(a) - BigInt(b)),
 									),
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
@@ -474,7 +474,7 @@ describe('GET /api/voters', () => {
 
 								expect(
 									_.map(res.body.data.voters, 'balance')
-										.sort((a, b) => new BigNum(a).minus(b).toNumber())
+										.sort((a, b) => Number(BigInt(a) - BigInt(b)))
 										.reverse(),
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
