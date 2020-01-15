@@ -15,7 +15,6 @@
 
 import { Queue } from '../../src/queue';
 import { Transaction } from '../../src/transaction_pool';
-import { expect } from 'chai';
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 
@@ -32,13 +31,13 @@ describe('Queue', () => {
 		it('should add transaction to the queue', async () => {
 			const transaction = transactions[0];
 			queue.enqueueOne(transaction);
-			expect(queue.transactions).to.include(transaction);
+			expect(queue.transactions).toEqual(expect.arrayContaining([transaction]));
 		});
 
 		it('should add transaction to the queue index', async () => {
 			const transaction = transactions[0];
 			queue.enqueueOne(transaction);
-			expect(queue.index[transaction.id]).to.deep.equal(transaction);
+			expect(queue.index[transaction.id]).toEqual(transaction);
 		});
 	});
 
@@ -46,14 +45,16 @@ describe('Queue', () => {
 		it('should add transactions to the queue', async () => {
 			queue.enqueueMany(transactions);
 			transactions.forEach((transaction: Transaction) =>
-				expect(queue.transactions).to.include(transaction),
+				expect(queue.transactions).toEqual(
+					expect.arrayContaining([transaction]),
+				),
 			);
 		});
 
 		it('should add transactions to the queue index', async () => {
 			queue.enqueueMany(transactions);
 			transactions.forEach((transaction: Transaction) =>
-				expect(queue.index[transaction.id]).to.eq(transaction),
+				expect(queue.index[transaction.id]).toBe(transaction),
 			);
 		});
 	});
@@ -62,12 +63,12 @@ describe('Queue', () => {
 		it('should return true if transaction exists in queue', async () => {
 			const transaction = transactions[0];
 			queue.enqueueOne(transaction);
-			expect(queue.exists(transaction.id)).to.be.true;
+			expect(queue.exists(transaction.id)).toBe(true);
 		});
 
 		it('should return false if transaction does not exist in queue', async () => {
 			const transaction = transactions[0];
-			expect(queue.exists(transaction.id)).to.be.false;
+			expect(queue.exists(transaction.id)).toBe(false);
 		});
 	});
 
@@ -85,8 +86,8 @@ describe('Queue', () => {
 
 		it('should not remove any transactions if the condition fails for all transactions', async () => {
 			const deletedTransactions = queue.removeFor(alwaysReturnFalse());
-			expect(deletedTransactions).to.have.length(0);
-			expect(queue.transactions).to.deep.equal(transactions);
+			expect(deletedTransactions).toHaveLength(0);
+			expect(queue.transactions).toEqual(transactions);
 		});
 
 		it('should return removed transactions which pass condition', async () => {
@@ -101,11 +102,11 @@ describe('Queue', () => {
 			]);
 
 			const removedTransactions = queue.removeFor(condition);
-			expect(removedTransactions).to.deep.equal([
+			expect(removedTransactions).toEqual([
 				toRemoveTransaction1,
 				toRemoveTransaction2,
 			]);
-			expect(queue.transactions).to.deep.equal(tokeepTransactions);
+			expect(queue.transactions).toEqual(tokeepTransactions);
 		});
 
 		it('should remove transactions which pass condition', async () => {
@@ -120,11 +121,7 @@ describe('Queue', () => {
 			]);
 
 			queue.removeFor(condition);
-			expect(queue.transactions).not.to.contain([
-				toRemoveTransaction1,
-				toRemoveTransaction2,
-			]);
-			expect(queue.transactions).to.deep.equal(tokeepTransactions);
+			expect(queue.transactions).toEqual(tokeepTransactions);
 		});
 
 		it('should remove queue index for transactions which pass condition', async () => {
@@ -139,9 +136,9 @@ describe('Queue', () => {
 			]);
 
 			queue.removeFor(condition);
-			expect(queue.index[toRemoveTransaction1.id]).not.to.exist;
-			expect(queue.index[toRemoveTransaction2.id]).not.to.exist;
-			expect(queue.transactions).to.deep.equal(tokeepTransactions);
+			expect(queue.index[toRemoveTransaction1.id]).not.toBeDefined();
+			expect(queue.index[toRemoveTransaction2.id]).not.toBeDefined();
+			expect(queue.transactions).toEqual(tokeepTransactions);
 		});
 	});
 
@@ -158,7 +155,7 @@ describe('Queue', () => {
 
 		it('should not return any transactions if the condition fails for first transaction', async () => {
 			const peekedTransactions = queue.peekUntil(returnTrueUntilLimit(0));
-			expect(peekedTransactions).to.have.length(0);
+			expect(peekedTransactions).toHaveLength(0);
 		});
 
 		it('should return transactions which pass condition', async () => {
@@ -169,7 +166,7 @@ describe('Queue', () => {
 			const condition = returnTrueUntilLimit(2);
 
 			const peekedTransactions = queue.peekUntil(condition);
-			expect(peekedTransactions).to.deep.equal([
+			expect(peekedTransactions).toEqual([
 				lastTransaction,
 				secondToLastTransaciton,
 			]);
@@ -189,8 +186,8 @@ describe('Queue', () => {
 
 		it('should not dequeue any transactions if the condition fails for first transaction', async () => {
 			const dequeuedTransactions = queue.dequeueUntil(returnTrueUntilLimit(0));
-			expect(dequeuedTransactions).to.have.length(0);
-			expect(queue.transactions).to.deep.equal(transactions);
+			expect(dequeuedTransactions).toHaveLength(0);
+			expect(queue.transactions).toEqual(transactions);
 		});
 
 		it('should return dequeued transactions which pass condition', async () => {
@@ -201,7 +198,7 @@ describe('Queue', () => {
 			const condition = returnTrueUntilLimit(2);
 
 			const dequeuedTransactions = queue.dequeueUntil(condition);
-			expect(dequeuedTransactions).to.deep.equal([
+			expect(dequeuedTransactions).toEqual([
 				lastTransaction,
 				secondToLastTransaciton,
 			]);
@@ -211,7 +208,7 @@ describe('Queue', () => {
 			const condition = returnTrueUntilLimit(2);
 
 			queue.dequeueUntil(condition);
-			expect(queue.transactions).to.deep.equal(
+			expect(queue.transactions).toEqual(
 				transactions.slice(0, transactions.length - 2),
 			);
 		});
@@ -224,19 +221,19 @@ describe('Queue', () => {
 			const condition = returnTrueUntilLimit(2);
 
 			queue.dequeueUntil(condition);
-			expect(queue.index[lastTransaction.id]).not.to.exist;
-			expect(queue.index[secondToLastTransaciton.id]).not.to.exist;
+			expect(queue.index[lastTransaction.id]).not.toBeDefined();
+			expect(queue.index[secondToLastTransaciton.id]).not.toBeDefined();
 		});
 	});
 
 	describe('#size', () => {
 		it('should return 0 if the queue is empty', async () => {
-			expect(queue.size()).to.equal(0);
+			expect(queue.size()).toBe(0);
 		});
 
 		it('should return the number of elements in the queue', async () => {
 			queue.enqueueMany(transactions);
-			expect(queue.size()).to.equal(transactions.length);
+			expect(queue.size()).toBe(transactions.length);
 		});
 	});
 });

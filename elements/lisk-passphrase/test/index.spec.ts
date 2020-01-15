@@ -12,23 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import * as passphrase from '../src';
 
 describe('passphrase index.js', () => {
 	it('should export an object', () => {
-		return expect(passphrase).to.be.an('object');
+		return expect(passphrase).toEqual(expect.any(Object));
 	});
 
 	describe('menmonic module', () => {
 		it('should have the BIP39 Mnemonic module', () => {
-			return expect(passphrase.Mnemonic).to.be.ok;
+			return expect(passphrase.Mnemonic).toBeTruthy();
 		});
 	});
 
 	describe('validation module', () => {
 		it('should have the validation module', () => {
-			return expect(passphrase.validation).to.be.ok;
+			return expect(passphrase.validation).toBeTruthy();
 		});
 	});
 });

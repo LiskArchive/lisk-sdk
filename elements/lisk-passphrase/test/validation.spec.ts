@@ -13,7 +13,6 @@
  *
  */
 import * as Mnemonic from 'bip39';
-import { expect } from 'chai';
 import {
 	countPassphraseWhitespaces,
 	countPassphraseWords,
@@ -32,7 +31,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -44,7 +43,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge ';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -56,7 +55,7 @@ describe('passphrase validation', () => {
 				' model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -68,7 +67,7 @@ describe('passphrase validation', () => {
 				'model  actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -80,7 +79,7 @@ describe('passphrase validation', () => {
 				'model  actor  shallow  eight  glue  upper  seat  lobster  reason  label  enlist  bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -92,7 +91,7 @@ describe('passphrase validation', () => {
 				'\tmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -104,7 +103,7 @@ describe('passphrase validation', () => {
 				'\vmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -116,7 +115,7 @@ describe('passphrase validation', () => {
 				'\fmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -128,7 +127,7 @@ describe('passphrase validation', () => {
 				'\u00A0model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -140,7 +139,7 @@ describe('passphrase validation', () => {
 				'\uFEFFmodel actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -152,7 +151,7 @@ describe('passphrase validation', () => {
 				'modelactorshalloweightglueupperseatlobsterreasonlabelenlistbridge';
 
 			it('should return the expected amount of whitespaces', () => {
-				return expect(countPassphraseWhitespaces(passphrase)).to.be.equal(
+				return expect(countPassphraseWhitespaces(passphrase)).toBe(
 					expectedAmountOfWhitespaces,
 				);
 			});
@@ -166,7 +165,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return the amount of words', () => {
-				return expect(countPassphraseWords(passphrase)).to.be.equal(
+				return expect(countPassphraseWords(passphrase)).toBe(
 					expectedAmountOfWords,
 				);
 			});
@@ -178,7 +177,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge model';
 
 			it('should return the amount of words', () => {
-				return expect(countPassphraseWords(passphrase)).to.be.equal(
+				return expect(countPassphraseWords(passphrase)).toBe(
 					expectedAmountOfWords,
 				);
 			});
@@ -190,7 +189,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason';
 
 			it('should return the amount of words', () => {
-				return expect(countPassphraseWords(passphrase)).to.be.equal(
+				return expect(countPassphraseWords(passphrase)).toBe(
 					expectedAmountOfWords,
 				);
 			});
@@ -202,7 +201,7 @@ describe('passphrase validation', () => {
 				'model  actor  shallow  eight glue upper seat lobster reason label enlist bridge';
 
 			it('should ignore the whitespaces and return the amount of words', () => {
-				return expect(countPassphraseWords(passphrase)).to.be.equal(
+				return expect(countPassphraseWords(passphrase)).toBe(
 					expectedAmountOfWords,
 				);
 			});
@@ -213,7 +212,7 @@ describe('passphrase validation', () => {
 			const passphrase = '     ';
 
 			it('should ignore the whitespaces and return the amount of words', () => {
-				return expect(countPassphraseWords(passphrase)).to.be.equal(
+				return expect(countPassphraseWords(passphrase)).toBe(
 					expectedAmountOfWords,
 				);
 			});
@@ -224,7 +223,7 @@ describe('passphrase validation', () => {
 			const passphrase = '';
 
 			it('should return the amount of words', () => {
-				return expect(countPassphraseWords(passphrase)).to.be.equal(
+				return expect(countPassphraseWords(passphrase)).toBe(
 					expectedAmountOfWords,
 				);
 			});
@@ -240,7 +239,7 @@ describe('passphrase validation', () => {
 			it('should return the number of uppercase characters', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
 
-				return expect(uppercased).to.be.equal(expectedAmountUppercaseCharacter);
+				return expect(uppercased).toBe(expectedAmountUppercaseCharacter);
 			});
 		});
 
@@ -252,9 +251,7 @@ describe('passphrase validation', () => {
 			it('should return the amount of uppercase character', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
 
-				return expect(uppercased).to.be.equal(
-					expectedAmountOfCapitalCharacters,
-				);
+				return expect(uppercased).toBe(expectedAmountOfCapitalCharacters);
 			});
 		});
 
@@ -264,7 +261,7 @@ describe('passphrase validation', () => {
 				'MODEL ACTOR SHALLOW EIGHT GLUE UPPER SEAT LOBSTER REASON LABEL ENLIST BRIDGE';
 
 			it('should return the amount of uppercase character', () => {
-				return expect(countUppercaseCharacters(passphrase)).to.be.equal(
+				return expect(countUppercaseCharacters(passphrase)).toBe(
 					expectedAmountOfCapitalCharacters,
 				);
 			});
@@ -275,7 +272,7 @@ describe('passphrase validation', () => {
 		describe('given a string without uppercase character', () => {
 			const testString = 'a string without uppercase character';
 			it('should return an empty array', () => {
-				return expect(locateUppercaseCharacters(testString)).to.be.eql([]);
+				return expect(locateUppercaseCharacters(testString)).toEqual([]);
 			});
 		});
 
@@ -283,7 +280,7 @@ describe('passphrase validation', () => {
 			const testString = 'a String with SOME uppercase characteR';
 			const uppercaseCharacters = [2, 14, 15, 16, 17, 37];
 			it('should return the array with the location of the uppercase character', () => {
-				return expect(locateUppercaseCharacters(testString)).to.be.eql(
+				return expect(locateUppercaseCharacters(testString)).toEqual(
 					uppercaseCharacters,
 				);
 			});
@@ -294,14 +291,14 @@ describe('passphrase validation', () => {
 		describe('given a string without whitespaces', () => {
 			const testString = 'abcdefghijklkmnop';
 			it('should return an empty array', () => {
-				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql([]);
+				return expect(locateConsecutiveWhitespaces(testString)).toEqual([]);
 			});
 		});
 
 		describe('given a string with whitespaces', () => {
 			const testString = 'abc defghijk lkmnop';
 			it('should return an empty array', () => {
-				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql([]);
+				return expect(locateConsecutiveWhitespaces(testString)).toEqual([]);
 			});
 		});
 
@@ -309,7 +306,7 @@ describe('passphrase validation', () => {
 			const testString = ' abc defghijk lkmnop';
 			const expectedWhitespaceLocation = [0];
 			it('should return the array with the location of the whitespace', () => {
-				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).toEqual(
 					expectedWhitespaceLocation,
 				);
 			});
@@ -319,7 +316,7 @@ describe('passphrase validation', () => {
 			const testString = 'abc defghijk lkmnop ';
 			const expectedWhitespaceLocation = [19];
 			it('should return the array with the location of the whitespace', () => {
-				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).toEqual(
 					expectedWhitespaceLocation,
 				);
 			});
@@ -329,7 +326,7 @@ describe('passphrase validation', () => {
 			const testString = 'abc  defghijk  lkmnop ';
 			const expectedWhitespaceLocation = [4, 14, 21];
 			it('should return the array with the location of the whitespaces', () => {
-				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).toEqual(
 					expectedWhitespaceLocation,
 				);
 			});
@@ -339,7 +336,7 @@ describe('passphrase validation', () => {
 			const testString = 'abc  defghijk\t \nlkmnop \u00A0';
 			const expectedWhitespaceLocation = [4, 14, 15, 23];
 			it('should return the array with the location of the whitespaces', () => {
-				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).toEqual(
 					expectedWhitespaceLocation,
 				);
 			});
@@ -352,7 +349,7 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return an empty array', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql([]);
+				return expect(getPassphraseValidationErrors(passphrase)).toEqual([]);
 			});
 		});
 
@@ -378,7 +375,7 @@ describe('passphrase validation', () => {
 							'Passphrase contains 14 whitespaces instead of expected 11. Please check the passphrase.',
 					},
 				];
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
+				return expect(getPassphraseValidationErrors(passphrase)).toEqual(
 					errors,
 				);
 			});
@@ -403,7 +400,7 @@ describe('passphrase validation', () => {
 				];
 				return expect(
 					getPassphraseValidationErrors(passphrase, undefined, 12),
-				).to.be.eql(errors);
+				).toEqual(errors);
 			});
 
 			it('should return an array with the errors when validating with higher expectedWords', () => {
@@ -430,13 +427,13 @@ describe('passphrase validation', () => {
 						Mnemonic.wordlists.english,
 						18,
 					),
-				).to.be.eql(errors);
+				).toEqual(errors);
 			});
 
 			it('should return an empty array when validating with exact expectedWords', () => {
 				return expect(
 					getPassphraseValidationErrors(passphrase, undefined, 15),
-				).to.be.eql([]);
+				).toEqual([]);
 			});
 		});
 
@@ -462,7 +459,7 @@ describe('passphrase validation', () => {
 			];
 
 			it('should return the array with the errors', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
+				return expect(getPassphraseValidationErrors(passphrase)).toEqual(
 					passphraseInvalidMnemonicErrors,
 				);
 			});
@@ -490,7 +487,7 @@ describe('passphrase validation', () => {
 			];
 
 			it('should return the array with the errors', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
+				return expect(getPassphraseValidationErrors(passphrase)).toEqual(
 					passphraseInvalidMnemonicErrors,
 				);
 			});
@@ -518,7 +515,7 @@ describe('passphrase validation', () => {
 			];
 
 			it('should return the array with the errors', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
+				return expect(getPassphraseValidationErrors(passphrase)).toEqual(
 					passphraseInvalidMnemonicErrors,
 				);
 			});
@@ -546,7 +543,7 @@ describe('passphrase validation', () => {
 			];
 
 			it('should return the array with the errors', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
+				return expect(getPassphraseValidationErrors(passphrase)).toEqual(
 					passphraseWithUppercaseCharacterErrors,
 				);
 			});
@@ -566,7 +563,7 @@ describe('passphrase validation', () => {
 			];
 
 			it('should return the array with the error', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
+				return expect(getPassphraseValidationErrors(passphrase)).toEqual(
 					passphraseInvalidMnemonicError,
 				);
 			});
@@ -580,7 +577,7 @@ describe('passphrase validation', () => {
 			it('should return an empty array', () => {
 				return expect(
 					getPassphraseValidationErrors(passphrase, wordlist),
-				).to.be.eql([]);
+				).toEqual([]);
 			});
 		});
 
@@ -601,7 +598,7 @@ describe('passphrase validation', () => {
 			it('should return the array with the error', () => {
 				return expect(
 					getPassphraseValidationErrors(passphrase, wordlist),
-				).to.be.eql(passphraseInvalidMnemonicError);
+				).toEqual(passphraseInvalidMnemonicError);
 			});
 		});
 	});

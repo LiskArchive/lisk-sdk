@@ -1,7 +1,6 @@
 import { Queue } from '../../src/queue';
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
-import { expect } from 'chai';
 import {
 	returnTrueUntilLimit,
 	checkTransactionForId,
@@ -20,7 +19,7 @@ describe('queue', () => {
 			const startTime = new Date().getTime();
 			transactions.forEach(transaction => queue.enqueueOne(transaction));
 			const endTime = new Date().getTime();
-			expect(endTime - startTime).to.be.lessThan(100);
+			expect(endTime - startTime).toBeLessThan(100);
 		});
 	});
 
@@ -33,7 +32,7 @@ describe('queue', () => {
 			const startTime = new Date().getTime();
 			queue.dequeueUntil(returnTrueUntilLimit(1000));
 			const endTime = new Date().getTime();
-			expect(endTime - startTime).to.be.lessThan(100);
+			expect(endTime - startTime).toBeLessThan(100);
 		});
 	});
 
@@ -42,11 +41,11 @@ describe('queue', () => {
 			transactions.forEach(transaction => queue.enqueueOne(transaction));
 		});
 
-		it('should remove 1000 transactions in under 100 milliseconds', async () => {
+		it('should remove 1000 transactions in under 1000 milliseconds', async () => {
 			const startTime = new Date().getTime();
 			queue.removeFor(checkTransactionForId(transactions));
 			const endTime = new Date().getTime();
-			expect(endTime - startTime).to.be.lessThan(100);
+			expect(endTime - startTime).toBeLessThan(1000);
 		});
 	});
 
@@ -55,11 +54,11 @@ describe('queue', () => {
 			transactions.forEach(transaction => queue.enqueueOne(transaction));
 		});
 
-		it('should peek 100 transactions in under 100 milliseconds', async () => {
+		it('should peek 100 transactions in under 1000 milliseconds', async () => {
 			const startTime = new Date().getTime();
 			queue.peekUntil(returnTrueUntilLimit(100));
 			const endTime = new Date().getTime();
-			expect(endTime - startTime).to.be.lessThan(100);
+			expect(endTime - startTime).toBeLessThan(1000);
 		});
 	});
 });

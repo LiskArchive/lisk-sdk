@@ -11,7 +11,6 @@ import {
 } from './helpers/common';
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
-import { expect } from 'chai';
 
 describe('transaction pool events', () => {
 	const transactions: ReadonlyArray<Transaction> = transactionObjects.map(
@@ -142,45 +141,46 @@ describe('transaction pool events', () => {
 				transactionsToMoveToValidatedQueue.forEach(affectedTransaction => {
 					expect(
 						transactionPool.queues.validated.exists(affectedTransaction.id),
-					).to.be.true;
+					).toBe(true);
 				});
 			});
 
 			it('should move affected transactions in the validated queue to the received queue', async () => {
 				transactionsToMoveToReceivedQueue.forEach(affectedTransaction => {
-					expect(transactionPool.queues.received.exists(affectedTransaction.id))
-						.to.be.true;
+					expect(
+						transactionPool.queues.received.exists(affectedTransaction.id),
+					).toBe(true);
 				});
 			});
 
 			it('should keep the unaffected transactions in their queues', async () => {
-				unaffectedTransactionsInReadyQueue.forEach(
-					transaction =>
-						expect(transactionPool.queues.ready.exists(transaction.id)).to.be
-							.true,
+				unaffectedTransactionsInReadyQueue.forEach(transaction =>
+					expect(transactionPool.queues.ready.exists(transaction.id)).toBe(
+						true,
+					),
 				);
-				unaffectedTransactionsInVerifiedQueue.forEach(
-					transaction =>
-						expect(transactionPool.queues.verified.exists(transaction.id)).to.be
-							.true,
+				unaffectedTransactionsInVerifiedQueue.forEach(transaction =>
+					expect(transactionPool.queues.verified.exists(transaction.id)).toBe(
+						true,
+					),
 				);
-				unaffectedTransactionsInPendingQueue.forEach(
-					transaction =>
-						expect(transactionPool.queues.pending.exists(transaction.id)).to.be
-							.true,
+				unaffectedTransactionsInPendingQueue.forEach(transaction =>
+					expect(transactionPool.queues.pending.exists(transaction.id)).toBe(
+						true,
+					),
 				);
-				unaffectedTransactionsInValidatedQueue.forEach(
-					transaction =>
-						expect(transactionPool.queues.validated.exists(transaction.id)).to
-							.be.true,
+				unaffectedTransactionsInValidatedQueue.forEach(transaction =>
+					expect(transactionPool.queues.validated.exists(transaction.id)).toBe(
+						true,
+					),
 				);
 			});
 
 			it('should add transactions to the verified queue', async () => {
-				transactionsToAffectedReceipients.forEach(
-					transaction =>
-						expect(transactionPool.queues.verified.exists(transaction.id)).to.be
-							.true,
+				transactionsToAffectedReceipients.forEach(transaction =>
+					expect(transactionPool.queues.verified.exists(transaction.id)).toBe(
+						true,
+					),
 				);
 			});
 		});
@@ -260,22 +260,25 @@ describe('transaction pool events', () => {
 
 			it('should remove confirmed transactions from the transaction pool', async () => {
 				confirmedTransactions.forEach(transaction => {
-					expect(transactionPool.existsInTransactionPool(transaction.id)).to.be
-						.false;
+					expect(transactionPool.existsInTransactionPool(transaction.id)).toBe(
+						false,
+					);
 				});
 			});
 
 			it('should move affected transactions in the verified, ready and pending queue to the validated queue', async () => {
 				transactionsToMoveToValidatedQueue.forEach(transaction => {
-					expect(transactionPool.queues.validated.exists(transaction.id)).to.be
-						.true;
+					expect(transactionPool.queues.validated.exists(transaction.id)).toBe(
+						true,
+					);
 				});
 			});
 
 			it('should move affected transactions in the validated queue to the received queue', async () => {
 				transactionsToMoveToReceivedQueue.forEach(transaction => {
-					expect(transactionPool.queues.received.exists(transaction.id)).to.be
-						.true;
+					expect(transactionPool.queues.received.exists(transaction.id)).toBe(
+						true,
+					);
 				});
 			});
 		});
@@ -309,15 +312,17 @@ describe('transaction pool events', () => {
 
 			it('should move affected transactions in the validated queue to the received queue', async () => {
 				transactionsToMoveToReceivedQueue.forEach(transaction => {
-					expect(transactionPool.queues.received.exists(transaction.id)).to.be
-						.true;
+					expect(transactionPool.queues.received.exists(transaction.id)).toBe(
+						true,
+					);
 				});
 			});
 
 			it('should move affected transactions in the verified, ready and pending queue to the validated queue', async () => {
 				transactionsToMoveToValidatedQueue.forEach(transaction => {
-					expect(transactionPool.queues.validated.exists(transaction.id)).to.be
-						.true;
+					expect(transactionPool.queues.validated.exists(transaction.id)).toBe(
+						true,
+					);
 				});
 			});
 		});
@@ -331,14 +336,14 @@ describe('transaction pool events', () => {
 				const { alreadyExists } = transactionPool.addPendingTransaction(
 					transactions[0],
 				);
-				expect(alreadyExists).to.equal(true);
+				expect(alreadyExists).toBe(true);
 				// wait 1 second to ensure that event is not called for transaction
 				setTimeout(done, 1000);
 			});
 
 			it('should fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction is added to the pending queue after adding transaction', done => {
 				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
-					expect(payload[0]).to.eql(transactions[0]);
+					expect(payload[0]).toEqual(transactions[0]);
 					done();
 				});
 				transactionPool.addPendingTransaction(transactions[0]);
@@ -352,14 +357,14 @@ describe('transaction pool events', () => {
 				const { alreadyExists } = transactionPool.addVerifiedTransaction(
 					transactions[0],
 				);
-				expect(alreadyExists).to.equal(true);
+				expect(alreadyExists).toBe(true);
 				// wait 1 second to ensure that event is not called for transaction
 				setTimeout(done, 1000);
 			});
 
 			it('should fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction is added to the verified queue after adding transaction', done => {
 				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
-					expect(payload[0]).to.eql(transactions[0]);
+					expect(payload[0]).toEqual(transactions[0]);
 					done();
 				});
 				transactionPool.addVerifiedTransaction(transactions[0]);
