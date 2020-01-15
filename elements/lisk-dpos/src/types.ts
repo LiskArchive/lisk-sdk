@@ -128,12 +128,11 @@ export interface BlockJSON extends Earnings {
 }
 
 export interface Account {
-	readonly id: string;
 	readonly balance: BigNum;
 	readonly fees: BigNum;
 	readonly rewards: BigNum;
-	readonly displayName: string;
 	readonly publicKey: string;
+	readonly voteWeight: BigNum;
 	readonly votedDelegatesPublicKeys: string[];
 }
 
