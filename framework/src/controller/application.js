@@ -255,7 +255,7 @@ class Application {
 		);
 		this.logger.info(`Booting the application with Lisk Framework(${version})`);
 
-		// Freeze every module and configuration so it would not interrupt the app executionx
+		// Freeze every module and configuration so it would not interrupt the app execution
 		this._compileAndValidateConfigurations();
 
 		Object.freeze(this.genesisBlock);
