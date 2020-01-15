@@ -18,7 +18,6 @@ import {
 	Status,
 	checkTransactionsWithPassAndFail,
 } from '../../src/check_transactions';
-import { expect } from 'chai';
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 
@@ -58,11 +57,11 @@ describe('#checkTransactions', () => {
 		],
 	};
 
-	let checkerFunction: sinon.SinonStub;
+	let checkerFunction: jest.Mock;
 
 	describe('#checkTransactionWithPassAndFail', () => {
 		beforeEach(async () => {
-			checkerFunction = sandbox.stub().resolves(checkerFunctionResponse);
+			checkerFunction = jest.fn().mockReturnValue(checkerFunctionResponse);
 		});
 
 		it('should call checkerFunction with the transactions passed', async () => {
@@ -70,7 +69,9 @@ describe('#checkTransactions', () => {
 				transactionsToCheck,
 				checkerFunction,
 			);
-			expect(checkerFunction).to.be.calledOnceWithExactly(transactionsToCheck);
+			expect(checkerFunction).toBeCalledTimes(1);
+
+			expect(checkerFunction).toBeCalledWith(transactionsToCheck);
 		});
 
 		it('should return transactions which passed the checkerFunction', async () => {
@@ -78,7 +79,7 @@ describe('#checkTransactions', () => {
 				transactionsToCheck,
 				checkerFunction,
 			);
-			expect(checkTransactionsResponse.passedTransactions).to.be.deep.equal(
+			expect(checkTransactionsResponse.passedTransactions).toEqual(
 				passedTransactions,
 			);
 		});
@@ -88,7 +89,7 @@ describe('#checkTransactions', () => {
 				transactionsToCheck,
 				checkerFunction,
 			);
-			expect(checkTransactionsResponse.failedTransactions).to.be.deep.equal(
+			expect(checkTransactionsResponse.failedTransactions).toEqual(
 				failedTransactions,
 			);
 		});

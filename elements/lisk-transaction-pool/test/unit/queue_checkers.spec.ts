@@ -1,9 +1,7 @@
-import { expect } from 'chai';
 import { Transaction } from '../../src/transaction_pool';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 import * as queueCheckers from '../../src/queue_checkers';
 import * as transactionObjects from '../../fixtures/transactions.json';
-import { SinonStub } from 'sinon';
 
 describe('queueCheckers', () => {
 	const [unincludedTransaction, ...transactions] = transactionObjects.map(
@@ -19,7 +17,7 @@ describe('queueCheckers', () => {
 		it('should return a function', () => {
 			return expect(
 				queueCheckers.checkTransactionPropertyForValues(values, propertyName),
-			).to.be.a('function');
+			).toEqual(expect.any(Function));
 		});
 
 		it('should return function which returns true for transaction whose property is included in the values', () => {
@@ -27,7 +25,7 @@ describe('queueCheckers', () => {
 				values,
 				propertyName,
 			);
-			return expect(checkerFunction(transactions[0])).to.equal(true);
+			return expect(checkerFunction(transactions[0])).toBe(true);
 		});
 
 		it('should return function which returns false for transaction whose property is not included in the values', () => {
@@ -35,7 +33,7 @@ describe('queueCheckers', () => {
 				values,
 				propertyName,
 			);
-			return expect(checkerFunction(unincludedTransaction)).to.equal(false);
+			return expect(checkerFunction(unincludedTransaction)).toBe(false);
 		});
 	});
 
@@ -43,29 +41,29 @@ describe('queueCheckers', () => {
 		const limit = 2;
 
 		it('should return a function', () => {
-			return expect(queueCheckers.returnTrueUntilLimit(limit)).to.be.a(
-				'function',
+			return expect(queueCheckers.returnTrueUntilLimit(limit)).toEqual(
+				expect.any(Function),
 			);
 		});
 
 		it(`should return function which returns true until function is called less than ${limit} times`, () => {
 			const checkerFunction = queueCheckers.returnTrueUntilLimit(limit);
-			expect(checkerFunction(transactions[0])).to.equal(true);
-			return expect(checkerFunction(transactions[0])).to.equal(true);
+			expect(checkerFunction(transactions[0])).toBe(true);
+			return expect(checkerFunction(transactions[0])).toBe(true);
 		});
 
 		it(`should return function which returns false after function is called more than ${limit} times`, () => {
 			const checkerFunction = queueCheckers.returnTrueUntilLimit(limit);
 			checkerFunction(transactions[0]);
 			checkerFunction(transactions[0]);
-			return expect(checkerFunction(transactions[0])).to.equal(false);
+			return expect(checkerFunction(transactions[0])).toBe(false);
 		});
 	});
 
 	describe('#checkTransactionForExpiry', () => {
 		it('should return a function', () => {
-			return expect(queueCheckers.checkTransactionForExpiry()).to.be.a(
-				'function',
+			return expect(queueCheckers.checkTransactionForExpiry()).toEqual(
+				expect.any(Function),
 			);
 		});
 
@@ -76,24 +74,24 @@ describe('queueCheckers', () => {
 				receivedAt: new Date(new Date().getTime() - 29000),
 			};
 
-			const isExpiredStub = sandbox.stub(transaction, 'isExpired');
+			const isExpiredStub = jest.spyOn(transaction, 'isExpired');
 			transactionExpiryCheckFunction(transaction);
 
-			return expect(isExpiredStub).to.be.calledOnce;
+			return expect(isExpiredStub).toBeCalledTimes(1);
 		});
 	});
 
 	describe('#checkTransactionForSenderPublicKey', () => {
 		beforeEach(() => {
-			return sandbox
-				.stub(queueCheckers, 'checkTransactionPropertyForValues')
-				.returns(() => true);
+			return jest
+				.spyOn(queueCheckers, 'checkTransactionPropertyForValues')
+				.mockReturnValue(() => true);
 		});
 
 		it('should return a function', () => {
 			return expect(
 				queueCheckers.checkTransactionForSenderPublicKey(transactions),
-			).to.be.a('function');
+			).toEqual(expect.any(Function));
 		});
 
 		it('should call checkTransactionPropertyForValues with transactions senderPublicKeys values and senderId property', () => {
@@ -104,21 +102,21 @@ describe('queueCheckers', () => {
 				(transaction: Transaction) => transaction.senderPublicKey,
 			);
 			return expect(
-				queueCheckers.checkTransactionPropertyForValues as SinonStub,
-			).to.be.calledWith(transactionSenderPublicKeys, senderProperty);
+				queueCheckers.checkTransactionPropertyForValues as any,
+			).toBeCalledWith(transactionSenderPublicKeys, senderProperty);
 		});
 	});
 
 	describe('#checkTransactionForId', () => {
 		beforeEach(() => {
-			return sandbox
-				.stub(queueCheckers, 'checkTransactionPropertyForValues')
-				.returns(() => true);
+			return jest
+				.spyOn(queueCheckers, 'checkTransactionPropertyForValues')
+				.mockReturnValue(() => true);
 		});
 
 		it('should return a function', () => {
-			return expect(queueCheckers.checkTransactionForId(transactions)).to.be.a(
-				'function',
+			return expect(queueCheckers.checkTransactionForId(transactions)).toEqual(
+				expect.any(Function),
 			);
 		});
 
@@ -129,22 +127,22 @@ describe('queueCheckers', () => {
 				(transaction: Transaction) => transaction.id,
 			);
 			return expect(
-				queueCheckers.checkTransactionPropertyForValues as SinonStub,
-			).to.be.calledWith(transactionIds, idProperty);
+				queueCheckers.checkTransactionPropertyForValues as any,
+			).toBeCalledWith(transactionIds, idProperty);
 		});
 	});
 
 	describe('#checkTransactionForSenderIdWithRecipientIds', () => {
 		beforeEach(() => {
-			return sandbox
-				.stub(queueCheckers, 'checkTransactionPropertyForValues')
-				.returns(() => true);
+			return jest
+				.spyOn(queueCheckers, 'checkTransactionPropertyForValues')
+				.mockReturnValue(() => true);
 		});
 
 		it('should return a function', () => {
 			return expect(
 				queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
-			).to.be.a('function');
+			).toEqual(expect.any(Function));
 		});
 
 		it('should call checkTransactionPropertyForValues with transacitons recipientId values and senderPublicKey property', () => {
@@ -154,22 +152,22 @@ describe('queueCheckers', () => {
 				.map((transaction: Transaction) => transaction.asset.recipientId)
 				.filter(id => id !== undefined);
 			return expect(
-				queueCheckers.checkTransactionPropertyForValues as SinonStub,
-			).to.be.calledWith(transactionRecipientIds, senderId);
+				queueCheckers.checkTransactionPropertyForValues as any,
+			).toBeCalledWith(transactionRecipientIds, senderId);
 		});
 	});
 
 	describe('#checkTransactionForTypes', () => {
 		beforeEach(() => {
-			return sandbox
-				.stub(queueCheckers, 'checkTransactionPropertyForValues')
-				.returns(() => true);
+			return jest
+				.spyOn(queueCheckers, 'checkTransactionPropertyForValues')
+				.mockReturnValue(() => true);
 		});
 
 		it('should return a function', () => {
 			return expect(
 				queueCheckers.checkTransactionForTypes(transactions),
-			).to.be.a('function');
+			).toEqual(expect.any(Function));
 		});
 
 		it('should call checkTransactionPropertyForValues with transaction type values and type property', () => {
@@ -179,8 +177,8 @@ describe('queueCheckers', () => {
 				(transaction: Transaction) => transaction.type,
 			);
 			return expect(
-				queueCheckers.checkTransactionPropertyForValues as SinonStub,
-			).to.be.calledWith(transactionTypes, typeProperty);
+				queueCheckers.checkTransactionPropertyForValues as any,
+			).toBeCalledWith(transactionTypes, typeProperty);
 		});
 	});
 });
