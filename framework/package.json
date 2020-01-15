@@ -81,9 +81,9 @@
 		"redis": "2.8.0",
 		"socket.io": "2.2.0",
 		"sodium-native": "2.4.6",
-		"swagger-node-runner": "0.7.3",
+		"swagger-node-runner": "git+https://github.com:CrowdFlower/swagger-node-runner.git#921e89ed",
 		"swagger-stats": "0.95.11",
-		"sway": "2.0.5",
+		"sway": "2.0.6",
 		"yargs": "13.2.2",
 		"z-schema": "3.24.2"
 	},
