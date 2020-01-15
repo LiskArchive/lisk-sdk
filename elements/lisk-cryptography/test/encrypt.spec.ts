@@ -110,13 +110,11 @@ describe('encrypt', () => {
 		});
 
 		it('should encrypt a message', () => {
-			// TODO: Add Hex string assertion check
 			expect(encryptedMessage).toHaveProperty('encryptedMessage');
 			expect(regHexadecimal.test(encryptedMessage.encryptedMessage)).toBe(true);
 		});
 
 		it('should output the nonce', () => {
-			// TODO: Add Hex string assertion check
 			expect(encryptedMessage);
 			expect(encryptedMessage).toHaveProperty('nonce');
 			expect(regHexadecimal.test(encryptedMessage.nonce)).toBe(true);
@@ -173,11 +171,9 @@ describe('encrypt', () => {
 		});
 
 		describe('#encryptPassphraseWithPassword', () => {
-			let startTime: number;
 			let encryptedPassphrase: EncryptedPassphraseObject;
 
 			beforeEach(() => {
-				startTime = Date.now();
 				encryptedPassphrase = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
@@ -186,11 +182,9 @@ describe('encrypt', () => {
 			});
 
 			it('should encrypt a passphrase', () => {
-				// TODO: Add Hex string assertion check
 				expect(encryptedPassphrase).toMatchObject({
 					cipherText: expect.any(String),
 				});
-				expect(encryptedPassphrase).toHaveProperty('cipherText');
 				expect(regHexadecimal.test(encryptedPassphrase.iv)).toBe(true);
 				expect(encryptedPassphrase.iv).toHaveLength(24);
 			});
@@ -222,16 +216,6 @@ describe('encrypt', () => {
 					'iterations',
 					PBKDF2_ITERATIONS,
 				);
-			});
-
-			it('should take more than 0.25 seconds @node-only', () => {
-				const endTime = Date.now();
-				expect(endTime - startTime).toBeGreaterThan(250);
-			});
-
-			it('should take less than 2 seconds @node-only', () => {
-				const endTime = Date.now();
-				expect(endTime - startTime).toBeLessThan(2e3);
 			});
 
 			it('should accept and output a custom number of iterations', () => {
