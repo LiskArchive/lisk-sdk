@@ -11,15 +11,12 @@ import {
 import { returnTrueUntilLimit } from '../../src/queue_checkers';
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
-import { SinonFakeTimers } from 'sinon';
-import { expect } from 'chai';
 
 describe('transaction movement between queues', () => {
 	const transactions: ReadonlyArray<Transaction> = transactionObjects.map(
 		wrapTransaction,
 	);
 	let transactionPool: TransactionPool;
-	let clock: SinonFakeTimers;
 
 	const configuration: TransactionPoolConfiguration = {
 		expireTransactionsInterval: 100,
@@ -48,7 +45,7 @@ describe('transaction movement between queues', () => {
 	};
 
 	beforeEach(async () => {
-		clock = sandbox.useFakeTimers();
+		jest.useFakeTimers();
 		transactionPool = new TransactionPool({
 			...configuration,
 			...dependencies,
@@ -80,14 +77,17 @@ describe('transaction movement between queues', () => {
 
 			validTransactions = passedTransactions;
 			invalidTransactions = failedTransactions;
-			clock.tick(configuration.receivedTransactionsProcessingInterval + 1);
+			jest.advanceTimersByTime(
+				configuration.receivedTransactionsProcessingInterval + 1,
+			);
 		});
 
 		it('should remove transactions from the received queue', async () => {
 			await wrapExpectationInNextTick(() => {
 				transactionsToValidate.forEach(transaction => {
-					expect(transactionPool.queues.received.exists(transaction.id)).to.be
-						.false;
+					expect(transactionPool.queues.received.exists(transaction.id)).toBe(
+						false,
+					);
 				});
 			});
 		});
@@ -95,10 +95,11 @@ describe('transaction movement between queues', () => {
 		it('should move valid transactions to the validated queue', async () => {
 			await wrapExpectationInNextTick(() => {
 				validTransactions.forEach(transaction => {
-					expect(transactionPool.queues.validated.exists(transaction.id)).to.be
-						.true;
+					expect(transactionPool.queues.validated.exists(transaction.id)).toBe(
+						true,
+					);
 				});
-				expect(transactionPool.queues.validated.size()).to.equal(
+				expect(transactionPool.queues.validated.size()).toBe(
 					validTransactions.length,
 				);
 			});
@@ -107,8 +108,9 @@ describe('transaction movement between queues', () => {
 		it('should remove invalid transactions from the transaction pool', async () => {
 			await wrapExpectationInNextTick(() => {
 				invalidTransactions.forEach(transaction => {
-					expect(transactionPool.existsInTransactionPool(transaction.id)).to.be
-						.false;
+					expect(transactionPool.existsInTransactionPool(transaction.id)).toBe(
+						false,
+					);
 				});
 			});
 		});
@@ -127,14 +129,17 @@ describe('transaction movement between queues', () => {
 
 				verifiableTransactions = passedTransactions;
 				unverifiableTransactions = failedTransactions;
-				clock.tick(configuration.validatedTransactionsProcessingInterval + 1);
+				jest.advanceTimersByTime(
+					configuration.validatedTransactionsProcessingInterval + 1,
+				);
 			});
 
 			it('should remove transactions from the validated queue', async () => {
 				await wrapExpectationInNextTick(() => {
 					transactionsToVerify.forEach(transaction => {
-						expect(transactionPool.queues.validated.exists(transaction.id)).to
-							.be.false;
+						expect(
+							transactionPool.queues.validated.exists(transaction.id),
+						).toBe(false);
 					});
 				});
 			});
@@ -142,10 +147,11 @@ describe('transaction movement between queues', () => {
 			it('should move verified transactions to the verified queue', async () => {
 				await wrapExpectationInNextTick(() => {
 					verifiableTransactions.forEach(transaction => {
-						expect(transactionPool.queues.verified.exists(transaction.id)).to.be
-							.true;
+						expect(transactionPool.queues.verified.exists(transaction.id)).toBe(
+							true,
+						);
 					});
-					expect(transactionPool.queues.verified.size()).to.equal(
+					expect(transactionPool.queues.verified.size()).toBe(
 						verifiableTransactions.length,
 					);
 				});
@@ -154,8 +160,9 @@ describe('transaction movement between queues', () => {
 			it('should remove verified transactions from the transaction pool', async () => {
 				await wrapExpectationInNextTick(() => {
 					unverifiableTransactions.forEach(transaction => {
-						expect(transactionPool.existsInTransactionPool(transaction.id)).to
-							.be.false;
+						expect(
+							transactionPool.existsInTransactionPool(transaction.id),
+						).toBe(false);
 					});
 				});
 			});
@@ -174,14 +181,17 @@ describe('transaction movement between queues', () => {
 
 					processableTransactions = passedTransactions;
 					unprocessableTransactions = failedTransactions;
-					clock.tick(configuration.verifiedTransactionsProcessingInterval + 1);
+					jest.advanceTimersByTime(
+						configuration.verifiedTransactionsProcessingInterval + 1,
+					);
 				});
 
 				it('should remove transactions from the verified queue', async () => {
 					await wrapExpectationInNextTick(() => {
 						transactionsToProcess.forEach(transaction => {
-							expect(transactionPool.queues.verified.exists(transaction.id)).to
-								.be.false;
+							expect(
+								transactionPool.queues.verified.exists(transaction.id),
+							).toBe(false);
 						});
 					});
 				});
@@ -189,10 +199,11 @@ describe('transaction movement between queues', () => {
 				it('should move processable transactions to the ready queue', async () => {
 					await wrapExpectationInNextTick(() => {
 						processableTransactions.forEach(transaction => {
-							expect(transactionPool.queues.ready.exists(transaction.id)).to.be
-								.true;
+							expect(transactionPool.queues.ready.exists(transaction.id)).toBe(
+								true,
+							);
 						});
-						expect(transactionPool.queues.ready.size()).to.equal(
+						expect(transactionPool.queues.ready.size()).toBe(
 							processableTransactions.length,
 						);
 					});
@@ -203,8 +214,9 @@ describe('transaction movement between queues', () => {
 						'-1' + transactionsToProcess[0].id;
 					await wrapExpectationInNextTick(() => {
 						unprocessableTransactions.forEach(transaction => {
-							expect(transactionPool.existsInTransactionPool(transaction.id)).to
-								.be.false;
+							expect(
+								transactionPool.existsInTransactionPool(transaction.id),
+							).toBe(false);
 						});
 					});
 				});
@@ -214,13 +226,16 @@ describe('transaction movement between queues', () => {
 					await wrapExpectationInNextTick(() => {
 						transactionsInReadyQueue =
 							transactionPool.queues.ready.transactions;
-						clock.tick(configuration.verifiedTransactionsProcessingInterval);
+						jest.advanceTimersByTime(
+							configuration.verifiedTransactionsProcessingInterval,
+						);
 					});
 
 					await wrapExpectationInNextTick(() => {
 						transactionsInReadyQueue.forEach(transaction => {
-							expect(transactionPool.queues.ready.exists(transaction.id)).to.be
-								.true;
+							expect(transactionPool.queues.ready.exists(transaction.id)).toBe(
+								true,
+							);
 						});
 					});
 				});
