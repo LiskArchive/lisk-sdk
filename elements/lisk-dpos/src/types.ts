@@ -58,7 +58,7 @@ export interface StorageEntity<T> {
 	readonly update: (
 		filters: StorageFilters,
 		data: UpdateAccountData,
-		_options: StorageOptions,
+		options: StorageOptions,
 		tx?: StorageTransaction,
 	) => Promise<T[]>;
 	readonly delete: (
@@ -80,7 +80,7 @@ export interface Storage {
 export interface BlockEntity {
 	readonly get: (
 		filters: StorageFilters,
-		_options: StorageOptions,
+		options: StorageOptions,
 		tx?: StorageTransaction,
 	) => Promise<Block[]>;
 }
@@ -91,13 +91,13 @@ export interface AccountEntity extends StorageEntity<Account> {
 		field: string,
 		value: string,
 		tx?: StorageTransaction,
-	) => Promise<Account[]>;
+	) => Promise<ReadonlyArray<Account>>;
 	readonly increaseFieldBy: (
 		filters: StorageFilters,
 		field: string,
 		value: string,
 		tx?: StorageTransaction,
-	) => Promise<Account[]>;
+	) => Promise<ReadonlyArray<Account>>;
 }
 
 export interface RoundDelegates {
@@ -109,7 +109,7 @@ export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
 	readonly getActiveDelegatesForRound: (
 		roundWithOffset: number,
 		tx?: StorageTransaction,
-	) => Promise<string[]>;
+	) => Promise<ReadonlyArray<string>>;
 }
 
 // Typedefs
@@ -136,7 +136,7 @@ export interface Account {
 	readonly rewards: BigNum;
 	readonly publicKey: string;
 	readonly voteWeight: BigNum;
-	readonly votedDelegatesPublicKeys: string[];
+	readonly votedDelegatesPublicKeys: ReadonlyArray<string>;
 }
 
 interface UpdateAccountData {

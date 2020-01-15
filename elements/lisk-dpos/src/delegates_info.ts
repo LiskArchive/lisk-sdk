@@ -33,12 +33,6 @@ import {
 	StorageTransaction,
 } from './types';
 
-const _isGenesisBlock = (block: Block) => block.height === 1;
-
-const _hasVotedDelegatesPublicKeys = (forgerInfo: UniqForgerInfo) =>
-	!!forgerInfo.delegateAccount?.votedDelegatesPublicKeys &&
-	forgerInfo.delegateAccount?.votedDelegatesPublicKeys.length > 0;
-
 interface DelegatesInfoConstructor {
 	readonly storage: Storage;
 	readonly slots: Slots;
@@ -51,7 +45,7 @@ interface DelegatesInfoConstructor {
 	};
 }
 
-interface UniqForgerInfo {
+interface UniqueForgerInfo {
 	/* tslint:disable:readonly-keyword */
 	delegateAccount?: Account;
 	earnings: Earnings;
@@ -61,7 +55,7 @@ interface UniqForgerInfo {
 interface RoundSummary {
 	readonly round: number;
 	readonly delegateListRoundOffset?: number;
-	readonly uniqForgersInfo: UniqForgerInfo[];
+	readonly uniqForgersInfo: ReadonlyArray<UniqueForgerInfo>;
 	readonly totalFee: BigNum;
 	readonly tx?: StorageTransaction;
 }
@@ -91,6 +85,12 @@ interface AccountFees {
 	// tslint:disable-next-line:readonly-keyword
 	[key: string]: BigNum;
 }
+
+const _isGenesisBlock = (block: Block) => block.height === 1;
+
+const _hasVotedDelegatesPublicKeys = (forgerInfo: UniqueForgerInfo) =>
+	!!forgerInfo.delegateAccount?.votedDelegatesPublicKeys &&
+	forgerInfo.delegateAccount?.votedDelegatesPublicKeys.length > 0;
 
 export class DelegatesInfo {
 	private readonly storage: Storage;
@@ -206,13 +206,13 @@ export class DelegatesInfo {
 		block: Block,
 		undo?: boolean,
 		tx?: StorageTransaction,
-	): Promise<Account[]> {
+	): Promise<void> {
 		const filters = { publicKey: block.generatorPublicKey };
 		const field = 'producedBlocks';
 		const value = '1';
 		const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
 
-		return this.storage.entities.Account[method](filters, field, value, tx);
+		await this.storage.entities.Account[method](filters, field, value, tx);
 	}
 
 	private async _updateMissedBlocks(
@@ -247,7 +247,7 @@ export class DelegatesInfo {
 			async ({
 				delegateAccount,
 				earnings: { fee, reward },
-			}: UniqForgerInfo) => {
+			}: UniqueForgerInfo) => {
 				const factor = undo ? -1 : 1;
 				const amount = fee.plus(reward);
 				const data = {
@@ -279,7 +279,7 @@ export class DelegatesInfo {
 			.reduce(
 				(
 					acc: AccountFees,
-					{ delegateAccount, earnings: { fee, reward } }: UniqForgerInfo,
+					{ delegateAccount, earnings: { fee, reward } }: UniqueForgerInfo,
 				) => {
 					(delegateAccount as Account).votedDelegatesPublicKeys.forEach(
 						publicKey =>

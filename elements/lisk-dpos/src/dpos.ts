@@ -107,7 +107,7 @@ export class Dpos {
 			tx,
 			delegateListRoundOffset = this.delegateListRoundOffset,
 		}: DPoSProcessingOptions = {},
-	): Promise<string[]> {
+	): Promise<ReadonlyArray<string>> {
 		return this.delegatesList.getForgerPublicKeysForRound(
 			round,
 			delegateListRoundOffset,
@@ -226,7 +226,7 @@ export class Dpos {
 	 */
 	private _findEarliestActiveListRound(
 		delegatePublicKey: string,
-		previousLists: RoundDelegates[],
+		previousLists: ReadonlyArray<RoundDelegates>,
 	): number {
 		if (!previousLists.length) {
 			return 0;

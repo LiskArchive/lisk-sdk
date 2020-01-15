@@ -35,8 +35,8 @@ interface DelegatesListConstructor {
 
 export const shuffleDelegateListForRound = (
 	round: number,
-	list: string[],
-): string[] => {
+	list: ReadonlyArray<string>,
+): ReadonlyArray<string> => {
 	const seedSource = round.toString();
 	const delegateList = [...list];
 	// tslint:disable-next-line:no-let
@@ -85,7 +85,7 @@ export class DelegatesList {
 		round: number,
 		delegateListRoundOffset?: number,
 		tx?: StorageTransaction,
-	): Promise<string[]> {
+	): Promise<ReadonlyArray<string>> {
 		// Delegate list is generated from round 1 hence `roundWithOffset` can't be less than 1
 		const roundWithOffset = Math.max(
 			round - (delegateListRoundOffset as number),
