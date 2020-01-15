@@ -1,37 +1,18 @@
-/*
- * Copyright © 2019 Lisk Foundation
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
- * no part of this software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE file.
- *
- * Removal or modification of this copyright notice is prohibited.
- */
-
-'use strict';
-
 module.exports = {
 	globals: {
 		'ts-jest': {
 			tsConfig: './test/tsconfig.json',
 		},
 	},
-	verbose: true,
-	collectCoverage: true,
-	coverageReporters: ['json', 'lcov', 'cobertura'],
-	testMatch: ['<rootDir>/test/**/**.ts'],
-	testPathIgnorePatterns: ['<rootDir>/test/helpers/'],
+	testMatch: ['<rootDir>/test/**/?(*.)+(spec|test).+(ts|tsx|js)'],
 	setupFilesAfterEnv: ['<rootDir>/test/_setup.js'],
-	collectCoverageFrom: ['<rootDir>/src/**'],
-	coveragePathIgnorePatterns: ['/dist-node/', '/test/'],
-
 	transform: {
 		'^.+\\.(ts|tsx)$': 'ts-jest',
 	},
+	verbose: true,
+	collectCoverage: true,
+	coverageReporters: ['json', 'lcov', 'cobertura'],
+	coverageDirectory: '.coverage',
 	/**
 	 * restoreMocks [boolean]
 	 *
@@ -41,23 +22,8 @@ module.exports = {
 	 * Equivalent to calling jest.restoreAllMocks() between each test.
 	 * This will lead to any mocks having their fake implementations removed
 	 * and restores their initial implementation.
-	 *
-	 * IMPORTANT: Beware that mockFn.mockRestore only works when the mock was
-	 * created with jest.spyOn. Thus you have to take care of restoration yourself
-	 * when manually assigning jest.fn().
 	 */
 	restoreMocks: true,
-
-	/**
-	 * clearMocks [boolean]
-	 *
-	 * Default: false
-	 *
-	 * Automatically clear mock calls and instances between every test.
-	 * Equivalent to calling jest.clearAllMocks() between each test.
-	 * This does not remove any mock implementation that may have been provided.
-	 */
-	clearMocks: true,
 
 	/**
 	 * resetModules [boolean]
