@@ -248,14 +248,14 @@ class Application {
 
 	async run() {
 		this.logger.info(
-			"If you experience any type of error, please open an issue on Lisk's GitHub: https://github.com/LiskHQ/lisk-sdk/issues",
+			'If you experience any type of error, please open an issue on Lisk GitHub: https://github.com/LiskHQ/lisk-sdk/issues',
 		);
 		this.logger.info(
 			'Contribution guidelines can be found at Lisk-docs: https://github.com/LiskHQ/lisk-docs/blob/build/CONTRIBUTING.adoc',
 		);
 		this.logger.info(`Booting the application with Lisk Framework(${version})`);
 
-		// Freeze every module and configuration so it would not interrupt the app execution
+		// Freeze every module and configuration so it would not interrupt the app executionx
 		this._compileAndValidateConfigurations();
 
 		Object.freeze(this.genesisBlock);
