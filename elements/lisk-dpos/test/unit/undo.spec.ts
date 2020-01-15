@@ -33,7 +33,7 @@ import {
 	delegatesWhoForgedOnceMissedOnce,
 	delegateWhoForgedLast,
 } from '../utils/round_delegates';
-import { BlockJSON, Account } from '../../src/types';
+import { Block, Account } from '../../src/types';
 
 describe('dpos.undo()', () => {
 	const stubs = {} as any;
@@ -83,13 +83,13 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: BlockJSON;
+		let genesisBlock: Block;
 		beforeEach(() => {
 			// Arrange
 			genesisBlock = {
 				height: 1,
-			} as BlockJSON;
-		}) as BlockJSON;
+			} as Block;
+		}) as Block;
 
 		it('should throw exception and NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
 			// Act && Assert
@@ -112,7 +112,7 @@ describe('dpos.undo()', () => {
 			const block = ({
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			} as BlockJSON) as BlockJSON;
+			} as Block) as Block;
 
 			// Act
 			await dpos.undo(block, { tx: stubs.tx });
@@ -135,7 +135,7 @@ describe('dpos.undo()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.undo(block, { tx: stubs.tx });
@@ -167,7 +167,7 @@ describe('dpos.undo()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.undo(block, { tx: stubs.tx });
@@ -180,7 +180,7 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: BlockJSON;
+		let lastBlockOfTheRoundNine: Block;
 		let feePerDelegate: BigNum;
 		let rewardPerDelegate: BigNum;
 		let totalFee: BigNum;
@@ -223,7 +223,7 @@ describe('dpos.undo()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: feePerDelegate,
 				reward: rewardPerDelegate,
-			} as BlockJSON;
+			} as Block;
 			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
 				generatorPublicKey: delegate.publicKey,
 				totalFee: feePerDelegate,
@@ -345,7 +345,7 @@ describe('dpos.undo()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: new BigNum(feePerDelegate).add(remainingFee),
 				reward: rewardPerDelegate,
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });

@@ -22,7 +22,7 @@ import {
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
-import { BlockJSON } from '../../src/types';
+import { Block } from '../../src/types';
 
 describe('dpos.verifyBlockForger()', () => {
 	const stubs = {} as any;
@@ -73,7 +73,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
-		} as BlockJSON;
+		} as Block;
 
 		// Act
 		const result = await dpos.verifyBlockForger(block);
@@ -91,7 +91,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
-		} as BlockJSON;
+		} as Block;
 
 		// Act
 		await dpos.verifyBlockForger(block);
@@ -111,7 +111,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'386217d98eee87268a54d2d76ce9e801ac86271284d793154989e37cb31bcd0e',
-		} as BlockJSON;
+		} as Block;
 
 		// Act
 		await dpos.verifyBlockForger(block);
@@ -131,7 +131,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
-		} as BlockJSON;
+		} as Block;
 
 		// Act
 		await dpos.verifyBlockForger(block);
@@ -150,7 +150,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c',
-		} as BlockJSON;
+		} as Block;
 		const round = slots.calcRound(block.height);
 
 		// Act
@@ -168,7 +168,7 @@ describe('dpos.verifyBlockForger()', () => {
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey: 'xxx',
-		} as BlockJSON;
+		} as Block;
 
 		const expectedSlot = slots.getSlotNumber(block.timestamp);
 
@@ -189,7 +189,7 @@ describe('dpos.verifyBlockForger()', () => {
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey: 'xxx',
-		} as BlockJSON;
+		} as Block;
 
 		const expectedRound = slots.calcRound(block.height);
 
@@ -212,7 +212,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });
@@ -232,7 +232,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'386217d98eee87268a54d2d76ce9e801ac86271284d793154989e37cb31bcd0e',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });
@@ -252,7 +252,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });
@@ -272,7 +272,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });

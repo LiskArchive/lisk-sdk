@@ -21,10 +21,11 @@ import { DelegatesInfo } from './delegates_info';
 import { DelegatesList } from './delegates_list';
 import { Slots } from './slots';
 import {
-	BlockJSON,
+	Block,
 	DPoSProcessingOptions,
 	Logger,
 	RoundDelegates,
+	RoundException,
 	Storage,
 } from './types';
 
@@ -39,8 +40,9 @@ interface DposConstructor {
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
 	readonly logger: Logger;
-	readonly exceptions: {
-		readonly [key: string]: string | number | string[] | number[] | {};
+	readonly exceptions?: {
+		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
+		readonly rounds?: { readonly [key: string]: RoundException };
 	};
 }
 
@@ -251,7 +253,7 @@ export class Dpos {
 	}
 
 	public async verifyBlockForger(
-		block: BlockJSON,
+		block: Block,
 		{
 			tx,
 			delegateListRoundOffset = this.delegateListRoundOffset,
@@ -264,7 +266,7 @@ export class Dpos {
 	}
 
 	public async apply(
-		block: BlockJSON,
+		block: Block,
 		{
 			tx,
 			delegateListRoundOffset = this.delegateListRoundOffset,
@@ -274,7 +276,7 @@ export class Dpos {
 	}
 
 	public async undo(
-		block: BlockJSON,
+		block: Block,
 		{
 			tx,
 			delegateListRoundOffset = this.delegateListRoundOffset,

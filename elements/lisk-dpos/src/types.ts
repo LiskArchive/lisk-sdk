@@ -159,3 +159,9 @@ export interface DPoSProcessingOptions {
 export interface DPoSProcessingUndoOptions extends DPoSProcessingOptions {
 	readonly undo?: boolean;
 }
+
+export interface RoundException {
+	readonly rewards_factor: number;
+	readonly fees_factor: number;
+	readonly fees_bonus: number;
+}

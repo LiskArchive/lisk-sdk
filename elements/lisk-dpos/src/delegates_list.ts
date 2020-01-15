@@ -18,7 +18,7 @@ import { hash } from '@liskhq/lisk-cryptography';
 
 import { Slots } from './slots';
 import {
-	BlockJSON,
+	Block,
 	DPoSProcessingOptions,
 	Storage,
 	StorageTransaction,
@@ -29,7 +29,7 @@ interface DelegatesListConstructor {
 	readonly slots: Slots;
 	readonly activeDelegates: number;
 	readonly exceptions: {
-		readonly ignoreDelegateListCacheForRounds: number[];
+		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
 }
 
@@ -62,7 +62,7 @@ export class DelegatesList {
 	private readonly slots: Slots;
 	private readonly activeDelegates: number;
 	private readonly exceptions: {
-		readonly ignoreDelegateListCacheForRounds: number[];
+		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
 
 	public constructor({
@@ -177,7 +177,7 @@ export class DelegatesList {
 	}
 
 	public async verifyBlockForger(
-		block: BlockJSON,
+		block: Block,
 		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		const currentSlot = this.slots.getSlotNumber(block.timestamp);

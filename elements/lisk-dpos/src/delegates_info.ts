@@ -23,16 +23,17 @@ import { Slots } from './slots';
 import {
 	Account,
 	BigNumExtended,
-	BlockJSON,
+	Block,
 	DPoSProcessingOptions,
 	DPoSProcessingUndoOptions,
 	Earnings,
 	Logger,
+	RoundException,
 	Storage,
 	StorageTransaction,
 } from './types';
 
-const _isGenesisBlock = (block: BlockJSON) => block.height === 1;
+const _isGenesisBlock = (block: Block) => block.height === 1;
 
 const _hasVotedDelegatesPublicKeys = (forgerInfo: UniqForgerInfo) =>
 	!!forgerInfo.delegateAccount?.votedDelegatesPublicKeys &&
@@ -91,12 +92,6 @@ interface AccountFees {
 	[key: string]: BigNum;
 }
 
-interface RoundException {
-	readonly rewards_factor: number;
-	readonly fees_factor: number;
-	readonly fees_bonus: number;
-}
-
 export class DelegatesInfo {
 	private readonly storage: Storage;
 	private readonly slots: Slots;
@@ -127,7 +122,7 @@ export class DelegatesInfo {
 	}
 
 	public async apply(
-		block: BlockJSON,
+		block: Block,
 		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		const undo = false;
@@ -136,7 +131,7 @@ export class DelegatesInfo {
 	}
 
 	public async undo(
-		block: BlockJSON,
+		block: Block,
 		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		const undo = true;
@@ -150,7 +145,7 @@ export class DelegatesInfo {
 	}
 
 	private async _update(
-		block: BlockJSON,
+		block: Block,
 		{ undo, tx, delegateListRoundOffset }: DPoSProcessingUndoOptions,
 	): Promise<boolean> {
 		await this._updateProducedBlocks(block, undo, tx);
@@ -208,7 +203,7 @@ export class DelegatesInfo {
 	}
 
 	private async _updateProducedBlocks(
-		block: BlockJSON,
+		block: Block,
 		undo?: boolean,
 		tx?: StorageTransaction,
 	): Promise<Account[]> {
@@ -287,9 +282,12 @@ export class DelegatesInfo {
 					{ delegateAccount, earnings: { fee, reward } }: UniqForgerInfo,
 				) => {
 					delegateAccount?.votedDelegatesPublicKeys.forEach(publicKey => {
-						acc[publicKey] = acc[publicKey]
-							? acc[publicKey].plus(fee.plus(reward))
-							: fee.plus(reward);
+						// tslint:disable-next-line:prefer-conditional-expression
+						if (acc[publicKey]) {
+							acc[publicKey] = acc[publicKey].plus(fee.plus(reward));
+						} else {
+							acc[publicKey] = fee.plus(reward);
+						}
 					});
 
 					return acc;
@@ -313,7 +311,7 @@ export class DelegatesInfo {
 		);
 	}
 
-	private _isLastBlockOfTheRound(block: BlockJSON): boolean {
+	private _isLastBlockOfTheRound(block: Block): boolean {
 		const round = this.slots.calcRound(block.height);
 		const nextRound = this.slots.calcRound(block.height + 1);
 
@@ -325,7 +323,7 @@ export class DelegatesInfo {
 	 * as delegates who forged, their earnings and accounts
 	 */
 	private async _summarizeRound(
-		block: BlockJSON,
+		block: Block,
 		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<RoundSummary> {
 		const round = this.slots.calcRound(block.height);
@@ -354,7 +352,7 @@ export class DelegatesInfo {
 			uniqDelegateListWithRewardsInfo,
 			totalFee,
 		} = blocksInRounds.reduce(
-			(acc: AccountSummary, fetchedBlock: BlockJSON, i) => {
+			(acc: AccountSummary, fetchedBlock: Block, i) => {
 				acc.totalFee = acc.totalFee.add(fetchedBlock.totalFee);
 
 				const delegate = acc.uniqDelegateListWithRewardsInfo.find(

@@ -17,7 +17,7 @@
 import * as BigNum from '@liskhq/bignum';
 import { when } from 'jest-when';
 import { Dpos, Slots, constants } from '../../src';
-import { BlockJSON, Account } from '../../src/types';
+import { Block, Account } from '../../src/types';
 import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
@@ -87,12 +87,12 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: BlockJSON;
+		let genesisBlock: Block;
 		beforeEach(() => {
 			// Arrange
 			genesisBlock = {
 				height: 1,
-			} as BlockJSON;
+			} as Block;
 
 			when(stubs.storage.entities.Account.get)
 				.calledWith(
@@ -185,7 +185,7 @@ describe('dpos.apply()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.apply(block, { tx: stubs.tx });
@@ -208,7 +208,7 @@ describe('dpos.apply()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.apply(block, { tx: stubs.tx });
@@ -240,7 +240,7 @@ describe('dpos.apply()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			} as BlockJSON;
+			} as Block;
 
 			// Act
 			await dpos.apply(block, { tx: stubs.tx });
@@ -256,7 +256,7 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: BlockJSON;
+		let lastBlockOfTheRoundNine: Block;
 		let feePerDelegate: BigNum;
 		let rewardPerDelegate: BigNum;
 		let totalFee: BigNum;
@@ -321,7 +321,7 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: feePerDelegate,
 				reward: rewardPerDelegate,
-			} as BlockJSON;
+			} as Block;
 
 			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
 		});
@@ -433,7 +433,7 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: new BigNum(feePerDelegate).add(remainingFee),
 				reward: rewardPerDelegate,
-			} as BlockJSON;
+			} as Block;
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
 			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
@@ -666,7 +666,7 @@ describe('dpos.apply()', () => {
 					generatorPublicKey: delegateWhoForgedLast.publicKey,
 					totalFee: feePerDelegate,
 					reward: rewardPerDelegate,
-				} as BlockJSON;
+				} as Block;
 
 				stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
 
