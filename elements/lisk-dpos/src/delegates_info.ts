@@ -281,14 +281,12 @@ export class DelegatesInfo {
 					acc: AccountFees,
 					{ delegateAccount, earnings: { fee, reward } }: UniqForgerInfo,
 				) => {
-					delegateAccount?.votedDelegatesPublicKeys.forEach(publicKey => {
-						// tslint:disable-next-line:prefer-conditional-expression
-						if (acc[publicKey]) {
-							acc[publicKey] = acc[publicKey].plus(fee.plus(reward));
-						} else {
-							acc[publicKey] = fee.plus(reward);
-						}
-					});
+					(delegateAccount as Account).votedDelegatesPublicKeys.forEach(
+						publicKey =>
+							(acc[publicKey] = acc[publicKey]
+								? acc[publicKey].plus(fee.plus(reward))
+								: fee.plus(reward)),
+					);
 
 					return acc;
 				},
