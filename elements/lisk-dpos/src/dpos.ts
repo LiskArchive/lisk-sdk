@@ -39,8 +39,9 @@ interface DposConstructor {
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
 	readonly logger: Logger;
-	// tslint:disable-next-line:no-any
-	readonly exceptions: any;
+	readonly exceptions: {
+		readonly [key: string]: string | number | string[] | number[] | {};
+	};
 }
 
 export class Dpos {

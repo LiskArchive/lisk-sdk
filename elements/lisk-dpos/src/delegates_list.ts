@@ -196,7 +196,7 @@ export class DelegatesList {
 		}
 
 		// Get delegate public key that was supposed to forge the block
-		const expectedForgerPublicKey: string =
+		const expectedForgerPublicKey =
 			delegateList[currentSlot % this.activeDelegates];
 
 		// Verify if forger exists and matches the generatorPublicKey on block

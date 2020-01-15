@@ -45,8 +45,9 @@ interface DelegatesInfoConstructor {
 	readonly logger: Logger;
 	readonly events: EventEmitter;
 	readonly delegatesList: DelegatesList;
-	// tslint:disable-next-line:no-any
-	readonly exceptions: any;
+	readonly exceptions: {
+		readonly rounds?: { readonly [key: string]: RoundException };
+	};
 }
 
 interface UniqForgerInfo {

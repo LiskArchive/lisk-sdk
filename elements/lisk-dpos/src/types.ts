@@ -55,6 +55,12 @@ export interface StorageEntity<T> {
 		options?: StorageOptions,
 		tx?: StorageTransaction,
 	) => Promise<T[]>;
+	readonly update: (
+		filters: StorageFilters,
+		data: UpdateAccountData,
+		_options: StorageOptions,
+		tx?: StorageTransaction,
+	) => Promise<T[]>;
 	readonly delete: (
 		filters?: StorageFilters,
 		options?: StorageOptions,
@@ -64,9 +70,9 @@ export interface StorageEntity<T> {
 
 export interface Storage {
 	readonly entities: {
-		readonly RoundDelegates: RoundDelegatesEntity;
 		readonly Account: AccountEntity;
 		readonly Block: BlockEntity;
+		readonly RoundDelegates: RoundDelegatesEntity;
 	};
 }
 
@@ -76,7 +82,7 @@ export interface BlockEntity {
 		filters: StorageFilters,
 		_options: StorageOptions,
 		tx?: StorageTransaction,
-	) => Promise<BlockJSON[]>;
+	) => Promise<Block[]>;
 }
 
 export interface AccountEntity extends StorageEntity<Account> {
@@ -90,12 +96,6 @@ export interface AccountEntity extends StorageEntity<Account> {
 		filters: StorageFilters,
 		field: string,
 		value: string,
-		tx?: StorageTransaction,
-	) => Promise<Account[]>;
-	readonly update: (
-		filters: StorageFilters,
-		data: UpdateAccountData,
-		_options: StorageOptions,
 		tx?: StorageTransaction,
 	) => Promise<Account[]>;
 }
@@ -122,7 +122,7 @@ export interface Earnings {
 	readonly reward: BigNum;
 }
 
-export interface BlockJSON extends Earnings {
+export interface Block extends Earnings {
 	readonly id: number;
 	readonly height: number;
 	readonly generatorPublicKey: string;
