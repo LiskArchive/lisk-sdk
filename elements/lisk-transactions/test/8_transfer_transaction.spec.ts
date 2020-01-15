@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../src/constants';
 import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/transaction_types';
@@ -248,25 +247,27 @@ describe('Transfer transaction class', () => {
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
 				...sender,
-				balance: new BigNum(sender.balance)
-					.sub(validTransferTestTransaction.asset.amount)
-					.toString(),
+				balance: (
+					BigInt(sender.balance) -
+					BigInt(validTransferTestTransaction.asset.amount)
+				).toString(),
 			});
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
 				...recipient,
-				balance: new BigNum(recipient.balance)
-					.add(validTransferTestTransaction.asset.amount)
-					.toString(),
+				balance: (
+					BigInt(recipient.balance) -
+					BigInt(validTransferTestTransaction.asset.amount)
+				).toString(),
 			});
 		});
 
-		it('should return error when sender balance is insufficient', async () => {
+		it.only('should return error when sender balance is insufficient', async () => {
 			storeAccountGetStub.mockReturnValue({
 				...sender,
-				balance: new BigNum(10000000),
+				balance: BigInt(10000000),
 			});
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
@@ -278,7 +279,7 @@ describe('Transfer transaction class', () => {
 		it('should return error when recipient balance is over maximum amount', async () => {
 			storeAccountGetOrDefaultStub.mockReturnValue({
 				...sender,
-				balance: new BigNum(MAX_TRANSACTION_AMOUNT),
+				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).toEqual('Invalid amount');
@@ -293,25 +294,27 @@ describe('Transfer transaction class', () => {
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
 				...sender,
-				balance: new BigNum(sender.balance)
-					.add(validTransferTestTransaction.asset.amount)
-					.toString(),
+				balance: (
+					BigInt(sender.balance) +
+					BigInt(validTransferTestTransaction.asset.amount)
+				).toString(),
 			});
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
 				...recipient,
-				balance: new BigNum(recipient.balance)
-					.sub(validTransferTestTransaction.asset.amount)
-					.toString(),
+				balance: (
+					BigInt(recipient.balance) -
+					BigInt(validTransferTestTransaction.asset.amount)
+				).toString(),
 			});
 		});
 
 		it('should return error when recipient balance is insufficient', async () => {
 			storeAccountGetOrDefaultStub.mockReturnValue({
 				...recipient,
-				balance: new BigNum('0'),
+				balance: BigInt('0'),
 			});
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
 			expect(errors[0].message).toBe(
@@ -322,7 +325,7 @@ describe('Transfer transaction class', () => {
 		it('should return error when sender balance is over maximum amount', async () => {
 			storeAccountGetStub.mockReturnValue({
 				...recipient,
-				balance: new BigNum(MAX_TRANSACTION_AMOUNT),
+				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
 			const errors = (validTransferTestTransaction as any).undoAsset(store);
 			expect(errors[0].message).toEqual('Invalid amount');

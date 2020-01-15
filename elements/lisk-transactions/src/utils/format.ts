@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import { isGreaterThanMaxTransactionAmount } from '@liskhq/lisk-validator';
 
 import { FIXED_POINT } from '../constants';
 
-const BASE_10 = 10;
 const LISK_MAX_DECIMAL_POINTS = 8;
 const getDecimalPlaces = (amount: string): number =>
 	(amount.split('.')[1] || '').length;
@@ -29,13 +27,19 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 	if (getDecimalPlaces(beddowsAmount)) {
 		throw new Error('Beddows amount should not have decimal points');
 	}
-	const beddowsAmountBigNum = new BigNum(beddowsAmount);
+	const beddowsAmountBigNum = BigInt(beddowsAmount);
 	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
 		throw new Error('Beddows amount out of range');
 	}
-	const lskAmountBigNum = beddowsAmountBigNum.div(FIXED_POINT);
+	const int = (beddowsAmountBigNum / BigInt(FIXED_POINT)).toString();
+	const floating =
+		Number(beddowsAmountBigNum % BigInt(FIXED_POINT)) / FIXED_POINT;
+	const floatingPointsSplit = floating
+		.toLocaleString(undefined, { maximumFractionDigits: 8 })
+		.split('.')[1];
+	const res = floating !== 0 ? `${int}.${floatingPointsSplit}` : int;
 
-	return lskAmountBigNum.toString(BASE_10);
+	return res;
 };
 
 export const convertLSKToBeddows = (lskAmount?: string): string => {
@@ -45,8 +49,12 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 	if (getDecimalPlaces(lskAmount) > LISK_MAX_DECIMAL_POINTS) {
 		throw new Error('LSK amount has too many decimal points');
 	}
-	const lskAmountBigNum = new BigNum(lskAmount);
-	const beddowsAmountBigNum = lskAmountBigNum.mul(FIXED_POINT);
+	const splitAmount = lskAmount.split('.');
+	const liskAmountInt = splitAmount[0];
+	const liskAmountFloatBigInt =
+		splitAmount[1] !== undefined ? BigInt(splitAmount[1]) : BigInt(0);
+	const beddowsAmountBigNum =
+		BigInt(liskAmountInt) * BigInt(FIXED_POINT) + liskAmountFloatBigInt;
 	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
 		throw new Error('LSK amount out of range');
 	}

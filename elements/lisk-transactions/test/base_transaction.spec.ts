@@ -18,7 +18,6 @@ import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
 import { TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { TransactionError, TransactionPendingError } from '../src/errors';
-import * as BigNum from '@liskhq/bignum';
 import {
 	addTransactionFields,
 	MockStateStore as store,
@@ -118,8 +117,8 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should have fee of type BigNum', async () => {
-			expect(validTestTransaction.fee).toBeInstanceOf(BigNum);
+		it('should have fee of type bigint', async () => {
+			expect(typeof validTestTransaction.fee).toBe('bigint');
 		});
 
 		it('should have default fee if fee param is invalid', async () => {

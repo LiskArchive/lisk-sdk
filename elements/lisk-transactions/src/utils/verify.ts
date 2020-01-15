@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
-
 import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
@@ -42,9 +40,9 @@ export const verifySenderPublicKey = (
 export const verifyBalance = (
 	id: string,
 	account: Account,
-	amount: BigNum,
+	amount: bigint,
 ): TransactionError | undefined =>
-	new BigNum(account.balance).lt(new BigNum(amount))
+	BigInt(account.balance) < BigInt(amount)
 		? new TransactionError(
 				`Account does not have enough LSK: ${
 					account.address
@@ -57,15 +55,15 @@ export const verifyBalance = (
 export const verifyAmountBalance = (
 	id: string,
 	account: Account,
-	amount: BigNum,
-	fee: BigNum,
+	amount: bigint,
+	fee: bigint,
 ): TransactionError | undefined => {
-	const balance = new BigNum(account.balance);
-	if (balance.gte(0) && balance.lt(new BigNum(amount))) {
+	const balance = BigInt(account.balance);
+	if (balance >= BigInt(0) && balance < BigInt(amount)) {
 		return new TransactionError(
 			`Account does not have enough LSK: ${
 				account.address
-			}, balance: ${convertBeddowsToLSK(balance.plus(fee).toString())}`,
+			}, balance: ${convertBeddowsToLSK((balance + fee).toString())}`,
 			id,
 			'.balance',
 		);

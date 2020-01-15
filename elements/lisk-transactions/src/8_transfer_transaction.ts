@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import {
 	bigNumberToBuffer,
 	intToBuffer,
@@ -37,7 +36,7 @@ import { verifyAmountBalance, verifyBalance } from './utils';
 export interface TransferAsset {
 	readonly data?: string;
 	readonly recipientId: string;
-	readonly amount: BigNum;
+	readonly amount: bigint;
 }
 
 export const transferAssetFormatSchema = {
@@ -82,14 +81,14 @@ export class TransferTransaction extends BaseTransaction {
 			this.asset = {
 				data: rawAsset.data,
 				recipientId: rawAsset.recipientId,
-				amount: new BigNum(
+				amount: BigInt(
 					isPositiveNumberString(rawAsset.amount) ? rawAsset.amount : '0',
 				),
 			};
 		} else {
 			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = {
-				amount: new BigNum('0'),
+				amount: BigInt('0'),
 				recipientId: '',
 			} as TransferAsset;
 		}
@@ -184,9 +183,8 @@ export class TransferTransaction extends BaseTransaction {
 			errors.push(balanceError);
 		}
 
-		const updatedSenderBalance = new BigNum(sender.balance).sub(
-			this.asset.amount,
-		);
+		const updatedSenderBalance =
+			BigInt(sender.balance) - BigInt(this.asset.amount);
 
 		const updatedSender = {
 			...sender,
@@ -195,11 +193,10 @@ export class TransferTransaction extends BaseTransaction {
 		store.account.set(updatedSender.address, updatedSender);
 		const recipient = store.account.getOrDefault(this.asset.recipientId);
 
-		const updatedRecipientBalance = new BigNum(recipient.balance).add(
-			this.asset.amount,
-		);
+		const updatedRecipientBalance =
+			BigInt(recipient.balance) + BigInt(this.asset.amount);
 
-		if (updatedRecipientBalance.gt(MAX_TRANSACTION_AMOUNT)) {
+		if (updatedRecipientBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
 				new TransactionError(
 					'Invalid amount',
@@ -222,11 +219,10 @@ export class TransferTransaction extends BaseTransaction {
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-		const updatedSenderBalance = new BigNum(sender.balance).add(
-			this.asset.amount,
-		);
+		const updatedSenderBalance =
+			BigInt(sender.balance) + BigInt(this.asset.amount);
 
-		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
+		if (updatedSenderBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
 				new TransactionError(
 					'Invalid amount',
@@ -250,9 +246,8 @@ export class TransferTransaction extends BaseTransaction {
 			errors.push(balanceError);
 		}
 
-		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
-			this.asset.amount,
-		);
+		const updatedRecipientBalance =
+			BigInt(recipient.balance) - BigInt(this.asset.amount);
 
 		const updatedRecipient = {
 			...recipient,
