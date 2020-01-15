@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/register_multisignature_account';
 import { MultiSignatureAsset } from '../src/12_multisignature_transaction';
@@ -40,13 +39,13 @@ describe('#registerMultisignature transaction', () => {
 	let tooShortPublicKeyKeysgroup: Array<string>;
 	let plusPrependedPublicKeyKeysgroup: Array<string>;
 	let keysgroup: Array<string>;
-	let getTimeWithOffsetStub: sinon.SinonStub;
+	let getTimeWithOffsetStub: jest.SpyInstance;
 	let registerMultisignatureTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox
-			.stub(time, 'getTimeWithOffset')
-			.returns(timeWithOffset);
+		getTimeWithOffsetStub = jest
+			.spyOn(time, 'getTimeWithOffset')
+			.mockReturnValue(timeWithOffset);
 		keysgroup = [
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 			'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
@@ -73,11 +72,11 @@ describe('#registerMultisignature transaction', () => {
 		});
 
 		it('should create a register multisignature transaction', () => {
-			return expect(registerMultisignatureTransaction).to.be.ok;
+			return expect(registerMultisignatureTransaction).toBeTruthy();
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(undefined);
+			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
@@ -91,62 +90,60 @@ describe('#registerMultisignature transaction', () => {
 				timeOffset: offset,
 			});
 
-			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
+			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 		});
 
 		describe('returned register multisignature transaction', () => {
 			it('should be an object', () => {
-				return expect(registerMultisignatureTransaction).to.be.an('object');
+				return expect(registerMultisignatureTransaction).toBeObject();
 			});
 
 			it('should have id string', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('id')
-					.and.be.a('string');
+				return expect(registerMultisignatureTransaction.id).toBeString();
 			});
 
 			it('should have type number equal to 4', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('type')
-					.and.be.a('number')
-					.and.equal(transactionType);
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'type',
+					transactionType,
+				);
 			});
 
 			it('should have fee string equal to 15 LSK', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('fee')
-					.and.be.a('string')
-					.and.equal(fee);
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'fee',
+					fee,
+				);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('senderPublicKey')
-					.and.be.hexString.and.equal(keys.publicKey);
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'senderPublicKey',
+					keys.publicKey,
+				);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('timestamp')
-					.and.be.a('number')
-					.and.equal(timeWithOffset);
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'timestamp',
+					timeWithOffset,
+				);
 			});
 
 			it('should have signature hex string', () => {
-				return expect(registerMultisignatureTransaction).to.have.property(
-					'signature',
-				).and.be.hexString;
+				return expect(registerMultisignatureTransaction.signature).toBeString();
 			});
 
 			it('should have asset', () => {
-				return expect(registerMultisignatureTransaction).to.have.property(
-					'asset',
-				).and.not.be.empty;
+				return expect(
+					Object.keys(registerMultisignatureTransaction),
+				).not.toHaveLength(0);
 			});
 
 			it('second signature property should be undefined', () => {
-				return expect(registerMultisignatureTransaction.signSignature).to.be
-					.undefined;
+				return expect(
+					registerMultisignatureTransaction.signSignature,
+				).toBeUndefined();
 			});
 
 			describe('multisignature asset', () => {
@@ -154,14 +151,14 @@ describe('#registerMultisignature transaction', () => {
 					const {
 						min,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(min).to.equal(minimum);
+					return expect(min).toBe(minimum);
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
 					const {
 						lifetime,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(lifetime).to.equal(lifetime);
+					return expect(lifetime).toBe(lifetime);
 				});
 
 				it('should have a keysgroup array with plus prepended', () => {
@@ -172,7 +169,7 @@ describe('#registerMultisignature transaction', () => {
 					const {
 						keysgroup,
 					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
-					return expect(keysgroup).to.eql(expectedArray);
+					return expect(keysgroup).toEqual(expectedArray);
 				});
 			});
 		});
@@ -192,9 +189,9 @@ describe('#registerMultisignature transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return expect(registerMultisignatureTransaction).to.have.property(
-				'signSignature',
-			).and.be.hexString;
+			return expect(
+				registerMultisignatureTransaction.signSignature,
+			).toBeString();
 		});
 	});
 
@@ -209,7 +206,7 @@ describe('#registerMultisignature transaction', () => {
 					lifetime,
 					minimum: 1,
 				}),
-			).to.throw(
+			).toThrowError(
 				'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
 			);
 		});
@@ -226,7 +223,7 @@ describe('#registerMultisignature transaction', () => {
 					lifetime,
 					minimum: 1,
 				}),
-			).to.throw('Argument must be a valid hex string.');
+			).toThrowError('Argument must be a valid hex string.');
 		});
 	});
 
@@ -241,7 +238,7 @@ describe('#registerMultisignature transaction', () => {
 					lifetime,
 					minimum,
 				}),
-			).to.throw(
+			).toThrowError(
 				'Minimum number of signatures is larger than the number of keys in the keysgroup.',
 			);
 		});
@@ -269,7 +266,7 @@ describe('#registerMultisignature transaction', () => {
 					lifetime,
 					minimum,
 				}),
-			).to.throw('Expected between 1 and 15 public keys in the keysgroup.');
+			).toThrowError('Expected between 1 and 15 public keys in the keysgroup.');
 		});
 	});
 
@@ -289,7 +286,7 @@ describe('#registerMultisignature transaction', () => {
 					lifetime,
 					minimum,
 				}),
-			).to.throw(
+			).toThrowError(
 				'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
 			);
 		});
@@ -317,7 +314,7 @@ describe('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 							} as any),
-						).to.throw(lifetimeErrorMessage);
+						).toThrowError(lifetimeErrorMessage);
 					});
 
 					it('is float', () => {
@@ -326,7 +323,7 @@ describe('#registerMultisignature transaction', () => {
 								keysgroup,
 								lifetime: 23.45,
 							} as any),
-						).to.throw(lifetimeErrorMessage);
+						).toThrowError(lifetimeErrorMessage);
 					});
 
 					it('is not number type', () => {
@@ -335,7 +332,7 @@ describe('#registerMultisignature transaction', () => {
 								keysgroup,
 								lifetime: '123',
 							} as any),
-						).to.throw(lifetimeErrorMessage);
+						).toThrowError(lifetimeErrorMessage);
 					});
 
 					it('was more than expected', () => {
@@ -344,7 +341,7 @@ describe('#registerMultisignature transaction', () => {
 								keysgroup,
 								lifetime: 73,
 							} as any),
-						).to.throw(lifetimeErrorMessage);
+						).toThrowError(lifetimeErrorMessage);
 					});
 
 					it('was less than expected', () => {
@@ -353,7 +350,7 @@ describe('#registerMultisignature transaction', () => {
 								keysgroup,
 								lifetime: -1,
 							} as any),
-						).to.throw(lifetimeErrorMessage);
+						).toThrowError(lifetimeErrorMessage);
 					});
 				});
 			});
@@ -368,7 +365,7 @@ describe('#registerMultisignature transaction', () => {
 							keysgroup,
 							lifetime,
 						} as any),
-					).to.throw(minimumErrorMessage);
+					).toThrowError(minimumErrorMessage);
 				});
 
 				it('is float', () => {
@@ -379,7 +376,7 @@ describe('#registerMultisignature transaction', () => {
 							lifetime,
 							minimum: 1.45,
 						}),
-					).to.throw(minimumErrorMessage);
+					).toThrowError(minimumErrorMessage);
 				});
 
 				it('is not number type', () => {
@@ -389,7 +386,7 @@ describe('#registerMultisignature transaction', () => {
 							lifetime,
 							minimum: '12',
 						} as any),
-					).to.throw(minimumErrorMessage);
+					).toThrowError(minimumErrorMessage);
 				});
 
 				it('was more than expected', () => {
@@ -400,7 +397,7 @@ describe('#registerMultisignature transaction', () => {
 							lifetime,
 							minimum: 16,
 						}),
-					).to.throw(minimumErrorMessage);
+					).toThrowError(minimumErrorMessage);
 				});
 
 				it('was less than expected', () => {
@@ -411,48 +408,51 @@ describe('#registerMultisignature transaction', () => {
 							lifetime,
 							minimum: -1,
 						}),
-					).to.throw(minimumErrorMessage);
+					).toThrowError(minimumErrorMessage);
 				});
 			});
 
 			it('should have the type', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('type')
-					.equal(transactionType);
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'type',
+					transactionType,
+				);
 			});
 
 			it('should have the fee', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('fee')
-					.equal(fee);
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'fee',
+					fee,
+				);
 			});
 
 			it('should have the sender public key', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.property('senderPublicKey')
-					.equal(undefined);
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'senderPublicKey',
+					undefined,
+				);
 			});
 
 			it('should have the timestamp', () => {
-				return expect(registerMultisignatureTransaction).to.have.property(
+				return expect(registerMultisignatureTransaction).toHaveProperty(
 					'timestamp',
 				);
 			});
 
 			it('should have the asset with the multisignature with the minimum, lifetime and keysgroup', () => {
-				return expect(registerMultisignatureTransaction)
-					.to.have.nested.property('asset')
-					.with.all.keys('min', 'lifetime', 'keysgroup');
+				return expect(
+					Object.keys(registerMultisignatureTransaction.asset as any),
+				).toEqual(['min', 'lifetime', 'keysgroup']);
 			});
 
 			it('should not have the signature', () => {
-				return expect(registerMultisignatureTransaction).not.to.have.property(
+				return expect(registerMultisignatureTransaction).not.toHaveProperty(
 					'signature',
 				);
 			});
 
 			it('should not have the id', () => {
-				return expect(registerMultisignatureTransaction).not.to.have.property(
+				return expect(registerMultisignatureTransaction).not.toHaveProperty(
 					'id',
 				);
 			});

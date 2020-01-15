@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
@@ -65,8 +63,8 @@ describe('Base transaction class', () => {
 	let transactionWithDefaultValues: BaseTransaction;
 	let transactionWithBasicImpl: BaseTransaction;
 	let validSecondSignatureTestTransaction: BaseTransaction;
-	let storeAccountGetStub: sinon.SinonStub;
-	let storeAccountGetOrDefaultStub: sinon.SinonStub;
+	let storeAccountGetStub: jest.SpyInstance;
+	let storeAccountGetOrDefaultStub: jest.SpyInstance;
 	let validMultisignatureTransaction: TransferTransaction;
 	beforeEach(async () => {
 		validTestTransaction = new TransferTransaction({
@@ -87,127 +85,103 @@ describe('Base transaction class', () => {
 			...defaultMultisignatureTransaction,
 			networkIdentifier,
 		});
-		storeAccountGetStub = sandbox
-			.stub(store.account, 'get')
-			.returns(defaultSenderAccount);
-		storeAccountGetOrDefaultStub = sandbox
-			.stub(store.account, 'getOrDefault')
-			.returns(defaultSenderAccount);
+		storeAccountGetStub = jest
+			.spyOn(store.account, 'get')
+			.mockReturnValue(defaultSenderAccount);
+		storeAccountGetOrDefaultStub = jest
+			.spyOn(store.account, 'getOrDefault')
+			.mockReturnValue(defaultSenderAccount);
 	});
 
 	describe('#constructor', () => {
 		it('should create a new instance of BaseTransaction', async () => {
-			expect(validTestTransaction)
-				.to.be.an('object')
-				.and.be.instanceof(BaseTransaction);
+			expect(validTestTransaction).toBeInstanceOf(BaseTransaction);
 		});
 
 		it('should set default values', async () => {
-			expect(transactionWithDefaultValues.fee.toString()).to.be.eql('10000000');
-			expect(transactionWithDefaultValues.timestamp).to.be.eql(0);
-			expect(transactionWithDefaultValues.type).to.be.eql(8);
-			expect(transactionWithDefaultValues.confirmations).to.be.undefined;
-			expect(transactionWithDefaultValues.blockId).to.be.undefined;
-			expect(transactionWithDefaultValues.height).to.be.undefined;
-			expect(transactionWithDefaultValues.receivedAt).to.be.undefined;
-			expect(transactionWithDefaultValues.signSignature).to.be.undefined;
-			expect(() => transactionWithDefaultValues.senderId).to.throw(
+			expect(transactionWithDefaultValues.fee.toString()).toEqual('10000000');
+			expect(transactionWithDefaultValues.timestamp).toEqual(0);
+			expect(transactionWithDefaultValues.type).toEqual(8);
+			expect(transactionWithDefaultValues.confirmations).toBeUndefined();
+			expect(transactionWithDefaultValues.blockId).toBeUndefined();
+			expect(transactionWithDefaultValues.height).toBeUndefined();
+			expect(transactionWithDefaultValues.receivedAt).toBeUndefined();
+			expect(transactionWithDefaultValues.signSignature).toBeUndefined();
+			expect(() => transactionWithDefaultValues.senderId).toThrowError(
 				'senderPublicKey is required to be set before use',
 			);
-			expect(() => transactionWithDefaultValues.senderPublicKey).to.throw(
+			expect(() => transactionWithDefaultValues.senderPublicKey).toThrowError(
 				'senderPublicKey is required to be set before use',
 			);
-			expect(() => transactionWithDefaultValues.signature).to.throw(
+			expect(() => transactionWithDefaultValues.signature).toThrowError(
 				'signature is required to be set before use',
 			);
 		});
 
 		it('should have fee of type BigNum', async () => {
-			expect(validTestTransaction)
-				.to.have.property('fee')
-				.and.be.instanceof(BigNum);
+			expect(validTestTransaction.fee).toBeInstanceOf(BigNum);
 		});
 
 		it('should have default fee if fee param is invalid', async () => {
 			const transactionWithInvalidFee = new TestTransaction({ fee: 'invalid' });
 
-			expect(transactionWithInvalidFee.fee.toString()).to.be.eql('10000000');
+			expect(transactionWithInvalidFee.fee.toString()).toEqual('10000000');
 		});
 
 		it('should have id string', async () => {
-			expect(validTestTransaction)
-				.to.have.property('id')
-				.and.be.a('string');
+			expect(validTestTransaction.id).toBeString();
 		});
 
 		it('should have senderPublicKey string', async () => {
-			expect(validTestTransaction)
-				.to.have.property('senderPublicKey')
-				.and.be.a('string');
+			expect(validTestTransaction.senderPublicKey).toBeString();
 		});
 
 		it('should have signature string', async () => {
-			expect(validTestTransaction)
-				.to.have.property('senderPublicKey')
-				.and.be.a('string');
+			expect(validTestTransaction.senderPublicKey).toBeString();
 		});
 
 		it('should have signSignature string', async () => {
-			expect(validTestTransaction)
-				.to.have.property('senderPublicKey')
-				.and.be.a('string');
+			expect(validTestTransaction.signSignature).toBeUndefined();
 		});
 
 		it('should have signatures array', async () => {
-			expect(validTestTransaction)
-				.to.have.property('signatures')
-				.and.be.a('array');
+			expect(validTestTransaction.signatures).toBeArray();
 		});
 
 		it('should have timestamp number', async () => {
-			expect(validTestTransaction)
-				.to.have.property('timestamp')
-				.and.be.a('number');
+			expect(validTestTransaction.timestamp).toBeNumber();
 		});
 
 		it('should have type number', async () => {
-			expect(validTestTransaction)
-				.to.have.property('type')
-				.and.be.a('number');
+			expect(validTestTransaction.type).toBeNumber();
 		});
 
 		it('should have receivedAt Date', async () => {
-			expect(validTestTransaction)
-				.to.have.property('receivedAt')
-				.and.be.instanceOf(Date);
+			expect(validTestTransaction.receivedAt).toBeInstanceOf(Date);
 		});
 
 		it('should have _multisignatureStatus number', async () => {
-			expect(validTestTransaction)
-				.to.have.property('_multisignatureStatus')
-				.and.be.a('number');
+			expect((validTestTransaction as any)._multisignatureStatus).toBeNumber();
 		});
 
 		it('should have _networkIdentifier string', async () => {
-			expect(validTestTransaction)
-				.to.have.property('_networkIdentifier')
-				.and.be.a('string');
+			expect((validTestTransaction as any)._networkIdentifier).toBeString();
 		});
 
 		it('should not throw with undefined input', async () => {
-			expect(() => new TestTransaction(undefined as any)).not.to.throw();
+			expect(() => new TestTransaction(undefined as any)).not.toThrowError();
 		});
 
 		it('should not throw with null input', async () => {
-			expect(() => new TestTransaction(null as any)).not.to.throw();
+			expect(() => new TestTransaction(null as any)).not.toThrowError();
 		});
 
 		it('should not throw with string input', async () => {
-			expect(() => new TestTransaction('abc' as any)).not.to.throw();
+			expect(() => new TestTransaction('abc' as any)).not.toThrowError();
 		});
 
 		it('should not throw with number input', async () => {
-			expect(() => new TestTransaction(123 as any)).not.to.throw();
+			expect(() => new TestTransaction(123 as any)).not.toThrowError();
 		});
 
 		it('should not throw with incorrectly typed transaction properties', async () => {
@@ -221,30 +195,30 @@ describe('Base transaction class', () => {
 					new TestTransaction(
 						(invalidTransaction as unknown) as TransactionJSON,
 					),
-			).not.to.throw();
+			).not.toThrowError();
 		});
 	});
 
-	describe('#assetToJSON', async () => {
+	describe('#assetToJSON', () => {
 		it('should return an object of type transaction asset', async () => {
-			expect(validTestTransaction.assetToJSON()).to.be.an('object');
+			expect(validTestTransaction.assetToJSON()).toBeObject();
 		});
 	});
 
 	describe('#toJSON', () => {
 		it('should call assetToJSON', async () => {
-			const assetToJSONStub = sandbox
-				.stub(validTestTransaction, 'assetToJSON')
-				.returns({});
+			const assetToJSONStub = jest
+				.spyOn(validTestTransaction, 'assetToJSON')
+				.mockReturnValue({});
 			validTestTransaction.toJSON();
 
-			expect(assetToJSONStub).to.be.calledOnce;
+			expect(assetToJSONStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return transaction json', async () => {
 			const transactionJSON = validTestTransaction.toJSON();
 
-			expect(transactionJSON).to.be.eql({
+			expect(transactionJSON).toEqual({
 				...defaultTransaction,
 				senderId: '2129300327344985743L',
 				fee: '10000000',
@@ -256,30 +230,30 @@ describe('Base transaction class', () => {
 		it('should return a buffer', async () => {
 			expect(
 				(validTestTransaction as TestTransaction).assetToBytes(),
-			).to.be.an.instanceOf(Buffer);
+			).toBeInstanceOf(Buffer);
 		});
 	});
 
 	describe('#stringify', () => {
 		it('should return the transaction stringified', async () => {
-			expect(
-				typeof (validTestTransaction as TestTransaction).stringify(),
-			).to.be.eq('string');
+			expect(typeof (validTestTransaction as TestTransaction).stringify()).toBe(
+				'string',
+			);
 		});
 	});
 
-	describe('#isReady', async () => {
+	describe('#isReady', () => {
 		it('should return false on initialization of unknown transaction', async () => {
-			expect(validTestTransaction.isReady()).to.be.false;
+			expect(validTestTransaction.isReady()).toBe(false);
 		});
 
 		it('should return true on verification of non-multisignature transaction', async () => {
 			validTestTransaction.apply(store);
-			expect(validTestTransaction.isReady()).to.be.true;
+			expect(validTestTransaction.isReady()).toBe(true);
 		});
 
 		it('should return false on verification of multisignature transaction with missing signatures', async () => {
-			storeAccountGetStub.returns(defaultMultisignatureAccount);
+			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const multisignaturesTransaction = new TransferTransaction({
 				...defaultMultisignatureTransaction,
 				networkIdentifier,
@@ -287,18 +261,20 @@ describe('Base transaction class', () => {
 			});
 			multisignaturesTransaction.apply(store);
 
-			expect(validMultisignatureTransaction.isReady()).to.be.false;
+			expect(validMultisignatureTransaction.isReady()).toBe(false);
 		});
 	});
 
 	describe('#getBasicBytes', () => {
 		it('should call cryptography hexToBuffer', async () => {
-			const cryptographyHexToBufferStub = sandbox
-				.stub(cryptography, 'hexToBuffer')
-				.returns(Buffer.from(validTestTransaction.senderPublicKey, 'hex'));
+			const cryptographyHexToBufferStub = jest
+				.spyOn(cryptography, 'hexToBuffer')
+				.mockReturnValue(
+					Buffer.from(validTestTransaction.senderPublicKey, 'hex'),
+				);
 
 			(validTestTransaction as any).getBasicBytes();
-			expect(cryptographyHexToBufferStub).to.be.calledWithExactly(
+			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
 				defaultTransaction.senderPublicKey,
 			);
 		});
@@ -311,12 +287,13 @@ describe('Base transaction class', () => {
 			const testTransactionWithAsset = new TestTransaction(
 				transactionWithAsset,
 			);
-			const assetToBytesStub = sandbox
-				.stub(testTransactionWithAsset, 'assetToBytes')
-				.callThrough();
+			const assetToBytesStub = jest.spyOn(
+				testTransactionWithAsset,
+				'assetToBytes',
+			);
 			(testTransactionWithAsset as any).getBasicBytes();
 
-			expect(assetToBytesStub).to.be.calledOnce;
+			expect(assetToBytesStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return a buffer without signatures bytes', async () => {
@@ -324,7 +301,7 @@ describe('Base transaction class', () => {
 				'08033ccd24efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d00000000499602d2fbc2d06c336d04be72616e646f6d2064617461',
 				'hex',
 			);
-			expect((validTestTransaction as any).getBasicBytes()).to.eql(
+			expect((validTestTransaction as any).getBasicBytes()).toEqual(
 				expectedBuffer,
 			);
 		});
@@ -332,9 +309,9 @@ describe('Base transaction class', () => {
 
 	describe('#getBytes', () => {
 		it('should call getBasicBytes', async () => {
-			const getBasicBytesStub = sandbox
-				.stub(validTestTransaction as any, 'getBasicBytes')
-				.returns(
+			const getBasicBytesStub = jest
+				.spyOn(validTestTransaction as any, 'getBasicBytes')
+				.mockReturnValue(
 					Buffer.from(
 						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
 						'hex',
@@ -342,13 +319,13 @@ describe('Base transaction class', () => {
 				);
 			validTestTransaction.getBytes();
 
-			expect(getBasicBytesStub).to.be.calledOnce;
+			expect(getBasicBytesStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call cryptography hexToBuffer for transaction with signature', async () => {
-			const cryptographyHexToBufferStub = sandbox
-				.stub(cryptography, 'hexToBuffer')
-				.returns(
+			const cryptographyHexToBufferStub = jest
+				.spyOn(cryptography, 'hexToBuffer')
+				.mockReturnValue(
 					Buffer.from(
 						'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
 						'hex',
@@ -356,15 +333,15 @@ describe('Base transaction class', () => {
 				);
 			validTestTransaction.getBytes();
 
-			expect(cryptographyHexToBufferStub.secondCall).to.have.been.calledWith(
+			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
 				validTestTransaction.signature,
 			);
 		});
 
 		it('should call cryptography hexToBuffer for transaction with signSignature', async () => {
-			const cryptographyHexToBufferStub = sandbox
-				.stub(cryptography, 'hexToBuffer')
-				.returns(
+			const cryptographyHexToBufferStub = jest
+				.spyOn(cryptography, 'hexToBuffer')
+				.mockReturnValue(
 					Buffer.from(
 						'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
 						'hex',
@@ -372,7 +349,7 @@ describe('Base transaction class', () => {
 				);
 			validSecondSignatureTestTransaction.getBytes();
 
-			expect(cryptographyHexToBufferStub.thirdCall).to.have.been.calledWith(
+			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
 				validSecondSignatureTestTransaction.signSignature,
 			);
 		});
@@ -383,7 +360,7 @@ describe('Base transaction class', () => {
 				'hex',
 			);
 
-			expect(validTestTransaction.getBytes()).to.eql(expectedBuffer);
+			expect(validTestTransaction.getBytes()).toEqual(expectedBuffer);
 		});
 
 		it('should return a buffer with signSignature bytes', async () => {
@@ -392,7 +369,7 @@ describe('Base transaction class', () => {
 				'hex',
 			);
 
-			expect(validSecondSignatureTestTransaction.getBytes()).to.eql(
+			expect(validSecondSignatureTestTransaction.getBytes()).toEqual(
 				expectedBuffer,
 			);
 		});
@@ -400,28 +377,28 @@ describe('Base transaction class', () => {
 
 	describe('_validateSchema', () => {
 		it('should call toJSON', async () => {
-			const toJSONStub = sandbox
-				.stub(validTestTransaction, 'toJSON')
-				.returns({} as any);
+			const toJSONStub = jest
+				.spyOn(validTestTransaction, 'toJSON')
+				.mockReturnValue({} as any);
 			(validTestTransaction as any)._validateSchema();
 
-			expect(toJSONStub).to.be.calledOnce;
+			expect(toJSONStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call cryptography getAddressFromPublicKey for transaction with valid senderPublicKey', async () => {
-			sandbox
-				.stub(cryptography, 'getAddressFromPublicKey')
-				.returns('18278674964748191682L');
+			jest
+				.spyOn(cryptography, 'getAddressFromPublicKey')
+				.mockReturnValue('18278674964748191682L');
 			(validTestTransaction as any)._validateSchema();
 
-			expect(
-				cryptography.getAddressFromPublicKey,
-			).to.have.been.calledWithExactly(validTestTransaction.senderPublicKey);
+			expect(cryptography.getAddressFromPublicKey).toHaveBeenCalledWith(
+				validTestTransaction.senderPublicKey,
+			);
 		});
 
 		it('should return a successful transaction response with a valid transaction', async () => {
 			const errors = (validTestTransaction as any)._validateSchema();
-			expect(errors).to.be.empty;
+			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
 		it('should return a failed transaction response with invalid formatting', async () => {
@@ -438,7 +415,7 @@ describe('Base transaction class', () => {
 			);
 			const errors = (invalidTestTransaction as any)._validateSchema();
 
-			expect(errors).to.not.be.empty;
+			expect(Object.keys(errors)).not.toHaveLength(0);
 		});
 
 		it('should throw descriptive error when networkIdentifier is missing', async () => {
@@ -454,7 +431,7 @@ describe('Base transaction class', () => {
 				transactionWithMissingNetworkIdentifierInstance.sign(
 					transferFixture.testCases.input.account.passphrase,
 				),
-			).to.throw('Network identifier is required to sign a transaction');
+			).toThrowError('Network identifier is required to sign a transaction');
 		});
 	});
 
@@ -464,24 +441,24 @@ describe('Base transaction class', () => {
 		it('should return a successful transaction response with a valid transaction', async () => {
 			const { id, status, errors } = validTestTransaction.validate();
 
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(errors).to.be.empty;
-			expect(status).to.eql(Status.OK);
+			expect(id).toEqual(validTestTransaction.id);
+			expect(Object.keys(errors)).toHaveLength(0);
+			expect(status).toEqual(Status.OK);
 		});
 
 		it('should return a successful transaction response with a valid transaction with basic impl', async () => {
 			transactionWithBasicImpl.sign('passphrase');
 			const { id, status, errors } = transactionWithBasicImpl.validate();
 
-			expect(id).to.be.eql(transactionWithBasicImpl.id);
-			expect(errors).to.be.empty;
-			expect(status).to.eql(Status.OK);
+			expect(id).toEqual(transactionWithBasicImpl.id);
+			expect(Object.keys(errors)).toHaveLength(0);
+			expect(status).toEqual(Status.OK);
 		});
 
 		it('should call getBasicBytes', async () => {
-			const getBasicBytesStub = sandbox
-				.stub(validTestTransaction as any, 'getBasicBytes')
-				.returns(
+			const getBasicBytesStub = jest
+				.spyOn(validTestTransaction as any, 'getBasicBytes')
+				.mockReturnValue(
 					Buffer.from(
 						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
 						'hex',
@@ -489,14 +466,14 @@ describe('Base transaction class', () => {
 				);
 			validTestTransaction.validate();
 
-			expect(getBasicBytesStub).to.be.calledTwice;
+			expect(getBasicBytesStub).toHaveBeenCalledTimes(2);
 		});
 
 		it('should call validateSignature', async () => {
-			sandbox.stub(utils, 'validateSignature').returns({ valid: true });
+			jest.spyOn(utils, 'validateSignature').mockReturnValue({ valid: true });
 			validTestTransaction.validate();
 
-			expect(utils.validateSignature).to.be.calledWithExactly(
+			expect(utils.validateSignature).toHaveBeenCalledWith(
 				validTestTransaction.senderPublicKey,
 				validTestTransaction.signature,
 				Buffer.concat([
@@ -517,19 +494,19 @@ describe('Base transaction class', () => {
 				...(invalidSignatureTransaction as any),
 				networkIdentifier,
 			});
-			sandbox
-				.stub(invalidSignatureTestTransaction as any, '_validateSchema')
-				.returns([]);
+			jest
+				.spyOn(invalidSignatureTestTransaction as any, '_validateSchema')
+				.mockReturnValue([]);
 			const { id, status, errors } = invalidSignatureTestTransaction.validate();
 
-			expect(id).to.be.eql(invalidSignatureTestTransaction.id);
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					`Failed to validate signature ${invalidSignature}`,
-				);
-			expect(status).to.eql(Status.FAIL);
+			expect(id).toEqual(invalidSignatureTestTransaction.id);
+			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
+				TransactionError,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
+				`Failed to validate signature ${invalidSignature}`,
+			);
+			expect(status).toEqual(Status.FAIL);
 		});
 
 		it('should return a failed transaction response with duplicate signatures', async () => {
@@ -549,18 +526,21 @@ describe('Base transaction class', () => {
 				errors,
 			} = invalidSignaturesTestTransaction.validate();
 
-			expect(id).to.be.eql(invalidSignaturesTestTransaction.id);
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property('dataPath', '.signatures');
-			expect(status).to.eql(Status.FAIL);
+			expect(id).toEqual(invalidSignaturesTestTransaction.id);
+			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
+				TransactionError,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].dataPath).toEqual(
+				'.signatures',
+			);
+			expect(status).toEqual(Status.FAIL);
 		});
 
 		it('should throw when networkIdentifier is not provided', async () => {
 			const trsWithoutNetworkIdentifier = new TransferTransaction({
 				...defaultTransaction,
 			});
-			expect(() => trsWithoutNetworkIdentifier.validate()).to.throw(
+			expect(() => trsWithoutNetworkIdentifier.validate()).toThrowError(
 				'Network identifier is required to validate a transaction ',
 			);
 		});
@@ -576,15 +556,15 @@ describe('Base transaction class', () => {
 			} = validTestTransaction.verifyAgainstOtherTransactions(
 				otherTransactions,
 			);
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(errors).to.be.empty;
-			expect(status).to.eql(Status.OK);
+			expect(id).toEqual(validTestTransaction.id);
+			expect(Object.keys(errors)).toHaveLength(0);
+			expect(status).toEqual(Status.OK);
 		});
 	});
 
 	describe('#processMultisignatures', () => {
 		it('should return a successful transaction response with valid signatures', async () => {
-			sandbox.stub(utils, 'verifyMultiSignatures').returns({
+			jest.spyOn(utils, 'verifyMultiSignatures').mockReturnValue({
 				status: MultisignatureStatus.READY,
 				errors: [],
 			});
@@ -594,9 +574,9 @@ describe('Base transaction class', () => {
 				errors,
 			} = validMultisignatureTransaction.processMultisignatures(store);
 
-			expect(id).to.be.eql(validMultisignatureTransaction.id);
-			expect(errors).to.be.eql([]);
-			expect(status).to.eql(Status.OK);
+			expect(id).toEqual(validMultisignatureTransaction.id);
+			expect(errors).toEqual([]);
+			expect(status).toEqual(Status.OK);
 		});
 
 		it('should return a pending transaction response with missing signatures', async () => {
@@ -607,7 +587,7 @@ describe('Base transaction class', () => {
 					'.signatures',
 				),
 			];
-			sandbox.stub(utils, 'verifyMultiSignatures').returns({
+			jest.spyOn(utils, 'verifyMultiSignatures').mockReturnValue({
 				status: MultisignatureStatus.PENDING,
 				errors: pendingErrors,
 			});
@@ -617,9 +597,9 @@ describe('Base transaction class', () => {
 				errors,
 			} = validMultisignatureTransaction.processMultisignatures(store);
 
-			expect(id).to.be.eql(validMultisignatureTransaction.id);
-			expect(errors).to.be.eql(pendingErrors);
-			expect(status).to.eql(Status.PENDING);
+			expect(id).toEqual(validMultisignatureTransaction.id);
+			expect(errors).toEqual(pendingErrors);
+			expect(status).toEqual(Status.PENDING);
 		});
 	});
 
@@ -633,9 +613,9 @@ describe('Base transaction class', () => {
 				'3df1fae6865ec72783dcb5f87a7d906fe20b71e66ad9613c01a89505ebd77279e67efa2c10b5ad880abd09efd27ea350dd8a094f44efa3b4b2c8785fbe0f7e00',
 			);
 
-			expect(id).to.be.eql(validMultisignatureTransaction.id);
-			expect(errors).to.be.eql([]);
-			expect(status).to.eql(Status.OK);
+			expect(id).toEqual(validMultisignatureTransaction.id);
+			expect(errors).toEqual([]);
+			expect(status).toEqual(Status.OK);
 		});
 
 		it('should return a failed transaction response if duplicate signatures', async () => {
@@ -647,13 +627,12 @@ describe('Base transaction class', () => {
 				'4424342c342093f80f52f919876fc0abada5385e98e8caf211add16d1c0f5453ef6e47fa58a454128a9640f3b6e2ade618e5ee5fa8eebc4d68460d19f042050f',
 			);
 
-			expect(id).to.be.eql(validMultisignatureTransaction.id);
-			expect(status).to.eql(Status.FAIL);
-			(errors as ReadonlyArray<TransactionError>).forEach(error =>
-				expect(error)
-					.to.be.instanceof(TransactionError)
-					.and.to.have.property('message', 'Failed to add signature.'),
-			);
+			expect(id).toEqual(validMultisignatureTransaction.id);
+			expect(status).toEqual(Status.FAIL);
+			(errors as ReadonlyArray<TransactionError>).forEach(error => {
+				expect(error).toBeInstanceOf(TransactionError);
+				expect(error.message).toEqual('Failed to add signature.');
+			});
 		});
 	});
 
@@ -661,7 +640,7 @@ describe('Base transaction class', () => {
 		let transferFromMultiSigAccountTrs: TransferTransaction;
 		let multisigMember: SignatureObject;
 		beforeEach(async () => {
-			storeAccountGetStub.returns(defaultMultisignatureAccount);
+			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const {
 				signatures,
 				...trsWithoutSignatures
@@ -686,10 +665,10 @@ describe('Base transaction class', () => {
 				multisigMember,
 			);
 
-			expect(status).to.eql(Status.PENDING);
-			expect(errors[0]).to.be.instanceof(TransactionPendingError);
-			expect(transferFromMultiSigAccountTrs.signatures).to.include(
-				multisigMember.signature,
+			expect(status).toEqual(Status.PENDING);
+			expect(errors[0]).toBeInstanceOf(TransactionPendingError);
+			expect(transferFromMultiSigAccountTrs.signatures).toEqual(
+				expect.arrayContaining([multisigMember.signature]),
 			);
 		});
 
@@ -701,7 +680,7 @@ describe('Base transaction class', () => {
 				multisigMember,
 			);
 
-			expect(arrangeStatus).to.eql(Status.PENDING);
+			expect(arrangeStatus).toEqual(Status.PENDING);
 
 			const {
 				status,
@@ -712,15 +691,15 @@ describe('Base transaction class', () => {
 			);
 			const expectedError = `Signature '${multisignatureFixture.testCases.output.signatures[0]}' already present in transaction.`;
 
-			expect(status).to.eql(Status.FAIL);
-			expect(errors[0].message).to.be.eql(expectedError);
-			expect(transferFromMultiSigAccountTrs.signatures).to.include(
-				multisigMember.signature,
+			expect(status).toEqual(Status.FAIL);
+			expect(errors[0].message).toEqual(expectedError);
+			expect(transferFromMultiSigAccountTrs.signatures).toEqual(
+				expect.arrayContaining([multisigMember.signature]),
 			);
 		});
 
 		it('should fail to add invalid signature to transaction from multisig account', () => {
-			storeAccountGetStub.returns(defaultMultisignatureAccount);
+			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
 			const transferFromMultiSigAccountTrs = new TransferTransaction({
 				...rawTrs,
@@ -744,13 +723,13 @@ describe('Base transaction class', () => {
 
 			const expectedError = `Public Key '${multisigMember.publicKey}' is not a member for account '${defaultMultisignatureAccount.address}'.`;
 
-			expect(status).to.eql(Status.FAIL);
-			expect(errors[0].message).to.be.eql(expectedError);
-			expect(transferFromMultiSigAccountTrs.signatures).to.be.empty;
+			expect(status).toEqual(Status.FAIL);
+			expect(errors[0].message).toEqual(expectedError);
+			expect(transferFromMultiSigAccountTrs.signatures).toHaveLength(0);
 		});
 
 		it('should fail with signature not part of the group', () => {
-			storeAccountGetStub.returns(defaultMultisignatureAccount);
+			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
 			const transferFromMultiSigAccountTrs = new TransferTransaction({
 				...rawTrs,
@@ -775,9 +754,9 @@ describe('Base transaction class', () => {
 			const expectedError =
 				"Public Key '542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33c2' is not a member for account '2129300327344985743L'.";
 
-			expect(status).to.eql(Status.FAIL);
-			expect(errors[0].message).to.be.eql(expectedError);
-			expect(transferFromMultiSigAccountTrs.signatures).to.be.empty;
+			expect(status).toEqual(Status.FAIL);
+			expect(errors[0].message).toEqual(expectedError);
+			expect(transferFromMultiSigAccountTrs.signatures).toHaveLength(0);
 		});
 	});
 
@@ -786,48 +765,51 @@ describe('Base transaction class', () => {
 			store.account.getOrDefault = () => defaultSenderAccount;
 			const { id, status, errors } = validTestTransaction.apply(store);
 
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(status).to.eql(Status.OK);
-			expect(errors).to.be.empty;
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.OK);
+			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
 		it('should return a failed transaction response with insufficient account balance', async () => {
-			storeAccountGetOrDefaultStub.returns({
+			storeAccountGetOrDefaultStub.mockReturnValue({
 				...defaultSenderAccount,
 				balance: '0',
 			});
 			const { id, status, errors } = validTestTransaction.apply(store);
 
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(status).to.eql(Status.FAIL);
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property(
-					'message',
-					`Account does not have enough LSK: ${defaultSenderAccount.address}, balance: 0`,
-				);
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.FAIL);
+			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
+				TransactionError,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].message).toEqual(
+				`Account does not have enough LSK: ${defaultSenderAccount.address}, balance: 0`,
+			);
 		});
 	});
 
 	describe('#undo', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
 			const { id, status, errors } = validTestTransaction.undo(store);
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(status).to.eql(Status.OK);
-			expect(errors).to.be.eql([]);
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.OK);
+			expect(errors).toEqual([]);
 		});
 
 		it('should return a failed transaction response with account balance exceeding max amount', async () => {
-			storeAccountGetOrDefaultStub.returns({
+			storeAccountGetOrDefaultStub.mockReturnValue({
 				...defaultSenderAccount,
 				balance: MAX_TRANSACTION_AMOUNT.toString(),
 			});
 			const { id, status, errors } = validTestTransaction.undo(store);
-			expect(id).to.be.eql(validTestTransaction.id);
-			expect(status).to.eql(Status.FAIL);
-			expect((errors as ReadonlyArray<TransactionError>)[0])
-				.to.be.instanceof(TransactionError)
-				.and.to.have.property('message', 'Invalid balance amount');
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.FAIL);
+			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
+				TransactionError,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].message).toEqual(
+				'Invalid balance amount',
+			);
 		});
 	});
 
@@ -848,11 +830,11 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return false for unexpired transaction', async () => {
-			expect(unexpiredTestTransaction.isExpired()).to.be.false;
+			expect(unexpiredTestTransaction.isExpired()).toBe(false);
 		});
 
 		it('should return true for expired transaction', async () => {
-			expect(expiredTestTransaction.isExpired(new Date())).to.be.true;
+			expect(expiredTestTransaction.isExpired(new Date())).toBe(true);
 		});
 	});
 
@@ -870,10 +852,10 @@ describe('Base transaction class', () => {
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
-			expect(parsedResponse.senderPublicKey).to.be.eql(
+			expect(parsedResponse.senderPublicKey).toEqual(
 				transferSecondSignatureFixture.testCases.output.senderPublicKey,
 			);
-			expect(parsedResponse.signature).to.be.eql(
+			expect(parsedResponse.signature).toEqual(
 				transferSecondSignatureFixture.testCases.output.signature,
 			);
 		});
@@ -892,13 +874,13 @@ describe('Base transaction class', () => {
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
-			expect(parsedResponse.senderPublicKey).to.be.eql(
+			expect(parsedResponse.senderPublicKey).toEqual(
 				transferSecondSignatureFixture.testCases.output.senderPublicKey,
 			);
-			expect(parsedResponse.signature).to.be.eql(
+			expect(parsedResponse.signature).toEqual(
 				transferSecondSignatureFixture.testCases.output.signature,
 			);
-			expect(parsedResponse.signSignature).to.be.eql(
+			expect(parsedResponse.signSignature).toEqual(
 				transferSecondSignatureFixture.testCases.output.signSignature,
 			);
 		});
@@ -920,22 +902,18 @@ describe('Base transaction class', () => {
 		const defaultSecondSignature =
 			'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309';
 
-		let signDataStub: SinonStub;
+		let signDataStub: jest.SpyInstance;
 
 		beforeEach(async () => {
-			const hashStub = sandbox
-				.stub(cryptography, 'hash')
-				.onFirstCall()
-				.returns(defaultHash)
-				.onSecondCall()
-				.returns(defaultSecondHash);
-			hashStub.returns(defaultHash);
-			signDataStub = sandbox
-				.stub(cryptography, 'signData')
-				.onFirstCall()
-				.returns(defaultSignature)
-				.onSecondCall()
-				.returns(defaultSecondSignature);
+			const hashStub = jest
+				.spyOn(cryptography, 'hash')
+				.mockReturnValueOnce(defaultHash)
+				.mockReturnValueOnce(defaultSecondHash);
+			hashStub.mockReturnValue(defaultHash);
+			signDataStub = jest
+				.spyOn(cryptography, 'signData')
+				.mockReturnValueOnce(defaultSignature)
+				.mockReturnValueOnce(defaultSecondSignature);
 		});
 
 		describe('when sign is called with passphrase', () => {
@@ -944,29 +922,27 @@ describe('Base transaction class', () => {
 			});
 
 			it('should set signature property', async () => {
-				expect(transactionWithDefaultValues.signature).to.equal(
-					defaultSignature,
-				);
+				expect(transactionWithDefaultValues.signature).toBe(defaultSignature);
 			});
 
 			it('should not set signSignature property', async () => {
-				expect(transactionWithDefaultValues.signSignature).to.be.undefined;
+				expect(transactionWithDefaultValues.signSignature).toBeUndefined();
 			});
 
 			it('should set id property', async () => {
-				expect(transactionWithDefaultValues.id).not.to.be.empty;
+				expect(transactionWithDefaultValues.id).not.toBeEmpty();
 			});
 
 			it('should set senderId property', async () => {
-				expect(transactionWithDefaultValues.senderId).not.to.be.empty;
+				expect(transactionWithDefaultValues.senderId).not.toBeEmpty();
 			});
 
 			it('should set senderPublicKey property', async () => {
-				expect(transactionWithDefaultValues.senderPublicKey).not.to.be.empty;
+				expect(transactionWithDefaultValues.senderPublicKey).not.toBeEmpty();
 			});
 
 			it('should call signData with the hash result and the passphrase', async () => {
-				expect(signDataStub).to.be.calledWithExactly(
+				expect(signDataStub).toHaveBeenCalledWith(
 					defaultHash,
 					defaultPassphrase,
 				);
@@ -982,38 +958,36 @@ describe('Base transaction class', () => {
 			});
 
 			it('should set signature property', async () => {
-				expect(transactionWithDefaultValues.signature).to.equal(
-					defaultSignature,
-				);
+				expect(transactionWithDefaultValues.signature).toBe(defaultSignature);
 			});
 
 			it('should set signSignature property', async () => {
-				expect(transactionWithDefaultValues.signSignature).to.equal(
+				expect(transactionWithDefaultValues.signSignature).toBe(
 					defaultSecondSignature,
 				);
 			});
 
 			it('should set id property', async () => {
-				expect(transactionWithDefaultValues.id).not.to.be.empty;
+				expect(transactionWithDefaultValues.id).not.toBeEmpty();
 			});
 
 			it('should set senderId property', async () => {
-				expect(transactionWithDefaultValues.senderId).not.to.be.empty;
+				expect(transactionWithDefaultValues.senderId).not.toBeEmpty();
 			});
 
 			it('should set senderPublicKey property', async () => {
-				expect(transactionWithDefaultValues.senderPublicKey).not.to.be.empty;
+				expect(transactionWithDefaultValues.senderPublicKey).not.toBeEmpty();
 			});
 
 			it('should call signData with the hash result and the passphrase', async () => {
-				expect(signDataStub).to.be.calledWithExactly(
+				expect(signDataStub).toHaveBeenCalledWith(
 					defaultHash,
 					defaultPassphrase,
 				);
 			});
 
 			it('should call signData with the hash result and the passphrase', async () => {
-				expect(signDataStub).to.be.calledWithExactly(
+				expect(signDataStub).toHaveBeenCalledWith(
 					defaultSecondHash,
 					defaultSecondPassphrase,
 				);

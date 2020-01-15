@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/transfer';
 import * as time from '../src/utils/time';
@@ -37,13 +36,13 @@ describe('#transfer transaction', () => {
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
-	let getTimeWithOffsetStub: sinon.SinonStub;
+	let getTimeWithOffsetStub: jest.SpyInstance;
 	let transferTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = sandbox
-			.stub(time, 'getTimeWithOffset')
-			.returns(timeWithOffset);
+		getTimeWithOffsetStub = jest
+			.spyOn(time, 'getTimeWithOffset')
+			.mockReturnValue(timeWithOffset);
 		return Promise.resolve();
 	});
 
@@ -60,11 +59,11 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should create a transfer transaction', () => {
-				return expect(transferTransaction).to.be.ok;
+				return expect(transferTransaction).toBeTruthy();
 			});
 
 			it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-				return expect(getTimeWithOffsetStub).to.be.calledWithExactly(undefined);
+				return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
 			});
 
 			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
@@ -77,67 +76,62 @@ describe('#transfer transaction', () => {
 					timeOffset: offset,
 				});
 
-				return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
+				return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 			});
 
 			it('should be an object', () => {
-				return expect(transferTransaction).to.be.an('object');
+				return expect(transferTransaction).toBeObject();
 			});
 
 			it('should have id string', () => {
-				return expect(transferTransaction)
-					.to.have.property('id')
-					.and.be.a('string');
+				return expect(transferTransaction.id).toBeString();
 			});
 
 			it('should have type number equal to 0', () => {
-				return expect(transferTransaction)
-					.to.have.property('type')
-					.and.be.a('number')
-					.and.equal(transactionType);
+				return expect(transferTransaction).toHaveProperty(
+					'type',
+					transactionType,
+				);
 			});
 
 			it('should have amount string equal to provided amount', () => {
-				return expect(transferTransaction.asset)
-					.to.have.property('amount')
-					.and.be.a('string')
-					.and.equal(amount);
+				return expect(transferTransaction.asset).toHaveProperty(
+					'amount',
+					amount,
+				);
 			});
 
 			it('should have fee string equal to transfer fee', () => {
-				return expect(transferTransaction)
-					.to.have.property('fee')
-					.and.be.a('string')
-					.and.equal(fee);
+				return expect(transferTransaction).toHaveProperty('fee', fee);
 			});
 
 			it('should have recipientId string equal to provided recipient id', () => {
-				return expect(transferTransaction.asset)
-					.to.have.property('recipientId')
-					.and.be.a('string')
-					.and.equal(recipientId);
+				return expect(transferTransaction.asset).toHaveProperty(
+					'recipientId',
+					recipientId,
+				);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				return expect(transferTransaction)
-					.to.have.property('senderPublicKey')
-					.and.be.hexString.and.equal(publicKey);
+				return expect(transferTransaction).toHaveProperty(
+					'senderPublicKey',
+					publicKey,
+				);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				return expect(transferTransaction)
-					.to.have.property('timestamp')
-					.and.be.a('number')
-					.and.equal(timeWithOffset);
+				return expect(transferTransaction).toHaveProperty(
+					'timestamp',
+					timeWithOffset,
+				);
 			});
 
 			it('should have signature hex string', () => {
-				return expect(transferTransaction).to.have.property('signature').and.be
-					.hexString;
+				return expect(transferTransaction.signature).toBeString();
 			});
 
 			it('second signature property should be undefined', () => {
-				return expect(transferTransaction.signSignature).to.be.undefined;
+				return expect(transferTransaction.signSignature).toBeUndefined();
 			});
 
 			it('without network identifier it should throw a descriptive error', () => {
@@ -148,7 +142,7 @@ describe('#transfer transaction', () => {
 						passphrase,
 						data: testData,
 					} as any),
-				).to.throw('Network identifier can not be empty');
+				).toThrowError('Network identifier can not be empty');
 			});
 		});
 
@@ -173,24 +167,21 @@ describe('#transfer transaction', () => {
 						passphrase,
 						data: Buffer.from('hello') as any,
 					}),
-				).to.throw(
+				).toThrowError(
 					'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
 				);
 			});
 
 			it('should have fee string equal to transfer fee', () => {
-				return expect(transferTransaction)
-					.to.have.property('fee')
-					.and.be.a('string')
-					.and.equal(fee);
+				return expect(transferTransaction).toHaveProperty('fee', fee);
 			});
 
 			describe('data asset', () => {
 				it('should be a string equal to provided data', () => {
-					return expect(transferTransaction.asset)
-						.to.have.property('data')
-						.and.be.a('string')
-						.and.equal(testData);
+					return expect(transferTransaction.asset).toHaveProperty(
+						'data',
+						testData,
+					);
 				});
 			});
 		});
@@ -218,12 +209,11 @@ describe('#transfer transaction', () => {
 				data: testData,
 			});
 
-			return expect(transferTransaction.asset).to.have.property('data');
+			return expect(transferTransaction.asset).toHaveProperty('data');
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return expect(transferTransaction).to.have.property('signSignature').and
-				.be.hexString;
+			return expect(transferTransaction.signSignature).toBeString();
 		});
 	});
 
@@ -244,7 +234,7 @@ describe('#transfer transaction', () => {
 						amount: '0',
 						networkIdentifier,
 					}),
-				).to.throw('Amount must be a valid number in string format.');
+				).toThrowError('Amount must be a valid number in string format.');
 			});
 
 			it('should throw error when amount is greater than max transaction amount', () => {
@@ -253,7 +243,7 @@ describe('#transfer transaction', () => {
 						amount: '18446744073709551616',
 						networkIdentifier,
 					}),
-				).to.throw('Amount must be a valid number in string format.');
+				).toThrowError('Amount must be a valid number in string format.');
 			});
 
 			it('should throw error when recipientId & non-matching recipientPublicKey provided', () => {
@@ -264,7 +254,7 @@ describe('#transfer transaction', () => {
 						recipientId,
 						recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
 					}),
-				).to.throw('recipientId does not match recipientPublicKey.');
+				).toThrowError('recipientId does not match recipientPublicKey.');
 			});
 
 			it('should non throw error when recipientId & matching recipientPublicKey provided', () => {
@@ -275,7 +265,7 @@ describe('#transfer transaction', () => {
 						recipientId,
 						recipientPublicKey,
 					}),
-				).to.not.throw();
+				).not.toThrowError();
 			});
 
 			it('should throw error when neither recipientId nor recipientPublicKey were provided', () => {
@@ -286,7 +276,7 @@ describe('#transfer transaction', () => {
 						passphrase,
 						data: Buffer.from('hello') as any,
 					}),
-				).to.throw(
+				).toThrowError(
 					'Either recipientId or recipientPublicKey must be provided.',
 				);
 			});
@@ -298,10 +288,10 @@ describe('#transfer transaction', () => {
 					passphrase,
 					recipientPublicKey: publicKey,
 				});
-				return expect(tx.asset)
-					.to.have.property('recipientId')
-					.and.be.a('string')
-					.to.equal(cryptography.getAddressFromPublicKey(publicKey));
+				return expect(tx.asset).toHaveProperty(
+					'recipientId',
+					cryptography.getAddressFromPublicKey(publicKey),
+				);
 			});
 
 			it('should handle too much data', () => {
@@ -312,47 +302,51 @@ describe('#transfer transaction', () => {
 						networkIdentifier,
 						data: new Array(65).fill('0').join(''),
 					}),
-				).to.throw('Transaction data field cannot exceed 64 bytes.');
+				).toThrowError('Transaction data field cannot exceed 64 bytes.');
 			});
 
 			it('should have the type', () => {
-				return expect(transferTransaction)
-					.to.have.property('type')
-					.equal(transactionType);
+				return expect(transferTransaction).toHaveProperty(
+					'type',
+					transactionType,
+				);
 			});
 
 			it('should have the amount', () => {
-				return expect(transferTransaction.asset)
-					.to.have.property('amount')
-					.equal(amount);
+				return expect(transferTransaction.asset).toHaveProperty(
+					'amount',
+					amount,
+				);
 			});
 
 			it('should have the recipient', () => {
-				return expect(transferTransaction.asset)
-					.to.have.property('recipientId')
-					.equal(recipientId);
+				return expect(transferTransaction.asset).toHaveProperty(
+					'recipientId',
+					recipientId,
+				);
 			});
 
 			it('should have the sender public key', () => {
-				return expect(transferTransaction)
-					.to.have.property('senderPublicKey')
-					.equal(undefined);
+				return expect(transferTransaction).toHaveProperty(
+					'senderPublicKey',
+					undefined,
+				);
 			});
 
 			it('should have the timestamp', () => {
-				return expect(transferTransaction).to.have.property('timestamp');
+				return expect(transferTransaction).toHaveProperty('timestamp');
 			});
 
 			it('should have the asset', () => {
-				return expect(transferTransaction).to.have.property('asset');
+				return expect(transferTransaction).toHaveProperty('asset');
 			});
 
 			it('should not have the signature', () => {
-				return expect(transferTransaction).not.to.have.property('signature');
+				return expect(transferTransaction).not.toHaveProperty('signature');
 			});
 
 			it('should not have the id', () => {
-				return expect(transferTransaction).not.to.have.property('id');
+				return expect(transferTransaction).not.toHaveProperty('id');
 			});
 		});
 	});
