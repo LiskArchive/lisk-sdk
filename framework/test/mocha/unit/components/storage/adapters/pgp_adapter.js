@@ -54,8 +54,10 @@ describe('PgpAdapter', () => {
 		it('should set the parameters correctly', async () => {
 			const adapter = new PgpAdapter(validOptions);
 
-			expect(adapter.options).to.be.eql(validOptions);
-			expect(adapter.logger).to.be.eql(loggerStub);
+			const { logger, ...optionsWithoutLogger } = validOptions;
+
+			expect(adapter.options).to.be.eql(optionsWithoutLogger);
+			expect(adapter.logger).to.be.eql(logger);
 			expect(adapter.sqlDirectory).to.be.eql(validOptions.sqlDirectory);
 			expect(adapter.pgp).to.be.a('function');
 			return expect(adapter.db).to.be.undefined;

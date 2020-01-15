@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
@@ -28,39 +27,39 @@ import {
 describe('transaction utils', () => {
 	describe('exports', () => {
 		it('should have convertBeddowsToLSK', () => {
-			return expect(convertBeddowsToLSK).to.be.a('function');
+			return expect(convertBeddowsToLSK).toBeFunction();
 		});
 
 		it('should have convertLSKToBeddows', () => {
-			return expect(convertLSKToBeddows).to.be.a('function');
+			return expect(convertLSKToBeddows).toBeFunction();
 		});
 
 		it('should have getTimeFromBlockchainEpoch', () => {
-			return expect(getTimeFromBlockchainEpoch).to.be.a('function');
+			return expect(getTimeFromBlockchainEpoch).toBeFunction();
 		});
 
 		it('should have getTimeWithOffset', () => {
-			return expect(getTimeWithOffset).to.be.a('function');
+			return expect(getTimeWithOffset).toBeFunction();
 		});
 
 		it('should have getId', () => {
-			return expect(getId).to.be.a('function');
+			return expect(getId).toBeFunction();
 		});
 
 		it('should have prependMinusToPublicKeys', () => {
-			return expect(prependMinusToPublicKeys).to.be.a('function');
+			return expect(prependMinusToPublicKeys).toBeFunction();
 		});
 
 		it('should have prependPlusToPublicKeys', () => {
-			return expect(prependPlusToPublicKeys).to.be.a('function');
+			return expect(prependPlusToPublicKeys).toBeFunction();
 		});
 
 		it('should have verifySignature', () => {
-			return expect(validateSignature).to.be.a('function');
+			return expect(validateSignature).toBeFunction();
 		});
 
 		it('should have verifyMultisignatures', () => {
-			return expect(validateMultisignatures).to.be.a('function');
+			return expect(validateMultisignatures).toBeFunction();
 		});
 	});
 });
