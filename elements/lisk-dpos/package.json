@@ -62,7 +62,7 @@
 		"@liskhq/lisk-cryptography": "2.4.0-alpha.2"
 	},
 	"devDependencies": {
-		"@types/jest": "24.0.23",
+		"@types/jest": "24.0.1",
 		"@types/jquery": "3.3.29",
 		"browserify": "16.2.3",
 		"cypress": "3.4.1",
