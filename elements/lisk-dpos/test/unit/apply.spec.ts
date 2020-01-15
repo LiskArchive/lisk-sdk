@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
+
 import * as BigNum from '@liskhq/bignum';
 import { when } from 'jest-when';
 import { Dpos, Slots, constants } from '../../src';

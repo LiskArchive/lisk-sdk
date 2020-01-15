@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
+
 export const randomInt = (low: number, high: number) => {
 	return Math.round(Math.random() * (high - low) + low);
 };
