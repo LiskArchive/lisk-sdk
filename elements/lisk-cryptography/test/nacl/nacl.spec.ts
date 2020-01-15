@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { KeypairBytes } from '../../src/keys';
 import { makeInvalid } from '../helpers';
 import { NaclInterface } from '../../src/nacl/nacl_types';
@@ -77,11 +76,13 @@ describe('nacl', () => {
 				});
 
 				it('should return an uint8array', () => {
-					return expect(randomBuffer).to.be.instanceOf(Uint8Array);
+					expect(Object.prototype.toString.call(randomBuffer)).toEqual(
+						'[object Uint8Array]',
+					);
 				});
 
 				it('should return an uint8array of size 24', () => {
-					return expect(randomBuffer.length).to.be.eql(24);
+					expect(randomBuffer.length).toEqual(24);
 				});
 			});
 
@@ -94,25 +95,27 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey', () => {
-					return expect(
+					expect(
 						Buffer.from(signedKeys.publicKeyBytes).toString('hex'),
-					).to.be.eql(defaultPublicKey);
+					).toEqual(defaultPublicKey);
 				});
 
 				it('should create a publicKey of type uint8array', () => {
-					return expect(signedKeys.publicKeyBytes).to.be.instanceOf(Uint8Array);
+					expect(
+						Object.prototype.toString.call(signedKeys.publicKeyBytes),
+					).toEqual('[object Uint8Array]');
 				});
 
 				it('should create a privateKey', () => {
-					return expect(
+					expect(
 						Buffer.from(signedKeys.privateKeyBytes).toString('hex'),
-					).to.be.eql(defaultPrivateKey);
+					).toEqual(defaultPrivateKey);
 				});
 
 				it('should create a privateKey of type uint8array', () => {
-					return expect(signedKeys.privateKeyBytes).to.be.instanceOf(
-						Uint8Array,
-					);
+					expect(
+						Object.prototype.toString.call(signedKeys.privateKeyBytes),
+					).toEqual('[object Uint8Array]');
 				});
 			});
 
@@ -126,7 +129,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey', () => {
-					return expect(Buffer.from(publicKey).toString('hex')).to.be.eql(
+					expect(Buffer.from(publicKey).toString('hex')).toEqual(
 						defaultPublicKey,
 					);
 				});
@@ -135,13 +138,15 @@ describe('nacl', () => {
 					publicKey = getPublicKey(
 						Buffer.from(defaultPrivateKey, 'hex').slice(0, 32),
 					);
-					return expect(Buffer.from(publicKey).toString('hex')).to.be.eql(
+					expect(Buffer.from(publicKey).toString('hex')).toEqual(
 						defaultPublicKey,
 					);
 				});
 
 				it('should create a publicKey of type uint8array', () => {
-					return expect(publicKey).to.be.instanceOf(Uint8Array);
+					expect(Object.prototype.toString.call(publicKey)).toEqual(
+						'[object Uint8Array]',
+					);
 				});
 			});
 
@@ -157,13 +162,15 @@ describe('nacl', () => {
 				});
 
 				it('should create a signature', () => {
-					return expect(Buffer.from(signatureBytes).toString('hex')).to.be.eql(
+					expect(Buffer.from(signatureBytes).toString('hex')).toEqual(
 						defaultSignature,
 					);
 				});
 
 				it('should create a signature of type uint8array', () => {
-					return expect(signatureBytes).to.be.instanceOf(Uint8Array);
+					expect(Object.prototype.toString.call(signatureBytes)).toEqual(
+						'[object Uint8Array]',
+					);
 				});
 			});
 
@@ -174,7 +181,7 @@ describe('nacl', () => {
 						Buffer.from(makeInvalid(defaultSignature), 'hex'),
 						Buffer.from(defaultPublicKey, 'hex'),
 					);
-					return expect(verification).to.be.false;
+					expect(verification).toBe(false);
 				});
 
 				it('should return true if the signature is valid', () => {
@@ -183,7 +190,7 @@ describe('nacl', () => {
 						Buffer.from(defaultSignature, 'hex'),
 						Buffer.from(defaultPublicKey, 'hex'),
 					);
-					return expect(verification).to.be.true;
+					expect(verification).toBe(true);
 				});
 			});
 
@@ -201,9 +208,9 @@ describe('nacl', () => {
 				});
 
 				it('should encrypt a message', () => {
-					return expect(
-						Buffer.from(encryptedMessageBytes).toString('hex'),
-					).to.be.eql(defaultEncryptedMessage);
+					expect(Buffer.from(encryptedMessageBytes).toString('hex')).toEqual(
+						defaultEncryptedMessage,
+					);
 				});
 			});
 
@@ -221,13 +228,13 @@ describe('nacl', () => {
 				});
 
 				it('should decrypt a message', () => {
-					return expect(
-						Buffer.from(decryptedMessageBytes).toString('utf8'),
-					).to.be.eql(defaultMessage);
+					expect(Buffer.from(decryptedMessageBytes).toString('utf8')).toEqual(
+						defaultMessage,
+					);
 				});
 
 				it('should throw an error for an invalid message', () => {
-					return expect(
+					expect(
 						openBox.bind(
 							null,
 							Buffer.from(
@@ -238,7 +245,7 @@ describe('nacl', () => {
 							Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
 							Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
 						),
-					).to.throw(Error, 'Failed to decrypt message');
+					).toThrowError(Error);
 				});
 			});
 
@@ -256,9 +263,9 @@ describe('nacl', () => {
 						Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
 						Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
 					);
-					return expect(
-						Buffer.from(decryptedMessageBytes).toString('utf8'),
-					).to.equal(defaultMessage);
+					expect(Buffer.from(decryptedMessageBytes).toString('utf8')).toBe(
+						defaultMessage,
+					);
 				});
 
 				it('should sign a given message and verify it using the same signature', () => {
@@ -271,7 +278,7 @@ describe('nacl', () => {
 						signatureBytes,
 						Buffer.from(defaultPublicKey, 'hex'),
 					);
-					return expect(verification).to.be.true;
+					expect(verification).toBe(true);
 				});
 			});
 		});

@@ -4,7 +4,7 @@
 		"declaration": true,
 		"outDir": "dist-node",
 		"rootDir": "./src",
-		"types": ["node", "mocha", "sinon", "chai"]
+		"types": ["node"]
 	},
 	"include": ["src/**/*", "types/**/*"]
 }
