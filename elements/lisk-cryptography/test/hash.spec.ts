@@ -13,7 +13,6 @@
  *
  */
 import { hash as hashFunction, getNetworkIdentifier } from '../src/hash';
-import { expect } from 'chai';
 
 describe('hash', () => {
 	describe('#hash', () => {
@@ -33,28 +32,28 @@ describe('hash', () => {
 		it('should generate a sha256 hash from a Buffer', () => {
 			const testBuffer = Buffer.from(defaultText);
 			const hash = hashFunction(testBuffer);
-			return expect(hash).to.be.eql(defaultHash);
+			expect(hash).toEqual(defaultHash);
 		});
 
 		it('should generate a sha256 hash from a utf8 string', () => {
 			const hash = hashFunction(defaultText, 'utf8');
-			return expect(hash).to.be.eql(defaultHash);
+			expect(hash).toEqual(defaultHash);
 		});
 
 		it('should generate a sha256 hash from a hex string', () => {
 			const testHex = Buffer.from(defaultText).toString('hex');
 			const hash = hashFunction(testHex, 'hex');
-			return expect(hash).to.be.eql(defaultHash);
+			expect(hash).toEqual(defaultHash);
 		});
 
 		it('should throw on unknown format when trying a string with format "utf32"', () => {
-			return expect(hashFunction.bind(null, defaultText, 'utf32')).to.throw(
+			expect(hashFunction.bind(null, defaultText, 'utf32')).toThrowError(
 				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
 			);
 		});
 
 		it('should throw on unknown format when using an array', () => {
-			return expect(hashFunction.bind(null, arrayToHash as any)).to.throw(
+			expect(hashFunction.bind(null, arrayToHash as any)).toThrowError(
 				'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 			);
 		});
@@ -73,7 +72,7 @@ describe('hash', () => {
 				communityIdentifier,
 			);
 
-			return expect(networkIdentifier).to.be.eql(expectedHash);
+			expect(networkIdentifier).toEqual(expectedHash);
 		});
 	});
 });
