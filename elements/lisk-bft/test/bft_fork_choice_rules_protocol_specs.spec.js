@@ -15,9 +15,14 @@
 'use strict';
 
 const forkChoiceSpecs = require('./bft_specs/bft_fork_choice_rules.json');
-const { Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { BFT } = require('../../../../../../../src/modules/chain/bft');
-const { constants } = require('../../../../../../utils');
+const { Slots } = require('@liskhq/lisk-dpos');
+const { BFT } = require('../src/bft');
+
+const constants = {
+	ACTIVE_DELEGATES: 101,
+	EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+	BLOCK_TIME: 10,
+};
 
 describe('bft', () => {
 	describe('forkChoice', () => {
