@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { when } = require('jest-when');
-const { Dpos } = require('../../src');
-const { delegatePublicKeys, delegateAccounts } = require('../round_delegates');
-const shuffledDelegatePublicKeys = require('./shuffled_delegate_publickeys_for_round_5.json');
-const constants = require('../utils/constants');
+import { when } from 'jest-when';
+import { Dpos } from '../../src';
+import { delegatePublicKeys, delegateAccounts } from '../utils/round_delegates';
+import {
+	ACTIVE_DELEGATES,
+	DELEGATE_LIST_ROUND_OFFSET,
+} from '../fixtures/constants';
+import * as shuffledDelegatePublicKeys from '../fixtures/shuffled_delegate_publickeys_for_round_5.json';
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
@@ -27,8 +28,8 @@ const constants = require('../utils/constants');
  * the list accordingly.
  */
 describe('dpos.getForgerPublicKeysForRound()', () => {
-	const stubs = {};
-	let dpos;
+	const stubs = {} as any;
+	let dpos: Dpos;
 
 	beforeEach(() => {
 		// Arrange
@@ -49,8 +50,8 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 		dpos = new Dpos({
 			...stubs,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
+			activeDelegates: ACTIVE_DELEGATES,
+			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
@@ -62,7 +63,7 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 			// Arrange
 			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
 				.calledWith(roundWithOffset)
-				.mockResolvedValue(delegatePublicKeys);
+				.mockReturnValue(delegatePublicKeys);
 
 			// Act
 			const list = await dpos.getForgerPublicKeysForRound(round);
@@ -75,8 +76,8 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 			// Arrange
 			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
 				.calledWith(roundWithOffset)
-				.mockResolvedValue([]);
-			stubs.storage.entities.Account.get.mockResolvedValue(delegateAccounts);
+				.mockReturnValue([]);
+			stubs.storage.entities.Account.get.mockReturnValue(delegateAccounts);
 
 			// Act && Assert
 			return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(
@@ -94,7 +95,7 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 			// Arrange
 			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
 				.calledWith(roundWithOffset)
-				.mockResolvedValue(delegatePublicKeys);
+				.mockReturnValue(delegatePublicKeys);
 
 			// Act
 			const list = await dpos.getForgerPublicKeysForRound(round, {
@@ -109,8 +110,8 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 			// Arrange
 			when(stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound)
 				.calledWith(roundWithOffset)
-				.mockResolvedValue([]);
-			stubs.storage.entities.Account.get.mockResolvedValue(delegateAccounts);
+				.mockReturnValue([]);
+			stubs.storage.entities.Account.get.mockReturnValue(delegateAccounts);
 
 			// Act && Assert
 			return expect(

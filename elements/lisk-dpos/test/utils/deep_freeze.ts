@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-export const deepFreeze = o => {
+export const deepFreeze = (o: any) => {
 	Object.freeze(o);
 	if (o === undefined) {
 		return o;

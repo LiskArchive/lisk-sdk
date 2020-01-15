@@ -14,18 +14,22 @@
 
 'use strict';
 
-const { Slots } = require('../src');
+import { Slots } from '../../src';
 
-const constants = require('./utils/constants');
+import {
+	EPOCH_TIME,
+	BLOCK_TIME,
+	ACTIVE_DELEGATES,
+} from '../fixtures/constants';
 
 describe('Slots', () => {
-	let slots;
+	let slots: Slots;
 
 	beforeEach(async () => {
 		slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
+			epochTime: EPOCH_TIME,
+			interval: BLOCK_TIME,
+			blocksPerRound: ACTIVE_DELEGATES,
 		});
 	});
 

@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-module.exports = {
-	ACTIVE_DELEGATES: 101,
-	EPOCH_TIME: '2016-05-24T17:00:00.000Z',
-	BLOCK_TIME: 10,
-	DELEGATE_LIST_ROUND_OFFSET: 2,
-};
+export const ACTIVE_DELEGATES = 101;
+export const EPOCH_TIME = '2016-05-24T17:00:00.000Z';
+export const BLOCK_TIME = 10;
+export const DELEGATE_LIST_ROUND_OFFSET = 2;
