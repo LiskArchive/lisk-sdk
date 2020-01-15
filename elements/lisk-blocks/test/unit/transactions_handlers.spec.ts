@@ -13,7 +13,6 @@
  */
 
 import { when } from 'jest-when';
-import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	Status as TransactionStatus,
@@ -474,7 +473,7 @@ describe('transactions', () => {
 					.calledWith(senderId)
 					.mockReturnValue({
 						address: senderId,
-						balance: new BigNum(trs3.fee).add(trs4.fee).toString(),
+						balance: (BigInt(trs3.fee) + BigInt(trs4.fee)).toString(),
 					});
 			});
 
