@@ -308,6 +308,7 @@ describe('dpos.apply()', () => {
 				reward: rewardPerDelegate,
 				height: 809 + i,
 			}));
+
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
 			lastBlockOfTheRoundNine = {

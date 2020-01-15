@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { TransactionError, TransactionPendingError } from '../src/errors';
 
 describe('errors', () => {
@@ -29,28 +28,22 @@ describe('errors', () => {
 
 		describe('#constructor', () => {
 			it('should create a new instance of TransactionError', () => {
-				return expect(TxError).to.be.instanceof(TransactionError);
+				return expect(TxError).toBeInstanceOf(TransactionError);
 			});
 
 			it('should have a `message` string', () => {
-				expect(TxError.message).to.eql('error message');
-				return expect(TxError)
-					.to.have.property('message')
-					.and.be.a('string');
+				expect(TxError.message).toEqual('error message');
+				return expect(TxError.message).toBeString();
 			});
 
 			it('should have a `id` string', () => {
-				expect(TxError.id).to.eql('transaction id');
-				return expect(TxError)
-					.to.have.property('id')
-					.and.be.a('string');
+				expect(TxError.id).toEqual('transaction id');
+				return expect(TxError.id).toBeString();
 			});
 
 			it('should have a `dataPath` string', () => {
-				expect(TxError.dataPath).to.eql('.dataPath');
-				return expect(TxError)
-					.to.have.property('dataPath')
-					.and.be.a('string');
+				expect(TxError.dataPath).toEqual('.dataPath');
+				return expect(TxError.dataPath).toBeString();
 			});
 
 			it('should show provided actual property when present', () => {
@@ -60,7 +53,7 @@ describe('errors', () => {
 					'.dataPath',
 					'__ACTUAL_PROPERTY_1__',
 				);
-				return expect(TxError.toString()).to.match(
+				return expect(TxError.toString()).toMatch(
 					/actual: __ACTUAL_PROPERTY_1__/,
 				);
 			});
@@ -73,7 +66,7 @@ describe('errors', () => {
 					'actual_value_provided',
 					'__EXPECTED_PROPERTY_1__',
 				);
-				return expect(TxError.toString()).to.match(
+				return expect(TxError.toString()).toMatch(
 					/expected: __EXPECTED_PROPERTY_1__/,
 				);
 			});
@@ -81,11 +74,9 @@ describe('errors', () => {
 
 		describe('#toString', () => {
 			it('should return a string from a TransactionError', () => {
-				return expect(TxError.toString())
-					.to.be.eql(
-						'Transaction: transaction id failed at .dataPath: error message',
-					)
-					.and.be.an('string');
+				return expect(TxError.toString()).toEqual(
+					'Transaction: transaction id failed at .dataPath: error message',
+				);
 			});
 		});
 	});
@@ -103,11 +94,9 @@ describe('errors', () => {
 
 		describe('#toString', () => {
 			it('should return a string from a TransactionPendingError', () => {
-				return expect(TxPendingError.toString())
-					.to.be.an('string')
-					.to.be.eql(
-						'Transaction: transaction id failed at .aDataPath: error message ',
-					);
+				return expect(TxPendingError.toString()).toEqual(
+					'Transaction: transaction id failed at .aDataPath: error message ',
+				);
 			});
 		});
 	});

@@ -139,7 +139,7 @@ const bftFinalityTestSuiteGenerator = ({
  * @param {int} activeDelegates
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidmaxHeightPrevoted = activeDelegates => {
+const invalidMaxHeightPrevoted = activeDelegates => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
 		activeDelegates,
@@ -270,7 +270,7 @@ const invalidPreviouslyForgedHeight = activeDelegates => {
  * @param {int} activeDelegates
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidLowermaxHeightPrevoted = activeDelegates => {
+const invalidLowerMaxHeightPrevoted = activeDelegates => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
 		activeDelegates,
@@ -304,7 +304,7 @@ const bftInvalidBlockHeaderTestSuiteGenerator = ({
 	runner: 'bft_processing',
 	handler: 'bft_invalid_block_headers',
 	testCases: [
-		invalidmaxHeightPrevoted(activeDelegates),
+		invalidMaxHeightPrevoted(activeDelegates),
 		invalidSameHeightBlock(activeDelegates),
 		invalidLowerHeightBlock(activeDelegates),
 
@@ -313,9 +313,225 @@ const bftInvalidBlockHeaderTestSuiteGenerator = ({
 
 		// invalidPreviouslyForgedHeight(activeDelegates),
 
-		invalidLowermaxHeightPrevoted(activeDelegates),
+		invalidLowerMaxHeightPrevoted(activeDelegates),
 	],
 });
+
+const FORK_STATUS_IDENTICAL_BLOCK = 1;
+const FORK_STATUS_VALID_BLOCK = 2;
+const FORK_STATUS_DOUBLE_FORGING = 3;
+const FORK_STATUS_TIE_BREAK = 4;
+const FORK_STATUS_DIFFERENT_CHAIN = 5;
+const FORK_STATUS_DISCARD = 6;
+
+const bftForkChoiceTestSuiteGenerator = () => {
+	const blockInterval = 10;
+	const lastBlockHeight = 10;
+	const epochTime = Math.floor(new Date('2016-05-24T17:00:00.000Z').getTime());
+
+	// All times are epoch time
+	const lastBlock = {
+		id: '4787605425910193884',
+		height: lastBlockHeight,
+		version: 2,
+		generatorPublicKey:
+			'774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534',
+		maxHeightPrevoted: 1,
+		timestamp: (lastBlockHeight - 1) * blockInterval, // Block slot time was height * blockInterval
+		receivedAt: (lastBlockHeight - 1) * blockInterval + 2, // Block received 2 seconds after its slot time started
+		previousBlockId: '10639113266773617352',
+	};
+
+	const receivedBlock = {
+		id: '5687604425910193884',
+		height: lastBlockHeight + 1,
+		version: 2,
+		generatorPublicKey:
+			'544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435',
+		maxHeightPrevoted: 1,
+		timestamp: lastBlockHeight * blockInterval, // Block slot time was height * blockInterval
+		receivedAt: lastBlockHeight * blockInterval + 2, // Block received 2 seconds after
+		previousBlockId: '4787605425910193884',
+	};
+
+	const initialState = {
+		blockInterval,
+		lastBlock,
+		epochTime,
+	};
+
+	return {
+		title: 'BFT processing generation',
+		summary: 'Generate set of blocks to verify fork choice rules',
+		config: {
+			forkStatuses: {
+				FORK_STATUS_IDENTICAL_BLOCK,
+				FORK_STATUS_VALID_BLOCK,
+				FORK_STATUS_DOUBLE_FORGING,
+				FORK_STATUS_TIE_BREAK,
+				FORK_STATUS_DIFFERENT_CHAIN,
+				FORK_STATUS_DISCARD,
+			},
+		},
+		runner: 'bft_processing',
+		handler: 'bft_fork_choice_rules',
+		testCases: [
+			{
+				description:
+					'IDENTICAL_BLOCK: Received identical block, as described as "Case 1" in the LIP',
+				initialState,
+				input: {
+					// Block id is the only check to match identical blocks
+					receivedBlock: { ...lastBlock },
+				},
+				output: {
+					forkStatus: FORK_STATUS_IDENTICAL_BLOCK,
+				},
+			},
+			{
+				description:
+					'VALID_BLOCK: Received valid block, as described as "Case 2" in the LIP',
+				initialState,
+				input: {
+					// Valid blocks are always one step ahead and linked to previous block
+					receivedBlock,
+				},
+				output: {
+					forkStatus: FORK_STATUS_VALID_BLOCK,
+				},
+			},
+			{
+				description:
+					'DISCARD: Received invalid block for current state of chain',
+				initialState,
+				input: {
+					// Any block with lower height than last block is invalid to current
+					// state of chain if maxHeightPrevoted is less or same
+					receivedBlock: {
+						...receivedBlock,
+						height: lastBlock.height - 1,
+						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
+					},
+				},
+				output: {
+					forkStatus: FORK_STATUS_DISCARD,
+				},
+			},
+			{
+				description:
+					'DOUBLE_FORGING: Received double forging block, as described as "Case 3" in the LIP',
+				initialState,
+				input: {
+					// Double forging block identified when following conditions meet
+					// when compared with last block in chain
+					//
+					// - same height
+					// - same maxHeightPrevoted
+					// - same previousBlockId
+					// - same generatorPublicKey
+					// - different block id
+					//
+
+					receivedBlock: {
+						...receivedBlock,
+						height: lastBlock.height,
+						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
+						previousBlockId: lastBlock.previousBlockId,
+						generatorPublicKey: lastBlock.generatorPublicKey,
+					},
+				},
+				output: {
+					forkStatus: FORK_STATUS_DOUBLE_FORGING,
+				},
+			},
+			{
+				description:
+					'TIE_BREAK: Received a block turn to a tie break with last block, as described as "Case 4" in the LIP',
+				initialState: {
+					lastBlock: {
+						...lastBlock,
+						...{ timestamp: lastBlock.timestamp - 5 }, // last block received in earlier slot
+					},
+					epochTime,
+					blockInterval,
+				},
+				input: {
+					// Received block to tie break identified when following conditions meet
+					// when compared with last block in chain
+					//
+					// - same height
+					// - same maxHeightPrevoted
+					// - same previousBlockId
+					// - different block id
+					// - received block slot is higher than last applied block slot
+					// - received block is received within forging slot time
+					// - last block in chain was not received within its forging slot time
+					//
+
+					receivedBlock: {
+						...receivedBlock,
+						height: lastBlock.height,
+						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
+						previousBlockId: lastBlock.previousBlockId,
+						timestamp: lastBlock.timestamp, // Latest block time
+						receivedAt: lastBlock.receivedAt,
+					},
+				},
+				output: {
+					forkStatus: FORK_STATUS_TIE_BREAK,
+				},
+			},
+
+			{
+				description:
+					'DIFFERENT_CHAIN: Received a block from a different chain, as described as "Case 5" in the LIP',
+				initialState,
+				input: {
+					// Block identified from different chain if following conditions meet
+					// when compared with last block in chain
+					//
+					// - Not met the condition of valid block and
+					// - maxHeightPrevoted of last block is less than received block maxHeightPrevoted
+					//
+
+					receivedBlock: {
+						...receivedBlock,
+						maxHeightPrevoted: lastBlock.maxHeightPrevoted + 5,
+						previousBlockId: '18084359649202066469',
+					},
+				},
+				output: {
+					forkStatus: FORK_STATUS_DIFFERENT_CHAIN,
+				},
+			},
+
+			{
+				description:
+					'DIFFERENT_CHAIN: Received a block from a different chain, as described as "Case 5" in the LIP',
+				initialState,
+				input: {
+					// Block identified from different chain if following conditions meet
+					// when compared with last block in chain
+					//
+					// - Not met the condition of a valid block and
+					// - last block height less than current block height and
+					// - maxHeightPrevoted is same for both blocks
+					//
+
+					receivedBlock: {
+						...receivedBlock,
+						height: lastBlock.height + 1,
+						maxHeightPrevoted: lastBlock.maxHeightPrevoted,
+						previousBlockId: '18084359649202066469',
+					},
+				},
+				output: {
+					forkStatus: FORK_STATUS_DIFFERENT_CHAIN,
+				},
+			},
+		],
+	};
+};
 
 BaseGenerator.runGenerator('bft_finality_processing', [
 	bftFinalityTestSuiteGenerator({
@@ -344,4 +560,5 @@ BaseGenerator.runGenerator('bft_finality_processing', [
 		filePath: '11_delegates_partial_switch.csv',
 	}),
 	bftInvalidBlockHeaderTestSuiteGenerator({ activeDelegates: 5 }),
+	bftForkChoiceTestSuiteGenerator,
 ]);

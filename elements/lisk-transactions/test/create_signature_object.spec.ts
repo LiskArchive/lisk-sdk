@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	createSignatureObject,
 	SignatureObject,
@@ -39,7 +38,9 @@ describe('#createSignatureObject', () => {
 					networkIdentifier:
 						multisignatureFixture.testCases.input.networkIdentifier,
 				}),
-			).to.throw('Transaction ID is required to create a signature object.');
+			).toThrowError(
+				'Transaction ID is required to create a signature object.',
+			);
 		});
 
 		it('should throw an Error when sender public key is mutated', () => {
@@ -58,7 +59,7 @@ describe('#createSignatureObject', () => {
 					networkIdentifier:
 						multisignatureFixture.testCases.input.networkIdentifier,
 				}),
-			).to.throw('Invalid transaction.');
+			).toThrowError('Invalid transaction.');
 		});
 
 		it('should throw an Error when signature is mutated', () => {
@@ -77,7 +78,7 @@ describe('#createSignatureObject', () => {
 					networkIdentifier:
 						multisignatureFixture.testCases.input.networkIdentifier,
 				}),
-			).to.throw('Invalid transaction.');
+			).toThrowError('Invalid transaction.');
 		});
 	});
 
@@ -95,7 +96,7 @@ describe('#createSignatureObject', () => {
 					networkIdentifier:
 						multisignatureFixture.testCases.input.networkIdentifier,
 				}),
-			).to.throw(
+			).toThrowError(
 				'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 			);
 		});
@@ -118,19 +119,19 @@ describe('#createSignatureObject', () => {
 		});
 
 		it('should have the same transaction id as the input', () => {
-			return expect(signatureObject.transactionId).to.equal(
+			return expect(signatureObject.transactionId).toBe(
 				multisignatureFixture.testCases.output.id,
 			);
 		});
 
 		it('should have the corresponding public key with the passphrase', () => {
-			return expect(signatureObject.publicKey).to.equal(
+			return expect(signatureObject.publicKey).toBe(
 				multisignatureFixture.testCases.input.coSigners[0].publicKey,
 			);
 		});
 
 		it('should have non-empty hex string signature', () => {
-			return expect(signatureObject.signature).to.equal(
+			return expect(signatureObject.signature).toBe(
 				multisignatureFixture.testCases.output.signatures[0],
 			);
 		});
@@ -146,7 +147,7 @@ describe('#createSignatureObject', () => {
 					networkIdentifier:
 						multisignatureFixture.testCases.input.networkIdentifier,
 				}),
-			).to.throw('Transaction type is required');
+			).toThrowError('Transaction type is required');
 		});
 	});
 
@@ -161,6 +162,6 @@ describe('#createSignatureObject', () => {
 				networkIdentifier:
 					multisignatureFixture.testCases.input.networkIdentifier,
 			}),
-		).to.throw('Invalid transaction type.');
+		).toThrowError('Invalid transaction type.');
 	});
 });
