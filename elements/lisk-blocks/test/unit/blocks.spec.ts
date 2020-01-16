@@ -358,9 +358,9 @@ describe('blocks', () => {
 
 		it('should convert big number field to be instance', () => {
 			const blockInstance = blocksInstance.deserialize(blockJSON);
-			expect(typeof blockInstance.totalAmount).toBeInstanceOf('bigint');
-			expect(typeof blockInstance.totalFee).toBeInstanceOf('bigint');
-			expect(typeof blockInstance.reward).toBeInstanceOf('bigint');
+			expect(typeof blockInstance.totalAmount).toBe('bigint');
+			expect(typeof blockInstance.totalFee).toBe('bigint');
+			expect(typeof blockInstance.reward).toBe('bigint');
 		});
 
 		it('should convert transaction to be a class', () => {
