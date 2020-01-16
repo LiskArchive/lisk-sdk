@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
+
 require('jest-extended');
 
 // @todo extend jest to have "toHaveBeenCalledOnceWith" matcher.

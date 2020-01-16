@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const { deepFreeze } = require('./deep_freeze');
+import { deepFreeze } from './deep_freeze';
+import { RoundDelegates } from '../../src/types';
 
-const delegateLists = deepFreeze([
+export const delegateLists = deepFreeze([
 	{ round: 15, delegatePublicKeys: ['a', 'b', 'c'] },
 	{ round: 14, delegatePublicKeys: ['a', 'b', 'c'] },
 	{ round: 13, delegatePublicKeys: ['a', 'b', 'c'] },
@@ -32,13 +33,19 @@ const delegateLists = deepFreeze([
 	{ round: 1, delegatePublicKeys: ['a', 'b', 'c'] },
 ]);
 
-const generateDelegateLists = (
-	{ publicKey, activeRounds, delegateListRoundOffset },
+interface ActiveDelegateList {
+	readonly publicKey: string;
+	readonly activeRounds: number[];
+	readonly delegateListRoundOffset: number;
+}
+
+export const generateDelegateLists = (
+	{ publicKey, activeRounds, delegateListRoundOffset }: ActiveDelegateList,
 	lists = delegateLists,
 ) => {
 	// eslint-disable-next-line no-param-reassign
 	activeRounds = activeRounds.map(round => round - delegateListRoundOffset);
-	return lists.map(list => {
+	return lists.map((list: RoundDelegates) => {
 		if (activeRounds.includes(list.round)) {
 			return {
 				round: list.round,
@@ -48,4 +55,3 @@ const generateDelegateLists = (
 		return list;
 	});
 };
-module.exports = { generateDelegateLists, delegateLists };

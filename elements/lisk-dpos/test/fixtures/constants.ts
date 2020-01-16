@@ -12,27 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const deepFreeze = o => {
-	Object.freeze(o);
-	if (o === undefined) {
-		return o;
-	}
-
-	Object.getOwnPropertyNames(o).forEach(prop => {
-		if (
-			o[prop] !== null &&
-			(typeof o[prop] === 'object' || typeof o[prop] === 'function') &&
-			!Object.isFrozen(o[prop])
-		) {
-			deepFreeze(o[prop]);
-		}
-	});
-
-	return o;
-};
-
-module.exports = {
-	deepFreeze,
-};
+export const ACTIVE_DELEGATES = 101;
+export const EPOCH_TIME = '2016-05-24T17:00:00.000Z';
+export const BLOCK_TIME = 10;
+export const DELEGATE_LIST_ROUND_OFFSET = 2;

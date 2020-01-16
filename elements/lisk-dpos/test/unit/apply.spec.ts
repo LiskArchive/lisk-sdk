@@ -12,18 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const BigNum = require('@liskhq/bignum');
-const { when } = require('jest-when');
-const {
-	Dpos,
-	Slots,
-	constants: { EVENT_ROUND_CHANGED },
-} = require('../src');
-const constants = require('./utils/constants');
-const { randomInt } = require('./utils/random_int');
-const {
+import * as BigNum from '@liskhq/bignum';
+import { when } from 'jest-when';
+import { Dpos, Slots, constants } from '../../src';
+import { Block, Account } from '../../src/types';
+import {
+	BLOCK_TIME,
+	ACTIVE_DELEGATES,
+	EPOCH_TIME,
+	DELEGATE_LIST_ROUND_OFFSET,
+} from '../fixtures/constants';
+import { randomInt } from '../utils/random_int';
+import {
 	delegateAccounts,
 	delegatePublicKeys,
 	sortedDelegateAccounts,
@@ -33,12 +33,13 @@ const {
 	uniqueDelegatesWhoForged,
 	delegatesWhoForgedOnceMissedOnce,
 	delegateWhoForgedLast,
-} = require('./round_delegates');
+} from '../utils/round_delegates';
 
 describe('dpos.apply()', () => {
-	const stubs = {};
-	let dpos;
-	let slots;
+	const stubs = {} as any;
+	let dpos: Dpos;
+	let slots: Slots;
+
 	beforeEach(() => {
 		// Arrange
 		stubs.storage = {
@@ -49,7 +50,7 @@ describe('dpos.apply()', () => {
 					update: jest.fn(),
 				},
 				Block: {
-					get: jest.fn().mockResolvedValue([]),
+					get: jest.fn().mockReturnValue([]),
 				},
 				RoundDelegates: {
 					getActiveDelegatesForRound: jest
@@ -70,26 +71,26 @@ describe('dpos.apply()', () => {
 		stubs.tx = jest.fn();
 
 		slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
+			epochTime: EPOCH_TIME,
+			interval: BLOCK_TIME,
+			blocksPerRound: ACTIVE_DELEGATES,
 		});
 
 		dpos = new Dpos({
 			slots,
 			...stubs,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
+			activeDelegates: ACTIVE_DELEGATES,
+			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock;
+		let genesisBlock: Block;
 		beforeEach(() => {
 			// Arrange
 			genesisBlock = {
 				height: 1,
-			};
+			} as Block;
 
 			when(stubs.storage.entities.Account.get)
 				.calledWith(
@@ -97,11 +98,11 @@ describe('dpos.apply()', () => {
 						isDelegate: true,
 					},
 					{
-						limit: constants.ACTIVE_DELEGATES,
+						limit: ACTIVE_DELEGATES,
 						sort: ['voteWeight:desc', 'publicKey:asc'],
 					},
 				)
-				.mockResolvedValue(sortedDelegateAccounts);
+				.mockReturnValue(sortedDelegateAccounts);
 		});
 
 		it('should save round 1 active delegates list in round_delegates table by using delegate accounts', async () => {
@@ -112,7 +113,7 @@ describe('dpos.apply()', () => {
 			expect(stubs.storage.entities.Account.get).toHaveBeenCalledWith(
 				{ isDelegate: true },
 				{
-					limit: constants.ACTIVE_DELEGATES,
+					limit: ACTIVE_DELEGATES,
 					sort: ['voteWeight:desc', 'publicKey:asc'],
 				},
 				stubs.tx,
@@ -143,7 +144,7 @@ describe('dpos.apply()', () => {
 			const result = await dpos.apply(genesisBlock, { tx: stubs.tx });
 
 			// Assert
-			expect(result).toBeFalse();
+			expect(result).toBe(false);
 		});
 
 		it('should update "producedBlocks" but NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
@@ -182,7 +183,7 @@ describe('dpos.apply()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			};
+			} as Block;
 
 			// Act
 			await dpos.apply(block, { tx: stubs.tx });
@@ -205,7 +206,7 @@ describe('dpos.apply()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			};
+			} as Block;
 
 			// Act
 			await dpos.apply(block, { tx: stubs.tx });
@@ -237,7 +238,7 @@ describe('dpos.apply()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: 'generatorPublicKey#RANDOM',
-			};
+			} as Block;
 
 			// Act
 			await dpos.apply(block, { tx: stubs.tx });
@@ -253,11 +254,13 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine;
-		let feePerDelegate;
-		let rewardPerDelegate;
-		let totalFee;
-		let getTotalEarningsOfDelegate;
+		let lastBlockOfTheRoundNine: Block;
+		let feePerDelegate: BigNum;
+		let rewardPerDelegate: BigNum;
+		let totalFee: BigNum;
+		let getTotalEarningsOfDelegate: (
+			account: Account,
+		) => { reward: BigNum; fee: BigNum };
 		beforeEach(() => {
 			// Arrange
 			when(stubs.storage.entities.Account.get)
@@ -270,7 +273,7 @@ describe('dpos.apply()', () => {
 					{},
 					stubs.tx,
 				)
-				.mockResolvedValue(delegatesWhoForged);
+				.mockReturnValue(delegatesWhoForged);
 
 			when(stubs.storage.entities.Account.get)
 				.calledWith(
@@ -278,24 +281,24 @@ describe('dpos.apply()', () => {
 						isDelegate: true,
 					},
 					{
-						limit: constants.ACTIVE_DELEGATES,
+						limit: ACTIVE_DELEGATES,
 						sort: ['voteWeight:desc', 'publicKey:asc'],
 					},
 				)
-				.mockResolvedValue(sortedDelegateAccounts);
+				.mockReturnValue(sortedDelegateAccounts);
 
-			feePerDelegate = randomInt(10, 100);
-			totalFee = feePerDelegate * constants.ACTIVE_DELEGATES;
+			feePerDelegate = new BigNum(randomInt(10, 100));
+			totalFee = feePerDelegate.mul(ACTIVE_DELEGATES);
 
 			// Delegates who forged got their rewards
-			rewardPerDelegate = randomInt(1, 20);
+			rewardPerDelegate = new BigNum(randomInt(1, 20));
 
 			getTotalEarningsOfDelegate = account => {
 				const blockCount = delegatesWhoForged.filter(
 					d => d.publicKey === account.publicKey,
 				).length;
-				const reward = new BigNum(rewardPerDelegate * blockCount);
-				const fee = new BigNum(feePerDelegate * blockCount);
+				const reward = rewardPerDelegate.mul(blockCount);
+				const fee = feePerDelegate.mul(blockCount);
 				return {
 					reward,
 					fee,
@@ -316,9 +319,9 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: feePerDelegate,
 				reward: rewardPerDelegate,
-			};
+			} as Block;
 
-			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
+			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
 		});
 
 		it('should increase "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
@@ -330,7 +333,7 @@ describe('dpos.apply()', () => {
 				stubs.storage.entities.Account.increaseFieldBy,
 			).toHaveBeenCalledWith(
 				{
-					publicKey_in: expect.toContainAllValues(
+					publicKey_in: expect.arrayContaining(
 						delegatesWhoForgedNone.map(a => a.publicKey),
 					),
 				},
@@ -345,7 +348,7 @@ describe('dpos.apply()', () => {
 			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
-			expect.assertions(constants.ACTIVE_DELEGATES);
+			expect.assertions(ACTIVE_DELEGATES);
 
 			// Assert Group 1/2
 			uniqueDelegatesWhoForged.forEach(account => {
@@ -428,16 +431,16 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: new BigNum(feePerDelegate).add(remainingFee),
 				reward: rewardPerDelegate,
-			};
+			} as Block;
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
-			stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
+			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			// Assert
-			expect.assertions(uniqueDelegatesWhoForged);
+			expect.assertions(uniqueDelegatesWhoForged.length);
 			expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
 				{
 					publicKey: delegateWhoForgedLast.publicKey,
@@ -448,7 +451,7 @@ describe('dpos.apply()', () => {
 					 * Thus will get fee 3 times too.
 					 */
 					fees: delegateWhoForgedLast.fees
-						.add(feePerDelegate * 3 + remainingFee)
+						.add(feePerDelegate.mul(3).add(remainingFee))
 						.toString(),
 				}),
 				{},
@@ -469,7 +472,7 @@ describe('dpos.apply()', () => {
 							/**
 							 * Rest of the delegates don't get the remaining fee
 							 */
-							fees: account.fees.add(feePerDelegate * blockCount).toString(),
+							fees: account.fees.add(feePerDelegate.mul(blockCount)).toString(),
 						}),
 						{},
 						stubs.tx,
@@ -482,7 +485,7 @@ describe('dpos.apply()', () => {
 			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 			const publicKeysToUpdate = uniqueDelegatesWhoForged.reduce(
-				(accumulator, account) => {
+				(accumulator: any, account) => {
 					const { fee, reward } = getTotalEarningsOfDelegate(account);
 					account.votedDelegatesPublicKeys.forEach(publicKey => {
 						if (accumulator[publicKey]) {
@@ -549,7 +552,7 @@ describe('dpos.apply()', () => {
 			const expectedRound =
 				finalizedBlockRoundStub - bftRoundOffset - delegateActiveRoundLimit;
 			const expectedTx = undefined;
-			dpos.finalizedBlockRound = finalizedBlockRoundStub;
+			(dpos as any).finalizedBlockRound = finalizedBlockRoundStub;
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -567,9 +570,8 @@ describe('dpos.apply()', () => {
 		it('should should emit EVENT_ROUND_CHANGED', async () => {
 			// Arrange
 			const eventCallback = jest.fn();
-			const oldRound =
-				lastBlockOfTheRoundNine.height / constants.ACTIVE_DELEGATES;
-			dpos.events.on(EVENT_ROUND_CHANGED, eventCallback);
+			const oldRound = lastBlockOfTheRoundNine.height / ACTIVE_DELEGATES;
+			(dpos as any).events.on(constants.EVENT_ROUND_CHANGED, eventCallback);
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -592,7 +594,7 @@ describe('dpos.apply()', () => {
 				}));
 				forgedBlocks.splice(forgedBlocks.length - 1);
 
-				stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
+				stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
 
 				when(stubs.storage.entities.Account.get)
 					.calledWith(
@@ -602,7 +604,7 @@ describe('dpos.apply()', () => {
 						{},
 						stubs.tx,
 					)
-					.mockResolvedValue(delegateAccounts);
+					.mockReturnValue(delegateAccounts);
 
 				// Act
 				await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -643,7 +645,7 @@ describe('dpos.apply()', () => {
 				feePerDelegate = new BigNum(Number.MAX_SAFE_INTEGER.toString()).add(
 					randomInt(10, 1000),
 				);
-				totalFee = new BigNum(feePerDelegate).mul(constants.ACTIVE_DELEGATES);
+				totalFee = new BigNum(feePerDelegate).mul(ACTIVE_DELEGATES);
 
 				rewardPerDelegate = new BigNum(Number.MAX_SAFE_INTEGER.toString()).add(
 					randomInt(10, 1000),
@@ -662,9 +664,9 @@ describe('dpos.apply()', () => {
 					generatorPublicKey: delegateWhoForgedLast.publicKey,
 					totalFee: feePerDelegate,
 					reward: rewardPerDelegate,
-				};
+				} as Block;
 
-				stubs.storage.entities.Block.get.mockResolvedValue(forgedBlocks);
+				stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
 
 				getTotalEarningsOfDelegate = account => {
 					const blockCount = delegatesWhoForged.filter(
@@ -684,7 +686,7 @@ describe('dpos.apply()', () => {
 				await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
 
 				const publicKeysToUpdate = uniqueDelegatesWhoForged.reduce(
-					(accumulator, account) => {
+					(accumulator: any, account) => {
 						const { fee, reward } = getTotalEarningsOfDelegate(account);
 						account.votedDelegatesPublicKeys.forEach(publicKey => {
 							if (accumulator[publicKey]) {
@@ -713,14 +715,14 @@ describe('dpos.apply()', () => {
 		});
 
 		describe('Given the provided block is in an exception round', () => {
-			let exceptionFactors;
+			let exceptionFactors: { [key: string]: number };
 			beforeEach(() => {
 				// Arrange
 				exceptionFactors = {
 					rewards_factor: 2,
 					fees_factor: 2,
 					// setting bonus to a dividable amount
-					fees_bonus: constants.ACTIVE_DELEGATES * 123,
+					fees_bonus: ACTIVE_DELEGATES * 123,
 				};
 				const exceptionRound = slots.calcRound(lastBlockOfTheRoundNine.height);
 				const exceptions = {
@@ -732,8 +734,8 @@ describe('dpos.apply()', () => {
 				dpos = new Dpos({
 					slots,
 					...stubs,
-					activeDelegates: constants.ACTIVE_DELEGATES,
-					delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
+					activeDelegates: ACTIVE_DELEGATES,
+					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,
 				});
 			});
@@ -746,7 +748,7 @@ describe('dpos.apply()', () => {
 				expect.assertions(uniqueDelegatesWhoForged.length);
 				uniqueDelegatesWhoForged.forEach(account => {
 					const { reward } = getTotalEarningsOfDelegate(account);
-					const exceptionReward = reward * exceptionFactors.rewards_factor;
+					const exceptionReward = reward.mul(exceptionFactors.rewards_factor);
 					const partialData = {
 						rewards: account.rewards.add(exceptionReward).toString(),
 					};
@@ -772,12 +774,13 @@ describe('dpos.apply()', () => {
 						d => d.publicKey === account.publicKey,
 					).length;
 
-					const exceptionTotalFee =
-						totalFee * exceptionFactors.fees_factor +
-						exceptionFactors.fees_bonus;
+					const exceptionTotalFee: BigNum = totalFee
+						.mul(exceptionFactors.fees_factor)
+						.add(exceptionFactors.fees_bonus);
 
-					const earnedFee =
-						(exceptionTotalFee / constants.ACTIVE_DELEGATES) * blockCount;
+					const earnedFee = exceptionTotalFee
+						.div(new BigNum(ACTIVE_DELEGATES))
+						.mul(blockCount);
 
 					const partialData = {
 						fees: account.fees.add(earnedFee).toString(),

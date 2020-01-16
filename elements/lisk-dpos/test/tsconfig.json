@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"declaration": false,
+		"rootDir": "./",
 		"target": "es2019"
 	},
 	"include": ["./**/*"]

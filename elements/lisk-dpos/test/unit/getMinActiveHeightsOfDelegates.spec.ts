@@ -12,14 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { when } from 'jest-when';
+import { Dpos, Slots } from '../../src';
+import {
+	DELEGATE_LIST_ROUND_OFFSET,
+	ACTIVE_DELEGATES,
+	EPOCH_TIME,
+	BLOCK_TIME,
+} from '../fixtures/constants';
+import { generateDelegateLists } from '../utils/delegates';
 
-const { when } = require('jest-when');
-const { Dpos, Slots } = require('../../src');
-const constants = require('../utils/constants');
-const { generateDelegateLists } = require('../utils/delegates');
-
-const roundsDelegatesGetResolves = (lists, { stubs, limit }) => {
+const roundsDelegatesGetResolves = (lists: any, { stubs, limit }: any) => {
 	when(stubs.storage.entities.RoundDelegates.get)
 		.calledWith(
 			{},
@@ -29,14 +32,15 @@ const roundsDelegatesGetResolves = (lists, { stubs, limit }) => {
 			},
 			stubs.tx,
 		)
-		.mockResolvedValue(lists.slice(0, limit));
+		.mockReturnValue(lists.slice(0, limit));
 };
 
 describe('dpos.getMinActiveHeightsOfDelegates()', () => {
-	const stubs = {};
-	let slots;
-	let dpos;
-	const delegateListRoundOffset = constants.DELEGATE_LIST_ROUND_OFFSET;
+	const stubs = {} as any;
+	let slots: Slots;
+	let dpos: Dpos;
+	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
+
 	beforeEach(() => {
 		// Arrange
 		stubs.storage = {
@@ -56,15 +60,15 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 		stubs.tx = jest.fn();
 
 		slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
+			epochTime: EPOCH_TIME,
+			interval: BLOCK_TIME,
+			blocksPerRound: ACTIVE_DELEGATES,
 		});
 
 		dpos = new Dpos({
 			...stubs,
 			slots,
-			activeDelegates: constants.ACTIVE_DELEGATES,
+			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset,
 		});
 	});
@@ -75,7 +79,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			when(stubs.storage.entities.RoundDelegates.get)
@@ -87,7 +91,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 					},
 					stubs.tx,
 				)
-				.mockResolvedValue([]);
+				.mockReturnValue([]);
 
 			// Act
 			await expect(
@@ -104,7 +108,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 3;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const lists = [
@@ -121,7 +125,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 					},
 					stubs.tx,
 				)
-				.mockResolvedValue(lists);
+				.mockReturnValue(lists);
 
 			// Act
 			await expect(
@@ -140,7 +144,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -173,7 +177,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -206,7 +210,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -239,7 +243,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -272,7 +276,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -305,7 +309,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 2;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -339,7 +343,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 3;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -375,7 +379,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				const numberOfRounds = 3;
 				const limit =
 					numberOfRounds +
-					dpos.delegateActiveRoundLimit +
+					(dpos as any).delegateActiveRoundLimit +
 					delegateListRoundOffset;
 
 				const baseList = generateDelegateLists({
@@ -420,7 +424,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -445,7 +449,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -474,7 +478,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -504,7 +508,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -535,7 +539,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -567,7 +571,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -600,7 +604,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -631,7 +635,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
@@ -663,7 +667,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const numberOfRounds = 1;
 			const limit =
 				numberOfRounds +
-				dpos.delegateActiveRoundLimit +
+				(dpos as any).delegateActiveRoundLimit +
 				delegateListRoundOffset;
 
 			const publicKey = 'x';

@@ -12,14 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as constants from './constants';
 
-const { Slots } = require('./slots');
-const Dpos = require('./dpos');
-const constants = require('./constants');
-
-module.exports = {
-	Slots,
-	Dpos,
-	constants,
-};
+export { Slots } from './slots';
+export { Dpos } from './dpos';
+export { constants };

@@ -25,6 +25,7 @@ describe('P2P.send', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 	const randomPeerIndex = Math.floor(Math.random() * NETWORK_PEER_COUNT);
+	const messageEvent = 'bar';
 	let randomP2PNode: any;
 
 	beforeAll(async () => {
@@ -33,10 +34,12 @@ describe('P2P.send', () => {
 
 		for (let p2p of p2pNodeList) {
 			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
-				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
-					message,
-				});
+				if (message.event === messageEvent) {
+					collectedMessages.push({
+						nodePort: p2p.nodeInfo.wsPort,
+						message,
+					});
+				}
 			});
 		}
 	});
@@ -57,17 +60,18 @@ describe('P2P.send', () => {
 		const expectedAverageMessagesPerNode = TOTAL_SENDS;
 		const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
 		const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
+		const numOfConnectedPeers = firstP2PNode.getConnectedPeers().length;
+		const expectedMessageCount = TOTAL_SENDS * numOfConnectedPeers;
 
 		// Act
 		for (let i = 0; i < TOTAL_SENDS; i++) {
-			firstP2PNode.send({ event: 'bar', data: i });
+			firstP2PNode.send({ event: messageEvent, data: 'test' });
 		}
 		await wait(100);
 
 		// Assert
-		expect(Object.keys(collectedMessages)).toHaveLength(
-			TOTAL_SENDS * (NETWORK_PEER_COUNT - 1),
-		);
+		expect(Object.keys(collectedMessages)).toHaveLength(expectedMessageCount);
+
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -78,8 +82,9 @@ describe('P2P.send', () => {
 		}
 
 		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-			NETWORK_PEER_COUNT - 1,
+			numOfConnectedPeers,
 		);
+
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
 
@@ -96,7 +101,7 @@ describe('P2P.send', () => {
 		const numOfConnectedPeers = firstP2PNode.getConnectedPeers().length;
 
 		// Act
-		firstP2PNode.send({ event: 'bar', data: 'test' });
+		firstP2PNode.send({ event: messageEvent, data: 'test' });
 		await wait(100);
 
 		// Assert
@@ -121,7 +126,7 @@ describe('P2P.send', () => {
 
 		// Act
 		for (let i = 0; i < TOTAL_SENDS; i++) {
-			randomP2PNode.send({ event: 'bar', data: i });
+			randomP2PNode.send({ event: messageEvent, data: 'test' });
 		}
 		await wait(100);
 

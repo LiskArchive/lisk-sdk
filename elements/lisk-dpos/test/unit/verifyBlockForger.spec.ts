@@ -12,16 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { Dpos, Slots } = require('../src');
-const constants = require('./utils/constants');
-const { delegatePublicKeys } = require('./round_delegates');
+import { Dpos, Slots } from '../../src';
+import {
+	EPOCH_TIME,
+	BLOCK_TIME,
+	ACTIVE_DELEGATES,
+	DELEGATE_LIST_ROUND_OFFSET,
+} from '../fixtures/constants';
+import { delegatePublicKeys } from '../utils/round_delegates';
+import { Block } from '../../src/types';
 
 describe('dpos.verifyBlockForger()', () => {
-	const stubs = {};
-	let dpos;
-	let slots;
+	const stubs = {} as any;
+	let dpos: Dpos;
+	let slots: Slots;
 
 	beforeEach(() => {
 		// Arrange
@@ -47,16 +51,16 @@ describe('dpos.verifyBlockForger()', () => {
 		};
 
 		slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
+			epochTime: EPOCH_TIME,
+			interval: BLOCK_TIME,
+			blocksPerRound: ACTIVE_DELEGATES,
 		});
 
 		dpos = new Dpos({
 			slots,
 			...stubs,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
+			activeDelegates: ACTIVE_DELEGATES,
+			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
@@ -67,13 +71,13 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
-		};
+		} as Block;
 
 		// Act
 		const result = await dpos.verifyBlockForger(block);
 
 		// Assert
-		expect(result).toBeTrue();
+		expect(result).toBe(true);
 	});
 
 	it('should use round 1 delegate list when block round is equal to 1', async () => {
@@ -85,7 +89,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
-		};
+		} as Block;
 
 		// Act
 		await dpos.verifyBlockForger(block);
@@ -105,7 +109,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'386217d98eee87268a54d2d76ce9e801ac86271284d793154989e37cb31bcd0e',
-		};
+		} as Block;
 
 		// Act
 		await dpos.verifyBlockForger(block);
@@ -125,7 +129,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
-		};
+		} as Block;
 
 		// Act
 		await dpos.verifyBlockForger(block);
@@ -144,7 +148,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c',
-		};
+		} as Block;
 		const round = slots.calcRound(block.height);
 
 		// Act
@@ -153,10 +157,7 @@ describe('dpos.verifyBlockForger()', () => {
 		// Assert
 		expect(
 			stubs.storage.entities.RoundDelegates.getActiveDelegatesForRound,
-		).toHaveBeenCalledWith(
-			round - constants.DELEGATE_LIST_ROUND_OFFSET,
-			expectedTx,
-		);
+		).toHaveBeenCalledWith(round - DELEGATE_LIST_ROUND_OFFSET, expectedTx);
 	});
 
 	it('should throw error if block is forged by incorrect delegate', async () => {
@@ -165,7 +166,7 @@ describe('dpos.verifyBlockForger()', () => {
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey: 'xxx',
-		};
+		} as Block;
 
 		const expectedSlot = slots.getSlotNumber(block.timestamp);
 
@@ -182,11 +183,11 @@ describe('dpos.verifyBlockForger()', () => {
 			[],
 		);
 		const block = {
-			id: 'myid',
+			id: 1234,
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey: 'xxx',
-		};
+		} as Block;
 
 		const expectedRound = slots.calcRound(block.height);
 
@@ -209,7 +210,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
-			};
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });
@@ -229,7 +230,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'386217d98eee87268a54d2d76ce9e801ac86271284d793154989e37cb31bcd0e',
-			};
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });
@@ -249,7 +250,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
-			};
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });
@@ -269,7 +270,7 @@ describe('dpos.verifyBlockForger()', () => {
 				timestamp: 23450,
 				generatorPublicKey:
 					'e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c',
-			};
+			} as Block;
 
 			// Act
 			await dpos.verifyBlockForger(block, { delegateListRoundOffset });

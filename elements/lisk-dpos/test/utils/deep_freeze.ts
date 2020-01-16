@@ -12,10 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+export const deepFreeze = (o: any) => {
+	Object.freeze(o);
+	if (o === undefined) {
+		return o;
+	}
 
-const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';
+	Object.getOwnPropertyNames(o).forEach(prop => {
+		if (
+			o[prop] !== null &&
+			(typeof o[prop] === 'object' || typeof o[prop] === 'function') &&
+			!Object.isFrozen(o[prop])
+		) {
+			deepFreeze(o[prop]);
+		}
+	});
 
-module.exports = {
-	EVENT_ROUND_CHANGED,
+	return o;
 };
