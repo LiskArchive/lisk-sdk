@@ -14,8 +14,12 @@
  */
 import { expect } from 'chai';
 import { NewPeers } from '../../../src/peer_directory/new_peers';
-import { initializePeerInfoList } from '../../utils/peers';
+import {
+	initializePeerInfoList,
+	initializePeerInfoListWithSuffix,
+} from '../../utils/peers';
 import { P2PPeerInfo } from '../../../src/p2p_types';
+import { PEER_TYPE } from '../../../src/utils';
 
 describe('newPeer', () => {
 	const newPeerConfig = {
@@ -204,6 +208,36 @@ describe('newPeer', () => {
 				const success2 = newPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success2).to.be.false;
 			});
+		});
+	});
+
+	describe('#evictionBasedOnTimeWithLargeSample', () => {
+		const newPeerConfig = {
+			peerBucketSize: 32,
+			peerBucketCount: 128,
+			secret: 123456,
+			peerType: PEER_TYPE.NEW_PEER,
+			evictionThresholdTime: 600000,
+		};
+		const samplePeersA = initializePeerInfoListWithSuffix('1.222.123', 10000);
+		const samplePeersB = initializePeerInfoListWithSuffix('234.11.34', 10000);
+
+		let newPeersList = new NewPeers(newPeerConfig);
+
+		samplePeersA.forEach(peerInfo => {
+			global.sandbox.clock.tick(2);
+			newPeersList.addPeer(peerInfo);
+		});
+
+		global.sandbox.clock.tick(600000);
+
+		samplePeersB.forEach(peerInfo => {
+			global.sandbox.clock.tick(2);
+			newPeersList.addPeer(peerInfo);
+		});
+
+		it('should not allow newPeer list to grow beyond 4096 peers', async () => {
+			expect(newPeersList.newPeersList().length).to.be.lte(4096);
 		});
 	});
 });
