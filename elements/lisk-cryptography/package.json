@@ -68,8 +68,9 @@
 	},
 	"devDependencies": {
 		"@types/ed2curve": "0.2.2",
+		"@types/jest": "24.9.0",
+		"@types/jest-when": "2.7.0",
 		"@types/node": "12.12.11",
-		"@types/jest": "24.0.1",
 		"benchmark": "2.1.4",
 		"browserify": "16.2.3",
 		"cypress": "3.4.1",
@@ -78,7 +79,6 @@
 		"jest-extended": "0.11.1",
 		"jest-when": "2.6.0",
 		"prettier": "1.19.1",
-		"sinon": "7.2.3",
 		"source-map-support": "0.5.10",
 		"ts-node": "8.5.2",
 		"tsconfig-paths": "3.8.0",
