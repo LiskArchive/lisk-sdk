@@ -264,7 +264,7 @@ describe('Transfer transaction class', () => {
 			});
 		});
 
-		it.only('should return error when sender balance is insufficient', async () => {
+		it('should return error when sender balance is insufficient', async () => {
 			storeAccountGetStub.mockReturnValue({
 				...sender,
 				balance: BigInt(10000000),
