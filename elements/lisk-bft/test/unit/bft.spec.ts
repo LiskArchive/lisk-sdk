@@ -25,7 +25,12 @@ import {
 	CHAIN_STATE_FINALIZED_HEIGHT_KEY,
 } from '../../src';
 
-import { Storage, Slots as SlotType, StateStore, Block } from '../../src/types';
+import {
+	Storage,
+	Slots as SlotType,
+	StateStore as StateStoreType,
+	Block,
+} from '../../src/types';
 
 const constants = {
 	ACTIVE_DELEGATES: 101,
@@ -323,7 +328,7 @@ describe('bft', () => {
 			const lastFinalizedHeight = 5;
 
 			let bft: BFT;
-			let stateStore: StateStore;
+			let stateStore: StateStoreType;
 
 			beforeEach(async () => {
 				stateStore = new StateStore(storageMock);
@@ -352,7 +357,7 @@ describe('bft', () => {
 
 		describe('#deleteBlocks', () => {
 			let bft: BFT;
-			let stateStore: StateStore;
+			let stateStore: StateStoreType;
 
 			beforeEach(async () => {
 				stateStore = new StateStore(storageMock);
@@ -583,7 +588,7 @@ describe('bft', () => {
 		describe('#isBFTProtocolCompliant', () => {
 			let bft: BFT;
 			let blocks: Block[];
-			let stateStore: StateStore;
+			let stateStore: StateStoreType;
 
 			beforeEach(async () => {
 				// Arrange
