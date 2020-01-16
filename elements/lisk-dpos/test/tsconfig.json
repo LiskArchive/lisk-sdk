@@ -1,10 +1,1 @@
-{
-	"extends": "../tsconfig",
-	"compilerOptions": {
-		"baseUrl": ".",
-		"declaration": false,
-		"rootDir": "./",
-		"target": "es2019"
-	},
-	"include": ["./**/*"]
-}
+../../../templates/test/tsconfig.json.tmpl

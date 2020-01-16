@@ -1,10 +1,1 @@
-{
-	"extends": "../../tsconfig",
-	"compilerOptions": {
-		"declaration": true,
-		"outDir": "dist-node",
-		"rootDir": "./src",
-		"types": ["node", "jest"]
-	},
-	"include": ["src/**/*", "types/**/*"]
-}
+../../templates/tsconfig.json.tmpl

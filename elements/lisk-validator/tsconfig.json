@@ -1,15 +1,1 @@
-{
-	"extends": "../../tsconfig",
-	"compilerOptions": {
-		"declaration": true,
-		"outDir": "dist-node",
-		"rootDir": "./src",
-		"target": "es2019",
-		"types": [
-			"node",
-			"jest",
-			"jest-extended"
-		]
-	},
-	"include": ["src/**/*", "types/**/*"]
-}
+../../templates/tsconfig.json.tmpl

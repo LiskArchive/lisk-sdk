@@ -10,8 +10,10 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import 'chai/register-expect';
+
+require('jest-extended');
+
+// @todo extend jest to have "toHaveBeenCalledOnceWith" matcher.
 
 process.env.NODE_ENV = 'test';

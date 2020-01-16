@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	APIClient,
 	constants,
@@ -22,28 +21,28 @@ import {
 	transaction,
 } from '../src';
 
-describe('lisk-client', () => {
+describe('lisk-elements', () => {
 	it('APIClient should be a function', () => {
-		return expect(APIClient).to.be.a('function');
+		return expect(APIClient).toBeFunction();
 	});
 
 	it('constants should be an object', () => {
-		return expect(constants).to.be.an('object');
+		return expect(constants).toBeObject();
 	});
 
 	it('cryptography should be an object', () => {
-		return expect(cryptography).to.be.an('object');
+		return expect(cryptography).toBeObject();
 	});
 
 	it('passphrase should be an object', () => {
-		return expect(passphrase).to.be.an('object');
+		return expect(passphrase).toBeObject();
 	});
 
 	it('transactions should be an object', () => {
-		return expect(transactions).to.be.an('object');
+		return expect(transactions).toBeObject();
 	});
 
 	it('transaction should be an object', () => {
-		return expect(transaction).to.be.an('object');
+		return expect(transaction).toBeObject();
 	});
 });

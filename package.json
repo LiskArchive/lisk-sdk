@@ -45,7 +45,6 @@
 	},
 	"devDependencies": {
 		"@types/node": "12.12.11",
-		"@types/sinon": "7.0.5",
 		"eslint": "6.2.0",
 		"eslint-config-airbnb-base": "14.0.0",
 		"eslint-config-lisk-base": "1.2.2",
