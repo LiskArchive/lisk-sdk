@@ -6,5 +6,5 @@
 		"rootDir": "./src",
 		"types": ["node", "jest", "jest-extended"]
 	},
-	"include": ["src/**/*", "types/**/*"]
+	"include": ["src/**/*"]
 }

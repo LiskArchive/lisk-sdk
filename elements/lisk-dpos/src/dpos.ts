@@ -14,7 +14,7 @@
 
 'use strict';
 
-import * as EventEmitter from 'events';
+import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
 import { DelegatesInfo } from './delegates_info';

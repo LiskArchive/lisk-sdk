@@ -47,7 +47,7 @@ interface DelegatesInfoConstructor {
 
 interface UniqueForgerInfo {
 	/* tslint:disable:readonly-keyword */
-	delegateAccount?: Account;
+	delegateAccount: Account;
 	earnings: Earnings;
 	publicKey: string;
 }
@@ -89,8 +89,26 @@ interface AccountFees {
 const _isGenesisBlock = (block: Block) => block.height === 1;
 
 const _hasVotedDelegatesPublicKeys = (forgerInfo: UniqueForgerInfo) =>
-	!!forgerInfo.delegateAccount?.votedDelegatesPublicKeys &&
-	forgerInfo.delegateAccount?.votedDelegatesPublicKeys.length > 0;
+	!!forgerInfo.delegateAccount.votedDelegatesPublicKeys &&
+	forgerInfo.delegateAccount.votedDelegatesPublicKeys.length > 0;
+
+const _findDelegate = (
+	parsedDelegateAccounts: Account[],
+	delegatePublicKey: string,
+) => {
+	if (
+		parsedDelegateAccounts.find(
+			({ publicKey }) => publicKey === delegatePublicKey,
+		)
+	) {
+		return parsedDelegateAccounts.filter(
+			({ publicKey }) => publicKey === delegatePublicKey,
+		)[0];
+	}
+	throw new Error(
+		`Delegate: ${delegatePublicKey} was not found in parsed delegate accounts`,
+	);
+};
 
 export class DelegatesInfo {
 	private readonly storage: Storage;
@@ -251,13 +269,13 @@ export class DelegatesInfo {
 				const factor = undo ? -1 : 1;
 				const amount = fee.plus(reward);
 				const data = {
-					balance: delegateAccount?.balance.plus(amount.mul(factor)).toString(),
-					fees: delegateAccount?.fees.plus(fee.mul(factor)).toString(),
-					rewards: delegateAccount?.rewards.plus(reward.mul(factor)).toString(),
+					balance: delegateAccount.balance.plus(amount.mul(factor)).toString(),
+					fees: delegateAccount.fees.plus(fee.mul(factor)).toString(),
+					rewards: delegateAccount.rewards.plus(reward.mul(factor)).toString(),
 				};
 
 				return this.storage.entities.Account.update(
-					{ publicKey: delegateAccount?.publicKey },
+					{ publicKey: delegateAccount.publicKey },
 					data,
 					{},
 					tx,
@@ -407,8 +425,9 @@ export class DelegatesInfo {
 						forgerInfo,
 						round,
 					}),
-					delegateAccount: parsedDelegateAccounts.find(
-						({ publicKey }) => publicKey === forgerInfo.publicKey,
+					delegateAccount: _findDelegate(
+						parsedDelegateAccounts,
+						forgerInfo.publicKey,
 					),
 				}),
 			);
