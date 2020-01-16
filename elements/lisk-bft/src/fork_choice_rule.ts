@@ -16,13 +16,6 @@
 
 import { Block, Slots } from './types';
 
-export const FORK_STATUS_IDENTICAL_BLOCK = 1;
-export const FORK_STATUS_VALID_BLOCK = 2;
-export const FORK_STATUS_DOUBLE_FORGING = 3;
-export const FORK_STATUS_TIE_BREAK = 4;
-export const FORK_STATUS_DIFFERENT_CHAIN = 5;
-export const FORK_STATUS_DISCARD = 6;
-
 export const forgingSlot = (slots: Slots, block: Block): number =>
 	slots.getSlotNumber(block.timestamp);
 

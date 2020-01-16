@@ -14,15 +14,7 @@
 
 'use strict';
 
-const { extractBFTBlockHeaderFromBlock, BFT } = require('./bft');
-const BFTErrors = require('./errors');
-const utils = require('./utils');
-const forkChoiceRule = require('./fork_choice_rule');
-
-module.exports = {
-	extractBFTBlockHeaderFromBlock,
-	BFT,
-	...BFTErrors,
-	...forkChoiceRule,
-	utils,
-};
+export * from './bft';
+export * from './fork_choice_rule';
+export * from './utils';
+export * from './types';

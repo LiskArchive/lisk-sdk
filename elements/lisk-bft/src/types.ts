@@ -29,6 +29,18 @@ export interface Block {
 	readonly timestamp: number;
 	readonly receivedAt?: number;
 	readonly maxHeightPrevoted: number;
+	readonly maxHeightPreviouslyForged?: number;
+	readonly delegateMinHeightActive?: number;
+	readonly version: number;
+}
+
+export enum ForkStatus {
+	IDENTICAL_BLOCK = 1,
+	VALID_BLOCK = 2,
+	DOUBLE_FORGING = 3,
+	TIE_BREAK = 4,
+	DIFFERENT_CHAIN = 5,
+	DISCARD = 6,
 }
 
 export interface Slots {
@@ -37,6 +49,44 @@ export interface Slots {
 		slotNumber: number,
 		receivedAt: number | undefined,
 	) => boolean;
+	readonly getEpochTime: (time?: number) => number;
+	readonly calcRoundStartHeight: (round: number) => number;
+	readonly calcRound: (height: number) => number;
+}
+
+export interface HeightOfDelegates {
+	readonly [key: string]: number[];
+}
+
+export interface StateStore {
+	readonly chainState: {
+		readonly set: (key: string | number, value: string | number) => boolean;
+		readonly get: (key: string | number) => string;
+		readonly cache: () => void;
+	};
+}
+
+export interface BlockEntity {
+	readonly get: (
+		filters: object,
+		options?: object,
+		tx?: object,
+	) => Promise<Block[]>;
+}
+
+export interface ChainState {
+	readonly get: (
+		filters: object,
+		options?: object,
+		tx?: object,
+	) => Promise<object[]>;
+}
+
+export interface Storage {
+	readonly entities: {
+		readonly Block: BlockEntity;
+		readonly ChainState: ChainState;
+	};
 }
 
 export class BFTError extends Error {}

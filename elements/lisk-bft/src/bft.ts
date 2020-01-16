@@ -14,39 +14,63 @@
 
 'use strict';
 
-const EventEmitter = require('events');
-const assert = require('assert');
-const {
+import * as assert from 'assert';
+import * as EventEmitter from 'events';
+
+import {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
-} = require('./finality_manager');
-const forkChoiceRule = require('./fork_choice_rule');
-const { validateBlockHeader } = require('./utils');
+} from './finality_manager';
+import * as forkChoiceRule from './fork_choice_rule';
+import {
+	Block,
+	BlockEntity,
+	BlockHeader,
+	ForkStatus,
+	HeightOfDelegates,
+	Slots,
+	StateStore,
+	Storage,
+} from './types';
 
-const CHAIN_STATE_FINALIZED_HEIGHT = 'BFT.finalizedHeight';
-const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
+export const CHAIN_STATE_FINALIZED_HEIGHT_KEY = 'BFT.finalizedHeight';
+export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
-const extractBFTBlockHeaderFromBlock = block => ({
+export const extractBFTBlockHeaderFromBlock = (block: Block): BlockHeader => ({
 	blockId: block.id,
 	height: block.height,
-	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged,
+	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged || 0,
 	maxHeightPrevoted: block.maxHeightPrevoted,
 	delegatePublicKey: block.generatorPublicKey,
-	// This parameter injected to block object to avoid big refactoring
-	// for the moment. `delegateMinHeightActive` will be removed from the block
-	// object with https://github.com/LiskHQ/lisk-sdk/issues/4413
+	/* This parameter injected to block object to avoid big refactoring
+	 for the moment. `delegateMinHeightActive` will be removed from the block
+	 object with https://github.com/LiskHQ/lisk-sdk/issues/4413 */
 	delegateMinHeightActive: block.delegateMinHeightActive || 0,
 });
 
 /**
  * BFT class responsible to hold integration logic for finality manager with the framework
  */
-class BFT extends EventEmitter {
-	constructor({ storage, logger, slots, activeDelegates, startingHeight }) {
-		super();
-		this.finalityManager = null;
+export class BFT extends EventEmitter {
+	public _finalityManager?: FinalityManager;
+	public storage: Storage;
+	public slots: Slots;
+	public constants: { activeDelegates: number; startingHeight: number };
 
-		this.logger = logger;
+	private blockEntity: BlockEntity;
+
+	public constructor({
+		storage,
+		slots,
+		activeDelegates,
+		startingHeight,
+	}: {
+		readonly storage: Storage;
+		readonly slots: Slots;
+		readonly activeDelegates: number;
+		readonly startingHeight: number;
+	}) {
+		super();
 		this.storage = storage;
 		this.slots = slots;
 		this.constants = {
@@ -55,11 +79,13 @@ class BFT extends EventEmitter {
 		};
 
 		this.blockEntity = this.storage.entities.Block;
-		this.chainStateEntity = this.storage.entities.ChainState;
 	}
 
-	async init(stateStore, minActiveHeightsOfDelegates = {}) {
-		this.finalityManager = this._initFinalityManager(stateStore);
+	public async init(
+		stateStore: StateStore,
+		minActiveHeightsOfDelegates: HeightOfDelegates = {},
+	): Promise<void> {
+		this._finalityManager = this._initFinalityManager(stateStore);
 
 		this.finalityManager.on(
 			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
@@ -70,9 +96,14 @@ class BFT extends EventEmitter {
 		const { finalizedHeight } = this.finalityManager;
 		const lastBlockHeight = await this._getLastBlockHeight();
 
+		const loadHeightThreshold = 2;
 		const loadFromHeight = Math.max(
 			finalizedHeight,
-			lastBlockHeight - this.constants.activeDelegates * 2,
+			// Since both limits are inclusive
+			// 5 - 3 = 2 but 3, 4, 5 are actually 3
+			lastBlockHeight -
+				this.constants.activeDelegates * loadHeightThreshold +
+				1,
 			this.constants.startingHeight,
 		);
 
@@ -83,8 +114,8 @@ class BFT extends EventEmitter {
 		});
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	serialize(blockInstance) {
+	// tslint:disable-next-line prefer-function-over-method
+	public serialize(blockInstance: Block): Block {
 		return {
 			...blockInstance,
 			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
@@ -92,7 +123,14 @@ class BFT extends EventEmitter {
 		};
 	}
 
-	async deleteBlocks(blocks, minActiveHeightsOfDelegates = {}) {
+	public get finalityManager(): FinalityManager {
+		return this._finalityManager as FinalityManager;
+	}
+
+	public async deleteBlocks(
+		blocks: Block[],
+		minActiveHeightsOfDelegates: HeightOfDelegates = {},
+	): Promise<void> {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
 
@@ -113,13 +151,15 @@ class BFT extends EventEmitter {
 		});
 
 		// Make sure there are 2 rounds of block headers available
+		const minHeadersThreshold = 2;
 		if (
 			this.finalityManager.maxHeight - this.finalityManager.minHeight <
-			this.constants.activeDelegates * 2
+			this.constants.activeDelegates * minHeadersThreshold
 		) {
 			const tillHeight = this.finalityManager.minHeight - 1;
 			const fromHeight =
-				this.finalityManager.maxHeight - this.constants.activeDelegates * 2;
+				this.finalityManager.maxHeight -
+				this.constants.activeDelegates * minHeadersThreshold;
 			await this._loadBlocksFromStorage({
 				fromHeight,
 				tillHeight,
@@ -128,76 +168,85 @@ class BFT extends EventEmitter {
 		}
 	}
 
-	addNewBlock(block, stateStore) {
+	public addNewBlock(block: Block, stateStore: StateStore): boolean {
 		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
 		const { finalizedHeight } = this.finalityManager;
+
 		return stateStore.chainState.set(
-			CHAIN_STATE_FINALIZED_HEIGHT,
+			CHAIN_STATE_FINALIZED_HEIGHT_KEY,
 			finalizedHeight,
 		);
 	}
 
-	verifyNewBlock(block) {
+	public verifyNewBlock(block: Block): boolean {
 		return this.finalityManager.verifyBlockHeaders(
 			extractBFTBlockHeaderFromBlock(block),
 		);
 	}
 
-	forkChoice(block, lastBlock) {
+	public forkChoice(block: Block, lastBlock: Block): ForkStatus {
 		// Current time since Lisk Epoch
-		block.receivedAt = this.slots.getEpochTime();
-		// Cases are numbered following LIP-0014 Fork choice rule.
-		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
-		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
+		const receivedBlock = {
+			...block,
+			receivedAt: this.slots.getEpochTime(),
+		};
 
-		if (forkChoiceRule.isValidBlock(lastBlock, block)) {
+		/* Cases are numbered following LIP-0014 Fork choice rule.
+		 See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
+			 Case 2 and 1 have flipped execution order for better readability. Behavior is still the same */
+
+		if (forkChoiceRule.isValidBlock(lastBlock, receivedBlock)) {
 			// Case 2: correct block received
-			return forkChoiceRule.FORK_STATUS_VALID_BLOCK;
+			return ForkStatus.VALID_BLOCK;
 		}
 
-		if (forkChoiceRule.isIdenticalBlock(lastBlock, block)) {
+		if (forkChoiceRule.isIdenticalBlock(lastBlock, receivedBlock)) {
 			// Case 1: same block received twice
-			return forkChoiceRule.FORK_STATUS_IDENTICAL_BLOCK;
+			return ForkStatus.IDENTICAL_BLOCK;
 		}
 
-		if (forkChoiceRule.isDoubleForging(lastBlock, block)) {
+		if (forkChoiceRule.isDoubleForging(lastBlock, receivedBlock)) {
 			// Delegates are the same
 			// Case 3: double forging different blocks in the same slot.
 			// Last Block stands.
-			return forkChoiceRule.FORK_STATUS_DOUBLE_FORGING;
+			return ForkStatus.DOUBLE_FORGING;
 		}
 
 		if (
 			forkChoiceRule.isTieBreak({
 				slots: this.slots,
 				lastAppliedBlock: lastBlock,
-				receivedBlock: block,
+				receivedBlock,
 			})
 		) {
 			// Two competing blocks by different delegates at the same height.
 			// Case 4: Tie break
-			return forkChoiceRule.FORK_STATUS_TIE_BREAK;
+			return ForkStatus.TIE_BREAK;
 		}
 
-		if (forkChoiceRule.isDifferentChain(lastBlock, block)) {
+		if (forkChoiceRule.isDifferentChain(lastBlock, receivedBlock)) {
 			// Case 5: received block has priority. Move to a different chain.
-			return forkChoiceRule.FORK_STATUS_DIFFERENT_CHAIN;
+			return ForkStatus.DIFFERENT_CHAIN;
 		}
 
 		// Discard newly received block
-		return forkChoiceRule.FORK_STATUS_DISCARD;
+		return ForkStatus.DISCARD;
 	}
 
-	_initFinalityManager(stateStore) {
+	private _initFinalityManager(stateStore: StateStore): FinalityManager {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
-			parseInt(stateStore.chainState.get(CHAIN_STATE_FINALIZED_HEIGHT), 10) ||
-			1;
+			parseInt(
+				stateStore.chainState.get(CHAIN_STATE_FINALIZED_HEIGHT_KEY as string),
+				10,
+			) || 1;
 
-		// Check BFT migration height
-		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
+		/* Check BFT migration height
+		 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility */
+		const bftMigrationHeightThreshold = 2;
 		const bftMigrationHeight =
-			this.constants.startingHeight - this.constants.activeDelegates * 2;
+			this.constants.startingHeight -
+			this.constants.activeDelegates * bftMigrationHeightThreshold;
 
 		// Choose max between stored finalized height or migration height
 		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
@@ -209,36 +258,41 @@ class BFT extends EventEmitter {
 		});
 	}
 
-	async _getLastBlockHeight() {
+	private async _getLastBlockHeight(): Promise<number> {
 		const lastBlock = await this.blockEntity.get(
 			{},
 			{ limit: 1, sort: 'height:desc' },
 		);
+
 		return lastBlock.length ? lastBlock[0].height : 0;
 	}
 
-	async _loadBlocksFromStorage({
+	private async _loadBlocksFromStorage({
 		fromHeight,
 		tillHeight,
 		minActiveHeightsOfDelegates,
-	}) {
-		let sortOrder = 'height:asc';
-
+	}: {
+		readonly fromHeight: number;
+		readonly tillHeight: number;
+		readonly minActiveHeightsOfDelegates: HeightOfDelegates;
+	}): Promise<void> {
 		// If blocks to be loaded on tail
-		if (
-			this.finalityManager.minHeight ===
-			Math.max(fromHeight, tillHeight) + 1
-		) {
-			sortOrder = 'height:desc';
-		}
+		const sortOrder =
+			this.finalityManager.minHeight === Math.max(fromHeight, tillHeight) + 1
+				? 'height:desc'
+				: 'height:asc';
 
 		const rows = await this.blockEntity.get(
 			{ height_gte: fromHeight, height_lte: tillHeight },
-			{ limit: null, sort: sortOrder },
+			{ limit: undefined, sort: sortOrder },
 		);
 
+		const BLOCK_VERSION2 = 2;
+
 		rows.forEach(row => {
-			if (row.height !== 1 && row.version !== 2) return;
+			if (row.height !== 1 && row.version !== BLOCK_VERSION2) {
+				return;
+			}
 
 			// If it's genesis block, skip the logic and set
 			// `delegateMinHeightActive` to 1.
@@ -249,6 +303,7 @@ class BFT extends EventEmitter {
 						delegateMinHeightActive: 1,
 					}),
 				);
+
 				return;
 			}
 
@@ -259,11 +314,14 @@ class BFT extends EventEmitter {
 				);
 			}
 
-			// If there is no minHeightActive until this point,
-			// we can set the value to 0
+			// If there is no minHeightActive until this point, we can set the value to 0
+			const activeHeightThreshold = 3;
 			const minimumPossibleActiveHeight = this.slots.calcRoundStartHeight(
 				this.slots.calcRound(
-					Math.max(row.height - this.constants.activeDelegates * 3, 1),
+					Math.max(
+						row.height - this.constants.activeDelegates * activeHeightThreshold,
+						1,
+					),
 				),
 			);
 			const [delegateMinHeightActive] = activeHeights.filter(
@@ -281,12 +339,7 @@ class BFT extends EventEmitter {
 		});
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	validateBlock(block) {
-		validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
-	}
-
-	isBFTProtocolCompliant(block) {
+	public isBFTProtocolCompliant(block: Block): boolean {
 		assert(block, 'No block was provided to be verified');
 
 		const roundsThreshold = 3;
@@ -318,18 +371,11 @@ class BFT extends EventEmitter {
 		return true;
 	}
 
-	get finalizedHeight() {
+	public get finalizedHeight(): number {
 		return this.finalityManager.finalizedHeight;
 	}
 
-	get maxHeightPrevoted() {
+	public get maxHeightPrevoted(): number {
 		return this.finalityManager.prevotedConfirmedHeight;
 	}
 }
-
-module.exports = {
-	extractBFTBlockHeaderFromBlock,
-	BFT,
-	EVENT_BFT_BLOCK_FINALIZED,
-	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
-};
