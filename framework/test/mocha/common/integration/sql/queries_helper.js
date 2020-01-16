@@ -96,12 +96,8 @@ class Queries {
 
 				return delegates.reduce((respObj, publicKey, index) => {
 					if (respObj[publicKey]) {
-						respObj[publicKey].fees = respObj[publicKey].fees.plus(
-							feesPerDelegate,
-						);
-						respObj[publicKey].rewards = respObj[publicKey].rewards.plus(
-							rewards[index],
-						);
+						respObj[publicKey].fees += feesPerDelegate;
+						respObj[publicKey].rewards += BigInt(rewards[index]);
 					} else {
 						respObj[publicKey] = {
 							publicKey,

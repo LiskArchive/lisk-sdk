@@ -201,10 +201,8 @@ describe('rounds', () => {
 		_.each(blocks, (block, index) => {
 			const publicKey = block.generatorPublicKey.toString('hex');
 			if (rewards[publicKey]) {
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesPerDelegate);
-				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
-					block.reward,
-				);
+				rewards[publicKey].fees += feesPerDelegate;
+				rewards[publicKey].rewards += BigInt(block.reward);
 			} else {
 				rewards[publicKey] = {
 					publicKey,

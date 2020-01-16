@@ -402,7 +402,7 @@ class TransactionPool extends EventEmitter {
 				sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
 			toSend = toSend.sort((a, b) => {
 				if (sortAttribute.sortField === 'fee') {
-					return a.fee.minus(b.fee) * sortOrder;
+					return Number(a.fee - b.fee) * sortOrder;
 				}
 				return (
 					Number(
