@@ -274,7 +274,6 @@ class TransactionPool extends EventEmitter {
 		);
 		limit -= pending.length;
 		const verified = this.getQueuedTransactionList(reverse, limit);
-		limit -= verified.length;
 
 		return [...ready, ...pending, ...verified];
 	}
