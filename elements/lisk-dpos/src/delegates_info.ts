@@ -297,7 +297,7 @@ export class DelegatesInfo {
 					acc: AccountFees,
 					{ delegateAccount, earnings: { fee, reward } }: UniqueForgerInfo,
 				) => {
-					(delegateAccount as Account).votedDelegatesPublicKeys.forEach(
+					delegateAccount.votedDelegatesPublicKeys.forEach(
 						publicKey =>
 							(acc[publicKey] = acc[publicKey]
 								? acc[publicKey].plus(fee.plus(reward))
