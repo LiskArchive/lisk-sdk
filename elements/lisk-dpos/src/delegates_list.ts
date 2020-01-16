@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { hash } from '@liskhq/lisk-cryptography';
 
 import { Slots } from './slots';

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { deepFreeze } from './deep_freeze';
 import { RoundDelegates } from '../../src/types';
 

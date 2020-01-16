@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';

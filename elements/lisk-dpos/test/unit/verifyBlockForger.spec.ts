@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { Dpos, Slots } from '../../src';
 import {
 	EPOCH_TIME,

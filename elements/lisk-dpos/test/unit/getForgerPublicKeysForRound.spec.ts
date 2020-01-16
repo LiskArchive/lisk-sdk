@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { when } from 'jest-when';
 import { Dpos } from '../../src';
 import { delegatePublicKeys, delegateAccounts } from '../utils/round_delegates';

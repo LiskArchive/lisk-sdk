@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 interface SlotsConstructor {
 	readonly epochTime: string;
 	readonly interval: number;
