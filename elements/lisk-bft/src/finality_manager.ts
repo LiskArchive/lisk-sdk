@@ -44,7 +44,7 @@ export class FinalityManager extends EventEmitter {
 	public prevotedConfirmedHeight: number;
 	public headers: HeadersList;
 
-	private readonly initialFinalizedHeight: number;
+	private readonly _initialFinalizedHeight: number;
 	private state: {
 		[key: string]: {
 			maxPreVoteHeight: number;
@@ -88,7 +88,7 @@ export class FinalityManager extends EventEmitter {
 		this.headers = new HeadersList({ size: this.maxHeaders });
 
 		// Height up to which blocks are finalized
-		this.initialFinalizedHeight = finalizedHeight;
+		this._initialFinalizedHeight = finalizedHeight;
 		this.finalizedHeight = finalizedHeight;
 
 		// Height up to which blocks have pre-voted
@@ -245,9 +245,9 @@ export class FinalityManager extends EventEmitter {
 			? parseInt(highestHeightPreVoted, 10)
 			: this.prevotedConfirmedHeight;
 
-		const highestHeightPreCommitted = Object.keys(this.preCommits).find(
-			key => this.preCommits[key] >= this.preCommitThreshold,
-		);
+		const highestHeightPreCommitted = Object.keys(this.preCommits)
+			.reverse()
+			.find(key => this.preCommits[key] >= this.preCommitThreshold);
 
 		// Store current finalizedHeight
 		const previouslyFinalizedHeight = this.finalizedHeight;
@@ -319,7 +319,7 @@ export class FinalityManager extends EventEmitter {
 
 	public recompute(): void {
 		this.state = {};
-		this.finalizedHeight = this.initialFinalizedHeight;
+		this.finalizedHeight = this._initialFinalizedHeight;
 		this.prevotedConfirmedHeight = 0;
 		this.preVotes = {};
 		this.preCommits = {};

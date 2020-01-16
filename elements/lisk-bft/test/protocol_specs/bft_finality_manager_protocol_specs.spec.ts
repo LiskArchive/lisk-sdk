@@ -14,11 +14,16 @@
 
 'use strict';
 
-const scenario4DelegatesMissedSlots = require('./bft_specs/4_delegates_missed_slots.json');
-const scenario4DelegatesSimple = require('./bft_specs/4_delegates_simple.json');
-const scenario5DelegatesSwitchedCompletely = require('./bft_specs/5_delegates_switched_completely.json');
-const scenario7DelegatesPartialSwitch = require('./bft_specs/7_delegates_partial_switch.json');
-const scenario11DelegatesPartialSwitch = require('./bft_specs/11_delegates_partial_switch.json');
+// @ts-ignore
+import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
+// @ts-ignore
+import * as scenario4DelegatesSimple from '../bft_specs/4_delegates_simple.json';
+// @ts-ignore
+import * as scenario5DelegatesSwitchedCompletely from '../bft_specs/5_delegates_switched_completely.json';
+// @ts-ignore
+import * as scenario7DelegatesPartialSwitch from '../bft_specs/7_delegates_partial_switch.json';
+// @ts-ignore
+import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_partial_switch.json';
 
 const bftScenarios = [
 	scenario4DelegatesMissedSlots,
@@ -28,30 +33,34 @@ const bftScenarios = [
 	scenario11DelegatesPartialSwitch,
 ];
 
-const { FinalityManager } = require('../src/finality_manager');
+import { FinalityManager } from '../../src/finality_manager';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
 		bftScenarios.forEach(scenario => {
 			describe(`when running scenario "${scenario.handler}"`, () => {
-				const myBft = new FinalityManager({
+				const finalityManager = new FinalityManager({
 					finalizedHeight: scenario.config.finalizedHeight,
 					activeDelegates: scenario.config.activeDelegates,
 				});
 
-				scenario.testCases.forEach(testCase => {
+				scenario.testCases.forEach((testCase: any) => {
 					it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
-						myBft.addBlockHeader(testCase.input.blockHeader);
+						finalityManager.addBlockHeader(testCase.input.blockHeader);
 
-						expect(myBft.preCommits).toEqual(testCase.output.preCommits);
+						expect((finalityManager as any).preCommits).toEqual(
+							testCase.output.preCommits,
+						);
 
-						expect(myBft.preVotes).toEqual(testCase.output.preVotes);
+						expect((finalityManager as any).preVotes).toEqual(
+							testCase.output.preVotes,
+						);
 
-						expect(myBft.finalizedHeight).toEqual(
+						expect(finalityManager.finalizedHeight).toEqual(
 							testCase.output.finalizedHeight,
 						);
 
-						expect(myBft.prevotedConfirmedHeight).toEqual(
+						expect(finalityManager.prevotedConfirmedHeight).toEqual(
 							testCase.output.preVotedConfirmedHeight,
 						);
 					});
@@ -62,7 +71,7 @@ describe('FinalityManager', () => {
 
 	describe('recompute', () => {
 		bftScenarios.forEach(scenario => {
-			const myBft = new FinalityManager({
+			const finalityManager = new FinalityManager({
 				finalizedHeight: scenario.config.finalizedHeight,
 				activeDelegates: scenario.config.activeDelegates,
 			});
@@ -70,30 +79,34 @@ describe('FinalityManager', () => {
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				it('should have accurate information after recompute', async () => {
 					// Let's first compute in proper way
-					scenario.testCases.forEach(testCase => {
-						myBft.addBlockHeader(testCase.input.blockHeader);
+					scenario.testCases.forEach((testCase: any) => {
+						finalityManager.addBlockHeader(testCase.input.blockHeader);
 					});
 					const lastTestCaseOutput =
 						scenario.testCases[scenario.testCases.length - 1].output;
 
 					// Values should match with expectations
-					expect(myBft.preCommits).toEqual(lastTestCaseOutput.preCommits);
-					expect(myBft.preVotes).toEqual(lastTestCaseOutput.preVotes);
-					expect(myBft.finalizedHeight).toEqual(
+					expect((finalityManager as any).preCommits).toEqual(
+						lastTestCaseOutput.preCommits,
+					);
+					expect((finalityManager as any).preVotes).toEqual(
+						lastTestCaseOutput.preVotes,
+					);
+					expect(finalityManager.finalizedHeight).toEqual(
 						lastTestCaseOutput.finalizedHeight,
 					);
-					expect(myBft.prevotedConfirmedHeight).toEqual(
+					expect(finalityManager.prevotedConfirmedHeight).toEqual(
 						lastTestCaseOutput.preVotedConfirmedHeight,
 					);
 
 					// Now recompute all information again
-					myBft.recompute();
+					finalityManager.recompute();
 
 					// Values should match with expectations
-					expect(myBft.finalizedHeight).toEqual(
+					expect(finalityManager.finalizedHeight).toEqual(
 						lastTestCaseOutput.finalizedHeight,
 					);
-					expect(myBft.prevotedConfirmedHeight).toEqual(
+					expect(finalityManager.prevotedConfirmedHeight).toEqual(
 						lastTestCaseOutput.preVotedConfirmedHeight,
 					);
 
@@ -104,10 +117,10 @@ describe('FinalityManager', () => {
 					// Although this does not impact the computation of finalizedHeight
 					// or preVotedConfirmedHeight
 					expect(lastTestCaseOutput.preCommits).toEqual(
-						expect.objectContaining(myBft.preCommits),
+						expect.objectContaining((finalityManager as any).preCommits),
 					);
 					expect(lastTestCaseOutput.preVotes).toEqual(
-						expect.objectContaining(myBft.preVotes),
+						expect.objectContaining((finalityManager as any).preVotes),
 					);
 				});
 			});
@@ -124,7 +137,7 @@ describe('FinalityManager', () => {
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				it('should have accurate information after recompute', async () => {
 					// Arrange - Let's first compute in proper way
-					scenario.testCases.forEach(testCase => {
+					scenario.testCases.forEach((testCase: any) => {
 						myBft.addBlockHeader(testCase.input.blockHeader);
 					});
 					const testCaseInMiddle =
