@@ -71,6 +71,7 @@
 		"faker": "4.1.0",
 		"http-server": "0.11.1",
 		"jest": "24.9.0",
+		"jest-extended": "0.11.2",
 		"prettier": "1.19.1",
 		"randomstring": "1.1.5",
 		"source-map-support": "0.5.10",
