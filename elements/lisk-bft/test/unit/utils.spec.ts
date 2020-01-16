@@ -14,10 +14,9 @@
 
 'use strict';
 
-const { SchemaValidationError } = require('../src/errors');
-const { BlockHeader: blockHeaderFixture } = require('./fixtures/blocks');
-
-const { validateBlockHeader } = require('../src/utils');
+import { BlockHeader } from '../../src/types';
+import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
+import { validateBlockHeader } from '../../src/utils';
 
 describe('utils', () => {
 	describe('validateBlockHeader', () => {
@@ -27,19 +26,19 @@ describe('utils', () => {
 		});
 
 		it('should throw error if any header is not valid format', async () => {
-			let header;
+			let header: BlockHeader;
 
 			// Setting non-integer value
 			header = blockHeaderFixture({ height: '1' });
-			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
+			expect(() => validateBlockHeader(header)).toThrow(Error);
 
 			// Setting invalid id
 			header = blockHeaderFixture({ blockId: 'Al123' });
-			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
+			expect(() => validateBlockHeader(header)).toThrow(Error);
 
 			// Setting invalid public key;
 			header = blockHeaderFixture({ delegatePublicKey: 'abdef' });
-			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
+			expect(() => validateBlockHeader(header)).toThrow(Error);
 		});
 	});
 });
