@@ -29,7 +29,7 @@ import { registeredTransactions } from '../utils/registered_transactions';
 import {
 	BlockInstance,
 	ExceptionOptions,
-	Slots,
+	Slots as SlotsInterface,
 	Logger,
 } from '../../src/types';
 
@@ -68,7 +68,7 @@ describe('blocks/header', () => {
 	let blocksInstance: Blocks;
 	let storageStub: any;
 	let loggerStub: Logger;
-	let slots: Slots;
+	let slots: SlotsInterface;
 	let block: BlockInstance;
 	let blockBytes: Buffer;
 
