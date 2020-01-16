@@ -22,14 +22,6 @@
 		"npm": ">=6.12.0"
 	},
 	"main": "dist-node/index.js",
-	"jest": {
-		"projects": [
-			"./test/integration/jest.config.js",
-			"./test/functional/jest.config.js",
-			"./test/unit/jest.config.js"
-		],
-		"coverageDirectory": "./.coverage/"
-	},
 	"scripts": {
 		"transpile": "tsc",
 		"clean": "./scripts/clean.sh",

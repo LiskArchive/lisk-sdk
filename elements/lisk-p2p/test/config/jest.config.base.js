@@ -20,6 +20,11 @@ module.exports = {
 	collectCoverage: true,
 	coverageReporters: ['json', 'lcov', 'cobertura'],
 	rootDir: '../../',
+	globals: {
+		'ts-jest': {
+			tsConfig: './test/tsconfig.json',
+		},
+	},
 	setupFilesAfterEnv: ['<rootDir>/test/config/setup.js'],
 	collectCoverageFrom: ['<rootDir>/src/**'],
 	coveragePathIgnorePatterns: ['/dist-node/', '/test/'],
