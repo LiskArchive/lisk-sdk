@@ -244,7 +244,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,
-			previousBlockId: previousBlock.id,
+			previousBlockId: previousBlock ? previousBlock.id : null,
 			generatorPublicKey: keypair.publicKey.toString('hex'),
 			transactions: blockTransactions,
 		};

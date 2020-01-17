@@ -21,7 +21,7 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { newBlock } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
 import * as randomUtils from '../utils/random';
-import { Slots, BlockJSON } from '../../src/types';
+import { Slots as SlotsInterface, BlockJSON } from '../../src/types';
 
 const { Slots } = require('@liskhq/lisk-dpos');
 jest.mock('events');
@@ -55,7 +55,7 @@ describe('blocks', () => {
 	};
 	let exceptions = {};
 	let blocksInstance: Blocks;
-	let slots: Slots;
+	let slots: SlotsInterface;
 
 	beforeEach(() => {
 		// Arrange

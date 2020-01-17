@@ -426,15 +426,13 @@ export abstract class BaseTransaction {
 		}
 
 		// Else populate errors
-		const errors = valid
-			? []
-			: [
-					new TransactionError(
-						`Failed to add signature '${signatureObject.signature}'.`,
-						this.id,
-						'.signatures',
-					),
-			  ];
+		const errors = [
+			new TransactionError(
+				`Failed to add signature '${signatureObject.signature}'.`,
+				this.id,
+				'.signatures',
+			),
+		];
 
 		return createResponse(this.id, errors);
 	}

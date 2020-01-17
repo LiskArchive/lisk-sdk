@@ -91,16 +91,12 @@ const filterByParams = (peers, filters) => {
 	const offset = filterOffset ? Math.abs(filterOffset) : 0;
 
 	let filteredPeers = peers.reduce((prev, peer) => {
-		const matchFilters =
-			typeof otherFilters === 'object' && otherFilters !== null
-				? otherFilters
-				: {};
-		const applicableFilters = Object.keys(matchFilters).filter(key =>
+		const applicableFilters = Object.keys(otherFilters).filter(key =>
 			allowedFields.includes(key),
 		);
 		if (
 			applicableFilters.every(
-				key => peer[key] !== undefined && peer[key] === matchFilters[key],
+				key => peer[key] !== undefined && peer[key] === otherFilters[key],
 			)
 		) {
 			prev.push(peer);
