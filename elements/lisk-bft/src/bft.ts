@@ -13,7 +13,7 @@
  */
 
 import * as assert from 'assert';
-import * as EventEmitter from 'events';
+import { EventEmitter } from 'events';
 
 import {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,

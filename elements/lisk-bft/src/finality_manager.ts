@@ -14,7 +14,7 @@
 
 import * as assert from 'assert';
 import * as Debug from 'debug';
-import * as EventEmitter from 'events';
+import { EventEmitter } from 'events';
 
 import { HeadersList } from './headers_list';
 import {

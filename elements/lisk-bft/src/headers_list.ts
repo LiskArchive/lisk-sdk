@@ -94,7 +94,7 @@ export class HeadersList {
 			return undefined;
 		}
 
-		const _aboveHeight = aboveHeight || this.last.height - 1;
+		const _aboveHeight = aboveHeight ?? this.last.height - 1;
 
 		const removeItemsCount = this.last.height - _aboveHeight;
 
