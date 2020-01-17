@@ -31,7 +31,7 @@ export class DelegatesResource extends APIResource {
 
 		this.get = apiMethod({
 			defaultData: {
-				sort: 'username:asc',
+				sort: 'voteWeight:desc',
 			},
 			method: GET,
 		}).bind(this);
@@ -39,7 +39,7 @@ export class DelegatesResource extends APIResource {
 		this.getStandby = apiMethod({
 			defaultData: {
 				offset: 101,
-				sort: 'username:asc',
+				sort: 'voteWeight:desc',
 			},
 			method: GET,
 		}).bind(this);
