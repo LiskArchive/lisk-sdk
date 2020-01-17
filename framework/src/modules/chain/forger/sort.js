@@ -44,13 +44,13 @@ const sortTransactions = transactions =>
 		// Place depending on amount (lower first)
 		if (
 			TRANSACTION_TYPES_TRANSFER.includes(a.type) &&
-			a.asset.amount.lt(b.asset.amount)
+			a.asset.amount < BigInt(b.asset.amount)
 		) {
 			return -1;
 		}
 		if (
 			TRANSACTION_TYPES_TRANSFER.includes(a.type) &&
-			a.asset.amount.gt(b.asset.amount)
+			a.asset.amount > BigInt(b.asset.amount)
 		) {
 			return 1;
 		}

@@ -16,7 +16,10 @@
 
 const util = require('util');
 const Promise = require('bluebird');
-const { transfer } = require('@liskhq/lisk-transactions');
+const {
+	transfer,
+	utils: { convertLSKToBeddows, convertBeddowsToLSK },
+} = require('@liskhq/lisk-transactions');
 const random = require('../random');
 const localCommon = require('../../mocha/integration/common');
 const accountFixtures = require('../../fixtures/accounts');
@@ -27,7 +30,6 @@ const networkIdentifier = getNetworkIdentifier(
 	global.__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
 const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
 const forge = util.promisify(localCommon.forge);
@@ -40,7 +42,7 @@ const addTransactionsAndForge = util.promisify(
 function createDebitTransaction(account, amount) {
 	return transfer({
 		networkIdentifier,
-		amount: (BigInt(NORMALIZER) * BigInt(amount)).toString(),
+		amount: convertLSKToBeddows(amount.toString()),
 		recipientId: random.account().address,
 		passphrase: account.passphrase,
 	});
@@ -49,7 +51,7 @@ function createDebitTransaction(account, amount) {
 function createCreditTransaction(account, amount) {
 	return transfer({
 		networkIdentifier,
-		amount: (BigInt(NORMALIZER) * BigInt(amount)).toString(),
+		amount: convertLSKToBeddows(amount.toString()),
 		recipientId: account.address,
 		passphrase: accountFixtures.genesis.passphrase,
 	});
@@ -230,7 +232,7 @@ class BlocksTransactionsHelper {
 				(total, t) => total + BigInt(t.data.asset.amount) + BigInt(t.data.fee),
 				BigInt(0),
 			);
-		return totalSpending.toFixed();
+		return totalSpending.toString();
 	}
 
 	async getAccountBalance() {
@@ -240,7 +242,7 @@ class BlocksTransactionsHelper {
 			},
 		);
 
-		return (BigInt(account.balance) / BigInt(NORMALIZER)).toString();
+		return convertBeddowsToLSK(account.balance);
 	}
 }
 

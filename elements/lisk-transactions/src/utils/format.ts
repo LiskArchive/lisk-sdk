@@ -35,7 +35,9 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 	const floating =
 		Number(beddowsAmountBigNum % BigInt(FIXED_POINT)) / FIXED_POINT;
 	const floatingPointsSplit = floating
-		.toLocaleString(undefined, { maximumFractionDigits: 8 })
+		.toLocaleString(undefined, {
+			maximumFractionDigits: LISK_MAX_DECIMAL_POINTS,
+		})
 		.split('.')[1];
 	const res = floating !== 0 ? `${int}.${floatingPointsSplit}` : int;
 
@@ -50,11 +52,12 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 		throw new Error('LSK amount has too many decimal points');
 	}
 	const splitAmount = lskAmount.split('.');
-	const liskAmountInt = splitAmount[0];
-	const liskAmountFloatBigInt =
-		splitAmount[1] !== undefined ? BigInt(splitAmount[1]) : BigInt(0);
+	const liskAmountInt = BigInt(splitAmount[0]);
+	const liskAmountFloatBigInt = BigInt(
+		(splitAmount[1] ?? '0').padEnd(LISK_MAX_DECIMAL_POINTS, '0'),
+	);
 	const beddowsAmountBigNum =
-		BigInt(liskAmountInt) * BigInt(FIXED_POINT) + liskAmountFloatBigInt;
+		liskAmountInt * BigInt(FIXED_POINT) + liskAmountFloatBigInt;
 	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
 		throw new Error('LSK amount out of range');
 	}

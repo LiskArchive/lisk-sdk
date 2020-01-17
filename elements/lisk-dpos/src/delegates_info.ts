@@ -19,6 +19,7 @@ import { Slots } from './slots';
 import {
 	Account,
 	Block,
+	BlockJSON,
 	DPoSProcessingOptions,
 	DPoSProcessingUndoOptions,
 	Earnings,
@@ -340,7 +341,9 @@ export class DelegatesInfo {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
-		const blocksInRounds = await this.storage.entities.Block.get(
+		const blocksInRounds: Array<
+			Block | BlockJSON
+		> = await this.storage.entities.Block.get(
 			{
 				height_gte: this.slots.calcRoundStartHeight(round),
 				height_lt: this.slots.calcRoundEndHeight(round),
@@ -363,8 +366,8 @@ export class DelegatesInfo {
 			uniqDelegateListWithRewardsInfo,
 			totalFee,
 		} = blocksInRounds.reduce(
-			(acc: AccountSummary, fetchedBlock: Block, i) => {
-				acc.totalFee = acc.totalFee + fetchedBlock.totalFee;
+			(acc: AccountSummary, fetchedBlock: Block | BlockJSON, i) => {
+				acc.totalFee = acc.totalFee + BigInt(fetchedBlock.totalFee);
 
 				const delegate = acc.uniqDelegateListWithRewardsInfo.find(
 					({ publicKey }) => publicKey === fetchedBlock.generatorPublicKey,
@@ -382,7 +385,7 @@ export class DelegatesInfo {
 					return acc;
 				}
 
-				delegate.reward = delegate.reward + fetchedBlock.reward;
+				delegate.reward = delegate.reward + BigInt(fetchedBlock.reward);
 				delegate.blocksForged += 1;
 				delegate.isGettingRemainingFees = i === blocksInRounds.length - 1;
 

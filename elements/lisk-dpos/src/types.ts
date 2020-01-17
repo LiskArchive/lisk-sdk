@@ -78,7 +78,7 @@ export interface BlockEntity {
 		filters: StorageFilters,
 		options: StorageOptions,
 		tx?: StorageTransaction,
-	) => Promise<Block[]>;
+	) => Promise<BlockJSON[]>;
 }
 
 export interface AccountEntity extends StorageEntity<Account> {
@@ -106,6 +106,16 @@ export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
 		roundWithOffset: number,
 		tx?: StorageTransaction,
 	) => Promise<ReadonlyArray<string>>;
+}
+
+export interface BlockJSON {
+	readonly id: number;
+	readonly height: number;
+	readonly generatorPublicKey: string;
+	readonly totalFee: string;
+	readonly timestamp: number;
+	readonly fee: string;
+	readonly reward: string;
 }
 
 export interface Earnings {

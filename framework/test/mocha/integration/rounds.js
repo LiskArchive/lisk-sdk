@@ -109,7 +109,7 @@ describe('rounds', () => {
 				// Update sender
 				accounts[address].balance = (
 					BigInt(accounts[address].balance) -
-					BigInt(transaction.fee) +
+					BigInt(transaction.fee) -
 					BigInt(transaction.asset.amount || 0)
 				).toString();
 
@@ -177,7 +177,7 @@ describe('rounds', () => {
 			(fees, block) => {
 				return BigInt(fees) + BigInt(block.totalFee);
 			},
-			0,
+			BigInt(0),
 		);
 
 		const rewardsTotal = _.reduce(
@@ -185,14 +185,12 @@ describe('rounds', () => {
 			(reward, block) => {
 				return BigInt(reward) + BigInt(block.reward);
 			},
-			0,
+			BigInt(0),
 		);
 
-		const feesPerDelegate =
-			BigInt(feesTotal.toPrecision(15)) / BigInt(ACTIVE_DELEGATES);
+		const feesPerDelegate = BigInt(feesTotal) / BigInt(ACTIVE_DELEGATES);
 		const feesRemaining =
-			BigInt(feesTotal.toPrecision(15)) -
-			feesPerDelegate * BigInt(ACTIVE_DELEGATES);
+			BigInt(feesTotal) - feesPerDelegate * BigInt(ACTIVE_DELEGATES);
 
 		__testContext.debug(
 			`	Total fees: ${feesTotal} Fees per delegates: ${feesPerDelegate} Remaining fees: ${feesRemaining} Total rewards: ${rewardsTotal}`,
@@ -1046,8 +1044,9 @@ describe('rounds', () => {
 
 				it('block just before rewards start should have reward = 0', async () => {
 					const lastBlock = library.modules.blocks.lastBlock;
-					return expect(lastBlock.reward.equals(expectedRewardsPerBlock)).to.be
-						.true;
+					return expect(lastBlock.reward).to.equal(
+						BigInt(expectedRewardsPerBlock),
+					);
 				});
 			});
 
@@ -1088,8 +1087,9 @@ describe('rounds', () => {
 						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', async () => {
 								const lastBlock = library.modules.blocks.lastBlock;
-								return expect(lastBlock.reward.equals(expectedRewardsPerBlock))
-									.to.be.true;
+								return expect(lastBlock.reward).equal(
+									BigInt(expectedRewardsPerBlock),
+								);
 							});
 						});
 
