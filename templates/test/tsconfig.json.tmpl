@@ -1,26 +1,7 @@
 {
 	"extends": "../tsconfig",
 	"compilerOptions": {
-		"baseUrl": ".",
-		"declaration": false,
-		"target": "es2017",
-		"types": ["node", "mocha", "chai", "globals"],
-		"typeRoots": [
-			"../types",
-			"../../../types",
-			"../node_modules/@types",
-			"../../../node_modules/@types"
-		],
-		"types": [
-			"node",
-			"mocha",
-			"sinon",
-			"chai",
-			"globals",
-			"buffer-reverse",
-			"sodium-native",
-			"varuint-bitcoin"
-		]
+		"declaration": false
 	},
-	"include": ["../types/**/*", "../../../types/**/*", "./**/*"]
+	"include": ["./**/*", "../../../node_modules/jest-extended/types/**/*.ts"]
 }

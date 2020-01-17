@@ -12,6 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 export { StateStore } from './state_store';
