@@ -585,7 +585,7 @@ paths:
             - producedBlocks:desc
             - voteWeight:asc
             - voteWeight:desc
-          default: username:asc
+          default: voteWeight:desc
       responses:
         200:
           description: Search results matching criteria
