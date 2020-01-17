@@ -15,9 +15,14 @@
 'use strict';
 
 const { transfer, castVotes } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../fixtures/accounts');
-const randomUtil = require('../../common/utils/random');
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../utils/random');
 const localCommon = require('../common');
+const { getNetworkIdentifier } = require('../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -40,6 +45,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 			const account = randomUtil.account();
 			const transaction = transfer({
+				networkIdentifier,
 				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -58,6 +64,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 			it('adding to pool upvoting transaction should be ok', done => {
 				transaction1 = castVotes({
+					networkIdentifier,
 					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
 					timeOffset: -10000,
@@ -70,6 +77,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 			it('adding to pool upvoting transaction for same delegate from same account with different id should be ok', done => {
 				transaction2 = castVotes({
+					networkIdentifier,
 					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
 				});
@@ -120,9 +128,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 				it('adding to pool upvoting transaction to same delegate from same account should fail', done => {
 					localCommon.addTransaction(library, transaction2, err => {
 						expect(err).to.equal(
-							`Transaction: ${transaction2.id} failed at .asset.votes: ${
-								accountFixtures.existingDelegate.publicKey
-							} is already voted.`,
+							`Transaction: ${transaction2.id} failed at .asset.votes: ${accountFixtures.existingDelegate.publicKey} is already voted.`,
 						);
 						done();
 					});
@@ -130,6 +136,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 				it('adding to pool downvoting transaction to same delegate from same account should be ok', done => {
 					transaction3 = castVotes({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 						timeOffset: -10000,
@@ -142,6 +149,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 				it('adding to pool downvoting transaction to same delegate from same account with different id should be ok', done => {
 					transaction4 = castVotes({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 					});
@@ -199,15 +207,14 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 					it('adding to pool downvoting transaction to same delegate from same account should fail', done => {
 						const transaction5 = castVotes({
+							networkIdentifier,
 							passphrase: account.passphrase,
 							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 							timeOffset: -50000,
 						});
 						localCommon.addTransaction(library, transaction5, err => {
 							expect(err).to.equal(
-								`Transaction: ${transaction5.id} failed at .asset.votes: ${
-									accountFixtures.existingDelegate.publicKey
-								} is not voted.`,
+								`Transaction: ${transaction5.id} failed at .asset.votes: ${accountFixtures.existingDelegate.publicKey} is not voted.`,
 							);
 							done();
 						});

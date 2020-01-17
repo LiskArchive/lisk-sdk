@@ -14,8 +14,10 @@
  *
  */
 import fs from 'fs';
+
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
+
 import { getLiskConfig, LiskConfig } from './config';
 import { describeApplication, PM2ProcessInstance } from './pm2';
 
@@ -43,7 +45,9 @@ const isDbRunning = async (
 	installDir: string,
 	port: string,
 ): Promise<boolean> => {
-	const { stderr }: ExecResult = await exec(
+	const {
+		stderr,
+	}: ExecResult = await exec(
 		`${PG_CTL} --pgdata ${DB_DATA} --options '-F -p ${port}' status`,
 		{ cwd: installDir },
 	);
@@ -58,7 +62,9 @@ export const initDB = async (installDir: string): Promise<string> => {
 
 	const { stderr }: ExecResult = await exec(
 		`${PG_CTL} initdb --pgdata ${DB_DATA}`,
-		{ cwd: installDir },
+		{
+			cwd: installDir,
+		},
 	);
 
 	if (!stderr) {
@@ -78,7 +84,9 @@ export const startDatabase = async (
 		return DATABASE_START_SUCCESS;
 	}
 
-	const { stderr }: ExecResult = await exec(
+	const {
+		stderr,
+	}: ExecResult = await exec(
 		`${PG_CTL} --wait --pgdata ${DB_DATA} --log ${DB_LOG_FILE} --options "-F -p ${dbPort}" start`,
 		{ cwd: installDir },
 	);
@@ -160,7 +168,9 @@ export const stopDatabase = async (
 		return DATABASE_STATUS;
 	}
 
-	const { stderr }: ExecResult = await exec(
+	const {
+		stderr,
+	}: ExecResult = await exec(
 		`${PG_CTL} --pgdata ${DB_DATA} --log ${DB_LOG_FILE} stop`,
 		{ cwd: installDir },
 	);
@@ -186,7 +196,9 @@ export const restoreSnapshot = async (
 		}: LiskConfig = await getLiskConfig(installDir, network);
 		const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
-		const { stderr }: ExecResult = await exec(
+		const {
+			stderr,
+		}: ExecResult = await exec(
 			`gunzip --force --stdout --quiet ${snapshotFilePath} | ${PG_BIN}/psql --username ${user} --dbname ${database} --port ${dbPort};`,
 			{ cwd: installDir },
 		);

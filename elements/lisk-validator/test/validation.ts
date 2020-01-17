@@ -21,9 +21,9 @@ import {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-	validateNonTransferAmount,
-	validateTransferAmount,
-	validateFee,
+	isValidNonTransferAmount,
+	isValidTransferAmount,
+	isValidFee,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
 	isGreaterThanMaxTransactionId,
@@ -277,37 +277,37 @@ describe('validation', () => {
 		});
 	});
 
-	describe('#validateNonTransferAmount', () => {
+	describe('#isValidNonTransferAmount', () => {
 		it('should return true when amount is 0', () => {
-			return expect(validateNonTransferAmount('0')).to.be.true;
+			return expect(isValidNonTransferAmount('0')).to.be.true;
 		});
 
 		it('should return false when amount is greater than 0', () => {
-			return expect(validateNonTransferAmount('1')).to.be.false;
+			return expect(isValidNonTransferAmount('1')).to.be.false;
 		});
 
 		it('should return false when amount is less than 0', () => {
-			return expect(validateNonTransferAmount('-1')).to.be.false;
+			return expect(isValidNonTransferAmount('-1')).to.be.false;
 		});
 	});
 
-	describe('#validateTransferAmount', () => {
+	describe('#isValidTransferAmount', () => {
 		it('should return false is amount is 0', () => {
-			return expect(validateTransferAmount('0')).to.be.false;
+			return expect(isValidTransferAmount('0')).to.be.false;
 		});
 
 		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
-			return expect(validateTransferAmount('100')).to.be.true;
+			return expect(isValidTransferAmount('100')).to.be.true;
 		});
 	});
 
-	describe('#validateFee', () => {
+	describe('#isValidFee', () => {
 		it('should return false is amount is 0', () => {
-			return expect(validateFee('0')).to.be.false;
+			return expect(isValidFee('0')).to.be.false;
 		});
 
 		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
-			return expect(validateFee('100')).to.be.true;
+			return expect(isValidFee('100')).to.be.true;
 		});
 	});
 
@@ -567,6 +567,10 @@ describe('validation', () => {
 			'\x01',
 			'l©rem',
 			'❤',
+			'\\U00000000',
+			'\\U00000000lorem',
+			'ipsum\\U00000000',
+			'lorem\\U00000000 ipsum',
 		];
 
 		const invalidStrings = [
@@ -582,10 +586,6 @@ describe('validation', () => {
 			'\u0000lorem',
 			'ipsum\u0000',
 			'lorem\u0000 ipsum',
-			'\\U00000000',
-			'\\U00000000lorem',
-			'ipsum\\U00000000',
-			'lorem\\U00000000 ipsum',
 		];
 
 		it('should return false when valid string was provided', () => {

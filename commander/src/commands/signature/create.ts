@@ -15,12 +15,17 @@
  */
 import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
 import { getInputsFromSources } from '../../utils/input';
 import { getStdIn } from '../../utils/input/utils';
-import { parseTransactionString } from '../../utils/transactions';
+import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
+import {
+	instantiateTransaction,
+	parseTransactionString,
+} from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;
@@ -58,13 +63,17 @@ export default class CreateCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 	};
 
 	async run(): Promise<void> {
 		const {
 			args,
-			flags: { passphrase: passphraseSource },
+			flags: {
+				passphrase: passphraseSource,
+				networkIdentifier: networkIdentifierSource,
+			},
 		} = this.parse(CreateCommand);
 
 		const { transaction }: Args = args;
@@ -72,8 +81,17 @@ export default class CreateCommand extends BaseCommand {
 
 		const transactionObject = parseTransactionString(transactionInput);
 
-		const { valid } = transactions.utils.validateTransaction(transactionObject);
-		if (!valid) {
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
+		const txInstance = instantiateTransaction({
+			...transactionObject,
+			networkIdentifier,
+		});
+		const { errors } = txInstance.validate();
+
+		if (errors.length !== 0) {
 			throw new Error('Provided transaction is invalid.');
 		}
 
@@ -88,10 +106,11 @@ export default class CreateCommand extends BaseCommand {
 			throw new ValidationError('No passphrase was provided.');
 		}
 
-		const result = transactions.createSignatureObject(
-			transactionObject,
+		const result = transactions.createSignatureObject({
+			transaction: transactionObject,
 			passphrase,
-		);
+			networkIdentifier,
+		});
 
 		this.print(result);
 	}

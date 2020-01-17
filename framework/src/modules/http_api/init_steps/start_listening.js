@@ -30,14 +30,18 @@ const listen = async (
 
 	httpServer.on('timeout', socket => {
 		logger.info(
-			`Disconnecting idle socket: ${socket.remoteAddress}:${socket.remotePort}`,
+			{ remoteAddress: socket.remoteAddress, remotePort: socket.remotePort },
+			'Disconnecting idle socket',
 		);
 		socket.destroy();
 	});
 
 	await startServer(httpServer, config.httpPort, config.address);
 
-	logger.info(`Lisk started: ${config.address}:${config.httpPort}`);
+	logger.info(
+		{ address: config.address, httpPort: config.httpPort },
+		'Started Lisk',
+	);
 
 	if (config.ssl.enabled) {
 		// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
@@ -45,9 +49,8 @@ const listen = async (
 		httpsServer.setTimeout(config.options.limits.serverSetTimeout);
 		httpsServer.on('timeout', socket => {
 			logger.info(
-				`Disconnecting idle socket: ${socket.remoteAddress}:${
-					socket.remotePort
-				}`,
+				{ remoteAddress: socket.remoteAddress, remotePort: socket.remotePort },
+				'Disconnecting idle socket',
 			);
 			socket.destroy();
 		});
@@ -59,9 +62,11 @@ const listen = async (
 		);
 
 		logger.info(
-			`Lisk https started: ${config.ssl.options.address}:${
-				config.ssl.options.port
-			}`,
+			{
+				address: config.ssl.options.address,
+				httpPort: config.ssl.options.port,
+			},
+			'Started Lisk HTTPS',
 		);
 	}
 };

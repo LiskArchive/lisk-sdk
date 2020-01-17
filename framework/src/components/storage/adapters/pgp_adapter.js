@@ -34,21 +34,15 @@ const _private = {
 };
 
 class PgpAdapter extends BaseAdapter {
-	/**
-	 *
-	 * @param {Object} options
-	 * @param {Boolean} options.inTest
-	 * @param {string} options.logger
-	 * @param {string} options.sqlDirectory
-	 */
 	constructor(options) {
 		super({
 			engineName: 'pgp',
 			inTest: options.inTest,
 		});
 
-		this.options = options;
-		this.logger = options.logger;
+		const { logger, ...optionsWithoutLogger } = options;
+		this.options = optionsWithoutLogger;
+		this.logger = logger;
 		this.sqlDirectory = options.sqlDirectory;
 
 		this.pgp = pgp;
@@ -56,9 +50,6 @@ class PgpAdapter extends BaseAdapter {
 		this.SQLs = {};
 	}
 
-	/**
-	 * @return {Promise}
-	 */
 	connect() {
 		if (monitor.isAttached()) {
 			monitor.detach();
@@ -66,9 +57,9 @@ class PgpAdapter extends BaseAdapter {
 
 		pgpOptions.noLocking = this.inTest;
 		const monitorOptions = {
-			error: (error, e) => {
+			error: (err, e) => {
 				this.emit(this.EVENT_ERROR);
-				this.logger.error(error);
+				this.logger.error({ err }, 'Database monitoring error');
 
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
 				// https://vitaly-t.github.io/pg-promise/global.html#event:error
@@ -88,7 +79,7 @@ class PgpAdapter extends BaseAdapter {
 		Object.assign(pgpOptions, monitorOptions);
 		monitor.attach(pgpOptions, this.options.logEvents);
 		monitor.setLog((msg, info) => {
-			this.logger.debug(info.event, info.text);
+			this.logger.debug({ event: info.event }, info.text);
 			info.display = false;
 		});
 		monitor.setTheme('matrix');
@@ -118,22 +109,24 @@ class PgpAdapter extends BaseAdapter {
 	}
 
 	disconnect() {
-		this.logger.info('Disconnecting');
+		this.logger.info('PgpAdapter: Disconnect event triggered');
 		if (monitor.isAttached()) {
 			monitor.detach();
 		}
+
+		// Add physical termination of postgres connection on cleanup.
+		// By ending all connection pools created through this library initialization
+		//
+		// Pg-promise internally use the connection-pool which keeps the reference to
+		// physical connections. Multiple connection to databases can create different connection pools
+		//
+		// this.db.$pool.end()
+		//
+		// Above will trigger ending connection pool associated to instance of database
+
+		this.db.$pool.end();
 	}
 
-	/**
-	 * Execute an SQL file
-	 *
-	 * @param {string} file
-	 * @param {Object} params
-	 * @param {Object} options
-	 * @param {Number} [options.expectedResultCount]
-	 * @param {Object} tx
-	 * @return {*}
-	 */
 	executeFile(file, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			file,
@@ -141,16 +134,6 @@ class PgpAdapter extends BaseAdapter {
 		);
 	}
 
-	/**
-	 * Execute an SQL file
-	 *
-	 * @param {string} sql
-	 * @param {Object} [params]
-	 * @param {Object} [options]
-	 * @param {Number} [options.expectedResultCount]
-	 * @param {Object} [tx]
-	 * @return {*}
-	 */
 	execute(sql, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			sql,
@@ -180,7 +163,7 @@ class PgpAdapter extends BaseAdapter {
 		const qf = new QueryFile(fullPath, options);
 
 		if (qf.error) {
-			this.logger.error(qf.error); // Something is wrong with our query file
+			this.logger.error({ err: qf.error }, 'SQL query file error'); // Something is wrong with our query file
 			throw qf.error; // throw pg-promisse QueryFileError error
 		}
 

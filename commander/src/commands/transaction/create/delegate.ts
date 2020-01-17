@@ -15,22 +15,25 @@
  */
 import { registerDelegate } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../../base';
 import { flags as commonFlags } from '../../../utils/flags';
 import {
 	getInputsFromSources,
 	InputFromSourceOutput,
 } from '../../../utils/input';
+import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 interface Args {
 	readonly username: string;
 }
 
-const processInputs = (username: string) => ({
+const processInputs = (networkIdentifier: string, username: string) => ({
 	passphrase,
 	secondPassphrase,
 }: InputFromSourceOutput) =>
 	registerDelegate({
+		networkIdentifier,
 		passphrase,
 		secondPassphrase,
 		username,
@@ -53,6 +56,7 @@ export default class DelegateCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
@@ -62,6 +66,7 @@ export default class DelegateCommand extends BaseCommand {
 		const {
 			args,
 			flags: {
+				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
@@ -69,7 +74,11 @@ export default class DelegateCommand extends BaseCommand {
 		} = this.parse(DelegateCommand);
 
 		const { username }: Args = args;
-		const processFunction = processInputs(username);
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
+		const processFunction = processInputs(networkIdentifier, username);
 
 		if (noSignature) {
 			const noSignatureResult = processFunction({

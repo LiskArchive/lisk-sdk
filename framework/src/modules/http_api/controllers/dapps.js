@@ -17,32 +17,15 @@
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
 
-const { TRANSACTION_TYPES } = global.constants;
+const TRANSACTION_TYPES_DAPP = 5;
 
-// Private Fields
 let storage;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of DappsController
- */
 function DappsController(scope) {
 	({ storage } = scope.components);
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-DappsController.getDapps = async function(context, next) {
+DappsController.getDapps = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -69,19 +52,19 @@ DappsController.getDapps = async function(context, next) {
 	if (params.transactionId.value) {
 		filters.push({
 			id: params.transactionId.value,
-			type: TRANSACTION_TYPES.DAPP,
+			type: TRANSACTION_TYPES_DAPP,
 		});
 	}
 
 	if (params.name.value) {
 		filters.push({
 			dapp_name: params.name.value,
-			type: TRANSACTION_TYPES.DAPP,
+			type: TRANSACTION_TYPES_DAPP,
 		});
 	}
 
 	if (filters.length === 0) {
-		filters.push({ type: TRANSACTION_TYPES.DAPP });
+		filters.push({ type: TRANSACTION_TYPES_DAPP });
 	}
 
 	try {

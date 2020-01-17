@@ -14,6 +14,7 @@
  */
 // tslint:disable-next-line no-implicit-dependencies
 import * as sodium from 'sodium-native';
+
 import { NaclInterface } from './nacl_types';
 
 export const box: NaclInterface['box'] = (

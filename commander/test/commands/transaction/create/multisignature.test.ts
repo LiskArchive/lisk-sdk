@@ -15,6 +15,7 @@
  */
 import { expect, test } from '@oclif/test';
 import * as transactions from '@liskhq/lisk-transactions';
+import * as validator from '@liskhq/lisk-validator';
 import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
@@ -40,22 +41,24 @@ describe('transaction:create:multisignature', () => {
 		recipientPublicKey: null,
 		asset: {},
 	};
-
+	const testnetNetworkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	const printMethodStub = sandbox.stub();
-	const transactionUtilStub = {
-		validatePublicKeys: sandbox.stub().returns(true),
-	};
 
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				config,
+				'getConfig',
+				sandbox.stub().returns({ api: { network: 'test' } }),
+			)
 			.stub(
 				transactions,
 				'registerMultisignature',
 				sandbox.stub().returns(defaultTransaction),
 			)
-			.stub(transactions, 'utils', transactionUtilStub)
+			.stub(validator, 'validatePublicKeys', sandbox.stub().returns(true))
 			.stub(
 				inputUtils,
 				'getInputsFromSources',
@@ -129,7 +132,7 @@ describe('transaction:create:multisignature', () => {
 				defaultKeysgroup.join(','),
 			])
 			.it('should create a multisignature transaction', () => {
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultKeysgroup,
 				);
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
@@ -140,6 +143,7 @@ describe('transaction:create:multisignature', () => {
 					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
@@ -162,7 +166,7 @@ describe('transaction:create:multisignature', () => {
 				'--passphrase=pass:123',
 			])
 			.it('should create a multisignature transaction', () => {
-				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
+				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultKeysgroup,
 				);
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
@@ -173,6 +177,7 @@ describe('transaction:create:multisignature', () => {
 					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
@@ -198,9 +203,9 @@ describe('transaction:create:multisignature', () => {
 			.it(
 				'should create a multisignature transaction with the passphrase and the second passphrase from the flag',
 				() => {
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultKeysgroup);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultKeysgroup,
+					);
 					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
@@ -212,6 +217,7 @@ describe('transaction:create:multisignature', () => {
 						},
 					});
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						keysgroup: defaultKeysgroup,
@@ -237,11 +243,12 @@ describe('transaction:create:multisignature', () => {
 			.it(
 				'should create a multisignature transaction without signature',
 				() => {
-					expect(
-						transactionUtilStub.validatePublicKeys,
-					).to.be.calledWithExactly(defaultKeysgroup);
+					expect(validator.validatePublicKeys).to.be.calledWithExactly(
+						defaultKeysgroup,
+					);
 					expect(inputUtils.getInputsFromSources).not.to.be.called;
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
+						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: undefined,
 						secondPassphrase: undefined,
 						keysgroup: defaultKeysgroup,

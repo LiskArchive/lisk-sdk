@@ -15,6 +15,7 @@
  */
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
+
 import { getLiskConfig, LiskConfig } from './config';
 import { describeApplication, PM2ProcessInstance } from './pm2';
 
@@ -47,7 +48,9 @@ export const startCache = async (
 ): Promise<string> => {
 	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
-	const { stderr }: ExecResult = await exec(
+	const {
+		stderr,
+	}: ExecResult = await exec(
 		`${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
 		{ cwd: installDir },
 	);

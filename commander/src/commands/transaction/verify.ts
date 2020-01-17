@@ -13,12 +13,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as transactions from '@liskhq/lisk-transactions';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
+import { flags as commonFlags } from '../../utils/flags';
 import { getData, getStdIn } from '../../utils/input/utils';
-import { parseTransactionString } from '../../utils/transactions';
+import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
+import {
+	instantiateTransaction,
+	parseTransactionString,
+} from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;
@@ -68,6 +74,7 @@ export default class VerifyCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.passphrase),
 		'second-public-key': flagParser.string({
 			name: 'Second public key',
 			description: secondPublicKeyDescription,
@@ -77,21 +84,50 @@ export default class VerifyCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const {
 			args,
-			flags: { 'second-public-key': secondPublicKeySource },
+			flags: {
+				'second-public-key': secondPublicKeySource,
+				networkIdentifier: networkIdentifierSource,
+			},
 		} = this.parse(VerifyCommand);
 
 		const { transaction }: Args = args;
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
+		const {
+			signSignature,
+			...transactionObjectWithoutSignSignature
+		} = transactionObject;
+
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
+
+		const txInstance = instantiateTransaction({
+			...transactionObjectWithoutSignSignature,
+			networkIdentifier,
+		});
+
 		const secondPublicKey = secondPublicKeySource
 			? await processSecondPublicKey(secondPublicKeySource)
 			: undefined;
 
-		const verified = transactions.utils.verifyTransaction(
-			transactionObject,
+		if (!secondPublicKey) {
+			const { errors } = txInstance.validate();
+			this.print({
+				verified: errors.length === 0,
+			});
+
+			return;
+		}
+
+		const verified = cryptography.verifyData(
+			txInstance.getBytes(),
+			signSignature,
 			secondPublicKey,
 		);
+
 		this.print({ verified });
 	}
 }

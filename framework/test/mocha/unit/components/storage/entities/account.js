@@ -24,9 +24,9 @@ const {
 		NonSupportedOperationError,
 	},
 } = require('../../../../../../src/components/storage');
-const storageSandbox = require('../../../../common/storage_sandbox');
-const seeder = require('../../../../common/storage_seed');
-const accountFixtures = require('../../../../fixtures').accounts;
+const storageSandbox = require('../../../../../utils/storage/storage_sandbox');
+const seeder = require('../../../../../utils/storage/storage_seed');
+const accountFixtures = require('../../../../../fixtures/').accounts;
 
 describe('Account', () => {
 	let adapter;
@@ -38,7 +38,6 @@ describe('Account', () => {
 	let validOptions;
 	let invalidOptions;
 	let validFilters;
-	let validExtendedObjectFields;
 	let validSimpleObjectFields;
 
 	before(async () => {
@@ -53,7 +52,7 @@ describe('Account', () => {
 		AccountEntity = storage.entities.Account;
 		SQLs = AccountEntity.SQLs;
 
-		validAccountSQLs = ['selectSimple', 'selectFull', 'count', 'isPersisted'];
+		validAccountSQLs = ['get', 'count', 'isPersisted'];
 
 		validAccountFields = [
 			'address',
@@ -70,31 +69,9 @@ describe('Account', () => {
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'rank',
-			'vote',
-		];
-
-		validExtendedObjectFields = [
-			'address',
-			'publicKey',
-			'secondPublicKey',
-			'username',
-			'isDelegate',
-			'secondSignature',
-			'balance',
-			'multiMin',
-			'multiLifetime',
-			'nameExist',
-			'missedBlocks',
-			'producedBlocks',
-			'rank',
-			'fees',
-			'rewards',
-			'vote',
-			'productivity',
+			'voteWeight',
 			'votedDelegatesPublicKeys',
 			'membersPublicKeys',
-			'asset',
 		];
 
 		validSimpleObjectFields = [
@@ -111,11 +88,12 @@ describe('Account', () => {
 			'nameExist',
 			'missedBlocks',
 			'producedBlocks',
-			'rank',
 			'fees',
 			'rewards',
-			'vote',
+			'voteWeight',
 			'productivity',
+			'votedDelegatesPublicKeys',
+			'membersPublicKeys',
 		];
 
 		validFilters = [
@@ -204,24 +182,18 @@ describe('Account', () => {
 			'missedBlocks_lt',
 			'missedBlocks_lte',
 			'missedBlocks_in',
-			'rank',
-			'rank_eql',
-			'rank_ne',
-			'rank_gt',
-			'rank_gte',
-			'rank_lt',
-			'rank_lte',
-			'rank_in',
-			'vote',
-			'vote_eql',
-			'vote_ne',
-			'vote_gt',
-			'vote_gte',
-			'vote_lt',
-			'vote_lte',
-			'vote_in',
-			'votedDelegatesPublicKeys_in',
-			'membersPublicKeys_in',
+			'voteWeight',
+			'voteWeight_eql',
+			'voteWeight_ne',
+			'voteWeight_gt',
+			'voteWeight_gte',
+			'voteWeight_lt',
+			'voteWeight_lte',
+			'voteWeight_in',
+			'votedDelegatesPublicKeys',
+			'membersPublicKeys',
+			'asset_contains',
+			'asset_exists',
 		];
 
 		validOptions = {
@@ -236,12 +208,9 @@ describe('Account', () => {
 
 	beforeEach(() => seeder.seed(storage));
 
-	afterEach(done => {
+	afterEach(async () => {
 		sinonSandbox.restore();
-		seeder
-			.reset(storage)
-			.then(() => done(null))
-			.catch(done);
+		await seeder.reset(storage);
 	});
 
 	it('should be a constructable function', async () => {
@@ -368,16 +337,6 @@ describe('Account', () => {
 			expect(results).to.have.all.keys(validSimpleObjectFields);
 		});
 
-		it('should resolve with one object matching specification of type definition of full object', async () => {
-			const anAccount = new accountFixtures.Account();
-			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.getOne(
-				{ address: anAccount.address },
-				{ extended: true },
-			);
-			expect(results).to.have.all.keys(validExtendedObjectFields);
-		});
-
 		it('should reject with error if matched with multiple records for provided filters', async () => {
 			return expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
 				'Multiple rows were not expected.',
@@ -443,49 +402,9 @@ describe('Account', () => {
 			expect(results[0]).to.have.all.keys(validSimpleObjectFields);
 		});
 
-		it('should resolve with one object matching specification of type definition of full object', async () => {
-			const anAccount = new accountFixtures.Account();
-			await AccountEntity.create(anAccount);
-			const results = await AccountEntity.get(
-				{ address: anAccount.address },
-				{ extended: true },
-			);
-			expect(results[0]).to.have.all.keys(validExtendedObjectFields);
-		});
-
 		it('should not change any of the provided parameter');
 
 		describe('dynamic fields', () => {
-			it('should fetch "votedDelegatesPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2delegates WHERE "accountId" = '${
-								account.address
-							}'`,
-						);
-						expect(account.votedDelegatesPublicKeys).to.be.eql(keys[0].keys);
-					}),
-				);
-			});
-
-			it('should fetch "membersPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2multisignatures WHERE "accountId" = '${
-								account.address
-							}'`,
-						);
-						expect(account.membersPublicKeys).to.be.eql(keys[0].keys);
-					}),
-				);
-			});
-
 			it('should fetch "productivity" with two decimal places when value is not integer', async () => {
 				const producedBlocks = 50;
 				const missedBlocks = 25;
@@ -555,11 +474,6 @@ describe('Account', () => {
 				expect(data[0].secondSignature).to.be.a('boolean');
 			});
 
-			it('should return "rank" as null', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].rank).to.be.eql(null);
-			});
-
 			it('should return "fees" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].fees).to.be.a('string');
@@ -570,9 +484,9 @@ describe('Account', () => {
 				expect(data[0].rewards).to.be.a('string');
 			});
 
-			it('should return "vote" as "bigint"', async () => {
+			it('should return "voteWeight" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
-				expect(data[0].vote).to.be.a('string');
+				expect(data[0].voteWeight).to.be.a('string');
 			});
 
 			it('should return "producedBlocks" as "number"', async () => {
@@ -604,9 +518,7 @@ describe('Account', () => {
 			it('should always return "publicKey" as "encode(publicKey, \'hex\')"', async () => {
 				const accounts = await AccountEntity.get(filters, options);
 				const rawKey = await adapter.execute(
-					`SELECT "publicKey" FROM mem_accounts WHERE "address" = '${
-						validAccount.address
-					}'`,
+					`SELECT "publicKey" FROM mem_accounts WHERE "address" = '${validAccount.address}'`,
 				);
 
 				expect(accounts[0].publicKey).to.be.eql(
@@ -617,9 +529,7 @@ describe('Account', () => {
 			it('should always return "secondPublicKey" as "encode(secondPublicKey, \'hex\')"', async () => {
 				const accounts = await AccountEntity.get(filters, options);
 				const rawKey = await adapter.execute(
-					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${
-						validAccount.address
-					}'`,
+					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${validAccount.address}'`,
 				);
 
 				expect(accounts[0].secondPublicKey).to.be.eql(
@@ -629,6 +539,153 @@ describe('Account', () => {
 		});
 
 		describe('filters', () => {
+			describe('asset_contains', () => {
+				let aliceAccount = null;
+				let bobAccount = null;
+
+				beforeEach(async () => {
+					aliceAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Alice',
+							company: 'Acme Corp',
+							tags: ['blockchain', 'decentralized'],
+						},
+					});
+					bobAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Bob',
+							company: 'Acme Corp',
+							tags: ['blockchain', 'crypto'],
+						},
+					});
+
+					await AccountEntity.create([aliceAccount, bobAccount]);
+				});
+
+				it('should return single result when asset value contains unique property at the top level', async () => {
+					const filters = { asset_contains: { name: 'Alice' } };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(aliceAccount.address);
+				});
+
+				it('should return result when asset value contains given array element', async () => {
+					const filters = { asset_contains: { tags: ['crypto'] } };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return all results when asset value contains multiple entries with a given object at the top level', async () => {
+					const filters = { asset_contains: { company: 'Acme Corp' } };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					const sortedAccounts = accounts.sort((accountA, accountB) =>
+						accountA.asset.name < accountB.asset.name ? -1 : 1,
+					);
+
+					expect(accounts.length).to.be.eql(2);
+					expect(sortedAccounts[0].address).to.be.eql(aliceAccount.address);
+					expect(sortedAccounts[1].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return empty result when asset value does not contain the given object at the top level', async () => {
+					const filters = { asset_contains: { name: 'Eve' } };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts).to.be.empty;
+				});
+
+				it('should return result when filter includes multiple array elements', async () => {
+					const filters = {
+						asset_contains: { tags: ['blockchain', 'decentralized'] },
+					};
+					const accounts = await AccountEntity.get(filters, { extended: true });
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(aliceAccount.address);
+				});
+
+				it('should return all accounts when query term is empty but tag exists', async () => {
+					const filters = { asset_contains: { tags: [] } };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					const sortedAccounts = accounts.sort((accountA, accountB) =>
+						accountA.asset.name < accountB.asset.name ? -1 : 1,
+					);
+
+					expect(accounts.length).to.be.eql(2);
+					expect(sortedAccounts[0].address).to.be.eql(aliceAccount.address);
+					expect(sortedAccounts[1].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return no accounts when query term is empty', async () => {
+					const filters = { asset_contains: { name: '' } };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					expect(accounts.length).to.be.eql(0);
+				});
+
+				it('should return no accounts when query key is invalid', async () => {
+					const filters = { asset_contains: { this_does_not_exist: '' } };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					expect(accounts.length).to.be.eql(0);
+				});
+			});
+
+			describe('asset_exits', () => {
+				let aliceAccount = null;
+				let bobAccount = null;
+
+				beforeEach(async () => {
+					aliceAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Alice',
+							height: '1.79',
+						},
+					});
+					bobAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Bob',
+							weight: '74',
+						},
+					});
+
+					await AccountEntity.create([aliceAccount, bobAccount]);
+				});
+
+				it('should return single result when asset key exits at the top level', async () => {
+					const filters = { asset_exists: 'height' };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(aliceAccount.address);
+				});
+
+				it('should return all results when key is present in all documents', async () => {
+					const filters = { asset_exists: 'name' };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					const sortedAccounts = accounts.sort((accountA, accountB) =>
+						accountA.asset.name < accountB.asset.name ? -1 : 1,
+					);
+
+					expect(accounts.length).to.be.eql(2);
+					expect(sortedAccounts[0].address).to.be.eql(aliceAccount.address);
+					expect(sortedAccounts[1].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return empty result when key is not present in any of the documents', async () => {
+					const filters = { asset_exists: 'this_does_not_exists' };
+					const accounts = await AccountEntity.get(filters);
+					expect(accounts.length).to.be.eql(0);
+				});
+
+				it('should return empty result when key is empty string', async () => {
+					const filters = { asset_exists: '' };
+					const accounts = await AccountEntity.get(filters);
+					expect(accounts.length).to.be.eql(0);
+				});
+			});
+
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				expect(AccountEntity.getFilters()).to.eql(validFilters);
@@ -676,7 +733,7 @@ describe('Account', () => {
 					);
 
 					const sortedAccounts = _.orderBy(
-						Object.assign({}, accounts),
+						{ ...accounts },
 						['username', 'address'],
 						['desc', 'asc'],
 					);

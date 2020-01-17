@@ -1,0 +1,21 @@
+{
+	"title": "Valid signature generation",
+	"summary": "based on a valid transfer transaction generate a signature an id for it",
+	"config": "mainnet",
+	"runner": "transaction_signing",
+	"handler": "valid_transaction_signing",
+	"testCases": {
+		"input": {
+			"transferTransaction": {
+				"amount": "10",
+				"recipientId": "17819145097849555674L",
+				"timestamp": 100565431,
+				"asset": {},
+				"fee": "10000000",
+				"type": 0
+			},
+			"senderPassphrase": "movie tiger belt popular bridge dish frozen fragile quit high pass coconut"
+		},
+		"output": "579164b3045a612823b2b9ec667374417565229a4028f905b8452bf91048633f9a679d49fc46169659f3f3329ad414e8c6e17e1c2f9866a6e1bee9efa2a60a0a"
+	}
+}

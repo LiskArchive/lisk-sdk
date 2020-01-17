@@ -16,7 +16,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const child_process = require('child_process');
+const childProcess = require('child_process');
 const psList = require('ps-list');
 const systemDirs = require('./system_dirs');
 const { InMemoryChannel } = require('./channels');
@@ -30,26 +30,7 @@ const { MigrationEntity } = require('./migrations');
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
 
-/**
- * Controller logic responsible to run the application instance
- *
- * @class
- * @memberof framework.controller
- * @requires assert
- * @requires bluebird
- * @requires fs-extra
- * @requires config
- * @requires channels/event_emitter
- * @requires module.Bus
- */
 class Controller {
-	/**
-	 * Controller responsible to run the application
-	 *
-	 * @param {string} appLabel - Application label
-	 * @param {Object} config - Controller configurations
-	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
-	 */
 	constructor(appLabel, config, initialState, logger) {
 		this.logger = logger;
 		this.appLabel = appLabel;
@@ -78,33 +59,21 @@ class Controller {
 		this.storage.registerEntity('Migration', MigrationEntity);
 	}
 
-	/**
-	 * Load the initial state and start listening for events or triggering actions.
-	 * Publishes 'app:ready' state on the bus.
-	 *
-	 * @param modules
-	 * @async
-	 */
 	async load(modules, moduleOptions, migrations = {}) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
-		await this._initState();
+		this._initState();
 		await this._setupBus();
 		await this._loadMigrations(migrations);
 		await this._loadModules(modules, moduleOptions);
 
-		this.logger.info('Bus listening to events', this.bus.getEvents());
-		this.logger.info('Bus ready for actions', this.bus.getActions());
+		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
+		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
 
 		this.channel.publish('app:ready');
 	}
 
-	/**
-	 * Verify existence of required directories.
-	 *
-	 * @async
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async _setupDirectories() {
 		// Make sure all directories exists
@@ -120,14 +89,13 @@ class Controller {
 			const pid = parseInt(await fs.readFile(pidPath), 10);
 			const pidRunning = await isPidRunning(pid);
 
-			this.logger.info(`Old PID: ${pid}`);
-			this.logger.info(`Current PID: ${process.pid}`);
+			this.logger.info({ pid }, 'Previous Lisk PID');
+			this.logger.info({ pid: process.pid }, 'Current Lisk PID');
 
 			if (pidRunning && pid !== process.pid) {
 				this.logger.error(
-					`An instance of application "${
-						this.appLabel
-					}" is already running. You have to change application name to run another instance.`,
+					{ app_name: this.appLabel },
+					'An instance of application is already running, please change application name to run another instance',
 				);
 				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
 			}
@@ -135,23 +103,13 @@ class Controller {
 		await fs.writeFile(pidPath, process.pid);
 	}
 
-	/**
-	 * Initiate application state
-	 *
-	 * @async
-	 */
-	async _initState() {
+	_initState() {
 		this.applicationState = new ApplicationState({
 			initialState: this.initialState,
 			logger: this.logger,
 		});
 	}
 
-	/**
-	 * Initialize bus
-	 *
-	 * @async
-	 */
 	async _setupBus() {
 		this.bus = new Bus(
 			{
@@ -188,8 +146,15 @@ class Controller {
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
-			this.bus.onAny((name, event) => {
-				this.logger.trace(`MONITOR: ${event.module}:${event.name}`, event.data);
+			this.bus.onAny(event => {
+				this.logger.trace(
+					{
+						module: event.module,
+						name: event.name,
+						data: event.data,
+					},
+					'Monitor Bus Channel',
+				);
 			});
 		}
 	}
@@ -202,24 +167,20 @@ class Controller {
 
 	async _loadModules(modules, moduleOptions) {
 		// To perform operations in sequence and not using bluebird
-		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
 			const klass = modules[alias];
 			const options = moduleOptions[alias];
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {
-					// eslint-disable-next-line no-await-in-loop
 					await this._loadChildProcessModule(alias, klass, options);
 				} else {
 					this.logger.warn(
 						`IPC is disabled. ${alias} will be loaded in-memory.`,
 					);
-					// eslint-disable-next-line no-await-in-loop
 					await this._loadInMemoryModule(alias, klass, options);
 				}
 			} else {
-				// eslint-disable-next-line no-await-in-loop
 				await this._loadInMemoryModule(alias, klass, options);
 			}
 		}
@@ -233,7 +194,8 @@ class Controller {
 		validateModuleSpec(module);
 
 		this.logger.info(
-			`Loading module ${name}:${version} with alias "${moduleAlias}"`,
+			{ name, version, moduleAlias },
+			'Loading in-memory module',
 		);
 
 		const channel = new InMemoryChannel(
@@ -253,9 +215,7 @@ class Controller {
 
 		this.modules[moduleAlias] = module;
 
-		this.logger.info(
-			`Module ready with alias: ${moduleAlias}(${name}:${version})`,
-		);
+		this.logger.info({ name, version, moduleAlias }, 'Loaded in-memory module');
 	}
 
 	async _loadChildProcessModule(alias, Klass, options) {
@@ -266,7 +226,8 @@ class Controller {
 		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module ${name}:${version} with alias "${moduleAlias}" as child process`,
+			{ name, version, moduleAlias },
+			'Loading module as child process',
 		);
 
 		const modulePath = path.resolve(
@@ -291,7 +252,7 @@ class Controller {
 			];
 		}
 
-		const child = child_process.fork(program, parameters, forkedProcessOptions);
+		const child = childProcess.fork(program, parameters, forkedProcessOptions);
 
 		// TODO: Check which config and options are actually required to avoid sending large data
 		child.send({
@@ -304,7 +265,8 @@ class Controller {
 
 		child.on('exit', (code, signal) => {
 			this.logger.error(
-				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`,
+				{ name, version, moduleAlias, code, signal },
+				'Child process module exited',
 			);
 			// Exits the main process with a failure code
 			process.exit(1);
@@ -314,7 +276,8 @@ class Controller {
 			new Promise(resolve => {
 				this.channel.once(`${moduleAlias}:loading:finished`, () => {
 					this.logger.info(
-						`Module ready with alias: ${moduleAlias}(${name}:${version})`,
+						{ name, version, moduleAlias },
+						'Child process module ready',
 					);
 					resolve();
 				});
@@ -328,9 +291,7 @@ class Controller {
 	async unloadModules(modules = Object.keys(this.modules)) {
 		// To perform operations in sequence and not using bluebird
 
-		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of modules) {
-			// eslint-disable-next-line no-await-in-loop
 			await this.modules[alias].unload();
 			delete this.modules[alias];
 		}
@@ -349,8 +310,8 @@ class Controller {
 			await this.bus.cleanup();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
-		} catch (error) {
-			this.logger.error('Caused error during cleanup', error);
+		} catch (err) {
+			this.logger.error({ err }, 'Caused error during modules cleanup');
 		}
 	}
 }

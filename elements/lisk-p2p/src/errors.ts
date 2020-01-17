@@ -1,3 +1,5 @@
+import { P2PPeerInfo } from './p2p_types';
+
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -13,7 +15,6 @@
  *
  */
 /* tslint:disable: max-classes-per-file */
-
 export class PeerInboundHandshakeError extends Error {
 	public statusCode: number;
 	public remoteAddress: string;
@@ -33,16 +34,6 @@ export class PeerInboundHandshakeError extends Error {
 	}
 }
 
-export class PeerOutboundConnectionError extends Error {
-	public statusCode?: number;
-
-	public constructor(message: string, statusCode?: number) {
-		super(message);
-		this.name = 'PeerOutboundConnectError';
-		this.statusCode = statusCode;
-	}
-}
-
 export class RPCResponseError extends Error {
 	public peerId: string;
 
@@ -50,13 +41,6 @@ export class RPCResponseError extends Error {
 		super(message);
 		this.name = 'RPCResponseError';
 		this.peerId = peerId;
-	}
-}
-
-export class FetchPeerStatusError extends Error {
-	public constructor(message: string) {
-		super(message);
-		this.name = 'FetchPeerStatusError';
 	}
 }
 
@@ -74,10 +58,34 @@ export class RPCResponseAlreadySentError extends Error {
 	}
 }
 
-export class InvalidPeerError extends Error {
+export class ExistingPeerError extends Error {
+	public peerInfo: P2PPeerInfo;
+
+	public constructor(peerInfo: P2PPeerInfo) {
+		super('Peer already exists');
+		this.name = 'ExistingPeerError';
+		this.peerInfo = peerInfo;
+	}
+}
+
+export class InvalidNodeInfoError extends Error {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InvalidPeerError';
+		this.name = 'InvalidNodeInfoError';
+	}
+}
+
+export class InvalidPeerInfoError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidPeerInfoError';
+	}
+}
+
+export class InvalidPeerInfoListError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidPeerInfoListError';
 	}
 }
 
@@ -98,9 +106,7 @@ export class RequestFailError extends Error {
 		this.peerId = peerId || '';
 		this.peerVersion = peerVersion || '';
 		this.message = peerId
-			? `${this.message}: Peer Id: ${this.peerId}: Peer Version: ${
-					this.peerVersion
-			  }`
+			? `${this.message}: Peer Id: ${this.peerId}: Peer Version: ${this.peerVersion}`
 			: message;
 	}
 }

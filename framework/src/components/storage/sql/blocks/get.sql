@@ -21,11 +21,13 @@ SELECT
 	"totalFee",
 	"reward",
 	"payloadLength",
-	"previousBlock" as "previousBlockId",
+	"maxHeightPreviouslyForged",
+	"maxHeightPrevoted",
+	"previousBlockId",
 	"numberOfTransactions",
 	"totalAmount",
 	"timestamp",
-	"version"::text,
+	"version",
 	( SELECT max(b.height) + 1 FROM blocks AS b ) - blocks.height AS "confirmations"
 FROM
 	blocks

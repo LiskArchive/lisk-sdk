@@ -14,25 +14,6 @@
 
 'use strict';
 
-const path = require('path');
-
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-	// eslint-disable-next-line global-require
-	const newrelic = require('newrelic');
-	// eslint-disable-next-line global-require
-	const newrelicLisk = require('lisk-newrelic')(newrelic, {
-		exitOnFailure: true,
-		rootPath: path.dirname(__filename),
-	});
-
-	newrelicLisk.instrumentCallbackMethods('./cache', 'components.cache', [
-		'getJsonForKey',
-		'setJsonForKey',
-		'deleteJsonForKey',
-		'removeByPattern',
-	]);
-}
-
 const constants = require('./constants');
 const Cache = require('./cache');
 const { config: defaultConfig } = require('./defaults');

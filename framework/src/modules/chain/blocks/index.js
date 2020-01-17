@@ -14,32 +14,20 @@
 
 'use strict';
 
-const { BlockSlots } = require('./block_slots');
-const { addBlockProperties } = require('./utils');
-const { objectNormalize } = require('./block');
 const {
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
 } = require('./block_reward');
-const {
-	Blocks,
-	EVENT_NEW_BLOCK,
-	EVENT_DELETE_BLOCK,
-	EVENT_BROADCAST_BLOCK,
-	EVENT_NEW_BROADHASH,
-} = require('./blocks');
+const { Blocks } = require('./blocks');
+const { baseBlockSchema } = require('./schema');
+const { StateStore } = require('./state_store');
 
 module.exports = {
-	BlockSlots,
 	Blocks,
+	StateStore,
+	baseBlockSchema,
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
-	EVENT_NEW_BLOCK,
-	EVENT_DELETE_BLOCK,
-	EVENT_BROADCAST_BLOCK,
-	EVENT_NEW_BROADHASH,
-	objectNormalize,
-	addBlockProperties,
 };

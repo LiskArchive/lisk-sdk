@@ -23,25 +23,28 @@ jest.mock('os', () => ({
 describe('Application State', () => {
 	let applicationState;
 	const initialState = {
+		blockVersion: 0,
 		version: '1.0.0-beta.3',
 		wsPort: '3001',
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
-		nethash: 'test broadhash',
-		nonce: 'test nonce',
+		nethash: 'test nethash',
+		maxHeightPrevoted: 0,
+		height: 1,
+		os: 'platformrelease',
 	};
 	const mockedState = {
+		blockVersion: 0,
 		os: 'platformrelease',
 		version: '1.0.0-beta.3',
 		wsPort: '3001',
 		httpPort: '3000',
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
-		nethash: 'test broadhash',
-		broadhash: 'test broadhash',
+		nethash: 'test nethash',
+		maxHeightPrevoted: 0,
 		height: 1,
-		nonce: 'test nonce',
 	};
 	const logger = {
 		debug: jest.fn(),
@@ -64,7 +67,7 @@ describe('Application State', () => {
 		it('should initiate the application state', () => {
 			// Assert
 			expect(applicationState.logger).toBe(logger);
-			expect(applicationState.stateChannel).toBe(undefined);
+			expect(applicationState.stateChannel).toBeUndefined();
 			expect(applicationState.state).toEqual(mockedState);
 		});
 	});
@@ -93,7 +96,7 @@ describe('Application State', () => {
 		describe('when there is an error', () => {
 			// Arrange
 			const newState = {
-				broadhash: 'xxx',
+				maxHeightPrevoted: 0,
 				height: '10',
 			};
 			const errorMessage = new Error('Publish failure');
@@ -106,72 +109,31 @@ describe('Application State', () => {
 				};
 			});
 
-			it('should throw an error', () => {
+			it('should throw an error', async () => {
 				// Act && Assert
-				return expect(applicationState.update(newState)).rejects.toThrow(
+				await expect(applicationState.update(newState)).rejects.toThrow(
 					errorMessage,
 				);
 			});
 
 			it('should log the error stack', async () => {
-				try {
-					await applicationState.update(newState);
-				} catch (error) {
-					expect(logger.error).toHaveBeenCalled();
-					expect(logger.error).toHaveBeenLastCalledWith(error.stack);
-				}
+				// Act && Assert
+				await expect(applicationState.update(newState)).rejects.toThrow(
+					errorMessage,
+				);
+				expect(logger.error).toHaveBeenLastCalledWith(errorMessage.stack);
 			});
 		});
 
 		describe('when wrong parameters are passed', () => {
 			let newState;
-			const broadhashErrorMessage =
-				'broadhash is required to update application state.';
 			const heightErrorMessage =
 				'height is required to update application state.';
-
-			it('should throw AssertionError if broadhash undefined', async () => {
-				// Arrange
-				newState = {
-					broadhash: undefined,
-					height: '10',
-				};
-				const broadhashAssertionError = new AssertionError({
-					message: broadhashErrorMessage,
-					operator: '==',
-					expected: true,
-					actual: undefined,
-				});
-
-				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError,
-				);
-			});
-
-			it('should throw AssertionError if broadhash is null', async () => {
-				// Arrange
-				newState = {
-					broadhash: null,
-					height: '10',
-				};
-				const broadhashAssertionError = new AssertionError({
-					message: broadhashErrorMessage,
-					operator: '==',
-					expected: true,
-					actual: null,
-				});
-
-				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError,
-				);
-			});
 
 			it('should throw AssertionError if height undefined', async () => {
 				// Arrange
 				newState = {
-					broadhash: 'newBroadhash',
+					maxHeightPrevoted: 0,
 					height: undefined,
 				};
 				const heightAssertionError = new AssertionError({
@@ -190,7 +152,7 @@ describe('Application State', () => {
 			it('should throw AssertionError if height is null', async () => {
 				// Arrange
 				newState = {
-					broadhash: 'newBroadhash',
+					maxHeightPrevoted: 0,
 					height: null,
 				};
 				const heightAssertionError = new AssertionError({
@@ -210,33 +172,24 @@ describe('Application State', () => {
 		describe('when correct parameters are passed', () => {
 			let newState;
 			let result;
-			let spies;
 			let updatedState;
 
 			beforeEach(async () => {
 				// Arrange
 				newState = {
-					broadhash: 'newBroadhash',
+					maxHeightPrevoted: 1,
 					height: '10',
 				};
 				applicationState.channel = channel;
-				spies = {
-					get: jest.spyOn(applicationState, 'state', 'get'),
-				};
 
 				// Act
 				result = await applicationState.update(newState);
 				updatedState = applicationState.state;
 			});
 
-			it('should call get four times', async () => {
+			it('should update maxHeightPrevoted', async () => {
 				// Assert
-				expect(spies.get).toHaveBeenCalledTimes(4);
-			});
-
-			it('should update broadhash', async () => {
-				// Assert
-				expect(updatedState.broadhash).toBe(newState.broadhash);
+				expect(updatedState.maxHeightPrevoted).toBe(newState.maxHeightPrevoted);
 			});
 
 			it('should update height', async () => {
@@ -248,8 +201,8 @@ describe('Application State', () => {
 				// Assert
 				expect(logger.debug).toHaveBeenCalled();
 				expect(logger.debug).toHaveBeenLastCalledWith(
-					'Application state',
 					updatedState,
+					'Update application state',
 				);
 			});
 
@@ -265,6 +218,30 @@ describe('Application State', () => {
 			it('should return true', async () => {
 				// Assert
 				expect(result).toBe(true);
+			});
+		});
+
+		describe('when a parameter is not passed', () => {
+			let newState;
+			let updatedState;
+
+			beforeEach(async () => {
+				// Arrange
+				newState = {
+					height: '10',
+				};
+				applicationState.channel = channel;
+
+				// Act
+				await applicationState.update(newState);
+				updatedState = applicationState.state;
+			});
+
+			it('should remain with the same value', async () => {
+				// Assert
+				expect(updatedState.maxHeightPrevoted).toBe(
+					mockedState.maxHeightPrevoted,
+				);
 			});
 		});
 	});

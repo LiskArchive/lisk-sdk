@@ -13,10 +13,12 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
+
 import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils/format';
+
 import {
 	validateMultisignatures,
 	validateSignature,
@@ -34,21 +36,6 @@ export const verifySenderPublicKey = (
 				'.senderPublicKey',
 				publicKey,
 				sender.publicKey,
-		  )
-		: undefined;
-
-export const verifySenderId = (
-	id: string,
-	sender: Account,
-	address: string,
-): TransactionError | undefined =>
-	sender.address.toUpperCase() !== address.toUpperCase()
-		? new TransactionError(
-				'Invalid sender address',
-				id,
-				'.senderId',
-				address.toUpperCase(),
-				sender.address.toUpperCase(),
 		  )
 		: undefined;
 
@@ -119,7 +106,7 @@ export const verifySecondSignature = (
 	return error;
 };
 
-interface VerifyMultiSignatureResult {
+export interface VerifyMultiSignatureResult {
 	readonly status: MultisignatureStatus;
 	readonly errors: ReadonlyArray<TransactionError>;
 }

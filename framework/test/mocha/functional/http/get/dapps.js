@@ -17,11 +17,18 @@
 require('../../functional');
 const Promise = require('bluebird');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
-const waitFor = require('../../../common/utils/wait_for');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const apiHelpers = require('../../../common/helpers/api');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const apiHelpers = require('../../../../utils/http/api');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -40,6 +47,7 @@ describe.skip('GET /dapps', () => {
 
 	before(() => {
 		const transaction = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,

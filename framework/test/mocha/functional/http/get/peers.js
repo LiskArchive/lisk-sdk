@@ -16,9 +16,11 @@
 
 require('../../functional');
 const { P2P } = require('@liskhq/lisk-p2p');
-const { generatePeerHeader } = require('../../../common/generatePeerHeader');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const apiHelpers = require('../../../common/helpers/api');
+const {
+	generatePeerHeader,
+} = require('../../../../utils/p2p/generatePeerHeader');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const apiHelpers = require('../../../../utils/http/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -59,8 +61,8 @@ describe('GET /peers', () => {
 			checkResponse: true,
 		},
 		state: {
-			valid: [0, 1, 2],
-			invalid: [-1, 3],
+			valid: ['connected', 'disconnected'],
+			invalid: ['invalid', 'banned'],
 			checkResponse: true,
 		},
 		version: {
@@ -71,11 +73,6 @@ describe('GET /peers', () => {
 		protocolVersion: {
 			valid: ['999.999'],
 			invalid: ['9999.9999', '-1.-1', 'a.b'],
-			checkResponse: true,
-		},
-		broadhash: {
-			valid: [__testContext.config.app.nethash],
-			invalid: ['invalid'],
 			checkResponse: true,
 		},
 		limit: {
@@ -92,7 +89,7 @@ describe('GET /peers', () => {
 		},
 	};
 	/**
-	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different apporach to setup the functional test
+	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different approach to setup the functional test
 	 */
 	Object.keys(paramSet).forEach(param => {
 		// Describe each param
@@ -126,9 +123,9 @@ describe('GET /peers', () => {
 	});
 
 	describe('pass data from a real peer', () => {
-		it(`using a valid httpPort = ${
-			validHeaders.httpPort
-		} should return the result`, async () => {
+		const PEER_STATE_CONNECTED = 'connected';
+
+		it(`using a valid httpPort = ${validHeaders.httpPort} should return the result`, async () => {
 			return peersEndpoint
 				.makeRequest({ httpPort: validHeaders.httpPort }, 200)
 				.then(res => {
@@ -136,19 +133,15 @@ describe('GET /peers', () => {
 				});
 		});
 
-		it(`using state = ${
-			validHeaders.state
-		} should return the result`, async () => {
+		it(`using state = ${validHeaders.state} should return the result`, async () => {
 			return peersEndpoint
-				.makeRequest({ state: validHeaders.state }, 200)
+				.makeRequest({ state: PEER_STATE_CONNECTED }, 200)
 				.then(res => {
-					expect(res.body.data[0].state).to.be.eql(2);
+					expect(res.body.data[0].state).to.be.eql('connected');
 				});
 		});
 
-		it(`using version = "${
-			validHeaders.version
-		}" should return the result`, async () => {
+		it(`using version = "${validHeaders.version}" should return the result`, async () => {
 			return peersEndpoint
 				.makeRequest({ version: validHeaders.version }, 200)
 				.then(res => {
@@ -156,25 +149,13 @@ describe('GET /peers', () => {
 				});
 		});
 
-		it(`using protocolVersion = "${
-			validHeaders.protocolVersion
-		}" should return the result`, async () => {
+		it(`using protocolVersion = "${validHeaders.protocolVersion}" should return the result`, async () => {
 			return peersEndpoint
 				.makeRequest({ protocolVersion: validHeaders.protocolVersion }, 200)
 				.then(res => {
 					expect(res.body.data[0].protocolVersion).to.be.eql(
 						validHeaders.protocolVersion,
 					);
-				});
-		});
-
-		it(`using valid broadhash = "${
-			validHeaders.broadhash
-		}" should return the result`, async () => {
-			return peersEndpoint
-				.makeRequest({ broadhash: validHeaders.broadhash }, 200)
-				.then(res => {
-					expect(res.body.data[0].broadhash).to.be.eql(validHeaders.broadhash);
 				});
 		});
 
@@ -228,7 +209,7 @@ describe('GET /peers', () => {
 			return peersEndpoint
 				.makeRequest(
 					{
-						whatever: validHeaders.broadhash,
+						whatever: 'whatever',
 					},
 					400,
 				)
@@ -241,7 +222,7 @@ describe('GET /peers', () => {
 			return peersEndpoint
 				.makeRequest(
 					{
-						broadhash: '',
+						version: '',
 					},
 					200,
 				)

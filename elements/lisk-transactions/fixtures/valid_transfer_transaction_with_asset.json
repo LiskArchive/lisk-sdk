@@ -3,14 +3,11 @@
 	"type": 0,
 	"timestamp": 73924804,
 	"senderPublicKey": "9becd3e545be91f85270d8a796ae3b9e8ec01a8cb479fef46a298b4efd943a0f",
-	"senderId": "7329472648011827824L",
-	"recipientId": "7329472648011827824L",
-	"recipientPublicKey": "9becd3e545be91f85270d8a796ae3b9e8ec01a8cb479fef46a298b4efd943a0f",
-	"amount": "1",
-	"fee": "10000000",
 	"signature": "5e47a52c998ef3c1868301a1fa716c92a6f56ae74e95df6b1241bca1e72eab0472465f0a1e1870f9b5ad31adfe49ac78f43b9a9eca15eba75a65e4e5e584220c",
 	"signatures": [],
 	"asset": {
+		"amount": "1",
+		"recipientId": "7329472648011827824L",
 		"data": "a"
 	}
 }

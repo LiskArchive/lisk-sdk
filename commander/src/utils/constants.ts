@@ -47,6 +47,8 @@ export const CONFIG_VARIABLES: ReadonlyArray<string> = [
 
 export const API_PROTOCOLS: ReadonlyArray<string> = ['http:', 'https:'];
 
+export const COMMUNITY_IDENTIFIER = 'Lisk';
+
 export const NETHASHES: { readonly [key: string]: string } = {
 	main: MAINNET_NETHASH,
 	test: TESTNET_NETHASH,

@@ -30,22 +30,18 @@ const defaultCreateValues = {
 	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
-	rank: null,
 	fees: '0',
 	rewards: '0',
-	vote: '0',
+	voteWeight: '0',
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
 	asset: {},
+	votedDelegatesPublicKeys: null,
+	membersPublicKeys: null,
 };
 
 const readOnlyFields = ['address'];
-
-const dependentFieldsTableMap = {
-	membersPublicKeys: 'mem_accounts2multisignatures',
-	votedDelegatesPublicKeys: 'mem_accounts2delegates',
-};
 
 const sqlFiles = {
 	create: 'accounts/create.sql',
@@ -55,22 +51,9 @@ const sqlFiles = {
 	resetMemTables: 'accounts/reset_mem_tables.sql',
 	increaseFieldBy: 'accounts/increase_field_by.sql',
 	decreaseFieldBy: 'accounts/decrease_field_by.sql',
-	createDependentRecord: 'accounts/create_dependent_record.sql',
-	createDependentRecords: 'accounts/create_dependent_records.sql',
-	deleteDependentRecord: 'accounts/delete_dependent_record.sql',
-	deleteDependentRecords: 'accounts/delete_dependent_records.sql',
-	deleteAllDependentRecords: 'accounts/delete_all_dependent_records.sql',
-	delegateBlocksRewards: 'accounts/delegate_blocks_rewards.sql',
-	syncDelegatesRank: 'accounts/sync_delegates_rank.sql',
-	insertFork: 'accounts/insert_fork.sql',
 };
 
 class ChainAccount extends AccountEntity {
-	/**
-	 * Constructor
-	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
-	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
-	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -79,14 +62,6 @@ class ChainAccount extends AccountEntity {
 		this.SQLs = this.loadSQLFiles('account', sqlFiles, this.sqlDirectory);
 	}
 
-	/*
-	 * Create account object
-	 *
-	 * @param {Object|Array.<Object>} data
-	 * @param {Object} [_options]
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
-	 */
 	create(data, _options, tx) {
 		assert(data, 'Must provide data to create account');
 		assert(
@@ -104,50 +79,14 @@ class ChainAccount extends AccountEntity {
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
-		const accountCreatePromise = this.adapter.executeFile(
+		return this.adapter.executeFile(
 			this.SQLs.create,
 			{ createSet, fields },
 			{ expectedResultCount: 0 },
 			tx,
 		);
-
-		const dependentRecordsPromsies = [];
-
-		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
-			dependentRecordsPromsies.push(
-				this.updateDependentRecords(
-					'membersPublicKeys',
-					data.address,
-					data.membersPublicKeys,
-					tx,
-				),
-			);
-		}
-
-		if (
-			data.votedDelegatesPublicKeys &&
-			data.votedDelegatesPublicKeys.length > 0
-		) {
-			dependentRecordsPromsies.push(
-				this.updateDependentRecords(
-					'votedDelegatesPublicKeys',
-					data.address,
-					data.votedDelegatesPublicKeys,
-					tx,
-				),
-			);
-		}
-
-		return accountCreatePromise.then(() =>
-			Promise.all(dependentRecordsPromsies),
-		);
 	}
 
-	/**
-	 * Parse account data and parse in default values
-	 * @param {Array[Object}] | Object} data raw database account data
-	 * @return {Array[Object]} Parsed accounts
-	 */
 	static _sanitizeCreateData(data) {
 		let accounts;
 		if (Array.isArray(data)) {
@@ -163,28 +102,26 @@ class ChainAccount extends AccountEntity {
 		}
 
 		accounts = accounts.map(account => {
-			const parsedAccount = _.defaults(account, defaultCreateValues);
+			let parsedAccount = _.defaults(account, defaultCreateValues);
+			parsedAccount = ChainAccount._stringifyVotedDelegates(parsedAccount);
+			parsedAccount = ChainAccount._stringifyMembersPublicKeys(parsedAccount);
 			return parsedAccount;
 		});
 
 		return accounts;
 	}
 
-	/**
-	 * Update the records based on given condition
-	 *
-	 * @param {filters.Account} [filters]
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
-	 * @return {*}
-	 */
 	async update(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 
 		this.validateFilters(filters, atLeastOneRequired);
 
-		const objectData = _.omit(data, readOnlyFields);
+		let sanitizedCreateData = ChainAccount._stringifyVotedDelegates(data);
+		sanitizedCreateData = ChainAccount._stringifyMembersPublicKeys(
+			sanitizedCreateData,
+		);
+
+		const objectData = _.omit(sanitizedCreateData, readOnlyFields);
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -200,68 +137,9 @@ class ChainAccount extends AccountEntity {
 			return false;
 		}
 
-		if (data.membersPublicKeys && data.membersPublicKeys.length > 0) {
-			await this.updateDependentRecords(
-				'membersPublicKeys',
-				filters.address,
-				data.membersPublicKeys,
-				tx,
-			);
-		}
-
-		if (
-			data.votedDelegatesPublicKeys &&
-			data.votedDelegatesPublicKeys.length > 0
-		) {
-			await this.updateDependentRecords(
-				'votedDelegatesPublicKeys',
-				filters.address,
-				data.votedDelegatesPublicKeys,
-				tx,
-			);
-		}
-
-		// Account remove all votes
-		if (
-			data.votedDelegatesPublicKeys &&
-			data.votedDelegatesPublicKeys.length === 0
-		) {
-			await this.adapter.executeFile(
-				this.SQLs.deleteAllDependentRecords,
-				{
-					accountId: filters.address,
-					tableName: dependentFieldsTableMap.votedDelegatesPublicKeys,
-				},
-				{},
-				tx,
-			);
-		}
-
-		// Account remove all multisignatures
-		if (data.membersPublicKeys && data.membersPublicKeys.length === 0) {
-			await this.adapter.executeFile(
-				this.SQLs.deleteAllDependentRecords,
-				{
-					accountId: filters.address,
-					tableName: dependentFieldsTableMap.membersPublicKeys,
-				},
-				{},
-				tx,
-			);
-		}
-
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
 
-	/**
-	 * Update one record based on the condition given
-	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} data
-	 * @param {Object} [options]
-	 * @param {Object} tx - Transaction object
-	 * @return {*}
-	 */
 	updateOne(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
@@ -280,14 +158,6 @@ class ChainAccount extends AccountEntity {
 		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
 	}
 
-	/**
-	 * Delete records with following conditions
-	 *
-	 * @param {filters.Account} filters
-	 * @param {Object} [_options]
-	 * @param {Object} [tx]
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	delete(filters, _options, tx = null) {
 		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
@@ -307,15 +177,6 @@ class ChainAccount extends AccountEntity {
 			.then(result => !result);
 	}
 
-	/**
-	 * Update data based on filters or insert data if no matching record found
-	 *
-	 * @param {filters.Account} filters - Filters to match the object
-	 * @param {Object} data - Object data to be inserted
-	 * @param {Object} [updateData] - If provided will be used for update, otherwise default data will be updated
-	 * @param {Object} [tx] - DB transaction object
-	 * @returns {Promise.<boolean, Error>}
-	 */
 	upsert(filters, data, updateData = {}, tx = null) {
 		const task = t =>
 			this.isPersisted(filters, {}, t).then(dataFound => {
@@ -334,203 +195,18 @@ class ChainAccount extends AccountEntity {
 		return this.begin('storage:account:upsert', task);
 	}
 
-	/**
-	 * Get blocks rewards of delegate for time period.
-	 * TODO: move this method to Delegate entity once implemented
-	 *
-	 * @param {Object} filters = {} - Filters to filter data
-	 * @param {string} filters.generatorPublicKey - Delegate Public Key to calculate reward
-	 * @param {Number} [filters.fromTimestamp] - WHERE timestamp >= fromTimestamp
-	 * @param {Number} [filters.toTimestamp] - WHERE timestamp <= toTimestamp
-	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<DatabaseRow, Error>}
-	 */
-	delegateBlocksRewards(filters, tx) {
-		assert(
-			filters && filters.generatorPublicKey,
-			'filters must be an object and contain generatorPublicKey',
-		);
-
-		const parseFilters = {
-			generatorPublicKey: filters.generatorPublicKey,
-			fromTimestamp: filters.fromTimestamp,
-			toTimestamp: filters.toTimestamp,
-		};
-
-		return this.adapter.executeFile(
-			this.SQLs.delegateBlocksRewards,
-			parseFilters,
-			{},
-			tx,
-		);
-	}
-
-	/**
-	 * Clear data in memory tables:
-	 * - mem_accounts
-	 * - rounds_rewards
-	 * - mem_round
-	 * - mem_accounts2delegates
-	 * - mem_accounts2multisignatures
-	 *
-	 * @param {Object} tx - DB transaction object
-	 * @returns {Promise}
-	 */
 	resetMemTables(tx) {
 		return this.adapter.executeFile(this.SQLs.resetMemTables, {}, {}, tx);
 	}
 
-	/**
-	 * Increase a field value in mem_accounts.
-	 *
-	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to increase
-	 * @param {Number|string} value - Value increase
-	 * @param {Object} [tx] - Transaction object
-	 * @returns {Promise}
-	 */
 	increaseFieldBy(filters, field, value, tx) {
 		return this._updateField(filters, field, value, 'increase', tx);
 	}
 
-	/**
-	 * Decrease a field value in mem_accounts.
-	 *
-	 * @param {filters.Account} [filters] - Filters to match the objects
-	 * @param {string} field - Name of the field to decrease
-	 * @param {Number|string} value - Value decrease
-	 * @param {Object} [tx] - Transaction object
-	 * @returns {Promise}
-	 */
 	decreaseFieldBy(filters, field, value, tx) {
 		return this._updateField(filters, field, value, 'decrease', tx);
 	}
 
-	/**
-	 * Create dependent record for the account
-	 *
-	 * @param {string} dependencyName - Name of the dependent table
-	 * @param {string} address - Address of the account
-	 * @param {string} dependentPublicKey - Dependent public id
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
-	 */
-	createDependentRecord(dependencyName, address, dependentPublicKey, tx) {
-		return this._updateDependentRecord(
-			dependencyName,
-			address,
-			dependentPublicKey,
-			'insert',
-			tx,
-		);
-	}
-
-	/**
-	 * Delete dependent record for the account
-	 *
-	 * @param {string} dependencyName - Name of the dependent table
-	 * @param {string} address - Address of the account
-	 * @param {string} dependentPublicKey - Dependent public id
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
-	 */
-	deleteDependentRecord(dependencyName, address, dependentPublicKey, tx) {
-		return this._updateDependentRecord(
-			dependencyName,
-			address,
-			dependentPublicKey,
-			'delete',
-			tx,
-		);
-	}
-
-	/**
-	 * Sync rank for all delegates.
-	 *
-	 * @param {Object} [tx] - Database transaction object
-	 * @returns {Promise}
-	 */
-	syncDelegatesRanks(tx) {
-		return this.adapter.executeFile(this.SQLs.syncDelegatesRank, {}, {}, tx);
-	}
-
-	// TODO: Should create a separate entity to manage forks
-	/**
-	 * Inserts a fork data table entry.
-	 *
-	 * @param {Object} fork
-	 * @param {string} fork.delegatePublicKey
-	 * @param {integer} fork.blockTimestamp
-	 * @param {string} fork.blockId
-	 * @param {integer} fork.blockHeight
-	 * @param {string} fork.previousBlockId
-	 * @param {string} fork.cause
-	 * @param {Object} [tx] - Database transaction
-	 * @returns {Promise}
-	 */
-	insertFork(fork, tx) {
-		return this.adapter.executeFile(
-			this.SQLs.insertFork,
-			fork,
-			{
-				expectedResultCount: 0,
-			},
-			tx,
-		);
-	}
-
-	/**
-	 * Update the dependent records used to manage votes and multisignature account members
-	 *
-	 * @param {string} dependencyName
-	 * @param {string} address
-	 * @param {string} dependentPublicKey
-	 * @param {('insert'|'delete')} mode
-	 * @param {Object} [tx]
-	 * @returns {Promise}
-	 */
-	_updateDependentRecord(
-		dependencyName,
-		address,
-		dependentPublicKey,
-		mode,
-		tx,
-	) {
-		assert(
-			Object.keys(dependentFieldsTableMap).includes(dependencyName),
-			`Invalid dependency name "${dependencyName}" provided.`,
-		);
-		const params = {
-			tableName: dependentFieldsTableMap[dependencyName],
-			accountId: address,
-			dependentId: dependentPublicKey,
-		};
-
-		const sql = {
-			insert: this.SQLs.createDependentRecord,
-			delete: this.SQLs.deleteDependentRecord,
-		}[mode];
-
-		return this.adapter.executeFile(
-			sql,
-			params,
-			{
-				expectedResultCount: 0,
-			},
-			tx,
-		);
-	}
-
-	/**
-	 * Update the field value
-	 *
-	 * @param {filters.Account} filters - Filters object
-	 * @param {string} field - Filed name to update
-	 * @param {*} value - Value to be update
-	 * @param {('increase'|'decrease')} mode - Mode of update
-	 * @param {Object} [tx] - Database transaction object
-	 * @returns {Promise}
-	 */
 	_updateField(filters, field, value, mode, tx) {
 		const atLeastOneRequired = true;
 		const validFieldName = Object.keys(this.fields).includes(field);
@@ -563,79 +239,24 @@ class ChainAccount extends AccountEntity {
 		);
 	}
 
-	/**
-	 * Update dependent records for the account
-	 * Delete dependent record for the account
-	 *
-	 * @param {string} dependencyName - Name of the dependent table
-	 * @param {string} address - Address of the account
-	 * @param {string} dependentPublicKey - Dependent public id
-	 * @param {Object} [tx] - Transaction object
-	 * @return {*}
-	 */
-	async updateDependentRecords(
-		dependencyName,
-		address,
-		dependentPublicKeys,
-		tx,
-	) {
-		assert(
-			Object.keys(dependentFieldsTableMap).includes(dependencyName),
-			`Invalid dependency name "${dependencyName}" provided.`,
-		);
-
-		const sqlForDelete = this.SQLs.deleteDependentRecords;
-		const sqlForInsert = this.SQLs.createDependentRecords;
-		const tableName = dependentFieldsTableMap[dependencyName];
-
-		const dependentRecordsForAddress = await this.adapter.execute(
-			`SELECT "dependentId" FROM ${tableName} WHERE "accountId" = $1`,
-			[address],
-		);
-
-		const oldDependentPublicKeys = dependentRecordsForAddress.map(
-			dependentRecord => dependentRecord.dependentId,
-		);
-		const publicKeysToBeRemoved = oldDependentPublicKeys.filter(
-			aPK => !dependentPublicKeys.includes(aPK),
-		);
-		const publicKeysToBeInserted = dependentPublicKeys.filter(
-			aPK => !oldDependentPublicKeys.includes(aPK),
-		);
-		const paramsForDelete = {
-			tableName,
-			accountId: address,
-			dependentIds: publicKeysToBeRemoved,
-		};
-
-		if (publicKeysToBeRemoved.length > 0) {
-			await this.adapter.executeFile(
-				sqlForDelete,
-				paramsForDelete,
-				{ expectedResultCount: 0 },
-				tx,
-			);
+	static _stringifyVotedDelegates(data) {
+		if (data.votedDelegatesPublicKeys) {
+			return {
+				...data,
+				votedDelegatesPublicKeys: JSON.stringify(data.votedDelegatesPublicKeys),
+			};
 		}
+		return data;
+	}
 
-		if (publicKeysToBeInserted.length > 0) {
-			const valuesForInsert = publicKeysToBeInserted.map(dependentId => ({
-				accountId: address,
-				dependentId,
-			}));
-
-			const createSet = this.getValuesSet(
-				valuesForInsert,
-				['accountId', 'dependentId'],
-				{ useRawObject: true },
-			);
-
-			await this.adapter.executeFile(
-				sqlForInsert,
-				{ tableName, createSet },
-				{ expectedResultCount: 0 },
-				tx,
-			);
+	static _stringifyMembersPublicKeys(data) {
+		if (data.membersPublicKeys) {
+			return {
+				...data,
+				membersPublicKeys: JSON.stringify(data.membersPublicKeys),
+			};
 		}
+		return data;
 	}
 }
 

@@ -18,6 +18,7 @@ module.exports = {
 	$id: '#genesisBlock',
 	type: 'object',
 	required: [
+		'communityIdentifier',
 		'version',
 		'totalAmount',
 		'totalFee',
@@ -31,6 +32,9 @@ module.exports = {
 		'blockSignature',
 	],
 	properties: {
+		communityIdentifier: {
+			type: 'string',
+		},
 		version: {
 			type: 'integer',
 			minimum: 0,
@@ -63,7 +67,7 @@ module.exports = {
 			type: 'integer',
 			minimum: 0,
 		},
-		previousBlock: {
+		previousBlockId: {
 			type: ['null', 'string'],
 			format: 'id',
 			minLength: 1,
@@ -73,6 +77,14 @@ module.exports = {
 			type: 'string',
 			format: 'publicKey',
 		},
+		maxHeightPrevoted: {
+			type: 'integer',
+			minimum: 0,
+		},
+		maxHeightPreviouslyForged: {
+			type: 'integer',
+			minimum: 0,
+		},
 		transactions: {
 			type: 'array',
 			items: {
@@ -81,11 +93,6 @@ module.exports = {
 				properties: {
 					type: {
 						type: 'integer',
-						enum: [0, 2, 3],
-					},
-					amount: {
-						type: 'string',
-						format: 'amount',
 					},
 					fee: {
 						type: 'string',
@@ -94,18 +101,6 @@ module.exports = {
 					timestamp: {
 						type: 'integer',
 						min: 0,
-					},
-					recipientId: {
-						type: ['string', 'null'],
-						format: 'address',
-						minLength: 1,
-						maxLength: 22,
-					},
-					senderId: {
-						type: 'string',
-						format: 'address',
-						minLength: 1,
-						maxLength: 22,
 					},
 					senderPublicKey: {
 						type: 'string',

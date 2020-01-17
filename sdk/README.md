@@ -3,7 +3,6 @@
 # Lisk SDK
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Join the chat at https://gitter.im/LiskHQ/lisk-sdk](https://badges.gitter.im/LiskHQ/lisk-sdk.svg)](https://gitter.im/LiskHQ/lisk-sdk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Alpha phase
 
@@ -29,7 +28,7 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 
 | Dependencies     | Version |
 | ---------------- | ------- |
-| NodeJS           | 10.4+   |
+| NodeJS           | 12+     |
 | PostgreSQL       | 10+     |
 | Redis (optional) | 5+      |
 
@@ -56,9 +55,9 @@ To create a blockchain application, you need to provide an entry point of your a
 It is quite simple to have a working blockchain application, mirroring the configuration of the existing Lisk network. This can be done by copying the following three lines of code to your `index.js`:
 
 ```js
-const { Application, genesisBlockDevnet } = require('lisk-sdk');
+const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
-const app = new Application(genesisBlockDevnet);
+const app = new Application(genesisBlockDevnet, configDevnet);
 
 app
 	.run()
@@ -96,16 +95,16 @@ For a complete list of configuration options see the [lisk-docs repo](https://gi
 
 ### Register a custom transaction
 
-You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
+You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
 
 Add your custom transaction type to your blockchain application by registering it to the application instance:
 
 ```js
-const { Application, genesisBlockDevnet } = require('lisk-sdk');
+const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
 const MyTransaction = require('./my_transaction');
 
-const app = new Application(genesisBlockDevnet);
+const app = new Application(genesisBlockDevnet, configDevnet);
 
 app.registerTransaction(MyTransaction); // register the custom transaction
 
@@ -118,7 +117,7 @@ app
 	});
 ```
 
-For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
+For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
 
 ## Architecture Overview
 
@@ -136,14 +135,13 @@ The Lisk SDK operates on the NodeJS runtime and consists primarily of an applica
 
 ## Get Involved
 
-| Reason                           | How                                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Want to chat with our community  | [Reach them on Lisk.chat](https://lisk.chat)                                                   |
-| Want to chat with our developers | [Reach them on Gitter](https://gitter.im/LiskHQ/lisk-sdk)                                      |
-| Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
-| Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
-| Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
-| Want to develop with us          | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
+| Reason                          | How                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Want to chat with our community | [Reach them on Discord](https://discord.gg/lisk)                                               |
+| Found a bug                     | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
+| Found a security issue          | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
+| Want to share your research     | [Propose your research](https://research.lisk.io)                                              |
+| Want to develop with us         | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
 
 ## How to Contribute
 

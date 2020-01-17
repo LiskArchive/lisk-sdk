@@ -18,9 +18,16 @@ const {
 	transfer,
 	registerSecondPassphrase,
 } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { TRANSACTION_TYPES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -30,12 +37,14 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 
 	const account = randomUtil.account();
 	const transaction = transfer({
+		networkIdentifier,
 		amount: (1000 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	let transactionWith;
 	const transactionSecondSignature = registerSecondPassphrase({
+		networkIdentifier,
 		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
@@ -76,11 +85,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							transactionSecondSignature,
 							err => {
 								expect(err).to.equal(
-									`Transaction: ${
-										transactionSecondSignature.id
-									} failed at .id: Transaction is already processed: ${
-										transactionSecondSignature.id
-									}`,
+									`Transaction: ${transactionSecondSignature.id} failed at .id: Transaction is already processed: ${transactionSecondSignature.id}`,
 								);
 								done();
 							},
@@ -89,6 +94,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
 						transactionWith = registerSecondPassphrase({
+							networkIdentifier,
 							passphrase: account.passphrase,
 							secondPassphrase: account.secondPassphrase,
 							timeOffset: -10000,
@@ -108,12 +114,8 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
 									const expectedErrors = [
-										`Transaction: ${
-											loadedTransaction.id
-										} failed at .signSignature: Sender does not have a secondPublicKey`,
-										`Transaction: ${
-											loadedTransaction.id
-										} failed at .signatures: Missing signatures `,
+										`Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`,
+										`Transaction: ${loadedTransaction.id} failed at .signatures: Missing signatures `,
 									];
 									expect(err).to.equal(
 										expectedErrors.join(','),
@@ -134,9 +136,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
 									expect(err).to.equal(
-										`Transaction: ${
-											loadedTransaction.id
-										} failed at .signSignature: Sender does not have a secondPublicKey`,
+										`Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`,
 									);
 									done();
 								});

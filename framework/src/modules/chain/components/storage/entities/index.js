@@ -16,12 +16,18 @@
 
 const Account = require('./account');
 const Block = require('./block');
-const Round = require('./round');
+const ChainState = require('./chain_state');
+const ForgerInfo = require('./forger_info');
+const RoundDelegates = require('./round_delegates');
+const TempBlock = require('./temp_block.js');
 const Transaction = require('./transaction');
 
 module.exports = {
 	Account,
 	Block,
-	Round,
+	ChainState,
+	ForgerInfo,
+	RoundDelegates,
+	TempBlock,
 	Transaction,
 };

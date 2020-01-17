@@ -21,41 +21,9 @@ const swaggerHelper = require('../helpers/swagger');
 const { MAX_VOTES_PER_ACCOUNT } = global.constants;
 const { generateParamsErrorObject } = swaggerHelper;
 
-// Private Fields
 let storage;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiCodes.NOT_FOUND
- * @requires helpers/apiError
- * @requires helpers/swagger.generateParamsErrorObject
- * @param {Object} scope - App instance
- * @todo Add description of VotersController
- */
-function VotersController(scope) {
-	({ storage } = scope.components);
-}
-
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-VotersController.getVoters = async function(context, next) {
-	const invalidParams = swaggerHelper.invalidParams(context.request);
-
-	if (invalidParams.length) {
-		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
-	}
-
-	const { params } = context.request.swagger;
-
+const getFilterAndOptionsFormParams = params => {
 	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
@@ -74,6 +42,10 @@ VotersController.getVoters = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 	options = _.pickBy(options, v => !(v === undefined || v === null));
 
+	return { filters, options };
+};
+
+const validateFilters = (filters, params) => {
 	if (
 		!(
 			filters.username ||
@@ -97,7 +69,31 @@ VotersController.getVoters = async function(context, next) {
 			],
 		);
 
-		return next(error);
+		return error;
+	}
+
+	return undefined;
+};
+
+function VotersController(scope) {
+	({ storage } = scope.components);
+}
+
+VotersController.getVoters = async (context, next) => {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
+	const { params } = context.request.swagger;
+
+	const { filters, options } = getFilterAndOptionsFormParams(params);
+
+	const filterError = validateFilters(filters, params);
+
+	if (filterError) {
+		return next(filterError);
 	}
 
 	try {
@@ -106,9 +102,7 @@ VotersController.getVoters = async function(context, next) {
 		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
-		const delegate = await storage.entities.Account.getOne(delegateFilters, {
-			extended: true,
-		});
+		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
 		const data = _.pick(delegate, [
 			'username',
@@ -123,7 +117,7 @@ VotersController.getVoters = async function(context, next) {
 		data.username = data.username || '';
 
 		const voters = await storage.entities.Account.get(
-			{ votedDelegatesPublicKeys_in: [delegate.publicKey] },
+			{ votedDelegatesPublicKeys: `"${delegate.publicKey}"` }, // Need to add quotes for PSQL array search
 			options,
 		);
 
@@ -132,7 +126,7 @@ VotersController.getVoters = async function(context, next) {
 		);
 
 		const votersCount = await storage.entities.Account.count({
-			votedDelegatesPublicKeys_in: [delegate.publicKey],
+			votedDelegatesPublicKeys: `"${delegate.publicKey}"`, // Need to add quotes for PSQL array search
 		});
 
 		data.votes = votersCount;
@@ -153,58 +147,15 @@ VotersController.getVoters = async function(context, next) {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-VotersController.getVotes = async function(context, next) {
+VotersController.getVotes = async (context, next) => {
 	const { params } = context.request.swagger;
 
-	let filters = {
-		address: params.address.value,
-		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
-		username: params.username.value,
-	};
+	const { filters, options } = getFilterAndOptionsFormParams(params);
 
-	let options = {
-		limit: params.limit.value,
-		offset: params.offset.value,
-		sort: params.sort.value,
-		extended: true,
-	};
+	const filterError = validateFilters(filters, params);
 
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-	options = _.pickBy(options, v => !(v === undefined || v === null));
-
-	if (
-		!(
-			filters.username ||
-			filters.address ||
-			filters.publicKey ||
-			filters.secondPublicKey
-		)
-	) {
-		const error = generateParamsErrorObject(
-			[
-				params.address,
-				params.publicKey,
-				params.secondPublicKey,
-				params.username,
-			],
-			[
-				'address is required if publicKey, secondPublicKey and username not provided.',
-				'publicKey is required if address, secondPublicKey and username not provided.',
-				'secondPublicKey is required if address, publicKey and username not provided.',
-				'username is required if publicKey, secondPublicKey and address not provided.',
-			],
-		);
-
-		return next(error);
+	if (filterError) {
+		return next(filterError);
 	}
 
 	try {
@@ -213,9 +164,7 @@ VotersController.getVotes = async function(context, next) {
 		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
-		const delegate = await storage.entities.Account.getOne(delegateFilters, {
-			extended: true,
-		});
+		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
 		const data = _.pick(delegate, [
 			'address',

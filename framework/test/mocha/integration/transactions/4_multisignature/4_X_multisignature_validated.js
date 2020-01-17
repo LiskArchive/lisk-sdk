@@ -17,11 +17,18 @@
 const {
 	transfer,
 	registerMultisignature,
-	utils: transactionUtils,
+	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
-const randomUtil = require('../../../common/utils/random');
-const Scenarios = require('../../../common/scenarios');
+const randomUtil = require('../../../../utils/random');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
 const localCommon = require('../../common');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { TRANSACTION_TYPES } = global.constants;
 
@@ -34,6 +41,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 
 	scenarios.regular.dapp = randomUtil.application();
 	const dappTransaction = transfer({
+		networkIdentifier,
 		passphrase: scenarios.regular.account.passphrase,
 		amount: '1',
 		recipientId: '123L',
@@ -44,11 +52,14 @@ describe('integration test (type 4) - checking registered multisignature transac
 	scenarios.regular.multiSigTransaction.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		const signature = transactionUtils.multiSignTransaction(
-			scenarios.regular.multiSigTransaction,
-			member.passphrase,
+		const sigObject = createSignatureObject({
+			transaction: scenarios.regular.multiSigTransaction,
+			passphrase: member.passphrase,
+			networkIdentifier,
+		});
+		return scenarios.regular.multiSigTransaction.signatures.push(
+			sigObject.signature,
 		);
-		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
 	localCommon.beforeBlock('4_X_multisig_validated', lib => {
@@ -108,6 +119,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 
 		it('adding to pool multisignature registration for same account should fail', done => {
 			const multiSignatureToSameAccount = registerMultisignature({
+				networkIdentifier,
 				passphrase: scenarios.regular.account.passphrase,
 				keysgroup: scenarios.regular.keysgroup,
 				lifetime: scenarios.regular.lifetime,
@@ -116,12 +128,8 @@ describe('integration test (type 4) - checking registered multisignature transac
 			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
 				const expectedErrors = [
-					`Transaction: ${
-						multiSignatureToSameAccount.id
-					} failed at .signatures: Missing signatures `,
-					`Transaction: ${
-						multiSignatureToSameAccount.id
-					} failed at .signatures: Register multisignature only allowed once per account.`,
+					`Transaction: ${multiSignatureToSameAccount.id} failed at .signatures: Missing signatures `,
+					`Transaction: ${multiSignatureToSameAccount.id} failed at .signatures: Register multisignature only allowed once per account.`,
 				];
 				expect(err).to.equal(expectedErrors.join(','));
 				done();

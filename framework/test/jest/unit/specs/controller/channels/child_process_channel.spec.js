@@ -243,9 +243,7 @@ describe('ChildProcessChannel Channel', () => {
 			expect(() =>
 				childProcessChannel.publish(invalidEventName, () => {}),
 			).toThrow(
-				`Event "${invalidEventName}" not registered in "${
-					params.moduleAlias
-				}" module.`,
+				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
 
@@ -298,7 +296,7 @@ describe('ChildProcessChannel Channel', () => {
 			anotherChildProcessChannel.publish(validEventName, data);
 
 			// Assert
-			expect(anotherChildProcessChannel.pubSocket).toBe(undefined);
+			expect(anotherChildProcessChannel.pubSocket).toBeUndefined();
 		});
 	});
 
@@ -332,7 +330,7 @@ describe('ChildProcessChannel Channel', () => {
 			await childProcessChannel.registerToBus(socketsPath);
 
 			// Act
-			await childProcessChannel.cleanup();
+			childProcessChannel.cleanup();
 
 			// Assert
 			expect(childProcessChannel.rpcSocket.close).toHaveBeenCalled();
@@ -401,42 +399,39 @@ describe('ChildProcessChannel Channel', () => {
 		});
 
 		it('should call pubSocket.sock.once with proper arguments', async () => {
-			try {
-				// Act
-				await childProcessChannel._rejectWhenAnySocketFailsToBind();
-			} catch (error) {
-				// Assert
-				expect(childProcessChannel.pubSocket.sock.once).toHaveBeenCalledWith(
-					'error',
-					expect.any(Function),
-				);
-			}
+			// Act && Assert
+			await expect(
+				childProcessChannel._rejectWhenAnySocketFailsToBind(),
+			).toReject();
+
+			expect(childProcessChannel.pubSocket.sock.once).toHaveBeenCalledWith(
+				'error',
+				expect.any(Function),
+			);
 		});
 
 		it('should call subSocket.sock.once with proper arguments', async () => {
-			try {
-				// Act
-				await childProcessChannel._rejectWhenAnySocketFailsToBind();
-			} catch (error) {
-				// Assert
-				expect(childProcessChannel.subSocket.sock.once).toHaveBeenCalledWith(
-					'error',
-					expect.any(Function),
-				);
-			}
+			// Act && Assert
+			await expect(
+				childProcessChannel._rejectWhenAnySocketFailsToBind(),
+			).toReject();
+
+			expect(childProcessChannel.subSocket.sock.once).toHaveBeenCalledWith(
+				'error',
+				expect.any(Function),
+			);
 		});
 
 		it('should call rpcSocket.once with proper arguments', async () => {
-			try {
-				// Act
-				await childProcessChannel._rejectWhenAnySocketFailsToBind();
-			} catch (error) {
-				// Assert
-				expect(childProcessChannel.rpcSocket.once).toHaveBeenCalledWith(
-					'error',
-					expect.any(Function),
-				);
-			}
+			// Act && Assert
+			await expect(
+				childProcessChannel._rejectWhenAnySocketFailsToBind(),
+			).toReject();
+
+			expect(childProcessChannel.rpcSocket.sock.once).toHaveBeenCalledWith(
+				'error',
+				expect.any(Function),
+			);
 		});
 	});
 

@@ -26,14 +26,12 @@ const createDirIfNotExist = filePath => {
 	fs.mkdirSync(dir, { recursive: true });
 };
 
-/**
- *
- * @param {Object} config
- * @param {string} config.logFileName
- * @param {string} config.fileLogLevel
- * @param {string} config.consoleLogLevel
- */
-const createLogger = ({ fileLogLevel, consoleLogLevel, logFileName }) => {
+const createLogger = ({
+	fileLogLevel,
+	consoleLogLevel,
+	logFileName,
+	module,
+}) => {
 	const consoleSrc = consoleLogLevel === 'debug' || consoleLogLevel === 'trace';
 	const consoleStream =
 		consoleLogLevel !== 'none'
@@ -62,6 +60,7 @@ const createLogger = ({ fileLogLevel, consoleLogLevel, logFileName }) => {
 		streams,
 		src: consoleSrc || fileSrc,
 		serializers: { err: bunyan.stdSerializers.err },
+		module,
 	});
 };
 

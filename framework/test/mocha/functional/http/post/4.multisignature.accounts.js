@@ -17,11 +17,18 @@
 require('../../functional');
 
 const { transfer } = require('@liskhq/lisk-transactions');
-const Scenarios = require('../../../common/scenarios');
-const waitFor = require('../../../common/utils/wait_for');
-const apiHelpers = require('../../../common/helpers/api');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const accountFixtures = require('../../../fixtures/accounts');
+const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const accountFixtures = require('../../../../fixtures/accounts');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 const accountsEndpoint = new SwaggerEndpoint('GET /accounts');
@@ -129,6 +136,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		// Send credit to first member
 		const creditMemberTransfer = transfer({
+			networkIdentifier,
 			amount: `${10 * NORMALIZER}`,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: scenarios.some_members_exists.members[0].address,
@@ -213,6 +221,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		const creditTransactionsIds = [];
 		const creditTransactions = members.map(aMember => {
 			const aTransfer = transfer({
+				networkIdentifier,
 				amount,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: aMember.address,

@@ -19,10 +19,8 @@ SELECT
 	trs."type" AS "type",
 	trs."timestamp" AS "timestamp",
 	encode(trs."senderPublicKey", 'hex'::text) AS "senderPublicKey",
-	encode(m."publicKey", 'hex'::text) AS "recipientPublicKey",
 	upper(trs."senderId"::text) AS "senderId",
 	upper(trs."recipientId"::text) AS "recipientId",
-	encode(trs."requesterPublicKey", 'hex'::text) AS "requesterPublicKey",
 	trs."amount" AS "amount",
 	trs."fee" AS "fee",
 	encode(trs."signature", 'hex'::text) AS "signature",
@@ -35,7 +33,6 @@ SELECT
 
 FROM trs
 	LEFT JOIN blocks b ON trs."blockId" = b.id
-	LEFT JOIN mem_accounts m ON trs."recipientId" = m.address
 
 ${parsedFilters:raw}
 

@@ -68,7 +68,6 @@ const config = {
 			delete devConfigCopy.modules.network.minVersion;
 			delete devConfigCopy.modules.network.protocolVersion;
 			delete devConfigCopy.modules.network.nethash;
-			delete devConfigCopy.modules.network.nonce;
 			delete devConfigCopy.modules.network.genesisBlock;
 			delete devConfigCopy.modules.network.constants;
 			delete devConfigCopy.modules.network.lastCommitId;
@@ -92,6 +91,7 @@ const config = {
 
 		// Generate peers for each node
 		configurations.forEach(configuration => {
+			// eslint-disable-next-line no-param-reassign
 			configuration.modules.network.seedPeers = config.generatePeers(
 				configurations,
 				config.SYNC_MODES.ALL_TO_GROUP,
@@ -109,22 +109,21 @@ const config = {
 		);
 		const delegates = _.clone(devConfig.modules.chain.forging.delegates);
 
-		configurations.forEach((configuration, index) => {
+		return configurations.forEach((configuration, index) => {
+			// eslint-disable-next-line no-param-reassign
 			configuration.modules.chain.forging.force = false;
+			// eslint-disable-next-line no-param-reassign
 			configuration.modules.chain.forging.delegates = delegates.slice(
 				index * delegatesMaxLength,
 				(index + 1) * delegatesMaxLength,
 			);
 		});
-
-		return configurations;
 	},
 	generatePM2Configs(configurations, callback) {
 		const configReducer = (pm2Config, configuration) => {
 			const index = pm2Config.apps.length;
-			configuration.components.storage.database = `${
-				configuration.components.storage.database
-			}_${index}`;
+			// eslint-disable-next-line no-param-reassign
+			configuration.components.storage.database = `${configuration.components.storage.database}_${index}`;
 			try {
 				if (!fs.existsSync(`${__dirname}/../configs/`)) {
 					fs.mkdirSync(`${__dirname}/../configs/`);
@@ -135,9 +134,7 @@ const config = {
 				);
 			} catch (ex) {
 				throw new Error(
-					`Failed to write PM2 config for node ${index} to file system because of exception: ${
-						ex.message
-					}`,
+					`Failed to write PM2 config for node ${index} to file system because of exception: ${ex.message}`,
 				);
 			}
 
@@ -175,7 +172,7 @@ const config = {
 		return callback(null, combinedPM2Config);
 	},
 	generatePeers(configurations, syncMode, syncModeArgs, currentPeer) {
-		syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS[syncMode];
+		const localSyncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS[syncMode];
 		let peersList = [];
 
 		const isPickedWithProbability = n => {
@@ -184,13 +181,13 @@ const config = {
 
 		switch (syncMode) {
 			case SYNC_MODES.RANDOM:
-				if (typeof syncModeArgs.probability !== 'number') {
+				if (typeof localSyncModeArgs.probability !== 'number') {
 					throw new Error(
 						'Probability parameter not specified to random sync mode',
 					);
 				}
 				configurations.forEach(configuration => {
-					if (isPickedWithProbability(syncModeArgs.probability)) {
+					if (isPickedWithProbability(localSyncModeArgs.probability)) {
 						if (!(configuration.modules.network.wsPort === currentPeer)) {
 							peersList.push({
 								ip: DEFAULT_PEER_IP,
@@ -214,11 +211,11 @@ const config = {
 				break;
 
 			case SYNC_MODES.ALL_TO_GROUP:
-				if (!Array.isArray(syncModeArgs.indices)) {
+				if (!Array.isArray(localSyncModeArgs.indices)) {
 					throw new Error('Provide peers indices to sync with as an array');
 				}
 				configurations.forEach((configuration, index) => {
-					if (syncModeArgs.indices.indexOf(index) !== -1) {
+					if (localSyncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
 							ip: DEFAULT_PEER_IP,
 							wsPort: configuration.modules.network.wsPort,

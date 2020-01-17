@@ -1,0 +1,40 @@
+{
+	"title": "Valid transfer transaction",
+	"summary": "A valid transfer transaction",
+	"config": "devnet",
+	"runner": "transaction_network_id_and_change_order",
+	"handler": "transfer_transaction_validate",
+	"testCases": {
+		"input": {
+			"account": {
+				"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",
+				"privateKey": "8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"publicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"address": "2129300327344985743L"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"transaction": {
+				"type": 8,
+				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+				"timestamp": 54316324,
+				"asset": {
+					"recipientId": "18141291412139607230L",
+					"amount": "1234567890",
+					"data": "random data"
+				}
+			}
+		},
+		"output": {
+			"type": 8,
+			"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
+			"timestamp": 54316324,
+			"asset": {
+				"recipientId": "18141291412139607230L",
+				"amount": "1234567890",
+				"data": "random data"
+			},
+			"signature": "9fc2b85879b6423893841343c1d8905f3b9118b7db96bbb589df771c35ce0d05ce446951ee827c76ed1a85951af40018a007a1663f1a43a50129a0e32f26cb03",
+			"id": "4466355478346507872"
+		}
+	}
+}

@@ -15,9 +15,16 @@
 'use strict';
 
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -39,6 +46,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			let transaction1;
 			let transaction2;
 			transaction = transfer({
+				networkIdentifier,
 				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -58,6 +66,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			describe('with two different accounts using same username', () => {
 				before(done => {
 					transaction = transfer({
+						networkIdentifier,
 						amount: (1000 * NORMALIZER).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
@@ -67,6 +76,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = registerDelegate({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						username: account.username,
 					});
@@ -78,6 +88,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
 					transaction2 = registerDelegate({
+						networkIdentifier,
 						passphrase: account2.passphrase,
 						username: account.username,
 					});
@@ -136,9 +147,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 					it('adding to pool delegate registration with already registered username should fail', done => {
 						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal(
-								`Transaction: ${
-									transaction2.id
-								} failed at .asset.delegate.username: Username is not unique.`,
+								`Transaction: ${transaction2.id} failed at .asset.username: Username is not unique.`,
 							);
 							done();
 						});
@@ -146,15 +155,14 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 					it('adding to pool delegate registration from same account should fail', done => {
 						const transaction3 = registerDelegate({
+							networkIdentifier,
 							passphrase: account.passphrase,
 							username: randomUtil.username(),
 							timeOffset: -10000,
 						});
 						localCommon.addTransaction(library, transaction3, err => {
 							expect(err).to.equal(
-								`Transaction: ${
-									transaction3.id
-								} failed at .asset.delegate.username: Account is already a delegate`,
+								`Transaction: ${transaction3.id} failed at .asset.username: Account is already a delegate`,
 							);
 							done();
 						});

@@ -15,9 +15,14 @@
 'use strict';
 
 const { transfer } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../fixtures/accounts');
-const randomUtil = require('../../common/utils/random');
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../utils/random');
 const localCommon = require('../common');
+const { getNetworkIdentifier } = require('../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -35,6 +40,7 @@ describe('integration test (type 0) - double transfers', () => {
 		describe('executing 30 times', () => {
 			const account = randomUtil.account();
 			const transaction = transfer({
+				networkIdentifier,
 				amount: (1100 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -55,6 +61,7 @@ describe('integration test (type 0) - double transfers', () => {
 
 			it('adding to pool transfer should be ok', done => {
 				transaction1 = transfer({
+					networkIdentifier,
 					amount: (1000 * NORMALIZER).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
@@ -68,6 +75,7 @@ describe('integration test (type 0) - double transfers', () => {
 
 			it('adding to pool same transfer with different timestamp should be ok', done => {
 				transaction2 = transfer({
+					networkIdentifier,
 					amount: (1000 * NORMALIZER).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
@@ -118,11 +126,7 @@ describe('integration test (type 0) - double transfers', () => {
 				it('adding to pool transfer for same account should fail', done => {
 					localCommon.addTransaction(library, transaction2, err => {
 						expect(err).to.be.equal(
-							`Transaction: ${
-								transaction2.id
-							} failed at .balance: Account does not have enough LSK: ${
-								account.address
-							}, balance: 99.9`,
+							`Transaction: ${transaction2.id} failed at .balance: Account does not have enough LSK: ${account.address}, balance: 99.9`,
 						);
 						done();
 					});

@@ -36,9 +36,7 @@ export class TransactionError extends Error {
 	}
 
 	public toString(): string {
-		const defaultMessage = `Transaction: ${this.id} failed at ${
-			this.dataPath
-		}: ${this.message}`;
+		const defaultMessage = `Transaction: ${this.id} failed at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
 			? `${defaultMessage}, actual: ${this.actual}`
 			: defaultMessage;
@@ -65,9 +63,7 @@ export class TransactionPendingError extends TransactionError {
 	}
 
 	public toString(): string {
-		return `Transaction: ${this.id} failed at ${this.dataPath}: ${
-			this.message
-		} `;
+		return `Transaction: ${this.id} failed at ${this.dataPath}: ${this.message} `;
 	}
 }
 
@@ -78,6 +74,7 @@ interface ErrorObject {
 
 export const convertToTransactionError = (
 	id: string,
+	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {
@@ -96,6 +93,7 @@ export const convertToTransactionError = (
 
 export const convertToAssetError = (
 	id: string,
+	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {

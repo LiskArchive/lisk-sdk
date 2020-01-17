@@ -17,6 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
+
 import BaseCommand from '../../base';
 import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from '../../utils/constants';
 import {
@@ -45,6 +46,7 @@ import { describeApplication, registerApplication } from '../../utils/core/pm2';
 import { getReleaseInfo } from '../../utils/core/release';
 import { download, downloadAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
+
 import StartCommand from './start';
 
 interface Flags {

@@ -20,13 +20,20 @@ const {
 	registerSecondPassphrase,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
-const phases = require('../../../common/phases');
-const accountFixtures = require('../../../fixtures/accounts');
-const apiHelpers = require('../../../common/helpers/api');
-const randomUtil = require('../../../common/utils/random');
-const waitFor = require('../../../common/utils/wait_for');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const accountFixtures = require('../../../../fixtures/accounts');
+const apiHelpers = require('../../../../utils/http/api');
+const randomUtil = require('../../../../utils/random');
+const waitFor = require('../../../../utils/legacy/wait_for');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -45,16 +52,19 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	// Crediting accounts
 	before(() => {
 		const transaction1 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		const transaction2 = transfer({
+			networkIdentifier,
 			amount: FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		const transaction3 = transfer({
+			networkIdentifier,
 			amount: FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountNoSecondPassphrase.address,
@@ -80,12 +90,13 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	});
 
 	describe('schema validations', () => {
-		common.invalidAssets('signature', badTransactions);
+		common.invalidAssets('publicKey', badTransactions);
 	});
 
 	describe('transactions processing', () => {
 		it('using second passphrase on a fresh account should fail', async () => {
 			transaction = transfer({
+				networkIdentifier,
 				amount: '1',
 				passphrase: accountNoSecondPassphrase.passphrase,
 				secondPassphrase: accountNoSecondPassphrase.secondPassphrase,
@@ -104,6 +115,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with no funds should fail', async () => {
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: accountNoFunds.passphrase,
 				secondPassphrase: accountNoFunds.secondPassphrase,
 			});
@@ -112,16 +124,43 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 				.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 				.then(res => {
 					expect(res.body.errors[0].message).to.be.equal(
-						`Account does not have enough LSK: ${
-							accountNoFunds.address
-						}, balance: 0`,
+						`Account does not have enough LSK: ${accountNoFunds.address}, balance: 0`,
 					);
 					badTransactions.push(transaction);
 				});
 		});
 
+		it('using network identifier from different network should fail', async () => {
+			const networkIdentifierOtherNetwork =
+				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
+			const transactionFromDifferentNetwork = registerSecondPassphrase({
+				networkIdentifier: networkIdentifierOtherNetwork,
+				passphrase: accountMinimalFunds.passphrase,
+				secondPassphrase: accountMinimalFunds.secondPassphrase,
+				timeOffset: -10000,
+			});
+
+			return apiHelpers
+				.sendTransactionPromise(
+					transactionFromDifferentNetwork,
+					apiCodes.PROCESSING_ERROR,
+				)
+				.then(res => {
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors',
+					);
+
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.include(
+						`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
+					);
+					badTransactions.push(transactionFromDifferentNetwork);
+				});
+		});
+
 		it('with minimal required amount of funds should be ok', async () => {
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: accountMinimalFunds.passphrase,
 				secondPassphrase: accountMinimalFunds.secondPassphrase,
 				timeOffset: -10000,
@@ -135,6 +174,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with valid params should be ok', async () => {
 			transaction = registerSecondPassphrase({
+				networkIdentifier,
 				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});

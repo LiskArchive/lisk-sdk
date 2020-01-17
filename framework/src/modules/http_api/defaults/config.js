@@ -47,7 +47,7 @@ const defaultConfig = {
 					type: 'array',
 					env: {
 						variable: 'LISK_API_WHITELIST',
-						formatter: 'stringToIpPortSet',
+						formatter: 'stringToIpList',
 					},
 				},
 			},
@@ -144,7 +144,7 @@ const defaultConfig = {
 							type: 'array',
 							env: {
 								variable: 'LISK_FORGING_WHITELIST',
-								formatter: 'stringToIpPortSet',
+								formatter: 'stringToIpList',
 							},
 						},
 					},
@@ -152,6 +152,27 @@ const defaultConfig = {
 				},
 			},
 			required: ['access'],
+		},
+		apm: {
+			type: 'object',
+			properties: {
+				enabled: {
+					type: 'boolean',
+				},
+				options: {
+					type: 'object',
+					properties: {
+						name: {
+							type: 'string',
+						},
+						uriPath: {
+							type: 'string',
+						},
+					},
+					required: ['name', 'uriPath'],
+				},
+			},
+			required: ['enabled', 'options'],
 		},
 	},
 	required: [
@@ -199,6 +220,13 @@ const defaultConfig = {
 		forging: {
 			access: {
 				whiteList: ['127.0.0.1'],
+			},
+		},
+		apm: {
+			enabled: false,
+			options: {
+				name: 'Lisk-APM',
+				uriPath: '/http-stats',
 			},
 		},
 	},

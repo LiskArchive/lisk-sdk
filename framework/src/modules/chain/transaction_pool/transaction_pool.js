@@ -14,6 +14,7 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const EventEmitter = require('events');
 const _ = require('lodash');
 const pool = require('@liskhq/lisk-transaction-pool');
@@ -21,9 +22,7 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { sortBy } = require('./sort');
-const transactionsModule = require('../transactions');
 
 const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
 const EVENT_MULTISIGNATURE_SIGNATURE = 'EVENT_MULTISIGNATURE_SIGNATURE';
@@ -48,22 +47,9 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	return addTransactionResponse;
 };
 
-/**
- * Transaction pool logic. Initializes variables,
- *
- * @class
- * @memberof logic
- * @see Parent: {@link logic}
- * @requires async
- * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling
- * @param {number} releaseLimit - Release limit for transactions broadcasts, used for bundling
- * @param {Object} logger - Logger instance
- * @param {Object} config - config variable
- */
 class TransactionPool extends EventEmitter {
 	constructor({
 		storage,
-		exceptions,
 		blocks,
 		slots,
 		logger,
@@ -86,53 +72,17 @@ class TransactionPool extends EventEmitter {
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 
-		this.validateTransactions = transactionsModule.validateTransactions(
-			this.exceptions,
-		);
-		this.verifyTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkAllowedTransactions(() => {
-				const { version, height, timestamp } = this.blocks.lastBlock;
-				return {
-					blockVersion: version,
-					blockHeight: height,
-					blockTimestamp: timestamp,
-				};
-			}), // TODO: probably wrong
-			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.verifyTransactions(storage, slots, exceptions),
-		);
-		this.processTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.applyTransactions(storage, exceptions),
-		);
+		this.validateTransactions = transactions =>
+			this.blocks.validateTransactions(transactions);
+		this.verifyTransactions = transactions =>
+			this.blocks.verifyTransactions(transactions);
+		this.processTransactions = transactions =>
+			this.blocks.processTransactions(transactions);
 
-		const poolConfig = {
-			expireTransactionsInterval: this.expireTransactionsInterval,
-			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
-			receivedTransactionsLimitPerProcessing: this.bundleLimit,
-			receivedTransactionsProcessingInterval: this.bundledInterval,
-			validatedTransactionsLimitPerProcessing: this.bundleLimit,
-			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
-			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: this.maxTransactionsPerBlock,
-		};
-
-		const poolDependencies = {
-			validateTransactions: this.validateTransactions,
-			verifyTransactions: this.verifyTransactions,
-			processTransactions: this.processTransactions,
-		};
-
-		this.pool = new pool.TransactionPool({
-			...poolConfig,
-			...poolDependencies,
-		});
-
-		this.subscribeEvents();
+		this._resetPool();
 	}
 
-	resetPool() {
+	_resetPool() {
 		const poolConfig = {
 			expireTransactionsInterval: this.expireTransactionsInterval,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
@@ -187,14 +137,16 @@ class TransactionPool extends EventEmitter {
 						transaction => transaction.id,
 					)}`,
 				);
+
+				const queueSizes = Object.keys(this.pool._queues)
+					.map(
+						queueName =>
+							`${queueName} size: ${this.pool._queues[queueName].size()}`,
+					)
+					.join(' ');
+
+				this.logger.info(`Transaction pool - ${queueSizes}`);
 			}
-			const queueSizes = Object.keys(this.pool._queues)
-				.map(
-					queueName =>
-						`${queueName} size: ${this.pool._queues[queueName].size()}`,
-				)
-				.join(' ');
-			this.logger.info(`Transaction pool - ${queueSizes}`);
 		});
 	}
 
@@ -212,13 +164,14 @@ class TransactionPool extends EventEmitter {
 		if (!transaction) {
 			const message =
 				'Unable to process signature, corresponding transaction not found';
-			this.logger.error(message, { signature });
+			this.logger.error({ signature }, message);
 			throw [new TransactionError(message, '', '.signature')];
 		}
 
-		const transactionResponse = await transactionsModule.processSignature(
-			this.storage,
-		)(transaction, signature);
+		const transactionResponse = await this.blocks.processSignature(
+			transaction,
+			signature,
+		);
 		if (
 			transactionResponse.status === TransactionStatus.FAIL &&
 			transactionResponse.errors.length > 0
@@ -240,69 +193,26 @@ class TransactionPool extends EventEmitter {
 		return this.pool.queues[pendingQueue].index[id];
 	}
 
-	/**
-	 * Gets unconfirmed transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getUnconfirmedTransactionList(reverse, limit) {
 		return this.getTransactionsList(readyQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets bundled transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getBundledTransactionList(reverse, limit) {
 		return this.getTransactionsList(receivedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets queued transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getQueuedTransactionList(reverse, limit) {
 		return this.getTransactionsList(verifiedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets validated transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getValidatedTransactionList(reverse, limit) {
 		return this.getTransactionsList(validatedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets received transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of bundled transactions
-	 */
 	getReceivedTransactionList(reverse, limit) {
 		return this.getTransactionsList(receivedQueue, reverse, limit);
 	}
 
-	/**
-	 * Gets multisignature transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @param {boolean} ready - Limits results to transactions deemed "ready"
-	 * @returns {Object[]} Of multisignature transactions
-	 */
 	getMultisignatureTransactionList(reverse, limit, ready) {
 		if (ready) {
 			return this.getTransactionsList(pendingQueue, reverse).filter(
@@ -345,14 +255,6 @@ class TransactionPool extends EventEmitter {
 		await this.pool.processVerifiedTransactions();
 	}
 
-	/**
-	 * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
-	 *
-	 * @param {boolean} reverse - Reverse order of results
-	 * @param {number} limit - Limit applied to results
-	 * @returns {Object[]} Of unconfirmed, multisignatures, queued transactions
-	 * @todo Limit is only implemented with queued transactions, reverse param is unused
-	 */
 	getMergedTransactionList(
 		reverse = false,
 		limit = this.maxSharedTransactions,
@@ -458,24 +360,29 @@ class TransactionPool extends EventEmitter {
 		const transactions = this[typeMap[type]](true);
 		let toSend = [];
 
-		if (filters.recipientPublicKey) {
-			filters.recipientId = getAddressFromPublicKey(filters.recipientPublicKey);
-			delete filters.recipientPublicKey;
-		}
-
 		// Filter transactions
 		if (
 			filters.id ||
-			filters.recipientId ||
-			filters.recipientPublicKey ||
 			filters.senderId ||
+			filters.recipientId ||
 			filters.senderPublicKey ||
-			Object.prototype.hasOwnProperty.call(filters, 'type')
+			typeof filters.type === 'number'
 		) {
-			toSend = _.filter(
-				transactions,
-				_.omit(filters, ['limit', 'offset', 'sort']),
-			);
+			const omittedFilters = _.omit(filters, ['limit', 'offset', 'sort']);
+			toSend = transactions.filter(tx => {
+				if (omittedFilters.recipientId) {
+					return (
+						tx.asset && tx.asset.recipientId === omittedFilters.recipientId
+					);
+				}
+
+				return Object.keys(omittedFilters).every(key => {
+					if (key === 'type') {
+						return tx.type === omittedFilters[key];
+					}
+					return tx[key] && tx[key] === omittedFilters[key];
+				});
+			});
 		} else {
 			toSend = _.cloneDeep(transactions);
 		}
@@ -498,7 +405,11 @@ class TransactionPool extends EventEmitter {
 				if (sortAttribute.sortField === 'fee') {
 					return a.fee.minus(b.fee) * sortOrder;
 				}
-				return a.amount.minus(b.amount) * sortOrder;
+				return (
+					(a.asset.amount || new BigNum(0))
+						.minus(b.asset.amount || new BigNum(0))
+						.toNumber() * sortOrder
+				);
 			});
 		} else {
 			toSend = _.orderBy(
@@ -515,6 +426,10 @@ class TransactionPool extends EventEmitter {
 			transactions: toSend,
 			count: transactions.length,
 		};
+	}
+
+	findInTransactionPool(id) {
+		return this.pool.findInTransactionPool(id);
 	}
 }
 

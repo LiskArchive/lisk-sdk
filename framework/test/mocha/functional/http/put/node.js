@@ -16,8 +16,8 @@
 
 require('../../functional');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
-const SwaggerEndpoint = require('../../../common/swagger_spec');
-const apiHelpers = require('../../../common/helpers/api');
+const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
+const apiHelpers = require('../../../../utils/http/api');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -119,12 +119,18 @@ describe('PUT /node/status/forging', () => {
 			forging: true,
 		};
 
-		return updateForgingEndpoint
-			.makeRequest({ data: params }, 200)
+		updateForgingEndpoint.makeRequest({ data: params }, 200).then(res => {
+			expect(res.body.data).to.have.length(1);
+			expect(res.body.data[0].publicKey).to.be.eql(validDelegate.publicKey);
+			expect(res.body.data[0].forging).to.be.eql(true);
+		});
+
+		return forgingStatusEndpoint
+			.makeRequest({ forging: false }, 200)
 			.then(res => {
-				expect(res.body.data).to.have.length(1);
-				expect(res.body.data[0].publicKey).to.be.eql(validDelegate.publicKey);
-				expect(res.body.data[0].forging).to.be.eql(true);
+				expect(res.body.data.filter(d => d.forging === true).length).to.be.eql(
+					0,
+				);
 			});
 	});
 

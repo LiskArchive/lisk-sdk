@@ -15,18 +15,11 @@
 'use strict';
 
 const { config } = require('./defaults');
-const { migrations } = require('./migrations');
+const { migrations } = require('./components');
 const Network = require('./network');
 const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */
-
-/**
- * Network module specification
- *
- * @namespace Framework.Modules
- * @type {module.NetworkModule}
- */
 module.exports = class NetworkModule extends BaseModule {
 	static get alias() {
 		return 'network';
@@ -57,18 +50,23 @@ module.exports = class NetworkModule extends BaseModule {
 			request: {
 				handler: async action => this.network.actions.request(action),
 			},
-			emit: {
-				handler: action => this.network.actions.emit(action),
+			send: {
+				handler: action => this.network.actions.send(action),
 			},
-			getPeers: {
-				handler: action => this.network.actions.getPeers(action),
+			broadcast: {
+				handler: action => this.network.actions.broadcast(action),
 			},
-			getPeersCount: {
-				handler: action => this.network.actions.getPeersCount(action),
+			getConnectedPeers: {
+				handler: () => this.network.actions.getConnectedPeers(),
 			},
-			getUniqueOutboundConnectedPeersCount: {
-				handler: action =>
-					this.network.actions.getUniqueOutboundConnectedPeersCount(action),
+			getDisconnectedPeers: {
+				handler: () => this.network.actions.getDisconnectedPeers(),
+			},
+			requestFromPeer: {
+				handler: async action => this.network.actions.requestFromPeer(action),
+			},
+			applyPenalty: {
+				handler: action => this.network.actions.applyPenalty(action),
 			},
 		};
 	}

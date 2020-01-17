@@ -19,21 +19,9 @@ const Promise = require('bluebird');
 const swaggerHelper = require('../helpers/swagger');
 const { calculateApproval } = require('../helpers/utils');
 
-// Private Fields
 let storage;
 let channel;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiError
- * @requires helpers/swagger.generateParamsErrorObject
- * @param {Object} scope - App instance
- * @todo Add description of AccountsController
- */
 function AccountsController(scope) {
 	({ storage } = scope.components);
 	({ channel } = scope);
@@ -51,22 +39,16 @@ function accountFormatter(totalSupply, account) {
 	if (account.isDelegate) {
 		formattedAccount.delegate = _.pick(account, [
 			'username',
-			'vote',
+			'voteWeight',
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'rank',
 			'productivity',
 		]);
 
-		formattedAccount.delegate.rank = parseInt(
-			formattedAccount.delegate.rank,
-			10,
-		);
-
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(
-			formattedAccount.delegate.vote,
+			formattedAccount.delegate.voteWeight,
 			totalSupply,
 		);
 	}
@@ -77,14 +59,7 @@ function accountFormatter(totalSupply, account) {
 	return formattedAccount;
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getAccounts = async function(context, next) {
+AccountsController.getAccounts = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -164,14 +139,7 @@ async function multiSigAccountFormatter(account) {
 	return result;
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getMultisignatureGroups = async function(context, next) {
+AccountsController.getMultisignatureGroups = async (context, next) => {
 	const address = context.request.swagger.params.address.value;
 
 	if (!address) {
@@ -189,9 +157,7 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
 	};
 
 	try {
-		let account = await storage.entities.Account.getOne(filters, {
-			extended: true,
-		});
+		let account = await storage.entities.Account.getOne(filters);
 		account = await multiSigAccountFormatter(account);
 
 		return next(null, {
@@ -215,17 +181,7 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getMultisignatureMemberships = async function(
-	context,
-	next,
-) {
+AccountsController.getMultisignatureMemberships = async (context, next) => {
 	const address = context.request.swagger.params.address.value;
 
 	if (!address) {
@@ -240,10 +196,7 @@ AccountsController.getMultisignatureMemberships = async function(
 	let account;
 
 	try {
-		account = await storage.entities.Account.getOne(
-			{ address },
-			{ extended: true },
-		);
+		account = await storage.entities.Account.getOne({ address });
 	} catch (error) {
 		if (error.code === 0) {
 			context.statusCode = 404;
@@ -254,8 +207,7 @@ AccountsController.getMultisignatureMemberships = async function(
 
 	try {
 		let groups = await storage.entities.Account.get(
-			{ membersPublicKeys_in: [account.publicKey] },
-			{ extended: true },
+			{ membersPublicKeys: `"${account.publicKey}"` }, // Need to add quotes for PSQL array search
 		);
 
 		groups = await Promise.map(groups, multiSigAccountFormatter);

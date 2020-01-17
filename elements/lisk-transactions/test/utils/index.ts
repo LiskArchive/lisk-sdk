@@ -14,39 +14,19 @@
  */
 import { expect } from 'chai';
 import {
-	checkPublicKeysForDuplicates,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
-	getTransactionBytes,
-	getTransactionHash,
 	getId,
-	getTransactionId,
-	prepareTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	signRawTransaction,
-	signTransaction,
-	multiSignTransaction,
 	validateMultisignatures,
 	validateSignature,
-	verifyTransaction,
-	validateAddress,
-	validateNonTransferAmount,
-	isValidInteger,
-	validateKeysgroup,
-	validatePublicKey,
-	validatePublicKeys,
-	validateTransaction,
 } from '../../src/utils';
 
 describe('transaction utils', () => {
 	describe('exports', () => {
-		it('should have checkPublicKeysForDuplicates', () => {
-			return expect(checkPublicKeysForDuplicates).to.be.a('function');
-		});
-
 		it('should have convertBeddowsToLSK', () => {
 			return expect(convertBeddowsToLSK).to.be.a('function');
 		});
@@ -63,24 +43,8 @@ describe('transaction utils', () => {
 			return expect(getTimeWithOffset).to.be.a('function');
 		});
 
-		it('should have getTransactionBytes', () => {
-			return expect(getTransactionBytes).to.be.a('function');
-		});
-
-		it('should have getTransactionHash', () => {
-			return expect(getTransactionHash).to.be.a('function');
-		});
-
 		it('should have getId', () => {
 			return expect(getId).to.be.a('function');
-		});
-
-		it('should have getTransactionId', () => {
-			return expect(getTransactionId).to.be.a('function');
-		});
-
-		it('should have prepareTransaction', () => {
-			return expect(prepareTransaction).to.be.a('function');
 		});
 
 		it('should have prependMinusToPublicKeys', () => {
@@ -91,56 +55,12 @@ describe('transaction utils', () => {
 			return expect(prependPlusToPublicKeys).to.be.a('function');
 		});
 
-		it('should have signRawTransaction', () => {
-			return expect(signRawTransaction).to.be.a('function');
-		});
-
-		it('should have signTransaction', () => {
-			return expect(signTransaction).to.be.a('function');
-		});
-
-		it('should have multiSignTransaction', () => {
-			return expect(multiSignTransaction).to.be.a('function');
-		});
-
 		it('should have verifySignature', () => {
 			return expect(validateSignature).to.be.a('function');
 		});
 
 		it('should have verifyMultisignatures', () => {
 			return expect(validateMultisignatures).to.be.a('function');
-		});
-
-		it('should have verifyTransaction', () => {
-			return expect(verifyTransaction).to.be.a('function');
-		});
-
-		it('should have validateAddress', () => {
-			return expect(validateAddress).to.be.a('function');
-		});
-
-		it('should have validateNonTransferAmount', () => {
-			return expect(validateNonTransferAmount).to.be.a('function');
-		});
-
-		it('should have isValidInteger', () => {
-			return expect(isValidInteger).to.be.a('function');
-		});
-
-		it('should have validateKeysgroup', () => {
-			return expect(validateKeysgroup).to.be.a('function');
-		});
-
-		it('should have validatePublicKey', () => {
-			return expect(validatePublicKey).to.be.a('function');
-		});
-
-		it('should have validatePublicKeys', () => {
-			return expect(validatePublicKeys).to.be.a('function');
-		});
-
-		it('should have validateTransaction', () => {
-			return expect(validateTransaction).to.be.a('function');
 		});
 	});
 });

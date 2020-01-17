@@ -22,23 +22,7 @@ const Action = require('./action');
 const CONTROLLER_IDENTIFIER = 'app';
 const SOCKET_TIMEOUT_TIME = 2000;
 
-/**
- * Bus responsible to maintain communication between modules
- *
- * @class
- * @memberof framework.controller
- * @requires bluebird
- * @requires eventemitter2
- * @requires module.Action
- */
 class Bus extends EventEmitter2 {
-	/**
-	 * Create the bus object
-	 *
-	 * @param {Object} controller - Controller object
-	 * @param {Object} options - EventEmitter2 native options object
-	 * @see {@link https://github.com/EventEmitter2/EventEmitter2/blob/master/eventemitter2.d.ts|String}
-	 */
 	constructor(options, logger, config) {
 		super(options);
 		this.logger = logger;
@@ -51,12 +35,6 @@ class Bus extends EventEmitter2 {
 		this.rpcClients = {};
 	}
 
-	/**
-	 * Placeholder function.
-	 *
-	 * @async
-	 * @return {Promise.<void>}
-	 */
 	async setup() {
 		if (!this.config.ipc.enabled) {
 			return true;
@@ -102,17 +80,6 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
-	/**
-	 * Register new channel for bus.
-	 *
-	 * @async
-	 * @param {string} moduleAlias - Alias for module used during registration
-	 * @param {Array.<module.Event>} events - List of events
-	 * @param {Array.<module.Action>} actions - List of actions
-	 * @param {Object} options - Options related to registering channel (unused variable)
-	 *
-	 * @throws {Error} If event name is already registered.
-	 */
 	async registerChannel(
 		moduleAlias,
 		events,
@@ -158,13 +125,6 @@ class Bus extends EventEmitter2 {
 		};
 	}
 
-	/**
-	 * Invoke action on bus.
-	 *
-	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
-	 *
-	 * @throws {Error} If action is not registered to bus.
-	 */
 	async invoke(actionData) {
 		const action = Action.deserialize(actionData);
 
@@ -194,13 +154,6 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
-	/**
-	 * Invoke public defined action on bus.
-	 *
-	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
-	 *
-	 * @throws {Error} If action is not registered to bus.
-	 */
 	async invokePublic(actionData) {
 		const action = Action.deserialize(actionData);
 
@@ -219,14 +172,6 @@ class Bus extends EventEmitter2 {
 		return this.invoke(actionData);
 	}
 
-	/**
-	 * Emit event with its data on bus.
-	 *
-	 * @param {string} eventName - Name of the event
-	 * @param {string} eventValue - Attached value for event
-	 *
-	 * @throws {Error} If event name does not exist to bus.
-	 */
 	publish(eventName, eventValue) {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
@@ -273,29 +218,14 @@ class Bus extends EventEmitter2 {
 		}
 	}
 
-	/**
-	 * Get all actions
-	 *
-	 * @return {Array.<module.Action>}
-	 */
 	getActions() {
 		return Object.keys(this.actions);
 	}
 
-	/**
-	 * Get all events
-	 *
-	 * @return {Array.<module.Event>}
-	 */
 	getEvents() {
 		return Object.keys(this.events);
 	}
 
-	/**
-	 * Close all sockets and perform cleanup operations
-	 *
-	 * @returns {Promise<void>}
-	 */
 	async cleanup() {
 		if (this.pubSocket) {
 			this.pubSocket.close();
@@ -308,12 +238,6 @@ class Bus extends EventEmitter2 {
 		}
 	}
 
-	/**
-	 * Wait for all sockets to bind and then resolve the main promise.
-	 *
-	 * @returns {Promise}
-	 * @private
-	 */
 	async _resolveWhenAllSocketsBound() {
 		return Promise.all([
 			new Promise(resolve => {
@@ -340,12 +264,6 @@ class Bus extends EventEmitter2 {
 		]);
 	}
 
-	/**
-	 * Reject if any of the sockets fails to bind
-	 *
-	 * @returns {Promise}
-	 * @private
-	 */
 	async _rejectWhenAnySocketFailsToBind() {
 		return Promise.race([
 			new Promise((_, reject) => {
@@ -366,13 +284,6 @@ class Bus extends EventEmitter2 {
 		]);
 	}
 
-	/**
-	 * Reject if time out
-	 *
-	 * @param {number} timeInMillis
-	 * @returns {Promise}
-	 * @private
-	 */
 	// eslint-disable-next-line class-methods-use-this
 	async _rejectWhenTimeout(timeInMillis) {
 		return new Promise((_, reject) => {

@@ -13,6 +13,7 @@
  *
  */
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+
 import { APIClient } from './api_client';
 import { APIErrorResponse, APIResponse, HashMap } from './api_types';
 import { APIError } from './errors';
@@ -60,7 +61,7 @@ export class APIResource {
 			);
 		}
 
-		return Promise.reject(error);
+		throw error;
 	}
 
 	public async request(
@@ -70,27 +71,25 @@ export class APIResource {
 	): Promise<APIResponse> {
 		const request = Axios.request(req)
 			.then((res: AxiosResponse) => res.data)
-			.catch(
-				(error: AxiosError): void => {
-					if (error.response) {
-						const { status } = error.response;
-						if (error.response.data) {
-							const {
-								error: errorString,
-								errors,
-								message,
-							}: APIErrorResponse = error.response.data;
-							throw new APIError(
-								message || errorString || 'An unknown error has occurred.',
-								status,
-								errors,
-							);
-						}
-						throw new APIError('An unknown error has occurred.', status);
+			.catch((error: AxiosError): void => {
+				if (error.response) {
+					const { status } = error.response;
+					if (error.response.data) {
+						const {
+							error: errorString,
+							errors,
+							message,
+						}: APIErrorResponse = error.response.data;
+						throw new APIError(
+							message || errorString || 'An unknown error has occurred.',
+							status,
+							errors,
+						);
 					}
-					throw error;
-				},
-			);
+					throw new APIError('An unknown error has occurred.', status);
+				}
+				throw error;
+			});
 
 		if (retry) {
 			return request.catch(async (err: Error) =>

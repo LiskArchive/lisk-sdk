@@ -15,9 +15,16 @@
 'use strict';
 
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
 const localCommon = require('../../common');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { NORMALIZER } = global.__testContext.config;
 
@@ -37,6 +44,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			let transaction2;
 			const account = randomUtil.account();
 			const transaction = transfer({
+				networkIdentifier,
 				amount: (1000 * NORMALIZER).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -56,6 +64,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			describe('with same account using same username and different timestamps', () => {
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = registerDelegate({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						username: account.username,
 						timeOffset: -10000,
@@ -68,6 +77,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration from same account with different id should be ok', done => {
 					transaction2 = registerDelegate({
+						networkIdentifier,
 						passphrase: account.passphrase,
 						username: account.username,
 					});
@@ -125,14 +135,13 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 					it('adding to pool delegate registration from same account should fail', done => {
 						transaction2 = registerDelegate({
+							networkIdentifier,
 							passphrase: account.passphrase,
 							username: randomUtil.delegateName(),
 						});
 						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal(
-								`Transaction: ${
-									transaction2.id
-								} failed at .asset.delegate.username: Account is already a delegate`,
+								`Transaction: ${transaction2.id} failed at .asset.username: Account is already a delegate`,
 							);
 							done();
 						});

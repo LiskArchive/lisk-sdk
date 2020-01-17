@@ -24,9 +24,9 @@ const {
 	},
 } = require('../../../../../../src/components/storage');
 
-const storageSandbox = require('../../../../common/storage_sandbox');
-const transactionsFixtures = require('../../../../fixtures').transactions;
-const blocksFixtures = require('../../../../fixtures/blocks');
+const storageSandbox = require('../../../../../utils/storage/storage_sandbox');
+const transactionsFixtures = require('../../../../../fixtures/').transactions;
+const blocksFixtures = require('../../../../../fixtures//blocks');
 
 describe('Block', () => {
 	let adapter;
@@ -95,6 +95,22 @@ describe('Block', () => {
 			'height_lt',
 			'height_lte',
 			'height_ne',
+			'maxHeightPreviouslyForged',
+			'maxHeightPreviouslyForged_eql',
+			'maxHeightPreviouslyForged_ne',
+			'maxHeightPreviouslyForged_gt',
+			'maxHeightPreviouslyForged_gte',
+			'maxHeightPreviouslyForged_lt',
+			'maxHeightPreviouslyForged_lte',
+			'maxHeightPreviouslyForged_in',
+			'maxHeightPrevoted',
+			'maxHeightPrevoted_eql',
+			'maxHeightPrevoted_ne',
+			'maxHeightPrevoted_gt',
+			'maxHeightPrevoted_gte',
+			'maxHeightPrevoted_lt',
+			'maxHeightPrevoted_lte',
+			'maxHeightPrevoted_in',
 			'id',
 			'id_eql',
 			'id_in',

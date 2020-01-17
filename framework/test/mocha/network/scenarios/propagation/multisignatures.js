@@ -19,15 +19,22 @@ const {
 	transfer,
 	registerMultisignature,
 } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
 const {
 	createSignatureObject,
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
-} = require('../../../common/helpers/api');
+} = require('../../../../utils/http/api');
 const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
 
@@ -90,6 +97,7 @@ module.exports = function(configurations, network) {
 						i = (num + 1) % numbers.length;
 						j = (num + 2) % numbers.length;
 						const transaction = registerMultisignature({
+							networkIdentifier,
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,

@@ -14,8 +14,9 @@
  *
  */
 import { APIClient } from '@liskhq/lisk-api-client';
-import * as transactions from '@liskhq/lisk-transactions';
+import { validatePublicKey } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { ValidationError } from '../../utils/error';
@@ -83,7 +84,7 @@ export default class ForgingCommand extends BaseCommand {
 		} = this.parse(ForgingCommand);
 
 		const { status, publicKey }: Args = args;
-		transactions.utils.validatePublicKey(publicKey);
+		validatePublicKey(publicKey);
 
 		const client = getAPIClient(this.userConfig.api);
 		const { password } = await getInputsFromSources({

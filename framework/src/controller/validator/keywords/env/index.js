@@ -47,9 +47,7 @@ const compile = (schema, parentSchema) => {
 				case 'boolean':
 					if (!['true', 'false'].includes(variableValue.toLowerCase())) {
 						throw new Error(
-							`Failed to apply value for option ${
-								envVariable.name
-							}, use "true" or "false"`,
+							`Failed to apply value for option ${envVariable.name}, use "true" or "false"`,
 						);
 					}
 
@@ -57,7 +55,7 @@ const compile = (schema, parentSchema) => {
 			}
 		}
 
-		if (variableValue) {
+		if (variableValue !== undefined) {
 			object[key] = envVariable.formatter
 				? envVariable.formatter(variableValue)
 				: variableValue;

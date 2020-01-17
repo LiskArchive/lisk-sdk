@@ -34,20 +34,17 @@ const {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
 } = require('@liskhq/lisk-p2p');
-const randomstring = require('randomstring');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
-const { filterByParams, consolidatePeers, lookupPeersIPs } = require('./utils');
-const { Peer } = require('./components/storage/entities');
+const { lookupPeersIPs } = require('./utils');
+const { NetworkInfo } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
 
-/**
- * Network Module
- *
- * @namespace Framework.modules.network
- * @type {module.Network}
- */
+const NETWORK_INFO_KEY_NODE_SECRET = 'node_secret';
+const NETWORK_INFO_KEY_TRIED_PEERS = 'tried_peers_list';
+const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
+
 module.exports = class Network {
 	constructor(options) {
 		this.options = options;
@@ -65,7 +62,7 @@ module.exports = class Network {
 			'logger',
 		);
 
-		this.logger = createLoggerComponent(loggerConfig);
+		this.logger = createLoggerComponent({ ...loggerConfig, module: 'network' });
 
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
@@ -78,10 +75,11 @@ module.exports = class Network {
 				: createLoggerComponent({
 						...loggerConfig,
 						logFileName: storageConfig.logFileName,
+						module: 'network:database',
 				  });
 
 		this.storage = createStorageComponent(storageConfig, dbLogger);
-		this.storage.registerEntity('Peer', Peer);
+		this.storage.registerEntity('NetworkInfo', NetworkInfo);
 
 		const status = await this.storage.bootstrap();
 		if (!status) {
@@ -89,29 +87,47 @@ module.exports = class Network {
 		}
 
 		// Load peers from the database that were tried or connected the last time node was running
-		const previousPeers = await this.storage.entities.Peer.get(
-			{},
-			{ limit: null },
+		const previousPeersStr = await this.storage.entities.NetworkInfo.getKey(
+			NETWORK_INFO_KEY_TRIED_PEERS,
 		);
+		let previousPeers = [];
+		try {
+			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
+		} catch (err) {
+			this.logger.error({ err }, 'Failed to parse JSON of previous peers.');
+		}
 
-		this.secret = getRandomBytes(4).readUInt32BE(0);
+		// Get previous secret if exists
+		const secret = await this.storage.entities.NetworkInfo.getKey(
+			NETWORK_INFO_KEY_NODE_SECRET,
+		);
+		if (!secret) {
+			this.secret = getRandomBytes(4).readUInt32BE(0);
+			await this.storage.entities.NetworkInfo.setKey(
+				NETWORK_INFO_KEY_NODE_SECRET,
+				this.secret,
+			);
+		} else {
+			this.secret = Number(secret);
+		}
 
-		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
-		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
-		const moduleNonce = randomstring.generate(16);
-		const sanitizeNodeInfo = nodeInfo => ({
-			...nodeInfo,
-			state: 2, // TODO: Delete state property
-			nonce: moduleNonce,
-			wsPort: this.options.wsPort,
-		});
+		const sanitizeNodeInfo = nodeInfo => {
+			const { nethash, ...restOfNodeInfo } = nodeInfo;
+
+			return {
+				...restOfNodeInfo,
+				networkId: nethash,
+				wsPort: this.options.wsPort,
+				advertiseAddress: this.options.advertiseAddress,
+			};
+		};
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('app:getApplicationState'),
 		);
 
 		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
-		const blacklistedPeers = this.options.blacklistedPeers || [];
+		const blacklistedIPs = this.options.blacklistedIPs || [];
 
 		const fixedPeers = this.options.fixedPeers
 			? this.options.fixedPeers.map(peer => ({
@@ -129,29 +145,20 @@ module.exports = class Network {
 
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
-			hostAddress: this.options.address,
-			blacklistedPeers,
+			hostIp: this.options.hostIp,
+			blacklistedIPs,
 			fixedPeers,
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
-			previousPeers: previousPeers.map(peer => {
-				const { ip, ...strippedPeer } = peer;
-
-				return {
-					ipAddress: ip,
-					...strippedPeer,
-				};
-			}),
-			discoveryInterval: this.options.discoveryInterval,
+			previousPeers,
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,
 			peerBanTime: this.options.peerBanTime,
 			populatorInterval: this.options.populatorInterval,
-			sendPeerLimit: this.options.emitPeerLimit,
-			peerDiscoveryResponseLength: this.options.peerDiscoveryResponseLength,
+			sendPeerLimit: this.options.sendPeerLimit,
 			maxPeerDiscoveryResponseLength: this.options
 				.maxPeerDiscoveryResponseLength,
 			maxPeerInfoSize: this.options.maxPeerInfoSize,
@@ -163,7 +170,14 @@ module.exports = class Network {
 
 		this.channel.subscribe('app:state:updated', event => {
 			const newNodeInfo = sanitizeNodeInfo(event.data);
-			this.p2p.applyNodeInfo(newNodeInfo);
+			try {
+				this.p2p.applyNodeInfo(newNodeInfo);
+			} catch (error) {
+				this.logger.error(
+					`Applying NodeInfo failed because of error: ${error.message ||
+						error}`,
+				);
+			}
 		});
 
 		// ---- START: Bind event handlers ----
@@ -174,45 +188,55 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
 			this.logger.debug(
-				`Peer disconnect event: Outbound connection of peer ${
-					closePacket.peerInfo.ipAddress
-				}:${closePacket.peerInfo.wsPort} was closed with code ${
-					closePacket.code
-				} and reason: ${closePacket.reason}`,
+				{
+					ipAddress: closePacket.peerInfo.ipAddress,
+					wsPort: closePacket.peerInfo.wsPort,
+					code: closePacket.code,
+					reason: closePacket.reason,
+				},
+				'EVENT_CLOSE_OUTBOUND: Close outbound peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_CLOSE_INBOUND, closePacket => {
 			this.logger.debug(
-				`Inbound connection of peer ${closePacket.peerInfo.ipAddress}:${
-					closePacket.peerInfo.wsPort
-				} was closed with code ${closePacket.code} and reason: ${
-					closePacket.reason
-				}`,
+				{
+					ipAddress: closePacket.peerInfo.ipAddress,
+					wsPort: closePacket.peerInfo.wsPort,
+					code: closePacket.code,
+					reason: closePacket.reason,
+				},
+				'EVENT_CLOSE_INBOUND: Close inbound peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
-			this.logger.info(
-				`Peer connect event: Connected to peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				}`,
+			this.logger.debug(
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_CONNECT_OUTBOUND: Outbound peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
 			this.logger.trace(
-				`New peer found event: Discovered peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				}`,
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_DISCOVERED_PEER: Discovered peer connection',
 			);
 		});
 
 		this.p2p.on(EVENT_NEW_INBOUND_PEER, peerInfo => {
 			this.logger.debug(
-				`New inbound peer event: Connected from peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				} ${JSON.stringify(peerInfo)}`,
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_NEW_INBOUND_PEER: Inbound peer connection',
 			);
 		});
 
@@ -234,9 +258,12 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
 			this.logger.trace(
-				`Peer update info event: Updated info of peer ${peerInfo.ipAddress}:${
-					peerInfo.wsPort
-				} to ${JSON.stringify(peerInfo)}`,
+				{
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				},
+				'EVENT_UPDATED_PEER_INFO: Update peer info',
+				JSON.stringify(peerInfo),
 			);
 		});
 
@@ -246,9 +273,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
 			this.logger.trace(
-				`Incoming request event: Received inbound request for procedure ${
-					request.procedure
-				}`,
+				`EVENT_REQUEST_RECEIVED: Received inbound request for procedure ${request.procedure}`,
 			);
 			// If the request has already been handled internally by the P2P library, we ignore.
 			if (request.wasResponseSent) {
@@ -260,14 +285,12 @@ module.exports = class Network {
 				? request.procedure
 				: `chain:${request.procedure}`;
 			try {
-				const result = await this.channel.invokePublic(
-					sanitizedProcedure,
-					request.data,
-				);
+				const result = await this.channel.invokePublic(sanitizedProcedure, {
+					data: request.data,
+					peerId: request.peerId,
+				});
 				this.logger.trace(
-					`Peer request fulfilled event: Responded to peer request ${
-						request.procedure
-					}`,
+					`Peer request fulfilled event: Responded to peer request ${request.procedure}`,
 				);
 				request.end(result); // Send the response back to the peer.
 			} catch (error) {
@@ -282,30 +305,47 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
 			this.logger.trace(
-				`Message received event: Received inbound message for event ${
-					packet.event
-				}`,
+				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${packet.peerId} for event ${packet.event}`,
 			);
 			this.channel.publish('network:event', packet);
 		});
 
 		this.p2p.on(EVENT_BAN_PEER, peerId => {
-			this.logger.error(`Peer ${peerId} has been temporarily banned.`);
+			this.logger.error(
+				{ peerId },
+				'EVENT_MESSAGE_RECEIVED: Peer has been banned temporarily',
+			);
 		});
 
 		this.p2p.on(EVENT_UNBAN_PEER, peerId => {
-			this.logger.error(`Ban on peer ${peerId} has expired.`);
+			this.logger.error(
+				{ peerId },
+				'EVENT_MESSAGE_RECEIVED: Peer ban has expired',
+			);
 		});
+
+		setInterval(async () => {
+			const triedPeers = this.p2p.getTriedPeers();
+			if (triedPeers.length) {
+				await this.storage.entities.NetworkInfo.setKey(
+					NETWORK_INFO_KEY_TRIED_PEERS,
+					JSON.stringify(triedPeers),
+				);
+			}
+		}, DEFAULT_PEER_SAVE_INTERVAL);
 
 		// ---- END: Bind event handlers ----
 
 		try {
 			await this.p2p.start();
 		} catch (error) {
-			this.logger.fatal('Network initialization', {
-				message: error.message,
-				stack: error.stack,
-			});
+			this.logger.fatal(
+				{
+					message: error.message,
+					stack: error.stack,
+				},
+				'Failed to initialize network',
+			);
 			process.emit('cleanup', error);
 		}
 	}
@@ -317,7 +357,7 @@ module.exports = class Network {
 					procedure: action.params.procedure,
 					data: action.params.data,
 				}),
-			emit: action =>
+			send: action =>
 				this.p2p.send({
 					event: action.params.event,
 					data: action.params.data,
@@ -330,7 +370,7 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
-			emitToPeer: action =>
+			sendToPeer: action =>
 				this.p2p.sendToPeer(
 					{
 						event: action.params.event,
@@ -338,62 +378,40 @@ module.exports = class Network {
 					},
 					action.params.peerId,
 				),
-			getPeers: action => {
-				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getConnectedPeers(),
-					disconnectedPeers: this.p2p.getDisconnectedPeers(),
-				});
+			broadcast: action =>
+				this.p2p.broadcast({
+					event: action.params.event,
+					data: action.params.data,
+				}),
+			getConnectedPeers: () =>
+				this.p2p.getConnectedPeers().map(peerInfo => {
+					const { networkId, ...peerInfoNethash } = peerInfo;
 
-				return filterByParams(peers, action.params);
-			},
-			getPeersCount: action => {
-				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getConnectedPeers(),
-					disconnectedPeers: this.p2p.getDisconnectedPeers(),
-				});
+					return {
+						...peerInfoNethash,
+						nethash: networkId,
+					};
+				}),
+			getDisconnectedPeers: () =>
+				this.p2p.getDisconnectedPeers().map(peerInfo => {
+					const { networkId, ...peerInfoNethash } = peerInfo;
 
-				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
-
-				return filterByParams(peers, filterWithoutLimitOffset).length;
-			},
-			getUniqueOutboundConnectedPeersCount: action => {
-				const peers = consolidatePeers({
-					connectedPeers: this.p2p.getUniqueOutboundConnectedPeers(),
-				});
-
-				const { limit, offset, ...filterWithoutLimitOffset } = action.params;
-
-				return filterByParams(peers, filterWithoutLimitOffset).length;
-			},
+					return {
+						...peerInfoNethash,
+						nethash: networkId,
+					};
+				}),
 			applyPenalty: action =>
-				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
+				this.p2p.applyPenalty({
+					peerId: action.params.peerId,
+					penalty: action.params.penalty,
+				}),
 		};
 	}
 
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
-		// TODO: In phase 2, only previousPeers will be saved to database
 		this.logger.info('Cleaning network...');
-
-		const peersToSave = this.p2p.getConnectedPeers().map(peer => {
-			const { ipAddress, ...peerWithoutIp } = peer;
-
-			return {
-				ip: ipAddress,
-				...peerWithoutIp,
-				state: peerWithoutIp.state ? peerWithoutIp.state : 2,
-				protocolVersion: peerWithoutIp.protocolVersion
-					? peerWithoutIp.protocolVersion
-					: '',
-			};
-		});
-		// Add new peers that have been tried
-		if (peersToSave.length !== 0) {
-			// First delete all the previously saved peers
-			await this.storage.entities.Peer.delete();
-			await this.storage.entities.Peer.create(peersToSave);
-			this.logger.info('Saved all the peers to DB that have been tried');
-		}
 
 		return this.p2p.stop();
 	}

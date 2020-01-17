@@ -17,11 +17,13 @@
 const BigNum = require('@liskhq/bignum');
 const cryptography = require('@liskhq/lisk-cryptography');
 const transactions = require('@liskhq/lisk-transactions');
+const validator = require('@liskhq/lisk-validator');
 const {
 	Application,
 	version,
 	systemDirs,
 	configurator,
+	BaseModule,
 } = require('lisk-framework');
 
 const samples = require('./samples');
@@ -31,8 +33,10 @@ module.exports = {
 	version,
 	systemDirs,
 	configurator,
+	BaseModule,
 	BigNum,
 	cryptography,
 	transactions,
+	validator,
 	...samples,
 };

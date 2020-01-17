@@ -14,11 +14,6 @@
 
 'use strict';
 
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-	// eslint-disable-next-line global-require
-	require('./helpers/newrelic_lisk');
-}
-
 const { createLoggerComponent } = require('../../components/logger');
 const {
 	createCacheComponent,
@@ -37,6 +32,8 @@ const {
 	bootstrapCache,
 } = require('./init_steps');
 
+const TRANSACTION_TYPES_DELEGATE = [2, 10];
+
 module.exports = class HttpApi {
 	constructor(channel, options) {
 		options.root = __dirname; // TODO: See wy root comes defined for the chain module.
@@ -48,14 +45,16 @@ module.exports = class HttpApi {
 
 	async bootstrap() {
 		global.constants = this.options.constants;
-		const { TRANSACTION_TYPES } = global.constants;
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
 			'logger',
 		);
-		this.logger = createLoggerComponent(loggerConfig);
+		this.logger = createLoggerComponent({
+			...loggerConfig,
+			module: 'http_api',
+		});
 
 		// Cache
 		this.logger.debug('Initiating cache...');
@@ -75,11 +74,11 @@ module.exports = class HttpApi {
 			storageConfig.logFileName &&
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
-				: createLoggerComponent(
-						Object.assign({}, loggerConfig, {
-							logFileName: storageConfig.logFileName,
-						}),
-				  );
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+						module: 'http_api:database',
+				  });
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
 		const applicationState = await this.channel.invoke(
@@ -127,7 +126,8 @@ module.exports = class HttpApi {
 				// If there was a delegate registration clear delegates cache too
 				const delegateTransaction = transactions.find(
 					transaction =>
-						!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE,
+						!!transaction &&
+						TRANSACTION_TYPES_DELEGATE.includes(transaction.type),
 				);
 				if (delegateTransaction) {
 					keysToClear.push(CACHE_KEYS_DELEGATES);
@@ -194,12 +194,13 @@ module.exports = class HttpApi {
 				this.scope.components.cache.removeByPattern(key),
 			);
 			try {
-				this.logger.info(
-					`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on '${eventInfo}'`,
+				this.logger.trace(
+					{ cacheKeysToClear, eventInfo },
+					'Cache - clear cache keys',
 				);
 				await Promise.all(tasks);
 			} catch (error) {
-				this.logger.error(`Cache - Error clearing keys on new Block: ${error}`);
+				this.logger.error(error, 'Cache - Error clearing keys on new Block');
 			}
 		}
 	}

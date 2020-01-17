@@ -18,14 +18,21 @@ require('../../functional');
 const BigNum = require('@liskhq/bignum');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
-const accountFixtures = require('../../../fixtures/accounts');
-const phases = require('../../../common/phases');
-const randomUtil = require('../../../common/utils/random');
-const waitFor = require('../../../common/utils/wait_for');
-const elements = require('../../../common/utils/elements');
-const apiHelpers = require('../../../common/helpers/api');
+const accountFixtures = require('../../../../fixtures/accounts');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const randomUtil = require('../../../../utils/random');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const elements = require('../../../../utils/elements');
+const apiHelpers = require('../../../../utils/http/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -47,11 +54,13 @@ describe.skip('POST /api/transactions (type 7) outTransfer dapp', () => {
 	// Crediting accounts
 	before(() => {
 		const transaction1 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		const transaction2 = transfer({
+			networkIdentifier,
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
@@ -685,9 +694,9 @@ describe.skip('POST /api/transactions (type 7) outTransfer dapp', () => {
 		it('transaction should be rejected', async () => {
 			transaction = {
 				amount: '100000000',
-				recipientId: '16313739661670634666L',
+				recipientId: '11237980039345381032L',
 				senderPublicKey:
-					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+					'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 				timestamp: 60731685,
 				type: 7,
 				fee: '10000000',

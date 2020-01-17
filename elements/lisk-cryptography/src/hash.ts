@@ -13,6 +13,7 @@
  *
  */
 import * as crypto from 'crypto';
+
 import { hexToBuffer } from './buffer';
 
 const cryptoHashSha256 = (data: Buffer): Buffer => {
@@ -43,3 +44,8 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 	);
 };
+
+export const getNetworkIdentifier = (
+	nethash: string,
+	communityIdentifier: string,
+) => hash(nethash + communityIdentifier, 'utf8').toString('hex');

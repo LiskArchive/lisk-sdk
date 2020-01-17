@@ -13,11 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	registerMultisignature,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { registerMultisignature } from '@liskhq/lisk-transactions';
+import { validatePublicKeys } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../../base';
 import { flags as commonFlags } from '../../../utils/flags';
 import { validateLifetime, validateMinimum } from '../../../utils/helpers';
@@ -25,6 +24,7 @@ import {
 	getInputsFromSources,
 	InputFromSourceOutput,
 } from '../../../utils/input';
+import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 interface Args {
 	readonly keysgroup: string;
@@ -33,11 +33,13 @@ interface Args {
 }
 
 const processInputs = (
+	networkIdentifier: string,
 	lifetime: number,
 	minimum: number,
 	keysgroup: ReadonlyArray<string>,
 ) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
 	registerMultisignature({
+		networkIdentifier,
 		passphrase,
 		secondPassphrase,
 		keysgroup,
@@ -80,6 +82,7 @@ export default class MultisignatureCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
@@ -89,6 +92,7 @@ export default class MultisignatureCommand extends BaseCommand {
 		const {
 			args,
 			flags: {
+				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
@@ -98,14 +102,19 @@ export default class MultisignatureCommand extends BaseCommand {
 		const { lifetime, minimum, keysgroup: keysgroupStr }: Args = args;
 		const keysgroup = keysgroupStr.split(',');
 
-		transactionUtils.validatePublicKeys(keysgroup);
+		validatePublicKeys(keysgroup);
 
 		validateLifetime(lifetime);
 		validateMinimum(minimum);
 
 		const transactionLifetime = parseInt(lifetime, 10);
 		const transactionMinimumConfirmations = parseInt(minimum, 10);
+		const networkIdentifier = getNetworkIdentifierWithInput(
+			networkIdentifierSource,
+			this.userConfig.api.network,
+		);
 		const processFunction = processInputs(
+			networkIdentifier,
 			transactionLifetime,
 			transactionMinimumConfirmations,
 			keysgroup,

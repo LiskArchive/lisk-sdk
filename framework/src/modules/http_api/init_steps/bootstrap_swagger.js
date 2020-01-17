@@ -30,25 +30,7 @@ const apiCodes = require('../api_codes');
 // Its necessary to require this file to extend swagger validator with our custom formats
 require('../helpers/swagger').getValidator();
 
-/**
- * Middleware functions connection logging, api access rules and others.
- * and setup router.
- *
- * @namespace middleware
- * @memberof module:helpers/http_api
- */
 const middleware = {
-	/**
-	 * Logs all api errors.
-	 *
-	 * @param {Logger} logger
-	 * @param {Error} err
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
 	errorLogger(logger, err, req, res, next) {
 		if (!err) {
 			return next();
@@ -70,23 +52,12 @@ const middleware = {
 			});
 		}
 		logger.error(`API error ${req.url}`, convertErrorsToString(err));
-		logger.trace(err);
 		return res.status(500).send({
 			success: false,
 			error: `API error: ${convertErrorsToString(err)}`,
 		});
 	},
 
-	/**
-	 * Logs api client connections.
-	 *
-	 * @param {Logger} logger
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
 	logClientConnections(logger, req, res, next) {
 		// Log client connections
 		logger.debug(`${req.method} ${req.url} from ${req.ip}`);
@@ -94,32 +65,11 @@ const middleware = {
 		return next();
 	},
 
-	/**
-	 * Attachs header to response.
-	 *
-	 * @param {string} headerKey
-	 * @param {string} headerValue
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
 	attachResponseHeader(headerKey, headerValue, req, res, next) {
 		res.setHeader(headerKey, headerValue);
 		return next();
 	},
 
-	/**
-	 * Applies rules of public / internal API described in config.json.
-	 *
-	 * @param {Object} config
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
 	applyAPIAccessRules(config, req, res, next) {
 		if (!config.enabled) {
 			return res.status(apiCodes.FORBIDDEN).send({
@@ -186,22 +136,6 @@ const middleware = {
 	},
 };
 
-/**
- * Configure swagger node runner with the app.
- * It loads the swagger specification and maps everything with an active express app.
- *
- * @module
- * @see Parent: {@link config}
- * @requires fs
- * @requires js-yaml
- * @requires path
- * @requires swagger-node-runner
- * @param {Object} app - An express app to which map the swagger details
- * @param {Object} config - Application Configurations
- * @param {Object} logger - Application Logger
- * @param {Object} scope - Application Scope
- * @param {function} cb - Callback function
- */
 function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Register modules to be used in swagger fittings
 	// eslint-disable-next-line global-require
@@ -296,13 +230,11 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 
 			// Some error occurred in configuring the swagger
 			if (!_.isEmpty(errors.validationErrors)) {
-				logger.error('Swagger Validation Errors:');
-				logger.error(errors.validationErrors);
+				logger.error(errors.validationErrors, 'Swagger Validation Errors');
 			}
 
 			if (!_.isEmpty(errors.validationWarnings)) {
-				logger.error('Swagger Validation Warnings:');
-				logger.error(errors.validationWarnings);
+				logger.error(errors.validationWarnings, 'Swagger Validation Warnings');
 			}
 
 			if (
@@ -321,8 +253,10 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		runner.on('responseValidationError', validationResponse => {
 			// TODO: Troubleshoot why default validation hook considers json response as string response
 			if (validationResponse.errors[0].code !== 'INVALID_RESPONSE_BODY') {
-				logger.error('Swagger Response Validation Errors:');
-				logger.error(validationResponse.errors[0].errors);
+				logger.error(
+					validationResponse.errors[0].errors,
+					'Swagger Response Validation Errors',
+				);
 			}
 		});
 

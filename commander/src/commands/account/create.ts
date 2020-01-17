@@ -15,6 +15,7 @@
  */
 import { getAddressFromPublicKey, getKeys } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
+
 import BaseCommand from '../../base';
 import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
@@ -54,6 +55,7 @@ export default class CreateCommand extends BaseCommand {
 		}),
 	};
 
+	// tslint:disable-next-line no-async-without-await
 	async run(): Promise<void> {
 		const {
 			flags: { number: numberStr },

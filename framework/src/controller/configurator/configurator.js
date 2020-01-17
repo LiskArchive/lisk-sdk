@@ -47,14 +47,6 @@ class Configurator {
 		this.registerSchema(moduleKlass.defaults, `modules.${moduleKlass.alias}`);
 	}
 
-	/**
-	 * Parse env variables and command line options and merge them together with defaults
-	 * to generate one final unified configuration
-	 *
-	 * @param {Object} overrideValues - Object to override the values
-	 * @param {Object} options - Options
-	 * @param {boolean} options.failOnInvalidArg - Check all arguments against schema and fail if invalid argument passed to script
-	 */
 	getConfig(overrideValues = {}, options = { failOnInvalidArg: true }) {
 		if (options.failOnInvalidArg) {
 			const diff = _.difference(

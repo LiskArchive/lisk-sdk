@@ -19,24 +19,11 @@ const swaggerHelper = require('../helpers/swagger');
 const ApiError = require('../api_error');
 const apiCodes = require('../api_codes');
 
-const { TRANSACTION_TYPES } = global.constants;
+const TRANSACTION_TYPES_DELEGATE = [2, 10];
 
-// Private Fields
 let storage;
 let channel;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @requires helpers/apiError
- * @requires helpers/swagger.generateParamsErrorObject
- * @requires helpers/swagger.invalidParams
- * @param {Object} scope - App instance
- * @todo Add description of TransactionsController
- */
 function TransactionsController(scope) {
 	({
 		components: { storage },
@@ -45,28 +32,19 @@ function TransactionsController(scope) {
 }
 
 function transactionFormatter(transaction) {
-	const result = _.omit(transaction, ['requesterPublicKey']);
+	const result = transaction;
 	result.senderId = result.senderId || '';
-	result.recipientId = result.recipientId || '';
-	result.recipientPublicKey = result.recipientPublicKey || '';
 	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
-	if (transaction.type === TRANSACTION_TYPES.DELEGATE) {
-		result.asset.delegate.publicKey = result.senderPublicKey;
-		result.asset.delegate.address = result.senderId;
+	if (TRANSACTION_TYPES_DELEGATE.includes(transaction.type)) {
+		result.asset.publicKey = result.senderPublicKey;
+		result.asset.address = result.senderId;
 	}
 
 	return result;
 }
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-TransactionsController.getTransactions = async function(context, next) {
+TransactionsController.getTransactions = async (context, next) => {
 	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -79,7 +57,6 @@ TransactionsController.getTransactions = async function(context, next) {
 		id: params.id.value,
 		blockId: params.blockId.value,
 		recipientId: params.recipientId.value,
-		recipientPublicKey: params.recipientPublicKey.value,
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
@@ -128,21 +105,13 @@ TransactionsController.getTransactions = async function(context, next) {
 	}
 };
 
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-TransactionsController.postTransaction = async function(context, next) {
+TransactionsController.postTransaction = async (context, next) => {
 	const transaction = context.request.swagger.params.transaction.value;
 	let error;
 
 	try {
 		const data = await channel.invoke('chain:postTransaction', { transaction });
-
-		if (data.success) {
+		if (!data.errors) {
 			return next(null, {
 				data: { message: 'Transaction(s) accepted' },
 				meta: { status: true },

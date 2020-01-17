@@ -12,49 +12,52 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as querystring from 'querystring';
+import * as socketClusterClient from 'socketcluster-client';
 
 import {
-	ClientOptionsUpdated,
-	convertNodeInfoToLegacyFormat,
+	ConnectionKind,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
-	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
-	Peer,
-	PeerConfig,
-	REMOTE_EVENT_MESSAGE,
-	REMOTE_EVENT_RPC_REQUEST,
-} from './base';
-
-import { EVENT_PING } from './inbound';
-
+	DEFAULT_HTTP_PATH,
+	INTENTIONAL_DISCONNECT_CODE,
+} from '../constants';
 import {
-	P2PDiscoveredPeerInfo,
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_CONNECT_ABORT_OUTBOUND,
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+	EVENT_OUTBOUND_SOCKET_ERROR,
+	REMOTE_EVENT_PING,
+	REMOTE_EVENT_PONG,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
+} from '../events';
+import {
 	P2PMessagePacket,
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from '../p2p_types';
 
-import * as querystring from 'querystring';
-import * as socketClusterClient from 'socketcluster-client';
+import {
+	Peer,
+	PeerConfig,
+	SCClientSocket,
+	socketErrorStatusCodes,
+} from './base';
 
-type SCClientSocket = socketClusterClient.SCClientSocket;
-
-export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
-export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
-export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
-export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
-export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
-export const RESPONSE_PONG = 'pong';
-
-const socketErrorStatusCodes = {
-	...(socketClusterClient.SCClientSocket as any).errorStatuses,
-	1000: 'Intentionally disconnected',
-};
-
-export interface PeerInfoAndOutboundConnection {
-	readonly peerInfo: P2PDiscoveredPeerInfo;
-	readonly socket: SCClientSocket;
+interface ClientOptionsUpdated {
+	readonly hostname: string;
+	readonly path: string;
+	readonly port: number;
+	readonly query: string;
+	readonly autoConnect: boolean;
+	readonly autoReconnect: boolean;
+	readonly multiplex: boolean;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly maxPayload?: number;
 }
 
 export class OutboundPeer extends Peer {
@@ -62,6 +65,7 @@ export class OutboundPeer extends Peer {
 
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super(peerInfo, peerConfig);
+		this._peerInfo.internalState.connectionKind = ConnectionKind.OUTBOUND;
 	}
 
 	public set socket(scClientSocket: SCClientSocket) {
@@ -70,6 +74,23 @@ export class OutboundPeer extends Peer {
 		}
 		this._socket = scClientSocket;
 		this._bindHandlersToOutboundSocket(this._socket);
+	}
+
+	public connect(): void {
+		if (!this._socket) {
+			this._socket = this._createOutboundSocket();
+		}
+		this._socket.connect();
+	}
+
+	public disconnect(
+		code: number = INTENTIONAL_DISCONNECT_CODE,
+		reason?: string,
+	): void {
+		super.disconnect(code, reason);
+		if (this._socket) {
+			this._unbindHandlersFromOutboundSocket(this._socket);
+		}
 	}
 
 	public send(packet: P2PMessagePacket): void {
@@ -89,24 +110,20 @@ export class OutboundPeer extends Peer {
 	}
 
 	private _createOutboundSocket(): SCClientSocket {
-		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
-			: undefined;
-
 		const connectTimeout = this._peerConfig.connectTimeout
 			? this._peerConfig.connectTimeout
 			: DEFAULT_CONNECT_TIMEOUT;
 		const ackTimeout = this._peerConfig.ackTimeout
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
-
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
-			hostname: this._ipAddress,
-			port: this._wsPort,
+			hostname: this.ipAddress,
+			path: DEFAULT_HTTP_PATH,
+			port: this.wsPort,
 			query: querystring.stringify({
-				...legacyNodeInfo,
-				options: JSON.stringify(legacyNodeInfo),
+				...this._serverNodeInfo,
+				options: JSON.stringify(this._serverNodeInfo),
 			}),
 			connectTimeout,
 			ackTimeout,
@@ -123,20 +140,6 @@ export class OutboundPeer extends Peer {
 		return outboundSocket;
 	}
 
-	public connect(): void {
-		if (!this._socket) {
-			this._socket = this._createOutboundSocket();
-		}
-		this._socket.connect();
-	}
-
-	public disconnect(code: number = 1000, reason?: string): void {
-		super.disconnect(code, reason);
-		if (this._socket) {
-			this._unbindHandlersFromOutboundSocket(this._socket);
-		}
-	}
-
 	// All event handlers for the outbound socket should be bound in this method.
 	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
 		outboundSocket.on('error', (error: Error) => {
@@ -144,12 +147,21 @@ export class OutboundPeer extends Peer {
 		});
 
 		outboundSocket.on('connect', async () => {
-			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
 			try {
-				await Promise.all([this.fetchStatus(), this.discoverPeers()]);
+				await this.fetchAndUpdateStatus();
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
+
+				return;
+			}
+
+			try {
+				await this.discoverPeers();
 			} catch (error) {
 				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 			}
+
+			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
 		});
 
 		outboundSocket.on('connectAbort', () => {
@@ -173,28 +185,18 @@ export class OutboundPeer extends Peer {
 		outboundSocket.on('message', this._handleWSMessage);
 
 		outboundSocket.on(
-			EVENT_PING,
+			REMOTE_EVENT_PING,
 			(_: undefined, res: (_: undefined, data: string) => void) => {
-				res(undefined, RESPONSE_PONG);
+				res(undefined, REMOTE_EVENT_PONG);
 			},
 		);
 
 		// Bind RPC and remote event handlers
-		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		outboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		outboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
-		outboundSocket.on(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		outboundSocket.on(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
+		outboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		outboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 	}
 
 	// All event handlers for the outbound socket should be unbound in this method.
-	/* tslint:disable-next-line:prefer-function-over-method*/
 	private _unbindHandlersFromOutboundSocket(
 		outboundSocket: SCClientSocket,
 	): void {
@@ -206,17 +208,8 @@ export class OutboundPeer extends Peer {
 		outboundSocket.off('message', this._handleWSMessage);
 
 		// Unbind RPC and remote event handlers
-		outboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		outboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		outboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
-		outboundSocket.off(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		outboundSocket.off(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
-		outboundSocket.off(EVENT_PING);
+		outboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
+		outboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
+		outboundSocket.off(REMOTE_EVENT_PING);
 	}
 }

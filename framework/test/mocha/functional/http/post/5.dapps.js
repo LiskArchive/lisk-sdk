@@ -18,13 +18,20 @@ require('../../functional');
 const Promise = require('bluebird');
 const randomstring = require('randomstring');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
-const phases = require('../../../common/phases');
-const accountFixtures = require('../../../fixtures/accounts');
-const randomUtil = require('../../../common/utils/random');
-const waitFor = require('../../../common/utils/wait_for');
-const apiHelpers = require('../../../common/helpers/api');
+const phases = require('../../../../utils/legacy/transaction_confirmation');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../utils/random');
+const waitFor = require('../../../../utils/legacy/wait_for');
+const apiHelpers = require('../../../../utils/http/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
+const {
+	getNetworkIdentifier,
+} = require('../../../../utils/network_identifier');
+
+const networkIdentifier = getNetworkIdentifier(
+	__testContext.config.genesisBlock,
+);
 
 const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -51,11 +58,13 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 	// Crediting accounts
 	before(() => {
 		const transaction1 = transfer({
+			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		const transaction2 = transfer({
+			networkIdentifier,
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
@@ -1133,9 +1142,7 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${
-						accountNoFunds.address
-					}, balance: 0`,
+					`Account does not have enough LSK: ${accountNoFunds.address}, balance: 0`,
 				);
 				badTransactions.push(transaction);
 			});

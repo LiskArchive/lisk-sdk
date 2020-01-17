@@ -1,5 +1,5 @@
 {
-	"extends": ["lisk-base"],
+	"extends": ["lisk-base/base"],
 	"rules": {
 		"implicit-arrow-linebreak": "off",
 		"no-mixed-spaces-and-tabs": "off",

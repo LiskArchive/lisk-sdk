@@ -25,8 +25,10 @@ const {
 	EVENT_UNCONFIRMED_TRANSACTION,
 	EVENT_MULTISIGNATURE_SIGNATURE,
 } = require('../../../../../../src/modules/chain/transaction_pool/transaction_pool');
-const transactionsModule = require('../../../../../../src/modules/chain/transactions');
-const { transactions: transactionsFixtures } = require('../../../../fixtures');
+const transactionsModule = require('../../../../../../src/modules/chain/blocks/transactions');
+const {
+	transactions: transactionsFixtures,
+} = require('../../../../../fixtures/');
 
 describe('transactionPool', () => {
 	const broadcastInterval = 5;
@@ -53,6 +55,9 @@ describe('transactionPool', () => {
 		lastBlock: {
 			get: sinonSandbox.stub(),
 		},
+		processSignature: sinonSandbox
+			.stub()
+			.resolves({ transactionsResponses: [] }),
 	};
 
 	const slotsStub = {
@@ -102,11 +107,6 @@ describe('transactionPool', () => {
 
 		it('should create pool instance', async () => {
 			expect(transactionPool.pool).to.be.an.instanceOf(pool.TransactionPool);
-		});
-
-		it('should call composeTransactionSteps to compose verifyTransactions', async () => {
-			expect(transactionsModule.composeTransactionSteps).to.have.been
-				.calledTwice;
 		});
 	});
 
@@ -479,6 +479,7 @@ describe('transactionPool', () => {
 					errors: [],
 				},
 			];
+			sinonSandbox.stub(transactionPool, 'verifyTransactions');
 			transactionPool.verifyTransactions.returns({ transactionsResponses });
 		});
 

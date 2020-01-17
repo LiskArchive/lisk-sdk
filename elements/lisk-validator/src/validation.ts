@@ -22,6 +22,7 @@ import {
 	validRange as isValidRangeVersion,
 } from 'semver';
 import * as validator from 'validator';
+
 import {
 	MAX_EIGHT_BYTE_NUMBER,
 	MAX_INT64,
@@ -29,7 +30,7 @@ import {
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
-	new RegExp('\\0|\\U00000000').test(input);
+	new RegExp(/\0|\\u0000|\\x00/).test(input);
 
 export const isUsername = (username: string): boolean => {
 	if (isNullCharacterIncluded(username)) {
@@ -62,12 +63,20 @@ export const isGreaterThanMaxTransactionAmount = (amount: BigNum): boolean =>
 export const isGreaterThanMaxTransactionId = (id: BigNum): boolean =>
 	id.cmp(MAX_EIGHT_BYTE_NUMBER) > 0;
 
-export const isNumberString = (num: string): boolean => {
+export const isNumberString = (num: unknown): boolean => {
 	if (typeof num !== 'string') {
 		return false;
 	}
 
 	return validator.isInt(num);
+};
+
+export const isPositiveNumberString = (num: unknown): boolean => {
+	if (typeof num !== 'string') {
+		return false;
+	}
+
+	return /^[0-9]+$/g.test(num);
 };
 
 export const isValidInteger = (num: unknown): boolean =>
@@ -230,15 +239,15 @@ export const validateAddress = (address: string): boolean => {
 	return true;
 };
 
-export const validateNonTransferAmount = (data: string): boolean =>
+export const isValidNonTransferAmount = (data: string): boolean =>
 	isNumberString(data) && data === '0';
 
-export const validateTransferAmount = (data: string): boolean =>
+export const isValidTransferAmount = (data: string): boolean =>
 	isNumberString(data) &&
 	isGreaterThanZero(new BigNum(data)) &&
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
 
-export const validateFee = (data: string): boolean =>
+export const isValidFee = (data: string): boolean =>
 	isNumberString(data) &&
 	isGreaterThanZero(new BigNum(data)) &&
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
@@ -255,4 +264,22 @@ export const isCsv = (data: string): boolean => {
 	}
 
 	return false;
+};
+
+const MAX_TRANSFER_ASSET_DATA_LENGTH = 64;
+
+export const isValidTransferData = (data: string): boolean =>
+	Buffer.byteLength(data, 'utf8') <= MAX_TRANSFER_ASSET_DATA_LENGTH;
+
+const NETWORK_IDENTIFIER_LENGTH = 32;
+export const validateNetworkIdentifier = (networkIdentifier: string) => {
+	if (!networkIdentifier) {
+		throw new Error(`Network identifier can not be empty.`);
+	}
+	const networkIdentifierBuffer = hexToBuffer(networkIdentifier);
+	if (networkIdentifierBuffer.length !== NETWORK_IDENTIFIER_LENGTH) {
+		throw new Error(`Invalid network identifier length: ${networkIdentifier}`);
+	}
+
+	return true;
 };
