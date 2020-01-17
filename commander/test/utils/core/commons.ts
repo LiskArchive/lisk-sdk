@@ -123,10 +123,8 @@ describe('commons core utils', () => {
 		});
 
 		it('should return empty string if network is not testnet or mainnet', () => {
-			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
-				network => {
-					expect(liskSnapshotUrl(SNAPSHOT_URL, network)).to.equal('');
-				},
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(network =>
+				expect(liskSnapshotUrl(SNAPSHOT_URL, network)).to.equal(''),
 			);
 		});
 
