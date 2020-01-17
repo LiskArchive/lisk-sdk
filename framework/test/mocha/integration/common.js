@@ -114,7 +114,6 @@ function createValidBlockWithSlotOffset(
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
-			typeof exceptions === 'object' ? exceptions : undefined,
 		)
 			.then(block => {
 				cb(null, block);

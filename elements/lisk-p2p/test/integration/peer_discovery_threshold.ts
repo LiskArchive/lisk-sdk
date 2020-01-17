@@ -36,7 +36,7 @@ describe('Peer discovery threshold', () => {
 			customConfig,
 		});
 
-		[...new Array(1000).keys()].map(() => {
+		for (let i = 0; i < 1000; i++) {
 			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${Math.floor(
 				Math.random() * 254,
 			) + 1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
@@ -53,7 +53,7 @@ describe('Peer discovery threshold', () => {
 					version: '1.1',
 				},
 			});
-		});
+		}
 
 		p2pNodeList[1].on(EVENT_DISCOVERED_PEER, peer => {
 			listOfPeers.push(peer);

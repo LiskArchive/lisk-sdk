@@ -27,7 +27,7 @@ const compile = (schema, parentSchema) => {
 	const argVariable =
 		typeof schema === 'string'
 			? {
-					names: schema.split(',') || [],
+					names: schema.split(','),
 					formatter: null,
 			  }
 			: {

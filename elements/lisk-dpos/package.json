@@ -58,7 +58,7 @@
 	},
 	"dependencies": {
 		"@types/node": "12.12.11",
-		"@liskhq/lisk-cryptography": "2.4.0-alpha.2"
+		"@liskhq/lisk-cryptography": "2.4.0"
 	},
 	"devDependencies": {
 		"@types/jest": "24.9.0",

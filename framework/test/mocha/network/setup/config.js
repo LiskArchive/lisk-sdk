@@ -188,7 +188,7 @@ const config = {
 				}
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(localSyncModeArgs.probability)) {
-						if (!(configuration.modules.network.wsPort === currentPeer)) {
+						if (configuration.modules.network.wsPort !== currentPeer) {
 							peersList.push({
 								ip: DEFAULT_PEER_IP,
 								wsPort: configuration.modules.network.wsPort,

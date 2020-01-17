@@ -750,7 +750,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							});
 
 							it('should reject received block when blockslot outside window', async () => {
-								const blockWithDifferentKeyAndTimestamp = createBlock(
+								const blockWithDifferentKeyAndTimestamp = await createBlock(
 									[],
 									auxTimestamp,
 									keypair,
