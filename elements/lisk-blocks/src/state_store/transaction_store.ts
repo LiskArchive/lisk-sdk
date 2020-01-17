@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 import { clone, cloneDeep, uniqBy } from 'lodash';
 

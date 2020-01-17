@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { Storage, StorageTransaction } from '../types';
 
 import { AccountStore } from './account_store';
