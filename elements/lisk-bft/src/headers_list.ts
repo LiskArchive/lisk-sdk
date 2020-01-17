@@ -87,7 +87,7 @@ export class HeadersList {
 	}
 
 	public remove({ aboveHeight }: { readonly aboveHeight?: number } = {}):
-		| BlockHeader[]
+		| ReadonlyArray<BlockHeader>
 		| undefined {
 		// If list is empty just return
 		if (this.length === 0) {
@@ -108,11 +108,11 @@ export class HeadersList {
 		);
 	}
 
-	public top(size: number): BlockHeader[] {
+	public top(size: number): ReadonlyArray<BlockHeader> {
 		return this.items.slice(this.length - size, this.length + 1);
 	}
 
-	public empty(): BlockHeader[] {
+	public empty(): ReadonlyArray<BlockHeader> {
 		const items = [...this.items];
 		this._items = [];
 

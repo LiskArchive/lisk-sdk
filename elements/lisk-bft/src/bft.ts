@@ -126,7 +126,7 @@ export class BFT extends EventEmitter {
 	}
 
 	public async deleteBlocks(
-		blocks: Block[],
+		blocks: ReadonlyArray<Block>,
 		minActiveHeightsOfDelegates: HeightOfDelegates = {},
 	): Promise<void> {
 		assert(blocks, 'Must provide blocks which are deleted');
