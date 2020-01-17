@@ -67,7 +67,7 @@ export const validateReward = (
 
 	if (
 		block.height !== 1 &&
-		!(expectedRewardBigInt === BigInt(block.reward)) &&
+		expectedRewardBigInt !== BigInt(block.reward) &&
 		(!exceptions.blockRewards || !exceptions.blockRewards.includes(block.id))
 	) {
 		throw new Error(
@@ -125,11 +125,11 @@ export const validatePayload = (
 		throw new Error('Invalid payload hash');
 	}
 
-	if (!(totalAmount === BigInt(block.totalAmount))) {
+	if (totalAmount !== BigInt(block.totalAmount)) {
 		throw new Error('Invalid total amount');
 	}
 
-	if (!(totalFee === block.totalFee)) {
+	if (totalFee !== block.totalFee) {
 		throw new Error('Invalid total fee');
 	}
 };
