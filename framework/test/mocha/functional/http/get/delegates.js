@@ -515,6 +515,28 @@ describe('GET /delegates', () => {
 					});
 			});
 
+			it('using sort="voteWeight:asc" should sort results in ascending order', async () => {
+				return delegatesEndpoint
+					.makeRequest({ sort: 'voteWeight:asc' }, 200)
+					.then(res => {
+						expect(_.map(res.data, 'voteWeight').sort()).to.eql(
+							_.map(res.data, 'voteWeight'),
+						);
+					});
+			});
+
+			it('using sort="voteWeight:desc" should sort results in descending order', async () => {
+				return delegatesEndpoint
+					.makeRequest({ sort: 'voteWeight:desc' }, 200)
+					.then(res => {
+						expect(
+							_.map(res.data, 'voteWeight')
+								.sort()
+								.reverse(),
+						).to.eql(_.map(res.data, 'voteWeight'));
+					});
+			});
+
 			it('using sort with any of sort fields should not place NULLs first', async () => {
 				const delegatesSortFields = [
 					'username',
