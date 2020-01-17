@@ -583,6 +583,8 @@ paths:
             - missedBlocks:desc
             - producedBlocks:asc
             - producedBlocks:desc
+            - voteWeight:asc
+            - voteWeight:desc
           default: username:asc
       responses:
         200:
