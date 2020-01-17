@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { BlockHeader } from '../../src/types';
 import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
 import { validateBlockHeader } from '../../src/utils';

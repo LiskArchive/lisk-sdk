@@ -12,15 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const stampit = require('stampit');
-const randomstring = require('randomstring');
-
-const accounts = {};
+import * as stampit from 'stampit';
+import * as randomstring from 'randomstring';
 
 // Existing delegate account
-accounts.existingDelegate = {
+export const existingDelegate = {
 	address: '9889644732407062730L',
 	publicKey: 'd8685de16147583d1b9f2e06eb43c6af9ba03844df30e20f3cda0b681c14fb05',
 	passphrase:
@@ -30,7 +26,7 @@ accounts.existingDelegate = {
 };
 
 // Genesis account, initially holding 100M total supply
-accounts.genesis = {
+export const genesis = {
 	address: '11237980039345381032L',
 	publicKey: '5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 	passphrase:
@@ -41,7 +37,7 @@ accounts.genesis = {
 	password: 'elephant tree paris dragon chair galaxy',
 };
 
-accounts.mem_accountsFields = [
+export const mem_accountsFields = [
 	'username',
 	'isDelegate',
 	'secondSignature',
@@ -64,7 +60,7 @@ accounts.mem_accountsFields = [
 	'votedDelegatesPublicKeys',
 ];
 
-const Account = stampit({
+export const Account = stampit({
 	props: {
 		username: '',
 		isDelegate: false,
@@ -123,7 +119,7 @@ const Account = stampit({
 	},
 });
 
-const dbAccount = stampit({
+export const dbAccount = stampit({
 	props: {
 		address: null,
 		balance: 0,
@@ -152,13 +148,13 @@ const dbAccount = stampit({
 	},
 });
 
-const Delegate = stampit(Account, {
+export const Delegate = stampit(Account, {
 	props: {
 		isDelegate: true,
 	},
 });
 
-const Dependent = stampit({
+export const Dependent = stampit({
 	init({ accountId, dependentId }) {
 		this.accountId = accountId;
 		this.dependentId =
@@ -168,10 +164,3 @@ const Dependent = stampit({
 				.toLowerCase();
 	},
 });
-
-accounts.Account = Account;
-accounts.dbAccount = dbAccount;
-accounts.Delegate = Delegate;
-accounts.Dependent = Dependent;
-
-module.exports = accounts;

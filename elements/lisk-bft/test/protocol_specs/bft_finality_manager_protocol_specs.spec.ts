@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 // @ts-ignore
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
 // @ts-ignore

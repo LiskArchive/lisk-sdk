@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { validator } from '@liskhq/lisk-validator';
 
 import { blockHeaderSchema } from './schema';

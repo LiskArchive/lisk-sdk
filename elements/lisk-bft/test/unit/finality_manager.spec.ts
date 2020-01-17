@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { FinalityManager } from '../../src/finality_manager';
 
 import {
@@ -25,11 +23,10 @@ import {
 
 import * as utils from '../../src/utils';
 
+import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
+import { Account as accountFixture } from '../fixtures/accounts';
+
 jest.mock('../../src/utils');
-
-const { BlockHeader: blockHeaderFixture } = require('../fixtures/blocks');
-
-const { Account: accountFixture } = require('../fixtures/accounts');
 
 const generateValidHeaders = (count: number) => {
 	return [...Array(count)].map((_, index) => {

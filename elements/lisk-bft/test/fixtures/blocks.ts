@@ -12,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as randomstring from 'randomstring';
+import * as stampit from 'stampit';
+import * as faker from 'faker';
 
-const randomstring = require('randomstring');
-const stampit = require('stampit');
-const faker = require('faker');
-
-const Block = stampit({
+export const Block = stampit({
 	props: {
 		id: '',
 		blockSignature:
@@ -70,7 +68,7 @@ const Block = stampit({
 	},
 });
 
-const BlockHeader = stampit({
+export const BlockHeader = stampit({
 	props: {
 		blockId: '',
 		height: 0,
@@ -100,8 +98,3 @@ const BlockHeader = stampit({
 		this.maxHeightPrevoted = maxHeightPrevoted || 0;
 	},
 });
-
-module.exports = {
-	Block,
-	BlockHeader,
-};

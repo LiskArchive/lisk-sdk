@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { Block as blockFixture } from '../fixtures/blocks';
 import { FinalityManager } from '../../src/finality_manager';
 const { Slots } = require('@liskhq/lisk-dpos');

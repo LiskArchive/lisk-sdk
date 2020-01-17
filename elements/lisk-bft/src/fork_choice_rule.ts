@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 import { Block, Slots } from './types';
 
 export const forgingSlot = (slots: Slots, block: Block): number =>

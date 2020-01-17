@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 // @ts-ignore
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 

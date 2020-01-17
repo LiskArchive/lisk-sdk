@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 // @ts-ignore
 import * as forkChoiceSpecs from '../bft_specs/bft_fork_choice_rules.json';
 import { BFT } from '../../src/bft';
