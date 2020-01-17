@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// @ts-ignore
 import * as forkChoiceSpecs from '../bft_specs/bft_fork_choice_rules.json';
 import { BFT } from '../../src/bft';
 import { Slots as SlotType } from '../../src/types';

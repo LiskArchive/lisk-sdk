@@ -12,15 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// @ts-ignore
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
-// @ts-ignore
 import * as scenario4DelegatesSimple from '../bft_specs/4_delegates_simple.json';
-// @ts-ignore
 import * as scenario5DelegatesSwitchedCompletely from '../bft_specs/5_delegates_switched_completely.json';
-// @ts-ignore
 import * as scenario7DelegatesPartialSwitch from '../bft_specs/7_delegates_partial_switch.json';
-// @ts-ignore
 import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_partial_switch.json';
 
 const bftScenarios = [
