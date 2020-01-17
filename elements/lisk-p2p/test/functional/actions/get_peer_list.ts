@@ -19,6 +19,7 @@ import {
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
 } from '../../utils/network_setup';
+import { wait } from '../../utils/helpers';
 
 describe('PeerPool actions', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -30,6 +31,7 @@ describe('PeerPool actions', () => {
 
 		beforeEach(async () => {
 			p2pNodeList = await createNetwork();
+			await wait(1000);
 		});
 
 		afterEach(async () => {
