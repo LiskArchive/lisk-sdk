@@ -133,10 +133,8 @@ describe('commons core utils', () => {
 		it('should return custom snapshot url for dev/alpha/beta net if specified', () => {
 			const url: string =
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
-			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
-				network => {
-					return expect(liskSnapshotUrl(url, network)).to.equal(url);
-				},
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(network =>
+				expect(liskSnapshotUrl(url, network)).to.equal(url),
 			);
 		});
 	});
