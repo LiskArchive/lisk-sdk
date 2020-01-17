@@ -135,7 +135,7 @@ describe('commons core utils', () => {
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
 			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
 				network => {
-					expect(liskSnapshotUrl(url, network)).to.equal(url);
+					return expect(liskSnapshotUrl(url, network)).to.equal(url);
 				},
 			);
 		});
