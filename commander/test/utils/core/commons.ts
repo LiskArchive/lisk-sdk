@@ -123,20 +123,16 @@ describe('commons core utils', () => {
 		});
 
 		it('should return empty string if network is not testnet or mainnet', () => {
-			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
-				network => {
-					expect(liskSnapshotUrl(SNAPSHOT_URL, network)).to.equal('');
-				},
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(network =>
+				expect(liskSnapshotUrl(SNAPSHOT_URL, network)).to.equal(''),
 			);
 		});
 
 		it('should return custom snapshot url for dev/alpha/beta net if specified', () => {
 			const url: string =
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
-			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
-				network => {
-					expect(liskSnapshotUrl(url, network)).to.equal(url);
-				},
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(network =>
+				expect(liskSnapshotUrl(url, network)).to.equal(url),
 			);
 		});
 	});

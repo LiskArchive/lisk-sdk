@@ -144,12 +144,9 @@ module.exports = class HttpApi {
 		// Bootstrap Storage component
 		await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
 		// Set up Express and HTTP(s) and WS(s) servers
-		const {
-			expressApp,
-			httpServer,
-			httpsServer,
-			wsServer,
-		} = await setupServers(this.scope);
+		const { expressApp, httpServer, httpsServer, wsServer } = setupServers(
+			this.scope,
+		);
 		// Bootstrap Swagger and attaches it to Express app
 		await bootstrapSwagger(this.scope, expressApp);
 		// Start listening for HTTP(s) requests
@@ -158,16 +155,9 @@ module.exports = class HttpApi {
 		subscribeToEvents(this.scope, { wsServer });
 	}
 
-	async cleanup(code, error) {
+	async cleanup() {
 		const { components } = this.scope;
-		if (error) {
-			this.logger.fatal(error.toString());
-			if (code === undefined) {
-				code = 1;
-			}
-		} else if (code === undefined || code === null) {
-			code = 0;
-		}
+
 		this.logger.info('Cleaning HTTP API...');
 
 		try {

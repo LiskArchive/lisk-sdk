@@ -37,7 +37,7 @@ describe('penalty sending malformed Peer List', () => {
 				customConfig,
 			});
 
-			[...new Array(1000).keys()].map(() => {
+			for (let i = 0; i < 1000; i++) {
 				const generatedIP = `${Math.floor(Math.random() * 254) +
 					1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
 					Math.random() * 254,
@@ -53,7 +53,7 @@ describe('penalty sending malformed Peer List', () => {
 						version: '1.1',
 					},
 				});
-			});
+			}
 
 			p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
 				collectedEvents.set(EVENT_BAN_PEER, peerId);

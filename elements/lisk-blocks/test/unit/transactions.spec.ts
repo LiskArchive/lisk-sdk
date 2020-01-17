@@ -25,7 +25,7 @@ import { Blocks } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
-import { Logger, Slots } from '../../src/types';
+import { Logger, Slots as SlotsInterface } from '../../src/types';
 
 const { Slots } = require('@liskhq/lisk-dpos');
 
@@ -61,7 +61,7 @@ describe('blocks/transactions', () => {
 	let blocksInstance: Blocks;
 	let storageStub: any;
 	let loggerStub: Logger;
-	let slots: Slots;
+	let slots: SlotsInterface;
 
 	beforeEach(async () => {
 		storageStub = {

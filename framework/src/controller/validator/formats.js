@@ -169,7 +169,6 @@ const validationFormats = {
 		) {
 			return false;
 		}
-		value = parseInt(value, 10);
 		return true;
 	},
 
