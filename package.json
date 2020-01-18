@@ -31,11 +31,7 @@
 		"lint:fix": "npm run lint:root -- --fix && lerna run lint:fix",
 		"lint:root": "tslint -p tsconfig.json types/**/*.ts",
 		"test": "lerna run test",
-		"test:node": "lerna run test:node",
-		"test:browser": "lerna run test:browser",
 		"build": "lerna run build",
-		"build:browsertest": "lerna run build:browsertest",
-		"cover": "lerna run cover",
 		"init": "./scripts/init.sh"
 	},
 	"husky": {

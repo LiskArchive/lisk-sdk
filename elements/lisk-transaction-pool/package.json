@@ -23,30 +23,25 @@
 	"main": "dist-node/index.js",
 	"typings": "dist-node/index.d.ts",
 	"scripts": {
-		"transpile": "tsc",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "jest",
 		"test:watch": "npm test -- --watch",
-		"test:node": "npm run build:check",
-		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
-		"cover:base": "nyc report",
-		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
-		"cover:ci": "npm run cover:base -- --reporter=text",
-		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
-		"build:node": "npm run transpile",
-		"prebuild": "npm run prebuild:node",
-		"build": "npm run build:node",
+		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
+		"build": "tsc",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
+	"dependencies": {
+		"@liskhq/lisk-cryptography": "2.4.0"
+	},
 	"devDependencies": {
-		"@types/jest": "^24.9.0",
+		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",
 		"@types/node": "12.12.11",
-		"jest": "^24.9.0",
+		"jest": "24.9.0",
 		"jest-extended": "0.11.2",
 		"jest-when": "2.6.0",
 		"prettier": "1.19.1",
@@ -58,8 +53,5 @@
 		"tslint-config-prettier": "1.18.0",
 		"tslint-immutable": "6.0.1",
 		"typescript": "3.7.2"
-	},
-	"dependencies": {
-		"@liskhq/lisk-cryptography": "2.4.0"
 	}
 }
