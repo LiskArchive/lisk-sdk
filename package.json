@@ -22,7 +22,7 @@
 		"npm": ">=6.12.0"
 	},
 	"scripts": {
-		"bootstrap": "lerna bootstrap --hoist",
+		"bootstrap": "lerna bootstrap --hoist --ci",
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
 		"format": "npm run format:root && lerna run format",

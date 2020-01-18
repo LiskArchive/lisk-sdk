@@ -32,19 +32,14 @@ sed -i '' -e "s/{BROWSER_PACKAGE}/${browserPackageName}/g" "$packageDir/package.
 cp "./templates/README.md.tmpl" "$packageDir/README.md"
 
 templates=(
-	"browsertest"
-	"cypress"
 	"scripts"
 	".npmignore"
 	".npmrc"
-	".nycrc"
 	".prettierignore"
 	".prettierrc.json"
-	"cypress.json"
 	"tslint.json"
 	"jest.config.js"
 	"tsconfig.json"
-	"tsconfig.browsertest.json"
 )
 
 test_templates=(

@@ -40,7 +40,7 @@
 		"@types/node": "12.12.11",
 		"@types/semver": "5.5.0",
 		"@types/validator": "10.9.0",
-		"ajv": "6.9.2",
+		"ajv": "6.11.0",
 		"semver": "5.6.0",
 		"validator": "10.11.0"
 	},
