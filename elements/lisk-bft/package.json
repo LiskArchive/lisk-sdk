@@ -24,7 +24,7 @@
 	"scripts": {
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
-		"lint": "echo 'temporally disabled while converting to TS'",
+		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "jest",
 		"test:watch": "npm test -- --watch",
@@ -35,6 +35,7 @@
 	},
 	"dependencies": {
 		"@types/node": "12.12.11",
+		"debug": "4.1.1",
 		"@liskhq/lisk-validator": "0.3.0"
 	},
 	"devDependencies": {
@@ -43,13 +44,15 @@
 		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",
 		"@types/jquery": "3.3.29",
+		"@types/debug": "4.1.5",
+		"@types/faker": "4.1.9",
 		"faker": "4.1.0",
 		"jest": "24.9.0",
 		"jest-extended": "0.11.2",
 		"prettier": "1.19.1",
 		"randomstring": "1.1.5",
 		"source-map-support": "0.5.10",
-		"stampit": "4.2.0",
+		"stampit": "4.3.1",
 		"ts-jest": "24.2.0",
 		"ts-node": "8.5.2",
 		"tsconfig-paths": "3.8.0",

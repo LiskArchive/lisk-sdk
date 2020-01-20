@@ -12,26 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { Block, Slots } from './types';
 
-const FORK_STATUS_IDENTICAL_BLOCK = 1;
-const FORK_STATUS_VALID_BLOCK = 2;
-const FORK_STATUS_DOUBLE_FORGING = 3;
-const FORK_STATUS_TIE_BREAK = 4;
-const FORK_STATUS_DIFFERENT_CHAIN = 5;
-const FORK_STATUS_DISCARD = 6;
+export const forgingSlot = (slots: Slots, block: Block): number =>
+	slots.getSlotNumber(block.timestamp);
 
-const forgingSlot = (slots, block) => slots.getSlotNumber(block.timestamp);
-
-const isBlockReceivedWithinForgingSlot = (slots, { timestamp, receivedAt }) =>
+export const isBlockReceivedWithinForgingSlot = (
+	slots: Slots,
+	{ timestamp, receivedAt }: Block,
+): boolean =>
 	slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
 
-const isLastAppliedBlockReceivedWithinForgingSlot = (
-	slots,
-	lastAppliedBlock,
-) => {
-	// If the block doesn't have the property `receivedAt` it meants it was forged
-	// or synced, therefore we assume it was "received in the correct slot"
+export const isLastAppliedBlockReceivedWithinForgingSlot = (
+	slots: Slots,
+	lastAppliedBlock: Block,
+): boolean => {
+	/* If the block doesn't have the property `receivedAt` it meants it was forged
+	 or synced, therefore we assume it was "received in the correct slot" */
 	if (!lastAppliedBlock.receivedAt) {
 		return true;
 	}
@@ -39,33 +36,48 @@ const isLastAppliedBlockReceivedWithinForgingSlot = (
 	return isBlockReceivedWithinForgingSlot(slots, lastAppliedBlock);
 };
 
-// eslint-disable-next-line class-methods-use-this
-const isValidBlock = (lastBlock, currentBlock) =>
+export const isValidBlock = (lastBlock: Block, currentBlock: Block): boolean =>
 	lastBlock.height + 1 === currentBlock.height &&
 	lastBlock.id === currentBlock.previousBlockId;
 
-// eslint-disable-next-line class-methods-use-this
-const isIdenticalBlock = (lastBlock, currentBlock) =>
-	lastBlock.id === currentBlock.id;
+export const isIdenticalBlock = (
+	lastBlock: Block,
+	currentBlock: Block,
+): boolean => lastBlock.id === currentBlock.id;
 
-// eslint-disable-next-line class-methods-use-this
-const isDuplicateBlock = (lastBlock, currentBlock) =>
+export const isDuplicateBlock = (
+	lastBlock: Block,
+	currentBlock: Block,
+): boolean =>
 	lastBlock.height === currentBlock.height &&
 	lastBlock.maxHeightPrevoted === currentBlock.maxHeightPrevoted &&
 	lastBlock.previousBlockId === currentBlock.previousBlockId;
 
-const isDoubleForging = (lastBlock, currentBlock) =>
+export const isDoubleForging = (
+	lastBlock: Block,
+	currentBlock: Block,
+): boolean =>
 	isDuplicateBlock(lastBlock, currentBlock) &&
 	lastBlock.generatorPublicKey === currentBlock.generatorPublicKey;
 
-const isTieBreak = ({ slots, lastAppliedBlock, receivedBlock }) =>
+export const isTieBreak = ({
+	slots,
+	lastAppliedBlock,
+	receivedBlock,
+}: {
+	readonly slots: Slots;
+	readonly lastAppliedBlock: Block;
+	readonly receivedBlock: Block;
+}): boolean =>
 	isDuplicateBlock(lastAppliedBlock, receivedBlock) &&
 	forgingSlot(slots, lastAppliedBlock) < forgingSlot(slots, receivedBlock) &&
 	!isLastAppliedBlockReceivedWithinForgingSlot(slots, lastAppliedBlock) &&
 	isBlockReceivedWithinForgingSlot(slots, receivedBlock);
 
-// eslint-disable-next-line class-methods-use-this
-const isDifferentChain = (lastBlock, currentBlock) => {
+export const isDifferentChain = (
+	lastBlock: Block,
+	currentBlock: Block,
+): boolean => {
 	const maxHeightPrevoted = lastBlock.maxHeightPrevoted || 0;
 
 	return (
@@ -73,19 +85,4 @@ const isDifferentChain = (lastBlock, currentBlock) => {
 		(lastBlock.height < currentBlock.height &&
 			maxHeightPrevoted === currentBlock.maxHeightPrevoted)
 	);
-};
-
-module.exports = {
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_VALID_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_DISCARD,
-	isTieBreak,
-	isDoubleForging,
-	isDifferentChain,
-	isIdenticalBlock,
-	isValidBlock,
-	isDuplicateBlock,
 };

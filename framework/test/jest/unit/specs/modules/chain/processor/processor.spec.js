@@ -14,14 +14,7 @@
 
 'use strict';
 
-const {
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_DISCARD,
-	FORK_STATUS_VALID_BLOCK,
-} = require('@liskhq/lisk-bft');
+const { ForkStatus } = require('@liskhq/lisk-bft');
 const {
 	FakeBlockProcessorV0,
 	FakeBlockProcessorV1,
@@ -337,9 +330,9 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_IDENTICAL_BLOCK', () => {
+		describe('when the fork step returns ForkStatus.IDENTICAL_BLOCK', () => {
 			beforeEach(async () => {
-				forkSteps[0].mockResolvedValue(FORK_STATUS_IDENTICAL_BLOCK);
+				forkSteps[0].mockResolvedValue(ForkStatus.IDENTICAL_BLOCK);
 				await processor.process(blockV0);
 			});
 
@@ -371,9 +364,9 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_DOUBLE_FORGING', () => {
+		describe('when the fork step returns ForkStatus.DOUBLE_FORGING', () => {
 			beforeEach(async () => {
-				forkSteps[0].mockResolvedValue(FORK_STATUS_DOUBLE_FORGING);
+				forkSteps[0].mockResolvedValue(ForkStatus.DOUBLE_FORGING);
 				await processor.process(blockV0);
 			});
 
@@ -405,9 +398,9 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_TIE_BREAK and success to process', () => {
+		describe('when the fork step returns ForkStatus.TIE_BREAK and success to process', () => {
 			beforeEach(async () => {
-				forkSteps[0].mockResolvedValue(FORK_STATUS_TIE_BREAK);
+				forkSteps[0].mockResolvedValue(ForkStatus.TIE_BREAK);
 				await processor.process(blockV0);
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 				await storageStub.entities.Block.begin.mock.calls[1][1](txStub);
@@ -499,9 +492,9 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_TIE_BREAK and fail to process', () => {
+		describe('when the fork step returns ForkStatus.TIE_BREAK and fail to process', () => {
 			beforeEach(async () => {
-				forkSteps[0].mockResolvedValue(FORK_STATUS_TIE_BREAK);
+				forkSteps[0].mockResolvedValue(ForkStatus.TIE_BREAK);
 				try {
 					await processor.process(blockV0);
 					// Storage begin does not work well with stubbing with callback
@@ -606,9 +599,9 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_DIFFERENT_CHAIN', () => {
+		describe('when the fork step returns ForkStatus.DIFFERENT_CHAIN', () => {
 			beforeEach(async () => {
-				forkSteps[0].mockResolvedValue(FORK_STATUS_DIFFERENT_CHAIN);
+				forkSteps[0].mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
 				await processor.process(blockV0);
 			});
 
@@ -643,9 +636,9 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_DISCARD', () => {
+		describe('when the fork step returns ForkStatus.DISCARD', () => {
 			beforeEach(async () => {
-				forkSteps[0].mockResolvedValue(FORK_STATUS_DISCARD);
+				forkSteps[0].mockResolvedValue(ForkStatus.DISCARD);
 				await processor.process(blockV0);
 			});
 
@@ -677,9 +670,9 @@ describe('processor', () => {
 			});
 		});
 
-		describe('when the fork step returns FORK_STATUS_VALID_BLOCK', () => {
+		describe('when the fork step returns ForkStatus.VALID_BLOCK', () => {
 			beforeEach(async () => {
-				forkSteps[0].mockResolvedValue(FORK_STATUS_VALID_BLOCK);
+				forkSteps[0].mockResolvedValue(ForkStatus.VALID_BLOCK);
 				await processor.process(blockV0);
 				await storageStub.entities.Block.begin.mock.calls[0][1](txStub);
 			});
