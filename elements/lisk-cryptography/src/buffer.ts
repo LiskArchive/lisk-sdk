@@ -22,7 +22,7 @@ export const intToBuffer = (
 	byteLength: number,
 	endianness: string = BIG_ENDIAN,
 ) => {
-	if ([BIG_ENDIAN, LITTLE_ENDIAN].includes(endianness)) {
+	if (![BIG_ENDIAN, LITTLE_ENDIAN].includes(endianness)) {
 		throw new Error(
 			`Endianness must be either ${BIG_ENDIAN} or ${LITTLE_ENDIAN}`,
 		);
