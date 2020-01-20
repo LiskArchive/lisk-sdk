@@ -15,7 +15,6 @@
 'use strict';
 
 require('../../functional');
-const BigNum = require('@liskhq/bignum');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -545,7 +544,7 @@ describe.skip('POST /api/transactions (type 7) outTransfer dapp', () => {
 							.to.have.lengthOf(1);
 
 						const balance = res.body.data[0].balance;
-						const amount = new BigNum(balance).plus('1').toString();
+						const amount = (BigInt(balance) + BigInt('1')).toString();
 						transaction = createOutTransfer(
 							randomUtil.guestbookDapp.id,
 							randomUtil.transaction().id,

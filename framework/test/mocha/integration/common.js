@@ -242,8 +242,8 @@ function addTransaction(library, transaction, cb) {
 
 	const amountNormalized = !transaction.asset.amount
 		? 0
-		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
-	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
+		: (transaction.asset.amount / BigInt(NORMALIZER)).toString();
+	const feeNormalized = (transaction.fee / BigInt(NORMALIZER)).toString();
 	__testContext.debug(
 		`Enqueue transaction ID: ${transaction.id}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${transaction.senderId}, Recipient: ${transaction.recipientId}`,
 	);

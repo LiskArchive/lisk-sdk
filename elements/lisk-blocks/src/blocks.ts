@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
 	Status as TransactionStatus,
@@ -122,7 +121,7 @@ export class Blocks extends EventEmitter {
 	};
 
 	public readonly blockReward: {
-		readonly [key: string]: (height: number) => number | BigNum;
+		readonly [key: string]: (height: number) => number | bigint;
 	};
 
 	public constructor({
@@ -246,9 +245,9 @@ export class Blocks extends EventEmitter {
 
 		return {
 			...blockJSON,
-			totalAmount: new BigNum(blockJSON.totalAmount || 0),
-			totalFee: new BigNum(blockJSON.totalFee || 0),
-			reward: new BigNum(blockJSON.reward || 0),
+			totalAmount: BigInt(blockJSON.totalAmount || 0),
+			totalFee: BigInt(blockJSON.totalFee || 0),
+			reward: BigInt(blockJSON.reward || 0),
 			version:
 				blockJSON.version === undefined || blockJSON.version === null
 					? 0

@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as BigNum from '@liskhq/bignum';
 import { hash } from '@liskhq/lisk-cryptography';
 
 import { BlockHeader, BlockJSON, Storage, StorageTransaction } from './types';
@@ -108,9 +107,9 @@ export const getIdSequence = async (
 };
 
 export const addBlockProperties = (block: BlockJSON) => {
-	block.totalAmount = new BigNum(block.totalAmount || 0);
-	block.totalFee = new BigNum(block.totalFee || 0);
-	block.reward = new BigNum(block.reward || 0);
+	block.totalAmount = BigInt(block.totalAmount || 0);
+	block.totalFee = BigInt(block.totalFee || 0);
+	block.reward = BigInt(block.reward || 0);
 
 	if (block.version === undefined) {
 		block.version = 0;
@@ -141,16 +140,16 @@ export const deleteBlockProperties = (block: BlockHeader) => {
 	if (typeof reducedBlock.numberOfTransactions === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
-	if (reducedBlock.totalAmount.eq(0)) {
+	if (reducedBlock.totalAmount === BigInt(0)) {
 		delete reducedBlock.totalAmount;
 	}
-	if (reducedBlock.totalFee.eq(0)) {
+	if (reducedBlock.totalFee === BigInt(0)) {
 		delete reducedBlock.totalFee;
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
 	}
-	if (reducedBlock.reward.eq(0)) {
+	if (reducedBlock.reward === BigInt(0)) {
 		delete reducedBlock.reward;
 	}
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
@@ -171,7 +170,7 @@ export const getId = (blockBytes: Buffer): string => {
 		temp[i] = hashedBlock[7 - i];
 	}
 
-	const id = BigNum.fromBuffer(temp).toString();
+	const id = temp.readBigUInt64BE().toString();
 
 	return id;
 };

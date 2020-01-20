@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
 	TransactionJSON,
@@ -59,9 +58,9 @@ export interface BlockJSON {
 	numberOfTransactions: number;
 	payloadLength: number;
 	payloadHash: string;
-	totalAmount: string | BigNum;
-	totalFee: string | BigNum;
-	reward: string | BigNum;
+	totalAmount: string | bigint;
+	totalFee: string | bigint;
+	reward: string | bigint;
 	maxHeightPreviouslyForged: number;
 	maxHeightPrevoted: number;
 	// tslint:disable-next-line no-any
@@ -70,9 +69,9 @@ export interface BlockJSON {
 }
 
 export interface BlockHeader extends BlockJSON {
-	readonly totalAmount: BigNum;
-	readonly totalFee: BigNum;
-	readonly reward: BigNum;
+	readonly totalAmount: bigint;
+	readonly totalFee: bigint;
+	readonly reward: bigint;
 }
 
 export interface BlockRewardOptions {

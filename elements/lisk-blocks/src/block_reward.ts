@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
-
 import { BlockRewardOptions } from './types';
 
 const parseHeight = (height: number): number => {
@@ -51,14 +49,14 @@ export const calculateMilestone = (
 export const calculateReward = (
 	height: number,
 	blockRewardArgs: BlockRewardOptions,
-) => {
+): bigint => {
 	const parsedHeight = parseHeight(height);
 
 	if (parsedHeight < blockRewardArgs.rewardOffset) {
-		return new BigNum(0);
+		return BigInt(0);
 	}
 
-	return new BigNum(
+	return BigInt(
 		blockRewardArgs.milestones[
 			calculateMilestone(parsedHeight, blockRewardArgs)
 		],
@@ -68,12 +66,12 @@ export const calculateReward = (
 export const calculateSupply = (
 	height: number,
 	blockRewardArgs: BlockRewardOptions,
-) => {
+): bigint => {
 	// tslint:disable-next-line no-let
 	let parsedHeight = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
 	// tslint:disable-next-line no-let
-	let supply = new BigNum(blockRewardArgs.totalAmount);
+	let supply = BigInt(blockRewardArgs.totalAmount);
 
 	if (parsedHeight < blockRewardArgs.rewardOffset) {
 		// Rewards not started yet
@@ -118,7 +116,7 @@ export const calculateSupply = (
 	// tslint:disable-next-line prefer-for-of no-let
 	for (let i = 0; i < rewards.length; i += 1) {
 		const reward = rewards[i];
-		supply = supply.plus(new BigNum(reward[0]).mul(reward[1]));
+		supply = supply + BigInt(reward[0]) * BigInt(reward[1]);
 	}
 
 	return supply;

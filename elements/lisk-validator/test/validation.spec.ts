@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	validatePublicKeysForDuplicates,
@@ -309,12 +308,12 @@ describe('validation', () => {
 
 	describe('#isGreaterThanZero', () => {
 		it('should return false when amount is 0', () => {
-			return expect(isGreaterThanZero(new BigNum('0'))).toBeFalse();
+			return expect(isGreaterThanZero(BigInt('0'))).toBeFalse();
 		});
 
 		it('should return true when amount is greater than 0', () => {
 			return expect(
-				isGreaterThanZero(new BigNum('9223372036854775808987234289782357')),
+				isGreaterThanZero(BigInt('9223372036854775808987234289782357')),
 			).toBeTrue();
 		});
 	});
@@ -322,13 +321,13 @@ describe('validation', () => {
 	describe('#isGreaterThanMaxTransactionAmount', () => {
 		it('should return false when amount is less than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(new BigNum('9223372036854775807')),
+				isGreaterThanMaxTransactionAmount(BigInt('9223372036854775807')),
 			).toBeFalse();
 		});
 
 		it('should return true when amount is more than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(new BigNum('9223372036854775808')),
+				isGreaterThanMaxTransactionAmount(BigInt('9223372036854775808')),
 			).toBeTrue();
 		});
 	});
@@ -336,13 +335,13 @@ describe('validation', () => {
 	describe('#isGreaterThanMaxTransactionId', () => {
 		it('should return false when id is less than 8 bytes integer maximum', () => {
 			return expect(
-				isGreaterThanMaxTransactionId(new BigNum('18446744073709551615')),
+				isGreaterThanMaxTransactionId(BigInt('18446744073709551615')),
 			).toBeFalse();
 		});
 
 		it('should return true when id is more than 8 bytes integer maximum', () => {
 			return expect(
-				isGreaterThanMaxTransactionId(new BigNum('18446744073709551616')),
+				isGreaterThanMaxTransactionId(BigInt('18446744073709551616')),
 			).toBeTrue();
 		});
 	});

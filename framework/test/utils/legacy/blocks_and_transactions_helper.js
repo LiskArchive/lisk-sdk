@@ -16,8 +16,10 @@
 
 const util = require('util');
 const Promise = require('bluebird');
-const { transfer } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
+const {
+	transfer,
+	utils: { convertLSKToBeddows, convertBeddowsToLSK },
+} = require('@liskhq/lisk-transactions');
 const random = require('../random');
 const localCommon = require('../../mocha/integration/common');
 const accountFixtures = require('../../fixtures/accounts');
@@ -28,7 +30,6 @@ const networkIdentifier = getNetworkIdentifier(
 	global.__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
 const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
 const forge = util.promisify(localCommon.forge);
@@ -41,7 +42,7 @@ const addTransactionsAndForge = util.promisify(
 function createDebitTransaction(account, amount) {
 	return transfer({
 		networkIdentifier,
-		amount: new BigNum(NORMALIZER).times(amount).toString(),
+		amount: convertLSKToBeddows(amount.toString()),
 		recipientId: random.account().address,
 		passphrase: account.passphrase,
 	});
@@ -50,7 +51,7 @@ function createDebitTransaction(account, amount) {
 function createCreditTransaction(account, amount) {
 	return transfer({
 		networkIdentifier,
-		amount: new BigNum(NORMALIZER).times(amount).toString(),
+		amount: convertLSKToBeddows(amount.toString()),
 		recipientId: account.address,
 		passphrase: accountFixtures.genesis.passphrase,
 	});
@@ -68,7 +69,7 @@ const EXPECT = {
 
 const formatTransaction = t => ({
 	id: t.id,
-	amount: new BigNum(t.asset.amount).toFixed(),
+	amount: BigInt(t.asset.amount).toString(),
 	senderId: t.senderId,
 	recipientId: t.recipientId,
 });
@@ -123,7 +124,7 @@ class BlocksTransactionsHelper {
 		const validTransactions = this._transactions
 			// Get only transactions marked as valid
 			.filter(t => t.expect === EXPECT.OK)
-			// Amounts have to be instances of BigNum for sorting
+			// Amounts have to be instances of BigInt for sorting
 			.map(t => this._library.modules.blocks.deserializeTransaction(t.data));
 
 		// Sort transactions the same way as they are sorted in a block
@@ -228,10 +229,10 @@ class BlocksTransactionsHelper {
 		const totalSpending = this._transactions
 			.filter(t => t.type === TYPE.SPEND)
 			.reduce(
-				(total, t) => total.plus(t.data.asset.amount).plus(t.data.fee),
-				new BigNum(0),
+				(total, t) => total + BigInt(t.data.asset.amount) + BigInt(t.data.fee),
+				BigInt(0),
 			);
-		return totalSpending.toFixed();
+		return totalSpending.toString();
 	}
 
 	async getAccountBalance() {
@@ -241,7 +242,7 @@ class BlocksTransactionsHelper {
 			},
 		);
 
-		return new BigNum(account.balance).div(NORMALIZER).toString();
+		return convertBeddowsToLSK(account.balance);
 	}
 }
 

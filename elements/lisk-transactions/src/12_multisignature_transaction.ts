@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import {
 	getAddressFromPublicKey,
 	hexToBuffer,
@@ -101,11 +100,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || {}) as MultiSignatureAsset;
 		// Overwrite fee as it is different from the static fee
-		this.fee = new BigNum(MultisignatureTransaction.FEE).mul(
-			(this.asset.keysgroup && this.asset.keysgroup.length
-				? this.asset.keysgroup.length
-				: 0) + 1,
-		);
+		this.fee =
+			BigInt(MultisignatureTransaction.FEE) *
+			((this.asset.keysgroup && this.asset.keysgroup.length
+				? BigInt(this.asset.keysgroup.length)
+				: BigInt(0)) +
+				BigInt(1));
 	}
 
 	protected assetToBytes(): Buffer {

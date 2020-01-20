@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 
 import { DelegateTransaction } from './10_delegate_transaction';
 import { VoteTransaction } from './11_vote_transaction';
@@ -60,7 +59,6 @@ import {
 } from './utils';
 
 const exposedUtils = {
-	BigNum,
 	convertBeddowsToLSK,
 	getId,
 	convertLSKToBeddows,

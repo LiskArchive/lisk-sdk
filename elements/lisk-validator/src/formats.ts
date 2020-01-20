@@ -1,5 +1,3 @@
-import * as BigNum from '@liskhq/bignum';
-
 import {
 	isCsv,
 	isGreaterThanMaxTransactionId,
@@ -64,7 +62,7 @@ export const fee = isValidFee;
 export const hex = isHexString;
 
 export const id = (data: string): boolean =>
-	isNumberString(data) && !isGreaterThanMaxTransactionId(new BigNum(data));
+	isNumberString(data) && !isGreaterThanMaxTransactionId(BigInt(data));
 
 export const nonTransferAmount = isValidNonTransferAmount;
 

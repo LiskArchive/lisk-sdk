@@ -14,7 +14,6 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const application = require('../../utils/legacy/application');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
@@ -170,25 +169,25 @@ describe('app', () => {
 												acc.asset.recipientId ===
 												getAddressFromPublicKey(voter.senderPublicKey)
 											) {
-												return new BigNum(reduceBalance)
-													.plus(acc.asset.amount)
-													.toString();
+												return (
+													BigInt(reduceBalance) + BigInt(acc.asset.amount)
+												).toString();
 											}
 											if (
 												getAddressFromPublicKey(acc.senderPublicKey) ===
 												getAddressFromPublicKey(voter.senderPublicKey)
 											) {
-												return new BigNum(reduceBalance)
-													.minus(acc.amount)
-													.toString();
+												return (
+													BigInt(reduceBalance) - BigInt(acc.amount)
+												).toString();
 											}
 											return reduceBalance;
 										},
 										'0',
 									);
-									voters_balance = new BigNum(voters_balance)
-										.plus(balance)
-										.toString();
+									voters_balance = (
+										BigInt(voters_balance) + BigInt(balance)
+									).toString();
 								});
 
 								expect(delegate.voteWeight).to.equal(voters_balance);
@@ -284,9 +283,9 @@ describe('app', () => {
 											getAddressFromPublicKey(acc.senderPublicKey) ===
 											genesisAccount.address
 										) {
-											return new BigNum(reduceBalance)
-												.minus(acc.asset.amount)
-												.toString();
+											return (
+												BigInt(reduceBalance) - BigInt(acc.asset.amount)
+											).toString();
 										}
 										return reduceBalance;
 									},

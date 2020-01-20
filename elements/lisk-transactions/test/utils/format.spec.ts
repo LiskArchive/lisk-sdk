@@ -39,6 +39,9 @@ describe('format', () => {
 		it('should convert 100000000 to 1', () => {
 			return expect(convertBeddowsToLSK('100000000')).toBe('1');
 		});
+		it('should convert 10000000 to 0.1', () => {
+			return expect(convertBeddowsToLSK('10000000')).toBe('0.1');
+		});
 		it('should convert 1 to 0.00000001', () => {
 			return expect(convertBeddowsToLSK('1')).toBe('0.00000001');
 		});
@@ -69,6 +72,9 @@ describe('format', () => {
 		});
 		it('should convert 1 to 100000000', () => {
 			return expect(convertLSKToBeddows('1')).toBe('100000000');
+		});
+		it('should convert 0.1 to 10000000', () => {
+			return expect(convertLSKToBeddows('0.1')).toBe('10000000');
 		});
 		it('should convert 0.00000001 to 1', () => {
 			return expect(convertLSKToBeddows('0.00000001')).toBe('1');

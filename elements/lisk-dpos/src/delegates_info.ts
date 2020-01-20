@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import * as BigNum from '@liskhq/bignum';
 import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
@@ -20,8 +18,8 @@ import { DelegatesList } from './delegates_list';
 import { Slots } from './slots';
 import {
 	Account,
-	BigNumExtended,
 	Block,
+	BlockJSON,
 	DPoSProcessingOptions,
 	DPoSProcessingUndoOptions,
 	Earnings,
@@ -54,21 +52,21 @@ interface RoundSummary {
 	readonly round: number;
 	readonly delegateListRoundOffset?: number;
 	readonly uniqForgersInfo: ReadonlyArray<UniqueForgerInfo>;
-	readonly totalFee: BigNum;
+	readonly totalFee: bigint;
 	readonly tx?: StorageTransaction;
 }
 
 interface ForgerInfo {
 	/* tslint:disable:readonly-keyword */
 	publicKey: string;
-	reward: BigNum;
+	reward: bigint;
 	blocksForged: number;
 	isGettingRemainingFees: boolean;
 }
 
 interface RewardOptions {
 	readonly forgerInfo: ForgerInfo;
-	readonly totalFee: BigNum;
+	readonly totalFee: bigint;
 	readonly round: number;
 }
 
@@ -76,12 +74,12 @@ interface AccountSummary {
 	readonly delegatePublicKeys: string[];
 	readonly uniqDelegateListWithRewardsInfo: ForgerInfo[];
 	// tslint:disable-next-line:readonly-keyword
-	totalFee: BigNum;
+	totalFee: bigint;
 }
 
 interface AccountFees {
 	// tslint:disable-next-line:readonly-keyword
-	[key: string]: BigNum;
+	[key: string]: bigint;
 }
 
 const _isGenesisBlock = (block: Block) => block.height === 1;
@@ -264,12 +262,12 @@ export class DelegatesInfo {
 				delegateAccount,
 				earnings: { fee, reward },
 			}: UniqueForgerInfo) => {
-				const factor = undo ? -1 : 1;
-				const amount = fee.plus(reward);
+				const factor = undo ? BigInt(-1) : BigInt(1);
+				const amount = fee + reward;
 				const data = {
-					balance: delegateAccount.balance.plus(amount.mul(factor)).toString(),
-					fees: delegateAccount.fees.plus(fee.mul(factor)).toString(),
-					rewards: delegateAccount.rewards.plus(reward.mul(factor)).toString(),
+					balance: (delegateAccount.balance + amount * factor).toString(),
+					fees: (delegateAccount.fees + fee * factor).toString(),
+					rewards: (delegateAccount.rewards + reward * factor).toString(),
 				};
 
 				return this.storage.entities.Account.update(
@@ -300,8 +298,8 @@ export class DelegatesInfo {
 					delegateAccount.votedDelegatesPublicKeys.forEach(
 						publicKey =>
 							(acc[publicKey] = acc[publicKey]
-								? acc[publicKey].plus(fee.plus(reward))
-								: fee.plus(reward)),
+								? acc[publicKey] + fee + reward
+								: fee + reward),
 					);
 
 					return acc;
@@ -343,7 +341,9 @@ export class DelegatesInfo {
 		const round = this.slots.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
-		const blocksInRounds = await this.storage.entities.Block.get(
+		const blocksInRounds: Array<
+			Block | BlockJSON
+		> = await this.storage.entities.Block.get(
 			{
 				height_gte: this.slots.calcRoundStartHeight(round),
 				height_lt: this.slots.calcRoundEndHeight(round),
@@ -366,8 +366,8 @@ export class DelegatesInfo {
 			uniqDelegateListWithRewardsInfo,
 			totalFee,
 		} = blocksInRounds.reduce(
-			(acc: AccountSummary, fetchedBlock: Block, i) => {
-				acc.totalFee = acc.totalFee.add(fetchedBlock.totalFee);
+			(acc: AccountSummary, fetchedBlock: Block | BlockJSON, i) => {
+				acc.totalFee = acc.totalFee + BigInt(fetchedBlock.totalFee);
 
 				const delegate = acc.uniqDelegateListWithRewardsInfo.find(
 					({ publicKey }) => publicKey === fetchedBlock.generatorPublicKey,
@@ -377,7 +377,7 @@ export class DelegatesInfo {
 					acc.uniqDelegateListWithRewardsInfo.push({
 						publicKey: fetchedBlock.generatorPublicKey,
 						blocksForged: 1,
-						reward: new BigNum(fetchedBlock.reward),
+						reward: BigInt(fetchedBlock.reward),
 						isGettingRemainingFees: i === blocksInRounds.length - 1,
 					});
 					acc.delegatePublicKeys.push(fetchedBlock.generatorPublicKey);
@@ -385,7 +385,7 @@ export class DelegatesInfo {
 					return acc;
 				}
 
-				delegate.reward = delegate.reward.add(fetchedBlock.reward);
+				delegate.reward = delegate.reward + BigInt(fetchedBlock.reward);
 				delegate.blocksForged += 1;
 				delegate.isGettingRemainingFees = i === blocksInRounds.length - 1;
 
@@ -394,7 +394,7 @@ export class DelegatesInfo {
 			{
 				delegatePublicKeys: [],
 				uniqDelegateListWithRewardsInfo: [],
-				totalFee: new BigNum(0),
+				totalFee: BigInt(0),
 			},
 		);
 
@@ -408,9 +408,9 @@ export class DelegatesInfo {
 			const parsedDelegateAccounts = delegateAccounts.map(
 				(account: Account) => ({
 					...account,
-					balance: new BigNum(account.balance),
-					rewards: new BigNum(account.rewards),
-					fees: new BigNum(account.fees),
+					balance: BigInt(account.balance),
+					rewards: BigInt(account.rewards),
+					fees: BigInt(account.fees),
 				}),
 			);
 
@@ -483,24 +483,21 @@ export class DelegatesInfo {
 
 		if (exceptionRound) {
 			// Multiply with rewards factor
-			delegateReward = delegateReward.mul(exceptionRound.rewards_factor);
+			delegateReward = delegateReward * BigInt(exceptionRound.rewards_factor);
 			// Multiply with fees factor and add bonus
-			calculatedTotalFee = calculatedTotalFee
-				.mul(exceptionRound.fees_factor)
-				.plus(exceptionRound.fees_bonus);
+			calculatedTotalFee =
+				calculatedTotalFee * BigInt(exceptionRound.fees_factor) +
+				BigInt(exceptionRound.fees_bonus);
 		}
 
-		const feePerDelegate = (calculatedTotalFee.div(
-			this.activeDelegates,
-		) as BigNumExtended).floor();
+		const feePerDelegate = calculatedTotalFee / BigInt(this.activeDelegates);
 		// tslint:disable-next-line:no-let
-		let fee = feePerDelegate.mul(forgerInfo.blocksForged);
+		let fee = feePerDelegate * BigInt(forgerInfo.blocksForged);
 
 		if (forgerInfo.isGettingRemainingFees) {
-			const feesRemaining = calculatedTotalFee.sub(
-				feePerDelegate.mul(this.activeDelegates),
-			);
-			fee = fee.plus(feesRemaining);
+			const feesRemaining =
+				calculatedTotalFee - feePerDelegate * BigInt(this.activeDelegates);
+			fee += feesRemaining;
 		}
 
 		return {

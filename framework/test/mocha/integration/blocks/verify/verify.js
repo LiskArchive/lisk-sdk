@@ -20,7 +20,6 @@ const {
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
-const BigNum = require('@liskhq/bignum');
 const { Slots } = require('@liskhq/lisk-dpos');
 const application = require('../../../../utils/legacy/application');
 const {
@@ -302,9 +301,9 @@ describe('blocks/verify', () => {
 			expect(block1.version).to.equal(1);
 			expect(block1.timestamp).to.equal(time);
 			expect(block1.numberOfTransactions).to.equal(0);
-			expect(block1.reward.equals('0')).to.be.true;
-			expect(block1.totalFee.equals('0')).to.be.true;
-			expect(block1.totalAmount.equals('0')).to.be.true;
+			expect(block1.reward).to.equal(BigInt(0));
+			expect(block1.totalFee).to.equal(BigInt(0));
+			expect(block1.totalAmount).to.equal(BigInt(0));
 			expect(block1.payloadLength).to.equal(0);
 			expect(block1.transactions).to.deep.equal([]);
 			expect(block1.previousBlockId).to.equal(genesisBlock.id);
@@ -351,9 +350,9 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.version).to.equal(1);
 			expect(invalidBlock2.timestamp).to.equal(33772882);
 			expect(invalidBlock2.numberOfTransactions).to.equal(0);
-			expect(invalidBlock2.reward.equals('0')).to.be.true;
-			expect(invalidBlock2.totalFee.equals('0')).to.be.true;
-			expect(invalidBlock2.totalAmount.equals('0')).to.be.true;
+			expect(invalidBlock2.reward).to.equal(BigInt(0));
+			expect(invalidBlock2.totalFee).to.equal(BigInt(0));
+			expect(invalidBlock2.totalAmount).to.equal(BigInt(0));
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.equal([]);
 			expect(invalidBlock2.previousBlockId).to.equal(genesisBlock.id);
@@ -364,7 +363,7 @@ describe('blocks/verify', () => {
 				const account = random.account();
 				const transaction = transfer({
 					networkIdentifier,
-					amount: new BigNum(NORMALIZER).times(1000).toString(),
+					amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 					recipientId: accountFixtures.genesis.address,
 					passphrase: account.passphrase,
 				});
@@ -447,7 +446,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transferTransaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -464,9 +463,9 @@ describe('blocks/verify', () => {
 					expect(auxBlock.version).to.equal(1);
 					expect(auxBlock.timestamp).to.equal(time);
 					expect(auxBlock.numberOfTransactions).to.equal(1);
-					expect(auxBlock.reward.equals('0')).to.be.true;
-					expect(auxBlock.totalFee.equals('10000000')).to.be.true;
-					expect(auxBlock.totalAmount.equals('100000000000')).to.be.true;
+					expect(auxBlock.reward).to.equal(BigInt(0));
+					expect(auxBlock.totalFee).to.equal(BigInt(10000000));
+					expect(auxBlock.totalAmount).to.equal(BigInt(100000000000));
 					expect(auxBlock.payloadLength).to.equal(117);
 					expect(
 						auxBlock.transactions.map(transaction => transaction.id),
@@ -480,7 +479,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -526,7 +525,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});
@@ -592,9 +591,9 @@ describe('blocks/verify', () => {
 			expect(block2.version).to.equal(1);
 			expect(block2.timestamp).to.equal(time);
 			expect(block2.numberOfTransactions).to.equal(0);
-			expect(block2.reward.equals('0')).to.be.true;
-			expect(block2.totalFee.equals('0')).to.be.true;
-			expect(block2.totalAmount.equals('0')).to.be.true;
+			expect(block2.reward).to.equal(BigInt(0));
+			expect(block2.totalFee).to.equal(BigInt(0));
+			expect(block2.totalAmount).to.equal(BigInt(0));
 			expect(block2.payloadLength).to.equal(0);
 			expect(block2.transactions).to.deep.equal([]);
 			expect(block2.previousBlockId).to.equal(genesisBlock.id);

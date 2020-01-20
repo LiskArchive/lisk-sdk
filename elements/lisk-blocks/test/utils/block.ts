@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
 import {
 	hash,
 	signDataWithPrivateKey,
@@ -135,8 +134,8 @@ const getKeyPair = () => {
 const calculateTransactionsInfo = (block: BlockJSON) => {
 	const sortedTransactions = sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
-	let totalFee = new BigNum(0);
-	let totalAmount = new BigNum(0);
+	let totalFee = BigInt(0);
+	let totalAmount = BigInt(0);
 	let payloadLength = 0;
 
 	// eslint-disable-next-line no-plusplus
@@ -144,8 +143,9 @@ const calculateTransactionsInfo = (block: BlockJSON) => {
 		const transaction = sortedTransactions[i];
 		const transactionBytes = transaction.getBytes();
 
-		totalFee = totalFee.plus(transaction.fee);
-		totalAmount = totalAmount.plus((transaction as any).asset.amount || '0');
+		totalFee = totalFee + BigInt(transaction.fee);
+		totalAmount =
+			totalAmount + BigInt((transaction as any).asset.amount || '0');
 
 		payloadLength += transactionBytes.length;
 		transactionsBytesArray.push(transactionBytes);
@@ -216,6 +216,6 @@ export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 
 	return {
 		...blockWithSignature,
-		id: BigNum.fromBuffer(temp).toString(),
+		id: temp.readBigUInt64BE().toString(),
 	} as BlockInstance;
 };
