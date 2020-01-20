@@ -14,7 +14,6 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
 const {
 	hash,
 	signDataWithPrivateKey,
@@ -135,8 +134,8 @@ const getKeyPair = () => {
 const calculateTransactionsInfo = block => {
 	const sortedTransactions = sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
-	let totalFee = new BigNum(0);
-	let totalAmount = new BigNum(0);
+	let totalFee = BigInt(0);
+	let totalAmount = BigInt(0);
 	let payloadLength = 0;
 
 	// eslint-disable-next-line no-plusplus
@@ -144,8 +143,8 @@ const calculateTransactionsInfo = block => {
 		const transaction = sortedTransactions[i];
 		const transactionBytes = transaction.getBytes(transaction);
 
-		totalFee = totalFee.plus(transaction.fee);
-		totalAmount = totalAmount.plus(transaction.asset.amount || '0');
+		totalFee += BigInt(transaction.fee);
+		totalAmount += BigInt(transaction.asset.amount || '0');
 
 		payloadLength += transactionBytes.length;
 		transactionsBytesArray.push(transactionBytes);
@@ -214,7 +213,7 @@ const newBlock = block => {
 
 	return {
 		...blockWithSignature,
-		id: BigNum.fromBuffer(temp).toString(),
+		id: temp.readBigUInt64BE().toString(),
 	};
 };
 

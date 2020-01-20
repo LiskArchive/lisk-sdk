@@ -19,7 +19,6 @@ const {
 	registerSecondPassphrase,
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../random');
 const { getNetworkIdentifier } = require('../network_identifier');
@@ -59,9 +58,9 @@ function Multisig(options) {
 		networkIdentifier,
 		type: 12,
 		amount: '0',
-		fee: new BigNum(FEES.MULTISIGNATURE)
-			.times(this.keysgroup.length + 1)
-			.toString(),
+		fee: (
+			BigInt(FEES.MULTISIGNATURE) * BigInt(this.keysgroup.length + 1)
+		).toString(),
 		asset: {
 			keysgroup: this.keysgroup.map(key => `+${key}`),
 			lifetime: this.lifetime,
@@ -78,9 +77,9 @@ function Multisig(options) {
 		networkIdentifier,
 		type: 12,
 		amount: '0',
-		fee: new BigNum(FEES.MULTISIGNATURE)
-			.times(this.keysgroup.length + 1)
-			.toString(),
+		fee: (
+			BigInt(FEES.MULTISIGNATURE) * BigInt(this.keysgroup.length + 1)
+		).toString(),
 		asset: {
 			keysgroup: this.keysgroup.map(key => `+${key}`),
 			lifetime: this.lifetime,

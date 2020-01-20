@@ -46,7 +46,7 @@ describe('#getId', () => {
 	it('should call cryptography getFirstEightBytesReversed', async () => {
 		const cryptographygetFirstEightBytesReversedStub = jest
 			.spyOn(cryptography, 'getFirstEightBytesReversed')
-			.mockReturnValue('db9620af8de763da' as any);
+			.mockReturnValue(Buffer.from('db9620af8de763da', 'hex'));
 
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
 		expect(cryptographygetFirstEightBytesReversedStub).toHaveBeenCalledTimes(1);

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
 	Status as TransactionStatus,
@@ -81,7 +80,7 @@ export const verifyTotalSpending = (
 	// We need to get the transaction id which cause exceeding the sufficient balance
 	// So we can't sum up all transactions together at once
 	// tslint:disable-next-line readonly-keyword
-	const senderSpending: { [key: string]: BigNum } = {};
+	const senderSpending: { [key: string]: bigint } = {};
 	Object.keys(senderTransactions).forEach(senderId => {
 		// We don't need to perform spending check if account have only one transaction
 		// Its balance check will be performed by transaction processing
@@ -91,18 +90,19 @@ export const verifyTotalSpending = (
 		}
 
 		// Grab the sender balance
-		const senderBalance = new BigNum(stateStore.account.get(senderId).balance);
+		const senderBalance = BigInt(stateStore.account.get(senderId).balance);
 
 		// Initialize the sender spending with zero
-		senderSpending[senderId] = new BigNum(0);
+		senderSpending[senderId] = BigInt(0);
 
 		senderTransactions[senderId].forEach(transaction => {
-			const senderTotalSpending = senderSpending[senderId]
+			const senderTotalSpending =
+				senderSpending[senderId] +
 				// tslint:disable-next-line no-any
-				.plus((transaction.asset as any).amount || 0)
-				.plus(transaction.fee);
+				BigInt((transaction.asset as any).amount || 0) +
+				BigInt(transaction.fee);
 
-			if (senderBalance.lt(senderTotalSpending)) {
+			if (senderBalance < senderTotalSpending) {
 				spendingErrors.push({
 					id: transaction.id,
 					status: TransactionStatus.FAIL,
@@ -136,7 +136,7 @@ export const applyGenesisTransactions = () => async (
 
 	const transactionsResponses = transactions.map(transaction => {
 		// Fee is handled by Elements now so we set it to zero here. LIP-0012
-		transaction.fee = new BigNum(0);
+		transaction.fee = BigInt(0);
 		const transactionResponse = transaction.apply(stateStore);
 
 		votesWeight.apply(stateStore, transaction);

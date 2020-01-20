@@ -14,7 +14,6 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
 const { baseBlockSchema } = require('@liskhq/lisk-blocks');
 const {
 	BIG_ENDIAN,
@@ -206,8 +205,8 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 	_create({ transactions, previousBlock, keypair, timestamp }) {
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
-		let totalFee = new BigNum(0);
-		let totalAmount = new BigNum(0);
+		let totalFee = BigInt(0);
+		let totalAmount = BigInt(0);
 		let size = 0;
 
 		const trs = transactions || [];
@@ -224,8 +223,8 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 			size += transactionBytes.length;
 
-			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.asset.amount || 0);
+			totalFee += BigInt(transaction.fee);
+			totalAmount += BigInt(transaction.asset.amount || 0);
 
 			blockTransactions.push(transaction);
 			transactionsBytesArray.push(transactionBytes);

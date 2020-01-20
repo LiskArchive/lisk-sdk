@@ -16,7 +16,6 @@
 
 const chai = require('chai');
 const { TransferTransaction } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const accountFixtures = require('../../../../../fixtures//accounts');
@@ -568,9 +567,9 @@ describe('transport', () => {
 							generatorPublicKey:
 								'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
 							numberOfTransactions: 15,
-							totalAmount: new BigNum('150000000'),
-							totalFee: new BigNum('15000000'),
-							reward: new BigNum('50000000'),
+							totalAmount: BigInt('150000000'),
+							totalFee: BigInt('15000000'),
+							reward: BigInt('50000000'),
 							totalForged: '65000000',
 						};
 						transportModule.broadcaster = {

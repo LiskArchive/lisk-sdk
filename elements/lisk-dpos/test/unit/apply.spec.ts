@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
 import { when } from 'jest-when';
 import { Dpos, Slots, constants } from '../../src';
 import { Block, Account } from '../../src/types';
@@ -255,12 +254,12 @@ describe('dpos.apply()', () => {
 
 	describe('Given block is the last block of the round', () => {
 		let lastBlockOfTheRoundNine: Block;
-		let feePerDelegate: BigNum;
-		let rewardPerDelegate: BigNum;
-		let totalFee: BigNum;
+		let feePerDelegate: bigint;
+		let rewardPerDelegate: bigint;
+		let totalFee: bigint;
 		let getTotalEarningsOfDelegate: (
 			account: Account,
-		) => { reward: BigNum; fee: BigNum };
+		) => { reward: bigint; fee: bigint };
 		beforeEach(() => {
 			// Arrange
 			when(stubs.storage.entities.Account.get)
@@ -287,18 +286,18 @@ describe('dpos.apply()', () => {
 				)
 				.mockReturnValue(sortedDelegateAccounts);
 
-			feePerDelegate = new BigNum(randomInt(10, 100));
-			totalFee = feePerDelegate.mul(ACTIVE_DELEGATES);
+			feePerDelegate = BigInt(randomInt(10, 100));
+			totalFee = feePerDelegate * BigInt(ACTIVE_DELEGATES);
 
 			// Delegates who forged got their rewards
-			rewardPerDelegate = new BigNum(randomInt(1, 20));
+			rewardPerDelegate = BigInt(randomInt(1, 20));
 
 			getTotalEarningsOfDelegate = account => {
 				const blockCount = delegatesWhoForged.filter(
 					d => d.publicKey === account.publicKey,
 				).length;
-				const reward = rewardPerDelegate.mul(blockCount);
-				const fee = feePerDelegate.mul(blockCount);
+				const reward = rewardPerDelegate * BigInt(blockCount);
+				const fee = feePerDelegate * BigInt(blockCount);
 				return {
 					reward,
 					fee,
@@ -398,11 +397,11 @@ describe('dpos.apply()', () => {
 			expect.assertions(uniqueDelegatesWhoForged.length);
 			uniqueDelegatesWhoForged.forEach(account => {
 				const { fee, reward } = getTotalEarningsOfDelegate(account);
-				const amount = fee.plus(reward);
+				const amount = fee + reward;
 				const data = {
-					balance: account.balance.plus(amount).toString(),
-					fees: account.fees.plus(fee).toString(),
-					rewards: account.rewards.plus(reward).toString(),
+					balance: (account.balance + amount).toString(),
+					fees: (account.fees + fee).toString(),
+					rewards: (account.rewards + reward).toString(),
 				};
 
 				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
@@ -429,7 +428,7 @@ describe('dpos.apply()', () => {
 			lastBlockOfTheRoundNine = {
 				height: 909,
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
-				totalFee: new BigNum(feePerDelegate).add(remainingFee),
+				totalFee: BigInt(feePerDelegate) + BigInt(remainingFee),
 				reward: rewardPerDelegate,
 			} as Block;
 			forgedBlocks.splice(forgedBlocks.length - 1);
@@ -450,9 +449,11 @@ describe('dpos.apply()', () => {
 					 * Delegate who forged last also forged 3 times,
 					 * Thus will get fee 3 times too.
 					 */
-					fees: delegateWhoForgedLast.fees
-						.add(feePerDelegate.mul(3).add(remainingFee))
-						.toString(),
+					fees: (
+						delegateWhoForgedLast.fees +
+						feePerDelegate * BigInt(3) +
+						BigInt(remainingFee)
+					).toString(),
 				}),
 				{},
 				stubs.tx,
@@ -472,7 +473,10 @@ describe('dpos.apply()', () => {
 							/**
 							 * Rest of the delegates don't get the remaining fee
 							 */
-							fees: account.fees.add(feePerDelegate.mul(blockCount)).toString(),
+							fees: (
+								account.fees +
+								feePerDelegate * BigInt(blockCount)
+							).toString(),
 						}),
 						{},
 						stubs.tx,
@@ -489,11 +493,9 @@ describe('dpos.apply()', () => {
 					const { fee, reward } = getTotalEarningsOfDelegate(account);
 					account.votedDelegatesPublicKeys.forEach(publicKey => {
 						if (accumulator[publicKey]) {
-							accumulator[publicKey] = accumulator[publicKey].plus(
-								fee.plus(reward),
-							);
+							accumulator[publicKey] = accumulator[publicKey] + fee + reward;
 						} else {
-							accumulator[publicKey] = fee.plus(reward);
+							accumulator[publicKey] = fee + reward;
 						}
 					});
 					return accumulator;
@@ -642,14 +644,14 @@ describe('dpos.apply()', () => {
 		// Reference: https://github.com/LiskHQ/lisk-sdk/issues/2423
 		describe('When summarizing round return value which is greater than Number.MAX_SAFE_INTEGER ', () => {
 			beforeEach(async () => {
-				feePerDelegate = new BigNum(Number.MAX_SAFE_INTEGER.toString()).add(
-					randomInt(10, 1000),
-				);
-				totalFee = new BigNum(feePerDelegate).mul(ACTIVE_DELEGATES);
+				feePerDelegate =
+					BigInt(Number.MAX_SAFE_INTEGER.toString()) +
+					BigInt(randomInt(10, 1000));
+				totalFee = BigInt(feePerDelegate) * BigInt(ACTIVE_DELEGATES);
 
-				rewardPerDelegate = new BigNum(Number.MAX_SAFE_INTEGER.toString()).add(
-					randomInt(10, 1000),
-				);
+				rewardPerDelegate =
+					BigInt(Number.MAX_SAFE_INTEGER.toString()) +
+					BigInt(randomInt(10, 1000));
 
 				const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
 					generatorPublicKey: delegate.publicKey,
@@ -672,8 +674,8 @@ describe('dpos.apply()', () => {
 					const blockCount = delegatesWhoForged.filter(
 						d => d.publicKey === account.publicKey,
 					).length;
-					const reward = new BigNum(rewardPerDelegate).mul(blockCount);
-					const fee = new BigNum(feePerDelegate).mul(blockCount);
+					const reward = BigInt(rewardPerDelegate) * BigInt(blockCount);
+					const fee = BigInt(feePerDelegate) * BigInt(blockCount);
 					return {
 						reward,
 						fee,
@@ -690,11 +692,9 @@ describe('dpos.apply()', () => {
 						const { fee, reward } = getTotalEarningsOfDelegate(account);
 						account.votedDelegatesPublicKeys.forEach(publicKey => {
 							if (accumulator[publicKey]) {
-								accumulator[publicKey] = accumulator[publicKey].plus(
-									fee.plus(reward),
-								);
+								accumulator[publicKey] = accumulator[publicKey] + fee + reward;
 							} else {
-								accumulator[publicKey] = fee.plus(reward);
+								accumulator[publicKey] = fee + reward;
 							}
 						});
 						return accumulator;
@@ -748,9 +748,10 @@ describe('dpos.apply()', () => {
 				expect.assertions(uniqueDelegatesWhoForged.length);
 				uniqueDelegatesWhoForged.forEach(account => {
 					const { reward } = getTotalEarningsOfDelegate(account);
-					const exceptionReward = reward.mul(exceptionFactors.rewards_factor);
+					const exceptionReward =
+						reward * BigInt(exceptionFactors.rewards_factor);
 					const partialData = {
-						rewards: account.rewards.add(exceptionReward).toString(),
+						rewards: (account.rewards + exceptionReward).toString(),
 					};
 
 					// Assert
@@ -774,16 +775,15 @@ describe('dpos.apply()', () => {
 						d => d.publicKey === account.publicKey,
 					).length;
 
-					const exceptionTotalFee: BigNum = totalFee
-						.mul(exceptionFactors.fees_factor)
-						.add(exceptionFactors.fees_bonus);
+					const exceptionTotalFee: bigint =
+						totalFee * BigInt(exceptionFactors.fees_factor) +
+						BigInt(exceptionFactors.fees_bonus);
 
-					const earnedFee = exceptionTotalFee
-						.div(new BigNum(ACTIVE_DELEGATES))
-						.mul(blockCount);
+					const earnedFee =
+						(exceptionTotalFee / BigInt(ACTIVE_DELEGATES)) * BigInt(blockCount);
 
 					const partialData = {
-						fees: account.fees.add(earnedFee).toString(),
+						fees: (account.fees + earnedFee).toString(),
 					};
 
 					// Assert

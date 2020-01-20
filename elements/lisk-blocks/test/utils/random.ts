@@ -13,7 +13,6 @@
  */
 
 import * as randomstring from 'randomstring';
-import * as BigNum from '@liskhq/bignum';
 import {
 	getKeys,
 	getAddressFromPassphrase,
@@ -72,10 +71,10 @@ export const transferInstance = (offset?: number) => {
 	const tx = transaction(offset);
 	return {
 		...tx,
-		fee: new BigNum((tx as any).fee),
+		fee: BigInt((tx as any).fee),
 		asset: {
 			...tx.asset,
-			amount: new BigNum((tx as any).asset.amount),
+			amount: BigInt((tx as any).asset.amount),
 		},
 	};
 };

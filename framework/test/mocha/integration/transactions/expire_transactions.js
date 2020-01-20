@@ -19,7 +19,6 @@ const {
 	registerMultisignature,
 	constants: transactionConstants,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const randomUtil = require('../../../utils/random');
@@ -229,8 +228,7 @@ describe('expire transactions', () => {
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance
-					expect(new BigNum(multiSigAccount[0].balance).equals(amount)).to.be
-						.true;
+					expect(BigInt(multiSigAccount[0].balance)).to.equal(BigInt(amount));
 					done();
 				})
 				.catch(done);

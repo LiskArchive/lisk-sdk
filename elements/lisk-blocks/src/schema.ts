@@ -52,15 +52,15 @@ export const baseBlockSchema = {
 			type: 'integer',
 		},
 		totalAmount: {
-			type: 'object',
+			typeof: 'string',
 			format: 'amount',
 		},
 		totalFee: {
-			type: 'object',
+			typeof: 'string',
 			format: 'amount',
 		},
 		reward: {
-			type: 'object',
+			typeof: 'string',
 			format: 'amount',
 		},
 		transactions: {

@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import * as BigNum from '@liskhq/bignum';
 import { randomInt } from './random_int';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Account } from '../../src/types';
@@ -20,14 +18,14 @@ import { Account } from '../../src/types';
 export { delegatePublicKeys };
 
 export const delegateAccounts = delegatePublicKeys.map((pk, index) => {
-	const balance = new BigNum(randomInt(100, 1000));
-	const rewards = new BigNum(randomInt(100, 500));
-	const voteWeight = new BigNum(randomInt(10000, 50000));
+	const balance = BigInt(randomInt(100, 1000));
+	const rewards = BigInt(randomInt(100, 500));
+	const voteWeight = BigInt(randomInt(10000, 50000));
 	return {
 		balance,
 		rewards,
 		voteWeight,
-		fees: balance.sub(rewards),
+		fees: balance - rewards,
 		publicKey: pk,
 		votedDelegatesPublicKeys: [
 			`abc${index}`,
@@ -93,15 +91,15 @@ export const delegateWhoForgedLast =
 // eslint-disable-next-line consistent-return, array-callback-return
 export const sortedDelegateAccounts = delegateAccounts.sort(
 	(a: Account, b: Account) => {
-		if (b.voteWeight.eq(a.voteWeight)) {
+		if (b.voteWeight === a.voteWeight) {
 			return a.publicKey.localeCompare(b.publicKey); // publicKey sorted by ascending
 		}
 
-		if (b.voteWeight.gt(a.voteWeight)) {
+		if (b.voteWeight > a.voteWeight) {
 			return 1; // voteWeight sorted by descending
 		}
 
-		if (b.voteWeight.lt(a.voteWeight)) {
+		if (b.voteWeight < a.voteWeight) {
 			return -1;
 		}
 

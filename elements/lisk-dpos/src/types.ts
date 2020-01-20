@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
-
 // Storage
 export interface StorageFilter {
 	readonly [key: string]:
@@ -80,7 +78,7 @@ export interface BlockEntity {
 		filters: StorageFilters,
 		options: StorageOptions,
 		tx?: StorageTransaction,
-	) => Promise<Block[]>;
+	) => Promise<BlockJSON[]>;
 }
 
 export interface AccountEntity extends StorageEntity<Account> {
@@ -110,30 +108,35 @@ export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
 	) => Promise<ReadonlyArray<string>>;
 }
 
-// Typedefs
-export interface BigNumExtended extends BigNum {
-	readonly floor: () => BigNum;
+export interface BlockJSON {
+	readonly id: number;
+	readonly height: number;
+	readonly generatorPublicKey: string;
+	readonly totalFee: string;
+	readonly timestamp: number;
+	readonly fee: string;
+	readonly reward: string;
 }
 
 export interface Earnings {
-	readonly fee: BigNum;
-	readonly reward: BigNum;
+	readonly fee: bigint;
+	readonly reward: bigint;
 }
 
 export interface Block extends Earnings {
 	readonly id: number;
 	readonly height: number;
 	readonly generatorPublicKey: string;
-	readonly totalFee: BigNum;
+	readonly totalFee: bigint;
 	readonly timestamp: number;
 }
 
 export interface Account {
-	readonly balance: BigNum;
-	readonly fees: BigNum;
-	readonly rewards: BigNum;
+	readonly balance: bigint;
+	readonly fees: bigint;
+	readonly rewards: bigint;
 	readonly publicKey: string;
-	readonly voteWeight: BigNum;
+	readonly voteWeight: bigint;
 	readonly votedDelegatesPublicKeys: ReadonlyArray<string>;
 }
 

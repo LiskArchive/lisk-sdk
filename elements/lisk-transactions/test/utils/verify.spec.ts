@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import {
 	verifySenderPublicKey,
 	verifyBalance,
@@ -50,13 +49,13 @@ describe('#verify', () => {
 		const defaultAccount = { balance: '1000000000' } as any;
 		it('should return undefined when sender has exact amount', async () => {
 			expect(
-				verifyBalance(defaultId, defaultAccount, new BigNum('1000000000')),
+				verifyBalance(defaultId, defaultAccount, BigInt('1000000000')),
 			).toBeUndefined();
 		});
 
 		it('should return undefined when sender has enoguh balance', async () => {
 			expect(
-				verifyBalance(defaultId, defaultAccount, new BigNum('100')),
+				verifyBalance(defaultId, defaultAccount, BigInt('100')),
 			).toBeUndefined();
 		});
 
@@ -64,7 +63,7 @@ describe('#verify', () => {
 			const result = verifyBalance(
 				defaultId,
 				defaultAccount,
-				new BigNum('1000000001'),
+				BigInt('1000000001'),
 			);
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty('dataPath', '.balance');
