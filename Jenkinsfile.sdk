@@ -149,7 +149,7 @@ pipeline {
 				nvm(getNodejsVersion()) {
 					sh '''
 					npm ci
-					npm run bootstrap -- --ci
+					npm run bootstrap
 					npm run build
 					# needed by one of the "Functional HTTP GET tests"
 					git rev-parse HEAD > framework/REVISION
