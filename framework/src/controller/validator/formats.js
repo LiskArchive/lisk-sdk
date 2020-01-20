@@ -211,8 +211,8 @@ const validationFormats = {
 
 	amount(value) {
 		if (typeof value === 'string' && /^[0-9]*$/.test(value)) {
-			const bigNumber = BigInt(value);
-			return bigNumber >= BigInt(0) && bigNumber <= BigInt(UINT64_MAX);
+			const bigintValue = BigInt(value);
+			return bigintValue >= BigInt(0) && bigintValue <= BigInt(UINT64_MAX);
 		}
 
 		/**

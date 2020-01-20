@@ -172,14 +172,14 @@ const consolidatePeers = (connectedPeers = [], disconnectedPeers = []) => {
 
 function calculateApproval(votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings,
-	// we convert them into bignum and send the response as number as well
-	const votersBalanceBignum = BigInt(votersBalance || 0);
-	const totalSupplyBignum = BigInt(totalSupply);
-	const approvalBignum = Number(
-		(votersBalanceBignum / totalSupplyBignum) * BigInt(100),
+	// we convert them into bigint and send the response as number as well
+	const votersBalanceBigInt = BigInt(votersBalance || 0);
+	const totalSupplyBigInt = BigInt(totalSupply);
+	const approvalBigInt = Number(
+		(votersBalanceBigInt / totalSupplyBigInt) * BigInt(100),
 	).toFixed(2);
 
-	return Number(parseFloat(approvalBignum).toFixed(2));
+	return Number(parseFloat(approvalBigInt).toFixed(2));
 }
 
 module.exports = {

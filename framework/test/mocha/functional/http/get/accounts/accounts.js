@@ -324,12 +324,12 @@ describe('GET /accounts', () => {
 					const balances = _.cloneDeep(res.body.data);
 					expect(
 						balances.sort((a, b) => {
-							const aBignumBalance = BigInt(a.balance);
+							const aBigIntBalance = BigInt(a.balance);
 
-							if (aBignumBalance > BigInt(b.balance)) {
+							if (aBigIntBalance > BigInt(b.balance)) {
 								return 1;
 							}
-							if (aBignumBalance < BigInt(b.balance)) {
+							if (aBigIntBalance < BigInt(b.balance)) {
 								return -1;
 							}
 
@@ -346,12 +346,12 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = BigInt(a.balance);
+								const aBigIntBalance = BigInt(a.balance);
 
-								if (aBignumBalance > BigInt(b.balance)) {
+								if (aBigIntBalance > BigInt(b.balance)) {
 									return 1;
 								}
-								if (aBignumBalance < BigInt(b.balance)) {
+								if (aBigIntBalance < BigInt(b.balance)) {
 									return -1;
 								}
 
@@ -368,12 +368,12 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = BigInt(a.balance);
+								const aBigIntBalance = BigInt(a.balance);
 
-								if (aBignumBalance > BigInt(b.balance)) {
+								if (aBigIntBalance > BigInt(b.balance)) {
 									return -1;
 								}
-								if (aBignumBalance < BigInt(b.balance)) {
+								if (aBigIntBalance < BigInt(b.balance)) {
 									return 1;
 								}
 

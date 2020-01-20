@@ -203,12 +203,12 @@ random.multisigDappRegistrationMaxiumData = function(
 	return dappTransaction;
 };
 
-const convertToBigNum = transactions =>
+const convertToBigInt = transactions =>
 	transactions.forEach(transaction => {
 		transaction.amount = BigInt(transaction.amount);
 		transaction.fee = BigInt(transaction.fee);
 	});
 
-random.convertToBigNum = convertToBigNum;
+random.convertToBigInt = convertToBigInt;
 
 module.exports = random;

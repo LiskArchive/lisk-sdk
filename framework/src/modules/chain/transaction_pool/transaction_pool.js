@@ -394,8 +394,8 @@ class TransactionPool extends EventEmitter {
 		) {
 			/**
 			 * sortOrder - Sorting by asc or desc, -1 desc order, 1 is asc order
-			 * amount and fee are bignumber here, so in order to sort
-			 * we need to use bignumber functions here specific to amount, fee
+			 * amount and fee are bigint here, so in order to sort
+			 * we need to use bigint functions here specific to amount, fee
 			 */
 			const sortOrder =
 				sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
