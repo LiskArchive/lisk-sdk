@@ -41,6 +41,7 @@ export class PeerBook {
 	private readonly _seedPeers: ReadonlyArray<P2PPeerInfo>;
 	private readonly _fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	private readonly _whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
+	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 
 	public constructor({
 		sanitizedPeerLists: sanitizedPeerLists,
@@ -64,6 +65,7 @@ export class PeerBook {
 		this._seedPeers = [...sanitizedPeerLists.seedPeers];
 		this._fixedPeers = [...sanitizedPeerLists.fixedPeers];
 		this._whitelistedPeers = [...sanitizedPeerLists.whitelisted];
+		this._unbanTimers = [];
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
@@ -191,11 +193,11 @@ export class PeerBook {
 		return false;
 	}
 
-	public addBannedPeer(peerId: string): boolean {
+	public addBannedPeer(peerId: string, peerBanTime: number): void {
 		const peerIpAddress = peerId.split(':')[0];
 
 		if (this.bannedIps.find(peerIp => peerIp === peerIpAddress)) {
-			return false;
+			return;
 		}
 
 		const isWhitelistedPeer = this.whitelistedPeers.find(
@@ -206,7 +208,7 @@ export class PeerBook {
 
 		// Whitelisted or FixedPeers are not allowed to be banned
 		if (isWhitelistedPeer || isFixedPeer) {
-			return false;
+			return;
 		}
 
 		this._bannedIps.add(peerIpAddress);
@@ -217,12 +219,27 @@ export class PeerBook {
 			}
 		});
 
-		return true;
+		// Unban temporary banns after peerBanTime
+		const unbanTimeout = setTimeout(() => {
+			this._removeBannedPeer(peerId);
+		}, peerBanTime);
+
+		this._unbanTimers.push(unbanTimeout);
+
+		return;
 	}
 
-	public removeBannedPeer(peerId: string): void {
+	private _removeBannedPeer(peerId: string): void {
 		const peerIpAddress = peerId.split(':')[0];
 
 		this._bannedIps.delete(peerIpAddress);
+	}
+
+	public cleanUpTimers(): void {
+		this._unbanTimers.forEach(timer => {
+			if (timer) {
+				clearTimeout(timer);
+			}
+		});
 	}
 }

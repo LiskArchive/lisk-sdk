@@ -81,7 +81,6 @@ import {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
-	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
@@ -203,7 +202,6 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private _hasConnected: boolean;
 	private readonly _peerBook: PeerBook;
-	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
 	private _nextSeedPeerDiscovery: number;
 	private readonly _fallbackSeedPeerDiscoveryInterval: number;
@@ -235,11 +233,9 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
 	private readonly _handleBanPeer: (peerId: string) => void;
-	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
-	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -279,7 +275,6 @@ export class P2P extends EventEmitter {
 			secret: this._secret,
 		});
 		this._initializePeerBook();
-		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
 			path: DEFAULT_HTTP_PATH,
@@ -289,7 +284,6 @@ export class P2P extends EventEmitter {
 					: DEFAULT_WS_MAX_PAYLOAD,
 			},
 		}) as SCServerUpdated;
-		this._unbanTimers = [];
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -411,28 +405,8 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleBanPeer = (peerId: string): void => {
-			if (this._peerBook.addBannedPeer(peerId)) {
-				const peerBanTime = config.peerBanTime
-					? config.peerBanTime
-					: DEFAULT_BAN_TIME;
-
-				// Unban temporary banns after peerBanTime
-				const unbanTimeout = setTimeout(() => {
-					this._handleUnbanPeer(peerId);
-				}, peerBanTime);
-
-				this._unbanTimers.push(unbanTimeout);
-			}
-
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
-		};
-
-		this._handleUnbanPeer = (peerId: string) => {
-			this._peerBook.removeBannedPeer(peerId);
-
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
@@ -715,7 +689,9 @@ export class P2P extends EventEmitter {
 				return;
 			});
 
-			if (this._bannedPeers.has(socket.remoteAddress)) {
+			if (
+				this._peerBook.bannedIps.find(peerIp => peerIp === socket.remoteAddress)
+			) {
 				this._disconnectSocketDueToFailedHandshake(
 					socket,
 					FORBIDDEN_CONNECTION,
@@ -723,20 +699,6 @@ export class P2P extends EventEmitter {
 				);
 
 				return;
-			}
-			// Check blacklist to avoid incoming connections from blacklisted ips
-			if (this._sanitizedPeerLists.blacklistedIPs) {
-				if (
-					this._sanitizedPeerLists.blacklistedIPs.includes(socket.remoteAddress)
-				) {
-					this._disconnectSocketDueToFailedHandshake(
-						socket,
-						FORBIDDEN_CONNECTION,
-						FORBIDDEN_CONNECTION_REASON,
-					);
-
-					return;
-				}
 			}
 		});
 
@@ -947,11 +909,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _stopPeerServer(): Promise<void> {
-		this._unbanTimers.forEach(timer => {
-			if (timer) {
-				clearTimeout(timer);
-			}
-		});
+		this._peerBook.cleanUpTimers();
 
 		await this._stopWSServer();
 		await this._stopHTTPServer();
@@ -1148,7 +1106,6 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
 		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
-		peerPool.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 	}
 	// tslint:disable-next-line:max-file-line-count
 }

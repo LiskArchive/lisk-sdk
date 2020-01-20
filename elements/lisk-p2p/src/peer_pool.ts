@@ -49,7 +49,6 @@ import {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
-	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	REMOTE_EVENT_POST_NODE_INFO,
 } from './events';
@@ -166,7 +165,6 @@ export class PeerPool extends EventEmitter {
 	private readonly _handleFailedToFetchPeers: (error: Error) => void;
 	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
 	private readonly _handleBanPeer: (peerId: string) => void;
-	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private readonly _maxOutboundConnections: number;
 	private readonly _maxInboundConnections: number;
@@ -284,10 +282,6 @@ export class PeerPool extends EventEmitter {
 		this._handleBanPeer = (peerId: string) => {
 			// Re-emit the peerId to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
-		};
-		this._handleUnbanPeer = (peerId: string) => {
-			// Re-emit the peerId to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
 	}
 
@@ -800,7 +794,6 @@ export class PeerPool extends EventEmitter {
 			this._handleFailedToCollectPeerDetails,
 		);
 		peer.on(EVENT_BAN_PEER, this._handleBanPeer);
-		peer.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 		peer.on(EVENT_DISCOVERED_PEER, this._handleDiscoverPeer);
 	}
 
@@ -835,7 +828,6 @@ export class PeerPool extends EventEmitter {
 			this._handleFailedToCollectPeerDetails,
 		);
 		peer.removeListener(EVENT_BAN_PEER, this._handleBanPeer);
-		peer.removeListener(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 		peer.removeListener(EVENT_DISCOVERED_PEER, this._handleDiscoverPeer);
 	}
 }
