@@ -2127,7 +2127,7 @@ definitions:
     required:
       - epoch
       - milestone
-      - nethash
+      - networkId
       - reward
       - supply
       - build
@@ -2168,12 +2168,12 @@ definitions:
         format: protocolVersion
         example: 1.0
         description: The Lisk Core protocol version, that the node is running on.
-      nethash:
+      networkId:
         type: string
         example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511
         description: |
-          Describes the network.
-          The nethash describes e.g. the Mainnet or the Testnet, that the node is connecting to.
+          Identifies the network.
+          The networkId that the node is connecting to, see LIP-0009 for more details.
       supply:
         type: string
         example: '10575384500000000'

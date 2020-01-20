@@ -90,7 +90,7 @@ NodeController.getConstants = async (context, next) => {
 				dappWithdrawal: FEES.DAPP_WITHDRAWAL.toString(),
 				dappDeposit: FEES.DAPP_DEPOSIT.toString(),
 			},
-			nethash: library.config.nethash,
+			networkId: library.config.networkId,
 			milestone: milestone.toString(),
 			reward: reward.toString(),
 			supply: supply.toString(),
