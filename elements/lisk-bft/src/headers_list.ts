@@ -108,11 +108,11 @@ export class HeadersList {
 		);
 	}
 
-	public top(size: number): ReadonlyArray<BlockHeader> {
+	public top(size: number): BlockHeader[] {
 		return this.items.slice(this.length - size, this.length + 1);
 	}
 
-	public empty(): ReadonlyArray<BlockHeader> {
+	public empty(): BlockHeader[] {
 		const items = [...this.items];
 		this._items = [];
 
