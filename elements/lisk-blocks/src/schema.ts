@@ -52,15 +52,15 @@ export const baseBlockSchema = {
 			type: 'integer',
 		},
 		totalAmount: {
-			typeof: 'bigint',
+			typeof: 'string',
 			format: 'amount',
 		},
 		totalFee: {
-			typeof: 'bigint',
+			typeof: 'string',
 			format: 'amount',
 		},
 		reward: {
-			typeof: 'bigint',
+			typeof: 'string',
 			format: 'amount',
 		},
 		transactions: {
