@@ -23,6 +23,7 @@ const {
 	MultisignatureTransaction,
 	transactionInterface,
 } = require('@liskhq/lisk-transactions');
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const _ = require('lodash');
 const Controller = require('./controller');
@@ -287,14 +288,16 @@ class Application {
 
 	_compileAndValidateConfigurations() {
 		const modules = this.getModules();
-
-		this.config.app.nethash = this.genesisBlock.payloadHash;
+		this.config.app.networkId = getNetworkIdentifier(
+			this.genesisBlock.payloadHash,
+			this.genesisBlock.communityIdentifier,
+		);
 
 		const appConfigToShareWithModules = {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
-			nethash: this.config.app.nethash,
+			networkId: this.config.app.networkId,
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
 			lastCommitId: this.config.app.lastCommitId,
@@ -317,7 +320,7 @@ class Application {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
-			nethash: this.config.app.nethash,
+			networkId: this.config.app.networkId,
 			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};

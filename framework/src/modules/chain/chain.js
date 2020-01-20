@@ -89,7 +89,7 @@ module.exports = class Chain {
 
 		try {
 			if (!this.options.genesisBlock) {
-				throw Error('Failed to assign nethash from genesis block');
+				throw Error('Missing genesis block');
 			}
 
 			if (
