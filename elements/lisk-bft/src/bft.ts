@@ -50,12 +50,15 @@ export const extractBFTBlockHeaderFromBlock = (block: Block): BlockHeader => ({
  * BFT class responsible to hold integration logic for finality manager with the framework
  */
 export class BFT extends EventEmitter {
-	public _finalityManager?: FinalityManager;
-	public storage: Storage;
-	public slots: Slots;
-	public constants: { activeDelegates: number; startingHeight: number };
+	private _finalityManager?: FinalityManager;
+	public readonly storage: Storage;
+	public readonly slots: Slots;
+	public readonly constants: {
+		activeDelegates: number;
+		startingHeight: number;
+	};
 
-	private blockEntity: BlockEntity;
+	private readonly blockEntity: BlockEntity;
 
 	public constructor({
 		storage,
