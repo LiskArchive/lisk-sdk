@@ -19,7 +19,6 @@ const {
 	transfer,
 	registerSecondPassphrase,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const SwaggerEndpoint = require('../../../../../utils/http/swagger_spec');
 const randomUtil = require('../../../../../utils/random');
@@ -325,12 +324,12 @@ describe('GET /accounts', () => {
 					const balances = _.cloneDeep(res.body.data);
 					expect(
 						balances.sort((a, b) => {
-							const aBignumBalance = new BigNum(a.balance);
+							const aBigIntBalance = BigInt(a.balance);
 
-							if (aBignumBalance.gt(b.balance)) {
+							if (aBigIntBalance > BigInt(b.balance)) {
 								return 1;
 							}
-							if (aBignumBalance.lt(b.balance)) {
+							if (aBigIntBalance < BigInt(b.balance)) {
 								return -1;
 							}
 
@@ -347,12 +346,12 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = new BigNum(a.balance);
+								const aBigIntBalance = BigInt(a.balance);
 
-								if (aBignumBalance.gt(b.balance)) {
+								if (aBigIntBalance > BigInt(b.balance)) {
 									return 1;
 								}
-								if (aBignumBalance.lt(b.balance)) {
+								if (aBigIntBalance < BigInt(b.balance)) {
 									return -1;
 								}
 
@@ -369,12 +368,12 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = new BigNum(a.balance);
+								const aBigIntBalance = BigInt(a.balance);
 
-								if (aBignumBalance.gt(b.balance)) {
+								if (aBigIntBalance > BigInt(b.balance)) {
 									return -1;
 								}
-								if (aBignumBalance.lt(b.balance)) {
+								if (aBigIntBalance < BigInt(b.balance)) {
 									return 1;
 								}
 

@@ -16,7 +16,6 @@
 
 const path = require('path');
 const QueryFile = require('pg-promise').QueryFile;
-const BigNum = require('@liskhq/bignum');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -90,35 +89,26 @@ class Queries {
 			)
 			.then(resp => {
 				const { delegates, rewards, fees = 0 } = resp[0];
-				const feesPerDelegate = new BigNum(fees)
-					.dividedBy(numberOfDelegates)
-					.floor();
+				const feesPerDelegate = BigInt(fees) / BigInt(numberOfDelegates);
 
-				const feesRemaining = new BigNum(fees).minus(
-					feesPerDelegate.times(numberOfDelegates),
-				);
+				const feesRemaining =
+					BigInt(fees) - feesPerDelegate * BigInt(numberOfDelegates);
 
 				return delegates.reduce((respObj, publicKey, index) => {
 					if (respObj[publicKey]) {
-						respObj[publicKey].fees = respObj[publicKey].fees.plus(
-							feesPerDelegate,
-						);
-						respObj[publicKey].rewards = respObj[publicKey].rewards.plus(
-							rewards[index],
-						);
+						respObj[publicKey].fees += feesPerDelegate;
+						respObj[publicKey].rewards += BigInt(rewards[index]);
 					} else {
 						respObj[publicKey] = {
 							publicKey,
-							fees: new BigNum(feesPerDelegate),
-							rewards: new BigNum(rewards[index]),
+							fees: BigInt(feesPerDelegate),
+							rewards: BigInt(rewards[index]),
 						};
 					}
 
 					if (index === rewards.length - 1) {
 						// Apply remaining fees to last delegate
-						respObj[publicKey].fees = respObj[publicKey].fees.plus(
-							feesRemaining,
-						);
+						respObj[publicKey].fees += feesRemaining;
 					}
 
 					Object.keys(respObj).forEach(key => {

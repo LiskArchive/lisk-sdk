@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import { isGreaterThanMaxTransactionAmount } from '@liskhq/lisk-validator';
 
 import { FIXED_POINT } from '../constants';
 
-const BASE_10 = 10;
 const LISK_MAX_DECIMAL_POINTS = 8;
 const getDecimalPlaces = (amount: string): number =>
 	(amount.split('.')[1] || '').length;
@@ -29,13 +27,21 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 	if (getDecimalPlaces(beddowsAmount)) {
 		throw new Error('Beddows amount should not have decimal points');
 	}
-	const beddowsAmountBigNum = new BigNum(beddowsAmount);
-	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
+	const beddowsAmountBigInt = BigInt(beddowsAmount);
+	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigInt)) {
 		throw new Error('Beddows amount out of range');
 	}
-	const lskAmountBigNum = beddowsAmountBigNum.div(FIXED_POINT);
+	const int = (beddowsAmountBigInt / BigInt(FIXED_POINT)).toString();
+	const floating =
+		Number(beddowsAmountBigInt % BigInt(FIXED_POINT)) / FIXED_POINT;
+	const floatingPointsSplit = floating
+		.toLocaleString(undefined, {
+			maximumFractionDigits: LISK_MAX_DECIMAL_POINTS,
+		})
+		.split('.')[1];
+	const res = floating !== 0 ? `${int}.${floatingPointsSplit}` : int;
 
-	return lskAmountBigNum.toString(BASE_10);
+	return res;
 };
 
 export const convertLSKToBeddows = (lskAmount?: string): string => {
@@ -45,13 +51,18 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 	if (getDecimalPlaces(lskAmount) > LISK_MAX_DECIMAL_POINTS) {
 		throw new Error('LSK amount has too many decimal points');
 	}
-	const lskAmountBigNum = new BigNum(lskAmount);
-	const beddowsAmountBigNum = lskAmountBigNum.mul(FIXED_POINT);
-	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
+	const splitAmount = lskAmount.split('.');
+	const liskAmountInt = BigInt(splitAmount[0]);
+	const liskAmountFloatBigInt = BigInt(
+		(splitAmount[1] ?? '0').padEnd(LISK_MAX_DECIMAL_POINTS, '0'),
+	);
+	const beddowsAmountBigInt =
+		liskAmountInt * BigInt(FIXED_POINT) + liskAmountFloatBigInt;
+	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigInt)) {
 		throw new Error('LSK amount out of range');
 	}
 
-	return beddowsAmountBigNum.toString();
+	return beddowsAmountBigInt.toString();
 };
 
 export const prependPlusToPublicKeys = (

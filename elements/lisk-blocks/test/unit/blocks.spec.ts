@@ -13,7 +13,6 @@
  */
 
 import { when } from 'jest-when';
-import * as BigNum from '@liskhq/bignum';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { Blocks } from '../../src';
@@ -359,9 +358,9 @@ describe('blocks', () => {
 
 		it('should convert big number field to be instance', () => {
 			const blockInstance = blocksInstance.deserialize(blockJSON);
-			expect(blockInstance.totalAmount).toBeInstanceOf(BigNum);
-			expect(blockInstance.totalFee).toBeInstanceOf(BigNum);
-			expect(blockInstance.reward).toBeInstanceOf(BigNum);
+			expect(typeof blockInstance.totalAmount).toBe('bigint');
+			expect(typeof blockInstance.totalFee).toBe('bigint');
+			expect(typeof blockInstance.reward).toBe('bigint');
 		});
 
 		it('should convert transaction to be a class', () => {
@@ -416,9 +415,9 @@ describe('blocks', () => {
 		it('should call Block.create with correct parameters', async () => {
 			// Arrange
 			const block = newBlock({
-				reward: new BigNum('0'),
-				totalAmount: new BigNum('0'),
-				totalFee: new BigNum('0'),
+				reward: BigInt('0'),
+				totalAmount: BigInt('0'),
+				totalFee: BigInt('0'),
 			});
 			const blockJSON = blocksInstance.serialize(block);
 			expect.assertions(1);

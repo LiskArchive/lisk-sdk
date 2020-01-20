@@ -17,7 +17,6 @@
 require('../../functional');
 const crypto = require('crypto');
 const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const typesRepresentatives = require('../../../../fixtures/types_representatives');
 const phases = require('../../../../utils/legacy/transaction_confirmation');
@@ -186,7 +185,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				timestamp: 24259352,
 				type: 8,
 				asset: {
-					amount: new BigNum('1000').toString(),
+					amount: BigInt('1000').toString(),
 					recipientId: accountFixtures.existingDelegate.address,
 				},
 				signature:

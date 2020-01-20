@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
@@ -36,8 +35,8 @@ interface InTransferAsset {
 
 interface DelegateCalculateInput {
 	readonly delegatePublicKey: string;
-	readonly amount: string | BigNum;
-	readonly method: 'add' | 'sub';
+	readonly amount: string | BigInt;
+	readonly add: boolean;
 }
 
 // TODO: change to more generic way
@@ -57,13 +56,15 @@ const revertVotes = (votes: ReadonlyArray<string>) =>
 
 const updateDelegateVote = (
 	stateStore: StateStore,
-	{ delegatePublicKey, amount, method }: DelegateCalculateInput,
+	{ delegatePublicKey, amount, add }: DelegateCalculateInput,
 ) => {
 	const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
 	const delegateAccount = stateStore.account.get(delegateAddress);
-	const voteBigNum = new BigNum(delegateAccount.voteWeight || '0');
-	const voteWeight = voteBigNum[method](amount).toString();
-	delegateAccount.voteWeight = voteWeight;
+	const voteBigInt = BigInt(delegateAccount.voteWeight || '0');
+	const voteWeight = add
+		? voteBigInt + BigInt(amount)
+		: voteBigInt - BigInt(amount);
+	delegateAccount.voteWeight = voteWeight.toString();
 	stateStore.account.set(delegateAddress, delegateAccount);
 };
 
@@ -132,14 +133,14 @@ const updateRecipientDelegateVotes = (
 	}
 
 	const account = stateStore.account.get(address);
-	const method = isUndo ? 'sub' : 'add';
+	const add = isUndo ? false : true;
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
 
 	votedDelegatesPublicKeys.forEach(delegatePublicKey => {
 		updateDelegateVote(stateStore, {
 			delegatePublicKey,
 			amount: (transaction.asset as TransferAsset).amount,
-			method,
+			add,
 		});
 	});
 
@@ -153,10 +154,10 @@ const updateSenderDelegateVotes = (
 	isUndo = false,
 ) => {
 	// Use the ammount or default to zero as LIP-0012 removes the 'amount' property from all transactions but transfer
-	const amount = transaction.fee.plus(
-		(transaction.asset as TransferAsset).amount || 0,
-	);
-	const method = isUndo ? 'add' : 'sub';
+	const amount =
+		BigInt(transaction.fee) +
+		BigInt((transaction.asset as TransferAsset).amount || 0);
+	const add = isUndo ? true : false;
 	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
 	// tslint:disable-next-line no-let
 	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];
@@ -190,7 +191,7 @@ const updateSenderDelegateVotes = (
 	}
 
 	votedDelegatesPublicKeys.forEach(delegatePublicKey => {
-		updateDelegateVote(stateStore, { delegatePublicKey, amount, method });
+		updateDelegateVote(stateStore, { delegatePublicKey, amount, add });
 	});
 
 	return true;
@@ -214,16 +215,16 @@ const updateDelegateVotes = (
 
 	votes
 		.map<DelegateCalculateInput>(vote => {
-			const method = vote[0] === '+' ? 'add' : 'sub';
+			const add = vote[0] === '+' ? true : false;
 			const delegatePublicKey = vote.slice(1);
 
 			const senderAccount = stateStore.account.get(transaction.senderId);
-			const amount = new BigNum(senderAccount.balance).toString();
+			const amount = BigInt(senderAccount.balance).toString();
 
 			return {
 				delegatePublicKey,
 				amount,
-				method,
+				add,
 			};
 		})
 		.forEach(data => {

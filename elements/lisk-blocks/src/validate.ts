@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as BigNum from '@liskhq/bignum';
 import { hash, verifyData } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
@@ -64,11 +63,11 @@ export const validateReward = (
 	expectedReward: string,
 	exceptions: ExceptionOptions,
 ): void => {
-	const expectedRewardBigNum = new BigNum(expectedReward);
+	const expectedRewardBigInt = BigInt(expectedReward);
 
 	if (
 		block.height !== 1 &&
-		!expectedRewardBigNum.eq(block.reward) &&
+		expectedRewardBigInt !== BigInt(block.reward) &&
 		(!exceptions.blockRewards || !exceptions.blockRewards.includes(block.id))
 	) {
 		throw new Error(
@@ -97,9 +96,9 @@ export const validatePayload = (
 	}
 
 	// tslint:disable-next-line no-let
-	let totalAmount = new BigNum(0);
+	let totalAmount = BigInt(0);
 	// tslint:disable-next-line no-let
-	let totalFee = new BigNum(0);
+	let totalFee = BigInt(0);
 	const transactionsBytesArray: Buffer[] = [];
 	// tslint:disable-next-line readonly-keyword
 	const appliedTransactions: { [id: string]: BaseTransaction } = {};
@@ -115,8 +114,8 @@ export const validatePayload = (
 		if (transactionBytes) {
 			transactionsBytesArray.push(transactionBytes);
 		}
-		totalAmount = totalAmount.plus(transaction.asset.amount || 0);
-		totalFee = totalFee.plus(transaction.fee);
+		totalAmount = totalAmount + BigInt(transaction.asset.amount || 0);
+		totalFee = totalFee + BigInt(transaction.fee);
 	});
 
 	const transactionsBuffer = Buffer.concat(transactionsBytesArray);
@@ -126,11 +125,11 @@ export const validatePayload = (
 		throw new Error('Invalid payload hash');
 	}
 
-	if (!totalAmount.eq(block.totalAmount)) {
+	if (totalAmount !== BigInt(block.totalAmount)) {
 		throw new Error('Invalid total amount');
 	}
 
-	if (!totalFee.eq(block.totalFee)) {
+	if (totalFee !== block.totalFee) {
 		throw new Error('Invalid total fee');
 	}
 };

@@ -14,8 +14,6 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
-
 const { shuffle } = require('lodash');
 
 const PEER_STATE_CONNECTED = 'connected';
@@ -180,15 +178,14 @@ const consolidatePeers = (connectedPeers = [], disconnectedPeers = []) => {
 
 function calculateApproval(votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings,
-	// we convert them into bignum and send the response as number as well
-	const votersBalanceBignum = new BigNum(votersBalance || 0);
-	const totalSupplyBignum = new BigNum(totalSupply);
-	const approvalBignum = votersBalanceBignum
-		.dividedBy(totalSupplyBignum)
-		.times(100)
-		.toFixed(2);
+	// we convert them into bigint and send the response as number as well
+	const votersBalanceBigInt = BigInt(votersBalance || 0);
+	const totalSupplyBigInt = BigInt(totalSupply);
+	const approvalBigInt = Number(
+		(votersBalanceBigInt / totalSupplyBigInt) * BigInt(100),
+	).toFixed(2);
 
-	return Number(parseFloat(approvalBignum).toFixed(2));
+	return Number(parseFloat(approvalBigInt).toFixed(2));
 }
 
 module.exports = {

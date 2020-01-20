@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
@@ -104,7 +103,7 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
 	public readonly asset: object;
-	public fee: BigNum;
+	public fee: bigint;
 	public receivedAt?: Date;
 
 	public static TYPE: number;
@@ -131,7 +130,7 @@ export abstract class BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 
-		this.fee = new BigNum((this.constructor as typeof BaseTransaction).FEE);
+		this.fee = BigInt((this.constructor as typeof BaseTransaction).FEE);
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
@@ -307,7 +306,7 @@ export abstract class BaseTransaction {
 			errors.push(...multiSigError);
 		}
 
-		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
+		const updatedBalance = BigInt(sender.balance) - BigInt(this.fee);
 		const updatedSender = {
 			...sender,
 			balance: updatedBalance.toString(),
@@ -335,23 +334,24 @@ export abstract class BaseTransaction {
 
 	public undo(store: StateStore): TransactionResponse {
 		const sender = store.account.getOrDefault(this.senderId);
-		const updatedBalance = new BigNum(sender.balance).add(this.fee);
+		const updatedBalance = BigInt(sender.balance) + this.fee;
 		const updatedAccount = {
 			...sender,
 			balance: updatedBalance.toString(),
 			publicKey: sender.publicKey || this.senderPublicKey,
 		};
-		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
-			? []
-			: [
-					new TransactionError(
-						'Invalid balance amount',
-						this.id,
-						'.balance',
-						sender.balance,
-						updatedBalance.toString(),
-					),
-			  ];
+		const errors =
+			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
+				? []
+				: [
+						new TransactionError(
+							'Invalid balance amount',
+							this.id,
+							'.balance',
+							sender.balance,
+							updatedBalance.toString(),
+						),
+				  ];
 		store.account.set(updatedAccount.address, updatedAccount);
 		const assetErrors = this.undoAsset(store);
 		errors.push(...assetErrors);

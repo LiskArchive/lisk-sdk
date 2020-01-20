@@ -14,7 +14,6 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
 const EventEmitter = require('events');
 const _ = require('lodash');
 const pool = require('@liskhq/lisk-transaction-pool');
@@ -395,19 +394,19 @@ class TransactionPool extends EventEmitter {
 		) {
 			/**
 			 * sortOrder - Sorting by asc or desc, -1 desc order, 1 is asc order
-			 * amount and fee are bignumber here, so in order to sort
-			 * we need to use bignumber functions here specific to amount, fee
+			 * amount and fee are bigint here, so in order to sort
+			 * we need to use bigint functions here specific to amount, fee
 			 */
 			const sortOrder =
 				sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
 			toSend = toSend.sort((a, b) => {
 				if (sortAttribute.sortField === 'fee') {
-					return a.fee.minus(b.fee) * sortOrder;
+					return Number(a.fee - b.fee) * sortOrder;
 				}
 				return (
-					(a.asset.amount || new BigNum(0))
-						.minus(b.asset.amount || new BigNum(0))
-						.toNumber() * sortOrder
+					Number(
+						(a.asset.amount || BigInt(0)) - BigInt(b.asset.amount || BigInt(0)),
+					) * sortOrder
 				);
 			});
 		} else {

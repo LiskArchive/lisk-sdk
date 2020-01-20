@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	gte as isVersionGte,
@@ -55,13 +54,14 @@ export const isUsername = (username: string): boolean => {
 export const isSignature = (signature: string): boolean =>
 	/^[a-f0-9]{128}$/i.test(signature);
 
-export const isGreaterThanZero = (amount: BigNum): boolean => amount.cmp(0) > 0;
+export const isGreaterThanZero = (amount: bigint): boolean =>
+	amount > BigInt(0);
 
-export const isGreaterThanMaxTransactionAmount = (amount: BigNum): boolean =>
-	amount.cmp(MAX_INT64) > 0;
+export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
+	amount > BigInt(MAX_INT64);
 
-export const isGreaterThanMaxTransactionId = (id: BigNum): boolean =>
-	id.cmp(MAX_EIGHT_BYTE_NUMBER) > 0;
+export const isGreaterThanMaxTransactionId = (id: bigint): boolean =>
+	id > BigInt(MAX_EIGHT_BYTE_NUMBER);
 
 export const isNumberString = (num: unknown): boolean => {
 	if (typeof num !== 'string') {
@@ -222,9 +222,9 @@ export const validateAddress = (address: string): boolean => {
 	}
 
 	const addressString = address.slice(0, -1);
-	const addressNumber = new BigNum(addressString);
+	const addressNumber = BigInt(addressString);
 
-	if (addressNumber.cmp(new BigNum(MAX_EIGHT_BYTE_NUMBER)) > 0) {
+	if (addressNumber > BigInt(MAX_EIGHT_BYTE_NUMBER)) {
 		throw new Error(
 			'Address format does not match requirements. Address out of maximum range.',
 		);
@@ -244,13 +244,13 @@ export const isValidNonTransferAmount = (data: string): boolean =>
 
 export const isValidTransferAmount = (data: string): boolean =>
 	isNumberString(data) &&
-	isGreaterThanZero(new BigNum(data)) &&
-	!isGreaterThanMaxTransactionAmount(new BigNum(data));
+	isGreaterThanZero(BigInt(data)) &&
+	!isGreaterThanMaxTransactionAmount(BigInt(data));
 
 export const isValidFee = (data: string): boolean =>
 	isNumberString(data) &&
-	isGreaterThanZero(new BigNum(data)) &&
-	!isGreaterThanMaxTransactionAmount(new BigNum(data));
+	isGreaterThanZero(BigInt(data)) &&
+	!isGreaterThanMaxTransactionAmount(BigInt(data));
 
 export const isCsv = (data: string): boolean => {
 	if (typeof data !== 'string') {

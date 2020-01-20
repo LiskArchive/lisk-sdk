@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { HeadersList } = require('../src/headers_list');
-const { BlockHeader: blockHeaderFixture } = require('./fixtures/blocks');
+import { BlockHeader } from '../../src/types';
+import { HeadersList } from '../../src/headers_list';
+import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
 
 describe('HeadersList', () => {
-	let list;
+	let list: HeadersList;
 	const SIZE = 5;
 
 	beforeEach(async () => {
@@ -27,8 +26,8 @@ describe('HeadersList', () => {
 
 	describe('constructor()', () => {
 		it('should set set the object attributes', async () => {
-			expect(list._size).toEqual(SIZE);
-			expect(list._items).toEqual([]);
+			expect(list.size).toEqual(SIZE);
+			expect(list.items).toEqual([]);
 		});
 	});
 
@@ -124,11 +123,11 @@ describe('HeadersList', () => {
 	});
 
 	describe('remove()', () => {
-		let header1;
-		let header2;
-		let header3;
-		let header4;
-		let header5;
+		let header1: BlockHeader;
+		let header2: BlockHeader;
+		let header3: BlockHeader;
+		let header4: BlockHeader;
+		let header5: BlockHeader;
 
 		beforeEach(async () => {
 			header1 = blockHeaderFixture({ height: 1 });
@@ -208,11 +207,11 @@ describe('HeadersList', () => {
 	});
 
 	describe('size', () => {
-		let header1;
-		let header2;
-		let header3;
-		let header4;
-		let header5;
+		let header1: BlockHeader;
+		let header2: BlockHeader;
+		let header3: BlockHeader;
+		let header4: BlockHeader;
+		let header5: BlockHeader;
 
 		beforeEach(async () => {
 			header1 = blockHeaderFixture({ height: 1 });
@@ -251,11 +250,11 @@ describe('HeadersList', () => {
 	});
 
 	describe('reset()', () => {
-		let header1;
-		let header2;
-		let header3;
-		let header4;
-		let header5;
+		let header1: BlockHeader;
+		let header2: BlockHeader;
+		let header3: BlockHeader;
+		let header4: BlockHeader;
+		let header5: BlockHeader;
 
 		beforeEach(async () => {
 			header1 = blockHeaderFixture({ height: 1 });
@@ -295,11 +294,11 @@ describe('HeadersList', () => {
 	});
 
 	describe('top()', () => {
-		let header1;
-		let header2;
-		let header3;
-		let header4;
-		let header5;
+		let header1: BlockHeader;
+		let header2: BlockHeader;
+		let header3: BlockHeader;
+		let header4: BlockHeader;
+		let header5: BlockHeader;
 
 		beforeEach(async () => {
 			header1 = blockHeaderFixture({ height: 1 });
@@ -318,10 +317,6 @@ describe('HeadersList', () => {
 
 		it('should contain list of block headers', () => {
 			expect(list.items).toEqual([header1, header2, header3, header4, header5]);
-		});
-
-		it('should throw error if size is not provided', async () => {
-			expect(() => list.top()).toThrow('Please provide the size');
 		});
 
 		it('should return top headers', async () => {
