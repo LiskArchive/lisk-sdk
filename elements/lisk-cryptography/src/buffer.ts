@@ -50,23 +50,6 @@ export const bufferToIntAsString = (buffer: Buffer): string =>
 		? buffer.readIntBE(0, buffer.length).toString()
 		: buffer.readBigUInt64BE().toString();
 
-/**
- * @deprecated Use intToBuffer instead
- */
-// tslint:disable-next-line no-unnecessary-callback-wrapper
-export const bigNumberToBuffer = (
-	bignumber: string,
-	size: number,
-	endian: string = BIG_ENDIAN,
-) => intToBuffer(bignumber, size, endian);
-
-/**
- * @deprecated Use bufferToIntAsString instead
- */
-// tslint:disable-next-line no-unnecessary-callback-wrapper
-export const bufferToBigNumberString = (bigNumberBuffer: Buffer): string =>
-	bufferToIntAsString(bigNumberBuffer);
-
 export const bufferToHex = (buffer: Buffer): string =>
 	Buffer.from(buffer).toString('hex');
 

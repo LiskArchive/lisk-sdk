@@ -13,8 +13,6 @@
  *
  */
 import {
-	bigNumberToBuffer,
-	bufferToBigNumberString,
 	bufferToHex,
 	bufferToIntAsString,
 	hexToBuffer,
@@ -82,23 +80,6 @@ describe('buffer', () => {
 			expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a', 'Custom')).toThrowError(
 				'Custom must have a valid length of hex string.',
 			);
-		});
-	});
-
-	describe('#bigNumberToBuffer', () => {
-		it('should convert a big number to a buffer', () => {
-			const bigNumber = '58191285901858109';
-			const addressSize = 8;
-			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
-			expect(bigNumberToBuffer(bigNumber, addressSize)).toEqual(expectedBuffer);
-		});
-	});
-
-	describe('#bufferToBigNumberString', () => {
-		it('should convert a buffer to a big number', () => {
-			const bigNumber = '58191285901858109';
-			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
-			expect(bufferToBigNumberString(buffer)).toBe(bigNumber);
 		});
 	});
 
