@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	bigNumberToBuffer,
-	intToBuffer,
-	stringToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { intToBuffer, stringToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	isPositiveNumberString,
 	isValidTransferAmount,
@@ -95,7 +91,7 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	protected assetToBytes(): Buffer {
-		const transactionAmount = bigNumberToBuffer(
+		const transactionAmount = intToBuffer(
 			this.asset.amount.toString(),
 			BYTESIZES.AMOUNT,
 			'big',
