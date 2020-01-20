@@ -508,9 +508,7 @@ export class P2P extends EventEmitter {
 	}
 
 	public applyPenalty(peerPenalty: P2PPenalty): void {
-		if (!this._isTrustedPeer(peerPenalty.peerId)) {
-			this._peerPool.applyPenalty(peerPenalty);
-		}
+		this._peerPool.applyPenalty(peerPenalty);
 	}
 
 	public getTriedPeers(): ReadonlyArray<ProtocolPeerInfo> {
@@ -1005,22 +1003,6 @@ export class P2P extends EventEmitter {
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
 		request.end(this._nodeInfo);
-	}
-
-	private _isTrustedPeer(peerId: string): boolean {
-		const isSeed = this._sanitizedPeerLists.seedPeers.find(
-			seedPeer => peerId === seedPeer.peerId,
-		);
-
-		const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-			peer => peer.peerId === peerId,
-		);
-
-		const isFixed = this._sanitizedPeerLists.fixedPeers.find(
-			peer => peer.peerId === peerId,
-		);
-
-		return !!isSeed || !!isWhitelisted || !!isFixed;
 	}
 
 	private _initializePeerBook(): void {

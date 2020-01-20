@@ -193,6 +193,18 @@ export class PeerBook {
 		return false;
 	}
 
+	public isTrustedPeer(peerId: string): boolean {
+		const isSeed = this.seedPeers.find(seedPeer => peerId === seedPeer.peerId);
+
+		const isWhitelisted = this.whitelistedPeers.find(
+			peer => peer.peerId === peerId,
+		);
+
+		const isFixed = this.fixedPeers.find(peer => peer.peerId === peerId);
+
+		return !!isSeed || !!isWhitelisted || !!isFixed;
+	}
+
 	public addBannedPeer(peerId: string, peerBanTime: number): void {
 		const peerIpAddress = peerId.split(':')[0];
 

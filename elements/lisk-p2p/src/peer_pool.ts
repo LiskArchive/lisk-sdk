@@ -617,14 +617,16 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public applyPenalty(peerPenalty: P2PPenalty): void {
-		const peer = this._peerMap.get(peerPenalty.peerId);
-		if (peer) {
-			peer.applyPenalty(peerPenalty.penalty);
+		if (!this._peerBook.isTrustedPeer(peerPenalty.peerId)) {
+			const peer = this._peerMap.get(peerPenalty.peerId);
+			if (peer) {
+				peer.applyPenalty(peerPenalty.penalty);
 
-			return;
+				return;
+			}
+
+			throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 		}
-
-		throw new Error(`Peer not found: ${peerPenalty.peerId}`);
 	}
 
 	public getFreeOutboundSlots(): number {
