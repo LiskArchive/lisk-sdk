@@ -30,6 +30,13 @@ import { ExistingPeerError } from '../../../src/errors';
 
 describe('peerBook', () => {
 	const peerBookConfig: PeerBookConfig = {
+		sanitizedPeerLists: {
+			blacklistedIPs: [],
+			seedPeers: [],
+			fixedPeers: [],
+			whitelisted: [],
+			previousPeers: [],
+		},
 		secret: DEFAULT_RANDOM_SECRET,
 	};
 	let peerBook: PeerBook;
@@ -64,28 +71,6 @@ describe('peerBook', () => {
 			);
 			expect((peerBook as any)._triedPeers.peerListConfig.peerType).toEqual(
 				PEER_TYPE.TRIED_PEER,
-			);
-		});
-
-		it('should intialize with custom list configs', () => {
-			const newListConfig = {
-				secret: 111,
-				numOfBuckets: 1,
-				bucketSize: 1,
-				peerType: PEER_TYPE.NEW_PEER,
-			};
-			const triedListConfig = {
-				secret: 222,
-				numOfBuckets: 2,
-				bucketSize: 2,
-				peerType: PEER_TYPE.TRIED_PEER,
-			};
-			const secret = 33333;
-			peerBook = new PeerBook({ secret, newListConfig, triedListConfig });
-			expect(peerBook).toEqual(expect.any(Object));
-			expect((peerBook as any)._newPeers.peerListConfig).toEqual(newListConfig);
-			expect((peerBook as any)._triedPeers.peerListConfig).toEqual(
-				triedListConfig,
 			);
 		});
 	});

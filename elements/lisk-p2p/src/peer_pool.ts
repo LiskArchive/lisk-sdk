@@ -66,7 +66,6 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	PeerLists,
 } from './p2p_types';
 import {
 	ConnectionState,
@@ -75,6 +74,7 @@ import {
 	Peer,
 	PeerConfig,
 } from './peer';
+import { PeerBook } from './peer_book/peer_book';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -139,7 +139,7 @@ export interface PeerPoolConfig {
 	readonly wsMaxMessageRatePenalty: number;
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
-	readonly peerLists: PeerLists;
+	readonly peerBook: PeerBook;
 }
 
 export class PeerPool extends EventEmitter {
@@ -175,9 +175,8 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
-	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 	private readonly _peerConfig: PeerConfig;
-	private readonly _peerLists: PeerLists;
+	private readonly _peerBook: PeerBook;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -195,7 +194,7 @@ export class PeerPool extends EventEmitter {
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
 		};
-		this._peerLists = peerPoolConfig.peerLists;
+		this._peerBook = peerPoolConfig.peerBook;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
@@ -205,7 +204,6 @@ export class PeerPool extends EventEmitter {
 		this._outboundShuffleIntervalId = setInterval(() => {
 			this._evictPeer(OutboundPeer);
 		}, peerPoolConfig.outboundShuffleInterval);
-		this._unbanTimers = [];
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
@@ -284,13 +282,6 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 		};
 		this._handleBanPeer = (peerId: string) => {
-			// Unban peer after peerBanTime
-			const unbanTimeout = setTimeout(
-				this._handleUnbanPeer.bind(this, peerId),
-				this._peerPoolConfig.peerBanTime,
-			);
-
-			this._unbanTimers.push(unbanTimeout);
 			// Re-emit the peerId to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
@@ -417,12 +408,12 @@ export class PeerPool extends EventEmitter {
 		const freeOutboundSlots = this.getFreeOutboundSlots();
 
 		// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
-		if (freeOutboundSlots === 0 || this._peerLists.seedPeers.length === 0) {
+		if (freeOutboundSlots === 0 || this._peerBook.seedPeers.length === 0) {
 			return;
 		}
 
 		// Looking after existing seed peer connection(s)
-		this._peerLists.seedPeers.forEach(peer => {
+		this._peerBook.seedPeers.forEach(peer => {
 			const isConnectedSeedPeer = this.getPeer(peer.peerId);
 			if (isConnectedSeedPeer) {
 				// tslint:disable-next-line: no-floating-promises
@@ -436,7 +427,7 @@ export class PeerPool extends EventEmitter {
 		});
 
 		const seedPeersForDiscovery = shuffle(
-			this._peerLists.seedPeers.slice(0, freeOutboundSlots),
+			this._peerBook.seedPeers.slice(0, freeOutboundSlots),
 		);
 
 		// Add new seed peer connection(s)
@@ -456,7 +447,7 @@ export class PeerPool extends EventEmitter {
 		const disconnectedTriedPeers = triedPeers.filter(
 			triedPeer => !this._peerMap.has(triedPeer.peerId),
 		);
-		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
+		const disconnectedFixedPeers = this._peerBook.fixedPeers.filter(
 			peer => !this._peerMap.has(peer.peerId),
 		);
 
@@ -571,14 +562,6 @@ export class PeerPool extends EventEmitter {
 		if (this._outboundShuffleIntervalId) {
 			clearInterval(this._outboundShuffleIntervalId);
 		}
-		// Clear unban timeouts
-		if (this._unbanTimers.length > 0) {
-			this._unbanTimers.forEach(timer => {
-				if (timer) {
-					clearTimeout(timer);
-				}
-			});
-		}
 
 		this._peerMap.forEach((peer: Peer) => {
 			this.removePeer(
@@ -653,7 +636,7 @@ export class PeerPool extends EventEmitter {
 	public getFreeOutboundSlots(): number {
 		const { outboundCount } = this.getPeersCountPerKind();
 
-		const disconnectedFixedPeers = this._peerLists.fixedPeers.filter(
+		const disconnectedFixedPeers = this._peerBook.fixedPeers.filter(
 			peer => !this._peerMap.has(peer.peerId),
 		);
 
@@ -681,10 +664,10 @@ export class PeerPool extends EventEmitter {
 		const outboundPeers = this.getPeers(OutboundPeer);
 
 		outboundPeers.forEach((outboundPeer: Peer) => {
-			const isFixedPeer = this._peerLists.fixedPeers.find(
+			const isFixedPeer = this._peerBook.fixedPeers.find(
 				(peer: P2PPeerInfo) => peer.peerId === outboundPeer.id,
 			);
-			const isSeedPeer = this._peerLists.seedPeers.find(
+			const isSeedPeer = this._peerBook.seedPeers.find(
 				(peer: P2PPeerInfo) => peer.peerId === outboundPeer.id,
 			);
 

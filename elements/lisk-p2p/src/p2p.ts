@@ -125,7 +125,7 @@ const BASE_10_RADIX = 10;
 
 const createPeerPoolConfig = (
 	config: P2PConfig,
-	peerLists: PeerLists,
+	peerBook: PeerBook,
 ): PeerPoolConfig => ({
 	connectTimeout: config.connectTimeout,
 	ackTimeout: config.ackTimeout,
@@ -193,7 +193,7 @@ const createPeerPoolConfig = (
 			? config.rateCalculationInterval
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
-	peerLists,
+	peerBook,
 });
 
 export class P2P extends EventEmitter {
@@ -239,6 +239,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
+	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -274,6 +275,7 @@ export class P2P extends EventEmitter {
 		this._isActive = false;
 		this._hasConnected = false;
 		this._peerBook = new PeerBook({
+			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
 		this._initializePeerBook();
@@ -287,6 +289,7 @@ export class P2P extends EventEmitter {
 					: DEFAULT_WS_MAX_PAYLOAD,
 			},
 		}) as SCServerUpdated;
+		this._unbanTimers = [];
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -407,58 +410,45 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 		};
 
-		this._handleBanPeer = (peerId: string) => {
-			this._bannedPeers.add(peerId.split(':')[0]);
-			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
-				peer => peer.peerId === peerId,
-			);
+		this._handleBanPeer = (peerId: string): void => {
+			if (this._peerBook.addBannedPeer(peerId)) {
+				const peerBanTime = config.peerBanTime
+					? config.peerBanTime
+					: DEFAULT_BAN_TIME;
 
-			const bannedPeerInfo = {
-				ipAddress: peerId.split(':')[0],
-				wsPort: +peerId.split(':')[1],
-			};
+				// Unban temporary banns after peerBanTime
+				const unbanTimeout = setTimeout(() => {
+					this._handleUnbanPeer(peerId);
+				}, peerBanTime);
 
-			if (
-				this._peerBook.hasPeer({
-					ipAddress: bannedPeerInfo.ipAddress,
-					wsPort: bannedPeerInfo.wsPort,
-					peerId,
-				}) &&
-				!isWhitelisted
-			) {
-				this._peerBook.removePeer({
-					ipAddress: bannedPeerInfo.ipAddress,
-					wsPort: bannedPeerInfo.wsPort,
-					peerId,
-				});
+				this._unbanTimers.push(unbanTimeout);
 			}
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
 
 		this._handleUnbanPeer = (peerId: string) => {
-			this._bannedPeers.delete(peerId.split(':')[0]);
+			this._peerBook.removeBannedPeer(peerId);
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
-			// Check blacklist to avoid incoming connections from blacklisted ips
-			const isBlacklisted = this._sanitizedPeerLists.blacklistedIPs.find(
-				blacklistedIP => blacklistedIP === detailedPeerInfo.ipAddress,
-			);
-			if (!this._peerBook.hasPeer(detailedPeerInfo) && !isBlacklisted) {
-				this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo));
-				// Re-emit the message to allow it to bubble up the class hierarchy.
-				// Only emit event when a peer is discovered for the first time.
-				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
+			if (!this._peerBook.hasPeer(detailedPeerInfo)) {
+				if (this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo))) {
+					// Re-emit the message to allow it to bubble up the class hierarchy.
+					// Only emit event when a peer is discovered for the first time.
+					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 
-				if (!this._peerPool.hasPeer(detailedPeerInfo.peerId)) {
-					const isUpdated = this._peerBook.updatePeer(detailedPeerInfo);
-					if (isUpdated) {
-						// If found and updated successfully then upgrade the peer
-						this._peerBook.upgradePeer(detailedPeerInfo);
+					if (!this._peerPool.hasPeer(detailedPeerInfo.peerId)) {
+						const isUpdated = this._peerBook.updatePeer(detailedPeerInfo);
+						if (isUpdated) {
+							// If found and updated successfully then upgrade the peer
+							this._peerBook.upgradePeer(detailedPeerInfo);
+						}
 					}
 				}
 			}
@@ -484,10 +474,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
-		const peerPoolConfig = createPeerPoolConfig(
-			config,
-			this._sanitizedPeerLists,
-		);
+		const peerPoolConfig = createPeerPoolConfig(config, this._peerBook);
 		this._peerPool = new PeerPool(peerPoolConfig);
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -960,6 +947,12 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _stopPeerServer(): Promise<void> {
+		this._unbanTimers.forEach(timer => {
+			if (timer) {
+				clearTimeout(timer);
+			}
+		});
+
 		await this._stopWSServer();
 		await this._stopHTTPServer();
 	}

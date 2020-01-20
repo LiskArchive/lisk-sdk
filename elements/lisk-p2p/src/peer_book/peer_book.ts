@@ -22,46 +22,48 @@ import {
 	DEFAULT_TRIED_BUCKET_SIZE,
 } from '../constants';
 import { ExistingPeerError } from '../errors';
-import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { P2PEnhancedPeerInfo, P2PPeerInfo, PeerLists } from '../p2p_types';
 import { PEER_TYPE } from '../utils';
 
-import { NewList, NewListConfig } from './new_list';
-import { TriedList, TriedListConfig } from './tried_list';
+import { NewList } from './new_list';
+import { TriedList } from './tried_list';
 
 export interface PeerBookConfig {
-	readonly newListConfig?: NewListConfig;
-	readonly triedListConfig?: TriedListConfig;
+	readonly sanitizedPeerLists: PeerLists;
 	readonly secret: number;
 }
 
 export class PeerBook {
 	private readonly _newPeers: NewList;
 	private readonly _triedPeers: TriedList;
+	private readonly _bannedIps: Set<string>;
+	private readonly _blacklistedIPs: Set<string>;
+	private readonly _seedPeers: ReadonlyArray<P2PPeerInfo>;
+	private readonly _fixedPeers: ReadonlyArray<P2PPeerInfo>;
+	private readonly _whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
+
 	public constructor({
-		newListConfig: newListConfig,
-		triedListConfig: triedListConfig,
+		sanitizedPeerLists: sanitizedPeerLists,
 		secret,
 	}: PeerBookConfig) {
-		this._newPeers = new NewList(
-			newListConfig
-				? newListConfig
-				: {
-						secret,
-						numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
-						bucketSize: DEFAULT_NEW_BUCKET_SIZE,
-						peerType: PEER_TYPE.NEW_PEER,
-				  },
-		);
-		this._triedPeers = new TriedList(
-			triedListConfig
-				? triedListConfig
-				: {
-						secret,
-						numOfBuckets: DEFAULT_TRIED_BUCKET_COUNT,
-						bucketSize: DEFAULT_TRIED_BUCKET_SIZE,
-						peerType: PEER_TYPE.TRIED_PEER,
-				  },
-		);
+		this._newPeers = new NewList({
+			secret,
+			numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
+			bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+			peerType: PEER_TYPE.NEW_PEER,
+		});
+		this._triedPeers = new TriedList({
+			secret,
+			numOfBuckets: DEFAULT_TRIED_BUCKET_COUNT,
+			bucketSize: DEFAULT_TRIED_BUCKET_SIZE,
+			peerType: PEER_TYPE.TRIED_PEER,
+		});
+
+		this._bannedIps = new Set([]);
+		this._blacklistedIPs = new Set([...sanitizedPeerLists.blacklistedIPs]);
+		this._seedPeers = [...sanitizedPeerLists.seedPeers];
+		this._fixedPeers = [...sanitizedPeerLists.fixedPeers];
+		this._whitelistedPeers = [...sanitizedPeerLists.whitelisted];
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
@@ -74,6 +76,19 @@ export class PeerBook {
 
 	public get allPeers(): ReadonlyArray<P2PPeerInfo> {
 		return [...this.newPeers, ...this.triedPeers];
+	}
+
+	public get seedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._seedPeers;
+	}
+	public get fixedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._fixedPeers;
+	}
+	public get whitelistedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._whitelistedPeers;
+	}
+	public get bannedIps(): ReadonlyArray<string> {
+		return [...this._blacklistedIPs, ...this._bannedIps];
 	}
 
 	public getRandomizedPeerList(
@@ -115,12 +130,18 @@ export class PeerBook {
 		);
 	}
 
-	public addPeer(peerInfo: P2PEnhancedPeerInfo): void {
+	public addPeer(peerInfo: P2PEnhancedPeerInfo): boolean {
+		if (this.bannedIps.find(peerIp => peerIp === peerInfo.ipAddress)) {
+			return false;
+		}
+
 		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			throw new ExistingPeerError(peerInfo);
 		}
 
 		this._newPeers.addPeer(peerInfo);
+
+		return true;
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
@@ -168,5 +189,40 @@ export class PeerBook {
 		}
 
 		return false;
+	}
+
+	public addBannedPeer(peerId: string): boolean {
+		const peerIpAddress = peerId.split(':')[0];
+
+		if (this.bannedIps.find(peerIp => peerIp === peerIpAddress)) {
+			return false;
+		}
+
+		const isWhitelistedPeer = this.whitelistedPeers.find(
+			peer => peer.peerId === peerId,
+		);
+
+		const isFixedPeer = this.fixedPeers.find(peer => peer.peerId === peerId);
+
+		// Whitelisted or FixedPeers are not allowed to be banned
+		if (isWhitelistedPeer || isFixedPeer) {
+			return false;
+		}
+
+		this._bannedIps.add(peerIpAddress);
+
+		this.allPeers.forEach((peer: P2PPeerInfo) => {
+			if (peer.ipAddress === peerIpAddress) {
+				this.removePeer(peer);
+			}
+		});
+
+		return true;
+	}
+
+	public removeBannedPeer(peerId: string): void {
+		const peerIpAddress = peerId.split(':')[0];
+
+		this._bannedIps.delete(peerIpAddress);
 	}
 }
