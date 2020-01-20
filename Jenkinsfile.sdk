@@ -366,10 +366,10 @@ pipeline {
 					nvm(getNodejsVersion()) {
 						sh '''
 						npx nyc merge ./.nyc_output ci_coverage/coverage.json
-						npx nyc report --report-dir=ci_coverage --reporter=text --reporter=cobertura
+						node scripts/map_coverage.js ci_coverage/coverage.json
 						'''
 					}
-					cobertura coberturaReportFile: 'ci_coverage/cobertura-coverage.xml'
+					cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml'
 				} catch(err) {
 					println "Could not report coverage statistics:\n${err}"
 				}
