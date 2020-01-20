@@ -15,10 +15,7 @@
 'use strict';
 
 const { maxBy } = require('lodash');
-const {
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_VALID_BLOCK,
-} = require('@liskhq/lisk-bft');
+const { ForkStatus } = require('@liskhq/lisk-bft');
 
 const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	const tempBlocks = await blocksModule.getTempBlocks(
@@ -105,8 +102,8 @@ const restoreBlocksUponStartup = async (
 	);
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
 	const blockHasPriority =
-		forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
-		forkStatus === FORK_STATUS_VALID_BLOCK;
+		forkStatus === ForkStatus.DIFFERENT_CHAIN ||
+		forkStatus === ForkStatus.VALID_BLOCK;
 
 	// Block in the temp table has preference over current tip of the chain
 	if (blockHasPriority) {

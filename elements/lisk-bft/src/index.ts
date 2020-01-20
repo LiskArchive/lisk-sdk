@@ -12,19 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const blockHeaderSchema = require('./block_header_schema');
-const { validator } = require('@liskhq/lisk-validator');
-
-const validateBlockHeader = blockHeader => {
-	const errors = validator.validate(blockHeaderSchema, blockHeader);
-	if (errors.length) {
-		throw new Error(errors[0].message);
-	}
-	return true;
-};
-
-module.exports = {
-	validateBlockHeader,
-};
+export * from './bft';
+export * from './fork_choice_rule';
+export * from './utils';
+export * from './types';

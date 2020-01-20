@@ -15,7 +15,7 @@
 'use strict';
 
 const { groupBy } = require('lodash');
-const { FORK_STATUS_DIFFERENT_CHAIN } = require('@liskhq/lisk-bft');
+const { ForkStatus } = require('@liskhq/lisk-bft');
 const { BaseSynchronizer } = require('./base_synchronizer');
 const {
 	computeLargestSubsetMaxBy,
@@ -194,7 +194,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			tipBeforeApplyingInstance, // Previous tip of the chain
 		);
 
-		const newTipHasPreference = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+		const newTipHasPreference = forkStatus === ForkStatus.DIFFERENT_CHAIN;
 
 		if (!newTipHasPreference) {
 			this.logger.debug(
@@ -454,7 +454,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
 
 		const inDifferentChain =
-			forkStatus === FORK_STATUS_DIFFERENT_CHAIN ||
+			forkStatus === ForkStatus.DIFFERENT_CHAIN ||
 			networkLastBlock.id === this.blocks.lastBlock.id;
 		if (!validBlock || !inDifferentChain) {
 			throw new ApplyPenaltyAndRestartError(
@@ -561,7 +561,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const forkStatus = await this.processorModule.forkStatus(peersTip);
 
-		const tipHasPreference = forkStatus === FORK_STATUS_DIFFERENT_CHAIN;
+		const tipHasPreference = forkStatus === ForkStatus.DIFFERENT_CHAIN;
 
 		if (!tipHasPreference) {
 			throw new AbortError(
