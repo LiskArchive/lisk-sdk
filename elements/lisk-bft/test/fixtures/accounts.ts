@@ -60,7 +60,7 @@ export const mem_accountsFields = [
 	'votedDelegatesPublicKeys',
 ];
 
-export const Account = stampit({
+export const Account = stampit.compose({
 	props: {
 		username: '',
 		isDelegate: false,
@@ -119,7 +119,7 @@ export const Account = stampit({
 	},
 });
 
-export const dbAccount = stampit({
+export const dbAccount = stampit.compose({
 	props: {
 		address: null,
 		balance: 0,
@@ -148,13 +148,13 @@ export const dbAccount = stampit({
 	},
 });
 
-export const Delegate = stampit(Account, {
+export const Delegate = stampit.compose(Account, {
 	props: {
 		isDelegate: true,
 	},
 });
 
-export const Dependent = stampit({
+export const Dependent = stampit.compose({
 	init({ accountId, dependentId }) {
 		this.accountId = accountId;
 		this.dependentId =

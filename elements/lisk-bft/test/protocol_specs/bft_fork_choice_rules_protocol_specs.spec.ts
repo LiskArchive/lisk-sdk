@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import forkChoiceSpecs from '../bft_specs/bft_fork_choice_rules.json';
 import { BFT } from '../../src/bft';
 import { Slots as SlotType } from '../../src/types';
 
 const { Slots } = require('@liskhq/lisk-dpos');
+
+const forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
 const constants = {
 	ACTIVE_DELEGATES: 101,
@@ -66,7 +67,7 @@ describe('bft', () => {
 		});
 
 		describe(`when running scenario "${forkChoiceSpecs.handler}"`, () => {
-			forkChoiceSpecs.testCases.forEach(testCase => {
+			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
 					it('should have accurate fork status', async () => {
 						(slots as any).epochTime = testCase.initialState.epochTime;

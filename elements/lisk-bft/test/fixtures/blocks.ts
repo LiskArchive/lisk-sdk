@@ -16,7 +16,7 @@ import * as randomstring from 'randomstring';
 import * as stampit from 'stampit';
 import * as faker from 'faker';
 
-export const Block = stampit({
+export const Block = stampit.compose({
 	props: {
 		id: '',
 		blockSignature:
@@ -42,6 +42,14 @@ export const Block = stampit({
 		version,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
+	}: {
+		id: string;
+		previousBlockId: string;
+		generatorPublicKey: string;
+		height: number;
+		version: number;
+		maxHeightPreviouslyForged: number;
+		maxHeightPrevoted: number;
 	}) {
 		// Must to provide
 		this.previousBlockId = previousBlockId;
@@ -68,7 +76,7 @@ export const Block = stampit({
 	},
 });
 
-export const BlockHeader = stampit({
+export const BlockHeader = stampit.compose({
 	props: {
 		blockId: '',
 		height: 0,
@@ -84,6 +92,13 @@ export const BlockHeader = stampit({
 		delegateMinHeightActive,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
+	}: {
+		height: number;
+		blockId: string;
+		delegatePublicKey: string;
+		delegateMinHeightActive: number;
+		maxHeightPreviouslyForged: number;
+		maxHeightPrevoted: number;
 	}) {
 		this.blockId =
 			blockId || randomstring.generate({ charset: 'numeric', length: 19 });

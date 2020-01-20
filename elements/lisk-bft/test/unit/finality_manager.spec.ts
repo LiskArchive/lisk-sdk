@@ -203,6 +203,8 @@ describe('finality_manager', () => {
 		describe('addBlockHeader', () => {
 			beforeEach(async () => {
 				jest.spyOn(utils, 'validateBlockHeader');
+
+				(utils as any).validateBlockHeader.mockReset();
 			});
 
 			it('should call validateBlockHeader with the provided header', async () => {
