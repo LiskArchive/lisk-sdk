@@ -16,23 +16,16 @@
 
 const { cloneDeep } = require('lodash');
 const { StateStore } = require('@liskhq/lisk-blocks');
-const {
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_VALID_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_DISCARD,
-} = require('@liskhq/lisk-bft');
+const { ForkStatus } = require('@liskhq/lisk-bft');
 const { Sequence } = require('../utils/sequence');
 
 const forkStatusList = [
-	FORK_STATUS_IDENTICAL_BLOCK,
-	FORK_STATUS_VALID_BLOCK,
-	FORK_STATUS_DOUBLE_FORGING,
-	FORK_STATUS_TIE_BREAK,
-	FORK_STATUS_DIFFERENT_CHAIN,
-	FORK_STATUS_DISCARD,
+	ForkStatus.IDENTICAL_BLOCK,
+	ForkStatus.VALID_BLOCK,
+	ForkStatus.DOUBLE_FORGING,
+	ForkStatus.TIE_BREAK,
+	ForkStatus.DIFFERENT_CHAIN,
+	ForkStatus.DISCARD,
 ];
 
 class Processor {
@@ -111,21 +104,21 @@ class Processor {
 			}
 
 			// Discarding block
-			if (forkStatus === FORK_STATUS_DISCARD) {
+			if (forkStatus === ForkStatus.DISCARD) {
 				this.logger.debug(
 					{ id: block.id, height: block.height },
 					'Discarding block',
 				);
 				return;
 			}
-			if (forkStatus === FORK_STATUS_IDENTICAL_BLOCK) {
+			if (forkStatus === ForkStatus.IDENTICAL_BLOCK) {
 				this.logger.debug(
 					{ id: block.id, height: block.height },
 					'Block already processed',
 				);
 				return;
 			}
-			if (forkStatus === FORK_STATUS_DOUBLE_FORGING) {
+			if (forkStatus === ForkStatus.DOUBLE_FORGING) {
 				this.logger.warn(
 					{ id: block.id, generatorPublicKey: block.generatorPublicKey },
 					'Discarding block due to double forging',
@@ -133,7 +126,7 @@ class Processor {
 				return;
 			}
 			// Discard block and move to different chain
-			if (forkStatus === FORK_STATUS_DIFFERENT_CHAIN) {
+			if (forkStatus === ForkStatus.DIFFERENT_CHAIN) {
 				this.logger.debug(
 					{ id: block.id, height: block.height },
 					'Detected different chain to sync',
@@ -146,7 +139,7 @@ class Processor {
 				return;
 			}
 			// Replacing a block
-			if (forkStatus === FORK_STATUS_TIE_BREAK) {
+			if (forkStatus === ForkStatus.TIE_BREAK) {
 				this.logger.info(
 					{ id: lastBlock.id, height: lastBlock.height },
 					'Received tie breaking block',

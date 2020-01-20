@@ -195,7 +195,7 @@ describe('block_synchronization_mechanism', () => {
 					height_gte: genesisBlockDevnet.height,
 					height_lte: lastBlock.height,
 				},
-				{ limit: null, sort: 'height:asc' },
+				{ limit: undefined, sort: 'height:asc' },
 			)
 			.mockResolvedValue([genesisBlockDevnet, lastBlock]);
 
@@ -652,7 +652,7 @@ describe('block_synchronization_mechanism', () => {
 								height_gte: expect.any(Number),
 								height_lte: expect.any(Number),
 							}),
-							{ limit: null, sort: 'height:asc' },
+							{ limit: undefined, sort: 'height:asc' },
 						)
 						.mockResolvedValue([lastBlock]);
 
