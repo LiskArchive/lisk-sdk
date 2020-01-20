@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 
-const invalidBlockHeaderSpec = require('./bft_specs/bft_invalid_block_headers.json');
-
-const { FinalityManager } = require('../src/finality_manager');
+import { FinalityManager } from '../../src/finality_manager';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {

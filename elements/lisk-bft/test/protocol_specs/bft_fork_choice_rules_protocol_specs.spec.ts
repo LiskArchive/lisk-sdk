@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { BFT } from '../../src/bft';
+import { Slots as SlotType } from '../../src/types';
 
-const forkChoiceSpecs = require('./bft_specs/bft_fork_choice_rules.json');
 const { Slots } = require('@liskhq/lisk-dpos');
-const { BFT } = require('../src/bft');
+
+const forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
 const constants = {
 	ACTIVE_DELEGATES: 101,
@@ -27,13 +28,12 @@ const constants = {
 describe('bft', () => {
 	describe('forkChoice', () => {
 		let storageMock;
-		let loggerMock;
 
-		let slots;
+		let slots: SlotType;
 		let activeDelegates;
 		let startingHeight;
 		let bftParams;
-		let bftInstance;
+		let bftInstance: BFT;
 
 		beforeEach(async () => {
 			storageMock = {
@@ -44,10 +44,6 @@ describe('bft', () => {
 					ChainState: {
 						get: jest.fn(),
 					},
-					Account: {
-						get: jest.fn().mockResolvedValue([]),
-						getOne: jest.fn().mockResolvedValue({}),
-					},
 				},
 			};
 
@@ -57,13 +53,11 @@ describe('bft', () => {
 				blocksPerRound: constants.ACTIVE_DELEGATES,
 			});
 
-			loggerMock = {};
 			activeDelegates = 101;
 			startingHeight = 0;
 
 			bftParams = {
 				storage: storageMock,
-				logger: loggerMock,
 				slots,
 				activeDelegates,
 				startingHeight,
@@ -73,11 +67,11 @@ describe('bft', () => {
 		});
 
 		describe(`when running scenario "${forkChoiceSpecs.handler}"`, () => {
-			forkChoiceSpecs.testCases.forEach(testCase => {
+			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
 					it('should have accurate fork status', async () => {
-						slots.epochTime = testCase.initialState.epochTime;
-						slots.interval = testCase.initialState.blockInterval;
+						(slots as any).epochTime = testCase.initialState.epochTime;
+						(slots as any).interval = testCase.initialState.blockInterval;
 
 						Date.now = jest.fn(
 							() =>
