@@ -15,7 +15,7 @@
 import { validator } from '@liskhq/lisk-validator';
 
 import { blockHeaderSchema } from './schema';
-import { BlockHeader } from './types';
+import { Block, BlockHeader } from './types';
 
 export const validateBlockHeader = (blockHeader: BlockHeader): boolean => {
 	const errors = validator.validate(blockHeaderSchema, blockHeader);
@@ -25,3 +25,15 @@ export const validateBlockHeader = (blockHeader: BlockHeader): boolean => {
 
 	return true;
 };
+
+export const extractBFTBlockHeaderFromBlock = (block: Block): BlockHeader => ({
+	blockId: block.id,
+	height: block.height,
+	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged || 0,
+	maxHeightPrevoted: block.maxHeightPrevoted,
+	delegatePublicKey: block.generatorPublicKey,
+	/* This parameter injected to block object to avoid big refactoring
+	 for the moment. `delegateMinHeightActive` will be removed from the block
+	 object with https://github.com/LiskHQ/lisk-sdk/issues/4413 */
+	delegateMinHeightActive: block.delegateMinHeightActive || 0,
+});

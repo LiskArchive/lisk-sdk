@@ -13,8 +13,20 @@
  */
 
 import { BlockHeader } from '../../src/types';
-import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
-import { validateBlockHeader } from '../../src/utils';
+import {
+	Block as blockFixture,
+	BlockHeader as blockHeaderFixture,
+} from '../fixtures/blocks';
+import {
+	extractBFTBlockHeaderFromBlock,
+	validateBlockHeader,
+} from '../../src/utils';
+
+const constants = {
+	ACTIVE_DELEGATES: 101,
+	EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+	BLOCK_TIME: 10,
+};
 
 describe('utils', () => {
 	describe('validateBlockHeader', () => {
@@ -37,6 +49,33 @@ describe('utils', () => {
 			// Setting invalid public key;
 			header = blockHeaderFixture({ delegatePublicKey: 'abdef' });
 			expect(() => validateBlockHeader(header)).toThrow(Error);
+		});
+	});
+
+	describe('extractBFTBlockHeaderFromBlock', () => {
+		it('should extract particular headers for bft for block version 2', async () => {
+			// Arrange,
+			const block = blockFixture({ version: 2 });
+			const delegateMinHeightActive = constants.ACTIVE_DELEGATES * 3 + 1;
+			const {
+				id: blockId,
+				height,
+				maxHeightPreviouslyForged,
+				maxHeightPrevoted,
+				generatorPublicKey: delegatePublicKey,
+			} = block;
+			block.delegateMinHeightActive = delegateMinHeightActive;
+
+			const blockHeader = {
+				blockId,
+				height,
+				maxHeightPreviouslyForged,
+				maxHeightPrevoted,
+				delegatePublicKey,
+				delegateMinHeightActive,
+			};
+
+			expect(extractBFTBlockHeaderFromBlock(block)).toEqual(blockHeader);
 		});
 	});
 });

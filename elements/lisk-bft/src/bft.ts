@@ -23,28 +23,16 @@ import * as forkChoiceRule from './fork_choice_rule';
 import {
 	Block,
 	BlockEntity,
-	BlockHeader,
 	ForkStatus,
 	HeightOfDelegates,
 	Slots,
 	StateStore,
 	Storage,
 } from './types';
+import { extractBFTBlockHeaderFromBlock, validateBlockHeader } from './utils';
 
 export const CHAIN_STATE_FINALIZED_HEIGHT_KEY = 'BFT.finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
-
-export const extractBFTBlockHeaderFromBlock = (block: Block): BlockHeader => ({
-	blockId: block.id,
-	height: block.height,
-	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged || 0,
-	maxHeightPrevoted: block.maxHeightPrevoted,
-	delegatePublicKey: block.generatorPublicKey,
-	/* This parameter injected to block object to avoid big refactoring
-	 for the moment. `delegateMinHeightActive` will be removed from the block
-	 object with https://github.com/LiskHQ/lisk-sdk/issues/4413 */
-	delegateMinHeightActive: block.delegateMinHeightActive || 0,
-});
 
 /**
  * BFT class responsible to hold integration logic for finality manager with the framework
@@ -378,5 +366,10 @@ export class BFT extends EventEmitter {
 
 	public get maxHeightPrevoted(): number {
 		return this.finalityManager.prevotedConfirmedHeight;
+	}
+
+	// tslint:disable-next-line prefer-function-over-method
+	public validateBlock(block: Block): boolean {
+		return validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
 	}
 }

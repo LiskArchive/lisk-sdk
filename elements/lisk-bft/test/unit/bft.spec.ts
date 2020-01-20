@@ -50,33 +50,6 @@ const generateBlocks = ({
 };
 
 describe('bft', () => {
-	describe('extractBFTBlockHeaderFromBlock', () => {
-		it('should extract particular headers for bft for block version 2', async () => {
-			// Arrange,
-			const block = blockFixture({ version: 2 });
-			const delegateMinHeightActive = constants.ACTIVE_DELEGATES * 3 + 1;
-			const {
-				id: blockId,
-				height,
-				maxHeightPreviouslyForged,
-				maxHeightPrevoted,
-				generatorPublicKey: delegatePublicKey,
-			} = block;
-			block.delegateMinHeightActive = delegateMinHeightActive;
-
-			const blockHeader = {
-				blockId,
-				height,
-				maxHeightPreviouslyForged,
-				maxHeightPrevoted,
-				delegatePublicKey,
-				delegateMinHeightActive,
-			};
-
-			expect(extractBFTBlockHeaderFromBlock(block)).toEqual(blockHeader);
-		});
-	});
-
 	describe('BFT', () => {
 		let storageMock: Storage;
 
