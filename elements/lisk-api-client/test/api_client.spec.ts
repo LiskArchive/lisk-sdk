@@ -90,7 +90,7 @@ describe('APIClient module', () => {
 
 		it('should call initialize with the nodes and provided options', () => {
 			const providedOptions = {
-				nethash:
+				genesisBlockPayloadHash:
 					'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 			};
 			apiClient = new APIClient(defaultNodes, providedOptions);
@@ -187,7 +187,7 @@ describe('APIClient module', () => {
 
 			it('should set custom headers with supplied options', () => {
 				apiClient = new APIClient(defaultNodes, {
-					nethash: testnetHash,
+					genesisBlockPayloadHash: testnetHash,
 					client: {
 						name: 'LiskHub',
 						version: '5.0',
@@ -199,7 +199,7 @@ describe('APIClient module', () => {
 
 			it('should not set User-Agent header when client options were not given', () => {
 				apiClient = new APIClient(defaultNodes, {
-					nethash: testnetHash,
+					genesisBlockPayloadHash: testnetHash,
 				});
 				return expect(apiClient.headers).not.toHaveProperty('User-Agent');
 			});
