@@ -20,8 +20,13 @@ module.exports = {
 	title: 'Schema for a single test case',
 	type: 'object',
 	additionalProperties: false,
-	required: ['input', 'output'],
+	required: ['input', 'output', 'description'],
 	properties: {
+		description: {
+			type: 'string',
+			minLength: 10,
+			maxLength: 300,
+		},
 		config: {
 			type: 'object',
 			description: 'Configuration for a single test case',
