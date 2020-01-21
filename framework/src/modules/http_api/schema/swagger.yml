@@ -2176,7 +2176,7 @@ definitions:
         type: string
         example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511
         description: |
-          Identifies the network.
+          Unique identifier for the network.
           The networkId that the node is connecting to, see LIP-0009 for more details.
       supply:
         type: string
