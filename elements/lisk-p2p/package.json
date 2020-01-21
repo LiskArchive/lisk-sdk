@@ -23,7 +23,6 @@
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
-		"transpile": "tsc",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
 		"lint": "tslint --format verbose --project .",
@@ -32,15 +31,9 @@
 		"test:unit": "jest --config=./test/unit/jest.config.js",
 		"test:integration": "jest --config=./test/integration/jest.config.js --runInBand",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand",
-		"test:node": "npm run build:check",
-		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
-		"cover:base": "nyc report",
-		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
-		"cover:ci": "npm run cover:base -- --reporter=text",
-		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
 		"build:node": "npm run transpile",
-		"prebuild": "npm run prebuild:node",
-		"build": "npm run build:node",
+		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
+		"build": "tsc",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check",
 		"enableLocalIPs": "./scripts/enableTestLocalIPs.sh 2 19",
@@ -79,7 +72,6 @@
 		"tslint-config-prettier": "1.18.0",
 		"tslint-immutable": "6.0.1",
 		"typescript": "3.7.2",
-		"uglify-es": "3.3.9",
-		"wait-on": "3.2.0"
+		"uglify-es": "3.3.9"
 	}
 }
