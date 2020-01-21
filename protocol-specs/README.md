@@ -22,3 +22,7 @@ with the name of the generator you wish to run:
 $ cd protocol-specs/generators/{generator_name}
 $ node index.js
 ```
+
+### Spec JSON Schema
+
+You can find the schema specification for produced specs [here](./src/spec_schema/index.js). All JSON files produced from generators must validated against these specs.
