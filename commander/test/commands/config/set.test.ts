@@ -195,19 +195,22 @@ describe('config:set', () => {
 			setupTest()
 				.stdout()
 				.command(['config:set', 'api.network', validNethash])
-				.it('should set api.network to the custom nethash', () => {
-					const newConfig = {
-						...defaultConfig,
-						api: {
-							network: validNethash,
-							nodes: defaultConfig.api.nodes,
-						},
-					};
-					return expect(config.setConfig).to.be.calledWith(
-						defaultDir,
-						newConfig,
-					);
-				});
+				.it(
+					'should set api.network to the custom genesisBlockPayloadHash',
+					() => {
+						const newConfig = {
+							...defaultConfig,
+							api: {
+								network: validNethash,
+								nodes: defaultConfig.api.nodes,
+							},
+						};
+						return expect(config.setConfig).to.be.calledWith(
+							defaultDir,
+							newConfig,
+						);
+					},
+				);
 
 			setupTest()
 				.stdout()
