@@ -223,11 +223,13 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			({ block, lastBlock }) => this.bftModule.forkChoice(block, lastBlock), // validate common block header
 		]);
 
-		this.verify.pipe([({ block }) => this.bftModule.verifyNewBlock(block)]);
-
-		this.apply.pipe([
+		this.verify.pipe([
+			({ block }) => this.bftModule.verifyNewBlock(block),
 			({ block, stateStore, skipExistingCheck }) =>
 				this.blocksModule.verify(block, stateStore, { skipExistingCheck }),
+		]);
+
+		this.apply.pipe([
 			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
 			({ block, tx }) => this.dposModule.apply(block, { tx }),
 			async ({ block, tx, stateStore }) => {
