@@ -487,17 +487,15 @@ describe('processor', () => {
 			});
 
 			it('should emit newBlock event for the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:newBlock',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:newBlock', { block: blockV0 });
 			});
 
 			it('should emit broadcast event for the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:broadcast',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:broadcast', { block: blockV0 });
 			});
 		});
 
@@ -710,17 +708,15 @@ describe('processor', () => {
 			});
 
 			it('should broadcast with the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:broadcast',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:broadcast', { block: blockV0 });
 			});
 
 			it('should emit newBlock event with the block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'chain:processor:newBlock',
-					{ block: blockV0 },
-				);
+				expect(
+					channelStub.publish,
+				).toHaveBeenCalledWith('chain:processor:newBlock', { block: blockV0 });
 			});
 		});
 	});
@@ -990,7 +986,7 @@ describe('processor', () => {
 
 			it('should apply the block', async () => {
 				applySteps.forEach(step => {
-					expect(step).toHaveBeenCalled();
+					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
