@@ -14,63 +14,9 @@
 
 'use strict';
 
-const blockSchema = require('./block');
-const accountSchema = require('./account');
+const chainStateSchema = require('./chain_state');
 
-const initialStateSchema = {
-	type: 'object',
-	properties: {
-		chain: {
-			type: 'array',
-			uniqueItems: true,
-			items: {
-				...blockSchema,
-			},
-		},
-		accounts: {
-			type: 'array',
-			uniqueItems: true,
-			items: {
-				...accountSchema,
-			},
-		},
-	},
-};
-
-const testCaseSchema = {
-	title: 'Schema for a single test case',
-	type: 'object',
-	additionalProperties: false,
-	required: ['input', 'output'],
-	properties: {
-		config: {
-			type: 'object',
-			description: 'Configuration for a single test case',
-			additionalProperties: true,
-			required: [],
-			properties: {
-				initialState: { ...initialStateSchema },
-			},
-		},
-		input: {
-			type: 'object',
-			description:
-				'Input must be specified as a single object. If its complex scenario, it should be divided to multiple to have simple input/output expectations.',
-			minProperties: 1,
-		},
-		output: {
-			type: 'object',
-			description:
-				'Output must be specified as a single object. If its complex scenario, it should be divided to multiple to have simple input/output expectations.',
-			required: [],
-			additionalProperties: true,
-			minProperties: 1,
-			properties: {
-				mutatedState: { ...initialStateSchema },
-			},
-		},
-	},
-};
+const testCaseSchema = require('./test_case');
 
 const specSchema = {
 	title: 'Schema specification for JSON specs output',
@@ -113,7 +59,7 @@ const specSchema = {
 				'A JSON object containing all necessary configurations for the environment in which these specs were generated',
 			required: [],
 			properties: {
-				initialState: { ...initialStateSchema },
+				initialState: { ...chainStateSchema },
 			},
 			additionalProperties: true,
 		},
