@@ -94,9 +94,7 @@ const decryptKeypairs = config => {
 
 		if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 			throw new Error(
-				`Invalid encryptedPassphrase for publicKey: ${
-					encryptedItem.publicKey
-				}. Public keys do not match`,
+				`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. Public keys do not match`,
 			);
 		}
 

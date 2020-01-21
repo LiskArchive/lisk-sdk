@@ -33,7 +33,7 @@ const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 
 const { createBlock } = require('./blocks');
-const defaultConfig = require('../config/devnet');
+const defaultConfig = require('../../config/devnet');
 
 class ChainStateBuilder {
 	constructor(
