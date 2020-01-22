@@ -12,21 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_TO_ADD_INBOUND_PEER,
-	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_NEW_INBOUND_PEER,
-	EVENT_NETWORK_READY,
-	EVENT_UPDATED_PEER_INFO,
-	EVENT_BAN_PEER,
-	EVENT_CLOSE_OUTBOUND,
-	INTENTIONAL_DISCONNECT_CODE,
-	SEED_PEER_DISCONNECTION_REASON,
-	EVENT_REQUEST_RECEIVED,
-} from '../../src/index';
+import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
@@ -38,6 +24,24 @@ import {
 	NETWORK_CREATION_WAIT_TIME,
 } from '../utils/network_setup';
 import { constructPeerId } from '../../src/utils';
+
+const {
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_TO_ADD_INBOUND_PEER,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_NEW_INBOUND_PEER,
+	EVENT_NETWORK_READY,
+	EVENT_UPDATED_PEER_INFO,
+	EVENT_BAN_PEER,
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_REQUEST_RECEIVED,
+} = events;
+
+const {
+	INTENTIONAL_DISCONNECT_CODE,
+	SEED_PEER_DISCONNECTION_REASON,
+} = constants;
 
 describe('Network discovery', () => {
 	const CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL = 400;

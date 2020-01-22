@@ -24,7 +24,7 @@ import {
 	ExistingPeerError,
 	InvalidNodeInfoError,
 } from '../../src/errors';
-import { P2PPeerInfo } from '../../src';
+import { p2p_types } from '../../src';
 import { constructPeerId } from '../../src/utils';
 
 describe('errors', () => {
@@ -103,7 +103,7 @@ describe('errors', () => {
 
 	describe('#ExistingPeerError', () => {
 		const existingPeerErrorMessagge = 'Peer already exists';
-		const peerInfo: P2PPeerInfo = {
+		const peerInfo: p2p_types.P2PPeerInfo = {
 			ipAddress: '0.0.0.0',
 			wsPort: 5000,
 			peerId: constructPeerId('0.0.0.0', 5000),

@@ -12,10 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P, EVENT_BAN_PEER } from '../../src/index';
+import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+
+const { EVENT_BAN_PEER } = events;
 
 describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];

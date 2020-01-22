@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P, EVENT_NETWORK_READY } from '../../../src/index';
+import { P2P, events } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
+const { EVENT_NETWORK_READY } = events;
 describe(`Event on ${EVENT_NETWORK_READY}`, () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();

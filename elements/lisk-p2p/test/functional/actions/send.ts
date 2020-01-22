@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P, EVENT_MESSAGE_RECEIVED } from '../../../src/index';
+import { P2P, events } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
@@ -32,7 +32,7 @@ describe('P2P.send', () => {
 		randomP2PNode = p2pNodeList[randomPeerIndex];
 
 		for (let p2p of p2pNodeList) {
-			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
+			p2p.on(events.EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
 					nodePort: p2p.nodeInfo.wsPort,
 					message,
