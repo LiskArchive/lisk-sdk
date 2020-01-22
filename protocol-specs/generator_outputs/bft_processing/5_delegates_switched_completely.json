@@ -9,6 +9,7 @@
 	"handler": "5_delegates_switched_completely",
 	"testCases": [
 		{
+			"description": "When block with height 1 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
@@ -30,6 +31,7 @@
 			}
 		},
 		{
+			"description": "When block with height 2 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
@@ -52,6 +54,7 @@
 			}
 		},
 		{
+			"description": "When block with height 3 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
@@ -75,6 +78,7 @@
 			}
 		},
 		{
+			"description": "When block with height 4 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
@@ -99,6 +103,7 @@
 			}
 		},
 		{
+			"description": "When block with height 5 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
@@ -126,6 +131,7 @@
 			}
 		},
 		{
+			"description": "When block with height 6 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
@@ -155,6 +161,7 @@
 			}
 		},
 		{
+			"description": "When block with height 7 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
@@ -186,6 +193,7 @@
 			}
 		},
 		{
+			"description": "When block with height 8 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
@@ -219,6 +227,7 @@
 			}
 		},
 		{
+			"description": "When block with height 9 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
@@ -254,6 +263,7 @@
 			}
 		},
 		{
+			"description": "When block with height 10 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
@@ -291,6 +301,7 @@
 			}
 		},
 		{
+			"description": "When block with height 11 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
@@ -330,6 +341,7 @@
 			}
 		},
 		{
+			"description": "When block with height 12 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
@@ -371,6 +383,7 @@
 			}
 		},
 		{
+			"description": "When block with height 13 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
@@ -414,6 +427,7 @@
 			}
 		},
 		{
+			"description": "When block with height 14 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
@@ -459,6 +473,7 @@
 			}
 		},
 		{
+			"description": "When block with height 15 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
@@ -506,6 +521,7 @@
 			}
 		},
 		{
+			"description": "When block with height 16 is forged",
 			"input": {
 				"delegateName": "D6",
 				"blockHeader": {
@@ -554,6 +570,7 @@
 			}
 		},
 		{
+			"description": "When block with height 17 is forged",
 			"input": {
 				"delegateName": "D7",
 				"blockHeader": {
@@ -603,6 +620,7 @@
 			}
 		},
 		{
+			"description": "When block with height 18 is forged",
 			"input": {
 				"delegateName": "D8",
 				"blockHeader": {
@@ -653,6 +671,7 @@
 			}
 		},
 		{
+			"description": "When block with height 19 is forged",
 			"input": {
 				"delegateName": "D9",
 				"blockHeader": {
@@ -704,6 +723,7 @@
 			}
 		},
 		{
+			"description": "When block with height 20 is forged",
 			"input": {
 				"delegateName": "D10",
 				"blockHeader": {
@@ -757,6 +777,7 @@
 			}
 		},
 		{
+			"description": "When block with height 21 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
@@ -811,6 +832,7 @@
 			}
 		},
 		{
+			"description": "When block with height 22 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
@@ -866,6 +888,7 @@
 			}
 		},
 		{
+			"description": "When block with height 23 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
@@ -922,6 +945,7 @@
 			}
 		},
 		{
+			"description": "When block with height 24 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
@@ -979,6 +1003,7 @@
 			}
 		},
 		{
+			"description": "When block with height 25 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
@@ -1038,6 +1063,7 @@
 			}
 		},
 		{
+			"description": "When block with height 26 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
@@ -1098,6 +1124,7 @@
 			}
 		},
 		{
+			"description": "When block with height 27 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
@@ -1159,6 +1186,7 @@
 			}
 		},
 		{
+			"description": "When block with height 28 is forged",
 			"input": {
 				"delegateName": "D9",
 				"blockHeader": {
@@ -1220,6 +1248,7 @@
 			}
 		},
 		{
+			"description": "When block with height 29 is forged",
 			"input": {
 				"delegateName": "D10",
 				"blockHeader": {
@@ -1281,6 +1310,7 @@
 			}
 		},
 		{
+			"description": "When block with height 30 is forged",
 			"input": {
 				"delegateName": "D8",
 				"blockHeader": {

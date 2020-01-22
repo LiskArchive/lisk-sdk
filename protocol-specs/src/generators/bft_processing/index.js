@@ -111,6 +111,7 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 		};
 
 		steps.push({
+			description: `When block with height ${height} is forged`,
 			input,
 			output,
 		});
