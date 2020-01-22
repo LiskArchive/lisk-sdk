@@ -111,16 +111,11 @@ module.exports = class Network {
 			this.secret = Number(secret);
 		}
 
-		const sanitizeNodeInfo = nodeInfo => {
-			const { nethash, ...restOfNodeInfo } = nodeInfo;
-
-			return {
-				...restOfNodeInfo,
-				networkId: nethash,
-				wsPort: this.options.wsPort,
-				advertiseAddress: this.options.advertiseAddress,
-			};
-		};
+		const sanitizeNodeInfo = nodeInfo => ({
+			...nodeInfo,
+			wsPort: this.options.wsPort,
+			advertiseAddress: this.options.advertiseAddress,
+		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('app:getApplicationState'),
@@ -383,24 +378,8 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
-			getConnectedPeers: () =>
-				this.p2p.getConnectedPeers().map(peerInfo => {
-					const { networkId, ...peerInfoNethash } = peerInfo;
-
-					return {
-						...peerInfoNethash,
-						nethash: networkId,
-					};
-				}),
-			getDisconnectedPeers: () =>
-				this.p2p.getDisconnectedPeers().map(peerInfo => {
-					const { networkId, ...peerInfoNethash } = peerInfo;
-
-					return {
-						...peerInfoNethash,
-						nethash: networkId,
-					};
-				}),
+			getConnectedPeers: () => this.p2p.getConnectedPeers(),
+			getDisconnectedPeers: () => this.p2p.getDisconnectedPeers(),
 			applyPenalty: action =>
 				this.p2p.applyPenalty({
 					peerId: action.params.peerId,

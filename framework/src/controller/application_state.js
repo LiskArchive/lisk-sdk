@@ -30,7 +30,7 @@ class ApplicationState {
 			httpPort,
 			minVersion,
 			protocolVersion,
-			nethash,
+			networkId,
 		},
 		logger,
 	}) {
@@ -45,7 +45,7 @@ class ApplicationState {
 			height: 1,
 			blockVersion: 0,
 			maxHeightPrevoted: 0,
-			nethash,
+			networkId,
 		});
 	}
 
