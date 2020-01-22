@@ -16,7 +16,7 @@
 
 const { getRandomBytes } = require('@liskhq/lisk-cryptography');
 const {
-	p2p: { P2P },
+	P2P,
 	events: {
 		EVENT_NETWORK_READY,
 		EVENT_NEW_INBOUND_PEER,
