@@ -152,12 +152,16 @@ const generateTestCasesValidBlockMultisignatureRegistrationTx = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain.slice(0, 2),
-			accounts: chainAndAccountStates.finalAccountsState[4],
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain.slice(0, 2),
+				accounts: chainAndAccountStates.finalAccountsState[4],
+			},
 		},
-		input: chainAndAccountStates.chain.slice(2),
+		description:
+			'A valid block with a multisignature registration transaction processed',
+		input: chainAndAccountStates.chain.slice(2)[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
@@ -211,12 +215,16 @@ const generateTestCasesValidBlockTransferFromMultisignatureAccount = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain.slice(0, 3),
-			accounts: chainAndAccountStates.finalAccountsState[4],
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain.slice(0, 3),
+				accounts: chainAndAccountStates.finalAccountsState[4],
+			},
 		},
-		input: chainAndAccountStates.chain.slice(3),
+		description:
+			'A valid block with a transfer transaction from a multisignature account processed',
+		input: chainAndAccountStates.chain.slice(3)[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
@@ -255,12 +263,16 @@ const generateTestCasesInvalidBlockMultisignatureRegistrationAndFundingInSameBlo
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain.slice(0),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain.slice(0),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with a multisignature registration transaction and funding for members in same block',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
@@ -313,12 +325,16 @@ const generateTestCasesInvalidBlockTransferFromMultisignatureAccountOnSameBlockA
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain.slice(0, 2),
-			accounts: chainAndAccountStates.finalAccountsState[4],
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain.slice(0, 2),
+				accounts: chainAndAccountStates.finalAccountsState[4],
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with a multisignature registration and transfer from that account on same block',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
@@ -331,42 +347,46 @@ const validBlockWithMultisignatureRegistrationTx = () => ({
 	title: 'Valid block processing',
 	summary:
 		'A valid block with a multisignature registration transaction processed',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_multisignatures',
 	handler: 'valid_block_processing_multisignature_registration_tx',
-	testCases: generateTestCasesValidBlockMultisignatureRegistrationTx(),
+	testCases: [generateTestCasesValidBlockMultisignatureRegistrationTx()],
 });
 
 const validBlockWithTransferFromMultisigAccount = () => ({
 	title: 'Valid block processing',
 	summary:
 		'A valid block with a transfer transaction from a multisignature account processed',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_multisignatures',
 	handler: 'valid_block_processing_transfer_from_multisignature_account',
-	testCases: generateTestCasesValidBlockTransferFromMultisignatureAccount(),
+	testCases: [generateTestCasesValidBlockTransferFromMultisignatureAccount()],
 });
 
 const invalidBlockWithMultisignatureRegistrationAndFundingInSameBlock = () => ({
 	title: 'Invalid block processing',
 	summary:
 		'An invalid block with a multisignature registration transaction and funding for members in same block',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_multisignatures',
 	handler:
 		'invalid_block_processing_multisignature_registration_and_funding_for_members_same_block',
-	testCases: generateTestCasesInvalidBlockMultisignatureRegistrationAndFundingInSameBlock(),
+	testCases: [
+		generateTestCasesInvalidBlockMultisignatureRegistrationAndFundingInSameBlock(),
+	],
 });
 
 const invalidBlockWithTransferFromMultisigAccountOnSameBlockAsRegistration = () => ({
 	title: 'Invalid block processing',
 	summary:
 		'An invalid block with a multisignature registration and transfer from that account on same block',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_multisignatures',
 	handler:
 		'invalid_block_processing_transfer_from_multisignature_account_on_same_block_as_registration',
-	testCases: generateTestCasesInvalidBlockTransferFromMultisignatureAccountOnSameBlockAsRegistration(),
+	testCases: [
+		generateTestCasesInvalidBlockTransferFromMultisignatureAccountOnSameBlockAsRegistration(),
+	],
 });
 
 module.exports = BaseGenerator.runGenerator('block_processing_transfers', [

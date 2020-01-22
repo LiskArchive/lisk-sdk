@@ -42,7 +42,7 @@ const specSchema = {
 			description:
 				'A string identifier to point to a protocol spec name e.g. dpos, bft',
 			minLength: 3,
-			maxLength: 75,
+			maxLength: 100,
 			pattern: '[a-z0-9_]*',
 		},
 		handler: {
@@ -50,7 +50,7 @@ const specSchema = {
 			description:
 				'A string value to differentiate between same identifier for protocol spec',
 			minLength: 3,
-			maxLength: 75,
+			maxLength: 100,
 			pattern: '[a-z0-9_]*',
 		},
 		config: {
