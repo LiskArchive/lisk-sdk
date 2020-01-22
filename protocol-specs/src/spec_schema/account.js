@@ -25,10 +25,10 @@ module.exports = {
 			type: 'string',
 		},
 		secondPublicKey: {
-			type: 'string',
+			type: ['string', 'null'],
 		},
 		username: {
-			type: 'string',
+			type: ['string', 'null'],
 		},
 		isDelegate: {
 			type: 'boolean',
@@ -40,7 +40,7 @@ module.exports = {
 			type: 'boolean',
 		},
 		balance: {
-			type: 'integer',
+			type: ['string', 'integer'],
 		},
 		multiMin: {
 			type: 'integer',
@@ -55,7 +55,7 @@ module.exports = {
 			type: 'integer',
 		},
 		rank: {
-			type: 'integer',
+			type: ['integer', 'null'],
 		},
 		fees: {
 			type: 'integer',
@@ -64,7 +64,7 @@ module.exports = {
 			type: 'integer',
 		},
 		vote: {
-			type: 'integer',
+			type: ['string', 'integer'],
 		},
 		productivity: {
 			type: 'integer',
