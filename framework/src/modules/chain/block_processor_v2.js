@@ -193,7 +193,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					block.height,
 				);
 				if (!this.bftModule.isBFTProtocolCompliant(block)) {
-					expectedReward *= 0.25;
+					expectedReward /= BigInt(4);
 				}
 				this.blocksModule.validateBlockHeader(
 					block,
@@ -360,7 +360,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		// Reduce reward based on BFT rules
 		if (!this.bftModule.isBFTProtocolCompliant(block)) {
-			block.reward = block.reward.times(0.25);
+			block.reward /= BigInt(4);
 		}
 
 		return {
