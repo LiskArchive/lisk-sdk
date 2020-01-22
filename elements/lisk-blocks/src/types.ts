@@ -113,7 +113,13 @@ export interface StorageTransaction {
 }
 
 export interface StorageFilter {
-	readonly [key: string]: string | number | string[] | number[] | null;
+	readonly [key: string]:
+		| string
+		| number
+		| string[]
+		| number[]
+		| boolean
+		| null;
 }
 
 export type StorageFilters =
@@ -196,6 +202,18 @@ export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 	) => Promise<T>;
 }
 
+export interface RoundDelegates {
+	readonly round: number;
+	readonly delegatePublicKeys: string[];
+}
+
+export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
+	readonly getActiveDelegatesForRound: (
+		roundWithOffset: number,
+		tx?: StorageTransaction,
+	) => Promise<ReadonlyArray<string>>;
+}
+
 export interface Storage {
 	readonly entities: {
 		readonly Block: BlockStorageEntity;
@@ -203,6 +221,7 @@ export interface Storage {
 		readonly Transaction: StorageEntity<TransactionJSON>;
 		readonly ChainState: ChainStateEntity;
 		readonly TempBlock: StorageEntity<TempBlock>;
+		readonly RoundDelegates: RoundDelegatesEntity;
 	};
 }
 
