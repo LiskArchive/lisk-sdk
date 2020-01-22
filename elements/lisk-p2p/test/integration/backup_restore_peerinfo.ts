@@ -12,15 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
+import { P2P, events } from '../../src/index';
+import { wait } from '../utils/helpers';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
+
+const {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_BAN_PEER,
 	EVENT_REMOVE_PEER,
 	EVENT_CLOSE_OUTBOUND,
-} from '../../src/index';
-import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from '../utils/network_setup';
+} = events;
 
 describe('Backup and Restore', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

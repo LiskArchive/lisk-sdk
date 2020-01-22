@@ -12,17 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
-	EVENT_CLOSE_OUTBOUND,
-	INTENTIONAL_DISCONNECT_CODE,
-	SEED_PEER_DISCONNECTION_REASON,
-} from '../../src/index';
+import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import cloneDeep = require('lodash.clonedeep');
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+
+const { EVENT_CLOSE_OUTBOUND } = events;
+
+const {
+	INTENTIONAL_DISCONNECT_CODE,
+	SEED_PEER_DISCONNECTION_REASON,
+} = constants;
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
