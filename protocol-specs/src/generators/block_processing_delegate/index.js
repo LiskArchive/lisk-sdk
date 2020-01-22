@@ -129,11 +129,14 @@ const generateTestCasesValidBlockDelegateRegistration = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			chain: chainAndAccountStates.chain.slice(0, 2),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				chain: chainAndAccountStates.chain.slice(0, 2),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.chain.slice(2),
+		description: 'A valid block with a delegate registration',
+		input: chainAndAccountStates.chain.slice(2)[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
@@ -173,11 +176,14 @@ const generateTestCasesInvalidBlockDelegateRegistrationSecondTime = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			chain: chainAndAccountStates.chain.slice(0, 3),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				chain: chainAndAccountStates.chain.slice(0, 3),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description: 'An invalid block with a second delegate registration',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
@@ -212,11 +218,15 @@ const generateTestCasesInvalidBlockDelegateRegistrationForbiddenName = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			chain: chainAndAccountStates.chain.slice(0, 2),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				chain: chainAndAccountStates.chain.slice(0, 2),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with a delegate registration using invalid name',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
@@ -227,28 +237,28 @@ const generateTestCasesInvalidBlockDelegateRegistrationForbiddenName = () => {
 const validBlockWithDelegateRegistrationSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'A valid block with a delegate registration',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_delegate',
 	handler: 'valid_block_processing_delegate_registration_tx',
-	testCases: generateTestCasesValidBlockDelegateRegistration(),
+	testCases: [generateTestCasesValidBlockDelegateRegistration()],
 });
 
 const invalidBlockWithSecondDelegateRegistrationSuite = () => ({
 	title: 'Invalid block processing',
 	summary: 'An invalid block with a second delegate registration',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_delegate',
 	handler: 'invalid_block_processing_second_delegate_registration_tx',
-	testCases: generateTestCasesInvalidBlockDelegateRegistrationSecondTime(),
+	testCases: [generateTestCasesInvalidBlockDelegateRegistrationSecondTime()],
 });
 
 const invalidBlockWithForbiddenNameDelegateRegistrationSuite = () => ({
 	title: 'Invalid block processing',
 	summary: 'An invalid block with a delegate registration using invalid name',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_delegate',
 	handler: 'invalid_block_processing_forbidden_name_delegate_registration_tx',
-	testCases: generateTestCasesInvalidBlockDelegateRegistrationForbiddenName(),
+	testCases: [generateTestCasesInvalidBlockDelegateRegistrationForbiddenName()],
 });
 
 module.exports = BaseGenerator.runGenerator('block_processing_delegate', [
