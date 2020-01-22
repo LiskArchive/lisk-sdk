@@ -157,10 +157,15 @@ const invalidMaxHeightPrevoted = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid max height prevoted',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: {
+			blockHeaders,
+		},
 	};
 };
 
@@ -190,10 +195,13 @@ const invalidSameHeightBlock = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid same height block',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
@@ -224,10 +232,13 @@ const invalidLowerHeightBlock = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid lower height block',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
@@ -257,10 +268,13 @@ const invalidPreviouslyForgedHeight = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid previously forged height',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
@@ -288,10 +302,13 @@ const invalidLowerMaxHeightPrevoted = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid lower max height prevoted',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
