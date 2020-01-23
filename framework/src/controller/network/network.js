@@ -314,8 +314,8 @@ module.exports = class Network {
 
 	async request(requestPacket) {
 		return this.p2p.request({
-			procedure: requestPacket.params.procedure,
-			data: requestPacket.params.data,
+			procedure: requestPacket.procedure,
+			data: requestPacket.data,
 		});
 	}
 
@@ -329,27 +329,27 @@ module.exports = class Network {
 	async requestFromPeer(requestPacket) {
 		return this.p2p.requestFromPeer(
 			{
-				procedure: requestPacket.params.procedure,
-				data: requestPacket.params.data,
+				procedure: requestPacket.procedure,
+				data: requestPacket.data,
 			},
-			requestPacket.params.peerId,
+			requestPacket.peerId,
 		);
 	}
 
 	sendToPeer(sendPacket) {
 		return this.p2p.sendToPeer(
 			{
-				event: sendPacket.params.event,
-				data: sendPacket.params.data,
+				event: sendPacket.event,
+				data: sendPacket.data,
 			},
-			sendPacket.params.peerId,
+			sendPacket.peerId,
 		);
 	}
 
 	broadcast(broadcastPacket) {
 		return this.p2p.broadcast({
-			event: broadcastPacket.params.event,
-			data: broadcastPacket.params.data,
+			event: broadcastPacket.event,
+			data: broadcastPacket.data,
 		});
 	}
 
@@ -363,8 +363,8 @@ module.exports = class Network {
 
 	applyPenalty(penaltyPacket) {
 		return this.p2p.applyPenalty({
-			peerId: penaltyPacket.params.peerId,
-			penalty: penaltyPacket.params.penalty,
+			peerId: penaltyPacket.peerId,
+			penalty: penaltyPacket.penalty,
 		});
 	}
 

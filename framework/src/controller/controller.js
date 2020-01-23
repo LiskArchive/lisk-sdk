@@ -149,6 +149,18 @@ class Controller {
 				requestFromNetwork: {
 					handler: action => this.network.request(action.params),
 				},
+				requestFromPeer: {
+					handler: action => this.network.requestFromPeer(action.params),
+				},
+				getConnectedPeers: {
+					handler: action => this.network.getConnectedPeers(action.params),
+				},
+				getDisconnectedPeers: {
+					handler: action => this.network.getDisconnectedPeers(action.params),
+				},
+				applyPenaltyOnPeer: {
+					handler: action => this.network.applyPenalty(action.params),
+				},
 			},
 			{ skipInternalEvents: true },
 		);

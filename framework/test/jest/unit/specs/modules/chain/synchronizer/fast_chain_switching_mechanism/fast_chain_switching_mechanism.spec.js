@@ -172,10 +172,13 @@ describe('fast_chain_switching_mechanism', () => {
 				{ peerId, reason },
 				'Applying penalty to peer and restarting synchronizer',
 			);
-			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
-				peerId,
-				penalty: 100,
-			});
+			expect(channelMock.invoke).toHaveBeenCalledWith(
+				'app:applyPenaltyOnPeer',
+				{
+					peerId,
+					penalty: 100,
+				},
+			);
 			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
 				block: receivedBlock,
 			});
@@ -186,10 +189,13 @@ describe('fast_chain_switching_mechanism', () => {
 				{ err, peerId, reason: err.reason },
 				'Applying penalty to peer and aborting synchronization mechanism',
 			);
-			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
-				peerId,
-				penalty: 100,
-			});
+			expect(channelMock.invoke).toHaveBeenCalledWith(
+				'app:applyPenaltyOnPeer',
+				{
+					peerId,
+					penalty: 100,
+				},
+			);
 		};
 
 		const checkIfAbortIsCalled = error => {

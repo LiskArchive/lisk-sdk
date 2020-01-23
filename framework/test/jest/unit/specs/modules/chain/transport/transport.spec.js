@@ -418,7 +418,7 @@ describe('Transport', () => {
 					}),
 				);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 100,
@@ -510,7 +510,7 @@ describe('Transport', () => {
 				);
 				await jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 10,
@@ -525,7 +525,7 @@ describe('Transport', () => {
 					transport.handleEventPostSignatures({}, defaultPeerId),
 				).toReject();
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 100,
@@ -559,7 +559,7 @@ describe('Transport', () => {
 					transport.handleEventPostSignatures(invalidSignature, defaultPeerId),
 				).toReject();
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 100,
@@ -604,7 +604,7 @@ describe('Transport', () => {
 
 				await jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 10,
@@ -671,7 +671,7 @@ describe('Transport', () => {
 					),
 				).toReject();
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 100,
@@ -806,7 +806,7 @@ describe('Transport', () => {
 				);
 				await jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 10,
@@ -821,7 +821,7 @@ describe('Transport', () => {
 					transport.handleEventPostTransactionsAnnouncement({}, defaultPeerId),
 				).toReject();
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 100,
@@ -889,7 +889,7 @@ describe('Transport', () => {
 					defaultPeerId,
 				);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 100,
@@ -907,7 +907,7 @@ describe('Transport', () => {
 					defaultPeerId,
 				);
 				expect(channelStub.invoke).not.toHaveBeenCalledWith(
-					'network:applyPenalty',
+					'app:applyPenaltyOnPeer',
 					{
 						peerId: defaultPeerId,
 						penalty: 100,

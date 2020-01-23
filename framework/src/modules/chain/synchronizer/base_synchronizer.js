@@ -35,7 +35,7 @@ class BaseSynchronizer {
 			{ peerId, reason },
 			'Applying penalty to peer and restarting synchronizer',
 		);
-		await this.channel.invoke('network:applyPenalty', {
+		await this.channel.invoke('app:applyPenaltyOnPeer', {
 			peerId,
 			penalty: 100,
 		});
