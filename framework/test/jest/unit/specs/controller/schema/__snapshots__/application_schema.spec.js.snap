@@ -170,6 +170,131 @@ Object {
       ],
       "type": "object",
     },
+    network: {
+			type: 'object',
+			properties: {
+				wsPort: {
+					type: 'integer',
+					minimum: 1,
+					maximum: 65535,
+					env: 'LISK_WS_PORT',
+					arg: '--port,-p',
+				},
+				hostIp: {
+					type: 'string',
+					format: 'ip',
+					env: 'LISK_ADDRESS',
+					arg: '--address,-a',
+				},
+				seedPeers: {
+					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							ip: {
+								type: 'string',
+								format: 'ipOrFQDN',
+							},
+							wsPort: {
+								type: 'integer',
+								minimum: 1,
+								maximum: 65535,
+							},
+						},
+					},
+					env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
+					arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
+				},
+				blacklistedIPs: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'ip',
+					},
+				},
+				fixedPeers: {
+					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							ip: {
+								type: 'string',
+								format: 'ip',
+							},
+							wsPort: {
+								type: 'integer',
+								minimum: 1,
+								maximum: 65535,
+							},
+						},
+					},
+					maximum: 4,
+				},
+				whitelistedPeers: {
+					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							ip: {
+								type: 'string',
+								format: 'ip',
+							},
+							wsPort: {
+								type: 'integer',
+								minimum: 1,
+								maximum: 65535,
+							},
+						},
+					},
+				},
+				peerBanTime: {
+					type: 'integer',
+				},
+				populatorInterval: {
+					type: 'integer',
+				},
+				connectTimeout: {
+					type: 'integer',
+				},
+				ackTimeout: {
+					type: 'integer',
+				},
+				maxOutboundConnections: {
+					type: 'integer',
+				},
+				maxInboundConnections: {
+					type: 'integer',
+				},
+				sendPeerLimit: {
+					type: 'integer',
+					minimum: 1,
+					maximum: 100,
+				},
+				maxPeerDiscoveryResponseLength: {
+					type: 'integer',
+					maximum: 1000,
+				},
+				maxPeerInfoSize: {
+					type: 'integer',
+					maximum: 20480,
+				},
+				wsMaxPayload: {
+					type: 'integer',
+					maximum: 3048576,
+				},
+				outboundShuffleInterval: {
+					type: 'integer',
+				},
+				advertiseAddress: {
+					type: 'boolean',
+				},
+			},
+			required: ['seedPeers'],
+			default: {
+				wsPort: 5000,
+				seedPeers: [],
+			},
+		},
     "components": Object {
       "properties": Object {
         "cache": Object {

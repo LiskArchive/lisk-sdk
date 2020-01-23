@@ -210,7 +210,7 @@ describe('block_synchronization_mechanism', () => {
 		);
 
 		when(channelMock.invoke)
-			.calledWith('network:getConnectedPeers')
+			.calledWith('app:getConnectedPeers')
 			.mockResolvedValue(peersList.connectedPeers);
 
 		// minActiveHeightsOfDelegates is provided to deleteBlocks function
@@ -252,8 +252,8 @@ describe('block_synchronization_mechanism', () => {
 
 		for (const expectedPeer of peersList.expectedSelection) {
 			const { peerId } = expectedPeer;
-			when(channelMock.invoke)
-				.calledWith('network:requestFromPeer', {
+			when(channelMock.invokeFromNetwork)
+				.calledWith('requestFromPeer', {
 					procedure: 'getHighestCommonBlock',
 					peerId,
 					data: {
@@ -264,16 +264,16 @@ describe('block_synchronization_mechanism', () => {
 					data: highestCommonBlock,
 				});
 
-			when(channelMock.invoke)
-				.calledWith('network:requestFromPeer', {
+			when(channelMock.invokeFromNetwork)
+				.calledWith('requestFromPeer', {
 					procedure: 'getLastBlock',
 					peerId,
 				})
 				.mockResolvedValue({
 					data: aBlock,
 				});
-			when(channelMock.invoke)
-				.calledWith('network:requestFromPeer', {
+			when(channelMock.invokeFromNetwork)
+				.calledWith('requestFromPeer', {
 					procedure: 'getBlocksFromId',
 					peerId,
 					data: {
@@ -386,7 +386,7 @@ describe('block_synchronization_mechanism', () => {
 
 				for (const requiredProp of requiredProps) {
 					when(channelMock.invoke)
-						.calledWith('network:getConnectedPeers')
+						.calledWith('app:getConnectedPeers')
 						.mockResolvedValueOnce(
 							peersList.connectedPeers.map(peer => {
 								const incompatiblePeer = cloneDeep(peer);
@@ -414,7 +414,7 @@ describe('block_synchronization_mechanism', () => {
 			it('should throw an error if the list of connected peers is empty', async () => {
 				// Arrange
 				when(channelMock.invoke)
-					.calledWith('network:getConnectedPeers')
+					.calledWith('app:getConnectedPeers')
 					.mockResolvedValueOnce([]);
 
 				// Act && Assert
@@ -434,7 +434,7 @@ describe('block_synchronization_mechanism', () => {
 
 			it('should throw an error if the peer tip does not have priority over current tip', async () => {
 				when(channelMock.invoke)
-					.calledWith('network:getConnectedPeers')
+					.calledWith('app:getConnectedPeers')
 					.mockResolvedValueOnce([
 						...peersList.expectedSelection.map(peer => ({
 							...peer,
@@ -513,16 +513,16 @@ describe('block_synchronization_mechanism', () => {
 
 				for (const expectedPeer of peersList.expectedSelection) {
 					const { peerId } = expectedPeer;
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
+					when(channelMock.invokeFromNetwork)
+						.calledWith('requestFromPeer', {
 							procedure: 'getLastBlock',
 							peerId,
 						})
 						.mockResolvedValue({
 							data: receivedBlock,
 						});
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
+					when(channelMock.invokeFromNetwork)
+						.calledWith('requestFromPeer', {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
@@ -550,8 +550,8 @@ describe('block_synchronization_mechanism', () => {
 			it('should apply penalty and restart the mechanism if the peer does not provide the last block', async () => {
 				for (const expectedPeer of peersList.expectedSelection) {
 					const { peerId } = expectedPeer;
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
+					when(channelMock.invokeFromNetwork)
+						.calledWith('requestFromPeer', {
 							procedure: 'getLastBlock',
 							peerId,
 						})
@@ -600,8 +600,8 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const expectedPeer of peersList.expectedSelection) {
 						const { peerId } = expectedPeer;
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getHighestCommonBlock',
 								peerId,
 								data: {
@@ -610,16 +610,16 @@ describe('block_synchronization_mechanism', () => {
 							})
 							.mockResolvedValue({ data: undefined });
 
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getLastBlock',
 								peerId,
 							})
 							.mockResolvedValue({
 								data: receivedBlock,
 							});
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
@@ -708,8 +708,8 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const expectedPeer of peersList.expectedSelection) {
 						const { peerId } = expectedPeer;
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getHighestCommonBlock',
 								peerId,
 								data: {
@@ -720,16 +720,16 @@ describe('block_synchronization_mechanism', () => {
 								data: highestCommonBlock,
 							});
 
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getLastBlock',
 								peerId,
 							})
 							.mockResolvedValue({
 								data: aBlock,
 							});
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
@@ -804,8 +804,8 @@ describe('block_synchronization_mechanism', () => {
 
 				for (const expectedPeer of peersList.expectedSelection) {
 					const { peerId } = expectedPeer;
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
+					when(channelMock.invokeFromNetwork)
+						.calledWith('requestFromPeer', {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
@@ -817,8 +817,8 @@ describe('block_synchronization_mechanism', () => {
 
 				await blockSynchronizationMechanism.run(aBlock);
 
-				expect(channelMock.invoke).toHaveBeenCalledWith(
-					'network:requestFromPeer',
+				expect(channelMock.invokeFromNetwork).toHaveBeenCalledWith(
+					'requestFromPeer',
 					{
 						procedure: 'getBlocksFromId',
 						peerId: expect.any(String),
@@ -857,8 +857,8 @@ describe('block_synchronization_mechanism', () => {
 			it('should give up after 10 times requesting blocks, ban the peer and restart the mechanism', async () => {
 				for (const expectedPeer of peersList.expectedSelection) {
 					const { peerId } = expectedPeer;
-					when(channelMock.invoke)
-						.calledWith('network:requestFromPeer', {
+					when(channelMock.invokeFromNetwork)
+						.calledWith('requestFromPeer', {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
@@ -869,8 +869,8 @@ describe('block_synchronization_mechanism', () => {
 				}
 				await blockSynchronizationMechanism.run(aBlock);
 
-				expect(channelMock.invoke).toHaveBeenCalledWith(
-					'network:requestFromPeer',
+				expect(channelMock.invokeFromNetwork).toHaveBeenCalledWith(
+					'requestFromPeer',
 					{
 						procedure: 'getBlocksFromId',
 						peerId: expect.any(String),
@@ -927,8 +927,8 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const expectedPeer of peersList.expectedSelection) {
 						const { peerId } = expectedPeer;
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
@@ -1057,8 +1057,8 @@ describe('block_synchronization_mechanism', () => {
 					for (const expectedPeer of peersList.expectedSelection) {
 						const { peerId } = expectedPeer;
 
-						when(channelMock.invoke)
-							.calledWith('network:requestFromPeer', {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
