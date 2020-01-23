@@ -22,7 +22,7 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
 const {
-	NetworkInfo,
+	NetworkInfoEntity: NetworkInfo,
 } = require('../../../../../../../../../src/controller/storage/entities');
 
 const { config } = require('../../../../shared');

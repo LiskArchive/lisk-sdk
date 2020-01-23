@@ -17,7 +17,7 @@
 module.exports = {
 	id: '#/app/config',
 	type: 'object',
-	required: ['app', 'components', 'modules'],
+	required: ['app', 'network', 'components', 'modules'],
 	properties: {
 		app: {
 			type: 'object',
@@ -338,6 +338,9 @@ module.exports = {
 					DISTANCE: 3000000, // Distance between each milestone
 				},
 			},
+		},
+		network: {
+			seedPeers: [],
 		},
 		components: {
 			system: {},
