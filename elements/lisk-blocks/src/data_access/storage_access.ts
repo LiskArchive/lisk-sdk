@@ -266,6 +266,15 @@ export class StorageAccess {
 		return transactions;
 	}
 
+	public async isTransactionPersisted(transactionId: number): Promise<boolean> {
+		const isPersisted = await this._storage.entities.Transaction.isPersisted({
+			id: transactionId,
+			type: 9,
+		});
+
+		return isPersisted;
+	}
+
 	public async resetAccountMemTables(): Promise<void> {
 		await this._storage.entities.Account.resetMemTables();
 	}
