@@ -55,8 +55,8 @@
 			"description": "Schema to specify and validate blocks in JSON specs",
 			"type": "object"
 		},
-		"ChainState": {
-			"title": "ChainState",
+		"State": {
+			"title": "State",
 			"description": "A JSON object represents basic chain state for individual spec to be executed.",
 			"type": "object",
 			"properties": {
@@ -84,7 +84,7 @@
 			"required": [],
 			"properties": {
 				"initialState": {
-					"$ref": "#/definitions/ChainState"
+					"$ref": "#/definitions/State"
 				}
 			}
 		},
@@ -117,7 +117,7 @@
 					"properties": {
 						"mutatedState": {
 							"description": "Modified chain state",
-							"$ref": "#/definitions/ChainState"
+							"$ref": "#/definitions/State"
 						}
 					}
 				}
