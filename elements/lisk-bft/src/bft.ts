@@ -25,6 +25,7 @@ import {
 	BlockEntity,
 	ForkStatus,
 	HeightOfDelegates,
+	Rounds,
 	Slots,
 	StateStore,
 	Storage,
@@ -40,6 +41,7 @@ export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 export class BFT extends EventEmitter {
 	private _finalityManager?: FinalityManager;
 	public readonly storage: Storage;
+	public readonly rounds: Rounds;
 	public readonly slots: Slots;
 	public readonly constants: {
 		activeDelegates: number;
@@ -50,11 +52,13 @@ export class BFT extends EventEmitter {
 
 	public constructor({
 		storage,
+		rounds,
 		slots,
 		activeDelegates,
 		startingHeight,
 	}: {
 		readonly storage: Storage;
+		readonly rounds: Rounds;
 		readonly slots: Slots;
 		readonly activeDelegates: number;
 		readonly startingHeight: number;
@@ -62,6 +66,7 @@ export class BFT extends EventEmitter {
 		super();
 		this.storage = storage;
 		this.slots = slots;
+		this.rounds = rounds;
 		this.constants = {
 			activeDelegates,
 			startingHeight,
@@ -305,8 +310,8 @@ export class BFT extends EventEmitter {
 
 			// If there is no minHeightActive until this point, we can set the value to 0
 			const activeHeightThreshold = 3;
-			const minimumPossibleActiveHeight = this.slots.calcRoundStartHeight(
-				this.slots.calcRound(
+			const minimumPossibleActiveHeight = this.rounds.calcRoundStartHeight(
+				this.rounds.calcRound(
 					Math.max(
 						row.height - this.constants.activeDelegates * activeHeightThreshold,
 						1,

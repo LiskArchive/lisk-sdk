@@ -120,3 +120,8 @@ export class BFTInvalidAttributeError extends BFTError {
 		super(`Invalid BFT attribute: ${message}`);
 	}
 }
+
+export interface Rounds {
+	readonly calcRound: (height: number) => number;
+	readonly calcRoundStartHeight: (round: number) => number;
+}

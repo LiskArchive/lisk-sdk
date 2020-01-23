@@ -47,8 +47,6 @@ class Forger {
 		channel,
 		logger,
 		storage,
-		// Unique requirements
-		slots,
 		// Modules
 		processorModule,
 		dposModule,
@@ -66,7 +64,6 @@ class Forger {
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
-		this.slots = slots;
 		this.config = {
 			forging: {
 				delegates: forgingDelegates,
@@ -226,14 +223,17 @@ class Forger {
 
 	// eslint-disable-next-line class-methods-use-this
 	async forge() {
-		const currentSlot = this.slots.getSlotNumber();
-		const currentSlotTime = this.slots.getRealTime(
-			this.slots.getSlotTime(currentSlot),
+		const currentSlot = this.blocksModule.slots.getSlotNumber();
+		const currentSlotTime = this.blocksModule.slots.getRealTime(
+			this.blocksModule.slots.getSlotTime(currentSlot),
 		);
+
 		const currentTime = new Date().getTime();
 		const waitThreshold = this.config.forging.waitThreshold * 1000;
 		const { lastBlock } = this.blocksModule;
-		const lastBlockSlot = this.slots.getSlotNumber(lastBlock.timestamp);
+		const lastBlockSlot = this.blocksModule.slots.getSlotNumber(
+			lastBlock.timestamp,
+		);
 
 		if (currentSlot === lastBlockSlot) {
 			this.logger.trace(
@@ -244,7 +244,9 @@ class Forger {
 		}
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
-		const round = this.slots.calcRound(this.blocksModule.lastBlock.height + 1);
+		const round = this.dposModule.rounds.calcRound(
+			this.blocksModule.lastBlock.height + 1,
+		);
 
 		let delegateKeypair;
 		try {
@@ -263,7 +265,7 @@ class Forger {
 
 		if (delegateKeypair === null) {
 			this.logger.trace(
-				{ currentSlot: this.slots.getSlotNumber() },
+				{ currentSlot: this.blocksModule.slots.getSlotNumber() },
 				'Waiting for delegate slot',
 			);
 			return;
@@ -290,7 +292,7 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
-		const timestamp = this.slots.getSlotTime(currentSlot);
+		const timestamp = this.blocksModule.slots.getSlotTime(currentSlot);
 		const previousBlock = this.blocksModule.lastBlock;
 
 		const context = {
@@ -315,8 +317,8 @@ class Forger {
 			{
 				id: forgedBlock.id,
 				height: forgedBlock.height,
-				round: this.slots.calcRound(forgedBlock.height),
-				slot: this.slots.getSlotNumber(forgedBlock.timestamp),
+				round: this.dposModule.rounds.calcRound(forgedBlock.height),
+				slot: this.blocksModule.slots.getSlotNumber(forgedBlock.timestamp),
 				reward: forgedBlock.reward.toString(),
 			},
 			'Forged new block',

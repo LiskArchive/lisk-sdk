@@ -16,7 +16,6 @@
 
 const { Blocks } = require('@liskhq/lisk-blocks');
 const {
-	Slots,
 	Dpos,
 	constants: { EVENT_ROUND_CHANGED },
 } = require('@liskhq/lisk-dpos');
@@ -55,7 +54,6 @@ module.exports = class Chain {
 		this.options = options;
 		this.logger = null;
 		this.scope = null;
-		this.slots = null;
 	}
 
 	async bootstrap() {
@@ -293,13 +291,14 @@ module.exports = class Chain {
 				this.transport.handleEventPostTransaction(action.params),
 			getSlotNumber: async action =>
 				action.params
-					? this.slots.getSlotNumber(action.params.epochTime)
-					: this.slots.getSlotNumber(),
-			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+					? this.blocks.slots.getSlotNumber(action.params.epochTime)
+					: this.blocks.slots.getSlotNumber(),
+			calcSlotRound: async action =>
+				this.dpos.rounds.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getCount(),
-				secondsSinceEpoch: this.slots.getEpochTime(),
+				secondsSinceEpoch: this.blocks.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
 			}),
@@ -351,32 +350,6 @@ module.exports = class Chain {
 
 	async _initModules() {
 		this.scope.modules = {};
-		this.slots = new Slots({
-			epochTime: this.options.constants.EPOCH_TIME,
-			interval: this.options.constants.BLOCK_TIME,
-			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
-		});
-		this.scope.slots = this.slots;
-		this.bft = new BFT({
-			storage: this.storage,
-			logger: this.logger,
-			slots: this.slots,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
-		});
-		this.dpos = new Dpos({
-			storage: this.storage,
-			logger: this.logger,
-			slots: this.slots,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset: this.options.constants
-				.DELEGATE_LIST_ROUND_OFFSET,
-			exceptions: this.options.exceptions,
-		});
-
-		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
-			this.channel.publish('chain:rounds:change', { number: data.newRound });
-		});
 
 		this.blocks = new Blocks({
 			logger: this.logger,
@@ -385,7 +358,6 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
-			slots: this.slots,
 			exceptions: this.options.exceptions,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
@@ -398,7 +370,34 @@ module.exports = class Chain {
 			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
+			epochTime: this.options.constants.EPOCH_TIME,
+			blockTime: this.options.constants.BLOCK_TIME,
 		});
+
+		this.scope.slots = this.blocks.slots;
+		this.dpos = new Dpos({
+			storage: this.storage,
+			logger: this.logger,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: this.options.constants
+				.DELEGATE_LIST_ROUND_OFFSET,
+			blocks: this.blocks,
+			exceptions: this.options.exceptions,
+		});
+
+		this.bft = new BFT({
+			storage: this.storage,
+			logger: this.logger,
+			rounds: this.dpos.rounds,
+			slots: this.blocks.slots,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
+		});
+
+		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
+			this.channel.publish('chain:rounds:change', { number: data.newRound });
+		});
+
 		this.processor = new Processor({
 			channel: this.channel,
 			logger: this.logger,
@@ -409,7 +408,8 @@ module.exports = class Chain {
 			storage: this.storage,
 			logger: this.logger,
 			bft: this.bft,
-			slots: this.slots,
+			rounds: this.dpos.rounds,
+			slots: this.blocks.slots,
 			channel: this.channel,
 			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
@@ -420,7 +420,7 @@ module.exports = class Chain {
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
-			slots: this.slots,
+			rounds: this.dpos.rounds,
 			blocks: this.blocks,
 			bft: this.bft,
 			dpos: this.dpos,
@@ -441,7 +441,7 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			blocks: this.blocks,
-			slots: this.slots,
+			slots: this.blocks.slots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
 				.maxTransactionsPerQueue,
@@ -476,7 +476,6 @@ module.exports = class Chain {
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
-			slots: this.slots,
 			dposModule: this.dpos,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,

@@ -17,7 +17,7 @@ interface SlotsInput {
 	readonly interval: number;
 }
 
-const MS_IN_SEC = 1000;
+const SEC_IN_MS = 1000;
 
 export class Slots {
 	private readonly _epochTime: Date;
@@ -29,13 +29,13 @@ export class Slots {
 	}
 
 	public getEpochTime(): number {
-		return Math.floor((Date.now() - this._epochTime.getTime()) / MS_IN_SEC);
+		return Math.floor((Date.now() - this._epochTime.getTime()) / SEC_IN_MS);
 	}
 
 	public getRealTime(time: number): number {
 		return (
-			Math.floor(this._epochTime.getTime() / MS_IN_SEC) * MS_IN_SEC +
-			time * MS_IN_SEC
+			Math.floor(this._epochTime.getTime() / SEC_IN_MS) * SEC_IN_MS +
+			time * SEC_IN_MS
 		);
 	}
 
