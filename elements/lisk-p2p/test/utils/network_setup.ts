@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P } from '../../src/index';
+import { P2P, constants } from '../../src/index';
 import { wait } from './helpers';
 import { platform } from 'os';
-import {
+
+const {
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
-} from '../../src';
+} = constants;
+
 export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
 export const POPULATOR_INTERVAL = 50;

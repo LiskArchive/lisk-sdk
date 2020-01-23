@@ -13,7 +13,7 @@
  *
  */
 
-import { P2P, RequestFailError } from '../../src/index';
+import { P2P, errors } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('Unseeded network: Each node has an empty seedPeers list', () => {
@@ -46,6 +46,6 @@ describe('Unseeded network: Each node has an empty seedPeers list', () => {
 			data: 'bar',
 		});
 
-		return expect(response).rejects.toThrow(RequestFailError);
+		return expect(response).rejects.toThrow(errors.RequestFailError);
 	});
 });

@@ -12,17 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_NEW_INBOUND_PEER,
-	EVENT_DISCOVERED_PEER,
-	EVENT_UPDATED_PEER_INFO,
-	EVENT_FAILED_TO_ADD_INBOUND_PEER,
-	INCOMPATIBLE_NETWORK_REASON,
-	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-	INVALID_CONNECTION_SELF_REASON,
-} from '../../../src/index';
+import { P2P, events, constants } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
@@ -30,6 +20,20 @@ import {
 	SEED_PEER_IP,
 	NETWORK_START_PORT,
 } from '../../utils/network_setup';
+
+const {
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_NEW_INBOUND_PEER,
+	EVENT_DISCOVERED_PEER,
+	EVENT_UPDATED_PEER_INFO,
+	EVENT_FAILED_TO_ADD_INBOUND_PEER,
+} = events;
+
+const {
+	INCOMPATIBLE_NETWORK_REASON,
+	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
+	INVALID_CONNECTION_SELF_REASON,
+} = constants;
 
 describe(`Connection Create`, () => {
 	describe(`Events`, () => {

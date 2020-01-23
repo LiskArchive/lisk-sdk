@@ -51,7 +51,9 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
-import { RequestFailError, SendFailError } from '../../src';
+import { errors } from '../../src';
+
+const { RequestFailError, SendFailError } = errors;
 
 describe('peerPool', () => {
 	const peerPoolConfig = {

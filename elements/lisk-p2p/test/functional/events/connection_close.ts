@@ -12,17 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
-	EVENT_CLOSE_INBOUND,
-	EVENT_CLOSE_OUTBOUND,
-	INTENTIONAL_DISCONNECT_CODE,
-} from '../../../src/index';
+import { P2P, events, constants } from '../../../src/index';
 
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
 const SOCKET_HUNG_UP_CODE = 1006;
+const { EVENT_CLOSE_INBOUND, EVENT_CLOSE_OUTBOUND } = events;
+const { INTENTIONAL_DISCONNECT_CODE } = constants;
 
 describe(`Events on Connection Close`, () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
