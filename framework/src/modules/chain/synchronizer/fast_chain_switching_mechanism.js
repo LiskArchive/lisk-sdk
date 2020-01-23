@@ -79,7 +79,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 					{ err, peerId, reason: err.reason },
 					'Applying penalty to peer and aborting synchronization mechanism',
 				);
-				return this.channel.invoke('app:applyPenalty', {
+				return this.channel.invoke('app:applyPenaltyOnPeer', {
 					peerId,
 					penalty: 100,
 				});
