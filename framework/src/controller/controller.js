@@ -141,7 +141,13 @@ class Controller {
 					handler: action => this.applicationState.update(action.params),
 				},
 				sendToNetwork: {
-					handler: action => this.network.send(action),
+					handler: action => this.network.send(action.params),
+				},
+				broadcastToNetwork: {
+					handler: action => this.network.broadcast(action.params),
+				},
+				requestFromNetwork: {
+					handler: action => this.network.request(action.params),
 				},
 			},
 			{ skipInternalEvents: true },
