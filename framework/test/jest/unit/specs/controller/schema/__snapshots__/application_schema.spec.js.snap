@@ -41,6 +41,9 @@ Object {
       "chain": Object {},
       "http_api": Object {},
     },
+    "network": Object {
+      "seedPeers": Array [],
+    },
   },
   "id": "#/app/config",
   "properties": Object {
@@ -170,131 +173,6 @@ Object {
       ],
       "type": "object",
     },
-    network: {
-			type: 'object',
-			properties: {
-				wsPort: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 65535,
-					env: 'LISK_WS_PORT',
-					arg: '--port,-p',
-				},
-				hostIp: {
-					type: 'string',
-					format: 'ip',
-					env: 'LISK_ADDRESS',
-					arg: '--address,-a',
-				},
-				seedPeers: {
-					type: 'array',
-					items: {
-						type: 'object',
-						properties: {
-							ip: {
-								type: 'string',
-								format: 'ipOrFQDN',
-							},
-							wsPort: {
-								type: 'integer',
-								minimum: 1,
-								maximum: 65535,
-							},
-						},
-					},
-					env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
-					arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
-				},
-				blacklistedIPs: {
-					type: 'array',
-					items: {
-						type: 'string',
-						format: 'ip',
-					},
-				},
-				fixedPeers: {
-					type: 'array',
-					items: {
-						type: 'object',
-						properties: {
-							ip: {
-								type: 'string',
-								format: 'ip',
-							},
-							wsPort: {
-								type: 'integer',
-								minimum: 1,
-								maximum: 65535,
-							},
-						},
-					},
-					maximum: 4,
-				},
-				whitelistedPeers: {
-					type: 'array',
-					items: {
-						type: 'object',
-						properties: {
-							ip: {
-								type: 'string',
-								format: 'ip',
-							},
-							wsPort: {
-								type: 'integer',
-								minimum: 1,
-								maximum: 65535,
-							},
-						},
-					},
-				},
-				peerBanTime: {
-					type: 'integer',
-				},
-				populatorInterval: {
-					type: 'integer',
-				},
-				connectTimeout: {
-					type: 'integer',
-				},
-				ackTimeout: {
-					type: 'integer',
-				},
-				maxOutboundConnections: {
-					type: 'integer',
-				},
-				maxInboundConnections: {
-					type: 'integer',
-				},
-				sendPeerLimit: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 100,
-				},
-				maxPeerDiscoveryResponseLength: {
-					type: 'integer',
-					maximum: 1000,
-				},
-				maxPeerInfoSize: {
-					type: 'integer',
-					maximum: 20480,
-				},
-				wsMaxPayload: {
-					type: 'integer',
-					maximum: 3048576,
-				},
-				outboundShuffleInterval: {
-					type: 'integer',
-				},
-				advertiseAddress: {
-					type: 'boolean',
-				},
-			},
-			required: ['seedPeers'],
-			default: {
-				wsPort: 5000,
-				seedPeers: [],
-			},
-		},
     "components": Object {
       "properties": Object {
         "cache": Object {
@@ -329,9 +207,159 @@ Object {
       ],
       "type": "object",
     },
+    "network": Object {
+      "default": Object {
+        "seedPeers": Array [],
+        "wsPort": 5000,
+      },
+      "properties": Object {
+        "ackTimeout": Object {
+          "type": "integer",
+        },
+        "advertiseAddress": Object {
+          "type": "boolean",
+        },
+        "blacklistedIPs": Object {
+          "items": Object {
+            "format": "ip",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "connectTimeout": Object {
+          "type": "integer",
+        },
+        "fixedPeers": Object {
+          "arg": Object {
+            "formatter": "stringToIpPortSet",
+            "name": "--peers,-x",
+          },
+          "env": Object {
+            "formatter": "stringToIpPortSet",
+            "variable": "LISK_PEERS",
+          },
+          "items": Object {
+            "properties": Object {
+              "ip": Object {
+                "format": "ip",
+                "type": "string",
+              },
+              "wsPort": Object {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer",
+              },
+            },
+            "type": "object",
+          },
+          "maximum": 4,
+          "type": "array",
+        },
+        "hostIp": Object {
+          "arg": "--address,-a",
+          "env": "LISK_ADDRESS",
+          "format": "ip",
+          "type": "string",
+        },
+        "maxInboundConnections": Object {
+          "type": "integer",
+        },
+        "maxOutboundConnections": Object {
+          "type": "integer",
+        },
+        "maxPeerDiscoveryResponseLength": Object {
+          "maximum": 1000,
+          "type": "integer",
+        },
+        "maxPeerInfoSize": Object {
+          "maximum": 20480,
+          "type": "integer",
+        },
+        "outboundShuffleInterval": Object {
+          "type": "integer",
+        },
+        "peerBanTime": Object {
+          "type": "integer",
+        },
+        "populatorInterval": Object {
+          "type": "integer",
+        },
+        "seedPeers": Object {
+          "arg": Object {
+            "formatter": "stringToIpPortSet",
+            "name": "--peers,-x",
+          },
+          "env": Object {
+            "formatter": "stringToIpPortSet",
+            "variable": "LISK_PEERS",
+          },
+          "items": Object {
+            "properties": Object {
+              "ip": Object {
+                "format": "ipOrFQDN",
+                "type": "string",
+              },
+              "wsPort": Object {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer",
+              },
+            },
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "sendPeerLimit": Object {
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer",
+        },
+        "whitelistedPeers": Object {
+          "arg": Object {
+            "formatter": "stringToIpPortSet",
+            "name": "--peers,-x",
+          },
+          "env": Object {
+            "formatter": "stringToIpPortSet",
+            "variable": "LISK_PEERS",
+          },
+          "items": Object {
+            "properties": Object {
+              "ip": Object {
+                "format": "ip",
+                "type": "string",
+              },
+              "wsPort": Object {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer",
+              },
+            },
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "wsMaxPayload": Object {
+          "maximum": 3048576,
+          "type": "integer",
+        },
+        "wsPort": Object {
+          "arg": "--port,-p",
+          "env": "LISK_WS_PORT",
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer",
+        },
+      },
+      "required": Array [
+        "seedPeers",
+      ],
+      "type": "object",
+    },
   },
   "required": Array [
     "app",
+    "network",
     "components",
     "modules",
   ],

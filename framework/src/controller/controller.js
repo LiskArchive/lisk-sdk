@@ -59,7 +59,6 @@ class Controller {
 		const storageConfig = config.components.storage;
 		this.storage = createStorageComponent(storageConfig, logger);
 		this.storage.registerEntity('Migration', MigrationEntity);
-		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 	}
 
 	async load(modules, moduleOptions, migrations = {}, networkConfig) {
@@ -68,7 +67,9 @@ class Controller {
 		await this._validatePidFile();
 		this._initState();
 		await this._setupBus();
-		await this._loadMigrations({ ...migrations, controllerMigrations });
+		console.log(controllerMigrations);
+		await this._loadMigrations({ ...migrations, app: controllerMigrations });
+		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 		await this._initialiseNetwork(networkConfig);
 		await this._loadModules(modules, moduleOptions);
 
