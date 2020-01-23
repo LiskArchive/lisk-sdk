@@ -117,7 +117,9 @@ export interface StorageFilter {
 		| string
 		| number
 		| string[]
+		| ReadonlyArray<string>
 		| number[]
+		| ReadonlyArray<number>
 		| boolean
 		| null;
 }
@@ -190,6 +192,10 @@ export interface StorageEntity<T> {
 	) => Promise<void>;
 }
 
+export interface AccountStorageEntity extends StorageEntity<Account> {
+	readonly resetMemTables: () => Promise<void>;
+}
+
 export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 	readonly getFirstBlockIdOfLastRounds: (input: {
 		readonly height: number;
@@ -200,6 +206,11 @@ export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 		name: string,
 		fn: (tx: StorageTransaction) => Promise<T>,
 	) => Promise<T>;
+}
+
+export interface TempBlockStorageEntity extends StorageEntity<TempBlock> {
+	readonly isEmpty: () => Promise<boolean>;
+	readonly truncate: () => void;
 }
 
 export interface RoundDelegates {
@@ -217,12 +228,67 @@ export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
 export interface Storage {
 	readonly entities: {
 		readonly Block: BlockStorageEntity;
-		readonly Account: StorageEntity<Account>;
+		readonly Account: AccountStorageEntity;
 		readonly Transaction: StorageEntity<TransactionJSON>;
 		readonly ChainState: ChainStateEntity;
-		readonly TempBlock: StorageEntity<TempBlock>;
+		readonly TempBlock: TempBlockStorageEntity;
 		readonly RoundDelegates: RoundDelegatesEntity;
 	};
+}
+
+export interface StorageAccess {
+	readonly getBlockHeadersByIDs: (
+		arrayOfBlockIds: Readonly<string>,
+		tx?: StorageTransaction,
+	) => Promise<BlockJSON[]>;
+	readonly getBlockHeadersByHeightBetween: (
+		fromHeight: number,
+		toHeight: number,
+		tx?: StorageTransaction,
+	) => Promise<BlockJSON[]>;
+	readonly getBlockHeadersWithHeights: (
+		heightList: ReadonlyArray<number>,
+	) => Promise<BlockJSON[]>;
+	readonly getBlockHeadersWithInterval: (
+		fromHeight: number,
+		toHeight: number,
+		numberOfActiveDelegates: number,
+		tx?: StorageTransaction,
+	) => Promise<BlockJSON[]>;
+	readonly getLastBlockHeader: () => Promise<BlockJSON>;
+	readonly getLastCommonBlockHeader: (
+		arrayOfBlockIds: ReadonlyArray<string>,
+	) => Promise<BlockJSON>;
+	readonly getBlocksById: (
+		arrayOfBlockIds: ReadonlyArray<string>,
+		tx?: StorageTransaction,
+	) => Promise<BlockJSON[]>;
+	readonly getBlocksByHeight: (
+		fromHeight: number,
+		toHeight: number,
+		tx?: StorageTransaction,
+	) => Promise<BlockJSON[]>;
+	readonly getTempBlocks: (tx: StorageTransaction) => Promise<TempBlock[]>;
+	readonly isTempBlockEmpty: () => Promise<boolean>;
+	readonly clearTempBlocks: () => void;
+	readonly getLastBlock: () => Promise<BlockJSON>;
+	readonly getFirstBlockIdWithInterval: () => Promise<
+		Array<Partial<BlockJSON>>
+	>;
+	readonly getAccountsByPublicKey: (
+		arrayOfPublicKeys: ReadonlyArray<string>,
+		tx?: StorageTransaction,
+	) => Promise<Account[]>;
+	readonly getAccountsByAddress: (
+		arrayOfAddresses: ReadonlyArray<string>,
+		tx?: StorageTransaction,
+	) => Promise<Account[]>;
+	readonly getDelegateAccounts: (tx?: StorageTransaction) => Promise<Account[]>;
+	readonly getTransactionsByIDs: (
+		arrayOfTransactionIds: ReadonlyArray<string>,
+	) => Promise<TransactionJSON[]>;
+	readonly isTransactionPersisted: (transactionId: string) => Promise<boolean>;
+	readonly resetAccountMemTables: () => Promise<void>;
 }
 
 export interface ExceptionOptions {

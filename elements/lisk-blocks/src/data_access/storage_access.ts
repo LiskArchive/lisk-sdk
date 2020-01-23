@@ -16,9 +16,7 @@ import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 import {
 	Account,
-	BlockHeader,
 	BlockJSON,
-	RoundDelegates,
 	Storage,
 	StorageTransaction,
 	TempBlock,
@@ -32,9 +30,9 @@ export class StorageAccess {
 	}
 
 	public async getBlockHeadersByIDs(
-		arrayOfBlockIds: string[],
+		arrayOfBlockIds: Readonly<string>,
 		tx?: StorageTransaction,
-	): Promise<BlockHeader[]> {
+	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ id_in: arrayOfBlockIds },
 			{},
@@ -48,7 +46,7 @@ export class StorageAccess {
 		fromHeight: number,
 		toHeight: number,
 		tx?: StorageTransaction,
-	): Promise<BlockHeader[]> {
+	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ height_gte: fromHeight, height_lte: toHeight },
 			{},
@@ -60,7 +58,7 @@ export class StorageAccess {
 
 	public async getBlockHeadersWithHeights(
 		heightList: ReadonlyArray<number>,
-	): Promise<BlockHeader[]> {
+	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{
 				height_in: heightList,
@@ -74,22 +72,22 @@ export class StorageAccess {
 		return blocks;
 	}
 
-	public async getBlockHeadersWithInterval(query: {
-		readonly fromHeight: number;
-		readonly toHeight: number;
-		readonly numberOfActiveDelegates: number;
-		readonly tx?: StorageTransaction;
-	}): Promise<BlockHeader[]> {
+	public async getBlockHeadersWithInterval(
+		fromHeight: number,
+		toHeight: number,
+		numberOfActiveDelegates: number,
+		tx?: StorageTransaction,
+	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
-			{ height_gte: query.fromHeight, height_lte: query.toHeight },
-			{ limit: query.numberOfActiveDelegates, sort: 'height:asc' },
-			query.tx,
+			{ height_gte: fromHeight, height_lte: toHeight },
+			{ limit: numberOfActiveDelegates, sort: 'height:asc' },
+			tx,
 		);
 
 		return blocks;
 	}
 
-	public async getLastBlockHeader(): Promise<BlockHeader> {
+	public async getLastBlockHeader(): Promise<BlockJSON> {
 		const [lastBlockHeader] = await this._storage.entities.Block.get(
 			{},
 			{ limit: 1, sort: 'height:desc' },
@@ -99,7 +97,7 @@ export class StorageAccess {
 	}
 
 	public async getLastCommonBlockHeader(
-		arrayOfBlockIds: string[],
+		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON> {
 		const [block] = await this._storage.entities.Block.get(
 			{
@@ -112,7 +110,7 @@ export class StorageAccess {
 	}
 
 	public async getBlocksById(
-		arrayOfBlockIds: string[],
+		arrayOfBlockIds: ReadonlyArray<string>,
 		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
@@ -158,7 +156,7 @@ export class StorageAccess {
 		this._storage.entities.TempBlock.truncate();
 	}
 
-	public async getLatestBlock(): Promise<BlockJSON> {
+	public async getLastBlock(): Promise<BlockJSON> {
 		const [lastBlock] = await this._storage.entities.Block.get(
 			{},
 			{ sort: 'height:desc', limit: 1, extended: true },
@@ -191,7 +189,7 @@ export class StorageAccess {
 	}
 
 	public async getAccountsByPublicKey(
-		arrayOfPublicKeys: string[],
+		arrayOfPublicKeys: ReadonlyArray<string>,
 		tx?: StorageTransaction,
 	): Promise<Account[]> {
 		const accounts = await this._storage.entities.Account.get(
@@ -204,7 +202,7 @@ export class StorageAccess {
 	}
 
 	public async getAccountsByAddress(
-		arrayOfAddresses: string[],
+		arrayOfAddresses: ReadonlyArray<string>,
 		tx?: StorageTransaction,
 	): Promise<Account[]> {
 		const accounts = await this._storage.entities.Account.get(
@@ -228,36 +226,8 @@ export class StorageAccess {
 		return accounts;
 	}
 
-	public async getActiveDelegatesByLimit(
-		limit: number,
-		tx?: StorageTransaction,
-	): Promise<ReadonlyArray<RoundDelegates>> {
-		const delegateLists = await this._storage.entities.RoundDelegates.get(
-			{},
-			{
-				sort: 'round:desc',
-				limit,
-			},
-			tx,
-		);
-
-		return delegateLists;
-	}
-
-	public async getActiveDelegatesForRound(
-		round: number,
-		tx?: StorageTransaction,
-	): Promise<ReadonlyArray<string>> {
-		const delegatePublicKeys = await this._storage.entities.RoundDelegates.getActiveDelegatesForRound(
-			round,
-			tx,
-		);
-
-		return delegatePublicKeys;
-	}
-
 	public async getTransactionsByIDs(
-		arrayOfTransactionIds: string[],
+		arrayOfTransactionIds: ReadonlyArray<string>,
 	): Promise<TransactionJSON[]> {
 		const transactions = await this._storage.entities.Transaction.get({
 			id_in: arrayOfTransactionIds,
@@ -266,10 +236,9 @@ export class StorageAccess {
 		return transactions;
 	}
 
-	public async isTransactionPersisted(transactionId: number): Promise<boolean> {
+	public async isTransactionPersisted(transactionId: string): Promise<boolean> {
 		const isPersisted = await this._storage.entities.Transaction.isPersisted({
 			id: transactionId,
-			type: 9,
 		});
 
 		return isPersisted;

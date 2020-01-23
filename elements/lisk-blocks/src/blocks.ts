@@ -33,6 +33,7 @@ import {
 	saveBlock,
 	undoConfirmedStep,
 } from './chain';
+import { StorageAccess } from './data_access';
 import { StateStore } from './state_store';
 import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
 import {
@@ -56,8 +57,6 @@ import {
 	SignatureObject,
 	Slots,
 	Storage,
-	StorageFilter,
-	StorageOptions,
 	StorageTransaction,
 	TempBlock,
 } from './types';
@@ -107,6 +106,7 @@ export class Blocks extends EventEmitter {
 	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 	private readonly logger: Logger;
 	private readonly storage: Storage;
+	private readonly storageAccess: StorageAccess;
 	private readonly slots: Slots;
 	private readonly blockRewardArgs: BlockRewardOptions;
 	private readonly exceptions: ExceptionOptions;
@@ -157,6 +157,7 @@ export class Blocks extends EventEmitter {
 
 		this.logger = logger;
 		this.storage = storage;
+		this.storageAccess = new StorageAccess(storage);
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;
 		this.slots = slots;
@@ -211,10 +212,7 @@ export class Blocks extends EventEmitter {
 			throw new Error('Genesis block does not match');
 		}
 
-		const [storageLastBlock] = await this.storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1, extended: true },
-		);
+		const [storageLastBlock] = await this.storageAccess.getLastBlock();
 		if (!storageLastBlock) {
 			throw new Error('Failed to load last block');
 		}
@@ -222,6 +220,7 @@ export class Blocks extends EventEmitter {
 		this._lastBlock = this.deserialize(storageLastBlock);
 	}
 
+	// FIXME: Wrap data access serialization here
 	// tslint:disable-next-line prefer-function-over-method
 	public serialize(blockInstance: BlockInstance): BlockJSON {
 		const blockJSON = {
@@ -387,12 +386,8 @@ export class Blocks extends EventEmitter {
 		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
 	}
 
-	public async getTempBlocks(
-		filter: StorageFilter = {},
-		options: StorageOptions = {},
-		tx: StorageTransaction,
-	): Promise<TempBlock[]> {
-		return this.storage.entities.TempBlock.get(filter, options, tx);
+	public async getTempBlocks(tx: StorageTransaction): Promise<TempBlock[]> {
+		return this.storageAccess.getTempBlocks(tx);
 	}
 
 	public async exists(block: BlockInstance): Promise<boolean> {
@@ -416,20 +411,8 @@ export class Blocks extends EventEmitter {
 		// Calculate toHeight
 		const toHeight = offset + limit;
 
-		const filters = {
-			height_gte: offset,
-			height_lt: toHeight,
-		};
-
-		const options = {
-			// tslint:disable-next-line no-null-keyword
-			limit: null,
-			sort: ['height:asc', 'rowId:asc'],
-			extended: true,
-		};
-
 		// Loads extended blocks from storage
-		return this.storage.entities.Block.get(filters, options);
+		return this.storageAccess.getBlocksByHeight(offset, toHeight);
 	}
 
 	public async loadBlocksFromLastBlockId(
@@ -446,12 +429,7 @@ export class Blocks extends EventEmitter {
 	// TODO: Unit tests written in mocha, which should be migrated to jest.
 	public async getHighestCommonBlock(ids: string[]): Promise<BlockJSON> {
 		try {
-			const [block] = await this.storage.entities.Block.get(
-				{
-					id_in: ids,
-				},
-				{ sort: 'height:desc', limit: 1 },
-			);
+			const [block] = this.storageAccess.getBlockHeadersByIDs(ids);
 
 			return block;
 		} catch (e) {
