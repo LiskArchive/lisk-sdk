@@ -325,7 +325,7 @@ class Application {
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
 			networkId: this.config.app.networkId,
-			wsPort: this.config.modules.network.wsPort,
+			wsPort: this.config.app.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 

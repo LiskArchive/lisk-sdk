@@ -17,7 +17,6 @@
 const yargs = require('yargs');
 const chainModule = require('../modules/chain');
 const APIModule = require('../modules/http_api');
-const NetworkModule = require('../modules/network');
 const { config: loggerConfig } = require('../components/logger/defaults');
 const { config: storageConfig } = require('../components/storage/defaults');
 const { config: cacheConfig } = require('../components/cache/defaults');
@@ -30,7 +29,6 @@ configurator.registerSchema(storageConfig, 'components.storage');
 configurator.registerSchema(cacheConfig, 'components.cache');
 configurator.registerModule(chainModule);
 configurator.registerModule(APIModule);
-configurator.registerModule(NetworkModule);
 
 yargs.command(
 	'usage',
