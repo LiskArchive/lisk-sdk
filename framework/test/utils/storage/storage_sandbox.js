@@ -33,21 +33,17 @@ const {
 	TempBlock,
 } = require('../../../src/modules/chain/components/storage/entities');
 
-const {
-	NetworkInfo,
-} = require('../../../src/modules/network/components/storage/entities');
+const { NetworkInfo } = require('../../../src/controller/storage/entities');
 
 const {
 	MigrationEntity: Migration,
-} = require('../../../src/controller/migrations');
+} = require('../../../src/controller/storage/migrations');
 
 const ChainModule = require('../../../src/modules/chain');
-const NetworkModule = require('../../../src/modules/network');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
 modulesMigrations[ChainModule.alias] = ChainModule.migrations;
-modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 const dbNames = [];

@@ -14,7 +14,7 @@
 
 const {
 	MigrationEntity: Migration,
-} = require('../../../../src/controller/migrations');
+} = require('../../../../src/controller/storage/migrations');
 
 const Storage = require('../../../../src/components/storage/storage');
 const {
@@ -23,12 +23,10 @@ const {
 const validator = require('../../../../src/controller/validator');
 
 const ChainModule = require('../../../../src/modules/chain');
-const NetworkModule = require('../../../../src/modules/network');
 const HttpAPIModule = require('../../../../src/modules/http_api');
 
 const modulesMigrations = {
 	[ChainModule.alias]: ChainModule.migrations,
-	[NetworkModule.alias]: NetworkModule.migrations,
 	[HttpAPIModule.alias]: HttpAPIModule.migrations,
 };
 

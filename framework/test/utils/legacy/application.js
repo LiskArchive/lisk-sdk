@@ -38,12 +38,10 @@ const { getNetworkIdentifier } = require('../network_identifier');
 let currentAppScope;
 
 const ChainModule = require('../../../src/modules/chain');
-const NetworkModule = require('../../../src/modules/network');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
 modulesMigrations[ChainModule.alias] = ChainModule.migrations;
-modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 const initStepsForTest = {
