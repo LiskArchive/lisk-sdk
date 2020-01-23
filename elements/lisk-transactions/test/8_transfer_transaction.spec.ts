@@ -21,8 +21,8 @@ import { MockStateStore as store } from './helpers';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 
 describe('Transfer transaction class', () => {
-	const validTransferTransaction = fixture.testCases.output;
-	const validTransferAccount = fixture.testCases.input.account;
+	const validTransferTransaction = fixture.testCases[0].output;
+	const validTransferAccount = fixture.testCases[0].input.account;
 	let validTransferTestTransaction: TransferTransaction;
 	let sender: Account;
 	let recipient: Account;

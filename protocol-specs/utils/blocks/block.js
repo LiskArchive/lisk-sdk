@@ -24,7 +24,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
 const { getDelegateKeypairForCurrentSlot } = require('../dpos');
-const blockRewards = require('../blocks/block_rewards');
+const blockRewards = require('./block_rewards');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
