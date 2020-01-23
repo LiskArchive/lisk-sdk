@@ -1,13 +1,15 @@
-# Untitled undefined type in LiskProtocolSpec Schema
+# Account Schema
 
 ```txt
-https://lisk.io/schemas/protocol_specs#/definitions/Account/properties/vote
+https://lisk.io/schemas/protocol_specs#/definitions/ChainState/properties/accounts/items
 ```
+
+Schema to specify and validate account in JSON specs
 
 | Abstract            | Extensible | Status         | Identifiable            | Custom Properties | Additional Properties | Access Restrictions | Defined In                                                                                     |
 | :------------------ | ---------- | -------------- | ----------------------- | :---------------- | --------------------- | ------------------- | ---------------------------------------------------------------------------------------------- |
 | Can be instantiated | No         | Unknown status | Unknown identifiability | Forbidden         | Allowed               | none                | [lisk_protocol_specs.schema.json\*](../lisk_protocol_specs.schema.json 'open original schema') |
 
-## vote Type
+## items Type
 
-any of the folllowing: `string` or `integer` ([Details](lisk_protocol_specs-definitions-account-properties-vote.md))
+`object` ([Account](lisk_protocol_specs-definitions-chainstate-properties-accounts-account.md))
