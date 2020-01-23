@@ -69,14 +69,14 @@ export class APIClient {
 
 	public static createMainnetAPIClient(options?: InitOptions): APIClient {
 		return new APIClient(constants.MAINNET_NODES, {
-			nethash: constants.MAINNET_NETHASH,
+			genesisBlockPayloadHash: constants.MAINNET_NETHASH,
 			...options,
 		});
 	}
 
 	public static createTestnetAPIClient(options?: InitOptions): APIClient {
 		return new APIClient(constants.TESTNET_NODES, {
-			nethash: constants.TESTNET_NETHASH,
+			genesisBlockPayloadHash: constants.TESTNET_NETHASH,
 			...options,
 		});
 	}
@@ -173,7 +173,9 @@ export class APIClient {
 
 		this.headers = {
 			...commonHeaders,
-			...(options.nethash ? { nethash: options.nethash } : {}),
+			...(options.genesisBlockPayloadHash
+				? { nethash: options.genesisBlockPayloadHash }
+				: {}),
 			...(options.client ? getClientHeaders(options.client) : {}),
 		};
 

@@ -63,7 +63,7 @@ const modulesLoader = new (function() {
 			suscribe: sinonSandbox.stub(),
 		},
 		applicationState: {
-			nethash: __testContext.nethash,
+			networkId: __testContext.networkId,
 			version: __testContext.version,
 			wsPort: __testContext.wsPort,
 			httpPort: __testContext.httpPort,
