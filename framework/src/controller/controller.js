@@ -171,7 +171,7 @@ class Controller {
 
 	async _initialiseNetwork() {
 		this.network = new Network({
-			options: this.options.network,
+			options: this.options,
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,

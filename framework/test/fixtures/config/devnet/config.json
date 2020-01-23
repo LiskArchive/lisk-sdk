@@ -25,6 +25,14 @@
 			}
 		}
 	},
+	"network": {
+		"seedPeers": [
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5000
+			}
+		]
+	},
 	"components": {
 		"logger": {
 			"fileLogLevel": "debug",
@@ -458,14 +466,6 @@
 				],
 				"defaultPassword": "elephant tree paris dragon chair galaxy"
 			}
-		},
-		"network": {
-			"seedPeers": [
-				{
-					"ip": "127.0.0.1",
-					"wsPort": 5000
-				}
-			]
 		}
 	}
 }

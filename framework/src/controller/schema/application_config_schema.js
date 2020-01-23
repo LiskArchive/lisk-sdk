@@ -276,6 +276,11 @@ module.exports = {
 					type: 'boolean',
 				},
 			},
+			required: ['seedPeers'],
+			default: {
+				wsPort: 5000,
+				seedPeers: [],
+			},
 		},
 		components: {
 			type: 'object',
