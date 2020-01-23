@@ -12,4 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { DataAccess } from './storage_access';
+export { StorageAccess } from './storage_access';
