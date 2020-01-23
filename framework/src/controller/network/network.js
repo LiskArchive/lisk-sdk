@@ -321,8 +321,8 @@ module.exports = class Network {
 
 	send(sendPacket) {
 		return this.p2p.send({
-			event: sendPacket.params.event,
-			data: sendPacket.params.data,
+			event: sendPacket.event,
+			data: sendPacket.data,
 		});
 	}
 

@@ -74,7 +74,7 @@ class Broadcaster {
 				0,
 				this.config.releaseLimit,
 			);
-			await this.channel.invoke('network:broadcast', {
+			await this.channel.publishToNetwork('broadcast', {
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
 				data: {
 					transactionIds,
@@ -90,7 +90,7 @@ class Broadcaster {
 				0,
 				this.config.releaseLimit,
 			);
-			await this.channel.invoke('network:send', {
+			await this.channel.invokeFromNetwork('send', {
 				event: ENDPOINT_BROADCAST_SIGNATURES,
 				data: {
 					signatures,
