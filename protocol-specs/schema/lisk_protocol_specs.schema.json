@@ -1,5 +1,5 @@
 {
-	"title": "SchemaSpec",
+	"title": "LiskProtocolSpec",
 	"description": "Schema specification for JSON specs output",
 	"$id": "https://lisk.io/schemas/protocol_specs",
 	"$schema": "http://json-schema.org/draft-07/schema#",

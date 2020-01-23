@@ -8,7 +8,8 @@
 		"lint:fix": "eslint --fix .",
 		"format": "prettier --write '**/*'",
 		"generate-all-specs": "node scripts/generate.js",
-		"validate-all-specs": "node scripts/validate.js"
+		"validate-all-specs": "node scripts/validate.js",
+		"generate-schema-docs": "npx jsonschema2md --input schema/ --out schema/docs -h false -n -x -"
 	},
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -26,6 +27,7 @@
 		"sodium-native": "2.4.6"
 	},
 	"devDependencies": {
+		"@adobe/jsonschema2md": "4.0.10",
 		"eslint": "6.2.0",
 		"eslint-config-airbnb-base": "14.0.0",
 		"eslint-config-lisk-base": "1.2.2",

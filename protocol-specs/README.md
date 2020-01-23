@@ -25,4 +25,4 @@ $ node index.js
 
 ### Spec JSON Schema
 
-You can find the schema specification for produced specs [here](./src/spec_schema/index.js). All JSON files produced from generators must validated against these specs.
+You can find the schema specification for the spec of specs [here](schema/docs). All JSON files produced from generators must validated against these specs.
