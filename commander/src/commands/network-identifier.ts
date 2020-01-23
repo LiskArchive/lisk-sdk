@@ -21,16 +21,16 @@ import { flags as commonFlags } from '../utils/flags';
 
 export default class NetworkIdentifierCommand extends BaseCommand {
 	static description = `
-  Creates Network identifier for the given nethash and community identifier.
+  Creates Network identifier for the given genesis payload hash and community identifier.
 	`;
 
 	static examples = [
-		'network-identifier --nethash=da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+		'network-identifier da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	];
 
 	static args = [
 		{
-			name: 'nethash',
+			name: 'genesisPayloadHash',
 			description: 'Payload hash of genesis block from the network.',
 			required: true,
 		},
@@ -48,11 +48,10 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const {
 			flags: { 'community-identifier': communityIdentifier },
-			args: { nethash },
+			args: { genesisPayloadHash },
 		} = this.parse(NetworkIdentifierCommand);
-
 		const networkIdentifier = getNetworkIdentifier(
-			nethash as string,
+			genesisPayloadHash as string,
 			communityIdentifier as string,
 		);
 		this.print({ networkIdentifier });
