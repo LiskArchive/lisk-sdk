@@ -25,15 +25,15 @@ describe('Second signature registration transaction class', () => {
 	const {
 		networkIdentifier,
 		transaction: validRegisterSecondSignatureTransaction,
-	} = protocolSpecSecondSignatureFixture.testCases.input;
+	} = protocolSpecSecondSignatureFixture.testCases[0].input;
 	const {
 		transaction: validTransaction,
-	} = protocolSpecTransferFixture.testCases.input;
+	} = protocolSpecTransferFixture.testCases[0].input;
 
 	// let validRegisterSecondSignatureTransaction =
-	// 	protocolSpecSecondSignatureFixture.testCases.input.transaction;
+	// 	protocolSpecSecondSignatureFixture.testCases[0].input.transaction;
 	// let validTransaction =
-	// 	protocolSpecTransferFixture.testCases.input.transaction;
+	// 	protocolSpecTransferFixture.testCases[0].input.transaction;
 
 	let validTestTransaction: SecondSignatureTransaction;
 	let storeAccountCacheStub: jest.SpyInstance;
@@ -55,7 +55,7 @@ describe('Second signature registration transaction class', () => {
 			networkIdentifier,
 		});
 		validTestTransaction.sign(
-			protocolSpecSecondSignatureFixture.testCases.input.account.passphrase,
+			protocolSpecSecondSignatureFixture.testCases[0].input.account.passphrase,
 		);
 
 		storeAccountCacheStub = jest.spyOn(store.account, 'cache');

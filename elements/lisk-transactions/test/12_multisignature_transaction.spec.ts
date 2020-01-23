@@ -24,14 +24,14 @@ import { validTransaction } from '../fixtures';
 
 describe('Multisignature transaction class', () => {
 	const validMultisignatureRegistrationTransaction =
-		multisignatureFixture.testCases.output;
+		multisignatureFixture.testCases[0].output;
 	const {
 		signatures,
 		...validMultisignatureRegistrationTransactionNoSigs
 	} = validMultisignatureRegistrationTransaction;
 	const validMultisignatureAccount = {
-		...multisignatureFixture.testCases.input.account,
-		membersPublicKeys: multisignatureFixture.testCases.input.coSigners.map(
+		...multisignatureFixture.testCases[0].input.account,
+		membersPublicKeys: multisignatureFixture.testCases[0].input.coSigners.map(
 			account => account.publicKey,
 		),
 		balance: '94378900000',
