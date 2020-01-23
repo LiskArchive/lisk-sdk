@@ -16,8 +16,8 @@
 
 const { join: pathJoin } = require('path');
 const { validator } = require('@liskhq/lisk-validator');
-const schema = require('./spec_schema');
-const { getFilesFromDir } = require('./utils');
+const schema = require('../schema/lisk_protocol_specs.schema');
+const { getFilesFromDir } = require('../utils');
 
 const generatorsOutputPath = pathJoin(__dirname, '../generator_outputs');
 const generatorsOutputFiles = getFilesFromDir(generatorsOutputPath, ['.json']);

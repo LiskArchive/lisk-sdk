@@ -22,7 +22,7 @@ const { getKeys } = require('@liskhq/lisk-cryptography');
 const { cloneDeep } = require('lodash');
 const BigNum = require('@liskhq/bignum');
 const BaseGenerator = require('../base_generator');
-const defaultConfig = require('../../../config/devnet');
+const defaultConfig = require('../../config/devnet');
 const { createBlock } = require('../../utils/blocks');
 
 const { genesisBlock } = defaultConfig;

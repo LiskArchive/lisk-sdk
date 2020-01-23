@@ -1,0 +1,252 @@
+{
+	"title": "SchemaSpec",
+	"description": "Schema specification for JSON specs output",
+	"$id": "https://lisk.io/schemas/protocol_specs",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["title", "summary", "runner", "handler", "testCases"],
+	"properties": {
+		"title": {
+			"type": "string",
+			"description": "A string type value giving a short title of the spec",
+			"minLength": 10,
+			"maxLength": 100
+		},
+		"summary": {
+			"type": "string",
+			"description": "A string type value explaining in detail purpose and value of the spec",
+			"minLength": 25,
+			"maxLength": 300
+		},
+		"runner": {
+			"type": "string",
+			"description": "A string identifier to point to a protocol spec name e.g. dpos, bft",
+			"minLength": 3,
+			"maxLength": 100,
+			"pattern": "[a-z0-9_]*"
+		},
+		"handler": {
+			"type": "string",
+			"description": "A string value to differentiate between same identifier for protocol spec",
+			"minLength": 3,
+			"maxLength": 100,
+			"pattern": "[a-z0-9_]*"
+		},
+		"config": {
+			"$ref": "#/definitions/Config"
+		},
+		"testCases": {
+			"type": "array",
+			"description": "List down all test cases for current handler and runner",
+			"items": {
+				"$ref": "#/definitions/TestCase"
+			}
+		}
+	},
+	"definitions": {
+		"Account": {
+			"title": "Account",
+			"description": "Schema to specify and validate account in JSON specs",
+			"type": "object",
+			"properties": {
+				"address": {
+					"type": "string"
+				},
+				"publicKey": {
+					"type": "string"
+				},
+				"secondPublicKey": {
+					"type": ["string", "null"]
+				},
+				"username": {
+					"type": ["string", "null"]
+				},
+				"isDelegate": {
+					"type": "boolean"
+				},
+				"secondSignature": {
+					"type": "boolean"
+				},
+				"nameExist": {
+					"type": "boolean"
+				},
+				"balance": {
+					"type": ["string", "integer"]
+				},
+				"multiMin": {
+					"type": "integer"
+				},
+				"multiLifetime": {
+					"type": "integer"
+				},
+				"missedBlocks": {
+					"type": "integer"
+				},
+				"producedBlocks": {
+					"type": "integer"
+				},
+				"rank": {
+					"type": ["integer", "null"]
+				},
+				"fees": {
+					"type": "integer"
+				},
+				"rewards": {
+					"type": "integer"
+				},
+				"vote": {
+					"type": ["string", "integer"]
+				},
+				"productivity": {
+					"type": "integer"
+				}
+			},
+			"required": ["address", "publicKey", "isDelegate", "balance"]
+		},
+		"Block": {
+			"title": "Block",
+			"description": "Schema to specify and validate blocks in JSON specs",
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string",
+					"format": "id",
+					"minLength": 1,
+					"maxLength": 20
+				},
+				"height": {
+					"type": "integer"
+				},
+				"blockSignature": {
+					"type": "string",
+					"format": "signature"
+				},
+				"generatorPublicKey": {
+					"type": "string",
+					"format": "publicKey"
+				},
+				"numberOfTransactions": {
+					"type": "integer"
+				},
+				"payloadHash": {
+					"type": "string",
+					"format": "hex"
+				},
+				"payloadLength": {
+					"type": "integer"
+				},
+				"previousBlockId": {
+					"type": "string",
+					"format": "id",
+					"minLength": 1,
+					"maxLength": 20
+				},
+				"timestamp": {
+					"type": "integer"
+				},
+				"totalAmount": {
+					"typeof": "string",
+					"format": "amount"
+				},
+				"totalFee": {
+					"typeof": "string",
+					"format": "amount"
+				},
+				"reward": {
+					"typeof": "string",
+					"format": "amount"
+				},
+				"transactions": {
+					"type": "array",
+					"uniqueItems": true
+				},
+				"version": {
+					"type": "integer",
+					"minimum": 0
+				}
+			},
+			"required": [
+				"blockSignature",
+				"generatorPublicKey",
+				"numberOfTransactions",
+				"payloadHash",
+				"payloadLength",
+				"timestamp",
+				"totalAmount",
+				"totalFee",
+				"reward",
+				"transactions",
+				"version"
+			]
+		},
+		"ChainState": {
+			"title": "ChainState",
+			"description": "A JSON object represents basic chain state for individual spec to be executed.",
+			"type": "object",
+			"properties": {
+				"chain": {
+					"type": "array",
+					"uniqueItems": true,
+					"items": {
+						"$ref": "#/definitions/Block"
+					}
+				},
+				"accounts": {
+					"type": "array",
+					"uniqueItems": true,
+					"items": {
+						"$ref": "#/definitions/Account"
+					}
+				}
+			}
+		},
+		"Config": {
+			"title": "Config",
+			"description": "A JSON object containing all necessary configurations for the environment in which these specs were generated and individual test case can be verified.",
+			"type": "object",
+			"additionalProperties": true,
+			"required": [],
+			"properties": {
+				"initialState": {
+					"$ref": "#/definitions/ChainState"
+				}
+			}
+		},
+		"TestCase": {
+			"title": "Schema for a single test case",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["input", "output", "description"],
+			"properties": {
+				"description": {
+					"type": "string",
+					"minLength": 10,
+					"maxLength": 300
+				},
+				"config": {
+					"description": "Configuration for a single test case",
+					"$ref": "#/definitions/Config"
+				},
+				"input": {
+					"type": "object",
+					"description": "Input must be specified as a single object. If its complex scenario, it should be divided to multiple to have simple input/output expectations.",
+					"minProperties": 1
+				},
+				"output": {
+					"type": "object",
+					"description": "Output must be specified as a single object. If its complex scenario, it should be divided to multiple to have simple input/output expectations.",
+					"required": [],
+					"additionalProperties": true,
+					"minProperties": 1,
+					"properties": {
+						"mutatedState": {
+							"description": "Modified chain state",
+							"$ref": "#/definitions/ChainState"
+						}
+					}
+				}
+			}
+		}
+	}
+}

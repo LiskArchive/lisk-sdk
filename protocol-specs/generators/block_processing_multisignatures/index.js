@@ -15,7 +15,7 @@
 'use strict';
 
 const BaseGenerator = require('../base_generator');
-const defaultConfig = require('../../../config/devnet');
+const defaultConfig = require('../../config/devnet');
 const ChainStateBuilder = require('../../utils/chain_state_builder');
 
 const { genesisBlock } = defaultConfig;

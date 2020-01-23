@@ -15,7 +15,7 @@
 'use strict';
 
 const BaseGenerator = require('../base_generator');
-const defaultConfig = require('../../../config/devnet');
+const defaultConfig = require('../../config/devnet');
 const ChainStateBuilder = require('../../utils/chain_state_builder');
 
 const { genesisBlock } = defaultConfig;
@@ -81,7 +81,7 @@ const accounts = {
 			'iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1',
 		password: 'elephant tree paris dragon chair galaxy',
 	},
-	account: {
+	existingDelegate: {
 		address: '10881167371402274308L',
 		publicKey:
 			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
@@ -90,7 +90,7 @@ const accounts = {
 		balance: '0',
 		delegateName: 'genesis_100',
 	},
-	secondAccount: {
+	futureDelegate: {
 		passphrase:
 			'blame address tube insect cost knock major level regret bring april stick',
 		privateKey:
@@ -100,18 +100,9 @@ const accounts = {
 		address: '2222471382442610527L',
 		balance: '0',
 	},
-	thirdAccount: {
-		passphrase:
-			'female favorite client offer winner loud ostrich rich slogan jacket owner february',
-		privateKey:
-			'9b10f230fb2109cc77ee1a1ad659bf51f0e7b3c16697da416004dd409b427578ae88a228d37de7438f3d74df1713f3da00dd1c51afdc97bd47fa3aceb111a47a',
-		publicKey:
-			'ae88a228d37de7438f3d74df1713f3da00dd1c51afdc97bd47fa3aceb111a47a',
-		address: '11325618463998518034L',
-	},
 };
 
-const generateTestCasesValidBlockTransferTx = () => {
+const generateTestCasesValidBlockDelegateRegistration = () => {
 	const chainStateBuilder = new ChainStateBuilder(
 		genesisBlock,
 		initialAccountsState,
@@ -125,9 +116,14 @@ const generateTestCasesValidBlockTransferTx = () => {
 		.forge();
 
 	chainStateBuilder
-		.transfer('40')
+		.transfer('30')
 		.from('10881167371402274308L')
 		.to('2222471382442610527L')
+		.forge();
+
+	chainStateBuilder
+		.registerDelegate('RadioHead')
+		.for('2222471382442610527L')
 		.forge();
 
 	const chainAndAccountStates = chainStateBuilder.getScenario();
@@ -135,22 +131,20 @@ const generateTestCasesValidBlockTransferTx = () => {
 	return {
 		config: {
 			initialState: {
-				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-				chain: chainAndAccountStates.chain.slice(0, 1),
+				chain: chainAndAccountStates.chain.slice(0, 2),
 				accounts: chainAndAccountStates.initialAccountsState,
 			},
 		},
-		description: 'A valid block with a transfer transaction is processed',
-		input: chainAndAccountStates.chain.slice(1)[0],
+		description: 'A valid block with a delegate registration',
+		input: chainAndAccountStates.chain.slice(2)[0],
 		output: {
 			chain: chainAndAccountStates.chain,
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
 		},
 	};
 };
 
-const generateTestCasesValidTransfersInvalidInSame = () => {
+const generateTestCasesInvalidBlockDelegateRegistrationSecondTime = () => {
 	const chainStateBuilder = new ChainStateBuilder(
 		genesisBlock,
 		initialAccountsState,
@@ -164,12 +158,19 @@ const generateTestCasesValidTransfersInvalidInSame = () => {
 		.forge();
 
 	chainStateBuilder
-		.transfer('40')
+		.transfer('30')
 		.from('10881167371402274308L')
 		.to('2222471382442610527L')
-		.transfer('20')
-		.from('2222471382442610527L')
-		.to('11325618463998518034L')
+		.forge();
+
+	chainStateBuilder
+		.registerDelegate('RadioHead')
+		.for('2222471382442610527L')
+		.forge();
+
+	chainStateBuilder
+		.registerDelegate('RadioHead')
+		.for('2222471382442610527L')
 		.forgeInvalidInputBlock();
 
 	const chainAndAccountStates = chainStateBuilder.getScenario();
@@ -177,12 +178,11 @@ const generateTestCasesValidTransfersInvalidInSame = () => {
 	return {
 		config: {
 			initialState: {
-				chain: chainAndAccountStates.chain.slice(0, 1),
+				chain: chainAndAccountStates.chain.slice(0, 3),
 				accounts: chainAndAccountStates.initialAccountsState,
 			},
 		},
-		description:
-			'An invalid block with transfers valid on their own but invalid in the context of same block',
+		description: 'An invalid block with a second delegate registration',
 		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
@@ -191,7 +191,7 @@ const generateTestCasesValidTransfersInvalidInSame = () => {
 	};
 };
 
-const generateTestCasesTransferTooMuchSpentInBlockContext = () => {
+const generateTestCasesInvalidBlockDelegateRegistrationForbiddenName = () => {
 	const chainStateBuilder = new ChainStateBuilder(
 		genesisBlock,
 		initialAccountsState,
@@ -205,19 +205,14 @@ const generateTestCasesTransferTooMuchSpentInBlockContext = () => {
 		.forge();
 
 	chainStateBuilder
-		.transfer('1')
+		.transfer('30')
 		.from('10881167371402274308L')
 		.to('2222471382442610527L')
 		.forge();
 
-	// After the first transfer of 0.5 lsk (0.5 + 0.1 fee) the second transfer leaves the account with insufficient funds (0.4)
 	chainStateBuilder
-		.transfer('0.5')
-		.from('2222471382442610527L')
-		.to('10881167371402274308L')
-		.transfer('0.5')
-		.from('2222471382442610527L')
-		.to('11325618463998518034L')
+		.registerDelegate('2222471382442610527L')
+		.for('2222471382442610527L')
 		.forgeInvalidInputBlock();
 
 	const chainAndAccountStates = chainStateBuilder.getScenario();
@@ -225,12 +220,12 @@ const generateTestCasesTransferTooMuchSpentInBlockContext = () => {
 	return {
 		config: {
 			initialState: {
-				chain: chainAndAccountStates.chain.slice(0, 1),
+				chain: chainAndAccountStates.chain.slice(0, 2),
 				accounts: chainAndAccountStates.initialAccountsState,
 			},
 		},
 		description:
-			'An invalid block with transfers valid on their own but second transfer would not have enough funds after fee is applied',
+			'An invalid block with a delegate registration using invalid name',
 		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
@@ -239,37 +234,35 @@ const generateTestCasesTransferTooMuchSpentInBlockContext = () => {
 	};
 };
 
-const validBlockWithTransferTxSuite = () => ({
+const validBlockWithDelegateRegistrationSuite = () => ({
 	title: 'Valid block processing',
-	summary: 'A valid block with a transfer transaction is processed',
+	summary: 'A valid block with a delegate registration',
 	config: { network: 'mainnet' },
-	runner: 'block_processing_transfers',
-	handler: 'valid_block_processing_one_transfer_tx',
-	testCases: [generateTestCasesValidBlockTransferTx()],
+	runner: 'block_processing_delegate',
+	handler: 'valid_block_processing_delegate_registration_tx',
+	testCases: [generateTestCasesValidBlockDelegateRegistration()],
 });
 
-const invalidBlockFundingAndTransferSameBlock = () => ({
+const invalidBlockWithSecondDelegateRegistrationSuite = () => ({
 	title: 'Invalid block processing',
-	summary:
-		'An invalid block with transfers valid on their own but invalid in the context of same block',
+	summary: 'An invalid block with a second delegate registration',
 	config: { network: 'mainnet' },
-	runner: 'block_processing_transfers',
-	handler: 'invalid_block_processing_funding_and_transfer_same_block',
-	testCases: [generateTestCasesValidTransfersInvalidInSame()],
+	runner: 'block_processing_delegate',
+	handler: 'invalid_block_processing_second_delegate_registration_tx',
+	testCases: [generateTestCasesInvalidBlockDelegateRegistrationSecondTime()],
 });
 
-const invalidBlockTooMuchSpent = () => ({
+const invalidBlockWithForbiddenNameDelegateRegistrationSuite = () => ({
 	title: 'Invalid block processing',
-	summary:
-		'An invalid block with transfers valid on their own but second transfer would not have enough funds after fee is applied',
+	summary: 'An invalid block with a delegate registration using invalid name',
 	config: { network: 'mainnet' },
-	runner: 'block_processing_transfers',
-	handler: 'invalid_block_processing_not_enough_balance_for_second_transaction',
-	testCases: [generateTestCasesTransferTooMuchSpentInBlockContext()],
+	runner: 'block_processing_delegate',
+	handler: 'invalid_block_processing_forbidden_name_delegate_registration_tx',
+	testCases: [generateTestCasesInvalidBlockDelegateRegistrationForbiddenName()],
 });
 
-module.exports = BaseGenerator.runGenerator('block_processing_transfers', [
-	validBlockWithTransferTxSuite,
-	invalidBlockFundingAndTransferSameBlock,
-	invalidBlockTooMuchSpent,
+module.exports = BaseGenerator.runGenerator('block_processing_delegate', [
+	validBlockWithDelegateRegistrationSuite,
+	invalidBlockWithSecondDelegateRegistrationSuite,
+	invalidBlockWithForbiddenNameDelegateRegistrationSuite,
 ]);

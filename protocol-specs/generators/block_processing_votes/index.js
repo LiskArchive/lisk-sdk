@@ -22,8 +22,8 @@ const {
 } = require('@liskhq/lisk-cryptography');
 
 const BaseGenerator = require('../base_generator');
-const defaultConfig = require('../../../config/devnet');
-const genesisDelegateAccounts = require('../../../config/devnet_genesis_delegates');
+const defaultConfig = require('../../config/devnet');
+const genesisDelegateAccounts = require('../../config/devnet_genesis_delegates');
 
 const ChainStateBuilder = require('../../utils/chain_state_builder');
 
