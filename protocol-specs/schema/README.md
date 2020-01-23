@@ -4,14 +4,14 @@ Following document will specify the format and validation specification in form 
 
 # LiskProtocolSpec Properties
 
-| Property                | Type     | Required | Nullable       | Defined by       |
-| :---------------------- | -------- | -------- | -------------- | :--------------- |
-| [title](#title)         | `string` | Required | cannot be null | LiskProtocolSpec |
-| [summary](#summary)     | `string` | Required | cannot be null | LiskProtocolSpec |
-| [runner](#runner)       | `string` | Required | cannot be null | LiskProtocolSpec |
-| [handler](#handler)     | `string` | Required | cannot be null | LiskProtocolSpec |
-| [config](#config)       | `object` | Optional | cannot be null | LiskProtocolSpec |
-| [testCases](#testCases) | `array`  | Required | cannot be null | LiskProtocolSpec |
+| Property                | Type     | Required | Nullable       |
+| :---------------------- | -------- | -------- | -------------- |
+| [title](#title)         | `string` | Required | cannot be null |
+| [summary](#summary)     | `string` | Required | cannot be null |
+| [runner](#runner)       | `string` | Required | cannot be null |
+| [handler](#handler)     | `string` | Required | cannot be null |
+| [config](#config)       | `object` | Optional | cannot be null |
+| [testCases](#testCases) | `array`  | Required | cannot be null |
 
 ## title
 
@@ -113,10 +113,10 @@ A JSON object containing all necessary configurations for the environment in whi
 
 ### Config Properties
 
-| Property                      | Type     | Required | Nullable       | Defined by       |
-| :---------------------------- | -------- | -------- | -------------- | :--------------- |
-| [initialState](#initialState) | `object` | Optional | cannot be null | LiskProtocolSpec |
-| Additional Properties         | Any      | Optional | can be null    |                  |
+| Property                      | Type     | Required | Nullable       |
+| :---------------------------- | -------- | -------- | -------------- |
+| [initialState](#initialState) | `object` | Optional | cannot be null |
+| Additional Properties         | Any      | Optional | can be null    |
 
 #### initialState
 
@@ -134,9 +134,9 @@ List down all test cases for current handler and runner
 
 #### test case Properties
 
-| Property                    | Type     | Required | Nullable       | Defined by       |
-| :-------------------------- | -------- | -------- | -------------- | :--------------- |
-| [description](#description) | `string` | Required | cannot be null | LiskProtocolSpec |
-| [config](#config)           | `object` | Optional | cannot be null | LiskProtocolSpec |
-| [input](#input)             | `object` | Required | cannot be null | LiskProtocolSpec |
-| [output](#output)           | `object` | Required | cannot be null | LiskProtocolSpec |
+| Property                    | Type     | Required | Nullable       |
+| :-------------------------- | -------- | -------- | -------------- |
+| [description](#description) | `string` | Required | cannot be null |
+| [config](#config)           | `object` | Optional | cannot be null |
+| [input](#input)             | `object` | Required | cannot be null |
+| [output](#output)           | `object` | Required | cannot be null |
