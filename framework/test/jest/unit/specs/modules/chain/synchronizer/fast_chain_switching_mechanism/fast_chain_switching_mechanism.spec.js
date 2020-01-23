@@ -309,7 +309,8 @@ describe('fast_chain_switching_mechanism', () => {
 
 				// Assert
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
-				expect(channelMock.invoke).toHaveBeenCalledTimes(10);
+				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(9);
+				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				checkApplyPenaltyAndRestartIsCalled(
 					aBlock,
 					aPeerId,

@@ -679,7 +679,8 @@ describe('block_synchronization_mechanism', () => {
 
 					await blockSynchronizationMechanism.run(receivedBlock);
 
-					expect(channelMock.invoke).toHaveBeenCalledTimes(3 + 2);
+					expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(3);
+					expect(channelMock.invoke).toHaveBeenCalledTimes(2);
 
 					expect(
 						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
@@ -889,7 +890,8 @@ describe('block_synchronization_mechanism', () => {
 					},
 				);
 
-				expect(channelMock.invoke).toHaveBeenCalledTimes(10 + 4);
+				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(12);
+				expect(channelMock.invoke).toHaveBeenCalledTimes(2);
 
 				expect(processorModule.process).not.toHaveBeenCalled();
 
