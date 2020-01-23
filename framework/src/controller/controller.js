@@ -62,14 +62,14 @@ class Controller {
 		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 	}
 
-	async load(modules, moduleOptions, migrations = {}) {
+	async load(modules, moduleOptions, migrations = {}, networkConfig) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		this._initState();
 		await this._setupBus();
 		await this._loadMigrations({ ...migrations, controllerMigrations });
-		await this._initialiseNetwork(moduleOptions, this.storage);
+		await this._initialiseNetwork(networkConfig);
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
@@ -140,6 +140,9 @@ class Controller {
 				updateApplicationState: {
 					handler: action => this.applicationState.update(action.params),
 				},
+				sendToNetwork: {
+					handler: action => this.network.send(action),
+				},
 			},
 			{ skipInternalEvents: true },
 		);
@@ -169,13 +172,14 @@ class Controller {
 		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 
-	async _initialiseNetwork() {
+	async _initialiseNetwork(networkConfig) {
 		this.network = new Network({
-			options: this.options,
+			networkConfig,
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
 		});
+		this.network.initialiseNetwork();
 	}
 
 	async _loadModules(modules, moduleOptions) {

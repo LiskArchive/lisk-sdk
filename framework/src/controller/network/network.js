@@ -43,8 +43,8 @@ const NETWORK_INFO_KEY_TRIED_PEERS = 'tried_peers_list';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 module.exports = class Network {
-	constructor({ options, channel, logger, storage }) {
-		this.options = options;
+	constructor({ networkConfig, channel, logger, storage }) {
+		this.networkConfig = networkConfig;
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
@@ -79,26 +79,25 @@ module.exports = class Network {
 
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
-			wsPort: this.options.wsPort,
-			advertiseAddress: this.options.advertiseAddress,
+			wsPort: this.networkConfig.wsPort,
+			advertiseAddress: this.networkConfig.advertiseAddress,
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('app:getApplicationState'),
 		);
+		const seedPeers = await lookupPeersIPs(this.networkConfig.seedPeers, true);
+		const blacklistedIPs = this.networkConfig.blacklistedIPs || [];
 
-		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
-		const blacklistedIPs = this.options.blacklistedIPs || [];
-
-		const fixedPeers = this.options.fixedPeers
-			? this.options.fixedPeers.map(peer => ({
+		const fixedPeers = this.networkConfig.fixedPeers
+			? this.networkConfig.fixedPeers.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
 			: [];
 
-		const whitelistedPeers = this.options.whitelistedPeers
-			? this.options.whitelistedPeers.map(peer => ({
+		const whitelistedPeers = this.networkConfig.whitelistedPeers
+			? this.networkConfig.whitelistedPeers.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
@@ -106,7 +105,7 @@ module.exports = class Network {
 
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
-			hostIp: this.options.hostIp,
+			hostIp: this.networkConfig.hostIp,
 			blacklistedIPs,
 			fixedPeers,
 			whitelistedPeers,
@@ -115,15 +114,15 @@ module.exports = class Network {
 				wsPort: peer.wsPort,
 			})),
 			previousPeers,
-			maxOutboundConnections: this.options.maxOutboundConnections,
-			maxInboundConnections: this.options.maxInboundConnections,
-			peerBanTime: this.options.peerBanTime,
-			populatorInterval: this.options.populatorInterval,
-			sendPeerLimit: this.options.sendPeerLimit,
-			maxPeerDiscoveryResponseLength: this.options
+			maxOutboundConnections: this.networkConfig.maxOutboundConnections,
+			maxInboundConnections: this.networkConfig.maxInboundConnections,
+			peerBanTime: this.networkConfig.peerBanTime,
+			populatorInterval: this.networkConfig.populatorInterval,
+			sendPeerLimit: this.networkConfig.sendPeerLimit,
+			maxPeerDiscoveryResponseLength: this.networkConfig
 				.maxPeerDiscoveryResponseLength,
-			maxPeerInfoSize: this.options.maxPeerInfoSize,
-			wsMaxPayload: this.options.wsMaxPayload,
+			maxPeerInfoSize: this.networkConfig.maxPeerInfoSize,
+			wsMaxPayload: this.networkConfig.wsMaxPayload,
 			secret: this.secret,
 		};
 
@@ -367,7 +366,7 @@ module.exports = class Network {
 		});
 	}
 
-	async stopNetwork() {
+	stopNetwork() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
 		this.logger.info('Cleaning network...');
 
