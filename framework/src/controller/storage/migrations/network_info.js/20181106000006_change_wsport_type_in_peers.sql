@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-const MigrationEntity = require('./migration_entity');
+/*
+  DESCRIPTION: A port number is a 16-bit unsigned integer, thus ranging from 0 to 65535. We need peers.wsPort to be of a data type that accepts this range
 
-module.exports = {
-	MigrationEntity,
-};
+  PARAMETERS: None
+*/
+
+ALTER TABLE peers ALTER COLUMN "wsPort" TYPE INT;
