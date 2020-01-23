@@ -78,9 +78,12 @@ class Loader {
 		this.logger.info('Loading transactions from the network');
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
-		const { data: result } = await this.channel.invokeFromNetwork('request', {
-			procedure: 'getTransactions',
-		});
+		const { data: result } = await this.channel.invokeFromNetwork(
+			'requestFromNetwork',
+			{
+				procedure: 'getTransactions',
+			},
+		);
 
 		const validatorErrors = validator.validate(
 			definitions.WSTransactionsResponse,
@@ -141,12 +144,15 @@ class Loader {
 		const { lastBlock } = this.blocksModule;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
-		const { data } = await this.channel.invokeFromNetwork('request', {
-			procedure: 'blocks',
-			data: {
-				lastBlockId: lastBlock.id,
+		const { data } = await this.channel.invokeFromNetwork(
+			'requestFromNetwork',
+			{
+				procedure: 'blocks',
+				data: {
+					lastBlockId: lastBlock.id,
+				},
 			},
-		});
+		);
 
 		if (!data) {
 			throw new Error('Received an invalid blocks response from the network');
