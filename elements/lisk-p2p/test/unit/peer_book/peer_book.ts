@@ -83,7 +83,7 @@ describe('peerBook', () => {
 
 		it('should get new peers', () => {
 			peerBook.addPeer(samplePeers[0]);
-			expect(peerBook.newPeers).toEqual([samplePeers[0]]);
+			expect(peerBook.newPeers).toHaveLength(1);
 		});
 	});
 
@@ -97,7 +97,7 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 			peerBook.upgradePeer(samplePeers[0]);
 			peerBook.addPeer(samplePeers[1]);
-			expect(peerBook.triedPeers).toEqual([samplePeers[0]]);
+			expect(peerBook.triedPeers).toHaveLength(1);
 		});
 	});
 
@@ -111,7 +111,10 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 			peerBook.upgradePeer(samplePeers[0]);
 			peerBook.addPeer(samplePeers[1]);
-			expect(peerBook.allPeers).toEqual([samplePeers[1], samplePeers[0]]);
+			expect(peerBook.allPeers.map(peer => peer.peerId)).toEqual([
+				samplePeers[1].peerId,
+				samplePeers[0].peerId,
+			]);
 		});
 	});
 
@@ -125,14 +128,18 @@ describe('peerBook', () => {
 			it('should return the peer info', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0].peerId,
+				);
 			});
 		});
 
 		describe('when peer exists in the new peers list', () => {
 			it('should return the peer info', () => {
 				peerBook.addPeer(samplePeers[0]);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0].peerId,
+				);
 			});
 		});
 
@@ -188,7 +195,9 @@ describe('peerBook', () => {
 		describe('when peer does not exist in the peer book', () => {
 			it('should add peer to the new peers list', () => {
 				expect(peerBook.newPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0].peerId,
+				);
 			});
 		});
 	});
@@ -270,7 +279,9 @@ describe('peerBook', () => {
 				peerBook.upgradePeer(samplePeers[0]);
 				expect(peerBook.newPeers).toHaveLength(0);
 				expect(peerBook.triedPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 			});
 		});
 
@@ -293,7 +304,9 @@ describe('peerBook', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 			});
 
 			it('should add peer to the new peer list when downgraded 3 times', () => {
@@ -307,7 +320,9 @@ describe('peerBook', () => {
 				expect(peerBook.triedPeers).toHaveLength(0);
 				// Should move to newPeers
 				expect(peerBook.newPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 			});
 
 			it('should remove a peer from all peer lists when downgraded 4 times', () => {
@@ -340,7 +355,9 @@ describe('peerBook', () => {
 
 				expect(peerBook.newPeers).toHaveLength(1);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 				expect(peerBook.newPeers).toHaveLength(1);
 			});
 

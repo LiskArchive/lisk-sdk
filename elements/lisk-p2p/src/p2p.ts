@@ -57,7 +57,6 @@ import {
 	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
-	PeerKind,
 } from './constants';
 import { PeerInboundHandshakeError } from './errors';
 import {
@@ -90,7 +89,6 @@ import {
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
-	P2PInternalState,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -274,7 +272,6 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		this._initializePeerBook();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
 			path: DEFAULT_HTTP_PATH,
@@ -310,7 +307,7 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
 			if (!this._peerBook.hasPeer(peerInfo)) {
-				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
+				this._peerBook.addPeer(peerInfo);
 			}
 
 			this._peerBook.upgradePeer(peerInfo);
@@ -323,11 +320,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			if (
-				this._peerBook.hasPeer(peerInfo) &&
-				(peerInfo.internalState as P2PInternalState).peerKind !==
-					PeerKind.WHITELISTED_PEER
-			) {
+			if (this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.downgradePeer(peerInfo);
 			}
 
@@ -372,7 +365,7 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
 			if (!this._peerBook.hasPeer(peerInfo)) {
-				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
+				this._peerBook.addPeer(peerInfo);
 			}
 
 			const isUpdated = this._peerBook.updatePeer(peerInfo);
@@ -409,21 +402,13 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
 
-		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
+		// When peer is fetched for peerList add them into the update the peerBook
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			if (!this._peerBook.hasPeer(detailedPeerInfo)) {
-				if (this._peerBook.addPeer(this._assignPeerKind(detailedPeerInfo))) {
+				if (this._peerBook.addPeer(detailedPeerInfo)) {
 					// Re-emit the message to allow it to bubble up the class hierarchy.
 					// Only emit event when a peer is discovered for the first time.
 					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-
-					if (!this._peerPool.hasPeer(detailedPeerInfo.peerId)) {
-						const isUpdated = this._peerBook.updatePeer(detailedPeerInfo);
-						if (isUpdated) {
-							// If found and updated successfully then upgrade the peer
-							this._peerBook.upgradePeer(detailedPeerInfo);
-						}
-					}
 				}
 			}
 		};
@@ -606,72 +591,6 @@ export class P2P extends EventEmitter {
 		);
 	}
 
-	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
-		if (
-			this._sanitizedPeerLists.blacklistedIPs.find(
-				blacklistedIP => blacklistedIP === peerInfo.ipAddress,
-			)
-		) {
-			return {
-				...peerInfo,
-				internalState: {
-					...assignInternalInfo(peerInfo, this._secret),
-					peerKind: PeerKind.BLACKLISTED_PEER,
-				},
-			};
-		}
-
-		if (
-			this._sanitizedPeerLists.fixedPeers.find(
-				peer => peer.ipAddress === peerInfo.ipAddress,
-			)
-		) {
-			return {
-				...peerInfo,
-				internalState: {
-					...assignInternalInfo(peerInfo, this._secret),
-					peerKind: PeerKind.FIXED_PEER,
-				},
-			};
-		}
-
-		if (
-			this._sanitizedPeerLists.whitelisted.find(
-				peer => peer.ipAddress === peerInfo.ipAddress,
-			)
-		) {
-			return {
-				...peerInfo,
-				internalState: {
-					...assignInternalInfo(peerInfo, this._secret),
-					peerKind: PeerKind.WHITELISTED_PEER,
-				},
-			};
-		}
-
-		if (
-			this._sanitizedPeerLists.seedPeers.find(
-				peer => peer.ipAddress === peerInfo.ipAddress,
-			)
-		) {
-			return {
-				...peerInfo,
-				internalState: {
-					...assignInternalInfo(peerInfo, this._secret),
-					peerKind: PeerKind.SEED_PEER,
-				},
-			};
-		}
-
-		return {
-			...peerInfo,
-			internalState: {
-				...assignInternalInfo(peerInfo, this._secret),
-				peerKind: PeerKind.NONE,
-			},
-		};
-	}
-
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on('handshake', (socket: SCServerSocket): void => {
 			// Terminate the connection the moment it receive ping frame
@@ -785,6 +704,13 @@ export class P2P extends EventEmitter {
 			const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
 				? {
 						...peerInPeerBook,
+						sharedState: {
+							...peerInPeerBook.sharedState,
+							...restOfQueryObject,
+							...queryOptions,
+							height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+							protocolVersion: queryObject.protocolVersion,
+						},
 						internalState: {
 							...(peerInPeerBook.internalState
 								? peerInPeerBook.internalState
@@ -793,7 +719,7 @@ export class P2P extends EventEmitter {
 							connectionKind: ConnectionKind.INBOUND,
 						},
 				  }
-				: this._assignPeerKind({
+				: {
 						sharedState: {
 							...restOfQueryObject,
 							...queryOptions,
@@ -815,7 +741,7 @@ export class P2P extends EventEmitter {
 						peerId,
 						ipAddress: socket.remoteAddress,
 						wsPort: remoteWSPort,
-				  });
+				  };
 
 			try {
 				validatePeerInfo(
@@ -1003,24 +929,6 @@ export class P2P extends EventEmitter {
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
 		request.end(this._nodeInfo);
-	}
-
-	private _initializePeerBook(): void {
-		const newPeersToAdd = [
-			...this._sanitizedPeerLists.fixedPeers,
-			...this._sanitizedPeerLists.whitelisted,
-			...this._sanitizedPeerLists.previousPeers,
-		];
-
-		// Add peers to tried peers if want to re-use previously tried peers
-		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
-		newPeersToAdd.forEach(peerInfo => {
-			if (!this._peerBook.hasPeer(peerInfo)) {
-				this._peerBook.addPeer(this._assignPeerKind(peerInfo));
-			}
-
-			this._peerBook.upgradePeer(peerInfo);
-		});
 	}
 
 	public async start(): Promise<void> {

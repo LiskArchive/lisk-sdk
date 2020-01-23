@@ -20,10 +20,11 @@ import {
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
+	PeerKind,
 } from '../constants';
 import { ExistingPeerError } from '../errors';
 import { P2PEnhancedPeerInfo, P2PPeerInfo, PeerLists } from '../p2p_types';
-import { PEER_TYPE } from '../utils';
+import { assignInternalInfo, PEER_TYPE } from '../utils';
 
 import { NewList } from './new_list';
 import { TriedList } from './tried_list';
@@ -42,6 +43,7 @@ export class PeerBook {
 	private readonly _fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	private readonly _whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
 	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
+	private readonly _secret: number;
 
 	public constructor({
 		sanitizedPeerLists: sanitizedPeerLists,
@@ -60,12 +62,30 @@ export class PeerBook {
 			peerType: PEER_TYPE.TRIED_PEER,
 		});
 
+		this._secret = secret;
 		this._bannedIps = new Set([]);
 		this._blacklistedIPs = new Set([...sanitizedPeerLists.blacklistedIPs]);
 		this._seedPeers = [...sanitizedPeerLists.seedPeers];
 		this._fixedPeers = [...sanitizedPeerLists.fixedPeers];
 		this._whitelistedPeers = [...sanitizedPeerLists.whitelisted];
 		this._unbanTimers = [];
+
+		// Initialize peerBook lists
+		const newPeersToAdd = [
+			...sanitizedPeerLists.fixedPeers,
+			...sanitizedPeerLists.whitelisted,
+			...sanitizedPeerLists.previousPeers,
+		];
+
+		// Add peers to tried peers if want to re-use previously tried peers
+		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
+		newPeersToAdd.forEach(peerInfo => {
+			if (!this.hasPeer(peerInfo)) {
+				this.addPeer(peerInfo);
+			}
+
+			this.upgradePeer(peerInfo);
+		});
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
@@ -91,6 +111,14 @@ export class PeerBook {
 	}
 	public get bannedIps(): ReadonlyArray<string> {
 		return [...this._blacklistedIPs, ...this._bannedIps];
+	}
+
+	public cleanUpTimers(): void {
+		this._unbanTimers.forEach(timer => {
+			if (timer) {
+				clearTimeout(timer);
+			}
+		});
 	}
 
 	public getRandomizedPeerList(
@@ -141,26 +169,26 @@ export class PeerBook {
 			throw new ExistingPeerError(peerInfo);
 		}
 
-		this._newPeers.addPeer(peerInfo);
+		this._newPeers.addPeer(this._assignPeerKind(peerInfo));
 
 		return true;
-	}
-
-	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo.peerId)) {
-			return this._triedPeers.updatePeer(peerInfo);
-		}
-
-		if (this._newPeers.getPeer(peerInfo.peerId)) {
-			return this._newPeers.updatePeer(peerInfo);
-		}
-
-		return false;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): void {
 		this._newPeers.removePeer(peerInfo);
 		this._triedPeers.removePeer(peerInfo);
+	}
+
+	public updatePeer(peerInfo: P2PPeerInfo): boolean {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
+			return this._triedPeers.updatePeer(this._assignPeerKind(peerInfo));
+		}
+
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
+			return this._newPeers.updatePeer(this._assignPeerKind(peerInfo));
+		}
+
+		return false;
 	}
 
 	public upgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
@@ -170,7 +198,13 @@ export class PeerBook {
 
 		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			this.removePeer(peerInfo);
-			this._triedPeers.addPeer(peerInfo);
+
+			if (this.bannedIps.find(peerIp => peerIp === peerInfo.ipAddress)) {
+				return false;
+			}
+
+			// TODO: Update peerKind
+			this._triedPeers.addPeer(this._assignPeerKind(peerInfo));
 
 			return true;
 		}
@@ -179,6 +213,10 @@ export class PeerBook {
 	}
 
 	public downgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
+		if (this.isTrustedPeer(peerInfo.peerId)) {
+			return false;
+		}
+
 		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			return this._newPeers.failedConnectionAction(peerInfo);
 		}
@@ -186,7 +224,7 @@ export class PeerBook {
 		if (this._triedPeers.hasPeer(peerInfo.peerId)) {
 			const failed = this._triedPeers.failedConnectionAction(peerInfo);
 			if (failed) {
-				this.addPeer(peerInfo);
+				return this.addPeer(peerInfo);
 			}
 		}
 
@@ -194,15 +232,15 @@ export class PeerBook {
 	}
 
 	public isTrustedPeer(peerId: string): boolean {
-		const isSeed = this.seedPeers.find(seedPeer => peerId === seedPeer.peerId);
+		const isSeedPeer = this.seedPeers.find(peer => peer.peerId === peerId);
 
-		const isWhitelisted = this.whitelistedPeers.find(
+		const isWhitelistedPeer = this.whitelistedPeers.find(
 			peer => peer.peerId === peerId,
 		);
 
-		const isFixed = this.fixedPeers.find(peer => peer.peerId === peerId);
+		const isFixedPeer = this.fixedPeers.find(peer => peer.peerId === peerId);
 
-		return !!isSeed || !!isWhitelisted || !!isFixed;
+		return !!isSeedPeer || !!isWhitelistedPeer || !!isFixedPeer;
 	}
 
 	public addBannedPeer(peerId: string, peerBanTime: number): void {
@@ -231,7 +269,7 @@ export class PeerBook {
 			}
 		});
 
-		// Unban temporary banns after peerBanTime
+		// Unban temporary bans after peerBanTime
 		const unbanTimeout = setTimeout(() => {
 			this._removeBannedPeer(peerId);
 		}, peerBanTime);
@@ -247,11 +285,45 @@ export class PeerBook {
 		this._bannedIps.delete(peerIpAddress);
 	}
 
-	public cleanUpTimers(): void {
-		this._unbanTimers.forEach(timer => {
-			if (timer) {
-				clearTimeout(timer);
-			}
-		});
+	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
+		if (this.fixedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.FIXED_PEER,
+				},
+			};
+		}
+
+		if (
+			this.whitelistedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.WHITELISTED_PEER,
+				},
+			};
+		}
+
+		if (this.seedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.SEED_PEER,
+				},
+			};
+		}
+
+		return {
+			...peerInfo,
+			internalState: {
+				...assignInternalInfo(peerInfo, this._secret),
+				peerKind: PeerKind.NONE,
+			},
+		};
 	}
 }
