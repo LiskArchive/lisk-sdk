@@ -23,7 +23,7 @@ const {
 } = require('../../../../../../../../../src/components/storage');
 const {
 	NetworkInfo,
-} = require('../../../../../../../../../src/modules/network/components/storage/entities');
+} = require('../../../../../../../../../src/controller/storage/entities');
 
 const { config } = require('../../../../shared');
 
