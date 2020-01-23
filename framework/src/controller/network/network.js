@@ -37,7 +37,7 @@ const {
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
 const { lookupPeersIPs } = require('./utils');
-const { NetworkInfo } = require('./components/storage/entities');
+const { NetworkInfo } = require('../storage/entities');
 
 const hasNamespaceReg = /:/;
 
