@@ -25,7 +25,9 @@ const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
 const { createStorageComponent } = require('../components/storage');
-const { MigrationEntity } = require('./migrations');
+const { migrations: controllerMigrations } = require('./storage/migrations');
+const { MigrationEntity, NetworkInfoEntity } = require('./storage/entities');
+const { Network } = require('./network');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -57,6 +59,7 @@ class Controller {
 		const storageConfig = config.components.storage;
 		this.storage = createStorageComponent(storageConfig, logger);
 		this.storage.registerEntity('Migration', MigrationEntity);
+		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 	}
 
 	async load(modules, moduleOptions, migrations = {}) {
@@ -65,7 +68,8 @@ class Controller {
 		await this._validatePidFile();
 		this._initState();
 		await this._setupBus();
-		await this._loadMigrations(migrations);
+		await this._loadMigrations({ ...migrations, controllerMigrations });
+		await this._initialiseNetwork(moduleOptions, this.storage);
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
@@ -163,6 +167,15 @@ class Controller {
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.defineSchema();
 		return this.storage.entities.Migration.applyAll(migrationsObj);
+	}
+
+	async _initialiseNetwork() {
+		this.network = new Network({
+			options: this.options.network,
+			storage: this.storage,
+			logger: this.logger,
+			channel: this.channel,
+		});
 	}
 
 	async _loadModules(modules, moduleOptions) {
