@@ -15,9 +15,9 @@
 'use strict';
 
 const { config } = require('./defaults');
-const { migrations } = require('./components');
+const { migrations } = require('../storage/migrations');
 const Network = require('./network');
-const BaseModule = require('../base_module');
+const BaseModule = require('../../modules/base_module');
 
 /* eslint-disable class-methods-use-this */
 module.exports = class NetworkModule extends BaseModule {
