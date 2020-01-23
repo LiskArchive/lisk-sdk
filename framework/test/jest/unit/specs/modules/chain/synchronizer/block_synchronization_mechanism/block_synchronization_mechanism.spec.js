@@ -314,7 +314,7 @@ describe('block_synchronization_mechanism', () => {
 				'Applying penalty to peer and restarting synchronizer',
 			);
 			expect(channelMock.invoke).toHaveBeenCalledWith(
-				'network:applyPenalty',
+				'app:applyPenaltyOnPeer',
 				expect.objectContaining({
 					peerId: expect.any(String),
 					penalty: 100,

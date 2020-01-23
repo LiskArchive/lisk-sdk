@@ -79,7 +79,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 					{ err, peerId, reason: err.reason },
 					'Applying penalty to peer and aborting synchronization mechanism',
 				);
-				return this.channel.invoke('network:applyPenalty', {
+				return this.channel.invoke('app:applyPenalty', {
 					peerId,
 					penalty: 100,
 				});
@@ -134,8 +134,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		let lastFetchedID = fromId;
 
 		while (failedAttempts < maxFailedAttempts) {
-			const { data: chunkOfBlocks } = await this.channel.invoke(
-				'network:requestFromPeer',
+			const { data: chunkOfBlocks } = await this.channel.invokeFromNetwork(
+				'requestFromPeer',
 				{
 					procedure: 'getBlocksFromId',
 					peerId,
@@ -373,13 +373,16 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			// Request the highest common block with the previously computed list
 			// to the given peer
 			try {
-				const { data } = await this.channel.invoke('network:requestFromPeer', {
-					procedure: 'getHighestCommonBlock',
-					peerId,
-					data: {
-						ids: blockIds,
+				const { data } = await this.channel.invokeFromNetwork(
+					'requestFromPeer',
+					{
+						procedure: 'getHighestCommonBlock',
+						peerId,
+						data: {
+							ids: blockIds,
+						},
 					},
-				});
+				);
 
 				if (data) {
 					this.logger.debug(

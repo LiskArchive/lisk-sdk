@@ -117,8 +117,8 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		let finished = false;
 
 		while (!finished && failedAttempts < maxFailedAttempts) {
-			const { data: blocks } = await this.channel.invoke(
-				'network:requestFromPeer',
+			const { data: blocks } = await this.channel.invokeFromNetwork(
+				'requestFromPeer',
 				{
 					procedure: 'getBlocksFromId',
 					peerId,
@@ -387,7 +387,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				// Request the highest common block with the previously computed list
 				// to the given peer
 				data = (
-					await this.channel.invoke('network:requestFromPeer', {
+					await this.channel.invokeFromNetwork('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId,
 						data: {
@@ -428,7 +428,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	async _requestAndValidateLastBlock(peerId) {
 		this.logger.debug({ peerId }, 'Requesting tip of the chain from peer');
 
-		const { data } = await this.channel.invoke('network:requestFromPeer', {
+		const { data } = await this.channel.invokeFromNetwork('requestFromPeer', {
 			procedure: 'getLastBlock',
 			peerId,
 		});
@@ -488,7 +488,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
 	async _computeBestPeer() {
-		const peers = await this.channel.invoke('network:getConnectedPeers');
+		const peers = await this.channel.invoke('app:getConnectedPeers');
 
 		if (!peers || peers.length === 0) {
 			throw new Error('List of connected peers is empty');

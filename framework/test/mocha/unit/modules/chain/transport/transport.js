@@ -624,7 +624,7 @@ describe('transport', () => {
 									"should have required property 'blockId'",
 								);
 								expect(channelStub.invoke).to.be.calledOnceWith(
-									'network:applyPenalty',
+									'app:applyPenaltyOnPeer',
 									{
 										peerId: defaultPeerId,
 										penalty: 100,
@@ -717,7 +717,7 @@ describe('transport', () => {
 								} catch (err) {
 									expect(err[0].message).to.equal(blockValidationError);
 									expect(channelStub.invoke).to.be.calledOnceWith(
-										'network:applyPenalty',
+										'app:applyPenaltyOnPeer',
 										{
 											peerId: defaultPeerId,
 											penalty: 100,
