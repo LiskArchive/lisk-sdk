@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	TransactionJSON,
-} from '@liskhq/lisk-transactions';
+import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 import {
 	Account,
@@ -33,7 +31,7 @@ export class StorageAccess {
 		this._storage = storage;
 	}
 
-	public async getBlockHeadersById(
+	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: string[],
 		tx?: StorageTransaction,
 	): Promise<BlockHeader[]> {
@@ -46,7 +44,7 @@ export class StorageAccess {
 		return blocks;
 	}
 
-	public async getBlockHeadersByHeight(
+	public async getBlockHeadersByHeightBetween(
 		fromHeight: number,
 		toHeight: number,
 		tx?: StorageTransaction,
@@ -76,7 +74,7 @@ export class StorageAccess {
 		return blocks;
 	}
 
-	public async getBlockHeadersInRounds(query: {
+	public async getBlockHeadersWithInterval(query: {
 		readonly fromHeight: number;
 		readonly toHeight: number;
 		readonly numberOfActiveDelegates: number;
@@ -91,7 +89,7 @@ export class StorageAccess {
 		return blocks;
 	}
 
-	public async getLatestBlockHeader(): Promise<BlockHeader> {
+	public async getLastBlockHeader(): Promise<BlockHeader> {
 		const [lastBlockHeader] = await this._storage.entities.Block.get(
 			{},
 			{ limit: 1, sort: 'height:desc' },
@@ -100,7 +98,7 @@ export class StorageAccess {
 		return lastBlockHeader;
 	}
 
-	public async getLatestCommonBlockHeader(
+	public async getLastCommonBlockHeader(
 		arrayOfBlockIds: string[],
 	): Promise<BlockJSON> {
 		const [block] = await this._storage.entities.Block.get(
@@ -143,20 +141,20 @@ export class StorageAccess {
 	public async getTempBlocks(tx: StorageTransaction): Promise<TempBlock[]> {
 		const tempBlocks = await this._storage.entities.TempBlock.get(
 			{},
-			{ sort: 'height:asc', limit: null },
+			{ sort: 'height:asc' },
 			tx,
 		);
 
 		return tempBlocks;
 	}
 
-	public async isTempBlockEmpty() {
+	public async isTempBlockEmpty(): Promise<boolean> {
 		const isEmpty = await this._storage.entities.TempBlock.isEmpty();
 
 		return isEmpty;
 	}
 
-	public async clearTempBlocks() {
+	public clearTempBlocks(): void {
 		this._storage.entities.TempBlock.truncate();
 	}
 
@@ -205,6 +203,19 @@ export class StorageAccess {
 		return accounts;
 	}
 
+	public async getAccountsByAddress(
+		arrayOfAddresses: string[],
+		tx?: StorageTransaction,
+	): Promise<Account[]> {
+		const accounts = await this._storage.entities.Account.get(
+			{ address_in: arrayOfAddresses },
+			{},
+			tx,
+		);
+
+		return accounts;
+	}
+
 	public async getDelegateAccounts(
 		tx?: StorageTransaction,
 	): Promise<Account[]> {
@@ -245,7 +256,7 @@ export class StorageAccess {
 		return delegatePublicKeys;
 	}
 
-	public async getTransactionsById(
+	public async getTransactionsByIDs(
 		arrayOfTransactionIds: string[],
 	): Promise<TransactionJSON[]> {
 		const transactions = await this._storage.entities.Transaction.get({
@@ -255,7 +266,7 @@ export class StorageAccess {
 		return transactions;
 	}
 
-	public async resetAccountMemTables() {
+	public async resetAccountMemTables(): Promise<void> {
 		await this._storage.entities.Account.resetMemTables();
 	}
 }
