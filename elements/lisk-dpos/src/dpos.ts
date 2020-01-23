@@ -55,8 +55,8 @@ export class Dpos {
 	private readonly delegatesList: DelegatesList;
 	private readonly delegatesInfo: DelegatesInfo;
 	private readonly logger: Logger;
-	private readonly rounds: Rounds;
 	private readonly blocks: Blocks;
+	public readonly rounds: Rounds;
 
 	public constructor({
 		storage,

@@ -13,7 +13,8 @@
  */
 
 import { when } from 'jest-when';
-import { Dpos, Slots, constants } from '../../src';
+import { Dpos, constants } from '../../src';
+import { Slots } from '../../../lisk-blocks/src/slots';
 import { Block, Account } from '../../src/types';
 import {
 	BLOCK_TIME,
@@ -37,7 +38,6 @@ import {
 describe('dpos.apply()', () => {
 	const stubs = {} as any;
 	let dpos: Dpos;
-	let slots: Slots;
 
 	beforeEach(() => {
 		// Arrange
@@ -69,14 +69,13 @@ describe('dpos.apply()', () => {
 
 		stubs.tx = jest.fn();
 
-		slots = new Slots({
-			epochTime: EPOCH_TIME,
-			interval: BLOCK_TIME,
-			blocksPerRound: ACTIVE_DELEGATES,
-		});
+		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const blocks = {
+			slots,
+		};
 
 		dpos = new Dpos({
-			slots,
+			blocks,
 			...stubs,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
@@ -515,8 +514,12 @@ describe('dpos.apply()', () => {
 
 		it('should save next round active delegates list in RoundDelegates entity after applying last block of round', async () => {
 			// Arrange
-			const currentRound = slots.calcRound(lastBlockOfTheRoundNine.height);
-			const nextRound = slots.calcRound(lastBlockOfTheRoundNine.height + 1);
+			const currentRound = (dpos as any).rounds.calcRound(
+				lastBlockOfTheRoundNine.height,
+			);
+			const nextRound = (dpos as any).rounds.calcRound(
+				lastBlockOfTheRoundNine.height + 1,
+			);
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -724,15 +727,25 @@ describe('dpos.apply()', () => {
 					// setting bonus to a dividable amount
 					fees_bonus: ACTIVE_DELEGATES * 123,
 				};
-				const exceptionRound = slots.calcRound(lastBlockOfTheRoundNine.height);
+				const exceptionRound = (dpos as any).rounds.calcRound(
+					lastBlockOfTheRoundNine.height,
+				);
 				const exceptions = {
 					rounds: {
 						[exceptionRound]: exceptionFactors,
 					},
 				};
 
-				dpos = new Dpos({
+				const slots = new Slots({
+					epochTime: EPOCH_TIME,
+					interval: BLOCK_TIME,
+				});
+				const blocks = {
 					slots,
+				};
+
+				dpos = new Dpos({
+					blocks,
 					...stubs,
 					activeDelegates: ACTIVE_DELEGATES,
 					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
