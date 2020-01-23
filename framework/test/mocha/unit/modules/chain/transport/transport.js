@@ -580,13 +580,16 @@ describe('transport', () => {
 					});
 
 					it('should call channel.invoke to send', () => {
-						expect(channelStub.invoke).to.be.calledOnce;
-						return expect(channelStub.invoke).to.be.calledWith('network:send', {
-							event: 'postBlock',
-							data: {
-								block,
+						expect(channelStub.publishToNetwork).to.be.calledOnce;
+						return expect(channelStub.publishToNetwork).to.be.calledWith(
+							'sendToNetwork',
+							{
+								event: 'postBlock',
+								data: {
+									block,
+								},
 							},
-						});
+						);
 					});
 
 					describe('when modules.synchronizer.isActive = true', () => {

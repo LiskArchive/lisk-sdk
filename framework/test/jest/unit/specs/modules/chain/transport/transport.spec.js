@@ -39,7 +39,9 @@ describe('Transport', () => {
 		jobsQueue.jobs = {};
 		channelStub = {
 			invoke: jest.fn(),
+			invokeFromNetwork: jest.fn(),
 			publish: jest.fn(),
+			publishToNetwork: jest.fn(),
 		};
 		loggerStub = {
 			info: jest.fn(),
@@ -114,12 +116,15 @@ describe('Transport', () => {
 				tx.sign('signature');
 				await transport.handleBroadcastTransaction(tx);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.invoke).toHaveBeenCalledWith('network:broadcast', {
-					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: [tx.id],
+				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'broadcastToNetwork',
+					{
+						event: 'postTransactionsAnnouncement',
+						data: {
+							transactionIds: [tx.id],
+						},
 					},
-				});
+				);
 			});
 		});
 
@@ -144,8 +149,8 @@ describe('Transport', () => {
 				await transport.handleBroadcastTransaction(tx);
 				transactionPoolStub.transactionInPool.mockReturnValue(false);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.invoke).not.toHaveBeenCalledWith(
-					'network:broadcast',
+				expect(channelStub.publishToNetwork).not.toHaveBeenCalledWith(
+					'broadcastToNetwork',
 					{
 						event: 'postTransactionsAnnouncement',
 						data: {
@@ -185,12 +190,15 @@ describe('Transport', () => {
 					await transport.handleBroadcastTransaction(tx);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.invoke).toHaveBeenCalledWith('network:broadcast', {
-					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: txs.map(tx => tx.id),
+				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'broadcastToNetwork',
+					{
+						event: 'postTransactionsAnnouncement',
+						data: {
+							transactionIds: txs.map(tx => tx.id),
+						},
 					},
-				});
+				);
 			});
 		});
 
@@ -223,18 +231,28 @@ describe('Transport', () => {
 					await transport.handleBroadcastTransaction(tx);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval * 2);
-				expect(channelStub.invoke).toHaveBeenCalledWith('network:broadcast', {
-					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: txs.map(tx => tx.id).splice(0, defaultReleaseLimit),
+				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'broadcastToNetwork',
+					{
+						event: 'postTransactionsAnnouncement',
+						data: {
+							transactionIds: txs
+								.map(tx => tx.id)
+								.splice(0, defaultReleaseLimit),
+						},
 					},
-				});
-				expect(channelStub.invoke).toHaveBeenCalledWith('network:broadcast', {
-					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: txs.map(tx => tx.id).splice(0, defaultReleaseLimit),
+				);
+				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'broadcastToNetwork',
+					{
+						event: 'postTransactionsAnnouncement',
+						data: {
+							transactionIds: txs
+								.map(tx => tx.id)
+								.splice(0, defaultReleaseLimit),
+						},
 					},
-				});
+				);
 			});
 		});
 	});
@@ -269,12 +287,15 @@ describe('Transport', () => {
 				};
 				await transport.handleBroadcastSignature(signatureObject);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.invoke).toHaveBeenCalledWith('network:send', {
-					event: 'postSignatures',
-					data: {
-						signatures: [signatureObject],
+				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'sendToNetwork',
+					{
+						event: 'postSignatures',
+						data: {
+							signatures: [signatureObject],
+						},
 					},
-				});
+				);
 			});
 		});
 
@@ -333,12 +354,15 @@ describe('Transport', () => {
 					await transport.handleBroadcastSignature(signatureObject);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.invoke).toHaveBeenCalledWith('network:send', {
-					event: 'postSignatures',
-					data: {
-						signatures: signatureObjects,
+				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'sendToNetwork',
+					{
+						event: 'postSignatures',
+						data: {
+							signatures: signatureObjects,
+						},
 					},
-				});
+				);
 			});
 		});
 
@@ -379,22 +403,28 @@ describe('Transport', () => {
 					await transport.handleBroadcastSignature(signatureObject);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				await expect(channelStub.invoke).toHaveBeenCalledTimes(1);
-				await expect(channelStub.invoke).toHaveBeenCalledWith('network:send', {
-					event: 'postSignatures',
-					data: {
-						signatures: signatureObjects.splice(0, defaultReleaseLimit),
+				await expect(channelStub.publishToNetwork).toHaveBeenCalledTimes(1);
+				await expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'sendToNetwork',
+					{
+						event: 'postSignatures',
+						data: {
+							signatures: signatureObjects.splice(0, defaultReleaseLimit),
+						},
 					},
-				});
+				);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				await expect(channelStub.invoke).toHaveBeenCalledTimes(2);
+				await expect(channelStub.publishToNetwork).toHaveBeenCalledTimes(2);
 				expect(transport.broadcaster.signatureObjectQueue).toHaveLength(0);
-				expect(channelStub.invoke).toHaveBeenCalledWith('network:send', {
-					event: 'postSignatures',
-					data: {
-						signatures: signatureObjects.splice(0, defaultReleaseLimit),
+				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
+					'sendToNetwork',
+					{
+						event: 'postSignatures',
+						data: {
+							signatures: signatureObjects.splice(0, defaultReleaseLimit),
+						},
 					},
-				});
+				);
 			});
 		});
 	});
@@ -844,8 +874,8 @@ describe('Transport', () => {
 			beforeEach(async () => {
 				transactionPoolStub.transactionInPool.mockReturnValue(false);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
-				when(channelStub.invoke)
-					.calledWith('network:requestFromPeer', expect.anything())
+				when(channelStub.invokeFromNetwork)
+					.calledWith('requestFromPeer', expect.anything())
 					.mockResolvedValue({
 						data: { transactions: [tx, tx2] },
 						peerId: defaultPeerId,
@@ -857,8 +887,8 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:requestFromPeer',
+				expect(channelStub.invokeFromNetwork).toHaveBeenCalledWith(
+					'requestFromPeer',
 					{
 						procedure: 'getTransactions',
 						data: { transactionIds: validTransactionsRequest.transactionIds },
@@ -922,8 +952,8 @@ describe('Transport', () => {
 					.calledWith(tx.id)
 					.mockReturnValue(true);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
-				when(channelStub.invoke)
-					.calledWith('network:requestFromPeer', expect.anything())
+				when(channelStub.invokeFromNetwork)
+					.calledWith('requestFromPeer', expect.anything())
 					.mockResolvedValue({
 						data: { transactions: [tx2] },
 						peerId: defaultPeerId,
@@ -935,8 +965,8 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'network:requestFromPeer',
+				expect(channelStub.invokeFromNetwork).toHaveBeenCalledWith(
+					'requestFromPeer',
 					{
 						procedure: 'getTransactions',
 						data: { transactionIds: [tx2.id] },
