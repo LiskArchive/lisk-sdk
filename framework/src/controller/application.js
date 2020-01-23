@@ -279,6 +279,7 @@ class Application {
 			this.getModules(),
 			this.config.modules,
 			this.getMigrations(),
+			this.config.network,
 		);
 	}
 

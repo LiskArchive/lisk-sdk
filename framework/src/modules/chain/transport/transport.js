@@ -90,7 +90,7 @@ class Transport {
 			);
 			return null;
 		}
-		return this.channel.invoke('network:send', {
+		return this.channel.invoke('app:sendToNetwork', {
 			event: 'postBlock',
 			data: {
 				block: blockJSON,

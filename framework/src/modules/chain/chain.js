@@ -206,9 +206,7 @@ module.exports = class Chain {
 
 			this._subscribeToEvents();
 
-			this.channel.subscribe('network:bootstrap', async () => {
-				await this._startForging();
-			});
+			await this._startForging();
 
 			this.channel.subscribe('network:ready', async () => {
 				await this._startLoader();
