@@ -239,12 +239,10 @@ export interface Storage {
 export interface StorageAccess {
 	readonly getBlockHeadersByIDs: (
 		arrayOfBlockIds: Readonly<string>,
-		tx?: StorageTransaction,
 	) => Promise<BlockJSON[]>;
 	readonly getBlockHeadersByHeightBetween: (
 		fromHeight: number,
 		toHeight: number,
-		tx?: StorageTransaction,
 	) => Promise<BlockJSON[]>;
 	readonly getBlockHeadersWithHeights: (
 		heightList: ReadonlyArray<number>,
@@ -253,25 +251,22 @@ export interface StorageAccess {
 		fromHeight: number,
 		toHeight: number,
 		numberOfActiveDelegates: number,
-		tx?: StorageTransaction,
 	) => Promise<BlockJSON[]>;
 	readonly getLastBlockHeader: () => Promise<BlockJSON>;
 	readonly getLastCommonBlockHeader: (
 		arrayOfBlockIds: ReadonlyArray<string>,
 	) => Promise<BlockJSON>;
-	readonly getBlocksById: (
+	readonly getExtendedBlocksById: (
 		arrayOfBlockIds: ReadonlyArray<string>,
-		tx?: StorageTransaction,
 	) => Promise<BlockJSON[]>;
-	readonly getBlocksByHeight: (
+	readonly getExtendedBlocksByHeightBetween: (
 		fromHeight: number,
 		toHeight: number,
-		tx?: StorageTransaction,
 	) => Promise<BlockJSON[]>;
+	readonly getExtendedLastBlock: () => Promise<BlockJSON>;
 	readonly getTempBlocks: (tx: StorageTransaction) => Promise<TempBlock[]>;
 	readonly isTempBlockEmpty: () => Promise<boolean>;
 	readonly clearTempBlocks: () => void;
-	readonly getLastBlock: () => Promise<BlockJSON>;
 	readonly getFirstBlockIdWithInterval: () => Promise<
 		Array<Partial<BlockJSON>>
 	>;

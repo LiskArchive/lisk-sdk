@@ -212,7 +212,7 @@ export class Blocks extends EventEmitter {
 			throw new Error('Genesis block does not match');
 		}
 
-		const [storageLastBlock] = await this.storageAccess.getLastBlock();
+		const storageLastBlock = await this.storageAccess.getExtendedLastBlock();
 		if (!storageLastBlock) {
 			throw new Error('Failed to load last block');
 		}
@@ -386,8 +386,10 @@ export class Blocks extends EventEmitter {
 		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
 	}
 
-	public async getTempBlocks(tx: StorageTransaction): Promise<TempBlock[]> {
-		return this.storageAccess.getTempBlocks(tx);
+	public async getTempBlocks(): Promise<TempBlock[]> {
+		const tempBlocks = await this.storageAccess.getTempBlocks();
+
+		return tempBlocks;
 	}
 
 	public async exists(block: BlockInstance): Promise<boolean> {
@@ -412,7 +414,12 @@ export class Blocks extends EventEmitter {
 		const toHeight = offset + limit;
 
 		// Loads extended blocks from storage
-		return this.storageAccess.getBlocksByHeight(offset, toHeight);
+		const blocks = await this.storageAccess.getExtendedBlocksByHeightBetween(
+			offset,
+			toHeight,
+		);
+
+		return blocks.sort((a, b) => (a.height > b.height ? 1 : -1));
 	}
 
 	public async loadBlocksFromLastBlockId(
@@ -426,12 +433,17 @@ export class Blocks extends EventEmitter {
 		);
 	}
 
-	// TODO: Unit tests written in mocha, which should be migrated to jest.
-	public async getHighestCommonBlock(ids: string[]): Promise<BlockJSON> {
+	public async getHighestCommonBlock(
+		ids: string[],
+	): Promise<BlockJSON | undefined> {
 		try {
-			const [block] = this.storageAccess.getBlockHeadersByIDs(ids);
+			const blocks = await this.storageAccess.getBlockHeadersByIDs(ids);
+			const blocksSortedDescendingByHeight = blocks.sort((a, b) =>
+				a.height > b.height ? -1 : 1,
+			);
+			const highestCommonBlock = blocksSortedDescendingByHeight.shift();
 
-			return block;
+			return highestCommonBlock;
 		} catch (e) {
 			const errMessage = 'Failed to fetch the highest common block';
 			this.logger.error({ err: e }, errMessage);

@@ -30,13 +30,11 @@ export class Storage {
 	}
 
 	public async getBlockHeadersByIDs(
-		arrayOfBlockIds: Readonly<string>,
-		tx?: StorageTransaction,
+		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ id_in: arrayOfBlockIds },
 			{},
-			tx,
 		);
 
 		return blocks;
@@ -45,12 +43,10 @@ export class Storage {
 	public async getBlockHeadersByHeightBetween(
 		fromHeight: number,
 		toHeight: number,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ height_gte: fromHeight, height_lte: toHeight },
 			{},
-			tx,
 		);
 
 		return blocks;
@@ -76,12 +72,10 @@ export class Storage {
 		fromHeight: number,
 		toHeight: number,
 		numberOfActiveDelegates: number,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ height_gte: fromHeight, height_lte: toHeight },
 			{ limit: numberOfActiveDelegates, sort: 'height:asc' },
-			tx,
 		);
 
 		return blocks;
@@ -109,38 +103,42 @@ export class Storage {
 		return block;
 	}
 
-	public async getBlocksById(
+	public async getExtendedBlocksById(
 		arrayOfBlockIds: ReadonlyArray<string>,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ id_in: arrayOfBlockIds },
 			{ extended: true },
-			tx,
 		);
 
 		return blocks;
 	}
 
-	public async getBlocksByHeight(
+	public async getExtendedBlocksByHeightBetween(
 		fromHeight: number,
 		toHeight: number,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ height_gte: fromHeight, height_lte: toHeight },
 			{ extended: true },
-			tx,
 		);
 
 		return blocks;
 	}
 
-	public async getTempBlocks(tx: StorageTransaction): Promise<TempBlock[]> {
+	public async getExtendedLastBlock(): Promise<BlockJSON> {
+		const [lastBlock] = await this._storage.entities.Block.get(
+			{},
+			{ sort: 'height:desc', limit: 1, extended: true },
+		);
+
+		return lastBlock;
+	}
+
+	public async getTempBlocks(): Promise<TempBlock[]> {
 		const tempBlocks = await this._storage.entities.TempBlock.get(
 			{},
 			{ sort: 'height:asc' },
-			tx,
 		);
 
 		return tempBlocks;
@@ -154,15 +152,6 @@ export class Storage {
 
 	public clearTempBlocks(): void {
 		this._storage.entities.TempBlock.truncate();
-	}
-
-	public async getLastBlock(): Promise<BlockJSON> {
-		const [lastBlock] = await this._storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1, extended: true },
-		);
-
-		return lastBlock;
 	}
 
 	public async getFirstBlockIdWithInterval(
