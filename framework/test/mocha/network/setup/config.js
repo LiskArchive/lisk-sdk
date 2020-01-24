@@ -63,17 +63,17 @@ const config = {
 			delete devConfigCopy.modules.http_api.genesisBlock;
 			delete devConfigCopy.modules.http_api.constants;
 			delete devConfigCopy.initialState;
-			delete devConfigCopy.modules.network.loadAsChildProcess;
-			delete devConfigCopy.modules.network.version;
-			delete devConfigCopy.modules.network.minVersion;
-			delete devConfigCopy.modules.network.protocolVersion;
-			delete devConfigCopy.modules.network.nethash;
-			delete devConfigCopy.modules.network.genesisBlock;
-			delete devConfigCopy.modules.network.constants;
-			delete devConfigCopy.modules.network.lastCommitId;
-			delete devConfigCopy.modules.network.buildVersion;
-			delete devConfigCopy.modules.network.access;
-			delete devConfigCopy.modules.network.list;
+			delete devConfigCopy.network.loadAsChildProcess;
+			delete devConfigCopy.network.version;
+			delete devConfigCopy.network.minVersion;
+			delete devConfigCopy.network.protocolVersion;
+			delete devConfigCopy.network.nethash;
+			delete devConfigCopy.network.genesisBlock;
+			delete devConfigCopy.network.constants;
+			delete devConfigCopy.network.lastCommitId;
+			delete devConfigCopy.network.buildVersion;
+			delete devConfigCopy.network.access;
+			delete devConfigCopy.network.list;
 			delete devConfigCopy.NORMALIZER;
 			delete devConfigCopy.ADDITIONAL_DATA;
 			delete devConfigCopy.MAX_VOTES_PER_TRANSACTION;
@@ -81,7 +81,7 @@ const config = {
 
 			const wsPort = 5000 + index;
 			// TODO: Remove when p2p library automatically removes itself
-			devConfigCopy.modules.network.wsPort = wsPort;
+			devConfigCopy.network.wsPort = wsPort;
 
 			devConfigCopy.modules.http_api.httpPort = 4000 + index;
 			devConfigCopy.app.label = `lisk-devnet-${4000 + index}`;
@@ -92,13 +92,13 @@ const config = {
 		// Generate peers for each node
 		configurations.forEach(configuration => {
 			// eslint-disable-next-line no-param-reassign
-			configuration.modules.network.seedPeers = config.generatePeers(
+			configuration.network.seedPeers = config.generatePeers(
 				configurations,
 				config.SYNC_MODES.ALL_TO_GROUP,
 				{
 					indices: _.range(10),
 				},
-				configuration.modules.network.wsPort,
+				configuration.network.wsPort,
 			);
 		});
 
@@ -188,10 +188,10 @@ const config = {
 				}
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(localSyncModeArgs.probability)) {
-						if (configuration.modules.network.wsPort !== currentPeer) {
+						if (configuration.network.wsPort !== currentPeer) {
 							peersList.push({
 								ip: DEFAULT_PEER_IP,
-								wsPort: configuration.modules.network.wsPort,
+								wsPort: configuration.network.wsPort,
 							});
 						}
 					}
@@ -205,7 +205,7 @@ const config = {
 				peersList = [
 					{
 						ip: DEFAULT_PEER_IP,
-						wsPort: configurations[0].modules.network.wsPort,
+						wsPort: configurations[0].network.wsPort,
 					},
 				];
 				break;
@@ -218,7 +218,7 @@ const config = {
 					if (localSyncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
 							ip: DEFAULT_PEER_IP,
-							wsPort: configuration.modules.network.wsPort,
+							wsPort: configuration.network.wsPort,
 						});
 					}
 				});
