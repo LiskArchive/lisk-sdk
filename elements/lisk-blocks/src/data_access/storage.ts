@@ -29,6 +29,10 @@ export class Storage {
 		this._storage = storage;
 	}
 
+	/*
+		Block headers
+	*/
+
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
@@ -102,6 +106,16 @@ export class Storage {
 
 		return block;
 	}
+
+	public async getBlockCount(): Promise<number> {
+		const count = await this._storage.entities.Block.count({}, {});
+
+		return count;
+	}
+
+	/*
+		Extended blocks with transaction payload
+	*/
 
 	public async getExtendedBlocksById(
 		arrayOfBlockIds: ReadonlyArray<string>,
@@ -177,6 +191,10 @@ export class Storage {
 		return isPersisted;
 	}
 
+	/*
+		Accounts
+	*/
+
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
 		tx?: StorageTransaction,
@@ -215,6 +233,14 @@ export class Storage {
 		return accounts;
 	}
 
+	public async resetAccountMemTables(): Promise<void> {
+		await this._storage.entities.Account.resetMemTables();
+	}
+
+	/*
+		Transactions
+	*/
+
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<string>,
 	): Promise<TransactionJSON[]> {
@@ -231,9 +257,5 @@ export class Storage {
 		});
 
 		return isPersisted;
-	}
-
-	public async resetAccountMemTables(): Promise<void> {
-		await this._storage.entities.Account.resetMemTables();
 	}
 }

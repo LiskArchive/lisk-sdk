@@ -256,6 +256,7 @@ export interface StorageAccess {
 	readonly getLastCommonBlockHeader: (
 		arrayOfBlockIds: ReadonlyArray<string>,
 	) => Promise<BlockJSON>;
+	readonly getBlockCount: () => Promise<number>;
 	readonly getExtendedBlocksById: (
 		arrayOfBlockIds: ReadonlyArray<string>,
 	) => Promise<BlockJSON[]>;
