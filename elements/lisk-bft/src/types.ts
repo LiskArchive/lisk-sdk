@@ -47,7 +47,7 @@ export interface Slots {
 	readonly getSlotNumber: (timestamp: number) => number;
 	readonly isWithinTimeslot: (
 		slotNumber: number,
-		receivedAt: number,
+		receivedAt: number | undefined,
 	) => boolean;
 	readonly getEpochTime: (time?: number) => number;
 }

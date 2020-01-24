@@ -56,7 +56,7 @@ export class Slots {
 		return slot + 1;
 	}
 
-	public isWithinTimeslot(slot: number, time: number): boolean {
+	public isWithinTimeslot(slot: number, time?: number): boolean {
 		return this.getSlotNumber(time) === slot;
 	}
 }
