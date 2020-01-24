@@ -13,10 +13,11 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 
+import { Storage as StorageAccess } from './data_access';
 import { BlockHeader, BlockJSON, Storage, StorageTransaction } from './types';
 
 export const loadBlocksFromLastBlockId = async (
-	storage: Storage,
+	storageAccess: StorageAccess,
 	lastBlockId: string,
 	limit: number,
 ) => {
@@ -28,7 +29,7 @@ export const loadBlocksFromLastBlockId = async (
 	}
 
 	// Get height of block with supplied ID
-	const [lastBlock] = await storage.entities.Block.get({ id: lastBlockId });
+	const [lastBlock] = await storageAccess.getBlockHeadersByIDs([lastBlockId]);
 	if (!lastBlock) {
 		throw new Error(`Invalid lastBlockId requested: ${lastBlockId}`);
 	}
@@ -38,16 +39,15 @@ export const loadBlocksFromLastBlockId = async (
 	// Calculate max block height for database query
 	const fetchUntilHeight = lastBlockHeight + limit;
 
-	const filter = {
-		height_gt: lastBlockHeight,
-		height_lte: fetchUntilHeight,
-	};
+	const blocks = await storageAccess.getExtendedBlocksByHeightBetween(
+		lastBlockHeight + 1,
+		fetchUntilHeight,
+	);
+	const sortedBlocks = blocks.sort((a: BlockJSON, b: BlockJSON) =>
+		a.height > b.height ? 1 : -1,
+	);
 
-	return storage.entities.Block.get(filter, {
-		extended: true,
-		limit,
-		sort: ['height'],
-	});
+	return sortedBlocks;
 };
 
 export const getIdSequence = async (
@@ -185,15 +185,15 @@ export const setHeight = (
 };
 
 export const loadMemTables = async (
-	storage: Storage,
+	storageAccess: StorageAccess,
 	tx: StorageTransaction,
 ): Promise<{
 	readonly blocksCount: number;
 	readonly genesisBlock: BlockJSON;
 }> => {
 	const promises = [
-		storage.entities.Block.count({}, {}, tx),
-		storage.entities.Block.getOne({ height: 1 }, {}, tx),
+		storageAccess.getBlockCount(),
+		storageAccess.getBlockHeadersByHeightBetween(0, 1),
 	];
 
 	const [blocksCount, genesisBlock] = await tx.batch(promises);

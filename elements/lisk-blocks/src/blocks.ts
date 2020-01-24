@@ -33,7 +33,7 @@ import {
 	saveBlock,
 	undoConfirmedStep,
 } from './chain';
-import { StorageAccess } from './data_access';
+import { Storage as StorageAccess } from './data_access';
 import { StateStore } from './state_store';
 import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
 import {
@@ -203,7 +203,7 @@ export class Blocks extends EventEmitter {
 			genesisBlock,
 		} = await this.storage.entities.Block.begin(
 			'loader:checkMemTables',
-			async tx => blocksUtils.loadMemTables(this.storage, tx),
+			async tx => blocksUtils.loadMemTables(this.storageAccess, tx),
 		);
 
 		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
@@ -313,7 +313,7 @@ export class Blocks extends EventEmitter {
 			await verifyBlockNotExists(this.storage, blockInstance);
 			const {
 				transactionsResponses: persistedResponse,
-			} = await checkPersistedTransactions(this.storage)(
+			} = await checkPersistedTransactions(this.storageAccess)(
 				blockInstance.transactions,
 			);
 			const invalidPersistedResponse = persistedResponse.find(
@@ -362,10 +362,13 @@ export class Blocks extends EventEmitter {
 	public async remove(
 		block: BlockInstance,
 		blockJSON: BlockJSON,
-		tx: StorageTransaction,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
+		const storageRowOfBlock = await deleteLastBlock(
+			this.storage,
+			this.storageAccess,
+			block,
+		);
 		const secondLastBlock = this.deserialize(storageRowOfBlock);
 
 		if (saveTempBlock) {
@@ -403,7 +406,7 @@ export class Blocks extends EventEmitter {
 	}
 
 	public async deleteAfter(block: BlockInstance): Promise<void> {
-		return deleteFromBlockId(this.storage, block.id);
+		return deleteFromBlockId(this.storage, this.storageAccess, block.id);
 	}
 
 	public async getJSONBlocksWithLimitAndOffset(
@@ -419,7 +422,9 @@ export class Blocks extends EventEmitter {
 			toHeight,
 		);
 
-		return blocks.sort((a, b) => (a.height > b.height ? 1 : -1));
+		return blocks.sort((a: BlockJSON, b: BlockJSON) =>
+			a.height > b.height ? 1 : -1,
+		);
 	}
 
 	public async loadBlocksFromLastBlockId(
@@ -427,7 +432,7 @@ export class Blocks extends EventEmitter {
 		limit: number = 1,
 	): Promise<BlockJSON[]> {
 		return blocksUtils.loadBlocksFromLastBlockId(
-			this.storage,
+			this.storageAccess,
 			lastBlockId,
 			limit,
 		);
@@ -438,10 +443,10 @@ export class Blocks extends EventEmitter {
 	): Promise<BlockJSON | undefined> {
 		try {
 			const blocks = await this.storageAccess.getBlockHeadersByIDs(ids);
-			const blocksSortedDescendingByHeight = blocks.sort((a, b) =>
+			const sortedBlocks = blocks.sort((a: BlockJSON, b: BlockJSON) =>
 				a.height > b.height ? -1 : 1,
 			);
-			const highestCommonBlock = blocksSortedDescendingByHeight.shift();
+			const highestCommonBlock = sortedBlocks.shift();
 
 			return highestCommonBlock;
 		} catch (e) {
@@ -511,7 +516,7 @@ export class Blocks extends EventEmitter {
 					blockTimestamp: timestamp,
 				};
 			}),
-			checkPersistedTransactions(this.storage),
+			checkPersistedTransactions(this.storageAccess),
 			verifyTransactions(this.slots, this.exceptions),
 		)(transactions, stateStore);
 	}
@@ -522,7 +527,7 @@ export class Blocks extends EventEmitter {
 		const stateStore = new StateStore(this.storage);
 
 		return composeTransactionSteps(
-			checkPersistedTransactions(this.storage),
+			checkPersistedTransactions(this.storageAccess),
 			applyTransactions(this.exceptions),
 		)(transactions, stateStore);
 	}

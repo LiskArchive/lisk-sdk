@@ -20,6 +20,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+import { Storage as StorageAccess } from '../data_access';
 import { StateStore } from '../state_store';
 import {
 	Contexter,
@@ -27,7 +28,6 @@ import {
 	MatcherTransaction,
 	SignatureObject,
 	Slots,
-	Storage,
 	WriteableTransactionResponse,
 } from '../types';
 
@@ -95,11 +95,11 @@ export const verifyTotalSpending = (
 		// Initialize the sender spending with zero
 		senderSpending[senderId] = BigInt(0);
 
-		senderTransactions[senderId].forEach(transaction => {
+		senderTransactions[senderId].forEach((transaction: TransactionJSON) => {
 			const senderTotalSpending =
 				senderSpending[senderId] +
 				// tslint:disable-next-line no-any
-				BigInt((transaction.asset as any).amount || 0) +
+				BigInt(transaction.asset.amount || 0) +
 				BigInt(transaction.fee);
 
 			if (senderBalance < senderTotalSpending) {
@@ -140,7 +140,7 @@ export const applyGenesisTransactions = () => async (
 		const transactionResponse = transaction.apply(stateStore);
 
 		votesWeight.apply(stateStore, transaction);
-		stateStore.transaction.add(transaction as TransactionJSON);
+		stateStore.transaction.add(transaction);
 
 		// We are overriding the status of transaction because it's from genesis block
 		(transactionResponse as WriteableTransactionResponse).status =
@@ -193,7 +193,7 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 
 			if (transactionResponse.status === TransactionStatus.OK) {
 				votesWeight.apply(stateStore, transaction, exceptions);
-				stateStore.transaction.add(transaction as TransactionJSON);
+				stateStore.transaction.add(transaction);
 			}
 
 			if (transactionResponse.status !== TransactionStatus.OK) {
@@ -212,21 +212,21 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	};
 };
 
-export const checkPersistedTransactions = (storage: Storage) => async (
-	transactions: ReadonlyArray<BaseTransaction>,
-) => {
+export const checkPersistedTransactions = (
+	storageAccess: StorageAccess,
+) => async (transactions: ReadonlyArray<BaseTransaction>) => {
 	if (!transactions.length) {
 		return {
 			transactionsResponses: [],
 		};
 	}
 
-	const confirmedTransactions = await storage.entities.Transaction.get({
-		id_in: transactions.map(transaction => transaction.id),
-	});
+	const confirmedTransactions = await storageAccess.getTransactionsByIDs(
+		transactions.map(transaction => transaction.id),
+	);
 
 	const persistedTransactionIds = confirmedTransactions.map(
-		transaction => transaction.id,
+		(transaction: TransactionJSON) => transaction.id,
 	);
 	const persistedTransactions = transactions.filter(transaction =>
 		persistedTransactionIds.includes(transaction.id),
