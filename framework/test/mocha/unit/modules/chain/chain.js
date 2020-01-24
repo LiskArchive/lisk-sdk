@@ -139,8 +139,7 @@ describe('Chain', () => {
 		});
 		it('should assign logger, scope, blockReward, slots properties as null', () => {
 			expect(chain.logger).to.be.null;
-			expect(chain.scope).to.be.null;
-			return expect(chain.slots).to.be.null;
+			return expect(chain.scope).to.be.null;
 		});
 	});
 
