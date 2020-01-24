@@ -223,7 +223,7 @@ describe('fast_chain_switching_mechanism', () => {
 						height_gte: genesisBlockDevnet.height,
 						height_lte: lastBlock.height,
 					},
-					{ limit: undefined, sort: 'height:asc' },
+					{ limit: null, sort: 'height:asc' },
 				)
 				.mockResolvedValue([genesisBlockDevnet, lastBlock]);
 
@@ -438,7 +438,7 @@ describe('fast_chain_switching_mechanism', () => {
 							height_gte: expect.any(Number),
 							height_lte: expect.any(Number),
 						}),
-						{ limit: undefined, sort: 'height:asc' },
+						{ limit: null, sort: 'height:asc' },
 					)
 					.mockResolvedValue([lastBlock]);
 
