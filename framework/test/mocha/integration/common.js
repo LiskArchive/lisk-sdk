@@ -26,7 +26,9 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { Slots } = require('@liskhq/lisk-blocks');
 const { Rounds } = require('@liskhq/lisk-dpos');
-const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
+const {
+	sortTransactions,
+} = require('../../../src/controller/node/forger/sort');
 const application = require('../../utils/legacy/application');
 const randomUtil = require('../../utils/random');
 const accountFixtures = require('../../fixtures/accounts');

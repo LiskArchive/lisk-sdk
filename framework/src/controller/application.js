@@ -34,7 +34,7 @@ const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
 
-const ChainModule = require('../modules/chain');
+const ChainModule = require('./node');
 const HttpAPIModule = require('../modules/http_api');
 
 // Private __private used because private keyword is restricted
