@@ -37,7 +37,7 @@ describe('lisk-elements', () => {
 	});
 
 	it('p2p should be an object', () => {
-		return expect(p2p).to.be.an('object');
+		return expect(p2p).toBeObject();
 	});
 
 	it('passphrase should be an object', () => {
@@ -45,7 +45,7 @@ describe('lisk-elements', () => {
 	});
 
 	it('transactionPool should be an object', () => {
-		return expect(transacationPool).to.be.an('object');
+		return expect(transacationPool).toBeObject();
 	});
 
 	it('transactions should be an object', () => {
@@ -53,6 +53,6 @@ describe('lisk-elements', () => {
 	});
 
 	it('validator should be an object', () => {
-		return expect(validator).to.be.an('object');
+		return expect(validator).toBeObject();
 	});
 });
