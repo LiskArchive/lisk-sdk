@@ -29,10 +29,11 @@ const {
 	migrations: controllerMigrations,
 } = require('../../../../src/controller/storage/migrations');
 
+const ApplicationAlias = 'app';
 const modulesMigrations = {
 	[ChainModule.alias]: ChainModule.migrations,
 	[HttpAPIModule.alias]: HttpAPIModule.migrations,
-	['app']: controllerMigrations,
+	[ApplicationAlias]: controllerMigrations,
 };
 
 const createStorageComponent = async (options, logger = console) => {
