@@ -277,10 +277,6 @@ module.exports = {
 				},
 			},
 			required: ['seedPeers'],
-			default: {
-				wsPort: 5000,
-				seedPeers: [],
-			},
 		},
 		components: {
 			type: 'object',
@@ -341,6 +337,7 @@ module.exports = {
 		},
 		network: {
 			seedPeers: [],
+			wsPort: 5000,
 		},
 		components: {
 			system: {},

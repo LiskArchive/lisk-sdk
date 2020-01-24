@@ -43,6 +43,7 @@ Object {
     },
     "network": Object {
       "seedPeers": Array [],
+      "wsPort": 5000,
     },
   },
   "id": "#/app/config",
@@ -208,10 +209,6 @@ Object {
       "type": "object",
     },
     "network": Object {
-      "default": Object {
-        "seedPeers": Array [],
-        "wsPort": 5000,
-      },
       "properties": Object {
         "ackTimeout": Object {
           "type": "integer",
