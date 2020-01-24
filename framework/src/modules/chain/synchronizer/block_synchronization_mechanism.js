@@ -37,7 +37,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		logger,
 		channel,
 		rounds,
-		slots,
 		bft,
 		blocks,
 		processorModule,
@@ -46,7 +45,6 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		super(storage, logger, channel);
 		this.bft = bft;
 		this.rounds = rounds;
-		this.slots = slots;
 		this.blocks = blocks;
 		this.processorModule = processorModule;
 		this.constants = {
@@ -103,10 +101,10 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const finalizedBlock = await this.storage.entities.Block.getOne({
 			height_eql: this.bft.finalizedHeight,
 		});
-		const finalizedBlockSlot = this.slots.getSlotNumber(
+		const finalizedBlockSlot = this.blocks.slots.getSlotNumber(
 			finalizedBlock.timestamp,
 		);
-		const currentBlockSlot = this.slots.getSlotNumber();
+		const currentBlockSlot = this.blocks.slots.getSlotNumber();
 		const threeRounds = this.constants.activeDelegates * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;

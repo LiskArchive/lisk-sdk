@@ -33,7 +33,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		storage,
 		logger,
 		channel,
-		rounds,
 		blocks,
 		bft,
 		processor,
@@ -41,7 +40,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		activeDelegates,
 	}) {
 		super(storage, logger, channel);
-		this.rounds = rounds;
 		this.dpos = dpos;
 		this.blocks = blocks;
 		this.bft = bft;
