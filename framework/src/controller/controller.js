@@ -197,7 +197,7 @@ class Controller {
 			logger: this.logger,
 			channel: this.channel,
 		});
-		this.network.initialiseNetwork();
+		await this.network.initialiseNetwork();
 	}
 
 	async _loadModules(modules, moduleOptions) {
