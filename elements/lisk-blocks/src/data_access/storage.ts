@@ -17,15 +17,15 @@ import { TransactionJSON } from '@liskhq/lisk-transactions';
 import {
 	Account,
 	BlockJSON,
-	Storage,
+	Storage as DBStorage,
 	StorageTransaction,
 	TempBlock,
 } from '../types';
 
-export class StorageAccess {
-	private readonly _storage: Storage;
+export class Storage {
+	private readonly _storage: DBStorage;
 
-	public constructor(storage: Storage) {
+	public constructor(storage: DBStorage) {
 		this._storage = storage;
 	}
 
