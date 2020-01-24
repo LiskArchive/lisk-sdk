@@ -129,7 +129,7 @@ class Controller {
 
 		this.channel = new InMemoryChannel(
 			'app',
-			['ready', 'state:updated'],
+			['ready', 'state:updated', 'networkEvent'],
 			{
 				getComponentConfig: {
 					handler: action => this.config.components[action.params],

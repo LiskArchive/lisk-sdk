@@ -214,7 +214,7 @@ module.exports = class Chain {
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe(
-					'network:event',
+					'app:networkEvent',
 					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactionsAnnouncement') {

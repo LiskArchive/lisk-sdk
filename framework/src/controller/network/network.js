@@ -81,7 +81,6 @@ module.exports = class Network {
 
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
-			wsPort: this.networkConfig.wsPort,
 			advertiseAddress: this.networkConfig.advertiseAddress,
 		});
 
@@ -269,7 +268,7 @@ module.exports = class Network {
 			this.logger.trace(
 				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${packet.peerId} for event ${packet.event}`,
 			);
-			this.channel.publish('network:event', packet);
+			this.channel.publish('app:networkEvent', packet);
 		});
 
 		this.p2p.on(EVENT_BAN_PEER, peerId => {
