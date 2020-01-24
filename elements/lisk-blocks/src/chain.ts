@@ -51,20 +51,19 @@ export const deleteLastBlock = async (
 	storage: Storage,
 	storageAccess: StorageAccess,
 	lastBlock: BlockJSON,
-	tx: StorageTransaction,
 ): Promise<BlockJSON> => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
 	}
 	const [storageBlock] = await storageAccess.getExtendedBlocksById([
-		lastBlock.previousBlockId,
+		lastBlock.previousBlockId as string,
 	]);
 
 	if (!storageBlock) {
 		throw new Error('PreviousBlock is null');
 	}
 
-	await storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
+	await storage.entities.Block.delete({ id: lastBlock.id }, {});
 
 	return storageBlock;
 };
