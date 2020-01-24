@@ -17,22 +17,24 @@
 const { getRandomBytes } = require('@liskhq/lisk-cryptography');
 const {
 	P2P,
-	EVENT_NETWORK_READY,
-	EVENT_NEW_INBOUND_PEER,
-	EVENT_CLOSE_INBOUND,
-	EVENT_CLOSE_OUTBOUND,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
-	EVENT_FAILED_TO_PUSH_NODE_INFO,
-	EVENT_OUTBOUND_SOCKET_ERROR,
-	EVENT_INBOUND_SOCKET_ERROR,
-	EVENT_UPDATED_PEER_INFO,
-	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_REQUEST_RECEIVED,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_BAN_PEER,
-	EVENT_UNBAN_PEER,
+	events: {
+		EVENT_NETWORK_READY,
+		EVENT_NEW_INBOUND_PEER,
+		EVENT_CLOSE_INBOUND,
+		EVENT_CLOSE_OUTBOUND,
+		EVENT_CONNECT_OUTBOUND,
+		EVENT_DISCOVERED_PEER,
+		EVENT_FAILED_TO_FETCH_PEER_INFO,
+		EVENT_FAILED_TO_PUSH_NODE_INFO,
+		EVENT_OUTBOUND_SOCKET_ERROR,
+		EVENT_INBOUND_SOCKET_ERROR,
+		EVENT_UPDATED_PEER_INFO,
+		EVENT_FAILED_PEER_INFO_UPDATE,
+		EVENT_REQUEST_RECEIVED,
+		EVENT_MESSAGE_RECEIVED,
+		EVENT_BAN_PEER,
+		EVENT_UNBAN_PEER,
+	},
 } = require('@liskhq/lisk-p2p');
 const { createLoggerComponent } = require('../../components/logger');
 const { createStorageComponent } = require('../../components/storage');
@@ -111,16 +113,11 @@ module.exports = class Network {
 			this.secret = Number(secret);
 		}
 
-		const sanitizeNodeInfo = nodeInfo => {
-			const { nethash, ...restOfNodeInfo } = nodeInfo;
-
-			return {
-				...restOfNodeInfo,
-				networkId: nethash,
-				wsPort: this.options.wsPort,
-				advertiseAddress: this.options.advertiseAddress,
-			};
-		};
+		const sanitizeNodeInfo = nodeInfo => ({
+			...nodeInfo,
+			wsPort: this.options.wsPort,
+			advertiseAddress: this.options.advertiseAddress,
+		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('app:getApplicationState'),
@@ -383,24 +380,8 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
-			getConnectedPeers: () =>
-				this.p2p.getConnectedPeers().map(peerInfo => {
-					const { networkId, ...peerInfoNethash } = peerInfo;
-
-					return {
-						...peerInfoNethash,
-						nethash: networkId,
-					};
-				}),
-			getDisconnectedPeers: () =>
-				this.p2p.getDisconnectedPeers().map(peerInfo => {
-					const { networkId, ...peerInfoNethash } = peerInfo;
-
-					return {
-						...peerInfoNethash,
-						nethash: networkId,
-					};
-				}),
+			getConnectedPeers: () => this.p2p.getConnectedPeers(),
+			getDisconnectedPeers: () => this.p2p.getDisconnectedPeers(),
 			applyPenalty: action =>
 				this.p2p.applyPenalty({
 					peerId: action.params.peerId,

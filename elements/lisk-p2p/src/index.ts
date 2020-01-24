@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './constants';
-export * from './errors';
-export * from './events';
-export * from './p2p_request';
-export * from './p2p_types';
-export * from './p2p';
+import * as constants from './constants';
+import * as errors from './errors';
+import * as events from './events';
+import { P2P } from './p2p';
+import * as p2p_request from './p2p_request';
+import * as p2p_types from './p2p_types';
+
+export { constants, errors, events, p2p_request, p2p_types, P2P };

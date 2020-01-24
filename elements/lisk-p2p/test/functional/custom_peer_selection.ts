@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P } from '../../src/index';
+import { P2P, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
 	P2PPeerSelectionForSendFunction,
@@ -22,7 +22,8 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
-import { ConnectionKind } from '../../src/constants';
+
+const { ConnectionKind } = constants;
 
 import {
 	createNetwork,

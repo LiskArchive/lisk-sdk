@@ -21,7 +21,7 @@ import NetworkIdentifierCommand from '../../src/commands/network-identifier';
 describe('network-identifier command', () => {
 	const networkIdentifier = {
 		networkIdentifier:
-			'00adc544a063705a317d573ac2c2d88df717b9b7d472880ed4de7a830f611818',
+			'7dbdc2b4694bd5ab6663c4d078aa628ae032cb91ce0fe03a5077d7ef3ba2e8bc',
 	};
 
 	const networkIdentifierStub = sandbox.stub();
@@ -55,9 +55,9 @@ describe('network-identifier command', () => {
 			.it('should throw an error');
 	});
 
-	describe('network-identifier --nethash=123', () => {
+	describe('network-identifier 123', () => {
 		setupTest()
-			.command(['network-identifier', '--nethash=123'])
+			.command(['network-identifier', '123'])
 			.it('should show networkIdentifier', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(
 					networkIdentifier,

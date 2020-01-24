@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P, EVENT_CLOSE_OUTBOUND, EVICTED_PEER_CODE } from '../../src/index';
+import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+
+const { EVENT_CLOSE_OUTBOUND } = events;
 
 describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -40,7 +42,7 @@ describe('Outbound peer shuffling', () => {
 
 		p2pNodeList.forEach(p2p => {
 			p2p.on(EVENT_CLOSE_OUTBOUND, msg => {
-				if (msg.code === EVICTED_PEER_CODE) {
+				if (msg.code === constants.EVICTED_PEER_CODE) {
 					let evictedConnections = collectedEventsCount.get(
 						p2p.nodeInfo.wsPort,
 					);

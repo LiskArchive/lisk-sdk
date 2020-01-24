@@ -31,8 +31,8 @@ export const getAPIClient = ({
 	nodes,
 	network,
 }: APIClientOptions): APIClient => {
-	const nethash = NETHASHES[network] || network;
+	const genesisBlockPayloadHash = NETHASHES[network] || network;
 	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
 
-	return new APIClient(clientNodes, { nethash });
+	return new APIClient(clientNodes, { genesisBlockPayloadHash });
 };
