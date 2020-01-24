@@ -15,7 +15,7 @@
 'use strict';
 
 const yargs = require('yargs');
-const chainModule = require('../modules/chain');
+const chainModule = require('./node');
 const APIModule = require('../modules/http_api');
 const { config: loggerConfig } = require('../components/logger/defaults');
 const { config: storageConfig } = require('../components/storage/defaults');

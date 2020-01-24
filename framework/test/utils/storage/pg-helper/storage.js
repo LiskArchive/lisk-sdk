@@ -23,7 +23,7 @@ const {
 } = require('../../../../src/components/storage/defaults');
 const validator = require('../../../../src/controller/validator');
 
-const ChainModule = require('../../../../src/modules/chain');
+const ChainModule = require('../../../../src/controller/node');
 const HttpAPIModule = require('../../../../src/modules/http_api');
 const {
 	migrations: controllerMigrations,

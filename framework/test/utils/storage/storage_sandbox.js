@@ -31,7 +31,7 @@ const {
 	ChainState,
 	ForgerInfo,
 	TempBlock,
-} = require('../../../src/modules/chain/components/storage/entities');
+} = require('../../../src/controller/node/components/storage/entities');
 
 const {
 	migrations: controllerMigrations,
@@ -42,7 +42,7 @@ const {
 	NetworkInfoEntity: NetworkInfo,
 } = require('../../../src/controller/storage/entities');
 
-const ChainModule = require('../../../src/modules/chain');
+const ChainModule = require('../../../src/controller/node');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
