@@ -119,7 +119,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			return false;
 		}
 
-		const blockRound = this.rounds.calcRound(receivedBlock.height);
+		const blockRound = this.dpos.rounds.calcRound(receivedBlock.height);
 		const delegateList = await this.dpos.getForgerPublicKeysForRound(
 			blockRound,
 		);
