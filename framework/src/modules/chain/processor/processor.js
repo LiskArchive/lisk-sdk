@@ -297,6 +297,11 @@ class Processor {
 				});
 			}
 
+			if (!skipSave) {
+				// TODO: After moving everything to state store, save should get the state store and finalize the state store
+				await this.blocksModule.save(blockJSON, tx);
+			}
+
 			// Apply should always be executed after save as it performs database calculations
 			// i.e. Dpos.apply expects to have this processing block in the database
 			await processor.apply.run({
@@ -306,11 +311,6 @@ class Processor {
 				stateStore,
 				tx,
 			});
-
-			if (!skipSave) {
-				// TODO: After moving everything to state store, save should get the state store and finalize the state store
-				await this.blocksModule.save(blockJSON, tx);
-			}
 
 			if (removeFromTempTable) {
 				await this.blocksModule.removeBlockFromTempTable(block.id, tx);

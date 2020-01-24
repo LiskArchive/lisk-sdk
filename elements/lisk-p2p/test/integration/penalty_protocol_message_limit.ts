@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
-	EVENT_BAN_PEER,
-	DEFAULT_WS_MAX_MESSAGE_RATE,
-} from '../../src/index';
+import { P2P, events, constants } from '../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
@@ -35,7 +31,7 @@ describe('P2P protocol message limit', () => {
 			maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 			fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
 			rateCalculationInterval: 1000,
-			wsMaxMessageRatePenalty: DEFAULT_WS_MAX_MESSAGE_RATE,
+			wsMaxMessageRatePenalty: constants.DEFAULT_WS_MAX_MESSAGE_RATE,
 			populatorInterval: index === 2 ? 100 : 10000,
 		});
 
@@ -46,7 +42,7 @@ describe('P2P protocol message limit', () => {
 		});
 
 		for (let p2p of p2pNodeList) {
-			p2p.on(EVENT_BAN_PEER, peerId => {
+			p2p.on(events.EVENT_BAN_PEER, peerId => {
 				bannedPeer = peerId;
 			});
 		}

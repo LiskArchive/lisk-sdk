@@ -979,7 +979,7 @@ describe('processor', () => {
 
 			it('should apply the block', async () => {
 				applySteps.forEach(step => {
-					expect(step).toHaveBeenCalled();
+					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
