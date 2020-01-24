@@ -49,7 +49,7 @@ const modulesMigrations = {};
 const ApplicationAlias = 'app';
 modulesMigrations[ChainModule.alias] = ChainModule.migrations;
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
-modulesMigrations[ApplicationAlias] = controllerMigrations;
+modulesMigrations[ApplicationAlias] = controllerMigrations();
 
 const dbNames = [];
 

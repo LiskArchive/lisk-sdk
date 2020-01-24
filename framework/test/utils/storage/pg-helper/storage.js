@@ -33,7 +33,7 @@ const ApplicationAlias = 'app';
 const modulesMigrations = {
 	[ChainModule.alias]: ChainModule.migrations,
 	[HttpAPIModule.alias]: HttpAPIModule.migrations,
-	[ApplicationAlias]: controllerMigrations,
+	[ApplicationAlias]: controllerMigrations(),
 };
 
 const createStorageComponent = async (options, logger = console) => {
