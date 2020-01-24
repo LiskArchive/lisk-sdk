@@ -12,35 +12,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Slots } from '../../src';
+import { Rounds } from '../../src/rounds';
 
-import {
-	EPOCH_TIME,
-	BLOCK_TIME,
-	ACTIVE_DELEGATES,
-} from '../fixtures/constants';
+import { ACTIVE_DELEGATES } from '../fixtures/constants';
 
 describe('Slots', () => {
-	let slots: Slots;
+	let rounds: Rounds;
 
 	beforeEach(async () => {
-		slots = new Slots({
-			epochTime: EPOCH_TIME,
-			interval: BLOCK_TIME,
+		rounds = new Rounds({
 			blocksPerRound: ACTIVE_DELEGATES,
 		});
 	});
 
 	describe('calc', () => {
 		it('should calculate round number from given block height', async () => {
-			expect(slots.calcRound(100)).toEqual(1);
-			expect(slots.calcRound(200)).toEqual(2);
-			expect(slots.calcRound(303)).toEqual(3);
-			return expect(slots.calcRound(304)).toEqual(4);
+			expect(rounds.calcRound(100)).toEqual(1);
+			expect(rounds.calcRound(200)).toEqual(2);
+			expect(rounds.calcRound(303)).toEqual(3);
+			return expect(rounds.calcRound(304)).toEqual(4);
 		});
 
 		it('should calculate round number from Number.MAX_VALUE', async () => {
-			const res = slots.calcRound(Number.MAX_VALUE);
+			const res = rounds.calcRound(Number.MAX_VALUE);
 			expect(typeof res === 'number').toBe(true);
 			return expect(res).toBeLessThan(Number.MAX_VALUE);
 		});

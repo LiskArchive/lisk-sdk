@@ -17,7 +17,8 @@
 const { when } = require('jest-when');
 const { Blocks } = require('@liskhq/lisk-blocks');
 const { BFT } = require('@liskhq/lisk-bft');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Rounds } = require('@liskhq/lisk-dpos');
+
 const {
 	BlockProcessorV2,
 } = require('../../../../../../../src/modules/chain/block_processor_v2');
@@ -51,7 +52,7 @@ describe('Synchronizer', () => {
 	let synchronizer;
 	let syncMechanism1;
 	let syncMechanism2;
-	let slots;
+	let rounds;
 
 	let channelMock;
 	let dposModuleMock;
@@ -86,26 +87,13 @@ describe('Synchronizer', () => {
 		};
 		channelMock = new ChannelMock();
 
-		slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
-		});
-
-		bftModule = new BFT({
-			storage: storageMock,
-			logger: loggerMock,
-			slots,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			startingHeight: 1,
-		});
+		rounds = new Rounds({ blocksPerRound: constants.ACTIVE_DELEGATES });
 
 		blocksModule = new Blocks({
 			logger: loggerMock,
 			storage: storageMock,
-			slots,
-			genesisBlock: genesisBlockDevnet,
 			sequence: new Sequence(),
+			genesisBlock: genesisBlockDevnet,
 			registeredTransactions,
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
@@ -117,6 +105,17 @@ describe('Synchronizer', () => {
 			rewardMileStones: constants.REWARDS.MILESTONES,
 			totalAmount: constants.TOTAL_AMOUNT,
 			blockSlotWindow: constants.BLOCK_SLOT_WINDOW,
+			epochTime: constants.EPOCH_TIME,
+			blockTime: constants.BLOCK_TIME,
+		});
+
+		bftModule = new BFT({
+			storage: storageMock,
+			logger: loggerMock,
+			rounds,
+			slots: blocksModule.slots,
+			activeDelegates: constants.ACTIVE_DELEGATES,
+			startingHeight: 1,
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({

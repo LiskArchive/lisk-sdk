@@ -14,9 +14,10 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 
-import { Slots } from './slots';
+import { Rounds } from './rounds';
 import {
 	Block,
+	Blocks,
 	DPoSProcessingOptions,
 	Storage,
 	StorageTransaction,
@@ -24,8 +25,9 @@ import {
 
 interface DelegatesListConstructor {
 	readonly storage: Storage;
-	readonly slots: Slots;
+	readonly rounds: Rounds;
 	readonly activeDelegates: number;
+	readonly blocksModule: Blocks;
 	readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
@@ -57,7 +59,8 @@ export const shuffleDelegateListForRound = (
 
 export class DelegatesList {
 	private readonly storage: Storage;
-	private readonly slots: Slots;
+	private readonly rounds: Rounds;
+	private readonly blocksModule: Blocks;
 	private readonly activeDelegates: number;
 	private readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
@@ -66,13 +69,15 @@ export class DelegatesList {
 	public constructor({
 		storage,
 		activeDelegates,
-		slots,
+		rounds,
+		blocksModule,
 		exceptions,
 	}: DelegatesListConstructor) {
 		this.storage = storage;
 		this.activeDelegates = activeDelegates;
-		this.slots = slots;
+		this.rounds = rounds;
 		this.exceptions = exceptions;
+		this.blocksModule = blocksModule;
 	}
 
 	/**
@@ -178,8 +183,8 @@ export class DelegatesList {
 		block: Block,
 		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
-		const currentSlot = this.slots.getSlotNumber(block.timestamp);
-		const currentRound = this.slots.calcRound(block.height);
+		const currentSlot = this.blocksModule.slots.getSlotNumber(block.timestamp);
+		const currentRound = this.rounds.calcRound(block.height);
 
 		const delegateList = await this.getForgerPublicKeysForRound(
 			currentRound,

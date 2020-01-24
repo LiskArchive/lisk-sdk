@@ -166,3 +166,7 @@ export interface RoundException {
 	readonly fees_factor: number;
 	readonly fees_bonus: number;
 }
+
+export interface Blocks {
+	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
+}
