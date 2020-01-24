@@ -38,7 +38,7 @@ import {
 import { RPCResponseError } from '../../../src/errors';
 import { SCServerSocket } from 'socketcluster-server';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
-import { P2PPeerInfo } from '../../../src';
+import { p2p_types } from '../../../src';
 
 const createSocketStubInstance = () => <SCServerSocket>({
 		emit: jest.fn(),
@@ -46,9 +46,9 @@ const createSocketStubInstance = () => <SCServerSocket>({
 	} as any);
 
 describe('peer/base', () => {
-	let defaultPeerInfo: P2PPeerInfo;
+	let defaultPeerInfo: p2p_types.P2PPeerInfo;
 	let peerConfig: PeerConfig;
-	let p2pDiscoveredPeerInfo: P2PPeerInfo;
+	let p2pDiscoveredPeerInfo: p2p_types.P2PPeerInfo;
 	let defaultPeer: Peer;
 
 	beforeEach(() => {
@@ -507,7 +507,7 @@ describe('peer/base', () => {
 	});
 
 	describe('#discoverPeers', () => {
-		let discoveredPeers: ReadonlyArray<P2PPeerInfo>;
+		let discoveredPeers: ReadonlyArray<p2p_types.P2PPeerInfo>;
 
 		beforeEach(() => {
 			discoveredPeers = [

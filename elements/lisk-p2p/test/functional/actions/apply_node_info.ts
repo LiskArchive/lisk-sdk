@@ -12,15 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
-	EVENT_MESSAGE_RECEIVED,
-	REMOTE_EVENT_POST_NODE_INFO,
-} from '../../../src/index';
+import { P2P, events } from '../../../src/index';
 import { InvalidNodeInfoError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
 import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
+
+const { EVENT_MESSAGE_RECEIVED, REMOTE_EVENT_POST_NODE_INFO } = events;
 
 describe('P2P.applyNodeInfo', () => {
 	let p2pNodeList: P2P[] = [];

@@ -16,9 +16,11 @@ import {
 	APIClient,
 	constants,
 	cryptography,
+	p2p,
 	passphrase,
+	transacationPool,
 	transactions,
-	transaction,
+	validator,
 } from '../src';
 
 describe('lisk-elements', () => {
@@ -34,15 +36,23 @@ describe('lisk-elements', () => {
 		return expect(cryptography).toBeObject();
 	});
 
+	it('p2p should be an object', () => {
+		return expect(p2p).to.be.an('object');
+	});
+
 	it('passphrase should be an object', () => {
 		return expect(passphrase).toBeObject();
+	});
+
+	it('transactionPool should be an object', () => {
+		return expect(transacationPool).to.be.an('object');
 	});
 
 	it('transactions should be an object', () => {
 		return expect(transactions).toBeObject();
 	});
 
-	it('transaction should be an object', () => {
-		return expect(transaction).toBeObject();
+	it('validator should be an object', () => {
+		return expect(validator).to.be.an('object');
 	});
 });

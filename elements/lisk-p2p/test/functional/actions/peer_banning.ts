@@ -12,18 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P, ProtocolPeerInfo } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
 	SEED_PEER_IP,
 } from '../../utils/network_setup';
-import {
-	EVENT_BAN_PEER,
-	EVENT_UNBAN_PEER,
-	EVENT_CLOSE_INBOUND,
-} from '../../../src/index';
+import { P2P, events, p2p_types } from '../../../src/index';
+
+const { EVENT_BAN_PEER, EVENT_UNBAN_PEER, EVENT_CLOSE_INBOUND } = events;
 
 describe('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -59,7 +56,7 @@ describe('Peer banning mechanism', () => {
 	});
 
 	describe('when penalty is 100 or more', () => {
-		let badPeer: ProtocolPeerInfo;
+		let badPeer: p2p_types.ProtocolPeerInfo;
 
 		beforeEach(async () => {
 			const firstNode = p2pNodeList[0];

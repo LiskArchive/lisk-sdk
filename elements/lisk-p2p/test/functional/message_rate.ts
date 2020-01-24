@@ -12,17 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	P2P,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_REMOVE_PEER,
-} from '../../src/index';
+import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_START_PORT,
 } from '../utils/network_setup';
+
+const { EVENT_MESSAGE_RECEIVED, EVENT_REMOVE_PEER } = events;
 
 describe('Message rate limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];

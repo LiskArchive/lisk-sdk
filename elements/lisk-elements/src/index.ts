@@ -15,16 +15,19 @@
 import { APIClient } from '@liskhq/lisk-api-client';
 import * as constants from '@liskhq/lisk-constants';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import * as p2p from '@liskhq/lisk-p2p';
 import * as passphrase from '@liskhq/lisk-passphrase';
+import * as transacationPool from '@liskhq/lisk-transaction-pool';
 import * as transactions from '@liskhq/lisk-transactions';
+import * as validator from '@liskhq/lisk-validator';
 
 export {
 	APIClient,
 	constants,
 	cryptography,
 	passphrase,
+	p2p,
 	transactions,
-	// Also export as `transacation` for backward compatibility.
-	// See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
-	transactions as transaction,
+	transacationPool,
+	validator,
 };
