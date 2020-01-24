@@ -93,9 +93,11 @@ describe('Controller Class', () => {
 				_validatePidFile: jest.spyOn(controller, '_validatePidFile'),
 				_initState: jest.spyOn(controller, '_initState'),
 				_setupBus: jest.spyOn(controller, '_setupBus'),
-				_initialiseNetwork: jest.spyOn(controller, '_initialiseNetwork'),
 				_loadMigrations: jest
 					.spyOn(controller, '_loadMigrations')
+					.mockImplementation(),
+				_initialiseNetwork: jest
+					.spyOn(controller, '_initialiseNetwork')
 					.mockImplementation(),
 				_loadModules: jest.spyOn(controller, '_loadModules'),
 			};
@@ -103,7 +105,7 @@ describe('Controller Class', () => {
 			const moduleOptions = {};
 
 			// Act
-			await controller.load(modules, moduleOptions);
+			await controller.load(modules, moduleOptions, {}, {});
 
 			// Assert
 			// Order of the functions matters in load method
