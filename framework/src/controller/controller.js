@@ -67,7 +67,6 @@ class Controller {
 		await this._validatePidFile();
 		this._initState();
 		await this._setupBus();
-		console.log(controllerMigrations);
 		await this._loadMigrations({ ...migrations, app: controllerMigrations });
 		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 		await this._initialiseNetwork(networkConfig);

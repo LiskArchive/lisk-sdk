@@ -46,9 +46,10 @@ const ChainModule = require('../../../src/modules/chain');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
+const ApplicationAlias = 'app';
 modulesMigrations[ChainModule.alias] = ChainModule.migrations;
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
-modulesMigrations['app'] = controllerMigrations;
+modulesMigrations[ApplicationAlias] = controllerMigrations;
 
 const dbNames = [];
 
