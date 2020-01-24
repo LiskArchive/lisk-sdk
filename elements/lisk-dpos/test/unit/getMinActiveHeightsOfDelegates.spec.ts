@@ -358,9 +358,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const publicKey = 'x';
 			const activeRounds = [15, 14, 13, 12, 11, 10, 9, 8];
 			const expectedActiveMinHeights = [
-				(dpos as any).rounds.calcRoundStartHeight(12),
-				(dpos as any).rounds.calcRoundStartHeight(11),
-				(dpos as any).rounds.calcRoundStartHeight(10),
+				dpos.rounds.calcRoundStartHeight(12),
+				dpos.rounds.calcRoundStartHeight(11),
+				dpos.rounds.calcRoundStartHeight(10),
 			];
 
 			const lists = generateDelegateLists({
