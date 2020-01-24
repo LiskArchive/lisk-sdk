@@ -2,6 +2,18 @@
 	"title": "BFT processing generation",
 	"summary": "Generate set of blocks to verify fork choice rules",
 	"config": {
+		"blockInterval": 10,
+		"lastBlock": {
+			"id": "4787605425910193884",
+			"height": 10,
+			"version": 2,
+			"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
+			"maxHeightPrevoted": 1,
+			"timestamp": 90,
+			"receivedAt": 92,
+			"previousBlockId": "10639113266773617352"
+		},
+		"epochTime": 1464109200000,
 		"forkStatuses": {
 			"FORK_STATUS_IDENTICAL_BLOCK": 1,
 			"FORK_STATUS_VALID_BLOCK": 2,
@@ -16,20 +28,6 @@
 	"testCases": [
 		{
 			"description": "IDENTICAL_BLOCK: Received identical block, as described as \"Case 1\" in the LIP",
-			"initialState": {
-				"blockInterval": 10,
-				"lastBlock": {
-					"id": "4787605425910193884",
-					"height": 10,
-					"version": 2,
-					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
-					"maxHeightPrevoted": 1,
-					"timestamp": 90,
-					"receivedAt": 92,
-					"previousBlockId": "10639113266773617352"
-				},
-				"epochTime": 1464109200000
-			},
 			"input": {
 				"receivedBlock": {
 					"id": "4787605425910193884",
@@ -48,20 +46,6 @@
 		},
 		{
 			"description": "VALID_BLOCK: Received valid block, as described as \"Case 2\" in the LIP",
-			"initialState": {
-				"blockInterval": 10,
-				"lastBlock": {
-					"id": "4787605425910193884",
-					"height": 10,
-					"version": 2,
-					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
-					"maxHeightPrevoted": 1,
-					"timestamp": 90,
-					"receivedAt": 92,
-					"previousBlockId": "10639113266773617352"
-				},
-				"epochTime": 1464109200000
-			},
 			"input": {
 				"receivedBlock": {
 					"id": "5687604425910193884",
@@ -80,20 +64,6 @@
 		},
 		{
 			"description": "DISCARD: Received invalid block for current state of chain",
-			"initialState": {
-				"blockInterval": 10,
-				"lastBlock": {
-					"id": "4787605425910193884",
-					"height": 10,
-					"version": 2,
-					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
-					"maxHeightPrevoted": 1,
-					"timestamp": 90,
-					"receivedAt": 92,
-					"previousBlockId": "10639113266773617352"
-				},
-				"epochTime": 1464109200000
-			},
 			"input": {
 				"receivedBlock": {
 					"id": "5687604425910193884",
@@ -112,20 +82,6 @@
 		},
 		{
 			"description": "DOUBLE_FORGING: Received double forging block, as described as \"Case 3\" in the LIP",
-			"initialState": {
-				"blockInterval": 10,
-				"lastBlock": {
-					"id": "4787605425910193884",
-					"height": 10,
-					"version": 2,
-					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
-					"maxHeightPrevoted": 1,
-					"timestamp": 90,
-					"receivedAt": 92,
-					"previousBlockId": "10639113266773617352"
-				},
-				"epochTime": 1464109200000
-			},
 			"input": {
 				"receivedBlock": {
 					"id": "5687604425910193884",
@@ -144,7 +100,7 @@
 		},
 		{
 			"description": "TIE_BREAK: Received a block turn to a tie break with last block, as described as \"Case 4\" in the LIP",
-			"initialState": {
+			"config": {
 				"lastBlock": {
 					"id": "4787605425910193884",
 					"height": 10,
@@ -176,20 +132,6 @@
 		},
 		{
 			"description": "DIFFERENT_CHAIN: Received a block from a different chain, as described as \"Case 5\" in the LIP",
-			"initialState": {
-				"blockInterval": 10,
-				"lastBlock": {
-					"id": "4787605425910193884",
-					"height": 10,
-					"version": 2,
-					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
-					"maxHeightPrevoted": 1,
-					"timestamp": 90,
-					"receivedAt": 92,
-					"previousBlockId": "10639113266773617352"
-				},
-				"epochTime": 1464109200000
-			},
 			"input": {
 				"receivedBlock": {
 					"id": "5687604425910193884",
@@ -208,20 +150,6 @@
 		},
 		{
 			"description": "DIFFERENT_CHAIN: Received a block from a different chain, as described as \"Case 5\" in the LIP",
-			"initialState": {
-				"blockInterval": 10,
-				"lastBlock": {
-					"id": "4787605425910193884",
-					"height": 10,
-					"version": 2,
-					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
-					"maxHeightPrevoted": 1,
-					"timestamp": 90,
-					"receivedAt": 92,
-					"previousBlockId": "10639113266773617352"
-				},
-				"epochTime": 1464109200000
-			},
 			"input": {
 				"receivedBlock": {
 					"id": "5687604425910193884",

@@ -72,17 +72,24 @@ describe('bft', () => {
 			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
 					it('should have accurate fork status', async () => {
-						(slots as any).epochTime = testCase.initialState.epochTime;
-						(slots as any).interval = testCase.initialState.blockInterval;
+						const epochTime = testCase.config
+							? testCase.config.epochTime
+							: forkChoiceSpecs.config.epochTime;
+						const interval = testCase.config
+							? testCase.config.blockInterval
+							: forkChoiceSpecs.config.blockInterval;
+						const lastBlock = testCase.config
+							? testCase.config.lastBlock
+							: forkChoiceSpecs.config.lastBlock;
+
+						(slots as any).epochTime = epochTime;
+						(slots as any).interval = interval;
 
 						Date.now = jest.fn(
-							() =>
-								testCase.initialState.epochTime +
-								testCase.input.receivedBlock.receivedAt * 1000,
+							() => epochTime + testCase.input.receivedBlock.receivedAt * 1000,
 						);
 
 						const {
-							initialState: { lastBlock },
 							input: { receivedBlock },
 							output: { forkStatus: expectedForkStatus },
 						} = testCase;

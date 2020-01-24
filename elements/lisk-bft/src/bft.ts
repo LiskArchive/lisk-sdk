@@ -278,7 +278,8 @@ export class BFT extends EventEmitter {
 
 		const rows = await this.blockEntity.get(
 			{ height_gte: fromHeight, height_lte: tillHeight },
-			{ limit: undefined, sort: sortOrder },
+			// tslint:disable-next-line no-null-keyword
+			{ limit: null, sort: sortOrder },
 		);
 
 		const BLOCK_VERSION2 = 2;
