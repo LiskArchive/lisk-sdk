@@ -33,6 +33,7 @@ import {
 	saveBlock,
 	undoConfirmedStep,
 } from './chain';
+import { Slots } from './slots';
 import { StateStore } from './state_store';
 import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
 import {
@@ -54,7 +55,6 @@ import {
 	Logger,
 	MatcherTransaction,
 	SignatureObject,
-	Slots,
 	Storage,
 	StorageFilter,
 	StorageOptions,
@@ -88,6 +88,8 @@ interface BlocksConfig {
 		readonly [key: number]: typeof BaseTransaction;
 	};
 	// Constants
+	readonly epochTime: string;
+	readonly blockTime: number;
 	readonly networkIdentifier: string;
 	readonly blockReceiptTimeout: number; // Set default
 	readonly loadPerIteration: number;
@@ -102,16 +104,19 @@ interface BlocksConfig {
 }
 
 export class Blocks extends EventEmitter {
+	public readonly slots: Slots;
+
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
 	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 	private readonly logger: Logger;
 	private readonly storage: Storage;
-	private readonly slots: Slots;
 	private readonly blockRewardArgs: BlockRewardOptions;
 	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockInstance;
 	private readonly constants: {
+		readonly epochTime: string;
+		readonly blockTime: number;
 		readonly blockReceiptTimeout: number;
 		readonly maxPayloadLength: number;
 		readonly maxTransactionsPerBlock: number;
@@ -130,11 +135,12 @@ export class Blocks extends EventEmitter {
 		storage,
 		// Unique requirements
 		genesisBlock,
-		slots,
 		exceptions,
 		// Modules
 		registeredTransactions,
 		// Constants
+		epochTime,
+		blockTime,
 		networkIdentifier,
 		blockReceiptTimeout, // Set default
 		loadPerIteration,
@@ -159,7 +165,7 @@ export class Blocks extends EventEmitter {
 		this.storage = storage;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;
-		this.slots = slots;
+		this.slots = new Slots({ epochTime, interval: blockTime });
 		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
@@ -173,6 +179,8 @@ export class Blocks extends EventEmitter {
 			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
+			epochTime,
+			blockTime,
 			blockReceiptTimeout,
 			maxPayloadLength,
 			maxTransactionsPerBlock,

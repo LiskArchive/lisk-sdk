@@ -64,20 +64,22 @@ describe('forge', () => {
 				forgingForce: false,
 				forgingDefaultPassword: testDelegate.password,
 				forgingWaitThreshold,
-				slots: {
-					getSlotNumber: sinonSandbox.stub(),
-					getSlotTime: sinonSandbox.stub(),
-					calcRound: sinonSandbox.stub(),
-					getRealTime: sinonSandbox.stub(),
-				},
 				dposModule: {
 					getForgerPublicKeysForRound: sinonSandbox.stub(),
+					rounds: {
+						calcRound: sinonSandbox.stub(),
+					},
 				},
 				transactionPoolModule: {
 					getUnconfirmedTransactionList: sinonSandbox.stub(),
 				},
 				blocksModule: {
 					filterReadyTransactions: sinonSandbox.stub().returns([]),
+					slots: {
+						getSlotNumber: sinonSandbox.stub(),
+						getRealTime: sinonSandbox.stub(),
+						getSlotTime: sinonSandbox.stub(),
+					},
 				},
 				processorModule: {
 					create: sinonSandbox.stub(),
@@ -766,7 +768,7 @@ describe('forge', () => {
 			beforeEach(async () => {
 				forgeModule.blocksModule.lastBlock = lastBlock;
 				forgeModule.processorModule.create.resolves(forgedBlock);
-				getSlotNumberStub = forgeModule.slots.getSlotNumber;
+				getSlotNumberStub = forgeModule.blocksModule.slots.getSlotNumber;
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
@@ -840,7 +842,7 @@ describe('forge', () => {
 					shouldAdvanceTime: true,
 				});
 
-				forgeModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
 
 				const changedLastBlockSlot = currentSlot - 2;
 				getSlotNumberStub
@@ -871,7 +873,7 @@ describe('forge', () => {
 
 				const changedLastBlockSlot = currentSlot - 2;
 
-				forgeModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(changedLastBlockSlot);
@@ -893,7 +895,7 @@ describe('forge', () => {
 				});
 
 				const lastBlockSlotChanged = currentSlot - 1;
-				forgeModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(lastBlockSlotChanged);

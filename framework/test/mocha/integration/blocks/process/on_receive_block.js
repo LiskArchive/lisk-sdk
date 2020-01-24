@@ -22,7 +22,8 @@ const PQ = require('pg-promise').ParameterizedQuery;
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Slots } = require('@liskhq/lisk-blocks');
+const { Rounds } = require('@liskhq/lisk-dpos');
 const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -34,6 +35,9 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
+	});
+
+	const rounds = new Rounds({
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 	});
 
@@ -116,7 +120,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
-			const round = slots.calcRound(last_block.height + 1);
+			const round = rounds.calcRound(last_block.height + 1);
 			library.modules.dpos
 				.getForgerPublicKeysForRound(round)
 				.then(delegateList => {
@@ -205,7 +209,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 
 	function getValidKeypairForSlot(slot) {
 		const lastBlock = library.modules.blocks.lastBlock;
-		const round = slots.calcRound(lastBlock.height);
+		const round = rounds.calcRound(lastBlock.height);
 
 		return library.modules.dpos
 			.getForgerPublicKeysForRound(round)

@@ -36,7 +36,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		storage,
 		logger,
 		channel,
-		slots,
+		rounds,
 		bft,
 		blocks,
 		processorModule,
@@ -44,7 +44,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	}) {
 		super(storage, logger, channel);
 		this.bft = bft;
-		this.slots = slots;
+		this.rounds = rounds;
 		this.blocks = blocks;
 		this.processorModule = processorModule;
 		this.constants = {
@@ -101,10 +101,10 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const finalizedBlock = await this.storage.entities.Block.getOne({
 			height_eql: this.bft.finalizedHeight,
 		});
-		const finalizedBlockSlot = this.slots.getSlotNumber(
+		const finalizedBlockSlot = this.blocks.slots.getSlotNumber(
 			finalizedBlock.timestamp,
 		);
-		const currentBlockSlot = this.slots.getSlotNumber();
+		const currentBlockSlot = this.blocks.slots.getSlotNumber();
 		const threeRounds = this.constants.activeDelegates * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
@@ -354,7 +354,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = this.slots.calcRound(this.blocks.lastBlock.height); // Holds the current round number
+		let currentRound = this.rounds.calcRound(this.blocks.lastBlock.height); // Holds the current round number
 		let currentHeight = currentRound * this.constants.activeDelegates;
 
 		while (

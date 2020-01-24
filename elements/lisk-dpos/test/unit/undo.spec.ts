@@ -13,7 +13,8 @@
  */
 
 import { when } from 'jest-when';
-import { Dpos, Slots, constants } from '../../src';
+import { Dpos, constants } from '../../src';
+import { Slots } from '../../../lisk-blocks/src/slots';
 import {
 	EPOCH_TIME,
 	ACTIVE_DELEGATES,
@@ -65,14 +66,13 @@ describe('dpos.undo()', () => {
 
 		stubs.tx = jest.fn();
 
-		slots = new Slots({
-			epochTime: EPOCH_TIME,
-			interval: BLOCK_TIME,
-			blocksPerRound: ACTIVE_DELEGATES,
-		});
+		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const blocks = {
+			slots,
+		};
 
 		dpos = new Dpos({
-			slots,
+			blocks,
 			...stubs,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
@@ -424,7 +424,9 @@ describe('dpos.undo()', () => {
 
 		it('should delete delegate list for rounds which are after the current round', async () => {
 			// Arrange
-			const roundNo = slots.calcRound(lastBlockOfTheRoundNine.height);
+			const roundNo = (dpos as any).rounds.calcRound(
+				lastBlockOfTheRoundNine.height,
+			);
 
 			// Act
 			await dpos.undo(lastBlockOfTheRoundNine, { tx: stubs.tx });
@@ -511,7 +513,9 @@ describe('dpos.undo()', () => {
 					// setting bonus to a dividable amount
 					fees_bonus: ACTIVE_DELEGATES * 123,
 				};
-				const exceptionRound = slots.calcRound(lastBlockOfTheRoundNine.height);
+				const exceptionRound = (dpos as any).rounds.calcRound(
+					lastBlockOfTheRoundNine.height,
+				);
 				const exceptions = {
 					rounds: {
 						[exceptionRound]: exceptionFactors,

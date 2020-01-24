@@ -18,7 +18,8 @@ const { cloneDeep } = require('lodash');
 const { when } = require('jest-when');
 const { Blocks, StateStore } = require('@liskhq/lisk-blocks');
 const { BFT } = require('@liskhq/lisk-bft');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Dpos } = require('@liskhq/lisk-dpos');
+
 const {
 	BlockProcessorV2,
 } = require('../../../../../../../../src/modules/chain/block_processor_v2');
@@ -56,6 +57,7 @@ describe('block_synchronization_mechanism', () => {
 	let bftModule;
 	let blockProcessorV2;
 	let blocksModule;
+	let dpos;
 	let processorModule;
 	let blockSynchronizationMechanism;
 	let slots;
@@ -101,20 +103,6 @@ describe('block_synchronization_mechanism', () => {
 		};
 		channelMock = new ChannelMock();
 
-		slots = new Slots({
-			epochTime: constants.EPOCH_TIME,
-			interval: constants.BLOCK_TIME,
-			blocksPerRound: constants.ACTIVE_DELEGATES,
-		});
-
-		bftModule = new BFT({
-			storage: storageMock,
-			logger: loggerMock,
-			slots,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			startingHeight: 1,
-		});
-
 		blocksModule = new Blocks({
 			logger: loggerMock,
 			storage: storageMock,
@@ -132,8 +120,28 @@ describe('block_synchronization_mechanism', () => {
 			rewardMileStones: constants.REWARDS.MILESTONES,
 			totalAmount: constants.TOTAL_AMOUNT,
 			blockSlotWindow: constants.BLOCK_SLOT_WINDOW,
+			epochTime: constants.EPOCH_TIME,
+			blockTime: constants.BLOCK_TIME,
 		});
 		blocksModule.getTempBlocks = jest.fn();
+
+		dpos = new Dpos({
+			storage: storageMock,
+			logger: loggerMock,
+			activeDelegates: constants.ACTIVE_DELEGATES,
+			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
+			blocks: blocksModule,
+			exceptions: {},
+		});
+
+		bftModule = new BFT({
+			storage: storageMock,
+			logger: loggerMock,
+			rounds: dpos.rounds,
+			slots: blocksModule.slots,
+			activeDelegates: constants.ACTIVE_DELEGATES,
+			startingHeight: 1,
+		});
 
 		blockProcessorV2 = new BlockProcessorV2({
 			blocksModule,
@@ -160,7 +168,8 @@ describe('block_synchronization_mechanism', () => {
 			storage: storageMock,
 			logger: loggerMock,
 			channel: channelMock,
-			slots,
+			slots: blocksModule.slots,
+			rounds: dpos.rounds,
 			blocks: blocksModule,
 			bft: bftModule,
 			processorModule,
@@ -234,7 +243,7 @@ describe('block_synchronization_mechanism', () => {
 			bftModule.finalizedHeight,
 			constants.ACTIVE_DELEGATES,
 			10,
-			slots.calcRound(blocksModule.lastBlock.height),
+			dpos.rounds.calcRound(blocksModule.lastBlock.height),
 		);
 
 		blockList = [genesisBlockDevnet];
@@ -588,7 +597,7 @@ describe('block_synchronization_mechanism', () => {
 						bftModule.finalizedHeight,
 						constants.ACTIVE_DELEGATES,
 						10,
-						slots.calcRound(lastBlock.height),
+						dpos.rounds.calcRound(lastBlock.height),
 					);
 
 					const receivedBlock = newBlock({
@@ -688,7 +697,7 @@ describe('block_synchronization_mechanism', () => {
 						bftModule.finalizedHeight,
 						constants.ACTIVE_DELEGATES,
 						10,
-						slots.calcRound(blocksModule.lastBlock.height),
+						dpos.rounds.calcRound(blocksModule.lastBlock.height),
 					);
 
 					blockList = [genesisBlockDevnet];
@@ -1133,7 +1142,6 @@ describe('block_synchronization_mechanism', () => {
 					height_eql: bftModule.finalizedHeight,
 				})
 				.mockResolvedValue(genesisBlockDevnet);
-
 			const isValid = await blockSynchronizationMechanism.isValidFor();
 
 			expect(isValid).toBeTruthy();
@@ -1145,7 +1153,6 @@ describe('block_synchronization_mechanism', () => {
 					height_eql: bftModule.finalizedHeight,
 				})
 				.mockResolvedValue({ ...genesisBlockDevnet, timestamp: Date.now() });
-
 			const isValid = await blockSynchronizationMechanism.isValidFor();
 
 			expect(isValid).toBeFalsy();

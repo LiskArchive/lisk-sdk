@@ -15,7 +15,7 @@ import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
 import { DelegatesList } from './delegates_list';
-import { Slots } from './slots';
+import { Rounds } from './rounds';
 import {
 	Account,
 	Block,
@@ -31,7 +31,7 @@ import {
 
 interface DelegatesInfoConstructor {
 	readonly storage: Storage;
-	readonly slots: Slots;
+	readonly rounds: Rounds;
 	readonly activeDelegates: number;
 	readonly logger: Logger;
 	readonly events: EventEmitter;
@@ -108,7 +108,7 @@ const _findDelegate = (
 
 export class DelegatesInfo {
 	private readonly storage: Storage;
-	private readonly slots: Slots;
+	private readonly rounds: Rounds;
 	private readonly activeDelegates: number;
 	private readonly logger: Logger;
 	private readonly events: EventEmitter;
@@ -119,7 +119,7 @@ export class DelegatesInfo {
 
 	public constructor({
 		storage,
-		slots,
+		rounds,
 		activeDelegates,
 		logger,
 		events,
@@ -127,7 +127,7 @@ export class DelegatesInfo {
 		exceptions,
 	}: DelegatesInfoConstructor) {
 		this.storage = storage;
-		this.slots = slots;
+		this.rounds = rounds;
 		this.activeDelegates = activeDelegates;
 		this.logger = logger;
 		this.events = events;
@@ -176,7 +176,7 @@ export class DelegatesInfo {
 
 		// Perform updates that only happens in the end of the round
 		if (this._isLastBlockOfTheRound(block)) {
-			const round = this.slots.calcRound(block.height);
+			const round = this.rounds.calcRound(block.height);
 
 			const roundSummary = await this._summarizeRound(block, {
 				tx,
@@ -324,8 +324,8 @@ export class DelegatesInfo {
 	}
 
 	private _isLastBlockOfTheRound(block: Block): boolean {
-		const round = this.slots.calcRound(block.height);
-		const nextRound = this.slots.calcRound(block.height + 1);
+		const round = this.rounds.calcRound(block.height);
+		const nextRound = this.rounds.calcRound(block.height + 1);
 
 		return round < nextRound;
 	}
@@ -338,15 +338,15 @@ export class DelegatesInfo {
 		block: Block,
 		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<RoundSummary> {
-		const round = this.slots.calcRound(block.height);
+		const round = this.rounds.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
 		const blocksInRounds: Array<
 			Block | BlockJSON
 		> = await this.storage.entities.Block.get(
 			{
-				height_gte: this.slots.calcRoundStartHeight(round),
-				height_lt: this.slots.calcRoundEndHeight(round),
+				height_gte: this.rounds.calcRoundStartHeight(round),
+				height_lt: this.rounds.calcRoundEndHeight(round),
 			},
 			{ limit: this.activeDelegates, sort: 'height:asc' },
 			tx,

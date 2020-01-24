@@ -33,7 +33,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		storage,
 		logger,
 		channel,
-		slots,
 		blocks,
 		bft,
 		processor,
@@ -41,7 +40,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		activeDelegates,
 	}) {
 		super(storage, logger, channel);
-		this.slots = slots;
 		this.dpos = dpos;
 		this.blocks = blocks;
 		this.bft = bft;
@@ -119,7 +117,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			return false;
 		}
 
-		const blockRound = this.slots.calcRound(receivedBlock.height);
+		const blockRound = this.dpos.rounds.calcRound(receivedBlock.height);
 		const delegateList = await this.dpos.getForgerPublicKeysForRound(
 			blockRound,
 		);
