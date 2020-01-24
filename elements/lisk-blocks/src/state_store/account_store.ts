@@ -54,12 +54,8 @@ export class AccountStore {
 	private _originalUpdatedKeys: { [key: number]: string[] } = {};
 	private readonly _primaryKey = 'address';
 	private readonly _name = 'Account';
-	private readonly _tx: StorageTransaction | undefined;
 
-	public constructor(
-		accountEntity: StorageEntity<Account>,
-		{ tx }: { readonly tx?: StorageTransaction } = { tx: undefined },
-	) {
+	public constructor(accountEntity: StorageEntity<Account>) {
 		this._account = accountEntity;
 		this._data = [];
 		this._updatedKeys = {};
@@ -67,12 +63,11 @@ export class AccountStore {
 		this._name = 'Account';
 		this._originalData = [];
 		this._originalUpdatedKeys = {};
-		this._tx = tx;
 	}
 
 	public async cache(filter: StorageFilters): Promise<ReadonlyArray<Account>> {
 		// tslint:disable-next-line no-null-keyword
-		const result = await this._account.get(filter, { limit: null }, this._tx);
+		const result = await this._account.get(filter, { limit: null });
 		this._data = uniqBy([...this._data, ...result], this._primaryKey);
 
 		return cloneDeep(result) as ReadonlyArray<Account>;
@@ -156,6 +151,10 @@ export class AccountStore {
 		return cloneDeep(defaultElement);
 	}
 
+	public getUpdated(): ReadonlyArray<Account> {
+		return [...this._data];
+	}
+
 	public find(
 		fn: (value: Account, index: number, obj: Account[]) => unknown,
 	): Account | undefined {
@@ -191,7 +190,7 @@ export class AccountStore {
 			: updatedKeys;
 	}
 
-	public async finalize(): Promise<void> {
+	public async finalize(tx: StorageTransaction): Promise<void> {
 		const affectedAccounts = Object.entries(this._updatedKeys).map(
 			([index, updatedKeys]) => ({
 				updatedItem: this._data[parseInt(index, 10)],
@@ -205,7 +204,7 @@ export class AccountStore {
 				const updatedData = pick(updatedItem, updatedKeys);
 
 				// tslint:disable-next-line no-null-keyword
-				return this._account.upsert(filter, updatedData, null, this._tx);
+				return this._account.upsert(filter, updatedData, null, tx);
 			},
 		);
 

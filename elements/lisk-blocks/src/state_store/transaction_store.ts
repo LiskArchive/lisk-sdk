@@ -15,7 +15,7 @@
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 import { clone, cloneDeep, uniqBy } from 'lodash';
 
-import { StorageEntity, StorageFilters, StorageTransaction } from '../types';
+import { StorageEntity, StorageFilters } from '../types';
 
 export class TransactionStore {
 	private readonly _primaryKey = 'id';
@@ -24,19 +24,14 @@ export class TransactionStore {
 	private _originalData: TransactionJSON[];
 	private _updatedKeys: { [key: number]: string[] } = {};
 	private _originalUpdatedKeys: { [key: number]: string[] } = {};
-	private readonly _tx: StorageTransaction | undefined;
 	private readonly _transaction: StorageEntity<TransactionJSON>;
 
-	public constructor(
-		transactionEntity: StorageEntity<TransactionJSON>,
-		{ tx }: { readonly tx?: StorageTransaction } = { tx: undefined },
-	) {
+	public constructor(transactionEntity: StorageEntity<TransactionJSON>) {
 		this._transaction = transactionEntity;
 		this._data = [];
 		this._originalData = [];
 		this._updatedKeys = {};
 		this._originalUpdatedKeys = {};
-		this._tx = tx;
 	}
 
 	public async cache(filter: StorageFilters): Promise<TransactionJSON[]> {
@@ -44,7 +39,6 @@ export class TransactionStore {
 			filter,
 			// tslint:disable-next-line no-null-keyword
 			{ extended: true, limit: null },
-			this._tx,
 		);
 		this._data = uniqBy([...this._data, ...result], this._primaryKey);
 

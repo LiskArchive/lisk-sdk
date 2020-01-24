@@ -12,6 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export interface StateStore {
+	readonly account: {
+		readonly get: (primaryValue: string) => Account;
+		readonly getUpdated: () => Account[];
+		readonly set: (primaryValue: string, account: Account) => void;
+	};
+	readonly chainState: {
+		readonly get: (key: string) => string | undefined;
+		readonly set: (key: string, value: string) => void;
+	};
+}
+
 // Storage
 export interface StorageFilter {
 	readonly [key: string]:
@@ -64,11 +76,15 @@ export interface StorageEntity<T> {
 	) => Promise<T[]>;
 }
 
+export interface ChainStateEntity {
+	readonly getKey: (key: string) => Promise<string | undefined>;
+}
+
 export interface Storage {
 	readonly entities: {
 		readonly Account: AccountEntity;
 		readonly Block: BlockEntity;
-		readonly RoundDelegates: RoundDelegatesEntity;
+		readonly ChainState: ChainStateEntity;
 	};
 }
 
@@ -96,18 +112,6 @@ export interface AccountEntity extends StorageEntity<Account> {
 	) => Promise<ReadonlyArray<Account>>;
 }
 
-export interface RoundDelegates {
-	readonly round: number;
-	readonly delegatePublicKeys: string[];
-}
-
-export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
-	readonly getActiveDelegatesForRound: (
-		roundWithOffset: number,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<string>>;
-}
-
 export interface BlockJSON {
 	readonly id: number;
 	readonly height: number;
@@ -132,12 +136,27 @@ export interface Block extends Earnings {
 }
 
 export interface Account {
-	readonly balance: bigint;
-	readonly fees: bigint;
-	readonly rewards: bigint;
+	readonly address: string;
+	readonly balance: string;
+	// tslint:disable-next-line readonly-keyword
+	producedBlocks: number;
+	// tslint:disable-next-line readonly-keyword
+	missedBlocks: number;
+	readonly fees: string;
+	readonly rewards: string;
 	readonly publicKey: string;
-	readonly voteWeight: bigint;
+	readonly voteWeight: string;
 	readonly votedDelegatesPublicKeys: ReadonlyArray<string>;
+}
+
+export interface ParsedAccount
+	extends Omit<Account, 'balance' | 'fees' | 'rewards'> {
+	// tslint:disable-next-line readonly-keyword
+	balance: bigint;
+	// tslint:disable-next-line readonly-keyword
+	fees: bigint;
+	// tslint:disable-next-line readonly-keyword
+	rewards: bigint;
 }
 
 interface UpdateAccountData {
@@ -154,10 +173,7 @@ export interface Logger {
 }
 
 export interface DPoSProcessingOptions {
-	readonly tx?: StorageTransaction;
-	readonly delegateListRoundOffset?: number;
-}
-export interface DPoSProcessingUndoOptions extends DPoSProcessingOptions {
+	readonly delegateListRoundOffset: number;
 	readonly undo?: boolean;
 }
 
@@ -170,3 +186,10 @@ export interface RoundException {
 export interface Blocks {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
 }
+
+export interface ForgerList {
+	readonly round: number;
+	readonly delegates: ReadonlyArray<string>;
+}
+
+export type ForgersList = ForgerList[];

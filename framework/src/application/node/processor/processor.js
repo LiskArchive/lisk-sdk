@@ -15,7 +15,6 @@
 'use strict';
 
 const { cloneDeep } = require('lodash');
-const { StateStore } = require('@liskhq/lisk-blocks');
 const { ForkStatus } = require('@liskhq/lisk-bft');
 const { Sequence } = require('../utils/sequence');
 
@@ -60,7 +59,7 @@ class Processor {
 			skipSave: false,
 		});
 		await this.blocksModule.init();
-		const stateStore = new StateStore(this.storage);
+		const stateStore = this.blocksModule.newStateStore();
 		await stateStore.chainState.cache();
 		for (const processor of Object.values(this.processors)) {
 			await processor.init.run({ stateStore });
@@ -277,112 +276,77 @@ class Processor {
 		processor,
 		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
 	) {
-		await this.storage.entities.Block.begin(
-			'App:Node:processBlock',
-			async tx => {
-				const stateStore = new StateStore(this.storage, { tx });
-				// initialize chain state
-				await stateStore.chainState.cache();
+		const stateStore = this.blocksModule.newStateStore();
+		// initialize chain state
+		await stateStore.chainState.cache();
+		await stateStore.account.cache({ publicKey: block.generatorPublicKey });
 
-				await processor.verify.run({
-					block,
-					lastBlock,
-					skipExistingCheck: skipSave,
-					stateStore,
-					tx,
-				});
+		await processor.verify.run({
+			block,
+			lastBlock,
+			skipExistingCheck: skipSave,
+			stateStore,
+		});
 
-				const blockJSON = await this.serialize(block);
-				if (!skipBroadcast) {
-					this.channel.publish('app:processor:broadcast', {
-						block: blockJSON,
-					});
-				}
+		const blockJSON = await this.serialize(block);
+		if (!skipBroadcast) {
+			this.channel.publish('chain:processor:broadcast', {
+				block: blockJSON,
+			});
+		}
 
-				if (!skipSave) {
-					// TODO: After moving everything to state store, save should get the state store and finalize the state store
-					await this.blocksModule.save(blockJSON, tx);
-				}
+		// Apply should always be executed after save as it performs database calculations
+		// i.e. Dpos.apply expects to have this processing block in the database
+		await processor.apply.run({
+			block,
+			lastBlock,
+			skipExistingCheck: skipSave,
+			stateStore,
+		});
 
-				// Apply should always be executed after save as it performs database calculations
-				// i.e. Dpos.apply expects to have this processing block in the database
-				await processor.apply.run({
-					block,
-					lastBlock,
-					skipExistingCheck: skipSave,
-					stateStore,
-					tx,
-				});
+		await this.blocksModule.save(block, stateStore, {
+			skipSave,
+			removeFromTempTable,
+		});
 
-				if (removeFromTempTable) {
-					await this.blocksModule.removeBlockFromTempTable(block.id, tx);
-					this.logger.debug(
-						{ id: block.id, height: block.height },
-						'Removed block from temp_blocks table',
-					);
-				}
+		// Should only publish 'chain:processor:newBlock' if saved AND applied successfully
+		if (!skipSave) {
+			this.channel.publish('chain:processor:newBlock', {
+				block: blockJSON,
+			});
+		}
 
-				// Should only publish 'app:processor:newBlock' if saved AND applied successfully
-				if (!skipSave) {
-					this.channel.publish('app:processor:newBlock', {
-						block: blockJSON,
-					});
-				}
-
-				return block;
-			},
-		);
+		return block;
 	}
 
 	async _processGenesis(block, processor, { skipSave } = { skipSave: false }) {
-		return this.storage.entities.Block.begin(
-			'App:Node:processGenesisBlock',
-			async tx => {
-				const stateStore = new StateStore(this.storage, { tx });
-				// Check if genesis block ID already exists in the database
-				const isPersisted = await this.blocksModule.exists(block);
+		const stateStore = this.blocksModule.newStateStore();
+		const isPersisted = await this.blocksModule.exists(block);
+		if (skipSave && !isPersisted) {
+			throw new Error('Genesis block is not persisted but skipping to save');
+		}
+		// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
+		if (isPersisted && !skipSave) {
+			return block;
+		}
+		await processor.applyGenesis.run({
+			block,
+			stateStore,
+		});
+		await this.blocksModule.save(block, stateStore, { skipSave });
 
-				if (skipSave && !isPersisted) {
-					throw new Error(
-						'Genesis block is not persisted but skipping to save',
-					);
-				}
-
-				// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
-				if (isPersisted && !skipSave) {
-					return block;
-				}
-
-				await processor.applyGenesis.run({
-					block,
-					stateStore,
-					tx,
-				});
-
-				if (!skipSave) {
-					const blockJSON = await this.serialize(block);
-					// TODO: After moving everything to state store, save should get the state store and finalize the state store
-					await this.blocksModule.save(blockJSON, tx);
-				}
-
-				return block;
-			},
-		);
+		return block;
 	}
 
 	async _deleteBlock(block, processor, saveTempBlock = false) {
-		await this.storage.entities.Block.begin('app:revertBlock', async tx => {
-			const stateStore = new StateStore(this.storage, { tx });
-			await processor.undo.run({
-				block,
-				stateStore,
-				tx,
-			});
-			const blockJSON = await this.serialize(block);
-			await this.blocksModule.remove(block, blockJSON, tx, { saveTempBlock });
-			this.channel.publish('app:processor:deleteBlock', {
-				block: blockJSON,
-			});
+		const stateStore = this.blocksModule.newStateStore();
+		await processor.undo.run({
+			block,
+			stateStore,
+		});
+		await this.blocksModule.remove(block, stateStore, { saveTempBlock });
+		this.channel.publish('chain:processor:deleteBlock', {
+			block: this.serialize(block),
 		});
 	}
 

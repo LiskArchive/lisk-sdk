@@ -22,19 +22,14 @@ export class ChainStateStore {
 	private _originalData: ChainState;
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
-	private readonly _tx: StorageTransaction | undefined;
 	private readonly _chainState: ChainStateEntity;
 
-	public constructor(
-		chainStateEntity: ChainStateEntity,
-		{ tx }: { readonly tx?: StorageTransaction } = { tx: undefined },
-	) {
+	public constructor(chainStateEntity: ChainStateEntity) {
 		this._chainState = chainStateEntity;
 		this._data = {};
 		this._originalData = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
-		this._tx = tx;
 	}
 
 	public async cache(): Promise<void> {
@@ -79,14 +74,14 @@ export class ChainStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public async finalize(): Promise<void> {
+	public async finalize(tx: StorageTransaction): Promise<void> {
 		if (this._updatedKeys.size === 0) {
 			return;
 		}
 
 		await Promise.all(
 			Array.from(this._updatedKeys).map(key =>
-				this._chainState.setKey(key, this._data[key], this._tx),
+				this._chainState.setKey(key, this._data[key], tx),
 			),
 		);
 	}

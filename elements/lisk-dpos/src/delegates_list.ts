@@ -14,13 +14,16 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 
+import { CHAIN_STATE_FORGERS_LIST_KEY } from './constants';
 import { Rounds } from './rounds';
 import {
+	Account,
 	Block,
 	Blocks,
-	DPoSProcessingOptions,
+	ForgerList,
+	ForgersList,
+	StateStore,
 	Storage,
-	StorageTransaction,
 } from './types';
 
 interface DelegatesListConstructor {
@@ -32,6 +35,43 @@ interface DelegatesListConstructor {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
 }
+
+export const getForgersList = (stateStore: StateStore): ForgersList => {
+	const forgersListStr = stateStore.chainState.get(
+		CHAIN_STATE_FORGERS_LIST_KEY,
+	);
+	if (!forgersListStr) {
+		return [];
+	}
+
+	return JSON.parse(forgersListStr) as ForgersList;
+};
+
+const _setForgersList = (
+	stateStore: StateStore,
+	forgersList: ForgersList,
+): void => {
+	const forgersListStr = JSON.stringify(forgersList);
+	stateStore.chainState.set(CHAIN_STATE_FORGERS_LIST_KEY, forgersListStr);
+};
+
+export const deleteDelegateListUntilRound = (
+	round: number,
+	stateStore: StateStore,
+): void => {
+	const forgersList = getForgersList(stateStore);
+	const newForgersList = forgersList.filter(fl => fl.round >= round);
+	_setForgersList(stateStore, newForgersList);
+};
+
+export const deleteDelegateListAfterRound = (
+	round: number,
+	stateStore: StateStore,
+): void => {
+	const forgersList = getForgersList(stateStore);
+	const newForgersList = forgersList.filter(fl => fl.round < round);
+	_setForgersList(stateStore, newForgersList);
+};
 
 export const shuffleDelegateListForRound = (
 	round: number,
@@ -57,6 +97,25 @@ export const shuffleDelegateListForRound = (
 	return delegateList;
 };
 
+/**
+ * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
+ * The list of delegates used is the one computed at the begging of the round `r - delegateListRoundOffset`
+ */
+export const getForgerPublicKeysForRound = (
+	round: number,
+	stateStore: StateStore,
+): ReadonlyArray<string> => {
+	const forgersList = getForgersList(stateStore);
+	const delegatePublicKeys = forgersList.find(fl => fl.round === round)
+		?.delegates;
+
+	if (!delegatePublicKeys) {
+		throw new Error(`No delegate list found for round: ${round}`);
+	}
+
+	return shuffleDelegateListForRound(round, delegatePublicKeys);
+};
+
 export class DelegatesList {
 	private readonly storage: Storage;
 	private readonly rounds: Rounds;
@@ -80,47 +139,18 @@ export class DelegatesList {
 		this.blocksModule = blocksModule;
 	}
 
-	/**
-	 * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
-	 * The list of delegates used is the one computed at the end of the round `r - delegateListRoundOffset`
-	 */
-	public async getForgerPublicKeysForRound(
-		round: number,
-		delegateListRoundOffset?: number,
-		tx?: StorageTransaction,
-	): Promise<ReadonlyArray<string>> {
-		// Delegate list is generated from round 1 hence `roundWithOffset` can't be less than 1
-		const roundWithOffset = Math.max(
-			round - (delegateListRoundOffset as number),
-			1,
-		);
-		const delegatePublicKeys = await this.storage.entities.RoundDelegates.getActiveDelegatesForRound(
-			roundWithOffset,
-			tx,
-		);
-
-		if (!delegatePublicKeys.length) {
-			throw new Error(`No delegate list found for round: ${round}`);
-		}
-
-		return shuffleDelegateListForRound(round, delegatePublicKeys);
-	}
-
-	public async getDelegatePublicKeysSortedByVoteWeight(
-		tx?: StorageTransaction,
-	): Promise<string[]> {
+	// TODO: Update to use the blocks library
+	public async getDelegatePublicKeysSortedByVoteWeight(): Promise<
+		ReadonlyArray<Account>
+	> {
 		const filters = { isDelegate: true };
 		const options = {
 			limit: this.activeDelegates,
 			sort: ['voteWeight:desc', 'publicKey:asc'],
 		};
-		const accounts = await this.storage.entities.Account.get(
-			filters,
-			options,
-			tx,
-		);
+		const accounts = await this.storage.entities.Account.get(filters, options);
 
-		return accounts.map(account => account.publicKey);
+		return accounts;
 	}
 
 	/**
@@ -129,67 +159,76 @@ export class DelegatesList {
 	 */
 	public async createRoundDelegateList(
 		round: number,
-		tx?: StorageTransaction,
+		stateStore: StateStore,
 	): Promise<void> {
-		const delegatePublicKeys = await this.getDelegatePublicKeysSortedByVoteWeight(
-			tx,
-		);
+		const forgersList = getForgersList(stateStore);
+		const forgerListIndex = forgersList.findIndex(fl => fl.round === round);
+		// This gets the list before current block is executed
+		const delegateAccounts = await this.getDelegatePublicKeysSortedByVoteWeight();
+		const updatedAccounts = stateStore.account.getUpdated();
+		// tslint:disable-next-line readonly-keyword
+		const updatedAccountsMap: { [address: string]: Account } = {};
+		// Convert updated accounts to map for better search
+		for (const account of updatedAccounts) {
+			updatedAccountsMap[account.address] = account;
+		}
+		// Inject delegate account if it doesn't exist
+		for (const delegate of delegateAccounts) {
+			if (updatedAccountsMap[delegate.address] === undefined) {
+				updatedAccountsMap[delegate.address] = delegate;
+			}
+		}
+		const updatedAccountArray = [...Object.values(updatedAccountsMap)];
+		// Re-sort based on VoteWeight with desc and publickey with asc
+		updatedAccountArray.sort((a, b) => {
+			if (BigInt(b.voteWeight) > BigInt(a.voteWeight)) {
+				return 1;
+			}
+			if (BigInt(b.voteWeight) < BigInt(a.voteWeight)) {
+				return -1;
+			}
 
-		// Delete delegate list and create new updated list
-		await this.storage.entities.RoundDelegates.delete(
-			{
-				round,
-			},
-			{},
-			tx,
-		);
-		await this.storage.entities.RoundDelegates.create(
-			{
-				round,
-				delegatePublicKeys,
-			},
-			{},
-			tx,
-		);
+			// In the tie break compare publicKey
+			return a.publicKey.localeCompare(b.publicKey);
+		});
+		// Slice with X delegates
+		const delegatePublicKeys = updatedAccountArray
+			.slice(0, this.activeDelegates)
+			.map(account => account.publicKey);
+
+		const forgerList: ForgerList = {
+			round,
+			delegates: delegatePublicKeys,
+		};
+		if (forgerListIndex > 0) {
+			forgersList[forgerListIndex] = forgerList;
+		} else {
+			forgersList.push(forgerList);
+		}
+		_setForgersList(stateStore, forgersList);
 	}
 
-	public async deleteDelegateListUntilRound(
-		round: number,
-		tx?: StorageTransaction,
-	): Promise<void> {
-		await this.storage.entities.RoundDelegates.delete(
-			{
-				round_lt: round,
-			},
-			{},
-			tx,
-		);
-	}
-
-	public async deleteDelegateListAfterRound(
-		round: number,
-		tx?: StorageTransaction,
-	): Promise<void> {
-		await this.storage.entities.RoundDelegates.delete(
-			{
-				round_gt: round,
-			},
-			{},
-			tx,
-		);
-	}
-
-	public async verifyBlockForger(
-		block: Block,
-		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
-	): Promise<boolean> {
+	public async verifyBlockForger(block: Block): Promise<boolean> {
 		const currentSlot = this.blocksModule.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.rounds.calcRound(block.height);
 
-		const delegateList = await this.getForgerPublicKeysForRound(
+		const forgersListStr = await this.storage.entities.ChainState.getKey(
+			CHAIN_STATE_FORGERS_LIST_KEY,
+		);
+		const forgersList =
+			forgersListStr !== undefined
+				? (JSON.parse(forgersListStr) as ForgersList)
+				: [];
+		const delegatePublicKeys = forgersList.find(fl => fl.round === currentRound)
+			?.delegates;
+
+		if (!delegatePublicKeys) {
+			throw new Error(`No delegate list found for round: ${currentRound}`);
+		}
+
+		const delegateList = shuffleDelegateListForRound(
 			currentRound,
-			delegateListRoundOffset,
-			tx,
+			delegatePublicKeys,
 		);
 
 		if (!delegateList.length) {

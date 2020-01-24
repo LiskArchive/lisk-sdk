@@ -149,8 +149,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 				),
 			({ block, lastBlock }) =>
 				this.blocksModule.verifyInMemory(block, lastBlock),
-			({ block }) =>
-				this.dposModule.verifyBlockForger(block, { delegateListRoundOffset }),
+			({ block }) => this.dposModule.verifyBlockForger(block),
 		]);
 
 		this.validateDetached.pipe([
@@ -177,21 +176,27 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.apply.pipe([
 			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
-			({ block, tx }) =>
-				this.dposModule.apply(block, { tx, delegateListRoundOffset }),
+			({ block, stateStore }) =>
+				this.dposModule.apply(block, stateStore, {
+					delegateListRoundOffset,
+				}),
 		]);
 
 		this.applyGenesis.pipe([
-			({ block, stateStore }) =>
+			async ({ block, stateStore }) =>
 				this.blocksModule.applyGenesis(block, stateStore),
-			({ block, tx }) =>
-				this.dposModule.apply(block, { tx, delegateListRoundOffset }),
+			({ block, stateStore }) =>
+				this.dposModule.apply(block, stateStore, {
+					delegateListRoundOffset,
+				}),
 		]);
 
 		this.undo.pipe([
 			({ block, stateStore }) => this.blocksModule.undo(block, stateStore),
-			({ block, tx }) =>
-				this.dposModule.undo(block, { tx, delegateListRoundOffset }),
+			({ block, stateStore }) =>
+				this.dposModule.undo(block, stateStore, {
+					delegateListRoundOffset,
+				}),
 		]);
 
 		this.create.pipe([data => this._create(data)]);

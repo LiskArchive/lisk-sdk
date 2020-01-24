@@ -258,6 +258,10 @@ export class Blocks extends EventEmitter {
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
+	public newStateStore(): StateStore {
+		return new StateStore(this.storage);
+	}
+
 	private async _cacheBlockHeaders(
 		storageLastBlock: BlockInstance,
 	): Promise<void> {
@@ -351,26 +355,39 @@ export class Blocks extends EventEmitter {
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedStep(blockInstance, stateStore, this.exceptions);
-
-		this.dataAccess.addBlockHeader(blockInstance);
-		this._lastBlock = blockInstance;
 	}
 
+	// tslint:disable-next-line prefer-function-over-method
 	public async applyGenesis(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedGenesisStep(blockInstance, stateStore);
-
-		this.dataAccess.addBlockHeader(blockInstance);
-		this._lastBlock = blockInstance;
 	}
 
 	public async save(
-		blockJSON: BlockJSON,
-		tx: StorageTransaction,
+		blockInstance: BlockInstance,
+		stateStore: StateStore,
+		{ skipSave, removeFromTempTable } = {
+			skipSave: false,
+			removeFromTempTable: false,
+		},
 	): Promise<void> {
-		await saveBlock(this.storage, blockJSON, tx);
+		return this.storage.entities.Block.begin(
+			'Chain:processGenesisBlock',
+			async tx => {
+				await stateStore.finalize(tx);
+				const blockJSON = this.serialize(blockInstance);
+				if (!skipSave) {
+					await saveBlock(this.storage, blockJSON, tx);
+				}
+				if (removeFromTempTable) {
+					await this.removeBlockFromTempTable(blockInstance.id, tx);
+				}
+				this.dataAccess.addBlockHeader(blockInstance);
+				this._lastBlock = blockInstance;
+			},
+		);
 	}
 
 	public async undo(
@@ -402,13 +419,14 @@ export class Blocks extends EventEmitter {
 
 	public async remove(
 		block: BlockInstance,
-		blockJSON: BlockJSON,
-		tx: StorageTransaction,
+		stateStore: StateStore,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		const secondLastBlock = await this._deleteLastBlock(block, tx);
+		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
+			const secondLastBlock = await this._deleteLastBlock(block, tx);
+			const blockJSON = this.serialize(block);
 
-		if (saveTempBlock) {
+			if (saveTempBlock) {
 			const blockTempEntry = {
 				id: blockJSON.id,
 				height: blockJSON.height,
@@ -416,9 +434,10 @@ export class Blocks extends EventEmitter {
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
-
-		this.dataAccess.removeBlockHeader(block.id);
-		this._lastBlock = secondLastBlock;
+			await stateStore.finalize(tx);
+			this.dataAccess.removeBlockHeader(block.id);
+			this._lastBlock = secondLastBlock;
+		});
 	}
 
 	public async removeBlockFromTempTable(

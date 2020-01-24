@@ -11,20 +11,25 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
-import { DelegatesList } from './delegates_list';
+import {
+	DelegatesList,
+	deleteDelegateListAfterRound,
+	getForgerPublicKeysForRound,
+} from './delegates_list';
 import { Rounds } from './rounds';
 import {
 	Account,
 	Block,
 	BlockJSON,
 	DPoSProcessingOptions,
-	DPoSProcessingUndoOptions,
 	Earnings,
 	Logger,
 	RoundException,
+	StateStore,
 	Storage,
 	StorageTransaction,
 } from './types';
@@ -43,14 +48,13 @@ interface DelegatesInfoConstructor {
 
 interface UniqueForgerInfo {
 	/* tslint:disable:readonly-keyword */
-	delegateAccount: Account;
+	delegateAddress: string;
 	earnings: Earnings;
 	publicKey: string;
 }
 
 interface RoundSummary {
 	readonly round: number;
-	readonly delegateListRoundOffset?: number;
 	readonly uniqForgersInfo: ReadonlyArray<UniqueForgerInfo>;
 	readonly totalFee: bigint;
 	readonly tx?: StorageTransaction;
@@ -71,39 +75,105 @@ interface RewardOptions {
 }
 
 interface AccountSummary {
-	readonly delegatePublicKeys: string[];
 	readonly uniqDelegateListWithRewardsInfo: ForgerInfo[];
 	// tslint:disable-next-line:readonly-keyword
 	totalFee: bigint;
 }
 
-interface AccountFees {
-	// tslint:disable-next-line:readonly-keyword
-	[key: string]: bigint;
-}
-
 const _isGenesisBlock = (block: Block) => block.height === 1;
 
-const _hasVotedDelegatesPublicKeys = (forgerInfo: UniqueForgerInfo) =>
-	!!forgerInfo.delegateAccount.votedDelegatesPublicKeys &&
-	forgerInfo.delegateAccount.votedDelegatesPublicKeys.length > 0;
+const _hasVotedDelegatesPublicKeys = (account: Account) =>
+	!!account.votedDelegatesPublicKeys &&
+	account.votedDelegatesPublicKeys.length > 0;
 
-const _findDelegate = (
-	parsedDelegateAccounts: Account[],
-	delegatePublicKey: string,
-) => {
-	if (
-		parsedDelegateAccounts.find(
-			({ publicKey }) => publicKey === delegatePublicKey,
-		)
-	) {
-		return parsedDelegateAccounts.filter(
-			({ publicKey }) => publicKey === delegatePublicKey,
-		)[0];
+// Update balance, rewards and fees to the forging delegates
+const _updateBalanceRewardsAndFees = (
+	{ uniqForgersInfo }: RoundSummary,
+	stateStore: StateStore,
+	undo?: boolean,
+): void => {
+	for (const {
+		delegateAddress,
+		earnings: { fee, reward },
+	} of uniqForgersInfo) {
+		const account = stateStore.account.get(delegateAddress);
+
+		const factor = undo ? BigInt(-1) : BigInt(1);
+		const amount = fee + reward;
+		const balance = BigInt(account.balance) + amount * factor;
+		const fees = BigInt(account.fees) + fee * factor;
+		const rewards = BigInt(account.rewards) + reward * factor;
+		const updatedAccount = {
+			...account,
+			balance: balance.toString(),
+			fees: fees.toString(),
+			rewards: rewards.toString(),
+		};
+		stateStore.account.set(account.address, updatedAccount);
 	}
-	throw new Error(
-		`Delegate: ${delegatePublicKey} was not found in parsed delegate accounts`,
+};
+
+// Update VoteWeight to accounts voted by delegates who forged
+const _updateVotedDelegatesVoteWeight = (
+	{ uniqForgersInfo }: RoundSummary,
+	stateStore: StateStore,
+	undo?: boolean,
+): void => {
+	for (const { delegateAddress, earnings } of uniqForgersInfo) {
+		const forger = stateStore.account.get(delegateAddress);
+		if (!_hasVotedDelegatesPublicKeys(forger)) {
+			continue;
+		}
+		for (const votedDelegatePublicKey of forger.votedDelegatesPublicKeys) {
+			const account = stateStore.account.get(
+				getAddressFromPublicKey(votedDelegatePublicKey),
+			);
+			const amount = earnings.fee + earnings.reward;
+			const factor = undo ? BigInt(-1) : BigInt(1);
+			const updatedAccount: Account = {
+				...account,
+				voteWeight: (BigInt(account.voteWeight) + amount * factor).toString(),
+			};
+			stateStore.account.set(account.address, updatedAccount);
+		}
+	}
+};
+
+const _getMissedBlocksDelegatePublicKeys = (
+	stateStore: StateStore,
+	{ round, uniqForgersInfo }: RoundSummary,
+): string[] => {
+	const expectedForgingPublicKeys = getForgerPublicKeysForRound(
+		round,
+		stateStore,
 	);
+
+	return expectedForgingPublicKeys.filter(
+		expectedPublicKey =>
+			!uniqForgersInfo.find(({ publicKey }) => publicKey === expectedPublicKey),
+	);
+};
+
+const _updateMissedBlocks = (
+	roundSummary: RoundSummary,
+	stateStore: StateStore,
+	undo?: boolean,
+): void => {
+	const missedBlocksDelegatePublicKeys = _getMissedBlocksDelegatePublicKeys(
+		stateStore,
+		roundSummary,
+	);
+
+	if (!missedBlocksDelegatePublicKeys.length) {
+		return;
+	}
+
+	for (const publicKey of missedBlocksDelegatePublicKeys) {
+		const address = getAddressFromPublicKey(publicKey);
+		const account = stateStore.account.get(address);
+		account.missedBlocks += undo ? -1 : 1;
+		stateStore.account.set(address, account);
+	}
 };
 
 export class DelegatesInfo {
@@ -137,16 +207,18 @@ export class DelegatesInfo {
 
 	public async apply(
 		block: Block,
-		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
+		stateStore: StateStore,
+		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		const undo = false;
 
-		return this._update(block, { undo, tx, delegateListRoundOffset });
+		return this._update(block, stateStore, { undo, delegateListRoundOffset });
 	}
 
 	public async undo(
 		block: Block,
-		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
+		stateStore: StateStore,
+		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		const undo = true;
 
@@ -155,172 +227,76 @@ export class DelegatesInfo {
 			throw new Error('Cannot undo genesis block');
 		}
 
-		return this._update(block, { undo, tx, delegateListRoundOffset });
+		return this._update(block, stateStore, { undo, delegateListRoundOffset });
 	}
 
 	private async _update(
 		block: Block,
-		{ undo, tx, delegateListRoundOffset }: DPoSProcessingUndoOptions,
+		stateStore: StateStore,
+		{ delegateListRoundOffset, undo }: DPoSProcessingOptions,
 	): Promise<boolean> {
-		await this._updateProducedBlocks(block, undo, tx);
-
-		/**
-		 * Genesis block only affects `producedBlocks` attribute
-		 */
+		this._updateProducedBlocks(block, stateStore, undo);
 		if (_isGenesisBlock(block)) {
-			const round = 1;
-			await this.delegatesList.createRoundDelegateList(round, tx);
+			const intialRound = 1;
+			for (
+				// tslint:disable-next-line no-let
+				let i = intialRound;
+				i <= intialRound + delegateListRoundOffset;
+				i += 1
+			) {
+				await this.delegatesList.createRoundDelegateList(i, stateStore);
+			}
 
 			return false;
 		}
 
+		if (!this._isLastBlockOfTheRound(block)) {
+			return false;
+		}
+
 		// Perform updates that only happens in the end of the round
-		if (this._isLastBlockOfTheRound(block)) {
-			const round = this.rounds.calcRound(block.height);
+		const round = this.rounds.calcRound(block.height);
 
-			const roundSummary = await this._summarizeRound(block, {
-				tx,
-				delegateListRoundOffset,
+		const roundSummary = await this._summarizeRound(block);
+
+		// Can NOT execute in parallel as _updateVotedDelegatesVoteWeight uses data updated on _updateBalanceRewardsAndFees
+		_updateMissedBlocks(roundSummary, stateStore, undo);
+		_updateBalanceRewardsAndFees(roundSummary, stateStore, undo);
+		_updateVotedDelegatesVoteWeight(roundSummary, stateStore, undo);
+
+		if (undo) {
+			const previousRound = round + 1;
+			this.events.emit(EVENT_ROUND_CHANGED, {
+				oldRound: previousRound,
+				newRound: round,
 			});
-
-			// Can NOT execute in parallel as _updateVotedDelegatesVoteWeight uses data updated on _updateBalanceRewardsAndFees
-			await this._updateMissedBlocks(roundSummary, undo, tx);
-			await this._updateBalanceRewardsAndFees(roundSummary, undo, tx);
-			await this._updateVotedDelegatesVoteWeight(roundSummary, undo, tx);
-
-			if (undo) {
-				const previousRound = round + 1;
-				this.events.emit(EVENT_ROUND_CHANGED, {
-					oldRound: previousRound,
-					newRound: round,
-				});
-
-				/**
-				 * If we are reverting the block, new transactions
-				 * can change vote weight of delegates, so we need to
-				 * invalidate the state store cache for the next rounds.
-				 */
-				await this.delegatesList.deleteDelegateListAfterRound(round, tx);
-			} else {
-				const nextRound = round + 1;
-				this.events.emit(EVENT_ROUND_CHANGED, {
-					oldRound: round,
-					newRound: nextRound,
-				});
-
-				// Create round delegate list
-				await this.delegatesList.createRoundDelegateList(nextRound, tx);
-			}
+			deleteDelegateListAfterRound(round + delegateListRoundOffset, stateStore);
+		} else {
+			const nextRound = round + 1;
+			this.events.emit(EVENT_ROUND_CHANGED, {
+				oldRound: round,
+				newRound: nextRound,
+			});
+			await this.delegatesList.createRoundDelegateList(
+				round + delegateListRoundOffset,
+				stateStore,
+			);
 		}
 
 		return true;
 	}
 
-	private async _updateProducedBlocks(
+	// tslint:disable-next-line prefer-function-over-method
+	private _updateProducedBlocks(
 		block: Block,
+		stateStore: StateStore,
 		undo?: boolean,
-		tx?: StorageTransaction,
-	): Promise<void> {
-		const filters = { publicKey: block.generatorPublicKey };
-		const field = 'producedBlocks';
-		const value = '1';
-		const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
-
-		await this.storage.entities.Account[method](filters, field, value, tx);
-	}
-
-	private async _updateMissedBlocks(
-		roundSummary: RoundSummary,
-		undo?: boolean,
-		tx?: StorageTransaction,
-	): Promise<void> {
-		const missedBlocksDelegatePublicKeys = await this._getMissedBlocksDelegatePublicKeys(
-			roundSummary,
+	): void {
+		const generator = stateStore.account.get(
+			getAddressFromPublicKey(block.generatorPublicKey),
 		);
-
-		if (!missedBlocksDelegatePublicKeys.length) {
-			return;
-		}
-
-		const filters = { publicKey_in: missedBlocksDelegatePublicKeys };
-		const field = 'missedBlocks';
-		const value = '1';
-
-		const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
-
-		await this.storage.entities.Account[method](filters, field, value, tx);
-	}
-
-	// Update balance, rewards and fees to the forging delegates
-	private async _updateBalanceRewardsAndFees(
-		{ uniqForgersInfo }: RoundSummary,
-		undo?: boolean,
-		tx?: StorageTransaction,
-	): Promise<void> {
-		const updateDelegatesPromise = uniqForgersInfo.map(
-			async ({
-				delegateAccount,
-				earnings: { fee, reward },
-			}: UniqueForgerInfo) => {
-				const factor = undo ? BigInt(-1) : BigInt(1);
-				const amount = fee + reward;
-				const data = {
-					balance: (delegateAccount.balance + amount * factor).toString(),
-					fees: (delegateAccount.fees + fee * factor).toString(),
-					rewards: (delegateAccount.rewards + reward * factor).toString(),
-				};
-
-				return this.storage.entities.Account.update(
-					{ publicKey: delegateAccount.publicKey },
-					data,
-					{},
-					tx,
-				);
-			},
-		);
-
-		await Promise.all(updateDelegatesPromise);
-	}
-
-	// Update VoteWeight to accounts voted by delegates who forged
-	private async _updateVotedDelegatesVoteWeight(
-		{ uniqForgersInfo }: RoundSummary,
-		undo?: boolean,
-		tx?: StorageTransaction,
-	): Promise<void> {
-		const publicKeysToUpdate = uniqForgersInfo
-			.filter(_hasVotedDelegatesPublicKeys)
-			.reduce(
-				(
-					acc: AccountFees,
-					{ delegateAccount, earnings: { fee, reward } }: UniqueForgerInfo,
-				) => {
-					delegateAccount.votedDelegatesPublicKeys.forEach(
-						publicKey =>
-							(acc[publicKey] = acc[publicKey]
-								? acc[publicKey] + fee + reward
-								: fee + reward),
-					);
-
-					return acc;
-				},
-				{},
-			);
-
-		await Promise.all(
-			Object.keys(publicKeysToUpdate).map(async publicKey => {
-				const field = 'voteWeight';
-				const value = publicKeysToUpdate[publicKey].toString();
-				const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';
-
-				return this.storage.entities.Account[method](
-					{ publicKey },
-					field,
-					value,
-					tx,
-				);
-			}),
-		);
+		generator.producedBlocks += undo ? -1 : 1;
+		stateStore.account.set(generator.address, generator);
 	}
 
 	private _isLastBlockOfTheRound(block: Block): boolean {
@@ -334,10 +310,7 @@ export class DelegatesInfo {
 	 * Return an object that contains the summary of round information
 	 * as delegates who forged, their earnings and accounts
 	 */
-	private async _summarizeRound(
-		block: Block,
-		{ tx, delegateListRoundOffset }: DPoSProcessingOptions,
-	): Promise<RoundSummary> {
+	private async _summarizeRound(block: Block): Promise<RoundSummary> {
 		const round = this.rounds.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
@@ -349,7 +322,6 @@ export class DelegatesInfo {
 				height_lt: this.rounds.calcRoundEndHeight(round),
 			},
 			{ limit: this.activeDelegates, sort: 'height:asc' },
-			tx,
 		);
 
 		// The blocksInRounds does not contain the last block
@@ -361,11 +333,7 @@ export class DelegatesInfo {
 			);
 		}
 
-		const {
-			delegatePublicKeys,
-			uniqDelegateListWithRewardsInfo,
-			totalFee,
-		} = blocksInRounds.reduce(
+		const { uniqDelegateListWithRewardsInfo, totalFee } = blocksInRounds.reduce(
 			(acc: AccountSummary, fetchedBlock: Block | BlockJSON, i) => {
 				acc.totalFee = acc.totalFee + BigInt(fetchedBlock.totalFee);
 
@@ -380,7 +348,6 @@ export class DelegatesInfo {
 						reward: BigInt(fetchedBlock.reward),
 						isGettingRemainingFees: i === blocksInRounds.length - 1,
 					});
-					acc.delegatePublicKeys.push(fetchedBlock.generatorPublicKey);
 
 					return acc;
 				}
@@ -392,28 +359,12 @@ export class DelegatesInfo {
 				return acc;
 			},
 			{
-				delegatePublicKeys: [],
 				uniqDelegateListWithRewardsInfo: [],
 				totalFee: BigInt(0),
 			},
 		);
 
 		try {
-			const delegateAccounts = await this.storage.entities.Account.get(
-				{ publicKey_in: delegatePublicKeys },
-				{},
-				tx,
-			);
-
-			const parsedDelegateAccounts = delegateAccounts.map(
-				(account: Account) => ({
-					...account,
-					balance: BigInt(account.balance),
-					rewards: BigInt(account.rewards),
-					fees: BigInt(account.fees),
-				}),
-			);
-
 			// Aggregate forger infor into one object
 			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
 				(forgerInfo: ForgerInfo) => ({
@@ -423,16 +374,12 @@ export class DelegatesInfo {
 						forgerInfo,
 						round,
 					}),
-					delegateAccount: _findDelegate(
-						parsedDelegateAccounts,
-						forgerInfo.publicKey,
-					),
+					delegateAddress: getAddressFromPublicKey(forgerInfo.publicKey),
 				}),
 			);
 
 			return {
 				round,
-				delegateListRoundOffset,
 				totalFee,
 				uniqForgersInfo,
 			};
@@ -440,26 +387,6 @@ export class DelegatesInfo {
 			this.logger.error({ error, round }, 'Failed to sum round');
 			throw error;
 		}
-	}
-
-	private async _getMissedBlocksDelegatePublicKeys({
-		round,
-		delegateListRoundOffset,
-		uniqForgersInfo,
-		tx,
-	}: RoundSummary): Promise<string[]> {
-		const expectedForgingPublicKeys = await this.delegatesList.getForgerPublicKeysForRound(
-			round,
-			delegateListRoundOffset,
-			tx,
-		);
-
-		return expectedForgingPublicKeys.filter(
-			expectedPublicKey =>
-				!uniqForgersInfo.find(
-					({ publicKey }) => publicKey === expectedPublicKey,
-				),
-		);
 	}
 
 	/**
