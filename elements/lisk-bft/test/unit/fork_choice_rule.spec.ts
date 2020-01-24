@@ -22,11 +22,10 @@ import {
 } from '../../src/fork_choice_rule';
 import { Block, Slots as SlotType } from '../../src/types';
 
-const { Slots } = require('@liskhq/lisk-dpos');
+import { Slots } from '@liskhq/lisk-blocks';
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;
-const ACTIVE_DELEGATES = 101;
 
 const createBlock = (data: object): Block => ({
 	...{
@@ -48,7 +47,6 @@ describe('Fork Choice Rule', () => {
 		slots = new Slots({
 			epochTime: EPOCH_TIME,
 			interval: BLOCK_TIME,
-			blocksPerRound: ACTIVE_DELEGATES,
 		});
 	});
 

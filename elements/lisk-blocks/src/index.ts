@@ -16,3 +16,4 @@ export * from './block_reward';
 export { Blocks } from './blocks';
 export { baseBlockSchema } from './schema';
 export { StateStore } from './state_store';
+export { Slots } from './slots';
