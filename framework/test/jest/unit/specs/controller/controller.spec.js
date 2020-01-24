@@ -62,6 +62,8 @@ describe('Controller Class', () => {
 	let controller = null;
 
 	beforeEach(() => {
+		// Arrange
+		fs.readdirSync = jest.fn().mockReturnValue([]);
 		// Act
 		controller = new Controller(appLabel, config, initialState, logger);
 	});
@@ -91,6 +93,7 @@ describe('Controller Class', () => {
 				_validatePidFile: jest.spyOn(controller, '_validatePidFile'),
 				_initState: jest.spyOn(controller, '_initState'),
 				_setupBus: jest.spyOn(controller, '_setupBus'),
+				_initialiseNetwork: jest.spyOn(controller, '_initialiseNetwork'),
 				_loadMigrations: jest
 					.spyOn(controller, '_loadMigrations')
 					.mockImplementation(),
@@ -112,6 +115,9 @@ describe('Controller Class', () => {
 			expect(spies._setupBus).toHaveBeenCalledAfter(spies._initState);
 			expect(spies._loadMigrations).toHaveBeenCalledAfter(spies._setupBus);
 			expect(spies._loadModules).toHaveBeenCalledAfter(spies._loadMigrations);
+			expect(spies._initialiseNetwork).toHaveBeenCalledAfter(
+				spies._loadMigrations,
+			);
 			expect(spies._loadModules).toHaveBeenCalledWith(modules, moduleOptions);
 		});
 

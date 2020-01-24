@@ -18,9 +18,9 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const updatesPath = path.join(__dirname, './network_info');
-const migrations = fs
-	.readdirSync(updatesPath)
-	.map(file => path.join(updatesPath, file));
+
+const migrations = () =>
+	fs.readdirSync(updatesPath).map(file => path.join(updatesPath, file));
 
 module.exports = {
 	migrations,
