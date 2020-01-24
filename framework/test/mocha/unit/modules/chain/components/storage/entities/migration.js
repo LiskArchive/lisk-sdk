@@ -26,7 +26,7 @@ const {
 } = require('../../../../../../../../src/components/storage');
 const {
 	MigrationEntity,
-} = require('../../../../../../../../src/controller/storage/migrations');
+} = require('../../../../../../../../src/controller/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 
 const ChainModule = require('../../../../../../../../src/modules/chain');

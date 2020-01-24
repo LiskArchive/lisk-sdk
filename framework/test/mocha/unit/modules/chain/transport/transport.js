@@ -143,6 +143,8 @@ describe('transport', () => {
 		channelStub = {
 			publish: sinonSandbox.stub(),
 			invoke: sinonSandbox.stub(),
+			publishToNetwork: sinonSandbox.stub(),
+			invokeFromNetwork: sinonSandbox.stub(),
 		};
 
 		sinonSandbox.stub(jobsQueue, 'register');
