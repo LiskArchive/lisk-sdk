@@ -52,7 +52,7 @@ import {
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
 import { errors } from '../../src';
-import { PeerBookConfig } from '../../src/peer_book/peer_book';
+import { PeerBookConfig, PeerBook } from '../../src/peer_book/peer_book';
 
 const { RequestFailError, SendFailError } = errors;
 

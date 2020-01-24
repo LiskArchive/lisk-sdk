@@ -404,12 +404,14 @@ export class P2P extends EventEmitter {
 
 		// When peer is fetched for peerList add them into the update the peerBook
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
-			if (!this._peerBook.hasPeer(detailedPeerInfo)) {
-				if (this._peerBook.addPeer(detailedPeerInfo)) {
-					// Re-emit the message to allow it to bubble up the class hierarchy.
-					// Only emit event when a peer is discovered for the first time.
-					this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-				}
+			if (this._peerBook.hasPeer(detailedPeerInfo)) {
+				return;
+			}
+
+			if (this._peerBook.addPeer(detailedPeerInfo)) {
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				// Only emit event when a peer is discovered for the first time.
+				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 			}
 		};
 
@@ -606,9 +608,7 @@ export class P2P extends EventEmitter {
 				return;
 			});
 
-			if (
-				this._peerBook.bannedIps.find(peerIp => peerIp === socket.remoteAddress)
-			) {
+			if (this._peerBook.bannedIPs.has(socket.remoteAddress)) {
 				this._disconnectSocketDueToFailedHandshake(
 					socket,
 					FORBIDDEN_CONNECTION,

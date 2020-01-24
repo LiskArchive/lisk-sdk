@@ -23,12 +23,19 @@ import {
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
+	DEFAULT_BAN_TIME,
+	PeerKind,
 } from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
 import { ExistingPeerError } from '../../../src/errors';
 
 describe('peerBook', () => {
+	const seedPeers = initPeerInfoListWithSuffix('2.0.1', 10);
+	const fixedPeers = initPeerInfoListWithSuffix('3.0.1', 10);
+	const whitelisted = initPeerInfoListWithSuffix('4.0.1', 10);
+	const previousPeers = initPeerInfoListWithSuffix('5.0.1', 10);
+
 	const peerBookConfig: PeerBookConfig = {
 		sanitizedPeerLists: {
 			blacklistedIPs: [],
@@ -42,12 +49,25 @@ describe('peerBook', () => {
 	let peerBook: PeerBook;
 	let samplePeers: ReadonlyArray<P2PPeerInfo>;
 
+	jest.useFakeTimers();
+
 	describe('#constructor', () => {
-		it('should intialize blank peer lists and set the secret', () => {
-			peerBook = new PeerBook(peerBookConfig);
+		peerBook = new PeerBook({
+			...peerBookConfig,
+			sanitizedPeerLists: {
+				blacklistedIPs: ['192.1.0.1', '192.1.0.1'],
+				seedPeers: seedPeers,
+				fixedPeers: fixedPeers,
+				whitelisted: whitelisted,
+				previousPeers: previousPeers,
+			},
+		});
+
+		it('should initialize Peer lists and set the secret', () => {
 			expect(peerBook).toEqual(expect.any(Object));
 			expect(peerBook.newPeers).toHaveLength(0);
-			expect(peerBook.triedPeers).toHaveLength(0);
+			// fixedPeers +  whitelisted + previousPeers
+			expect(peerBook.triedPeers).toHaveLength(30);
 			expect((peerBook as any)._newPeers.peerListConfig.secret).toEqual(
 				DEFAULT_RANDOM_SECRET,
 			);
@@ -72,6 +92,41 @@ describe('peerBook', () => {
 			expect((peerBook as any)._triedPeers.peerListConfig.peerType).toEqual(
 				PEER_TYPE.TRIED_PEER,
 			);
+			expect(peerBook.seedPeers).toHaveLength(10);
+			expect(peerBook.fixedPeers).toHaveLength(10);
+			expect(peerBook.whitelistedPeers).toHaveLength(10);
+			expect(peerBook.bannedIPs).toEqual(expect.any(Set));
+			expect(peerBook.bannedIPs.size).toEqual(1);
+		});
+
+		it('should update PeerKind', () => {
+			// Arrange
+			let fixedPeerCount = 0;
+			let whitelistedPeerCount = 0;
+			let seedPeerCount = 0;
+
+			peerBook.seedPeers.forEach(seedPeerInfo => {
+				peerBook.addPeer(seedPeerInfo);
+			});
+
+			// Assert
+			peerBook.allPeers.forEach(peer => {
+				switch (peer.internalState?.peerKind) {
+					case PeerKind.FIXED_PEER:
+						fixedPeerCount += 1;
+						break;
+					case PeerKind.WHITELISTED_PEER:
+						whitelistedPeerCount += 1;
+						break;
+					case PeerKind.SEED_PEER:
+						seedPeerCount += 1;
+						break;
+				}
+			});
+
+			expect(fixedPeerCount).toEqual(10);
+			expect(whitelistedPeerCount).toEqual(10);
+			expect(seedPeerCount).toEqual(10);
 		});
 	});
 
@@ -376,6 +431,14 @@ describe('peerBook', () => {
 				expect(peerBook.getPeer(samplePeers[0])).toBeUndefined();
 			});
 		});
+
+		describe('when peer does exists in Fixed,Seed,Whitelisted peers', () => {
+			it('should return false', () => {
+				expect(peerBook.downgradePeer(fixedPeers[0])).toBe(false);
+				expect(peerBook.downgradePeer(seedPeers[0])).toBe(false);
+				expect(peerBook.downgradePeer(whitelisted[0])).toBe(false);
+			});
+		});
 	});
 
 	describe('#getRandomizedPeerList', () => {
@@ -427,6 +490,73 @@ describe('peerBook', () => {
 			expect(peerBook.newPeers).toHaveLength(0);
 			expect(peerBook.triedPeers).toHaveLength(0);
 			expect(peerBook.allPeers).toHaveLength(0);
+		});
+	});
+
+	describe('#Ban/Unban', () => {
+		afterEach(() => {
+			peerBook.cleanUpTimers();
+		});
+
+		describe('When existing peerIP banned', () => {
+			beforeEach(() => {
+				peerBook = new PeerBook({
+					...peerBookConfig,
+					sanitizedPeerLists: {
+						blacklistedIPs: [],
+						seedPeers: seedPeers,
+						fixedPeers: fixedPeers,
+						whitelisted: whitelisted,
+						previousPeers: previousPeers,
+					},
+				});
+			});
+
+			it('should addBannedPeer add IP to bannedIPs', () => {
+				// Arrange
+				const bannedPeerId = initPeerInfoListWithSuffix('5.0.1', 1)[0].peerId;
+
+				// Act
+				peerBook.addBannedPeer(bannedPeerId, DEFAULT_BAN_TIME);
+
+				// Assert
+				expect(peerBook.bannedIPs).toEqual(
+					new Set([initPeerInfoListWithSuffix('5.0.1', 1)[0].ipAddress]),
+				);
+				expect((peerBook as any)._unbanTimers).toHaveLength(1);
+			});
+
+			it('should remove IP from bannedIPs when bantime is over', () => {
+				// Arrange
+				const bannedIP = initPeerInfoListWithSuffix('5.0.1', 1)[0].peerId;
+
+				// Act
+				peerBook.addBannedPeer(bannedIP, DEFAULT_BAN_TIME);
+
+				jest.advanceTimersByTime(DEFAULT_BAN_TIME);
+
+				// Assert
+				expect(peerBook.bannedIPs).toBeEmpty;
+			});
+
+			it('should not able to ban Whitelisted ,FixedPeer, SeedPeer', () => {
+				// Act
+				peerBook.addBannedPeer(seedPeers[0].peerId, DEFAULT_BAN_TIME);
+				peerBook.addBannedPeer(fixedPeers[0].peerId, DEFAULT_BAN_TIME);
+				peerBook.addBannedPeer(whitelisted[0].peerId, DEFAULT_BAN_TIME);
+
+				// Assert
+				expect(peerBook.bannedIPs).toBeEmpty;
+			});
+
+			it('should not able to ban same IP multiple times', () => {
+				// Act
+				peerBook.addBannedPeer(previousPeers[0].peerId, DEFAULT_BAN_TIME);
+
+				peerBook.addBannedPeer(previousPeers[0].peerId, DEFAULT_BAN_TIME),
+					// Assert
+					expect((peerBook as any)._unbanTimers).toHaveLength(1);
+			});
 		});
 	});
 });

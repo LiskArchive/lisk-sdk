@@ -37,7 +37,7 @@ export interface PeerBookConfig {
 export class PeerBook {
 	private readonly _newPeers: NewList;
 	private readonly _triedPeers: TriedList;
-	private readonly _bannedIps: Set<string>;
+	private readonly _bannedIPs: Set<string>;
 	private readonly _blacklistedIPs: Set<string>;
 	private readonly _seedPeers: ReadonlyArray<P2PPeerInfo>;
 	private readonly _fixedPeers: ReadonlyArray<P2PPeerInfo>;
@@ -63,7 +63,7 @@ export class PeerBook {
 		});
 
 		this._secret = secret;
-		this._bannedIps = new Set([]);
+		this._bannedIPs = new Set([]);
 		this._blacklistedIPs = new Set([...sanitizedPeerLists.blacklistedIPs]);
 		this._seedPeers = [...sanitizedPeerLists.seedPeers];
 		this._fixedPeers = [...sanitizedPeerLists.fixedPeers];
@@ -109,8 +109,8 @@ export class PeerBook {
 	public get whitelistedPeers(): ReadonlyArray<P2PPeerInfo> {
 		return this._whitelistedPeers;
 	}
-	public get bannedIps(): ReadonlyArray<string> {
-		return [...this._blacklistedIPs, ...this._bannedIps];
+	public get bannedIPs(): Set<string> {
+		return new Set([...this._blacklistedIPs, ...this._bannedIPs]);
 	}
 
 	public cleanUpTimers(): void {
@@ -161,7 +161,7 @@ export class PeerBook {
 	}
 
 	public addPeer(peerInfo: P2PEnhancedPeerInfo): boolean {
-		if (this.bannedIps.find(peerIp => peerIp === peerInfo.ipAddress)) {
+		if (this._bannedIPs.has(peerInfo.ipAddress)) {
 			return false;
 		}
 
@@ -199,11 +199,10 @@ export class PeerBook {
 		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			this.removePeer(peerInfo);
 
-			if (this.bannedIps.find(peerIp => peerIp === peerInfo.ipAddress)) {
+			if (this.bannedIPs.has(peerInfo.ipAddress)) {
 				return false;
 			}
 
-			// TODO: Update peerKind
 			this._triedPeers.addPeer(this._assignPeerKind(peerInfo));
 
 			return true;
@@ -246,22 +245,16 @@ export class PeerBook {
 	public addBannedPeer(peerId: string, peerBanTime: number): void {
 		const peerIpAddress = peerId.split(':')[0];
 
-		if (this.bannedIps.find(peerIp => peerIp === peerIpAddress)) {
+		if (this.bannedIPs.has(peerIpAddress)) {
 			return;
 		}
 
-		const isWhitelistedPeer = this.whitelistedPeers.find(
-			peer => peer.peerId === peerId,
-		);
-
-		const isFixedPeer = this.fixedPeers.find(peer => peer.peerId === peerId);
-
-		// Whitelisted or FixedPeers are not allowed to be banned
-		if (isWhitelistedPeer || isFixedPeer) {
+		// Whitelisted/FixedPeers/SeedPeers are not allowed to be banned
+		if (this.isTrustedPeer(peerId)) {
 			return;
 		}
 
-		this._bannedIps.add(peerIpAddress);
+		this._bannedIPs.add(peerIpAddress);
 
 		this.allPeers.forEach((peer: P2PPeerInfo) => {
 			if (peer.ipAddress === peerIpAddress) {
@@ -282,7 +275,7 @@ export class PeerBook {
 	private _removeBannedPeer(peerId: string): void {
 		const peerIpAddress = peerId.split(':')[0];
 
-		this._bannedIps.delete(peerIpAddress);
+		this._bannedIPs.delete(peerIpAddress);
 	}
 
 	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
