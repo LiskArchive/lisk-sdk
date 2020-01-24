@@ -31,13 +31,9 @@ export class DataAccess {
 	}
 
 	public async getBlockHeadersByIDs(
-		arrayOfBlockIds: Readonly<string>,
-		tx?: StorageTransaction,
+		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
-		const blocks = await this._storage.getBlockHeadersByIDs(
-			arrayOfBlockIds,
-			tx,
-		);
+		const blocks = await this._storage.getBlockHeadersByIDs(arrayOfBlockIds);
 
 		return blocks;
 	}
@@ -45,12 +41,10 @@ export class DataAccess {
 	public async getBlockHeadersByHeightBetween(
 		fromHeight: number,
 		toHeight: number,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.getBlockHeadersByHeightBetween(
 			fromHeight,
 			toHeight,
-			tx,
 		);
 
 		return blocks;
@@ -68,13 +62,11 @@ export class DataAccess {
 		fromHeight: number,
 		toHeight: number,
 		numberOfActiveDelegates: number,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.getBlockHeadersWithInterval(
 			fromHeight,
 			toHeight,
 			numberOfActiveDelegates,
-			tx,
 		);
 
 		return blocks;
@@ -94,31 +86,28 @@ export class DataAccess {
 		return block;
 	}
 
-	public async getBlocksById(
+	public async getExtendedBlocksById(
 		arrayOfBlockIds: ReadonlyArray<string>,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
-		const block = await this._storage.getBlocksById(arrayOfBlockIds, tx);
+		const block = await this._storage.getExtendedBlocksById(arrayOfBlockIds);
 
 		return block;
 	}
 
-	public async getBlocksByHeight(
+	public async getExtendedBlocksByHeightBetween(
 		fromHeight: number,
 		toHeight: number,
-		tx?: StorageTransaction,
 	): Promise<BlockJSON[]> {
-		const blocks = await this._storage.getBlocksByHeight(
+		const blocks = await this._storage.getExtendedBlocksByHeightBetween(
 			fromHeight,
 			toHeight,
-			tx,
 		);
 
 		return blocks;
 	}
 
-	public async getTempBlocks(tx: StorageTransaction): Promise<TempBlock[]> {
-		const blocks = await this._storage.getTempBlocks(tx);
+	public async getTempBlocks(): Promise<TempBlock[]> {
+		const blocks = await this._storage.getTempBlocks();
 
 		return blocks;
 	}
@@ -133,8 +122,8 @@ export class DataAccess {
 		this._storage.clearTempBlocks();
 	}
 
-	public async getLastBlock(): Promise<BlockJSON> {
-		const block = await this._storage.getLastBlock();
+	public async getExtendedLastBlock(): Promise<BlockJSON> {
+		const block = await this._storage.getExtendedLastBlock();
 
 		return block;
 	}
