@@ -470,7 +470,7 @@ describe('bft', () => {
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.get).toHaveBeenLastCalledWith(
 					{ height_lte: 400, height_gte: 450 - activeDelegates * 2 },
-					{ limit: undefined, sort: 'height:desc' },
+					{ limit: null, sort: 'height:desc' },
 				);
 			});
 
