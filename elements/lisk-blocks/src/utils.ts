@@ -106,60 +106,6 @@ export const getIdSequence = async (
 	};
 };
 
-export const addBlockProperties = (block: BlockJSON) => {
-	block.totalAmount = BigInt(block.totalAmount || 0);
-	block.totalFee = BigInt(block.totalFee || 0);
-	block.reward = BigInt(block.reward || 0);
-
-	if (block.version === undefined) {
-		block.version = 0;
-	}
-	if (block.numberOfTransactions === undefined) {
-		block.numberOfTransactions =
-			block.transactions === undefined ? 0 : block.transactions.length;
-	}
-	if (block.payloadLength === undefined) {
-		block.payloadLength = 0;
-	}
-	if (block.transactions === undefined) {
-		block.transactions = [];
-	}
-
-	return block;
-};
-
-export const deleteBlockProperties = (block: BlockHeader) => {
-	const reducedBlock = {
-		...block,
-	};
-	/* tslint:disable:no-delete */
-	if (reducedBlock.version === 0) {
-		delete reducedBlock.version;
-	}
-	// VerifyBlock ensures numberOfTransactions is transactions.length
-	if (typeof reducedBlock.numberOfTransactions === 'number') {
-		delete reducedBlock.numberOfTransactions;
-	}
-	if (reducedBlock.totalAmount === BigInt(0)) {
-		delete reducedBlock.totalAmount;
-	}
-	if (reducedBlock.totalFee === BigInt(0)) {
-		delete reducedBlock.totalFee;
-	}
-	if (reducedBlock.payloadLength === 0) {
-		delete reducedBlock.payloadLength;
-	}
-	if (reducedBlock.reward === BigInt(0)) {
-		delete reducedBlock.reward;
-	}
-	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
-		delete reducedBlock.transactions;
-	}
-	/* tslint:enable:no-delete */
-
-	return reducedBlock;
-};
-
 export const getId = (blockBytes: Buffer): string => {
 	const hashedBlock = hash(blockBytes);
 	// tslint:disable-next-line no-magic-numbers

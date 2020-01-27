@@ -257,10 +257,6 @@ describe('blocks/verify', () => {
 
 	describe('verifyBlock', () => {});
 
-	describe('addBlockProperties', () => {});
-
-	describe('deleteBlockProperties', () => {});
-
 	// Sends a block to network, save it locally
 	describe('processBlock for valid block {broadcast: true, saveBlock: true}', () => {
 		it('should clear database', done => {
