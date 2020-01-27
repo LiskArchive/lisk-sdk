@@ -23,24 +23,51 @@ import {
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
+	DEFAULT_BAN_TIME,
+	PeerKind,
 } from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 import { PEER_TYPE } from '../../../src/utils';
 import { ExistingPeerError } from '../../../src/errors';
 
 describe('peerBook', () => {
+	const seedPeers = initPeerInfoListWithSuffix('2.0.1', 10);
+	const fixedPeers = initPeerInfoListWithSuffix('3.0.1', 10);
+	const whitelisted = initPeerInfoListWithSuffix('4.0.1', 10);
+	const previousPeers = initPeerInfoListWithSuffix('5.0.1', 10);
+
 	const peerBookConfig: PeerBookConfig = {
+		sanitizedPeerLists: {
+			blacklistedIPs: [],
+			seedPeers: [],
+			fixedPeers: [],
+			whitelisted: [],
+			previousPeers: [],
+		},
 		secret: DEFAULT_RANDOM_SECRET,
 	};
 	let peerBook: PeerBook;
 	let samplePeers: ReadonlyArray<P2PPeerInfo>;
 
+	jest.useFakeTimers();
+
 	describe('#constructor', () => {
-		it('should intialize blank peer lists and set the secret', () => {
-			peerBook = new PeerBook(peerBookConfig);
+		peerBook = new PeerBook({
+			...peerBookConfig,
+			sanitizedPeerLists: {
+				blacklistedIPs: ['192.1.0.1', '192.1.0.1'],
+				seedPeers: seedPeers,
+				fixedPeers: fixedPeers,
+				whitelisted: whitelisted,
+				previousPeers: previousPeers,
+			},
+		});
+
+		it('should initialize Peer lists and set the secret', () => {
 			expect(peerBook).toEqual(expect.any(Object));
 			expect(peerBook.newPeers).toHaveLength(0);
-			expect(peerBook.triedPeers).toHaveLength(0);
+			// fixedPeers +  whitelisted + previousPeers
+			expect(peerBook.triedPeers).toHaveLength(30);
 			expect((peerBook as any)._newPeers.peerListConfig.secret).toEqual(
 				DEFAULT_RANDOM_SECRET,
 			);
@@ -65,28 +92,41 @@ describe('peerBook', () => {
 			expect((peerBook as any)._triedPeers.peerListConfig.peerType).toEqual(
 				PEER_TYPE.TRIED_PEER,
 			);
+			expect(peerBook.seedPeers).toHaveLength(10);
+			expect(peerBook.fixedPeers).toHaveLength(10);
+			expect(peerBook.whitelistedPeers).toHaveLength(10);
+			expect(peerBook.bannedIPs).toEqual(expect.any(Set));
+			expect(peerBook.bannedIPs.size).toEqual(1);
 		});
 
-		it('should intialize with custom list configs', () => {
-			const newListConfig = {
-				secret: 111,
-				numOfBuckets: 1,
-				bucketSize: 1,
-				peerType: PEER_TYPE.NEW_PEER,
-			};
-			const triedListConfig = {
-				secret: 222,
-				numOfBuckets: 2,
-				bucketSize: 2,
-				peerType: PEER_TYPE.TRIED_PEER,
-			};
-			const secret = 33333;
-			peerBook = new PeerBook({ secret, newListConfig, triedListConfig });
-			expect(peerBook).toEqual(expect.any(Object));
-			expect((peerBook as any)._newPeers.peerListConfig).toEqual(newListConfig);
-			expect((peerBook as any)._triedPeers.peerListConfig).toEqual(
-				triedListConfig,
-			);
+		it('should update PeerKind', () => {
+			// Arrange
+			let fixedPeerCount = 0;
+			let whitelistedPeerCount = 0;
+			let seedPeerCount = 0;
+
+			peerBook.seedPeers.forEach(seedPeerInfo => {
+				peerBook.addPeer(seedPeerInfo);
+			});
+
+			// Assert
+			peerBook.allPeers.forEach(peer => {
+				switch (peer.internalState?.peerKind) {
+					case PeerKind.FIXED_PEER:
+						fixedPeerCount += 1;
+						break;
+					case PeerKind.WHITELISTED_PEER:
+						whitelistedPeerCount += 1;
+						break;
+					case PeerKind.SEED_PEER:
+						seedPeerCount += 1;
+						break;
+				}
+			});
+
+			expect(fixedPeerCount).toEqual(10);
+			expect(whitelistedPeerCount).toEqual(10);
+			expect(seedPeerCount).toEqual(10);
 		});
 	});
 
@@ -98,7 +138,7 @@ describe('peerBook', () => {
 
 		it('should get new peers', () => {
 			peerBook.addPeer(samplePeers[0]);
-			expect(peerBook.newPeers).toEqual([samplePeers[0]]);
+			expect(peerBook.newPeers).toHaveLength(1);
 		});
 	});
 
@@ -112,7 +152,7 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 			peerBook.upgradePeer(samplePeers[0]);
 			peerBook.addPeer(samplePeers[1]);
-			expect(peerBook.triedPeers).toEqual([samplePeers[0]]);
+			expect(peerBook.triedPeers).toHaveLength(1);
 		});
 	});
 
@@ -126,7 +166,10 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 			peerBook.upgradePeer(samplePeers[0]);
 			peerBook.addPeer(samplePeers[1]);
-			expect(peerBook.allPeers).toEqual([samplePeers[1], samplePeers[0]]);
+			expect(peerBook.allPeers.map(peer => peer.peerId)).toEqual([
+				samplePeers[1].peerId,
+				samplePeers[0].peerId,
+			]);
 		});
 	});
 
@@ -140,14 +183,18 @@ describe('peerBook', () => {
 			it('should return the peer info', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0].peerId,
+				);
 			});
 		});
 
 		describe('when peer exists in the new peers list', () => {
 			it('should return the peer info', () => {
 				peerBook.addPeer(samplePeers[0]);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0].peerId,
+				);
 			});
 		});
 
@@ -203,7 +250,9 @@ describe('peerBook', () => {
 		describe('when peer does not exist in the peer book', () => {
 			it('should add peer to the new peers list', () => {
 				expect(peerBook.newPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0].peerId,
+				);
 			});
 		});
 	});
@@ -285,7 +334,9 @@ describe('peerBook', () => {
 				peerBook.upgradePeer(samplePeers[0]);
 				expect(peerBook.newPeers).toHaveLength(0);
 				expect(peerBook.triedPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 			});
 		});
 
@@ -308,7 +359,9 @@ describe('peerBook', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 			});
 
 			it('should add peer to the new peer list when downgraded 3 times', () => {
@@ -322,7 +375,9 @@ describe('peerBook', () => {
 				expect(peerBook.triedPeers).toHaveLength(0);
 				// Should move to newPeers
 				expect(peerBook.newPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 			});
 
 			it('should remove a peer from all peer lists when downgraded 4 times', () => {
@@ -355,7 +410,9 @@ describe('peerBook', () => {
 
 				expect(peerBook.newPeers).toHaveLength(1);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
-				expect(peerBook.getPeer(samplePeers[0])).toEqual(samplePeers[0]);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
+					samplePeers[0]?.peerId,
+				);
 				expect(peerBook.newPeers).toHaveLength(1);
 			});
 
@@ -372,6 +429,14 @@ describe('peerBook', () => {
 			it('should return false', () => {
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
 				expect(peerBook.getPeer(samplePeers[0])).toBeUndefined();
+			});
+		});
+
+		describe('when peer does exists in Fixed,Seed,Whitelisted peers', () => {
+			it('should return false', () => {
+				expect(peerBook.downgradePeer(fixedPeers[0])).toBe(false);
+				expect(peerBook.downgradePeer(seedPeers[0])).toBe(false);
+				expect(peerBook.downgradePeer(whitelisted[0])).toBe(false);
 			});
 		});
 	});
@@ -425,6 +490,79 @@ describe('peerBook', () => {
 			expect(peerBook.newPeers).toHaveLength(0);
 			expect(peerBook.triedPeers).toHaveLength(0);
 			expect(peerBook.allPeers).toHaveLength(0);
+		});
+	});
+
+	describe('#Ban/Unban', () => {
+		afterEach(() => {
+			peerBook.cleanUpTimers();
+		});
+
+		describe('When existing peerIP banned', () => {
+			beforeEach(() => {
+				peerBook = new PeerBook({
+					...peerBookConfig,
+					sanitizedPeerLists: {
+						blacklistedIPs: [],
+						seedPeers: seedPeers,
+						fixedPeers: fixedPeers,
+						whitelisted: whitelisted,
+						previousPeers: previousPeers,
+					},
+				});
+			});
+
+			it('should addBannedPeer add IP to bannedIPs', () => {
+				// Arrange
+				const bannedPeerId = initPeerInfoListWithSuffix('5.0.1', 1)[0].peerId;
+
+				// Act
+				peerBook.addBannedPeer(bannedPeerId, DEFAULT_BAN_TIME);
+
+				// Assert
+				expect(peerBook.bannedIPs).toEqual(
+					new Set([initPeerInfoListWithSuffix('5.0.1', 1)[0].ipAddress]),
+				);
+				expect((peerBook as any)._unbanTimers).toHaveLength(1);
+			});
+
+			it('should remove IP from bannedIPs when bantime is over', () => {
+				// Arrange
+				const bannedIP = initPeerInfoListWithSuffix('5.0.1', 1)[0].peerId;
+
+				// Act
+				peerBook.addBannedPeer(bannedIP, DEFAULT_BAN_TIME);
+
+				jest.advanceTimersByTime(DEFAULT_BAN_TIME);
+
+				// Assert
+				expect(peerBook.bannedIPs.size).toEqual(0);
+			});
+
+			it('should not able to ban Whitelisted ,FixedPeer', () => {
+				// Act
+				peerBook.addBannedPeer(fixedPeers[0].peerId, DEFAULT_BAN_TIME);
+				peerBook.addBannedPeer(whitelisted[0].peerId, DEFAULT_BAN_TIME);
+
+				// Assert
+				expect(peerBook.bannedIPs.size).toEqual(0);
+			});
+
+			it('should able to SeedPeer', () => {
+				// Act
+				peerBook.addBannedPeer(seedPeers[0].peerId, DEFAULT_BAN_TIME);
+				// Assert
+				expect(peerBook.bannedIPs.size).toEqual(1);
+			});
+
+			it('should not able to ban same IP multiple times', () => {
+				// Act
+				peerBook.addBannedPeer(previousPeers[0].peerId, DEFAULT_BAN_TIME);
+
+				peerBook.addBannedPeer(previousPeers[0].peerId, DEFAULT_BAN_TIME),
+					// Assert
+					expect((peerBook as any)._unbanTimers).toHaveLength(1);
+			});
 		});
 	});
 });
