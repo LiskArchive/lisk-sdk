@@ -65,6 +65,11 @@ export interface BlockHeaderJSON {
 	/* tslint:enable:readonly-keyword */
 }
 
+export type BlockRound = Pick<BlockHeaderJSON, 'id' | 'height'> & {
+	// tslint:disable-next-line readonly-keyword
+	round?: number;
+};
+
 export interface BlockJSON extends BlockHeaderJSON {
 	// tslint:disable-next-line no-any readonly-keyword
 	transactions: any[];
@@ -209,7 +214,7 @@ export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 		readonly height: number;
 		readonly numberOfRounds: number;
 		readonly numberOfDelegates: number;
-	}) => Promise<BlockJSON[]>;
+	}) => Promise<BlockRound[]>;
 	readonly begin: <T>(
 		name: string,
 		fn: (tx: StorageTransaction) => Promise<T>,

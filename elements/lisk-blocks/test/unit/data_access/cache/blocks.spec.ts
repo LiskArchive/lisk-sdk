@@ -31,18 +31,18 @@ describe('data_access.blocksCache.blocks', () => {
 		});
 	});
 
-	describe('getById', () => {
+	describe('getByID', () => {
 		it('should return undefined if block does not exists', () => {
 			const block = BlockHeaderInstance({ height: 1 });
 			blocksCache.add(block);
 
 			expect(blocksCache.items).toStrictEqual([block]);
-			expect(blocksCache.getById('123')).toBeUndefined;
+			expect(blocksCache.getByID('123')).toBeUndefined;
 		});
 
 		it('should return undefined if block does not exists', () => {
 			expect(blocksCache.items).toStrictEqual([]);
-			expect(blocksCache.getById('123')).toBeUndefined;
+			expect(blocksCache.getByID('123')).toBeUndefined;
 		});
 
 		it('should return the block for a given id', () => {
@@ -50,13 +50,13 @@ describe('data_access.blocksCache.blocks', () => {
 			blocksCache.add(block);
 
 			expect(blocksCache.items).toStrictEqual([block]);
-			expect(blocksCache.getById(block.id)).toEqual(block);
+			expect(blocksCache.getByID(block.id)).toEqual(block);
 		});
 	});
 
-	describe('getByIds', () => {
+	describe('getByIDs', () => {
 		it('should return empty array if the cache is empty', () => {
-			expect(blocksCache.getByIds(['123'])).toBeEmpty();
+			expect(blocksCache.getByIDs(['123'])).toBeEmpty();
 		});
 
 		it('should return empty array if matching block ids does not exists', () => {
@@ -66,7 +66,7 @@ describe('data_access.blocksCache.blocks', () => {
 			const blockIds = blocks.map(b => b.id);
 
 			expect(blocksCache.items).toStrictEqual(blocks);
-			expect(blocksCache.getByIds([...blockIds, '111111'])).toBeEmpty();
+			expect(blocksCache.getByIDs([...blockIds, '111111'])).toBeEmpty();
 		});
 
 		it('should return all the blocks for given block ids', () => {
@@ -76,7 +76,7 @@ describe('data_access.blocksCache.blocks', () => {
 			const blockIds = blocks.map(b => b.id);
 
 			expect(blocksCache.items).toStrictEqual(blocks);
-			expect(blocksCache.getByIds(blockIds)).toStrictEqual(blocks);
+			expect(blocksCache.getByIDs(blockIds)).toStrictEqual(blocks);
 		});
 	});
 

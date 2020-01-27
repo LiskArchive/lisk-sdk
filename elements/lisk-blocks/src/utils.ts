@@ -13,11 +13,16 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 
-import { Storage as StorageAccess } from './data_access';
-import { BlockHeader, BlockJSON, Storage, StorageTransaction } from './types';
+import { DataAccess } from './data_access';
+import {
+	BlockHeader,
+	BlockInstance,
+	BlockRound,
+	StorageTransaction,
+} from './types';
 
 export const loadBlocksFromLastBlockId = async (
-	storageAccess: StorageAccess,
+	dataAccess: DataAccess,
 	lastBlockId: string,
 	limit: number,
 ) => {
@@ -29,7 +34,7 @@ export const loadBlocksFromLastBlockId = async (
 	}
 
 	// Get height of block with supplied ID
-	const [lastBlock] = await storageAccess.getBlockHeadersByIDs([lastBlockId]);
+	const [lastBlock] = await dataAccess.getBlockHeadersByIDs([lastBlockId]);
 	if (!lastBlock) {
 		throw new Error(`Invalid lastBlockId requested: ${lastBlockId}`);
 	}
@@ -39,11 +44,11 @@ export const loadBlocksFromLastBlockId = async (
 	// Calculate max block height for database query
 	const fetchUntilHeight = lastBlockHeight + limit;
 
-	const blocks = await storageAccess.getExtendedBlocksByHeightBetween(
+	const blocks = await dataAccess.getBlocksByHeightBetween(
 		lastBlockHeight + 1,
 		fetchUntilHeight,
 	);
-	const sortedBlocks = blocks.sort((a: BlockJSON, b: BlockJSON) =>
+	const sortedBlocks = blocks.sort((a: BlockInstance, b: BlockInstance) =>
 		a.height > b.height ? 1 : -1,
 	);
 
@@ -51,7 +56,7 @@ export const loadBlocksFromLastBlockId = async (
 };
 
 export const getIdSequence = async (
-	storage: Storage,
+	dataAccess: DataAccess,
 	height: number,
 	lastBlock: BlockHeader,
 	genesisBlock: BlockHeader,
@@ -59,14 +64,11 @@ export const getIdSequence = async (
 ) => {
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
-	const rows: Array<Partial<
-		BlockJSON
-	>> = await storage.entities.Block.getFirstBlockIdOfLastRounds({
+	const blockIds: BlockRound[] = await dataAccess.getFirstBlockIdWithInterval(
 		height,
-		numberOfRounds: 5,
 		numberOfDelegates,
-	});
-	if (rows.length === 0) {
+	);
+	if (blockIds.length === 0) {
 		throw new Error(`Failed to get id sequence for height: ${height}`);
 	}
 
@@ -79,29 +81,21 @@ export const getIdSequence = async (
 			height: genesisBlock.height,
 		};
 
-		if (!rows.map(r => r.id).includes(partialGenesis.id)) {
-			rows.push(partialGenesis);
+		if (!blockIds.map(r => r.id).includes(partialGenesis.id)) {
+			blockIds.push(partialGenesis);
 		}
 	}
 
 	// Add last block at the beginning if the set doesn't contain it already
-	if (lastBlock && !rows.map(r => r.id).includes(lastBlock.id)) {
-		rows.unshift({
+	if (lastBlock && !blockIds.map(r => r.id).includes(lastBlock.id)) {
+		blockIds.unshift({
 			id: lastBlock.id,
 			height: lastBlock.height,
 		});
 	}
 
-	// Extract blocks IDs
-	rows.forEach(row => {
-		// FIXME: Looks like double check
-		if (!ids.includes(row.id as string)) {
-			ids.push(row.id as string);
-		}
-	});
-
 	return {
-		firstHeight: rows[0].height,
+		firstHeight: blockIds[0].height,
 		ids: ids.join(),
 	};
 };
@@ -131,15 +125,15 @@ export const setHeight = (
 };
 
 export const loadMemTables = async (
-	storageAccess: StorageAccess,
+	dataAccess: DataAccess,
 	tx: StorageTransaction,
 ): Promise<{
 	readonly blocksCount: number;
-	readonly genesisBlock: BlockJSON;
+	readonly genesisBlock: BlockHeader;
 }> => {
 	const promises = [
-		storageAccess.getBlockCount(),
-		storageAccess.getBlockHeadersByHeightBetween(0, 1),
+		dataAccess.getBlocksCount(),
+		dataAccess.getBlockHeadersByHeightBetween(0, 1),
 	];
 
 	const [blocksCount, genesisBlock] = await tx.batch(promises);
