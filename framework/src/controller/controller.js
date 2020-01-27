@@ -192,7 +192,7 @@ class Controller {
 
 	async _initialiseNetwork(networkConfig) {
 		this.network = new Network({
-			networkConfig,
+			options: networkConfig,
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
