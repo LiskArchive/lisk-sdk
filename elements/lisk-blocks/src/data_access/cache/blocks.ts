@@ -24,4 +24,36 @@ export class Blocks extends Cache<BlockHeader> {
 	public getById(id: string): BlockHeader | undefined {
 		return this.items.find(block => block.id === id);
 	}
+
+	public getByIds(ids: ReadonlyArray<string>): BlockHeader[] {
+		const blocks = this.items.filter(block => ids.includes(block.id));
+
+		if (blocks.length === ids.length) {
+			return blocks;
+		}
+
+		return [];
+	}
+
+	public getByHeightBetween(
+		fromHeight: number,
+		toHeight: number,
+	): BlockHeader[] {
+		if (
+			this.items.find(b => b.height === fromHeight) &&
+			this.items.find(b => b.height === toHeight)
+		) {
+			return this.items.filter(
+				block => block.height >= fromHeight && block.height <= toHeight,
+			);
+		}
+
+		return [];
+	}
+
+	public getLastCommonBlockHeader(ids: ReadonlyArray<string>): BlockHeader {
+		const blocks = this.getByIds(ids);
+
+		return blocks[blocks.length - 1];
+	}
 }

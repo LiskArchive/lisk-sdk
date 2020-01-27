@@ -78,7 +78,7 @@ export const Block = stampit.compose({
 
 export const BlockHeader = stampit.compose({
 	props: {
-		blockId: '',
+		id: '',
 		height: 0,
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
@@ -87,21 +87,20 @@ export const BlockHeader = stampit.compose({
 	},
 	init({
 		height,
-		blockId,
+		id,
 		delegatePublicKey,
 		delegateMinHeightActive,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
 	}: {
 		height: number;
-		blockId: string;
+		id: string;
 		delegatePublicKey: string;
 		delegateMinHeightActive: number;
 		maxHeightPreviouslyForged: number;
 		maxHeightPrevoted: number;
 	}) {
-		this.blockId =
-			blockId || randomstring.generate({ charset: 'numeric', length: 19 });
+		this.id = id || randomstring.generate({ charset: 'numeric', length: 19 });
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
 		this.delegatePublicKey =
 			delegatePublicKey ||

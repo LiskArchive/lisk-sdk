@@ -43,11 +43,11 @@ describe('data_access.cache', () => {
 
 	describe('empty', () => {
 		it('should clear all the items from cache list', () => {
-			const blocks = Array.from({ length: 10 }, (_, i) =>
+			const [blocks] = Array.from({ length: 10 }, (_, i) =>
 				cache.add(BlockHeaderInstance({ height: i })),
 			);
 
-			expect(cache.items).toStrictEqual(blocks[0]);
+			expect(cache.items).toStrictEqual(blocks);
 
 			cache.empty();
 			expect(cache.items).toBeArrayOfSize(0);

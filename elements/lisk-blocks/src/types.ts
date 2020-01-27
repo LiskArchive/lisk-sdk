@@ -72,6 +72,7 @@ export interface BlockJSON extends BlockHeaderJSON {
 
 type Modify<T, R> = Omit<T, keyof R> & R;
 
+// All the block properties excluding transactions
 export type BlockHeader = Modify<
 	BlockHeaderJSON,
 	{

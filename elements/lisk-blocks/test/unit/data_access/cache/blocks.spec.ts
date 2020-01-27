@@ -32,12 +32,108 @@ describe('data_access.blocksCache.blocks', () => {
 	});
 
 	describe('getById', () => {
+		it('should return undefined if block does not exists', () => {
+			const block = BlockHeaderInstance({ height: 1 });
+			blocksCache.add(block);
+
+			expect(blocksCache.items).toStrictEqual([block]);
+			expect(blocksCache.getById('123')).toBeUndefined;
+		});
+
+		it('should return undefined if block does not exists', () => {
+			expect(blocksCache.items).toStrictEqual([]);
+			expect(blocksCache.getById('123')).toBeUndefined;
+		});
+
 		it('should return the block for a given id', () => {
 			const block = BlockHeaderInstance({ height: 1 });
 			blocksCache.add(block);
 
 			expect(blocksCache.items).toStrictEqual([block]);
 			expect(blocksCache.getById(block.id)).toEqual(block);
+		});
+	});
+
+	describe('getByIds', () => {
+		it('should return empty array if the cache is empty', () => {
+			expect(blocksCache.getByIds(['123'])).toBeEmpty();
+		});
+
+		it('should return empty array if matching block ids does not exists', () => {
+			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+			const blockIds = blocks.map(b => b.id);
+
+			expect(blocksCache.items).toStrictEqual(blocks);
+			expect(blocksCache.getByIds([...blockIds, '111111'])).toBeEmpty();
+		});
+
+		it('should return all the blocks for given block ids', () => {
+			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+			const blockIds = blocks.map(b => b.id);
+
+			expect(blocksCache.items).toStrictEqual(blocks);
+			expect(blocksCache.getByIds(blockIds)).toStrictEqual(blocks);
+		});
+	});
+
+	describe('getByHeightBetween', () => {
+		it('should return empty array if the cache is empty', () => {
+			expect(blocksCache.getByHeightBetween(1, 7)).toBeEmpty();
+		});
+
+		it('should return empty array if blocks does not exists between height range', () => {
+			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i + 1 })),
+			);
+
+			expect(blocksCache.items).toStrictEqual(blocks);
+			expect(blocksCache.getByHeightBetween(0, 99)).toBeEmpty();
+		});
+
+		it('should return all the blocks for given block height range', () => {
+			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i + 1 })),
+			);
+			const heights = blocks.map(b => b.height);
+
+			expect(blocksCache.items).toStrictEqual(blocks);
+			expect(
+				blocksCache.getByHeightBetween(heights[0], heights.length),
+			).toStrictEqual(blocks);
+		});
+	});
+
+	describe('getLastCommonBlockHeader', () => {
+		it('should return empty array if the cache is empty', () => {
+			expect(blocksCache.getLastCommonBlockHeader(['123'])).toBeUndefined();
+		});
+
+		it('should return empty array if matching block ids does not exists', () => {
+			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+			const blockIds = blocks.map(b => b.id);
+
+			expect(blocksCache.items).toStrictEqual(blocks);
+			expect(
+				blocksCache.getLastCommonBlockHeader([...blockIds, '111111']),
+			).toBeEmpty();
+		});
+
+		it('should return all the blocks for given block ids', () => {
+			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+			const blockIds = blocks.map(b => b.id);
+
+			expect(blocksCache.items).toStrictEqual(blocks);
+			expect(blocksCache.getLastCommonBlockHeader(blockIds)).toStrictEqual(
+				blocks[blocks.length - 1],
+			);
 		});
 	});
 });
