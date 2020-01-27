@@ -21,8 +21,5 @@ module.exports = {
 	testMatch: ['<rootDir>/test/jest/unit/specs/**/*.(spec|test).js'],
 
 	coverageDirectory: '.coverage/unit',
-	collectCoverageFrom: [
-		'framework/src/controller/**',
-		'framework/src/application/**',
-	],
+	collectCoverageFrom: ['src/controller/**', 'src/application/**'],
 };
