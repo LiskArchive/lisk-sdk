@@ -71,7 +71,7 @@ export const validateReward = (
 		(!exceptions.blockRewards || !exceptions.blockRewards.includes(block.id))
 	) {
 		throw new Error(
-			`Invalid block reward: ${block.reward as string} expected: ${expectedReward}`,
+			`Invalid block reward: ${block.reward} expected: ${expectedReward}`,
 		);
 	}
 };

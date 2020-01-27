@@ -14,7 +14,7 @@
 
 export class Cache<T> {
 	private _items: T[];
-	private _size: number;
+	private readonly _size: number;
 
 	public constructor(size: number) {
 		this._size = size;
