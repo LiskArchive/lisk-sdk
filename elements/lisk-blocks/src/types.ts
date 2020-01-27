@@ -45,8 +45,7 @@ export interface Context {
 	readonly blockTimestamp: number;
 }
 export type Contexter = (() => Context) | Context;
-
-export interface BlockJSON {
+export interface BlockHeaderJSON {
 	/* tslint:disable:readonly-keyword */
 	id: string;
 	height: number;
@@ -58,21 +57,29 @@ export interface BlockJSON {
 	numberOfTransactions: number;
 	payloadLength: number;
 	payloadHash: string;
-	totalAmount: string | bigint;
-	totalFee: string | bigint;
-	reward: string | bigint;
+	totalAmount: string;
+	totalFee: string;
+	reward: string;
 	maxHeightPreviouslyForged: number;
 	maxHeightPrevoted: number;
-	// tslint:disable-next-line no-any
-	transactions: any[];
 	/* tslint:enable:readonly-keyword */
 }
 
-export interface BlockHeader extends BlockJSON {
-	readonly totalAmount: bigint;
-	readonly totalFee: bigint;
-	readonly reward: bigint;
+export interface BlockJSON extends BlockHeaderJSON {
+	// tslint:disable-next-line no-any readonly-keyword
+	transactions: any[];
 }
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+export type BlockHeader = Modify<
+	BlockHeaderJSON,
+	{
+		readonly totalAmount: bigint;
+		readonly totalFee: bigint;
+		readonly reward: bigint;
+	}
+>;
 
 export interface BlockRewardOptions {
 	readonly totalAmount: string;
