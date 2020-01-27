@@ -14,8 +14,14 @@
 
 'use strict';
 
-const config = require('./config');
+const path = require('path');
+const fs = require('fs-extra');
+
+const updatesPath = path.join(__dirname, './network_info');
+
+const migrations = () =>
+	fs.readdirSync(updatesPath).map(file => path.join(updatesPath, file));
 
 module.exports = {
-	config,
+	migrations,
 };

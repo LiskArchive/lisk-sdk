@@ -25,6 +25,15 @@ Object {
     },
     "label": "devnet",
     "minVersion": "1.0.0",
+    "network": Object {
+      "seedPeers": Array [
+        Object {
+          "ip": "127.0.0.1",
+          "wsPort": 5000,
+        },
+      ],
+      "wsPort": 5000,
+    },
     "protocolVersion": "1.1",
     "tempPath": "/tmp/lisk",
     "version": "2.1.0",
@@ -570,15 +579,6 @@ Object {
         },
       },
       "trustProxy": false,
-    },
-    "network": Object {
-      "seedPeers": Array [
-        Object {
-          "ip": "127.0.0.1",
-          "wsPort": 5000,
-        },
-      ],
-      "wsPort": 5000,
     },
   },
 }

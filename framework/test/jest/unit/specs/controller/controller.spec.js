@@ -62,6 +62,8 @@ describe('Controller Class', () => {
 	let controller = null;
 
 	beforeEach(() => {
+		// Arrange
+		fs.readdirSync = jest.fn().mockReturnValue([]);
 		// Act
 		controller = new Controller(appLabel, config, initialState, logger);
 	});
@@ -94,13 +96,16 @@ describe('Controller Class', () => {
 				_loadMigrations: jest
 					.spyOn(controller, '_loadMigrations')
 					.mockImplementation(),
+				_initialiseNetwork: jest
+					.spyOn(controller, '_initialiseNetwork')
+					.mockImplementation(),
 				_loadModules: jest.spyOn(controller, '_loadModules'),
 			};
 			const modules = {};
 			const moduleOptions = {};
 
 			// Act
-			await controller.load(modules, moduleOptions);
+			await controller.load(modules, moduleOptions, {}, {});
 
 			// Assert
 			// Order of the functions matters in load method
@@ -112,6 +117,9 @@ describe('Controller Class', () => {
 			expect(spies._setupBus).toHaveBeenCalledAfter(spies._initState);
 			expect(spies._loadMigrations).toHaveBeenCalledAfter(spies._setupBus);
 			expect(spies._loadModules).toHaveBeenCalledAfter(spies._loadMigrations);
+			expect(spies._initialiseNetwork).toHaveBeenCalledAfter(
+				spies._loadMigrations,
+			);
 			expect(spies._loadModules).toHaveBeenCalledWith(modules, moduleOptions);
 		});
 

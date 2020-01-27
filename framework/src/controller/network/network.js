@@ -36,10 +36,7 @@ const {
 		EVENT_UNBAN_PEER,
 	},
 } = require('@liskhq/lisk-p2p');
-const { createLoggerComponent } = require('../../components/logger');
-const { createStorageComponent } = require('../../components/storage');
 const { lookupPeersIPs } = require('./utils');
-const { NetworkInfo } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
 
@@ -48,46 +45,15 @@ const NETWORK_INFO_KEY_TRIED_PEERS = 'tried_peers_list';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 module.exports = class Network {
-	constructor(options) {
+	constructor({ options, channel, logger, storage }) {
 		this.options = options;
-		this.channel = null;
-		this.logger = null;
-		this.storage = null;
+		this.channel = channel;
+		this.logger = logger;
+		this.storage = storage;
 		this.secret = null;
 	}
 
-	async bootstrap(channel) {
-		this.channel = channel;
-
-		const loggerConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'logger',
-		);
-
-		this.logger = createLoggerComponent({ ...loggerConfig, module: 'network' });
-
-		const storageConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'storage',
-		);
-		const dbLogger =
-			storageConfig.logFileName &&
-			storageConfig.logFileName === loggerConfig.logFileName
-				? this.logger
-				: createLoggerComponent({
-						...loggerConfig,
-						logFileName: storageConfig.logFileName,
-						module: 'network:database',
-				  });
-
-		this.storage = createStorageComponent(storageConfig, dbLogger);
-		this.storage.registerEntity('NetworkInfo', NetworkInfo);
-
-		const status = await this.storage.bootstrap();
-		if (!status) {
-			throw new Error('Cannot bootstrap the storage component');
-		}
-
+	async initialiseNetwork() {
 		// Load peers from the database that were tried or connected the last time node was running
 		const previousPeersStr = await this.storage.entities.NetworkInfo.getKey(
 			NETWORK_INFO_KEY_TRIED_PEERS,
@@ -115,14 +81,12 @@ module.exports = class Network {
 
 		const sanitizeNodeInfo = nodeInfo => ({
 			...nodeInfo,
-			wsPort: this.options.wsPort,
 			advertiseAddress: this.options.advertiseAddress,
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('app:getApplicationState'),
 		);
-
 		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
 		const blacklistedIPs = this.options.blacklistedIPs || [];
 
@@ -304,7 +268,7 @@ module.exports = class Network {
 			this.logger.trace(
 				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${packet.peerId} for event ${packet.event}`,
 			);
-			this.channel.publish('network:event', packet);
+			this.channel.publish('app:networkEvent', packet);
 		});
 
 		this.p2p.on(EVENT_BAN_PEER, peerId => {
@@ -347,53 +311,66 @@ module.exports = class Network {
 		}
 	}
 
-	get actions() {
-		return {
-			request: async action =>
-				this.p2p.request({
-					procedure: action.params.procedure,
-					data: action.params.data,
-				}),
-			send: action =>
-				this.p2p.send({
-					event: action.params.event,
-					data: action.params.data,
-				}),
-			requestFromPeer: async action =>
-				this.p2p.requestFromPeer(
-					{
-						procedure: action.params.procedure,
-						data: action.params.data,
-					},
-					action.params.peerId,
-				),
-			sendToPeer: action =>
-				this.p2p.sendToPeer(
-					{
-						event: action.params.event,
-						data: action.params.data,
-					},
-					action.params.peerId,
-				),
-			broadcast: action =>
-				this.p2p.broadcast({
-					event: action.params.event,
-					data: action.params.data,
-				}),
-			getConnectedPeers: () => this.p2p.getConnectedPeers(),
-			getDisconnectedPeers: () => this.p2p.getDisconnectedPeers(),
-			applyPenalty: action =>
-				this.p2p.applyPenalty({
-					peerId: action.params.peerId,
-					penalty: action.params.penalty,
-				}),
-		};
+	async request(requestPacket) {
+		return this.p2p.request({
+			procedure: requestPacket.procedure,
+			data: requestPacket.data,
+		});
 	}
 
-	async cleanup() {
+	send(sendPacket) {
+		return this.p2p.send({
+			event: sendPacket.event,
+			data: sendPacket.data,
+		});
+	}
+
+	async requestFromPeer(requestPacket) {
+		return this.p2p.requestFromPeer(
+			{
+				procedure: requestPacket.procedure,
+				data: requestPacket.data,
+			},
+			requestPacket.peerId,
+		);
+	}
+
+	sendToPeer(sendPacket) {
+		return this.p2p.sendToPeer(
+			{
+				event: sendPacket.event,
+				data: sendPacket.data,
+			},
+			sendPacket.peerId,
+		);
+	}
+
+	broadcast(broadcastPacket) {
+		return this.p2p.broadcast({
+			event: broadcastPacket.event,
+			data: broadcastPacket.data,
+		});
+	}
+
+	getConnectedPeers() {
+		return this.p2p.getConnectedPeers();
+	}
+
+	getDisconnectedPeers() {
+		return this.p2p.getDisconnectedPeers();
+	}
+
+	applyPenalty(penaltyPacket) {
+		return this.p2p.applyPenalty({
+			peerId: penaltyPacket.peerId,
+			penalty: penaltyPacket.penalty,
+		});
+	}
+
+	async stop() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
 		this.logger.info('Cleaning network...');
 
-		return this.p2p.stop();
+		await this.p2p.stop();
 	}
 };

@@ -26,11 +26,10 @@ const {
 } = require('../../../../../../../../src/components/storage');
 const {
 	MigrationEntity,
-} = require('../../../../../../../../src/controller/migrations');
+} = require('../../../../../../../../src/controller/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 
 const ChainModule = require('../../../../../../../../src/modules/chain');
-const NetworkModule = require('../../../../../../../../src/modules/network');
 const HttpAPIModule = require('../../../../../../../../src/modules/http_api');
 
 describe('Migration', () => {
@@ -370,7 +369,6 @@ describe('Migration', () => {
 
 		const modulesMigrations = {};
 		modulesMigrations[ChainModule.alias] = ChainModule.migrations;
-		modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
 		modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 		before(async () => {

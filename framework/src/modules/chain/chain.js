@@ -206,18 +206,15 @@ module.exports = class Chain {
 
 			this._subscribeToEvents();
 
-			this.channel.subscribe('network:bootstrap', async () => {
+			this.channel.subscribe('app:ready', async () => {
 				await this._startForging();
-			});
-
-			this.channel.subscribe('network:ready', async () => {
 				await this._startLoader();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe(
-					'network:event',
+					'app:networkEvent',
 					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactionsAnnouncement') {

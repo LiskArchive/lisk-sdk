@@ -90,7 +90,7 @@ class Transport {
 			);
 			return null;
 		}
-		return this.channel.invoke('network:send', {
+		return this.channel.publishToNetwork('sendToNetwork', {
 			event: 'postBlock',
 			data: {
 				block: blockJSON,
@@ -111,7 +111,7 @@ class Transport {
 				},
 				'getBlocksFromID request validation failed',
 			);
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -137,7 +137,7 @@ class Transport {
 				},
 				'getHighestCommonBlock request validation failed',
 			);
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -175,7 +175,7 @@ class Transport {
 				},
 				'Received post block broadcast request in unexpected format',
 			);
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -221,7 +221,7 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.warn({ err: errors }, 'Invalid signatures body');
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -235,7 +235,7 @@ class Transport {
 			);
 
 			if (signatureObjectErrors.length) {
-				await this.channel.invoke('network:applyPenalty', {
+				await this.channel.invoke('app:applyPenaltyOnPeer', {
 					peerId,
 					penalty: 100,
 				});
@@ -280,7 +280,7 @@ class Transport {
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -300,7 +300,7 @@ class Transport {
 		if (transactionIds.length > this.constants.broadcasts.releaseLimit) {
 			const error = new Error('Received invalid request.');
 			this.logger.warn({ err: error, peerId }, 'Received invalid request.');
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -374,7 +374,7 @@ class Transport {
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -385,8 +385,8 @@ class Transport {
 			data.transactionIds,
 		);
 		if (unknownTransactionIDs.length > 0) {
-			const { data: result } = await this.channel.invoke(
-				'network:requestFromPeer',
+			const { data: result } = await this.channel.invokeFromNetwork(
+				'requestFromPeer',
 				{
 					procedure: 'getTransactions',
 					data: { transactionIds: unknownTransactionIDs },
@@ -401,7 +401,7 @@ class Transport {
 			} catch (err) {
 				this.logger.warn({ err, peerId }, 'Received invalid transactions.');
 				if (err instanceof InvalidTransactionError) {
-					await this.channel.invoke('network:applyPenalty', {
+					await this.channel.invoke('app:applyPenaltyOnPeer', {
 						peerId,
 						penalty: 100,
 					});
@@ -493,7 +493,7 @@ class Transport {
 			? this.rateTracker[procedure][peerId] + 1
 			: 1;
 		if (this.rateTracker[procedure][peerId] > limit) {
-			await this.channel.invoke('network:applyPenalty', {
+			await this.channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 10,
 			});

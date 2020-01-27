@@ -14,14 +14,10 @@
 
 'use strict';
 
-const path = require('path');
-const fs = require('fs-extra');
-
-const updatesPath = path.join(__dirname, './sql');
-const migrations = fs
-	.readdirSync(updatesPath)
-	.map(file => path.join(updatesPath, file));
+const NetworkInfoEntity = require('./network_info_entity');
+const MigrationEntity = require('./migration_entity');
 
 module.exports = {
-	migrations,
+	MigrationEntity,
+	NetworkInfoEntity,
 };

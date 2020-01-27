@@ -22,8 +22,8 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
 const {
-	NetworkInfo,
-} = require('../../../../../../../../../src/modules/network/components/storage/entities');
+	NetworkInfoEntity: NetworkInfo,
+} = require('../../../../../../../../../src/controller/storage/entities');
 
 const { config } = require('../../../../shared');
 

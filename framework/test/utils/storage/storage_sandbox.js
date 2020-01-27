@@ -34,21 +34,22 @@ const {
 } = require('../../../src/modules/chain/components/storage/entities');
 
 const {
-	NetworkInfo,
-} = require('../../../src/modules/network/components/storage/entities');
+	migrations: controllerMigrations,
+} = require('../../../src/controller/storage/migrations');
 
 const {
 	MigrationEntity: Migration,
-} = require('../../../src/controller/migrations');
+	NetworkInfoEntity: NetworkInfo,
+} = require('../../../src/controller/storage/entities');
 
 const ChainModule = require('../../../src/modules/chain');
-const NetworkModule = require('../../../src/modules/network');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
+const ApplicationAlias = 'app';
 modulesMigrations[ChainModule.alias] = ChainModule.migrations;
-modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
+modulesMigrations[ApplicationAlias] = controllerMigrations();
 
 const dbNames = [];
 

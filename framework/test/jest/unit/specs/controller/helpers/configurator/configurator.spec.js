@@ -91,6 +91,14 @@ describe('Configurator', () => {
 	});
 
 	describe('extractMetaInformation()', () => {
+		let conf;
+
+		beforeEach(async () => {
+			conf = new Configurator();
+			// Make sure that there is no additional schema
+			conf.configSchema = {};
+		});
+
 		it('should extract the arguments from schema if specified as string', () => {
 			const schema = {
 				type: 'object',
@@ -102,7 +110,6 @@ describe('Configurator', () => {
 					},
 				},
 			};
-			const conf = new Configurator();
 			conf.registerSchema(schema);
 
 			expect(conf.metaInfo).toEqual({
@@ -126,7 +133,6 @@ describe('Configurator', () => {
 					},
 				},
 			};
-			const conf = new Configurator();
 			conf.registerSchema(schema);
 
 			expect(conf.metaInfo).toEqual({
@@ -148,7 +154,6 @@ describe('Configurator', () => {
 					},
 				},
 			};
-			const conf = new Configurator();
 			conf.registerSchema(schema);
 
 			expect(conf.metaInfo).toEqual({
@@ -172,7 +177,6 @@ describe('Configurator', () => {
 					},
 				},
 			};
-			const conf = new Configurator();
 			conf.registerSchema(schema);
 
 			expect(conf.metaInfo).toEqual({

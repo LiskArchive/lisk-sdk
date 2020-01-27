@@ -23,7 +23,7 @@ const {
 	utils: {
 		filterTypes: { TEXT },
 	},
-} = require('../../components/storage');
+} = require('../../../components/storage');
 
 const defaultCreateValues = {};
 
@@ -45,7 +45,10 @@ class MigrationEntity extends BaseEntity {
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.sqlDirectory = path.join(path.dirname(__filename), './sql');
+		this.sqlDirectory = path.join(
+			path.dirname(__filename),
+			'../sql/migrations',
+		);
 		this.SQLs = this.loadSQLFiles('migration', sqlFiles, this.sqlDirectory);
 	}
 

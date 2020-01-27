@@ -284,7 +284,7 @@ describe('GET /peers', () => {
 
 				responseData.forEach(peer => {
 					expect(peer.wsPort).to.not.be.eql(
-						__testContext.config.modules.network.wsPort,
+						__testContext.config.app.network.wsPort,
 					);
 				});
 			});

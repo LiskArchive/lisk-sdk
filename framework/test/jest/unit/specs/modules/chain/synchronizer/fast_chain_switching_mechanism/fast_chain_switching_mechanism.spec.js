@@ -172,10 +172,13 @@ describe('fast_chain_switching_mechanism', () => {
 				{ peerId, reason },
 				'Applying penalty to peer and restarting synchronizer',
 			);
-			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
-				peerId,
-				penalty: 100,
-			});
+			expect(channelMock.invoke).toHaveBeenCalledWith(
+				'app:applyPenaltyOnPeer',
+				{
+					peerId,
+					penalty: 100,
+				},
+			);
 			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
 				block: receivedBlock,
 			});
@@ -186,10 +189,13 @@ describe('fast_chain_switching_mechanism', () => {
 				{ err, peerId, reason: err.reason },
 				'Applying penalty to peer and aborting synchronization mechanism',
 			);
-			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
-				peerId,
-				penalty: 100,
-			});
+			expect(channelMock.invoke).toHaveBeenCalledWith(
+				'app:applyPenaltyOnPeer',
+				{
+					peerId,
+					penalty: 100,
+				},
+			);
 		};
 
 		const checkIfAbortIsCalled = error => {
@@ -288,8 +294,8 @@ describe('fast_chain_switching_mechanism', () => {
 					)
 					.mockResolvedValue(storageReturnValue);
 				// Simulate peer not sending back a common block
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -303,7 +309,8 @@ describe('fast_chain_switching_mechanism', () => {
 
 				// Assert
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
-				expect(channelMock.invoke).toHaveBeenCalledTimes(10);
+				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(9);
+				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				checkApplyPenaltyAndRestartIsCalled(
 					aBlock,
 					aPeerId,
@@ -338,8 +345,8 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -389,8 +396,8 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -486,8 +493,8 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -557,8 +564,8 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -648,8 +655,8 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -726,8 +733,8 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -850,8 +857,8 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					)
 					.mockResolvedValue(storageReturnValue);
-				when(channelMock.invoke)
-					.calledWith('network:requestFromPeer', {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {

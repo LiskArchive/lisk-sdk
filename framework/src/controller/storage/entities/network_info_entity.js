@@ -22,7 +22,7 @@ const {
 	utils: {
 		filterTypes: { BOOLEAN },
 	},
-} = require('../../../../../components/storage');
+} = require('../../../components/storage');
 
 const sqlFiles = {
 	upsert: 'network_info/upsert.sql',

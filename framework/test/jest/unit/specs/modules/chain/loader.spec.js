@@ -49,6 +49,7 @@ describe('Loader', () => {
 		};
 		channelStub = {
 			invoke: jest.fn(),
+			invokeFromNetwork: jest.fn(),
 		};
 		loader = new Loader({
 			logger: loggerStub,
@@ -82,7 +83,9 @@ describe('Loader', () => {
 			};
 
 			beforeEach(async () => {
-				channelStub.invoke.mockReturnValue({ data: validtransactions });
+				channelStub.invokeFromNetwork.mockReturnValue({
+					data: validtransactions,
+				});
 			});
 
 			it('should not throw an error', async () => {
@@ -106,7 +109,9 @@ describe('Loader', () => {
 		describe('when peer returns invalid transaction response', () => {
 			const invalidTransactions = { signatures: [] };
 			beforeEach(async () => {
-				channelStub.invoke.mockReturnValue({ data: invalidTransactions });
+				channelStub.invokeFromNetwork.mockReturnValue({
+					data: invalidTransactions,
+				});
 			});
 
 			it('should throw an error', async () => {

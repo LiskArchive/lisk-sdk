@@ -143,6 +143,8 @@ describe('transport', () => {
 		channelStub = {
 			publish: sinonSandbox.stub(),
 			invoke: sinonSandbox.stub(),
+			publishToNetwork: sinonSandbox.stub(),
+			invokeFromNetwork: sinonSandbox.stub(),
 		};
 
 		sinonSandbox.stub(jobsQueue, 'register');
@@ -580,13 +582,16 @@ describe('transport', () => {
 					});
 
 					it('should call channel.invoke to send', () => {
-						expect(channelStub.invoke).to.be.calledOnce;
-						return expect(channelStub.invoke).to.be.calledWith('network:send', {
-							event: 'postBlock',
-							data: {
-								block,
+						expect(channelStub.publishToNetwork).to.be.calledOnce;
+						return expect(channelStub.publishToNetwork).to.be.calledWith(
+							'sendToNetwork',
+							{
+								event: 'postBlock',
+								data: {
+									block,
+								},
 							},
-						});
+						);
 					});
 
 					describe('when modules.synchronizer.isActive = true', () => {
@@ -624,7 +629,7 @@ describe('transport', () => {
 									"should have required property 'blockId'",
 								);
 								expect(channelStub.invoke).to.be.calledOnceWith(
-									'network:applyPenalty',
+									'app:applyPenaltyOnPeer',
 									{
 										peerId: defaultPeerId,
 										penalty: 100,
@@ -717,7 +722,7 @@ describe('transport', () => {
 								} catch (err) {
 									expect(err[0].message).to.equal(blockValidationError);
 									expect(channelStub.invoke).to.be.calledOnceWith(
-										'network:applyPenalty',
+										'app:applyPenaltyOnPeer',
 										{
 											peerId: defaultPeerId,
 											penalty: 100,

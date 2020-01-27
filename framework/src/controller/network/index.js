@@ -14,8 +14,8 @@
 
 'use strict';
 
-const MigrationEntity = require('./migration_entity');
+const Network = require('./network');
 
 module.exports = {
-	MigrationEntity,
+	Network,
 };
