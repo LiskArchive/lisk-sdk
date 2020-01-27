@@ -18,16 +18,21 @@ const fs = require('fs-extra');
 const path = require('path');
 const childProcess = require('child_process');
 const psList = require('ps-list');
-const systemDirs = require('./system_dirs');
+const systemDirs = require('../application/system_dirs');
 const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
-const { validateModuleSpec } = require('./validator');
-const ApplicationState = require('./application_state');
+const { validateModuleSpec } = require('../application/validator');
+const ApplicationState = require('../application/application_state');
 const { createStorageComponent } = require('../components/storage');
-const { migrations: controllerMigrations } = require('./storage/migrations');
-const { MigrationEntity, NetworkInfoEntity } = require('./storage/entities');
-const { Network } = require('./network');
+const {
+	migrations: controllerMigrations,
+} = require('../application/storage/migrations');
+const {
+	MigrationEntity,
+	NetworkInfoEntity,
+} = require('../application/storage/entities');
+const { Network } = require('../application/network');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));

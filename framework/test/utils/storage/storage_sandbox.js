@@ -31,18 +31,18 @@ const {
 	ChainState,
 	ForgerInfo,
 	TempBlock,
-} = require('../../../src/controller/node/components/storage/entities');
+} = require('../../../src/application/node/components/storage/entities');
 
 const {
 	migrations: controllerMigrations,
-} = require('../../../src/controller/storage/migrations');
+} = require('../../../src/application/storage/migrations');
 
 const {
 	MigrationEntity: Migration,
 	NetworkInfoEntity: NetworkInfo,
-} = require('../../../src/controller/storage/entities');
+} = require('../../../src/application/storage/entities');
 
-const ChainModule = require('../../../src/controller/node');
+const ChainModule = require('../../../src/application/node');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};

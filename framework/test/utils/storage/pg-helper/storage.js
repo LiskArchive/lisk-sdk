@@ -15,19 +15,19 @@
 const {
 	MigrationEntity: Migration,
 	NetworkInfoEntity: NetworkInfo,
-} = require('../../../../src/controller/storage/entities');
+} = require('../../../../src/application/storage/entities');
 
 const Storage = require('../../../../src/components/storage/storage');
 const {
 	config: defaultConfig,
 } = require('../../../../src/components/storage/defaults');
-const validator = require('../../../../src/controller/validator');
+const validator = require('../../../../src/application/validator');
 
-const ChainModule = require('../../../../src/controller/node');
+const ChainModule = require('../../../../src/application/node');
 const HttpAPIModule = require('../../../../src/modules/http_api');
 const {
 	migrations: controllerMigrations,
-} = require('../../../../src/controller/storage/migrations');
+} = require('../../../../src/application/storage/migrations');
 
 const ApplicationAlias = 'app';
 const modulesMigrations = {

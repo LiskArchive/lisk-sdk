@@ -22,23 +22,23 @@ const { BFT } = require('@liskhq/lisk-bft');
 const { Dpos } = require('@liskhq/lisk-dpos');
 const { Slots } = require('@liskhq/lisk-blocks');
 const { registeredTransactions } = require('../registered_transactions');
-const jobsQueue = require('../../../src/controller/node/utils/jobs_queue');
-const { Sequence } = require('../../../src/controller/node/utils/sequence');
+const jobsQueue = require('../../../src/application/node/utils/jobs_queue');
+const { Sequence } = require('../../../src/application/node/utils/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('../storage/storage_sandbox');
-const { Processor } = require('../../../src/controller/node/processor');
-const { Rebuilder } = require('../../../src/controller/node/rebuilder');
+const { Processor } = require('../../../src/application/node/processor');
+const { Rebuilder } = require('../../../src/application/node/rebuilder');
 const {
 	BlockProcessorV1,
-} = require('../../../src/controller/node/block_processor_v1');
+} = require('../../../src/application/node/block_processor_v1');
 const {
 	BlockProcessorV2,
-} = require('../../../src/controller/node/block_processor_v2');
+} = require('../../../src/application/node/block_processor_v2');
 const { getNetworkIdentifier } = require('../network_identifier');
 
 let currentAppScope;
 
-const ChainModule = require('../../../src/controller/node');
+const ChainModule = require('../../../src/application/node');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
