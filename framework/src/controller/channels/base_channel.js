@@ -97,7 +97,7 @@ class BaseChannel {
 	// Call action network module when requesting from the network or a specific peer
 	// Specified as actionName for request available on the network
 	// eslint-disable-next-line no-unused-vars, class-methods-use-this
-	async invokefromNetwork(actionName, params) {
+	async invokeFromNetwork(actionName, params) {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 
