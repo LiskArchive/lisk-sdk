@@ -117,7 +117,7 @@ export class Storage {
 		Extended blocks with transaction payload
 	*/
 
-	public async getExtendedBlocksById(
+	public async getExtendedBlocksByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
