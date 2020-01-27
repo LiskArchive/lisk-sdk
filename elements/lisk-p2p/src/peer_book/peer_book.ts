@@ -249,8 +249,11 @@ export class PeerBook {
 			return;
 		}
 
-		// Whitelisted/FixedPeers/SeedPeers are not allowed to be banned
-		if (this.isTrustedPeer(peerId)) {
+		// Whitelisted/FixedPeers are not allowed to be banned
+		if (
+			this.fixedPeers.find(peer => peer.peerId === peerId) ||
+			this.whitelistedPeers.find(peer => peer.peerId === peerId)
+		) {
 			return;
 		}
 

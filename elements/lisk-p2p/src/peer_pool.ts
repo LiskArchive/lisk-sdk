@@ -499,7 +499,10 @@ export class PeerPool extends EventEmitter {
 		peerInfo: P2PPeerInfo,
 		nodeInfo: P2PNodeInfo,
 	): boolean {
-		if (this.hasPeer(peerInfo.peerId)) {
+		if (
+			this.hasPeer(peerInfo.peerId) ||
+			this._peerBook.bannedIPs.has(peerInfo.ipAddress)
+		) {
 			return false;
 		}
 

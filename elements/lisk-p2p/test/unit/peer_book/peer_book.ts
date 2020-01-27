@@ -536,17 +536,23 @@ describe('peerBook', () => {
 				jest.advanceTimersByTime(DEFAULT_BAN_TIME);
 
 				// Assert
-				expect(peerBook.bannedIPs).toBeEmpty;
+				expect(peerBook.bannedIPs.size).toEqual(0);
 			});
 
-			it('should not able to ban Whitelisted ,FixedPeer, SeedPeer', () => {
+			it('should not able to ban Whitelisted ,FixedPeer', () => {
 				// Act
-				peerBook.addBannedPeer(seedPeers[0].peerId, DEFAULT_BAN_TIME);
 				peerBook.addBannedPeer(fixedPeers[0].peerId, DEFAULT_BAN_TIME);
 				peerBook.addBannedPeer(whitelisted[0].peerId, DEFAULT_BAN_TIME);
 
 				// Assert
-				expect(peerBook.bannedIPs).toBeEmpty;
+				expect(peerBook.bannedIPs.size).toEqual(0);
+			});
+
+			it('should able to SeedPeer', () => {
+				// Act
+				peerBook.addBannedPeer(seedPeers[0].peerId, DEFAULT_BAN_TIME);
+				// Assert
+				expect(peerBook.bannedIPs.size).toEqual(1);
 			});
 
 			it('should not able to ban same IP multiple times', () => {
