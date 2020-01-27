@@ -18,10 +18,8 @@ const base = require('../config/jest.config.base');
 
 module.exports = {
 	...base,
-	setupFilesAfterEnv: ['<rootDir>/framework/test/jest/integration/setup.js'],
-	testMatch: [
-		'<rootDir>/framework/test/jest/integration/specs/**/*.(spec|test).js',
-	],
+	setupFilesAfterEnv: ['<rootDir>/test/jest/integration/setup.js'],
+	testMatch: ['<rootDir>/test/jest/integration/specs/**/*.(spec|test).js'],
 	/**
 	 * restoreMocks [boolean]
 	 *
@@ -46,5 +44,5 @@ module.exports = {
 	 */
 	resetModules: true,
 	coverageDirectory: '.coverage/integration',
-	collectCoverageFrom: ['framework/src/controller/**'],
+	collectCoverageFrom: ['src/controller/**'],
 };
