@@ -128,10 +128,9 @@ module.exports = class Chain {
 					this.components.logger.warn('Main queue', current);
 				},
 			});
-
 			await bootstrapStorage(
 				{ components: this.components },
-				global.constants.ACTIVE_DELEGATES,
+				this.config.constants.ACTIVE_DELEGATES,
 			);
 
 			await this._initModules();
