@@ -21,9 +21,7 @@ const {
 
 const formatters = require('../../../../../../../src/application/validator/keywords/formatters');
 
-jest.mock(
-	'../../../../../../../../src/controller/validator/keywords/formatters',
-);
+jest.mock('../../../../../../../src/application/validator/keywords/formatters');
 
 let validator;
 

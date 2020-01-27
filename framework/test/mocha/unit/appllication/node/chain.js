@@ -18,7 +18,7 @@
 const rewire = require('rewire');
 const { BFT } = require('@liskhq/lisk-bft');
 
-const Chain = rewire('../../../../../src/modules/chain/chain');
+const Chain = rewire('../../../../../src/application/node/chain');
 const {
 	Synchronizer,
 } = require('../../../../../src/application/node/synchronizer/synchronizer');
