@@ -137,19 +137,21 @@ describe('Chain', () => {
 			// Assert
 			return expect(chain.options).to.be.equal(chainOptions);
 		});
-		it('should assign logger, scope, blockReward, slots properties as null', () => {
+		it('should initialize class properties as null', async () => {
 			expect(chain.logger).to.be.null;
-			return expect(chain.scope).to.be.null;
+			expect(chain.components).to.be.null;
+			expect(chain.components).to.be.null;
+			expect(chain.sequence).to.be.null;
+			expect(chain.registeredTransactions).to.be.null;
+			expect(chain.genesisBlock).to.be.null;
 		});
 	});
 
 	describe('actions', () => {
 		beforeEach(async () => {
-			chain.scope = {
-				modules: {
-					blocks: {
-						getHighestCommonBlock: sinonSandbox.stub(),
-					},
+			chain.modules = {
+				blocks: {
+					getHighestCommonBlock: sinonSandbox.stub(),
 				},
 			};
 			chain.logger = {
@@ -309,7 +311,7 @@ describe('Chain', () => {
 		});
 
 		it('should create storage component', () => {
-			return expect(chain.scope.components.storage).to.be.equal(stubs.storage);
+			return expect(chain.components.storage).to.be.equal(stubs.storage);
 		});
 
 		it('should set options.loggerConfig with received loggerConfig', () => {
@@ -318,18 +320,18 @@ describe('Chain', () => {
 
 		it('should initialize scope object with valid structure', async () => {
 			// @todo write a snapshot tests after migrated this test to jest.
-			expect(chain.scope).to.have.property('config');
-			expect(chain.scope).to.have.nested.property('genesisBlock.block');
-			expect(chain.scope).to.have.property('sequence');
-			expect(chain.scope).to.have.nested.property('components.storage');
-			expect(chain.scope).to.have.nested.property('components.logger');
-			expect(chain.scope).to.have.property('channel');
-			expect(chain.scope).to.have.property('applicationState');
+			expect(chain).to.have.property('config');
+			expect(chain).to.have.nested.property('genesisBlock.block');
+			expect(chain).to.have.property('sequence');
+			expect(chain).to.have.nested.property('components.storage');
+			expect(chain).to.have.nested.property('components.logger');
+			expect(chain).to.have.property('channel');
+			expect(chain).to.have.property('applicationState');
 		});
 
 		it('should bootstrap storage', () => {
 			return expect(stubs.initSteps.bootstrapStorage).to.have.been.calledWith(
-				chain.scope,
+				{ components: chain.components },
 				chainOptions.constants.ACTIVE_DELEGATES,
 			);
 		});
@@ -337,7 +339,7 @@ describe('Chain', () => {
 		describe('_initModules', () => {
 			it('should initialize bft module', async () => {
 				expect(chain.bft).to.be.instanceOf(BFT);
-				expect(chain.scope.modules.bft).to.be.instanceOf(BFT);
+				expect(chain.modules.bft).to.be.instanceOf(BFT);
 			});
 		});
 
@@ -427,7 +429,7 @@ describe('Chain', () => {
 
 		it('should call cleanup on all modules', async () => {
 			// replace with stub
-			chain.scope.modules = stubs.modules;
+			chain.modules = stubs.modules;
 			// Act
 			await chain.cleanup();
 
@@ -466,7 +468,7 @@ describe('Chain', () => {
 			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
 			sinonSandbox.stub(chain.forger, 'forge');
 			sinonSandbox.stub(chain.forger, 'beforeForge');
-			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
+			sinonSandbox.stub(chain.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
 			sinonSandbox.stub(chain.synchronizer, 'isActive').get(() => false);
@@ -483,7 +485,7 @@ describe('Chain', () => {
 			expect(stubs.logger.debug.getCall(1)).to.be.calledWith(
 				'No delegates are enabled',
 			);
-			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.sequence.add).to.be.called;
 			expect(chain.forger.beforeForge).to.not.be.called;
 			expect(chain.forger.forge).to.not.be.called;
 		});
@@ -499,7 +501,7 @@ describe('Chain', () => {
 			expect(stubs.logger.debug.getCall(1)).to.be.calledWith(
 				'Client not ready to forge',
 			);
-			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.sequence.add).to.be.called;
 			expect(chain.forger.beforeForge).to.not.be.called;
 			expect(chain.forger.forge).to.not.be.called;
 		});
@@ -507,7 +509,7 @@ describe('Chain', () => {
 		it('should execute forger.forge otherwise', async () => {
 			await chain._forgingTask();
 
-			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.sequence.add).to.be.called;
 			expect(chain.forger.beforeForge).to.be.called;
 			expect(chain.forger.forge).to.be.called;
 		});
