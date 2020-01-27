@@ -367,10 +367,10 @@ module.exports = class Network {
 		});
 	}
 
-	stopNetwork() {
+	async stopNetwork() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
 		this.logger.info('Cleaning network...');
 
-		return this.p2p.stop();
+		await this.p2p.stop();
 	}
 };
