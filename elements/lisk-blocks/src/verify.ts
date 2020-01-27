@@ -32,7 +32,7 @@ import {
 
 export const verifyBlockNotExists = async (
 	storage: Storage,
-	block: BlockJSON,
+	block: BlockInstance,
 ) => {
 	const isPersisted = await storage.entities.Block.isPersisted({
 		id: block.id,
@@ -43,9 +43,9 @@ export const verifyBlockNotExists = async (
 };
 
 export const verifyPreviousBlockId = (
-	block: BlockJSON,
-	lastBlock: BlockJSON,
-	genesisBlock: BlockJSON,
+	block: BlockInstance,
+	lastBlock: BlockInstance,
+	genesisBlock: BlockInstance,
 ) => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
@@ -86,7 +86,7 @@ export class BlocksVerify {
 		this.genesisBlock = genesisBlock;
 	}
 
-	public async checkExists(block: BlockJSON): Promise<void> {
+	public async checkExists(block: BlockInstance): Promise<void> {
 		const isPersisted = await this.storage.entities.Block.isPersisted({
 			id: block.id,
 		});

@@ -15,10 +15,10 @@
 import { hash, verifyData } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
-import { BlockJSON, ExceptionOptions, Slots } from './types';
+import { BlockInstance, ExceptionOptions, Slots } from './types';
 
 export const validateSignature = (
-	block: BlockJSON,
+	block: BlockInstance,
 	blockBytes: Buffer,
 ): void => {
 	const signatureLength = 64;
@@ -40,8 +40,8 @@ export const validateSignature = (
 };
 
 export const validatePreviousBlockProperty = (
-	block: BlockJSON,
-	genesisBlock: BlockJSON,
+	block: BlockInstance,
+	genesisBlock: BlockInstance,
 ): void => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
@@ -59,7 +59,7 @@ export const validatePreviousBlockProperty = (
 };
 
 export const validateReward = (
-	block: BlockJSON,
+	block: BlockInstance,
 	expectedReward: string,
 	exceptions: ExceptionOptions,
 ): void => {
@@ -77,7 +77,7 @@ export const validateReward = (
 };
 
 export const validatePayload = (
-	block: BlockJSON,
+	block: BlockInstance,
 	maxTransactionsPerBlock: number,
 	maxPayloadLength: number,
 ): void => {
@@ -114,7 +114,8 @@ export const validatePayload = (
 		if (transactionBytes) {
 			transactionsBytesArray.push(transactionBytes);
 		}
-		totalAmount = totalAmount + BigInt(transaction.asset.amount || 0);
+		// tslint:disable-next-line no-any
+		totalAmount = totalAmount + BigInt((transaction.asset as any).amount || 0);
 		totalFee = totalFee + BigInt(transaction.fee);
 	});
 
@@ -136,8 +137,8 @@ export const validatePayload = (
 
 // TODO: Move to DPOS validation
 export const validateBlockSlot = (
-	block: BlockJSON,
-	lastBlock: BlockJSON,
+	block: BlockInstance,
+	lastBlock: BlockInstance,
 	slots: Slots,
 ): void => {
 	const blockSlotNumber = slots.getSlotNumber(block.timestamp);

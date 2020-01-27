@@ -50,7 +50,7 @@ export const saveBlock = async (
 export const deleteLastBlock = async (
 	storage: Storage,
 	storageAccess: StorageAccess,
-	lastBlock: BlockJSON,
+	lastBlock: BlockInstance,
 ): Promise<BlockJSON> => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
