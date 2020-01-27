@@ -123,7 +123,7 @@ describe('helpers utils', () => {
 
 		it('should throw a non-EPIPE error', () => {
 			const message = 'some error';
-			return expect(handleEPIPE.bind(null, new Error(message))).to.throw(
+			return expect(handleEPIPE.bind(null, new Error(message) as any)).to.throw(
 				message,
 			);
 		});

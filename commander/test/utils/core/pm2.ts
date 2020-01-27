@@ -47,7 +47,7 @@ describe('pm2 node utils', () => {
 			sandbox.stub(pm2, 'stop').yields(null, 'stopped');
 			sandbox
 				.stub(fsExtra, 'readJson')
-				.resolves({ apps: [{ script: 'src/index.js' }] });
+				.resolves({ apps: [{ script: 'src/index.js' }] } as any);
 		});
 
 		it('should register an application', async () => {

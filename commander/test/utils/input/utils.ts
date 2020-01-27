@@ -49,7 +49,7 @@ describe('input/utils utils', () => {
 		beforeEach(() => {
 			createInterfaceStub = sandbox
 				.stub(readline, 'createInterface')
-				.returns(createFakeInterface(stdInContents));
+				.returns(createFakeInterface(stdInContents) as any);
 			return Promise.resolve();
 		});
 
@@ -299,7 +299,7 @@ describe('input/utils utils', () => {
 					(type: string, callback: Function) =>
 						type === 'error' && callback(error),
 				);
-				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
+				return sandbox.stub(fs, 'createReadStream').returns(streamStub as any);
 			});
 
 			it('should throw an error', () => {
@@ -319,7 +319,7 @@ describe('input/utils utils', () => {
 					(type: string, callback: Function) =>
 						type === 'error' && callback(error),
 				);
-				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
+				return sandbox.stub(fs, 'createReadStream').returns(streamStub as any);
 			});
 
 			it('should throw an error', () => {
@@ -339,7 +339,7 @@ describe('input/utils utils', () => {
 					(type: string, callback: Function) =>
 						type === 'error' && callback(error),
 				);
-				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
+				return sandbox.stub(fs, 'createReadStream').returns(streamStub as any);
 			});
 
 			it('should throw an error when file does not exist', () => {
@@ -354,7 +354,7 @@ describe('input/utils utils', () => {
 			beforeEach(() => {
 				return sandbox
 					.stub(readline, 'createInterface')
-					.returns(createFakeInterface(fileContents));
+					.returns(createFakeInterface(fileContents) as any);
 			});
 
 			it('should resolve to the fileContents', () => {
@@ -386,7 +386,7 @@ describe('input/utils utils', () => {
 		beforeEach(() => {
 			return sandbox
 				.stub(readline, 'createInterface')
-				.returns(createFakeInterface(password));
+				.returns(createFakeInterface(password) as any);
 		});
 
 		it('should get from env', () => {
