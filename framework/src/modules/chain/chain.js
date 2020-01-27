@@ -53,7 +53,11 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-		this.scope = null;
+		this.components = null;
+		this.sequence = null;
+		this.registeredTransactions = null;
+		this.genesisBlock = null;
+		this.config = null;
 	}
 
 	async bootstrap() {
@@ -110,25 +114,25 @@ module.exports = class Chain {
 				this.options.genesisBlock.communityIdentifier,
 			);
 
-			const self = this;
-			this.scope = {
-				config: self.options,
-				genesisBlock: { block: self.options.genesisBlock },
-				registeredTransactions: self.options.registeredTransactions,
-				sequence: new Sequence({
-					onWarning(current) {
-						self.logger.warn('Main queue', current);
-					},
-				}),
-				components: {
-					storage: this.storage,
-					logger: this.logger,
-				},
-				channel: this.channel,
-				applicationState: this.applicationState,
+			this.config = this.options;
+			this.genesisBlock = { block: this.config.genesisBlock };
+			this.registeredTransactions = this.options.registeredTransactions;
+
+			this.components = {
+				storage: this.storage,
+				logger: this.logger,
 			};
 
-			await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
+			this.sequence = new Sequence({
+				onWarning(current) {
+					this.components.logger.warn('Main queue', current);
+				},
+			});
+
+			await bootstrapStorage(
+				{ components: this.components },
+				global.constants.ACTIVE_DELEGATES,
+			);
 
 			await this._initModules();
 
@@ -189,7 +193,7 @@ module.exports = class Chain {
 			}
 
 			this.channel.subscribe('app:state:updated', event => {
-				Object.assign(this.scope.applicationState, event.data);
+				Object.assign(this.applicationState, event.data);
 			});
 
 			this.logger.info('Modules ready and launched');
@@ -318,7 +322,7 @@ module.exports = class Chain {
 
 	async cleanup(error) {
 		this._unsubscribeToEvents();
-		const { modules, components } = this.scope;
+		const { modules, components } = this;
 		if (error) {
 			this.logger.fatal(error.toString());
 		}
@@ -349,12 +353,12 @@ module.exports = class Chain {
 	}
 
 	async _initModules() {
-		this.scope.modules = {};
+		this.modules = {};
 
 		this.blocks = new Blocks({
 			logger: this.logger,
 			storage: this.storage,
-			sequence: this.scope.sequence,
+			sequence: this.sequence,
 			genesisBlock: this.options.genesisBlock,
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
@@ -374,7 +378,7 @@ module.exports = class Chain {
 			blockTime: this.options.constants.BLOCK_TIME,
 		});
 
-		this.scope.slots = this.blocks.slots;
+		this.slots = this.blocks.slots;
 		this.dpos = new Dpos({
 			storage: this.storage,
 			logger: this.logger,
@@ -434,7 +438,7 @@ module.exports = class Chain {
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
-		this.scope.modules.blocks = this.blocks;
+		this.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
 			storage: this.storage,
@@ -450,7 +454,7 @@ module.exports = class Chain {
 			broadcastInterval: this.options.broadcasts.broadcastInterval,
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
-		this.scope.modules.transactionPool = this.transactionPool;
+		this.modules.transactionPool = this.transactionPool;
 		this.loader = new Loader({
 			channel: this.channel,
 			logger: this.logger,
@@ -469,7 +473,7 @@ module.exports = class Chain {
 			processorModule: this.processor,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
-		this.scope.modules.rebuilder = this.rebuilder;
+		this.modules.rebuilder = this.rebuilder;
 		this.forger = new Forger({
 			channel: this.channel,
 			logger: this.logger,
@@ -500,12 +504,12 @@ module.exports = class Chain {
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});
-		// TODO: should not add to scope
-		this.scope.modules.loader = this.loader;
-		this.scope.modules.forger = this.forger;
-		this.scope.modules.transport = this.transport;
-		this.scope.modules.bft = this.bft;
-		this.scope.modules.synchronizer = this.synchronizer;
+
+		this.modules.loader = this.loader;
+		this.modules.forger = this.forger;
+		this.modules.transport = this.transport;
+		this.modules.bft = this.bft;
+		this.modules.synchronizer = this.synchronizer;
 	}
 
 	async _startLoader() {
@@ -513,7 +517,7 @@ module.exports = class Chain {
 	}
 
 	async _forgingTask() {
-		return this.scope.sequence.add(async () => {
+		return this.sequence.add(async () => {
 			try {
 				if (!this.forger.delegatesEnabled()) {
 					this.logger.debug('No delegates are enabled');
