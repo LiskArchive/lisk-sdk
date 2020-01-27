@@ -12,4 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export class Cache {}
+import { BlockHeader } from '../../types';
+
+import { Cache } from './cache';
+
+export class Blocks extends Cache<BlockHeader> {
+	public constructor(size: number = 500) {
+		super(size);
+	}
+
+	public getById(id: string): BlockHeader | undefined {
+		return this.items.find(block => block.id === id);
+	}
+}
