@@ -377,7 +377,7 @@ export class Blocks extends EventEmitter {
 				height: blockJSON.height,
 				fullBlock: blockJSON,
 			};
-			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
+			await this.storage.entities.TempBlock.create(blockTempEntry, {});
 		}
 		this._lastBlock = secondLastBlock;
 	}
