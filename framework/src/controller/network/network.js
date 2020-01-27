@@ -367,7 +367,7 @@ module.exports = class Network {
 		});
 	}
 
-	async stopNetwork() {
+	async stop() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
 		this.logger.info('Cleaning network...');
 
