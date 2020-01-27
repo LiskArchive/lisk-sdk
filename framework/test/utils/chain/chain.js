@@ -20,7 +20,7 @@ const {
 	registeredTransactions,
 } = require('../../utils/registered_transactions');
 const { createMockChannel } = require('../channel');
-const ChainModule = require('../../../src/controller/node');
+const ChainModule = require('../../../src/application/node');
 const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
 
 const createChainModule = () => {

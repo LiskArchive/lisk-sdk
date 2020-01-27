@@ -16,9 +16,9 @@
 
 const express = require('express');
 const async = require('async');
-const { Sequence } = require('../../../src/controller/node/utils/sequence');
+const { Sequence } = require('../../../src/application/node/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const jobsQueue = require('../../../src/controller/node/utils/jobs_queue');
+const jobsQueue = require('../../../src/application/node/utils/jobs_queue');
 
 // TODO: Remove this file
 const modulesLoader = new (function() {
@@ -176,9 +176,9 @@ const modulesLoader = new (function() {
 		this.initModules(
 			[
 				{ blocks: require('@liskhq/lisk-blocks') },
-				{ loader: require('../../../src/controller/node/loader') },
+				{ loader: require('../../../src/application/node/loader') },
 				{
-					transport: require('../../../src/controller/node/transport'),
+					transport: require('../../../src/application/node/transport'),
 				},
 			],
 			[],

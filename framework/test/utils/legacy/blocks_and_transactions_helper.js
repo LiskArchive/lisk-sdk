@@ -25,7 +25,7 @@ const localCommon = require('../../mocha/integration/common');
 const accountFixtures = require('../../fixtures/accounts');
 const {
 	sortTransactions,
-} = require('../../../src/controller/node/forger/sort');
+} = require('../../../src/application/node/forger/sort');
 const { getNetworkIdentifier } = require('../network_identifier');
 
 const networkIdentifier = getNetworkIdentifier(

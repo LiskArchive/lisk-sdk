@@ -17,7 +17,7 @@
 const constants = require('./constants');
 const Cache = require('./cache');
 const { config: defaultConfig } = require('./defaults');
-const validator = require('../../controller/validator');
+const validator = require('../../application/validator');
 
 function createCacheComponent(options, logger) {
 	const optionsWithDefaults = validator.parseEnvArgAndValidate(
