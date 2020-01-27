@@ -23,15 +23,15 @@
 				"OFFSET": 2160,
 				"DISTANCE": 3000000
 			}
+		},
+		"network": {
+			"seedPeers": [
+				{
+					"ip": "127.0.0.1",
+					"wsPort": 5000
+				}
+			]
 		}
-	},
-	"network": {
-		"seedPeers": [
-			{
-				"ip": "127.0.0.1",
-				"wsPort": 5000
-			}
-		]
 	},
 	"components": {
 		"logger": {

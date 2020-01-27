@@ -279,7 +279,7 @@ class Application {
 			this.getModules(),
 			this.config.modules,
 			this.getMigrations(),
-			this.config.network,
+			this.config.app.network,
 		);
 	}
 
@@ -326,7 +326,7 @@ class Application {
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,
 			networkId: this.config.app.networkId,
-			wsPort: this.config.network.wsPort,
+			wsPort: this.config.app.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 
