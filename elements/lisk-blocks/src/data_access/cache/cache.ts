@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export class Cache<T> {
+export abstract class Cache<T> {
 	private _items: T[];
 	private readonly _size: number;
 
@@ -33,17 +33,15 @@ export class Cache<T> {
 		return this._size;
 	}
 
+	public get first(): T {
+		return this.items[0];
+	}
+
 	public get last(): T {
 		return this.items[this.length - 1];
 	}
 
-	public add(item: T): T[] {
-		if (!this.items.includes(item)) {
-			this.items.push(item);
-		}
-
-		return this.items;
-	}
+	public abstract add(item: T): T[];
 
 	public empty(): T[] {
 		this._items = [];

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as assert from 'assert';
 
 import { BlockHeader } from '../../types';
 
@@ -19,6 +20,27 @@ import { Cache } from './cache';
 export class Blocks extends Cache<BlockHeader> {
 	public constructor(size: number = 500) {
 		super(size);
+	}
+
+	public add(blockHeader: BlockHeader): BlockHeader[] {
+		if (this.items.length) {
+			assert(
+				blockHeader.height === this.last.height + 1,
+				`Block header with height ${this.last.height +
+					1} can only be added, insted received ${blockHeader.height} height`,
+			);
+		}
+
+		if (this.first && blockHeader.height === this.last.height + 1) {
+			this.items.push(blockHeader);
+		}
+
+		// If the list size is already full remove one item
+		if (this.items.length > this.size) {
+			this.items.shift();
+		}
+
+		return this.items;
 	}
 
 	public getByID(id: string): BlockHeader | undefined {
@@ -76,7 +98,7 @@ export class Blocks extends Cache<BlockHeader> {
 	): BlockHeader | undefined {
 		const blocks = this.getByIDs(ids);
 
-		if (blocks.length) {
+		if (!blocks.length) {
 			return undefined;
 		}
 
