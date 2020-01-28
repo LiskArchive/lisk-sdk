@@ -174,6 +174,14 @@ describe('blocks', () => {
 		});
 
 		describe('matchGenesisBlock', () => {
+			it('should throw an error when failed to load genesis block', async () => {
+				// Arrange
+				const error = new Error('Failed to load genesis block');
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
 			it('should throw an error if the genesis block id is different', async () => {
 				// Arrange
 				const error = new Error('Genesis block does not match');
@@ -627,8 +635,6 @@ describe('blocks', () => {
 			});
 		});
 	});
-
-	describe('filterReadyTransactions', () => {});
 
 	describe('getJSONBlocksWithLimitAndOffset', () => {
 		describe('when called without offset', () => {

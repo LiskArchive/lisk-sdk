@@ -65,10 +65,12 @@ export class DataAccess {
 		}
 		const blocks = await this._storage.getBlockHeadersByIDs(arrayOfBlockIds);
 
-		return blocks.map(block => this.deserializeBlockHeader(block));
+		return blocks?.map(block => this.deserializeBlockHeader(block));
 	}
 
-	public async getBlockHeaderByHeight(height: number): Promise<BlockHeader> {
+	public async getBlockHeaderByHeight(
+		height: number,
+	): Promise<BlockHeader | undefined> {
 		const cachedBlock = this._blocksCache.getByHeight(height);
 
 		if (cachedBlock) {
@@ -77,7 +79,7 @@ export class DataAccess {
 
 		const block = await this._storage.getBlockByHeight(height);
 
-		return this.deserializeBlockHeader(block);
+		return block && this.deserializeBlockHeader(block);
 	}
 
 	public async getBlockHeadersByHeightBetween(
@@ -98,7 +100,7 @@ export class DataAccess {
 			toHeight,
 		);
 
-		return blocks.map(block => this.deserializeBlockHeader(block));
+		return blocks?.map(block => this.deserializeBlockHeader(block));
 	}
 
 	public async getBlockHeadersWithHeights(
@@ -112,10 +114,10 @@ export class DataAccess {
 
 		const blocks = await this._storage.getBlockHeadersWithHeights(heightList);
 
-		return blocks.map(block => this.deserializeBlockHeader(block));
+		return blocks?.map(block => this.deserializeBlockHeader(block));
 	}
 
-	public async getLastBlockHeader(): Promise<BlockHeader> {
+	public async getLastBlockHeader(): Promise<BlockHeader | undefined> {
 		const cachedBlock = this._blocksCache.getLastBlockHeader();
 
 		if (cachedBlock) {
@@ -124,12 +126,12 @@ export class DataAccess {
 
 		const block = await this._storage.getLastBlockHeader();
 
-		return this.deserializeBlockHeader(block);
+		return block && this.deserializeBlockHeader(block);
 	}
 
 	public async getLastCommonBlockHeader(
 		arrayOfBlockIds: ReadonlyArray<string>,
-	): Promise<BlockHeader> {
+	): Promise<BlockHeader | undefined> {
 		const cachedBlock = this._blocksCache.getLastCommonBlockHeader(
 			arrayOfBlockIds,
 		);
@@ -140,7 +142,7 @@ export class DataAccess {
 
 		const block = await this._storage.getLastCommonBlockHeader(arrayOfBlockIds);
 
-		return this.deserializeBlockHeader(block);
+		return block && this.deserializeBlockHeader(block);
 	}
 
 	/** Begin: BlockHeaders */
@@ -158,13 +160,15 @@ export class DataAccess {
 	): Promise<BlockInstance[]> {
 		const blocks = await this._storage.getBlocksByIDs(arrayOfBlockIds);
 
-		return blocks.map(block => this.deserialize(block));
+		return blocks?.map(block => this.deserialize(block));
 	}
 
-	public async getBlockByHeight(height: number): Promise<BlockHeader> {
+	public async getBlockByHeight(
+		height: number,
+	): Promise<BlockHeader | undefined> {
 		const block = await this._storage.getBlockByHeight(height);
 
-		return this.deserialize(block);
+		return block && this.deserialize(block);
 	}
 
 	public async getBlocksByHeightBetween(
@@ -176,13 +180,13 @@ export class DataAccess {
 			toHeight,
 		);
 
-		return blocks.map(block => this.deserialize(block));
+		return blocks?.map(block => this.deserialize(block));
 	}
 
-	public async getLastBlock(): Promise<BlockInstance> {
+	public async getLastBlock(): Promise<BlockInstance | undefined> {
 		const block = await this._storage.getLastBlock();
 
-		return this.deserialize(block);
+		return block && this.deserialize(block);
 	}
 
 	public async getFirstBlockIdWithInterval(
@@ -276,11 +280,6 @@ export class DataAccess {
 
 	// tslint:disable-next-line:prefer-function-over-method
 	public serialize(blockInstance: BlockInstance): BlockJSON {
-		if (!blockInstance) {
-			// tslint:disable-next-line:no-object-literal-type-assertion
-			return {} as BlockJSON;
-		}
-
 		const blockJSON = {
 			...blockInstance,
 			totalAmount: blockInstance.totalAmount.toString(),
@@ -296,11 +295,6 @@ export class DataAccess {
 	}
 
 	public deserialize(blockJSON: BlockJSON): BlockInstance {
-		if (!blockJSON) {
-			// tslint:disable-next-line:no-object-literal-type-assertion
-			return {} as BlockInstance;
-		}
-
 		const transactions = (blockJSON.transactions || []).map(transaction =>
 			this._transactionAdapter.fromJSON(transaction),
 		);
@@ -316,11 +310,6 @@ export class DataAccess {
 
 	// tslint:disable-next-line:prefer-function-over-method
 	public deserializeBlockHeader(blockHeader: BlockHeaderJSON): BlockHeader {
-		if (!blockHeader) {
-			// tslint:disable-next-line:no-object-literal-type-assertion
-			return {} as BlockHeader;
-		}
-
 		return {
 			...blockHeader,
 			totalAmount: BigInt(blockHeader.totalAmount || 0),

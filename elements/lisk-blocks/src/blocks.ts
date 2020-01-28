@@ -219,14 +219,18 @@ export class Blocks extends EventEmitter {
 		// Check mem tables
 		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
 
-		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
+		if (!genesisBlock) {
+			throw new Error('Failed to load genesis block');
+		}
 
-		if (!genesisBlockMatch) {
+		const isGenesisBlock = this.blocksVerify.matchGenesisBlock(genesisBlock);
+
+		if (!isGenesisBlock) {
 			throw new Error('Genesis block does not match');
 		}
 
 		const storageLastBlock = await this.dataAccess.getLastBlock();
-		if (!Object.keys(storageLastBlock).length) {
+		if (!storageLastBlock) {
 			throw new Error('Failed to load last block');
 		}
 
@@ -421,7 +425,6 @@ export class Blocks extends EventEmitter {
 		}
 	}
 
-	// TODO: Unit tests written in mocha, which should be migrated to jest.
 	public async filterReadyTransactions(
 		transactions: BaseTransaction[],
 		context: Contexter,
