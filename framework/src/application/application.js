@@ -425,6 +425,7 @@ class Application {
 			[
 				'ready',
 				'state:updated',
+				'networkEvent',
 				'blocks:change',
 				'transactions:confirmed:change',
 				'signature:change',
