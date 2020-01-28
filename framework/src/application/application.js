@@ -36,13 +36,24 @@ const ApplicationState = require('./application_state');
 
 const { createLoggerComponent } = require('../components/logger');
 const { createStorageComponent } = require('../components/storage');
-const { MigrationEntity } = require('../application/storage/entities');
+const {
+	MigrationEntity,
+	NetworkInfoEntity,
+	AccountEntity,
+	BlockEntity,
+	ChainStateEntity,
+	ForgerInfoEntity,
+	RoundDelegatesEntity,
+	TempBlockEntity,
+	TransactionEntity,
+} = require('../application/storage/entities');
+const {
+	networkMigrations,
+	nodeMigrations,
+} = require('../application/storage/migrations');
 
 const { Network } = require('./network');
-const { NetworkInfoEntity } = require('../application/storage/entities');
-const { networkMigrations } = require('../application/storage/migrations');
-
-const Node = require('./node');
+const { Node } = require('./node');
 
 const { InMemoryChannel } = require('../controller/channels');
 
@@ -128,8 +139,6 @@ class Application {
 
 		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 		global.constants = this.constants;
-		this.logger = this._initLogger();
-		this.storage = this._initStorage();
 
 		// Private members
 		this._modules = {};
@@ -139,15 +148,15 @@ class Application {
 		this._network = null;
 		this._controller = null;
 
+		this.logger = this._initLogger();
+		this.storage = this._initStorage();
+
 		this.registerTransaction(TransferTransaction);
 		this.registerTransaction(SecondSignatureTransaction);
 		this.registerTransaction(DelegateTransaction);
 		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(MultisignatureTransaction);
 
-		this.registerModule(Node, {
-			registeredTransactions: this.getTransactions(),
-		});
 		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
@@ -219,7 +228,7 @@ class Application {
 		assert(namespace, 'Namespace is required');
 		assert(Array.isArray(migrations), 'Migrations list should be an array');
 		assert(
-			!Object.keys(this.getMigrations()).includes(namespace),
+			!Object.keys(this._migrations).includes(namespace),
 			`Migrations for "${namespace}" was already registered.`,
 		);
 
@@ -273,10 +282,16 @@ class Application {
 
 		this._controller = this._initController();
 		this._network = this._initNetwork();
+		this._node = this._initNode();
 
 		// Load system components
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.defineSchema();
+		// Have to keep it consistent until update migration namespace in database
+		await this.storage.entities.Migration.applyAll({
+			node: nodeMigrations(),
+			network: networkMigrations(),
+		});
 
 		await this._controller.load(
 			this.getModules(),
@@ -285,6 +300,7 @@ class Application {
 		);
 
 		await this._network.initialiseNetwork();
+		await this._node.bootstrap();
 
 		this.channel.publish('app:ready');
 	}
@@ -293,7 +309,16 @@ class Application {
 		if (this._controller) {
 			await this._controller.cleanup(errorCode, message);
 		}
+
 		this.logger.info({ errorCode, message }, 'Shutting down application');
+
+		// TODO: Fix the cause of circular exception
+		// await this._network.stop();
+		// await this._node.cleanup();
+
+		await this._controller.cleanup(errorCode, message);
+		await this.storage.cleanup();
+
 		process.exit(errorCode);
 	}
 
@@ -368,6 +393,20 @@ class Application {
 		);
 
 		storage.registerEntity('Migration', MigrationEntity);
+		storage.registerEntity('NetworkInfo', NetworkInfoEntity);
+		storage.registerEntity('Account', AccountEntity, { replaceExisting: true });
+		storage.registerEntity('Block', BlockEntity, { replaceExisting: true });
+		storage.registerEntity('Transaction', TransactionEntity, {
+			replaceExisting: true,
+		});
+		storage.registerEntity('ChainState', ChainStateEntity);
+		storage.registerEntity('ForgerInfo', ForgerInfoEntity);
+		storage.registerEntity('RoundDelegates', RoundDelegatesEntity);
+		storage.registerEntity('TempBlock', TempBlockEntity);
+
+		storage.entities.Account.extendDefaultOptions({
+			limit: this.constants.ACTIVE_DELEGATES,
+		});
 
 		return storage;
 	}
@@ -440,11 +479,24 @@ class Application {
 			logger: this.logger,
 			channel: this.channel,
 		});
-
-		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
-		this.registerMigrations('network', networkMigrations());
-
 		return network;
+	}
+
+	_initNode() {
+		const node = new Node({
+			channel: this.channel,
+			options: {
+				...this.config.modules.chain, // TODO: Will change it in upcoming PR
+				genesisBlock: this.genesisBlock,
+				constants: this.constants,
+				registeredTransactions: this.getTransactions(),
+			},
+			logger: this.logger,
+			storage: this.storage,
+			applicationState: this.applicationState,
+		});
+
+		return node;
 	}
 }
 

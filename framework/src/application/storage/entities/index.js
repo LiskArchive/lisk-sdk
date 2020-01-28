@@ -16,22 +16,22 @@
 
 const NetworkInfoEntity = require('./network_info_entity');
 const MigrationEntity = require('./migration_entity');
-const Account = require('./account');
-const Block = require('./block');
-const ChainState = require('./chain_state');
-const ForgerInfo = require('./forger_info');
-const RoundDelegates = require('./round_delegates');
-const TempBlock = require('./temp_block.js');
-const Transaction = require('./transaction');
+const AccountEntity = require('./account');
+const BlockEntity = require('./block');
+const ChainStateEntity = require('./chain_state');
+const ForgerInfoEntity = require('./forger_info');
+const RoundDelegatesEntity = require('./round_delegates');
+const TempBlockEntity = require('./temp_block.js');
+const TransactionEntity = require('./transaction');
 
 module.exports = {
 	MigrationEntity,
 	NetworkInfoEntity,
-	Account,
-	Block,
-	ChainState,
-	ForgerInfo,
-	RoundDelegates,
-	TempBlock,
-	Transaction,
+	AccountEntity,
+	BlockEntity,
+	ChainStateEntity,
+	ForgerInfoEntity,
+	RoundDelegatesEntity,
+	TempBlockEntity,
+	TransactionEntity,
 };

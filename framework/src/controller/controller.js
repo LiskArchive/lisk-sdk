@@ -270,7 +270,6 @@ class Controller {
 
 		try {
 			await this.bus.cleanup();
-			this.network.stopNetwork();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (err) {

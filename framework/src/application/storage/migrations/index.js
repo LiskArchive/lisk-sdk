@@ -24,7 +24,7 @@ const networkMigrations = () =>
 	fs.readdirSync(networkPath).map(file => path.join(networkPath, file));
 
 const nodeMigrations = () =>
-	fs.readdirSync(networkPath).map(file => path.join(nodePath, file));
+	fs.readdirSync(nodePath).map(file => path.join(nodePath, file));
 
 module.exports = {
 	networkMigrations,

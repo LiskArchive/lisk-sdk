@@ -23,9 +23,6 @@ const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const { createStorageComponent } = require('../../components/storage');
-const { createLoggerComponent } = require('../../components/logger');
-const { bootstrapStorage } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const {
 	TransactionPool,
@@ -49,10 +46,13 @@ const { BlockProcessorV2 } = require('./block_processor_v2.js');
 const forgeInterval = 1000;
 
 module.exports = class Node {
-	constructor(channel, options) {
+	constructor({ channel, options, logger, storage, applicationState }) {
 		this.channel = channel;
 		this.options = options;
-		this.logger = null;
+		this.logger = logger;
+		this.storage = storage;
+		this.applicationState = applicationState;
+
 		this.components = null;
 		this.sequence = null;
 		this.registeredTransactions = null;
@@ -61,31 +61,6 @@ module.exports = class Node {
 	}
 
 	async bootstrap() {
-		const loggerConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'logger',
-		);
-
-		const storageConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'storage',
-		);
-
-		this.applicationState = await this.channel.invoke(
-			'app:getApplicationState',
-		);
-
-		this.logger = createLoggerComponent({ ...loggerConfig, module: 'chain' });
-		const dbLogger =
-			storageConfig.logFileName &&
-			storageConfig.logFileName === loggerConfig.logFileName
-				? this.logger
-				: createLoggerComponent({
-						...loggerConfig,
-						logFileName: storageConfig.logFileName,
-						module: 'chain:database',
-				  });
-
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
 
@@ -101,13 +76,6 @@ module.exports = class Node {
 					`modules.chain.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.BLOCK_TIME=${this.options.constants.BLOCK_TIME}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
 				);
 			}
-
-			// Storage
-			this.logger.debug('Initiating storage...');
-			this.storage = createStorageComponent(storageConfig, dbLogger);
-
-			// TODO: For socket cluster child process, should be removed with refactoring of network module
-			this.options.loggerConfig = loggerConfig;
 
 			this.networkIdentifier = getNetworkIdentifier(
 				this.options.genesisBlock.payloadHash,
@@ -128,10 +96,6 @@ module.exports = class Node {
 					this.components.logger.warn('Main queue', current);
 				},
 			});
-			await bootstrapStorage(
-				{ components: this.components },
-				this.config.constants.ACTIVE_DELEGATES,
-			);
 
 			await this._initModules();
 
