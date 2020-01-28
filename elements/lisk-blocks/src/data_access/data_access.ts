@@ -301,7 +301,7 @@ export class DataAccess {
 			return {} as BlockInstance;
 		}
 
-		const transactions = blockJSON?.transactions?.map(transaction =>
+		const transactions = (blockJSON.transactions || []).map(transaction =>
 			this._transactionAdapter.fromJSON(transaction),
 		);
 

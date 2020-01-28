@@ -217,7 +217,7 @@ export class Blocks extends EventEmitter {
 
 	public async init(): Promise<void> {
 		// Check mem tables
-		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(0);
+		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
 
 		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
 
