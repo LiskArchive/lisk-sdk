@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { Blocks } from '../../src';
@@ -628,6 +629,167 @@ describe('blocks', () => {
 	});
 
 	describe('filterReadyTransactions', () => {});
+
+	describe('getJSONBlocksWithLimitAndOffset', () => {
+		describe('when called without offset', () => {
+			const validBlocks = [
+				{
+					height: 100,
+					id: 'block-id',
+				},
+			];
+
+			beforeEach(async () => {
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
+					validBlocks,
+				);
+			});
+
+			it('should use limit 1 as default', async () => {
+				await blocksInstance.getJSONBlocksWithLimitAndOffset(1);
+
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{ height_gte: 0, height_lte: 1 },
+					{ extended: true },
+				);
+			});
+		});
+
+		describe('when blocks received in desending order', () => {
+			const validBlocks = [
+				{
+					height: 101,
+					id: 'block-id1',
+				},
+				{
+					height: 100,
+					id: 'block-id2',
+				},
+			];
+
+			beforeEach(async () => {
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
+					validBlocks,
+				);
+			});
+
+			it('should be sorted ascending by height', async () => {
+				const blocks = await blocksInstance.getJSONBlocksWithLimitAndOffset(
+					2,
+					100,
+				);
+
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{ height_gte: 100, height_lte: 102 },
+					{ extended: true },
+				);
+				expect(blocks.map(b => b.height)).toEqual(
+					validBlocks.map(b => b.height).sort((a, b) => (a > b ? 1 : -1)),
+				);
+			});
+		});
+	});
+
+	describe('loadBlocksFromLastBlockId', () => {
+		describe('when called without lastBlockId', () => {
+			it('should reject with error', async () => {
+				await expect(
+					blocksInstance.loadBlocksFromLastBlockId(undefined as any),
+				).rejects.toThrow('lastBlockId needs to be specified');
+			});
+		});
+
+		describe('when called without limit', () => {
+			const validLastBlock = {
+				height: 100,
+				id: 'block-id',
+			};
+
+			beforeEach(async () => {
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+					validLastBlock,
+				]);
+			});
+
+			it('should use limit 1 as default', async () => {
+				await blocksInstance.loadBlocksFromLastBlockId('block-id');
+
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith({ id_in: ['block-id'] }, {});
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{ height_gte: 101, height_lte: 101 },
+					{ extended: true },
+				);
+			});
+		});
+
+		describe('when called with invalid lastBlockId', () => {
+			beforeEach(async () => {
+				when<any, any>(stubs.dependencies.storage.entities.Block.get)
+					.calledWith({ id_in: ['block-id'] })
+					.mockResolvedValue([]);
+			});
+
+			it('should reject with error', async () => {
+				// Act && Assert
+				await expect(
+					blocksInstance.loadBlocksFromLastBlockId('block-id'),
+				).rejects.toThrow('Invalid lastBlockId requested: block-id');
+			});
+		});
+
+		describe('when called with valid lastBlockId and limit', () => {
+			const validLastBlock = {
+				height: 100,
+				id: 'block-id',
+			};
+
+			const validBlocksFromStorage = [
+				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
+			];
+
+			beforeEach(async () => {
+				when<any, any>(stubs.dependencies.storage.entities.Block.get)
+					.calledWith({ id_in: ['block-id'] })
+					.mockResolvedValue([validLastBlock]);
+				when<any, any>(stubs.dependencies.storage.entities.Block.get)
+					.calledWith({ height_gte: 101, height_lte: 134 }, { extended: true })
+					.mockResolvedValue(validBlocksFromStorage);
+			});
+
+			it('should call storage for the lastBlockId', async () => {
+				await blocksInstance.loadBlocksFromLastBlockId('block-id', 34);
+
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith({ id_in: ['block-id'] }, {});
+			});
+
+			it('should use the storage with correct filter', async () => {
+				const blocks = await blocksInstance.loadBlocksFromLastBlockId(
+					'block-id',
+					34,
+				);
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith({ id_in: ['block-id'] }, {});
+				expect(
+					stubs.dependencies.storage.entities.Block.get,
+				).toHaveBeenCalledWith(
+					{ height_gte: 101, height_lte: 134 },
+					{ extended: true },
+				);
+				expect(blocks[0].height).toEqual(validBlocksFromStorage[0].height);
+			});
+		});
+	});
 
 	describe('getHighestCommonBlock', () => {
 		it('should get the block with highest height from provided ids parameter', async () => {
