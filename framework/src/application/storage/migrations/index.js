@@ -18,10 +18,15 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const networkPath = path.join(__dirname, './network');
+const nodePath = path.join(__dirname, './node');
 
 const networkMigrations = () =>
 	fs.readdirSync(networkPath).map(file => path.join(networkPath, file));
 
+const nodeMigrations = () =>
+	fs.readdirSync(networkPath).map(file => path.join(nodePath, file));
+
 module.exports = {
 	networkMigrations,
+	nodeMigrations,
 };

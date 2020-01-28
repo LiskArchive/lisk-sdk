@@ -14,10 +14,7 @@
 
 'use strict';
 
-const { config: DefaultConfig } = require('./defaults');
-const Chain = require('./chain');
-const { migrations } = require('./components');
-const BaseModule = require('../../modules/base_module');
+const Node = require('./node');
 
 /* eslint-disable class-methods-use-this */
 
@@ -145,4 +142,4 @@ class ChainModule extends BaseModule {
 	}
 }
 
-module.exports = ChainModule;
+module.exports = { Node };

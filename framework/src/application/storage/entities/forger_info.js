@@ -21,15 +21,15 @@ const {
 	utils: {
 		filterTypes: { BOOLEAN },
 	},
-} = require('../../../../../components/storage');
+} = require('../../../components/storage');
 
 const sqlFiles = {
-	upsert: 'chain_state/upsert.sql',
-	get: 'chain_state/get.sql',
-	delete: 'chain_state/delete.sql',
+	upsert: 'forger_info/upsert.sql',
+	get: 'forger_info/get.sql',
+	delete: 'forger_info/delete.sql',
 };
 
-class ChainState extends BaseEntity {
+class ForgerInfo extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
@@ -37,7 +37,7 @@ class ChainState extends BaseEntity {
 		this.addField('value', 'string');
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
-		this.SQLs = this.loadSQLFiles('chain_state', sqlFiles, this.sqlDirectory);
+		this.SQLs = this.loadSQLFiles('forger_info', sqlFiles, this.sqlDirectory);
 	}
 
 	get(filters = {}, options = {}, tx = null) {
@@ -121,4 +121,4 @@ class ChainState extends BaseEntity {
 	}
 }
 
-module.exports = ChainState;
+module.exports = ForgerInfo;
