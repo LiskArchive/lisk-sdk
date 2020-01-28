@@ -22,8 +22,8 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
 const {
-	ChainState,
-} = require('../../../../../../../../../src/application/node/components/storage/entities');
+	ChainStateEntity: ChainState,
+} = require('../../../../../../../../../src/application/storage/entities');
 
 const { config } = require('../../../../../modules/shared');
 

@@ -13,8 +13,8 @@
  */
 
 const {
-	RoundDelegates,
-} = require('../../../../../../../../../../src/application/node/components/storage/entities');
+	RoundDelegatesEntity: RoundDelegates,
+} = require('../../../../../../../../../../src/application/storage/entities');
 const {
 	PgHelper,
 } = require('../../../../../../../../../utils/storage/pg-helper');
