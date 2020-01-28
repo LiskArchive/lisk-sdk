@@ -31,6 +31,64 @@ describe('data_access.blocksCache.blocks', () => {
 		});
 	});
 
+	describe('add', () => {
+		it('should add block header to cache', () => {
+			const block = BlockHeaderInstance({ height: 1 });
+			blocksCache.add(block);
+
+			expect(blocksCache.items).toStrictEqual([block]);
+		});
+
+		it('should only contain maximum of 500 block header at given point in time', () => {
+			const [blocks] = Array.from({ length: 510 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+			const blockIds = blocks.map(b => b.id);
+
+			expect(blocksCache.items).toStrictEqual(blocks);
+			expect(blocksCache.items.length).toEqual(DEFAULT_CACHE_SIZE);
+			expect(blocksCache.getByIDs(blockIds)).toStrictEqual(blocks);
+		});
+
+		it('should remove the least height block header and add new heighest height block header', () => {
+			const [blocks] = Array.from({ length: 510 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+			const maxHeight = Math.max(...blocksCache.items.map(b => b.height));
+			const minHeight = Math.min(...blocksCache.items.map(b => b.height));
+			const [lowesHeightBlock] = blocks.filter(b => b.height === minHeight);
+			const newBlock = BlockHeaderInstance({ height: maxHeight + 1 });
+
+			expect(blocksCache.getByHeight(minHeight)).toEqual(lowesHeightBlock);
+
+			blocksCache.add(newBlock);
+			const [newMinHeightBlock] = blocks.filter(
+				b => b.height === minHeight + 1,
+			);
+
+			expect(blocksCache.getByHeight(minHeight)).toBeUndefined();
+			expect(blocksCache.getByHeight(minHeight + 1)).toEqual(newMinHeightBlock);
+			expect(blocksCache.getByHeight(maxHeight + 1)).toEqual(newBlock);
+		});
+
+		it('should only allow to insert block header with highest height', () => {
+			const [blocks] = Array.from({ length: 510 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+			const minHeight = Math.min(...blocksCache.items.map(b => b.height));
+			const [lowesHeightBlock] = blocks.filter(b => b.height === minHeight);
+			const newBlock = BlockHeaderInstance({ height: minHeight + 1 });
+
+			expect(blocksCache.getByHeight(minHeight)).toEqual(lowesHeightBlock);
+
+			expect(() => {
+				blocksCache.add(newBlock);
+			}).toThrow(
+				'Block header with height 510 can only be added, insted received 11 height',
+			);
+		});
+	});
+
 	describe('getByID', () => {
 		it('should return undefined if block does not exists', () => {
 			const block = BlockHeaderInstance({ height: 1 });
@@ -121,7 +179,7 @@ describe('data_access.blocksCache.blocks', () => {
 			expect(blocksCache.items).toStrictEqual(blocks);
 			expect(
 				blocksCache.getLastCommonBlockHeader([...blockIds, '111111']),
-			).toBeEmpty();
+			).toBeUndefined();
 		});
 
 		it('should return all the blocks for given block ids', () => {
