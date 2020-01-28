@@ -217,7 +217,7 @@ module.exports = class Node {
 					message: error.message,
 					stack: error.stack,
 				},
-				'Failed to initialization chain module',
+				'Failed to initialization node',
 			);
 			process.emit('cleanup', error);
 		}

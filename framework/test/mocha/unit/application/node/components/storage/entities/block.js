@@ -20,7 +20,7 @@ const {
 	errors: { NonSupportedFilterTypeError, NonSupportedOperationError },
 } = require('../../../../../../../../src/components/storage');
 const {
-	Block,
+	BlockEntity: Block,
 } = require('../../../../../../../../src/application/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 const blocksFixtures = require('../../../../../../../fixtures//blocks');

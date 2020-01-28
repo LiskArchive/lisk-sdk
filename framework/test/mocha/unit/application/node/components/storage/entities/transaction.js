@@ -19,7 +19,7 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../src/components/storage');
 const {
-	Transaction,
+	TransactionEntity: Transaction,
 } = require('../../../../../../../../src/application/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 const seeder = require('../../../../../../../utils/storage/storage_seed');
