@@ -566,12 +566,9 @@ describe('blocks', () => {
 				);
 				// Act & Assert
 				await expect(
-					blocksInstance.remove(
-						block,
-						blocksInstance.serialize(block),
-						stubs.tx,
-						{ saveTempBlock: true },
-					),
+					blocksInstance.remove(block, blocksInstance.serialize(block), {
+						saveTempBlock: true,
+					}),
 				).rejects.toEqual(tempBlockCreateError);
 			});
 
@@ -582,7 +579,7 @@ describe('blocks', () => {
 				(transaction as any).blockId = block.id;
 				const blockJSON = blocksInstance.serialize(block);
 				// Act
-				await blocksInstance.remove(block, blockJSON, stubs.tx, {
+				await blocksInstance.remove(block, blockJSON, {
 					saveTempBlock: true,
 				});
 				// Assert
@@ -619,7 +616,7 @@ describe('blocks', () => {
 	describe('getTempBlocks()', () => {
 		it('should retrieve all blocks from temp_blocks table', async () => {
 			// Act
-			await blocksInstance.getTempBlocks({}, {}, stubs.tx);
+			await blocksInstance.getTempBlocks();
 
 			// Assert
 			expect(

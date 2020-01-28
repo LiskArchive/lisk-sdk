@@ -15,6 +15,7 @@
 import {
 	BaseTransaction,
 	Status as TransactionStatus,
+	TransactionJSON,
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import { EventEmitter } from 'events';
@@ -46,6 +47,7 @@ import {
 import { TransactionHandledResult } from './transactions/compose_transaction_steps';
 import {
 	BlockHeader,
+	BlockHeaderJSON,
 	BlockInstance,
 	BlockJSON,
 	BlockRewardOptions,
@@ -121,6 +123,14 @@ export class Blocks extends EventEmitter {
 	public readonly blockReward: {
 		readonly [key: string]: (height: number) => number | bigint;
 	};
+	public readonly deserialize: (blockJSON: BlockJSON) => BlockInstance;
+	public readonly serialize: (blockInstance: BlockInstance) => BlockJSON;
+	public readonly deserializeBlockHeader: (
+		blockHeader: BlockHeaderJSON,
+	) => BlockHeader;
+	public readonly deserializeTransaction: (
+		transactionJSON: TransactionJSON,
+	) => BaseTransaction;
 
 	public constructor({
 		// Components
@@ -154,7 +164,17 @@ export class Blocks extends EventEmitter {
 			networkIdentifier,
 			registeredTransactions,
 		});
-		const genesisInstance = this.dataAccess.deserialize(genesisBlock);
+
+		// Binding data access to allow access to its scope accessibility
+		this.deserialize = this.dataAccess.deserialize.bind(this.dataAccess);
+		this.serialize = this.dataAccess.serialize.bind(this.dataAccess);
+		this.deserializeBlockHeader = this.dataAccess.deserializeBlockHeader.bind(
+			this.dataAccess,
+		);
+		this.deserializeTransaction = this.dataAccess.deserializeTransaction.bind(
+			this.dataAccess,
+		);
+		const genesisInstance = this.deserialize(genesisBlock);
 		this._lastBlock = genesisInstance;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;

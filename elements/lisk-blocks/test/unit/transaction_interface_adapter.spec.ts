@@ -20,7 +20,7 @@ import {
 	VoteTransaction,
 	MultisignatureTransaction,
 } from '@liskhq/lisk-transactions';
-import { TransactionInterfaceAdapter } from '../../src/transaction_interface_adapter';
+import { TransactionInterfaceAdapter } from '../../src/data_access/transaction_interface_adapter';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 
 const networkIdentifier = getNetworkIdentifier(

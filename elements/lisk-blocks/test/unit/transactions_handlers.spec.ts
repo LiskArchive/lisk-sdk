@@ -35,7 +35,7 @@ describe('transactions', () => {
 		blockTimestamp: 123,
 	};
 
-	let storageMock: any;
+	let dataAccessMock: any;
 	let stateStoreMock: any;
 
 	beforeEach(async () => {
@@ -69,15 +69,8 @@ describe('transactions', () => {
 			},
 		};
 
-		storageMock = {
-			entities: {
-				Transaction: {
-					get: jest.fn(),
-				},
-				Account: {
-					get: jest.fn().mockReturnValue([]),
-				},
-			},
+		dataAccessMock = {
+			getTransactionsByIDs: jest.fn().mockReturnValue([]),
 		};
 	});
 
@@ -262,32 +255,33 @@ describe('transactions', () => {
 	describe('#checkPersistedTransactions', () => {
 		it('should resolve in empty response if called with empty array', async () => {
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock,
+				dataAccessMock,
 			)([]);
 
 			expect(result).toEqual({ transactionsResponses: [] });
 		});
 
 		it('should invoke entities.Transaction to check persistence of transactions', async () => {
-			storageMock.entities.Transaction.get.mockResolvedValue([trs1, trs2]);
+			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1, trs2]);
 
-			await transactionHandlers.checkPersistedTransactions(storageMock)([
+			await transactionHandlers.checkPersistedTransactions(dataAccessMock)([
 				trs1,
 				trs2,
 			]);
 
-			expect(storageMock.entities.Transaction.get).toHaveBeenCalledTimes(1);
-			expect(storageMock.entities.Transaction.get).toHaveBeenCalledWith({
-				id_in: [trs1.id, trs2.id],
-			});
+			expect(dataAccessMock.getTransactionsByIDs).toHaveBeenCalledTimes(1);
+			expect(dataAccessMock.getTransactionsByIDs).toHaveBeenCalledWith([
+				trs1.id,
+				trs2.id,
+			]);
 		});
 
 		it('should return TransactionStatus.OK for non-persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			storageMock.entities.Transaction.get.mockResolvedValue([trs1]);
+			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock,
+				dataAccessMock,
 			)([trs1, trs2]);
 
 			const transactionResponse = result.transactionsResponses.find(
@@ -300,10 +294,10 @@ describe('transactions', () => {
 
 		it('should return TransactionStatus.FAIL for persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			storageMock.entities.Transaction.get.mockResolvedValue([trs1]);
+			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock,
+				dataAccessMock,
 			)([trs1, trs2]);
 
 			const transactionResponse = result.transactionsResponses.find(

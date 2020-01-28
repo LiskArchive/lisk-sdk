@@ -33,6 +33,8 @@ export class Blocks extends Cache<BlockHeader> {
 
 		if (this.first && blockHeader.height === this.last.height + 1) {
 			this.items.push(blockHeader);
+		} else {
+			this.items.unshift(blockHeader);
 		}
 
 		// If the list size is already full remove one item
