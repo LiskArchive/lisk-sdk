@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { Storage as StorageAccess } from '../../src/data_access';
+import { Storage as StorageAccess } from '../../../src/data_access';
 
 describe('data access - storage', () => {
 	const defaultBlocks = [
@@ -33,8 +32,8 @@ describe('data access - storage', () => {
 	];
 
 	const defaultAccounts = [
-		{ address: '1276152240083265771L', balance: '100' },
-		{ address: '11237980039345381032L', balance: '555' },
+		{ publicKey: '1L', address: '1276152240083265771L', balance: '100' },
+		{ publicKey: '2L', address: '11237980039345381032L', balance: '555' },
 	];
 
 	const defaultTransactions = [
@@ -50,11 +49,11 @@ describe('data access - storage', () => {
 		},
 	];
 
-	let storageStub: any;
-	let storageAccess: any;
+	let storageMock: any;
+	let storageAccess: StorageAccess;
 
 	beforeEach(async () => {
-		storageStub = {
+		storageMock = {
 			entities: {
 				Block: {
 					get: jest.fn(),
@@ -78,50 +77,51 @@ describe('data access - storage', () => {
 			},
 		};
 
-		storageAccess = new StorageAccess(storageStub);
+		storageAccess = new StorageAccess(storageMock);
 	});
 
 	describe('#getBlockHeadersByIDs', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue(defaultBlocks);
+			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
 
 		it('should call storage.Block.get and return blocks', async () => {
 			// Act
 			const blocksFromStorage = await storageAccess.getBlockHeadersByIDs([
-				2,
-				3,
+				'1',
+				'2',
 			]);
 
 			// Assert
 			expect(blocksFromStorage).toEqual(defaultBlocks);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getBlockHeadersByHeightBetween', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue(defaultBlocks);
+			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
 
 		it('should call storage.Block.get and return blocks', async () => {
 			// Act
 			const blocksFromStorage = await storageAccess.getBlockHeadersByHeightBetween(
-				[2, 3],
+				2,
+				3,
 			);
 
 			// Assert
 			expect(blocksFromStorage).toEqual(defaultBlocks);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getBlockHeadersWithHeights', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue(defaultBlocks);
+			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
 
 		it('should call storage.Block.get and return blocks', async () => {
@@ -132,32 +132,14 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(blocksFromStorage).toEqual(defaultBlocks);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
-		});
-	});
-
-	describe('#getBlockHeadersWithInterval', () => {
-		beforeEach(async () => {
-			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue(defaultBlocks);
-		});
-
-		it('should call storage.Block.get and return blocks', async () => {
-			// Act
-			const blocksFromStorage = await storageAccess.getBlockHeadersWithInterval(
-				[2],
-			);
-
-			// Assert
-			expect(blocksFromStorage).toEqual(defaultBlocks);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getLastBlockHeader', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
+			storageMock.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
 		});
 
 		it('should call storage.Block.get and return block', async () => {
@@ -166,102 +148,100 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(blockFromStorage).toEqual(defaultBlocks[1]);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getLastCommonBlockHeader', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
+			storageMock.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
 		});
 
 		it('should call storage.Block.get and return block', async () => {
 			// Act
 			const blockFromStorage = await storageAccess.getLastCommonBlockHeader([
-				2,
-				3,
+				'2',
+				'3',
 			]);
 
 			// Assert
 			expect(blockFromStorage).toEqual(defaultBlocks[1]);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
-	describe('#getBlockCount', () => {
+	describe('#getBlocksCount', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.count.mockResolvedValue(2);
+			storageMock.entities.Block.count.mockResolvedValue(2);
 		});
 
 		it('should call storage.Block.get and return block', async () => {
 			// Act
-			const blockCountStorage = await storageAccess.getBlockCount();
+			const blockCountStorage = await storageAccess.getBlocksCount();
 
 			// Assert
 			expect(blockCountStorage).toEqual(2);
-			expect(storageStub.entities.Block.count).toHaveBeenCalled();
+			expect(storageMock.entities.Block.count).toHaveBeenCalled();
 		});
 	});
 
-	describe('#getExtendedBlocksByIDs', () => {
+	describe('#getBlocksByIDs', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue(defaultBlocks);
+			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
 
 		it('should call storage.Block.get and return blocks', async () => {
 			// Act
-			const blocksFromStorage = await storageAccess.getExtendedBlocksByIDs([
-				2,
-				3,
-			]);
+			const blocksFromStorage = await storageAccess.getBlocksByIDs(['2', '3']);
 
 			// Assert
 			expect(blocksFromStorage).toEqual(defaultBlocks);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
-	describe('#getExtendedBlocksByHeightBetween', () => {
+	describe('#getBlocksByHeightBetween', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue(defaultBlocks);
+			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
 
 		it('should call storage.Block.get and return blocks', async () => {
 			// Act
-			const blocksFromStorage = await storageAccess.getExtendedBlocksByHeightBetween(
-				[2, 3],
+			const blocksFromStorage = await storageAccess.getBlocksByHeightBetween(
+				2,
+				3,
 			);
 
 			// Assert
 			expect(blocksFromStorage).toEqual(defaultBlocks);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
-	describe('#getExtendedLastBlock', () => {
+	describe('#getLastBlock', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
+			storageMock.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
 		});
 
 		it('should call storage.Block.get and return block', async () => {
 			// Act
-			const blockFromStorage = await storageAccess.getExtendedLastBlock();
+			const blockFromStorage = await storageAccess.getLastBlock();
 
 			// Assert
 			expect(blockFromStorage).toEqual(defaultBlocks[1]);
-			expect(storageStub.entities.Block.get).toHaveBeenCalled();
+			expect(storageMock.entities.Block.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getTempBlocks', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.TempBlock.get.mockResolvedValue(defaultBlocks);
+			storageMock.entities.TempBlock.get.mockResolvedValue(defaultBlocks);
 		});
 
 		it('should call storage.TempBlock.get and return temporary blocks', async () => {
@@ -270,14 +250,14 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(blocksFromStorage).toEqual(defaultBlocks);
-			expect(storageStub.entities.TempBlock.get).toHaveBeenCalled();
+			expect(storageMock.entities.TempBlock.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#isTempBlockEmpty', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.TempBlock.isEmpty.mockResolvedValue(true);
+			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(true);
 		});
 
 		it('should call storage.TempBlock.isEmpty and return boolean', async () => {
@@ -286,7 +266,7 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(existsInStorage).toEqual(true);
-			expect(storageStub.entities.TempBlock.isEmpty).toHaveBeenCalled();
+			expect(storageMock.entities.TempBlock.isEmpty).toHaveBeenCalled();
 		});
 	});
 
@@ -296,14 +276,14 @@ describe('data access - storage', () => {
 			await storageAccess.clearTempBlocks();
 
 			// Assert
-			expect(storageStub.entities.TempBlock.truncate).toHaveBeenCalled();
+			expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getFirstBlockIdWithInterval', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.getFirstBlockIdOfLastRounds.mockResolvedValue([
+			storageMock.entities.Block.getFirstBlockIdOfLastRounds.mockResolvedValue([
 				2,
 				3,
 			]);
@@ -319,7 +299,7 @@ describe('data access - storage', () => {
 			// Assert
 			expect(blocksFromStorage).toEqual([2, 3]);
 			expect(
-				storageStub.entities.Block.getFirstBlockIdOfLastRounds,
+				storageMock.entities.Block.getFirstBlockIdOfLastRounds,
 			).toHaveBeenCalled();
 		});
 	});
@@ -327,39 +307,41 @@ describe('data access - storage', () => {
 	describe('#isBlockPersisted', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Block.isPersisted.mockResolvedValue(true);
+			storageMock.entities.Block.isPersisted.mockResolvedValue(true);
 		});
 
 		it('should call storage.Block.isPersisted and return boolean', async () => {
 			// Act
-			const existsInStorage = await storageAccess.isBlockPersisted(2);
+			const existsInStorage = await storageAccess.isBlockPersisted('2');
 
 			// Assert
 			expect(existsInStorage).toEqual(true);
-			expect(storageStub.entities.Block.isPersisted).toHaveBeenCalled();
+			expect(storageMock.entities.Block.isPersisted).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getAccountsByPublicKey', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
+			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
 		});
 
 		it('should call storage.Account.get and return accounts', async () => {
 			// Act
-			const accountsInStorage = await storageAccess.getAccountsByPublicKey();
+			const accountsInStorage = await storageAccess.getAccountsByPublicKey([
+				defaultAccounts[0].publicKey,
+			]);
 
 			// Assert
 			expect(accountsInStorage).toEqual(defaultAccounts);
-			expect(storageStub.entities.Account.get).toHaveBeenCalled();
+			expect(storageMock.entities.Account.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getAccountsByAddress', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
+			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
 		});
 
 		it('should call storage.Account.get and return accounts', async () => {
@@ -371,14 +353,14 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(accountsInStorage).toEqual(defaultAccounts);
-			expect(storageStub.entities.Account.get).toHaveBeenCalled();
+			expect(storageMock.entities.Account.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getDelegateAccounts', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
+			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
 		});
 
 		it('should call storage.Account.get and return accounts', async () => {
@@ -387,7 +369,7 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(delegateAccountsInStorage).toEqual(defaultAccounts);
-			expect(storageStub.entities.Account.get).toHaveBeenCalled();
+			expect(storageMock.entities.Account.get).toHaveBeenCalled();
 		});
 	});
 
@@ -397,14 +379,14 @@ describe('data access - storage', () => {
 			await storageAccess.resetAccountMemTables();
 
 			// Assert
-			expect(storageStub.entities.Account.resetMemTables).toHaveBeenCalled();
+			expect(storageMock.entities.Account.resetMemTables).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getTransactionsByIDs', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Transaction.get.mockResolvedValue(
+			storageMock.entities.Transaction.get.mockResolvedValue(
 				defaultTransactions,
 			);
 		});
@@ -412,20 +394,20 @@ describe('data access - storage', () => {
 		it('should call storage.Transaction.get and return transactions', async () => {
 			// Act
 			const transactionsFromStorage = await storageAccess.getTransactionsByIDs([
-				2,
-				3,
+				'2',
+				'3',
 			]);
 
 			// Assert
 			expect(transactionsFromStorage).toEqual(defaultTransactions);
-			expect(storageStub.entities.Transaction.get).toHaveBeenCalled();
+			expect(storageMock.entities.Transaction.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#isTransactionPersisted', () => {
 		beforeEach(async () => {
 			// Arrange
-			storageStub.entities.Transaction.isPersisted.mockResolvedValue(true);
+			storageMock.entities.Transaction.isPersisted.mockResolvedValue(true);
 		});
 
 		it('should call storage.Transaction.isTransactionPersisted and return boolean', async () => {
@@ -434,7 +416,7 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(existsInStorage).toEqual(true);
-			expect(storageStub.entities.Transaction.isPersisted).toHaveBeenCalled();
+			expect(storageMock.entities.Transaction.isPersisted).toHaveBeenCalled();
 		});
 	});
 });

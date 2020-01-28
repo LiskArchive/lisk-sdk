@@ -54,30 +54,35 @@ export class DataAccess {
 		);
 	}
 
+	public addBlockHeader(blockHeader: BlockHeader): BlockHeader[] {
+		return this._blocksCache.add(blockHeader);
+	}
+
 	/** Begin: BlockHeaders */
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockHeader[]> {
 		const cachedBlocks = this._blocksCache.getByIDs(arrayOfBlockIds);
 
-		if (cachedBlocks.length) {
+		if (cachedBlocks?.length) {
 			return cachedBlocks;
 		}
 		const blocks = await this._storage.getBlockHeadersByIDs(arrayOfBlockIds);
 
-		return blocks.map(block => this.deserializeBlockHeader(block));
+		return blocks?.map(block => this.deserializeBlockHeader(block));
 	}
 
-	public async getBlockHeaderByHeight(height: number): Promise<BlockHeader> {
+	public async getBlockHeaderByHeight(
+		height: number,
+	): Promise<BlockHeader | undefined> {
 		const cachedBlock = this._blocksCache.getByHeight(height);
 
 		if (cachedBlock) {
 			return cachedBlock;
 		}
-
 		const block = await this._storage.getBlockByHeight(height);
 
-		return this.deserializeBlockHeader(block);
+		return block ? this.deserializeBlockHeader(block) : undefined;
 	}
 
 	public async getBlockHeadersByHeightBetween(
@@ -89,7 +94,7 @@ export class DataAccess {
 			toHeight,
 		);
 
-		if (cachedBlocks.length) {
+		if (cachedBlocks?.length) {
 			return cachedBlocks;
 		}
 
@@ -98,7 +103,7 @@ export class DataAccess {
 			toHeight,
 		);
 
-		return blocks.map(block => this.deserializeBlockHeader(block));
+		return blocks?.map(block => this.deserializeBlockHeader(block));
 	}
 
 	public async getBlockHeadersWithHeights(
@@ -112,7 +117,7 @@ export class DataAccess {
 
 		const blocks = await this._storage.getBlockHeadersWithHeights(heightList);
 
-		return blocks.map(block => this.deserializeBlockHeader(block));
+		return blocks?.map(block => this.deserializeBlockHeader(block));
 	}
 
 	public async getLastBlockHeader(): Promise<BlockHeader> {

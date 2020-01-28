@@ -68,6 +68,7 @@ export class Blocks extends Cache<BlockHeader> {
 			heightList.includes(block.height),
 		);
 
+		// Only return results if complete match to avoid inconsistencies
 		if (blocks.length === heightList.length) {
 			return blocks;
 		}
@@ -80,7 +81,7 @@ export class Blocks extends Cache<BlockHeader> {
 		toHeight: number,
 	): BlockHeader[] {
 		if (
-			this.items.find(b => b.height === fromHeight) &&
+			this.items.find(b => b.height === fromHeight) ||
 			this.items.find(b => b.height === toHeight)
 		) {
 			return this.items.filter(
