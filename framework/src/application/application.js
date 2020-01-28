@@ -32,6 +32,8 @@ const validator = require('./validator');
 const configurator = require('./default_configurator');
 const { genesisBlockSchema, constantsSchema } = require('./schema');
 
+const ApplicationState = require('./application_state');
+
 const { createLoggerComponent } = require('../components/logger');
 const { createStorageComponent } = require('../components/storage');
 const { MigrationEntity } = require('../application/storage/entities');
@@ -41,6 +43,8 @@ const { NetworkInfoEntity } = require('../application/storage/entities');
 const { networkMigrations } = require('../application/storage/migrations');
 
 const Node = require('./node');
+
+const { InMemoryChannel } = require('../controller/channels');
 
 const HttpAPIModule = require('../modules/http_api');
 
@@ -119,6 +123,8 @@ class Application {
 		this.genesisBlock = genesisBlock;
 		this.config = appConfig;
 		this.channel = null;
+		this.initialState = null;
+		this.applicationState = null;
 
 		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 		global.constants = this.constants;
@@ -260,19 +266,25 @@ class Application {
 
 		registerProcessHooks(this);
 
+		// Initialize all objects
+		this.applicationState = this._initApplicationState();
+		this.channel = this._initChannel();
+		this.applicationState.channel = this.channel;
+
 		this._controller = this._initController();
 		this._network = this._initNetwork();
 
+		// Load system components
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.defineSchema();
-
-		await this._network.initialiseNetwork();
 
 		await this._controller.load(
 			this.getModules(),
 			this.config.modules,
 			this.getMigrations(),
 		);
+
+		await this._network.initialiseNetwork();
 
 		this.channel.publish('app:ready');
 	}
@@ -360,6 +372,53 @@ class Application {
 		return storage;
 	}
 
+	_initApplicationState() {
+		return new ApplicationState({
+			initialState: this.initialState,
+			logger: this.logger,
+		});
+	}
+
+	_initChannel() {
+		return new InMemoryChannel(
+			'app',
+			['ready', 'state:updated'],
+			{
+				getComponentConfig: {
+					handler: action => this.config.components[action.params],
+				},
+				getApplicationState: {
+					handler: () => this.applicationState.state,
+				},
+				updateApplicationState: {
+					handler: action => this.applicationState.update(action.params),
+				},
+				sendToNetwork: {
+					handler: action => this._network.send(action.params),
+				},
+				broadcastToNetwork: {
+					handler: action => this._network.broadcast(action.params),
+				},
+				requestFromNetwork: {
+					handler: action => this._network.request(action.params),
+				},
+				requestFromPeer: {
+					handler: action => this._network.requestFromPeer(action.params),
+				},
+				getConnectedPeers: {
+					handler: action => this._network.getConnectedPeers(action.params),
+				},
+				getDisconnectedPeers: {
+					handler: action => this._network.getDisconnectedPeers(action.params),
+				},
+				applyPenaltyOnPeer: {
+					handler: action => this._network.applyPenalty(action.params),
+				},
+			},
+			{ skipInternalEvents: true },
+		);
+	}
+
 	_initController() {
 		return new Controller({
 			appLabel: this.config.app.label,
@@ -368,9 +427,9 @@ class Application {
 				ipc: this.config.app.ipc,
 				tempPath: this.config.app.tempPath,
 			},
-			initialState: this.initialState,
 			logger: this.logger,
 			storage: this.storage,
+			channel: this.channel,
 		});
 	}
 

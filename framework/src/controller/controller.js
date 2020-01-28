@@ -23,17 +23,16 @@ const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('../application/validator');
-const ApplicationState = require('../application/application_state');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
 
 class Controller {
-	constructor({ appLabel, config, initialState, logger, storage }) {
+	constructor({ appLabel, config, logger, storage, channel }) {
 		this.logger = logger;
 		this.storage = storage;
 		this.appLabel = appLabel;
-		this.initialState = initialState;
+		this.channel = channel;
 		this.logger.info('Initializing controller');
 
 		const dirs = systemDirs(this.appLabel, config.tempPath);
@@ -50,7 +49,6 @@ class Controller {
 
 		this.modules = {};
 		this.childrenList = [];
-		this.channel = null; // Channel for controller
 		this.bus = null;
 	}
 
@@ -58,7 +56,6 @@ class Controller {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
-		this._initState();
 		await this._setupBus();
 		await this._loadMigrations({ ...migrations });
 		await this._loadModules(modules, moduleOptions);
@@ -96,13 +93,6 @@ class Controller {
 		await fs.writeFile(pidPath, process.pid);
 	}
 
-	_initState() {
-		this.applicationState = new ApplicationState({
-			initialState: this.initialState,
-			logger: this.logger,
-		});
-	}
-
 	async _setupBus() {
 		this.bus = new Bus(
 			{
@@ -116,47 +106,7 @@ class Controller {
 
 		await this.bus.setup();
 
-		this.channel = new InMemoryChannel(
-			'app',
-			['ready', 'state:updated'],
-			{
-				getComponentConfig: {
-					handler: action => this.config.components[action.params],
-				},
-				getApplicationState: {
-					handler: () => this.applicationState.state,
-				},
-				updateApplicationState: {
-					handler: action => this.applicationState.update(action.params),
-				},
-				sendToNetwork: {
-					handler: action => this.network.send(action.params),
-				},
-				broadcastToNetwork: {
-					handler: action => this.network.broadcast(action.params),
-				},
-				requestFromNetwork: {
-					handler: action => this.network.request(action.params),
-				},
-				requestFromPeer: {
-					handler: action => this.network.requestFromPeer(action.params),
-				},
-				getConnectedPeers: {
-					handler: action => this.network.getConnectedPeers(action.params),
-				},
-				getDisconnectedPeers: {
-					handler: action => this.network.getDisconnectedPeers(action.params),
-				},
-				applyPenaltyOnPeer: {
-					handler: action => this.network.applyPenalty(action.params),
-				},
-			},
-			{ skipInternalEvents: true },
-		);
-
 		await this.channel.registerToBus(this.bus);
-
-		this.applicationState.channel = this.channel;
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
