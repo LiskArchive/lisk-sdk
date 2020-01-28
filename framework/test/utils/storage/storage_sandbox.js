@@ -31,10 +31,11 @@ const {
 	ChainState,
 	ForgerInfo,
 	TempBlock,
-} = require('../../../src/application/node/components/storage/entities');
+} = require('../../../src/application/storage/entities');
 
 const {
-	migrations: controllerMigrations,
+	networkMigrations,
+	nodeMigrations,
 } = require('../../../src/application/storage/migrations');
 
 const {
@@ -42,14 +43,12 @@ const {
 	NetworkInfoEntity: NetworkInfo,
 } = require('../../../src/application/storage/entities');
 
-const ChainModule = require('../../../src/application/node');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
-const ApplicationAlias = 'app';
-modulesMigrations[ChainModule.alias] = ChainModule.migrations;
+modulesMigrations.chain = nodeMigrations();
+modulesMigrations.network = networkMigrations();
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
-modulesMigrations[ApplicationAlias] = controllerMigrations();
 
 const dbNames = [];
 

@@ -21,7 +21,7 @@ const {
 } = require('../../../../../../../../src/components/storage');
 const {
 	Block,
-} = require('../../../../../../../../src/application/node/components/storage/entities');
+} = require('../../../../../../../../src/application/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 const blocksFixtures = require('../../../../../../../fixtures//blocks');
 

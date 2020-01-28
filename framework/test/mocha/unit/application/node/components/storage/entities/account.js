@@ -21,7 +21,7 @@ const {
 } = require('../../../../../../../../src/components/storage');
 const {
 	Account,
-} = require('../../../../../../../../src/application/node/components/storage/entities');
+} = require('../../../../../../../../src/application/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 const seeder = require('../../../../../../../utils/storage/storage_seed');
 const accountFixtures = require('../../../../../../../fixtures').accounts;
