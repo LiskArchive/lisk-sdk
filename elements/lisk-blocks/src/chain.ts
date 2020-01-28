@@ -13,7 +13,7 @@
  */
 import { Status as TransactionStatus } from '@liskhq/lisk-transactions';
 
-import { Storage as StorageAccess } from './data_access';
+import { DataAccess } from './data_access';
 import { StateStore } from './state_store';
 import * as transactionsModule from './transactions';
 import {
@@ -49,13 +49,13 @@ export const saveBlock = async (
 
 export const deleteLastBlock = async (
 	storage: Storage,
-	storageAccess: StorageAccess,
+	dataAccess: DataAccess,
 	lastBlock: BlockInstance,
-): Promise<BlockJSON> => {
+): Promise<BlockInstance> => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
 	}
-	const [storageBlock] = await storageAccess.getExtendedBlocksById([
+	const [storageBlock] = await dataAccess.getBlocksByIDs([
 		lastBlock.previousBlockId as string,
 	]);
 
@@ -70,10 +70,10 @@ export const deleteLastBlock = async (
 
 export const deleteFromBlockId = async (
 	storage: Storage,
-	storageAccess: StorageAccess,
+	dataAccess: DataAccess,
 	blockId: string,
 ) => {
-	const [block] = await storageAccess.getBlockHeadersByIDs([blockId]);
+	const [block] = await dataAccess.getBlockHeadersByIDs([blockId]);
 
 	return storage.entities.Block.delete({
 		height_gt: block.height,

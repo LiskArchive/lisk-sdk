@@ -29,7 +29,7 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
-export const getBytes = (block: BlockJSON): Buffer => {
+export const getBytes = (block: BlockInstance): Buffer => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
@@ -176,7 +176,7 @@ export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 		previousBlockId: genesisBlock.id,
 		keypair: getKeyPair(),
 		transactions: [],
-		reward: '0',
+		reward: BigInt(0),
 		timestamp: 1000,
 	};
 	const blockWithDefaultValues = {
@@ -202,11 +202,11 @@ export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(getBytes(blockWithCalculatedProperties as BlockJSON)),
+			hash(getBytes(blockWithCalculatedProperties as BlockInstance)),
 			keypair.privateKey,
 		),
 	};
-	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockJSON));
+	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockInstance));
 
 	const temp = Buffer.alloc(8);
 	// eslint-disable-next-line no-plusplus

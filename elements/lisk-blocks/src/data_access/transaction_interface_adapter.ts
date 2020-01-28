@@ -14,8 +14,7 @@
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
 
 export interface RegisteredTransactions {
-	// tslint:disable-next-line no-any
-	readonly [key: string]: any;
+	readonly [key: string]: typeof BaseTransaction;
 }
 
 export class TransactionInterfaceAdapter {

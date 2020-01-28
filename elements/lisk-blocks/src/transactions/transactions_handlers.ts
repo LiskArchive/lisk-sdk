@@ -20,7 +20,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
-import { Storage as StorageAccess } from '../data_access';
+import { DataAccess } from '../data_access';
 import { StateStore } from '../state_store';
 import {
 	Contexter,
@@ -212,16 +212,16 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	};
 };
 
-export const checkPersistedTransactions = (
-	storageAccess: StorageAccess,
-) => async (transactions: ReadonlyArray<BaseTransaction>) => {
+export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
+	transactions: ReadonlyArray<BaseTransaction>,
+) => {
 	if (!transactions.length) {
 		return {
 			transactionsResponses: [],
 		};
 	}
 
-	const confirmedTransactions = await storageAccess.getTransactionsByIDs(
+	const confirmedTransactions = await dataAccess.getTransactionsByIDs(
 		transactions.map(transaction => transaction.id),
 	);
 

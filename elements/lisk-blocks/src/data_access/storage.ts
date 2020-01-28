@@ -17,6 +17,7 @@ import { TransactionJSON } from '@liskhq/lisk-transactions';
 import {
 	Account,
 	BlockJSON,
+	BlockRound,
 	Storage as DBStorage,
 	StorageTransaction,
 	TempBlock,
@@ -44,13 +45,19 @@ export class Storage {
 		return blocks;
 	}
 
+	public async getBlockHeaderByHeight(height: number): Promise<BlockJSON> {
+		const [block] = await this._storage.entities.Block.get({ height }, {});
+
+		return block;
+	}
+
 	public async getBlockHeadersByHeightBetween(
 		fromHeight: number,
 		toHeight: number,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ height_gte: fromHeight, height_lte: toHeight },
-			{},
+			{ limit: undefined, sort: 'height:desc' },
 		);
 
 		return blocks;
@@ -67,19 +74,6 @@ export class Storage {
 				sort: 'height:asc',
 				limit: heightList.length,
 			},
-		);
-
-		return blocks;
-	}
-
-	public async getBlockHeadersWithInterval(
-		fromHeight: number,
-		toHeight: number,
-		numberOfActiveDelegates: number,
-	): Promise<BlockJSON[]> {
-		const blocks = await this._storage.entities.Block.get(
-			{ height_gte: fromHeight, height_lte: toHeight },
-			{ limit: numberOfActiveDelegates, sort: 'height:asc' },
 		);
 
 		return blocks;
@@ -107,7 +101,7 @@ export class Storage {
 		return block;
 	}
 
-	public async getBlockCount(): Promise<number> {
+	public async getBlocksCount(): Promise<number> {
 		const count = await this._storage.entities.Block.count({}, {});
 
 		return count;
@@ -117,7 +111,7 @@ export class Storage {
 		Extended blocks with transaction payload
 	*/
 
-	public async getExtendedBlocksByIDs(
+	public async getBlocksByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
@@ -128,7 +122,16 @@ export class Storage {
 		return blocks;
 	}
 
-	public async getExtendedBlocksByHeightBetween(
+	public async getBlockByHeight(height: number): Promise<BlockJSON> {
+		const [block] = await this._storage.entities.Block.get(
+			{ height },
+			{ extended: true },
+		);
+
+		return block;
+	}
+
+	public async getBlocksByHeightBetween(
 		fromHeight: number,
 		toHeight: number,
 	): Promise<BlockJSON[]> {
@@ -140,7 +143,7 @@ export class Storage {
 		return blocks;
 	}
 
-	public async getExtendedLastBlock(): Promise<BlockJSON> {
+	public async getLastBlock(): Promise<BlockJSON> {
 		const [lastBlock] = await this._storage.entities.Block.get(
 			{},
 			{ sort: 'height:desc', limit: 1, extended: true },
@@ -171,14 +174,14 @@ export class Storage {
 	public async getFirstBlockIdWithInterval(
 		height: number,
 		interval: number,
-	): Promise<Array<Partial<BlockJSON>>> {
-		const rows: Array<Partial<
-			BlockJSON
-		>> = await this._storage.entities.Block.getFirstBlockIdOfLastRounds({
-			height,
-			numberOfRounds: 5,
-			numberOfDelegates: interval,
-		});
+	): Promise<BlockRound[]> {
+		const rows: BlockRound[] = await this._storage.entities.Block.getFirstBlockIdOfLastRounds(
+			{
+				height,
+				numberOfRounds: 5,
+				numberOfDelegates: interval,
+			},
+		);
 
 		return rows;
 	}

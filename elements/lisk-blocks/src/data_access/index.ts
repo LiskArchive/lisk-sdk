@@ -13,3 +13,4 @@
  */
 
 export { Storage } from './storage';
+export { DataAccess } from './data_access';

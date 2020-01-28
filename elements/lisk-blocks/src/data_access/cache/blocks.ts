@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as assert from 'assert';
 
 import { BlockHeader } from '../../types';
 
@@ -21,14 +22,53 @@ export class Blocks extends Cache<BlockHeader> {
 		super(size);
 	}
 
-	public getById(id: string): BlockHeader | undefined {
+	public add(blockHeader: BlockHeader): BlockHeader[] {
+		if (this.items.length) {
+			assert(
+				blockHeader.height === this.last.height + 1,
+				`Block header with height ${this.last.height +
+					1} can only be added, insted received ${blockHeader.height} height`,
+			);
+		}
+
+		if (this.first && blockHeader.height === this.last.height + 1) {
+			this.items.push(blockHeader);
+		} else {
+			this.items.unshift(blockHeader);
+		}
+
+		// If the list size is already full remove one item
+		if (this.items.length > this.size) {
+			this.items.shift();
+		}
+
+		return this.items;
+	}
+
+	public getByID(id: string): BlockHeader | undefined {
 		return this.items.find(block => block.id === id);
 	}
 
-	public getByIds(ids: ReadonlyArray<string>): BlockHeader[] {
+	public getByHeight(height: number): BlockHeader | undefined {
+		return this.items.find(block => block.height === height);
+	}
+
+	public getByIDs(ids: ReadonlyArray<string>): BlockHeader[] {
 		const blocks = this.items.filter(block => ids.includes(block.id));
 
 		if (blocks.length === ids.length) {
+			return blocks;
+		}
+
+		return [];
+	}
+
+	public getByHeights(heightList: ReadonlyArray<number>): BlockHeader[] {
+		const blocks = this.items.filter(block =>
+			heightList.includes(block.height),
+		);
+
+		if (blocks.length === heightList.length) {
 			return blocks;
 		}
 
@@ -51,8 +91,18 @@ export class Blocks extends Cache<BlockHeader> {
 		return [];
 	}
 
-	public getLastCommonBlockHeader(ids: ReadonlyArray<string>): BlockHeader {
-		const blocks = this.getByIds(ids);
+	public getLastBlockHeader(): BlockHeader {
+		return this.last;
+	}
+
+	public getLastCommonBlockHeader(
+		ids: ReadonlyArray<string>,
+	): BlockHeader | undefined {
+		const blocks = this.getByIDs(ids);
+
+		if (!blocks.length) {
+			return undefined;
+		}
 
 		return blocks[blocks.length - 1];
 	}

@@ -86,12 +86,14 @@ export const BlockHeader = stampit.compose({
 		delegatePublicKey: '',
 	},
 	init({
-		height,
-		id,
-		delegatePublicKey,
-		delegateMinHeightActive,
-		maxHeightPreviouslyForged,
-		maxHeightPrevoted,
+		height = Math.floor(Math.random() * Math.floor(5000)),
+		id = randomstring.generate({ charset: 'numeric', length: 19 }),
+		delegatePublicKey = randomstring
+			.generate({ charset: '0123456789ABCDE', length: 64 })
+			.toLowerCase(),
+		delegateMinHeightActive = 1,
+		maxHeightPreviouslyForged = 0,
+		maxHeightPrevoted = 0,
 	}: {
 		height: number;
 		id: string;
@@ -100,15 +102,11 @@ export const BlockHeader = stampit.compose({
 		maxHeightPreviouslyForged: number;
 		maxHeightPrevoted: number;
 	}) {
-		this.id = id || randomstring.generate({ charset: 'numeric', length: 19 });
-		this.height = height || Math.floor(Math.random() * Math.floor(5000));
-		this.delegatePublicKey =
-			delegatePublicKey ||
-			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 64 })
-				.toLowerCase();
-		this.delegateMinHeightActive = delegateMinHeightActive || 1;
-		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
-		this.maxHeightPrevoted = maxHeightPrevoted || 0;
+		this.id = id;
+		this.height = height;
+		this.delegatePublicKey = delegatePublicKey;
+		this.delegateMinHeightActive = delegateMinHeightActive;
+		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged;
+		this.maxHeightPrevoted = maxHeightPrevoted;
 	},
 });
