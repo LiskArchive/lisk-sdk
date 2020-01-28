@@ -394,7 +394,7 @@ describe('Vote transaction class', () => {
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).applyAsset(store);
+			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -421,7 +421,7 @@ describe('Vote transaction class', () => {
 				},
 			];
 			storeAccountFindStub.mockReturnValue(nonDelegateAccount[0]);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 		});
 
@@ -437,7 +437,7 @@ describe('Vote transaction class', () => {
 				],
 			};
 			storeAccountGetStub.mockReturnValue(invalidSender);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toContain('is already voted.');
 			expect(errors[0].dataPath).toBe('.asset.votes');
@@ -452,7 +452,7 @@ describe('Vote transaction class', () => {
 				votedDelegatesPublicKeys: generateRandomPublicKeys(101),
 			};
 			storeAccountGetStub.mockReturnValue(invalidSender);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toContain(
 				'Vote cannot exceed 101 but has 102.',
@@ -463,7 +463,7 @@ describe('Vote transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).undoAsset(store);
+			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -475,13 +475,13 @@ describe('Vote transaction class', () => {
 		});
 
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).undoAsset(store);
+			const errors = await (validTestTransaction as any).undoAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when account voted for more than 101 delegates', async () => {
 			storeAccountGetStub.mockReturnValue(invalidVotesAccount);
-			const errors = (validTestTransaction as any).undoAsset(store);
+			const errors = await (validTestTransaction as any).undoAsset(store);
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toEqual('Vote cannot exceed 101 but has 104.');
