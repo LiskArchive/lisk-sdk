@@ -276,6 +276,11 @@ export class DataAccess {
 
 	// tslint:disable-next-line:prefer-function-over-method
 	public serialize(blockInstance: BlockInstance): BlockJSON {
+		if (!blockInstance) {
+			// tslint:disable-next-line:no-object-literal-type-assertion
+			return {} as BlockJSON;
+		}
+
 		const blockJSON = {
 			...blockInstance,
 			totalAmount: blockInstance.totalAmount.toString(),
@@ -291,7 +296,12 @@ export class DataAccess {
 	}
 
 	public deserialize(blockJSON: BlockJSON): BlockInstance {
-		const transactions = (blockJSON.transactions || []).map(transaction =>
+		if (!blockJSON) {
+			// tslint:disable-next-line:no-object-literal-type-assertion
+			return {} as BlockInstance;
+		}
+
+		const transactions = blockJSON?.transactions?.map(transaction =>
 			this._transactionAdapter.fromJSON(transaction),
 		);
 
@@ -306,6 +316,11 @@ export class DataAccess {
 
 	// tslint:disable-next-line:prefer-function-over-method
 	public deserializeBlockHeader(blockHeader: BlockHeaderJSON): BlockHeader {
+		if (!blockHeader) {
+			// tslint:disable-next-line:no-object-literal-type-assertion
+			return {} as BlockHeader;
+		}
+
 		return {
 			...blockHeader,
 			totalAmount: BigInt(blockHeader.totalAmount || 0),

@@ -415,7 +415,7 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				originalClass = transactionClass;
@@ -423,7 +423,7 @@ describe('blocks/header', () => {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
+				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);

@@ -226,7 +226,7 @@ export class Blocks extends EventEmitter {
 		}
 
 		const storageLastBlock = await this.dataAccess.getLastBlock();
-		if (!storageLastBlock) {
+		if (!Object.keys(storageLastBlock).length) {
 			throw new Error('Failed to load last block');
 		}
 
