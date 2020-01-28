@@ -24,22 +24,19 @@ const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('../application/validator');
 const ApplicationState = require('../application/application_state');
-const { createStorageComponent } = require('../components/storage');
 const {
 	migrations: controllerMigrations,
 } = require('../application/storage/migrations');
-const {
-	MigrationEntity,
-	NetworkInfoEntity,
-} = require('../application/storage/entities');
+const { NetworkInfoEntity } = require('../application/storage/entities');
 const { Network } = require('../application/network');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
 
 class Controller {
-	constructor(appLabel, config, initialState, logger) {
+	constructor({ appLabel, config, initialState, logger, storage }) {
 		this.logger = logger;
+		this.storage = storage;
 		this.appLabel = appLabel;
 		this.initialState = initialState;
 		this.logger.info('Initializing controller');
@@ -61,9 +58,6 @@ class Controller {
 		this.channel = null; // Channel for controller
 		this.bus = null;
 
-		const storageConfig = config.components.storage;
-		this.storage = createStorageComponent(storageConfig, logger);
-		this.storage.registerEntity('Migration', MigrationEntity);
 		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 	}
 
@@ -134,7 +128,7 @@ class Controller {
 
 		this.channel = new InMemoryChannel(
 			'app',
-			['ready', 'state:updated', 'networkEvent'],
+			['ready', 'state:updated'],
 			{
 				getComponentConfig: {
 					handler: action => this.config.components[action.params],
@@ -190,14 +184,12 @@ class Controller {
 	}
 
 	async _loadMigrations(migrationsObj) {
-		await this.storage.bootstrap();
-		await this.storage.entities.Migration.defineSchema();
 		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 
 	async _initialiseNetwork(networkConfig) {
 		this.network = new Network({
-			options: networkConfig,
+			networkConfig,
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
@@ -348,7 +340,7 @@ class Controller {
 
 		try {
 			await this.bus.cleanup();
-			await this.network.stop();
+			this.network.stopNetwork();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (err) {

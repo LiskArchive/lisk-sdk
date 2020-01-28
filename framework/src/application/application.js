@@ -33,16 +33,12 @@ const configurator = require('./default_configurator');
 const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
+const { createStorageComponent } = require('../components/storage');
 
-const ChainModule = require('./node');
+const { MigrationEntity } = require('../application/storage/entities');
+
+const Node = require('./node');
 const HttpAPIModule = require('../modules/http_api');
-
-// Private __private used because private keyword is restricted
-const __private = {
-	modules: new WeakMap(),
-	transactions: new WeakMap(),
-	migrations: new WeakMap(),
-};
 
 const registerProcessHooks = app => {
 	process.title = `${app.config.app.label}(${app.config.app.version})`;
@@ -118,19 +114,20 @@ class Application {
 		this.constants = { ...constants, ...appConfig.app.genesisConfig };
 		this.genesisBlock = genesisBlock;
 		this.config = appConfig;
-		this.controller = null;
+		this.channel = null;
 
 		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 		global.constants = this.constants;
+		this.logger = this._initLogger();
+		this.storage = this._initStorage();
 
-		this.logger = createLoggerComponent({
-			...this.config.components.logger,
-			module: 'lisk-controller',
-		});
-
-		__private.modules.set(this, {});
-		__private.transactions.set(this, {});
-		__private.migrations.set(this, {});
+		// Private members
+		this._modules = {};
+		this._transactions = {};
+		this._migrations = {};
+		this._node = null;
+		this._network = null;
+		this._controller = null;
 
 		this.registerTransaction(TransferTransaction);
 		this.registerTransaction(SecondSignatureTransaction);
@@ -138,7 +135,7 @@ class Application {
 		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(MultisignatureTransaction);
 
-		this.registerModule(ChainModule, {
+		this.registerModule(Node, {
 			registeredTransactions: this.getTransactions(),
 		});
 		this.registerModule(HttpAPIModule);
@@ -160,13 +157,11 @@ class Application {
 			`A module with alias "${moduleAlias}" already registered.`,
 		);
 
-		const modules = this.getModules();
-		modules[moduleAlias] = moduleKlass;
 		this.config.modules[moduleAlias] = Object.assign(
 			this.config.modules[moduleAlias] || {},
 			options,
 		);
-		__private.modules.set(this, modules);
+		this._modules[moduleAlias] = moduleKlass;
 
 		// Register migrations defined by the module
 		this.registerMigrations(moduleKlass.alias, moduleKlass.migrations);
@@ -206,10 +201,8 @@ class Application {
 				get: () => matcher,
 			});
 		}
-		const transactions = this.getTransactions();
 
-		transactions[Transaction.TYPE] = Object.freeze(Transaction);
-		__private.transactions.set(this, transactions);
+		this._transactions[Transaction.TYPE] = Object.freeze(Transaction);
 	}
 
 	registerMigrations(namespace, migrations) {
@@ -220,29 +213,27 @@ class Application {
 			`Migrations for "${namespace}" was already registered.`,
 		);
 
-		const currentMigrations = this.getMigrations();
-		currentMigrations[namespace] = Object.freeze(migrations);
-		__private.migrations.set(this, currentMigrations);
+		this._migrations[namespace] = Object.freeze(migrations);
 	}
 
 	getTransactions() {
-		return __private.transactions.get(this);
+		return this._transactions;
 	}
 
 	getTransaction(transactionType) {
-		return __private.transactions.get(this)[transactionType];
+		return this._transactions[transactionType];
 	}
 
 	getModule(alias) {
-		return __private.modules.get(this)[alias];
+		return this._modules.get[alias];
 	}
 
 	getModules() {
-		return __private.modules.get(this);
+		return this._modules;
 	}
 
 	getMigrations() {
-		return __private.migrations.get(this);
+		return this._migrations;
 	}
 
 	async run() {
@@ -265,17 +256,12 @@ class Application {
 
 		registerProcessHooks(this);
 
-		this.controller = new Controller(
-			this.config.app.label,
-			{
-				components: this.config.components,
-				ipc: this.config.app.ipc,
-				tempPath: this.config.app.tempPath,
-			},
-			this.initialState,
-			this.logger,
-		);
-		return this.controller.load(
+		this._controller = this._initController();
+
+		await this.storage.bootstrap();
+		await this.storage.entities.Migration.defineSchema();
+
+		return this._controller.load(
 			this.getModules(),
 			this.config.modules,
 			this.getMigrations(),
@@ -284,13 +270,16 @@ class Application {
 	}
 
 	async shutdown(errorCode = 0, message = '') {
-		if (this.controller) {
-			await this.controller.cleanup(errorCode, message);
+		if (this._controller) {
+			await this._controller.cleanup(errorCode, message);
 		}
 		this.logger.info({ errorCode, message }, 'Shutting down application');
 		process.exit(errorCode);
 	}
 
+	// --------------------------------------
+	// Private
+	// --------------------------------------
 	_compileAndValidateConfigurations() {
 		const modules = this.getModules();
 		this.config.app.networkId = getNetworkIdentifier(
@@ -331,6 +320,50 @@ class Application {
 		};
 
 		this.logger.trace(this.config, 'Compiled configurations');
+	}
+
+	_initLogger() {
+		return createLoggerComponent({
+			...this.config.components.logger,
+			module: 'lisk:app',
+		});
+	}
+
+	_initStorage() {
+		const storageConfig = this.config.components.storage;
+		const loggerConfig = this.config.components.logger;
+		const dbLogger =
+			storageConfig.logFileName &&
+			storageConfig.logFileName === loggerConfig.logFileName
+				? this.logger
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+						module: 'lisk:app:database',
+				  });
+
+		const storage = createStorageComponent(
+			this.config.components.storage,
+			dbLogger,
+		);
+
+		storage.registerEntity('Migration', MigrationEntity);
+
+		return storage;
+	}
+
+	_initController() {
+		return new Controller({
+			appLabel: this.config.app.label,
+			config: {
+				components: this.config.components,
+				ipc: this.config.app.ipc,
+				tempPath: this.config.app.tempPath,
+			},
+			initialState: this.initialState,
+			logger: this.logger,
+			storage: this.storage,
+		});
 	}
 }
 
