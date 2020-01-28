@@ -88,7 +88,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 					{ err, reason: err.reason },
 					`Restarting synchronization mechanism with reason: ${err.reason}`,
 				);
-				return this.channel.publish('chain:processor:sync', {
+				return this.channel.publish('app:processor:sync', {
 					block: receivedBlock,
 				});
 			}

@@ -352,7 +352,7 @@ module.exports = class Node {
 		});
 
 		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
-			this.channel.publish('chain:rounds:change', { number: data.newRound });
+			this.channel.publish('app:rounds:change', { number: data.newRound });
 		});
 
 		this.processor = new Processor({
@@ -503,14 +503,14 @@ module.exports = class Node {
 
 	_subscribeToEvents() {
 		this.channel.subscribe(
-			'chain:processor:broadcast',
+			'app:processor:broadcast',
 			async ({ data: { block } }) => {
 				await this.transport.handleBroadcastBlock(block);
 			},
 		);
 
 		this.channel.subscribe(
-			'chain:processor:deleteBlock',
+			'app:processor:deleteBlock',
 			({ data: { block } }) => {
 				if (block.transactions.length) {
 					const transactions = block.transactions
@@ -518,7 +518,7 @@ module.exports = class Node {
 						.map(tx => this.blocks.deserializeTransaction(tx));
 					this.transactionPool.onDeletedTransactions(transactions);
 					this.channel.publish(
-						'chain:transactions:confirmed:change',
+						'app:transactions:confirmed:change',
 						block.transactions,
 					);
 				}
@@ -526,47 +526,42 @@ module.exports = class Node {
 					{ id: block.id, height: block.height },
 					'Deleted a block from the chain',
 				);
-				this.channel.publish('chain:blocks:change', block);
+				this.channel.publish('app:blocks:change', block);
 			},
 		);
 
-		this.channel.subscribe(
-			'chain:processor:newBlock',
-			({ data: { block } }) => {
-				if (block.transactions.length) {
-					this.transactionPool.onConfirmedTransactions(
-						block.transactions.map(tx =>
-							this.blocks.deserializeTransaction(tx),
-						),
-					);
-					this.channel.publish(
-						'chain:transactions:confirmed:change',
-						block.transactions,
-					);
-				}
-				this.logger.info(
-					{
-						id: block.id,
-						height: block.height,
-						numberOfTransactions: block.transactions.length,
-					},
-					'New block added to the chain',
+		this.channel.subscribe('app:processor:newBlock', ({ data: { block } }) => {
+			if (block.transactions.length) {
+				this.transactionPool.onConfirmedTransactions(
+					block.transactions.map(tx => this.blocks.deserializeTransaction(tx)),
 				);
-				this.channel.publish('chain:blocks:change', block);
+				this.channel.publish(
+					'app:transactions:confirmed:change',
+					block.transactions,
+				);
+			}
+			this.logger.info(
+				{
+					id: block.id,
+					height: block.height,
+					numberOfTransactions: block.transactions.length,
+				},
+				'New block added to the chain',
+			);
+			this.channel.publish('app:blocks:change', block);
 
-				if (!this.synchronizer.isActive) {
-					this.channel.invoke('app:updateApplicationState', {
-						height: block.height,
-						lastBlockId: block.id,
-						maxHeightPrevoted: block.maxHeightPrevoted,
-						blockVersion: block.version,
-					});
-				}
-			},
-		);
+			if (!this.synchronizer.isActive) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					lastBlockId: block.id,
+					maxHeightPrevoted: block.maxHeightPrevoted,
+					blockVersion: block.version,
+				});
+			}
+		});
 
 		this.channel.subscribe(
-			'chain:processor:sync',
+			'app:processor:sync',
 			({ data: { block, peerId } }) => {
 				this.synchronizer.run(block, peerId).catch(err => {
 					this.logger.error({ err }, 'Error occurred during synchronization.');

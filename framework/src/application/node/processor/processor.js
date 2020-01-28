@@ -132,7 +132,7 @@ class Processor {
 					'Detected different chain to sync',
 				);
 				const blockJSON = await this.serialize(block);
-				this.channel.publish('chain:processor:sync', {
+				this.channel.publish('app:processor:sync', {
 					block: blockJSON,
 					peerId,
 				});
@@ -277,63 +277,66 @@ class Processor {
 		processor,
 		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
 	) {
-		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
-			const stateStore = new StateStore(this.storage, { tx });
-			// initialize chain state
-			await stateStore.chainState.cache();
+		await this.storage.entities.Block.begin(
+			'App:Node:processBlock',
+			async tx => {
+				const stateStore = new StateStore(this.storage, { tx });
+				// initialize chain state
+				await stateStore.chainState.cache();
 
-			await processor.verify.run({
-				block,
-				lastBlock,
-				skipExistingCheck: skipSave,
-				stateStore,
-				tx,
-			});
-
-			const blockJSON = await this.serialize(block);
-			if (!skipBroadcast) {
-				this.channel.publish('chain:processor:broadcast', {
-					block: blockJSON,
+				await processor.verify.run({
+					block,
+					lastBlock,
+					skipExistingCheck: skipSave,
+					stateStore,
+					tx,
 				});
-			}
 
-			if (!skipSave) {
-				// TODO: After moving everything to state store, save should get the state store and finalize the state store
-				await this.blocksModule.save(blockJSON, tx);
-			}
+				const blockJSON = await this.serialize(block);
+				if (!skipBroadcast) {
+					this.channel.publish('app:processor:broadcast', {
+						block: blockJSON,
+					});
+				}
 
-			// Apply should always be executed after save as it performs database calculations
-			// i.e. Dpos.apply expects to have this processing block in the database
-			await processor.apply.run({
-				block,
-				lastBlock,
-				skipExistingCheck: skipSave,
-				stateStore,
-				tx,
-			});
+				if (!skipSave) {
+					// TODO: After moving everything to state store, save should get the state store and finalize the state store
+					await this.blocksModule.save(blockJSON, tx);
+				}
 
-			if (removeFromTempTable) {
-				await this.blocksModule.removeBlockFromTempTable(block.id, tx);
-				this.logger.debug(
-					{ id: block.id, height: block.height },
-					'Removed block from temp_blocks table',
-				);
-			}
-
-			// Should only publish 'chain:processor:newBlock' if saved AND applied successfully
-			if (!skipSave) {
-				this.channel.publish('chain:processor:newBlock', {
-					block: blockJSON,
+				// Apply should always be executed after save as it performs database calculations
+				// i.e. Dpos.apply expects to have this processing block in the database
+				await processor.apply.run({
+					block,
+					lastBlock,
+					skipExistingCheck: skipSave,
+					stateStore,
+					tx,
 				});
-			}
 
-			return block;
-		});
+				if (removeFromTempTable) {
+					await this.blocksModule.removeBlockFromTempTable(block.id, tx);
+					this.logger.debug(
+						{ id: block.id, height: block.height },
+						'Removed block from temp_blocks table',
+					);
+				}
+
+				// Should only publish 'app:processor:newBlock' if saved AND applied successfully
+				if (!skipSave) {
+					this.channel.publish('app:processor:newBlock', {
+						block: blockJSON,
+					});
+				}
+
+				return block;
+			},
+		);
 	}
 
 	async _processGenesis(block, processor, { skipSave } = { skipSave: false }) {
 		return this.storage.entities.Block.begin(
-			'Chain:processGenesisBlock',
+			'App:Node:processGenesisBlock',
 			async tx => {
 				const stateStore = new StateStore(this.storage, { tx });
 				// Check if genesis block ID already exists in the database
@@ -368,7 +371,7 @@ class Processor {
 	}
 
 	async _deleteBlock(block, processor, saveTempBlock = false) {
-		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
+		await this.storage.entities.Block.begin('app:revertBlock', async tx => {
 			const stateStore = new StateStore(this.storage, { tx });
 			await processor.undo.run({
 				block,
@@ -377,7 +380,7 @@ class Processor {
 			});
 			const blockJSON = await this.serialize(block);
 			await this.blocksModule.remove(block, blockJSON, tx, { saveTempBlock });
-			this.channel.publish('chain:processor:deleteBlock', {
+			this.channel.publish('app:processor:deleteBlock', {
 				block: blockJSON,
 			});
 		});
