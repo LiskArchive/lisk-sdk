@@ -20,9 +20,9 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { newBlock } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
 import * as randomUtils from '../utils/random';
-import { Slots as SlotsInterface, BlockJSON } from '../../src/types';
+import { Slots } from '../../src/slots';
+import { BlockJSON } from '../../src/types';
 
-const { Slots } = require('@liskhq/lisk-dpos');
 jest.mock('events');
 
 const networkIdentifier = getNetworkIdentifier(
@@ -54,7 +54,7 @@ describe('blocks', () => {
 	};
 	let exceptions = {};
 	let blocksInstance: Blocks;
-	let slots: SlotsInterface;
+	let slots: Slots;
 
 	beforeEach(() => {
 		// Arrange
@@ -94,7 +94,6 @@ describe('blocks', () => {
 		slots = new Slots({
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
-			blocksPerRound: constants.activeDelegates,
 		});
 
 		exceptions = {

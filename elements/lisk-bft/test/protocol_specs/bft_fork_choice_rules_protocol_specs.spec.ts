@@ -14,8 +14,8 @@
 
 import { BFT } from '../../src/bft';
 import { Slots as SlotType } from '../../src/types';
-
-const { Slots } = require('@liskhq/lisk-dpos');
+import { Rounds } from '@liskhq/lisk-dpos';
+import { Slots } from '@liskhq/lisk-blocks';
 
 const forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
@@ -29,6 +29,7 @@ describe('bft', () => {
 	describe('forkChoice', () => {
 		let storageMock;
 
+		let rounds: Rounds;
 		let slots: SlotType;
 		let activeDelegates;
 		let startingHeight;
@@ -47,17 +48,18 @@ describe('bft', () => {
 				},
 			};
 
-			slots = new Slots({
-				epochTime: constants.EPOCH_TIME,
-				interval: constants.BLOCK_TIME,
-				blocksPerRound: constants.ACTIVE_DELEGATES,
-			});
-
 			activeDelegates = 101;
 			startingHeight = 0;
 
+			slots = new Slots({
+				epochTime: constants.EPOCH_TIME,
+				interval: constants.BLOCK_TIME,
+			});
+			rounds = new Rounds({ blocksPerRound: activeDelegates });
+
 			bftParams = {
 				storage: storageMock,
+				rounds,
 				slots,
 				activeDelegates,
 				startingHeight,
@@ -70,17 +72,24 @@ describe('bft', () => {
 			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
 					it('should have accurate fork status', async () => {
-						(slots as any).epochTime = testCase.initialState.epochTime;
-						(slots as any).interval = testCase.initialState.blockInterval;
+						const epochTime = testCase.config
+							? testCase.config.epochTime
+							: forkChoiceSpecs.config.epochTime;
+						const interval = testCase.config
+							? testCase.config.blockInterval
+							: forkChoiceSpecs.config.blockInterval;
+						const lastBlock = testCase.config
+							? testCase.config.lastBlock
+							: forkChoiceSpecs.config.lastBlock;
+
+						(slots as any).epochTime = epochTime;
+						(slots as any).interval = interval;
 
 						Date.now = jest.fn(
-							() =>
-								testCase.initialState.epochTime +
-								testCase.input.receivedBlock.receivedAt * 1000,
+							() => epochTime + testCase.input.receivedBlock.receivedAt * 1000,
 						);
 
 						const {
-							initialState: { lastBlock },
 							input: { receivedBlock },
 							output: { forkStatus: expectedForkStatus },
 						} = testCase;

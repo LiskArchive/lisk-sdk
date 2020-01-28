@@ -41,7 +41,7 @@ describe('print utils', () => {
 	type Printer = (result: ReadonlyArray<StringMap> | StringMap) => void;
 
 	beforeEach(() => {
-		sandbox.stub(tablifyUtil, 'tablify').returns(tablifyResult);
+		sandbox.stub(tablifyUtil, 'tablify').returns(tablifyResult as any);
 		sandbox.stub(JSON, 'stringify').returns(stringifyResult);
 		return Promise.resolve();
 	});

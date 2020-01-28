@@ -13,7 +13,8 @@
  */
 
 import { when } from 'jest-when';
-import { Dpos, Slots } from '../../src';
+import { Dpos } from '../../src';
+import { Slots } from '../../../lisk-blocks/src/slots';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	ACTIVE_DELEGATES,
@@ -37,7 +38,6 @@ const roundsDelegatesGetResolves = (lists: any, { stubs, limit }: any) => {
 
 describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 	const stubs = {} as any;
-	let slots: Slots;
 	let dpos: Dpos;
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
 
@@ -59,15 +59,14 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 
 		stubs.tx = jest.fn();
 
-		slots = new Slots({
-			epochTime: EPOCH_TIME,
-			interval: BLOCK_TIME,
-			blocksPerRound: ACTIVE_DELEGATES,
-		});
+		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const blocks = {
+			slots,
+		};
 
 		dpos = new Dpos({
 			...stubs,
-			slots,
+			blocks,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset,
 		});
@@ -149,7 +148,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 
 			const publicKey = 'x';
 			const activeRounds = [15, 14, 13, 12, 11, 10];
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(12);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				12,
+			);
 
 			const lists = generateDelegateLists({
 				publicKey,
@@ -182,7 +183,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 
 			const publicKey = 'x';
 			const activeRounds = [15, 14, 13, 12, 10];
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(12);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				12,
+			);
 
 			const lists = generateDelegateLists({
 				publicKey,
@@ -215,7 +218,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 
 			const publicKey = 'x';
 			const activeRounds = [15, 14, 13, 11, 10];
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(13);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				13,
+			);
 
 			const lists = generateDelegateLists({
 				publicKey,
@@ -248,7 +253,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 
 			const publicKey = 'x';
 			const activeRounds = [15, 14, 12, 11, 10];
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(14);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				14,
+			);
 
 			const lists = generateDelegateLists({
 				publicKey,
@@ -281,7 +288,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 
 			const publicKey = 'x';
 			const activeRounds = [15, 13, 12, 11, 10];
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(15);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				15,
+			);
 
 			const lists = generateDelegateLists({
 				publicKey,
@@ -315,8 +324,8 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const publicKey = 'x';
 			const activeRounds = [15, 14, 13, 12, 11, 10];
 			const expectedActiveMinHeights = [
-				slots.calcRoundStartHeight(12),
-				slots.calcRoundStartHeight(11),
+				(dpos as any).rounds.calcRoundStartHeight(12),
+				(dpos as any).rounds.calcRoundStartHeight(11),
 			];
 
 			const lists = generateDelegateLists({
@@ -349,9 +358,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 			const publicKey = 'x';
 			const activeRounds = [15, 14, 13, 12, 11, 10, 9, 8];
 			const expectedActiveMinHeights = [
-				slots.calcRoundStartHeight(12),
-				slots.calcRoundStartHeight(11),
-				slots.calcRoundStartHeight(10),
+				dpos.rounds.calcRoundStartHeight(12),
+				dpos.rounds.calcRoundStartHeight(11),
+				dpos.rounds.calcRoundStartHeight(10),
 			];
 
 			const lists = generateDelegateLists({
@@ -387,7 +396,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 					activeRounds: [15, 14, 12, 11],
 					delegateListRoundOffset,
 				});
-				const expectedActiveMinHeightsForX = [slots.calcRoundStartHeight(14)];
+				const expectedActiveMinHeightsForX = [
+					(dpos as any).rounds.calcRoundStartHeight(14),
+				];
 				const lists = generateDelegateLists(
 					{
 						publicKey: 'y',
@@ -397,8 +408,8 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 					baseList,
 				);
 				const expectedActiveMinHeightsForY = [
-					slots.calcRoundStartHeight(12),
-					slots.calcRoundStartHeight(11),
+					(dpos as any).rounds.calcRoundStartHeight(12),
+					(dpos as any).rounds.calcRoundStartHeight(11),
 				];
 
 				roundsDelegatesGetResolves(lists, { stubs, limit });
@@ -428,7 +439,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(1);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				1,
+			);
 
 			const lists = [{ round: 1, delegatePublicKeys: ['x', 'b', 'c'] }];
 			roundsDelegatesGetResolves(lists, { stubs, limit });
@@ -453,7 +466,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(1);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				1,
+			);
 
 			const lists = [
 				{ round: 2, delegatePublicKeys: ['a', 'b', 'c'] },
@@ -482,7 +497,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(1);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				1,
+			);
 
 			const lists = [
 				{ round: 3, delegatePublicKeys: ['d', 'e', 'f'] },
@@ -512,7 +529,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(1);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				1,
+			);
 
 			const lists = [
 				{ round: 4, delegatePublicKeys: ['a', 'e', 'f'] },
@@ -543,7 +562,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(2);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				2,
+			);
 
 			const lists = [
 				{ round: 5, delegatePublicKeys: ['a', 'e', 'f'] },
@@ -575,7 +596,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(3);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				3,
+			);
 
 			const lists = [
 				{ round: 6, delegatePublicKeys: ['a', 'e', 'f'] },
@@ -608,7 +631,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(4);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				4,
+			);
 
 			const lists = [
 				{ round: 4, delegatePublicKeys: ['a', 'e', 'f'] },
@@ -639,7 +664,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(4);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				4,
+			);
 
 			const lists = [
 				{ round: 5, delegatePublicKeys: ['a', 'e', 'f'] },
@@ -671,7 +698,9 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 				delegateListRoundOffset;
 
 			const publicKey = 'x';
-			const expectedActiveMinHeight = slots.calcRoundStartHeight(4);
+			const expectedActiveMinHeight = (dpos as any).rounds.calcRoundStartHeight(
+				4,
+			);
 
 			const lists = [
 				{ round: 6, delegatePublicKeys: ['a', 'e', 'f'] },

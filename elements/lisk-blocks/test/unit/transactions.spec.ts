@@ -25,9 +25,8 @@ import { Blocks } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
-import { Logger, Slots as SlotsInterface } from '../../src/types';
-
-const { Slots } = require('@liskhq/lisk-dpos');
+import { Slots } from '../../src/slots';
+import { Logger } from '../../src/types';
 
 jest.mock('events');
 
@@ -61,7 +60,7 @@ describe('blocks/transactions', () => {
 	let blocksInstance: Blocks;
 	let storageStub: any;
 	let loggerStub: Logger;
-	let slots: SlotsInterface;
+	let slots: Slots;
 
 	beforeEach(async () => {
 		storageStub = {
@@ -97,7 +96,6 @@ describe('blocks/transactions', () => {
 		slots = new Slots({
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
-			blocksPerRound: constants.activeDelegates,
 		});
 		exceptions = {
 			transactions: [],

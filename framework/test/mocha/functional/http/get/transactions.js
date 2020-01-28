@@ -21,7 +21,7 @@ const {
 	registerSecondPassphrase,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Slots } = require('@liskhq/lisk-blocks');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
@@ -52,7 +52,6 @@ describe('GET /api/transactions', () => {
 	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
-		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 	});
 	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');

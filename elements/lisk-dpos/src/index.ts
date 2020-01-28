@@ -14,6 +14,6 @@
 
 import * as constants from './constants';
 
-export { Slots } from './slots';
 export { Dpos } from './dpos';
+export { Rounds } from './rounds';
 export { constants };

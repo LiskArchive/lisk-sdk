@@ -51,9 +51,23 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
-import { RequestFailError, SendFailError } from '../../src';
+import { errors } from '../../src';
+import { PeerBookConfig, PeerBook } from '../../src/peer_book/peer_book';
+
+const { RequestFailError, SendFailError } = errors;
 
 describe('peerPool', () => {
+	const peerBookConfig: PeerBookConfig = {
+		sanitizedPeerLists: {
+			blacklistedIPs: [],
+			seedPeers: [],
+			fixedPeers: [],
+			whitelisted: [],
+			previousPeers: [],
+		},
+		secret: DEFAULT_RANDOM_SECRET,
+	};
+
 	const peerPoolConfig = {
 		connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 		ackTimeout: DEFAULT_ACK_TIMEOUT,
@@ -76,18 +90,7 @@ describe('peerPool', () => {
 		maxPeerInfoSize: 10000,
 		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
-		peerLists: {
-			blacklistedIPs: [],
-			fixedPeers: [],
-			previousPeers: [],
-			seedPeers: [
-				{
-					ipAddress: '127.0.0.1',
-					wsPort: 5000,
-				},
-			] as Array<P2PPeerInfo>,
-			whitelisted: [],
-		},
+		peerBook: new PeerBook(peerBookConfig),
 	};
 	let peerPool: PeerPool;
 	let peerInfo: P2PPeerInfo;
@@ -1076,8 +1079,6 @@ describe('peerPool', () => {
 		];
 
 		beforeEach(async () => {
-			(peerPool as any)._peerLists.whitelisted = whitelistedPeers;
-			(peerPool as any)._peerLists.fixedPeers = fixedPeers;
 			(peerPool as any)._peerPoolConfig = {
 				netgroupProtectionRatio: 0,
 				latencyProtectionRatio: 0,

@@ -50,8 +50,6 @@ export interface Slots {
 		receivedAt: number | undefined,
 	) => boolean;
 	readonly getEpochTime: (time?: number) => number;
-	readonly calcRoundStartHeight: (round: number) => number;
-	readonly calcRound: (height: number) => number;
 }
 
 export interface HeightOfDelegates {
@@ -119,4 +117,10 @@ export class BFTInvalidAttributeError extends BFTError {
 	public constructor(message: string) {
 		super(`Invalid BFT attribute: ${message}`);
 	}
+}
+
+export interface Rounds {
+	readonly calcRound: (height: number) => number;
+	readonly calcRoundStartHeight: (round: number) => number;
+	readonly calcRoundEndHeight: (round: number) => number;
 }

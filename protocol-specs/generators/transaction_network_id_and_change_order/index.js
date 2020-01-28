@@ -113,6 +113,7 @@ const generateValidTransferTransaction = () => {
 	};
 
 	return {
+		description: 'A valid transfer transaction',
 		input: {
 			account: accounts[0],
 			networkIdentifier,
@@ -177,6 +178,7 @@ const generateValidTransferTransactionWithSecondSignature = () => {
 	};
 
 	return {
+		description: 'A valid transfer transaction with second signature',
 		input: {
 			account: accounts[0],
 			secondPassphrase: accounts[1].passphrase,
@@ -236,6 +238,7 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 	};
 
 	return {
+		description: 'A valid transfer transaction with multi signature',
 		input: {
 			account: accounts[0],
 			coSigners: [accounts[2], accounts[3]],
@@ -313,6 +316,8 @@ const generateValidTransferTransactionWithSecondAndMultiSignature = () => {
 	};
 
 	return {
+		description:
+			'A valid transfer transaction with second signature and multi signature',
 		input: {
 			account: accounts[0],
 			secondPassphrase: accounts[1].passphrase,
@@ -357,6 +362,7 @@ const generateValidSecondSignatureTransaction = () => {
 	};
 
 	return {
+		description: 'A valid second signature transaction',
 		input: {
 			account: accounts[0],
 			networkIdentifier,
@@ -399,6 +405,7 @@ const generateValidDelegateTransaction = () => {
 	};
 
 	return {
+		description: 'A valid delegate transaction',
 		input: {
 			account: accounts[0],
 			networkIdentifier,
@@ -445,6 +452,7 @@ const generateValidVoteTransaction = () => {
 	};
 
 	return {
+		description: 'A valid vote transaction',
 		input: {
 			account: accounts[0],
 			networkIdentifier,
@@ -511,6 +519,7 @@ const generateValidMultisignatureTransaction = () => {
 	};
 
 	return {
+		description: 'A valid multi signature transaction',
 		input: {
 			account: accounts[0],
 			networkIdentifier,
@@ -524,74 +533,74 @@ const generateValidMultisignatureTransaction = () => {
 const validTransferSuite = () => ({
 	title: 'Valid transfer transaction',
 	summary: 'A valid transfer transaction',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'transfer_transaction_validate',
-	testCases: generateValidTransferTransaction(),
+	testCases: [generateValidTransferTransaction()],
 });
 
 const validTransferWithSecondSignatureSuite = () => ({
 	title: 'Valid transfer transaction with second signature',
 	summary: 'A valid transfer transaction with second signature',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'transfer_transaction_with_second_signature_validate',
-	testCases: generateValidTransferTransactionWithSecondSignature(),
+	testCases: [generateValidTransferTransactionWithSecondSignature()],
 });
 
 const validTransferWithMultisignature = () => ({
 	title: 'Valid transfer transaction with multi signature',
 	summary: 'A valid transfer transaction with multi signature',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'transfer_transaction_with_multi_signature_validate',
-	testCases: generateValidTransferTransactionWithMultiSignature(),
+	testCases: [generateValidTransferTransactionWithMultiSignature()],
 });
 
 const validTransferWithSecondSignatureSuiteAndMultisignature = () => ({
 	title: 'Valid transfer transaction with second signature and multi signature',
 	summary:
 		'A valid transfer transaction with second signature and multi signature',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'transfer_transaction_with_second_and_multi_signature_validate',
-	testCases: generateValidTransferTransactionWithSecondAndMultiSignature(),
+	testCases: [generateValidTransferTransactionWithSecondAndMultiSignature()],
 });
 
 const validSecondSignatureSuite = () => ({
 	title: 'Valid second signature transaction',
 	summary: 'A valid second signature transaction',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'second_signature_transaction_validate',
-	testCases: generateValidSecondSignatureTransaction(),
+	testCases: [generateValidSecondSignatureTransaction()],
 });
 
 const validDelegateSuite = () => ({
 	title: 'Valid delegate transaction',
 	summary: 'A valid delegate transaction',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'delegate_transaction_validate',
-	testCases: generateValidDelegateTransaction(),
+	testCases: [generateValidDelegateTransaction()],
 });
 
 const validVoteSuite = () => ({
 	title: 'Valid vote transaction',
-	summary: 'A valid vote transaction',
-	config: 'devnet',
+	summary: 'Test suit for valid vote transaction',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'vote_transaction_validate',
-	testCases: generateValidVoteTransaction(),
+	testCases: [generateValidVoteTransaction()],
 });
 
 const validMultisignatureSuite = () => ({
 	title: 'Valid multi signature transaction',
 	summary: 'A valid multi signature transaction',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'multi_signature_transaction_validate',
-	testCases: generateValidMultisignatureTransaction(),
+	testCases: [generateValidMultisignatureTransaction()],
 });
 
 module.exports = BaseGenerator.runGenerator(

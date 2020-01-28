@@ -13,7 +13,7 @@
  *
  */
 import { BaseList } from '../../../src/peer_book/base_list';
-import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
+import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../../../src/p2p_types';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 import {
@@ -22,7 +22,7 @@ import {
 	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
 import { getBucketId } from '../../../src/utils';
-import { ExistingPeerError, P2PPeerInfo } from '../../../src';
+import { errors } from '../../../src';
 import 'jest-extended';
 
 describe('Peers base list', () => {
@@ -162,7 +162,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			// 'Peer already exists'
 			expect(() => peerListObj.addPeer(samplePeers[0])).toThrow(
-				ExistingPeerError,
+				errors.ExistingPeerError,
 			);
 		});
 

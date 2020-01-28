@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Slots } = require('@liskhq/lisk-blocks');
 
 const accountFixtures = require('../../../../fixtures/accounts');
 const waitFor = require('../../../../utils/legacy/wait_for');
@@ -28,7 +28,6 @@ describe('GET /blocks', () => {
 	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
-		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 	});
 	const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 

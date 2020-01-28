@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P, EVENT_REQUEST_RECEIVED } from '../../../src/index';
+import { P2P, events } from '../../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
@@ -27,7 +27,7 @@ describe('P2P.request', () => {
 
 		for (let p2p of p2pNodeList) {
 			// Collect port numbers to check which peer handled which request.
-			p2p.on(EVENT_REQUEST_RECEIVED, request => {
+			p2p.on(events.EVENT_REQUEST_RECEIVED, request => {
 				if (!request.wasResponseSent) {
 					request.end({
 						nodePort: p2p.nodeInfo.wsPort,

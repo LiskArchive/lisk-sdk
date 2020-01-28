@@ -34,6 +34,7 @@ import {
 	undoConfirmedStep,
 } from './chain';
 import { DataAccess } from './data_access';
+import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
 	applyTransactions,
@@ -56,7 +57,6 @@ import {
 	Logger,
 	MatcherTransaction,
 	SignatureObject,
-	Slots,
 	Storage,
 	StorageTransaction,
 	TempBlock,
@@ -88,6 +88,8 @@ interface BlocksConfig {
 		readonly [key: number]: typeof BaseTransaction;
 	};
 	// Constants
+	readonly epochTime: string;
+	readonly blockTime: number;
 	readonly networkIdentifier: string;
 	readonly blockReceiptTimeout: number; // Set default
 	readonly loadPerIteration: number;
@@ -112,6 +114,8 @@ export class Blocks extends EventEmitter {
 	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockInstance;
 	private readonly constants: {
+		readonly epochTime: string;
+		readonly blockTime: number;
 		readonly blockReceiptTimeout: number;
 		readonly maxPayloadLength: number;
 		readonly maxTransactionsPerBlock: number;
@@ -138,11 +142,12 @@ export class Blocks extends EventEmitter {
 		storage,
 		// Unique requirements
 		genesisBlock,
-		slots,
 		exceptions,
 		// Modules
 		registeredTransactions,
 		// Constants
+		epochTime,
+		blockTime,
 		networkIdentifier,
 		blockReceiptTimeout, // Set default
 		loadPerIteration,
@@ -178,7 +183,7 @@ export class Blocks extends EventEmitter {
 		this._lastBlock = genesisInstance;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;
-		this.slots = slots;
+		this.slots = new Slots({ epochTime, interval: blockTime });
 		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
@@ -192,6 +197,8 @@ export class Blocks extends EventEmitter {
 			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
+			epochTime,
+			blockTime,
 			blockReceiptTimeout,
 			maxPayloadLength,
 			maxTransactionsPerBlock,

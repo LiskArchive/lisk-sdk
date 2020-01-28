@@ -17,9 +17,10 @@ import { EventEmitter } from 'events';
 import { EVENT_ROUND_CHANGED } from './constants';
 import { DelegatesInfo } from './delegates_info';
 import { DelegatesList } from './delegates_list';
-import { Slots } from './slots';
+import { Rounds } from './rounds';
 import {
 	Block,
+	Blocks,
 	DPoSProcessingOptions,
 	Logger,
 	RoundDelegates,
@@ -34,10 +35,11 @@ interface ActiveDelegates {
 
 interface DposConstructor {
 	readonly storage: Storage;
-	readonly slots: Slots;
+	readonly rounds: Rounds;
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
 	readonly logger: Logger;
+	readonly blocks: Blocks;
 	readonly exceptions?: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 		readonly rounds?: { readonly [key: string]: RoundException };
@@ -49,18 +51,19 @@ export class Dpos {
 	private readonly delegateListRoundOffset: number;
 	private finalizedBlockRound: number;
 	private readonly delegateActiveRoundLimit: number;
-	private readonly slots: Slots;
 	private readonly storage: Storage;
 	private readonly delegatesList: DelegatesList;
 	private readonly delegatesInfo: DelegatesInfo;
 	private readonly logger: Logger;
+	private readonly blocks: Blocks;
+	public readonly rounds: Rounds;
 
 	public constructor({
 		storage,
-		slots,
 		activeDelegates,
 		delegateListRoundOffset,
 		logger,
+		blocks,
 		exceptions = {},
 	}: DposConstructor) {
 		this.events = new EventEmitter();
@@ -69,20 +72,22 @@ export class Dpos {
 		// @todo consider making this a constant and reuse it in BFT module.
 		// tslint:disable-next-line:no-magic-numbers
 		this.delegateActiveRoundLimit = 3;
-		this.slots = slots;
 		this.storage = storage;
 		this.logger = logger;
+		this.blocks = blocks;
+		this.rounds = new Rounds({ blocksPerRound: activeDelegates });
 
 		this.delegatesList = new DelegatesList({
 			storage,
-			slots,
+			rounds: this.rounds,
 			activeDelegates,
+			blocksModule: this.blocks,
 			exceptions,
 		});
 
 		this.delegatesInfo = new DelegatesInfo({
 			storage,
-			slots,
+			rounds: this.rounds,
 			activeDelegates,
 			logger,
 			events: this.events,
@@ -114,7 +119,7 @@ export class Dpos {
 	}
 
 	public onBlockFinalized({ height }: { readonly height: number }): void {
-		this.finalizedBlockRound = this.slots.calcRound(height);
+		this.finalizedBlockRound = this.rounds.calcRound(height);
 	}
 
 	public async onRoundFinish(): Promise<void> {
@@ -203,7 +208,7 @@ export class Dpos {
 					earliestListRound === 1
 						? Math.max(activeRound - this.delegateActiveRoundLimit, 1)
 						: earliestListRound + delegateListRoundOffset;
-				const lastActiveMinHeight = this.slots.calcRoundStartHeight(
+				const lastActiveMinHeight = this.rounds.calcRoundStartHeight(
 					earliestActiveRound,
 				);
 

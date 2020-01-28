@@ -24,8 +24,11 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-dpos');
-const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
+const { Slots } = require('@liskhq/lisk-blocks');
+const { Rounds } = require('@liskhq/lisk-dpos');
+const {
+	sortTransactions,
+} = require('../../../src/application/node/forger/sort');
 const application = require('../../utils/legacy/application');
 const randomUtil = require('../../utils/random');
 const accountFixtures = require('../../fixtures/accounts');
@@ -38,6 +41,9 @@ const networkIdentifier = getNetworkIdentifier(
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
+});
+
+const rounds = new Rounds({
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 });
 
@@ -46,7 +52,7 @@ const { NORMALIZER } = global.__testContext.config;
 
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock;
-	const round = slots.calcRound(lastBlock.height + 1);
+	const round = rounds.calcRound(lastBlock.height + 1);
 	library.modules.forger
 		.loadDelegates()
 		.then(() => {

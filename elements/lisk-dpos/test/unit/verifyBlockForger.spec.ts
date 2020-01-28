@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Dpos, Slots } from '../../src';
+import { Dpos } from '../../src';
+import { Slots } from '../../../lisk-blocks/src/slots';
 import {
 	EPOCH_TIME,
 	BLOCK_TIME,
@@ -25,7 +26,6 @@ import { Block } from '../../src/types';
 describe('dpos.verifyBlockForger()', () => {
 	const stubs = {} as any;
 	let dpos: Dpos;
-	let slots: Slots;
 
 	beforeEach(() => {
 		// Arrange
@@ -50,14 +50,13 @@ describe('dpos.verifyBlockForger()', () => {
 			error: jest.fn(),
 		};
 
-		slots = new Slots({
-			epochTime: EPOCH_TIME,
-			interval: BLOCK_TIME,
-			blocksPerRound: ACTIVE_DELEGATES,
-		});
+		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const blocks = {
+			slots,
+		};
 
 		dpos = new Dpos({
-			slots,
+			blocks,
 			...stubs,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
@@ -149,7 +148,7 @@ describe('dpos.verifyBlockForger()', () => {
 			generatorPublicKey:
 				'e6d075e3e396673c853210f74f8fe6db5e814c304bb9cd7f362018881a21f76c',
 		} as Block;
-		const round = slots.calcRound(block.height);
+		const round = (dpos as any).rounds.calcRound(block.height);
 
 		// Act
 		await dpos.verifyBlockForger(block);
@@ -168,7 +167,9 @@ describe('dpos.verifyBlockForger()', () => {
 			generatorPublicKey: 'xxx',
 		} as Block;
 
-		const expectedSlot = slots.getSlotNumber(block.timestamp);
+		const expectedSlot = (dpos as any).blocks.slots.getSlotNumber(
+			block.timestamp,
+		);
 
 		// Act && Assert
 		const error = new Error(
@@ -189,7 +190,7 @@ describe('dpos.verifyBlockForger()', () => {
 			generatorPublicKey: 'xxx',
 		} as Block;
 
-		const expectedRound = slots.calcRound(block.height);
+		const expectedRound = dpos.rounds.calcRound(block.height);
 
 		// Act && Assert
 		const error = new Error(

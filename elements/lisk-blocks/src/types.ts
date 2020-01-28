@@ -109,12 +109,6 @@ export type MatcherTransaction = BaseTransaction & {
 	readonly matcher: (contexter: Context) => boolean;
 };
 
-export interface Slots {
-	readonly getSlotNumber: (timestamp?: number) => number;
-	readonly getSlotTime: (timestamp: number) => number;
-	readonly getNextSlot: () => number;
-}
-
 export interface ChainState {
 	// tslint:disable-next-line readonly-keyword
 	[key: string]: string;

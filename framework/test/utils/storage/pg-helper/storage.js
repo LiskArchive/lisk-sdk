@@ -14,22 +14,26 @@
 
 const {
 	MigrationEntity: Migration,
-} = require('../../../../src/controller/migrations');
+	NetworkInfoEntity: NetworkInfo,
+} = require('../../../../src/application/storage/entities');
 
 const Storage = require('../../../../src/components/storage/storage');
 const {
 	config: defaultConfig,
 } = require('../../../../src/components/storage/defaults');
-const validator = require('../../../../src/controller/validator');
+const validator = require('../../../../src/application/validator');
 
-const ChainModule = require('../../../../src/modules/chain');
-const NetworkModule = require('../../../../src/modules/network');
+const ChainModule = require('../../../../src/application/node');
 const HttpAPIModule = require('../../../../src/modules/http_api');
+const {
+	migrations: controllerMigrations,
+} = require('../../../../src/application/storage/migrations');
 
+const ApplicationAlias = 'app';
 const modulesMigrations = {
 	[ChainModule.alias]: ChainModule.migrations,
-	[NetworkModule.alias]: NetworkModule.migrations,
 	[HttpAPIModule.alias]: HttpAPIModule.migrations,
+	[ApplicationAlias]: controllerMigrations(),
 };
 
 const createStorageComponent = async (options, logger = console) => {
@@ -40,6 +44,7 @@ const createStorageComponent = async (options, logger = console) => {
 	const storage = new Storage(storageOptions, logger);
 
 	storage.registerEntity('Migration', Migration);
+	storage.registerEntity('NetworkInfo', NetworkInfo);
 
 	await storage.bootstrap();
 

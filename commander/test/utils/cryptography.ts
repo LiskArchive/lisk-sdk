@@ -31,7 +31,7 @@ describe('crypto utils', () => {
 		beforeEach(() => {
 			sandbox
 				.stub(cryptographyModule, 'encryptMessageWithPassphrase')
-				.returns(result);
+				.returns(result as any);
 			return Promise.resolve();
 		});
 
@@ -223,7 +223,7 @@ describe('crypto utils', () => {
 		beforeEach(() => {
 			return sandbox
 				.stub(cryptographyModule, 'signMessageWithPassphrase')
-				.returns(result);
+				.returns(result as any);
 		});
 
 		it('singed message should equal to the result of signMessageWithPassphrase', () => {

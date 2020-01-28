@@ -25,18 +25,20 @@ describe('FinalityManager', () => {
 					finalizedHeight: invalidBlockHeaderSpec.config.finalizedHeight,
 					activeDelegates: invalidBlockHeaderSpec.config.activeDelegates,
 				});
-				testCase.initialState.forEach(blockHeader => {
+				testCase.config.blockHeaders.forEach(blockHeader => {
 					finalityManager.addBlockHeader(blockHeader);
 				});
 
 				// Arrange - Verify initial state is set
 				expect(finalityManager.headers).toHaveLength(
-					testCase.initialState.length,
+					testCase.config.blockHeaders.length,
 				);
 
 				// Act & Assert
 				expect(() => finalityManager.addBlockHeader(testCase.input)).toThrow();
-				expect(finalityManager.headers).toHaveLength(testCase.output.length);
+				expect(finalityManager.headers).toHaveLength(
+					testCase.output.blockHeaders.length,
+				);
 			});
 		});
 	});
