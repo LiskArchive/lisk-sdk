@@ -16,7 +16,7 @@
 
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const {
-	chainUtils,
+	nodeUtils,
 	storageUtils,
 	configUtils,
 } = require('../../../../../utils');
@@ -27,7 +27,7 @@ describe('genesis block', () => {
 	const dbName = 'genesis_block';
 	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 10;
 	let storage;
-	let chainModule;
+	let node;
 
 	beforeAll(async () => {
 		storage = new storageUtils.StorageSandbox(
@@ -35,11 +35,11 @@ describe('genesis block', () => {
 			dbName,
 		);
 		await storage.bootstrap();
-		chainModule = await chainUtils.createAndLoadChainModule(dbName);
+		node = await nodeUtils.createAndLoadNode(storage, console);
 	});
 
 	afterAll(async () => {
-		await chainModule.unload();
+		await node.cleanup();
 		await storage.cleanup();
 	});
 
@@ -114,10 +114,7 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct delegate list', async () => {
-				const delegateListFromChain = await chainUtils.getDelegateList(
-					chainModule.chain,
-					1,
-				);
+				const delegateListFromChain = await nodeUtils.getDelegateList(node, 1);
 				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
 			});
 		});
@@ -188,10 +185,7 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct delegate list', async () => {
-				const delegateListFromChain = await chainUtils.getDelegateList(
-					chainModule.chain,
-					1,
-				);
+				const delegateListFromChain = await nodeUtils.getDelegateList(node, 1);
 				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
 			});
 		});

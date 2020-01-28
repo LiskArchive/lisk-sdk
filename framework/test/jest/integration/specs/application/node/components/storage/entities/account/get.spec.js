@@ -13,7 +13,7 @@
  */
 
 const {
-	Account,
+	AccountEntity: Account,
 } = require('../../../../../../../../../../src/application/storage/entities');
 const {
 	PgHelper,
