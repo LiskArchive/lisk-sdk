@@ -287,9 +287,10 @@ class Application {
 		// Load system components
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.defineSchema();
+
 		// Have to keep it consistent until update migration namespace in database
 		await this.storage.entities.Migration.applyAll({
-			node: nodeMigrations(),
+			chain: nodeMigrations(),
 			network: networkMigrations(),
 		});
 
