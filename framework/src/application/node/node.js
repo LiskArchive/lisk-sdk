@@ -282,19 +282,12 @@ module.exports = class Node {
 
 	async cleanup(error) {
 		this._unsubscribeToEvents();
-		const { modules, components } = this;
+		const { modules } = this;
+
 		if (error) {
 			this.logger.fatal(error.toString());
 		}
 		this.logger.info('Cleaning chain...');
-
-		if (components !== undefined) {
-			Object.keys(components).forEach(async key => {
-				if (components[key].cleanup) {
-					await components[key].cleanup();
-				}
-			});
-		}
 
 		// Run cleanup operation on each module before shutting down the node;
 		// this includes operations like the rebuild verification process.

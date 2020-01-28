@@ -421,7 +421,25 @@ class Application {
 	_initChannel() {
 		return new InMemoryChannel(
 			'app',
-			['ready', 'state:updated'],
+			[
+				'ready',
+				'state:updated',
+				'blocks:change',
+				'transactions:confirmed:change',
+				'signature:change',
+				'transactions:change',
+				'rounds:change',
+				'multisignatures:signature:change',
+				'multisignatures:change',
+				'delegates:fork',
+				'loader:sync',
+				'dapps:change',
+				'rebuild',
+				'processor:sync',
+				'processor:deleteBlock',
+				'processor:broadcast',
+				'processor:newBlock',
+			],
 			{
 				getComponentConfig: {
 					handler: action => this.config.components[action.params],
@@ -452,6 +470,67 @@ class Application {
 				},
 				applyPenaltyOnPeer: {
 					handler: action => this._network.applyPenalty(action.params),
+				},
+				calculateSupply: {
+					handler: action => this._node.actions.calculateSupply(action),
+				},
+				calculateMilestone: {
+					handler: action => this._node.actions.calculateMilestone(action),
+				},
+				calculateReward: {
+					handler: action => this._node.actions.calculateReward(action),
+				},
+				getForgerPublicKeysForRound: {
+					handler: async action =>
+						this._node.actions.getForgerPublicKeysForRound(action),
+				},
+				updateForgingStatus: {
+					handler: async action =>
+						this._node.actions.updateForgingStatus(action),
+				},
+				postSignature: {
+					handler: async action => this._node.actions.postSignature(action),
+				},
+				getForgingStatusForAllDelegates: {
+					handler: async () =>
+						this._node.actions.getForgingStatusForAllDelegates(),
+				},
+				getTransactionsFromPool: {
+					handler: async action =>
+						this._node.actions.getTransactionsFromPool(action),
+				},
+				getTransactions: {
+					handler: async action => this._node.actions.getTransactions(action),
+					isPublic: true,
+				},
+				getSignatures: {
+					handler: async () => this._node.actions.getSignatures(),
+					isPublic: true,
+				},
+				postTransaction: {
+					handler: async action => this._node.actions.postTransaction(action),
+				},
+				getSlotNumber: {
+					handler: async action => this._node.actions.getSlotNumber(action),
+				},
+				calcSlotRound: {
+					handler: async action => this._node.actions.calcSlotRound(action),
+				},
+				getNodeStatus: {
+					handler: async () => this._node.actions.getNodeStatus(),
+				},
+				getLastBlock: {
+					handler: async () => this._node.actions.getLastBlock(),
+					isPublic: true,
+				},
+				getBlocksFromId: {
+					handler: async action => this._node.actions.getBlocksFromId(action),
+					isPublic: true,
+				},
+				getHighestCommonBlock: {
+					handler: async action =>
+						this._node.actions.getHighestCommonBlock(action),
+					isPublic: true,
 				},
 			},
 			{ skipInternalEvents: true },
