@@ -34,10 +34,14 @@ const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
 const { createStorageComponent } = require('../components/storage');
-
 const { MigrationEntity } = require('../application/storage/entities');
 
+const { Network } = require('./network');
+const { NetworkInfoEntity } = require('../application/storage/entities');
+const { networkMigrations } = require('../application/storage/migrations');
+
 const Node = require('./node');
+
 const HttpAPIModule = require('../modules/http_api');
 
 const registerProcessHooks = app => {
@@ -257,16 +261,20 @@ class Application {
 		registerProcessHooks(this);
 
 		this._controller = this._initController();
+		this._network = this._initNetwork();
 
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.defineSchema();
 
-		return this._controller.load(
+		await this._network.initialiseNetwork();
+
+		await this._controller.load(
 			this.getModules(),
 			this.config.modules,
 			this.getMigrations(),
-			this.config.app.network,
 		);
+
+		this.channel.publish('app:ready');
 	}
 
 	async shutdown(errorCode = 0, message = '') {
@@ -364,6 +372,20 @@ class Application {
 			logger: this.logger,
 			storage: this.storage,
 		});
+	}
+
+	_initNetwork() {
+		const network = new Network({
+			options: this.config.app.network,
+			storage: this.storage,
+			logger: this.logger,
+			channel: this.channel,
+		});
+
+		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
+		this.registerMigrations('network', networkMigrations());
+
+		return network;
 	}
 }
 

@@ -24,11 +24,6 @@ const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('../application/validator');
 const ApplicationState = require('../application/application_state');
-const {
-	migrations: controllerMigrations,
-} = require('../application/storage/migrations');
-const { NetworkInfoEntity } = require('../application/storage/entities');
-const { Network } = require('../application/network');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -57,24 +52,19 @@ class Controller {
 		this.childrenList = [];
 		this.channel = null; // Channel for controller
 		this.bus = null;
-
-		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 	}
 
-	async load(modules, moduleOptions, migrations = {}, networkConfig) {
+	async load(modules, moduleOptions, migrations = {}) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		this._initState();
 		await this._setupBus();
-		await this._loadMigrations({ ...migrations, app: controllerMigrations() });
-		await this._initialiseNetwork(networkConfig);
+		await this._loadMigrations({ ...migrations });
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
 		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
-
-		this.channel.publish('app:ready');
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -185,16 +175,6 @@ class Controller {
 
 	async _loadMigrations(migrationsObj) {
 		return this.storage.entities.Migration.applyAll(migrationsObj);
-	}
-
-	async _initialiseNetwork(networkConfig) {
-		this.network = new Network({
-			networkConfig,
-			storage: this.storage,
-			logger: this.logger,
-			channel: this.channel,
-		});
-		await this.network.initialiseNetwork();
 	}
 
 	async _loadModules(modules, moduleOptions) {
