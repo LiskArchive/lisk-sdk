@@ -91,7 +91,7 @@ def teardown_jest(test_name) {
 		nvm(getNodejsVersion()) {
 			sh """
 			rm -rf coverage_jest_${test_name}; mkdir -p coverage_jest_${test_name}
-			cp .coverage/${test_name}/coverage-final.json coverage_jest_${test_name}/ || echo "Jest lcov coverage not found"
+			cp framework/.coverage/${test_name}/coverage-final.json coverage_jest_${test_name}/ || echo "Jest lcov coverage not found"
 			"""
 		}
 	} catch(err) {

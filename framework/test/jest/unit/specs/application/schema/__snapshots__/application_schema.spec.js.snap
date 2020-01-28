@@ -1,0 +1,365 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema/application_config_schema.js application config schema must match to the snapshot. 1`] = `
+Object {
+  "additionalProperties": false,
+  "default": Object {
+    "app": Object {
+      "genesisConfig": Object {
+        "BLOCK_TIME": 10,
+        "DELEGATE_LIST_ROUND_OFFSET": 2,
+        "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
+        "MAX_TRANSACTIONS_PER_BLOCK": 25,
+        "REWARDS": Object {
+          "DISTANCE": 3000000,
+          "MILESTONES": Array [
+            "500000000",
+            "400000000",
+            "300000000",
+            "200000000",
+            "100000000",
+          ],
+          "OFFSET": 2160,
+        },
+      },
+      "ipc": Object {
+        "enabled": false,
+      },
+      "label": "alpha-sdk-app",
+      "minVersion": "0.0.0",
+      "network": Object {
+        "seedPeers": Array [],
+        "wsPort": 5000,
+      },
+      "protocolVersion": "1.1",
+      "tempPath": "/tmp/lisk",
+      "version": "0.0.0",
+    },
+    "components": Object {
+      "cache": Object {},
+      "logger": Object {},
+      "storage": Object {},
+      "system": Object {},
+    },
+    "modules": Object {
+      "chain": Object {},
+      "http_api": Object {},
+    },
+  },
+  "id": "#/app/config",
+  "properties": Object {
+    "app": Object {
+      "properties": Object {
+        "buildVersion": Object {
+          "description": "The build number. Consists of \`v\` + the date and time of the build of the node.",
+          "example": "v09:54:35 12/04/2017",
+          "type": "string",
+        },
+        "genesisConfig": Object {
+          "additionalProperties": false,
+          "id": "#/app/genesisConfig",
+          "properties": Object {
+            "BLOCK_TIME": Object {
+              "description": "Slot time interval in seconds",
+              "minimum": 2,
+              "type": "number",
+            },
+            "DELEGATE_LIST_ROUND_OFFSET": Object {
+              "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - DELEGATE_LIST_ROUND_OFFSET\`",
+              "minimum": 0,
+              "type": "number",
+            },
+            "EPOCH_TIME": Object {
+              "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
+              "format": "date-time",
+              "type": "string",
+            },
+            "MAX_TRANSACTIONS_PER_BLOCK": Object {
+              "description": "Maximum number of transactions allowed per block",
+              "maximum": 150,
+              "minimum": 1,
+              "type": "integer",
+            },
+            "REWARDS": Object {
+              "additionalProperties": false,
+              "description": "Object representing LSK rewards milestone",
+              "id": "rewards",
+              "properties": Object {
+                "DISTANCE": Object {
+                  "description": "Distance between each milestone",
+                  "minimum": 1,
+                  "type": "integer",
+                },
+                "MILESTONES": Object {
+                  "description": "Initial 5, and decreasing until 1",
+                  "items": Object {
+                    "format": "amount",
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "OFFSET": Object {
+                  "description": "Start rewards at block (n)",
+                  "minimum": 1,
+                  "type": "integer",
+                },
+              },
+              "required": Array [
+                "MILESTONES",
+                "OFFSET",
+                "DISTANCE",
+              ],
+              "type": "object",
+            },
+          },
+          "required": Array [
+            "EPOCH_TIME",
+            "BLOCK_TIME",
+            "MAX_TRANSACTIONS_PER_BLOCK",
+            "DELEGATE_LIST_ROUND_OFFSET",
+            "REWARDS",
+          ],
+          "type": "object",
+        },
+        "ipc": Object {
+          "properties": Object {
+            "enabled": Object {
+              "type": "boolean",
+            },
+          },
+          "type": "object",
+        },
+        "label": Object {
+          "description": "Restricted length due to unix domain socket path length limitations.",
+          "maxLength": 30,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
+          "type": "string",
+        },
+        "lastCommitId": Object {
+          "description": "The version of Lisk Core that the peer node runs on.",
+          "example": "968d7b5b97a5bfad8f77614dc8a9918de49f6c6e",
+          "format": "hex",
+          "maxLength": 40,
+          "minLength": 40,
+          "type": "string",
+        },
+        "minVersion": Object {
+          "format": "version",
+          "type": "string",
+        },
+        "network": Object {
+          "properties": Object {
+            "ackTimeout": Object {
+              "type": "integer",
+            },
+            "advertiseAddress": Object {
+              "type": "boolean",
+            },
+            "blacklistedIPs": Object {
+              "items": Object {
+                "format": "ip",
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "connectTimeout": Object {
+              "type": "integer",
+            },
+            "fixedPeers": Object {
+              "arg": Object {
+                "formatter": "stringToIpPortSet",
+                "name": "--peers,-x",
+              },
+              "env": Object {
+                "formatter": "stringToIpPortSet",
+                "variable": "LISK_PEERS",
+              },
+              "items": Object {
+                "properties": Object {
+                  "ip": Object {
+                    "format": "ip",
+                    "type": "string",
+                  },
+                  "wsPort": Object {
+                    "maximum": 65535,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "type": "object",
+              },
+              "maximum": 4,
+              "type": "array",
+            },
+            "hostIp": Object {
+              "arg": "--address,-a",
+              "env": "LISK_ADDRESS",
+              "format": "ip",
+              "type": "string",
+            },
+            "maxInboundConnections": Object {
+              "type": "integer",
+            },
+            "maxOutboundConnections": Object {
+              "type": "integer",
+            },
+            "maxPeerDiscoveryResponseLength": Object {
+              "maximum": 1000,
+              "type": "integer",
+            },
+            "maxPeerInfoSize": Object {
+              "maximum": 20480,
+              "type": "integer",
+            },
+            "outboundShuffleInterval": Object {
+              "type": "integer",
+            },
+            "peerBanTime": Object {
+              "type": "integer",
+            },
+            "populatorInterval": Object {
+              "type": "integer",
+            },
+            "seedPeers": Object {
+              "arg": Object {
+                "formatter": "stringToIpPortSet",
+                "name": "--peers,-x",
+              },
+              "env": Object {
+                "formatter": "stringToIpPortSet",
+                "variable": "LISK_PEERS",
+              },
+              "items": Object {
+                "properties": Object {
+                  "ip": Object {
+                    "format": "ipOrFQDN",
+                    "type": "string",
+                  },
+                  "wsPort": Object {
+                    "maximum": 65535,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "sendPeerLimit": Object {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+            },
+            "whitelistedPeers": Object {
+              "arg": Object {
+                "formatter": "stringToIpPortSet",
+                "name": "--peers,-x",
+              },
+              "env": Object {
+                "formatter": "stringToIpPortSet",
+                "variable": "LISK_PEERS",
+              },
+              "items": Object {
+                "properties": Object {
+                  "ip": Object {
+                    "format": "ip",
+                    "type": "string",
+                  },
+                  "wsPort": Object {
+                    "maximum": 65535,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "wsMaxPayload": Object {
+              "maximum": 3048576,
+              "type": "integer",
+            },
+            "wsPort": Object {
+              "arg": "--port,-p",
+              "env": "LISK_WS_PORT",
+              "maximum": 65535,
+              "minimum": 1,
+              "type": "integer",
+            },
+          },
+          "required": Array [
+            "seedPeers",
+          ],
+          "type": "object",
+        },
+        "protocolVersion": Object {
+          "format": "protocolVersion",
+          "type": "string",
+        },
+        "tempPath": Object {
+          "description": "The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.",
+          "example": "/tmp/lisk",
+          "format": "path",
+          "maxLength": 50,
+          "minLength": 1,
+          "type": "string",
+        },
+        "version": Object {
+          "format": "version",
+          "type": "string",
+        },
+      },
+      "required": Array [
+        "version",
+        "minVersion",
+        "protocolVersion",
+        "ipc",
+        "genesisConfig",
+        "network",
+      ],
+      "type": "object",
+    },
+    "components": Object {
+      "properties": Object {
+        "cache": Object {
+          "type": "object",
+        },
+        "logger": Object {
+          "type": "object",
+        },
+        "storage": Object {
+          "type": "object",
+        },
+      },
+      "required": Array [
+        "logger",
+        "cache",
+        "storage",
+      ],
+      "type": "object",
+    },
+    "modules": Object {
+      "properties": Object {
+        "chain": Object {
+          "type": "object",
+        },
+        "http_api": Object {
+          "type": "object",
+        },
+      },
+      "required": Array [
+        "chain",
+        "http_api",
+      ],
+      "type": "object",
+    },
+  },
+  "required": Array [
+    "app",
+    "components",
+    "modules",
+  ],
+  "type": "object",
+}
+`;

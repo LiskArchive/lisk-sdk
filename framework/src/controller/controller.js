@@ -18,14 +18,21 @@ const fs = require('fs-extra');
 const path = require('path');
 const childProcess = require('child_process');
 const psList = require('ps-list');
-const systemDirs = require('./system_dirs');
+const systemDirs = require('../application/system_dirs');
 const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
-const { validateModuleSpec } = require('./validator');
-const ApplicationState = require('./application_state');
+const { validateModuleSpec } = require('../application/validator');
+const ApplicationState = require('../application/application_state');
 const { createStorageComponent } = require('../components/storage');
-const { MigrationEntity } = require('./migrations');
+const {
+	migrations: controllerMigrations,
+} = require('../application/storage/migrations');
+const {
+	MigrationEntity,
+	NetworkInfoEntity,
+} = require('../application/storage/entities');
+const { Network } = require('../application/network');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -57,15 +64,17 @@ class Controller {
 		const storageConfig = config.components.storage;
 		this.storage = createStorageComponent(storageConfig, logger);
 		this.storage.registerEntity('Migration', MigrationEntity);
+		this.storage.registerEntity('NetworkInfo', NetworkInfoEntity);
 	}
 
-	async load(modules, moduleOptions, migrations = {}) {
+	async load(modules, moduleOptions, migrations = {}, networkConfig) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		this._initState();
 		await this._setupBus();
-		await this._loadMigrations(migrations);
+		await this._loadMigrations({ ...migrations, app: controllerMigrations() });
+		await this._initialiseNetwork(networkConfig);
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
@@ -125,7 +134,7 @@ class Controller {
 
 		this.channel = new InMemoryChannel(
 			'app',
-			['ready', 'state:updated'],
+			['ready', 'state:updated', 'networkEvent'],
 			{
 				getComponentConfig: {
 					handler: action => this.config.components[action.params],
@@ -135,6 +144,27 @@ class Controller {
 				},
 				updateApplicationState: {
 					handler: action => this.applicationState.update(action.params),
+				},
+				sendToNetwork: {
+					handler: action => this.network.send(action.params),
+				},
+				broadcastToNetwork: {
+					handler: action => this.network.broadcast(action.params),
+				},
+				requestFromNetwork: {
+					handler: action => this.network.request(action.params),
+				},
+				requestFromPeer: {
+					handler: action => this.network.requestFromPeer(action.params),
+				},
+				getConnectedPeers: {
+					handler: action => this.network.getConnectedPeers(action.params),
+				},
+				getDisconnectedPeers: {
+					handler: action => this.network.getDisconnectedPeers(action.params),
+				},
+				applyPenaltyOnPeer: {
+					handler: action => this.network.applyPenalty(action.params),
 				},
 			},
 			{ skipInternalEvents: true },
@@ -163,6 +193,16 @@ class Controller {
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.defineSchema();
 		return this.storage.entities.Migration.applyAll(migrationsObj);
+	}
+
+	async _initialiseNetwork(networkConfig) {
+		this.network = new Network({
+			options: networkConfig,
+			storage: this.storage,
+			logger: this.logger,
+			channel: this.channel,
+		});
+		await this.network.initialiseNetwork();
 	}
 
 	async _loadModules(modules, moduleOptions) {
@@ -308,6 +348,7 @@ class Controller {
 
 		try {
 			await this.bus.cleanup();
+			await this.network.stop();
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (err) {

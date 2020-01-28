@@ -22,29 +22,27 @@ const { BFT } = require('@liskhq/lisk-bft');
 const { Dpos } = require('@liskhq/lisk-dpos');
 const { Slots } = require('@liskhq/lisk-blocks');
 const { registeredTransactions } = require('../registered_transactions');
-const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
-const { Sequence } = require('../../../src/modules/chain/utils/sequence');
+const jobsQueue = require('../../../src/application/node/utils/jobs_queue');
+const { Sequence } = require('../../../src/application/node/utils/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('../storage/storage_sandbox');
-const { Processor } = require('../../../src/modules/chain/processor');
-const { Rebuilder } = require('../../../src/modules/chain/rebuilder');
+const { Processor } = require('../../../src/application/node/processor');
+const { Rebuilder } = require('../../../src/application/node/rebuilder');
 const {
 	BlockProcessorV1,
-} = require('../../../src/modules/chain/block_processor_v1');
+} = require('../../../src/application/node/block_processor_v1');
 const {
 	BlockProcessorV2,
-} = require('../../../src/modules/chain/block_processor_v2');
+} = require('../../../src/application/node/block_processor_v2');
 const { getNetworkIdentifier } = require('../network_identifier');
 
 let currentAppScope;
 
-const ChainModule = require('../../../src/modules/chain');
-const NetworkModule = require('../../../src/modules/network');
+const ChainModule = require('../../../src/application/node');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
 modulesMigrations[ChainModule.alias] = ChainModule.migrations;
-modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 const initStepsForTest = {
@@ -123,7 +121,7 @@ const initStepsForTest = {
 		modules.processor.register(new BlockProcessorV1(processorDependency));
 		scope.modules = modules;
 		const { TransactionPool: RewiredTransactionPool } = rewire(
-			'../../../src/modules/chain/transaction_pool',
+			'../../../src/application/node/transaction_pool',
 		);
 		scope.rewiredModules.transactionPool = RewiredTransactionPool;
 		modules.transactionPool = new RewiredTransactionPool({
@@ -145,7 +143,7 @@ const initStepsForTest = {
 			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
 		});
 		const { Loader: RewiredLoader } = rewire(
-			'../../../src/modules/chain/loader',
+			'../../../src/application/node/loader',
 		);
 		scope.rewiredModules.loader = RewiredLoader;
 		modules.loader = new RewiredLoader({
@@ -164,7 +162,7 @@ const initStepsForTest = {
 			syncingActive: __testContext.config.modules.chain.syncing.active,
 		});
 		const { Forger: RewiredForge } = rewire(
-			'../../../src/modules/chain/forger',
+			'../../../src/application/node/forger',
 		);
 		scope.rewiredModules.forger = RewiredForge;
 		modules.forger = new RewiredForge({
@@ -185,7 +183,7 @@ const initStepsForTest = {
 				__testContext.config.modules.chain.forging.waitThreshold,
 		});
 		const { Transport: RewiredTransport } = rewire(
-			'../../../src/modules/chain/transport',
+			'../../../src/application/node/transport',
 		);
 		scope.rewiredModules.transport = RewiredTransport;
 		modules.transport = new RewiredTransport({
