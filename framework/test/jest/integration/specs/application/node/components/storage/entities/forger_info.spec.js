@@ -22,8 +22,8 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
 const {
-	ForgerInfo,
-} = require('../../../../../../../../../src/application/node/components/storage/entities');
+	ForgerInfoEntity: ForgerInfo,
+} = require('../../../../../../../../../src/application/storage/entities');
 
 const { config } = require('../../../../../modules/shared');
 

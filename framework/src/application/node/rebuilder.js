@@ -105,7 +105,7 @@ class Rebuilder {
 					// eslint-disable-next-line no-await-in-loop
 					await this.processorModule.applyGenesisBlock(block);
 					({ lastBlock } = this.blocksModule);
-					this.channel.publish('chain:rebuild', { block: lastBlock });
+					this.channel.publish('app:rebuild', { block: lastBlock });
 				}
 
 				if (block.id !== this.genesisBlock.id) {
@@ -113,7 +113,7 @@ class Rebuilder {
 					await this.processorModule.apply(block);
 					({ lastBlock } = this.blocksModule);
 				}
-				this.channel.publish('chain:rebuild', { block: lastBlock });
+				this.channel.publish('app:rebuild', { block: lastBlock });
 			}
 		}
 

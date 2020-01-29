@@ -332,13 +332,13 @@ describe('block_synchronization_mechanism', () => {
 					penalty: 100,
 				}),
 			);
-			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
+			expect(channelMock.publish).toHaveBeenCalledWith('app:processor:sync', {
 				block: receivedBlock,
 			});
 		};
 
 		const expectRestartIsCalled = receivedBlock => {
-			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
+			expect(channelMock.publish).toHaveBeenCalledWith('app:processor:sync', {
 				block: receivedBlock,
 			});
 		};

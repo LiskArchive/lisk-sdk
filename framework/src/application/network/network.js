@@ -53,7 +53,7 @@ module.exports = class Network {
 		this.secret = null;
 	}
 
-	async initialiseNetwork() {
+	async bootstrap() {
 		// Load peers from the database that were tried or connected the last time node was running
 		const previousPeersStr = await this.storage.entities.NetworkInfo.getKey(
 			NETWORK_INFO_KEY_TRIED_PEERS,
@@ -241,10 +241,10 @@ module.exports = class Network {
 				return;
 			}
 			const hasTargetModule = hasNamespaceReg.test(request.procedure);
-			// If the request has no target module, default to chain (to support legacy protocol).
+			// If the request has no target module, default to app (to support legacy protocol).
 			const sanitizedProcedure = hasTargetModule
 				? request.procedure
-				: `chain:${request.procedure}`;
+				: `app:${request.procedure}`;
 			try {
 				const result = await this.channel.invokePublic(sanitizedProcedure, {
 					data: request.data,

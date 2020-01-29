@@ -21,7 +21,7 @@ const {
 	utils: {
 		filterTypes: { NUMBER },
 	},
-} = require('../../../../../components/storage');
+} = require('../../../components/storage');
 
 const sqlFiles = {
 	create: 'round_delegates/create.sql',

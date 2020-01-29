@@ -26,7 +26,7 @@ const gitLastCommitId = '#gitLastCommitId';
 const buildVersion = '#buildVersion';
 const peerList = ['peerList'];
 
-const chainOptions = {
+const nodeOptions = {
 	genesisBlock: {
 		transactions: [],
 		version: 2,
@@ -123,7 +123,7 @@ module.exports = {
 	loggerConfig,
 	cacheConfig,
 	storageConfig,
-	chainOptions,
+	nodeOptions,
 	gitLastCommitId,
 	buildVersion,
 	peerList,

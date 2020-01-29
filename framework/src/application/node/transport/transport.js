@@ -75,12 +75,12 @@ class Transport {
 
 	handleBroadcastSignature(signature) {
 		this.broadcaster.enqueueSignatureObject(signature);
-		this.channel.publish('chain:signature:change', signature);
+		this.channel.publish('app:signature:change', signature);
 	}
 
 	handleBroadcastTransaction(transaction) {
 		this.broadcaster.enqueueTransactionId(transaction.id);
-		this.channel.publish('chain:transactions:change', transaction.toJSON());
+		this.channel.publish('app:transactions:change', transaction.toJSON());
 	}
 
 	handleBroadcastBlock(blockJSON) {

@@ -18,7 +18,7 @@ const _ = require('lodash');
 const path = require('path');
 const {
 	entities: { Transaction: TransactionEntity },
-} = require('../../../../../components/storage');
+} = require('../../../components/storage');
 
 const sqlFiles = {
 	create: 'transactions/create.sql',

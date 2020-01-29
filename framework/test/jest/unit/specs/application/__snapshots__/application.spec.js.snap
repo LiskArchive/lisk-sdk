@@ -512,13 +512,6 @@ Object {
         "loadPerIteration": 5000,
         "rebuildUpToRound": null,
       },
-      "registeredTransactions": Object {
-        "10": [Function],
-        "11": [Function],
-        "12": [Function],
-        "8": [Function],
-        "9": [Function],
-      },
       "syncing": Object {
         "active": true,
       },

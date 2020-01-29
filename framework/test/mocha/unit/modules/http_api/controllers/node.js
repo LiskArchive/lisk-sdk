@@ -141,9 +141,9 @@ describe('node/api', () => {
 			sinonSandbox.stub(Date, 'now').returns(now);
 		});
 
-		describe('when chain:getNodeStatus answers with all parameters', () => {
+		describe('when app:getNodeStatus answers with all parameters', () => {
 			beforeEach(async () => {
-				channelStub.invoke.withArgs('chain:getNodeStatus').returns(status);
+				channelStub.invoke.withArgs('app:getNodeStatus').returns(status);
 			});
 
 			it('should return an object status with all properties', async () =>
@@ -153,7 +153,7 @@ describe('node/api', () => {
 				}));
 		});
 
-		describe('when chain:getNodeStatus answers without some parameters', () => {
+		describe('when app:getNodeStatus answers without some parameters', () => {
 			let statusWithoutSomeParameters;
 			let expectedStatusWithoutSomeParameters;
 
@@ -163,7 +163,7 @@ describe('node/api', () => {
 				expectedStatusWithoutSomeParameters = _.cloneDeep(expectedStatus);
 				expectedStatusWithoutSomeParameters.height = 0;
 				channelStub.invoke
-					.withArgs('chain:getNodeStatus')
+					.withArgs('app:getNodeStatus')
 					.returns(statusWithoutSomeParameters);
 			});
 

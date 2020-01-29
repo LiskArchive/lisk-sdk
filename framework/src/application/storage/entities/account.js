@@ -19,7 +19,7 @@ const assert = require('assert');
 const _ = require('lodash');
 const {
 	entities: { Account: AccountEntity },
-} = require('../../../../../components/storage');
+} = require('../../../components/storage');
 
 const defaultCreateValues = {
 	publicKey: null,

@@ -22,8 +22,8 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
 const {
-	TempBlock,
-} = require('../../../../../../../../../src/application/node/components/storage/entities');
+	TempBlockEntity: TempBlock,
+} = require('../../../../../../../../../src/application/storage/entities');
 
 const { config } = require('../../../../../modules/shared');
 
