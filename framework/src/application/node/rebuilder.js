@@ -91,15 +91,16 @@ class Rebuilder {
 				break;
 			}
 			// if rebuildUptoRound is undefined, use the highest height
-			const blocksJSON = await this.blocksModule.getJSONBlocksWithLimitAndOffset(
+			const blocks = await this.blocksModule.getBlocksWithLimitAndOffset(
 				limit,
 				currentHeight,
 			);
-			for (const blockJSON of blocksJSON) {
-				if (this.isCleaning || blockJSON.height > targetHeight) {
+
+			for (const block of blocks) {
+				if (this.isCleaning || block.height > targetHeight) {
 					break;
 				}
-				const block = await this.processorModule.deserialize(blockJSON);
+
 				if (block.id === this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
 					await this.processorModule.applyGenesisBlock(block);
