@@ -163,6 +163,9 @@ describe('Synchronizer', () => {
 			when(storageMock.entities.Block.begin)
 				.calledWith('loader:checkMemTables')
 				.mockResolvedValue({ genesisBlock: genesisBlockDevnet });
+			when(storageMock.entities.Block.get)
+				.calledWith({ height: 1 }, { extended: true })
+				.mockResolvedValue([genesisBlockDevnet]);
 			when(storageMock.entities.Account.get)
 				.calledWith({ isDelegate: true }, { limit: null })
 				.mockResolvedValue([{ publicKey: 'aPublicKey' }]);

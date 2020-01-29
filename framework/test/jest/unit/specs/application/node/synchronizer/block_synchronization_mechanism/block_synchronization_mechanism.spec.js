@@ -191,6 +191,9 @@ describe('block_synchronization_mechanism', () => {
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 		const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
 		when(storageMock.entities.Block.get)
+			.calledWith({ height: 1 }, { extended: true })
+			.mockResolvedValue([genesisBlockDevnet]);
+		when(storageMock.entities.Block.get)
 			.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 			.mockResolvedValue([lastBlock]);
 		// Same thing but for BFT module,as it doesn't use extended flag set to true
