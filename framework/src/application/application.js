@@ -316,8 +316,6 @@ class Application {
 		// TODO: Fix the cause of circular exception
 		// await this._network.stop();
 		// await this._node.cleanup();
-
-		await this._controller.cleanup(errorCode, message);
 		await this.storage.cleanup();
 
 		process.exit(errorCode);
