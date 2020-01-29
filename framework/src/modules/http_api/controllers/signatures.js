@@ -28,7 +28,7 @@ SignaturesController.postSignature = async (context, next) => {
 	let error;
 
 	try {
-		const data = await channel.invoke('chain:postSignature', { signature });
+		const data = await channel.invoke('app:postSignature', { signature });
 
 		if (!data.errors) {
 			return next(null, {

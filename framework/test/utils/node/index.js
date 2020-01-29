@@ -17,14 +17,14 @@
 
 const accountUtils = require('./account');
 const blockUtils = require('./block');
-const chainUtils = require('./chain');
+const nodeUtils = require('./node');
 const transactionUtils = require('./transaction');
 const delegateUtils = require('./delegate');
 
 module.exports = {
 	...accountUtils,
 	...blockUtils,
-	...chainUtils,
+	...nodeUtils,
 	...delegateUtils,
 	...transactionUtils,
 };

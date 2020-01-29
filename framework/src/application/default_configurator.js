@@ -15,7 +15,7 @@
 'use strict';
 
 const yargs = require('yargs');
-const chainModule = require('./node');
+const { config: NodeConfig } = require('./node/defaults');
 const APIModule = require('../modules/http_api');
 const { config: loggerConfig } = require('../components/logger/defaults');
 const { config: storageConfig } = require('../components/storage/defaults');
@@ -27,7 +27,10 @@ const configurator = new Configurator();
 configurator.registerSchema(loggerConfig, 'components.logger');
 configurator.registerSchema(storageConfig, 'components.storage');
 configurator.registerSchema(cacheConfig, 'components.cache');
-configurator.registerModule(chainModule);
+
+// TODO: Fix it in separate PR
+configurator.registerSchema(NodeConfig, 'modules.chain');
+
 configurator.registerModule(APIModule);
 
 yargs.command(

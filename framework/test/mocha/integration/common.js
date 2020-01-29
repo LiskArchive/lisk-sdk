@@ -352,26 +352,53 @@ function getMultisignatureTransactions(library, filter, cb) {
 }
 
 function beforeBlock(type, cb) {
+	let _node;
+
 	// eslint-disable-next-line mocha/no-top-level-hooks
 	before(
 		'init sandboxed application, credit account and register dapp',
 		done => {
-			application.init(
-				{ sandbox: { name: `lisk_test_integration_${type}` } },
-				(err, library) => {
-					if (err) {
-						return done(err);
-					}
-					cb(library);
+			application
+				.initNode({}, { database: `lisk_test_integration_${type}` })
+				.then(__node => {
+					_node = __node;
+					cb({
+						modules: {
+							blocks: _node.blocks,
+							transactionPool: _node.transactionPool,
+							forger: _node.forger,
+							dpos: _node.dpos,
+							processor: _node.processor,
+							transport: _node.transport,
+							rebuilder: _node.rebuilder,
+						},
+						components: {
+							logger: _node.logger,
+							storage: _node.storage,
+						},
+						sequence: _node.sequence,
+						genesisBlock: _node.genesisBlock,
+						slots: _node.slots,
+						config: _node.config,
+					});
 					return done();
-				},
-			);
+				})
+				.catch(error => {
+					done(error);
+				});
 		},
 	);
 
-	// eslint-disable-next-line mocha/no-top-level-hooks
+	// eslint-disable-next-line mocha/no-top-level-hooks, consistent-return
 	after('cleanup sandboxed application', done => {
-		application.cleanup(done);
+		if (!_node) {
+			return done();
+		}
+
+		_node
+			.cleanup()
+			.then(done)
+			.catch(done);
 	});
 }
 

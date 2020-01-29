@@ -23,17 +23,16 @@ const {
 } = require('../../../../src/components/storage/defaults');
 const validator = require('../../../../src/application/validator');
 
-const ChainModule = require('../../../../src/application/node');
 const HttpAPIModule = require('../../../../src/modules/http_api');
 const {
-	migrations: controllerMigrations,
+	nodeMigrations,
+	networkMigrations,
 } = require('../../../../src/application/storage/migrations');
 
-const ApplicationAlias = 'app';
 const modulesMigrations = {
-	[ChainModule.alias]: ChainModule.migrations,
+	chain: nodeMigrations(),
+	network: networkMigrations(),
 	[HttpAPIModule.alias]: HttpAPIModule.migrations,
-	[ApplicationAlias]: controllerMigrations(),
 };
 
 const createStorageComponent = async (options, logger = console) => {

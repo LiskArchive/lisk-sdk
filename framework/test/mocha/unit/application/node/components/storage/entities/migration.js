@@ -29,7 +29,10 @@ const {
 } = require('../../../../../../../../src/application/storage/entities');
 const storageSandbox = require('../../../../../../../utils/storage/storage_sandbox');
 
-const ChainModule = require('../../../../../../../../src/application/node');
+const {
+	nodeMigrations,
+	networkMigrations,
+} = require('../../../../../../../../src/application/storage/migrations');
 const HttpAPIModule = require('../../../../../../../../src/modules/http_api');
 
 describe('Migration', () => {
@@ -368,7 +371,8 @@ describe('Migration', () => {
 		let savedMigrations;
 
 		const modulesMigrations = {};
-		modulesMigrations[ChainModule.alias] = ChainModule.migrations;
+		modulesMigrations.chain = nodeMigrations();
+		modulesMigrations.network = networkMigrations();
 		modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 		before(async () => {
