@@ -156,24 +156,6 @@ describe('fast_chain_switching_mechanism', () => {
 		const aPeerId = '127.0.0.1:5000';
 		let aBlock;
 
-		const checkApplyPenaltyAndRestartIsCalled = (
-			receivedBlock,
-			peerId,
-			reason,
-		) => {
-			expect(loggerMock.info).toHaveBeenCalledWith(
-				{ peerId, reason },
-				'Applying penalty to peer and restarting synchronizer',
-			);
-			expect(channelMock.invoke).toHaveBeenCalledWith('network:applyPenalty', {
-				peerId,
-				penalty: 100,
-			});
-			expect(channelMock.publish).toHaveBeenCalledWith('chain:processor:sync', {
-				block: receivedBlock,
-			});
-		};
-
 		const checkApplyPenaltyAndAbortIsCalled = (peerId, err) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				{ err, peerId, reason: err.reason },
@@ -297,10 +279,12 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
 				expect(channelMock.invoke).toHaveBeenCalledTimes(10);
-				checkApplyPenaltyAndRestartIsCalled(
-					aBlock,
+				checkApplyPenaltyAndAbortIsCalled(
 					aPeerId,
-					"Peer didn't return a common block",
+					new Errors.ApplyPenaltyAndAbortError(
+						aPeerId,
+						"Peer didn't return a common block",
+					),
 				);
 			});
 		});
@@ -345,10 +329,12 @@ describe('fast_chain_switching_mechanism', () => {
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
-				checkApplyPenaltyAndRestartIsCalled(
-					aBlock,
+				checkApplyPenaltyAndAbortIsCalled(
 					aPeerId,
-					'Common block height 0 is lower than the finalized height of the chain 1',
+					new Errors.ApplyPenaltyAndAbortError(
+						aPeerId,
+						'Common block height 0 is lower than the finalized height of the chain 1',
+					),
 				);
 				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
 					aBlock,
