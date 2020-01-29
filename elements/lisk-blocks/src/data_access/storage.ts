@@ -137,7 +137,8 @@ export class Storage {
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ height_gte: fromHeight, height_lte: toHeight },
-			{ extended: true },
+			// tslint:disable-next-line no-null-keyword
+			{ extended: true, limit: null, sort: 'height:desc' },
 		);
 
 		return blocks;

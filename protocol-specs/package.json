@@ -2,12 +2,13 @@
 	"name": "lisk-protocol-specs",
 	"version": "1.0.0",
 	"description": "Lisk protocol specs generator",
-	"main": "index.js",
+	"main": "src/index.js",
 	"scripts": {
 		"lint": "eslint .",
 		"lint:fix": "eslint --fix .",
 		"format": "prettier --write '**/*'",
-		"generate-all-specs": "node index.js"
+		"generate-all-specs": "node scripts/generate.js",
+		"validate-all-specs": "node scripts/validate.js"
 	},
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",

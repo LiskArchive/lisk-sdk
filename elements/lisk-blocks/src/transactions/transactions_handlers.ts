@@ -21,13 +21,13 @@ import {
 } from '@liskhq/lisk-transactions';
 
 import { DataAccess } from '../data_access';
+import { Slots } from '../slots';
 import { StateStore } from '../state_store';
 import {
 	Contexter,
 	ExceptionOptions,
 	MatcherTransaction,
 	SignatureObject,
-	Slots,
 	WriteableTransactionResponse,
 } from '../types';
 

@@ -23,7 +23,7 @@ const {
 	TransferTransaction,
 	transfer,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Slots } = require('@liskhq/lisk-blocks');
 const {
 	addTransaction,
 	forge: commonForge,
@@ -42,7 +42,6 @@ const networkIdentifier = getNetworkIdentifier(
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
-	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 });
 
 // Promisify callback functions

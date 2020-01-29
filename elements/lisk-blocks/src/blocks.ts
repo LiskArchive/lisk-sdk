@@ -33,7 +33,8 @@ import {
 	saveBlock,
 	undoConfirmedStep,
 } from './chain';
-import { DataAccess } from './data_access';
+import { DataAccess, TransactionInterfaceAdapter } from './data_access';
+import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
 	applyTransactions,
@@ -56,7 +57,6 @@ import {
 	Logger,
 	MatcherTransaction,
 	SignatureObject,
-	Slots,
 	Storage,
 	StorageTransaction,
 	TempBlock,
@@ -88,6 +88,8 @@ interface BlocksConfig {
 		readonly [key: number]: typeof BaseTransaction;
 	};
 	// Constants
+	readonly epochTime: string;
+	readonly blockTime: number;
 	readonly networkIdentifier: string;
 	readonly blockReceiptTimeout: number; // Set default
 	readonly loadPerIteration: number;
@@ -112,6 +114,8 @@ export class Blocks extends EventEmitter {
 	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockInstance;
 	private readonly constants: {
+		readonly epochTime: string;
+		readonly blockTime: number;
 		readonly blockReceiptTimeout: number;
 		readonly maxPayloadLength: number;
 		readonly maxTransactionsPerBlock: number;
@@ -131,6 +135,7 @@ export class Blocks extends EventEmitter {
 	public readonly deserializeTransaction: (
 		transactionJSON: TransactionJSON,
 	) => BaseTransaction;
+	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 
 	public constructor({
 		// Components
@@ -138,11 +143,12 @@ export class Blocks extends EventEmitter {
 		storage,
 		// Unique requirements
 		genesisBlock,
-		slots,
 		exceptions,
 		// Modules
 		registeredTransactions,
 		// Constants
+		epochTime,
+		blockTime,
 		networkIdentifier,
 		blockReceiptTimeout, // Set default
 		loadPerIteration,
@@ -166,19 +172,18 @@ export class Blocks extends EventEmitter {
 		});
 
 		// Binding data access to allow access to its scope accessibility
-		this.deserialize = this.dataAccess.deserialize.bind(this.dataAccess);
-		this.serialize = this.dataAccess.serialize.bind(this.dataAccess);
-		this.deserializeBlockHeader = this.dataAccess.deserializeBlockHeader.bind(
-			this.dataAccess,
-		);
+		this._transactionAdapter = this.dataAccess.transactionAdapter;
+		this.deserialize = this.dataAccess.deserialize.bind(this);
+		this.serialize = this.dataAccess.serialize;
+		this.deserializeBlockHeader = this.dataAccess.deserializeBlockHeader;
 		this.deserializeTransaction = this.dataAccess.deserializeTransaction.bind(
-			this.dataAccess,
+			this,
 		);
 		const genesisInstance = this.deserialize(genesisBlock);
 		this._lastBlock = genesisInstance;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;
-		this.slots = slots;
+		this.slots = new Slots({ epochTime, interval: blockTime });
 		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
@@ -192,6 +197,8 @@ export class Blocks extends EventEmitter {
 			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
+			epochTime,
+			blockTime,
 			blockReceiptTimeout,
 			maxPayloadLength,
 			maxTransactionsPerBlock,
@@ -208,6 +215,10 @@ export class Blocks extends EventEmitter {
 		});
 	}
 
+	public get transactionAdapter(): TransactionInterfaceAdapter {
+		return this._transactionAdapter;
+	}
+
 	public get lastBlock(): BlockInstance {
 		// Remove receivedAt property..
 		const { receivedAt, ...block } = this._lastBlock;
@@ -217,11 +228,15 @@ export class Blocks extends EventEmitter {
 
 	public async init(): Promise<void> {
 		// Check mem tables
-		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(0);
+		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
 
-		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
+		if (!genesisBlock) {
+			throw new Error('Failed to load genesis block');
+		}
 
-		if (!genesisBlockMatch) {
+		const isGenesisBlock = this.blocksVerify.matchGenesisBlock(genesisBlock);
+
+		if (!isGenesisBlock) {
 			throw new Error('Genesis block does not match');
 		}
 
@@ -374,21 +389,24 @@ export class Blocks extends EventEmitter {
 		return deleteFromBlockId(this.storage, this.dataAccess, block.id);
 	}
 
-	public async getJSONBlocksWithLimitAndOffset(
+	public async getBlocksWithLimitAndOffset(
 		limit: number,
 		offset: number = 0,
 	): Promise<BlockInstance[]> {
 		// Calculate toHeight
 		const toHeight = offset + limit;
+		// To Preserve LessThan logic we are substracting by 1
+		const toHeightLT = toHeight - 1;
 
 		// Loads extended blocks from storage
 		const blocks = await this.dataAccess.getBlocksByHeightBetween(
 			offset,
-			toHeight,
+			toHeightLT,
 		);
 
-		return blocks.sort((a: BlockInstance, b: BlockInstance) =>
-			a.height > b.height ? 1 : -1,
+		// Return blocks in ascending order
+		return blocks.sort(
+			(a: BlockInstance, b: BlockInstance) => a.height - b.height,
 		);
 	}
 
@@ -408,7 +426,7 @@ export class Blocks extends EventEmitter {
 	): Promise<BlockHeader | undefined> {
 		try {
 			const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
-			const sortedBlocks = blocks.sort((a: BlockHeader, b: BlockHeader) =>
+			const sortedBlocks = [...blocks].sort((a: BlockHeader, b: BlockHeader) =>
 				a.height > b.height ? -1 : 1,
 			);
 			const highestCommonBlock = sortedBlocks.shift();
@@ -421,7 +439,6 @@ export class Blocks extends EventEmitter {
 		}
 	}
 
-	// TODO: Unit tests written in mocha, which should be migrated to jest.
 	public async filterReadyTransactions(
 		transactions: BaseTransaction[],
 		context: Contexter,

@@ -50,7 +50,7 @@ describe('input utils', () => {
 				data: undefined,
 			});
 			sandbox.stub(inputUtils, 'getPassphrase');
-			sandbox.stub(console, 'warn').returns('');
+			sandbox.stub(console, 'warn');
 			return sandbox.stub(inputUtils, 'getData');
 		});
 

@@ -17,7 +17,7 @@
 const popsicle = require('popsicle');
 const async = require('async');
 const Promise = require('bluebird');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Slots } = require('@liskhq/lisk-blocks');
 const apiHelpers = require('../http/api');
 
 const { ACTIVE_DELEGATES } = global.constants;
@@ -25,7 +25,6 @@ const { ACTIVE_DELEGATES } = global.constants;
 const slots = new Slots({
 	epochTime: global.__testContext.config.constants.EPOCH_TIME,
 	interval: global.__testContext.config.constants.BLOCK_TIME,
-	blocksPerRound: global.__testContext.config.constants.ACTIVE_DELEGATES,
 });
 
 /**

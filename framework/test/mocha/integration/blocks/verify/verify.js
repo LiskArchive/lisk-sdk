@@ -20,7 +20,8 @@ const {
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Slots } = require('@liskhq/lisk-blocks');
+const { Rounds } = require('@liskhq/lisk-dpos');
 const application = require('../../../../utils/legacy/application');
 const {
 	clearDatabaseTable,
@@ -45,6 +46,9 @@ const genesisBlock = __testContext.config.genesisBlock;
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
+});
+
+const rounds = new Rounds({
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 });
 
@@ -81,7 +85,7 @@ async function createBlock(
 
 function getValidKeypairForSlot(library, slot) {
 	const lastBlock = genesisBlock;
-	const round = slots.calcRound(lastBlock.height);
+	const round = rounds.calcRound(lastBlock.height);
 
 	return library.modules.dpos
 		.getForgerPublicKeysForRound(round)

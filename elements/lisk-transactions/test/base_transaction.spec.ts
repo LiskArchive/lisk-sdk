@@ -34,21 +34,21 @@ import { SignatureObject } from '../src/create_signature_object';
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(
-		transferFixture.testCases.output,
+		transferFixture.testCases[0].output,
 	);
 	const defaultSenderAccount = {
-		...transferFixture.testCases.input.account,
+		...transferFixture.testCases[0].input.account,
 		balance: '1000000000000',
 	};
 	const defaultSecondSignatureTransaction = addTransactionFields(
 		validSecondSignatureTransaction,
 	);
 	const defaultMultisignatureTransaction = addTransactionFields(
-		multisignatureFixture.testCases.output,
+		multisignatureFixture.testCases[0].output,
 	);
 	const defaultMultisignatureAccount = {
-		...multisignatureFixture.testCases.input.account,
-		membersPublicKeys: multisignatureFixture.testCases.input.coSigners.map(
+		...multisignatureFixture.testCases[0].input.account,
+		membersPublicKeys: multisignatureFixture.testCases[0].input.coSigners.map(
 			account => account.publicKey,
 		),
 		balance: '94378900000',
@@ -419,7 +419,7 @@ describe('Base transaction class', () => {
 
 		it('should throw descriptive error when networkIdentifier is missing', async () => {
 			const transactionWithMissingNetworkIdentifier = {
-				...transferFixture.testCases.input.transaction,
+				...transferFixture.testCases[0].input.transaction,
 			};
 
 			const transactionWithMissingNetworkIdentifierInstance = new TestTransaction(
@@ -428,7 +428,7 @@ describe('Base transaction class', () => {
 
 			expect(() =>
 				transactionWithMissingNetworkIdentifierInstance.sign(
-					transferFixture.testCases.input.account.passphrase,
+					transferFixture.testCases[0].input.account.passphrase,
 				),
 			).toThrowError('Network identifier is required to sign a transaction');
 		});
@@ -649,9 +649,10 @@ describe('Base transaction class', () => {
 				networkIdentifier,
 			});
 			multisigMember = {
-				transactionId: multisignatureFixture.testCases.output.id,
-				publicKey: multisignatureFixture.testCases.input.coSigners[0].publicKey,
-				signature: multisignatureFixture.testCases.output.signatures[0],
+				transactionId: multisignatureFixture.testCases[0].output.id,
+				publicKey:
+					multisignatureFixture.testCases[0].input.coSigners[0].publicKey,
+				signature: multisignatureFixture.testCases[0].output.signatures[0],
 			};
 		});
 
@@ -688,7 +689,7 @@ describe('Base transaction class', () => {
 				store,
 				multisigMember,
 			);
-			const expectedError = `Signature '${multisignatureFixture.testCases.output.signatures[0]}' already present in transaction.`;
+			const expectedError = `Signature '${multisignatureFixture.testCases[0].output.signatures[0]}' already present in transaction.`;
 
 			expect(status).toEqual(Status.FAIL);
 			expect(errors[0].message).toEqual(expectedError);
@@ -840,47 +841,47 @@ describe('Base transaction class', () => {
 	describe('create, sign and stringify transaction', () => {
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
 			const newTransaction = new TransferTransaction({
-				...transferSecondSignatureFixture.testCases.input.transaction,
+				...transferSecondSignatureFixture.testCases[0].input.transaction,
 				networkIdentifier:
-					transferSecondSignatureFixture.testCases.input.networkIdentifier,
+					transferSecondSignatureFixture.testCases[0].input.networkIdentifier,
 			});
 			newTransaction.sign(
-				transferSecondSignatureFixture.testCases.input.account.passphrase,
+				transferSecondSignatureFixture.testCases[0].input.account.passphrase,
 			);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
 			expect(parsedResponse.senderPublicKey).toEqual(
-				transferSecondSignatureFixture.testCases.output.senderPublicKey,
+				transferSecondSignatureFixture.testCases[0].output.senderPublicKey,
 			);
 			expect(parsedResponse.signature).toEqual(
-				transferSecondSignatureFixture.testCases.output.signature,
+				transferSecondSignatureFixture.testCases[0].output.signature,
 			);
 		});
 
 		it('should return correct senderId/senderPublicKey when sign with passphrase and secondPassphrase', () => {
 			const newTransaction = new TransferTransaction({
-				...transferSecondSignatureFixture.testCases.input.transaction,
+				...transferSecondSignatureFixture.testCases[0].input.transaction,
 				networkIdentifier:
-					transferSecondSignatureFixture.testCases.input.networkIdentifier,
+					transferSecondSignatureFixture.testCases[0].input.networkIdentifier,
 			});
 			newTransaction.sign(
-				transferSecondSignatureFixture.testCases.input.account.passphrase,
-				transferSecondSignatureFixture.testCases.input.secondPassphrase,
+				transferSecondSignatureFixture.testCases[0].input.account.passphrase,
+				transferSecondSignatureFixture.testCases[0].input.secondPassphrase,
 			);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
 			expect(parsedResponse.senderPublicKey).toEqual(
-				transferSecondSignatureFixture.testCases.output.senderPublicKey,
+				transferSecondSignatureFixture.testCases[0].output.senderPublicKey,
 			);
 			expect(parsedResponse.signature).toEqual(
-				transferSecondSignatureFixture.testCases.output.signature,
+				transferSecondSignatureFixture.testCases[0].output.signature,
 			);
 			expect(parsedResponse.signSignature).toEqual(
-				transferSecondSignatureFixture.testCases.output.signSignature,
+				transferSecondSignatureFixture.testCases[0].output.signSignature,
 			);
 		});
 	});

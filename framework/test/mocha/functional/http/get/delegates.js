@@ -21,7 +21,7 @@ const {
 	registerSecondPassphrase,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-dpos');
+const { Slots } = require('@liskhq/lisk-blocks');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
@@ -44,7 +44,6 @@ describe('GET /delegates', () => {
 	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
-		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 	});
 	const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 	const validDelegate = genesisDelegates.delegates[0];

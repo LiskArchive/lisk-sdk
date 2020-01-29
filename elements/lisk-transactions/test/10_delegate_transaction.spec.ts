@@ -23,10 +23,10 @@ describe('Delegate registration transaction class', () => {
 	const {
 		networkIdentifier,
 		transaction: validDelegateTransaction,
-	} = protocolSpecDelegateFixture.testCases.input;
+	} = protocolSpecDelegateFixture.testCases[0].input;
 	const {
 		transaction: validTransaction,
-	} = protocolSpecTransferFixture.testCases.input;
+	} = protocolSpecTransferFixture.testCases[0].input;
 
 	let validTestTransaction: DelegateTransaction;
 	let sender: Account;
@@ -41,7 +41,7 @@ describe('Delegate registration transaction class', () => {
 			networkIdentifier,
 		});
 		validTestTransaction.sign(
-			protocolSpecDelegateFixture.testCases.input.account.passphrase,
+			protocolSpecDelegateFixture.testCases[0].input.account.passphrase,
 		);
 
 		sender = validDelegateAccount;
@@ -103,7 +103,7 @@ describe('Delegate registration transaction class', () => {
 			const conflictTransaction = {
 				...validDelegateTransaction,
 				senderPublicKey:
-					protocolSpecDelegateFixture.testCases.input.account.publicKey,
+					protocolSpecDelegateFixture.testCases[0].input.account.publicKey,
 				type: 10,
 			};
 			const { errors } = validTestTransaction.verifyAgainstOtherTransactions([

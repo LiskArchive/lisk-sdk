@@ -133,12 +133,15 @@ const generateTestCasesValidBlockTransferTx = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain.slice(0, 1),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain.slice(0, 1),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.chain.slice(1),
+		description: 'A valid block with a transfer transaction is processed',
+		input: chainAndAccountStates.chain.slice(1)[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
@@ -172,11 +175,15 @@ const generateTestCasesValidTransfersInvalidInSame = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			chain: chainAndAccountStates.chain.slice(0, 1),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				chain: chainAndAccountStates.chain.slice(0, 1),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with transfers valid on their own but invalid in the context of same block',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
@@ -216,11 +223,15 @@ const generateTestCasesTransferTooMuchSpentInBlockContext = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			chain: chainAndAccountStates.chain.slice(0, 1),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				chain: chainAndAccountStates.chain.slice(0, 1),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with transfers valid on their own but second transfer would not have enough funds after fee is applied',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
@@ -231,30 +242,30 @@ const generateTestCasesTransferTooMuchSpentInBlockContext = () => {
 const validBlockWithTransferTxSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'A valid block with a transfer transaction is processed',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_transfers',
 	handler: 'valid_block_processing_one_transfer_tx',
-	testCases: generateTestCasesValidBlockTransferTx(),
+	testCases: [generateTestCasesValidBlockTransferTx()],
 });
 
 const invalidBlockFundingAndTransferSameBlock = () => ({
 	title: 'Invalid block processing',
 	summary:
 		'An invalid block with transfers valid on their own but invalid in the context of same block',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_transfers',
 	handler: 'invalid_block_processing_funding_and_transfer_same_block',
-	testCases: generateTestCasesValidTransfersInvalidInSame(),
+	testCases: [generateTestCasesValidTransfersInvalidInSame()],
 });
 
 const invalidBlockTooMuchSpent = () => ({
 	title: 'Invalid block processing',
 	summary:
 		'An invalid block with transfers valid on their own but second transfer would not have enough funds after fee is applied',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_transfers',
 	handler: 'invalid_block_processing_not_enough_balance_for_second_transaction',
-	testCases: generateTestCasesTransferTooMuchSpentInBlockContext(),
+	testCases: [generateTestCasesTransferTooMuchSpentInBlockContext()],
 });
 
 module.exports = BaseGenerator.runGenerator('block_processing_transfers', [

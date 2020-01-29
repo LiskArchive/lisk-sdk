@@ -15,7 +15,8 @@
 import { hash, verifyData } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
-import { BlockInstance, ExceptionOptions, Slots } from './types';
+import { Slots } from './slots';
+import { BlockInstance, ExceptionOptions } from './types';
 
 export const validateSignature = (
 	block: BlockInstance,

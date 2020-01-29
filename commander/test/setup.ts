@@ -50,6 +50,6 @@ Assertion.addMethod('customError', function handleAssert(
 
 [sinonChai, chaiAsPromised].forEach(chai.use);
 
-global.sandbox = sinon.sandbox.create({
+global.sandbox = sinon.createSandbox({
 	useFakeTimers: true,
 });

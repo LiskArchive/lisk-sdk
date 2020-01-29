@@ -24,14 +24,8 @@ import { Blocks, StateStore } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
-import {
-	BlockInstance,
-	ExceptionOptions,
-	Slots as SlotsInterface,
-	Logger,
-} from '../../src/types';
-
-const { Slots } = require('@liskhq/lisk-dpos');
+import { Slots } from '../../src/slots';
+import { BlockInstance, ExceptionOptions, Logger } from '../../src/types';
 
 jest.mock('events');
 
@@ -66,7 +60,7 @@ describe('blocks/header', () => {
 	let blocksInstance: Blocks;
 	let storageStub: any;
 	let loggerStub: Logger;
-	let slots: SlotsInterface;
+	let slots: Slots;
 	let block: BlockInstance;
 	let blockBytes: Buffer;
 
@@ -104,7 +98,6 @@ describe('blocks/header', () => {
 		slots = new Slots({
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
-			blocksPerRound: constants.activeDelegates,
 		});
 		exceptions = {};
 
@@ -415,7 +408,7 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				originalClass = transactionClass;
@@ -423,7 +416,7 @@ describe('blocks/header', () => {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
+				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);

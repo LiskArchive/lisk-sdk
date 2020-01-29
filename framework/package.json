@@ -1,6 +1,6 @@
 {
 	"name": "lisk-framework",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -48,11 +48,11 @@
 	"dependencies": {
 		"@liskhq/lisk-blocks": "0.1.0",
 		"@liskhq/lisk-bft": "0.1.0",
-		"@liskhq/lisk-cryptography": "2.4.0",
+		"@liskhq/lisk-cryptography": "2.4.1",
+		"@liskhq/lisk-p2p": "0.4.1",
 		"@liskhq/lisk-dpos": "0.1.0",
-		"@liskhq/lisk-p2p": "0.4.0",
 		"@liskhq/lisk-transaction-pool": "0.2.0",
-		"@liskhq/lisk-transactions": "3.0.0",
+		"@liskhq/lisk-transactions": "3.0.1",
 		"@liskhq/lisk-validator": "0.3.0",
 		"ajv": "6.11.0",
 		"ajv-keywords": "3.4.0",

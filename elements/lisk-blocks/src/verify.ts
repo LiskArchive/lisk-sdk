@@ -18,6 +18,7 @@ import {
 } from '@liskhq/lisk-transactions';
 
 import { DataAccess } from './data_access';
+import { Slots } from './slots';
 import { StateStore } from './state_store';
 import * as transactionsModule from './transactions';
 import {
@@ -26,7 +27,6 @@ import {
 	Context,
 	ExceptionOptions,
 	MatcherTransaction,
-	Slots,
 	Storage,
 } from './types';
 

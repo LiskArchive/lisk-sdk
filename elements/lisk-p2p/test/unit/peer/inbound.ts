@@ -25,10 +25,10 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
-import { P2PPeerInfo } from '../../../src';
+import { p2p_types } from '../../../src';
 
 describe('peer/inbound', () => {
-	let defaultPeerInfo: P2PPeerInfo;
+	let defaultPeerInfo: p2p_types.P2PPeerInfo;
 	let defaultPeerConfig: PeerConfig;
 	let defaultInboundPeer: InboundPeer;
 	let inboundSocket: SCServerSocket;

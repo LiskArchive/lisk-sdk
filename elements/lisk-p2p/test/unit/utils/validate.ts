@@ -27,12 +27,15 @@ import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 } from '../../../src/p2p_types';
-import {
+import { constants } from '../../../src';
+
+const {
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	PEER_INFO_LIST_TOO_LONG_REASON,
 	INVALID_PEER_INFO_LIST_REASON,
-} from '../../../src';
+} = constants;
+
 describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {

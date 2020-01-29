@@ -58,6 +58,10 @@ export class DataAccess {
 		return this._blocksCache.add(blockHeader);
 	}
 
+	public get transactionAdapter(): TransactionInterfaceAdapter {
+		return this._transactionAdapter;
+	}
+
 	/** Begin: BlockHeaders */
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
@@ -120,7 +124,7 @@ export class DataAccess {
 		return blocks?.map(block => this.deserializeBlockHeader(block));
 	}
 
-	public async getLastBlockHeader(): Promise<BlockHeader> {
+	public async getLastBlockHeader(): Promise<BlockHeader | undefined> {
 		const cachedBlock = this._blocksCache.getLastBlockHeader();
 
 		if (cachedBlock) {
@@ -129,12 +133,12 @@ export class DataAccess {
 
 		const block = await this._storage.getLastBlockHeader();
 
-		return this.deserializeBlockHeader(block);
+		return block && this.deserializeBlockHeader(block);
 	}
 
 	public async getLastCommonBlockHeader(
 		arrayOfBlockIds: ReadonlyArray<string>,
-	): Promise<BlockHeader> {
+	): Promise<BlockHeader | undefined> {
 		const cachedBlock = this._blocksCache.getLastCommonBlockHeader(
 			arrayOfBlockIds,
 		);
@@ -145,7 +149,7 @@ export class DataAccess {
 
 		const block = await this._storage.getLastCommonBlockHeader(arrayOfBlockIds);
 
-		return this.deserializeBlockHeader(block);
+		return block && this.deserializeBlockHeader(block);
 	}
 
 	/** Begin: BlockHeaders */
@@ -163,13 +167,15 @@ export class DataAccess {
 	): Promise<BlockInstance[]> {
 		const blocks = await this._storage.getBlocksByIDs(arrayOfBlockIds);
 
-		return blocks.map(block => this.deserialize(block));
+		return blocks?.map(block => this.deserialize(block));
 	}
 
-	public async getBlockByHeight(height: number): Promise<BlockHeader> {
+	public async getBlockByHeight(
+		height: number,
+	): Promise<BlockHeader | undefined> {
 		const block = await this._storage.getBlockByHeight(height);
 
-		return this.deserialize(block);
+		return block && this.deserialize(block);
 	}
 
 	public async getBlocksByHeightBetween(
@@ -181,13 +187,13 @@ export class DataAccess {
 			toHeight,
 		);
 
-		return blocks.map(block => this.deserialize(block));
+		return blocks?.map(block => this.deserialize(block));
 	}
 
-	public async getLastBlock(): Promise<BlockInstance> {
+	public async getLastBlock(): Promise<BlockInstance | undefined> {
 		const block = await this._storage.getLastBlock();
 
-		return this.deserialize(block);
+		return block && this.deserialize(block);
 	}
 
 	public async getFirstBlockIdWithInterval(

@@ -14,7 +14,6 @@
 
 import { Block as blockFixture } from '../fixtures/blocks';
 import { FinalityManager } from '../../src/finality_manager';
-const { Slots } = require('@liskhq/lisk-dpos');
 const { StateStore } = require('@liskhq/lisk-blocks');
 
 import {
@@ -23,12 +22,10 @@ import {
 	CHAIN_STATE_FINALIZED_HEIGHT_KEY,
 } from '../../src';
 
-import {
-	Storage,
-	Slots as SlotType,
-	StateStore as StateStoreType,
-	Block,
-} from '../../src/types';
+import { Storage, StateStore as StateStoreType, Block } from '../../src/types';
+
+import { Slots } from '@liskhq/lisk-blocks';
+import { Rounds } from '@liskhq/lisk-dpos';
 
 const constants = {
 	ACTIVE_DELEGATES: 101,
@@ -53,12 +50,14 @@ describe('bft', () => {
 	describe('BFT', () => {
 		let storageMock: Storage;
 
-		let slots: SlotType;
+		let rounds: Rounds;
+		let slots: Slots;
 		let activeDelegates: number;
 		let startingHeight: number;
 		let bftParams: {
 			readonly storage: Storage;
-			readonly slots: SlotType;
+			readonly rounds: Rounds;
+			readonly slots: Slots;
 			readonly activeDelegates: number;
 			readonly startingHeight: number;
 		};
@@ -78,13 +77,14 @@ describe('bft', () => {
 			slots = new Slots({
 				epochTime: constants.EPOCH_TIME,
 				interval: constants.BLOCK_TIME,
-				blocksPerRound: constants.ACTIVE_DELEGATES,
 			});
+			rounds = new Rounds({ blocksPerRound: activeDelegates });
 
 			activeDelegates = 101;
 			startingHeight = 0;
 			bftParams = {
 				storage: storageMock,
+				rounds,
 				slots,
 				activeDelegates,
 				startingHeight,
@@ -470,7 +470,7 @@ describe('bft', () => {
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.get).toHaveBeenLastCalledWith(
 					{ height_lte: 400, height_gte: 450 - activeDelegates * 2 },
-					{ limit: undefined, sort: 'height:desc' },
+					{ limit: null, sort: 'height:desc' },
 				);
 			});
 
