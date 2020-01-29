@@ -47,7 +47,12 @@ const initNode = async (options, storageConfig) => {
 		},
 		storageConfig.database,
 	);
+
 	await storage.bootstrap();
+
+	storage.entities.Account.extendDefaultOptions({
+		limit: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
 
 	const nodeOptions = {
 		...options,
