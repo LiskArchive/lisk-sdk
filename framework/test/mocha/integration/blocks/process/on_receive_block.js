@@ -27,7 +27,7 @@ const { Rounds } = require('@liskhq/lisk-dpos');
 const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const application = require('../../../../utils/legacy/application');
+const localCommon = require('./../../common');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
@@ -44,24 +44,9 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	let library;
 	let storage;
 
-	before(done => {
-		application.init(
-			{
-				sandbox: {
-					name: 'blocks_process_on_receive_block',
-				},
-			},
-			(err, scope) => {
-				library = scope;
-				storage = scope.components.storage;
-
-				setTimeout(done, 5000);
-			},
-		);
-	});
-
-	after(done => {
-		application.cleanup(done);
+	localCommon.beforeBlock('blocks_process_on_receive_block', lib => {
+		library = lib;
+		storage = lib.components.storage;
 	});
 
 	afterEach(async () =>

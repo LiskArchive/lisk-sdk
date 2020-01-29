@@ -39,7 +39,7 @@ class BaseSynchronizer {
 			peerId,
 			penalty: 100,
 		});
-		await this.channel.publish('chain:processor:sync', {
+		await this.channel.publish('app:processor:sync', {
 			block: receivedBlock,
 		});
 	}

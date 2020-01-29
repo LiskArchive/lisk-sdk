@@ -22,7 +22,7 @@ const _ = require('lodash');
 const async = require('async');
 const { Slots } = require('@liskhq/lisk-blocks');
 const { Rounds } = require('@liskhq/lisk-dpos');
-const application = require('../../../../utils/legacy/application');
+const localCommon = require('../../common');
 const {
 	clearDatabaseTable,
 } = require('../../../../utils/storage/storage_sandbox');
@@ -106,43 +106,28 @@ describe('blocks/verify', () => {
 	let dpos;
 	let storage;
 
-	before(done => {
-		application.init(
-			{
-				sandbox: {
-					name: 'blocks_verify',
+	localCommon.beforeBlock('blocks_verify', scope => {
+		dpos = scope.modules.dpos;
+		storage = scope.components.storage;
+
+		// Set current block version to 0
+		scope.modules.blocks.blocksVerify.exceptions = {
+			...scope.modules.blocks.exceptions,
+			blockVersions: {
+				0: {
+					start: 1,
+					end: 150,
 				},
 			},
-			(err, scope) => {
-				dpos = scope.modules.dpos;
-				storage = scope.components.storage;
+		};
 
-				// Set current block version to 0
-				scope.modules.blocks.blocksVerify.exceptions = {
-					...scope.modules.blocks.exceptions,
-					blockVersions: {
-						0: {
-							start: 1,
-							end: 150,
-						},
-					},
-				};
-
-				library = scope;
-				library.modules.blocks._lastBlock = genesisBlock;
-				// Bus gets overwritten - waiting for mem_accounts has to be done manually
-				setTimeout(done, 5000);
-			},
-		);
+		library = scope;
+		library.modules.blocks._lastBlock = genesisBlock;
 	});
 
 	afterEach(() => {
 		library.modules.blocks._lastBlock = genesisBlock;
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
-	});
-
-	after(done => {
-		application.cleanup(done);
 	});
 
 	// Move to unit tests (already covered)

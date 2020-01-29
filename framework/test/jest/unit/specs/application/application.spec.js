@@ -29,7 +29,8 @@ const {
 	genesisBlockSchema,
 	constantsSchema,
 } = require('../../../../../src/application/schema');
-
+const loggerComponent = require('../../../../../src/components/logger');
+const storageComponent = require('../../../../../src/components/storage');
 const networkConfig = require('../../../../fixtures/config/devnet/config');
 const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
@@ -38,6 +39,7 @@ const config = {
 };
 
 jest.mock('../../../../../src/components/logger');
+jest.mock('../../../../../src/components/storage');
 jest.mock('@liskhq/lisk-validator', () => ({
 	validator: {
 		validate: jest.fn().mockImplementation(() => {
@@ -50,6 +52,31 @@ jest.mock('@liskhq/lisk-validator', () => ({
 describe('Application', () => {
 	// Arrange
 	const frameworkTxTypes = ['8', '9', '10', '11', '12'];
+	const loggerMock = {
+		info: jest.fn(),
+		error: jest.fn(),
+		debug: jest.fn(),
+		trace: jest.fn(),
+	};
+	const storageMock = {
+		entities: {
+			Migration: {
+				defineSchema: jest.fn(),
+				applyAll: jest.fn(),
+			},
+			Account: {
+				extendDefaultOptions: jest.fn(),
+			},
+			NetworkInfo: {
+				getKey: jest.fn(),
+				setKey: jest.fn(),
+			},
+		},
+		registerEntity: jest.fn(),
+		bootstrap: jest.fn(),
+	};
+	loggerComponent.createLoggerComponent.mockReturnValue(loggerMock);
+	storageComponent.createStorageComponent.mockReturnValue(storageMock);
 
 	afterEach(() => {
 		// So we can start a fresh schema each time Application is instantiated
@@ -174,8 +201,40 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.genesisBlock).toBe(genesisBlock);
-			expect(app.controller).toBeNull();
 			expect(app.config).toMatchSnapshot();
+			expect(app._controller).toBeNull();
+			expect(app._node).toBeNull();
+			expect(app._network).toBeNull();
+			expect(app.channel).toBeNull();
+			expect(app.initialState).toBeNull();
+			expect(app.applicationState).toBeNull();
+			expect(app._migrations).toBeInstanceOf(Object);
+			expect(app._modules).toBeInstanceOf(Object);
+			expect(app._transactions).toBeInstanceOf(Object);
+		});
+
+		it('should register http_api module', () => {
+			// Act
+			const app = new Application(genesisBlock, config);
+
+			// Assert
+			expect(Object.keys(app._modules)).toEqual(['http_api']);
+		});
+
+		it('should initialize logger', () => {
+			// Act
+			const app = new Application(genesisBlock, config);
+
+			// Assert
+			expect(app.logger).toBe(loggerMock);
+		});
+
+		it('should initialize storage', () => {
+			// Act
+			const app = new Application(genesisBlock, config);
+
+			// Assert
+			expect(app.storage).toBe(storageMock);
 		});
 
 		it('should contain all framework related transactions.', () => {

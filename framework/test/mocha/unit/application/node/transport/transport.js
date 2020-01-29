@@ -494,10 +494,10 @@ describe('transport', () => {
 						).calledWith(SAMPLE_SIGNATURE_1);
 					});
 
-					it('should call transportModule.channel.publish with "chain:signature:change" and signature', async () => {
+					it('should call transportModule.channel.publish with "app:signature:change" and signature', async () => {
 						expect(transportModule.channel.publish).to.be.calledOnce;
 						expect(transportModule.channel.publish).to.be.calledWith(
-							'chain:signature:change',
+							'app:signature:change',
 							SAMPLE_SIGNATURE_1,
 						);
 					});
@@ -549,10 +549,10 @@ describe('transport', () => {
 						).to.be.calledWith(transaction.id);
 					});
 
-					it('should call transportModule.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
+					it('should call transportModule.channel.publish with "app:transactions:change" and transaction as arguments', async () => {
 						expect(transportModule.channel.publish).to.be.calledOnce;
 						expect(transportModule.channel.publish).to.be.calledWith(
-							'chain:transactions:change',
+							'app:transactions:change',
 							transaction.toJSON(),
 						);
 					});

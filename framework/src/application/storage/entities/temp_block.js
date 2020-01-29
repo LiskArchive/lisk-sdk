@@ -21,7 +21,7 @@ const {
 	utils: {
 		filterTypes: { NUMBER, TEXT },
 	},
-} = require('../../../../../components/storage');
+} = require('../../../components/storage');
 
 const sqlFiles = {
 	create: 'temp_block/create.sql',

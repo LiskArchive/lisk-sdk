@@ -52,10 +52,10 @@ async function _getDelegates(filters, options) {
 		options,
 	);
 
-	const lastBlock = await channel.invoke('chain:getLastBlock');
+	const lastBlock = await channel.invoke('app:getLastBlock');
 
 	const supply = lastBlock.height
-		? await channel.invoke('chain:calculateSupply', {
+		? await channel.invoke('app:calculateSupply', {
 				height: lastBlock.height,
 		  })
 		: 0;
@@ -64,20 +64,20 @@ async function _getDelegates(filters, options) {
 }
 
 async function _getForgers(filters) {
-	const lastBlock = await channel.invoke('chain:getLastBlock');
+	const lastBlock = await channel.invoke('app:getLastBlock');
 
-	const lastBlockSlot = await channel.invoke('chain:getSlotNumber', {
+	const lastBlockSlot = await channel.invoke('app:getSlotNumber', {
 		epochTime: lastBlock.timestamp,
 	});
-	const currentSlot = await channel.invoke('chain:getSlotNumber');
+	const currentSlot = await channel.invoke('app:getSlotNumber');
 	const forgerKeys = [];
 
-	const currentRound = await channel.invoke('chain:calcSlotRound', {
+	const currentRound = await channel.invoke('app:calcSlotRound', {
 		height: lastBlock.height + 1,
 	});
 
 	const activeDelegates = await channel.invoke(
-		'chain:getForgerPublicKeysForRound',
+		'app:getForgerPublicKeysForRound',
 		{
 			round: currentRound,
 		},

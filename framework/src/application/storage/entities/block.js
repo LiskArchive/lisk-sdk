@@ -20,7 +20,7 @@ const _ = require('lodash');
 const {
 	entities: { Block: BlockEntity },
 	errors: { NonSupportedOperationError },
-} = require('../../../../../components/storage');
+} = require('../../../components/storage');
 
 const defaultCreateValues = {
 	maxHeightPreviouslyForged: 0,

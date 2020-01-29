@@ -236,13 +236,13 @@ describe('HttpApi', () => {
 				'app:state:updated',
 			);
 			expect(channelSubscribeStub.secondCall.args[0]).to.be.eql(
-				'chain:blocks:change',
+				'app:blocks:change',
 			);
 			expect(channelSubscribeStub.thirdCall.args[0]).to.be.eql(
-				'chain:rounds:change',
+				'app:rounds:change',
 			);
 			expect(channelSubscribeStub.lastCall.args[0]).to.be.eql(
-				'chain:transactions:confirmed:change',
+				'app:transactions:confirmed:change',
 			);
 		});
 	});

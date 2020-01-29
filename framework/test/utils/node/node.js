@@ -20,28 +20,36 @@ const {
 	registeredTransactions,
 } = require('../../utils/registered_transactions');
 const { createMockChannel } = require('../channel');
-const ChainModule = require('../../../src/application/node');
+const {
+	config: nodeConfig,
+} = require('../../../src/application/node/defaults');
+const { Node } = require('../../../src/application/node');
 const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
 
-const createChainModule = () => {
-	const options = {
-		...ChainModule.defaults.default,
+const createNode = ({ storage, logger, channel, options = {} }) => {
+	const nodeOptions = {
+		...nodeConfig.default,
+		...options,
 		constants: constantsConfig(),
 		genesisBlock,
 		registeredTransactions: { ...registeredTransactions },
 	};
-	const chainModule = new ChainModule(options);
-
-	return chainModule;
+	return new Node({
+		channel: channel || createMockChannel(),
+		options: nodeOptions,
+		logger,
+		storage,
+		applicationState: null,
+	});
 };
 
-const createAndLoadChainModule = async databaseName => {
-	const chainModule = createChainModule();
-	await chainModule.load(createMockChannel(databaseName));
+const createAndLoadNode = async (storage, logger) => {
+	const chainModule = createNode({ storage, logger });
+	await chainModule.bootstrap();
 	return chainModule;
 };
 
 module.exports = {
-	createChainModule,
-	createAndLoadChainModule,
+	createNode,
+	createAndLoadNode,
 };

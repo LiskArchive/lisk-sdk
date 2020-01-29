@@ -30,7 +30,7 @@ const {
 	getDelegateForSlot,
 	createValidBlock: createBlock,
 } = require('./common');
-const commonApplication = require('../../utils/legacy/application');
+const localCommon = require('./common');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../utils/random');
 const { getNetworkIdentifier } = require('../../utils/network_identifier');
@@ -47,10 +47,6 @@ const slots = new Slots({
 // Promisify callback functions
 const forge = promisify(commonForge);
 const addTransactionPromisified = promisify(addTransaction);
-const application = {
-	init: promisify(commonApplication.init),
-	cleanup: promisify(commonApplication.cleanup),
-};
 // Constants
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 const { MAX_TRANSACTIONS_PER_BLOCK } = global.constants;
@@ -203,23 +199,10 @@ describe('matcher', () => {
 		senderPublicKey: genesisAccount.publicKey,
 	};
 
-	before(async () => {
-		// TransferTransaction.matcher = () => false;
-
-		scope = await application.init({
-			sandbox: {
-				name: 'lisk_test_integration_matcher',
-			},
-			scope: {
-				config: {
-					broadcasts: {
-						active: true,
-					},
-				},
-			},
-		});
-
+	localCommon.beforeBlock('lisk_test_integration_matcher', lib => {
+		scope = lib;
 		scope.config.broadcasts.active = true;
+
 		/* TODO: [BUG] There is a current restriction on transaction type and it cannot
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
@@ -229,10 +212,6 @@ describe('matcher', () => {
 
 		// Define matcher property to be configurable so it can be overriden in the tests
 		setMatcherAndRegisterTx(scope, CustomTransationClass, () => {});
-	});
-
-	after(() => {
-		return application.cleanup();
 	});
 
 	afterEach(async () => {

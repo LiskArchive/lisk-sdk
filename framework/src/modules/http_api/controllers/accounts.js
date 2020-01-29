@@ -86,12 +86,12 @@ AccountsController.getAccounts = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const lastBlock = await channel.invoke('chain:getLastBlock');
+		const lastBlock = await channel.invoke('app:getLastBlock');
 		const data = await storage.entities.Account.get(filters, options).map(
 			accountFormatter.bind(
 				null,
 				lastBlock.height
-					? await channel.invoke('chain:calculateSupply', {
+					? await channel.invoke('app:calculateSupply', {
 							height: lastBlock.height,
 					  })
 					: 0,

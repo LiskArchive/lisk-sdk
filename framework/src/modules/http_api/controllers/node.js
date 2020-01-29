@@ -25,7 +25,7 @@ let library;
 
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
-		'chain:getForgingStatusForAllDelegates',
+		'app:getForgingStatusForAllDelegates',
 	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {
@@ -63,14 +63,14 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const lastBlock = await library.channel.invoke('chain:getLastBlock');
-		const milestone = await library.channel.invoke('chain:calculateMilestone', {
+		const lastBlock = await library.channel.invoke('app:getLastBlock');
+		const milestone = await library.channel.invoke('app:calculateMilestone', {
 			height: lastBlock.height,
 		});
-		const reward = await library.channel.invoke('chain:calculateReward', {
+		const reward = await library.channel.invoke('app:calculateReward', {
 			height: lastBlock.height,
 		});
-		const supply = await library.channel.invoke('chain:calculateSupply', {
+		const supply = await library.channel.invoke('app:calculateSupply', {
 			height: lastBlock.height,
 		});
 
@@ -109,7 +109,7 @@ NodeController.getStatus = async (context, next) => {
 			syncing,
 			lastBlock,
 			chainMaxHeightFinalized,
-		} = await library.channel.invoke('chain:getNodeStatus');
+		} = await library.channel.invoke('app:getNodeStatus');
 
 		const data = {
 			currentTime: Date.now(),
@@ -161,7 +161,7 @@ NodeController.updateForgingStatus = async (context, next) => {
 	const { forging } = context.request.swagger.params.data.value;
 
 	try {
-		const data = await library.channel.invoke('chain:updateForgingStatus', {
+		const data = await library.channel.invoke('app:updateForgingStatus', {
 			publicKey,
 			password,
 			forging,
@@ -199,7 +199,7 @@ NodeController.getPooledTransactions = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await library.channel.invoke('chain:getTransactionsFromPool', {
+		const data = await library.channel.invoke('app:getTransactionsFromPool', {
 			type: state,
 			filters: _.clone(filters),
 		});

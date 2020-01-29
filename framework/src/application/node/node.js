@@ -23,9 +23,6 @@ const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const { createStorageComponent } = require('../../components/storage');
-const { createLoggerComponent } = require('../../components/logger');
-const { bootstrapStorage } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const {
 	TransactionPool,
@@ -49,10 +46,13 @@ const { BlockProcessorV2 } = require('./block_processor_v2.js');
 const forgeInterval = 1000;
 
 module.exports = class Node {
-	constructor(channel, options) {
+	constructor({ channel, options, logger, storage, applicationState }) {
 		this.channel = channel;
 		this.options = options;
-		this.logger = null;
+		this.logger = logger;
+		this.storage = storage;
+		this.applicationState = applicationState;
+
 		this.components = null;
 		this.sequence = null;
 		this.registeredTransactions = null;
@@ -61,31 +61,6 @@ module.exports = class Node {
 	}
 
 	async bootstrap() {
-		const loggerConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'logger',
-		);
-
-		const storageConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'storage',
-		);
-
-		this.applicationState = await this.channel.invoke(
-			'app:getApplicationState',
-		);
-
-		this.logger = createLoggerComponent({ ...loggerConfig, module: 'chain' });
-		const dbLogger =
-			storageConfig.logFileName &&
-			storageConfig.logFileName === loggerConfig.logFileName
-				? this.logger
-				: createLoggerComponent({
-						...loggerConfig,
-						logFileName: storageConfig.logFileName,
-						module: 'chain:database',
-				  });
-
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
 
@@ -101,13 +76,6 @@ module.exports = class Node {
 					`modules.chain.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.BLOCK_TIME=${this.options.constants.BLOCK_TIME}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
 				);
 			}
-
-			// Storage
-			this.logger.debug('Initiating storage...');
-			this.storage = createStorageComponent(storageConfig, dbLogger);
-
-			// TODO: For socket cluster child process, should be removed with refactoring of network module
-			this.options.loggerConfig = loggerConfig;
 
 			this.networkIdentifier = getNetworkIdentifier(
 				this.options.genesisBlock.payloadHash,
@@ -128,10 +96,6 @@ module.exports = class Node {
 					this.components.logger.warn('Main queue', current);
 				},
 			});
-			await bootstrapStorage(
-				{ components: this.components },
-				this.config.constants.ACTIVE_DELEGATES,
-			);
 
 			await this._initModules();
 
@@ -253,7 +217,7 @@ module.exports = class Node {
 					message: error.message,
 					stack: error.stack,
 				},
-				'Failed to initialization chain module',
+				'Failed to initialization node',
 			);
 			process.emit('cleanup', error);
 		}
@@ -318,19 +282,12 @@ module.exports = class Node {
 
 	async cleanup(error) {
 		this._unsubscribeToEvents();
-		const { modules, components } = this;
+		const { modules } = this;
+
 		if (error) {
 			this.logger.fatal(error.toString());
 		}
 		this.logger.info('Cleaning chain...');
-
-		if (components !== undefined) {
-			Object.keys(components).forEach(async key => {
-				if (components[key].cleanup) {
-					await components[key].cleanup();
-				}
-			});
-		}
 
 		// Run cleanup operation on each module before shutting down the node;
 		// this includes operations like the rebuild verification process.
@@ -395,7 +352,7 @@ module.exports = class Node {
 		});
 
 		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
-			this.channel.publish('chain:rounds:change', { number: data.newRound });
+			this.channel.publish('app:rounds:change', { number: data.newRound });
 		});
 
 		this.processor = new Processor({
@@ -546,14 +503,14 @@ module.exports = class Node {
 
 	_subscribeToEvents() {
 		this.channel.subscribe(
-			'chain:processor:broadcast',
+			'app:processor:broadcast',
 			async ({ data: { block } }) => {
 				await this.transport.handleBroadcastBlock(block);
 			},
 		);
 
 		this.channel.subscribe(
-			'chain:processor:deleteBlock',
+			'app:processor:deleteBlock',
 			({ data: { block } }) => {
 				if (block.transactions.length) {
 					const transactions = block.transactions
@@ -561,7 +518,7 @@ module.exports = class Node {
 						.map(tx => this.blocks.deserializeTransaction(tx));
 					this.transactionPool.onDeletedTransactions(transactions);
 					this.channel.publish(
-						'chain:transactions:confirmed:change',
+						'app:transactions:confirmed:change',
 						block.transactions,
 					);
 				}
@@ -569,47 +526,42 @@ module.exports = class Node {
 					{ id: block.id, height: block.height },
 					'Deleted a block from the chain',
 				);
-				this.channel.publish('chain:blocks:change', block);
+				this.channel.publish('app:blocks:change', block);
 			},
 		);
 
-		this.channel.subscribe(
-			'chain:processor:newBlock',
-			({ data: { block } }) => {
-				if (block.transactions.length) {
-					this.transactionPool.onConfirmedTransactions(
-						block.transactions.map(tx =>
-							this.blocks.deserializeTransaction(tx),
-						),
-					);
-					this.channel.publish(
-						'chain:transactions:confirmed:change',
-						block.transactions,
-					);
-				}
-				this.logger.info(
-					{
-						id: block.id,
-						height: block.height,
-						numberOfTransactions: block.transactions.length,
-					},
-					'New block added to the chain',
+		this.channel.subscribe('app:processor:newBlock', ({ data: { block } }) => {
+			if (block.transactions.length) {
+				this.transactionPool.onConfirmedTransactions(
+					block.transactions.map(tx => this.blocks.deserializeTransaction(tx)),
 				);
-				this.channel.publish('chain:blocks:change', block);
+				this.channel.publish(
+					'app:transactions:confirmed:change',
+					block.transactions,
+				);
+			}
+			this.logger.info(
+				{
+					id: block.id,
+					height: block.height,
+					numberOfTransactions: block.transactions.length,
+				},
+				'New block added to the chain',
+			);
+			this.channel.publish('app:blocks:change', block);
 
-				if (!this.synchronizer.isActive) {
-					this.channel.invoke('app:updateApplicationState', {
-						height: block.height,
-						lastBlockId: block.id,
-						maxHeightPrevoted: block.maxHeightPrevoted,
-						blockVersion: block.version,
-					});
-				}
-			},
-		);
+			if (!this.synchronizer.isActive) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					lastBlockId: block.id,
+					maxHeightPrevoted: block.maxHeightPrevoted,
+					blockVersion: block.version,
+				});
+			}
+		});
 
 		this.channel.subscribe(
-			'chain:processor:sync',
+			'app:processor:sync',
 			({ data: { block, peerId } }) => {
 				this.synchronizer.run(block, peerId).catch(err => {
 					this.logger.error({ err }, 'Error occurred during synchronization.');
