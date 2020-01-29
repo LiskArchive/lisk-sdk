@@ -635,7 +635,7 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('getJSONBlocksWithLimitAndOffset', () => {
+	describe('getBlocksWithLimitAndOffset', () => {
 		describe('when called without offset', () => {
 			const validBlocks = [
 				{
@@ -651,13 +651,13 @@ describe('blocks', () => {
 			});
 
 			it('should use limit 1 as default', async () => {
-				await blocksInstance.getJSONBlocksWithLimitAndOffset(1);
+				await blocksInstance.getBlocksWithLimitAndOffset(1);
 
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
-					{ height_gte: 0, height_lte: 1 },
-					{ extended: true },
+					{ height_gte: 0, height_lte: 0 },
+					{ extended: true, limit: null, sort: 'height:desc' },
 				);
 			});
 		});
@@ -681,19 +681,16 @@ describe('blocks', () => {
 			});
 
 			it('should be sorted ascending by height', async () => {
-				const blocks = await blocksInstance.getJSONBlocksWithLimitAndOffset(
-					2,
-					100,
-				);
+				const blocks = await blocksInstance.getBlocksWithLimitAndOffset(2, 100);
 
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
-					{ height_gte: 100, height_lte: 102 },
-					{ extended: true },
+					{ height_gte: 100, height_lte: 101 },
+					{ extended: true, limit: null, sort: 'height:desc' },
 				);
 				expect(blocks.map(b => b.height)).toEqual(
-					validBlocks.map(b => b.height).sort((a, b) => (a > b ? 1 : -1)),
+					validBlocks.map(b => b.height).sort((a, b) => a - b),
 				);
 			});
 		});
@@ -730,7 +727,7 @@ describe('blocks', () => {
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
 					{ height_gte: 101, height_lte: 101 },
-					{ extended: true },
+					{ extended: true, limit: null, sort: 'height:desc' },
 				);
 			});
 		});
@@ -765,7 +762,10 @@ describe('blocks', () => {
 					.calledWith({ id_in: ['block-id'] })
 					.mockResolvedValue([validLastBlock]);
 				when<any, any>(stubs.dependencies.storage.entities.Block.get)
-					.calledWith({ height_gte: 101, height_lte: 134 }, { extended: true })
+					.calledWith(
+						{ height_gte: 101, height_lte: 134 },
+						{ extended: true, limit: null, sort: 'height:desc' },
+					)
 					.mockResolvedValue(validBlocksFromStorage);
 			});
 
@@ -789,7 +789,7 @@ describe('blocks', () => {
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
 					{ height_gte: 101, height_lte: 134 },
-					{ extended: true },
+					{ extended: true, limit: null, sort: 'height:desc' },
 				);
 				expect(blocks[0].height).toEqual(validBlocksFromStorage[0].height);
 			});

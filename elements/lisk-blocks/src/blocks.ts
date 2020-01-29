@@ -33,7 +33,7 @@ import {
 	saveBlock,
 	undoConfirmedStep,
 } from './chain';
-import { DataAccess } from './data_access';
+import { DataAccess, TransactionInterfaceAdapter } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
@@ -135,6 +135,7 @@ export class Blocks extends EventEmitter {
 	public readonly deserializeTransaction: (
 		transactionJSON: TransactionJSON,
 	) => BaseTransaction;
+	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 
 	public constructor({
 		// Components
@@ -171,13 +172,12 @@ export class Blocks extends EventEmitter {
 		});
 
 		// Binding data access to allow access to its scope accessibility
-		this.deserialize = this.dataAccess.deserialize.bind(this.dataAccess);
-		this.serialize = this.dataAccess.serialize.bind(this.dataAccess);
-		this.deserializeBlockHeader = this.dataAccess.deserializeBlockHeader.bind(
-			this.dataAccess,
-		);
+		this._transactionAdapter = this.dataAccess.transactionAdapter;
+		this.deserialize = this.dataAccess.deserialize.bind(this);
+		this.serialize = this.dataAccess.serialize;
+		this.deserializeBlockHeader = this.dataAccess.deserializeBlockHeader;
 		this.deserializeTransaction = this.dataAccess.deserializeTransaction.bind(
-			this.dataAccess,
+			this,
 		);
 		const genesisInstance = this.deserialize(genesisBlock);
 		this._lastBlock = genesisInstance;
@@ -213,6 +213,10 @@ export class Blocks extends EventEmitter {
 			slots: this.slots,
 			genesisBlock: this.genesisBlock,
 		});
+	}
+
+	public get transactionAdapter(): TransactionInterfaceAdapter {
+		return this._transactionAdapter;
 	}
 
 	public get lastBlock(): BlockInstance {
@@ -385,21 +389,24 @@ export class Blocks extends EventEmitter {
 		return deleteFromBlockId(this.storage, this.dataAccess, block.id);
 	}
 
-	public async getJSONBlocksWithLimitAndOffset(
+	public async getBlocksWithLimitAndOffset(
 		limit: number,
 		offset: number = 0,
 	): Promise<BlockInstance[]> {
 		// Calculate toHeight
 		const toHeight = offset + limit;
+		// To Preserve LessThan logic we are substracting by 1
+		const toHeightLT = toHeight - 1;
 
 		// Loads extended blocks from storage
 		const blocks = await this.dataAccess.getBlocksByHeightBetween(
 			offset,
-			toHeight,
+			toHeightLT,
 		);
 
-		return blocks.sort((a: BlockInstance, b: BlockInstance) =>
-			a.height > b.height ? 1 : -1,
+		// Return blocks in ascending order
+		return blocks.sort(
+			(a: BlockInstance, b: BlockInstance) => a.height - b.height,
 		);
 	}
 

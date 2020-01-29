@@ -14,12 +14,7 @@
 import { hash } from '@liskhq/lisk-cryptography';
 
 import { DataAccess } from './data_access';
-import {
-	BlockHeader,
-	BlockInstance,
-	BlockRound,
-	StorageTransaction,
-} from './types';
+import { BlockHeader, BlockRound, StorageTransaction } from './types';
 
 export const loadBlocksFromLastBlockId = async (
 	dataAccess: DataAccess,
@@ -48,11 +43,8 @@ export const loadBlocksFromLastBlockId = async (
 		lastBlockHeight + 1,
 		fetchUntilHeight,
 	);
-	const sortedBlocks = [...blocks].sort((a: BlockInstance, b: BlockInstance) =>
-		a.height > b.height ? 1 : -1,
-	);
 
-	return sortedBlocks;
+	return blocks;
 };
 
 export const getIdSequence = async (

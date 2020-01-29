@@ -54,6 +54,10 @@ export class DataAccess {
 		);
 	}
 
+	public get transactionAdapter(): TransactionInterfaceAdapter {
+		return this._transactionAdapter;
+	}
+
 	/** Begin: BlockHeaders */
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
