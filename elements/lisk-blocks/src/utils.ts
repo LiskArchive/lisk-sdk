@@ -48,7 +48,7 @@ export const loadBlocksFromLastBlockId = async (
 		lastBlockHeight + 1,
 		fetchUntilHeight,
 	);
-	const sortedBlocks = blocks.sort((a: BlockInstance, b: BlockInstance) =>
+	const sortedBlocks = [...blocks].sort((a: BlockInstance, b: BlockInstance) =>
 		a.height > b.height ? 1 : -1,
 	);
 
@@ -96,7 +96,7 @@ export const getIdSequence = async (
 
 	return {
 		firstHeight: blockIds[0].height,
-		ids: ids.join(),
+		ids: ids?.join(),
 	};
 };
 

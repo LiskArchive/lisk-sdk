@@ -419,7 +419,7 @@ export class Blocks extends EventEmitter {
 	): Promise<BlockHeader | undefined> {
 		try {
 			const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
-			const sortedBlocks = blocks.sort((a: BlockHeader, b: BlockHeader) =>
+			const sortedBlocks = [...blocks].sort((a: BlockHeader, b: BlockHeader) =>
 				a.height > b.height ? -1 : 1,
 			);
 			const highestCommonBlock = sortedBlocks.shift();
