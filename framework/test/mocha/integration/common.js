@@ -370,6 +370,7 @@ function beforeBlock(type, cb) {
 							dpos: _node.dpos,
 							processor: _node.processor,
 							transport: _node.transport,
+							rebuilder: _node.rebuilder,
 						},
 						components: {
 							logger: _node.logger,

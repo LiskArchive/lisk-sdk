@@ -300,7 +300,7 @@ class Application {
 			this.getMigrations(),
 		);
 
-		await this._network.initialiseNetwork();
+		await this._network.bootstrap();
 		await this._node.bootstrap();
 
 		this.channel.publish('app:ready');
