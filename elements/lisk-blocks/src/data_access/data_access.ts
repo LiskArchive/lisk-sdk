@@ -54,6 +54,10 @@ export class DataAccess {
 		);
 	}
 
+	public addBlockHeader(blockHeader: BlockHeader): BlockHeader[] {
+		return this._blocksCache.add(blockHeader);
+	}
+
 	public get transactionAdapter(): TransactionInterfaceAdapter {
 		return this._transactionAdapter;
 	}
@@ -64,7 +68,7 @@ export class DataAccess {
 	): Promise<BlockHeader[]> {
 		const cachedBlocks = this._blocksCache.getByIDs(arrayOfBlockIds);
 
-		if (cachedBlocks.length) {
+		if (cachedBlocks?.length) {
 			return cachedBlocks;
 		}
 		const blocks = await this._storage.getBlockHeadersByIDs(arrayOfBlockIds);
@@ -80,10 +84,9 @@ export class DataAccess {
 		if (cachedBlock) {
 			return cachedBlock;
 		}
-
 		const block = await this._storage.getBlockByHeight(height);
 
-		return block && this.deserializeBlockHeader(block);
+		return block ? this.deserializeBlockHeader(block) : undefined;
 	}
 
 	public async getBlockHeadersByHeightBetween(
@@ -95,7 +98,7 @@ export class DataAccess {
 			toHeight,
 		);
 
-		if (cachedBlocks.length) {
+		if (cachedBlocks?.length) {
 			return cachedBlocks;
 		}
 
