@@ -26,26 +26,25 @@ const {
 const { Node } = require('../../../src/application/node');
 const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
 
-const createNode = (storage, logger) => {
-	const options = {
+const createNode = ({ storage, logger, channel, options = {} }) => {
+	const nodeOptions = {
 		...nodeConfig.default,
+		...options,
 		constants: constantsConfig(),
 		genesisBlock,
 		registeredTransactions: { ...registeredTransactions },
 	};
-	const node = new Node({
-		channel: createMockChannel(),
-		options,
+	return new Node({
+		channel: channel || createMockChannel(),
+		options: nodeOptions,
 		logger,
 		storage,
 		applicationState: null,
 	});
-
-	return node;
 };
 
 const createAndLoadNode = async (storage, logger) => {
-	const chainModule = createNode(storage, logger);
+	const chainModule = createNode({ storage, logger });
 	await chainModule.bootstrap();
 	return chainModule;
 };
