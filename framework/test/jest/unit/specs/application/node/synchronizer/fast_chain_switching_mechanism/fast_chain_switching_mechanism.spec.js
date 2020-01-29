@@ -82,6 +82,7 @@ describe('fast_chain_switching_mechanism', () => {
 				},
 				ChainState: {
 					get: jest.fn(),
+					getKey: jest.fn(),
 				},
 			},
 		};

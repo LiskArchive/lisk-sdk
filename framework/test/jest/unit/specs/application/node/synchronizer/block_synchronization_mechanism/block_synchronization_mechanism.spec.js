@@ -98,6 +98,7 @@ describe('block_synchronization_mechanism', () => {
 				},
 				ChainState: {
 					get: jest.fn(),
+					getKey: jest.fn(),
 				},
 			},
 		};
