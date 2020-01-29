@@ -118,7 +118,12 @@ class Transport {
 			throw new Error(error);
 		}
 
-		return this.blocksModule.loadBlocksFromLastBlockId(data.blockId, 34);
+		const blocks = await this.blocksModule.loadBlocksFromLastBlockId(
+			data.blockId,
+			34,
+		);
+
+		return blocks.map(block => this.blocksModule.serialize(block));
 	}
 
 	async handleRPCGetGetHighestCommonBlock(data, peerId) {
