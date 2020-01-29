@@ -272,6 +272,34 @@ describe('finality_manager', () => {
 					header1,
 				);
 			});
+
+			it('should throw error if blockheader has conflict (Violates disjointness condition)', async () => {
+				const header1 = blockHeaderFixture({
+					height: 34624,
+					maxHeightPreviouslyForged: 34501,
+				});
+				const header2 = blockHeaderFixture({
+					height: 34666,
+					maxHeightPreviouslyForged: 34501,
+					delegatePublicKey: header1.delegatePublicKey,
+				});
+				const headers = [header1];
+				for (
+					let height = header1.height + 1;
+					height < header2.height;
+					height += 1
+				) {
+					const header = blockHeaderFixture({
+						height,
+						maxHeightPreviouslyForged: height - 129,
+					});
+					headers.push(header);
+				}
+				headers.push(header2);
+				expect(() => {
+					headers.forEach(header => finalityManager.addBlockHeader(header));
+				}).toThrow('Violation of disjointness condition.');
+			});
 		});
 
 		describe('recompute', () => {});
