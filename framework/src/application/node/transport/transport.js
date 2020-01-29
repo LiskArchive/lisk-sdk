@@ -123,7 +123,7 @@ class Transport {
 			34,
 		);
 
-		return blocks.map(block => this.blocksModule.serialize(block));
+		return blocks && blocks.map(block => this.blocksModule.serialize(block));
 	}
 
 	async handleRPCGetGetHighestCommonBlock(data, peerId) {
