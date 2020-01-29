@@ -15,39 +15,21 @@
 'use strict';
 
 const async = require('async');
-const application = require('../../../../utils/legacy/application');
+const localCommon = require('../../common');
 const modulesLoader = require('../../../../utils/legacy/modules_loader');
 const clearDatabaseTable = require('../../../../utils/storage/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
 
-const { REWARDS } = global.constants;
-
 describe('integration test (blocks) - process', () => {
 	let blocksProcess;
 	let blocks;
 	let storage;
-	let originalBlockRewardsOffset;
 
-	before(done => {
-		// Force rewards start at 150-th block
-		originalBlockRewardsOffset = REWARDS.OFFSET;
-		REWARDS.OFFSET = 150;
-
-		application.init(
-			{ sandbox: { name: 'blocks_process' } },
-			(err, scopeInit) => {
-				blocksProcess = scopeInit.modules.blocks.process;
-				blocks = scopeInit.modules.blocks;
-				storage = scopeInit.components.storage;
-				done(err);
-			},
-		);
-	});
-
-	after(done => {
-		REWARDS.OFFSET = originalBlockRewardsOffset;
-		application.cleanup(done);
+	localCommon.beforeBlock('blocks_process', lib => {
+		blocksProcess = lib.modules.blocks.process;
+		blocks = lib.modules.blocks;
+		storage = lib.components.storage;
 	});
 
 	beforeEach(done => {

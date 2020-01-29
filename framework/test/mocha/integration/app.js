@@ -15,7 +15,7 @@
 'use strict';
 
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const application = require('../../utils/legacy/application');
+const localCommon = require('./common');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const accountsFixtures = require('../../fixtures/accounts');
 const roundsFixtures = require('../../fixtures/rounds').rounds;
@@ -25,17 +25,9 @@ describe('app', () => {
 	let keypairs;
 	let Queries;
 
-	describe('init', () => {
-		it('should init successfully without any error', done => {
-			application.init(
-				{ sandbox: { name: 'lisk_integration_test_app' } },
-				(err, lib) => {
-					library = lib;
-					Queries = new QueriesHelper(lib, library.components.storage);
-					done(err);
-				},
-			);
-		});
+	localCommon.beforeBlock('lisk_integration_test_app', lib => {
+		library = lib;
+		Queries = new QueriesHelper(lib, library.components.storage);
 	});
 
 	describe('genesis block', () => {
@@ -379,12 +371,6 @@ describe('app', () => {
 					done();
 				});
 			});
-		});
-	});
-
-	describe('cleanup', () => {
-		it('should cleanup sandboxed application successfully', done => {
-			application.cleanup(done);
 		});
 	});
 });
