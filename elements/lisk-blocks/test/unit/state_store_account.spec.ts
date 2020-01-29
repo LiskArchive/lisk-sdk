@@ -19,6 +19,25 @@ describe('state store / account', () => {
 		{ address: '11237980039345381032L', balance: '555' },
 	];
 
+	const defaultAccount = {
+		publicKey: undefined,
+		secondPublicKey: undefined,
+		secondSignature: 0,
+		username: undefined,
+		isDelegate: 0,
+		balance: '0',
+		missedBlocks: 0,
+		producedBlocks: 0,
+		fees: '0',
+		rewards: '0',
+		voteWeight: '0',
+		nameExist: false,
+		multiMin: 0,
+		multiLifetime: 0,
+		votedDelegatesPublicKeys: undefined,
+		asset: {},
+	};
+
 	let stateStore: StateStore;
 	let storageStub: any;
 
@@ -27,6 +46,7 @@ describe('state store / account', () => {
 			entities: {
 				Account: {
 					get: jest.fn(),
+					getOne: jest.fn(),
 					upsert: jest.fn(),
 				},
 			},
@@ -80,14 +100,16 @@ describe('state store / account', () => {
 
 		it('should get the account', async () => {
 			// Act
-			const account = stateStore.account.get(defaultAccounts[0].address);
+			const account = await stateStore.account.get(defaultAccounts[0].address);
 			// Assert
 			expect(account).toStrictEqual(defaultAccounts[0]);
 		});
 
 		it('should throw an error if not exist', async () => {
 			// Act && Assert
-			expect(() => stateStore.account.get('123L')).toThrow('does not exist');
+			await expect(stateStore.account.get('123L')).rejects.toThrow(
+				'does not exist',
+			);
 		});
 	});
 
@@ -104,7 +126,7 @@ describe('state store / account', () => {
 
 		it('should get the account', async () => {
 			// Act
-			const account = stateStore.account.getOrDefault(
+			const account = await stateStore.account.getOrDefault(
 				defaultAccounts[0].address,
 			);
 			// Assert
@@ -112,10 +134,12 @@ describe('state store / account', () => {
 		});
 
 		it('should get the default account', async () => {
+			// Arrange
+			storageStub.entities.Account.get.mockResolvedValueOnce([]);
 			// Act
-			const account = stateStore.account.getOrDefault('123L');
+			const account = await stateStore.account.getOrDefault('123L');
 			// Assert
-			expect(account.balance).toBe('0');
+			expect(account).toEqual({ ...defaultAccount, address: '123L' });
 		});
 	});
 
@@ -138,21 +162,26 @@ describe('state store / account', () => {
 
 		it('should set the updated values for the account', async () => {
 			// Act
-			const updatedAccount = stateStore.account.get(defaultAccounts[0].address);
+			const updatedAccount = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
 
 			(updatedAccount as any).secondPublicKey = secondPublicKey;
 			(updatedAccount as any).secondSignature = secondSignature;
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
-			// Assert
-			expect(stateStore.account.get(defaultAccounts[0].address)).toStrictEqual(
-				updatedAccount,
+			const updatedAcountAfterSet = await stateStore.account.get(
+				defaultAccounts[0].address,
 			);
+			// Assert
+			expect(updatedAcountAfterSet).toStrictEqual(updatedAccount);
 		});
 
 		it('should update the updateKeys property', async () => {
 			const updatedKeys = ['secondPublicKey', 'secondSignature'];
-			const updatedAccount = stateStore.account.get(defaultAccounts[0].address);
+			const updatedAccount = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
 
 			(updatedAccount as any).secondPublicKey = secondPublicKey;
 			(updatedAccount as any).secondSignature = secondSignature;
@@ -183,7 +212,7 @@ describe('state store / account', () => {
 			];
 			await stateStore.account.cache(filter);
 
-			updatedAccount = stateStore.account.get(defaultAccounts[0].address);
+			updatedAccount = await stateStore.account.get(defaultAccounts[0].address);
 
 			(updatedAccount as any).secondPublicKey = secondPublicKey;
 			(updatedAccount as any).secondSignature = secondSignature;

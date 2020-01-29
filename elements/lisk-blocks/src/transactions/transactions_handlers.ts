@@ -87,7 +87,7 @@ export const verifyTotalSpending = async (
 		// tslint:disable-next-line no-magic-numbers
 		if (senderTransactions[senderId].length < 2) {
 			// tslint:disable-next-line: return-undefined
-			return;
+			break;
 		}
 
 		// Grab the sender balance
@@ -148,6 +148,7 @@ export const applyGenesisTransactions = () => async (
 		// We are overriding the status of transaction because it's from genesis block
 		(transactionResponse as WriteableTransactionResponse).status =
 			TransactionStatus.OK;
+		transactionsResponses.push(transactionResponse);
 	}
 
 	return {
@@ -167,8 +168,10 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	await votesWeight.prepare(stateStore, transactions);
 
 	// Verify total spending of per account accumulative
-	const transactionsResponseWithSpendingErrors =
-		(await verifyTotalSpending(transactions, stateStore)) || [];
+	const transactionsResponseWithSpendingErrors = await verifyTotalSpending(
+		transactions,
+		stateStore,
+	);
 
 	const transactionsWithoutSpendingErrors = transactions.filter(
 		transaction =>

@@ -39,8 +39,8 @@ describe('state store / chain_state', () => {
 			// Act
 			await stateStore.chainState.cache();
 			// Assert
-			expect(stateStore.chainState.get('key1')).toBe('value1');
-			expect(stateStore.chainState.get('key2')).toBe('value2');
+			expect(await stateStore.chainState.get('key1')).toBe('value1');
+			expect(await stateStore.chainState.get('key2')).toBe('value2');
 		});
 	});
 
@@ -49,7 +49,7 @@ describe('state store / chain_state', () => {
 			// Act
 			await stateStore.chainState.set('key3', 'value3');
 			// Assert
-			expect(stateStore.chainState.get('key3')).toBe('value3');
+			expect(await stateStore.chainState.get('key3')).toBe('value3');
 			expect((stateStore.chainState as any)._updatedKeys.size).toBe(1);
 		});
 
@@ -58,7 +58,7 @@ describe('state store / chain_state', () => {
 			await stateStore.chainState.set('key3', 'value3');
 			await stateStore.chainState.set('key3', 'value4');
 			// Assert
-			expect(stateStore.chainState.get('key3')).toBe('value4');
+			expect(await stateStore.chainState.get('key3')).toBe('value4');
 			expect((stateStore.chainState as any)._updatedKeys.size).toBe(1);
 		});
 	});
