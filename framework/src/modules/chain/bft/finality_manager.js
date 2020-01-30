@@ -72,15 +72,7 @@ class FinalityManager extends EventEmitter {
 		validateBlockHeader(blockHeader);
 
 		// Verify the integrity of the header with chain
-		try {
-			this.verifyBlockHeaders(blockHeader);
-		} catch (error) {
-			// TODO: Remove hardcoded value of maxHeightPreviouslyForged to avoid this
-			// https://github.com/LiskHQ/lisk-sdk/blob/fa1bb6907955c12297336f80f59951ba4754da7f/framework/src/modules/chain/blocks/process.js#L125-L126
-			if (!(error instanceof BFTChainDisjointError)) {
-				throw error;
-			}
-		}
+		this.verifyBlockHeaders(blockHeader);
 
 		// Add the header to the list
 		this.headers.add(blockHeader);

@@ -519,7 +519,7 @@ module.exports = class Chain {
 		return this.scope.sequence.add(async () => {
 			try {
 				if (!this.forger.delegatesEnabled()) {
-					this.logger.debug('No delegates are enabled');
+					this.logger.trace('No delegates are enabled');
 					return;
 				}
 				if (this.synchronizer.isActive) {
