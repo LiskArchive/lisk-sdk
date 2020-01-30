@@ -31,7 +31,7 @@ const {
 const expect = chai.expect;
 
 describe('transport', () => {
-	const { releaseLimit } = __testContext.config.modules.chain.broadcasts;
+	const { releaseLimit } = __testContext.config.app.node.broadcasts;
 
 	let storageStub;
 	let loggerStub;
@@ -155,7 +155,7 @@ describe('transport', () => {
 			logger: loggerStub,
 			storage: storageStub,
 			applicationState: {},
-			exceptions: __testContext.config.modules.chain.exceptions,
+			exceptions: __testContext.config.app.node.exceptions,
 			synchronizer: synchronizerStub,
 			transactionPoolModule: {
 				getMultisignatureTransactionList: sinonSandbox.stub(),
@@ -189,7 +189,7 @@ describe('transport', () => {
 			loaderModule: {
 				syncing: sinonSandbox.stub().returns(false),
 			},
-			broadcasts: __testContext.config.modules.chain.broadcasts,
+			broadcasts: __testContext.config.app.node.broadcasts,
 		});
 	});
 

@@ -371,7 +371,7 @@ describe('Migration', () => {
 		let savedMigrations;
 
 		const modulesMigrations = {};
-		modulesMigrations.chain = nodeMigrations();
+		modulesMigrations.node = nodeMigrations();
 		modulesMigrations.network = networkMigrations();
 		modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 

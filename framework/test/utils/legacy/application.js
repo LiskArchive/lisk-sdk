@@ -19,7 +19,7 @@ const { StorageSandbox } = require('../storage/storage_sandbox');
 const { createNode } = require('../node');
 const { storageConfig: defaultStorageConfig } = require('../configs');
 const {
-	modules: { chain: nodeNetworkConfig },
+	app: { node: nodeNetworkConfig },
 } = require('../../fixtures/config/devnet/config');
 
 const channelStub = {
@@ -56,7 +56,7 @@ const initNode = async (options, storageConfig) => {
 
 	const nodeOptions = {
 		...options,
-		exceptions: __testContext.config.modules.chain.exceptions,
+		exceptions: __testContext.config.app.node.exceptions,
 		// To register both v1 and v2 processors in Node
 		...{
 			exceptions: {

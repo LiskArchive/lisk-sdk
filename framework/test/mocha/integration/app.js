@@ -358,7 +358,7 @@ describe('app', () => {
 
 				it('length should match delegates length from config file', async () => {
 					return expect(Object.keys(keypairs).length).to.equal(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.app.node.forging.delegates.length,
 					);
 				});
 
