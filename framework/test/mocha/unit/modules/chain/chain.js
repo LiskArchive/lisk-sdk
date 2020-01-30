@@ -42,6 +42,7 @@ describe('Chain', () => {
 
 		/* Arranging Stubs start */
 		stubs.logger = {
+			trace: sinonSandbox.stub(),
 			error: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
 			fatal: sinonSandbox.stub(),
@@ -481,7 +482,7 @@ describe('Chain', () => {
 			await chain._forgingTask();
 
 			// Assert
-			expect(stubs.logger.trace.getCall(1)).to.be.calledWith(
+			expect(stubs.logger.trace.getCall(0)).to.be.calledWith(
 				'No delegates are enabled',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
