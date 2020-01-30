@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { when } from 'jest-when';
 import {
 	transfer,
 	castVotes,
@@ -710,15 +711,20 @@ describe('blocks/header', () => {
 					balance: '10000000000',
 					voteWeight: '0',
 				};
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: genesisAccount.address,
-						balance: '10000000000',
-						votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
-					},
-					delegate1,
-					delegate2,
-				]);
+
+				when(storageStub.entities.Account.get)
+					.mockResolvedValue([
+						{
+							address: genesisAccount.address,
+							balance: '10000000000',
+							votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+						},
+						delegate1,
+						delegate2,
+					] as never)
+					.calledWith({ address: '124L' })
+					.mockResolvedValue([] as never);
+
 				// Act
 				const validTx = blocksInstance.deserializeTransaction(
 					castVotes({
