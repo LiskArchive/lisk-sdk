@@ -81,11 +81,6 @@ class Synchronizer {
 				receivedBlock,
 				'A block must be provided to the Synchronizer in order to run',
 			);
-			assert(
-				peerId,
-				'A peer ID from the peer sending the block must be provided to the Synchronizer in order to run',
-			);
-
 			this.logger.info(
 				{ blockId: receivedBlock.id, height: receivedBlock.height },
 				'Starting synchronizer',
@@ -101,6 +96,7 @@ class Synchronizer {
 			// Choose the right mechanism to sync
 			const validMechanism = await this._determineSyncMechanism(
 				receivedBlockInstance,
+				peerId,
 			);
 
 			if (!validMechanism) {
@@ -132,9 +128,9 @@ class Synchronizer {
 	}
 
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
-	async _determineSyncMechanism(receivedBlock) {
+	async _determineSyncMechanism(receivedBlock, peerId) {
 		for (const mechanism of this.mechanisms) {
-			if (await mechanism.isValidFor(receivedBlock)) {
+			if (await mechanism.isValidFor(receivedBlock, peerId)) {
 				return mechanism;
 			}
 		}

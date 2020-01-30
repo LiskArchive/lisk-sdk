@@ -462,13 +462,6 @@ describe('Synchronizer', () => {
 			expect(synchronizer.active).toBeFalsy();
 		});
 
-		it('should reject with error if required properties are missing (peerId)', async () => {
-			await expect(synchronizer.run({ height: 1 })).rejects.toThrow(
-				'A peer ID from the peer sending the block must be provided to the Synchronizer in order to run',
-			);
-			expect(synchronizer.active).toBeFalsy();
-		});
-
 		it('should validate the block before sync', async () => {
 			jest.spyOn(processorModule, 'validateDetached');
 
