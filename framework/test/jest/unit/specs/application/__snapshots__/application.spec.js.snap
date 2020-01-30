@@ -514,7 +514,7 @@ Object {
       "poolIdleTimeout": 30000,
       "port": 5432,
       "reapIntervalMillis": 1000,
-      "user": "postgres",
+      "user": "lisk",
     },
   },
   "modules": Object {
