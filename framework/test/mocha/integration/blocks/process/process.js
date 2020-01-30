@@ -106,14 +106,20 @@ describe('integration test (blocks) - process', () => {
 
 	describe('loadBlocksWithOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', async () => {
-			const loadedBlocks = await blocks.getBlocksWithLimitAndOffset(1, 2);
+			const loadedBlocks = await blocks.dataAccess.getBlocksWithLimitAndOffset(
+				1,
+				2,
+			);
 
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(2);
 		});
 
 		it('should load block 3 from db: block with transactions', async () => {
-			const loadedBlocks = await blocks.getBlocksWithLimitAndOffset(1, 3);
+			const loadedBlocks = await blocks.dataAccess.getBlocksWithLimitAndOffset(
+				1,
+				3,
+			);
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(3);
 		});

@@ -91,7 +91,7 @@ class Rebuilder {
 				break;
 			}
 			// if rebuildUptoRound is undefined, use the highest height
-			const blocks = await this.blocksModule.getBlocksWithLimitAndOffset(
+			const blocks = await this.blocksModule.dataAccess.getBlocksWithLimitAndOffset(
 				limit,
 				currentHeight,
 			);

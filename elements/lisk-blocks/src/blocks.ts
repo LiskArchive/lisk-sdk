@@ -107,7 +107,7 @@ export class Blocks extends EventEmitter {
 	private readonly blocksVerify: BlocksVerify;
 	private readonly logger: Logger;
 	private readonly storage: Storage;
-	private readonly dataAccess: DataAccess;
+	public readonly dataAccess: DataAccess;
 	public readonly slots: Slots;
 	private readonly blockRewardArgs: BlockRewardOptions;
 	private readonly exceptions: ExceptionOptions;
@@ -375,27 +375,6 @@ export class Blocks extends EventEmitter {
 		} catch (err) {
 			return true;
 		}
-	}
-
-	public async getBlocksWithLimitAndOffset(
-		limit: number,
-		offset: number = 0,
-	): Promise<BlockInstance[]> {
-		// Calculate toHeight
-		const toHeight = offset + limit;
-		// To Preserve LessThan logic we are substracting by 1
-		const toHeightLT = toHeight - 1;
-
-		// Loads extended blocks from storage
-		const blocks = await this.dataAccess.getBlocksByHeightBetween(
-			offset,
-			toHeightLT,
-		);
-
-		// Return blocks in ascending order
-		return blocks.sort(
-			(a: BlockInstance, b: BlockInstance) => a.height - b.height,
-		);
 	}
 
 	public async loadBlocksFromLastBlockId(

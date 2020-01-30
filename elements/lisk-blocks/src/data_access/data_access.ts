@@ -203,6 +203,24 @@ export class DataAccess {
 		return blocks?.map(block => this.deserialize(block));
 	}
 
+	public async getBlocksWithLimitAndOffset(
+		limit: number,
+		offset: number = 0,
+	): Promise<BlockInstance[]> {
+		// Calculate toHeight
+		const toHeight = offset + limit;
+		// To Preserve LessThan logic we are substracting by 1
+		const toHeightLT = toHeight - 1;
+
+		// Loads extended blocks from storage
+		const blocks = await this.getBlocksByHeightBetween(offset, toHeightLT);
+
+		// Return blocks in ascending order
+		return blocks.sort(
+			(a: BlockInstance, b: BlockInstance) => a.height - b.height,
+		);
+	}
+
 	public async getLastBlock(): Promise<BlockInstance | undefined> {
 		const block = await this._storage.getLastBlock();
 

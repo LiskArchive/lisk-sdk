@@ -651,7 +651,7 @@ describe('blocks', () => {
 			});
 
 			it('should use limit 1 as default', async () => {
-				await blocksInstance.getBlocksWithLimitAndOffset(1);
+				await blocksInstance.dataAccess.getBlocksWithLimitAndOffset(1);
 
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
@@ -681,7 +681,10 @@ describe('blocks', () => {
 			});
 
 			it('should be sorted ascending by height', async () => {
-				const blocks = await blocksInstance.getBlocksWithLimitAndOffset(2, 100);
+				const blocks = await blocksInstance.dataAccess.getBlocksWithLimitAndOffset(
+					2,
+					100,
+				);
 
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
