@@ -79,7 +79,7 @@ import {
 } from './p2p_types';
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
-import { PeerServer } from './peer_server/peer_server';
+import { PeerServer } from './peer_server/';
 import {
 	assignInternalInfo,
 	constructPeerId,
