@@ -34,42 +34,7 @@ Object {
       ],
       "wsPort": 5000,
     },
-    "protocolVersion": "1.1",
-    "tempPath": "/tmp/lisk",
-    "version": "2.1.0",
-  },
-  "components": Object {
-    "cache": Object {
-      "db": 0,
-      "enabled": true,
-      "host": "127.0.0.1",
-      "password": null,
-      "port": 6380,
-    },
-    "logger": Object {
-      "consoleLogLevel": "info",
-      "fileLogLevel": "debug",
-      "logFileName": "logs/devnet/lisk.log",
-    },
-    "storage": Object {
-      "database": "lisk_dev",
-      "host": "localhost",
-      "logEvents": Array [
-        "error",
-      ],
-      "logFileName": "logs/devnet/lisk_db.log",
-      "max": 10,
-      "min": 1,
-      "password": "password",
-      "poolIdleTimeout": 30000,
-      "port": 5432,
-      "reapIntervalMillis": 1000,
-      "user": "lisk",
-    },
-    "system": Object {},
-  },
-  "modules": Object {
-    "chain": Object {
+    "node": Object {
       "broadcasts": Object {
         "active": true,
         "broadcastInterval": 5000,
@@ -519,6 +484,40 @@ Object {
         "maxTransactionsPerQueue": 1000,
       },
     },
+    "protocolVersion": "1.1",
+    "tempPath": "/tmp/lisk",
+    "version": "2.1.0",
+  },
+  "components": Object {
+    "cache": Object {
+      "db": 0,
+      "enabled": true,
+      "host": "127.0.0.1",
+      "password": null,
+      "port": 6380,
+    },
+    "logger": Object {
+      "consoleLogLevel": "info",
+      "fileLogLevel": "debug",
+      "logFileName": "logs/devnet/lisk.log",
+    },
+    "storage": Object {
+      "database": "lisk_dev",
+      "host": "localhost",
+      "logEvents": Array [
+        "error",
+      ],
+      "logFileName": "logs/devnet/lisk_db.log",
+      "max": 10,
+      "min": 1,
+      "password": "password",
+      "poolIdleTimeout": 30000,
+      "port": 5432,
+      "reapIntervalMillis": 1000,
+      "user": "postgres",
+    },
+  },
+  "modules": Object {
     "http_api": Object {
       "access": Object {
         "public": true,
