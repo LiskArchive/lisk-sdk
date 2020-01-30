@@ -1,2 +1,2 @@
-export { Cache } from './cache';
-export { Blocks } from './blocks';
+export { Base } from './base';
+export { BlockCache } from './block';

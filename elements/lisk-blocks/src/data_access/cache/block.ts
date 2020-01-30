@@ -15,9 +15,9 @@ import * as assert from 'assert';
 
 import { BlockHeader } from '../../types';
 
-import { Cache } from './cache';
+import { Base } from './base';
 
-export class Blocks extends Cache<BlockHeader> {
+export class BlockCache extends Base<BlockHeader> {
 	public constructor(size: number = 500) {
 		super(size);
 	}

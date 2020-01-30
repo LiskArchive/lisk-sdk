@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export abstract class Cache<T> {
+export abstract class Base<T> {
 	private _items: T[];
 	private readonly _size: number;
 
