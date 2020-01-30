@@ -17,6 +17,7 @@
 const path = require('path');
 const fs = require('fs');
 const bunyan = require('bunyan');
+const util = require('util');
 
 const createDirIfNotExist = filePath => {
 	const dir = path.dirname(filePath);
@@ -25,6 +26,55 @@ const createDirIfNotExist = filePath => {
 	}
 	fs.mkdirSync(dir, { recursive: true });
 };
+
+// Levels
+const colors = {
+	reset: '\x1b[0m',
+	red: '\x1b[31m',
+	green: '\x1b[32m',
+	yellow: '\x1b[33m',
+	blue: '\x1b[34m',
+	meganta: '\x1b[35m',
+	cyan: '\x1b[36m',
+	white: '\x1b[37m',
+};
+
+const setColor = (color, str) => `${colors[color]}${str}${colors.reset}`;
+
+const levelToName = {
+	10: setColor('yellow', 'TRACE'),
+	20: setColor('meganta', 'DEBUG'),
+	30: setColor('cyan', 'INFO'),
+	40: setColor('yellow', 'WARN'),
+	50: setColor('red', 'ERROR'),
+	60: setColor('red', 'FATAL'),
+};
+
+class ConsoleLog {
+	// eslint-disable-next-line
+	write(rec) {
+		try {
+			let log = util.format(
+				'%s [%s] %s %s (module=%s)\n',
+				new Date(rec.time).toISOString(),
+				levelToName[rec.level],
+				rec.name,
+				rec.msg,
+				rec.module || 'unknown',
+			);
+			if (rec.err) {
+				log += util.format(
+					'Message: %s \n Trace: %s \n',
+					rec.err.message,
+					rec.err.stack,
+				);
+			}
+			process.stdout.write(log);
+		} catch (err) {
+			console.error('Failed on logging', rec.err);
+		}
+	}
+}
 
 const createLogger = ({
 	fileLogLevel,
@@ -37,8 +87,9 @@ const createLogger = ({
 		consoleLogLevel !== 'none'
 			? [
 					{
+						type: 'raw',
 						level: consoleLogLevel,
-						stream: process.stdout,
+						stream: new ConsoleLog(),
 					},
 			  ]
 			: [];
