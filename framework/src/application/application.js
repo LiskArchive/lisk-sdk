@@ -290,7 +290,7 @@ class Application {
 
 		// Have to keep it consistent until update migration namespace in database
 		await this.storage.entities.Migration.applyAll({
-			chain: nodeMigrations(),
+			node: nodeMigrations(),
 			network: networkMigrations(),
 		});
 

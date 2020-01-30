@@ -536,11 +536,8 @@ module.exports = {
 		},
 		modules: {
 			type: 'object',
-			required: ['chain', 'http_api'],
+			required: ['http_api'],
 			properties: {
-				chain: {
-					type: 'object',
-				},
 				http_api: {
 					type: 'object',
 				},
@@ -625,13 +622,11 @@ module.exports = {
 			},
 		},
 		components: {
-			system: {},
 			logger: {},
 			cache: {},
 			storage: {},
 		},
 		modules: {
-			chain: {},
 			http_api: {},
 		},
 	},

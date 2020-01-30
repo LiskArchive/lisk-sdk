@@ -30,7 +30,7 @@ const {
 } = require('../../../../src/application/storage/migrations');
 
 const modulesMigrations = {
-	chain: nodeMigrations(),
+	node: nodeMigrations(),
 	network: networkMigrations(),
 	[HttpAPIModule.alias]: HttpAPIModule.migrations,
 };

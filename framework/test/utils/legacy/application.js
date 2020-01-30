@@ -19,7 +19,7 @@ const { StorageSandbox } = require('../storage/storage_sandbox');
 const { createNode } = require('../node');
 const { storageConfig: defaultStorageConfig } = require('../configs');
 const {
-	modules: { chain: nodeNetworkConfig },
+	app: { node: nodeNetworkConfig },
 } = require('../../fixtures/config/devnet/config');
 
 const channelStub = {
