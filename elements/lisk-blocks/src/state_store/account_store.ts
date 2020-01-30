@@ -102,7 +102,7 @@ export class AccountStore {
 
 		// Account was not cached previously so we try to fetch it from db
 		// tslint:disable-next-line no-null-keyword
-		const elementFromDB = await this._account.getOne(
+		const [elementFromDB] = await this._account.get(
 			{ [this._primaryKey]: primaryValue },
 			// tslint:disable-next-line no-null-keyword
 			{ limit: null },

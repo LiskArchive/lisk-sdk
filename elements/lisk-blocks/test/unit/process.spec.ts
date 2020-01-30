@@ -29,7 +29,7 @@ import { BlockInstance, ExceptionOptions, Logger } from '../../src/types';
 
 jest.mock('events');
 
-describe.skip('blocks/header', () => {
+describe('blocks/header', () => {
 	const constants = {
 		blockReceiptTimeout: 20,
 		loadPerIteration: 1000,
