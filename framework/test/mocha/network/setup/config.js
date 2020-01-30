@@ -58,8 +58,8 @@ const config = {
 			delete devConfigCopy.nethash;
 			delete devConfigCopy.genesisBlock;
 			delete devConfigCopy.constants;
-			delete devConfigCopy.modules.chain.genesisBlock;
-			delete devConfigCopy.modules.chain.constants;
+			delete devConfigCopy.app.node.genesisBlock;
+			delete devConfigCopy.app.node.constants;
 			delete devConfigCopy.modules.http_api.genesisBlock;
 			delete devConfigCopy.modules.http_api.constants;
 			delete devConfigCopy.initialState;
@@ -104,16 +104,15 @@ const config = {
 
 		// Configuring nodes to forge with force or without
 		const delegatesMaxLength = Math.ceil(
-			devConfig.modules.chain.forging.delegates.length /
-				(configurations.length - 1),
+			devConfig.app.node.forging.delegates.length / (configurations.length - 1),
 		);
-		const delegates = _.clone(devConfig.modules.chain.forging.delegates);
+		const delegates = _.clone(devConfig.app.node.forging.delegates);
 
 		return configurations.forEach((configuration, index) => {
 			// eslint-disable-next-line no-param-reassign
-			configuration.modules.chain.forging.force = false;
+			configuration.app.node.forging.force = false;
 			// eslint-disable-next-line no-param-reassign
-			configuration.modules.chain.forging.delegates = delegates.slice(
+			configuration.app.node.forging.delegates = delegates.slice(
 				index * delegatesMaxLength,
 				(index + 1) * delegatesMaxLength,
 			);

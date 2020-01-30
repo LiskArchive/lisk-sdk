@@ -15,20 +15,17 @@
 
 'use strict';
 
-const { constantsConfig } = require('../configs');
+const { constantsConfig, nodeConfig } = require('../configs');
 const {
 	registeredTransactions,
 } = require('../../utils/registered_transactions');
 const { createMockChannel } = require('../channel');
-const {
-	config: nodeConfig,
-} = require('../../../src/application/node/defaults');
 const { Node } = require('../../../src/application/node');
 const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
 
 const createNode = ({ storage, logger, channel, options = {} }) => {
 	const nodeOptions = {
-		...nodeConfig.default,
+		...nodeConfig(),
 		...options,
 		constants: constantsConfig(),
 		genesisBlock,

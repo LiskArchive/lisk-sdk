@@ -48,3 +48,4 @@ WHERE EXISTS (
 ) AND NOT EXISTS (
   SELECT * FROM "migrations" WHERE id = '20160723182900' AND name = 'create_schema' AND namespace = 'network'
 );
+UPDATE "migrations" SET namespace = 'node' WHERE namespace = 'chain';

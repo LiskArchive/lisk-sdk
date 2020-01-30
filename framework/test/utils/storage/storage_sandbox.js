@@ -43,7 +43,7 @@ const {
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
-modulesMigrations.chain = nodeMigrations();
+modulesMigrations.node = nodeMigrations();
 modulesMigrations.network = networkMigrations();
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 

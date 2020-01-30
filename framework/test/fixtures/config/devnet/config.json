@@ -31,31 +31,8 @@
 					"wsPort": 5000
 				}
 			]
-		}
-	},
-	"components": {
-		"logger": {
-			"fileLogLevel": "debug",
-			"logFileName": "logs/devnet/lisk.log",
-			"consoleLogLevel": "info"
 		},
-		"storage": {
-			"database": "lisk_dev",
-			"min": 1,
-			"max": 10,
-			"logFileName": "logs/devnet/lisk_db.log"
-		},
-		"cache": {
-			"enabled": true
-		}
-	},
-	"modules": {
-		"http_api": {
-			"access": {
-				"public": true
-			}
-		},
-		"chain": {
+		"node": {
 			"forging": {
 				"force": true,
 				"delegates": [
@@ -465,6 +442,29 @@
 					}
 				],
 				"defaultPassword": "elephant tree paris dragon chair galaxy"
+			}
+		}
+	},
+	"components": {
+		"logger": {
+			"fileLogLevel": "debug",
+			"logFileName": "logs/devnet/lisk.log",
+			"consoleLogLevel": "info"
+		},
+		"storage": {
+			"database": "lisk_dev",
+			"min": 1,
+			"max": 10,
+			"logFileName": "logs/devnet/lisk_db.log"
+		},
+		"cache": {
+			"enabled": true
+		}
+	},
+	"modules": {
+		"http_api": {
+			"access": {
+				"public": true
 			}
 		}
 	}
