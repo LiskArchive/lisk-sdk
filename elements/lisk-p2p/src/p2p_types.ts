@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { SCServerSocket } from 'socketcluster-server';
+
 import { ConnectionKind, PeerKind } from './constants';
+import { PeerBook } from './peer_book';
 
 export interface P2PRequestPacket {
 	readonly data?: unknown;
@@ -113,6 +116,11 @@ export interface ProtocolPeerInfo {
 	readonly [key: string]: unknown;
 }
 
+export interface IncomingPeerConnection {
+	readonly peerInfo: P2PPeerInfo;
+	readonly socket: SCServerSocket;
+}
+
 export interface P2PConfig {
 	readonly blacklistedIPs?: ReadonlyArray<string>;
 	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
@@ -146,6 +154,16 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
+}
+
+export interface PeerServerConfig {
+	readonly nodeInfo: P2PNodeInfo;
+	readonly hostIp: string;
+	readonly secret: number;
+	readonly peerBook: PeerBook;
+	readonly maxPayload: number;
+	readonly maxPeerInfoSize: number;
+	readonly peerHandshakeCheck: P2PCheckPeerCompatibility;
 }
 
 export interface P2PPeerSelectionForSendInput {

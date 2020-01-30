@@ -14,16 +14,10 @@
  */
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
-import * as http from 'http';
-// tslint:disable-next-line no-require-imports
-import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
-import * as url from 'url';
 
 import {
-	ConnectionKind,
 	DEFAULT_BAN_TIME,
 	DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL,
-	DEFAULT_HTTP_PATH,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
@@ -44,21 +38,7 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 	DEFAULT_WS_MAX_PAYLOAD,
-	DUPLICATE_CONNECTION,
-	DUPLICATE_CONNECTION_REASON,
-	FORBIDDEN_CONNECTION,
-	FORBIDDEN_CONNECTION_REASON,
-	INCOMPATIBLE_PEER_CODE,
-	INCOMPATIBLE_PEER_INFO_CODE,
-	INCOMPATIBLE_PEER_UNKNOWN_REASON,
-	INVALID_CONNECTION_QUERY_CODE,
-	INVALID_CONNECTION_QUERY_REASON,
-	INVALID_CONNECTION_SELF_CODE,
-	INVALID_CONNECTION_SELF_REASON,
-	INVALID_CONNECTION_URL_CODE,
-	INVALID_CONNECTION_URL_REASON,
 } from './constants';
-import { PeerInboundHandshakeError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -67,7 +47,6 @@ import {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_ADD_INBOUND_PEER,
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
@@ -86,7 +65,7 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
-	P2PCheckPeerCompatibility,
+	IncomingPeerConnection,
 	P2PClosePacket,
 	P2PConfig,
 	P2PMessagePacket,
@@ -100,6 +79,7 @@ import {
 } from './p2p_types';
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
+import { PeerServer } from './peer_server/peer_server';
 import {
 	assignInternalInfo,
 	constructPeerId,
@@ -111,14 +91,7 @@ import {
 	selectPeersForSend,
 	validateNodeInfo,
 	validatePeerCompatibility,
-	validatePeerInfo,
 } from './utils';
-
-interface SCServerUpdated extends SCServer {
-	readonly isReady: boolean;
-}
-
-const BASE_10_RADIX = 10;
 
 const createPeerPoolConfig = (
 	config: P2PConfig,
@@ -196,17 +169,16 @@ const createPeerPoolConfig = (
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _sanitizedPeerLists: PeerLists;
-	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
 	private _hasConnected: boolean;
 	private readonly _peerBook: PeerBook;
+	private _peerServer: PeerServer | undefined;
 	private readonly _populatorInterval: number;
 	private _nextSeedPeerDiscovery: number;
 	private readonly _fallbackSeedPeerDiscoveryInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
-	private readonly _scServer: SCServerUpdated;
 	private readonly _secret: number;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
@@ -224,6 +196,9 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerCloseInbound: (
 		closePacket: P2PClosePacket,
 	) => void;
+	private readonly _handleInboundPeerConnect: (
+		incomingPeerConnection: IncomingPeerConnection,
+	) => void;
 	private readonly _handleRemovePeer: (peerId: string) => void;
 	private readonly _handlePeerInfoUpdate: (peerInfo: P2PPeerInfo) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
@@ -233,7 +208,6 @@ export class P2P extends EventEmitter {
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
-	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -268,19 +242,11 @@ export class P2P extends EventEmitter {
 		this._config = config;
 		this._isActive = false;
 		this._hasConnected = false;
+		this._peerServer = undefined;
 		this._peerBook = new PeerBook({
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		this._httpServer = http.createServer();
-		this._scServer = attach(this._httpServer, {
-			path: DEFAULT_HTTP_PATH,
-			wsEngineServerOptions: {
-				maxPayload: config.wsMaxPayload
-					? config.wsMaxPayload
-					: DEFAULT_WS_MAX_PAYLOAD,
-			},
-		}) as SCServerUpdated;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -356,6 +322,18 @@ export class P2P extends EventEmitter {
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
+		};
+
+		this._handleInboundPeerConnect = (
+			incomingPeerConnection: IncomingPeerConnection,
+		) => {
+			this._peerPool.addInboundPeer(
+				incomingPeerConnection.peerInfo,
+				incomingPeerConnection.socket,
+			);
+
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection.peerInfo);
 		};
 
 		this._handleRemovePeer = (peerId: string) => {
@@ -456,10 +434,6 @@ export class P2P extends EventEmitter {
 
 		this._nextSeedPeerDiscovery =
 			Date.now() + this._fallbackSeedPeerDiscoveryInterval;
-
-		this._peerHandshakeCheck = config.peerHandshakeCheck
-			? config.peerHandshakeCheck
-			: validatePeerCompatibility;
 	}
 
 	public get config(): P2PConfig {
@@ -576,269 +550,6 @@ export class P2P extends EventEmitter {
 		this._peerPool.sendToPeer(message, peerId);
 	}
 
-	private _disconnectSocketDueToFailedHandshake(
-		socket: SCServerSocket,
-		statusCode: number,
-		closeReason: string,
-	): void {
-		socket.disconnect(statusCode, closeReason);
-		this.emit(
-			EVENT_FAILED_TO_ADD_INBOUND_PEER,
-			new PeerInboundHandshakeError(
-				closeReason,
-				statusCode,
-				socket.remoteAddress,
-				socket.request.url,
-			),
-		);
-	}
-
-	private async _startPeerServer(): Promise<void> {
-		this._scServer.on('handshake', (socket: SCServerSocket): void => {
-			// Terminate the connection the moment it receive ping frame
-			(socket as any).socket.on('ping', () => {
-				(socket as any).socket.terminate();
-
-				return;
-			});
-			// Terminate the connection the moment it receive pong frame
-			(socket as any).socket.on('pong', () => {
-				(socket as any).socket.terminate();
-
-				return;
-			});
-
-			if (this._peerBook.bannedIPs.has(socket.remoteAddress)) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					FORBIDDEN_CONNECTION,
-					FORBIDDEN_CONNECTION_REASON,
-				);
-
-				return;
-			}
-		});
-
-		this._scServer.on('connection', (socket: SCServerSocket): void => {
-			if (!socket.request.url) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_URL_CODE,
-					INVALID_CONNECTION_URL_REASON,
-				);
-
-				return;
-			}
-			const queryObject = url.parse(socket.request.url, true).query;
-
-			if (queryObject.nonce === this._nodeInfo.nonce) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_SELF_CODE,
-					INVALID_CONNECTION_SELF_REASON,
-				);
-
-				const selfWSPort = queryObject.wsPort
-					? +queryObject.wsPort
-					: this._nodeInfo.wsPort;
-
-				// Delete you peerinfo from both the lists
-				this._peerBook.removePeer({
-					peerId: constructPeerId(socket.remoteAddress, selfWSPort),
-					ipAddress: socket.remoteAddress,
-					wsPort: selfWSPort,
-				});
-
-				return;
-			}
-
-			if (
-				typeof queryObject.wsPort !== 'string' ||
-				typeof queryObject.version !== 'string' ||
-				typeof queryObject.networkId !== 'string'
-			) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_QUERY_CODE,
-					INVALID_CONNECTION_QUERY_REASON,
-				);
-
-				return;
-			}
-
-			const remoteWSPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-			const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
-
-			// tslint:disable-next-line no-let
-			let queryOptions;
-
-			try {
-				queryOptions =
-					typeof queryObject.options === 'string'
-						? JSON.parse(queryObject.options)
-						: undefined;
-			} catch (error) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_QUERY_CODE,
-					INVALID_CONNECTION_QUERY_REASON,
-				);
-
-				return;
-			}
-
-			// Remove these wsPort and ip from the query object
-			const {
-				wsPort,
-				ipAddress,
-				advertiseAddress,
-				...restOfQueryObject
-			} = queryObject;
-
-			const peerInPeerBook = this._peerBook.getPeer({
-				peerId,
-				ipAddress: socket.remoteAddress,
-				wsPort: remoteWSPort,
-			});
-
-			const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
-				? {
-						...peerInPeerBook,
-						sharedState: {
-							...peerInPeerBook.sharedState,
-							...restOfQueryObject,
-							...queryOptions,
-							height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-							protocolVersion: queryObject.protocolVersion,
-						},
-						internalState: {
-							...(peerInPeerBook.internalState
-								? peerInPeerBook.internalState
-								: assignInternalInfo(peerInPeerBook, this._secret)),
-							advertiseAddress: advertiseAddress !== 'false',
-							connectionKind: ConnectionKind.INBOUND,
-						},
-				  }
-				: {
-						sharedState: {
-							...restOfQueryObject,
-							...queryOptions,
-							height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-							protocolVersion: queryObject.protocolVersion,
-						},
-						internalState: {
-							...assignInternalInfo(
-								{
-									peerId,
-									ipAddress: socket.remoteAddress,
-									wsPort: remoteWSPort,
-								},
-								this._secret,
-							),
-							advertiseAddress: advertiseAddress !== 'false',
-							connectionKind: ConnectionKind.INBOUND,
-						},
-						peerId,
-						ipAddress: socket.remoteAddress,
-						wsPort: remoteWSPort,
-				  };
-
-			try {
-				validatePeerInfo(
-					incomingPeerInfo,
-					this._config.maxPeerInfoSize
-						? this._config.maxPeerInfoSize
-						: DEFAULT_MAX_PEER_INFO_SIZE,
-				);
-			} catch (error) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INCOMPATIBLE_PEER_INFO_CODE,
-					error,
-				);
-			}
-
-			const { success, error } = this._peerHandshakeCheck(
-				incomingPeerInfo,
-				this._nodeInfo,
-			);
-
-			if (!success) {
-				const incompatibilityReason = error || INCOMPATIBLE_PEER_UNKNOWN_REASON;
-
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INCOMPATIBLE_PEER_CODE,
-					incompatibilityReason,
-				);
-
-				return;
-			}
-
-			try {
-				this._peerPool.addInboundPeer(incomingPeerInfo, socket);
-				this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
-			} catch (err) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					DUPLICATE_CONNECTION,
-					DUPLICATE_CONNECTION_REASON,
-				);
-
-				return;
-			}
-
-			if (this._peerBook.hasPeer(incomingPeerInfo)) {
-				return;
-			}
-
-			this._peerBook.addPeer({
-				...incomingPeerInfo,
-				sourceAddress: socket.remoteAddress,
-			});
-		});
-
-		this._httpServer.listen(
-			this._nodeInfo.wsPort,
-			this._config.hostIp || DEFAULT_NODE_HOST_IP,
-		);
-		if (this._scServer.isReady) {
-			this._isActive = true;
-
-			return;
-		}
-
-		return new Promise<void>(resolve => {
-			this._scServer.once('ready', () => {
-				this._isActive = true;
-				resolve();
-			});
-		});
-	}
-
-	private async _stopHTTPServer(): Promise<void> {
-		return new Promise<void>(resolve => {
-			this._httpServer.close(() => {
-				resolve();
-			});
-		});
-	}
-
-	private async _stopWSServer(): Promise<void> {
-		return new Promise<void>(resolve => {
-			this._scServer.close(() => {
-				resolve();
-			});
-		});
-	}
-
-	private async _stopPeerServer(): Promise<void> {
-		this._peerBook.cleanUpTimers();
-
-		await this._stopWSServer();
-		await this._stopHTTPServer();
-	}
-
 	private _startPopulator(): void {
 		if (this._populatorIntervalId) {
 			throw new Error('Populator is already running');
@@ -936,7 +647,33 @@ export class P2P extends EventEmitter {
 			throw new Error('Node cannot start because it is already active.');
 		}
 
-		await this._startPeerServer();
+		if (this._config.maxOutboundConnections !== 0) {
+			this._peerServer = new PeerServer({
+				nodeInfo: this._nodeInfo,
+				hostIp: this._config.hostIp || DEFAULT_NODE_HOST_IP,
+				secret: this._secret,
+				peerBook: this._peerBook,
+				maxPayload: this._config.wsMaxPayload
+					? this._config.wsMaxPayload
+					: DEFAULT_WS_MAX_PAYLOAD,
+				maxPeerInfoSize: this._config.maxPeerInfoSize
+					? this._config.maxPeerInfoSize
+					: DEFAULT_MAX_PEER_INFO_SIZE,
+				peerHandshakeCheck: this._config.peerHandshakeCheck
+					? this._config.peerHandshakeCheck
+					: validatePeerCompatibility,
+			});
+			this._bindHandlersToPeerServer(this._peerServer);
+
+			try {
+				await this._peerServer.start();
+				this._isActive = true;
+			} catch (err) {
+				throw new Error(`PeerServer cannot start, reason: ${err}`);
+			}
+		} else {
+			this._isActive = true;
+		}
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
@@ -959,7 +696,11 @@ export class P2P extends EventEmitter {
 		this._hasConnected = false;
 		this._stopPopulator();
 		this._peerPool.removeAllPeers();
-		await this._stopPeerServer();
+		this._peerBook.cleanUpTimers();
+
+		if (this._peerServer) {
+			await this._peerServer.stop();
+		}
 	}
 
 	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
@@ -996,6 +737,10 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
 		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
+	}
+
+	private _bindHandlersToPeerServer(peerServer: PeerServer): void {
+		peerServer.on(EVENT_NEW_INBOUND_PEER, this._handleInboundPeerConnect);
 	}
 	// tslint:disable-next-line:max-file-line-count
 }
