@@ -178,7 +178,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 		configurable: true,
 	});
 
-	scope.modules.blocks._transactionAdapter._transactionClassMap.set(
+	scope.modules.blocks.dataAccess._transactionAdapter._transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
 		CustomTransationClass,
 	);
@@ -207,7 +207,9 @@ describe('matcher', () => {
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
-		scope.modules.blocks._transactionAdapter._transactionClassMap.delete(7);
+		scope.modules.blocks.dataAccess._transactionAdapter._transactionClassMap.delete(
+			7,
+		);
 		transactionPool = scope.modules.transactionPool;
 
 		// Define matcher property to be configurable so it can be overriden in the tests
@@ -217,7 +219,7 @@ describe('matcher', () => {
 	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
-		scope.modules.blocks._transactionAdapter._transactionClassMap.delete(
+		scope.modules.blocks.dataAccess._transactionAdapter._transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE,
 		);
 
